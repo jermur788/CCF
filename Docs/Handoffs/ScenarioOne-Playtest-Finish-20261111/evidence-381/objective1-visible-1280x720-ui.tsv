@@ -1,0 +1,65 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer,modal-backdrop	
+VisualElement		(x:210.00, y:27.50, width:1180.00, height:845.00)	True	panel,modal,modal-workplan	
+VisualElement		(x:225.00, y:38.75, width:1150.00, height:121.25)	True	modal-header	
+VisualElement		(x:225.00, y:38.75, width:331.25, height:75.00)	True		
+Label		(x:227.50, y:42.50, width:325.00, height:37.50)	True	unity-label,unity-text-element,title	Work Plan
+Label		(x:227.50, y:86.25, width:325.00, height:25.00)	True	unity-label,unity-text-element,subtitle	Your time next year: 0 min planned of 40.0 h
+VisualElement		(x:225.00, y:120.00, width:1150.00, height:32.50)	True	row,screen-actions	
+Label	menu-current-status	(x:227.50, y:123.75, width:296.25, height:26.25)	True	unity-label,unity-text-element,money,menu-current-status	Current Year 0 · Cash €12000.00
+VisualElement	menu-navigation	(x:225.00, y:166.25, width:1150.00, height:46.25)	True	row-wrap,menu-navigation	
+Button		(x:225.00, y:168.75, width:138.75, height:32.50)	True	unity-button,unity-text-element,btn	Objectives [O]
+Button		(x:371.25, y:168.75, width:143.75, height:32.50)	True	unity-button,unity-text-element,btn	Stand Map [M]
+Button		(x:522.50, y:168.75, width:170.00, height:32.50)	False	unity-button,unity-disabled,unity-text-element,btn,btn-selected	Work Plan [Tab]
+Button		(x:700.00, y:168.75, width:143.75, height:32.50)	True	unity-button,unity-text-element,btn	Annual Review
+Button		(x:851.25, y:168.75, width:100.00, height:32.50)	True	unity-button,unity-text-element,btn	Help [F1]
+Button		(x:958.75, y:168.75, width:178.75, height:32.50)	True	unity-button,unity-text-element,btn	Back to forest [Esc]
+Label		(x:227.50, y:220.00, width:1143.75, height:26.25)	True	unity-label,unity-text-element,plan-steps	1  Review proposed work    →    2  Approve Work Plan    →    3  Advance one year
+Label		(x:227.50, y:255.00, width:1143.75, height:46.25)	True	unity-label,unity-text-element,muted	Marks and planting spots join this draft when you open it. Review the quote and job groups; approval commits eligible pending work. The separate year advance executes approved work.
+Label		(x:227.50, y:307.50, width:1143.75, height:26.25)	True	unity-label,unity-text-element,body	Proposed work · 0 pending · 0 approved. Open a group to edit or remove jobs.
+Label	next-action-reason	(x:227.50, y:340.00, width:1143.75, height:27.50)	True	unity-label,unity-text-element,next-action-reason	Racks planned: 0 / 5. Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.
+ScrollView		(x:225.00, y:371.25, width:1150.00, height:385.00)	True	unity-scroll-view,unity-scroll-view--vertical,unity-scroll-view--scroll	
+VisualElement	unity-content-and-vertical-scroll-container	(x:225.00, y:371.25, width:1150.00, height:385.00)	True	unity-scroll-view__content-and-vertical-scroll-container	
+VisualElement	unity-content-viewport	(x:225.00, y:371.25, width:1131.25, height:385.00)	True	unity-scroll-view__content-viewport,unity-scroll-view__content-viewport--vertical	
+VisualElement	unity-content-container	(x:225.00, y:371.25, width:1131.25, height:561.25)	True	unity-scroll-view__content-container,unity-scroll-view__content-container--vertical	
+VisualElement		(x:225.00, y:371.25, width:1131.25, height:265.00)	True	columns	
+VisualElement	workplan-money	(x:225.00, y:371.25, width:556.25, height:228.75)	True	card,column,workplan-overview	
+Label		(x:242.50, y:392.50, width:520.00, height:27.50)	True	unity-label,unity-text-element,heading	MONEY
+Label		(x:242.50, y:430.00, width:520.00, height:26.25)	True	unity-label,unity-text-element,muted	Expected for all open jobs; re-quoted when the year is resolved.
+VisualElement		(x:240.00, y:458.75, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:465.00, width:448.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Net for planned work
+Label		(x:705.00, y:465.00, width:57.50, height:26.25)	True	unity-label,unity-text-element,money,line-value	€0.00
+VisualElement		(x:240.00, y:497.50, width:526.25, height:38.75)	True	table-row	
+Label		(x:242.50, y:503.75, width:403.75, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Expected cash after approved work
+Label		(x:660.00, y:503.75, width:102.50, height:26.25)	True	unity-label,unity-text-element,value,line-value	€12000.00
+Label		(x:242.50, y:540.00, width:520.00, height:43.75)	True	unity-label,unity-text-element,faint	You could spend €9500.00 more before expected cash falls below one harvesting visit.
+VisualElement	workplan-leaving	(x:791.25, y:371.25, width:555.00, height:257.50)	True	card,column,workplan-overview	
+Label		(x:808.75, y:392.50, width:518.75, height:27.50)	True	unity-label,unity-text-element,heading	WHAT YOU ARE LEAVING
+Label		(x:808.75, y:430.00, width:518.75, height:105.00)	True	unity-label,unity-text-element,muted	The residual stand: the trees left standing if all open work is carried out. An estimate before this year's growth; Annual Review shows what actually happened. Basal area is the cross-section area of the trunks per hectare, a standard measure of how much stand there is.
+VisualElement		(x:806.25, y:537.50, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:543.75, width:281.25, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Trees standing
+Label		(x:1103.75, y:543.75, width:223.75, height:26.25)	True	unity-label,unity-text-element,value,line-value	1344 (no felling planned)
+VisualElement		(x:806.25, y:576.25, width:525.00, height:38.75)	True	table-row	
+Label		(x:808.75, y:582.50, width:390.00, height:26.25)	True	unity-label,unity-text-element,body,cell-name	Crop Trees kept
+Label		(x:1212.50, y:582.50, width:115.00, height:26.25)	True	unity-label,unity-text-element,value,line-value	none chosen
+VisualElement		(x:225.00, y:636.25, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:652.50, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Planting
+Label		(x:242.50, y:690.00, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+VisualElement		(x:225.00, y:735.00, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:751.25, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Pruning
+Label		(x:242.50, y:788.75, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+VisualElement		(x:225.00, y:833.75, width:1131.25, height:91.25)	False	unity-disabled,card,card-locked,work-section	
+Label		(x:242.50, y:850.00, width:1095.00, height:27.50)	False	unity-label,unity-text-element,heading	Nursery — planting stock
+Label		(x:242.50, y:887.50, width:1095.00, height:26.25)	False	unity-label,unity-text-element,muted	Available in a later objective.
+Scroller		(x:1362.50, y:371.25, width:12.50, height:385.00)	True	unity-scroller,unity-scroller--vertical,unity-scroll-view__vertical-scroller	
+ScrollerSlider	unity-slider	(x:1362.50, y:371.25, width:25.00, height:385.00)	True	unity-base-field,unity-base-slider--vertical,unity-base-slider,unity-scroller__slider,unity-base-field--no-label,unity-slider	
+VisualElement		(x:1362.50, y:371.25, width:25.00, height:385.00)	True	unity-base-field__input,unity-base-slider__input,unity-slider__input	
+VisualElement	unity-drag-container	(x:1362.50, y:371.25, width:25.00, height:385.00)	True	unity-base-slider__drag-container	
+VisualElement	unity-tracker	(x:1365.00, y:371.25, width:8.75, height:385.00)	True	unity-base-slider__tracker	
+VisualElement	unity-dragger	(x:1368.75, y:371.25, width:7.50, height:263.75)	True	unity-base-slider__dragger	
+Label		(x:227.50, y:760.00, width:1143.75, height:46.25)	True	unity-label,unity-text-element,muted	Scenario started. Open the Stand Map [M], choose Plan Racks and confirm your rack plan. Review and approve the removal work in the Work Plan.   ·   Racks planned: 0 / 5 · [O] Details · Learn at your own pace across years.
+VisualElement		(x:225.00, y:816.25, width:1150.00, height:45.00)	True	modal-footer	
+Button	workplan-approve	(x:225.00, y:827.50, width:178.75, height:31.25)	True	unity-button,unity-text-element,btn	Approve Work Plan
+Button	workplan-advance	(x:410.00, y:827.50, width:167.50, height:31.25)	True	unity-button,unity-text-element,btn	Advance one year
+Button		(x:583.75, y:827.50, width:178.75, height:31.25)	True	unity-button,unity-text-element,btn	Back to forest [Esc]

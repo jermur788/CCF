@@ -1,0 +1,7 @@
+exec((__import__('pathlib').Path(__file__).parent/'residual.py').read_text().split("paths=(e/")[0])
+cmd({'action':'dismiss'});cmd({'action':'size','width':1280,'height':720});cmd({'action':'focus'})
+native('key','v');cmd({'action':'dump','arg':'unblocked-v-forward'})
+native('keydown','Shift_L');native('key','v');native('keyup','Shift_L');cmd({'action':'capture','arg':'unblocked-shift-v-720'})
+native('key','1');cmd({'action':'capture','arg':'rank1-focus-720'})
+cmd({'action':'size','width':1920,'height':1080});cmd({'action':'capture','arg':'rank1-focus-1080'})
+cmd({'action':'exit'})

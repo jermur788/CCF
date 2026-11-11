@@ -1,0 +1,19 @@
+1794357746742111202.json .done {'action': 'dismiss'}
+1794357754292569053.json .done {'action': 'size', 'width': 1280, 'height': 720}
+1794357759162223776.json .done {'action': 'focus'}
+1794357764956997291.json .done {'action': 'dump', 'arg': 'unblocked-v-forward'}
+1794357771424299870.json .done {'action': 'capture', 'arg': 'unblocked-shift-v-720'}
+1794357781190613206.json .done {'action': 'capture', 'arg': 'rank1-focus-720'}
+1794357788143626710.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794357793029137010.json .done {'action': 'capture', 'arg': 'rank1-focus-1080'}
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/command.py", line 22, in <module>
+    raise RuntimeError('command not acknowledged within finite wait: ' + str(path))
+RuntimeError: command not acknowledged within finite wait: /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/run/evidence/commands/1794357805766143456.json
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/retry-native.py", line 7, in <module>
+    cmd({'action':'exit'})
+  File "<string>", line 4, in cmd
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['python3', '/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/command.py', '{"action": "exit"}']' returned non-zero exit status 1.

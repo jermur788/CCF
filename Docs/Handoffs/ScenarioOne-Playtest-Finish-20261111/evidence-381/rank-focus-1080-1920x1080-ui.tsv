@@ -1,0 +1,77 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:14.17, y:14.17, width:620.00, height:187.50)	True	hud-objective	
+VisualElement	active-objective-widget	(x:14.17, y:14.17, width:620.00, height:187.50)	True	panel,objective-widget	
+VisualElement		(x:35.83, y:26.67, width:579.17, height:31.67)	True	objective-header	
+Label	active-objective-now	(x:37.50, y:35.83, width:58.33, height:16.67)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:107.50, y:31.67, width:110.83, height:25.00)	True	unity-label,unity-text-element,objective-step	Objective 3 of 9
+Button	active-objective-details	(x:520.00, y:26.67, width:95.00, height:31.67)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:37.50, y:62.50, width:573.33, height:28.33)	True	unity-label,unity-text-element,objective-title	Identify the competitors that matter
+Label	active-objective-instruction	(x:37.50, y:94.17, width:573.33, height:46.67)	True	unity-label,unity-text-element,objective-instruction	Next: Compare Share and position; mark meaningful in-footprint competitors, then open Work Plan [Tab].
+Label	active-objective-progress	(x:37.50, y:146.67, width:573.33, height:40.83)	True	unity-label,unity-text-element,objective-progress	Inside teaching area · Middle · right looking from headland into rack | Initial release: 0% minimum / about 30% each · trunk area 0%/40%
+VisualElement	hud-right-column	(x:1255.83, y:14.17, width:330.00, height:55.83)	True	hud-right	
+VisualElement		(x:1255.83, y:14.17, width:330.00, height:55.83)	True	panel,spread,hud-status	
+Label		(x:1272.50, y:30.83, width:48.33, height:25.00)	True	unity-label,unity-text-element,body	Year 2
+Label		(x:1400.00, y:29.17, width:166.67, height:28.33)	True	unity-label,unity-text-element,money	Cash €10225.54
+VisualElement	hud-context-actions	(x:14.17, y:830.83, width:1354.17, height:57.50)	True	panel,row-wrap,context-actions	
+VisualElement		(x:26.67, y:843.33, width:203.33, height:32.50)	True	row,key-control	
+Label		(x:28.33, y:850.00, width:60.00, height:21.67)	True	unity-label,unity-text-element,keycap	Click
+Label		(x:98.33, y:847.50, width:127.50, height:26.67)	True	unity-label,unity-text-element,key-verb	Resume looking
+VisualElement		(x:245.83, y:843.33, width:131.67, height:32.50)	True	row,key-control	
+Label		(x:247.50, y:850.00, width:30.83, height:21.67)	True	unity-label,unity-text-element,keycap	O
+Label		(x:288.33, y:847.50, width:85.00, height:26.67)	True	unity-label,unity-text-element,key-verb	Objectives
+VisualElement		(x:393.33, y:843.33, width:135.83, height:32.50)	True	row,key-control	
+Label		(x:395.00, y:850.00, width:31.67, height:21.67)	True	unity-label,unity-text-element,keycap	M
+Label		(x:436.67, y:847.50, width:88.33, height:26.67)	True	unity-label,unity-text-element,key-verb	Stand Map
+VisualElement		(x:545.00, y:843.33, width:149.17, height:32.50)	True	row,key-control	
+Label		(x:546.67, y:850.00, width:50.00, height:21.67)	True	unity-label,unity-text-element,keycap	Tab
+Label		(x:606.67, y:847.50, width:83.33, height:26.67)	True	unity-label,unity-text-element,key-verb	Work Plan
+VisualElement		(x:710.00, y:843.33, width:93.33, height:32.50)	True	row,key-control	
+Label		(x:711.67, y:850.00, width:38.33, height:21.67)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:760.00, y:847.50, width:39.17, height:26.67)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:14.17, y:726.67, width:1085.83, height:49.17)	True	hud-bottom	
+Label		(x:15.83, y:730.83, width:534.17, height:43.33)	True	unity-label,unity-text-element,panel,body	Marked: FELL 0 (red)  ·  CROP TREE 3 (blue)  ·  fell volume 0.0 m³
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+Label		(x:303.33, y:365.83, width:27.50, height:27.50)	True	unity-label,unity-text-element,competitor-tag	1
+Label		(x:1062.50, y:328.33, width:28.33, height:28.33)	True	unity-label,unity-text-element,competitor-tag	2
+Label		(x:-506.67, y:321.67, width:28.33, height:27.50)	True	unity-label,unity-text-element,competitor-tag	3
+Label		(x:826.67, y:373.33, width:27.50, height:27.50)	True	unity-label,unity-text-element,competitor-tag	4
+Label		(x:82.50, y:367.50, width:27.50, height:28.33)	True	unity-label,unity-text-element,competitor-tag	5
+VisualElement	inspect-column	(x:1145.83, y:80.00, width:440.00, height:628.33)	True	panel,inspect,inspect-selected	
+VisualElement		(x:1165.00, y:92.50, width:404.17, height:603.33)	True	inspection-page	
+Label		(x:1166.67, y:102.50, width:398.33, height:45.83)	True	unity-label,unity-text-element,inspect-hint	Page 1 of 17 · [V] Next · [Shift+V] Previous · overview follows last page
+Label		(x:1166.67, y:154.17, width:398.33, height:23.33)	True	unity-label,unity-text-element,eyebrow	SELECTED TREE
+Label		(x:1166.67, y:182.50, width:398.33, height:40.00)	True	unity-label,unity-text-element,title	Sitka spruce
+Label		(x:1166.67, y:230.00, width:398.33, height:26.67)	True	unity-label,unity-text-element,muted	P0710 · original plantation
+VisualElement		(x:1165.00, y:258.33, width:404.17, height:24.17)	True	row-wrap	
+Label		(x:1166.67, y:262.50, width:123.33, height:18.33)	True	unity-label,unity-text-element,chip,chip-crop	◆ CROP TREE
+Label		(x:1166.67, y:286.67, width:398.33, height:26.67)	True	unity-label,unity-text-element,body	Age 22 yr · DBH 11.5 cm · 9.8 m tall
+Label		(x:1166.67, y:319.17, width:398.33, height:66.67)	True	unity-label,unity-text-element,body	Nearby stems are limiting this tree: about 65% of its potential diameter growth is withheld by competition.
+Label		(x:1166.67, y:391.67, width:398.33, height:26.67)	True	unity-label,unity-text-element,body	Teaching rack: middle zone, right side. 
+VisualElement	competitor-panel	(x:1165.00, y:420.00, width:404.17, height:225.00)	True	inspection-neighbours	
+Label		(x:1166.67, y:430.00, width:398.33, height:26.67)	True	unity-label,unity-text-element,heading	Local competition · neighbour shares
+VisualElement		(x:1165.00, y:460.83, width:404.17, height:47.50)	True	competition-line	
+VisualElement		(x:1165.00, y:464.17, width:404.17, height:40.00)	True	table-row	
+Label		(x:1166.67, y:471.67, width:350.00, height:26.67)	True	unity-label,unity-text-element,body,cell-name	1 · P0709 · 2.1 m
+Label		(x:1529.17, y:471.67, width:35.83, height:26.67)	True	unity-label,unity-text-element,value,line-value	7 %
+VisualElement		(x:1165.00, y:508.33, width:404.17, height:47.50)	True	competition-line	
+VisualElement		(x:1165.00, y:511.67, width:404.17, height:40.00)	True	table-row	
+Label		(x:1166.67, y:519.17, width:350.00, height:26.67)	True	unity-label,unity-text-element,body,cell-name	2 · P0610 · 1.8 m
+Label		(x:1529.17, y:519.17, width:35.83, height:26.67)	True	unity-label,unity-text-element,value,line-value	6 %
+VisualElement		(x:1165.00, y:555.83, width:404.17, height:40.00)	True	table-row	
+Label		(x:1166.67, y:563.33, width:338.33, height:26.67)	True	unity-label,unity-text-element,body,cell-name	Other neighbours (28)
+Label		(x:1517.50, y:563.33, width:47.50, height:26.67)	True	unity-label,unity-text-element,value,line-value	87 %
+Label		(x:1166.67, y:600.83, width:398.33, height:42.50)	True	unity-label,unity-text-element,faint	Shares of the local competition index, not percentages of diameter growth. Rounded independently.
+Label		(x:1166.67, y:650.00, width:398.33, height:44.17)	True	unity-label,unity-text-element,draft-warning	Draft only — not executed. Warnings and model limits: pages 14–16 [V / Shift+V].
+VisualElement	menu-help	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer,modal-backdrop	
+VisualElement	menu-help-window	(x:350.00, y:335.00, width:900.00, height:230.00)	True	menu-help-panel	
+VisualElement		(x:350.83, y:335.83, width:898.33, height:67.50)	True	menu-help-title	
+Label	menu-help-title	(x:372.50, y:351.67, width:852.50, height:37.50)	True	unity-label,unity-text-element,title	Tree Inspection · understand one tree
+ScrollView		(x:350.83, y:403.33, width:898.33, height:106.67)	True	unity-scroll-view,unity-scroll-view--vertical,unity-scroll-view--scroll,menu-help-body	
+VisualElement	unity-content-and-vertical-scroll-container	(x:370.83, y:417.50, width:858.33, height:86.67)	True	unity-scroll-view__content-and-vertical-scroll-container	
+VisualElement	unity-content-viewport	(x:370.83, y:417.50, width:858.33, height:86.67)	True	unity-scroll-view__content-viewport,unity-scroll-view__content-viewport--vertical	
+VisualElement	unity-content-container	(x:370.83, y:417.50, width:858.33, height:86.67)	True	unity-scroll-view__content-container,unity-scroll-view__content-container--vertical	
+Label	menu-help-text	(x:372.50, y:421.67, width:852.50, height:72.50)	True	unity-label,unity-text-element,body	Start with a tree worth keeping, then see what competes with it. The card shows its size and how crowded it is; press V for more detail. Press C to mark a Crop Tree (keep and favour) or X to propose felling. Marks are only proposals: nothing is cut until you approve work in the Work Plan.
+VisualElement		(x:350.83, y:510.00, width:898.33, height:54.17)	True	menu-help-bar	
+Button	menu-help-more	(x:370.83, y:520.83, width:120.00, height:31.67)	True	unity-button,unity-text-element,btn,btn-ghost	More detail
+Button	menu-help-close	(x:1029.17, y:520.83, width:200.00, height:31.67)	True	unity-button,unity-text-element,btn,btn-primary	Continue [Esc]

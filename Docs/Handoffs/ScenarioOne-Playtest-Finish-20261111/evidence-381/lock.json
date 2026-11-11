@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "3ae1523a03284a7b803b4a64907ba266",
+    "owner": "Codex-Sol-CCF381",
+    "task_id": "CCF-381-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-tagged-text-379-20261111",
+    "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-11T00:37:41.745608+00:00",
+    "eta": "2026-11-11T12:00:00Z",
+    "notes": "User explicitly released #361 this session; source writer released; isolated residual Tier2; custody captured; actual paths must be proven"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

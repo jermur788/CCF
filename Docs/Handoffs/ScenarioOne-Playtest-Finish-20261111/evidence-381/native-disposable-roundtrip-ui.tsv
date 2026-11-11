@@ -1,0 +1,40 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:14.17, y:14.17, width:620.00, height:171.67)	True	hud-objective	
+VisualElement	active-objective-widget	(x:14.17, y:14.17, width:620.00, height:171.67)	True	panel,objective-widget	
+VisualElement		(x:35.83, y:26.67, width:579.17, height:31.67)	True	objective-header	
+Label	active-objective-now	(x:37.50, y:35.83, width:58.33, height:16.67)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:107.50, y:31.67, width:110.83, height:25.00)	True	unity-label,unity-text-element,objective-step	Objective 1 of 8
+Button	active-objective-details	(x:520.00, y:26.67, width:95.00, height:31.67)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:37.50, y:62.50, width:573.33, height:28.33)	True	unity-label,unity-text-element,objective-title	Create access racks
+Label	active-objective-instruction	(x:37.50, y:94.17, width:573.33, height:46.67)	True	unity-label,unity-text-element,objective-instruction	Next: Racks planned: 0 / 5. Plan Racks on the Stand Map [M], then choose Confirm Rack Plan.
+Label	active-objective-progress	(x:37.50, y:146.67, width:573.33, height:25.00)	True	unity-label,unity-text-element,objective-progress	Racks planned: 0 / 5
+VisualElement	hud-right-column	(x:1255.83, y:14.17, width:330.00, height:55.83)	True	hud-right	
+VisualElement		(x:1255.83, y:14.17, width:330.00, height:55.83)	True	panel,spread,hud-status	
+Label		(x:1272.50, y:30.83, width:48.33, height:25.00)	True	unity-label,unity-text-element,body	Year 0
+Label		(x:1400.00, y:29.17, width:166.67, height:28.33)	True	unity-label,unity-text-element,money	Cash €12000.00
+VisualElement	hud-context-actions	(x:14.17, y:830.83, width:1354.17, height:57.50)	True	panel,row-wrap,context-actions	
+VisualElement		(x:26.67, y:843.33, width:131.67, height:32.50)	True	row,key-control	
+Label		(x:28.33, y:850.00, width:30.83, height:21.67)	True	unity-label,unity-text-element,keycap	O
+Label		(x:69.17, y:847.50, width:85.00, height:26.67)	True	unity-label,unity-text-element,key-verb	Objectives
+VisualElement		(x:174.17, y:843.33, width:135.83, height:32.50)	True	row,key-control	
+Label		(x:175.83, y:850.00, width:31.67, height:21.67)	True	unity-label,unity-text-element,keycap	M
+Label		(x:217.50, y:847.50, width:88.33, height:26.67)	True	unity-label,unity-text-element,key-verb	Stand Map
+VisualElement		(x:325.83, y:843.33, width:149.17, height:32.50)	True	row,key-control	
+Label		(x:327.50, y:850.00, width:50.00, height:21.67)	True	unity-label,unity-text-element,keycap	Tab
+Label		(x:387.50, y:847.50, width:83.33, height:26.67)	True	unity-label,unity-text-element,key-verb	Work Plan
+VisualElement		(x:490.83, y:843.33, width:93.33, height:32.50)	True	row,key-control	
+Label		(x:492.50, y:850.00, width:38.33, height:21.67)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:540.83, y:847.50, width:39.17, height:26.67)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:14.17, y:726.67, width:1085.83, height:49.17)	True	hud-bottom	
+Label		(x:15.83, y:730.83, width:197.50, height:43.33)	True	unity-label,unity-text-element,panel,body	Racks planned: 0 / 5
+VisualElement		(x:798.33, y:448.33, width:4.17, height:4.17)	True	reticle	
+VisualElement	hud-minimap	(x:1374.17, y:625.83, width:211.67, height:262.50)	True	panel,hud-minimap	
+StandMapSurface	hud-minimap-canvas	(x:1379.17, y:630.83, width:195.83, height:196.67)	True		
+StandMapCanopyLayer		(x:1379.17, y:630.83, width:195.83, height:196.67)	True		
+StandMapCanvas		(x:1379.17, y:630.83, width:195.83, height:196.67)	True		
+LayerPainter		(x:1379.17, y:630.83, width:195.83, height:196.67)	True		
+LayerPainter		(x:1379.17, y:630.83, width:195.83, height:196.67)	True		
+Label		(x:1560.83, y:660.83, width:11.67, height:21.67)	True	unity-label,unity-text-element,hud-minimap-north	N
+Label		(x:1380.83, y:831.67, width:195.83, height:50.00)	True	unity-label,unity-text-element,hud-minimap-note	Dashed lines show suggested rack positions. Solid lines show your confirmed plan.
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	

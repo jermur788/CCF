@@ -1,0 +1,19 @@
+1794357615383596002.json .done {'action': 'pick', 'x': 300, 'y': 680, 'arg': 'planting-disabled'}
+1794357619441774283.json .done {'action': 'dump', 'arg': 'planting-native-click'}
+1794357623712805645.json .done {'action': 'capture', 'arg': 'objective1-lower-native-scroll'}
+1794357629483681080.json .done {'action': 'capture', 'arg': 'objective1-lower-native-click'}
+1794357634430397102.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794357637355381989.json .done {'action': 'capture', 'arg': 'objective1-1080'}
+1794357643110414821.json .done {'action': 'show', 'arg': 'forest'}
+1794357646274695619.json .done {'action': 'focus'}
+1794357650905180411.json .done {'action': 'dump', 'arg': 'native-disposable-roundtrip'}
+1794357656698071707.json .done {'action': 'dump', 'arg': 'genuine-year2-loaded'}
+1794357664176416180.json .done {'action': 'aim', 'arg': 'P0710'}
+1794357670349968468.json .done {'action': 'focus'}
+1794357675888552615.json .done {'action': 'size', 'width': 1280, 'height': 720}
+1794357679102211607.json .done {'action': 'capture', 'arg': 'rank-focus-720'}
+1794357686284783573.json .done {'action': 'dump', 'arg': 'v-forward'}
+1794357692709370200.json .done {'action': 'capture', 'arg': 'held-shift-v-720'}
+1794357700789931629.json .done {'action': 'size', 'width': 1920, 'height': 1080}
+1794357706235734665.json .done {'action': 'capture', 'arg': 'rank-focus-1080'}
+RESIDUAL_ACTIONS_COMPLETE

@@ -1,0 +1,428 @@
+worktree /media/jer/Files/CCF/Repository.git
+HEAD a31ec62fc4e7b74d9a1d17b352f80df2cc819817
+branch refs/heads/feature/forestry-ecology
+
+worktree /home/jer/.t3/worktrees/CCF-Primary/t3-5133d049
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/t3/ccf-334-integration-gate-plan
+
+worktree /home/jer/.t3/worktrees/CCF-Primary/t3-89c1584c
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/t3/morning-serial-source-repair
+
+worktree /home/jer/.t3/worktrees/CCF-Primary/t3-98a7c401
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/t3/cta-update-site-independent-review
+
+worktree /home/jer/.t3/worktrees/CCF-Primary/t3-d720d5e0
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/t3/ccf-333-unity-readiness-readonly-audit
+
+worktree /home/jer/.t3/worktrees/CCF-Primary/t3-f8539d56
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/t3/ccf-334-integration-qualification-plan
+
+worktree /media/jer/Files/CCF-Primary
+HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88
+branch refs/heads/ops/workflow-foundation-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-371-Continuation-20261110
+HEAD 61064e4630b555595a76527cdded39d6b5778b08
+branch refs/heads/report/ccf371-personal-continuation-20261110
+
+worktree /media/jer/Files/CCF/Operations/CCF-AccessSpineDocs
+HEAD f7e290cb6eafe3ea11c63be5a4f9ea04e4724596
+branch refs/heads/docs/access-spine-measure-20261103-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-ContextSync
+HEAD 3b499aa459b92212f7bb06897836bae5914b5230
+branch refs/heads/ops/workflow-capability-sync-v2
+
+worktree /media/jer/Files/CCF/Operations/CCF-CTA309TwoGuardReview-20261107
+HEAD 28ee3857e3144df1a20f1727711bd20c0e272672
+branch refs/heads/docs/cta-309-two-guard-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-CTA321NameReview-20261107
+HEAD ca9ad5f27cfc50de8191001dfd15e84ed1fb2f9f
+branch refs/heads/docs/cta-321-companion-name-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-CTARoslyn-20261107
+HEAD 6adb20318b80e8a81560bc58a63c8bdbfa15d7ca
+branch refs/heads/fix/cta-roslyn-symbol-binding-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-CTAUpdateSite-20261107
+HEAD 9867144c30d059433fb124aa016af6a5b20e1085
+branch refs/heads/fix/cta-objectives-update-site-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-CTAUpdateSiteReview-20261107
+HEAD 72bffd979f4e7838f619725d5d74ca0769552650
+branch refs/heads/docs/cta-update-site-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-308-IndependentReview-20261106
+HEAD ed31973106e1735b0d1cc3061cf9bffaeae1b313
+branch refs/heads/docs/d072-308-independent-combined-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-CombinedReview-20261106
+HEAD 531ff3ecd3cd2b200114911d85c4f1367815ebb5
+branch refs/heads/docs/d072-combined-296-303-306-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-FiveRackReReview-20261106
+HEAD 2aa35179f8ad2abc19a6e73e9271129a26b591f0
+branch refs/heads/docs/d072-five-rack-diagram-targeted-re-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-FiveRackReview-20261106
+HEAD 4165fc0d1fe41588abb9652ede526771de0473be
+branch refs/heads/docs/d072-five-rack-diagram-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-MapSourceReview-20261106
+HEAD a60a9abb74dc6631fda425799f121b0b031d0a78
+branch refs/heads/docs/d072-stand-map-source-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-D072-SpecReview-20261106
+HEAD 7c41165184eb7708dbbf56017528c9b71172ce0b
+branch refs/heads/docs/d072-independent-spec-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-FableScenarioOneUXReview-20261110
+HEAD 728902bb0938065f6dbdcf841146c5472e210a8f
+branch refs/heads/docs/scenario-one-fable-ui-layout-proposal-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-FeedbackCTAF1F3Review-20261106
+HEAD 94168e3cf632ce28a614a04a23d785d41b1dfb82
+branch refs/heads/docs/baseline-cta-checker-f1-f3-re-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-FeedbackCTAIndependentReview-20261106
+HEAD 88cbb759dc2e54e97fcba60e94696dea06f7067a
+branch refs/heads/docs/feedback-cta-checker-independent-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-FeedbackCTARepair-20261106
+HEAD c83fae1af4ac1449cba0304e44b0df49b91f8919
+branch refs/heads/verify/scenario-one-feedback-cta-anchor-20261106
+
+worktree /media/jer/Files/CCF/Operations/CCF-FocusedSourceStage-20261109
+HEAD a2966c4c955ee8d9785e503c1cc0017d6419b64b
+branch refs/heads/fix/scenario-one-annual-review-reset-370-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-IndependentPlayerFeedbackDelta-20261110
+HEAD 74e4493335e8ce0b529a5a05d1b0924c8ecd2399
+branch refs/heads/docs/ccf-366-player-feedback-delta-review-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-IndependentPlayerFeedbackReview-20261110
+HEAD ed87e0b6286321be5815fa2e9c62166f294ac29b
+branch refs/heads/docs/ccf-364-independent-player-feedback-review-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-IntegrationReadiness20261108
+HEAD 9c0228174e3a44756361619efd4dee804d9ec0ea
+branch refs/heads/docs/ccf-integration-gate-plan-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM-A-vs-C-Docs-20261104
+HEAD 4d0abd1b3bc2c69f6d1d3c836951a04e9bf0c9d9
+branch refs/heads/docs/mfm-a-vs-c-offline-20261104-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM-OptionA-Docs-20261104
+HEAD 3d8338c7b256017328fa17f8c51cde6a963e372a
+branch refs/heads/docs/mfm-option-a-offline-20261104-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM-TopologyDocs-20261103
+HEAD feb254536d154142507c6c173bd05ce849444348
+branch refs/heads/docs/mfm-topology-options-20261103-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM08Closure
+HEAD 911a8a34ffbaa2004697ffeabdfe21edcb82eb2d
+branch refs/heads/verify/mfm-08-tier2-closure-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM08Qual
+HEAD d88a32f6b4ce8d79b71c7f0350ddc9344bdf2727
+branch refs/heads/qual/mfm-08-unity-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MFM10Residual-20261101
+HEAD 43e263708d8f517337181c92d0d78ed442803950
+branch refs/heads/verify/mfm-10-species-guard-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoCta314Review-20261107
+HEAD 9911793352c9236828f17380c4a5603cb7e3422b
+branch refs/heads/docs/mimo-cta-309-independent-review-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoMorningClosure-20261107
+HEAD f054aa5bbad7ce7a74f27888d8d677294bf6d251
+branch refs/heads/docs/mimo-scenario-one-morning-closure-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoOvernight-20261107
+HEAD ce613f85f1eb926f43c0f3a903a0e6b0e2357b00
+branch refs/heads/docs/mimo-scenario-one-overnight-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoOvernightContinuation-20261108
+HEAD d6bc0a60b30061dde6aad05be67f69acd86aeb79
+branch refs/heads/docs/mimo-overnight-continuation-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoPost322Verifier-20261107
+HEAD 8691871b44bc54fb4e552e79c13d3b9e296c302d
+branch refs/heads/docs/mimo-post322-verifier-closure-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-MimoWb287Review-20261107
+HEAD 3b27f4258c1536e8ebd8a5b34f5ebbdb02c16a05
+branch refs/heads/docs/mimo-workbench-287-independent-review-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-NonUnity
+HEAD 5010613f67bbc2435504b25876947ff092d0532c
+branch refs/heads/tooling/linux-player-tier3
+
+worktree /media/jer/Files/CCF/Operations/CCF-Ops287Migration-Docs-20261106
+HEAD 84523628de841ae81e528da0d17ef26ac2cb662f
+branch refs/heads/docs/ops-287-registered-worktree-migration-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-OpsUnityLock01
+HEAD 254984176383d3e2dfe30f9ee0ee9e28fa446144
+branch refs/heads/ops/unity-lock-governance-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-DPC-20261104
+HEAD 4640eee03551cbbf4f80e5ab8be8ff3624f733b7
+branch refs/heads/docs/v2-routing-continuation-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-FeedbackVerify-20261104
+HEAD 6efba8fdc35f22098faf205a5f7d14ccf65a3e1a
+branch refs/heads/verify/overnight-playtest-feedback-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-GuidanceReview-20261106
+HEAD bb5bfc1b8f76b72acfea4a80354bf7b33f569b16
+branch refs/heads/docs/overnight-guidance-review-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-InputSpec-20261104
+HEAD ae7944aaad4cc20d522f6dbd6a368c8fcd19a379
+branch refs/heads/docs/overnight-input-settings-spec-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-MarkSpec-20261104
+HEAD e13b1c5f175c8f0632041dc6afb157149eeafdb6
+branch refs/heads/docs/overnight-mark-language-spec-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveCopy-20261104
+HEAD 693e24c8891637470052031d5023883b922e9334
+branch refs/heads/feature/overnight-objective-copy-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-ObjectiveSpec-20261104
+HEAD e5fe1761744d880798fd7cc685362f1e28b7c60b
+branch refs/heads/docs/overnight-objective-guidance-spec-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-Orchestrator-20261106
+HEAD 99f03c1486f6f75743b27c07b3b5d6131df04394
+branch refs/heads/docs/deepseek-orchestration-20261105-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-RackHandle-20261104
+HEAD 9304d318f346b281a19cb805feebc6dc1a95008e
+branch refs/heads/feature/overnight-rack-handle-20261104
+
+worktree /media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104
+HEAD d3ba4fce3994d5c59b51786c6671dd654791e7d1
+branch refs/heads/integration/scenario-one-overnight-ui-qualification-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-PackageOptionB-20261108
+HEAD d39278ef10001f8536b598fef2a7d68864096c92
+branch refs/heads/proposal/linux-sdk-111-provenance-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-PackageOptionBReview-20261108
+HEAD a7bc4562dd6970565d59d3580910dfb6ae03bb7e
+branch refs/heads/docs/linux-sdk-111-independent-review-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-PersonalPlaytestIndependentReview-20261109
+HEAD b1daefdea9e9e35767da4068d9838929e9f376a8
+branch refs/heads/docs/scenario-one-personal-playtest-independent-review-20261109-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-PostCleanupUnityReentry-20261109
+HEAD 0872afcd675d370955600543dda93847a6e289e2
+branch refs/heads/docs/post-cleanup-unity-reentry-20261109-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-Playtest-Readiness-Sol
+HEAD c28f40870ddcfd36dc5d3c3313e6c8fad7490eef
+branch refs/heads/integration/scenario-one-personal-playtest-candidate-20261111-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-Annual-Row-Repair-Sol
+HEAD 74a7d89ea4cf0a7e4f26a3784ba2d9ce56e2e28f
+branch refs/heads/fix/scenario-one-ui-annual-review-row-layout-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-Inspection-Fit-Repair-Sol
+HEAD 92ecb095ee69801d825bbcf83c46eb8f5e4c8d70
+branch refs/heads/fix/scenario-one-ui-inspection-overflow-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-Presentation-V1-FableReview
+HEAD 4dffb37d6d8d440218e8bd12062eb4ea2d06b790
+branch refs/heads/review/scenario-one-ui-presentation-v1-fable
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-Presentation-V1-Repair
+HEAD 6066c9bbbc569257e7a5acad2ac05fe47ea0e8f5
+branch refs/heads/fix/scenario-one-ui-presentation-fable-review-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-Presentation-V1-Sol
+HEAD 199b5a6edae36f27d554cdc142a8d7797d11350e
+branch refs/heads/feature/scenario-one-ui-presentation-v1-sol
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1-UI-TaggedText-Repair-Sol
+HEAD c28f40870ddcfd36dc5d3c3313e6c8fad7490eef
+branch refs/heads/fix/scenario-one-ui-annual-tagged-text-20261110-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1D-Spec
+HEAD e49577a7bb0a3e3342369473336d85de0f150692
+branch refs/heads/spec/scenario-one-repeated-interventions-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-S1D-T02
+HEAD 788f09fe434f33b10f2cc2604619115d62bf25e3
+branch refs/heads/feature/s1-d-cycle-state-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-U3CleanCandidateWitness-20261109
+HEAD 2b41f5690728dbce5afa5ec0a2cb16593e4e47cc
+branch refs/heads/docs/ccf-u3-clean-candidate-witness-20261109-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseExactGuard-20261108
+HEAD 280682a4b16af8b7d2cd9d19c5d8580458456de7
+branch refs/heads/fix/unity-lease-exact-dirty-guard-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseGuardReview-20261108
+HEAD 1257474f532094c5bda8dc90896efbe7f70898a0
+branch refs/heads/docs/unity-lease-exact-guard-independent-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseN1TreeIntegrity-20261108
+HEAD 24e0de290bfdfa9d5a584e1c9e6d87bd8c18bb1c
+branch refs/heads/fix/unity-lease-n1-tree-integrity-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseN1TreeIntegrityReview-20261108
+HEAD 9e9ae1dfffaedf7213740567ba170f190e1213b7
+branch refs/heads/docs/unity-lease-n1-integrity-review-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeasePostTransitionPins-20261108
+HEAD 40467cf21c14cf3f58655bb2cebfc11db8aae58b
+branch refs/heads/fix/unity-lease-post-transition-pins-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseRawByteRepair-20261108
+HEAD 3c5577f666fc3a793e76afe70c9420a2387c4ae8
+branch refs/heads/fix/unity-lease-f1-f3-raw-byte-guard-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseRawByteReview-20261108
+HEAD 77759b5a5306d6adee0cd40af34bdcffd985a723
+branch refs/heads/docs/unity-lease-f1-f3-independent-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLeaseSupervisedReadiness-20261108
+HEAD d8951e277b9afcee7cc01b8cbd3112a8b1ce93ba
+branch refs/heads/docs/unity-lease-supervised-readiness-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityLock-287-Registration-20261106
+HEAD 4acc951e40c60ce38f45a6a08f2e2b3e4ae8011a
+branch refs/heads/docs/ops-unity-lock-287-registration-20261106-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-UnityReadinessReadOnly-20261108
+HEAD f1a501b17609c6c61fda7ccbb09ffe628e66d2e1
+branch refs/heads/docs/ccf-unity-provenance-readiness-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-VerifierClosureReview-20261107
+HEAD 2b608ff3dd5a1fd94c6860aaf47bacbf1c76098b
+branch refs/heads/docs/verifier-roslyn-receipt-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WB287VerifierRepair-20261107
+HEAD 6b7d2d45a21824f4325bc3c176f7e276dc7299e6
+branch refs/heads/fix/workbench-tier2-verifier-closure-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WB287VerifierReview-20261107
+HEAD 8751d29dba326aee8fdbcdb5867f39519756a1c7
+branch refs/heads/docs/workbench-287-verifier-closure-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WBReceipt-20261107
+HEAD 03b484d10b36382ab86d5e345ece9acac96c9620
+branch refs/heads/fix/workbench-receipt-finalization-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WBRunnerClosure-20261107
+HEAD 2c4aea1c94a0768c684376bc027ba15c5af5146f
+branch refs/heads/fix/workbench-runner-integrity-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WBRunnerReview-20261107
+HEAD fc5c57e605aa493e1b8672dabe993f8487330937
+branch refs/heads/docs/workbench-runner-r1-r5-independent-20261107-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Workbench111B3Candidate-20261108
+HEAD 69c52906e973f6afa926c941cefa2bbc7b2a2412
+branch refs/heads/feat/workbench-111-b3-evidence-candidate-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Workbench111EnvPrep-20261108
+HEAD 07b6060a869b474434444d3df5afb47afc7a9ce2
+branch refs/heads/verify/workbench-111-env-b3-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-Workbench111TransitionFeasibility-20261108
+HEAD ceaf24e6ec4c3af5f95bc32da6d83589d5240528
+branch refs/heads/docs/workbench-111-transition-feasibility-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-WorkbenchB3PostTransitionReview-20261108
+HEAD e56da47f25ccfb9b883771e852e4c62e4bb94124
+branch refs/heads/docs/workbench-b3-post-transition-combined-review-20261108-v1
+
+worktree /media/jer/Files/CCF/Operations/CCF-ZX20SpaceInventory-20261109
+HEAD ae0a4a7ecb080135809e80cde235ffeba5e79f81
+branch refs/heads/docs/zx20-space-inventory-20261109-v1
+
+worktree /media/jer/Files/CCF/Reporting/CCF369
+HEAD f59575ac2a92ac4969032f946cf85247fdea95e7
+branch refs/heads/report/ccf369-runtime-ux-20261110
+
+worktree /media/jer/Files/CCF/Reporting/CCF370
+HEAD 3c1d5e81a2bb77cfca322205f09baf6cd4563916
+branch refs/heads/report/ccf370-review-reset-20261110
+
+worktree /media/jer/Files/CCF/Reporting/CCF376
+HEAD b1f516cc27500ba4cb16e8246078e057cb67b7d8
+branch refs/heads/docs/376-ui-qualification-result-20261110-v1
+
+worktree /media/jer/ZX20/CCF-AccessSpine-Measure-20261103
+HEAD 72b4efbd1c653fa2231f632a79030a83ff76f833
+branch refs/heads/verify/scenario-one-access-spine-measure-20261103
+
+worktree /media/jer/ZX20/CCF-Integration
+HEAD 8f9ed8025243254fe7378b6d7771a5f1e7efaccc
+branch refs/heads/integration/scenario-one-tier3-candidate
+
+worktree /media/jer/ZX20/CCF-Intro-Astra-20261103
+HEAD 6bff87ddf2b39573ed0998c3621e820cb9cd3770
+branch refs/heads/verify/scenario-one-intro-astra-20261103
+
+worktree /media/jer/ZX20/CCF-MainIntegration-20261104
+HEAD 9a6ed0007cc16469f3591f69bf0fd9b3c937ec61
+branch refs/heads/main
+
+worktree /media/jer/ZX20/CCF-NextActionGuidance-T3-20261106
+HEAD 9789369d02963b4444f8530b071413d066bf1ddf
+branch refs/heads/feature/scenario-one-next-action-guidance-v1
+
+worktree /media/jer/ZX20/CCF-Q10
+HEAD 3383e763e8ccff945dd00250366b7f334fe57331
+branch refs/heads/verify/parity-03-density-continuity-q10-v1
+
+worktree /media/jer/ZX20/CCF-RackV2-05
+HEAD da54734c9a05d43ec13f203188ffe607cc617db6
+branch refs/heads/feature/scenario-one-rack-v2-editing-v1
+
+worktree /media/jer/ZX20/CCF-RackV2-09
+HEAD 04913c02fbd9a37dfbc536dacf02c8e90a3b58cf
+branch refs/heads/feature/scenario-one-rack-v2-field-marking-v1
+
+worktree /media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual
+HEAD 2aaacad68ed186dbe14531f31ce5bb3a87811441
+branch refs/heads/qualify/scenario-one-tagged-text-379-20261111
+
+worktree /media/jer/ZX20/CCF-S1ObjOverflow
+HEAD 9a4f8014859d0e38cc0a45f909d834d74f873d64
+branch refs/heads/fix/scenario-one-objectives-overflow-v1
+
+worktree /media/jer/ZX20/CCF-U1
+HEAD e7f086a1ab70cad0567acddf8421520b32e8f50c
+branch refs/heads/feature/standmap-species-canopy-differentiation-v1
+
+worktree /media/jer/ZX20/CCF-U2
+HEAD e26516ff12e8273ab953ca533ca14c02563464b2
+branch refs/heads/feature/scenario-two-species-quantitative-closure-runtime-v1
+
+worktree /media/jer/ZX20/CCF-U3
+HEAD 4db486db7a132bd01725442ef33e00f702c4dff9
+branch refs/heads/qualify/scenario-one-annual-review-reset-370-20261110
+
+worktree /media/jer/ZX20/CCF-UIQualification-20261104
+HEAD a1e15b52ed9283bec2d7caf6c90bee68501204b9
+branch refs/heads/verify/playtest-candidate-a1e15b52
+
+worktree /media/jer/ZX20/CCF-WorkbenchTier2-Registered-20261106
+HEAD 4d95e45245d660e24b91e26754d9c57949bf3384
+branch refs/heads/feature/scenario-one-workbench-retirement-20261105
+
