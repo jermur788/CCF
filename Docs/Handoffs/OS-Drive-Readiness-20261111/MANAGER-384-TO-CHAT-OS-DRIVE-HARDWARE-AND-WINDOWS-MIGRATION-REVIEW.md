@@ -1,5 +1,8 @@
 # ChatGPT handoff — operating-system hard drive / hardware and Windows migration readiness
 
+
+**LIVE EVIDENCE UPDATE — 11 November ~20:45 UTC:** The #383 local Sol targeted addendum has now returned; see [new partial source evidence](https://github.com/jermur788/CCF/blob/docs/ccf-pre-zx20-storage-migration-audit-20261111-v1/Docs/Handoffs/CCF-Pre-ZX20-Migration-Audit-20261111/SOL-383-TARGETED-OWNER-AND-RECOVERY-ADDENDUM.md) and [Manager STOP disposition](https://github.com/jermur788/CCF/blob/docs/manager-383-partial-audit-review-20261111-v1/Docs/Handoffs/CCF-Pre-ZX20-Migration-Audit-20261111/MANAGER-383-TARGETED-ADDENDUM-STOP-AND-OWNERSHIP-DISPOSITION.md). Later root free-space reading ~20:43 is **1,190,113,280 bytes** versus 1,267,175,424 bytes at ~20:34; cause unknown. **#383 is OPEN/PARTIAL/PAUSED NOT RUNNING**, not still running as recorded in the original dispatch below. T3 SQLite/WAL active, dashboard live state untracked, Node/pnpm pinned/actual mismatch; no cache or worktree deletion approved. The #384 chat should use this latest evidence without any new local scan and retain all restrictions below. This insert is a status update, not an expansion of authority.
+
 **Status:** READY / NOT RUNNING — browser/GitHub **read-only review only**.  
 **Date:** 11 November 2026.  
 **Overall Manager:** [#200](https://github.com/jermur788/CCF/issues/200).  
