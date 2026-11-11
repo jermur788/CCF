@@ -1,3 +1,5 @@
+**STATUS UPDATE — SUPERSEDED FOR PRE-DEMO ACTION (11 November 2026):** The independent-review Manager [disposition](MANAGER-INDEPENDENT-REVIEW-DISPOSITION-AND-DOCUMENTATION-FREEZE-20261111.md) accepts the research intake but **rejects pre-demo objective, lesson, simulation, save or UI modifications arising from these papers**. All Phase 1 'pre-demo where missing' and Phase 2 correction suggestions below are historical *proposals only*, not tasks to release. The only immediate authorised activity is staging research documentation on this branch; no production implementation or automatic fixture-test dispatch. This correction prevails over inconsistent phasing below.
+
 # Scenario One — Six-paper research critique of objectives and phased plan
 
 **Status:** PROPOSAL / RESEARCH-BASED MANAGEMENT REVIEW — NOT APPROVED IMPLEMENTATION  
