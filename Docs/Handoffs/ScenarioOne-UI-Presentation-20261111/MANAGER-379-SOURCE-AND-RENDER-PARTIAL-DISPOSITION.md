@@ -1,0 +1,31 @@
+# Manager #200 — #379 Annual Review tagged-text repair accepted as scoped PASS; residual qualification pending
+
+**Date:** 11 November 2026 (following the 10 November late-evening source/Unity run). **MANAGER VERDICT: APPROVED FOR ONE BOUNDED RESIDUAL TIER-2 QUALIFICATION ONLY.** This is a direct Manager source/evidence assessment, **NOT** a second independent Fable review, overall VERIFIED, G4 integration approval, Scenario One user acceptance or Windows-build authorisation. Last known overall UI acceptance is **PARTIAL / NEEDS VERIFICATION**, not a new source failure.
+
+## Evidence inspected
+
+- [Sol #379 published report, exact-candidate original Unity screenshots and natural text bounds](https://github.com/jermur788/CCF/blob/c28f40870ddcfd36dc5d3c3313e6c8fad7490eef/Docs/Handoffs/ScenarioOne-UI-Presentation-20261110/SOL-379-ANNUAL-TAGGED-TEXT-FIT-AND-UNITY-RESULT.md).
+- Exact game source reported and inspected: `2aaacad68ed186dbe14531f31ce5bb3a87811441`, based on `ebe061bae8d3f9da1e810b4c49f49199db8b3d61`. A GitHub source comparison confirms one game commit with exactly `AnnualReviewView.cs`, `ScenarioOneUi.uss`, plus an additive `tagged_text.py` test. No underlying work/economy/history/ecology/persistence/scene/rack/Reference changes in that comparison.
+- Manager fetched actual repaired C# and USS. `AddTagged` now creates an `annual-text-entry` with a distinct `annual-text-source` (unaltered source qualifier/chips) and a full-width `annual-text-body`; `TaggedLine` Money layout and `Tag` provenance semantics remain unchanged. Text strings and call-site kinds remain the same. The exact change addresses the old horizontal width competition without hiding content.
+- Worker reports source compile with zero warnings/errors; current focused 160/219/18, presentation/source tests, Money, Crop-detail, and new 36-case tagged text sink plus executable horizontal-layout negative pass. Manager did not rerun local compiler/tests. A negative source-contract check is not a native Unity layout measurement.
+- Worker reports one safely admitted Unity6000.6.0f1 run at 1280×720/1920×1080 using correct ZX20, clean separate warmed candidate, real exclusive lease, verified disposable origin paths. The original PNGs are linked in report; Manager fetched report/source but did not independently decode image pixels. The reported resolved bounds confirm previously compressed `Standing trees`, `Harvest job` and regeneration text now span ~319–330 logical px instead of ~44–68; natural heights fit. Color/size and source toggle ON/OFF and historical Year2/Year3 UI recorded.
+
+## Scoping of status
+
+**Genuine PASS in tested states:** Annual Review Work/Forest source-labelled headlines, long work/regeneration rows, expanded records, historical year/source toggle at both sizes; Money row names, provenance, right-aligned signed amount retained; previous #377 Crop inspection overview and draft pages unchanged and previously rendered PASS; native held Shift+V reverse 4→3 in one tested case; 720p Condition page readable; native F5/F9 disposable save/reload verified; selected year and no historical ACK. Note startup overlay disrupted first F9 and was corrected, not an acceptance defect.
+
+**NOT fully verified:** Objective1 locked Planting/Pruning/Nursery note *and actual pointer* restrictions; authentic Multi-Scale Forestry Management candidate native C Confirm/N Reject/Reopen (no qualifying fixture yet); general cursor/focus/rank overlays (partially exercised); Legacy40 and frozen Reference Future v1 in actual Unity runtime (protected hashes alone insufficient); special storm/reconstructed/not-recorded content without corresponding authentic fixture; comprehensive per-task sources-OFF scroll cases. Distinguish missing fixture from failure.
+
+**Safety:** #379 operator reports source writer released and Unity lease normally released, Unity exited 0, dedicated candidate lane clean, all 36 valued user-origin bytes unchanged, original U3/Workbench binary diffs and the 27 licensed+6 frozen asset manifests unchanged. Manager did not inspect local machine. Separate personal player test [#361](https://github.com/jermur788/CCF/issues/361) still open/not accepted, so do not infer user acceptance or Windows permission. No Unity lease is currently granted by this docs ruling.
+
+## Manager decision and cost-limited sequence
+
+1. **Accept #379 scoped source and captured rendered fixes.** There is no present evidence of a further Annual Review layout defect requiring yet another source change; stop the repeating patch/capture cycle.
+2. [#380 residual-only Unity Tier2](https://github.com/jermur788/CCF/issues/380) **READY / NOT RUNNING**, prepared read-only qualification branch from exact game source, proposed reuse of previously isolated warmed ZX20 lane **only if freshly admitted**. The [binding packet](MANAGER-379-TO-380-RESIDUAL-ONLY-UNITY-QUALIFICATION.md) budgets one supervised Editor run to check only residual required cases with authentic state/fixtures. It forbids repeating full Crop 17-page/Annual text sweeps and costly fixture fabrication.
+3. Prioritise current Objective1 truly disabled UI/pointer, native Shift+V, actual rank occlusion/focus, and available legacy/reference fixture checks; MFM C/N only with an authentic existing late-stage fixture or legitimate bounded no-commit progression. If no credible fixture from cheap preflight inventory, mark **NOT RUN — fixture missing**, not FAIL or PASS. Do not exceed a one-run budget to fabricate MFM.
+4. On qualified source failure, early STOP with real evidence and Manager bounded fix. On PASS, Manager separately decides G4 source integration readiness and any G3 verifier-only work without weakening old historical tests. Missing mandatory results remain explicit; no user acceptance or external demo claim.
+5. **No Fable** re-review, per user cost directive; [#375](https://github.com/jermur788/CCF/issues/375) remains cancelled. No Windows Player build until user personally tests and explicitly authorises. No branch merge, protected user saves, unsolicited source cleanups or duplicate full suite.
+
+**Current verdict: APPROVED TO COMPLETE RESIDUAL VERIFICATION, NOT APPROVED FOR INTEGRATION.**
+
+**Dashboard:** Canonical GitHub coordination and Manager #200 updated. Downstream dashboard ingestion/audit-snapshot/readback **UNVERIFIED**.
