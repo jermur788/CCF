@@ -1,3 +1,5 @@
+**STATUS UPDATE — RESEARCH-INFORMED PLAYER COPY DEFERRED (11 November 2026):** This wording proposal is **not authorised for pre-demo in-game edits**; see the [Manager independent-review disposition](MANAGER-INDEPENDENT-REVIEW-DISPOSITION-AND-DOCUMENTATION-FREEZE-20261111.md). The author's instruction to use natural forestry language in Manager conversation/documentation remains in force. Internal simulation field names and current live UI are unchanged.
+
 # Scenario One — Player-facing regeneration terminology
 
 **Status:** Proposed wording from direct product-owner feedback, 11 November 2026. Not yet a production UI change or a redefinition of completion rules.
