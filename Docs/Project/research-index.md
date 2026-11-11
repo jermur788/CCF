@@ -105,6 +105,18 @@ As of the 2026-10-16/17 rationalisation this synthesis was distributed across Co
 
 Both audit reports and the 2006 journal are held in the CCF research area (`CCF — Shared Project Context/03 — Ecology Research` in the connected Drive account; user path `Documents/ccf game`) and as local copies under `~/Documents/CCF Game/`. They are supporting research, not decision authority. The canonical repository records are this index and `Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md`.
 
+## Six-paper forest biometrics methods intake (2026-11-11; PROPOSED RESEARCH-ONLY)
+
+**Supporting methodological evidence — transferred, not independent Irish validation or an accepted mechanic.** Six project-source original PDFs (2002–2024), an indexed 111-page compilation and an analytical extraction are registered with exact filenames, SHA-256 fingerprints and a paper-by-paper provenance/caution crosswalk in [the proposed six-paper integrity and evidence register](../Research/PommereningSixPapers/Originals-Hash-and-Evidence-Register-20261111.md). All six papers share co-author Arne Pommerening; this group is not six independent validations of Irish CCF.
+
+The source register distinguishes P1's future-crop-tree versus competitor-selection agreement from P2's low- versus crown-thinning ratings; P3 structure measurements from biodiversity claims; P4/P5 models from validated Irish coefficients; and P6 regeneration-system concepts from extraction racks. Consult the [Irish marking-source extraction](../Research/RacksAndTreeMarking/CCF_Rack_Planning_and_Tree_Marking_Source_Extraction_v1.md), the existing Irish transformation/economics and growth/ecology composites, and the D-065 UK machine-cab visibility caveat before advancing any proposed forestry lesson.
+
+**Default Scenario One wind limitation:** Storm Model 0 remains active for new games, so crown release and retained dense stand conditions are not associated with wind-damage consequences in the default run. P1's wind observations should not be misrepresented as a one-way release prescription.
+
+**Adoption boundary:** the existing lesson competition-release calibration, MFM proposals/approval, Year-25 completion logic, saves, growth/ecology, frozen Reference Future, and pre-demo sequence remain unchanged. Candidate future work needs separate decisions/specs. In player-facing language, describe **areas with young trees** rather than technical ecology-grid bookkeeping.
+
+**Publication note:** this section is staged on a docs-only proposal branch and is **not an accepted revision to canonical `main`** until merged with its context/mirror publication obligations.
+
 ## Current multi-species and forestry evidence
 
 The following supporting reports are held as Game Dev project sources and/or archived under `~/Documents/CCF Game/` and the Drive `03 — Ecology Research` folder. They are not committed research binaries and do not automatically adopt coefficients or mechanics.
