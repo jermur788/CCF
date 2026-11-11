@@ -1,0 +1,100 @@
+$ python3 -B Tools/Verification/MfmCropTreeCandidates/run_candidates_offline.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/08-candidates
+
+MFM05_BUILD_PASS sources=10 warnings-as-errors
+PASS centre first, x tie break, exact 16 m boundary accepted
+PASS one-based queue order
+PASS open inspection suggestions only
+PASS reuse versioned MFM-03 spacing
+PASS strictly closer than spacing blocked
+PASS coincident stems use ordinal id tie break
+PASS z tie break after x
+PASS exclude nonliving/fell/broadleaf/manual crop sitka-spruceFalseFalseFalse
+PASS exclude nonliving/fell/broadleaf/manual crop sitka-spruceTrueTrueFalse
+PASS exclude nonliving/fell/broadleaf/manual crop sessile-oakTrueFalseFalse
+PASS exclude nonliving/fell/broadleaf/manual crop beechTrueFalseFalse
+PASS exclude nonliving/fell/broadleaf/manual crop sitka-spruceTrueFalseTrue
+PASS missing current stem excluded
+PASS explicit sample Crop Tree excluded even without Crop flag
+PASS no candidates in NotCovered
+PASS no candidates in Excluded
+PASS no candidates in Manual
+PASS sample/source area excluded defensively
+PASS stem outside covered membership never a candidate
+PASS manual designation outside area blocks spacing
+PASS sample crop blocks spacing without Crop flag
+PASS decisions retain batch slots, no replacement
+PASS decisions echoed individually
+PASS decided entries cannot be selected again
+PASS next skips rejected and confirmed
+PASS previous skips all decided entries
+PASS selection returns single navigation target with inspection reason
+PASS start next at first
+PASS start previous at last
+PASS previous follows queue
+PASS queue ends do not wrap
+PASS noncandidate selection/navigation refused
+PASS unknown navigation refused
+PASS selection/generation neither designate nor mark, no input mutation
+PASS null/invalid result selection refused
+PASS empty queue handled
+PASS all rejected has no actionable target or replacement
+PASS nonliving/missing confirmed records reported stale
+PASS contradictory decisions refused
+PASS duplicate stem identity refused
+PASS invalid coverage refused
+PASS invalid spacing refused 0
+PASS invalid spacing refused -1
+PASS invalid spacing refused NaN
+PASS invalid spacing refused Infinity
+PASS missing calibration refused
+PASS numeric rack order then Low/Centre/High
+PASS shuffle stable 0
+PASS shuffle stable 1
+PASS shuffle stable 2
+PASS shuffle stable 3
+PASS shuffle stable 4
+PASS shuffle stable 5
+PASS shuffle stable 6
+PASS shuffle stable 7
+PASS shuffle stable 8
+PASS shuffle stable 9
+PASS shuffle stable 10
+PASS shuffle stable 11
+PASS shuffle stable 12
+PASS shuffle stable 13
+PASS shuffle stable 14
+PASS shuffle stable 15
+PASS shuffle stable 16
+PASS shuffle stable 17
+PASS shuffle stable 18
+PASS shuffle stable 19
+PASS shuffle stable 20
+PASS shuffle stable 21
+PASS shuffle stable 22
+PASS shuffle stable 23
+PASS shuffle stable 24
+PASS shuffle stable 25
+PASS shuffle stable 26
+PASS shuffle stable 27
+PASS shuffle stable 28
+PASS shuffle stable 29
+PASS shuffle stable 30
+PASS shuffle stable 31
+PASS duplicate membership does not bias centre or repeat target
+PASS arbitrary diameter changes do not rank quality
+PASS domain source has no UnityEngine
+PASS domain source has no TreeMarkType
+PASS domain source has no ScenarioOneWorkOrder
+PASS domain source has no ScenarioOneManager
+PASS domain source has no ForestTree
+PASS domain source has no SaveData
+PASS domain source has no PlayerPrefs
+PASS domain source has no File.
+PASS domain source has no DbhCm
+PASS domain source has no Height
+PASS domain source has no Competition
+PASS domain source has no Share
+PASS domain source has no BasalArea
+PASS public API has no confirmation/bulk/approval/write operation
+MFM05_CROP_TREE_CANDIDATES_PASS checks=95 failed=0
+MFM05_REPEAT_PASS two processes, byte-identical output: True

@@ -1,0 +1,14 @@
+[
+ {
+  "source": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Tools/Verification/MfmTreatmentReviewUnity/MfmTreatmentReviewUnityGate.cs",
+  "sha256": "4d8cce69cf19fe39af4c0bd814aa3e2fb1eba3d24bbb77c437467c30f6d645e7"
+ },
+ {
+  "source": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Tools/Verification/RackV2NoCompetingAuthor/RackAuthoringNativeInput.cs",
+  "sha256": "0d376568c678816b352c02f0b9114f727755735c97c222fce184f77882b4904a"
+ },
+ {
+  "source": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/PathGuard381.cs",
+  "sha256": "2933aecb61ac3cc177d496e6a0ecab37c4ab0062beb125bcd0b44c64802c3b55"
+ }
+]

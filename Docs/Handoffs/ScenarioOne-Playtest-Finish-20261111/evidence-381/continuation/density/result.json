@@ -1,0 +1,17 @@
+{
+  "name": "Density",
+  "status": "PASS",
+  "exit": 0,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "MIXED_DENSITY_VERIFY_PASS"
+  ],
+  "tokens_present": {
+    "MIXED_DENSITY_VERIFY_PASS": true
+  },
+  "fail_lines": 0,
+  "seconds": 108.2,
+  "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+  "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+  "leftover": []
+}

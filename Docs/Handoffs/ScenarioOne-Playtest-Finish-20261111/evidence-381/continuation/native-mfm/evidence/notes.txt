@@ -1,0 +1,4 @@
+states present: NotCovered=1, Covered=13; remainders=2
+fixture: remaining candidates confirmed through ForestTreeMarkingManager.Mark so a prescription can be prepared; confirmed total=20
+conflict (manual Fell mark) surfaced: label=True unitExcluded=True kinds=UnitNoLongerCovered
+conflict (open work order) surfaced: label=True kinds=UnitNoLongerCovered

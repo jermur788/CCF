@@ -1,0 +1,26 @@
+$ python3 -B Tools/Verification/Parity08Save/run_offline_check.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/14-parity08-save
+
+PASS schema is still v24 (no parity bump), CurrentVersion=24
+PASS accepted: current-version three-species world
+PASS accepted: v24 with the teaching latch true
+PASS refused: tree species -> tree t1 has unknown species 'not-a-species'
+PASS refused: regeneration cohort species -> ecology cell 0 has regeneration of unknown species 'not-a-species'
+PASS refused: planted juvenile species -> planted juvenile j1 has unknown species 'not-a-species'
+PASS refused: pending work order species -> work order 1 has unknown species 'not-a-species'
+PASS refused: approved work order species -> work order 2 has unknown species 'not-a-species'
+PASS refused: tree species not-a-species on a broadleaf record -> tree t2 has unknown species 'not-a-species'
+PASS refused: unknown tree in a v7 save (first version with tree species) -> tree t2 has unknown species 'not-a-species'
+PASS refused: unknown cohort in a v8 save -> ecology cell 0 has regeneration of unknown species 'not-a-species'
+PASS refused: unknown juvenile in a v10 save -> planted juvenile j1 has unknown species 'not-a-species'
+PASS accepted: v6 tree species field is ignored by the loader
+PASS accepted: v7 cohort list is ignored before v8
+PASS accepted: v9 Scenario One records are ignored before v10
+PASS accepted: empty IDs keep the default-species meaning
+PASS accepted: a zero-density cohort is skipped by the loader and not checked
+PASS accepted: completed order species is history only
+PASS accepted: failed order species is history only
+PASS accepted: management event species is history only
+PASS accepted: species-less timber-sale records stay accepted
+PASS null inputs are a no-op (scene without a spawner keeps prior behaviour)
+PASS teaching latch does not move WorldHash
+PARITY08_SPECIES_OFFLINE_PASS checks=23

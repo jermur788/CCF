@@ -1,0 +1,109 @@
+$ python3 -B Tools/Verification/MfmCoverageWorld/run_coverage_world_offline.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/09-coverage-world
+
+MFM08A_FIXTURE fixture-stand.csv sha256=4b4b9703e65fe01146e57deb2095ea4f2cf3b702243c73075cdc2bf52f7f2433 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-stand.csv
+MFM08A_FIXTURE fixture-infrastructure.json sha256=c7dd5b811c975c6bf6cd50a201308424c4f2eed6b9dca30f80300dc885644630 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-infrastructure.json
+MFM08A_BUILD_PASS sources=11 warnings-as-errors
+PASS fixture: geometry valid, teaching rack 3
+PASS fixture: planks and buildables present [107/7]
+PASS map succeeds
+PASS mask kind mapped: Headland [4]
+PASS mask kind mapped: Track [107]
+PASS mask kind mapped: Clearing [1]
+PASS mask kind mapped: Site [7]
+PASS one Track circle per Dirt Path plank [107]
+PASS one Clearing circle [1]
+PASS one Site circle per buildable [7]
+PASS headland: strip, feeder strip, two pads [4]
+PASS Track radius is the path corridor setting
+PASS Clearing and Site radius is the clearance setting
+PASS no Site mask at the player's position
+PASS mapped masks equal the accepted reference construction [118/118]
+PASS Source has no player field [PathCorridorRadiusM|ClearanceRadiusM|StandHalfExtentM|Headland|PathPlanks|HasClearing|Clearing|Sites|PlantedJuveniles|Shelters|ClearancePatches|ProtectedAreaIds|DeadwoodRecords|ActiveManagementWork|NaturalRegeneration]
+PASS map succeeds
+PASS coverage valid with and without masks
+PASS production masks change the coverage result vs the old empty arrays
+PASS masked net area is smaller somewhere
+PASS mapped coverage signature equals the reference-mask coverage
+PASS map succeeds
+PASS removing the planks removes exactly the Track masks
+PASS removing the path changes coverage
+PASS map succeeds
+PASS moving the clearing changes the masks
+PASS map succeeds
+PASS no Forest Clearing means no Clearing mask (not an invented one)
+PASS map succeeds
+PASS two distinct covered areas for the feature fixtures [R1C/R1H]
+PASS map succeeds
+PASS juv: one feature of the right kind and the authoritative id
+PASS juv: area becomes Excluded with the exact reason [Excluded/PlantedJuvenile]
+PASS juv: evidence carries the authoritative id
+PASS juv: other areas unchanged
+PASS map succeeds
+PASS map succeeds
+PASS juv: moving the source moves the exclusion
+PASS map succeeds
+PASS shelter: one feature of the right kind and the authoritative id
+PASS shelter: area becomes Excluded with the exact reason [Excluded/Shelter]
+PASS shelter: evidence carries the authoritative id
+PASS shelter: other areas unchanged
+PASS map succeeds
+PASS map succeeds
+PASS shelter: moving the source moves the exclusion
+PASS map succeeds
+PASS clearance: one feature of the right kind and the authoritative id
+PASS clearance: area becomes Excluded with the exact reason [Excluded/ClearancePatch]
+PASS clearance: evidence carries the authoritative id
+PASS clearance: other areas unchanged
+PASS map succeeds
+PASS map succeeds
+PASS clearance: moving the source moves the exclusion
+PASS map succeeds
+PASS deadwood: one feature of the right kind and the authoritative id
+PASS deadwood: area becomes Excluded with the exact reason [Excluded/DeadwoodRecord]
+PASS deadwood: evidence carries the authoritative id
+PASS deadwood: other areas unchanged
+PASS map succeeds
+PASS map succeeds
+PASS deadwood: moving the source moves the exclusion
+PASS map succeeds
+PASS order: one feature of the right kind and the authoritative id
+PASS order: area becomes Excluded with the exact reason [Excluded/ActiveManagementWork]
+PASS order: evidence carries the authoritative id
+PASS order: other areas unchanged
+PASS map succeeds
+PASS map succeeds
+PASS order: moving the source moves the exclusion
+PASS map succeeds
+PASS NaturalRegeneration: stays Covered, flagged, evidence id kept [Covered/NaturalRegeneration]
+PASS map succeeds
+PASS no protected area in the world gives zero ProtectedArea features
+PASS an authoritative protected area refuses the whole read with an explicit problem [Protected area fence-1 exists but coverage has no accepted rule for a protected-area polygon.]
+PASS it is neither sampled nor silently omitted: no masks or features are returned
+PASS map succeeds
+PASS map succeeds
+PASS map succeeds
+PASS mapping does not mutate the source
+PASS mapping twice gives identical output
+PASS map succeeds
+PASS map succeeds
+PASS input order cannot change coverage
+PASS classifying twice is identical (no hidden state)
+PASS zero path radius is refused, not guessed [The starting-stand clearance radii are not available.]
+PASS zero clearance radius is refused, not guessed [The starting-stand clearance radii are not available.]
+PASS missing headland is refused [The headland geometry is missing.]
+PASS null source is refused [No world source was supplied.]
+PASS production no longer passes empty mask/feature arrays
+PASS production passes the mapped masks and features
+PASS ReadCoverageWorld located
+PASS radii are read through the authoritative accessors
+PASS the reader never touches the player
+PASS no reflection in the adapter
+PASS the reader writes no order, mark, event or record
+PASS shelters are physical objects from their install year, whatever their effectiveness
+PASS protected areas are only counted so the read fails closed, never sampled
+PASS no protected-area polygon sampling remains in the mapper
+PASS the pure mapper has no UnityEngine dependency
+PASS accessors are read-only expression-bodied views of the existing fields
+PASS the clearance settings themselves are unchanged
+MFM08A_COVERAGE_WORLD_PASS checks=102 failed=0
+MFM08A_REPEAT_PASS two processes, byte-identical output: True

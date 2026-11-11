@@ -1,0 +1,17 @@
+{
+ "selected_source": "/home/jer/.var/app/com.unity.UnityHub/config/unity3d/Unity/licenses",
+ "removed_after_run": [
+  {
+   "file": "UnityEntitlementLicense.xml",
+   "sha256_prefix": "63c1ddbf"
+  },
+  {
+   "file": "packageAccessControlList.etag",
+   "sha256_prefix": "d9a351a6"
+  },
+  {
+   "file": "packageAccessControlList.xml",
+   "sha256_prefix": "6fd0b1ff"
+  }
+ ]
+}

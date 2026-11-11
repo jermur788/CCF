@@ -1,0 +1,1 @@
+mouse=(632.00, 373.00) panel=(790.00, 433.75) picked=menu-help-text text=The Work Plan collects your marks and planting spots into jobs you can review and approve. Check each cost, then approve the plan. Approval alone changes nothing: Advance one year carries out the approved jobs, and jobs you have not approved wait. enabled=True

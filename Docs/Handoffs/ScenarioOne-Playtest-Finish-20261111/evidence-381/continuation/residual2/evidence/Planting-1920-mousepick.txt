@@ -1,0 +1,1 @@
+mouse=(948.00, 551.00) panel=(790.00, 440.83) picked= text= enabled=True

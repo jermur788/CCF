@@ -1,0 +1,318 @@
+$ python3 -B Tools/Verification/MfmTreatmentReview/run_treatment_review_offline.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/11-treatment-review
+
+MFM08_BUILD_PASS sources=16 warnings-as-errors
+PASS source sample is its own row, labelled SAMPLE
+PASS sample is labelled 'Sample — demonstrated treatment'
+PASS the sample is never listed as a target
+PASS Covered, Not Covered, Excluded and Manual are all explicit
+PASS counts per state (remainder counts as Manual)
+PASS Not Covered reasons are readable
+PASS Excluded reason is readable (non-Sitka)
+PASS remainder reason is readable
+PASS every closed ScenarioOneCoverage.Reason has plain wording
+PASS NaturalRegeneration is an informational note, not an exclusion
+PASS Covered means comparable/eligible, not accepted or committed
+PASS required wording 'apply your sample treatment to comparable areas'
+PASS a Covered unit starts with no draft choice
+PASS Include is a draft choice
+PASS Include changes the draft only: classification stays Covered
+PASS map tag shows classification and draft choice as separate words
+PASS Not Covered cannot be included
+PASS Excluded cannot be included
+PASS the sample cannot be included
+PASS a Manual unit cannot be force-included
+PASS only Covered targets are offered the choice
+PASS Leave manual is the other draft choice
+PASS a draft choice on a unit that stopped being Covered is dropped
+PASS an invalid coverage read shows the production problem and no rows
+PASS an invalid coverage result shows its own problem and offers nothing
+PASS presentation is deterministic
+PASS candidates come from the existing MFM-05 batch (centre first)
+PASS queue starts with nothing behind it
+PASS Next starts at the first open candidate
+PASS Next steps one candidate at a time
+PASS Next does not wrap at the end
+PASS Previous steps back and does not wrap
+PASS navigation leaves every candidate Open (nothing confirmed by moving)
+PASS the review session has no confirm or bulk-confirm operation
+PASS the review model has no confirm operation
+PASS a candidate becomes Confirmed only when the tree is marked a Crop Tree, and keeps its place
+PASS Reject is review state
+PASS a confirmed or unknown tree cannot be rejected
+PASS a rejected candidate keeps its place and is not replaced
+PASS a rejection can be reopened
+PASS the candidate card carries the spacing-only inspection-prompt warning
+PASS candidates are labelled inspection prompts, not recommendations
+PASS every proposal is labelled not a Fell mark and not yet work
+PASS a proposal shows tree, unit, Crop Tree, reason and share
+PASS conflicts are surfaced with their production reason
+PASS an invalid preview shows no proposals
+PASS fit view keeps the authoritative agreement / player-only / rule-only counts
+PASS fit summary states agreements and both disagreement directions
+PASS fit consequences state player-vs-rule basal-area shares
+PASS fit rows expose each sample decision individually
+PASS player-only row identifies the tree, the direction and its Crop Tree/Share context
+PASS rule-only row identifies the tree and its Share context
+PASS per-Crop-Tree player-vs-rule release is shown
+PASS fit is presented as a comparison, not a forestry-correctness score
+PASS fit presentation is deterministic and does not mutate the core result
+PASS an unavailable fit is shown honestly and offers no comparison
+PASS an invalid core result carries its own problem
+PASS no prescription: approval blocked
+PASS valid snapshot + preview + fit but no spot-check: approval blocked
+PASS selecting, waypointing and navigation never set the spot-check (no operation other than RecordSpotCheck can)
+PASS selecting a unit or candidate does not set the spot-check
+PASS inspecting a tree outside the accepted units does not count
+PASS inspecting a tree in a unit that was not accepted does not count
+PASS a unit that is no longer Covered cannot be spot-checked
+PASS inspecting a tree in an accepted Covered unit records the spot-check
+PASS snapshot + preview with proposals + valid fit + spot-check: approval allowed
+PASS a valid preview and spot-check cannot bypass an unavailable fit replay
+PASS no proposals or an unreadable preview: approval blocked
+PASS replacing the active snapshot resets the spot-check
+PASS re-selecting the same snapshot keeps its spot-check
+PASS an approved prescription cannot be approved again
+PASS approval message states Pending, not approved for execution
+PASS 3D: an open candidate says candidate/inspection prompt and offers confirm [C] / reject [N]
+PASS 3D: after [C] the tree reads as a confirmed Crop Tree
+PASS 3D: a rejected candidate can be reopened
+PASS 3D: a proposal target is labelled PROPOSAL, not a Fell mark and not yet work
+PASS 3D: a held conflict is labelled; an ordinary tree gets no review label
+PASS 3D: once approved the proposal label is gone (Pending work is authoritative)
+PASS sample, covered, not covered, excluded, manual differ by outline/dash/hatch form
+PASS the form difference does not rely on hue (same-colour comparison would still differ)
+PASS covered area gets hatching and one outline
+PASS hatching is clipped to the area
+PASS non-convex areas are outlined without hatch
+PASS candidate = hollow square, proposal = hollow triangle (different shapes)
+PASS rejected, confirmed, current and conflict glyphs differ in form
+PASS glyph kinds never mix with area shapes
+PASS map plan is deterministic
+PASS coverage is read only through ScenarioOneManager.ReadCoverage (the review read and the spot-check read)
+PASS no second coverage adapter: no Classify, no coverage world, no masks
+PASS the review model and map plan are pure (no UnityEngine)
+PASS candidates use the MFM-05 batch and inspection/navigation helpers
+PASS prescription boundary: Create/Preview/Approve are each called once through the MFM-07 manager
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: SetMark(
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: TreeMarkType.Fell
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: TreeMarkType.CropTree
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: ToggleCropTree
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: ToggleFell
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: ForestTreeMarkingManager
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: CreateFellingOrder
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: ApprovePendingWork
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: ShowWorkPlan
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: workPlan
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: MarkForFell
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: workOrders
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: TeleportTo
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: transform.position =
+PASS MFM-08 files never touch marks, orders, Work Plan approval or the player position: Teleport
+PASS the spot-check is recorded only from the 3D inspection path, never from the map
+PASS Inspect in forest only sets a waypoint (no spot-check, no teleport)
+PASS ApprovePrescription is called only after the gate is re-evaluated
+PASS approval never opens or approves the Work Plan
+PASS no learning/curriculum records from the review (MFM-09 owns teaching)
+PASS the 3D card reuses the normal [C] Crop Tree path and adds only a contextual [N]
+PASS an invalid coverage read returns before any action is built
+PASS the map reuses the existing waypoint path
+PASS 'operator selection' is never presented
+PASS ProtectedArea evidence is only mapped to wording, never fabricated
+PASS the UI never builds coverage areas or results of its own
+PASS the review UI reads the manager's current fit accessor and does not reimplement the fit core
+PASS the review UI names the fit summary, consequences, individual disagreement rows and invalid state
+PASS both the card and the approval handler re-evaluate the gate with the current fit view
+PASS east-west: rack/sample geometry valid 
+PASS east-west: footprints derived
+PASS east-west: every area has a polygon (15 areas)
+PASS east-west: Low / Centre / High of every rack unit are distinct footprints 
+PASS east-west: CONTROL - the d55ec86a whole-unit derivation fails the distinctness check (rack 1 shares one polygon)
+PASS east-west: rack 1 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS east-west: rack 1 segments tile the unit strip exactly (1132.3 m2)
+PASS east-west: rack 1 each footprint centre falls in the segment coverage assigns it
+PASS east-west: rack 2 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS east-west: rack 2 segments tile the unit strip exactly (1420.4 m2)
+PASS east-west: rack 2 each footprint centre falls in the segment coverage assigns it
+PASS east-west: rack 3 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS east-west: rack 3 segments tile the unit strip exactly (1288.6 m2)
+PASS east-west: rack 3 each footprint centre falls in the segment coverage assigns it
+PASS east-west: rack 4 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS east-west: rack 4 segments tile the unit strip exactly (1399.8 m2)
+PASS east-west: rack 4 each footprint centre falls in the segment coverage assigns it
+PASS east-west: rack 5 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS east-west: rack 5 segments tile the unit strip exactly (1159.0 m2)
+PASS east-west: rack 5 each footprint centre falls in the segment coverage assigns it
+PASS east-west: the source polygon is the fixed teaching rectangle (432 m2)
+PASS east-west: the source corners lie on the teaching frame's own along / across limits
+PASS east-west: the source is much smaller than its whole unit strip (432 of 1289 m2)
+PASS east-west: the source waypoint is the teaching anchor centre
+PASS east-west: centre available for R1L
+PASS east-west: centre available for R1C
+PASS east-west: centre available for R1H
+PASS east-west: centre available for R2L
+PASS east-west: centre available for R2C
+PASS east-west: centre available for R2H
+PASS east-west: centre available for R3L
+PASS east-west: centre available for R3C
+PASS east-west: centre available for R3H
+PASS east-west: centre available for R4L
+PASS east-west: centre available for R4C
+PASS east-west: centre available for R4H
+PASS east-west: centre available for R5L
+PASS east-west: centre available for R5C
+PASS east-west: centre available for R5H
+PASS east-west: TryCentre is the centroid of the drawn polygon (one derivation)
+PASS east-west: Low < Centre < High waypoints along the rack axis in every unit
+PASS east-west: Low / Centre / High waypoints are at least 5 m apart in every unit
+PASS east-west: no two area tags share a position (was 15 areas on 5 positions)
+PASS east-west: no two area tag boxes overlap (0 overlaps)
+PASS east-west: remainder-right keeps its authoritative polygon
+PASS east-west: remainder-left keeps its authoritative polygon
+PASS rotated 35 deg: rack/sample geometry valid 
+PASS rotated 35 deg: footprints derived
+PASS rotated 35 deg: every area has a polygon (15 areas)
+PASS rotated 35 deg: Low / Centre / High of every rack unit are distinct footprints 
+PASS rotated 35 deg: CONTROL - the d55ec86a whole-unit derivation fails the distinctness check (rack 1 shares one polygon)
+PASS rotated 35 deg: rack 1 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 35 deg: rack 1 segments tile the unit strip exactly (819.9 m2)
+PASS rotated 35 deg: rack 1 each footprint centre falls in the segment coverage assigns it
+PASS rotated 35 deg: rack 2 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 35 deg: rack 2 segments tile the unit strip exactly (1460.7 m2)
+PASS rotated 35 deg: rack 2 each footprint centre falls in the segment coverage assigns it
+PASS rotated 35 deg: rack 3 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 35 deg: rack 3 segments tile the unit strip exactly (1573.1 m2)
+PASS rotated 35 deg: rack 3 each footprint centre falls in the segment coverage assigns it
+PASS rotated 35 deg: rack 4 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 35 deg: rack 4 segments tile the unit strip exactly (1446.8 m2)
+PASS rotated 35 deg: rack 4 each footprint centre falls in the segment coverage assigns it
+PASS rotated 35 deg: rack 5 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 35 deg: rack 5 segments tile the unit strip exactly (847.2 m2)
+PASS rotated 35 deg: rack 5 each footprint centre falls in the segment coverage assigns it
+PASS rotated 35 deg: the source polygon is the fixed teaching rectangle (432 m2)
+PASS rotated 35 deg: the source corners lie on the teaching frame's own along / across limits
+PASS rotated 35 deg: the source is much smaller than its whole unit strip (432 of 1573 m2)
+PASS rotated 35 deg: the source waypoint is the teaching anchor centre
+PASS rotated 35 deg: centre available for R1L
+PASS rotated 35 deg: centre available for R1C
+PASS rotated 35 deg: centre available for R1H
+PASS rotated 35 deg: centre available for R2L
+PASS rotated 35 deg: centre available for R2C
+PASS rotated 35 deg: centre available for R2H
+PASS rotated 35 deg: centre available for R3L
+PASS rotated 35 deg: centre available for R3C
+PASS rotated 35 deg: centre available for R3H
+PASS rotated 35 deg: centre available for R4L
+PASS rotated 35 deg: centre available for R4C
+PASS rotated 35 deg: centre available for R4H
+PASS rotated 35 deg: centre available for R5L
+PASS rotated 35 deg: centre available for R5C
+PASS rotated 35 deg: centre available for R5H
+PASS rotated 35 deg: TryCentre is the centroid of the drawn polygon (one derivation)
+PASS rotated 35 deg: Low < Centre < High waypoints along the rack axis in every unit
+PASS rotated 35 deg: Low / Centre / High waypoints are at least 5 m apart in every unit
+PASS rotated 35 deg: no two area tags share a position (was 15 areas on 5 positions)
+PASS rotated 35 deg: no two area tag boxes overlap (0 overlaps)
+PASS rotated 35 deg: remainder-right keeps its authoritative polygon
+PASS rotated 35 deg: remainder-left keeps its authoritative polygon
+PASS rotated -20 deg: rack/sample geometry valid 
+PASS rotated -20 deg: footprints derived
+PASS rotated -20 deg: every area has a polygon (15 areas)
+PASS rotated -20 deg: Low / Centre / High of every rack unit are distinct footprints 
+PASS rotated -20 deg: CONTROL - the d55ec86a whole-unit derivation fails the distinctness check (rack 5 shares one polygon)
+PASS rotated -20 deg: rack 5 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS rotated -20 deg: rack 5 segments tile the unit strip exactly (969.9 m2)
+PASS rotated -20 deg: rack 5 each footprint centre falls in the segment coverage assigns it
+PASS rotated -20 deg: rack 4 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS rotated -20 deg: rack 4 segments tile the unit strip exactly (1485.6 m2)
+PASS rotated -20 deg: rack 4 each footprint centre falls in the segment coverage assigns it
+PASS rotated -20 deg: rack 3 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS rotated -20 deg: rack 3 segments tile the unit strip exactly (1371.3 m2)
+PASS rotated -20 deg: rack 3 each footprint centre falls in the segment coverage assigns it
+PASS rotated -20 deg: rack 2 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS rotated -20 deg: rack 2 segments tile the unit strip exactly (1505.7 m2)
+PASS rotated -20 deg: rack 2 each footprint centre falls in the segment coverage assigns it
+PASS rotated -20 deg: rack 1 segment vertices stay inside their along-axis boundaries (anchor 0.00 +/- 12.0)
+PASS rotated -20 deg: rack 1 segments tile the unit strip exactly (938.2 m2)
+PASS rotated -20 deg: rack 1 each footprint centre falls in the segment coverage assigns it
+PASS rotated -20 deg: the source polygon is the fixed teaching rectangle (432 m2)
+PASS rotated -20 deg: the source corners lie on the teaching frame's own along / across limits
+PASS rotated -20 deg: the source is much smaller than its whole unit strip (432 of 1371 m2)
+PASS rotated -20 deg: the source waypoint is the teaching anchor centre
+PASS rotated -20 deg: centre available for R5L
+PASS rotated -20 deg: centre available for R5C
+PASS rotated -20 deg: centre available for R5H
+PASS rotated -20 deg: centre available for R4L
+PASS rotated -20 deg: centre available for R4C
+PASS rotated -20 deg: centre available for R4H
+PASS rotated -20 deg: centre available for R3L
+PASS rotated -20 deg: centre available for R3C
+PASS rotated -20 deg: centre available for R3H
+PASS rotated -20 deg: centre available for R2L
+PASS rotated -20 deg: centre available for R2C
+PASS rotated -20 deg: centre available for R2H
+PASS rotated -20 deg: centre available for R1L
+PASS rotated -20 deg: centre available for R1C
+PASS rotated -20 deg: centre available for R1H
+PASS rotated -20 deg: TryCentre is the centroid of the drawn polygon (one derivation)
+PASS rotated -20 deg: Low < Centre < High waypoints along the rack axis in every unit
+PASS rotated -20 deg: Low / Centre / High waypoints are at least 5 m apart in every unit
+PASS rotated -20 deg: no two area tags share a position (was 15 areas on 5 positions)
+PASS rotated -20 deg: no two area tag boxes overlap (0 overlaps)
+PASS rotated -20 deg: remainder-right keeps its authoritative polygon
+PASS rotated -20 deg: remainder-left keeps its authoritative polygon
+PASS rotated 90 deg: rack/sample geometry valid 
+PASS rotated 90 deg: footprints derived
+PASS rotated 90 deg: every area has a polygon (15 areas)
+PASS rotated 90 deg: Low / Centre / High of every rack unit are distinct footprints 
+PASS rotated 90 deg: CONTROL - the d55ec86a whole-unit derivation fails the distinctness check (rack 1 shares one polygon)
+PASS rotated 90 deg: rack 1 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 90 deg: rack 1 segments tile the unit strip exactly (1132.3 m2)
+PASS rotated 90 deg: rack 1 each footprint centre falls in the segment coverage assigns it
+PASS rotated 90 deg: rack 2 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 90 deg: rack 2 segments tile the unit strip exactly (1420.4 m2)
+PASS rotated 90 deg: rack 2 each footprint centre falls in the segment coverage assigns it
+PASS rotated 90 deg: rack 3 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 90 deg: rack 3 segments tile the unit strip exactly (1288.6 m2)
+PASS rotated 90 deg: rack 3 each footprint centre falls in the segment coverage assigns it
+PASS rotated 90 deg: rack 4 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 90 deg: rack 4 segments tile the unit strip exactly (1399.8 m2)
+PASS rotated 90 deg: rack 4 each footprint centre falls in the segment coverage assigns it
+PASS rotated 90 deg: rack 5 segment vertices stay inside their along-axis boundaries (anchor -0.00 +/- 12.0)
+PASS rotated 90 deg: rack 5 segments tile the unit strip exactly (1159.0 m2)
+PASS rotated 90 deg: rack 5 each footprint centre falls in the segment coverage assigns it
+PASS rotated 90 deg: the source polygon is the fixed teaching rectangle (432 m2)
+PASS rotated 90 deg: the source corners lie on the teaching frame's own along / across limits
+PASS rotated 90 deg: the source is much smaller than its whole unit strip (432 of 1289 m2)
+PASS rotated 90 deg: the source waypoint is the teaching anchor centre
+PASS rotated 90 deg: centre available for R1L
+PASS rotated 90 deg: centre available for R1C
+PASS rotated 90 deg: centre available for R1H
+PASS rotated 90 deg: centre available for R2L
+PASS rotated 90 deg: centre available for R2C
+PASS rotated 90 deg: centre available for R2H
+PASS rotated 90 deg: centre available for R3L
+PASS rotated 90 deg: centre available for R3C
+PASS rotated 90 deg: centre available for R3H
+PASS rotated 90 deg: centre available for R4L
+PASS rotated 90 deg: centre available for R4C
+PASS rotated 90 deg: centre available for R4H
+PASS rotated 90 deg: centre available for R5L
+PASS rotated 90 deg: centre available for R5C
+PASS rotated 90 deg: centre available for R5H
+PASS rotated 90 deg: TryCentre is the centroid of the drawn polygon (one derivation)
+PASS rotated 90 deg: Low < Centre < High waypoints along the rack axis in every unit
+PASS rotated 90 deg: Low / Centre / High waypoints are at least 5 m apart in every unit
+PASS rotated 90 deg: no two area tags share a position (was 15 areas on 5 positions)
+PASS rotated 90 deg: no two area tag boxes overlap (0 overlaps)
+PASS rotated 90 deg: remainder-right keeps its authoritative polygon
+PASS rotated 90 deg: remainder-left keeps its authoritative polygon
+PASS no coverage / geometry: no footprint, no waypoint, nothing guessed
+PASS the review derives footprints in exactly one place
+PASS the map footprints and Inspect in forest both read that one derivation
+PASS the review card no longer picks whole-unit polygons by unit and rack
+PASS no separate unit / remainder geometry logic remains in the review card
+PASS the footprint helper is pure and adds no coverage logic
+PASS segments come from Area.Segment, never parsed from the R1L / R1C / R1H id
+MFM08_TREATMENT_REVIEW_PASS checks=312 failed=0
+MFM08_REPEAT_PASS two processes, byte-identical output: True
+MFM08_BOUNDARY_FAIL changed=454 outside-owned-surface=['.vscode/settings.json', 'Assets/ForestPrototype/Editor/ForestSceneBuilder.cs', 'Assets/ForestPrototype/ForestBuildable.cs', 'Assets/ForestPrototype/ForestSaveController.cs', 'Assets/ForestPrototype/ForestStartingStand.cs', 'Assets/ForestPrototype/Mfm11CalibrationImpactGate.cs', 'Assets/ForestPrototype/Mfm11CalibrationImpactGate.cs.meta', 'Assets/ForestPrototype/PathGuard381.cs', 'Assets/ForestPrototype/PathGuard381.cs.meta', 'Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs', 'Assets/ForestPrototype/UI/AnnualReviewView.cs', 'Assets/ForestPrototype/UI/CompetitorAssessment.cs', 'Assets/ForestPrototype/UI/ControlsReference.cs', 'Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs', 'Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs', 'Assets/ForestPrototype/UI/LearningObjectivesView.cs', 'Assets/ForestPrototype/UI/Map/StandMapCanopyRaster.cs', 'Assets/ForestPrototype/UI/Map/StandMapCanvas.cs', 'Assets/ForestPrototype/UI/Map/StandMapDrawPlan.cs', 'Assets/ForestPrototype/UI/Map/StandMapLegend.cs', 'Assets/ForestPrototype/UI/Map/StandMapLegendView.cs', 'Assets/ForestPrototype/UI/Map/StandMapModel.cs', 'Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs', 'Assets/ForestPrototype/UI/Map/StandMapSource.cs', 'Assets/ForestPrototype/UI/Map/StandMapSymbols.cs', 'Assets/ForestPrototype/UI/MenuHelpView.Text.cs', 'Assets/ForestPrototype/UI/OnboardingIcon.cs', 'Assets/ForestPrototype/UI/Resources/Onboarding/page-1.png', 'Assets/ForestPrototype/UI/Resources/Onboarding/page-2.png', 'Assets/ForestPrototype/UI/Resources/Onboarding/page-3.png', 'Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss', 'Assets/ForestPrototype/UI/ScenarioOneOnboardingCopy.cs', 'Assets/ForestPrototype/UI/ScenarioOneOnboardingView.cs', 'Assets/ForestPrototype/UI/ScenarioOneRackBayText.cs', 'Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs', 'Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs', 'Assets/ForestPrototype/UI/TeachingDiagram.cs', 'Assets/ForestPrototype/UI/TeachingDiagramPlan.cs', 'Assets/ForestPrototype/UI/UiKit.cs', 'Assets/ForestPrototype/UI/WalkingHudView.cs', 'Assets/ForestPrototype/UI/WorkPlanOverview.cs', 'Assets/ForestPrototype/UI/WorkPlanView.cs', 'Assets/Scenes/ForestTest.unity', 'Docs/Handoffs/Browser-Coordination-Reconciliation-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/Browser-Coordination-Reconciliation-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/DEEPSEEK-LONG-RUN-ORCHESTRATOR-HANDOFF-TEMPLATE.md', 'Docs/Handoffs/GuidedV2-v24-Contract-Reconciliation-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/GuidedV2-v24-Contract-Reconciliation-01/TASK-PACKET.md', 'Docs/Handoffs/MFM-06/INTEGRATION-TASK-PACKET.md', 'Docs/Handoffs/MFM-06/REVIEW-ROUTING-AMENDMENT-20261029.md', 'Docs/Handoffs/MFM-07/INTEGRATION-TASK-PACKET.md', 'Docs/Handoffs/MFM-07/TASK-PACKET.md', 'Docs/Handoffs/MFM-08-Integration-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/MFM-08-Integration-01/TASK-PACKET.md', 'Docs/Handoffs/MFM-08-MapPlanning-Contract-Reconciliation-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/MFM-08-MapPlanning-Contract-Reconciliation-01/TASK-PACKET.md', 'Docs/Handoffs/MFM-08-Tier2-Closure-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/MFM-08-Tier2-Closure-01/TASK-PACKET.md', 'Docs/Handoffs/MFM-08-UX-Readiness-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/MFM-08-UX-Readiness-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/MFM-08A-Coverage-World-Adapter/MANAGER-REVIEW.md', 'Docs/Handoffs/MFM-08A-Coverage-World-Adapter/RELEASE-NOTE.md', 'Docs/Handoffs/MFM-08A-Coverage-World-Adapter/SOURCE-AUTHORITY-BLOCKER-20261029.md', 'Docs/Handoffs/MFM-08A-Coverage-World-Adapter/TASK-PACKET.md', 'Docs/Handoffs/MFM-08A-Source-Authority-Manager-Review-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/MFM-08A-Source-Authority-Manager-Review-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/MFM-08A-Source-Authority-Review-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/MFM-08A-Source-Authority-Review-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/BROWSER-RECONCILIATION-20261030.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/FINAL-MANAGER-REVIEW-CHECKLIST-20261030.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/MANAGER-REVIEW-20261101.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/RELEASE-REPIN-20261031.md', 'Docs/Handoffs/MFM-09-Teaching-WorkPlan-Integration/TASK-PACKET.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-HANDOFF-20261101.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/BROWSER-SPLIT-HANDOFF-20261101.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/MANAGER-REVIEW-20261101.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/RELEASE-REPIN-20261101.md', 'Docs/Handoffs/MFM-10-Species-Parity-Guard/TASK-PACKET.md', 'Docs/Handoffs/MFM-11-Calibration-Impact/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/MFM-11-Calibration-Impact/MANAGER-REVIEW-20261101.md', 'Docs/Handoffs/MFM-11-Calibration-Impact/RELEASE-REPIN-20261101.md', 'Docs/Handoffs/MFM-11-Calibration-Impact/TASK-PACKET.md', 'Docs/Handoffs/MFM-12-Integrated-Verification/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/MFM-12-Integrated-Verification/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-03/MANAGER-REVIEW.md', 'Docs/Handoffs/MFM-Implementation-06/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-07/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-08/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-09/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-10/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-11/TASK-PACKET.md', 'Docs/Handoffs/MFM-Implementation-12/TASK-PACKET.md', 'Docs/Handoffs/MainIntegration-20261104/MANAGER-RECONCILIATION-20261104.md', 'Docs/Handoffs/Manager-Chat-Transition-20261103-Playtest-Visuals/HANDOFF.md', 'Docs/Handoffs/Manager-Chat-Transition-20261103/HANDOFF.md', 'Docs/Handoffs/OPS-UNITY-LOCK-01/MANAGER-REVIEW.md', 'Docs/Handoffs/OPS-UNITY-LOCK-01/TASK-PACKET.md', 'Docs/Handoffs/Overnight-Continuation-20261104/BASELINE-VERIFICATION-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/DELEGATION-INDEX.md', 'Docs/Handoffs/Overnight-Continuation-20261104/FINAL-DRAFT-SPEC-REVIEW-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/FOCUSED-UI-UNITY-QUALIFICATION-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/FOCUSED-UI-UNITY-QUALIFICATION-PACKET-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/ISOLATED-UI-STAGING-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/ISOLATED-UI-STAGING-PACKET.md', 'Docs/Handoffs/Overnight-Continuation-20261104/MANAGER-FOCUSED-UI-QUALIFICATION-REVIEW-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/MANAGER-HANDBACK-REVIEW-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/MANAGER-THREE-LANE-REVIEW-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/MASTER-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/NEW-OVERALL-MANAGER-CHAT-HANDOFF-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/OBJECTIVE-COPY-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/OVERNIGHT-ORCHESTRATION-RESULT.md', 'Docs/Handoffs/Overnight-Continuation-20261104/POST-OVERNIGHT-CONTINUATION-RESULT.md', 'Docs/Handoffs/Overnight-Continuation-20261104/POST-OVERNIGHT-REVIEW-AND-ROUTING-PACKET.md', 'Docs/Handoffs/Overnight-Continuation-20261104/RACK-HANDLE-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/RACK-V2-EDITING-GATE-REPAIR-HANDOFF.md', 'Docs/Handoffs/Overnight-Continuation-20261104/RACK-V2-EDITING-GATE-REPAIR-MANAGER-REVIEW-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/RACK-V2-EDITING-GATE-REPAIR-PACKET-20261104.md', 'Docs/Handoffs/Overnight-Continuation-20261104/ROUTING-LEDGER.md', 'Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/baseline.stdout.txt', 'Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/help-candidate-base.stdout.txt', 'Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/help.stdout.txt', 'Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/snap-pinned.py', 'Docs/Handoffs/Overnight-Continuation-20261104/review-269-evidence/snap-pinned.stdout.txt', 'Docs/Handoffs/PlayerTestReadiness-Browser-NextWave-20261030/HANDOFF.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-02-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-02-RETURN-REVIEW.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-02-STATUS-RECONCILIATION.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-03-CONSOLIDATED-HANDOFF.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-03-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-04-MFM07-READINESS.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-04-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-05-NEXT-READINESS.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-05-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-06-NEXT-WAVE.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-06-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-HANDOFF.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-LANE-RESULT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-MFM04-05-REVIEW.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-PARITY07-REVIEW.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-S1D-DEPENDENCY-AUDIT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-T03-RACKLESSON-RECONCILIATION.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/BROWSER-T05-V22-REVIEW.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/CROSS-FEATURE-OWNERSHIP-AND-SEQUENCING.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-HANDOFF-TEMPLATE.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-INDEPENDENT-REVIEW-TASK-PACKET.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/FINAL-TIER3-TASK-PACKET.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/LANE-SPLIT-AND-MODEL-ROUTING-AMENDMENT.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/ORCHESTRATION-LEDGER-20261030.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/OVERNIGHT-CONTINUATION-20261030.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/OVERNIGHT-RESULT-20261030.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/T3-CODE-LANE-HANDOFF.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/T3-DISPATCH-01-S1C-T04.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/T3-REMAINING-WORK-HANDOFF-20261029.md', 'Docs/Handoffs/PlayerTestReadiness-Overnight-01/T3-REMAINING-WORK-INDEX-20261029.md', 'Docs/Handoffs/RACK-V2-10-Static-Manager-Review-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/RACK-V2-10-Static-Manager-Review-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/RACK-V2-14/FINAL-CONFORMANCE-REVIEW-20261030.md', 'Docs/Handoffs/RackV2-Current-Lineage-Red-Gate-Diagnosis-01/HANDOFF.md', 'Docs/Handoffs/RackV2-Current-Lineage-Red-Gate-Diagnosis-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/RackV2-Current-Lineage-Red-Gate-Diagnosis-01/TASK-PACKET.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/CLAIM-TEMPLATE.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/HANDOFF.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/INVENTORY.tsv', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/KNOWN-SOURCE-SEED-INVENTORY.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/LOCAL-DISPATCH-HANDOFF-20261031.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/PAGE-MAP.tsv', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/README.md', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/SHA256-MANIFEST.tsv', 'Docs/Handoffs/Research-Source-Consolidation-Audit-01/TASK-PACKET.md', 'Docs/Handoffs/S1-C-Implementation-04/MANAGER-REVIEW.md', 'Docs/Handoffs/S1-C-Implementation-04/REPAIR-PACKET-20261029.md', 'Docs/Handoffs/S1-C-Implementation-04/TASK-PACKET.md', 'Docs/Handoffs/S1-C-Implementation-06/MANAGER-REVIEW-OFFLINE.md', 'Docs/Handoffs/S1-C-Implementation-06/MANAGER-REVIEW.md', 'Docs/Handoffs/S1-C-Implementation-06/RELEASE-NOTE-20261029.md', 'Docs/Handoffs/S1-C-Implementation-07/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/S1-C-Implementation-07/LOCAL-DISPATCH-HANDOFF-20261030.md', 'Docs/Handoffs/S1-C-Implementation-07/MANAGER-REVIEW-20261030.md', 'Docs/Handoffs/S1-C-Implementation-07/REPIN-HANDOFF-20261030.md', 'Docs/Handoffs/S1-C-Implementation-07/TASK-PACKET.md', 'Docs/Handoffs/S1-C-Implementation-08/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/S1-C-Implementation-08/FINAL-MANAGER-REVIEW-CHECKLIST-20261030.md', 'Docs/Handoffs/S1-C-Implementation-08/MANAGER-REVIEW-20261031.md', 'Docs/Handoffs/S1-C-Implementation-08/RELEASE-REPIN-20261031.md', 'Docs/Handoffs/S1-C-Implementation-08/TASK-PACKET.md', 'Docs/Handoffs/S1-D-Implementation-04/INDEPENDENT-REVIEW.md', 'Docs/Handoffs/S1-D-Implementation-04/MANAGER-REVIEW.md', 'Docs/Handoffs/S1-D-Implementation-04/SEQUENCING-AMENDMENT-20261029.md', 'Docs/Handoffs/S1-D-Implementation-04/TASK-PACKET.md', 'Docs/Handoffs/S1-D-Implementation-05/FINAL-MANAGER-REVIEW-20261030.md', 'Docs/Handoffs/S1-D-Implementation-05/FINAL-MANAGER-REVIEW-CHECKLIST-20261030.md', 'Docs/Handoffs/S1-D-Implementation-05/RELEASE-HANDOFF-20261029.md', 'Docs/Handoffs/S1-D-Implementation-05/SEQUENCING-AMENDMENT-20261029.md', 'Docs/Handoffs/S1-D-Implementation-05/TASK-PACKET.md', 'Docs/Handoffs/S1-D-Implementation-05/UNITY-CONTINUATION-20261030.md', 'Docs/Handoffs/S1-D-Implementation-08/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/S1-D-Implementation-08/RELEASE-20261031.md', 'Docs/Handoffs/S1-D-Implementation-08/RELEASE-HANDOFF-20261030.md', 'Docs/Handoffs/S1-D-Implementation-08/REPIN-20261031.md', 'Docs/Handoffs/S1-D-Implementation-08/ROUTING-AMENDMENT-20261029.md', 'Docs/Handoffs/S1-D-Implementation-08/TASK-PACKET.md', 'Docs/Handoffs/S1-D-Implementation-09/BROWSER-REVIEW-CHECKLIST-20261030.md', 'Docs/Handoffs/S1-D-Implementation-09/INDEPENDENT-REVIEW-20261031.md', 'Docs/Handoffs/S1-D-Implementation-09/ROUTING-AMENDMENT-20261029.md', 'Docs/Handoffs/S1-D-Implementation-09/TASK-PACKET.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Manager-Review-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Manager-Review-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Manager-Review-20261029/CLAIM.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Repair-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Repair-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Repair-Manager-Review-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/S1-D-T04-Persistence-Amendment-Repair-Manager-Review-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/EXECUTION-HANDOFF-20261029.md', 'Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/INDEPENDENT-REVIEW.md', 'Docs/Handoffs/S1-D-T04-Persistence-Prerequisite-20261029/TASK-PACKET.md', 'Docs/Handoffs/S1-D-T05-Readiness-20261029/BROWSER-HANDOFF.md', 'Docs/Handoffs/S1-D-T05-Readiness-20261029/BROWSER-RESULT.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-03-Q10/UNITY-CONTINUATION-20261029.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INDEPENDENT-REVIEW-PRECHECK-20261030.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/INDEPENDENT-REVIEW.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/MODEL0-BASELINE-DISCRIMINATION-20261030.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RELEASE-AMENDMENT-20261029.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RELEASE-AMENDMENT-20261030-v24.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RESIDUAL-UNITY-CLAIM-20261030.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/RESIDUAL-UNITY-QUALIFICATION-20261030.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-08/TASK-PACKET.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/BROWSER-READINESS-20261030.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/MANAGER-REVIEW-20261101.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/RELEASE-REPIN-20261101.md', 'Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-09/TASK-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/FIVE-RACK-REFERENCE-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/FIVE-RACK-REFERENCE-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-FIVE-RACK-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-MEASUREMENT-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-MFM-TOPOLOGY-REVIEW-20261104.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MANAGER-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MFM-TOPOLOGY-OPTIONS-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/MFM-TOPOLOGY-OPTIONS-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OPTION-A-OFFLINE-QUALIFICATION-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OPTION-A-OFFLINE-QUALIFICATION-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/ORCHESTRATION-LEDGER.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OptionA-Offline-20261104/optionA_offline_analysis.py', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OptionA-Offline-20261104/results.json', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/OptionA-Offline-20261104/run.log', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/RECONNAISSANCE-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/RECONNAISSANCE-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261103/UNITY-GEOMETRY-MEASUREMENT-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/BROWSER-SPINE-INDEPENDENT-REVIEW-PACKET.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/BROWSER-SPINE-SPEC-RESEARCH-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/T3-WORKBENCH-PHASE3-UNITY-QUALIFICATION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/T3-WORKBENCH-REMOVAL-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/T3-WORKBENCH-RETIREMENT-IMPLEMENTATION-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Access-Spine-20261105/WORKBENCH-RETIREMENT-START-TRACK-SPEC-PACKET.md', 'Docs/Handoffs/ScenarioOne-Browser-Continuation-04/BROWSER-HANDOFF-20261101.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/MANAGER-DISPOSITION-OPTION1-20261031.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/MANAGER-REVIEW-20261101.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/OPTION1-CONTINUATION-PACKET.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/OPTION1-REPIN-20261031.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/OPTION1-REPIN-20261101.md', 'Docs/Handoffs/ScenarioOne-Combined-HUD-Focus-Regression-01/TASK-PACKET.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/IMPLEMENTATION-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/MANAGER-FINAL-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/MANAGER-HANDOFF-20261103.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/REVIEW-PACKET-20261103.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/STAGING-INTEGRATION-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Intro-Astra-Visual-Refresh-20261103/UNITY-LEASE-RELEASE-PACKET.md', 'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/T3-WORKBENCH-287-VERIFIER-CLOSURE-RESULT.md', 'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/WORKBENCH-RECEIPT-R2-FINALIZATION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Morning-Closure-20261107/WORKBENCH-RUNNER-R1-R5-CORRECTION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Objectives-Overflow-Repair/LOCAL-EXECUTION-HANDOFF-20261102.md', 'Docs/Handoffs/ScenarioOne-Objectives-Overflow-Repair/TASK-PACKET.md', 'Docs/Handoffs/ScenarioOne-Orchestration-Ledger-Backfill-01/TASK-PACKET.md', 'Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/FOCUSED-SOURCE-STAGING-RESULT-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/REFERENCE-PREVIEW-POSE-FIX-FOCUSED-UNITY-RESULT-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Continuation-20261108/SCENE-HANDLE-COMPATIBILITY-AND-INTEGRATED-PIN-RESULT-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-SCENARIO-ONE-INTEGRATED-QUALIFICATION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-SCENARIO-ONE-MATERIAL-DRIFT-AND-REMAINING-QUALIFICATION-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-SCENARIO-ONE-UI-LIFECYCLE-REQUALIFICATION-RESULT-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261107/FOCUSED-SCENARIO-ONE-V2-MAP-PARITY-AND-FINAL-UNITY-EVIDENCE-20261109.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261109/INDEPENDENT-358-EVIDENCE-REVIEW-AND-PLAYTEST-GATE-CLOSURE-RESULT.md', 'Docs/Handoffs/ScenarioOne-Overnight-Playtest-Readiness-20261109/ONBOARDING-FOCUS-FIX-AND-TARGETED-UNITY-QUALIFICATION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Playtest-Feedback-20261110/FOCUSED-364-HUD-AND-DIAGRAM-REPAIR-RESULT.md', 'Docs/Handoffs/ScenarioOne-Playtest-Feedback-20261110/FOCUSED-366-REVIEW-PRIORITY-ALL-SURFACES-REPAIR-RESULT.md', 'Docs/Handoffs/ScenarioOne-Playtest-Feedback-20261110/OVERNIGHT-UX-SPEC-IMPLEMENTATION-RESULT.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-PREPARATION-20261030.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/BROWSER-READINESS-20261101.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/LOCAL-EXECUTION-HANDOFF-20261103.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/MANAGER-CHECKPOINT-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/MANAGER-FINAL-REVIEW-20261103.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/RELEASE-REPIN-20261103.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/TASK-2-EVIDENCE-CLOSURE-HANDOFF-20261103.md', 'Docs/Handoffs/ScenarioOne-Tier3-PlayerTest-Candidate/TEST-REDUCTION-AMENDMENT-20261103.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-RESUME-HANDOFF-20261031T1221Z.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/BROWSER-RESUME-RESULT-20261031T1233Z.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/DEEP-ORCHESTRATION-HANDOFF.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/LOCAL-DEEP-ORCHESTRATION-RESUME-20261031T1221Z.md', 'Docs/Handoffs/ScenarioOne-Two-Lane-Continuation-20261031/LOCAL-MASTER-HANDOFF-20261101.md', 'Docs/Handoffs/ScenarioOne-UX-Expectation-Reconciliation-20261105/OBJECTIVE-GUIDANCE-SPEC-REPAIR-PACKET.md', 'Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/BROWSER-DISPOSITION.md', 'Docs/Handoffs/ScenarioOne-Verification-Debt-20261101/TASK-PACKET.md', 'Docs/Handoffs/StandMap-Species-Canopy-Differentiation/INTEGRATION-HANDOFF.md', 'Docs/Handoffs/StandMap-Species-Canopy-Differentiation/MANAGER-REVIEW-20261103.md', 'Docs/Handoffs/StandMap-Species-Canopy-Differentiation/RELEASE-20261103.md', 'Docs/Handoffs/StandMap-Species-Canopy-Differentiation/SCREENSHOT-DISCOVERY-HANDOFF-20261103.md', 'Docs/Handoffs/StandMap-Species-Canopy-Differentiation/TASK-PACKET.md', 'Docs/Handoffs/Unity-SSD-Headroom-Remediation-20261029/HANDOFF.md', 'Docs/Handoffs/Unity-SSD-Headroom-Remediation-20261029/TASK-PACKET.md', 'Docs/Handoffs/Verification-Harness-Hygiene-01/HANDOFF.md', 'Docs/Handoffs/Verification-Harness-Hygiene-01/LOCAL-DISPATCH-HANDOFF-20261031.md', 'Docs/Handoffs/Verification-Harness-Hygiene-01/MANAGER-REVIEW.md', 'Docs/Handoffs/Verification-Harness-Hygiene-01/README.md', 'Docs/Handoffs/Verification-Harness-Hygiene-01/TASK-PACKET.md', 'Docs/Project/coordination/overall-dev-sync.md', 'Docs/Project/current-milestone.md', 'Docs/Project/decision-log.md', 'Docs/Project/instructions/chatgpt-role.md', 'Docs/Project/instructions/shared-project-instructions.md', 'Packages/manifest.json', 'Packages/packages-lock.json', 'Tools/Verification/CloudTypeCheck/InputSystemStub.cs', 'Tools/Verification/CloudTypeCheck/Painter2DStub.cs', 'Tools/Verification/CloudTypeCheck/UnityEditorStub.cs', 'Tools/Verification/CloudTypeCheck/baseline-prod.txt', 'Tools/Verification/CloudTypeCheck/baseline-tools.txt', 'Tools/Verification/CloudTypeCheck/run_typecheck.py', 'Tools/Verification/NextActionGuidance/check_sources.py', 'Tools/Verification/OvernightPlaytestFeedback/ObjectiveCtaRoslynBinding.cs', 'Tools/Verification/OvernightPlaytestFeedback/README.md', 'Tools/Verification/OvernightPlaytestFeedback/baseline-output.txt', 'Tools/Verification/OvernightPlaytestFeedback/check_baseline.py', 'Tools/Verification/OvernightPlaytestFeedback/objective_cta_roslyn_binding.py', 'Tools/Verification/OvernightPlaytestFeedback/objective_cta_source_check.py', 'Tools/Verification/OvernightPlaytestFeedback/roslyn-reference-manifest.txt', 'Tools/Verification/OvernightPlaytestFeedback/test_objective_cta_roslyn_binding.py', 'Tools/Verification/OvernightPlaytestFeedback/test_objective_cta_source_check.py', 'Tools/Verification/PlayerFeedbackOvernight/Checks.cs', 'Tools/Verification/PlayerFeedbackOvernight/ConsumerPaths.cs', 'Tools/Verification/PlayerFeedbackOvernight/ReviewReset.cs', 'Tools/Verification/PlayerFeedbackOvernight/SOURCE-ALLOWLIST.md', 'Tools/Verification/PlayerFeedbackOvernight/consumer_paths.py', 'Tools/Verification/PlayerFeedbackOvernight/hud_contract.py', 'Tools/Verification/PlayerFeedbackOvernight/mutations.py', 'Tools/Verification/PlayerFeedbackOvernight/mutations_370.py', 'Tools/Verification/PlayerFeedbackOvernight/pixel_check.py', 'Tools/Verification/PlayerFeedbackOvernight/review_reset.py', 'Tools/Verification/PlayerFeedbackOvernight/run_checks.py', 'Tools/Verification/Qualification/run_qualification.py', 'Tools/Verification/RackV2Editing/RackV2EditingVerification.cs', 'Tools/Verification/RackV2HelpTeaching/RackV2HelpTeachingOfflineCheck.cs', 'Tools/Verification/RackV2HelpTeaching/run_offline.py', 'Tools/Verification/RackV2Objective1/RackV2Objective1EndToEnd.cs', 'Tools/Verification/RackV2Persistence/RackV2PersistenceVerification.cs', 'Tools/Verification/RackV2Persistence/test_historical_projection.py', 'Tools/Verification/ScenarioOneFiveRackDiagram/FiveRackDiagramCheck.cs', 'Tools/Verification/ScenarioOneFiveRackDiagram/PainterProbe/PainterProbe.cs', 'Tools/Verification/ScenarioOneFiveRackDiagram/PainterProbe/RecordingUnityStubs.cs', 'Tools/Verification/ScenarioOneFiveRackDiagram/expected_assertions.json', 'Tools/Verification/ScenarioOneFiveRackDiagram/run_five_rack_check.py', 'Tools/Verification/ScenarioOneFiveRackDiagram/test_stage_inventory_guard.py', 'Tools/Verification/ScenarioOneFocusedClosure/Ccf359OldWorld.cs', 'Tools/Verification/ScenarioOneFocusedClosure/Ccf359V24SaveContract.cs', 'Tools/Verification/ScenarioOneFocusedClosure/Ccf359V2Closure.cs', 'Tools/Verification/ScenarioOneFocusedClosure/README.md', 'Tools/Verification/ScenarioOneThreePageOnboarding/OnboardingVerification.cs', 'Tools/Verification/ScenarioOneThreePageOnboarding/make_comparisons.py', 'Tools/Verification/ScenarioOneThreePageOnboarding/prepare_20261103_art.py', 'Tools/Verification/ScenarioOneUiPresentation/PresentationChecks.cs', 'Tools/Verification/ScenarioOneUiPresentation/README.md', 'Tools/Verification/ScenarioOneUiPresentation/annual_rows.py', 'Tools/Verification/ScenarioOneUiPresentation/inspection_fit.py', 'Tools/Verification/ScenarioOneUiPresentation/repair_consumers.py', 'Tools/Verification/ScenarioOneUiPresentation/run_checks.py', 'Tools/Verification/ScenarioOneUiPresentation/tagged_text.py', 'Tools/Verification/SiteInfrastructure/OfflineLogic/SiteInfrastructureOfflineCheck.cs', 'Tools/Verification/SiteInfrastructure/run_site_check.py', 'Tools/Verification/StandGeometry/Enlarged80Verification.cs', 'Tools/Verification/StandGeometry/run_enlarged80.py', 'Tools/Verification/StandGeometry/test_b3_witness.py', 'Tools/Verification/StandMap/HeadlandOffline/HeadlandFixture.cs', 'Tools/Verification/StandMap/HeadlandOffline/HeadlandOfflineCheck.cs', 'Tools/Verification/StandMap/HeadlandOffline/HeadlandSourceStubs.cs', 'Tools/Verification/StandMap/HeadlandOffline/run_headland_check.py', 'Tools/Verification/StandMap/HeadlandOffline/test_stage_inventory_guard.py', 'Tools/Verification/StandMap/OfflineLogic/StandMapOfflineCheck.cs', 'Tools/Verification/StandMap/V2Witness/README.md', 'Tools/Verification/StandMap/V2Witness/SectionFiveMaterialPair.cs', 'Tools/Verification/StandMap/V2Witness/StandMapV2Witness.cs', 'Tools/Verification/StandMap/V2Witness/StandMapV2WitnessOfflineCheck.cs', 'Tools/Verification/StandMap/V2Witness/run_v2witness_offline.py', 'Tools/Verification/WorkbenchRetirement/WorkbenchRetirementVerification.cs', 'Tools/Verification/WorkbenchRetirement/run_workbench_retirement.py', 'Tools/Verification/WorkbenchRetirement/test_runner.py', 'specs/scenario-one-access-spine-route-consistency-v1/checklists/requirements.md', 'specs/scenario-one-access-spine-route-consistency-v1/plan.md', 'specs/scenario-one-access-spine-route-consistency-v1/spec.md', 'specs/scenario-one-access-spine-route-consistency-v1/tasks.md', 'specs/scenario-one-repeated-interventions-v1/checklists/requirements.md', 'specs/scenario-one-repeated-interventions-v1/plan.md', 'specs/scenario-one-repeated-interventions-v1/spec.md', 'specs/scenario-one-repeated-interventions-v1/tasks.md', 'specs/scenario-one-three-page-onboarding-v1/production-copy.md', 'specs/scenario-one-three-page-onboarding-v1/references/20261103-art-manifest.json', 'specs/scenario-one-three-page-onboarding-v1/references/20261103-page-1-approved.png', 'specs/scenario-one-three-page-onboarding-v1/references/20261103-page-2-approved.png', 'specs/scenario-one-three-page-onboarding-v1/references/20261103-page-3-approved.png', 'specs/scenario-one-three-page-onboarding-v1/references/20261103-reference-addendum.md']

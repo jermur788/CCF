@@ -1,0 +1,12 @@
+exit acknowledgement: command timeout {'action': 'exit'}
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/residual_driver.py", line 20, in <module>
+    tag=card.split()[0]+'-'+str(w);cmd({'action':'scrollcard','arg':card});cmd({'action':'target','arg':card})
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/residual_driver.py", line 7, in cmd
+    if Path(str(p)+'.failed').exists():raise Exception(Path(str(p)+'.error').read_text())
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Exception: System.InvalidOperationException: Sequence contains no matching element
+  at System.Linq.Enumerable.First[TSource] (System.Collections.Generic.IEnumerable`1[T] source, System.Func`2[T,TResult] predicate) [0x00011] in <ada5ca24c2414cbb9aa0f67c3255a013>:0 
+  at Ccf381+<Execute>d__14.MoveNext () [0x00433] in /media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Assets/ForestPrototype/Ccf381.cs:166 
+  at Ccf381+<Start>d__15.MoveNext () [0x00216] in /media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Assets/ForestPrototype/Ccf381.cs:256 

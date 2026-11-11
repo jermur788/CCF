@@ -1,0 +1,177 @@
+$ python3 -B Tools/Verification/MfmSaveProvenance/run_offline_check.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/12-save-provenance
+
+BASELINE_DUMP_WRITTEN version=22
+PASS schema: CurrentVersion is 24 (D-066 single teaching latch after MFM v23)
+PASS schema: a new ForestSaveData stamps v24
+PASS schema: defaults are the empty 'no prescription' state
+PASS schema: orders and events default to no prescription
+PASS schema: stored enum numbers are the pinned values
+PASS schema: the stored reason codes are exactly the ProposalReason vocabulary (kept in step with the core)
+PASS round trip: version, allocator and both prescriptions
+PASS round trip: id, rule version and calibration version
+PASS round trip: source rack, year and anchor
+PASS round trip: derivation inputs (lists keep their order)
+PASS round trip: accepted coverage decisions
+PASS round trip: approval state and year
+PASS round trip: work-order provenance
+PASS round trip: the ordinary order stays ordinary
+PASS round trip: history linkage on the management event
+PASS round trip: S1-C v22 objective history is carried unchanged
+PASS round trip: serialized bytes identical after load and re-save
+PASS round trip: the valid v23 world passes the JSON and typed validators -> 
+PASS layout: the v23 run is declared after the v22 field
+PASS layout: prescriptions serialize inside scenarioOne
+PASS stable ids: capture after load #1 is identical to the previous one
+PASS stable ids: capture after load #2 is identical to the previous one
+PASS stable ids: capture after load #3 is identical to the previous one
+PASS stable ids: capture after load #4 is identical to the previous one
+PASS stable ids: ids and allocator survive four save/load cycles
+PASS stable ids: the allocator never moves back onto an id in use
+PASS stable ids: ids are not reused (a higher allocator is kept)
+PASS isolation: capture hands out copies, not live state
+PASS v22 shape: the fixture contains no prescription text at all
+PASS v22 save: missing fields load as no prescription state
+PASS v22 save: validates (JSON and typed)
+PASS v22 save: existing marks and Crop Trees are ordinary existing state
+PASS v22 restore: no prescription state is created
+PASS v22 restore: existing marks/orders/events acquire no prescription id or provenance
+PASS v22 save: S1-C objective history survives the upgrade unchanged
+PASS v22 claiming prescription state: refused
+PASS migration: a pre-v23 save is normalised to no prescription state
+PASS migration: a v23 save keeps its prescriptions
+PASS migration: null scenario data is tolerated
+PASS v21 save: prescription validators pass with no field
+PASS v20 save: prescription validators pass with no field
+PASS v15 save: prescription validators pass with no field
+PASS v12 save: prescription validators pass with no field
+PASS v8 save: prescription validators pass with no field
+PASS v8 save: no scenarioOne means nothing to validate
+PASS v23 Legacy40 world with no prescription state: valid -> 
+PASS v23 Enlarged80 world with no prescription state: valid
+PASS refused: prescription id 0 -> invalid prescription id 0
+PASS no mutation: prescription id 0
+PASS refused: negative prescription id -> invalid prescription id -4
+PASS no mutation: negative prescription id
+PASS refused: duplicate prescription id -> prescription 1 appears twice
+PASS no mutation: duplicate prescription id
+PASS refused: allocator below an id in use -> prescription 2 is at or beyond the id allocator 2
+PASS no mutation: allocator below an id in use
+PASS refused: allocator zero -> invalid prescription id allocator 0
+PASS no mutation: allocator zero
+PASS refused: null record -> a version 23 prescription record is missing required fields
+PASS no mutation: null record
+PASS refused: empty rule version -> prescription 1 has an invalid rule version
+PASS no mutation: empty rule version
+PASS refused: rule version with a space -> prescription 1 has an invalid rule version
+PASS no mutation: rule version with a space
+PASS refused: rule version too long -> prescription 1 has an invalid rule version
+PASS no mutation: rule version too long
+PASS refused: empty calibration version -> prescription 1 has an invalid calibration version
+PASS no mutation: empty calibration version
+PASS refused: source rack 0 -> prescription 1 names an impossible source rack 0
+PASS no mutation: source rack 0
+PASS refused: source rack never allocated -> prescription 1 names an impossible source rack 3
+PASS no mutation: source rack never allocated
+PASS refused: prescription in a legacy-rack world -> prescription 1 needs a Rack Planning V2 world
+PASS no mutation: prescription in a legacy-rack world
+PASS refused: source year in the future -> prescription 1 has an impossible source year 21
+PASS no mutation: source year in the future
+PASS refused: negative source year -> prescription 1 has an impossible source year -1
+PASS no mutation: negative source year
+PASS refused: non-finite anchor NaN -> prescription 1 has an invalid source anchor
+PASS refused: non-finite anchor Infinity -> prescription 1 has an invalid source anchor
+PASS refused: null crop-tree list -> a version 23 prescription record is missing required fields
+PASS no mutation: null crop-tree list
+PASS refused: blank sample tree id -> prescription 1 sample Crop Trees hold an invalid or repeated id
+PASS no mutation: blank sample tree id
+PASS refused: padded sample tree id -> prescription 1 sample removals hold an invalid or repeated id
+PASS no mutation: padded sample tree id
+PASS refused: repeated sample tree id -> prescription 1 sample Crop Trees hold an invalid or repeated id
+PASS no mutation: repeated sample tree id
+PASS refused: control character in an id -> prescription 1 sample removals hold an invalid or repeated id
+PASS no mutation: control character in an id
+PASS refused: null decisions -> a version 23 prescription record is missing required fields
+PASS no mutation: null decisions
+PASS refused: blank coverage unit -> prescription 1 has an invalid coverage unit
+PASS no mutation: blank coverage unit
+PASS refused: unknown coverage choice -> prescription 1 has an unknown coverage choice 9
+PASS no mutation: unknown coverage choice
+PASS refused: zero coverage choice -> prescription 1 has an unknown coverage choice 0
+PASS no mutation: zero coverage choice
+PASS refused: repeated coverage unit -> prescription 1 decides coverage unit 'R2W' twice
+PASS no mutation: repeated coverage unit
+PASS refused: unknown approval state -> prescription 1 has an unknown approval state 7
+PASS no mutation: unknown approval state
+PASS refused: unapproved with an approval year -> prescription 2 is not approved but has an approval year
+PASS no mutation: unapproved with an approval year
+PASS refused: approved before the source year -> prescription 1 has an impossible approval year 9
+PASS no mutation: approved before the source year
+PASS refused: approved after the save -> prescription 1 has an impossible approval year 21
+PASS no mutation: approved after the save
+PASS refused: approved without a year -> prescription 1 has an impossible approval year -1
+PASS no mutation: approved without a year
+PASS refused: order names an unknown prescription -> work order 2 names unknown prescription 9
+PASS no mutation: order names an unknown prescription
+PASS refused: order negative prescription id -> work order 2 has an invalid prescription link
+PASS no mutation: order negative prescription id
+PASS refused: order from an unapproved prescription -> work order 2 comes from prescription 2, which is not approved
+PASS no mutation: order from an unapproved prescription
+PASS refused: order created before approval -> work order 2 predates the approval of prescription 1
+PASS no mutation: order created before approval
+PASS refused: order blank coverage unit -> work order 2 has an invalid prescription coverage unit
+PASS no mutation: order blank coverage unit
+PASS refused: order bad crop tree id -> work order 2 has an invalid prescription Crop Tree
+PASS no mutation: order bad crop tree id
+PASS refused: generated order with reason None -> work order 2 has an unknown prescription reason 0
+PASS no mutation: generated order with reason None
+PASS refused: order unknown reason -> work order 2 has an unknown prescription reason 99
+PASS no mutation: order unknown reason
+PASS refused: manual order carrying a coverage unit -> work order 1 has prescription provenance but no prescription
+PASS no mutation: manual order carrying a coverage unit
+PASS refused: manual order carrying a reason -> work order 1 has prescription provenance but no prescription
+PASS no mutation: manual order carrying a reason
+PASS refused: event names an unknown prescription -> management event 1 names unknown prescription 7
+PASS no mutation: event names an unknown prescription
+PASS validation order: an older rule's refusal keeps its reason ahead of the prescription checks -> management event ID 1 appears twice (records 0 and 1)
+PASS validation: the valid world passes the typed validator
+PASS accepted (json): the valid v23 document
+PASS refused (json): v23 without the allocator -> version 23 requires explicit prescription fields
+PASS refused (json): v23 without the prescriptions array -> version 23 requires explicit prescription fields
+PASS refused (json): prescriptions is an object -> unparsable, so the disk read refuses it before validation
+PASS refused (json): prescriptions is null -> version 23 requires explicit prescription fields
+PASS refused (json): id typed as a string -> unparsable, so the disk read refuses it before validation
+PASS refused (json): id typed as a float -> unparsable, so the disk read refuses it before validation
+PASS refused (json): rule version typed as a number -> unparsable, so the disk read refuses it before validation
+PASS refused (json): record missing the rule version -> a version 23 prescription record is missing required fields
+PASS refused (json): record missing the approval year -> a version 23 prescription record is missing required fields
+PASS refused (json): anchor typed as a string -> unparsable, so the disk read refuses it before validation
+PASS refused (json): sample list holds a number -> unparsable, so the disk read refuses it before validation
+PASS refused (json): coverage decisions not an array -> unparsable, so the disk read refuses it before validation
+PASS refused (json): decision choice typed as a string -> unparsable, so the disk read refuses it before validation
+PASS refused (json): work order without its provenance -> a version 23 work order is missing its prescription link
+PASS refused (json): order reason typed as a string -> unparsable, so the disk read refuses it before validation
+PASS refused (json): event without its prescription link -> a version 23 management event is missing its prescription link
+PASS refused (json): duplicate key -> invalid version 23 prescription JSON
+PASS refused (json): truncated document -> unparsable, so the disk read refuses it before validation
+PASS json: the presence rule applies only from v23 (a v22 header is not asked for the fields)
+PASS hash: every pre-v23 fixture world reproduces the v22 (ac876a6) identity hashes byte for byte
+PASS hash: baseline covers parsed v22/v21 inputs, WorldHash, Current, LegacyCompat and V15-V18
+PASS hash: a world without prescription state hashes the same as a v22 save of it
+PASS hash: and under the current-identity hash
+PASS hash: prescription state is part of a world's identity once it exists
+PASS hash: v22 objective history is never part of a world identity, prescription state or not
+PASS hash: canonical ordering makes the identity independent of list order
+PASS hash: rule, decision and provenance changes each move the identity
+PASS determinism: identical worlds serialize and hash identically
+PASS hash: a world carrying prescription state has no historical (v15-v18) layout, so no anchor can claim it
+PASS audit: RestoreSaveData normalises prescriptions
+PASS audit: RestoreSaveData restores prescriptions by save version
+PASS audit: CaptureSaveData writes the allocator and a copy of the prescriptions
+PASS audit: a new game starts with no prescription state
+PASS audit: the disk read (shared by Load and CanLoad) runs the prescription JSON check
+PASS audit: Validate runs the prescription check last, after every older rule
+PASS audit: MFM-06 creates no prescription anywhere (no MFM-07 behaviour)
+PASS audit: prescription normalisation applies only below v23
+PASS audit: the world-identity layout keys on prescription state
+MFM06_SAVE_OFFLINE_PASS checks=172
+REFERENCE_FUTURE_V1_RESOURCES_UNCHANGED_VS_ac876a6

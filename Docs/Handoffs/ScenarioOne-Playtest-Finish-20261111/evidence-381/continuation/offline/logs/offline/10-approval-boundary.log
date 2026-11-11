@@ -1,0 +1,132 @@
+$ python3 -B Tools/Verification/MfmApprovalBoundary/run_approval_boundary_offline.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/10-approval-boundary
+
+MFM07_FIXTURE fixture-stand.csv sha256=4b4b9703e65fe01146e57deb2095ea4f2cf3b702243c73075cdc2bf52f7f2433 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-stand.csv
+MFM07_FIXTURE fixture-infrastructure.json sha256=c7dd5b811c975c6bf6cd50a201308424c4f2eed6b9dca30f80300dc885644630 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-infrastructure.json
+MFM07_BUILD_PASS sources=12 warnings-as-errors
+PASS fixture: 1344 starting stems [1344]
+PASS fixture: geometry valid, teaching rack 3
+PASS fixture: coverage valid
+PASS fixture: 17 confirmed Crop Trees, 13 covered units [17/13]
+PASS A1 proposals: 84 removals around the 17 confirmed Crop Trees (the MFM-04 release) [84 ]
+PASS A2 proposing changes nothing: stems, marks, choices, open orders and approval state are untouched
+PASS A3 a proposed tree carries no Fell mark: proposing never marks
+PASS A4 every proposal names prescription, coverage unit, Crop Tree and a closed reason
+PASS A5 the proposal is within every unit's basal-area ceiling
+PASS A6 reason vocabulary: one closed reason, code = enum + 1, never 0 (an ordinary order)
+PASS A7 Build returns the orders to write but leaves the stored state Accepted (the writer flips it)
+PASS A8 an already approved prescription proposes and approves nothing again [The prescription is not waiting for approval.]
+PASS A9 an approved prescription has no live proposal state
+PASS A10 static: ScenarioOnePrescriptionApproval does not use UnityEngine
+PASS A10 static: ScenarioOnePrescriptionApproval does not use TreeMarkType
+PASS A10 static: ScenarioOnePrescriptionApproval does not use ForestTreeMarking
+PASS A10 static: ScenarioOnePrescriptionApproval does not use ScenarioOneWorkOrder
+PASS A10 static: ScenarioOnePrescriptionApproval does not use ScenarioOneManager
+PASS A10 static: ScenarioOnePrescriptionApproval does not use ForestTree 
+PASS A10 static: ScenarioOnePrescriptionApproval does not use SaveData
+PASS A10 static: ScenarioOnePrescriptionApproval does not use PlayerPrefs
+PASS A10 static: ScenarioOnePrescriptionApproval does not use Random
+PASS A10 static: ScenarioOnePrescriptionApproval does not use DateTime
+PASS A10 static: ScenarioOnePrescriptionApproval does not use File.
+PASS A10 static: ScenarioOnePrescriptionApproval does not use static readonly List
+PASS A10 static: ScenarioOnePrescriptionApproval does not use static readonly Dictionary
+PASS A10 static: ScenarioOnePrescriptionApproval does not use static readonly HashSet
+PASS A11 static: the prescription writer never uses TreeMarkType
+PASS A11 static: the prescription writer never uses ForestTreeMarkingManager
+PASS A11 static: the prescription writer never uses MarkForFell
+PASS A11 static: the prescription writer never uses SetMarked
+PASS A11 static: the prescription writer never uses ScenarioWorkStatus.Approved
+PASS A11 static: the prescription writer never uses ApprovePendingWork
+PASS A11 static: the prescription writer never uses AddMarkedTreesToWorkPlan
+PASS A11 static: the prescription writer never uses SetWorkPlanOpen
+PASS A11 static: the prescription writer never uses OpenWorkPlan
+PASS A11 static: the prescription writer never uses AdvanceYear
+PASS A11 static: the prescription writer never uses ResolveOrder
+PASS A11 static: the prescription writer never uses cashCents -=
+PASS B1 the same state gives the same proposal signature
+PASS B2 the order stems are supplied in does not change the proposal
+PASS B3 the order coverage choices are supplied in does not change the proposal
+PASS B4 proposals are unique and ordered by tree id
+PASS B5 each proposal has a distinct deterministic identity key
+PASS B6 the approval writes exactly the previewed proposals in the previewed order
+PASS C1 a manually marked tree is never proposed
+PASS C2 the held-back marked tree is surfaced as a conflict, not dropped silently
+PASS C3 the player's mark is left exactly as it was
+PASS C4 a tree with an open order is never proposed and is surfaced as a conflict
+PASS C5 a previously previewed order for a tree the player has since planned is refused [Tree P0005 is already marked or planned by the player.]
+PASS C6 a tree the player designated as a Crop Tree is never proposed for removal
+PASS C7 a unit left for manual management receives no proposal
+PASS C8 an order previewed for a unit since left manual is refused [Coverage unit R2C was not accepted for generated work.]
+PASS C9 with no accepted unit nothing is proposed and approval has nothing to approve
+PASS C10 proposal plus the player's own planned felling above a unit's ceiling is refused whole [The proposal, with the player's own planned felling, would exceed a coverage unit's basal-area ceiling.]
+PASS C12 an accepted unit that is no longer covered is surfaced as a conflict and receives no proposal
+PASS C11 a broadleaf tree is never proposed (no quantitative extrapolation)
+PASS D0 every order the prescription itself proposes validates
+PASS D1 a missing prescription is refused [NoPrescription The prescription does not exist.]
+PASS D2 an order naming a different prescription is refused [WrongPrescription The order names prescription 8, not the stored one.]
+PASS D3 an order with no prescription id is refused [WrongPrescription The order names prescription 0, not the stored one.]
+PASS D4 a prescription made under another rule version is refused [RuleVersionMismatch The prescription was made under rule MFM-V0-RULE-0, not the current rule.]
+PASS D5 a prescription made under another calibration is refused [CalibrationMismatch The prescription was made under calibration MFM03-CAL-0.]
+PASS D6 a prescription that is not waiting for approval is refused [NotAccepted The prescription is not waiting for approval.]
+PASS D7 a prescription whose source rack is no longer the sample is refused [SampleChanged The source sample no longer matches the one this prescription was made from.]
+PASS D8 a prescription whose sample Crop Trees changed is refused [SampleChanged The source sample no longer matches the one this prescription was made from.]
+PASS D9 a prescription whose sample removals changed is refused [SampleChanged The source sample no longer matches the one this prescription was made from.]
+PASS D10 a prescription whose sample anchor moved is refused [SampleChanged The source sample no longer matches the one this prescription was made from.]
+PASS D11 a sample that can no longer be derived is refused [SampleNotDerived The source sample cannot be read now: x]
+PASS D12 unreadable coverage is refused [CoverageInvalid Coverage cannot be read now: test invalid]
+PASS D13 an unknown coverage unit is refused [UnitUnknown Coverage unit Z9Z does not exist now.]
+PASS D14 an empty coverage unit is refused [UnitUnknown Coverage unit (none) does not exist now.]
+PASS D15 the sample itself is never a coverage unit for generated work [UnitIsSource Coverage unit R3C is the sample itself.]
+PASS D16 a unit that is not a covered area is refused [UnitNotCovered Coverage unit R1L is no longer a covered area.]
+PASS D17 a covered unit the player did not accept is refused [UnitNotAccepted Coverage unit R1C was not accepted for generated work.]
+PASS D18 a target tree that is not in the named coverage unit is refused [TargetNotInUnit Tree P0004 is not in coverage unit R1C.]
+PASS D18b the unit that the good order names does contain its tree
+PASS D19 a target tree that is not alive is refused [TargetMissing Tree P0206 is not a living tree now.]
+PASS D20 an unknown target tree is refused [TargetMissing Tree P-none is not a living tree now.]
+PASS D21 a target tree that is no longer an eligible Sitka adult is refused [TargetNotEligible Tree P0004 cannot be removed by this prescription.]
+PASS D22 a target tree the player has since designated a Crop Tree is refused [TargetNotEligible Tree P0004 cannot be removed by this prescription.]
+PASS D23 a target tree the player has marked is refused [TargetHasManualState Tree P0004 is already marked or planned by the player.]
+PASS D24 an order that names no Crop Tree is refused [CropTreeMissing Order for P0004 names no Crop Tree.]
+PASS D25 a tree that is not a confirmed Crop Tree is refused [CropTreeNotConfirmed Crop Tree P0000 is not a confirmed Crop Tree now.]
+PASS D26 a sample Crop Tree cannot be the Crop Tree an order serves [CropTreeNotConfirmed Crop Tree P0810 is not a confirmed Crop Tree now.]
+PASS D27 an unknown Crop Tree is refused [CropTreeNotConfirmed Crop Tree P-none is not a confirmed Crop Tree now.]
+PASS D28 a Crop Tree that has died or been felled is refused [CropTreeNotConfirmed Crop Tree P0006 is not a confirmed Crop Tree now.]
+PASS D29 a Crop Tree the player has since un-designated is refused [CropTreeNotConfirmed Crop Tree P0006 is not a confirmed Crop Tree now.]
+PASS D30 a broadleaf Crop Tree gets no Sitka-calibrated order [CropTreeNotConfirmed Crop Tree P0006 is not a confirmed Crop Tree now.]
+PASS D31 a Crop Tree whose own unit the player did not accept is refused [UnitNotAccepted Coverage unit R2C was not accepted for generated work.]
+PASS D32 a confirmed Crop Tree that this tree does not compete with is refused (the prescription would not generate it) [NotInProposal Order for P0004 is not one this prescription proposes now.]
+PASS D33 reason 0 (no prescription reason) is refused [ReasonUnknown Order for P0004 has an unknown reason code.]
+PASS D34 an unknown reason code is refused [ReasonUnknown Order for P0004 has an unknown reason code.]
+PASS D35 a negative reason code is refused [ReasonUnknown Order for P0004 has an unknown reason code.]
+PASS D36 one invalid link among valid ones fails the whole list [CropTreeMissing Order for P0004 names no Crop Tree.]
+PASS D37 an empty list has nothing to write [NothingToApprove There is no order to check.]
+PASS D38 a refusal reason stays bounded whatever the input [82]
+PASS D39 an order valid at preview is refused once its tree is gone (stale link)
+PASS E1 a valid prescription returns every order, all of which validate
+PASS E2 after a Crop Tree is un-designated the approval is recomputed around the others and never carries a stale link [79]
+PASS E2b every recomputed order validates
+PASS E3 the previously previewed list against the changed world fails as a whole [Crop Tree P0006 is not a confirmed Crop Tree now.]
+PASS E4 a failed approval returns no order at all: rule mismatch [RuleVersionMismatch The prescription was made under rule OLD, not the current rule.]
+PASS E4 a failed approval returns no order at all: source changed [SampleChanged The source sample no longer matches the one this prescription was made from.]
+PASS E4 a failed approval returns no order at all: coverage invalid [CoverageInvalid Coverage cannot be read now: p]
+PASS E4 a failed approval returns no order at all: nothing accepted [NothingToApprove The prescription proposes no removal now.]
+PASS E4 a failed approval returns no order at all: duplicate stem ids [CoverageInvalid Proposals cannot be computed: Tree id P0000 appears more than once.]
+PASS E5 a refused approval leaves the inputs untouched
+PASS F0 found private void SetWorkPlanOpen(
+PASS F1 private void SetWorkPlanOpen( cannot reach prescription or proposal state
+PASS F0 found public void OpenWorkPlan(
+PASS F1 public void OpenWorkPlan( cannot reach prescription or proposal state
+PASS F0 found public int AddMarkedTreesToWorkPlan(
+PASS F1 public int AddMarkedTreesToWorkPlan( cannot reach prescription or proposal state
+PASS F0 found private int AddMarkedTreesToWorkPlan(
+PASS F1 private int AddMarkedTreesToWorkPlan( cannot reach prescription or proposal state
+PASS F0 found public bool ApprovePendingWork(
+PASS F1 public bool ApprovePendingWork( cannot reach prescription or proposal state
+PASS F2 ForestTreeMarkingManager.RackEntrances.cs knows nothing of prescriptions
+PASS F2 ForestTreeMarkingManager.cs knows nothing of prescriptions
+PASS F3 found ApprovePrescription
+PASS F4 order: Build, then the pre-write link validation, then order creation, then the first write
+PASS F5 prescription approval does not approve, fund or execute work
+PASS F6 an unexpected failure rolls the writes back
+PASS F7 the save schema is v24 (only D-066 advances the MFM-07 v23 schema)
+MFM07_APPROVAL_BOUNDARY_PASS checks=125 failed=0
+MFM07_REPEAT_PASS two processes, byte-identical output: True

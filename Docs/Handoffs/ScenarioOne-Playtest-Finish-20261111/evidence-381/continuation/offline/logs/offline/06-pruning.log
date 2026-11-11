@@ -1,0 +1,13 @@
+$ python3 -B Tools/Verification/ThreeSpecies/OfflineLogic/run_pruning_check.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/06-pruning
+
+Traceback (most recent call last):
+  File "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Tools/Verification/ThreeSpecies/OfflineLogic/run_pruning_check.py", line 188, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Tools/Verification/ThreeSpecies/OfflineLogic/run_pruning_check.py", line 132, in main
+    hashes = preservation()
+             ^^^^^^^^^^^^^^
+  File "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Tools/Verification/ThreeSpecies/OfflineLogic/run_pruning_check.py", line 85, in preservation
+    assert digest == hashlib.sha256(old).hexdigest(), f"protected bytes moved: {path}"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protected bytes moved: /media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual/Assets/ForestPrototype/ForestSaveController.cs

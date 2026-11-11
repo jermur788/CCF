@@ -1,0 +1,31 @@
+diff --git a/Assets/ForestPrototype/ForestSaveController.cs b/Assets/ForestPrototype/ForestSaveController.cs
+index e903dae9..8ea39ff0 100644
+--- a/Assets/ForestPrototype/ForestSaveController.cs
++++ b/Assets/ForestPrototype/ForestSaveController.cs
+@@ -162,7 +162,7 @@ public sealed class ForestSaveController : MonoBehaviour
+ 
+         foreach (ForestBuildable buildable in buildables)
+         {
+-            if (buildable == null) continue;
++            if (buildable == null || buildable.IsRetiredFromStartingWorld) continue;
+             data.buildables.Add(new BuildableSaveData
+             {
+                 buildId = buildable.BuildId,
+@@ -461,6 +461,17 @@ public sealed class ForestSaveController : MonoBehaviour
+                 marking.RestoreMarks(data.markedTreeIds);
+         }
+ 
++        var savedBuildableIds = new HashSet<string>();
++        if (data.buildables != null)
++        {
++            foreach (BuildableSaveData saved in data.buildables)
++                if (saved != null && !string.IsNullOrEmpty(saved.buildId))
++                    savedBuildableIds.Add(saved.buildId);
++        }
++        foreach (ForestBuildable buildable in buildables)
++            if (buildable != null && buildable.RetiresFromStartingWorld)
++                buildable.SetRetiredFromStartingWorld(!savedBuildableIds.Contains(buildable.BuildId));
++
+         if (data.buildables != null)
+         {
+             foreach (BuildableSaveData saved in data.buildables)

@@ -1,0 +1,17 @@
+ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
+UnityEngine.StackTraceUtility:ExtractStringFromExceptionInternal(Object, String&, String&) (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:50)
+SCENARIO_HISTORY_PASS save version unchanged
+SCENARIO_HISTORY_PASS restore baseline
+SCENARIO_HISTORY_PASS a new game has no interventions and no completion review
+SCENARIO_HISTORY_PASS hint before any intervention
+SCENARIO_HISTORY_PASS buy oak stock
+SCENARIO_HISTORY_PASS designate sheltered planting
+SCENARIO_HISTORY_PASS cycle 1 resolves
+SCENARIO_HISTORY_PASS first intervention derived from real records: felled=3 planted=1
+SCENARIO_HISTORY_PASS money and the before/after snapshots exist; nothing 'since' yet
+SCENARIO_HISTORY_PASS reading the history twice does not duplicate it
+SCENARIO_HISTORY_PASS the first review is pending after the first year
+SCENARIO_HISTORY_PASS acknowledging once clears the gate
+SCENARIO_HISTORY_PASS two idle years advance without any further acknowledgement
+SCENARIO_HISTORY_FAIL no recurring review gate
+SCENARIO_HISTORY_VERIFY_FAIL System.InvalidOperationException: no recurring review gate

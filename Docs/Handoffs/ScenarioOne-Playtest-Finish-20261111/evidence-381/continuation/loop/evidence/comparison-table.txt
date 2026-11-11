@@ -1,0 +1,3 @@
+PATH_A|year=2->5|living=1177->1177|baM2=25.471506->29.496807|cash=776854->776854|deadwood=1|deadwoodVolM3=0.127555|species=1177/0/0|canopy=0.970165->0.957621|light=0.029835->0.042379|regen=51->86
+PATH_B_RESULT|year=5|living=1093|baM2=27.308218|cash=594310|deadwood=1|deadwoodVolM3=0.127555|retainedTimberM3=0|species=1093/0/0|quoteSold=12537667|quoteRevenue=67456|quoteCost=250000|cumRevenue=67456|cumContractor=250000|canopy=0.939526|light=0.060474|regen=106
+PATH_C_RESULT|year=5|living=1168|baM2=29.321141|cash=531053|deadwood=1|deadwoodVolM3=0.127555|retainedTimberM3=0|species=1168/0/0|quoteSold=888719|quoteRevenue=4199|quoteCost=250000|cumRevenue=4199|cumContractor=250000|canopy=0.956893|light=0.043107|regen=89

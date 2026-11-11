@@ -1,0 +1,128 @@
+[
+  {
+    "step": "01-site",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 39.9,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/01-site.log",
+    "note": ""
+  },
+  {
+    "step": "02-growth-integrated",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 3.6,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/02-growth-integrated.log",
+    "note": ""
+  },
+  {
+    "step": "03-timber",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 18.3,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/03-timber.log",
+    "note": ""
+  },
+  {
+    "step": "04-density",
+    "phase": "offline",
+    "status": "ACCEPTED_LIMITATION",
+    "exit": 1,
+    "seconds": 74.7,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/04-density.log",
+    "note": "three accepted pure-Beech R2 misses; 0.40 unchanged"
+  },
+  {
+    "step": "05-history",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 5.8,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/05-history.log",
+    "note": ""
+  },
+  {
+    "step": "06-pruning",
+    "phase": "offline",
+    "status": "FAIL",
+    "exit": 1,
+    "seconds": 0.9,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/06-pruning.log",
+    "note": ""
+  },
+  {
+    "step": "07-prescription-core",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 11.5,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/07-prescription-core.log",
+    "note": ""
+  },
+  {
+    "step": "08-candidates",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 6.8,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/08-candidates.log",
+    "note": ""
+  },
+  {
+    "step": "09-coverage-world",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 10.7,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/09-coverage-world.log",
+    "note": ""
+  },
+  {
+    "step": "10-approval-boundary",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 9.6,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/10-approval-boundary.log",
+    "note": ""
+  },
+  {
+    "step": "11-treatment-review",
+    "phase": "offline",
+    "status": "FAIL",
+    "exit": 1,
+    "seconds": 9.7,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/11-treatment-review.log",
+    "note": ""
+  },
+  {
+    "step": "12-save-provenance",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 12.6,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/12-save-provenance.log",
+    "note": ""
+  },
+  {
+    "step": "13-save-mutation-controls",
+    "phase": "offline",
+    "status": "FAIL",
+    "exit": 124,
+    "seconds": 120.0,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/13-save-mutation-controls.log",
+    "note": ""
+  },
+  {
+    "step": "14-parity08-save",
+    "phase": "offline",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 4.6,
+    "log": "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/logs/offline/14-parity08-save.log",
+    "note": ""
+  }
+]

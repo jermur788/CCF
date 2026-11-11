@@ -1,0 +1,6 @@
+exit acknowledgement: command timeout {'action': 'exit'}
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/residual_driver.py", line 28, in <module>
+    native('key',key);state=dump(label+'-'+str(w));assert 'context='+expected in state,state
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: year=2 objectiveIndex=4 title=5. Return and review instruction=Session-only until first review completion: the three tree decisions and six stand-portion checks need fresh inspection after reload. Did your intervention create enough growing space? Reopen each retained tree's inspection [E]. [J] Retain here; [K] Release further after marking justified competitors. Inspect and confirm retained stand in the near, middle and far zones on both sides. Good CCF management includes deciding not to cut. No second release percentage is required. progress=Revisited 0/3 · decisions 0/3 · stand portions 0/6 unread=False racks=5 entrances=5 player=(-0.55, 0.03, -33.12) aimed=PO0321 orders=167 crops=4 hash=92EB205898F6C61D context=none help=False transient=Marked PO0321 as Crop Tree (0 marked)

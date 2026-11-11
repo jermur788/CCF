@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "4d5031a27e0b4e81b8bfe7de825891bc",
+    "owner": "Sol381",
+    "task_id": "CCF-381-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-tagged-text-379-20261111",
+    "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-11T00:56:27.855331+00:00",
+    "eta": "2026-11-11T01:26:24Z",
+    "notes": "381 native MFM continuation isolated config"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

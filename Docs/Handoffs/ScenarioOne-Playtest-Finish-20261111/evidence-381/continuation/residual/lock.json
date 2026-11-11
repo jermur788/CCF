@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "6e19b5bc62c942d68dbeb759e0fd1e3d",
+    "owner": "Sol381",
+    "task_id": "CCF-381-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-tagged-text-379-20261111",
+    "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-11T01:06:45.738142+00:00",
+    "eta": "2026-11-11T01:31:44.278215+00:00",
+    "notes": "381 residual isolated accepted harness"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

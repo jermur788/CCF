@@ -1,0 +1,1 @@
+mouse=(632.00, 215.00) panel=(790.00, 631.25) picked=menu-help text= enabled=True

@@ -1,0 +1,16 @@
+{
+  "CCF-Primary-status": true,
+  "CCF-Primary-diff": true,
+  "CCF-Primary-diff-cached": true,
+  "CCF-U3-status": true,
+  "CCF-U3-diff": true,
+  "CCF-U3-diff-cached": true,
+  "CCF-WorkbenchTier2-Registered-20261106-status": true,
+  "CCF-WorkbenchTier2-Registered-20261106-diff": true,
+  "CCF-WorkbenchTier2-Registered-20261106-diff-cached": true,
+  "CCF-Legacy-status": false,
+  "CCF-Legacy-diff": true,
+  "CCF-Legacy-diff-cached": true,
+  "CCF-Legacy-status-uall": true,
+  "CCF-Legacy-status-note": "default directory folding differs; identical full untracked inventory"
+}

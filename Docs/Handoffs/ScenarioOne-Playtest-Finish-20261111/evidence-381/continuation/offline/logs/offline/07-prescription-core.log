@@ -1,0 +1,248 @@
+$ python3 -B Tools/Verification/MfmPrescriptionCore/run_prescription_core_offline.py --out /media/jer/Files/CCF/Verification/CCF-381-Readiness-20261111/continuation/offline/offline/07-prescription-core
+
+MFM04_FIXTURE fixture-stand.csv sha256=4b4b9703e65fe01146e57deb2095ea4f2cf3b702243c73075cdc2bf52f7f2433 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-stand.csv
+MFM04_FIXTURE fixture-infrastructure.json sha256=c7dd5b811c975c6bf6cd50a201308424c4f2eed6b9dca30f80300dc885644630 from git 73356e3:Tools/Verification/MfmCoverageCalibration/inputs/fixture-infrastructure.json
+MFM04_BUILD_PASS sources=10 warnings-as-errors
+PASS parity: production Hegyi cutoff is 8 m
+PASS parity: production HegyiTerm matches the offline stand-in
+PASS parity: offline stand-in cutoff is 8 m
+PASS parity: coverage Sitka id equals SitkaGrowthModel.SpeciesId
+PASS protected: 30% release, 40% safeguard, 8 m teaching spacing, 9 m x 12 m sample unchanged
+PASS candidate spacing is its own parameter (not the 8 m teaching spacing or Hegyi reach)
+PASS static: ScenarioOneCoverage.cs and its .meta exist
+PASS static: ScenarioOneCoverage.cs does not use UnityEngine
+PASS static: ScenarioOneCoverage.cs does not use TreeMarkType
+PASS static: ScenarioOneCoverage.cs does not use ScenarioOneWorkOrder
+PASS static: ScenarioOneCoverage.cs does not use ScenarioOneManager
+PASS static: ScenarioOneCoverage.cs does not use ForestTree
+PASS static: ScenarioOneCoverage.cs does not use SaveData
+PASS static: ScenarioOneCoverage.cs does not use PlayerPrefs
+PASS static: ScenarioOneCoverage.cs does not use Random
+PASS static: ScenarioOneCoverage.cs does not use DateTime
+PASS static: ScenarioOneCoverage.cs does not use GetHashCode
+PASS static: ScenarioOneCoverage.cs does not use static readonly List
+PASS static: ScenarioOneCoverage.cs does not use static readonly Dictionary
+PASS static: ScenarioOneCoverage.cs does not use static readonly HashSet
+PASS static: ScenarioOneCoverage.cs does not use File.
+PASS static: ScenarioOnePrescription.cs and its .meta exist
+PASS static: ScenarioOnePrescription.cs does not use UnityEngine
+PASS static: ScenarioOnePrescription.cs does not use TreeMarkType
+PASS static: ScenarioOnePrescription.cs does not use ScenarioOneWorkOrder
+PASS static: ScenarioOnePrescription.cs does not use ScenarioOneManager
+PASS static: ScenarioOnePrescription.cs does not use ForestTree
+PASS static: ScenarioOnePrescription.cs does not use SaveData
+PASS static: ScenarioOnePrescription.cs does not use PlayerPrefs
+PASS static: ScenarioOnePrescription.cs does not use Random
+PASS static: ScenarioOnePrescription.cs does not use DateTime
+PASS static: ScenarioOnePrescription.cs does not use GetHashCode
+PASS static: ScenarioOnePrescription.cs does not use static readonly List
+PASS static: ScenarioOnePrescription.cs does not use static readonly Dictionary
+PASS static: ScenarioOnePrescription.cs does not use static readonly HashSet
+PASS static: ScenarioOnePrescription.cs does not use File.
+PASS static: ScenarioOneCropTreeCandidates.cs and its .meta exist
+PASS static: ScenarioOneCropTreeCandidates.cs does not use UnityEngine
+PASS static: ScenarioOneCropTreeCandidates.cs does not use TreeMarkType
+PASS static: ScenarioOneCropTreeCandidates.cs does not use ScenarioOneWorkOrder
+PASS static: ScenarioOneCropTreeCandidates.cs does not use ScenarioOneManager
+PASS static: ScenarioOneCropTreeCandidates.cs does not use ForestTree
+PASS static: ScenarioOneCropTreeCandidates.cs does not use SaveData
+PASS static: ScenarioOneCropTreeCandidates.cs does not use PlayerPrefs
+PASS static: ScenarioOneCropTreeCandidates.cs does not use Random
+PASS static: ScenarioOneCropTreeCandidates.cs does not use DateTime
+PASS static: ScenarioOneCropTreeCandidates.cs does not use GetHashCode
+PASS static: ScenarioOneCropTreeCandidates.cs does not use static readonly List
+PASS static: ScenarioOneCropTreeCandidates.cs does not use static readonly Dictionary
+PASS static: ScenarioOneCropTreeCandidates.cs does not use static readonly HashSet
+PASS static: ScenarioOneCropTreeCandidates.cs does not use File.
+PASS static: ScenarioOnePrescriptionCalibration.cs and its .meta exist
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use UnityEngine
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use TreeMarkType
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use ScenarioOneWorkOrder
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use ScenarioOneManager
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use ForestTree
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use SaveData
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use PlayerPrefs
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use Random
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use DateTime
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use GetHashCode
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use static readonly List
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use static readonly Dictionary
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use static readonly HashSet
+PASS static: ScenarioOnePrescriptionCalibration.cs does not use File.
+PASS static: candidate ordering uses no DbhCm (spacing-only, no quality ranking)
+PASS static: candidate ordering uses no Competition (spacing-only, no quality ranking)
+PASS static: candidate ordering uses no Height (spacing-only, no quality ranking)
+PASS static: candidate ordering uses no BasalArea (spacing-only, no quality ranking)
+PASS static: candidate ordering uses no Share (spacing-only, no quality ranking)
+PASS fixture: 1344 starting stems [1344]
+PASS fixture: MFM-02 geometry valid, teaching rack 3
+PASS fixture identity: live MFM-02 footprint 75 stems / 1.4417531 m2 / SHA c2f2fd5418794915 [75 1.441753]
+PASS fixture: 149 rack-access removals (MFM-03) [149]
+PASS coverage: valid on the fixture
+PASS coverage: source 75 stems, net area 309.81 m2 (MFM-03) [75 309.809539]
+PASS coverage: source mean DBH 15.4045 cm and mean CI 8.04834 equal MFM-03 [15.404493 8.048336]
+PASS coverage: 15 anchor-aligned thirds and two explicit remainders
+PASS coverage: R1L holds MFM-03's 61 target stems [61]
+PASS coverage: R1C holds MFM-03's 53 target stems [53]
+PASS coverage: R1H holds MFM-03's 72 target stems [72]
+PASS coverage: R2L holds MFM-03's 92 target stems [92]
+PASS coverage: R2C holds MFM-03's 65 target stems [65]
+PASS coverage: R2H holds MFM-03's 98 target stems [98]
+PASS coverage: R3L holds MFM-03's 86 target stems [86]
+PASS coverage: R3H holds MFM-03's 96 target stems [96]
+PASS coverage: R4L holds MFM-03's 100 target stems [100]
+PASS coverage: R4C holds MFM-03's 74 target stems [74]
+PASS coverage: R4H holds MFM-03's 96 target stems [96]
+PASS coverage: R5L holds MFM-03's 77 target stems [77]
+PASS coverage: R5C holds MFM-03's 68 target stems [68]
+PASS coverage: R5H holds MFM-03's 79 target stems [79]
+PASS coverage: every net area within 0.5 m2 of MFM-03's exact-interval integration [0.000405]
+PASS coverage: every density difference within 0.2 pp of MFM-03 [0.00045]
+PASS coverage: every mean DBH / mean CI difference equals MFM-03 (same stems, same CompetitionShare) [0.000498]
+PASS coverage: R1L has 45 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R1C has 26 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R1H has 47 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R2L has 23 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R2C has 0 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R2H has 29 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R3L has 22 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R3H has 27 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R4L has 25 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R4C has 0 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R4H has 28 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R5L has 43 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R5C has 33 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R5H has 47 stems within 8 m of the stand edge (MFM-03)
+PASS coverage: R3C is the sample: Manual / SourceSample, never a target
+PASS coverage: R1L (MFM-03 R1W) not covered, clear fail on mean competition only
+PASS coverage: R1L margin 1.659 (MFM-03) [1.658662]
+PASS coverage: R1C is a covered boundary fit (MFM-03 section 8)
+PASS coverage: R2C is a covered boundary fit (MFM-03 section 8)
+PASS coverage: R4C is a covered boundary fit (MFM-03 section 8)
+PASS coverage: R3L is a clear fit (MFM-03 section 8)
+PASS coverage: R2H is a clear fit (MFM-03 section 8)
+PASS coverage: R2L is a clear fit (MFM-03 section 8)
+PASS coverage: 13 of 14 non-source areas covered (MFM-03) [13/14]
+PASS coverage: default calibration requires no second sample (open user question kept as a parameter)
+PASS coverage: both fixture remainders explicit, empty and left for manual management
+PASS coverage: untreated sample has nothing put back
+PASS coverage: every stem in at most one area or the source [1192/1195]
+PASS boundary: density exactly +20% fits (inclusive), margin 1, boundary fit
+PASS boundary: density +20.0001% fails (DensityDiffers, boundary fail)
+PASS boundary: density -20% fits, -20.0001% fails
+PASS boundary: mean DBH exactly +/-15% fits
+PASS boundary: mean DBH +15.005% fails (MeanDbhDiffers)
+PASS boundary: mean CI exactly +/-20% fits
+PASS boundary: mean CI -20.125% fails (MeanCompetitionDiffers)
+PASS boundary: all three metrics out -> all three reasons, clear fail
+PASS boundary: margin 0.645 clear fit, 0.65 boundary fit (presentation band)
+PASS boundary: margin 1.5 boundary fail, 1.505 clear fail
+PASS boundary: identical metrics margin 0, clear fit
+PASS sweep: CI 15% -> 11 covered (R1C, R2C drop; MFM-03)
+PASS sweep: CI 10% -> 8 covered (MFM-03)
+PASS sweep: density 10% -> 11 covered (R2C, R4C drop; MFM-03)
+PASS sweep: DBH 5% -> 13 covered (DBH not discriminating at year 0; MFM-03)
+PASS minimum stems: n>=60 -> R1C (53 stems) not compared, TooFewStems; 12 covered (MFM-03)
+PASS minimum stems: exactly 53 compared, 54 not (inclusive)
+PASS minimum stems: a 75-stem sample under a 76 minimum is refused, not compared [The sample holds 75 stems, fewer than the 76 needed to compare.]
+PASS second sample: policy 'required above 90%' flags 13/14 (92.9%)
+PASS second sample: policy 'required above 95%' does not flag 13/14
+PASS second sample: a different policy is a different calibration version/signature
+PASS calibration: signature records rule version, calibration version and the absent tail guard
+PASS missing: invalid geometry -> invalid result, no fallback
+PASS missing: no stems -> invalid result
+PASS missing: duplicate tree id -> invalid result
+PASS missing: zero tolerance calibration refused
+PASS missing: an area with no stems is NotCovered/TooFewStems with finite metrics
+PASS exclusions: valid
+PASS exclusions: R2H excluded by PlantedJuvenile with evidence J1 [Excluded PlantedJuvenile]
+PASS exclusions: R2C excluded by Shelter with evidence S1 [Excluded Shelter]
+PASS exclusions: R3L excluded by ClearancePatch with evidence C1 [Excluded ClearancePatch]
+PASS exclusions: R3H excluded by ProtectedArea with evidence PA1 [Excluded ProtectedArea]
+PASS exclusions: R4C excluded by DeadwoodRecord with evidence D1 [Excluded DeadwoodRecord]
+PASS exclusions: R1C excluded by ActiveManagementWork with evidence W1 [Excluded ActiveManagementWork]
+PASS exclusions: R4H excluded by PlayerFellMark with evidence P1416 [Excluded PlayerFellMark]
+PASS exclusions: R5C excluded by PlayerOpenWork with evidence PO3314 [Excluded PlayerOpenWork]
+PASS exclusions: R5L excluded by PlayerCompletedWork with evidence PO3301 [Excluded PlayerCompletedWork]
+PASS exclusions: R1H excluded by NonSitkaAdult with evidence PO0026 [Excluded NonSitkaAdult]
+PASS flags: natural regeneration is recorded and flagged, not excluded (R2L stays covered)
+PASS flags: a player Crop Tree outside the sample is flagged and does not exclude its area (manual designation stays available)
+PASS exclusions: a feature inside the sample leaves the sample unchanged
+PASS exclusions: 10 exclusions leave 3 covered; R1L still not covered [3]
+PASS manual: player choice makes R2L Manual/PlayerChoseManual
+PASS manual: player choice wins over an exclusion
+PASS manual: remainder records the player's choice
+PASS manual: the sample stays the source whatever the player chose
+PASS species: a non-Sitka adult in the sample invalidates coverage [The sample holds a non-Sitka adult (P0605); V1 quantitative rules are Sitka-only.]
+PASS remainder: a non-empty remainder is measured (grid area within 1 m2 of the polygon area) and left for manual management, never compared [303.199768 vs 303.19989, 63 stems]
+PASS remainder: areas never double-count ground
+PASS candidates: valid
+PASS candidates: 16 m unit-centre-first gives MFM-03's 17 candidates in order [PO0321,PO0333,PO1107,P0006,PO1134,PO2107,PO1700,PO2133,PO1740,PO2907,P2010,PO2933,PO3709,PO3501,PO3919,PO3736,PO4028]
+PASS candidates: queue order is 1..n
+PASS candidates: unique
+PASS candidates: every candidate >= 16 m from every other candidate and every sample Crop Tree [16.020189 16.749586]
+PASS candidates: only target stems of covered areas (none in R1L or the sample)
+PASS candidates: all open, reason spacing-only (inspect to judge); none becomes a Crop Tree
+PASS candidates: every covered area gets one; no stale decisions
+PASS candidates: 8 m gives 70 candidates, areas without: [] (MFM-03) [70 []]
+PASS candidates: 10 m gives 41 candidates, areas without: [] (MFM-03) [41 []]
+PASS candidates: 12 m gives 33 candidates, areas without: [] (MFM-03) [33 []]
+PASS candidates: 14 m gives 25 candidates, areas without: [] (MFM-03) [25 []]
+PASS candidates: 18 m gives 13 candidates, areas without: [R2C] (MFM-03) [13 [R2C]]
+PASS candidates: 20 m gives 11 candidates, areas without: [R2C,R5C] (MFM-03) [11 [R2C,R5C]]
+PASS batch: confirming PO0321 and rejecting PO1107 leaves the same set in the same order
+PASS batch: decisions recorded per candidate, 15 still open
+PASS batch: a decision on a tree no longer suggested is reported stale, not dropped
+PASS batch: confirmed-and-rejected is refused
+PASS manual override: a player Crop Tree blocks nearby suggestions and is not suggested [PO1007]
+PASS no quality ranking: permuting every DBH leaves the candidate queue identical
+PASS release: valid
+PASS release: all 17 confirmed candidates reach the 30% target at the 17.9% sample ceiling (MFM-03 indicator 17/17)
+PASS release: 84 proposed removals, heaviest area 14.94% of basal area (MFM-03 indicator) [84 0.149448]
+PASS safeguard: every covered area within the ceiling
+PASS release: proposals unique and sorted by tree id
+PASS release: never a Crop Tree or candidate, only around confirmed Crop Trees, only covered-area target stems, never in the sample
+PASS release: only confirmed Crop Trees are served; open candidates are never proposed for removal
+PASS safeguard: a 2% ceiling limits release (LimitedByCeiling) and no area exceeds it
+PASS safeguard: rule target never below 30%, ceiling never above 40%
+PASS safeguard: a requested 90% ceiling is held at 40%
+PASS safeguard: revalidation flags an over-ceiling area and a removal outside covered areas
+PASS safeguard: a genuine over-ceiling proposal is not reported as invalid input
+PASS safeguard: null coverage with a non-empty proposal fails closed [Coverage is missing.]
+PASS safeguard: invalid coverage with a non-empty proposal fails closed [Coverage is invalid: test invalid]
+PASS safeguard: null coverage fails closed even for an empty proposal
+PASS release: not-covered, missing, sample and felled Crop Trees are reported and get no proposals
+PASS species: a broadleaf Crop Tree gets no Sitka-calibrated release
+PASS release: stale coverage (a target tree has gone) is refused [Coverage is stale: P0000 in R2L is no longer a living tree.]
+PASS derive: no sample work -> SampleNotQualified, no rule [The sample's own release has not been executed and passed (Crop Trees 0/3, spread False, basal area kept True, least executed release 0).]
+PASS derive: invalid geometry refused
+PASS fit: rule replay on the untreated sample proposes 18 removals
+PASS derive: the executed sample passes the lesson and derives
+PASS derive: accepted Crop Trees and executed removals are the player's
+PASS derive: target = max(30%, least executed release); ceiling = min(40%, sample removed basal share) [target=0.31014832854270935 ceiling=0.17796573042869568]
+PASS derive: disposition recorded (all sold), not applied to proposals
+PASS fit: a player who treated exactly like the rule gets full agreement [18/18]
+PASS fit: identical Share and basal-area consequences reported
+PASS coverage: the treated sample's removals are put back for comparison
+PASS coverage: comparison state is post-access, pre-treatment (identical to the untreated stand)
+PASS fit: a disagreeing player's sample still passes the lesson [P0709]
+PASS fit: agreements + player-only = the player's removals; agreements + rule-only = the rule's
+PASS fit: the weak extra competitor is a player-only decision attributed to its Crop Tree [P0612]
+PASS fit: a removal serving no Crop Tree is listed as such [P0605]
+PASS fit: the strong competitor the player kept is a rule-only decision [P0709]
+PASS fit: per-Crop-Tree Share and basal-area consequences reported; rule within its ceiling
+PASS determinism: repeated fit identical
+PASS derive: a loose Fell mark in the sample -> SampleHasOpenWork
+PASS derive: planned felling in the sample -> SampleHasOpenWork
+PASS derive: a non-Sitka sample tree -> SampleHasNonSitka
+PASS derive: a sample over the 40% safeguard is not qualified [0.948354]
+PASS determinism: derivation and fit identical for shuffled trees and orders
+PASS determinism: repeated coverage identical
+PASS determinism: coverage identical for shuffled trees and orders
+PASS determinism: coverage identical for reordered, reversed-direction racks
+PASS determinism: candidates identical for shuffled input
+PASS determinism: release proposals identical for shuffled trees and confirmation order
+PASS determinism: every coverage signature starts with the exact calibration signature
+MFM04_DIGEST coverage=b50810a729c77c05 candidates=23b4eadf7e0f7228 release=a1577f2a1b137970 fit=98ce8d428bacb4f1 calibration=8591fcfc8f163e8f
+MFM04_PRESCRIPTION_CORE_PASS checks=240 failed=0
+MFM04_REPEAT_PASS two processes, byte-identical output: True

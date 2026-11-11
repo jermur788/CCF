@@ -1,0 +1,17 @@
+{
+  "name": "History",
+  "status": "FAIL",
+  "exit": 1,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "SCENARIO_HISTORY_VERIFY_PASS"
+  ],
+  "tokens_present": {
+    "SCENARIO_HISTORY_VERIFY_PASS": false
+  },
+  "fail_lines": 2,
+  "seconds": 80.1,
+  "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+  "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+  "leftover": []
+}

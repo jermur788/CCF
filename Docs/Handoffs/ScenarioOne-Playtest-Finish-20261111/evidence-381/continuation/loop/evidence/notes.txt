@@ -1,0 +1,74 @@
+setup: world loaded, 1344 living trees, cash=1200000
+baseline: year=2 living=1177 baM2=25.471506 cash=776854 species=1177/0/0 canopy=0.970165 light=0.029835 regen=51
+=== MFM-03 LIVE RESIDUAL (baseline, year 2) ===
+mfm03-baseline: living=1177 baM2=25.471506 meanDbhCm=16.369371 year=2
+mfm03-baseline-growth-drift: meanDbhCm=16.369371 driftFromSampleY0=0.964878 driftFromBaseline=0
+mfm03-baseline-coverage-states: NotCovered=1,Covered=13,Manual=1
+mfm03-baseline-ci-parity: source=8.059146 covered=7.723093 delta=4.169829% coveredAreas=13
+mfm03-baseline-live-state: juveniles=0 shelters=0 deadwood=1 marks=0
+=== PATH A: sample-only, advance 3 years ===
+path-A: year=2->5 living=1177->1177 baM2=25.471506->29.496807 cash=776854->776854 deadwood=1 deadwoodVolM3=0.127555
+path-A: canopy=0.970165->0.957621 light=0.029835->0.042379 regen=51->86
+=== PATH B: representative prescription, advance 3 years ===
+path-B: marked 17 crop trees from candidates
+path-B: applied sample treatment to 13 areas
+path-B: quote(approved) sold=12537667 retained=0 deadwood=0 total=14290582 revenue=67456 cost=250000
+path-B: quote(all) sold=12537667 cost=250000
+path-B: 84 orders approved
+path-B: equal horizon reached at year 5
+path-B: post-baseline revenue=67456 contractorCost=250000 stockCost=0 net=-182544 observedCashDelta=-182544 reconciled=True
+path-B: cash anatomy: timber revenue 67456 minus contractor (incl. minimum-job fee 250000) 250000 minus stock 0
+path-B result: year=5 living=1093 baM2=27.308218 cash=594310 deadwood=1 deadwoodVolM3=0.127555 retainedTimberM3=0
+path-B result: canopy=0.939526 light=0.060474 regen=106
+path-B result: quoteSold=12537667 quoteRevenue=67456 quoteCost=250000 cumRevenue=67456 cumContractor=250000
+=== MFM-03 POST-EXTENSION STATE (after B, year 5) ===
+mfm03-post-B-y5: living=1093 baM2=27.308218 meanDbhCm=17.612307 year=5
+mfm03-post-B-y5-growth-drift: meanDbhCm=17.612307 driftFromSampleY0=2.207813 driftFromBaseline=1.242935
+mfm03-post-B-y5-coverage-states: NotCovered=1,Excluded=13,Manual=1
+mfm03-post-B-y5-ci-parity: UNAVAILABLE — 0 covered areas (source=8.123633)
+mfm03-post-B-y5-ci-parity: exclusion reasons: PlayerCompletedWork=13
+mfm03-post-B-y5-ci-parity: reason: units with open/completed work leave the Covered class, so after treatment the source-vs-covered comparison set is empty
+mfm03-post-B-y5-ci-parity: cross-year CI parity NOT DEMONSTRATED at this state
+mfm03-post-B-y5-live-state: juveniles=0 shelters=0 deadwood=1 marks=0
+=== LONG-RUN COMPLETION (with planting) ===
+completion: minimumYear=25 currentYear=5
+completion: planted beech=3 oak=3
+completion: second intervention 10 trees at year 17
+completion: outcome=Completed outcomeYear=25 finalYear=25 cash=348152
+objective: minimum-year [Reach the management review year] current=25 target=25 achieved=True
+objective: retained-canopy [Retain original canopy trees] current=893 target=240 achieved=True
+objective: continuous-canopy [Keep continuous canopy] current=0.901015 target=0.35 achieved=True
+objective: regeneration [Maintain regenerating cells] current=223 target=12 achieved=True
+objective: fallen-deadwood [Retain fallen deadwood] current=85.732323 target=0.08 achieved=True
+objective: managed-opening [Carry out a commissioned thinning] current=1 target=1 achieved=True
+objective: introduced-beech [Establish planted beech] current=1 target=1 achieved=True
+objective: introduced-sessile-oak [Establish planted sessile-oak] current=1 target=1 achieved=True
+completion: 8 objectives, 0 unachieved
+=== MFM-03 AT YEAR 25 ===
+mfm03-year25: living=893 baM2=49.230307 meanDbhCm=26.078663 year=25
+mfm03-year25-growth-drift: meanDbhCm=26.078663 driftFromSampleY0=10.67417 driftFromBaseline=9.709291
+mfm03-year25-ci-parity: UNAVAILABLE — ReadCoverage problem: The sample cannot be read now: The sample's own release has not been executed and passed (Crop Trees 2/3, spread False, basal area kept True, least executed release 0.2618706226348877).
+mfm03-year25-ci-parity: cross-year CI parity NOT DEMONSTRATED at this state
+mfm03-year25-live-state: juveniles=0 shelters=0 deadwood=238 marks=0
+=== PROTECTED COMPATIBILITY ===
+protected: WorldHash=014F5F543BC0B328
+protected: LegacyV15=null LegacyV16=null
+protected: PARITY-09 Reference gate REFERENCE_FUTURE_V1_PASS at 3acdf9cb (cited external evidence)
+protected: PARITY-09 Reference/Legacy40 evidence cited + save/load self-consistency only
+=== PATH C: manual override, advance 3 years ===
+path-C: 3 crop trees available
+path-C: 9 trees marked manually
+path-C: quote(approved) sold=888719 revenue=4199 cost=250000
+path-C: equal horizon reached at year 5
+path-C: post-baseline revenue=4199 contractorCost=250000 stockCost=0 net=-245801 observedCashDelta=-245801 reconciled=True
+path-C: cash anatomy: timber revenue 4199 minus contractor (incl. minimum-job fee 250000) 250000 minus stock 0
+path-C result: year=5 living=1168 baM2=29.321141 cash=531053 deadwood=1 deadwoodVolM3=0.127555 retainedTimberM3=0
+path-C result: canopy=0.956893 light=0.043107 regen=89
+path-C result: quoteSold=888719 quoteRevenue=4199 quoteCost=250000 cumRevenue=4199 cumContractor=250000
+=== SCREENSHOTS ===
+=== SUMMARY ===
+three-path comparison: A, B, C each measured at year 5 (3 years from baseline year 2)
+timber/economy: quote after approval + post-baseline event volumes/revenue with cash reconciliation
+completion: planting beech/oak + objectives logged at year 25
+MFM-03: measured at baseline y2, post-B y5, and year 25
+MFM-03 CI parity: established only where a covered set exists; post-treatment states report unavailability with reason
