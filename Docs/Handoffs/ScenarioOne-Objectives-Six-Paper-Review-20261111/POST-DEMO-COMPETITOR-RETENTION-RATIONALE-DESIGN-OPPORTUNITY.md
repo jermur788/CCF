@@ -3,6 +3,7 @@
 **Product-owner direction:** 2026-11-11 — "Okay, do that", following Manager recommendation to document this idea now, preserve the current Scenario One demo and assess the richer interaction afterwards.  
 **Status:** **DOCUMENTED / DEFERRED UNTIL AFTER THE COMPLETE SCENARIO ONE DEMO.** This is **NOT** an approved implementation specification, a ready task packet, a mandated feature, an accepted lesson-rule change or an active ownership claim.  
 **Owner:** Overall Manager (research/design backlog).  
+**Deferred backlog tracker:** [GitHub issue #386](https://github.com/jermur788/CCF/issues/386) — not running, not an active task claim.  
 **Canonical authority:** Latest user direction; `Docs/Project/decision-log.md`; `Docs/Project/current-milestone.md`; approved `specs/multiscale-forestry-management-v1/spec.md`, S1-C and S1-D.  
 **Evidence:** Six-paper research extraction P1/P2; existing Irish tree-marking source and CCF practice/wind composite, with source-transfer limitations in `Docs/Research/PommereningSixPapers/Originals-Hash-and-Evidence-Register-20261111.md`.
 
