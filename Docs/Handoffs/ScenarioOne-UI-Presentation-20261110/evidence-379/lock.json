@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "04fbb0159eaa49628bd102ddbc9df1f5",
+    "owner": "Codex-Sol-CCF379",
+    "task_id": "CCF-379-UI-QUALIFICATION",
+    "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+    "branch": "qualify/scenario-one-tagged-text-379-20261111",
+    "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-11T00:01:06.281476+00:00",
+    "eta": "2026-11-11T01:00:00Z",
+    "notes": "379 focused Annual Review; source writer released; disposable config; protected origins verified"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

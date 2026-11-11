@@ -1,0 +1,12 @@
+Timber income	(x:620.00, y:-440.00, width:331.25, height:27.50)	(327.50, 20.00)	€3.61	(x:620.00, y:-406.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Contractor work	(x:620.00, y:-362.50, width:331.25, height:27.50)	(327.50, 20.00)	€2500.00	(x:620.00, y:-328.75, width:331.25, height:26.25)	(87.50, 18.75)	MiddleRight	fit=True
+Recorded work materials	(x:620.00, y:-285.00, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:-251.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Income less contractor work	(x:620.00, y:-176.25, width:331.25, height:27.50)	(327.50, 20.00)	−€2496.39	(x:620.00, y:-142.50, width:331.25, height:26.25)	(98.75, 18.75)	MiddleRight	fit=True
+Timber sold · Stake (0.086 m³)	(x:640.00, y:130.00, width:321.25, height:26.25)	(317.50, 18.75)	+€3.61	(x:640.00, y:162.50, width:321.25, height:26.25)	(65.00, 18.75)	MiddleRight	fit=True
+Harvesting work	(x:640.00, y:237.50, width:321.25, height:26.25)	(317.50, 18.75)	−€2.19	(x:640.00, y:270.00, width:321.25, height:26.25)	(65.00, 18.75)	MiddleRight	fit=True
+Small-job minimum	(x:640.00, y:313.75, width:321.25, height:26.25)	(317.50, 18.75)	−€2497.81	(x:640.00, y:346.25, width:321.25, height:26.25)	(98.75, 18.75)	MiddleRight	fit=True
+Closing cash	(x:640.00, y:458.75, width:321.25, height:26.25)	(317.50, 18.75)	€7729.15	(x:640.00, y:491.25, width:321.25, height:26.25)	(87.50, 18.75)	MiddleRight	fit=True
+Retained usable timber (this year)	(x:1007.50, y:771.25, width:320.00, height:26.25)	(316.25, 18.75)	0.00 m³	(x:1007.50, y:803.75, width:320.00, height:26.25)	(67.50, 18.75)	MiddleRight	fit=True
+Retained usable timber (stock)	(x:1007.50, y:878.75, width:320.00, height:26.25)	(316.25, 18.75)	0.00 m³	(x:1007.50, y:911.25, width:320.00, height:26.25)	(67.50, 18.75)	MiddleRight	fit=True
+Retained deadwood (new this year)	(x:1007.50, y:955.00, width:320.00, height:26.25)	(316.25, 18.75)	0.00 m³	(x:1007.50, y:987.50, width:320.00, height:26.25)	(67.50, 18.75)	MiddleRight	fit=True
+Fallen deadwood on site	(x:1007.50, y:1031.25, width:320.00, height:26.25)	(316.25, 18.75)	0 log(s) · 0.00 m³	(x:1007.50, y:1063.75, width:320.00, height:26.25)	(150.00, 18.75)	MiddleRight	fit=True

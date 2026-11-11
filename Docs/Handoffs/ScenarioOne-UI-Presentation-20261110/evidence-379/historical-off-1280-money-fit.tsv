@@ -1,0 +1,8 @@
+Timber income	(x:620.00, y:-590.00, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:-556.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Contractor work	(x:620.00, y:-512.50, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:-478.75, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Recorded work materials	(x:620.00, y:-435.00, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:-401.25, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Income less contractor work	(x:620.00, y:-326.25, width:331.25, height:27.50)	(327.50, 20.00)	€0.00	(x:620.00, y:-292.50, width:331.25, height:26.25)	(53.75, 18.75)	MiddleRight	fit=True
+Closing cash	(x:640.00, y:-20.00, width:321.25, height:26.25)	(317.50, 18.75)	€10225.54	(x:640.00, y:12.50, width:321.25, height:26.25)	(98.75, 18.75)	MiddleRight	fit=True
+Retained usable timber (this year)	(x:1007.50, y:312.50, width:320.00, height:26.25)	(316.25, 18.75)	0.00 m³	(x:1007.50, y:345.00, width:320.00, height:26.25)	(67.50, 18.75)	MiddleRight	fit=True
+Retained deadwood (new this year)	(x:1007.50, y:388.75, width:320.00, height:26.25)	(316.25, 18.75)	0.00 m³	(x:1007.50, y:421.25, width:320.00, height:26.25)	(67.50, 18.75)	MiddleRight	fit=True
+Fallen deadwood on site	(x:1007.50, y:465.00, width:320.00, height:26.25)	(316.25, 18.75)	0 log(s) · 0.00 m³	(x:1007.50, y:497.50, width:320.00, height:26.25)	(150.00, 18.75)	MiddleRight	fit=True

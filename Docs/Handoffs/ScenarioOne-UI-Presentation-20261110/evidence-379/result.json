@@ -1,0 +1,17 @@
+{
+  "name": "Ccf379",
+  "status": "PASS",
+  "exit": 0,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "C379_SESSION_ENDED"
+  ],
+  "tokens_present": {
+    "C379_SESSION_ENDED": true
+  },
+  "fail_lines": 0,
+  "seconds": 682.8,
+  "head": "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+  "lane": "/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual",
+  "leftover": []
+}

@@ -1,0 +1,14 @@
+PASS source contract OVERVIEW_ROUTES_TO_REAL_DRAFT
+PASS source contract NO_VERBOSE_DRAFT_IN_OVERVIEW
+PASS source contract COMPACT_NEIGHBOURS
+PASS source contract MFM_FIRST_PAGE_HINT
+PASS source contract DRAFT_REACHABLE
+PASS source contract TIMBER_AFTER_THREE_DRAFT_PAGES
+PASS source contract ALL_CATEGORIES_REACHABLE
+KILLED source mutation NO_VERBOSE_DRAFT_IN_OVERVIEW
+KILLED source mutation OVERVIEW_ROUTES_TO_REAL_DRAFT
+/media/jer/Files/CCF/Verification/CCF-379-TaggedText-20261110/inspection_fit/positive/Probe.cs(6,27): warning CS0649: Field 'Ecology.StormModelVersion' is never assigned to, and will always have its default value 0 [/media/jer/Files/CCF/Verification/CCF-379-TaggedText-20261110/inspection_fit/positive/probe.csproj]
+/media/jer/Files/CCF/Verification/CCF-379-TaggedText-20261110/inspection_fit/positive/Probe.cs(2,176): warning CS0649: Field 'CropTreeCompetitionReport.HasPlannedRemovals' is never assigned to, and will always have its default value false [/media/jer/Files/CCF/Verification/CCF-379-TaggedText-20261110/inspection_fit/positive/probe.csproj]
+PASS compiled draft consumers and 61 actual page routes
+KILLED compiled mutation wrong-route
+KILLED compiled mutation lost-wind-warning

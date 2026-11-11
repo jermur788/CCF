@@ -1,0 +1,7 @@
+Presentation source-slice checks PASS 157 (plain sink; no Unity/render/input claims)
+rack-first-keys-leak: KILLED by RACK_FIRST_SUPPRESSES_BOTH_MARKS (compiled source slice)
+duplicate-prompts: KILLED by CONTEXT_KEYS_ARE_UNIQUE (compiled source slice)
+v-traps-at-last-page: KILLED by V_REACHES_OVERVIEW_AGAIN (compiled source slice)
+wrong-year-money: KILLED by MONEY_FROM_SELECTED_YEAR (compiled source slice)
+missing-snapshot-invents-zero: KILLED by MISSING_SNAPSHOT_IS_EXPLICIT (compiled source slice)
+Composition/source contracts PASS (not render proof)

@@ -1,0 +1,59 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root,compact	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:13.75, y:13.75, width:620.00, height:176.25)	True	hud-objective	
+VisualElement	active-objective-widget	(x:13.75, y:13.75, width:620.00, height:176.25)	True	panel,objective-widget	
+VisualElement		(x:33.75, y:27.50, width:581.25, height:32.50)	True	objective-header	
+Label	active-objective-now	(x:36.25, y:36.25, width:57.50, height:17.50)	True	unity-label,unity-text-element,objective-now	NOW
+Label	active-objective-step	(x:106.25, y:32.50, width:118.75, height:25.00)	True	unity-label,unity-text-element,objective-step	Objective 3 of 9
+Button	active-objective-details	(x:515.00, y:27.50, width:100.00, height:32.50)	True	unity-button,unity-text-element,btn,btn-ghost,objective-details	Details [O]
+Label	active-objective-title	(x:36.25, y:63.75, width:575.00, height:27.50)	True	unity-label,unity-text-element,objective-title	Review the year
+Label	active-objective-instruction	(x:36.25, y:96.25, width:575.00, height:46.25)	True	unity-label,unity-text-element,objective-instruction	Next: Read and acknowledge the Annual Review: open the Work Plan [Tab].
+Label	active-objective-progress	(x:36.25, y:148.75, width:575.00, height:25.00)	True	unity-label,unity-text-element,objective-progress	Annual results unread · read and acknowledge them
+VisualElement	hud-right-column	(x:1256.25, y:13.75, width:330.00, height:56.25)	True	hud-right	
+VisualElement		(x:1256.25, y:13.75, width:330.00, height:56.25)	True	panel,spread,hud-status	
+Label		(x:1273.75, y:30.00, width:52.50, height:25.00)	True	unity-label,unity-text-element,body	Year 3
+Label		(x:1411.25, y:28.75, width:156.25, height:27.50)	True	unity-label,unity-text-element,money	Cash €7729.15
+VisualElement	hud-context-actions	(x:13.75, y:831.25, width:1353.75, height:56.25)	True	panel,row-wrap,context-actions	
+VisualElement		(x:25.00, y:842.50, width:167.50, height:33.75)	True	row,key-control	
+Label		(x:27.50, y:847.50, width:52.50, height:25.00)	True	unity-label,unity-text-element,keycap	1–5
+Label		(x:90.00, y:846.25, width:98.75, height:27.50)	True	unity-label,unity-text-element,key-verb	Neighbours
+VisualElement		(x:208.75, y:842.50, width:192.50, height:33.75)	True	row,key-control	
+Label		(x:211.25, y:847.50, width:31.25, height:25.00)	True	unity-label,unity-text-element,keycap	V
+Label		(x:252.50, y:846.25, width:145.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Next detail (3/18)
+VisualElement		(x:417.50, y:842.50, width:178.75, height:33.75)	True	row,key-control	
+Label		(x:420.00, y:847.50, width:87.50, height:25.00)	True	unity-label,unity-text-element,keycap	Shift+V
+Label		(x:517.50, y:846.25, width:75.00, height:27.50)	True	unity-label,unity-text-element,key-verb	Previous
+VisualElement		(x:612.50, y:842.50, width:266.25, height:33.75)	True	row,key-control	
+Label		(x:615.00, y:847.50, width:32.50, height:25.00)	True	unity-label,unity-text-element,keycap	C
+Label		(x:657.50, y:846.25, width:217.50, height:27.50)	True	unity-label,unity-text-element,key-verb	Unmark Crop Tree P0710
+VisualElement		(x:895.00, y:842.50, width:98.75, height:33.75)	True	row,key-control	
+Label		(x:897.50, y:847.50, width:31.25, height:25.00)	True	unity-label,unity-text-element,keycap	E
+Label		(x:938.75, y:846.25, width:51.25, height:27.50)	True	unity-label,unity-text-element,key-verb	Close
+VisualElement		(x:1010.00, y:842.50, width:101.25, height:33.75)	True	row,key-control	
+Label		(x:1012.50, y:847.50, width:42.50, height:25.00)	True	unity-label,unity-text-element,keycap	F1
+Label		(x:1065.00, y:846.25, width:42.50, height:27.50)	True	unity-label,unity-text-element,key-verb	Help
+VisualElement		(x:13.75, y:723.75, width:1086.25, height:52.50)	True	hud-bottom	
+Label		(x:16.25, y:727.50, width:533.75, height:46.25)	True	unity-label,unity-text-element,panel,body	Marked: FELL 0 (red)  ·  CROP TREE 3 (blue)  ·  fell volume 0.0 m³
+VisualElement		(x:0.00, y:503.75, width:1600.00, height:0.00)	True	hud-prompt	
+VisualElement		(x:797.50, y:447.50, width:3.75, height:3.75)	True	reticle	
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+Label		(x:1063.75, y:327.50, width:27.50, height:28.75)	True	unity-label,unity-text-element,competitor-tag	1
+Label		(x:-505.00, y:321.25, width:27.50, height:27.50)	True	unity-label,unity-text-element,competitor-tag	2
+Label		(x:827.50, y:372.50, width:27.50, height:28.75)	True	unity-label,unity-text-element,competitor-tag	3
+Label		(x:82.50, y:367.50, width:28.75, height:27.50)	True	unity-label,unity-text-element,competitor-tag	4
+Label		(x:533.75, y:372.50, width:27.50, height:28.75)	True	unity-label,unity-text-element,competitor-tag	5
+VisualElement	inspect-column	(x:1146.25, y:80.00, width:440.00, height:587.50)	True	panel,inspect,inspect-selected	
+VisualElement		(x:1165.00, y:93.75, width:403.75, height:560.00)	True	inspection-page	
+Label		(x:1167.50, y:103.75, width:397.50, height:46.25)	True	unity-label,unity-text-element,inspect-hint	Page 3 of 18 · [V] Next · [Shift+V] Previous · overview follows last page
+Label		(x:1167.50, y:156.25, width:397.50, height:22.50)	True	unity-label,unity-text-element,eyebrow	SELECTED TREE
+Label		(x:1167.50, y:183.75, width:397.50, height:38.75)	True	unity-label,unity-text-element,title	Sitka spruce
+Label		(x:1167.50, y:228.75, width:397.50, height:26.25)	True	unity-label,unity-text-element,muted	P0710 · original plantation
+VisualElement		(x:1165.00, y:257.50, width:403.75, height:26.25)	True	row-wrap	
+Label		(x:1167.50, y:261.25, width:125.00, height:20.00)	True	unity-label,unity-text-element,chip,chip-crop	◆ CROP TREE
+Label		(x:1167.50, y:293.75, width:397.50, height:26.25)	True	unity-label,unity-text-element,heading	Condition and model limits
+Label		(x:1167.50, y:327.50, width:397.50, height:26.25)	True	unity-label,unity-text-element,body	Not pruned
+Label		(x:1167.50, y:360.00, width:397.50, height:26.25)	True	unity-label,unity-text-element,body	Reproduction: maturing
+Label		(x:1167.50, y:392.50, width:397.50, height:26.25)	True	unity-label,unity-text-element,body	Wind exposure: Stable · storms off
+Label		(x:1167.50, y:425.00, width:397.50, height:125.00)	True	unity-label,unity-text-element,muted	Storm events are off in this saved forest. The stem is slender for its height. A recent nearby opening adds exposure; that effect fades with time. Nearby taller trees provide shelter in this simplified model. This is a relative model judgement, not a failure probability.
+Label		(x:1167.50, y:556.25, width:397.50, height:46.25)	True	unity-label,unity-text-element,muted	Storm events are off in this forest. This is not a wind-safety assessment.
+Label		(x:1167.50, y:610.00, width:397.50, height:41.25)	True	unity-label,unity-text-element,faint	Competition uses 29 neighbours within 8 m. Size and distance determine each share; share is not advice to fell.

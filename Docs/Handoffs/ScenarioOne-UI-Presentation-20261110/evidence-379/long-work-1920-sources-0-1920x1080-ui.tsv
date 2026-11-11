@@ -1,0 +1,305 @@
+UIDocumentRootElement	Scenario One UI-container	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	unity-ui-document__root,root	
+VisualElement	competitor-tags	(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer	
+VisualElement		(x:0.00, y:0.00, width:1600.00, height:900.00)	True	layer,modal-backdrop,hide-data-sources	
+VisualElement		(x:210.00, y:35.83, width:1180.00, height:828.33)	True	panel,modal,modal-review	
+VisualElement		(x:229.17, y:48.33, width:1141.67, height:52.50)	True	modal-header	
+Label		(x:230.83, y:52.50, width:356.67, height:37.50)	True	unity-label,unity-text-element,title	Annual Review · Year 3 complete
+VisualElement		(x:665.83, y:48.33, width:705.00, height:35.83)	True	row,screen-actions	
+Button		(x:665.83, y:50.83, width:128.33, height:31.67)	True	unity-button,unity-text-element,btn	◀ Earlier year
+Button		(x:800.00, y:50.83, width:118.33, height:31.67)	False	unity-button,unity-disabled,unity-text-element,btn	Later year ▶
+Label	menu-current-status	(x:925.83, y:54.17, width:251.67, height:26.67)	True	unity-label,unity-text-element,menu-current-status	Current Year 3 · Cash €7729.15
+Toggle	annual-show-data-sources	(x:1185.83, y:50.00, width:180.83, height:32.50)	True	unity-base-field,unity-toggle	
+Label		(x:1187.50, y:54.17, width:150.83, height:26.67)	True	unity-label,unity-base-field__label,unity-toggle__label,unity-text-element	Show data sources
+VisualElement		(x:1342.50, y:50.00, width:24.17, height:32.50)	True	unity-base-field__input,unity-toggle__input	
+VisualElement	unity-checkmark	(x:1342.50, y:54.17, width:24.17, height:24.17)	True	unity-toggle__checkmark	
+VisualElement	menu-navigation	(x:229.17, y:109.17, width:1141.67, height:45.00)	True	row-wrap,menu-navigation	
+Button		(x:229.17, y:110.83, width:130.00, height:32.50)	True	unity-button,unity-text-element,btn	Objectives [O]
+Button		(x:367.50, y:110.83, width:134.17, height:32.50)	True	unity-button,unity-text-element,btn	Stand Map [M]
+Button		(x:510.00, y:110.83, width:144.17, height:32.50)	True	unity-button,unity-text-element,btn	Work Plan [Tab]
+Button		(x:662.50, y:110.83, width:148.33, height:32.50)	False	unity-button,unity-disabled,unity-text-element,btn,btn-selected	Annual Review
+Button		(x:819.17, y:110.83, width:93.33, height:32.50)	True	unity-button,unity-text-element,btn	Help [F1]
+Button	annual-review-walk	(x:920.83, y:110.83, width:167.50, height:32.50)	True	unity-button,unity-text-element,btn	Back to forest [Esc]
+Label	next-action-reason	(x:230.83, y:162.50, width:1135.83, height:28.33)	True	unity-label,unity-text-element,next-action-reason	Read and acknowledge the Annual Review: open the Work Plan [Tab].
+ScrollView		(x:229.17, y:195.00, width:1141.67, height:547.50)	True	unity-scroll-view,unity-scroll-view--vertical,unity-scroll-view--scroll	
+VisualElement	unity-content-and-vertical-scroll-container	(x:229.17, y:195.00, width:1141.67, height:547.50)	True	unity-scroll-view__content-and-vertical-scroll-container	
+VisualElement	unity-content-viewport	(x:229.17, y:195.00, width:1124.17, height:547.50)	True	unity-scroll-view__content-viewport,unity-scroll-view__content-viewport--vertical	
+VisualElement	unity-content-container	(x:229.17, y:-519.17, width:1124.17, height:3671.67)	True	unity-scroll-view__content-container,unity-scroll-view__content-container--vertical	
+VisualElement	annual-headlines	(x:229.17, y:-510.83, width:1124.17, height:519.17)	True	columns,annual-headlines	
+VisualElement		(x:229.17, y:-510.83, width:365.00, height:137.50)	True	card,column	
+Label		(x:245.83, y:-498.33, width:329.17, height:28.33)	True	unity-label,unity-text-element,heading	WORK DONE
+VisualElement		(x:244.17, y:-464.17, width:335.00, height:33.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:-464.17, width:335.00, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:-460.00, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	1 task(s) completed · 0 failed
+VisualElement		(x:244.17, y:-425.00, width:335.00, height:33.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:-425.00, width:335.00, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:-420.83, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	Harvested stem volume 0.11 m³
+VisualElement		(x:604.17, y:-510.83, width:364.17, height:510.83)	True	card,column	
+Label		(x:620.83, y:-498.33, width:328.33, height:28.33)	True	unity-label,unity-text-element,heading	MONEY
+VisualElement		(x:619.17, y:-464.17, width:334.17, height:70.83)	True	annual-value-entry	
+VisualElement		(x:619.17, y:-464.17, width:334.17, height:0.00)	True	annual-value-source	
+Label		(x:620.83, y:-460.00, width:328.33, height:27.50)	True	unity-label,unity-text-element,body,annual-value-name	Timber income
+Label		(x:620.83, y:-426.67, width:328.33, height:26.67)	True	unity-label,unity-text-element,money,annual-value-amount	€3.61
+VisualElement		(x:619.17, y:-387.50, width:334.17, height:70.83)	True	annual-value-entry	
+VisualElement		(x:619.17, y:-387.50, width:334.17, height:0.00)	True	annual-value-source	
+Label		(x:620.83, y:-383.33, width:328.33, height:27.50)	True	unity-label,unity-text-element,body,annual-value-name	Contractor work
+Label		(x:620.83, y:-350.00, width:328.33, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	€2500.00
+VisualElement		(x:619.17, y:-310.83, width:334.17, height:70.83)	True	annual-value-entry	
+VisualElement		(x:619.17, y:-310.83, width:334.17, height:0.00)	True	annual-value-source	
+Label		(x:620.83, y:-306.67, width:328.33, height:27.50)	True	unity-label,unity-text-element,body,annual-value-name	Recorded work materials
+Label		(x:620.83, y:-273.33, width:328.33, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	€0.00
+VisualElement		(x:619.17, y:-234.17, width:334.17, height:101.67)	True	annual-value-entry	
+VisualElement		(x:619.17, y:-234.17, width:334.17, height:30.83)	True	annual-value-source	
+Label		(x:620.83, y:-230.00, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:620.83, y:-199.17, width:328.33, height:27.50)	True	unity-label,unity-text-element,body,annual-value-name	Income less contractor work
+Label		(x:620.83, y:-165.83, width:328.33, height:26.67)	True	unity-label,unity-text-element,money,annual-value-amount	−€2496.39
+Label		(x:620.83, y:-122.50, width:328.33, height:42.50)	True	unity-label,unity-text-element,faint	Work materials here are tree shelters; nursery purchases are separate.
+Label		(x:620.83, y:-74.17, width:328.33, height:60.00)	True	unity-label,unity-text-element,faint	Before materials and nursery purchases. A complete net cash result is not recorded as an annual total.
+VisualElement		(x:978.33, y:-510.83, width:365.00, height:246.67)	True	card,column	
+Label		(x:995.00, y:-498.33, width:329.17, height:28.33)	True	unity-label,unity-text-element,heading	FOREST CHANGES
+VisualElement		(x:993.33, y:-464.17, width:335.00, height:33.33)	True	annual-text-entry	
+VisualElement		(x:993.33, y:-464.17, width:335.00, height:0.00)	True	annual-text-source	
+Label		(x:995.00, y:-460.00, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	Mean canopy cover 97 %
+VisualElement		(x:993.33, y:-425.00, width:335.00, height:33.33)	True	annual-text-entry	
+VisualElement		(x:993.33, y:-425.00, width:335.00, height:0.00)	True	annual-text-source	
+Label		(x:995.00, y:-420.83, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	Regeneration in 73 map square(s)
+VisualElement		(x:993.33, y:-385.83, width:335.00, height:33.33)	True	annual-text-entry	
+VisualElement		(x:993.33, y:-385.83, width:335.00, height:0.00)	True	annual-text-source	
+Label		(x:995.00, y:-381.67, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	Fallen deadwood 0.00 m³
+VisualElement		(x:993.33, y:-346.67, width:335.00, height:64.17)	True	annual-text-entry	
+VisualElement		(x:993.33, y:-346.67, width:335.00, height:30.83)	True	annual-text-source	
+Label		(x:995.00, y:-342.50, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:995.00, y:-311.67, width:329.17, height:27.50)	True	unity-label,unity-text-element,body,annual-text-body	Standing trees 1195 → 1194
+Foldout		(x:229.17, y:8.33, width:1124.17, height:1080.83)	True	unity-foldout,unity-foldout--depth-0	
+Toggle		(x:233.33, y:10.00, width:1115.83, height:28.33)	True	unity-base-field,unity-foldout__toggle,unity-toggle,unity-base-field--no-label	
+VisualElement		(x:233.33, y:10.00, width:1115.83, height:28.33)	True	unity-base-field__input,unity-toggle__input,unity-foldout__input	
+VisualElement	unity-checkmark	(x:237.50, y:12.50, width:21.67, height:22.50)	True	unity-toggle__checkmark,unity-foldout__checkmark	
+Label		(x:264.17, y:10.00, width:379.17, height:26.67)	True	unity-label,unity-toggle__text,unity-text-element,unity-foldout__text	Detailed annual records · work, money and forest
+VisualElement	unity-content	(x:259.17, y:40.00, width:1094.17, height:1049.17)	True	unity-foldout__content	
+VisualElement		(x:259.17, y:40.00, width:1094.17, height:1049.17)	True	columns	
+VisualElement		(x:259.17, y:40.00, width:355.00, height:487.50)	True	card,column	
+Label		(x:275.83, y:60.83, width:319.17, height:28.33)	True	unity-label,unity-text-element,heading	WORK DONE
+VisualElement		(x:274.17, y:95.00, width:325.00, height:63.33)	True	annual-text-entry	
+VisualElement		(x:274.17, y:95.00, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:275.83, y:99.17, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:275.83, y:130.00, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	1 tree(s) thinned (contractor)
+Button	work-detail-toggle-done-FellTree	(x:274.17, y:165.83, width:305.00, height:47.50)	True	unity-button,unity-text-element,btn,btn-ghost	Show recorded details · 1 task · 1 map square
+VisualElement	annual-harvest-settlement	(x:274.17, y:215.00, width:325.00, height:230.83)	True		
+VisualElement		(x:274.17, y:215.00, width:325.00, height:83.33)	True	annual-text-entry	
+VisualElement		(x:274.17, y:215.00, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:275.83, y:219.17, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:275.83, y:250.00, width:319.17, height:46.67)	True	unity-label,unity-text-element,body,annual-text-body	Harvest job · year 3: 1 harvest order(s) settled together as one job.
+VisualElement		(x:274.17, y:304.17, width:325.00, height:52.50)	True	annual-text-entry	
+VisualElement		(x:274.17, y:304.17, width:325.00, height:0.00)	True	annual-text-source	
+Label		(x:275.83, y:308.33, width:319.17, height:46.67)	True	unity-label,unity-text-element,body,annual-text-body	Timber income €3.61 · harvesting cost €2500.00.
+Label		(x:275.83, y:366.67, width:319.17, height:77.50)	True	unity-label,unity-text-element,faint	The records hold one settlement for the whole job, so no money is shown per order or per tree. The year number labels the job; it is not a unique job ID.
+VisualElement		(x:274.17, y:445.83, width:325.00, height:63.33)	True	annual-text-entry	
+VisualElement		(x:274.17, y:445.83, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:275.83, y:450.00, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:275.83, y:480.83, width:319.17, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	No tasks failed.
+VisualElement		(x:624.17, y:40.00, width:354.17, height:554.17)	True	card,column	
+Label		(x:640.83, y:60.83, width:318.33, height:28.33)	True	unity-label,unity-text-element,heading	MONEY
+VisualElement		(x:639.17, y:95.00, width:324.17, height:70.00)	True	annual-value-entry	
+VisualElement		(x:639.17, y:95.00, width:324.17, height:0.00)	True	annual-value-source	
+Label		(x:640.83, y:99.17, width:318.33, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Timber sold · Stake (0.086 m³)
+Label		(x:640.83, y:131.67, width:318.33, height:26.67)	True	unity-label,unity-text-element,money,annual-value-amount	+€3.61
+VisualElement		(x:639.17, y:170.83, width:324.17, height:100.83)	True	annual-value-entry	
+VisualElement		(x:639.17, y:170.83, width:324.17, height:30.83)	True	annual-value-source	
+Label		(x:640.83, y:175.00, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:640.83, y:205.83, width:318.33, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Harvesting work
+Label		(x:640.83, y:238.33, width:318.33, height:26.67)	True	unity-label,unity-text-element,money-negative,annual-value-amount	−€2.19
+VisualElement		(x:639.17, y:277.50, width:324.17, height:70.00)	True	annual-value-entry	
+VisualElement		(x:639.17, y:277.50, width:324.17, height:0.00)	True	annual-value-source	
+Label		(x:640.83, y:281.67, width:318.33, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Small-job minimum
+Label		(x:640.83, y:314.17, width:318.33, height:26.67)	True	unity-label,unity-text-element,money-negative,annual-value-amount	−€2497.81
+Label		(x:640.83, y:357.50, width:318.33, height:60.00)	True	unity-label,unity-text-element,faint	Timber sold and harvesting work above belong to one grouped harvest job for the year, not to single trees or orders.
+VisualElement		(x:639.17, y:419.17, width:324.17, height:70.00)	True	annual-value-entry	
+VisualElement		(x:639.17, y:419.17, width:324.17, height:0.00)	True	annual-value-source	
+Label		(x:640.83, y:423.33, width:318.33, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Closing cash
+Label		(x:640.83, y:455.83, width:318.33, height:26.67)	True	unity-label,unity-text-element,money,annual-value-amount	€7729.15
+VisualElement		(x:639.17, y:495.00, width:324.17, height:32.50)	True	annual-text-entry	
+VisualElement		(x:639.17, y:495.00, width:324.17, height:0.00)	True	annual-text-source	
+Label		(x:640.83, y:499.17, width:318.33, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	Your time used: 0 min of 40.0 h
+Label		(x:640.83, y:537.50, width:318.33, height:42.50)	True	unity-label,unity-text-element,faint	Saplings are paid for when bought from the nursery.
+VisualElement		(x:988.33, y:40.00, width:355.00, height:1040.83)	True	card,column	
+Label		(x:1005.00, y:60.83, width:319.17, height:28.33)	True	unity-label,unity-text-element,heading	FOREST CHANGES
+VisualElement		(x:1003.33, y:95.00, width:325.00, height:103.33)	True	annual-text-entry	
+VisualElement		(x:1003.33, y:95.00, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:1005.00, y:99.17, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:1005.00, y:130.00, width:319.17, height:66.67)	True	unity-label,unity-text-element,body,annual-text-body	Canopy 97 % → 97 % (-0.4 percentage points); average forest-floor light 0.03 → 0.03.
+VisualElement		(x:1003.33, y:204.17, width:325.00, height:103.33)	True	annual-text-entry	
+VisualElement		(x:1003.33, y:204.17, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:1005.00, y:208.33, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:1005.00, y:239.17, width:319.17, height:66.67)	True	unity-label,unity-text-element,body,annual-text-body	Opened areas: 83 map squares with average forest-floor light 0.02 (whole stand 0.03).
+VisualElement		(x:1003.33, y:313.33, width:325.00, height:83.33)	True	annual-text-entry	
+VisualElement		(x:1003.33, y:313.33, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:1005.00, y:317.50, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:1005.00, y:348.33, width:319.17, height:46.67)	True	unity-label,unity-text-element,body,annual-text-body	Areas with young regeneration: 73 (was 47) — Sitka spruce 73.
+VisualElement		(x:1003.33, y:402.50, width:325.00, height:63.33)	True	annual-text-entry	
+VisualElement		(x:1003.33, y:402.50, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:1005.00, y:406.67, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:1005.00, y:437.50, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	Browsing pressure low now.
+VisualElement		(x:1003.33, y:471.67, width:325.00, height:122.50)	True	annual-text-entry	
+VisualElement		(x:1003.33, y:471.67, width:325.00, height:30.83)	True	annual-text-source	
+Label		(x:1005.00, y:475.83, width:115.00, height:25.00)	True	unity-label,unity-text-element,faint	this session only
+Label		(x:1005.00, y:506.67, width:319.17, height:85.83)	True	unity-label,unity-text-element,muted,annual-text-body	Last year's browsing result is not recorded this session. Browse results are not saved, so they are gone after a load.
+Label		(x:1005.00, y:604.17, width:319.17, height:85.83)	True	unity-label,unity-text-element,muted	An opening creates an opportunity, not guaranteed regeneration. Walk back to inspect what remains and how the forest responds; reassess before further work.
+Label		(x:1005.00, y:700.00, width:319.17, height:28.33)	True	unity-label,unity-text-element,heading	Retained material
+VisualElement		(x:1003.33, y:734.17, width:325.00, height:70.00)	True	annual-value-entry	
+VisualElement		(x:1003.33, y:734.17, width:325.00, height:0.00)	True	annual-value-source	
+Label		(x:1005.00, y:738.33, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Retained usable timber (this year)
+Label		(x:1005.00, y:770.83, width:319.17, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	0.00 m³
+VisualElement		(x:1003.33, y:810.00, width:325.00, height:100.83)	True	annual-value-entry	
+VisualElement		(x:1003.33, y:810.00, width:325.00, height:30.83)	True	annual-value-source	
+Label		(x:1005.00, y:814.17, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:1005.00, y:845.00, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Retained usable timber (stock)
+Label		(x:1005.00, y:877.50, width:319.17, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	0.00 m³
+VisualElement		(x:1003.33, y:916.67, width:325.00, height:70.00)	True	annual-value-entry	
+VisualElement		(x:1003.33, y:916.67, width:325.00, height:0.00)	True	annual-value-source	
+Label		(x:1005.00, y:920.83, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Retained deadwood (new this year)
+Label		(x:1005.00, y:953.33, width:319.17, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	0.00 m³
+VisualElement		(x:1003.33, y:992.50, width:325.00, height:70.00)	True	annual-value-entry	
+VisualElement		(x:1003.33, y:992.50, width:325.00, height:0.00)	True	annual-value-source	
+Label		(x:1005.00, y:996.67, width:319.17, height:26.67)	True	unity-label,unity-text-element,body,annual-value-name	Fallen deadwood on site
+Label		(x:1005.00, y:1029.17, width:319.17, height:26.67)	True	unity-label,unity-text-element,value,annual-value-amount	0 log(s) · 0.00 m³
+VisualElement	prior-treatment-guidance	(x:229.17, y:1089.17, width:1124.17, height:102.50)	True	card	
+Label		(x:245.83, y:1110.00, width:1088.33, height:28.33)	True	unity-label,unity-text-element,heading	PRIOR TREATMENT · L4 MANAGEMENT GUIDANCE
+Button	prior-treatment-guidance-toggle	(x:244.17, y:1145.83, width:1088.33, height:31.67)	True	unity-button,unity-text-element,btn	What to inspect before deciding again
+VisualElement	management-history	(x:229.17, y:1200.00, width:1124.17, height:855.83)	True	card	
+VisualElement		(x:244.17, y:1212.50, width:1094.17, height:42.50)	True	row	
+Label		(x:245.83, y:1222.50, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:415.83, y:1220.83, width:420.00, height:28.33)	True	unity-label,unity-text-element,heading	MANAGEMENT HISTORY · 2 interventions
+Label		(x:245.83, y:1259.17, width:1088.33, height:26.67)	True	unity-label,unity-text-element,muted	An intervention is a work plan that was carried out in one year: felling, pruning, planting, protection or other commissioned work.
+VisualElement		(x:244.17, y:1287.50, width:1094.17, height:364.17)	True	card	
+VisualElement		(x:259.17, y:1300.00, width:1064.17, height:42.50)	True	row	
+Label		(x:260.83, y:1308.33, width:214.17, height:28.33)	True	unity-label,unity-text-element,heading	Intervention 1 · year 1
+Button		(x:479.17, y:1305.00, width:115.00, height:32.50)	True	unity-button,unity-text-element,btn	Read year 1
+VisualElement		(x:259.17, y:1342.50, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1342.50, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1346.67, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1377.50, width:1058.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	149 felled
+VisualElement		(x:259.17, y:1411.67, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1411.67, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1415.83, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1446.67, width:1058.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	Cost €2500.00 · timber income €725.54 · net −€1774.46 (the cost includes a €2178.79 small-job minimum)
+VisualElement		(x:259.17, y:1480.83, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1480.83, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1485.00, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1515.83, width:1058.33, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	That year: living trees 1344 → 1195 · canopy 0.98 → 0.98 · average forest-floor light 0.02 → 0.02 · areas with young regeneration 0 → 46.
+VisualElement		(x:259.17, y:1550.00, width:1064.17, height:83.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1550.00, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1554.17, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1585.00, width:1058.33, height:46.67)	True	unity-label,unity-text-element,muted,annual-text-body	By year 3: living trees 1195 → 1194 · canopy 0.98 → 0.97 · areas with young regeneration 46 → 73 · fallen deadwood 0.0 → 0.0 m³. Living trees by species: Sitka spruce 1195 → 1194.
+VisualElement		(x:244.17, y:1660.00, width:1094.17, height:344.17)	True	card	
+VisualElement		(x:259.17, y:1672.50, width:1064.17, height:42.50)	True	row	
+Label		(x:260.83, y:1680.83, width:214.17, height:28.33)	True	unity-label,unity-text-element,heading	Intervention 2 · year 3
+Button		(x:479.17, y:1677.50, width:125.00, height:32.50)	False	unity-button,unity-disabled,unity-text-element,btn	Shown above
+VisualElement		(x:259.17, y:1715.00, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1715.00, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1719.17, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1750.00, width:1058.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	1 felled
+VisualElement		(x:259.17, y:1784.17, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1784.17, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1788.33, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1819.17, width:1058.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	Cost €2500.00 · timber income €3.61 · net −€2496.39 (the cost includes a €2497.81 small-job minimum)
+VisualElement		(x:259.17, y:1853.33, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1853.33, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1857.50, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:260.83, y:1888.33, width:1058.33, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	That year: living trees 1195 → 1194 · canopy 0.97 → 0.97 · average forest-floor light 0.03 → 0.03 · areas with young regeneration 47 → 73.
+VisualElement		(x:259.17, y:1922.50, width:1064.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:259.17, y:1922.50, width:1064.17, height:30.83)	True	annual-text-source	
+Label		(x:260.83, y:1926.67, width:90.00, height:25.00)	True	unity-label,unity-text-element,faint	not recorded
+Label		(x:260.83, y:1957.50, width:1058.33, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	No later years recorded yet: advance time and walk the forest to see how it responds.
+Label		(x:245.83, y:2016.67, width:1088.33, height:25.00)	True	unity-label,unity-text-element,faint	These are changes recorded after the work, not proof that the work caused them: growth, seed, light and weather act in the same years.
+VisualElement		(x:229.17, y:2064.17, width:1124.17, height:271.67)	True	card	
+Label		(x:245.83, y:2085.00, width:1088.33, height:28.33)	True	unity-label,unity-text-element,heading	TRENDS
+VisualElement		(x:244.17, y:2119.17, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2119.17, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2123.33, width:164.17, height:25.00)	True	unity-label,unity-text-element,faint	calculated from records
+Label		(x:245.83, y:2154.17, width:1088.33, height:26.67)	True	unity-label,unity-text-element,muted,annual-text-body	Drawn from the saved annual reports and snapshots of up to the last 12 years; the strip itself is not saved.
+VisualElement		(x:244.17, y:2188.33, width:1094.17, height:135.00)	True	columns	
+VisualElement		(x:244.17, y:2188.33, width:536.67, height:135.00)	True	column	
+Label		(x:245.83, y:2192.50, width:530.83, height:26.67)	True	unity-label,unity-text-element,body	Cash at year end
+VisualElement		(x:244.17, y:2220.83, width:536.67, height:70.00)	True	row	
+VisualElement		(x:244.17, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:250.00, y:2220.83, width:16.67, height:39.17)	True		
+Label		(x:245.83, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y1
+VisualElement		(x:276.67, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:282.50, y:2220.83, width:16.67, height:39.17)	True		
+Label		(x:278.33, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y2
+VisualElement		(x:309.17, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:315.00, y:2225.00, width:16.67, height:35.00)	True		
+Label		(x:310.83, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y3
+Label		(x:245.83, y:2295.00, width:530.83, height:26.67)	True	unity-label,unity-text-element,muted	Latest: €7729.15
+VisualElement		(x:790.83, y:2188.33, width:537.50, height:135.00)	True	column	
+Label		(x:792.50, y:2192.50, width:531.67, height:26.67)	True	unity-label,unity-text-element,body	Canopy cover % (objective ≥ 35)
+VisualElement		(x:790.83, y:2220.83, width:537.50, height:70.00)	True	row	
+VisualElement		(x:790.83, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:797.50, y:2220.83, width:15.83, height:39.17)	True		
+Label		(x:792.50, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y0
+VisualElement		(x:823.33, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:830.00, y:2220.83, width:15.83, height:39.17)	True		
+Label		(x:825.00, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y1
+VisualElement		(x:855.83, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:862.50, y:2220.83, width:15.83, height:39.17)	True		
+Label		(x:857.50, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y2
+VisualElement		(x:888.33, y:2220.83, width:28.33, height:70.00)	True		
+VisualElement		(x:895.00, y:2220.83, width:15.83, height:39.17)	True		
+Label		(x:890.00, y:2264.17, width:22.50, height:25.00)	True	unity-label,unity-text-element,faint	Y3
+Label		(x:792.50, y:2295.00, width:531.67, height:26.67)	True	unity-label,unity-text-element,muted	Latest: 96.85
+VisualElement		(x:229.17, y:2344.17, width:1124.17, height:800.00)	True	card	
+Label		(x:245.83, y:2365.00, width:1088.33, height:28.33)	True	unity-label,unity-text-element,heading	OBJECTIVES 4 OF 8
+VisualElement		(x:244.17, y:2399.17, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2399.17, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2403.33, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2434.17, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	○ open · Reach the management review year: 3 / 25
+VisualElement		(x:244.17, y:2468.33, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2468.33, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2472.50, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2503.33, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	✓ done · Retain original canopy trees: 1194 / 240
+VisualElement		(x:244.17, y:2537.50, width:1094.17, height:30.83)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2537.50, width:1094.17, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:2541.67, width:1088.33, height:25.00)	True	unity-label,unity-text-element,faint,annual-text-body	First reached in year 1 (recorded)
+VisualElement		(x:244.17, y:2574.17, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2574.17, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2578.33, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2609.17, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	✓ done · Keep continuous canopy: 0.97 / 0.35
+VisualElement		(x:244.17, y:2643.33, width:1094.17, height:30.83)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2643.33, width:1094.17, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:2647.50, width:1088.33, height:25.00)	True	unity-label,unity-text-element,faint,annual-text-body	First reached in year 1 (recorded)
+VisualElement		(x:244.17, y:2680.00, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2680.00, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2684.17, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2715.00, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	✓ done · Young trees present in 73 areas (at least 12 needed)
+VisualElement		(x:244.17, y:2749.17, width:1094.17, height:30.83)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2749.17, width:1094.17, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:2753.33, width:1088.33, height:25.00)	True	unity-label,unity-text-element,faint,annual-text-body	First reached in year 1 (recorded)
+VisualElement		(x:244.17, y:2785.83, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2785.83, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2790.00, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2820.83, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	○ open · Retain fallen deadwood: 0 / 0.08
+VisualElement		(x:244.17, y:2855.00, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2855.00, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2859.17, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2890.00, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	✓ done · Carry out a commissioned thinning: 1 / 1
+VisualElement		(x:244.17, y:2924.17, width:1094.17, height:30.83)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2924.17, width:1094.17, height:0.00)	True	annual-text-source	
+Label		(x:245.83, y:2928.33, width:1088.33, height:25.00)	True	unity-label,unity-text-element,faint,annual-text-body	First reached in year 1 (recorded)
+VisualElement		(x:244.17, y:2960.83, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:2960.83, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:2965.00, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:2995.83, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	○ open · Establish planted beech: 0 / 1
+VisualElement		(x:244.17, y:3030.00, width:1094.17, height:63.33)	True	annual-text-entry	
+VisualElement		(x:244.17, y:3030.00, width:1094.17, height:30.83)	True	annual-text-source	
+Label		(x:245.83, y:3034.17, width:31.67, height:25.00)	True	unity-label,unity-text-element,faint	now
+Label		(x:245.83, y:3065.00, width:1088.33, height:26.67)	True	unity-label,unity-text-element,body,annual-text-body	○ open · Establish planted Sessile oak: 0 / 1
+Label		(x:245.83, y:3103.33, width:1088.33, height:26.67)	True	unity-label,unity-text-element,muted	Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.
+Scroller		(x:1359.17, y:195.00, width:11.67, height:547.50)	True	unity-scroller,unity-scroller--vertical,unity-scroll-view__vertical-scroller	
+ScrollerSlider	unity-slider	(x:1359.17, y:195.00, width:23.33, height:547.50)	True	unity-base-field,unity-base-slider--vertical,unity-base-slider,unity-scroller__slider,unity-base-field--no-label,unity-slider	
+VisualElement		(x:1359.17, y:195.00, width:23.33, height:547.50)	True	unity-base-field__input,unity-base-slider__input,unity-slider__input	
+VisualElement	unity-drag-container	(x:1359.17, y:195.00, width:23.33, height:547.50)	True	unity-base-slider__drag-container	
+VisualElement	unity-tracker	(x:1360.83, y:195.00, width:7.50, height:547.50)	True	unity-base-slider__tracker	
+VisualElement	unity-dragger	(x:1363.33, y:301.49, width:8.33, height:81.67)	True	unity-base-slider__dragger	
+VisualElement		(x:229.17, y:750.83, width:1141.67, height:98.33)	True	modal-footer	
+Label		(x:230.83, y:762.50, width:1125.00, height:46.67)	True	unity-label,unity-text-element,body	Read WORK DONE, MONEY and FOREST. One thinning does not finish continuous-cover forestry: when you have read them, walk back, inspect how the forest responded and reassess before the next intervention.
+Label		(x:230.83, y:816.67, width:55.00, height:28.33)	True	unity-label,unity-text-element,next-action-badge	Next:
+Button	annual-review-acknowledge	(x:290.00, y:814.17, width:290.00, height:33.33)	True	unity-button,unity-text-element,btn,btn-primary,next-action	I've read the annual results
