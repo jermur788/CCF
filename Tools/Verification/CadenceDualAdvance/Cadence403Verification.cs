@@ -152,7 +152,14 @@ public sealed class Cadence403Runner : MonoBehaviour
         var authentic=saves.CaptureData();
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_F8") != "1") {
-            yield return CadenceParity.Run(ui,saves,authentic);
+            yield return Cadence408Parity.Run(ui,saves,authentic);
+            yield return Restore(authentic);
+            var fell=Live().First(t=>!t.IsCropTree && !Bay().Contains(t.transform.position.x,t.transform.position.z));
+            Plan(fell); Check(ui.ApproveWorkPlan() && ui.AdvanceFromWorkPlan(),"authentic post-teaching felling executed");
+            yield return Settle(); ui.AcknowledgeAnnualReview(); ui.CloseAll(); ui.CloseHelp(); ui.ShowWorkPlan(); ui.Learning.Refresh(true);
+            Check(ui.Learning.CurrentTopicIndex==7,"post-felling genuine stage seven");
+            Debug.Log("CADENCE408_FIXTURE post-felling year="+manager.CurrentEcologicalYear+" target="+ui.SkipTarget(out int? anchor)+" fellingAnchor="+anchor);
+            yield return Cadence408Parity.Run(ui,saves,saves.CaptureData());
             yield break;
         }
         for(int attempt=1;attempt<=2;attempt++) {
@@ -167,9 +174,9 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return new WaitForEndOfFrame();
             var image=ScreenCapture.CaptureScreenshotAsTexture();
             File.WriteAllBytes(Path.Combine(output,"F8-attempt"+attempt+".png"),image.EncodeToPNG()); Destroy(image);
-            Check(summary.text==prior,"F8 reproduction stable prior summary after different-world load");
+            Check(summary.text=="" && summary.resolvedStyle.display==DisplayStyle.None,"F8 different-world summary cleared and hidden");
         }
-        throw new InvalidOperationException("CANDIDATE DEFECT F-8 reproduced twice: previous-world skip summary survives different-world load");
+        Debug.Log("CADENCE408_F8_PASS twice");
         } finally { Check(saves.LoadData(original,false),"restore original world"); }
     }
 }
