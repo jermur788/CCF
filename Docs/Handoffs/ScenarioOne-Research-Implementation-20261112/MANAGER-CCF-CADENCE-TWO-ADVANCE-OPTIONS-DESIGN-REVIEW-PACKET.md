@@ -1,0 +1,38 @@
+# Manager #200 — Claude B review of CCF cadence and two advance options
+
+**Status:** READY / NOT RUNNING. **Claim:** https://github.com/jermur788/CCF/issues/396. **Date:** 2026-11-12. **Difficulty:** HIGH — cross-system time progression, stop/acknowledgment, world identity and objective completion. **Provider:** independent Claude B Sonnet 5.5 **Medium effort** (if actually available); escalate to Opus only if a significant unresolved source/persistence risk merits cost approval. **Not an implementation dispatch.**
+
+## Product intent (accepted)
+
+User expressly wants a typical CCF pattern, with major stand interventions followed by several observation years, not repeated major thinnings every consecutive year (D-074). The user expressly chooses **two controls** (D-075): **Advance 1 Year** and **Skip to Next Management Year**. The latter loops real annual simulation and returns player control at a suggested management *review* point; it does not auto-approve work or auto-complete objective steps. The timing is an indicative educational default, not a universal Irish forestry prescription.
+
+Prior direct user decision D-073 requires honest **decision → actual work → later observed outcome → next decision** review, independently of optional retention reasons (#386, still deferred).
+
+## What to read / inspect
+
+1. [Four-file cadence and two-options DRAFT](https://github.com/jermur788/CCF/tree/docs/scenario-one-research-followon-roadmap-20261112-v1/specs/scenario-one-management-cadence-and-advance-v1): `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`.
+2. [Four-file decision/outcome feedback V2 DRAFT](https://github.com/jermur788/CCF/tree/docs/scenario-one-research-followon-roadmap-20261112-v1/specs/scenario-one-multiyear-decision-outcome-feedback-v2) — avoid double sources, duplicated UI and separate ownership conflicts.
+3. [Source audit #394](https://github.com/jermur788/CCF/blob/docs/scenario-one-multiyear-feedback-source-audit-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MULTIYEAR-FEEDBACK-SOURCE-AND-UX-DELTA-AUDIT.md): already-year-browsable S1-C Annual Review, monthly? **No: annual** snapshots, Work Plan origin, one-year advance and currently consecutive-year two-cycle rules; evidence is static and must be corroborated if risk.
+4. **Authoritative source** on post-Fable newer UI `feature/scenario-one-research-copy-v1-20261112`, which contains reviewed copy-only changes but is not yet integrated. `ScenarioOneManager.AdvanceYear()`, `ScenarioOneUiRoot.AdvanceFromWorkPlan()`, `WorkPlanView`, `ScenarioOneCompletionRules`, `ScenarioInterventionHistory`, annual saves/Reference Future/Legacy40 and any mandatory acknowledgment. Verify latest branch ancestry and relevant Unity disposition before conclusions.
+5. Decision Log D-073/D-074/D-075, current milestone, approved S1-C/S1-D, Rack V2 and MFM. One legitimate Irish practice range is 3–6 years, but exact number must be defended as *gameplay calibration*, not universal practice.
+
+## Review questions / blocking tests
+
+- **What does “next management year” mean?** Choose a deterministic, player-visible candidate next review year based on last qualifying major stand intervention or accepted objective state; avoid false automatic felling dates. Propose a concrete policy and disabled/stop cases. Decide whether four-year default and five-tick cap should be accepted for new Scenario One as gameplay calibration; flag unresolved cases requiring product choice.
+- **Never auto-progress a player-action objective.** Early rack-plan Objective 1 and early Crop Tree/release lessons may require same-year acts, not four-year wait. Verify exact safe skip availability and interaction states.
+- **Never reclassify all work as thinning.** Existing “intervention” includes any successful work including planting/protection; current two-cycle completion allows consecutive-year successful plans. Propose clear definition of stand-scale treatment years, possible guide-only cadence versus genuinely new completion condition; verify compatibility with older achieved games and strict Year25/100 conditions.
+- **Semantics of skipped annual reviews.** Existing `AdvanceYear()` appends a report, `YearAdvanced`, ecological snapshot and marks the current Annual Review unread; `AdvanceFromWorkPlan()` normally opens Review. How can a sequence simulate each quiet year without creating false `AnnualReviewAcknowledged` events, bypassing a real first/teaching acknowledgment or corrupting player progression? Ensure all individual years remain in history.
+- **Exact deterministic equivalence** of N one-year runs versus one N-year skip with identical seed/decisions: ecology/RNG, juvenile growth, deadwood, economy, events, achievement year, world hash; compare at every intermediate step and final, with explicitly justified UI-only differences.
+- **Safety and cancellation:** pending/approved Work Plan, manually marked unimported work, unsupported reference preview, mandatory review, save/load mid-run, insufficient reserves/Unity machine exclusivity, error after k steps. Stop at earliest user decision and explain partial completion, no rollback fiction. Avoid spawning a new simulation loop or skipping intermediate mandatory checks.
+- **No extra forestry simulation/rules:** retain chosen manual work, MFM approval, objective labels, species parity, old saves, frozen Reference Future v1. The user requested controls, not a new storm/crown model or persistent retention reasons.
+- **Test proportion:** focused Tier 1 parity and negative cases, bounded Tier 2 Unity exact head including 720p/1080p, no extra full Tier 3 until milestone candidate; no Windows/Player build before user personal test.
+
+## Deliverable
+
+**Exact GitHub report:** `Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/CLAUDE-B-CADENCE-TIME-ADVANCE-SPEC-REVIEW.md` on sole docs-only branch `docs/claude-b-cadence-time-advance-review-20261112-v1`. Create branch from current inspected spec docs only after claim/source preflight. **Worktree:** none, **Unity lease:** none. Do not mutate production code, spec, `Docs/Project/coordination/active-tasks.md`, user playtest checkout, old saves or the frozen reference. One writer of review Markdown. Provide verdict **APPROVED / NEEDS CHANGES / REJECTED** with ranked blocking/major/minor points, exact source paths, suggested target-year pseudocode/data contract and reduced implementation/testing path. Separate verified code, reviewer derivation and unsupported assumptions. Report true actual model/effort, branch/current head and quota as observed (or UNKNOWN). Publish, read back, mark claim [HANDED-OFF] and close; Manager revises/approves final spec afterward.
+
+**User action:** copy dispatch into Claude B chat; no local testing from this packet.
+
+## One-line paste dispatch
+
+Claude B (Sonnet 5.5 Medium) — independently review Scenario One's new **Advance 1 Year / Skip to Next Management Year** design and realistic spaced CCF objectives. Read full GitHub packet https://github.com/jermur788/CCF/blob/docs/scenario-one-research-followon-roadmap-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-CCF-CADENCE-TWO-ADVANCE-OPTIONS-DESIGN-REVIEW-PACKET.md and both linked four-part DRAFT specs; inspect current post-Fable code and #394 source audit. Do **not** implement. Resolve target-year policy, no-auto-work and skipped-review safeguards, old-save and consecutive-year completion differences, yearly simulation parity and focused qualification needs. Publish exact GitHub Markdown source-backed APPROVED / NEEDS CHANGES / REJECTED review under this claim; close [HANDED-OFF] and return to Manager #200.
