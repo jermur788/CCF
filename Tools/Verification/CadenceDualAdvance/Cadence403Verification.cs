@@ -164,6 +164,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         }
 
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
+        if(Environment.GetEnvironmentVariable("CCF_CADENCE_KEYS")=="1") {yield return Case("locks/native-F5-F9-F10",NativeLocks(authentic));yield break;}
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_SUITE")=="1") {
             yield return Case("parity/quiet",Cadence408Parity.Run(ui,saves,authentic));
             yield return Restore(authentic);ui.ShowWorkPlan();ui.Learning.Refresh(true);
@@ -510,18 +511,33 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(orders.SequenceEqual(after.scenarioOne.workOrders.Select(o=>JsonUtility.ToJson(o)))&&!manager.WorkOrders.Any(o=>o.IsOpen)&&marks.SequenceEqual(ui.Marking.GetMarkedIds().OrderBy(x=>x)),"no automatic order or Fell mark");
     }
 
+    IEnumerator NativeFocus() {
+        yield return Settle();
+        var view=EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView"));view.Focus();
+        var rect=(Rect)view.GetType().GetProperty("targetInParent",BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public).GetValue(view);
+        int x=Mathf.RoundToInt(view.position.x+rect.center.x),y=Mathf.RoundToInt(view.position.y+rect.center.y);
+        Debug.Log("CADENCE408_NATIVE_FOCUS desktop="+x+","+y);
+        yield return native.Send(new RackAuthoringNativeInput.Op{op="absolute",x=x,y=y},RackAuthoringNativeInput.Op.Click());
+    }
     IEnumerator NativeLocks(ForestSaveData state) {
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
         Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/CadenceV1-FixedQual-408-"),"native hotkey save isolation");
-        string path=Path.Combine(Application.persistentDataPath,"forest-save.json");string before=File.Exists(path)?Convert.ToBase64String(File.ReadAllBytes(path)):"ABSENT";
-        saves.Save();before=Convert.ToBase64String(File.ReadAllBytes(path));var writeTime=File.GetLastWriteTimeUtc(path);int worldVersion=manager.TeachingWorldVersion;string world=JsonUtility.ToJson(saves.CaptureData());
-        var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"native hotkey skip begins");Set(ui,"skipTarget",manager.CurrentEcologicalYear+5);
+        string path=Path.Combine(Application.persistentDataPath,"forest-save.json");saves.Save();var probeTime=File.GetLastWriteTimeUtc(path);
+        yield return NativeFocus();yield return native.Send(RackAuthoringNativeInput.Op.Key("F5"));
+        Check(File.GetLastWriteTimeUtc(path)!=probeTime,"positive OS F5 reaches game save handler");
+        int probeVersion=manager.TeachingWorldVersion;yield return native.Send(RackAuthoringNativeInput.Op.Key("F9"));
+        Check(manager.TeachingWorldVersion!=probeVersion,"positive OS F9 reaches game load handler");
+        ui.ShowWorkPlan();ui.Learning.Refresh(true);yield return NativeFocus();yield return native.Send(RackAuthoringNativeInput.Op.Key("F10"));
+        Check(StandaloneSessionMenu.IsOpen,"positive OS F10 reaches game session menu");FindFirstObjectByType<StandaloneSessionMenu>().Close();
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);saves.Save();
+        string before=Convert.ToBase64String(File.ReadAllBytes(path));var writeTime=File.GetLastWriteTimeUtc(path);int worldVersion=manager.TeachingWorldVersion;string world=JsonUtility.ToJson(saves.CaptureData());
+        var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"native hotkey skip begins");Set(ui,"skipTarget",manager.CurrentEcologicalYear+5);holdTicks=true;
         Check(inputs.Keys.All(b=>!b.enabled),"all nine disabled before OS save/load/menu keys");
-        holdTicks=true;yield return native.Send(RackAuthoringNativeInput.Op.Key("F5"),RackAuthoringNativeInput.Op.Key("F9"),RackAuthoringNativeInput.Op.Key("F10"));
+        yield return NativeFocus();yield return native.Send(RackAuthoringNativeInput.Op.Key("F5"),RackAuthoringNativeInput.Op.Key("F9"),RackAuthoringNativeInput.Op.Key("F10"));
         Check(ui.Skipping&&!StandaloneSessionMenu.IsOpen,"OS keys leave skip running and menu unavailable");
-        Check(before==(File.Exists(path)?Convert.ToBase64String(File.ReadAllBytes(path)):"ABSENT"),"OS save/load keys leave slot bytes unchanged");
+        Check(before==Convert.ToBase64String(File.ReadAllBytes(path)),"OS save/load keys leave slot bytes unchanged");
         Check(File.GetLastWriteTimeUtc(path)==writeTime&&manager.TeachingWorldVersion==worldVersion&&JsonUtility.ToJson(saves.CaptureData())==world,"OS save/load keys neither write nor reload the actual isolated world");holdTicks=false;Set(ui,"cancelSkip",true);while(ui.Skipping)yield return null;
-        Check(inputs.All(p=>p.Key.enabled==p.Value),"native hotkey exit restores nine inputs");
+        LogInputs("native positive-control keys",inputs);
     }
     IEnumerator LossCase(ForestSaveData state,bool loseManager) {
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"loss begin");
