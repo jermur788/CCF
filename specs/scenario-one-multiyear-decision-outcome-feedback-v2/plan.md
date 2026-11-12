@@ -1,7 +1,7 @@
 # Scenario One — Multi-Year Decision and Outcome Feedback V2 Implementation Plan
 
 - **Spec ID:** SPEC-scenario-one-multiyear-decision-outcome-feedback-V2
-- **Spec status:** DRAFT — MANAGER REVIEW REQUESTED. This plan is a proposal and releases no implementation.
+- **Spec status:** APPROVED — BOUNDED D-073 ANNUAL REVIEW V2. Exact implementation still requires a separately owned task, qualified integration base and accepted cadence release.
 - **Plan owner:** Overall Manager
 - **Created:** 2026-11-12
 - **Last updated:** 2026-11-12 (HP #409 refinement)
@@ -56,7 +56,7 @@ None. No schema, version, event, hash or archive change. Old saves are read as t
 
 ## Verification strategy
 
-- **Implementation correctness:** offline fixture over the mapper for every FR-9 state, FR-5 exclusion, FR-8 species cases and FR-12; existing 53 helper assertions re-run unchanged on the chosen base; production type-binding check with zero errors.
+- **Implementation correctness:** mapper fixtures must cover FR-9 state priority, FR-5 ambiguous/unresolved and unverified-order warnings, FR-7 canopy fraction ×100 presentation, FR-8 one-sided missing species, FR-10 provenance labels, FR-12, and AC-12 consistent versus malformed event provenance; re-run existing 53 helper checks on exact candidate and inspect underlying typecheck compiler exit.
 - **Spec conformance:** the checklist in `checklists/requirements.md`, each line with evidence from the exact candidate head.
 - **Verification tier:** Tier 1 for the mapper (offline). Tier 2 once, on the wired candidate, for AC-2, AC-7 to AC-10 and AC-12. No Tier 3 for this feature alone.
 - **Unity-only items:** real compile and import; rendered 1280×720 and 1920×1080; scroll and footer priority; real-input year stepping; acknowledgement event count; one-year versus long-advance card equality; a genuine older save, Legacy40 and frozen Reference Future v1.
@@ -65,14 +65,14 @@ None. No schema, version, event, hash or archive change. Old saves are read as t
 ## Risks
 
 - **720p fit.** The table plus caveat may be too tall beside the headlines. Mitigation is already in scope: species closed by default, and the stop condition if the footer is displaced.
-- **Two counts on one screen.** The card's work counts and the Work column's are computed by different code. AC-12 makes a disagreement visible; open decision 4 removes the risk by dropping the counts.
+- **Two counts on one screen.** Card event counts and the existing Work column can differ on malformed provenance or report-derived regeneration work. FR-5 requires warnings and AC-12 restricts parity to shared event-counted categories with consistent source records.
 - **Per-frame cost.** A `Build` call outside the change-key guard would rebuild every frame. FR-14 forbids it; the review step checks the call site.
 - **Base drift.** If the cadence result changes `Refresh` again, the call site moves. T-01 pins the base before T-03 starts.
 - **Wording unreviewed in game.** All copy here is proposed text that no player has seen.
 
 ## Implementation sequence
 
-1. Manager decision on the spec and its six open decisions — **T-00**.
+1. Manager approval with six product decisions resolved on 12 November 2026 — **T-00 COMPLETE**.
 2. Cadence release recorded; integration base chosen and pinned; single UI owner assigned — **T-01**.
 3. Re-run the existing helper checks on that base, no source change — **T-02**.
 4. Text mapper and offline fixture — **T-03**.
@@ -80,4 +80,4 @@ None. No schema, version, event, hash or archive change. Old saves are read as t
 6. Unity Tier 2 qualification by a worker other than the implementer — **T-05**.
 7. Independent review, Manager verdict, integration decision, dashboard — **T-06**.
 
-T-02 and T-03 touch no cadence-owned file and may be released before T-04 if the Manager wishes; they still require the spec to be `APPROVED`.
+T-02 and T-03 touch no cadence-owned UI file, but require a reconciled exact integration base and task ownership (T-01) before dispatch. No premature implementation on a stale helper-only branch.
