@@ -41,6 +41,10 @@ The phrase *management year* means a suggested year to **reassess whether interv
 
 **FR-A8 — Compatibility/acceptance.** Preserve Legacy40/pre-feature/frozen Reference Future v1 semantics and world/reference identity, historical saves, Rack V2/MFM Work Plan commitment and three-species parity. No extra persistence just to remember a proposed review target if it is derivable. If a saved timetable becomes necessary, stop for a new spec and hash-safe compatibility proof. No new CCF ecology coefficients, no automatic felling, no Windows build prior to personal test and explicit authorization.
 
+## Adjacent product decision D-076 — Sample and treat, then observe
+
+The target-management-year review may be the moment to consider a **new representative rack-area sample** and apply a new MFM prescription to comparable units if justified. Neither advance mode automatically opens a sample, generates a new prescription, confirms a Crop Tree or executes proposed work. Each annual step updates all **actually treated rack areas** through the same authoritative ecology. The separate [Repeated Representative Rack Management V1 DRAFT](../scenario-one-multicycle-representative-rack-management-v1/spec.md) owns any later-cycle rack selection and new multi-sample logic. This time-advance feature must not turn a suggested review date into a compulsory felling cycle, nor require every rack to be manually sampled.
+
 ## Design decisions pending source audit
 
 1. Which existing learner states actually have a safe next temporal management point, and which (e.g. early Rack Objective 1) demand same-year player interaction?
