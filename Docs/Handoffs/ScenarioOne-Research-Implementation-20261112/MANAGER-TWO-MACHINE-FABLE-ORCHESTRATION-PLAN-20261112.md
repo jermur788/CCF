@@ -1,6 +1,6 @@
 # Overall Manager plan — two independent long-running Fable orchestrators, 12 November 2026
 
-**STATUS: PLANNED / NOT DISPATCHED.** The user wants one substantial long-running Fable-owned workstream on the Predator and one on the HP 290, each using T3 Code and own workers, with GitHub handoff and Manager review. This is a scheduling/ownership plan, not an implementation packet and not a worker claim or a grant to edit production files. Actual commands/claims are withheld until source ownership and milestone prerequisites return.
+**STATUS: PLANNED / NOT DISPATCHED.** As of the subsequent source refresh, #402 and #408 have HANDED-OFF/CLOSED and Manager APPROVED their isolated feature-level integration. The Predator start condition is therefore satisfied **as to cadence return**, but next-stream source ownership, the exact D-073 joint base and physical Ops registrations remain pending. This plan is not itself a lock. The user wants one substantial long-running Fable-owned workstream on the Predator and one on the HP 290, each using T3 Code and own workers, with GitHub handoff and Manager review. This is a scheduling/ownership plan, not an implementation packet and not a worker claim or a grant to edit production files. Actual commands/claims are withheld until source ownership and milestone prerequisites return.
 
 ## Outcomes and separation
 
