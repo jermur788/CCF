@@ -1,12 +1,12 @@
 # Requirements checklist — Research-Informed Management Learning V1 (copy-only)
 
-**Status:** DRAFT / UNTESTED. No check below is a passed test.  
+**Status:** APPROVED SCOPE / UNTESTED. No check below is a passed test; actual source, runtime and integration evidence remain required.  
 **Parent:** [spec.md](../spec.md) | [plan.md](../plan.md) | [tasks.md](../tasks.md)  
 **Rationale:** Claude independent review found the original **69-check** package disproportionate for a handful of text changes and a blocking world-identity issue in the rejected feature design. This checklist is deliberately small.
 
 ## Product and source gates (before edit)
 
-- [ ] **G-1 Product approval/timing:** Product owner accepted copy-only V1 and its implementation timing, without silently revising the current complete-demo boundary.
+- [ ] **G-1 Product approval/timing:** **AUTHORISATION GRANTED 2026-11-12** for the bounded copy-only V1 now, without revising the existing complete-demo biology/safety boundary. Executor still verifies no owner conflict.
 - [ ] **G-2 Source/lock inspection:** Implementer re-inspected actual current UI text, existing friendly regeneration mappings, current code/saves, live active-task locks and exact source branch/worktree; no unowned Unity source edit or owner collision.
 - [ ] **G-3 Accepted evidence:** #387/#388 are returned and Manager-reviewed, Claude #389 objection resolved by **excluding** the event/persistence design. Any novel source claim is verified at its primary citation before use.
 
@@ -14,7 +14,7 @@
 
 - [ ] **AC-1 Share correctness:** Copy says Share is DBH/distance based in its 8 m neighbourhood and does **not itself measure** species, height, crowns, shade tolerance or wind. It frames 30% as the current **specific game crown-release lesson**, not universal best practice. Existing “being small” sentence is appropriately narrowed.
 - [ ] **AC-2 No unique correct tree:** Wording does not claim one specific neighbour must be removed, and does not alter Share, 30% lesson credit, 40% safeguards, actual mark/proposal/approval or Work Plan code.
-- [ ] **AC-3 Player-facing regeneration truth:** Existing **“Areas with young trees”** presentation mapping inspected and retained unless product owner accepts single-label **“Areas with young growth”** alternative; remaining visible jargon corrected without changing the internal stable objective ID, evaluation `displayName`, saved Century Review labels, count or thresholds. No false natural/planted separate count.
+- [ ] **AC-3 Player-facing regeneration truth:** Existing **“Areas with young trees”** presentation mapping inspected and retained with current **“Areas with young trees”** label retained; remaining visible jargon corrected without changing the internal stable objective ID, evaluation `displayName`, saved Century Review labels, count or thresholds. No false natural/planted separate count.
 - [ ] **AC-4 Qualitative regeneration Help:** One general Help sentence accurately distinguishes shade/edge/open *as concepts* without assigning a geographic class, measured wind shelter, new gap width, mortality probability or conflating “open” with the UI's light-band category.
 - [ ] **AC-5 Wind-model limitation:** Help/limitations and test note state **default Scenario One does not simulate wind damage**. No wind risk score/one-way inference, storm model activation or competitor-panel clutter.
 - [ ] **AC-6 Protected data identity:** Source diff affects only intended presentation/help strings. Same saved world yields identical `CurrentWorldHash`/protected Reference Future identity before and after; no serializer, management event, source objective label, old-save or schema code changed.
@@ -28,4 +28,4 @@
 - Browser-source research #387/#388 and independent Claude review #389 are **completed**; no further browser research or separate source-research gate is needed for conservative copy.
 - No new natural vs planted area totals, young-tree survival history, forest-edge class, species-mixing player display, simulated wind consequence or imported foreign coefficients.
 
-**Current outcome:** all eight ACs UNTESTED and all product/source gates OPEN. No Unity/code change or source claim has been made.
+**Current outcome:** all eight ACs UNTESTED; G-1 authorised by the direct user instruction, while G-2/G-3 still require preflight/evidence checks. No Unity/code change or source claim has been made.
