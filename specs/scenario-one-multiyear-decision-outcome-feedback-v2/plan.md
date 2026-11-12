@@ -43,6 +43,8 @@ Rejected: putting the rules straight into the view (only checkable in Unity); ex
 - `Assets/ForestPrototype/ScenarioOne/<text mapper>.cs` and `.meta` (new)
 - `Tools/Verification/...` offline fixture for the mapper (new)
 
+**Manager update after #402 return (12 November 2026):** Fable #402 and verifier #408 have HANDED-OFF; Manager approved the cadence feature's exact isolated Tier-2 integration, without promoting it to main or the personal playtest. The former cadence UI ownership is released, but no new T-01 UI writer or exact combined base has been registered. T-01 can now prepare the reconciled cadence-plus-#406-helper candidate; T-04 remains blocked until that real preflight and ownership registration. [Manager cadence verdict](../../Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-402-CADENCE-V1-ISOLATED-INTEGRATION-VERDICT-20261112.md).
+
 ## Ownership / concurrency considerations
 
 - `AnnualReviewView.cs`, `WorkPlanView.cs` and `ScenarioOneUiRoot.cs` belong to the Fable cadence lane ([#402](https://github.com/jermur788/CCF/issues/402) / [#408](https://github.com/jermur788/CCF/issues/408)) until the Manager records its release. **No task that touches `AnnualReviewView.cs` may start before that.**
