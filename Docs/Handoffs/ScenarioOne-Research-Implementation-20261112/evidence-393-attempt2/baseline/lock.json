@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "0b267aa2edb44da1ae3a7566f0c54461",
+    "owner": "GPT-6.1 Sol Medium",
+    "task_id": "CCF-393-FOCUSED-GATES",
+    "lane": "/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual",
+    "branch": "HEAD",
+    "head": "b62446caf40fc2ac939d55a6bea6e201f41de700",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-12T05:03:05.764872+00:00",
+    "eta": "2026-11-12T10:00:00Z",
+    "notes": "User authorised same-lane detached baseline comparison"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

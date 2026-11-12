@@ -1,0 +1,17 @@
+{
+  "name": "focused",
+  "status": "PASS",
+  "exit": 0,
+  "reaped_after_verdict": false,
+  "required_tokens": [
+    "C393_DONE"
+  ],
+  "tokens_present": {
+    "C393_DONE": true
+  },
+  "fail_lines": 0,
+  "seconds": 74.1,
+  "head": "b62446caf40fc2ac939d55a6bea6e201f41de700",
+  "lane": "/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual",
+  "leftover": []
+}

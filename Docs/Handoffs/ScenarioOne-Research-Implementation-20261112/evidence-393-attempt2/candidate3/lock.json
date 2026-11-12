@@ -1,0 +1,19 @@
+{
+  "status": "held",
+  "metadata": {
+    "lock_id": "b094975d9ddf4b369595a32bcd77b6ef",
+    "owner": "GPT-6.1 Sol Medium",
+    "task_id": "CCF-393-FOCUSED-GATES",
+    "lane": "/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual",
+    "branch": "qualify/scenario-one-research-copy-v1-20261112",
+    "head": "a314d308315b5894263d30461a1e8b52ca0f3605",
+    "pid": null,
+    "process_identity": null,
+    "start_timestamp": "2026-11-12T04:57:19.223636+00:00",
+    "eta": "2026-11-12T10:00:00Z",
+    "notes": "User authorised attempt2 isolated focused verification"
+  },
+  "inspection": "PID unknown; inspect manually",
+  "eta_overdue": false,
+  "unity_editor_pids": []
+}

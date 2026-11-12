@@ -1,0 +1,68 @@
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+index 9b835a42..10aba1c9 100644
+--- a/.vscode/settings.json
++++ b/.vscode/settings.json
+@@ -60,12 +60,12 @@
+         "*.asset": "yaml",
+         "*.meta": "yaml",
+         "*.prefab": "yaml",
+-        "*.unity": "yaml",
++        "*.unity": "yaml"
+     },
+     "explorer.fileNesting.enabled": true,
+     "explorer.fileNesting.patterns": {
+         "*.sln": "*.csproj",
+         "*.slnx": "*.csproj"
+     },
+-    "dotnet.defaultSolution": "CCF.slnx"
++    "dotnet.defaultSolution": "CCF-S1-ResearchCopy-V1-Qual.slnx"
+ }
+\ No newline at end of file
+diff --git a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
+index cdf56b2c..d84d5c6c 100644
+--- a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
++++ b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Flower_Centre.mat
+@@ -119,7 +119,7 @@ Material:
+     - _ZWrite: 1
+     m_Colors:
+     - _BaseColor: {r: 0.44, g: 0.31, b: 0.075, a: 1}
+-    - _Color: {r: 0.44, g: 0.31, b: 0.075, a: 1}
++    - _Color: {r: 0.43999997, g: 0.30999997, b: 0.07499998, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+diff --git a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
+index ffa72edc..564ae728 100644
+--- a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
++++ b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Leaves.mat
+@@ -53,7 +53,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 0}
++        m_Texture: {fileID: 2800000, guid: 06dab503099a8e602b514aa6f0410b02, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -88,7 +88,7 @@ Material:
+     m_Floats:
+     - _AddPrecomputedVelocity: 0
+     - _AlphaClip: 1
+-    - _AlphaToMask: 0
++    - _AlphaToMask: 1
+     - _Blend: 0
+     - _BlendModePreserveSpecular: 1
+     - _BumpScale: 0.45
+diff --git a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
+index 7df5cb7b..3b314132 100644
+--- a/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
++++ b/Assets/ForestPrototype/Art/SectionFive/Woodland_Forbs_01/Materials/Forb_Stems.mat
+@@ -119,7 +119,7 @@ Material:
+     - _ZWrite: 1
+     m_Colors:
+     - _BaseColor: {r: 0.13, g: 0.23, b: 0.08, a: 1}
+-    - _Color: {r: 0.13, g: 0.23, b: 0.08, a: 1}
++    - _Color: {r: 0.12999997, g: 0.22999996, b: 0.079999976, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
