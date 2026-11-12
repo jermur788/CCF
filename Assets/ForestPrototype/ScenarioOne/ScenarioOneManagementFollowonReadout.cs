@@ -70,7 +70,7 @@ public static class ScenarioOneManagementFollowonReadout
         public int? RackId; // null means order linkage cannot support a rack claim; 0 is explicitly 'not rack-owned'.
         public OrderLink Link;
         public FellEvidence Felling;
-        public bool GroupedHarvestMoney; // no per-order allocation exposed
+        public bool GroupedHarvestMoney; // annual report AND grouped settlement present; no per-order allocation exposed
         public string FailureReason = "";
     }
 
@@ -148,15 +148,20 @@ public static class ScenarioOneManagementFollowonReadout
         // Event identity is global, order resolution identity is global. Never quietly de-duplicate a suspect
         // event/order into apparently authoritative executed prescription coverage.
         var resolved = completed.SelectMany(y => y.ResolvedWork.Where(w => w != null && w.Event != null)
-            .Select(w => new WorkRow(y.Year, w.Event, w.Order, false))).ToList();
+            .Select(w => new WorkRow(y.Year, w.Event, w.Order, false, y.Report != null && y.HarvestSettlement != null))).ToList();
         var cancelled = completed.SelectMany(y => y.Cancellations.Where(c => c != null && c.Event != null)
-            .Select(c => new WorkRow(y.Year, c.Event, null, true))).ToList();
+            .Select(c => new WorkRow(y.Year, c.Event, null, true, y.Report != null && y.HarvestSettlement != null))).ToList();
         var all = resolved.Concat(cancelled).OrderBy(w => w.Year).ThenBy(w => w.Event.eventId)
             .ThenBy(w => w.Event.workOrderId).ThenBy(w => (int)w.Event.taskType)
             .ThenBy(w => w.Cancelled).ToList();
         var duplicateYears = new HashSet<int>(completed.GroupBy(y => y.Year)
             .Where(g => g.Count() > 1).Select(g => g.Key));
         var duplicateEvents = new HashSet<int>(all.GroupBy(w => w.Event.eventId)
+            .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
+        // Events is the complete stream; the work projections above cannot reveal collisions with
+        // creation/advance records. Count it separately so the same projected event is not counted twice.
+        duplicateEvents.UnionWith((years ?? Array.Empty<YearHistoryView>()).Where(y => y != null)
+            .SelectMany(y => y.Events).Where(e => e != null).GroupBy(e => e.eventId)
             .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
         var duplicateOrders = new HashSet<int>(resolved.GroupBy(w => w.Event.workOrderId)
             .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
@@ -183,7 +188,7 @@ public static class ScenarioOneManagementFollowonReadout
                 PrescriptionId = link == OrderLink.Verified ? row.Order.prescriptionId : e.prescriptionId,
                 CoverageUnitId = link == OrderLink.Verified ? row.Order.prescriptionCoverageUnitId ?? "" : "",
                 RackId = link == OrderLink.Verified ? (int?)row.Order.rackId : null,
-                GroupedHarvestMoney = status == Resolution.Succeeded
+                GroupedHarvestMoney = row.HasHarvestSettlement && status == Resolution.Succeeded
                     && (e.taskType == ScenarioWorkType.FellTree || e.taskType == ScenarioWorkType.SalvageDeadwood)
             };
             item.Felling = e.taskType != ScenarioWorkType.FellTree ? FellEvidence.NotFelling
@@ -232,9 +237,9 @@ public static class ScenarioOneManagementFollowonReadout
         public readonly int Year;
         public readonly ScenarioManagementEvent Event;
         public readonly ScenarioOneWorkOrder Order;
-        public readonly bool Cancelled;
-        public WorkRow(int year, ScenarioManagementEvent e, ScenarioOneWorkOrder order, bool cancelled)
-        { Year = year; Event = e; Order = order; Cancelled = cancelled; }
+        public readonly bool Cancelled, HasHarvestSettlement;
+        public WorkRow(int year, ScenarioManagementEvent e, ScenarioOneWorkOrder order, bool cancelled, bool hasHarvestSettlement)
+        { Year = year; Event = e; Order = order; Cancelled = cancelled; HasHarvestSettlement = hasHarvestSettlement; }
     }
 
     private static bool ExactSnapshot(YearHistoryView year)
@@ -248,8 +253,22 @@ public static class ScenarioOneManagementFollowonReadout
             && e.year == w.Year && e.eventType == ScenarioManagementEventType.WorkResolved
             && o.workOrderId == e.workOrderId && o.type == e.taskType && o.resolvedYear == e.year
             && o.prescriptionId == e.prescriptionId
+            && SameRecordedTarget(o, e)
             && ((e.outcome == ScenarioManagementOutcome.Succeeded && o.status == ScenarioWorkStatus.Completed)
                 || (e.outcome == ScenarioManagementOutcome.Failed && o.status == ScenarioWorkStatus.Failed));
+    }
+
+    private static bool SameRecordedTarget(ScenarioOneWorkOrder order, ScenarioManagementEvent e)
+    {
+        // Tree tasks need a recorded identity on both sides. Empty legacy fields are unknown,
+        // never a match proving executed tree coverage. Non-tree tasks may have no target tree.
+        bool treeTask = e.taskType == ScenarioWorkType.FellTree || e.taskType == ScenarioWorkType.PruneTree
+            || e.taskType == ScenarioWorkType.SalvageDeadwood;
+        if (treeTask && (string.IsNullOrWhiteSpace(order.targetTreeId) || string.IsNullOrWhiteSpace(e.targetTreeId)))
+            return false;
+        if (!string.Equals(order.targetTreeId ?? "", e.targetTreeId ?? "", StringComparison.Ordinal)) return false;
+        return string.IsNullOrEmpty(order.speciesId) || string.IsNullOrEmpty(e.speciesId)
+            || string.Equals(order.speciesId, e.speciesId, StringComparison.Ordinal);
     }
 
     private static StandObservation CopyObservation(ScenarioEcologicalSnapshot s)

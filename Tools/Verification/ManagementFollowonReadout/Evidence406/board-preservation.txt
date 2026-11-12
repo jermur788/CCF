@@ -1,0 +1,3 @@
+Removing the sole inserted #406 row restores every original byte.
+Before SHA256 2924e20079f67de4ab34ed672ed768be6c5af33d4c1ecb73ac7e473e79e2625a
+After SHA256 8efc160d0f1b50acebc0af6dad5ae1ad3378c776d721806bb8f6f38c1c451a8e

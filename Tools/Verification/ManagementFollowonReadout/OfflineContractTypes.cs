@@ -24,6 +24,7 @@ public sealed class ScenarioOneWorkOrder
 {
     public int workOrderId, resolvedYear = -1, rackId, prescriptionId;
     public string prescriptionCoverageUnitId = "";
+    public string targetTreeId = "", speciesId = "";
     public ScenarioWorkType type;
     public ScenarioWorkStatus status;
 }
@@ -50,11 +51,15 @@ public sealed class ScenarioEcologicalSnapshot
     public float basalAreaM2PerHa, meanDbhCm, meanCanopy, meanLight, deadwoodVolumeM3;
     public List<ScenarioSpeciesOutcome> species = new List<ScenarioSpeciesOutcome>();
 }
+public sealed class ScenarioAnnualReport { }
+public sealed class GroupedHarvestSettlement { }
 public sealed class YearHistoryView
 {
     public int Year;
     public bool YearAdvancedRecorded;
-    public object Report;
+    public ScenarioAnnualReport Report;
+    public GroupedHarvestSettlement HarvestSettlement;
+    public readonly List<ScenarioManagementEvent> Events = new List<ScenarioManagementEvent>();
     public bool HasCompletedRecord => Report != null || YearAdvancedRecorded;
     public ScenarioEcologicalSnapshot Snapshot;
     public readonly List<ResolvedWorkRecord> ResolvedWork = new List<ResolvedWorkRecord>();

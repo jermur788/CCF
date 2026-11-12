@@ -1,0 +1,2 @@
+global: KILLED; build exit=0, assertion process exit=-6; FAILED global ID collision with OrderCreated
+target: KILLED; build exit=0, assertion process exit=-6; FAILED retained order target mismatch

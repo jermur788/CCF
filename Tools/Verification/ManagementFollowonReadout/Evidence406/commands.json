@@ -1,0 +1,62 @@
+[
+  {
+    "command": [
+      "python3",
+      "-I",
+      "Tools/Verification/ManagementFollowonReadout/run_offline.py"
+    ],
+    "exit": 0,
+    "stdout": "ManagementFollowonReadout: PASS 53 focused assertions (when actually run).\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "-I",
+      "Tools/Verification/ScenarioOneNonUi/compile_runtime_sources.py",
+      "--src",
+      "/media/jer/Files/CCF/Worktrees/CCF-ManagementFollowonReadout-Qual",
+      "--out",
+      "/media/jer/Files/CCF/Verification/ManagementFollowonReadout406-20261112/typecheck-production-final"
+    ],
+    "exit": 0,
+    "stdout": "sources=190 refs=116 exit=0 errors=0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "dotnet",
+      "--info"
+    ],
+    "exit": 0,
+    "stdout": ".NET SDK:\n Version:           10.0.114\n Commit:            0427b9abbe\n Workload version:  10.0.100-manifests.a00bebb6\n MSBuild version:   18.0.36+0427b9abb\n\nRuntime Environment:\n OS Name:     linuxmint\n OS Version:  22.3\n OS Platform: Linux\n RID:         ubuntu.24.04-x64\n Base Path:   /usr/lib/dotnet/sdk/10.0.114/\n\n.NET workloads installed:\nThere are no installed workloads to display.\nConfigured to use workload sets when installing new manifests.\nNo workload sets are installed. Run \"dotnet workload restore\" to install a workload set.\n\nHost:\n  Version:      10.0.14\n  Architecture: x64\n  Commit:       0427b9abbe\n\n.NET SDKs installed:\n  8.0.133 [/usr/lib/dotnet/sdk]\n  10.0.114 [/usr/lib/dotnet/sdk]\n\n.NET runtimes installed:\n  Microsoft.AspNetCore.App 8.0.33 [/usr/lib/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.AspNetCore.App 10.0.14 [/usr/lib/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.NETCore.App 8.0.33 [/usr/lib/dotnet/shared/Microsoft.NETCore.App]\n  Microsoft.NETCore.App 10.0.14 [/usr/lib/dotnet/shared/Microsoft.NETCore.App]\n\nOther architectures found:\n  None\n\nEnvironment variables:\n  DOTNET_BUNDLE_EXTRACT_BASE_DIR           [/home/jer/.cache/dotnet_bundle_extract]\n\nglobal.json file:\n  Not found\n\nLearn more:\n  https://aka.ms/dotnet/info\n\nDownload .NET:\n  https://aka.ms/dotnet/download\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "--version"
+    ],
+    "exit": 0,
+    "stdout": "Python 3.12.3\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "--version"
+    ],
+    "exit": 0,
+    "stdout": "git version 2.43.0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gh",
+      "--version"
+    ],
+    "exit": 0,
+    "stdout": "gh version 2.45.0 (2025-07-18 Ubuntu 2.45.0-1ubuntu0.3)\nhttps://github.com/cli/cli/releases/tag/v2.45.0\n",
+    "stderr": ""
+  }
+]

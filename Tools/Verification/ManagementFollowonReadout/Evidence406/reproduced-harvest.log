@@ -1,0 +1,5 @@
+process exit=-6
+Unhandled exception. System.InvalidOperationException: FAILED no report or settlement FellTree
+   at ManagementFollowonReadoutVerification.Check(Boolean condition, String label) in /media/jer/Files/CCF/Worktrees/CCF-ManagementFollowonReadout-Qual/Tools/Verification/ManagementFollowonReadout/ManagementFollowonReadoutVerification.cs:line 14
+   at ManagementFollowonReadoutVerification.Adversarial(String selection) in /media/jer/Files/CCF/Worktrees/CCF-ManagementFollowonReadout-Qual/Tools/Verification/ManagementFollowonReadout/ManagementFollowonReadoutVerification.cs:line 80
+   at ManagementFollowonReadoutVerification.Main(String[] args) in /media/jer/Files/CCF/Worktrees/CCF-ManagementFollowonReadout-Qual/Tools/Verification/ManagementFollowonReadout/ManagementFollowonReadoutVerification.cs:line 94

@@ -26,19 +26,75 @@ public static class ManagementFollowonReadoutVerification
     private static ScenarioOneWorkOrder Order(int id, int year, ScenarioWorkType type = ScenarioWorkType.FellTree,
         ScenarioWorkStatus status = ScenarioWorkStatus.Completed, int prescription = 0, string unit = "", int rack = 0)
         => new ScenarioOneWorkOrder { workOrderId = id, resolvedYear = year, type = type, status = status,
-            prescriptionId = prescription, prescriptionCoverageUnitId = unit, rackId = rack };
+            prescriptionId = prescription, prescriptionCoverageUnitId = unit, rackId = rack,
+            targetTreeId = "T" + id, speciesId = "sitka-spruce" };
     private static ScenarioManagementEvent Event(int id, int orderId, int year, ScenarioWorkType type = ScenarioWorkType.FellTree,
         ScenarioManagementOutcome outcome = ScenarioManagementOutcome.Succeeded, int prescription = 0)
         => new ScenarioManagementEvent { eventId = id, workOrderId = orderId, year = year,
             eventType = ScenarioManagementEventType.WorkResolved, taskType = type, outcome = outcome,
-            prescriptionId = prescription };
+            prescriptionId = prescription, targetTreeId = "T" + orderId, speciesId = "sitka-spruce" };
     private static void Add(YearHistoryView year, ScenarioManagementEvent e, ScenarioOneWorkOrder o)
-        => year.ResolvedWork.Add(new ResolvedWorkRecord { Event = e, Order = o, OrderStillExists = o != null });
+        {
+        year.Events.Add(e);
+        year.ResolvedWork.Add(new ResolvedWorkRecord { Event = e, Order = o, OrderStillExists = o != null });
+    }
     private static ScenarioOneManagementFollowonReadout.Result Read(int selected, params YearHistoryView[] years)
         => ScenarioOneManagementFollowonReadout.Build(years, selected);
 
-    public static int Main()
+    private static void Adversarial(string selection)
     {
+        if (selection == "all" || selection == "global")
+        foreach (var kind in new[] { ScenarioManagementEventType.OrderCreated, ScenarioManagementEventType.YearAdvanced })
+        {
+            var year = Year(20);
+            Add(year, Event(901, 91, 20, prescription: 8), Order(91, 20, prescription: 8, unit: "U1"));
+            year.Events.Add(new ScenarioManagementEvent { eventId = 901, year = 20, eventType = kind });
+            var result = Read(20, year);
+            Check(result.RecordedWork[0].Link == ScenarioOneManagementFollowonReadout.OrderLink.AmbiguousIdentity,
+                "global ID collision with " + kind);
+            Check(result.ExecutedCoverage.Count == 0, "globally ambiguous work has no executed coverage");
+        }
+        if (selection == "all" || selection == "target")
+        {
+            var year = Year(21);
+            var e = Event(902, 92, 21, prescription: 8);
+            var o = Order(92, 21, prescription: 8, unit: "U1");
+            o.targetTreeId = "OTHER";
+            Add(year, e, o);
+            Check(Read(21, year).RecordedWork[0].Link == ScenarioOneManagementFollowonReadout.OrderLink.InconsistentOrder,
+                "retained order target mismatch");
+            Check(Read(21, year).ExecutedCoverage.Count == 0, "target mismatch has no coverage");
+            o.targetTreeId = e.targetTreeId; o.speciesId = "oak";
+            Check(Read(21, year).ExecutedCoverage.Count == 0, "available species mismatch has no coverage");
+            o.speciesId = ""; e.speciesId = ""; o.targetTreeId = ""; e.targetTreeId = "";
+            var old = Read(21, year);
+            Check(old.RecordedWork[0].Link != ScenarioOneManagementFollowonReadout.OrderLink.Verified
+                && old.ExecutedCoverage.Count == 0 && old.RecordedWork[0].TargetTreeId == "",
+                "absent historical tree identities stay unknown");
+        }
+        if (selection == "all" || selection == "harvest")
+        foreach (var type in new[] { ScenarioWorkType.FellTree, ScenarioWorkType.SalvageDeadwood })
+        {
+            var year = Year(22);
+            Add(year, Event(903, 93, 22, type), Order(93, 22, type));
+            Check(!Read(22, year).RecordedWork[0].GroupedHarvestMoney, "no report or settlement " + type);
+            year.Report = new ScenarioAnnualReport();
+            Check(!Read(22, year).RecordedWork[0].GroupedHarvestMoney, "report without settlement " + type);
+            year.Report = null; year.HarvestSettlement = new GroupedHarvestSettlement();
+            Check(!Read(22, year).RecordedWork[0].GroupedHarvestMoney, "settlement without report " + type);
+            year.Report = new ScenarioAnnualReport();
+            Check(Read(22, year).RecordedWork[0].GroupedHarvestMoney, "recorded grouped annual settlement " + type);
+        }
+    }
+
+    public static int Main(string[] args)
+    {
+        if (args.Length > 0)
+        {
+            Adversarial(args[0]);
+            Console.WriteLine("Adversarial PASS " + checks);
+            return 0;
+        }
         // Exact-year latest: never backfill a missing selected or newest year from neighbouring snapshots.
         var a = Year(5, Snapshot(5)); var b = Year(9, Snapshot(9, 90));
         var found = Read(5, b, a);
@@ -87,6 +143,7 @@ public static class ManagementFollowonReadoutVerification
 
         // Genuine successes, failed and pending orders, two units and different years.
         var first = Year(10, Snapshot(10)); var next = Year(11, Snapshot(11));
+        first.Report = new ScenarioAnnualReport(); first.HarvestSettlement = new GroupedHarvestSettlement();
         Add(first, Event(101, 1, 10, prescription: 7), Order(1, 10, prescription: 7, unit: "R2L"));
         Add(first, Event(102, 2, 10, prescription: 7), Order(2, 10, prescription: 7, unit: "R2L"));
         Add(first, Event(103, 3, 10, prescription: 7), Order(3, 10, prescription: 7, unit: "R4H"));
@@ -160,6 +217,7 @@ public static class ManagementFollowonReadoutVerification
         Check(first.ResolvedWork.Count == 6 && first.ResolvedWork[0].Order.prescriptionId == 7,
             "history inputs not changed");
 
+        Adversarial("all");
         Console.WriteLine("ManagementFollowonReadout: PASS " + checks + " focused assertions (when actually run).");
         return 0;
     }

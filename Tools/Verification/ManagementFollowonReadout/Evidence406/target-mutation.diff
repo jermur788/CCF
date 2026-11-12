@@ -1,0 +1,11 @@
+--- qualified-helper
++++ target
+@@ -253,7 +253,7 @@
+             && e.year == w.Year && e.eventType == ScenarioManagementEventType.WorkResolved
+             && o.workOrderId == e.workOrderId && o.type == e.taskType && o.resolvedYear == e.year
+             && o.prescriptionId == e.prescriptionId
+-            && SameRecordedTarget(o, e)
++
+             && ((e.outcome == ScenarioManagementOutcome.Succeeded && o.status == ScenarioWorkStatus.Completed)
+                 || (e.outcome == ScenarioManagementOutcome.Failed && o.status == ScenarioWorkStatus.Failed));
+     }
