@@ -41,7 +41,8 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
     double previousClick = -1;
     object previousCard;
     readonly List<string> results = new List<string>();
-    readonly RackAuthoringNativeInput native = new RackAuthoringNativeInput();
+    // Share the inherited runner's request counter: a second counter would reuse request-0001.json and collide.
+    RackAuthoringNativeInput native => (RackAuthoringNativeInput)Get(inherited, "native");
     static readonly BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     static object Get(object target, string name) => target.GetType().GetField(name, Private).GetValue(target);
     static void Set(object target, string name, object value) => target.GetType().GetField(name, Private).SetValue(target, value);
@@ -144,12 +145,14 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
         history = JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(Environment.GetEnvironmentVariable("CCF_D073_RESUME_HISTORY")));
         Set(oracle, "history", history);
         InstallTracing();
-        bool diagnostic = Environment.GetEnvironmentVariable("CCF_427_PHASE") == "diagnostic";
+        string phase = Environment.GetEnvironmentVariable("CCF_427_PHASE");
+        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica";
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })
         {
             Cadence408GameSize.SetGameSize(size.x, size.y); yield return Settle(1.1f);
             Check(Screen.width == size.x && Screen.height == size.y, "exact render dimensions", Screen.width + "x" + Screen.height);
-            if (diagnostic)
+            if (replicaOnly) yield return Case(size + "/first-run-order-replica", Replica(size, true, 3));
+            else if (diagnostic)
             {
                 yield return Case(size + "/foldout-diagnostic", Diagnostic());
                 // Same order as the first run: the unchanged #417 native sequence, then the unchanged original close probe.
