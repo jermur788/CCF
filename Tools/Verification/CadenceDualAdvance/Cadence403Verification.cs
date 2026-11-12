@@ -151,6 +151,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(ui.Learning.CurrentTopicIndex==7,"genuine stage seven fixture");
         var authentic=saves.CaptureData();
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
+        if(Environment.GetEnvironmentVariable("CCF_CADENCE_UI")=="1") { yield return UiMatrix(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_MATRIX")=="1") { yield return Matrix(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_F8") != "1") {
             yield return Cadence408Parity.Run(ui,saves,authentic);
@@ -255,6 +256,47 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/CadenceV1-FixedQual-408-"),"isolated disk save custody",Application.persistentDataPath);var before=saves.CaptureData();saves.Save();saves.Load();yield return Settle();
         Check(ScenarioReferenceArchive.CurrentWorldHash(before)==ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData()),"disk roundtrip world hash");ui.ShowReview();yield return Settle();
         var label=(Label)Field(Field(ui,"review"),"skipSummary");Check(label.text==""&&label.resolvedStyle.display==DisplayStyle.None,"disk reload clears hidden session summary");
+    }
+
+    readonly RackAuthoringNativeInput native=new RackAuthoringNativeInput();
+    IEnumerator NativeButton(Button button) {
+        Check(button!=null && button.enabledInHierarchy,"native input target exists and enabled",button?.text);
+        button.Focus();yield return null;
+        yield return native.Send(RackAuthoringNativeInput.Op.Key("Return"));
+    }
+    IEnumerator Shot(string name) {
+        yield return Settle();yield return new WaitForEndOfFrame();
+        var image=ScreenCapture.CaptureScreenshotAsTexture();File.WriteAllBytes(Path.Combine(output,name+".png"),image.EncodeToPNG());
+        Debug.Log("CADENCE408_SCREENSHOT "+name+" size="+image.width+"x"+image.height);Destroy(image);shots++;
+    }
+    Button ButtonText(string text) => ui.RootElement.Query<Button>().ToList().FirstOrDefault(b=>b.text==text);
+    IEnumerator UiMatrix(ForestSaveData state,ForestSaveData original) {
+        foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080)}) {
+            Cadence408GameSize.SetGameSize(size.x,size.y);yield return Settle();
+            string tag=size.x+"x"+size.y;
+            yield return Restore(original);ui.ShowWorkPlan();yield return Shot(tag+"-disabled-work-plan");
+            yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);yield return Shot(tag+"-enabled-work-plan");
+            yield return NativeButton(ui.RootElement.Query<Button>().ToList().First(b=>b.text.StartsWith("Skip to Year")));
+            yield return Shot(tag+"-confirmation");
+            var confirm=ButtonText("Confirm skip");
+            Plan(Live().First(t=>!t.IsCropTree&&!Bay().Contains(t.transform.position.x,t.transform.position.z)));
+            typeof(Clickable).GetMethod("Invoke",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(confirm.clickable,new object[]{null});
+            Check(!ui.Skipping && ButtonText("Confirm skip")==null && ui.RootElement.Query<Label>().ToList().Any(l=>l.text.Contains("Pending and Approved")),"F7 refused confirmation redraws current pending reason");
+            yield return Shot(tag+"-F7-refused-current-reason");
+            yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+            yield return NativeButton(ui.RootElement.Query<Button>().ToList().First(b=>b.text.StartsWith("Skip to Year")));
+            yield return NativeButton(ButtonText("Confirm skip"));
+            if(ui.Skipping) {
+                yield return new WaitForEndOfFrame();var image=ScreenCapture.CaptureScreenshotAsTexture();File.WriteAllBytes(Path.Combine(output,tag+"-progress.png"),image.EncodeToPNG());Destroy(image);
+            }
+            while(ui.Skipping)yield return null;
+            var summary=(Label)Field(Field(ui,"review"),"skipSummary");Check(!string.IsNullOrEmpty(summary.text),"immediate session summary");
+            yield return Shot(tag+"-destination-summary");
+            var review=Field(ui,"review");yield return NativeButton((Button)Field(review,"earlierYear"));yield return Shot(tag+"-earlier-year");
+            yield return NativeButton((Button)Field(review,"laterYear"));yield return Shot(tag+"-latest-year");
+            yield return Restore(original);ui.ShowReview();yield return Shot(tag+"-loaded-world-hidden-summary");
+            Check(summary.text==""&&summary.resolvedStyle.display==DisplayStyle.None,"F8 empty label no layout space");
+        }
     }
 
 }
