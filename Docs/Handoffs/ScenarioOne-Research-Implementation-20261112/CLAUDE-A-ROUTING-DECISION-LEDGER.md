@@ -93,3 +93,13 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **Provider/model/effort/pool:** Anthropic `claude-sonnet-5-5`, effort medium, provider "Claude B — Pro" (separate account from Claude A). Opus not used; no justification for escalation at LOW difficulty.
 - **Claim:** [#392](https://github.com/jermur788/CCF/issues/392) [RUNNING]; harness-isolated checkout; report branch `review/scenario-one-research-copy-v1-claude-b-20261112`. Read-only on source. Unity lease: none.
 - **Outputs:** pending.
+
+## EVENT 5 — 2026-11-12 01:41 UTC — Claude B verdict NEEDS CHANGES; rework dispatched
+
+- **Evidence class:** OBSERVED FACT (verdict, push); reviewer findings are REVIEWER CLAIMS accepted by Claude A for rework.
+- **Reviewer:** `claude-sonnet-5-5` medium, "Claude B — Pro". No quota event observed. Tokens/time UNKNOWN.
+- **Review report:** [6038d85c](https://github.com/jermur788/CCF/blob/6038d85cac7bb6b85c1dde9bf3280a099ea959c8/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/CLAUDE-B-C01-RESEARCH-COPY-V1-INDEPENDENT-REVIEW.md) on `review/scenario-one-research-copy-v1-claude-b-20261112`.
+- **Findings:** 1 major (stale pins in `Tools/Verification/WorkPlanResidualVerification.cs` for changed Work Plan strings, unreported by author); 3 minor (planting label double colon / "completed" on an open line; raw displayName shown in Annual Review "Objective first reached"; a removed Help sentence the spec did not ask to remove); notes (removal count wording, term used before introduced, optional sentence omitted, RackV2HelpTeaching failures pre-existing on baseline). Scope, protected identity and truthfulness judged sound. Reviewer reran presentation checks 157/157; did not rerun the offline compile; Unity NOT RUN, AC-7 NOT VERIFIED.
+- **Failure class:** incomplete author grep for pinned strings (verification debt), plus copy polish. Salvage: all work kept.
+- **Route:** rework loop 1 to the same author route, `gpt-6.1-sol` medium pool A (context continuity is in the report, cheapest route; pool B still in reserve). Claude A did not fix findings itself (role separation in the #390 handoff).
+- **Next:** delta review by Claude B of the rework, then Unity qualification if the lease is free.
