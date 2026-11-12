@@ -1,9 +1,9 @@
 # Scenario One — Research-Informed Management Learning V1: Truthful Copy
 
-**Status:** DRAFT REVISION — NOT APPROVED FOR IMPLEMENTATION  
+**Status:** APPROVED FOR IMPLEMENTATION — bounded copy-only V1, direct user authorisation 2026-11-12  
 **Date:** 2026-11-12  
 **Owner:** Overall Manager  
-**Scope:** a **small post-demo copy-only change** correcting the remaining misleading or ambiguous forestry language. Product owner can expressly approve a different timing, but nothing in this draft changes the current pre-demo programme.  
+**Scope:** **the complete bounded copy-only V1 now**, following the user's 2026-11-12 request for Claude A/Fable orchestration through implementation. This authorises only FR-C1–FR-C4 and proportionate verification/integration, not a new pre-demo gameplay feature. Implementation must not disturb existing demo qualification or the user's playtest/Windows-build gate.  
 **Original broad draft:** preserved at `docs/scenario-one-research-informed-spec-20261112-v1`; its event-persistence design is **WITHDRAWN**, not ready for implementation.  
 **Four-part structure:** [spec.md](spec.md), [plan.md](plan.md), [tasks.md](tasks.md), [checklists/requirements.md](checklists/requirements.md).
 
@@ -34,7 +34,7 @@ P1–P6 overlap in authorship and provide useful methods and selected empirical 
 
 Use existing text/help placement to convey that `Share` is an **8 m local DBH/size-and-distance based Hegyi indicator**. Its calculation **does not itself assess species, crown shape, tree height, shade tolerance, light direction, timber quality, habitat, or wind stability**. Removing different neighbours can satisfy the game's **specific crown-release exercise**; it is not a universal “right tree” answer.
 
-**Candidate concise Lesson wording** (requires final screen review):
+**Candidate concise Lesson wording** (implement using the best-fitting existing player-facing surface, after current-source and screen review):
 > This lesson teaches a game-calibrated local competition target, not the only acceptable way to manage a forest.
 
 **Optional fuller Help wording from #387 option A (candidate, not mandatory if it crowds Help):**
@@ -47,7 +47,7 @@ Rewrite an existing generic line **“being small is not a reason to fell”** a
 
 ### FR-C2 — Residual regeneration vocabulary only
 
-Keep the existing player-facing **“Areas with young trees”** unless explicitly accepted change chooses the slightly safer #388 recommendation **“Areas with young growth”**. Neither phrase asserts exact young stems; count is tracked locations with natural modelled young-growth cohorts and/or qualifying living planted juveniles.
+Keep the existing player-facing **“Areas with young trees”** as the approved V1 default; do not open an optional label redesign. The slightly safer #388 suggestion **“Areas with young growth”** remains a deferred wording alternative. Neither phrase asserts exact young stems; count is tracked locations with natural modelled young-growth cohorts and/or qualifying living planted juveniles.
 
 Check only remaining **player-visible** string cases, including “regeneration cohorts” in `WorkPlanOverview`, Oak/Beech “Establish planted ...” mappings and Help copy. Replace with truthful, natural language in **presentation mapping only**. A candidate current-purpose explanation:
 > Young growth is recorded in parts of the woodland where natural tree regeneration is represented or living planted young trees are present. This does not guarantee their survival.
@@ -86,7 +86,7 @@ Absolutely no edits under this V1 to:
 
 ## 5. Scope completion / acceptance
 
-One small bounded UI-copy patch after **product approval and an available owner/lane**; no standalone major feature programme. A single implementer verifies:
+One small bounded UI-copy patch under **the 2026-11-12 user approval**, once the actual source owner/lane has been checked; no standalone major feature programme. A single implementer verifies:
 1. The exact target strings exist in **current candidate source**, and which friendly objective labels already ship; only actual residual strings changed.
 2. External source-backed wording is limited to supported general statements. No unexplained scientific precision or unmodelled effect.
 3. No changed internal `displayName`, objective ID, stable persisted fields, event/save/schema, Share/lesson predicates or MFM/Rack logic.
@@ -94,7 +94,7 @@ One small bounded UI-copy patch after **product approval and an available owner/
 5. Actual affected panel screenshots at existing supported 1280×720 and 1920×1080 sizes when a Unity/UI lane is available; no overlapping/hidden text, especially pre-existing competitor label gate.
 6. Minimal source/copy verification and existing integration qualification when that release candidate is tested. **No separate full Tier-2/3 qualification**, no new Windows build.
 
-This is a **DRAFT**. No implementation, tests, merge, Unity machine lease or acceptance is claimed by publishing it.
+This spec is **APPROVED for its bounded copy-only scope and immediate implementation sequence**. Publication alone does not establish implementation, tests, Unity qualification, integration or user playtest.
 
 ## 6. Deferred ideas, distinct from V1
 
@@ -103,4 +103,4 @@ This is a **DRAFT**. No implementation, tests, merge, Unity machine lease or acc
 - Durable rationale: only with **separate SPEC REQUIRED** plus explicit product approval; a separate hash-excluded save list is a **candidate**, not accepted design. Verify exact serializer/hash strip, old saves, identity equality and S1-C adapter before proceeding. Preserve one history authority.
 - Offline optional P3 structural mingling/diameter differences and Hegyi/RBA comparison: authentic fixtures first, no biodiversity interpretation; a meaningful negative result may close the idea without UI.
 
-**Product choices still open:** exact label (“young trees” vs “young growth”), whether even a small copy change belongs after or during demo, and whether later retention UX merits a prototype. The present recommendation is **post-demo copy-only; no new retention feature until evidence**.
+**Resolved for V1:** keep the existing “Areas with young trees” label; implement the conservative copy-only package now without interrupting the complete-demo work. Any retention UX prototype remains a separate post-demo decision. **No new retention feature or persistence now.**
