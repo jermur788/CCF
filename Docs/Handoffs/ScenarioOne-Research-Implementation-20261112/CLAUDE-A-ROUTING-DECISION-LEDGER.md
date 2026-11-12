@@ -113,3 +113,12 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **NOT RUN:** Unity Editor, both Unity-hosted verifiers, 1280×720 / 1920×1080 captures (AC-7), runtime world-hash / Reference Future / Legacy40 comparison (AC-6 runtime half; source half is supported by the empty protected diff).
 - **Review loops:** 1 NEEDS CHANGES, 1 APPROVED. Opus not used.
 - **Gate reached:** Unity qualification needs either a checkout switch of the user's #382 lane or a new ZX20 working set; both are user-owned decisions and have been put to the user. Integration into the candidate branch additionally changes what #382 pins and needs a Manager #200 / user decision. No integration performed.
+
+## EVENT 7 — 2026-11-12 01:53 UTC — user decisions; Unity qualification dispatch
+
+- **Evidence class:** OBSERVED FACT.
+- **User decisions (asked by Claude A in session, answered by the user):** (1) Unity lane = **new ZX20 lane**, the #382 playtest lane is not to be reused; (2) integration = **leave on the feature branch** as the revised candidate and return to Manager #200 for the merge decision; the #382 pin `2aaacad6` is unchanged.
+- **Dispatch:** Unity qualification to `gpt-6.1-sol` medium, pool A (third Sol run on this pool; no limit observed so far). Rationale (ORCHESTRATOR CLAIM): Sol ran the #376–#381 Unity sessions on this lineage and its launcher/path-guard evidence is reusable; this is author-side runtime evidence, not independent review. Alternative considered: Claude A running Unity directly (rejected: role separation and context cost).
+- **Lane:** to be created by the worker at `/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual`, branch `qualify/scenario-one-research-copy-v1-20261112` @ `868643a1`, fresh Library, ~6.6 GB expected, floor 15 GiB (25 GiB free observed before). Lease: to be acquired per session through the repo unity-lock tool; never forced.
+- **Evidence root:** `/media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/`. Report branch: `report/scenario-one-research-copy-v1-unity-qual-20261112`.
+- **Outputs:** pending.
