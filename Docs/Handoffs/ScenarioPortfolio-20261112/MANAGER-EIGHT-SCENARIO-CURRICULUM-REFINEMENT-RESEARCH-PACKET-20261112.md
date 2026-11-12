@@ -26,6 +26,30 @@ Use evidence classes: **accepted product decision**, **inspected implementation*
 
 ## 3. Specific research/refinement questions — deliver a decision-ready answer
 
+
+### A0. Mandatory: three alternative complete eight-scenario progressions
+
+**NEW DIRECT USER REQUIREMENT (12 November 2026):** Deliver **three materially distinct full eight-scenario progression designs**, not one order with three different titles. Each alternative must contain **all eight existing proposed forest situations exactly once**, with **Scenario One first** in all versions; no dropping/combining cases, no ninth case, and no changing the already-accepted Scenario One or first-external-demo boundary. The **count of eight is accepted**; the **order and lesson framing remain proposed**. Preserve the original eight-study order as an auditable comparator even if not chosen.
+
+At a minimum test these genuinely different strategic hypotheses, but independently change them if the evidence supports stronger alternatives:
+
+1. **Beginner-to-competent-owner:** sequence from easily observable/low-stakes judgement to difficult multi-system problems, adding skills and reducing guidance deliberately.
+2. **Forestry craft and CCF depth first:** deepen irregular/continuous-cover management after the Sitka reference before introducing specialist establishment, habitat, risk or estate work.
+3. **Ecological and site diversity first:** prioritise establishment/site/water/conservation contrasts before more advanced productive management and estate trade-offs.
+
+For **each** version provide:
+- a **numbered complete 1–8 lineup** with the same original eight cases and their working titles, plus the one teaching skill unlocked at each step;
+- a rationale for the **transition from each scenario to the next**, and how it builds prior knowledge rather than repeating tutorial mechanics;
+- **at least four concrete pros and four concrete cons** against player learning, audience fit, compelling visible decisions, evidential realism, engineering costs, dependency sequence and schedule/rework risk;
+- **prerequisite features and genuine blockers** for each step, distinguishing existing inspected code, dormant/draft mechanics, and fully new systems;
+- **parallel-preparation windows** (research/art/spec/source audits/independent bounded implementation) and **serial gates** (shared save architecture, common simulation/Unity machine, qualification and player test); never silently make working on Scenario Three mean Scenario Two's current shared files can be concurrently changed;
+- a comparison of likely risks of overwhelming beginners, loss of momentum from weakly differentiated lessons, false scientific precision or spectacular but noncausal gameplay;
+- **one short worked learner journey** (e.g. how a choice in Scenario Three draws on skills learned in Scenarios One and Two), not merely abstract labels.
+
+Then provide a **side-by-side eight-position comparison table for the three versions**; qualitative ratings (High/Medium/Low with reasons) for teaching coherence, scenario distinctiveness, reusable-system leverage, research/verification debt and development risk; **pick one recommended sequence and one credible runner-up** with evidence-based trade-offs and explicit product-owner decisions. A recommendation is **not approval of final chapter order**. Do not imply the original publication's numbered order was accepted by selecting eight scenarios.
+
+This comparative three-version deliverable is a **hard acceptance criterion** for #428 and the later independent Claude critique. If time is limited, prioritise the complete three sequences and honest pros/cons over decorative exposition.
+
 ### A. Skill progression and overlap challenge
 
 Build a compact **eight-by-skill matrix** showing what the player can diagnose, choose, approve, observe and justify by the end of each case. Explicitly compare Scenario Two **Working Mixed Forest** against Scenario Three **Neglected Broadleaf Wood** and Scenario Six **Atlantic Oakwood**; explain precisely why each requires different decisions and produces different outcomes. Compare the new-farm-woodland case to later Stage 2 land use: keep it a forestry establishment decision, not premature generalized property management. Distinguish wet woodland hydrological constraints from Atlantic habitat continuity.
@@ -83,7 +107,7 @@ On worker-created NEW disjoint branch:
 
 **Based on** `docs/eight-scenario-curriculum-refinement-packet-20261112-v1` (the present packet branch) after live ref, ownership, target nonexistence and exact HEAD checks. If the branch exists, stop and contact Manager; do not overwrite. The researcher's writable file set is **only that new result path** and an optional new source-register file in the same folder; all existing report source files, current main, decisions, brief, milestone, live active tasks, Unity source, specs and project context are READ ONLY.
 
-Required result structure: executive verdict; eight scenario learning/differentiation matrix; per-scenario proof-of-play; new feature/evidence gap matrix; minimal common engine dependencies; sequential-vs-parallel task sequencing; prioritized research gaps; reviewer challenge questions; open user choices; source provenance/evidence classes; explicit done/not-done section. Preserve the original eight proposal's terminology and explain divergences.
+Required result structure: executive verdict; **three full eight-scenario progressions with side-by-side ordering, distinct pros/cons, transitions and recommended/runner-up sequence**; eight scenario learning/differentiation matrix; per-scenario proof-of-play; new feature/evidence gap matrix; minimal common engine dependencies; sequential-vs-parallel task sequencing; prioritized research gaps; reviewer challenge questions; open user choices; source provenance/evidence classes; explicit done/not-done section. Preserve the original eight proposal's terminology and explain divergences.
 
 **Do not:** implement code, create/approve four-file specs, run Unity/Player/Windows build, alter save schema, edit live coordination, touch #412/#424 or user personal playtest lane, adopt new mechanics, assert model-generated data as measured research, open extra unrelated research threads, or request full Tier 3 qualification.
 
@@ -96,4 +120,4 @@ Required result structure: executive verdict; eight scenario learning/differenti
 
 **Paste-ready dispatch (user may give the original researcher):**
 
-> Continue the eight-Irish-forest CCF research as bounded task #428, **GPT-6 High** if available. Read the complete GitHub packet: https://github.com/jermur788/CCF/blob/docs/eight-scenario-curriculum-refinement-packet-20261112-v1/Docs/Handoffs/ScenarioPortfolio-20261112/MANAGER-EIGHT-SCENARIO-CURRICULUM-REFINEMENT-RESEARCH-PACKET-20261112.md . The product owner accepted **eight** scenarios, delivered sequentially with safe parallel preparation; do not re-litigate count. Refine learning differences, realistic proof-of-play, scientific/technical blockers, dependencies and safe overlapping work for all eight before independent Claude critique. Publish one new GitHub Markdown result on the exact named disjoint branch/path, read back, and close the task claim as HANDED-OFF. Browser/GitHub research only; no game code, Unity, main or product authority edits. Return the direct durable result URL.
+> Continue the eight-Irish-forest CCF research as bounded task #428, **GPT-6 High** if available. Read the complete GitHub packet: https://github.com/jermur788/CCF/blob/docs/eight-scenario-curriculum-refinement-packet-20261112-v1/Docs/Handoffs/ScenarioPortfolio-20261112/MANAGER-EIGHT-SCENARIO-CURRICULUM-REFINEMENT-RESEARCH-PACKET-20261112.md . The product owner accepted **eight** scenarios, delivered sequentially with safe parallel preparation; do not re-litigate count. Develop THREE complete, materially distinct eight-scenario progressions (each with full ordering, concrete pros/cons, prerequisites, overlap windows, and a recommended/runner-up choice), then refine learning differences, credible proof-of-play, scientific/technical blockers, dependencies and safe overlapping work before independent Claude critique. Publish one new GitHub Markdown result on the exact named disjoint branch/path, read back, and close the task claim as HANDED-OFF. Browser/GitHub research only; no game code, Unity, main or product authority edits. Return the direct durable result URL.
