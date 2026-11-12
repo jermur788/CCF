@@ -32,10 +32,10 @@
 
 **Spec status DRAFT — not adopted/implemented.** It is ready for independent source/product review.
 
-1. [Feature spec — goals, exact behaviour, non-goals, event/persistence contract and acceptance gates](../../specs/scenario-one-research-informed-management-learning-v1/spec.md).
-2. [Implementation plan — phases, dependencies, owners, local safety and test tiers](../../specs/scenario-one-research-informed-management-learning-v1/plan.md).
-3. [Tasks — individual research/source/Unity packets, owners and exits](../../specs/scenario-one-research-informed-management-learning-v1/tasks.md).
-4. [Requirements checklist — evidence and test cases](../../specs/scenario-one-research-informed-management-learning-v1/checklists/requirements.md).
+1. [Feature spec — goals, exact behaviour, non-goals, event/persistence contract and acceptance gates](../../../specs/scenario-one-research-informed-management-learning-v1/spec.md).
+2. [Implementation plan — phases, dependencies, owners, local safety and test tiers](../../../specs/scenario-one-research-informed-management-learning-v1/plan.md).
+3. [Tasks — individual research/source/Unity packets, owners and exits](../../../specs/scenario-one-research-informed-management-learning-v1/tasks.md).
+4. [Requirements checklist — evidence and test cases](../../../specs/scenario-one-research-informed-management-learning-v1/checklists/requirements.md).
 
 **Feasible proposed gameplay scope:** crop-tree and competition Share explanation; regeneration vocabulary and grounded natural/planted/under-canopy/edge/open explanations; non-numeric wind limitation; optional retention intention and one append-only historical record, with later reassessment via existing Annual Review and repeated interventions. All such features are ***recommended implementation scope after product sign-off*** and subject to existing demo freeze.
 
