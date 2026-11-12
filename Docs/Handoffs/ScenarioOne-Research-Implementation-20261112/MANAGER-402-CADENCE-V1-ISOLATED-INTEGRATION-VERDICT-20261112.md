@@ -1,0 +1,26 @@
+# Manager verdict — Fable #402 cadence V1 isolated integration, 12 November 2026
+
+**APPROVED for exact-candidate FEATURE-LEVEL UNITY VERIFICATION and its isolated integration branch; NOT USER ACCEPTED, NOT MAIN MERGED, NOT AN AUTHORISED PLAYTEST-LANE UPDATE OR WINDOWS BUILD.**
+
+Reviewed [Fable #402 final result](https://github.com/jermur788/CCF/blob/docs/fable-cadence-v1-end-to-end-result-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/FABLE-CADENCE-V1-END-TO-END-INTEGRATION-RESULT.md), [#408 final exact-head qualification](https://github.com/jermur788/CCF/blob/dcb319f9eb93b16d60a739bd907c65de1d4204e7/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-CADENCE-V1-FIXED-CANDIDATE-UNITY-QUALIFICATION-RESULT.md), claim comments and GitHub compare of `integration/scenario-one-c01-research-copy-candidate-20261112-v1` versus `integration/scenario-one-cadence-v1-qualified-20261112-v1` (8 commits ahead/0 behind, 13 touched files). The integration is identical to the qualified source candidate. Inspected the targeted 15-line production UI repair and current UI functions, and the disclosed limits; not independently re-executed Unity or local lock/host-hash checks.
+
+## Basis for approval
+
+- #408 reports **143 defined Tier 1/Tier 2 Unity subcases PASS / 0 FAIL / 0 NOT RUN**, including strict/semantic quiet and post-felling parity, all per-year world hashes, required stop/input locks and fault restore tests, MFM/rack safeguards, exact-year save/reload, Legacy40 refusal, frozen Reference Future v1 contract, and rendered 720p/1080p Editor Game-view UI. These are worker-executed, log-backed results, not a Tier 3 milestone pass.
+- Fable independently inspected the core log, source/test identity, real stage-7 fixture handlers, four actual captures, leases and isolated fast-forward. The final production fix in `AnnualReviewView` clears stale session-only skip summary across `TeachingWorldVersion` changes; `WorkPlanView` redraws when Confirm skip is refused. Fable (different model family from source author) performed bounded diff review. No new save data, ecology, order semantics, MFM or hash layout.
+- Integration branch was created fresh from accepted C-01 ancestry and advanced without force to the **exact same tree/commit** the Unity worker qualified. No source movement after qualification, thus no duplicate full Editor run necessary.
+- Custody reported: Unity lock released, no Editor process, qualification worktree clean, host 37 saved/Prefs objects unchanged; protected user personal candidate #382, C-01 base, main source and frozen archive unchanged.
+
+## Explicit limits retained
+
+- Several skip guard/fault probes use labelled *test-side state injections*, not fully player-driven repros. Year-25 `Review boundary reached` isolate uses a test-side observation-counter override; authentic Year24→25 runs prove real scenario completion. Rack-plan and approval reasons are guarded earlier by lesson state; unreachable as deciding stop at lesson stage 7. Legacy40 reaches only stage 0/refusal, not positive eligibility. F10 OS input used a private test profile GTK override. UI evidence is Editor Game view, not Player. Search indexing exception is pre-existing but not excused as a production test pass for a future different candidate. No Tier 3 whole-demo run.
+- The 15-line post-review production UI change was reviewed by Fable rather than a wholly separate post-fix reviewer; Manager accepts this for the **bounded cadence feature level**, because the small diff has directly qualified rendered regression, no high-risk save/hash change and the original broad source review #398 exists. This acceptance does **not** waive future higher-stakes integration or milestone gates.
+- No automatic promotion to `main`, overwriting the protected #382 Editor candidate, game acceptance, external demo or Windows/Player build.
+
+## Ownership and next sequence
+
+**Release** cadence #402 source/UI ownership and ResearchCopyQual391 qualification ownership as reported by Fable; the public issue is closed. A *new* task can take `AnnualReviewView.cs` **only after** fresh physical-board/coordination checks and a separate single-writer lock. The next source integration must intentionally reconcile this cadence candidate with the #406 offline-qualified read-only history helper; those are different branches. Manager-approved D-073 spec T-01 is now READY FOR BASE PREPARATION, not a running UI implementation or automatic right to merge either branch. Design the next integrated candidate and requalify changed exact tree in proportion to actual change.
+
+The planned two-machine Fable program may proceed to PRE-FLIGHT once new parent claims, separate worktrees and a single safe physical-board ownership registration have been issued. Predator Fable should own D-073 UI/Unity and integrated candidate; HP Fable may prepare D-074 audit/spec independently, pausing for required Manager spec approval before writing D-074 production code.
+
+**User action:** none for this verdict. Personal playtest candidate remains protected; no Windows build before personal playtest and explicit authorisation. Dashboard/Drive downstream rendering/synchronisation unverified.
