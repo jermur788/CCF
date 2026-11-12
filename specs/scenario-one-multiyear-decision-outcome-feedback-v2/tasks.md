@@ -13,3 +13,5 @@
 **Must not be interpreted as authorised:** implementation of #386 retained-neighbour reasons, new persistence/history event types, scoring, growth or storm models, new comparison coefficients or a Windows build.
 
 **User action now:** none for docs-only inventory and priority update; later substantive gameplay approval requires the reviewed spec and safe implementation release.
+
+**D-075 coordination note:** The separate [two-advance-options spec](../scenario-one-management-cadence-and-advance-v1/spec.md) owns the multi-year stepper and CCF intervention timing. This workstream owns only honest history/outcome feedback; allocate a single UI writer or serialize feature integration if either touches `AnnualReviewView` or `WorkPlanView`. Both features need no “Retain — why?” support.
