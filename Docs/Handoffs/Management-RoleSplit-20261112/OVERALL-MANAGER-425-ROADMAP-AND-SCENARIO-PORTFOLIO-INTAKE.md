@@ -133,3 +133,50 @@ Effort labels are **relative programme risk**, not estimates of engineer-days, c
 - **Dashboard/Drive:** no verifiable sync from this browser-only strategic branch, so **NOT VERIFIED / NOT REQUIRED AS A NEW CANONICAL CONTEXT SNAPSHOT**. This new handoff does not change the context-source set. Existing attachments/mirrors must not be presented as automatically updated.
 
 **Final status:** FIVE-SCENARIO RESEARCH REVIEWED; LEAN ROADMAP RECOMMENDED; USER PRODUCT CHOICES OPEN; NO PRODUCTION RELEASE.
+
+
+---
+
+## 10. Addendum — independent eight-Irish-forest scenario proposal (12 November 2026)
+
+**Source:** [Independent eight-scenario Irish forestry learning portfolio](https://github.com/jermur788/CCF/blob/docs/independent-eight-irish-forest-scenarios-20261112-v1/Docs/Handoffs/ScenarioPortfolio-20261112/INDEPENDENT-EIGHT-IRISH-FOREST-MANAGEMENT-SCENARIOS-20261112.md). Source status: **EXPLORATORY / NOT ACCEPTED**; the source labels itself a separate research/proposal exercise and does not establish an approved curriculum, implemented scenes or qualified gameplay. Its self-reported independence from the prior five-scenario draft is a provenance statement, not an independent field validation. Manager #425 has reviewed the supplied GitHub text against the previously published five-scenario research and accepted project direction.
+
+### Strategic disposition
+
+**APPROVED AS A SECOND STRATEGIC PRODUCT OPTION, NOT APPROVED AS EIGHT COMMITTED RELEASES.** The eight-scenario portfolio is a material improvement in **breadth of learning** compared with the original five, especially because it introduces new woodland establishment, wet/river-sensitive forestry and ash-dieback rehabilitation. Its end goal—assessment of unfamiliar Irish woodland with sound judgement and awareness of professional limits—is educationally stronger than presenting five variations of an established plantation. However, its significant new ecological/site/disease/storm and multi-property mechanics make the eight a substantially greater production investment. It must not supersede the existing Scenario One demo or silently become the next delivery milestone.
+
+**Working recommendation:** retain a **five-case reusable core** as a *development sequence* (not a final fixed count), and consider **eight distinct learning cases as the potential complete Stage 1 curriculum** if the product owner prioritises broader Irish forest-manager literacy. Do not treat the five and eight as mutually exclusive finished releases: the five-case technical and teaching foundations can underpin later establishment/wet/estate cases. Whether to commit to five, eight or staged five-plus-three is a genuine user product decision.
+
+### Exact mapping, what is genuinely new, and what overlaps
+
+| Eight-scenario proposal | Relationship to proposed five | Material new lesson or cost | Manager read |
+|---|---|---|---|
+| 1. **Inherited Sitka plantation** | Same existing Scenario One / Inherited Plantation | No change to fixed five-rack, three-species complete demo, Work Plan, repeated intervention and personal-playtest gate | **Already accepted reference; preserve unchanged** |
+| 2. **Working mixed forest** | Almost identical to five-case **Many-Aged Wood** capstone | Established irregular CCF and sustained younger-to-older crop replacement | **Strong core forestry question**, but introducing it second may demand long-run feedback/assessment before broadleaf teaching is reliable |
+| 3. **Neglected broadleaf wood** | Extends five-case **Beech Shadow** | Timber form/rehabilitation and **ash dieback**, site safety and professional handling; ash not ordinary productive new planting | **Prefer lean initial Oak/Beech focus**; disease and safety are a separately gated extension, not a free reuse of broadleaf parity |
+| 4. **New farm woodland** | **Genuinely missing** from five | Site-before-species, new planting versus natural regeneration, protected open habitat, establishment after 1–30 years and truthful financial costs | **High educational value** for small-owner audience; new pre-forest starting state, site suitability and assessment workflow required |
+| 5. **Wet woodland and river valley** | Partly intersects Oakwood Refuge but has distinct **water/soil** obligations | Floodplain/stream buffers, wet soil, sensitive machine access and alder/birch/willow roles | **Distinct forestry management case**; cannot fake causal hydrology or promote research-ready species into shipped models |
+| 6. **Atlantic oakwood** | Expands five-case **Oakwood Refuge** | Rhododendron follow-up, epiphyte/continuity concerns, veterans and regeneration beyond seedling counts | **Strong conservation case**, but invasive/historic-continuity indicators need research, causal modelling and expert review |
+| 7. **Exposed upland forest** | Expands five-case **Windward Ridge** | Mandatory major storm, dangerous salvage, rooting/peat-soil constraints and reforestation decisions | **Qualitative risk can prototype early**; a storm-damaged full scenario is a separate high-risk approved/verified feature, not merely enable dormant StormModel1 |
+| 8. **Complete forest estate** | Ambitious alternative to single-forest Many-Aged fifth | Independent compartments, shared budget/labour, portfolio planning, multiple histories/saves and uncertainty | **Valuable longer-term capstone**, with a large new data, UI, scheduling and verification burden; defer until individual scenarios prove robust |
+
+The five-scenario lineup already covers continuous cover, mature broadleaf, exposure, conservation and uneven-aged repeat management. The **true additional conceptual coverage** of the eight is: (i) woodland establishment on land not already forested; (ii) wet/river/soil-sensitive decisions; and (iii) diseased-tree rehabilitation. An estate capstone is a **larger cross-world integration challenge**, not simply one more forestry condition. Its ash, rhododendron and storm specifics strengthen themes but are independent feature costs, not instantly playable chapters.
+
+### Staged programme option and explicit gates (PROPOSED)
+
+- **Foundation, non-negotiable:** #424 delivers and qualifies complete Scenario One first external demo. Never demand eight scenarios for the already accepted first-demo boundary.
+- **Reusable forestry depth:** demonstrate a *new* Oak/Beech rehabilitation forest without mandatory ash disease first; then one mature uneven-aged working woodland with genuinely distinct cycles and replacement cohorts. Relative order is for user choice; prioritise the Oak/Beech source/save feasibility because it exposes generalisation assumptions cheaply.
+- **Varied risk and conservation:** authored exposure management and old-woodland browsing/retention lessons with only causally implemented claims. Active storms and rhododendron history are optional gated expansions until explicit approval.
+- **Broader owner practice:** new-farm-woodland and wet-riparian cases bring real new starting-state/site/process scope; research/spec and prototype as independent forestry lessons only once the small-world scenario/save contract is sound.
+- **Synthesis, after foundation:** genuine multi-compartment estate with shared resource limits, conditional on completed separate forest cases and an approved cross-property architecture; never treat this as implemented by placing multiple stands in one large scene.
+
+**Eight-case pedagogy caveat:** its published order introduces complex sustained irregular management as Scenario Two, before the initial broadleaf rehabilitation and woodland-establishment lessons. This is a possible advanced-audience choice, but the Manager recommends validating learning difficulty with players before locking the order. The actual source's 1–8 sequence is preserved as **its** proposal; it has not been silently reordered in canonical decisions.
+
+### Decision framing for product owner
+
+1. **Breadth / commitment:** Is the target a focused five-scenario forestry game first, or a deliberately broader **eight distinct Irish forest situations** as the longer-term Stage 1 learning curriculum? **Manager preference:** eight as *long-run scope candidate*, five as initial reusable delivery path; do not promise eight release dates.
+2. **What must be causally simulated:** Shall ash dieback, wet-ground/river impacts, major windblow and rhododendron dynamics be mandatory when those corresponding scenarios ship, or can staged labelled learning prototypes be accepted? **Manager preference:** no complete scenario should advertise a real mechanism until causally implemented and qualified, but research prototypes may use clear explanatory/qualitative labels.
+3. **Capstone:** One Many-Aged forest first versus multi-compartment estate in first-full curriculum? **Manager preference:** qualify the single-wood replacement/cohort system first; estate only after cross-scenario persistence and budget work is accepted.
+4. **Progression:** How guided should the cases be? Suggested learning order with replayable independent forests and optional advanced challenges is the current recommendation, not an approved unlock system. Player knowledge transfers; cash, trees and owner assets do not.
+
+**Workflow/status:** No approval yet, no Decision Log, Current Milestone, Brief, specs, main, active-tasks.md, source or Unity changes from this addendum. No new engineering claim or parallel Scenario One worker. Scenario One #424 remains sole delivery/coordination manager writer. Dashboard/Drive sync unverified. Addendum is managerial analysis on #425's isolated strategy branch and must not be mistaken for accepted product intent.
