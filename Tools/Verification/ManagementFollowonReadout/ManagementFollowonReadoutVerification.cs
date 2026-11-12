@@ -59,6 +59,12 @@ public static class ManagementFollowonReadoutVerification
         Check(Read(5, Year(5, Snapshot(5)), Year(5, Snapshot(5)), b).ComparisonState ==
             ScenarioOneManagementFollowonReadout.ObservationState.CannotCompare, "ambiguous duplicate year");
 
+        var duplicateA = Year(6, Snapshot(6)); var duplicateB = Year(6, Snapshot(6));
+        Add(duplicateA, Event(81, 81, 6, prescription: 3), Order(81, 6, prescription: 3, unit: "R1L"));
+        Add(duplicateB, Event(82, 82, 6, prescription: 3), Order(82, 6, prescription: 3, unit: "R1H"));
+        Check(Read(6, duplicateA, duplicateB).ExecutedCoverage.Count == 0,
+            "duplicate completed-year work linkage fails closed");
+
         // Origin/species measures retain their separate meanings; absent species is missing, not zero.
         a.Snapshot.species.Add(Species("sitka-spruce", 2, 3f, 1, 4));
         a.Snapshot.species.Add(Species("oak", 2, 2f, 0, 1));
