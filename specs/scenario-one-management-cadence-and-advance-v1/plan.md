@@ -1,22 +1,28 @@
-# Plan — CCF management cadence / two advance options V1
+# Plan — CCF Management Cadence and Dual Advance V1
 
-**State:** DRAFT; product intent accepted D-074/D-075, no local implementation lease or code claim. Parent [spec](spec.md), [tasks](tasks.md), [checklist](checklists/requirements.md).
+**Status:** APPROVED DESIGN (D-077), implementation NOT STARTED. See [spec](spec.md), [tasks](tasks.md), [checklist](checklists/requirements.md). Independent [#396 NEEDS CHANGES](https://github.com/jermur788/CCF/issues/396) findings B-1…B-5 and M-1…M-5 repaired in this four-file contract.
 
-## Stage 0 — source and gameplay workflow audit (docs-only)
-Read latest updated UI candidate, `WorkPlanView`, `ScenarioOneUiRoot`, `ScenarioOneManager.AdvanceYear`, `ScenarioOneCompletionRules`, `ScenarioInterventionHistory`, S1-C/S1-D, Rack V2/MFM, exact save/Reference Future and Year25/100 terminal paths. Produce an explicit **one-year vs multiple-year parity matrix**, current mandatory-review/teaching interaction gates and actual conception of first/second stand-scale interventions. Check whether repeated-year work is already encouraged and how 3–6-year guidance is best expressed without false prescriptions. Record candidate design for target and hard stops. Existing read-only feedback audit #394 may contribute source inventory; do not conflate it with a Unity batch qualification.
+## Stage 0 — mandatory actual source and lock preflight
+Manager or assigned Sol source owner reads live `Docs/Project/coordination/active-tasks.md` and verifies latest isolated C-01 integrated-candidate lineage, clean worktree, active owners, disk >= 15GiB floor and user #382 protection. Current code and confirmation/eligibility UI may have moved after reviewer inspected earlier source; inspect exact source again. No Unity lease assumed for initial source work. Source worker registers claim [RUNNING] with actual model/provider/effort, branch/worktree/starting HEAD only when ready. Do not reset or clean unrelated dirty work.
 
-## Stage 1 — product/spec approval
-Decide the suggested review target calculation, maximum elapsed years per press, scope of work eligibility and whether the requirement is a formal revised objective or explanatory pacing guide for new worlds. Resolve saved-world/old-world behavior. Publish final four-part spec and Manager **APPROVED** before code.
+## Stage 1 — bounded, source-controlled implementation (one writer)
+Build a **pure read-only deterministic calculator** for suggested target year and eligibility (current teaching `Current==7`, completed felling year, 4-year guidance, 5 ticks, Year25/100), with plain-world tests. UI controls: retain current `Advance one year` unchanged, add optional skip from open Work Plan, visible year/reason/confirmation and 1-per-frame loop over existing `manager.AdvanceYear()`, with pre/post guards, between-tick cancellation, input lock, no synthetic review events.
 
-## Stage 2 — safe implementation (separate local Sol lane)
-Based on latest accepted UI/copy feature lineage and after current C-01 integration decision, allocate one clean source writer/worktree, exact child claim, live Manager ownership. Build **a thin UI controller which loops the existing annual authority**, never a second simulation. Separate target-year read-only calculator from execution. Validate stop conditions *before* and *after* each annual tick. Keep one-year button unchanged and old-save/reference paths guarded.
+At destination, pass a **session-only** elapsed-year summary to existing Annual Review selected-year browser (or one equivalent presentation component). Do not introduce new saved data, duplicate history, auxiliary Update simulation or change manager/economy/learning completion logic. If UI root source needs a tiny helper to open latest Review and set session summary, keep it UI-only. Do not falsely attribute changes to interventions.
 
-If multiple execution lanes are unavoidable, assign nonoverlapping files/ownership; do not use the user's pinned personal UI Editor. Prefer Sol 6.1 Medium for source; independent Claude B Sonnet/Opus as justified for world-identity/qualification architecture.
+## Stage 2 — focused offline/source qualification before Unity
+Build tests from authentic snapshot fixtures. Exact parity A versus direct manager calls without ack; semantic parity B against manual UI with real intermediate ack events, after careful acknowledgement normalization; completion/achievement/storm/Year25 tests; each negative eligibility case; no automatic MFM proposal/Work Plan work; data/old-save nonmutation. Mutation/integrity test retained for new parity checks if they would otherwise green under a broken guard. A source pass is not Unity PASS.
 
-## Stage 3 — proportional qualification
-Tier 1 fixed-seed exact candidate versus repeated one-year parity with identical actual player decisions; verify per-year events, hashes, annual snapshots, same RNG, objective progress, planting and maintenance blocked/allowed behaviors, interrupted stop; negative tests for open approved/pending work and mandatory review. Tier 2 feature-level Unity exact candidate with 1280×720/1920×1080 readability, native input, actual 3–5-year quiet interval, historical year browser, save/load, old saves, and watchdog/lock/performance. No full Tier 3 until whole milestone release candidate. Independent source review and Manager integration verdict.
+## Stage 3 — one exact feature qualification under lock
+After source handoff, assign a **separate bounded Unity qualification** on the exact candidate under exclusive machine-wide lease (no overlapping Editor). Reuse warm eligible lane only after owner/space/registry check. Test genuine 720p/1080p time-skip UI, proper year browser, save/reload, frozen Reference Future/Legacy40, 5-tick performance and no unauthorized first-teaching bypass. Preserve personally used #382 scene/Prefs/worktree, no Windows build.
 
-## Stage 4 — integrate only after evidence
-Safe isolated integration based on newest reviewed UI candidate (not blind main), exact HEAD, live worktree/Unity lease, user #382 protection, frozen Reference Future v1 and Legacy40 checks. Keep IMPLEMENTED / REVIEWED / VERIFIED / INTEGRATED / ACCEPTED distinct. User personal playtest and Windows-build approval separate.
+## Stage 4 — independent review if necessary and integration verdict
+Source/Unity evidence inspected by Manager; independent reviewer if implementation crossed complex chronology/source contracts or confidence is insufficient. Verdict APPROVED / NEEDS CHANGES / REJECTED. Integrate only into exact current UI successor lineage, not divergent main; then sync canonical docs/dashboard with status. Whole Tier-3 only once for consolidated milestone.
 
-**Priority:** The optional neighbour-retention explanation #386 remains deferred. The decision/outcome feedback V2 is essential and can share data contract, but may be shipped separately if UI/source lanes do not overlap. Do not silently turn this into a broader forestry-economy model rewrite.
+## Separate D-074 objective goal (not automatically complete)
+Create a distinct four-file DRAFT for **spaced major-intervention learning**, based on verified S1-D completion and old-save compatibility. It remains required before declaring the educational product goal done. The V1 time-advance source may ship without changing the existing completion predicate; do not present guide-only cadence as proof of a newly enforced learning objective. Coordinate after time-advance data contract is stable.
+
+## D-076 interface
+A later management review may lead to new representative rack sampling in a separate approved MFM extension. The skip never executes an old sample-derived prescription, chooses new racks/Crop Trees or fabricates a per-rack ecological history. If Work Plan/Annual Review and future MFM changes overlap, serialize writers and integration rather than co-editing.
+
+**Routing:** one local Sol 6.1 Medium bounded source worker, source issue READY not RUNNING until actual preflight, with published GitHub exact packet; no automated asynchronous user work or promise of completion. Independent design review #396 is closed, no repeated general reviewer round requested for wording-only repair.
