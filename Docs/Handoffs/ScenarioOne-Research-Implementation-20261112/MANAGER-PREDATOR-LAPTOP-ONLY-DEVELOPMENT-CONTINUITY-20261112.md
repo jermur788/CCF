@@ -1,0 +1,40 @@
+# CCF management runbook — home dual-machine vs away Predator laptop-only
+
+**Date:** 12 November 2026. **Status: CONTINGENCY PLAN / NOT YET EXECUTED.** **Purpose:** let CCF development continue on the Predator laptop while the HP 290 stays at home without Wi-Fi; when at home, regain disjoint two-machine parallel execution. This is **not** a grant to move an active writable lane without required physical-board/GitHub re-registration. **Difficulty MEDIUM:** multi-machine branch ownership transfer and local preservation; source work unchanged. **Best executor when switching modes:** existing Claude A Fable/Predator Ops coordinator, or sole authorised local board integrator; Manager retains GitHub `active-tasks.md` authority.
+
+## Current known state (not a permanent promise)
+
+- [#412 Predator Fable](https://github.com/jermur788/CCF/issues/412) **OPEN/PAUSED** after Claude A/B usage exhaustion, with original approved D-073 scope, candidate at `feature/scenario-one-d073-annual-review-v1-20261112` and [#417](https://github.com/jermur788/CCF/issues/417) pending Tier-2 Unity qualification. One OpenAI worker was reserved for #417; same writer/Unity lock rules apply in either physical mode.
+- [#413 HP Fable](https://github.com/jermur788/CCF/issues/413) **OPEN/PAUSED**. HP WSL docs worktree `/home/jer/Development/CCF-HP-Worktrees/CCF-Fable-MultiCycle-Docs`, branch `docs/fable-hp-d074-d076-spec-programme-20261112-v1`; GitHub compare as of Manager inspection: remote branch **identical to its approved-spec starting base** (no published D-074/D-076 editing delta). This says **nothing** about HP uncommitted changes or T3 chat-only reasoning, which MUST be preserved/reported on the HP before leaving.
+- The Predator laptop can run local Unity and source tasks it already hosts. All published branches/handoffs are retrievable by GitHub from the laptop with internet. The Predator's physical Ops board is on `/media/jer/ZX20/CCF-Ops/board/active.md`; ensure this mount and the required local Unity checkout/data are actually present when away. Do not assume a remote HP process, GUI or local data is accessible without network connectivity.
+- No new Wi-Fi adapter, HP remote desktop connection or live shared filesystem is required merely to **continue work from already-pushed GitHub state**. Conversely GitHub does not export uncommitted work, downloaded run fixtures, Unity Library caches or T3 session state. Current Claude/Codex quota still limits execution regardless of machine.
+
+## Preferred operating modes
+
+**At home — DUAL MACHINE:** Predator owns Unity-qualified integration and UI, HP owns D-074/D-076 draft documents or separately approved non-Unity source work. Distinct Git stores/worktrees/claims; one primary writer per file set; shared model account quotas may limit actual throughput. Only Predator runs heavy Unity under machine-wide Unity lock.
+
+**Away — PREDATOR ONLY:** Predator continues its own D-073/Tier-2 tasks and, in a **separate Predator docs worktree/branch**, takes the HP forestry D-074/D-076 specifications or future offline source tasks. Can run sequentially or concurrently if resources/account quota/locks permit; heavy Unity serialized. Keep Fable parent roles distinct if both available, but the same Claude A account may hit shared usage quotas. No remote dependency on a powered-on HP. GitHub allows moving published work; **HP task ownership must first be transferred**, never assumed from the absence of Wi-Fi.
+
+## Before leaving home — required one-time handoff
+
+1. On HP stop/suspend Fable #413 and any Codex children (no further writes); inspect `git status --short --branch`, branch HEAD, all local worktrees and untracked files. **Commit/push authorised finished work**, including new audit reports, or make a lossless and documented backup of incomplete/untracked/unsuitable-to-commit work; do not stash/clean/reset/discard someone else's dirty edits. Record any unpushed or chat-only work in a GitHub Markdown transfer note without publishing secrets. Never claim the remote reflects HP work merely because the branch exists.
+2. On Predator verify current [#412](https://github.com/jermur788/CCF/issues/412), [#413](https://github.com/jermur788/CCF/issues/413), [#417](https://github.com/jermur788/CCF/issues/417), GitHub `main` coordination and physical Ops board / Unity lock. If the HP owner has not released its branch/files or state remains ambiguous, STOP and ask Manager, not simultaneous edits.
+3. Manager registers in `Docs/Project/coordination/active-tasks.md` that #413 docs writer has moved from remote HP to **Predator laptop-only**, without expanding its eight-file DRAFT spec allowlist. The authorised Predator physical-board integrator makes **one native-linted atomic owner/lane update** to `CCF-413-HP-FABLE-B-D074-D076-SPEC-REMOTE` (e.g. replace with a current equivalent Predator portable task row under same #413 claim), preserving all other records/Unity leases, and publishes one GitHub-read physical-proof handoff. Claim status is updated with actual owner, worktree, branch and starting HEAD. Neither GitHub nor physical board is a substitute for the other.
+4. On Predator fetch exact pushed HP branch. Prefer a **fresh continuation branch and new laptop-only docs worktree** rather than concurrently writing the old HP branch. Suggested branch `docs/fable-predator-mobile-d074-d076-continuation-20261112-v1`, suggested worktree `/media/jer/Files/CCF/Worktrees/CCF-D074-D076-Mobile-Docs`; validate they do not exist and no current owner holds the path. Only then resume the spec task under the **same #413 claim**, with its new lane and an explicit continuation handoff, not a cloned untracked HP directory.
+5. Leave #413 production C# coding gated by D-074/D-076 Manager four-file spec approval; no mixing with D-073 UI files or unsafe Unity use. Every result published to GitHub; no main/personal #382 merge or Windows build.
+
+## During travel
+
+- Predator laptop with an internet connection can work on both streams. Keep regular GitHub pushes and Markdown handoffs with tests and evidence. Preserve the portable ZX20 Ops board/mount, source checkout, local Unity Editor and authentic saves/fixtures needed for any Unity verification. If a required local fixture is absent, explicitly mark that check NOT RUN rather than inventing it.
+- Stop work at account/provider usage limits; single available OpenAI provider remains prioritised for #417 unless Manager reprioritises. Quota/server limits are independent from Wi-Fi hardware.
+- If there is no internet while travelling, local source editing/testing may still work but claims, remote coordination and durable handoff publication cannot be verified; source edits requiring live ownership checks should wait until connectivity returns.
+
+## Return to home dual-device mode
+
+- Finish/publish current Predator continuation, stop its writer, record actual HEAD + dirty file state. Manager transfers the D-074/D-076 docs lane back to HP through current GitHub and one safe native-linted physical-board turn. HP fetches exact published continuation branch into a **new isolated WSL worktree**, not overwriting the old paused HP directory. Resume dual parallel execution only after both owner records match and no two machines write the same branch/file set.
+
+## Boundaries and outputs
+
+This contingency runbook is **not a new worker dispatch**, claim or immediate machine-ownership change. At the user's departure, issue a single exact transfer handoff with fresh branch/HEAD, reason, task status and user action. A machine is not a permanent subsystem owner: one Predator laptop can do Unity, documentation and offline C# as capacity permits; a second HP adds throughput but must never be an availability dependency.
+
+**User action now:** no forced change before travel; at an agreed switch time, perform the HP commit/push/dirty-state preflight while physically near it, then Manager coordinates one physical owner-row transition and issues a paste-ready Predator continuation message.
