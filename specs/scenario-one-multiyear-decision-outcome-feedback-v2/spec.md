@@ -50,6 +50,10 @@ Decide after audit: (A) existing history is sufficient but discoverability/copy 
 
 At least two authentic successive annual reviews with an intervention and later decision, plus one idle/no-work year; a normal versus older save gap; positive Sitka and Oak/Beech cases where genuinely present. Verify navigation, player provenance, zero fabricated events, user-visible differences and honest unrecorded fallbacks. No PASS/IMPLEMENTED assertion from this DRAFT.
 
+## D-076 — Treatment provenance and rack-wide observed consequences
+
+Future decision/outcome feedback should let players distinguish their chosen **representative source area** from other areas where they later **approved and executed** a corresponding MFM treatment. Treat the original sample as L1 demonstrative player decisions, approved Work Plan work as separate L1 recorded action, and later forest state as L2 observation; use L3 only for comparable saved year and location metrics, and L4 for cautious advice. Existing annual ecological snapshots are stand totals and per-species aggregates, **not per-rack annual ecological histories**. Therefore do not claim per-rack Year A → Year B canopy/regeneration figures unless a new source-authentic longitudinal measurement contract is separately approved. D-076's [multi-cycle rack sample DRAFT](../scenario-one-multicycle-representative-rack-management-v1/spec.md) controls later-cycle sample selection and overlap; this UI feature owns honest explanatory visibility. The optional retained-neighbour reason feature #386 is still not needed.
+
 ## 7. Required CCF calendar/advance connection — D-074 and D-075
 
 The user's subsequent product direction requires **periodic management and two selectable time actions**, not merely additional review text. The independent [Management Cadence and Two Advance Options V1](../scenario-one-management-cadence-and-advance-v1/spec.md) draft owns that **new player workflow and annual-step engine**; this feedback V2 owns only the selected-year recorded-decision/outcomes presentation contract. The two features can reuse S1-C historical records but must not each implement a new time controller or history store.
