@@ -167,3 +167,22 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **Custody:** leases `e6b25ec3104a40b9abcd12b15826b178`, `b1b0b566ab9548fc814f952ca9912819` released; lock FREE; qual lane clean @ `a314d308`; ZX20 17,659,592,704 bytes free; nine host save/Prefs hashes unchanged. Claude A check: #382 lane `/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual` still clean @ `2aaacad6`.
 - **Still NOT RUN / UNDETERMINED:** baseline-save CurrentWorldHash comparison; Oak/Beech first-reached variants; old S1A `nursery warning visible` assertion.
 - **Dispatch:** Claude B `claude-sonnet-5-5` medium ("Claude B — Pro") final delta review of `a314d308` including an audit of the author screenshots. Opus still not used.
+
+## EVENT 12 — 2026-11-12 03:00 UTC — final Claude B verdict APPROVED; orchestration result published
+
+- **Evidence class:** OBSERVED FACT.
+- **Reviewer:** `claude-sonnet-5-5`, "Claude B — Pro". Requested effort medium; **the reviewer's own report says it ran at low effort** — recorded as reported, not corrected. [Final delta review 100a43a2](https://github.com/jermur788/CCF/blob/100a43a252c4d370c4b407b1d6aa5663c710063f/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/CLAUDE-B-C01-RESEARCH-COPY-V1-FINAL-DELTA-REVIEW.md): **APPROVED for a314d308** with scope limits; screenshots audited; `run_checks.py` 157 PASS rerun; two non-blocking report-consistency notes (duplicate scroll position in density frames; anchors table shows eight lines, prose says nine).
+- **Integration:** none performed (user decision, Event 7). Result file: [CLAUDE-A-ORCHESTRATION-IMPLEMENTATION-RESULT.md](CLAUDE-A-ORCHESTRATION-IMPLEMENTATION-RESULT.md).
+
+## End-of-run summary (from logged events only)
+
+- **Work:** 1 implementation task attempted and completed (C-01) with 2 rework loops (review findings; rendered finding F391-01). 0 rejected. Integration deliberately not attempted.
+- **Model/pool usage:** Claude A `claude-fable-5-2` (1 session, orchestration only, no source edits; one operational config edit to `lanes.json`). Sol `gpt-6.1-sol` pool A: 7 runs (4 medium: implement, rework 1, Unity attempts 1–2; 3 high: Unity attempt 3, fix + attempt 4 — counted as 2 high runs — see events 9–11; total medium 4, high 2, i.e. **6 runs**; the "seventh" in Event 11 is a miscount, left unedited above per append-only rule). Sol pool B: 0 runs. Claude B `claude-sonnet-5-5`: 3 review runs. Opus: 0. Pool switches: 0. Quota/cooldown/login events observed: 0. Restarts: 0 provider restarts; 3 Unity re-dispatches.
+- **Tokens / cost / wall time per run:** UNKNOWN (not exposed to the orchestrator). Whole run wall time ≈ from 01:30 UTC to 2026-11-12 03:00 UTC.
+- **Context:** Claude A compactions observed: 0.
+- **Review:** Claude B verdicts NEEDS CHANGES (f32be4c5) → APPROVED source (868643a1) → APPROVED (a314d308).
+- **Test failures and gates:** stale verifier pins (fixed); Unity lane unregistered (fixed by registry entry); black captures on cold import (not reproduced warm, cause unproven); F391-01 rendered defect (fixed, re-verified); pre-existing RackV2HelpTeaching failures (untouched); nursery-warning assertion UNDETERMINED; baseline-save world-hash load NOT RUN.
+- **Protected identity:** protected source diff empty; Reference anchors equal #381 record on 868643a1 (author-run); host save/Prefs hashes unchanged; #382 lane clean @ 2aaacad6.
+- **User action required:** none to keep playtesting #382 as pinned. Manager #200 decisions listed in the result file.
+- **Dashboard / Drive / active-tasks sync:** NOT DONE by Claude A; NOT VERIFIED.
+- **Orchestration errors by Claude A (for learning):** did not check lane registration before the first Unity dispatch (one wasted run); did not require a rendered check before the first "approved" source review, so a layout regression surfaced late.
