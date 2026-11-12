@@ -172,12 +172,62 @@ public sealed class AnnualReviewView
         BuildMoney(m, year, Column(columns, "Money"));
         BuildForest(m, year, Column(columns, "Forest changes"), historical);
         BuildPriorTreatmentGuidance(year);
+        BuildYearComparison(m, year);
         BuildStorm(m, year, historical);
         BuildHistory(m, interventions, completion, year);
         BuildTrends(m);
         BuildObjectives(m, historical);
         if (m.CenturyReview != null)
             BuildCentury(m);
+    }
+
+    private void BuildYearComparison(ScenarioOneManager manager, YearHistoryView year)
+    {
+        ScenarioOneYearComparisonText.Card comparison = ScenarioOneYearComparisonText.Describe(
+            ScenarioOneManagementFollowonReadout.Build(manager.HistoryYears, year.Year),
+            year.Year, ScenarioOneUiFacts.SpeciesName);
+        if (!comparison.Visible) return;
+
+        VisualElement card = UiKit.Box("card");
+        card.name = "annual-year-comparison";
+        scroll.Add(card);
+        Foldout species = null;
+        string speciesKey = year.Year + "|year-comparison-species";
+        // Guidance has already been built for this year; do not point to a card that is absent.
+        bool hasGuidance = scroll.Q<VisualElement>("prior-treatment-guidance") != null;
+        foreach (ScenarioOneYearComparisonText.Row row in comparison.Rows)
+        {
+            if (row.Kind == ScenarioOneYearComparisonText.RowKind.GuidancePointer && !hasGuidance)
+                continue;
+            if (row.Kind == ScenarioOneYearComparisonText.RowKind.SpeciesHeading)
+            {
+                species = new Foldout { text = row.Text, value = openDetails.Contains(speciesKey) };
+                species.name = "annual-year-comparison-species";
+                species.RegisterValueChangedCallback(e => { if (e.newValue) openDetails.Add(speciesKey); else openDetails.Remove(speciesKey); });
+                card.Add(species);
+                continue;
+            }
+
+            VisualElement parent = card;
+            if (row.Kind == ScenarioOneYearComparisonText.RowKind.SpeciesMeasure
+                || row.Kind == ScenarioOneYearComparisonText.RowKind.SpeciesNotRecorded)
+            {
+                parent = species;
+                if (!row.FirstRowOfSpecies)
+                {
+                    VisualElement indented = UiKit.Box();
+                    indented.style.marginLeft = 10;
+                    parent.Add(indented);
+                    parent = indented;
+                }
+            }
+            string textClass = row.Muted ? "muted"
+                : row.Kind == ScenarioOneYearComparisonText.RowKind.Heading ? "heading" : "body";
+            Label label = row.Provenance.HasValue
+                ? AddTagged(parent, row.Provenance.Value, row.Text, textClass)
+                : UiKit.Add(parent, row.Text, textClass);
+            label.name = "annual-year-comparison-" + row.Key;
+        }
     }
 
     private void BuildHeadlines(YearHistoryView year)
