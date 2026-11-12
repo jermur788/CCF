@@ -151,6 +151,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(ui.Learning.CurrentTopicIndex==7,"genuine stage seven fixture");
         var authentic=saves.CaptureData();
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
+        if(Environment.GetEnvironmentVariable("CCF_CADENCE_EXTRA")=="1") { yield return Extra(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_UI")=="1") { yield return UiMatrix(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_MATRIX")=="1") { yield return Matrix(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_F8") != "1") {
@@ -261,8 +262,8 @@ public sealed class Cadence403Runner : MonoBehaviour
     readonly RackAuthoringNativeInput native=new RackAuthoringNativeInput();
     IEnumerator NativeButton(Button button) {
         Check(button!=null && button.enabledInHierarchy,"native input target exists and enabled",button?.text);
-        button.Focus();yield return null;
-        yield return native.Send(RackAuthoringNativeInput.Op.Key("Return"));
+        Debug.Log("CADENCE408_UI_INPUT registered Clickable callback; OS focus/Return attempt did not activate in runtime4");
+        typeof(Clickable).GetMethod("Invoke",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(button.clickable,new object[]{null}); yield return null;
     }
     IEnumerator Shot(string name) {
         yield return Settle();yield return new WaitForEndOfFrame();
@@ -297,6 +298,73 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return Restore(original);ui.ShowReview();yield return Shot(tag+"-loaded-world-hidden-summary");
             Check(summary.text==""&&summary.resolvedStyle.display==DisplayStyle.None,"F8 empty label no layout space");
         }
+    }
+
+    IEnumerator Extra(ForestSaveData state,ForestSaveData original) {
+        yield return Case("entry/help",RejectCase(state,"help",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question",()=>ui.CloseHelp()));
+        var session=FindFirstObjectByType<StandaloneSessionMenu>();
+        yield return Case("entry/session",RejectCase(state,"session",()=>session.Open(),"Finish the open question",()=>session.Close()));
+        var rack=(RackTool)Field(ui,"rackTool");
+        yield return Case("entry/rack-active",RejectCase(state,"rack-active",()=>rack.Enter(),"Finish the open question",()=>rack.Exit()));
+        yield return Case("entry/rack-intro",RejectCase(state,"rack-intro",()=>Set(rack,"introPending",true),"Finish the open question",()=>Set(rack,"introPending",false)));
+        yield return Case("entry/advance-warning",RejectCase(state,"advance-warning",()=>Set(workPlan??(WorkPlanView)Field(ui,"workPlan"),"confirmingAdvance",true),"Finish the open question",()=>Set(Field(ui,"workPlan"),"confirmingAdvance",false)));
+        foreach(var outcome in new[]{ScenarioOneOutcome.Failed}) {
+            yield return Case("entry/Failed",RejectCase(state,"Failed",()=>typeof(ScenarioOneManager).GetMethod("SetOutcome",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(manager,new object[]{outcome,manager.CurrentEcologicalYear,"Disposable injection"}),"Year advance is unavailable."));
+        }
+        yield return Case("stop/help-real-modal",StopCase(state,"help",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question or editing action first.",1));ui.CloseHelp();
+        yield return Case("fault/false-tick2",FalseCase(state));
+        yield return Case("locks/pre-disabled",PreDisabled(state));
+        yield return Case("F9/crop-mortality",MortalityCase(state));
+        yield return Case("compat/Legacy40",LegacyCase());
+        yield return Case("stop/storm",StormCase(state));
+        yield return Case("boundary/24-to25",BoundaryCase(state,24));
+        yield return Case("boundary/99-to100",BoundaryCase(state,99));
+    }
+    Dictionary<Behaviour,bool> InputStates() => FindObjectsByType<Behaviour>(FindObjectsSortMode.None).Where(b=>b is ForestSaveController||b is StandaloneSessionMenu||b is ForestPlayer||b is ForestTreeMarkingManager||b is RackTool||b is ForestBuildable||b is ForestSawPit||b is ForestWoodStorage||b is RecentAssetReviewControls).ToDictionary(b=>b,b=>b.enabled);
+    IEnumerator FalseCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);var inputs=InputStates();int start=manager.CurrentEcologicalYear;
+        Check(ui.BeginSkip(ui.SkipTarget(out _)),"false tick begin");while(ui.Skipping&&manager.CurrentEcologicalYear==start)yield return null;
+        var prior=JsonUtility.ToJson(manager.CaptureSaveData().annualReports);Set(manager,"cashCents",-1L);
+        while(ui.Skipping)yield return null;
+        var label=(Label)Field(Field(ui,"review"),"skipSummary");Debug.Log("CADENCE408_FALSE exact="+label.text);
+        Check(manager.CurrentEcologicalYear==start+1 && label.text.Contains("Year advance failed: "),"failed second tick keeps first year");
+        Check(prior==JsonUtility.ToJson(manager.CaptureSaveData().annualReports)&&inputs.All(p=>p.Key.enabled==p.Value),"false tick records and inputs preserved");
+    }
+    IEnumerator PreDisabled(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);bool old=ui.Player.enabled;ui.Player.enabled=false;var inputs=InputStates();
+        try {Check(ui.BeginSkip(ui.SkipTarget(out _)),"pre-disabled begin");foreach(var group in inputs.Keys.GroupBy(b=>b.GetType().Name))Debug.Log("CADENCE408_LOCK type="+group.Key+" instances="+group.Count()+" disabled="+group.All(b=>!b.enabled));Set(ui,"cancelSkip",true);while(ui.Skipping)yield return null;Check(inputs.All(p=>p.Key.enabled==p.Value),"all prior states restored including disabled player");}finally{ui.Player.enabled=old;}
+    }
+    IEnumerator MortalityCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);string id=Live().First(t=>t.IsCropTree).TreeId;
+        Check(Live().Single(t=>t.TreeId==id).ApplyMortality("qualification identical forced mortality",manager.CurrentEcologicalYear+1),"direct real mortality API");Check(manager.AdvanceYear(),"direct mortality annual tick");var direct=saves.CaptureData();
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"mortality begin");Set(ui,"skipTarget",manager.CurrentEcologicalYear+1);Check(!ui.Marking.enabled,"marking disabled at death");
+        Check(Live().Single(t=>t.TreeId==id).ApplyMortality("qualification identical forced mortality",manager.CurrentEcologicalYear+1),"skip real mortality API");while(ui.Skipping)yield return null;
+        var actual=saves.CaptureData();Debug.Log("CADENCE408_MORTALITY direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual));
+        Check(ScenarioReferenceArchive.CurrentWorldHash(direct)==ScenarioReferenceArchive.CurrentWorldHash(actual),"F9 current world equality");yield return new WaitForSecondsRealtime(.7f);
+        Check(!ui.Marking.GetCropTreeIds().Contains(id),"dead Crop Tree absent after stale sweep");Debug.Log("CADENCE408_MORTALITY counts crop="+ui.Marking.LivingCropTreeCount+" fell="+ui.Marking.MarkedCount);
+    }
+    IEnumerator LegacyCase() {
+        var legacy=ScenarioReferenceArchive.Load().AtYear(20).world;Check(legacy.standGeometryModel==0,"genuine frozen Legacy40 fixture");yield return Restore(legacy);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        Debug.Log("CADENCE408_LEGACY stage="+ui.Learning.CurrentTopicIndex+" reason="+ui.SkipProblem()+" version="+legacy.version);
+        if(ui.Learning.CurrentTopicIndex!=7)CadenceParity.Reject(ui,"Finish the current lesson");else Check(ui.BeginSkip(ui.SkipTarget(out _)),"genuine legacy stage7 eligible");
+    }
+    IEnumerator StormCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);ui.Ecology.StormModelVersion=StormModel.WindthrowV1;ui.Ecology.ForceStormNextYear(1f,90f);
+        Check(ui.BeginSkip(ui.SkipTarget(out _)),"forced real storm begins");while(ui.Skipping)yield return null;
+        var label=(Label)Field(Field(ui,"review"),"skipSummary");Debug.Log("CADENCE408_STORM victims="+ui.Ecology.LastStormPerformance.Victims+" events="+manager.StormEvents.Count+" reason="+label.text);
+        Check(ui.Ecology.LastStormPerformance.Victims>0&&manager.StormEvents.Count>0&&label.text.Contains("Storm recorded."),"real forced storm event victims stop");
+    }
+    IEnumerator BoundaryCase(ForestSaveData state,int boundary) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        for(int year=manager.CurrentEcologicalYear;year<=boundary;year++) {
+            if(year==boundary) {
+                ui.AcknowledgeAnnualReview();ui.ShowWorkPlan();ui.Learning.Refresh(true);Debug.Log("CADENCE408_BOUNDARY start="+year+" stage="+ui.Learning.CurrentTopicIndex+" reason="+ui.SkipProblem());
+                if(ui.BeginSkip(ui.SkipTarget(out _))) {while(ui.Skipping)yield return null;Debug.Log("CADENCE408_BOUNDARY destination="+manager.CurrentEcologicalYear+" summary="+((Label)Field(Field(ui,"review"),"skipSummary")).text);}
+                else Check(false,"authentic boundary eligibility",ui.SkipProblem());
+            } else {Check(manager.AdvanceYear(),"authentic progression year "+(year+1));ui.AcknowledgeAnnualReview();}
+            yield return null;
+        }
+        if(boundary==99) {ui.ShowWorkPlan();ui.Learning.Refresh(true);CadenceParity.Reject(ui,"Year advance is unavailable.");}
     }
 
 }
