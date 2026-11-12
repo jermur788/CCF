@@ -49,3 +49,9 @@ Decide after audit: (A) existing history is sufficient but discoverability/copy 
 ## 6. Completion evidence (future)
 
 At least two authentic successive annual reviews with an intervention and later decision, plus one idle/no-work year; a normal versus older save gap; positive Sitka and Oak/Beech cases where genuinely present. Verify navigation, player provenance, zero fabricated events, user-visible differences and honest unrecorded fallbacks. No PASS/IMPLEMENTED assertion from this DRAFT.
+
+## 7. Required CCF calendar/advance connection — D-074 and D-075
+
+The user's subsequent product direction requires **periodic management and two selectable time actions**, not merely additional review text. The independent [Management Cadence and Two Advance Options V1](../scenario-one-management-cadence-and-advance-v1/spec.md) draft owns that **new player workflow and annual-step engine**; this feedback V2 owns only the selected-year recorded-decision/outcomes presentation contract. The two features can reuse S1-C historical records but must not each implement a new time controller or history store.
+
+The player can choose **Advance 1 Year** or **Skip to Next Management Year**. During a skip, the separate cadence feature must run each authoritative annual tick and stop on real decisions, preserve individual annual records, and on arrival open the same truthful Review supported here. A requested “management year” is a suggested **reassessment point**, not mandatory thinning, and an objective requiring same-year player action must not be auto-completed by passage of time. The exact target-year policy and any completion predicate amendment remain DRAFT until tested/approved. This V2 neither implements nor blocks the two-button UI by itself.
