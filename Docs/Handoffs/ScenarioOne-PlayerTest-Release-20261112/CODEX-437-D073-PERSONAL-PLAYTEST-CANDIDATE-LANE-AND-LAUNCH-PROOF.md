@@ -112,9 +112,12 @@ No new 1080p intro/forest run was requested or performed; inherited #427 provena
 
 ## Launcher and learner instructions
 
-**Final launcher:** `/media/jer/Files/CCF/Operations/PersonalPlaytest-D073/launch-personal-playtest.sh`  
-**SHA-256:** `1d43336ea6830b6fb053ebc94b439a289e72da2bf1dcb4bd7ed1684b53623b29`  
-**README:** `/media/jer/Files/CCF/Operations/PersonalPlaytest-D073/README.md`  
+**Final launcher:** `/media/jer/Files/CCF/Operations/PersonalPlaytest-D073/launch-personal-playtest.sh`
+
+**SHA-256:** `1d43336ea6830b6fb053ebc94b439a289e72da2bf1dcb4bd7ed1684b53623b29`
+
+**README:** `/media/jer/Files/CCF/Operations/PersonalPlaytest-D073/README.md`
+
 **README SHA-256:** `292dec6a539927731212413e8d977c2a171cb8b3604c1fb6a1981a66a420d764`
 
 Plain Bash with existing host tools. It pins the exact branch/commit, checks the clean lane and 4,011 bytes, host37 hashes+complete inventory, all full-backup81 copies, mount/15 GiB, no Editor/FREE lock, existing entitlement and graphical desktop. It rejects profile symlinks, acquires the real lease, copies the private licence/config, launches interactively, waits even if the terminal receives a signal, and only cleans/releases after Editor exit. It restores only the ten authorised tracked drift paths, preserves/reports anything else and leaves receipt files. Its host baselines are immutable admissions: if valued data later changes legitimately, it stops for operator review instead of silently accepting a different baseline.
