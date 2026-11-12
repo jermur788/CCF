@@ -104,6 +104,13 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
                 + " foldValue=" + fold?.value + " key=" + key + " scroll=" + Scroll.scrollOffset.ToString("F2") + " screenVisible=" + review.Root.resolvedStyle.display);
             lastCard = card; lastFold = fold; lastKey = key;
         }).Every(20);
+        // Window and focus events: a click that coincides with one of these is the suspected cause of a lost click.
+        panelRoot.RegisterCallback<MouseEnterWindowEvent>(eventData => Log("window-enter"), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<MouseLeaveWindowEvent>(eventData => Log("window-leave"), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<PointerCancelEvent>(eventData => Log("pointer-cancel"), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<FocusInEvent>(eventData => Log("focus-in target=" + Element(eventData.target as VisualElement)), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<FocusOutEvent>(eventData => Log("focus-out target=" + Element(eventData.target as VisualElement)), TrickleDown.TrickleDown);
+        Application.focusChanged += focused => Log("application-focus-changed focused=" + focused);
         review.Root.RegisterCallback<ChangeEvent<bool>>(eventData => Log("value-change target=" + Element(eventData.target as VisualElement)
             + " before=" + eventData.previousValue + " after=" + eventData.newValue), TrickleDown.TrickleDown);
     }
@@ -157,12 +164,13 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
         Set(oracle, "history", history);
         InstallTracing();
         string phase = Environment.GetEnvironmentVariable("CCF_427_PHASE");
-        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica", faithful = phase == "faithful";
+        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica", faithful = phase == "faithful", stress = phase == "stress";
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })
         {
             Cadence408GameSize.SetGameSize(size.x, size.y); yield return Settle(1.1f);
             Check(Screen.width == size.x && Screen.height == size.y, "exact render dimensions", Screen.width + "x" + Screen.height);
-            if (faithful)
+            if (stress) yield return Case(size + "/focus-loop-stress", Stress(size, size.x == 1280 ? 40 : 20, size.x == 1280 ? 4 : 2));
+            else if (faithful)
             {
                 // Same order as candidate1: rendered ON, rendered OFF, inherited native sequence, then the unchanged original close probe.
                 // Failures from the unchanged rendered oracle count against the oracle's own totals, exactly as in the first run.
@@ -269,6 +277,38 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             Log("replica-end repeat=" + repeat + " oracleFailuresAdded=" + ((int)Get(oracle, "failures") - before) + " foldValue=" + Fold?.value + " scroll=" + Scroll.scrollOffset.ToString("F4"));
             Check((int)Get(oracle, "failures") == before, "original unchanged native-extra probe passes, repeat " + repeat + " " + variant + " " + size);
         }
+    }
+
+    // Many fast native clicks on the species toggle, alternating blocks with the driver's focus loop on and off. Each click must toggle the
+    // foldout; a click that does not is a lost click, recorded with the surrounding window/focus/pointer trace.
+    IEnumerator Stress(Vector2Int size, int clicksPerBlock, int blocks)
+    {
+        string control = Environment.GetEnvironmentVariable("CCF_427_FOCUS_CONTROL");
+        probe = "stress"; yield return Fresh(); yield return Position(false, .5f);
+        float[] waits = { 0.05f, 0.3f, 1.1f, 3f };
+        for (int block = 0; block < blocks; block++)
+        {
+            bool loopOn = block % 2 == 0;
+            if (!string.IsNullOrEmpty(control)) { if (loopOn) File.WriteAllText(control, "on"); else if (File.Exists(control)) File.Delete(control); }
+            Log("stress-block " + block + " focusLoopOn=" + loopOn);
+            yield return new WaitForSecondsRealtime(3f);
+            int lost = 0;
+            for (int click = 0; click < clicksPerBlock; click++)
+            {
+                bool before = Fold.value; var foldInstance = Fold;
+                yield return Click(false);
+                bool after = Fold != null && Fold.value;
+                if (after == before)
+                {
+                    lost++;
+                    Check(false, "stress click toggled foldout block=" + block + " click=" + click + " focusLoopOn=" + loopOn, "before=" + before + " after=" + after + " sameFoldInstance=" + ReferenceEquals(foldInstance, Fold));
+                }
+                yield return new WaitForSecondsRealtime(waits[click % waits.Length]);
+            }
+            Log("stress-block-end " + block + " focusLoopOn=" + loopOn + " lost=" + lost + "/" + clicksPerBlock);
+            Check(true, "stress block " + block + " focusLoopOn=" + loopOn + " size=" + size, "lost=" + lost + "/" + clicksPerBlock);
+        }
+        if (!string.IsNullOrEmpty(control)) File.WriteAllText(control, "on");
     }
 
     IEnumerator CorrectedClose()
