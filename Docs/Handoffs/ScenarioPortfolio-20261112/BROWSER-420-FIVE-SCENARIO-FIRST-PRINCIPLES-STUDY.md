@@ -1,6 +1,6 @@
 # Independent five-scenario design study — CCF, task #420
 
-**Status:** STAGE A CHECKPOINT — independent outline, not yet research-checked or approved.  
+**Status:** RESEARCH HANDED OFF — Manager review pending; Stage A checkpoint preserved in Git history.  
 **Date:** 12 November 2026. **Scope:** research/design only; no game-code or product-authority changes.  
 **Source boundary:** Read current Game Brief, Decision Log, Milestone, Unity Overview, research evidence and Manager *task packet*; deliberately did **not open** the Manager's standalone scenario sketch or any old Scenario Two–Five plans before recording this Stage A outline. **Independence limitation disclosed:** the top of live `active-tasks.md`, which must be read for ownership, already contained a short synopsis of the Manager's five topic labels. Thus this is independently reasoned in detail but **not a fully blinded study**; the separate sketch and previous plans remain unread as of this checkpoint.
 
