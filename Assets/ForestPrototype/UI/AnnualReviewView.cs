@@ -192,6 +192,7 @@ public sealed class AnnualReviewView
         card.name = "annual-year-comparison";
         scroll.Add(card);
         Foldout species = null;
+        ScenarioOneYearComparisonText.Row tableHeader = null;
         string speciesKey = year.Year + "|year-comparison-species";
         // Guidance has already been built for this year; do not point to a card that is absent.
         bool hasGuidance = scroll.Q<VisualElement>("prior-treatment-guidance") != null;
@@ -223,11 +224,52 @@ public sealed class AnnualReviewView
             }
             string textClass = row.Muted ? "muted"
                 : row.Kind == ScenarioOneYearComparisonText.RowKind.Heading ? "heading" : "body";
+            if (row.Kind == ScenarioOneYearComparisonText.RowKind.TableHeader)
+                tableHeader = row;
+            if (row.Kind == ScenarioOneYearComparisonText.RowKind.StandMeasure
+                || row.Kind == ScenarioOneYearComparisonText.RowKind.SpeciesMeasure)
+            {
+                string prefix = "annual-year-comparison-" + row.Key;
+                string measure = row.FirstRowOfSpecies ? row.SpeciesName + ": " + row.Label : row.Label;
+                UiKit.Add(parent, measure, textClass).name = prefix;
+                VisualElement values = UiKit.Box("row", "row-wrap");
+                values.name = prefix + "-values";
+                values.style.alignItems = Align.FlexStart;
+                parent.Add(values);
+                AddYearComparisonValue(values, prefix + "-year-a", tableHeader.SelectedValue,
+                    row.SelectedValue, row.ValueProvenance, textClass);
+                AddYearComparisonValue(values, prefix + "-year-b", tableHeader.LatestValue,
+                    row.LatestValue, row.ValueProvenance, textClass);
+                AddYearComparisonValue(values, prefix + "-difference", tableHeader.Difference,
+                    row.Difference, row.DifferenceProvenance, textClass);
+                continue;
+            }
             Label label = row.Provenance.HasValue
                 ? AddTagged(parent, row.Provenance.Value, row.Text, textClass)
                 : UiKit.Add(parent, row.Text, textClass);
             label.name = "annual-year-comparison-" + row.Key;
         }
+    }
+
+    private static void AddYearComparisonValue(VisualElement parent, string prefix, string heading,
+        string value, HistoryProvenance? provenance, string textClass)
+    {
+        // Empty mapper columns are missing records, not zero-valued observations.
+        if (string.IsNullOrEmpty(value)) return;
+        VisualElement entry = UiKit.Box("annual-text-entry");
+        entry.name = prefix;
+        entry.style.flexGrow = 1;
+        entry.style.flexBasis = 0;
+        entry.style.minWidth = 180;
+        UiKit.Add(entry, heading, "muted", "annual-text-body").name = prefix + "-heading";
+        if (provenance.HasValue)
+        {
+            VisualElement source = UiKit.Box("annual-text-source");
+            Tag(source, provenance.Value).name = prefix + "-tag";
+            entry.Add(source);
+        }
+        UiKit.Add(entry, value, textClass, "annual-text-body").name = prefix + "-value";
+        parent.Add(entry);
     }
 
     private void BuildHeadlines(YearHistoryView year)
