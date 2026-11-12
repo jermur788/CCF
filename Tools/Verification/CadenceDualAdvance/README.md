@@ -36,3 +36,8 @@ The runner can hold between-tick execution with its earlier test Update while OS
 
 
 The final408 order negatives create actual manual/MFM orders, approve through the real Work Plan handler when required, invalidate real targets via ApplyMortality, and call RevalidateOpenOrders. They never construct orders/events or edit save JSON. Completed is observed from real Year25 evaluation; Failed is observed from ordinary annual evaluation after an explicitly injected zero-cash condition. Earlier synthetic-order and direct-SetOutcome diagnostic attempts are retained as discarded evidence, not qualification passes.
+
+
+Native-key qualification must first demonstrate that actual OS F5 changes the isolated slot mtime, F9 changes TeachingWorldVersion through Load, and F10 opens the real session menu. `CCF_CADENCE_KEYS=1` selects this focused gate. Focus/click the private Game view before delivering keys. The Linux Editor's GTK3 default F10 menu accelerator intercepts F10: the408 isolated driver writes `[Settings]` / `gtk-menu-bar-accel=` only to the run's private XDG_CONFIG_HOME/gtk-3.0/settings.ini. Never change host GTK preferences. After those positive controls, repeat all keys with nine owners disabled and assert unchanged slot bytes/mtime, world version/state and closed session menu. The test-only frame hold is limited to OS delivery, not normal timing tests.
+
+The408 external driver's original substring FAIL classifier misidentified the positive CADENCE408_FAILED outcome diagnostic. Its corrected marker regex and sensitivity receipt are documented in the qualification report; original logs/results are retained. A parser correction is not an Editor rerun or a changed gameplay assertion.
