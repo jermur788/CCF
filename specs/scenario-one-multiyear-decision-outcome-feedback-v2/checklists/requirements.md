@@ -30,3 +30,9 @@
 - [ ] Structural diversity metrics, alternative competition and wind model research **not in this implementation**.
 
 **No checklist above is considered PASS solely because the older S1-C spec exists.** Recheck the actual newer UI source and genuine user flow.
+
+## Shared cadence interface (D-074/D-075)
+
+- [ ] AC-C1 The feedback is useful after either manual one-year steps or a multi-year skip; no skipped annual history is lost or mislabeled.
+- [ ] AC-C2 A “next management year” is presented as reassessment, not an automatic intervention or an authoritative reason why changes occurred.
+- [ ] AC-C3 UI/test ownership and actual source candidate are coordinated with the separate [two-advance-options spec](../../scenario-one-management-cadence-and-advance-v1/spec.md); no concurrent Work Plan/Annual Review writers.
