@@ -183,7 +183,7 @@ public sealed class D073Runner : MonoBehaviour
     AnnualReviewView Review= null;
     AnnualReviewView R => Review??(Review=(AnnualReviewView)Field(ui,"review"));
     ScenarioOneYearComparisonText.Card Card(int year)=>ScenarioOneYearComparisonText.Describe(ScenarioOneManagementFollowonReadout.Build(manager.HistoryYears,year),year,ScenarioOneUiFacts.SpeciesName);
-    string Cards()=>string.Join("\n----\n",manager.HistoryYears.Select(y=>JsonUtility.ToJson(Card(y.Year))));
+    string Cards()=>string.Join("\n----\n",manager.HistoryYears.Select(y=>(string)typeof(YearComparisonVerification).GetMethod("Dump",BindingFlags.NonPublic|BindingFlags.Static).Invoke(null,new object[]{Card(y.Year)})));
     IEnumerator Case(string name,Func<IEnumerator> action) {
         int start=checks;Exception failure=null;var stack=new Stack<IEnumerator>();stack.Push(action());
         while(stack.Count>0) {
