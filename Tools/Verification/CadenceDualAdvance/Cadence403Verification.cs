@@ -18,7 +18,7 @@ public static class Cadence403Verification
     public static void Begin()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/ForestTest.unity");
-        
+
         EditorApplication.isPlaying = true;
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
