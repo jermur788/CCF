@@ -42,6 +42,7 @@ public sealed class Cadence403Runner : MonoBehaviour
     void Check(bool ok, string name, string detail = "")
     {
         checks++;
+        if(output!=null && saves!=null && ui?.Learning!=null) { int stage=ui.Learning.CurrentTopicIndex;string path=Path.Combine(output,"stage-"+stage+".json");if(!File.Exists(path))File.WriteAllText(path,JsonUtility.ToJson(saves.CaptureData())); }
         string line = (ok ? "PASS " : "FAIL ") + name + " " + detail;
         evidence.Add(line); Debug.Log("TEACHING_CAP_CHECK " + line);
         if (!ok) throw new InvalidOperationException(line);
@@ -203,9 +204,9 @@ public sealed class Cadence403Runner : MonoBehaviour
         int start=manager.CurrentEcologicalYear;
         yield return CadenceParity.RunStop(ui,action,reason,k);
         CadenceParity.RejectWrongStopReason(ui,start,manager.CurrentEcologicalYear,reason);
-        int count=manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged);
+        bool seen=manager.AnnualReviewSeen; int count=manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged);
         ui.AcknowledgeAnnualReview();ui.AcknowledgeAnnualReview();
-        Check(manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged)==count+1,"exactly one genuine destination acknowledgment");
+        Check(manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged)==count+(seen?0:1),"exact genuine destination acknowledgment delta (zero when no tick and already read)");
     }
     IEnumerator Matrix(ForestSaveData state,ForestSaveData original) {
         yield return Case("entry/early-original",RejectCase(original,"early-original",()=>{},"Finish the current lesson"));
@@ -301,6 +302,24 @@ public sealed class Cadence403Runner : MonoBehaviour
     }
 
     IEnumerator Extra(ForestSaveData state,ForestSaveData original) {
+        for(int stage=0;stage<7;stage++) {
+            string path=Path.Combine(output,"stage-"+stage+".json");
+            if(File.Exists(path)) yield return Case("entry/stage-"+stage,RejectCase(JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(path)),"stage-"+stage,()=>Debug.Log("CADENCE408_STAGE restored="+ui.Learning.CurrentTopicIndex),"Finish the current lesson"));
+            else Debug.Log("CADENCE408_NOT_RUN entry/stage-"+stage+" no authentic stage snapshot observed during all real teaching handlers");
+        }
+        yield return Case("MFM/historical-approved",MfmCase(state));
+        yield return Case("entry/unread",RejectCase(state,"unread",()=>{Check(ui.AdvanceFromWorkPlan(),"genuine unread year");ui.ShowWorkPlan();},"Read and acknowledge"));
+        yield return Case("entry/preview-injected",RejectCase(state,"preview",()=>Set(manager,"referencePreviewActive",true),"Return to your forest",()=>Set(manager,"referencePreviewActive",false)));
+        var map=Field(ui,"map");var editor=map.GetType().GetProperty("RackEditor").GetValue(map);
+        yield return Case("entry/reset-pending",RejectCase(state,"reset",()=>Set(editor,"<ResetPending>k__BackingField",true),"Finish the open question",()=>Set(editor,"<ResetPending>k__BackingField",false)));
+        yield return Case("entry/reopen-pending",RejectCase(state,"reopen",()=>Set(map,"reopenPending",true),"Finish the open question",()=>Set(map,"reopenPending",false)));
+        yield return Case("entry/consent",RejectCase(state,"consent",()=>Set(editor,"consentRetry",new Func<RackPlanOperationResult>(()=>default)),"Finish the open question",()=>Set(editor,"consentRetry",null)));
+        var gesture=editor.GetType().GetField("gesture",BindingFlags.NonPublic|BindingFlags.Instance);
+        yield return Case("entry/drag",RejectCase(state,"drag",()=>{gesture.SetValue(editor,Enum.Parse(gesture.FieldType,"Create"));Set(editor,"dragged",true);},"Finish the open question",()=>{gesture.SetValue(editor,Enum.Parse(gesture.FieldType,"None"));Set(editor,"dragged",false);}));
+        var ghost=editor.GetType().GetField("ghost",BindingFlags.NonPublic|BindingFlags.Instance);
+        yield return Case("entry/ghost",RejectCase(state,"ghost",()=>ghost.SetValue(editor,Activator.CreateInstance(Nullable.GetUnderlyingType(ghost.FieldType))),"Finish the open question",()=>ghost.SetValue(editor,null)));
+        yield return Case("stop/preview-injected",StopCase(state,"preview",()=>Set(manager,"referencePreviewActive",true),"Return to your forest first.",1));Set(manager,"referencePreviewActive",false);
+        yield return Case("stop/new-approved",StopCase(state,"approved",()=>{Plan(Live().First(t=>!t.IsCropTree&&!Bay().Contains(t.transform.position.x,t.transform.position.z)));Check(manager.ApprovePendingWork(),"new work approved by real handler");},"Resolve or remove all Pending and Approved work first.",1));
         yield return Case("entry/help",RejectCase(state,"help",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question",()=>ui.CloseHelp()));
         var session=FindFirstObjectByType<StandaloneSessionMenu>();
         yield return Case("entry/session",RejectCase(state,"session",()=>session.Open(),"Finish the open question",()=>session.Close()));
@@ -365,6 +384,23 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return null;
         }
         if(boundary==99) {ui.ShowWorkPlan();ui.Learning.Refresh(true);CadenceParity.Reject(ui,"Year advance is unavailable.");}
+    }
+
+    IEnumerator MfmCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        var coverage=manager.ReadCoverage(out string problem);Check(coverage!=null&&coverage.Valid,"MFM genuine coverage",problem);
+        var stems=Live().Select(t=>new ScenarioOneCoverage.Stem(t.TreeId,t.transform.position.x,t.transform.position.z,t.Diameter,t.IsLiving,t.Species!=null?t.Species.SpeciesId:"",t.IsCropTree,t.IsMarkedForFell)).ToList();
+        var suggestions=ScenarioOneCropTreeCandidates.Suggest(coverage,stems,stems.Where(t=>t.Crop).Select(t=>t.Id).ToList(),null,null,ScenarioOnePrescriptionCalibration.V1);
+        Check(suggestions.Valid,"MFM suggestions valid",suggestions.Problem);
+        foreach(var candidate in suggestions.Candidates)ui.Marking.Mark(Live().Single(t=>t.TreeId==candidate.TreeId),TreeMarkType.CropTree,false);
+        var units=coverage.Areas.Where(a=>!a.IsSource&&a.State==ScenarioOneCoverage.State.Covered).Take(1).Select(a=>a.Id).ToList();
+        var created=manager.CreatePrescription(units);Check(created.Succeeded,"MFM genuine prescription created",created.Message);
+        var approved=manager.ApprovePrescription(created.PrescriptionId);Check(approved.Succeeded,"MFM genuine prescription approved",approved.Message);
+        Check(ui.ApproveWorkPlan()&&ui.AdvanceFromWorkPlan(),"MFM approved work executed");yield return Settle();ui.AcknowledgeAnnualReview();ui.CloseAll();ui.CloseHelp();ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        var before=saves.CaptureData();string prescriptions=JsonUtility.ToJson(before.scenarioOne);var orders=before.scenarioOne.workOrders.Select(o=>JsonUtility.ToJson(o)).ToArray();var marks=ui.Marking.GetMarkedIds().OrderBy(x=>x).ToArray();
+        Check(ui.BeginSkip(ui.SkipTarget(out _)),"historical MFM skip begins");while(ui.Skipping)yield return null;var after=saves.CaptureData();
+        Check(before.scenarioOne.prescriptions.Select(o=>JsonUtility.ToJson(o)).SequenceEqual(after.scenarioOne.prescriptions.Select(o=>JsonUtility.ToJson(o))),"historical prescriptions unchanged");
+        Check(orders.SequenceEqual(after.scenarioOne.workOrders.Select(o=>JsonUtility.ToJson(o)))&&!manager.WorkOrders.Any(o=>o.IsOpen)&&marks.SequenceEqual(ui.Marking.GetMarkedIds().OrderBy(x=>x)),"no automatic order or Fell mark");
     }
 
 }
