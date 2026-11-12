@@ -286,6 +286,7 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return Case("stop/outcome/"+result,StopCase(state,"outcome",()=>typeof(ScenarioOneManager).GetMethod("SetOutcome",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(manager,new object[]{result,manager.CurrentEcologicalYear,"Disposable qualification injection"}),"Scenario outcome changed.",1));
         }
         yield return Case("stop/modal-between-ticks",StopCase(state,"modal",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question or editing action first.",1));
+        yield return Case("stop/Failed-cash-zero-injected",CashOutcomeCase(state));
         yield return Case("fault/OnDisable",DisableCase(state));
         yield return Case("fault/exception",ExceptionCase(state));
         yield return Case("compatibility/disk",DiskCase(state));
@@ -316,12 +317,14 @@ public sealed class Cadence403Runner : MonoBehaviour
 
     readonly RackAuthoringNativeInput native=new RackAuthoringNativeInput();
     IEnumerator NativeButton(Button button) {
+        string text=button?.text;yield return Settle();button=ButtonText(text)??button;
         Check(button!=null && button.enabledInHierarchy,"native input target exists and enabled",button?.text);
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_NATIVE")=="1") {
             var center=button.worldBound.center;var root=ui.RootElement.worldBound;
             var view=EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView"));
             var rectProperty=view.GetType().GetProperty("targetInParent",BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public);
             Rect rect=rectProperty!=null?(Rect)rectProperty.GetValue(view):new Rect(0,21,view.position.width,view.position.height-21);
+            Check(!float.IsNaN(center.x)&&!float.IsNaN(center.y),"native target has completed layout",text);
             int x=Mathf.RoundToInt(view.position.x+rect.x+center.x/root.width*rect.width),y=Mathf.RoundToInt(view.position.y+rect.y+center.y/root.height*rect.height);
             Debug.Log("CADENCE408_NATIVE_RECT window="+view.position+" rect="+rect);
             Debug.Log("CADENCE408_NATIVE_CLICK "+button.text+" panel="+center+" root="+root+" desktop="+x+","+y);
@@ -631,6 +634,16 @@ public sealed class Cadence403Runner : MonoBehaviour
             Debug.Log("CADENCE408_RACK_PLAN underlying="+ui.RackPlanProblem+" skip="+ui.SkipProblem());
             Check(!string.IsNullOrEmpty(ui.RackPlanProblem),"authentic hard rack-plan problem present");CadenceParity.Reject(ui,"Finish the current lesson");
         }
+    }
+
+    IEnumerator CashOutcomeCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);int start=manager.CurrentEcologicalYear;
+        Set(manager,"cashCents",0L);Check(manager.AdvanceYear(),"direct zero-cash tick succeeds");var direct=saves.CaptureData();Check(manager.Outcome==ScenarioOneOutcome.Failed,"ordinary evaluation records genuine Failed outcome");
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"cash outcome skip begins");Set(manager,"cashCents",0L);
+        while(ui.Skipping)yield return null;var actual=saves.CaptureData();ScenarioReferenceArchive.Canonicalize(direct);ScenarioReferenceArchive.Canonicalize(actual);
+        Check(JsonUtility.ToJson(direct)==JsonUtility.ToJson(actual),"genuine Failed outcome full JSON direct parity");
+        Debug.Log("CADENCE408_FAILED condition=injected cash zero; production annual evaluation event/outcome year="+manager.CurrentEcologicalYear+" direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual));
+        CadenceParity.RejectWrongStopReason(ui,start,start+1,"Scenario outcome changed.");LogInputs("Failed-cash-zero",inputs);DestinationAck();
     }
 
 }
