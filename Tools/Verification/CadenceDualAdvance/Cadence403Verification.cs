@@ -151,7 +151,25 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(ui.Learning.CurrentTopicIndex==7,"genuine stage seven fixture");
         var authentic=saves.CaptureData();
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
-        yield return CadenceParity.Run(ui,saves,authentic);
+        if(Environment.GetEnvironmentVariable("CCF_CADENCE_F8") != "1") {
+            yield return CadenceParity.Run(ui,saves,authentic);
+            yield break;
+        }
+        for(int attempt=1;attempt<=2;attempt++) {
+            yield return Restore(authentic); ui.ShowWorkPlan(); ui.Learning.Refresh(true);
+            Check(ui.BeginSkip(ui.SkipTarget(out _)),"F8 genuine skip begins");
+            while(ui.Skipping) yield return null;
+            var summary=(Label)Field(Field(ui,"review"),"skipSummary");
+            string prior=summary.text; int destination=manager.CurrentEcologicalYear;
+            Check(!string.IsNullOrEmpty(prior),"F8 source summary exists",prior);
+            yield return Restore(original); ui.ShowReview(); yield return Settle();
+            Debug.Log("CADENCE404_F8 attempt="+attempt+" sourceYear="+destination+" loadedYear="+manager.CurrentEcologicalYear+" summary="+summary.text);
+            yield return new WaitForEndOfFrame();
+            var image=ScreenCapture.CaptureScreenshotAsTexture();
+            File.WriteAllBytes(Path.Combine(output,"F8-attempt"+attempt+".png"),image.EncodeToPNG()); Destroy(image);
+            Check(summary.text==prior,"F8 reproduction stable prior summary after different-world load");
+        }
+        throw new InvalidOperationException("CANDIDATE DEFECT F-8 reproduced twice: previous-world skip summary survives different-world load");
         } finally { Check(saves.LoadData(original,false),"restore original world"); }
     }
 }
