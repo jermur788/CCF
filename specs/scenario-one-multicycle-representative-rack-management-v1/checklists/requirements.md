@@ -1,35 +1,19 @@
 # Requirements — Repeated Representative Rack Management V1
 
-**DRAFT / NOT RELEASED / RUNTIME TESTS NOT RUN.** The source readout under #400 is approved only as a narrow pure helper, not as this workflow.
+**DRAFT — MANAGER REVIEW REQUESTED. Runtime gates NOT RUN.** [Spec](../spec.md), [plan](../plan.md), [tasks](../tasks.md).
 
-## Protected first cycle
-- [ ] Original five headland-entry parallel racks, confirmed geometry, physical entrance marking and Legacy40/Reference compatibility unchanged in new feature.
-- [ ] Teaching source remains fixed third rack ±12m along / ±9m half-width with three manually chosen Crop Trees; original 8m spacing, 30% Share and 40% basal-area safeguards unchanged.
-- [ ] No status promotion from a single tree, neighbouring rack proximity or one fixture's 13/14 comparable fraction.
-- [ ] No Sitka-only automatic proposal for Oak/Beech adults; manual player decisions remain possible.
+- [x] R0: pinned source audit separates actual geometry/rule/approval from later-source proposals and helper provenance.
+- [x] R0: FR-01…FR-09 / AC-01…AC-08 mapped to tasks.
+- [ ] R1 / MD-01…MD-06: Manager approves delivery, source/comparison, one/multiple source policy, stale/repeat rules, persistence and actual-work linkage.
+- [ ] R3 / FR-04 / AC-08: independently reviewed episode/source/geometry identity, old-save unknowns, reload and protected hashes.
+- [ ] R4/R6 / AC-01: fixed third-rack lesson, five parallel access racks and historical credit preserved; no five-sample quota.
+- [ ] R2/R6 / AC-02: original lesson then at least two later decisions with annual change; fresh multi-tree source, homogeneous coverage and heterogeneous/manual remainder.
+- [ ] R2/R6 / AC-03: inclusive tolerance edges, sparse stems, masks, prior stumps and Sitka/Oak/Beech correctly handled without invented terrain metrics.
+- [ ] R3/R4/R6 / AC-04: simultaneous-source overlap unit/tree exclusivity tested if approved; otherwise one-source UI plus manual remainder enforced.
+- [ ] R4/R6 / AC-05: stale source, year change, crop loss, open/manual/completed work and failed/cancelled sample work follow approved policy.
+- [ ] R4/R6 / AC-06: individual candidates, prescription Pending creation, separate Work Plan commitment, atomic refusal/rollback and one-time felling.
+- [ ] R5/R6 / AC-07: actual manager-produced order/event IDs support resolved unit history; missing/mismatched/duplicate IDs are unknown; all treated areas change in 3D.
+- [ ] R6 / AC-08: old/current/Legacy40/frozen saves, reload, species/manual routes, annual/skip semantics and both UI resolutions qualified.
+- [ ] R7: independent conformance review, Manager verdict, controlled integration and parent coordination/dashboard receipt.
 
-## Later cycle and coverage
-- [ ] One representative later source area requires real observed tree choices and completed sample, not one random Fell.
-- [ ] Current geometry/masks, source and comparison data valid at new episode; not a historical fixed-source reuse after growth.
-- [ ] Covered/NotCovered/Excluded/Manual distinguish current comparable area, not assumed uniform property.
-- [ ] Heterogeneous unmatched units remain Manual/NotCovered unless a separate justified source is approved.
-- [ ] If multiple sources used, every unit has one source per episode, explicit deterministic overlap decision and no duplicate candidate/Work Plan order.
-- [ ] Same unit may be treated again in a later distinct episode after fresh player review; prior executed work is never replayed.
-- [ ] MFM candidate-by-candidate 3D inspection/confirmation and manual marks precedence; no automatic Fell marks or bulk approval.
-- [ ] Prescription approval creates Pending work only after live revalidation, followed by independent Work Plan approval.
-- [ ] New saved source/episode/provenance identity, if required, separately accepted and hash/old-save qualified.
-
-## Observability and calendar
-- [ ] Real executed work affects all actual treated trees/patches under authoritative yearly simulation; current 3D and Stand Map reflect that state.
-- [ ] Historical unit/year work groups only when retained order and matching prescription/unit IDs prove links; unknowns labelled explicitly.
-- [ ] No per-rack Year-A→Year-B canopy/light/young-growth claims from existing stand-only annual snapshots.
-- [ ] Distinguish past source demo, proposed area, Accepted prescription, Pending Work Plan, approved Work Plan and completed/failed work.
-- [ ] D-077 one-year/skip creates the same real yearly records under equal decisions, with no auto-work or auto-review.
-- [ ] D-074 spaced-management learning and existing two-cycle completion remain separately governed; no five-rack visitation achievement.
-
-## Qualification and release
-- [ ] Manager settles scope tier, source reuse, multi-source overlap, footprint calibration and save identity; approves four-file spec.
-- [ ] Pure authentic fixtures cover homogeneous one-source, heterogeneity, two-source collision, changed stand/stale source and old save.
-- [ ] Focused Tier-2 native 3D/Map/Work Plan/Annual Review at 720p/1080p plus actual saved history, current Year25/100 and no duplicate felling.
-- [ ] Cross-system independent review if new persistence, actual Unity evidence, Manager integration verdict and dashboard receipt.
-- [ ] Protect personal user #382 checkout, frozen Reference Future v1 and no Windows/Player build without user-authorised gate.
+No historical per-rack ecology is inferred from stand totals, source labels or five access racks. Checked boxes mean draft preparation only, not product approval or implementation.

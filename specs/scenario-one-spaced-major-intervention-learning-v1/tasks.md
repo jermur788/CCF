@@ -1,14 +1,14 @@
 # Tasks — Spaced Major-Intervention Learning V1
 
-**DRAFT — source implementation NOT RELEASED.** Sequence and future owners:
+**DRAFT — MANAGER REVIEW REQUESTED. No production task released.** [Spec](spec.md), [plan](plan.md), [requirements](checklists/requirements.md).
 
-| ID | Work | Gate / evidence |
-|---|---|---|
-| S0 | Manager validates actual completion rule and negative/positive source scenarios | Existing two-year sequence remains accepted; historical stories retained |
-| S1 | Product owner/Manager chooses non-gating new-world objective vs gated revision, evidence threshold, 3-year example vs observation-only | Explicit new decision/spec approval; no new code |
-| S2 | Save/identity reviewer inspects old save migration, world hash, objective achievements, new-world markers and proposed episode provenance | Hard gate before stored learning progress or any eligibility field |
-| S3 | Separate Sol/C# source claim on latest accepted post-#397 candidate, exclusive completion/objectives writer; implement only approved predicate/progress | New branch/worktree/issue, no overlap with #382 or #397 UI |
-| S4 | Focused real C# regression and Unity behaviour at both UI sizes; past saves still complete | Two work-plan cycles, intervening years and false-credit negatives |
-| S5 | Independent review where persistence/identity touched, Manager verdict, controlled integration and dashboard receipt | Never infer accepted outcome from static-only review |
+| ID | Task | Acceptance/gate | State |
+|---|---|---|---|
+| S0 | Publish pinned completion/history source audit and refined draft. | Evidence for FR-01…FR-08; independent review remains separate. | Docs delivered; not reviewed/accepted |
+| S1 | Manager resolves MD-01…MD-05 and approves all four artifacts. | Product gate; non-gating recommendation versus new completion gate explicit. | PENDING |
+| S2 | Approved origin/episode/save design and independent history/hash review. | AC-05/06 design; no inferred cohort or backfill. | NOT RELEASED |
+| S3 | Separate bounded source/UI implementation with manual and MFM evidence. | FR-01…FR-08 after S1/S2; fresh candidate/ownership. | NOT RELEASED |
+| S4 | Tier 1 negative/positive evidence tests and Tier 2 actual play/save/render qualification. | AC-01…AC-07; annual/skip parity uses correct acknowledgement oracle. | NOT RELEASED |
+| S5 | Independent conformance review, Manager verdict, integration and dashboard receipt. | Full AC matrix and remaining limits; no self-approval. | PENDING |
 
-**Forbidden under this draft:** modifying HasReviewedTwoCycleSequence; scoring any one non-rack Fell as major; auto-approval, calendar-triggered thinning, hidden save fields, reusing source-helper candidate as objective truth, species-blind MFM, or a Windows build.
+S4 must cover consecutive planting, access-only, single Fell, maintenance, failed/cancelled work, mixed plan, missing metadata, duplicate IDs, reload and genuine later judgement. S0 completion does not mark those runtime tests passed. Parent owns final SPEC-RESULT and independent review. No new C#, save/event/hash, MFM or completion mechanics under this draft.

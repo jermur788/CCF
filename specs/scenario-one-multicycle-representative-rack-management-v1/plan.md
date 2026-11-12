@@ -1,25 +1,18 @@
 # Plan — Repeated Representative Rack Management V1
 
-**DRAFT / no MFM source, UI or persistence implementation release.** Related [spec](spec.md), [tasks](tasks.md) and [requirements](checklists/requirements.md).
+**DRAFT — MANAGER REVIEW REQUESTED. No production release.** [Spec](spec.md), [tasks](tasks.md), [requirements](checklists/requirements.md).
 
-## Phases and dependencies
+| Phase | Work/evidence | Gate |
+|---|---|---|
+| R0 | Audit fixed geometry, demonstrated rule, current coverage/approval/persistence and helper provenance at E/R. | B0/B2 docs delivered; independent review pending. |
+| R1 | Manager settles MD-01…MD-06: delivery, later sample, comparison state, one/multiple sources, repeat/stale policy, identity and real work linkage. | Four-file APPROVED spec before production. |
+| R2 | Under a new bounded claim, run offline source/geometry experiments on homogeneous and heterogeneous fixtures; threshold edges, sparse areas, masks, species and historical stumps. | AC-02/03 design/calibration evidence; no universal coefficients. |
+| R3 | Independently review episode/source/save design, stable geometry revisions, exclusive ownership and old-world unknowns. | AC-04/08 identity design; explicit hash/reference policy. |
+| R4 | Implement approved core and focused tests in one exclusive MFM lane; preserve first teaching, player precedence and all-or-nothing Pending creation. | FR-01…FR-09; separate reviewed helper/provenance reconciliation if needed. |
+| R5 | Freshly claim UI after live D-073/source ownership checks; current source/coverage, individual 3D confirmation, Work Plan and actual history. | No stale dependency on closed #397; no map bulk Fell or hidden automation. |
+| R6 | Tier 1 geometry/coverage/link tests then Tier 2 first/later cycles, all treated areas, old/current saves and rendered UI. | AC-01…AC-08, exact-head evidence and independent conformance review. |
+| R7 | Manager verdict and controlled integration; parent result, coordination/dashboard receipt. | Not inferred from draft publication or source-only checks. |
 
-**R0 — Preserve the qualified base.** Pin a current accepted post-C-01/D-077 source candidate; read current D-065 Rack V2, ScenarioOneCoverage, prescription/approval, Work Plan and S1-C source. First fixed centre-rack lesson, three Crop Trees, geometry, old-save and Sitka-only rule remain byte-unchanged until a new approved spec explicitly amends them. Browser Part 5 helper is read-only history only; not new source-selection authority.
+Use existing pure rule core where compatible; a later sample requires its own explicit identity/comparison contract. Do not silently waive completed-work exclusions or reapprove an Approved prescription. One later source plus manual heterogeneous remainder is the recommended first bounded slice; multi-source and per-rack historical ecology are separate decisions.
 
-**R1 — Offline source/heterogeneity experiments.** Run deterministic homogeneous Sitka and deliberately different-condition stand fixtures. Record actual coverage-unit IDs, source footprint, density/DBH/Hegyi data, mask and excluded units, boundary fit, presence of Oak/Beech, manual override and source-year context. Explore a second source only where the initial comparison fails, not simply “one sample per rack.” No site moisture/wind/slope data is invented.
-
-**R2 — Manager product decisions.** Set intended first shipping tier (3D + executed work history vs historical rack ecology); choose source eligibility and reuse, one-source+manual vs simultaneous multi-source episode; settle unit ownership, explicit conflict resolution and treatment-size calibration. Need an independently reviewed save/identity design if a new sourceArea/episode record is required.
-
-**R3 — Data and API design.** Separate live transient proposal from durable accepted prescription, Pending Work Plan and recorded annual resolution. Proposed source identity includes source rack/area, episode, sample year and rule fingerprint; ownership map keys by episode + coverage-unit ID, fail-closed on collision. Provide versioned stale-state invalidation triggered by changed actual stand before new approval. Old prescribed jobs retain historical original IDs; new jobs must not conflict or re-fell already resolved trees.
-
-**R4 — Bounded future implementation.** Once APPROVED, route a local C# source worker for rack sample-selection/coverage extension and separate UI work only after #397 finishes and Manager grants exclusive file ownership. Use existing MFM pure rule core where compatible rather than modifying completed first-teaching semantics. If multiple-source support adds persisted identity, require save/schema/hash reviewer; do not bypass current all-or-nothing approval/rollback and Work Plan commitment.
-
-**R5 — Verification.** Tier 1 pure geometry/coverage/duplicate unit fixture; Tier 2 exact-head C#/Unity first teaching, second-cycle nontrivial sample, accepted proposal→Pending→Work Plan→actual trees; 3D post-year changes in all treated racks, chronological review with realistic missing-year behavior, 720p/1080p, old-save/Reference world IDs. Unrelated Tier-3 only at next integrated milestone candidate.
-
-**R6 — Manager verdict and integration.** Publish full source and actual qualified observations, independent review for altered persistence/coverage provenance, Manager APPROVED/NEEDS CHANGES/REJECTED, then controlled integration/coordination and dashboard sync. Not automatically done because a draft or static source exists.
-
-## Proposed two-interface ownership
-
-**3D forest:** manual crop-tree choice, sample decisions, candidate confirmation and actual physical observation. **Stand Map/Management:** confirmed rack geometry and coverage groups, source vs comparable/manual/excluded areas, navigation and status; never bulk Fell marks. **Work Plan:** final commitment and money. **Annual Review:** executed recorded work and modelled stand/species time changes, never unrecorded per-rack historic ecology. **D-077:** annual navigation only.
-
-Stop and return Manager if new fields would change protected hash/reference or if source area identity cannot be made stable through saved rack revisions. No direct merge to diverged main, no user #382 lane, no Windows build.
+Management/map shows confirmed access and coverage; 3D holds tree judgement/confirmation and current observation; Work Plan commits work/cost; Annual Review reports actual work and exact stand/species observations. D-074 grades learning only under its separate approved future contract; D-077 navigates years. No Unity run, source edits, Windows build or main merge in this docs task.
