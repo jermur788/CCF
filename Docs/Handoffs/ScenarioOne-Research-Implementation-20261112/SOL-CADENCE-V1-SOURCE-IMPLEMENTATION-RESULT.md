@@ -1,49 +1,43 @@
-# Cadence V1 source rerun — incomplete, Manager amendment required
+# Cadence V1 source implementation — handed off for independent review and Unity qualification
 
-**Assessment: NEEDS CHANGES to writable scope; implementation NOT STARTED. Not Unity-verified, integrated or accepted.**
+Supersedes the incomplete diagnostic report at 5a2cfc87. Source implemented; **NOT Unity-verified, integrated, game-accepted or a completed D-074 objective redesign**. GPT-6.1 Sol Medium, OpenAI Codex through T3 Code, sole worker; no subagents. 2026-11-12.
 
-Task: #397. Worker: GPT-6.1 Sol, reasoningEffort medium, T3 Code Codex. Sole implementation worker; no delegates launched. Date: 2026-11-12.
+## Authority, lane and routing
 
-## Verified preflight
+Binding Manager packet and corrected APPROVED spec/plan/tasks/checklist read from refreshed `origin/docs/manager-cadence-review-disposition-20261112-v1`. User scope amendment https://github.com/jermur788/CCF/issues/397#issuecomment-6816216070 permits exactly the read-only ReferenceAuthoringActive property beside ReferencePreviewActive; that is the entire ScenarioOneManager diff.
 
-- Worktree: `/media/jer/Files/CCF/Worktrees/CCF-CadenceDualAdvance-Source-397`; launch/coordination anchor was not modified.
-- Branch: `feature/scenario-one-cadence-dual-advance-v1-20261112`, created from refreshed `origin/integration/scenario-one-c01-research-copy-candidate-20261112-v1` at **a314d308315b5894263d30461a1e8b52ca0f3605**. Starting checkout clean. Source remains that base; only this report added.
-- Live `origin/main:Docs/Project/coordination/active-tasks.md` inspected; newest entry releases #397 and identifies no competing UI writer. Claim was open/BLOCKED from previous storage attempt, then changed to RUNNING for this rerun.
-- `df -h .`: Files ext4 `/dev/sdb4`, 176 GiB available. `df -h /media/jer/ZX20`: 20 GiB available. Both exceed 15 GiB floor.
-- User explicitly selected this Files clone after first attempt on `/` had 12.77 GiB free. This is an authorized code-only storage exception/reroute; no Library created or copied.
-- Packet and corrected four-part spec on `docs/manager-cadence-review-disposition-20261112-v1`, Manager disposition, original disposed review and repository workflow inspected. Local base's latest canonical-context commit is `63044dfbbeb869996ceecec8a47619dcba048b0b`; live newer Manager packet remains task authority.
+All work in `/media/jer/Files/CCF/Worktrees/CCF-CadenceDualAdvance-Source-397`, branch `feature/scenario-one-cadence-dual-advance-v1-20261112`, starting HEAD `5a2cfc872bb0f6d941d152a8b55b8a7387bb0a57`, prior accepted source base `a314d308315b5894263d30461a1e8b52ca0f3605`. Starting worktree clean; live main coordination refreshed/read, no competing current writer identified. Files volume 176 GiB free, ZX20 20 GiB, above 15 GiB floor. No Unity lease requested/used; no Library created/copied. Primary launch directory and #382 personal lane untouched.
 
-## Exact scope conflict found before source writes
+Routing: **Opus 5.5 orchestrator → Sol 6.1 Medium source worker**; earlier root-volume disk-floor stop followed by user-authorised Files disk reroute; continuation follows user's exact manager-accessor scope amendment. No delegate spawned in this run. Cost/quota telemetry UNKNOWN. `active-tasks.md` is Manager-exclusive and unchanged: **Manager #200 please ingest these routing/storage/amendment events and qualification status into the authoritative ledger**. Dashboard/Drive/publisher synchronization NOT VERIFIED. Recommend independent review by a different model family before Unity release/integration.
 
-The packet requires skip to reject **reference-authoring** state (spec section 4), while its exclusive writable set excludes `ScenarioOneManager.cs` and expressly says not to edit that manager without STOP/Manager new permission.
+## Actual changes
 
-At the exact approved source base:
+- New `ScenarioManagementCadence.cs` and meta: read-only four-year target from unique matching successful Completed FellTree records; invalid/ambiguous identity excluded; current+4 fallback, five-tick ceiling, Year25/century caps. Access felling is calendar navigation only.
+- `WorkPlanView.cs`: existing one-year approval/warning route preserved; suggested target, reason, explicit confirmation and return choice.
+- `ScenarioOneUiRoot.cs`: conservative genuine teaching-stage-7 eligibility, open Work Plan, no Pending/Approved including invalid/MFM, genuine latest-review acknowledgment, reference preview/authoring, help/modal/session/rack-edit/consent and management guards. Confirmation revalidates target/guards. One existing AdvanceYear call per subsequent frame, pre/post checks for outcome/objective/storm/lesson/boundary/target/guard, between-tick cancel, failure feedback and partial progress retained. No synthetic acknowledgments, work imports/approvals, prescription reuse or new saved state.
+- UI-owned busy lock preserves component enabled states for save hotkeys, StandaloneSessionMenu, player, marking, rack tool, construction/storage/sawpit and asset-review controls; manager ModalOpen blocks Tab; root controls disabled while independent progress/cancel overlay remains active. Restore on normal/stop/cancel/error/disable/controller-loss exits. Existing ecology remains authoritative; Scenario One already owns deliberate annual control.
+- `AnnualReviewView.cs`: one presentation-only session summary; destination opens existing latest review/browser, one normal genuine user acknowledgment. Summary clears on next one-year route.
+- `Tools/Verification/CadenceDualAdvance/`: actual calculator offline runner, runtime parity A/B and parameterized negative/stop/cancel/input-restoration checks, qualification procedure.
 
-- `Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs:56` declares **private bool referenceAuthoring**.
-- Lines 427–430 expose `SetReferenceAuthoring(bool active)` only; there is no public read accessor.
-- `ReferencePreviewActive` is a different flag. `CanAdvanceYearNow` and `CanEditWorkPlan` do not check reference-authoring. `CaptureSaveData` does not persist this transient flag.
-- Therefore a helper restricted to public read-only state cannot implement the mandatory authoring guard. Guessing from preview/management eligibility would miss this case. Reflection into private state would be an inappropriate workaround for a learner-maintained production feature.
+No completion-rule, schema, HashLayout, scene/prefab, package, .vscode, frozen Reference Future, ecology formula, MFM implementation or old-save changes. No saves/Prefs loaded or written, Unity/Player/Windows build, merge or #382 lane activity.
 
-**Smallest recommended amendment:** authorize adding a read-only `public bool ReferenceAuthoringActive => referenceAuthoring;` property beside `ReferencePreviewActive` in `ScenarioOneManager.cs`. No annual method, simulation, serializer or completion-rule change is needed for that accessor. This report requests scope authority, not a change to accepted product design.
+## Executed evidence and exact limits
 
-The packet's explicit STOP rule applies. The rerun is **not labeled BLOCKED**, as the user restricted BLOCKED to real ownership/base conflicts; those checks passed. This is an incomplete diagnostic handoff for a Manager scope amendment, not the requested finished source feature.
+1. `python3 Tools/Verification/CadenceDualAdvance/run_offline.py`: **PASS, 15 assertions**. Compiles actual calculator with minimal record stubs; fallback, felling anchor, overdue target, caps, Pending/Approved, invalid work, duplicate event/order, wrong target, failed event and non-felling cases. This does not run simulation.
+2. Documented runtime-source approximation `python3 Tools/Verification/CloudTypeCheck/run_typecheck.py --mode prod --out /media/jer/Files/CCF/Verification/Cadence397/typecheck-prod`: **TYPECHECK_BLIND**, existing SceneHandle unavailable in its Unity 2021 references.
+3. Same runner with documented `--replace Assets/ForestPrototype/UI/Map/StandMapSource.cs /media/jer/Files/CCF/Verification/Cadence397/StandMapSource.compat.cs`: **TYPECHECK_CLEAN**, six baseline errors, zero additional errors. External compatibility copy replaces only SceneHandle with int; repository source unchanged. Final lifecycle run output in `typecheck-final-lifecycle`. This is not Unity compilation.
+4. General `--mode tools` with same compatibility replacement: **TYPECHECK_BLIND** due existing unrelated offline stub collisions and missing Roslyn references. No blanket tools PASS.
+5. Focused harness body binding: same prod approximation with additional `--replace Assets/ForestPrototype/ScenarioOne/ScenarioManagementCadence.cs /media/jer/Files/CCF/Verification/Cadence397/CadenceWithHarness.cs` containing calculator plus runtime harness with Editor guard stripped: **TYPECHECK_CLEAN**, six baseline errors, zero additional. Output `typecheck-harness`.
+6. `git diff --check`: PASS. No generated Assets verification script or meta left behind. Initial `python` invocation unavailable under pyenv; corrected to python3 before edits/tests.
 
-## Additional inspection for continuation
+Durable local logs and external scratch compatibility copies: `/media/jer/Files/CCF/Verification/Cadence397/`. No new evidence path on ZX20.
 
-`ForestSaveController.Update` owns F5/F9 input, while public `Save`/`Load` are also called through `StandaloneSessionMenu`. A skip UI must lock both surfaces and restore their prior enabled states on every exit, as well as locking forest/other UI input. Disabling only Work Plan buttons is insufficient. This inspection does not establish that such locking has been implemented or verified.
+**Written-only / NOT RUN:** runtime parity A (full JSON and CurrentWorldHash each actual tick, N=1..5, quiet and post-felling authentic worlds); runtime parity B (actual one-year UI with genuine intermediate acks, removing only ack events and renumbering event IDs/next ID; flags remain compared before destination ack); duplicate-click and Pending/Approved negative checks; parameterized refusal/nonmutation and injected-stop/cancel/input-restore checks. Actual hash equality/semantic equality/outcome-year equivalence is **NOT OBSERVED**. No authentic runtime fixture produced or loaded in this source-only run. The README specifies required fixture matrix, including lesson 0–6, Legacy40, storm/achievement/completion, failure tick k, historical MFM, every dialog/controller guard and controller-loss lifecycle. Those fixture-specific scenarios remain to be supplied/run in qualification; they are **not all self-contained executable fixtures in this handoff**. Injected failed-tick instrumentation remains a qualification task. Do not label this full packet test coverage PASS.
 
-## Changes and verification
+## Exact next qualification
 
-Changed files: this Markdown report only. No C# source, tests, serialized Unity assets, meta, packages, ProjectSettings, `.vscode`, save schema, HashLayout, Reference Future v1 or completion rules changed. No user #382 lane, old save or Prefs accessed or modified. No Unity, Player or Windows build, merge or cleanup performed.
+Follow `Tools/Verification/CadenceDualAdvance/README.md`: separately authorised exclusive Unity lane only, copy/run/remove CadenceParity.cs and generated meta; caller restores original in-memory world. Invoke Run twice on authentic genuine stage-7 quiet/post-felling states, N=1..5; inspect k and require N in quiet fixtures. Use Reject, WorkOrderNegatives, RunStop and Cancel with the full fixture matrix. Retain original existing tests unchanged. Do not use old personal saves or alter frozen reference fixtures.
 
-Executed: Git fetch/status/base/branch/ownership inspection, GitHub claim read/update, filesystem free-space checks, static source inspection. **Compiler/typecheck: NOT RUN (no source change). Parity A: NOT RUN / NOT WRITTEN. Parity B: NOT RUN / NOT WRITTEN. Negative tests: NOT RUN / NOT WRITTEN.** No behavioural PASS claimed. All packet implementation and runtime gates remain outstanding.
+At 1280×720 and 1920×1080, open Work Plan after genuine stage 7 and latest review acknowledgment, remove all open orders, observe target/reason and confirm. Expected: one annual update per frame, progress/cancel, F5/F9/session menu/other commands inactive, early real stops, latest normal review with exact elapsed range and reason, prior-year browsing, one genuine acknowledgment. Check destination save/reload, authentic Legacy40/frozen compatibility and five-step wall time. No rollback promised; failures preserve completed annual steps.
 
-After amendment: implement helper/UI/session summary; execute documented offline runtime-source typecheck; write and run eligible offline tests; provide authentic-state strict per-tick parity A and acknowledgment-normalized parity B fixtures; qualify all negative guards/stops. Unity remains separately authorized only. No test may claim exact full-world hash equality for acknowledged UI-manual stepping.
-
-## Routing and operational handoff
-
-Routing as supplied by dispatch: Claude Opus 5.5 (low, T3 parent) orchestrated; GPT-6.1 Sol Medium dispatched via T3 `delegate_task`; initial run stopped at `/` disk floor; user selected Files clone reroute. Independent review by another model family should follow implementation. Cost/quota unknown.
-
-`active-tasks.md` is Manager-exclusive under AgentWorkflow. Routing and reroute are recorded here and in #397 rather than editing that ledger. Manager must update authoritative coordination and verify dashboard ingestion/audit/published state; dashboard/Drive synchronization **NOT VERIFIED** here.
-
-Recommended next step: Manager authorize the single read-only accessor and reopen/release source claim for continuation on this branch. Do not treat this diagnostic handoff as implemented cadence or G2/G4 acceptance. No product-choice amendment is requested.
+Manager verdict and independent other-family review remain outstanding. Branch is a source candidate, not integrated or accepted. Final publication commit identifies the exact reviewed source and handoff together; Git status must be clean after publication.
