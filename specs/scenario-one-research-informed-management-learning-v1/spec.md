@@ -4,12 +4,12 @@
 **Date:** 2026-11-12  
 **Owner:** Overall Manager  
 **Scope:** a **small post-demo copy-only change** correcting the remaining misleading or ambiguous forestry language. Product owner can expressly approve a different timing, but nothing in this draft changes the current pre-demo programme.  
-**Original broad draft:** preserved at \`docs/scenario-one-research-informed-spec-20261112-v1\`; its event-persistence design is **WITHDRAWN**, not ready for implementation.  
+**Original broad draft:** preserved at `docs/scenario-one-research-informed-spec-20261112-v1`; its event-persistence design is **WITHDRAWN**, not ready for implementation.  
 **Four-part structure:** [spec.md](spec.md), [plan.md](plan.md), [tasks.md](tasks.md), [checklists/requirements.md](checklists/requirements.md).
 
 ## 1. Authority, scientific evidence and review disposition
 
-Accepted authority: \`Docs/Project/decision-log.md\`, \`Docs/Project/current-milestone.md\`, \`Docs/Project/game-brief.md\`, and the approved MFM V1, S1-C and S1-D specs. All source-line observations must be rechecked on the **actual local candidate** before a production patch.
+Accepted authority: `Docs/Project/decision-log.md`, `Docs/Project/current-milestone.md`, `Docs/Project/game-brief.md`, and the approved MFM V1, S1-C and S1-D specs. All source-line observations must be rechecked on the **actual local candidate** before a production patch.
 
 **Review evidence:**
 - [Claude independent review #389 — NEEDS CHANGES](https://github.com/jermur788/CCF/blob/docs/claude-review-research-management-spec-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/CLAUDE-INDEPENDENT-FOUR-PART-SPEC-REVIEW.md): source code inspected without Unity; blocking hash/persistence conflict; extensive unnecessary work and tests.
@@ -22,9 +22,9 @@ P1–P6 overlap in authorship and provide useful methods and selected empirical 
 ## 2. Source-level baseline: do not reimplement what already exists
 
 - Accepted Lesson 3: **30% local Hegyi Share reduction** and **40% basal-area safeguard**, with existing teaching calibration and source evaluation unchanged.
-- \`ScenarioOneUiFacts\` (actual file path to locate at implementation) already maps current objective ID \`regeneration\` to **“Areas with young trees”**, with analogous Year-100 friendly labelling. This was reported live on main by independent reviewer and must be source-verified before editing. Do **not** claim the entire jargon-removal feature is absent.
-- Internal \`ScenarioOneObjectives\` displayName strings “Maintain regenerating cells” and “Regenerating cells” may be **persisted** in the Century Review record. **Do not rename, rewrite or normalise those internal strings**, stable objective ID or snapshot fields; presentation-by-ID is the accepted safe mechanism.
-- \`ScenarioOneRackReview\` already has session-only **Objective 5: Retain here / Release further** decisions per Crop Tree. The player can leave a competing neighbour unmarked. **No new retention UI, personal reason field, event, persistence, grade or history drill-down belongs to this V1.**
+- `ScenarioOneUiFacts` (actual file path to locate at implementation) already maps current objective ID `regeneration` to **“Areas with young trees”**, with analogous Year-100 friendly labelling. This was reported live on main by independent reviewer and must be source-verified before editing. Do **not** claim the entire jargon-removal feature is absent.
+- Internal `ScenarioOneObjectives` displayName strings “Maintain regenerating cells” and “Regenerating cells” may be **persisted** in the Century Review record. **Do not rename, rewrite or normalise those internal strings**, stable objective ID or snapshot fields; presentation-by-ID is the accepted safe mechanism.
+- `ScenarioOneRackReview` already has session-only **Objective 5: Retain here / Release further** decisions per Crop Tree. The player can leave a competing neighbour unmarked. **No new retention UI, personal reason field, event, persistence, grade or history drill-down belongs to this V1.**
 - The ground/HUD interface already shows model light-band and present regeneration diagnostics. There is **no accepted site-specific “forest edge” classification**, and the existing light label “open” is a different game concept from P6's open regeneration environment.
 - The game default **storm model 0** does not simulate wind damage, whether neighbours are removed or retained.
 
@@ -32,7 +32,7 @@ P1–P6 overlap in authorship and provide useful methods and selected empirical 
 
 ### FR-C1 — Competition Share explanation (short)
 
-Use existing text/help placement to convey that \`Share\` is an **8 m local DBH/size-and-distance based Hegyi indicator**. Its calculation **does not itself assess species, crown shape, tree height, shade tolerance, light direction, timber quality, habitat, or wind stability**. Removing different neighbours can satisfy the game's **specific crown-release exercise**; it is not a universal “right tree” answer.
+Use existing text/help placement to convey that `Share` is an **8 m local DBH/size-and-distance based Hegyi indicator**. Its calculation **does not itself assess species, crown shape, tree height, shade tolerance, light direction, timber quality, habitat, or wind stability**. Removing different neighbours can satisfy the game's **specific crown-release exercise**; it is not a universal “right tree” answer.
 
 **Candidate concise Lesson wording** (requires final screen review):
 > This lesson teaches a game-calibrated local competition target, not the only acceptable way to manage a forest.
@@ -43,16 +43,16 @@ Use existing text/help placement to convey that \`Share\` is an **8 m local DBH/
 Rewrite an existing generic line **“being small is not a reason to fell”** as a narrow statement about this crown-release exercise, for example:
 > In this crown-release exercise, smaller neighbours usually contribute less to the measured Share.
 
-**Boundaries:** no change to \`CompetitionShare\` code, 8 m neighbourhood, eligible neighbour sets, 30%/40% rules, Crop Tree designation, grade, marking, MFM proposal/approval or Work Plan. Do not introduce a competing explanation engine.
+**Boundaries:** no change to `CompetitionShare` code, 8 m neighbourhood, eligible neighbour sets, 30%/40% rules, Crop Tree designation, grade, marking, MFM proposal/approval or Work Plan. Do not introduce a competing explanation engine.
 
 ### FR-C2 — Residual regeneration vocabulary only
 
 Keep the existing player-facing **“Areas with young trees”** unless explicitly accepted change chooses the slightly safer #388 recommendation **“Areas with young growth”**. Neither phrase asserts exact young stems; count is tracked locations with natural modelled young-growth cohorts and/or qualifying living planted juveniles.
 
-Check only remaining **player-visible** string cases, including “regeneration cohorts” in \`WorkPlanOverview\`, Oak/Beech “Establish planted ...” mappings and Help copy. Replace with truthful, natural language in **presentation mapping only**. A candidate current-purpose explanation:
+Check only remaining **player-visible** string cases, including “regeneration cohorts” in `WorkPlanOverview`, Oak/Beech “Establish planted ...” mappings and Help copy. Replace with truthful, natural language in **presentation mapping only**. A candidate current-purpose explanation:
 > Young growth is recorded in parts of the woodland where natural tree regeneration is represented or living planted young trees are present. This does not guarantee their survival.
 
-Oak/Beech current predicate is successful planting work **plus species presence somewhere**. Any revised player label must not promise survival of the exact originally planted trees. Keep the predicate and internal \`displayName\` byte-identical.
+Oak/Beech current predicate is successful planting work **plus species presence somewhere**. Any revised player label must not promise survival of the exact originally planted trees. Keep the predicate and internal `displayName` byte-identical.
 
 **Do not add** separate natural/planted **aggregate counts**, newly occupied-location histories, cohort survival gauges, hectares, sapling densities or new objective thresholds; existing aggregates do not support those claims without new model calculations.
 
@@ -76,20 +76,20 @@ Absolutely no edits under this V1 to:
 - Scenario One objective values, boolean rules, Year-25 completion chronology or Year-100 comparison data;
 - the 30% Share lesson rule, 40% cap, tree marking/Crop Tree designation, Rack V2, MFM proposal/player confirmation or Work Plan commitment;
 - ecology, tree growth, species, regeneration biology, cash/economy, storm profiles or planting success;
-- management events, any save or serializer fields, event ID logic, saved objective \`displayName\` or schema version;
+- management events, any save or serializer fields, event ID logic, saved objective `displayName` or schema version;
 - S1-C/S1-D history and first teaching-completion latch, current / derived source provenance;
 - old saves, Legacy40 and frozen Reference Future v1 identity/layout;
 - new tree inspection controls or a persistent “Retain — why?” feature;
 - a biodiversity/structural-forest score, imported Swiss crown/Finnish ingrowth/competition parameters, or Bayesian forecasts.
 
-**Known blocking architecture for the former draft:** the old FR-07 idea of new \`ScenarioManagementEvent\` fields would modify \`JsonUtility.ToJson(save)\` data used by \`ScenarioReferenceArchive.HashLayout\` and protected world identity. This is **removed**, not quietly replaced by a separate saved list. Future persistent annotations need their **own new spec** with explicit protected identity-hash testing and product choice.
+**Known blocking architecture for the former draft:** the old FR-07 idea of new `ScenarioManagementEvent` fields would modify `JsonUtility.ToJson(save)` data used by `ScenarioReferenceArchive.HashLayout` and protected world identity. This is **removed**, not quietly replaced by a separate saved list. Future persistent annotations need their **own new spec** with explicit protected identity-hash testing and product choice.
 
 ## 5. Scope completion / acceptance
 
 One small bounded UI-copy patch after **product approval and an available owner/lane**; no standalone major feature programme. A single implementer verifies:
 1. The exact target strings exist in **current candidate source**, and which friendly objective labels already ship; only actual residual strings changed.
 2. External source-backed wording is limited to supported general statements. No unexplained scientific precision or unmodelled effect.
-3. No changed internal \`displayName\`, objective ID, stable persisted fields, event/save/schema, Share/lesson predicates or MFM/Rack logic.
+3. No changed internal `displayName`, objective ID, stable persisted fields, event/save/schema, Share/lesson predicates or MFM/Rack logic.
 4. Source-level/world identity check: identical representative save before and after text-only patch, including frozen Reference Future and Legacy40 where safe existing fixtures apply; **hash should remain identical** for same world.
 5. Actual affected panel screenshots at existing supported 1280×720 and 1920×1080 sizes when a Unity/UI lane is available; no overlapping/hidden text, especially pre-existing competitor label gate.
 6. Minimal source/copy verification and existing integration qualification when that release candidate is tested. **No separate full Tier-2/3 qualification**, no new Windows build.
