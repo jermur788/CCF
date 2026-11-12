@@ -356,7 +356,10 @@ public sealed class D073Runner : MonoBehaviour
         yield return NativeClick(R.Root.Q<Toggle>("annual-show-data-sources"));Check(!R.Root.ClassListContains("hide-data-sources"),"OS sources shows chips");
         species=R.Root.Q<Foldout>("annual-year-comparison-species");Check(species.value,"species expansion survives source rebuild");
         var card=R.Root.Q("annual-year-comparison");sc.ScrollTo(card);yield return Shot(tag+"-earlier-sources");
-        Check(card.parent==sc.contentContainer,"card exclusively inside existing scroll");
+        Debug.Log("D073_ATTACHMENT oldAttached="+(card.parent!=null)+" oldIsCurrent="+ReferenceEquals(card,R.Root.Q("annual-year-comparison"))+" oldParent="+card.parent?.name+" content="+sc.contentContainer.name);
+        card=R.Root.Q("annual-year-comparison");
+        Debug.Log("D073_ATTACHMENT liveParent="+card.parent?.name+" sameContent="+ReferenceEquals(card.parent,sc.contentContainer)+" matchingAncestor="+ReferenceEquals(card.GetFirstAncestorOfType<ScrollView>(),sc));
+        Check(card.parent==sc.contentContainer,"live card exclusively inside existing scroll");
         var caveat=R.Root.Q<Label>("annual-year-comparison-caveat");sc.ScrollTo(caveat);yield return Settle();Fits(caveat,"caveat reachable");yield return Shot(tag+"-expanded-species-caveat");
         float scrollBefore=sc.scrollOffset.y;yield return NativeClick(caveat);yield return native.Send(RackAuthoringNativeInput.Op.Click(4),RackAuthoringNativeInput.Op.Click(4),RackAuthoringNativeInput.Op.Click(4));yield return Settle();
         Check(sc.scrollOffset.y<scrollBefore,"actual pointer wheel scroll changes position",scrollBefore+"→"+sc.scrollOffset.y);
