@@ -22,6 +22,10 @@ class Check {
  orders.Add(o);Equal(Target(11),15);orders.RemoveAt(1);
  e.targetTreeId="wrong";Equal(Target(11),15);e.targetTreeId="tree";
  e.outcome=ScenarioManagementOutcome.Failed;Equal(Target(11),15);e.outcome=ScenarioManagementOutcome.Succeeded;
+ e.year=9;Equal(Target(11),15);e.year=10;
+ e.eventId=0;Equal(Target(11),15);e.eventId=1;
+ o.targetTreeId="";e.targetTreeId="";Equal(Target(11),15);o.targetTreeId="tree";e.targetTreeId="tree";
+ o.resolvedYear=12;e.year=12;Equal(Target(11),15);o.resolvedYear=10;e.year=10;
  o.type=ScenarioWorkType.PlantJuvenile;Equal(Target(11),15);
  Console.WriteLine($"CADENCE CALCULATOR PASS {count} assertions (minimal record stubs; no runtime parity claim)");
  }
