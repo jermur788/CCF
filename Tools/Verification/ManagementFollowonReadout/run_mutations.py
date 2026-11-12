@@ -36,7 +36,7 @@ def main():
         mutant = work / source.name
         mutant.write_text(mutated)
         (work / 'mutation.diff').write_text(''.join(difflib.unified_diff(
-            original.splitlines(True), mutated.splitlines(True), fromfile='qualified-helper', tofile=name)))
+            original.splitlines(True), mutated.splitlines(True), fromfile='qualified-helper', tofile=name, n=0)))
         sources = [mutant, here / 'OfflineContractTypes.cs', here / 'ManagementFollowonReadoutVerification.cs']
         items = '\n'.join('<Compile Include="' + escape(str(p), {'"': '&quot;'}) + '" />' for p in sources)
         project = work / 'Mutation.csproj'

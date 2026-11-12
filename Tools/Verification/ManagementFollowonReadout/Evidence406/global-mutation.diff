@@ -1,13 +1,7 @@
 --- qualified-helper
 +++ global
-@@ -160,9 +160,7 @@
-             .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
-         // Events is the complete stream; the work projections above cannot reveal collisions with
-         // creation/advance records. Count it separately so the same projected event is not counted twice.
+@@ -163,3 +163 @@
 -        duplicateEvents.UnionWith((years ?? Array.Empty<YearHistoryView>()).Where(y => y != null)
 -            .SelectMany(y => y.Events).Where(e => e != null).GroupBy(e => e.eventId)
 -            .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
 +
-         var duplicateOrders = new HashSet<int>(resolved.GroupBy(w => w.Event.workOrderId)
-             .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
- 
