@@ -1,4 +1,5 @@
 import datetime
+import os
 import hashlib
 import json
 import shutil
@@ -10,7 +11,8 @@ LANE = Path('/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual')
 ROOT = Path('/media/jer/Files/CCF/Verification/D073-FR10-427-20261112')
 OUTPUT = ROOT / 'followup1'
 LOCK = '/media/jer/ZX20/CCF-Ops/scripts/unity-lock'
-OWNER = 'OpenAI Codex gpt-6.1-sol HIGH #427'
+# The lock owner must match between acquire and release; successor workers set CCF_427_OWNER to their own identity.
+OWNER = os.environ.get('CCF_427_OWNER', 'OpenAI Codex gpt-6.1-sol HIGH #427')
 TASK = 'CCF-427-D073-FR10'
 BRANCH = 'qualify/scenario-one-d073-fr10-visible-provenance-unity-20261112-v1'
 SOURCE = '339517ed2d49bb3d5716fc9cf029d9ef0eaeee72'
@@ -58,7 +60,7 @@ if operation == 'start':
     subprocess.run(['/media/jer/ZX20/CCF-Ops/scripts/packet-lint', '--board', str(board)], check=True)
     result = subprocess.run([LOCK, 'acquire', '--owner', OWNER, '--task-id', TASK, '--lane', str(LANE), '--branch', BRANCH, '--head', head,
                              '--eta', (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)).isoformat(),
-                             '--notes', '#427 Follow-up1 bounded foldout diagnostics / distinct-ID fixture; ten-path restoration allowlist; isolated saves; no build', '--json'], capture_output=True, text=True)
+                             '--notes', '#427 Follow-up1 bounded foldout diagnostics / distinct-ID fixture; ten-path restoration allowlist; isolated saves; no build; ' + os.environ.get('CCF_427_NOTE', '') + '', '--json'], capture_output=True, text=True)
     (OUTPUT / (tag + '-acquire.json')).write_text(result.stdout)
     assert result.returncode == 0, result.stderr
     print(result.stdout)
