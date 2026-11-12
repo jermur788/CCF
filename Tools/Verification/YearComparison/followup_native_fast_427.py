@@ -27,7 +27,7 @@ with (folder / 'native-actions.jsonl').open('a', buffering=1) as log:
                         command = ['xdotool', *{
                             'key': ['key', operation.get('key', '')],
                             'click': ['click', str(operation.get('button', 1))],
-                            'absolute': ['mousemove', '--sync', str(operation.get('x', 0)), str(operation.get('y', 0))],
+                            'absolute': ['mousemove', str(operation.get('x', 0)), str(operation.get('y', 0))],  # no --sync: with the pointer already there, --sync blocks ~15 s
                             'relative': ['mousemove_relative', '--sync', '--', str(operation.get('x', 0)), str(operation.get('y', 0))]
                         }[kind]]
                     started = time.time()

@@ -70,7 +70,7 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             + " toggleBound=" + fold?.Q<Toggle>()?.worldBound.ToString("F4") + " foldId=" + (fold == null ? 0 : RuntimeHelpers.GetHashCode(fold))
             + " cardId=" + (card == null ? 0 : RuntimeHelpers.GetHashCode(card)) + " rebuiltSinceClick=" + (previousCard != null && !ReferenceEquals(previousCard, card))
             + " elapsedSinceClick=" + (previousClick < 0 ? "none" : (Time.realtimeSinceStartupAsDouble - previousClick).ToString("F6"))
-            + " scroll=" + Scroll.scrollOffset.ToString("F4"));
+            + " scroll=" + Scroll.scrollOffset.ToString("F4") + " cursorLock=" + Cursor.lockState + " appFocused=" + Application.isFocused);
     }
 
     void InstallTracing()
@@ -164,12 +164,16 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
         Set(oracle, "history", history);
         InstallTracing();
         string phase = Environment.GetEnvironmentVariable("CCF_427_PHASE");
-        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica", faithful = phase == "faithful", stress = phase == "stress";
+        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica", faithful = phase == "faithful", stress = phase == "stress", replicaStress = phase == "replica-stress";
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })
         {
             Cadence408GameSize.SetGameSize(size.x, size.y); yield return Settle(1.1f);
             Check(Screen.width == size.x && Screen.height == size.y, "exact render dimensions", Screen.width + "x" + Screen.height);
-            if (stress) yield return Case(size + "/focus-loop-stress", Stress(size, size.x == 1280 ? 40 : 20, size.x == 1280 ? 4 : 2));
+            if (stress || replicaStress)
+            {
+                if (replicaStress) yield return Case(size + "/first-run-order-replica", Replica(size, true, 3));
+                yield return Case(size + "/focus-loop-stress", Stress(size, size.x == 1280 ? 40 : 20, size.x == 1280 ? 4 : 2));
+            }
             else if (faithful)
             {
                 // Same order as candidate1: rendered ON, rendered OFF, inherited native sequence, then the unchanged original close probe.
