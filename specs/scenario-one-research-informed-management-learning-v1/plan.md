@@ -1,6 +1,6 @@
 # Plan — Research-Informed Management Learning V1 (minimal copy)
 
-**Status:** DRAFT; not an implementation dispatch. **Date:** 2026-11-12.  
+**Status:** APPROVED bounded copy-only V1; implementation orchestrated under separate #390 handoff. **Date:** 2026-11-12.  
 **Authority:** [spec.md](spec.md) | [tasks.md](tasks.md) | [requirements.md](checklists/requirements.md).
 
 ## 1. Evidence is already returned; no further browser dependency
@@ -12,15 +12,15 @@
 
 ## 2. Stage and owners
 
-**Stage 0 — CURRENT:** This reduced four-part draft is published on remote documentation branch `docs/scenario-one-research-learning-v1-copy-revision-20261112`. Manager readback and product review only. No Unity, no local source ownership, no new code issue claim.
+**Stage 0 — AUTHORISED:** The user directly requested complete implementation of this reduced copy-only V1 on 2026-11-12, with Claude A/Fable orchestrating, Sol 6.1 Medium implementing and Claude B independently reviewing. Approved spec lives on the dedicated orchestration/spec branch until safely merged. No Unity/local source ownership or code claim is implied by approval alone.
 
-**Stage 1 — EXISTING COMPLETE DEMO:** Continue accepted D-060 three-species complete loop, S1-C/S1-D, MFM V1 and D-072. The external demo and user's personal playtest and Windows build gate remain authoritative. **No six-paper-derived gameplay source changes added to that qualification sequence** without a new explicit product decision.
+**Stage 1 — PRESERVE EXISTING COMPLETE DEMO:** Continue accepted D-060 three-species loop, S1-C/S1-D, MFM V1 and D-072. Do the approved wording patch in an isolated source lane without interrupting ongoing tests/owners. No scientific gameplay changes are authorised. The user personally playtests before any Windows build.
 
-**Stage 2 — SMALL POST-DEMO SOURCE PATCH:** After explicit product approval, refresh live `Docs/Project/coordination/active-tasks.md`, inspect exact integrated source/branch/HEAD, assign a single local UI/source writer (suggested Sol/Codex, Low difficulty, existing C#/Unity UI familiarity) with **one exact allowed file set and clean dedicated worktree**. The feature packet must name actual path/claim/model/owner and stop on conflicting UI or Unity lease. The current spec branch does not grant a local lock. A brief source inventory confirms what text is already done.
+**Stage 2 — NOW-AUTHORISED SMALL SOURCE PATCH:** With this user's scope/timing approval, refresh live `Docs/Project/coordination/active-tasks.md`, inspect exact integrated source/branch/HEAD, assign a single local UI/source writer (suggested Sol/Codex, Low difficulty, existing C#/Unity UI familiarity) with **one exact allowed file set and clean dedicated worktree**. The feature packet must name actual path/claim/model/owner and stop on conflicting UI or Unity lease. The current spec branch does not grant a local lock. A brief source inventory confirms what text is already done.
 
 **Stage 3 — FAST QUALIFICATION:** Apply only residual wording changes; inspect immutable stable IDs/internal labels, compare world-hash on an existing fixture, capture affected 1280×720 and 1920×1080 UI screenshots, and run targeted current copy/source checks. Do not run several overlapping full Tier-2 suites for a few sentences. Existing next integrated release Tier-3 covers the accepted patch as part of that release; no standalone Tier-3 demanded.
 
-**Stage 4 — MANAGER REVIEW:** Receive one GitHub Markdown handoff, validate precise source/qualification evidence, issue APPROVED / NEEDS CHANGES / REJECTED; integrate via current owner only after approval. Record what was implemented, reviewed, integrated, verified and user-accepted separately. Any canonical context changes use normal one-SHA context/mirror verification; no dashboard sync assumed.
+**Stage 4 — INDEPENDENT REVIEW, SCOPED INTEGRATION AND RETURN:** Claude B independently reviews the exact Sol candidate. Claude A, as scoped integrator, inspects evidence and issues APPROVED / NEEDS CHANGES / REJECTED against this approved bounded spec; route rework until satisfied, then integrate safely through the current owner on the accepted target lineage, and confirm protected identity/readback. Return to Overall Manager only after a complete documented delivery or a genuine hard blocker. Record what was implemented, reviewed, integrated, verified and user-accepted separately. Any canonical context changes use normal one-SHA context/mirror verification; no dashboard sync assumed.
 
 ## 3. Minimal file inventory, not a broad Unity refactor
 
@@ -50,4 +50,4 @@ Relevant reviewer-reported locations on current main, subject to actual reinspec
 
 Existing [retained-competitor idea #386](https://github.com/jermur788/CCF/issues/386) stays **deferred design concept**. First demonstrate a need beyond existing Objective 5 retain/release; prototype non-production no-persistence approach. If a durable history feature is later chosen, create a **separate four-part spec** explicitly checking `WorldHash` compatibility and the protected D-066 pattern. Data-heavy P3/P5 model comparisons remain offline optional tasks with their own research value gate.
 
-**No current source task is READY or RUNNING.** A product acceptance decision and a safe actual local writer/lane are prerequisites.
+**No source task is RUNNING by virtue of this document.** Product scope/timing approval is granted for copy-only V1. Claude A must create/release a bounded child task claim and verify a safe actual local writer/lane before work starts.
