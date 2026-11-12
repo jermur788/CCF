@@ -29,3 +29,7 @@ Review the exact source/data contract, S1-C provenance L1–L4, no fabricated ob
 ## Scheduling priority
 
 Current C-01 #393 closure remains the only already released local follow-up. The Stage 0 docs audit can proceed independently. Essential multi-year feedback is **ahead of** optional neighbour-retention reasons #386. Young-growth trajectory is a priority example inside the core feedback, but its extra data-model requirements are not assumed. Structural indices and wind coefficients remain separate research.
+
+## Linked cadence feature boundary (D-074/D-075)
+
+A parallel four-part [management cadence / two advance options draft](../scenario-one-management-cadence-and-advance-v1/spec.md) defines the future multi-year button, target-year logic, annual simulation parity and stop rules. Do **not** implement its annual loop inside this feedback feature. If the cadence feature ships first, reuse its per-year reports/history; if this feedback ships first, it must still work with manually advanced years. Review both on the newest verified UI candidate to avoid double-writers of `AnnualReviewView` and Work Plan.
