@@ -77,3 +77,19 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **Inputs:** the four-part approved spec on this branch; packet text is in the T3 delegated task and summarised in #391.
 - **Outputs:** pending.
 - **Measured calls/tokens/wall time:** UNKNOWN.
+
+## EVENT 3 — 2026-11-12 01:37 UTC — Sol implementation returned
+
+- **Evidence class:** OBSERVED FACT for commits/diff; author results are AUTHOR CLAIMS until reviewed.
+- **Provider/model:** `gpt-6.1-sol` medium, pool A. No quota message, retry, restart or pool switch observed. Tokens/wall time UNKNOWN.
+- **Outputs:** source `02cd3ec9084a0327dddf61075fa5bb49f0907568`, report head `f32be4c5bd7711ab93d92f249f4f02b4f21a3bb1`, pushed (ls-remote matches), worktree clean. [Author report](https://github.com/jermur788/CCF/blob/f32be4c5bd7711ab93d92f249f4f02b4f21a3bb1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-C01-RESEARCH-COPY-V1-IMPLEMENTATION-RESULT.md).
+- **Claude A diff inspection (word-diff):** 8 files: six allowed UI files, one verifier pin (`ScenarioOneTeachingCopyVerification.cs`), the report. No file under `Assets/ForestPrototype/ScenarioOne` changed. One non-literal change: `ScenarioOneUiFacts` adds a display `.Replace("Establish planted ", "Planting completed; species present: ")`.
+- **Author claims:** presentation checks 157 PASS baseline and final, 5 mutants killed; offline compile 189 sources 0 errors; Rack help checker keeps pre-existing failures plus an expected scope-whitelist failure. Unity/screenshots/runtime hash NOT RUN.
+- **ORCHESTRATOR CLAIM (questions routed to review, not pre-judged):** whether narrowing the "being small/suppressed" lines dropped a teaching point; whether the planting label reads naturally; whether the display Replace is consumed anywhere non-display.
+
+## EVENT 4 — 2026-11-12 01:37 UTC — independent review dispatch
+
+- **Evidence class:** OBSERVED FACT.
+- **Provider/model/effort/pool:** Anthropic `claude-sonnet-5-5`, effort medium, provider "Claude B — Pro" (separate account from Claude A). Opus not used; no justification for escalation at LOW difficulty.
+- **Claim:** [#392](https://github.com/jermur788/CCF/issues/392) [RUNNING]; harness-isolated checkout; report branch `review/scenario-one-research-copy-v1-claude-b-20261112`. Read-only on source. Unity lease: none.
+- **Outputs:** pending.
