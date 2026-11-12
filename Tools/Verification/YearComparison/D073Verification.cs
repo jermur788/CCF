@@ -120,6 +120,20 @@ public sealed class D073Runner : MonoBehaviour
         ui.CloseAll(); ui.CloseHelp();
         Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/D073-YearComparison-417-"),"isolated host save/Prefs custody",Application.persistentDataPath);
         var original=saves.CaptureData();
+        string resume=Environment.GetEnvironmentVariable("CCF_D073_RESUME_HISTORY");
+        if(!string.IsNullOrEmpty(resume)) {
+            try {
+                var resumed=JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(resume));
+                Check(resumed.ecologicalYear==6&&resumed.scenarioOne.firstGuidedRackReviewComplete,"verified authentic runtime1 Year6 history fixture");
+                foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080)})
+                    yield return Case("AC9/native-"+size.x+"x"+size.y,()=>NativeSize(resumed,size));
+                foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080)}) {
+                    Cadence408GameSize.SetGameSize(size.x,size.y);yield return Settle();
+                    yield return Case("AC4/rendered-negative-"+size.x+"x"+size.y,()=>NegativeViews(resumed));
+                }
+            } finally {Check(saves.LoadData(original,false),"restore original disposable world after resumed UI checks");}
+            yield break;
+        }
         yield return Case("AC1/no-completed-year",Empty);
         yield return Case("provenance/real-types",Provenance);
         try {
@@ -328,12 +342,14 @@ public sealed class D073Runner : MonoBehaviour
         yield return Restore(Clone(history));Cadence408GameSize.SetGameSize(size.x,size.y);yield return Settle();ui.ShowReview();yield return Settle();R.Refresh(true);yield return Settle();
         R.Root.Q<Toggle>("annual-show-data-sources").value=false;yield return Settle();
         string tag="native-"+size.x+"x"+size.y;int latest=manager.HistoryYears.Last().Year;
-        Check(ui.RootElement.worldBound.width==size.x&&ui.RootElement.worldBound.height==size.y,"exact requested game resolution",ui.RootElement.worldBound.ToString());
+        Check(Screen.width==size.x&&Screen.height==size.y,"exact requested rendered pixel resolution",Screen.width+"x"+Screen.height+"; logical panel="+ui.RootElement.worldBound);
         var sc=(ScrollView)Field(R,"scroll");sc.ScrollTo(R.Root.Q("annual-year-comparison"));yield return Settle();
         Check(Card(latest).Rows.Count==1&&R.Root.Q<Label>("annual-year-comparison-latest-year")!=null,"actual latest single hint");
         Fits(B("◀ Earlier year"),"year navigation");Fits(R.Root.Q<Button>("annual-review-acknowledge"),"latest ACK footer");yield return Shot(tag+"-latest-footer");
         string before=Canon(saves.CaptureData());int eventCount=saves.CaptureData().scenarioOne.managementEvents.Count;
         yield return NativeClick(B("◀ Earlier year"));Check((int)Field(R,"viewYear")==latest-1,"OS earlier selects previous year");
+        while((int)Field(R,"viewYear")>3)yield return NativeClick(B("◀ Earlier year"));
+        Check((int)Field(R,"viewYear")==3,"OS year selection reaches genuine planting-work Year3");
         Check(((VisualElement)Field(R,"acknowledgement")).resolvedStyle.display==DisplayStyle.None,"OS earlier cannot ACK latest");
         var species=R.Root.Q<Foldout>("annual-year-comparison-species");Check(species!=null&&!species.value,"species initially closed");sc.ScrollTo(species);yield return Settle();
         yield return NativeClick(species.Q<Toggle>());Check(species.value,"OS species foldout opens");
@@ -346,7 +362,7 @@ public sealed class D073Runner : MonoBehaviour
         Check(sc.scrollOffset.y<scrollBefore,"actual pointer wheel scroll changes position",scrollBefore+"→"+sc.scrollOffset.y);
         yield return NativeClick(R.Root.Q<Toggle>("annual-show-data-sources"));Check(R.Root.ClassListContains("hide-data-sources"),"OS sources hides chips");
         sc.ScrollTo(R.Root.Q("annual-year-comparison"));yield return Shot(tag+"-earlier-no-sources");
-        yield return NativeClick(B("Later year ▶"));Check((int)Field(R,"viewYear")==latest,"OS later returns latest");
+        while((int)Field(R,"viewYear")<latest)yield return NativeClick(B("Later year ▶"));Check((int)Field(R,"viewYear")==latest,"OS later returns latest");
         Check(Canon(saves.CaptureData())==before&&saves.CaptureData().scenarioOne.managementEvents.Count==eventCount,"all native view actions exact world/event nonmutation");
         yield return native.Send(RackAuthoringNativeInput.Op.Key("Escape"));yield return Settle();Check(Field(ui,"screen").ToString()=="None","OS Escape back to forest");
         ui.ShowReview();yield return Settle();Check((int)Field(R,"viewYear")==-1,"reopening follows latest");
@@ -366,7 +382,7 @@ public sealed class D073Runner : MonoBehaviour
             var card=R.Root.Q("annual-year-comparison");Check(card!=null,"negative actual view card exists",mode);
             if(mode=="species-one-sided") {var fold=card.Q<Foldout>();fold.value=true;Check(card.Query<Label>().ToList().Any(l=>l.text.Contains("not recorded")&&l.text.Contains("Year "+a)),"one-sided species absence is not zero");}
             else Check(card.Q<Label>("annual-year-comparison-"+(mode=="ambiguous"?"cannot-compare":mode))!=null,"negative exact gap row",mode);
-            ((ScrollView)Field(R,"scroll")).ScrollTo(card);yield return Shot("negative-"+mode);
+            ((ScrollView)Field(R,"scroll")).ScrollTo(card);yield return Shot("negative-"+Screen.width+"x"+Screen.height+"-"+mode);
         }
         yield return Restore(Clone(history));
     }
