@@ -366,7 +366,8 @@ public sealed class D073Runner : MonoBehaviour
         Check(sc.scrollOffset.y<scrollBefore,"actual pointer wheel scroll changes position",scrollBefore+"→"+sc.scrollOffset.y);
         yield return NativeClick(R.Root.Q<Toggle>("annual-show-data-sources"));Check(R.Root.ClassListContains("hide-data-sources"),"OS sources hides chips");
         sc.ScrollTo(R.Root.Q("annual-year-comparison"));yield return Shot(tag+"-earlier-no-sources");
-        while((int)Field(R,"viewYear")<latest)yield return NativeClick(B("Later year ▶"));Check((int)Field(R,"viewYear")==latest,"OS later returns latest");
+        for(int nav=0;(int)Field(R,"viewYear")>=0&&nav<manager.HistoryYears.Count;nav++)yield return NativeClick(B("Later year ▶"));
+        Check((int)Field(R,"viewYear")==-1&&!B("Later year ▶").enabledInHierarchy,"OS later returns follow-latest and disables Later");
         Check(Canon(saves.CaptureData())==before&&saves.CaptureData().scenarioOne.managementEvents.Count==eventCount,"all native view actions exact world/event nonmutation");
         yield return native.Send(RackAuthoringNativeInput.Op.Key("Escape"));yield return Settle();Check(Field(ui,"screen").ToString()=="None","OS Escape back to forest");
         ui.ShowReview();yield return Settle();Check((int)Field(R,"viewYear")==-1,"reopening follows latest");
