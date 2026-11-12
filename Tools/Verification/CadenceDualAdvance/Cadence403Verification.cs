@@ -320,7 +320,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_NATIVE")=="1") {
             var center=button.worldBound.center;var root=ui.RootElement.worldBound;
             var view=EditorWindow.GetWindow(typeof(Editor).Assembly.GetType("UnityEditor.GameView"));
-            var rectProperty=view.GetType().GetProperty("targetInView",BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public);
+            var rectProperty=view.GetType().GetProperty("targetInParent",BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public);
             Rect rect=rectProperty!=null?(Rect)rectProperty.GetValue(view):new Rect(0,21,view.position.width,view.position.height-21);
             int x=Mathf.RoundToInt(view.position.x+rect.x+center.x/root.width*rect.width),y=Mathf.RoundToInt(view.position.y+rect.y+center.y/root.height*rect.height);
             Debug.Log("CADENCE408_NATIVE_RECT window="+view.position+" rect="+rect);
