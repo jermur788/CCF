@@ -154,6 +154,8 @@ public static class ScenarioOneManagementFollowonReadout
         var all = resolved.Concat(cancelled).OrderBy(w => w.Year).ThenBy(w => w.Event.eventId)
             .ThenBy(w => w.Event.workOrderId).ThenBy(w => (int)w.Event.taskType)
             .ThenBy(w => w.Cancelled).ToList();
+        var duplicateYears = new HashSet<int>(completed.GroupBy(y => y.Year)
+            .Where(g => g.Count() > 1).Select(g => g.Key));
         var duplicateEvents = new HashSet<int>(all.GroupBy(w => w.Event.eventId)
             .Where(g => g.Key <= 0 || g.Count() > 1).Select(g => g.Key));
         var duplicateOrders = new HashSet<int>(resolved.GroupBy(w => w.Event.workOrderId)
@@ -167,7 +169,8 @@ public static class ScenarioOneManagementFollowonReadout
             Resolution status = row.Cancelled ? Resolution.Cancelled
                 : e.outcome == ScenarioManagementOutcome.Succeeded ? Resolution.Succeeded
                 : e.outcome == ScenarioManagementOutcome.Failed ? Resolution.Failed : Resolution.Unresolved;
-            bool ambiguous = duplicateEvents.Contains(e.eventId) || (!row.Cancelled && duplicateOrders.Contains(e.workOrderId));
+            bool ambiguous = duplicateYears.Contains(row.Year) || duplicateEvents.Contains(e.eventId)
+                || (!row.Cancelled && duplicateOrders.Contains(e.workOrderId));
             OrderLink link = ambiguous ? OrderLink.AmbiguousIdentity
                 : row.Cancelled || row.Order == null ? OrderLink.MissingOrder
                 : ValidOrder(row) ? OrderLink.Verified : OrderLink.InconsistentOrder;
