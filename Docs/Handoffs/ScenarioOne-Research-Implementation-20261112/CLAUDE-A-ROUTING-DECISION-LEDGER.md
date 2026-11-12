@@ -122,3 +122,11 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **Lane:** to be created by the worker at `/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual`, branch `qualify/scenario-one-research-copy-v1-20261112` @ `868643a1`, fresh Library, ~6.6 GB expected, floor 15 GiB (25 GiB free observed before). Lease: to be acquired per session through the repo unity-lock tool; never forced.
 - **Evidence root:** `/media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/`. Report branch: `report/scenario-one-research-copy-v1-unity-qual-20261112`.
 - **Outputs:** pending.
+
+## EVENT 8 — 2026-11-12 01:56 UTC — Unity attempt 1 BLOCKED (lane not registered); registry entry added; attempt 2 dispatched
+
+- **Evidence class:** OBSERVED FACT.
+- **Attempt 1 result:** `gpt-6.1-sol` medium, pool A. **BLOCKED** before any Editor start: `unity-lock acquire` exit 2, `lane is not configured: /media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual`. [Report 452bf98b](https://github.com/jermur788/CCF/blob/452bf98be55737ca31d4861a2a9d08b123c86de6/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-C01-RESEARCH-COPY-V1-UNITY-QUALIFICATION-RESULT.md). Lane worktree created clean @ `868643a1`; no Library, no licensed assets copied; no lease; lock FREE; ZX20 24.95 → 22.98 GiB free; 37 host custody files unchanged. All Unity checks NOT RUN.
+- **Failure class:** operational prerequisite missed in the Claude A packet (lane registration), not a product or provider failure. Cost: one wasted worker run.
+- **Action by Claude A:** appended exactly one entry to deployed `/media/jer/ZX20/CCF-Ops/lanes.json` (`ResearchCopyQual391`, `unity: true`), following the UIQual275 / AccessSpineMeasure248 / UIQual376 precedent for a user-authorised lane. Backup `lanes.json.before-391` and `lanes-json-391.diff` are in `/media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/`. No other config touched; no lock forced. `unity-lock status` after: free, no Editor PIDs. **Manager #200 should confirm or revert this registration.**
+- **Attempt 2:** same route (`gpt-6.1-sol` medium, pool A), fresh session with the attempt-1 report as input. Pool B still unused.
