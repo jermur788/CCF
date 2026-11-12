@@ -171,8 +171,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void FinishSkip(string reason)
     {
-        int end = manager.CurrentEcologicalYear;
+        int end = manager != null ? manager.CurrentEcologicalYear : skipStart;
         RestoreSkipInputs();
+        if (manager == null || review == null || document == null) return;
         review.SetSkipSummary(end == skipStart ? "No years advanced. " + reason
             : $"Session only: advanced Years {skipStart + 1}–{end}. {reason} Browse earlier years below; only the latest review can be acknowledged.");
         ShowReview(); review.Refresh(true);
@@ -311,9 +312,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void Update()
     {
+        if (skipping) { TickSkip(); return; }
         if (manager == null || document == null)
             return;
-        if (skipping) { TickSkip(); return; }
         UiKit.SetCompact(document.rootVisualElement);
         bool preview = manager.ReferencePreviewActive;
         if (preview) CloseHelp();
