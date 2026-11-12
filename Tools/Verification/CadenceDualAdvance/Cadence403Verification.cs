@@ -272,19 +272,13 @@ public sealed class Cadence403Runner : MonoBehaviour
         foreach(var status in new[]{ScenarioWorkStatus.Pending,ScenarioWorkStatus.Approved}) foreach(bool invalid in new[]{false,true}) foreach(int origin in new[]{0,1}) {
             var st=status;var bad=invalid;var prescription=origin;
             string name="entry/order/"+st+"/invalid="+bad+"/prescription="+origin;
-            yield return Case(name,RejectCase(state,name,()=>{
-                var data=manager.CaptureSaveData();data.workOrders.Add(new ScenarioOneWorkOrder{workOrderId=data.nextWorkOrderId++,status=st,type=ScenarioWorkType.FellTree,prescriptionId=prescription,validationMessage=bad?"invalid disposable fixture":""});manager.RestoreSaveData(data);ui.Learning.Refresh(true);
-            },"Pending and Approved"));
+            yield return Case(name,AuthenticOrderCase(state,st,bad,prescription));
         }
         yield return Case("stop/cancel0",StopCase(state,"cancel0",()=>Set(ui,"cancelSkip",true),"Cancelled between years.",0));
         yield return Case("stop/cancel1",StopCase(state,"cancel1",()=>Set(ui,"cancelSkip",true),"Cancelled between years.",1));
         yield return Case("stop/authoring",StopCase(state,"authoring",()=>manager.SetReferenceAuthoring(true),"Return to your forest first.",1));manager.SetReferenceAuthoring(false);
         yield return Case("stop/controller-disabled",StopCase(state,"controller",()=>manager.enabled=false,"Forest controller unavailable.",1));manager.enabled=true;
         yield return Case("stop/new-pending",StopCase(state,"pending",()=>Plan(Live().First(t=>!t.IsCropTree&&!Bay().Contains(t.transform.position.x,t.transform.position.z))),"Resolve or remove all Pending and Approved work first.",1));
-        foreach(var outcome in new[]{ScenarioOneOutcome.Completed,ScenarioOneOutcome.Failed}) {
-            var result=outcome;
-            yield return Case("stop/outcome/"+result,StopCase(state,"outcome",()=>typeof(ScenarioOneManager).GetMethod("SetOutcome",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(manager,new object[]{result,manager.CurrentEcologicalYear,"Disposable qualification injection"}),"Scenario outcome changed.",1));
-        }
         yield return Case("stop/modal-between-ticks",StopCase(state,"modal",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question or editing action first.",1));
         yield return Case("stop/Failed-cash-zero-injected",CashOutcomeCase(state));
         yield return Case("fault/OnDisable",DisableCase(state));
@@ -412,10 +406,8 @@ public sealed class Cadence403Runner : MonoBehaviour
         yield return Case("entry/rack-active",RejectCase(state,"rack-active",()=>Set(rack,"active",true),"Finish the open question",()=>rack.Exit()));
         yield return Case("entry/rack-intro",RejectCase(state,"rack-intro",()=>Set(rack,"introPending",true),"Finish the open question",()=>Set(rack,"introPending",false)));
         yield return Case("entry/advance-warning",RejectCase(state,"advance-warning",()=>Set(workPlan??(WorkPlanView)Field(ui,"workPlan"),"confirmingAdvance",true),"Finish the open question",()=>Set(Field(ui,"workPlan"),"confirmingAdvance",false)));
-        foreach(var outcome in new[]{ScenarioOneOutcome.Failed}) {
-            yield return Case("entry/ecology-unavailable",RejectCase(state,"ecology",()=>Set(ui,"ecology",null),"Forest controller unavailable.",()=>Set(ui,"ecology",FindFirstObjectByType<ForestEcologyController>())));
-            yield return Case("entry/Failed",RejectCase(state,"Failed",()=>typeof(ScenarioOneManager).GetMethod("SetOutcome",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(manager,new object[]{outcome,manager.CurrentEcologicalYear,"Disposable injection"}),"Year advance is unavailable."));
-        }
+        yield return Case("entry/ecology-unavailable",RejectCase(state,"ecology",()=>Set(ui,"ecology",null),"Forest controller unavailable.",()=>Set(ui,"ecology",FindFirstObjectByType<ForestEcologyController>())));
+        yield return Case("entry/Failed",FailedEntryCase(state));
         yield return Case("stop/help-real-modal",StopCase(state,"help",()=>ui.Help.Show(MenuHelpView.Menu.WorkPlan),"Finish the open question or editing action first.",1));ui.CloseHelp();
         yield return Case("fault/false-tick2",FalseCase(state));
         yield return Case("locks/pre-disabled",PreDisabled(state));
@@ -492,14 +484,7 @@ public sealed class Cadence403Runner : MonoBehaviour
                     Debug.Log("CADENCE408_BOUNDARY_PARITY year="+manager.CurrentEcologicalYear+" direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual)+" outcome="+manager.Outcome);
                     Check(manager.CurrentEcologicalYear==boundary+1&&boundaryInputs.All(p=>p.Key.enabled==p.Value),"boundary exact tick and nine restore");
                     CadenceParity.RejectWrongStopReason(ui,boundary,boundary+1,reason);DestinationAck();
-                    if(boundary==24) {
-                        yield return Restore(boundaryState);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"isolated boundary reason begin");Set(ui,"skipObjectives",int.MaxValue);Set(ui,"skipOutcome",manager.Outcome==ScenarioOneOutcome.Active?ScenarioOneOutcome.Completed:manager.Outcome);
-                        while(ui.Skipping)yield return null;CadenceParity.RejectWrongStopReason(ui,24,25,"Review boundary reached.");DestinationAck();
-                        Debug.Log("CADENCE408_BOUNDARY_ISOLATED PASS test-only stop-priority snapshots suppress objective and outcome stops; authoritative state/history unchanged");
-                        yield return Restore(boundaryState);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"objective priority isolation begins");Set(ui,"skipOutcome",ScenarioOneOutcome.Completed);
-                        while(ui.Skipping)yield return null;CadenceParity.RejectWrongStopReason(ui,24,25,"An objective was achieved.");DestinationAck();
-                        Debug.Log("CADENCE408_OBJECTIVE_ISOLATED PASS genuine achieved objective; only test-side skipOutcome snapshot suppresses higher-priority completion stop");
-                    }
+                    if(boundary==24)yield return BoundaryPriorityCases(boundaryState);
                 }
                 else Check(false,"authentic boundary eligibility",ui.SkipProblem());
             } else {Check(manager.AdvanceYear(),"authentic progression year "+(year+1));ui.ShowReview();ui.AcknowledgeAnnualReview();}
@@ -649,6 +634,64 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(JsonUtility.ToJson(direct)==JsonUtility.ToJson(actual),"genuine Failed outcome full JSON direct parity");
         Debug.Log("CADENCE408_FAILED condition=injected cash zero; production annual evaluation event/outcome year="+manager.CurrentEcologicalYear+" direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual));
         CadenceParity.RejectWrongStopReason(ui,start,start+1,"Scenario outcome changed.");LogInputs("Failed-cash-zero",inputs);DestinationAck();
+    }
+
+    IEnumerator AuthenticOrderCase(ForestSaveData state,ScenarioWorkStatus status,bool invalid,int origin) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        if(origin==0)Plan(Live().First(t=>!t.IsCropTree&&!Bay().Contains(t.transform.position.x,t.transform.position.z)));
+        else {
+            var coverage=manager.ReadCoverage(out string problem);Check(coverage!=null&&coverage.Valid,"order fixture genuine MFM coverage",problem);
+            var stems=Live().Select(t=>new ScenarioOneCoverage.Stem(t.TreeId,t.transform.position.x,t.transform.position.z,t.Diameter,t.IsLiving,t.Species!=null?t.Species.SpeciesId:"",t.IsCropTree,t.IsMarkedForFell)).ToList();
+            var suggestions=ScenarioOneCropTreeCandidates.Suggest(coverage,stems,stems.Where(t=>t.Crop).Select(t=>t.Id).ToList(),null,null,ScenarioOnePrescriptionCalibration.V1);
+            Check(suggestions.Valid,"order fixture genuine MFM suggestions",suggestions.Problem);
+            foreach(var candidate in suggestions.Candidates)ui.Marking.Mark(Live().Single(t=>t.TreeId==candidate.TreeId),TreeMarkType.CropTree,false);
+            var units=coverage.Areas.Where(a=>!a.IsSource&&a.State==ScenarioOneCoverage.State.Covered).Take(1).Select(a=>a.Id).ToList();
+            var created=manager.CreatePrescription(units);Check(created.Succeeded,"order fixture real MFM prescription created",created.Message);
+            Check(manager.ApprovePrescription(created.PrescriptionId).Succeeded,"order fixture real MFM prescription approved");
+        }
+        if(status==ScenarioWorkStatus.Approved)Check(ui.ApproveWorkPlan(),"order fixture actual Work Plan approval");
+        var order=manager.WorkOrders.First(o=>o.IsOpen&&o.type==ScenarioWorkType.FellTree&&(origin==0?o.prescriptionId==0:o.prescriptionId>0));
+        if(invalid) {
+            var tree=Live().Single(t=>t.TreeId==order.targetTreeId);Check(tree.ApplyMortality("qualification invalidated genuine order target",manager.CurrentEcologicalYear),"order target mortality injection via production API");
+        }
+        manager.RevalidateOpenOrders();ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        Check(order.status==status && (origin==0?order.prescriptionId==0:order.prescriptionId>0),"real order status and origin retained");
+        Check(invalid?!string.IsNullOrEmpty(order.validationMessage):string.IsNullOrEmpty(order.validationMessage),"actual order validation state matches fixture",order.validationMessage);
+        Debug.Log("CADENCE408_AUTHENTIC_ORDER status="+status+" invalid="+invalid+" prescription="+order.prescriptionId+" validation="+order.validationMessage+" reason="+ui.SkipProblem());
+        string before=JsonUtility.ToJson(saves.CaptureData());CadenceParity.Reject(ui,"Pending and Approved");Check(before==JsonUtility.ToJson(saves.CaptureData()),"authentic order blocker complete saved-world nonmutation");
+    }
+
+    IEnumerator FailedEntryCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        Set(manager,"cashCents",0L);Check(manager.AdvanceYear(),"Failed-entry cash exhaustion condition, ordinary annual evaluation");
+        Check(manager.Outcome==ScenarioOneOutcome.Failed,"Failed-entry actual evaluated outcome");ui.ShowReview();ui.AcknowledgeAnnualReview();ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        Debug.Log("CADENCE408_REASON Failed exact="+ui.SkipProblem());string before=JsonUtility.ToJson(saves.CaptureData());
+        CadenceParity.Reject(ui,"Year advance is unavailable.");Check(before==JsonUtility.ToJson(saves.CaptureData()),"Failed-entry complete world nonmutation");
+    }
+
+    IEnumerator BoundaryPriorityCases(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        // Deliberately force an actual biological condition through the same mortality API as F9.
+        // Keeping fewer original trees prevents completion without changing any objective/event/lesson field.
+        ui.Ecology.BeginChangeBatch();int deaths=0;
+        try {foreach(var tree in Live().Where(t=>!t.IsCropTree))if(tree.ApplyMortality("qualification boundary stop-priority fixture",24))deaths++;}
+        finally {ui.Ecology.EndChangeBatch();}
+        ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.Learning.CurrentTopicIndex==7,"mortality boundary retains genuine historical teaching completion");
+        Debug.Log("CADENCE408_BOUNDARY_CONDITION mortalityApiDeaths="+deaths+" year="+manager.CurrentEcologicalYear+" no objective/event/lesson fields changed");
+        var injured=saves.CaptureData();File.WriteAllText(Path.Combine(output,"authentic-mortality-boundary-24.json"),JsonUtility.ToJson(injured));
+        yield return Case("stop/objective-real-at25",BoundaryGuardCase(injured,false));
+        yield return Case("stop/Year25-boundary",BoundaryGuardCase(injured,true));
+    }
+    IEnumerator BoundaryGuardCase(ForestSaveData state,bool isolateBoundary) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(manager.AdvanceYear(),"mortality boundary direct ordinary annual tick");var direct=saves.CaptureData();
+        Check(manager.Outcome==ScenarioOneOutcome.Active,"real lost-canopy condition prevents simultaneous completion");
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"mortality boundary skip begins");
+        if(isolateBoundary)Set(ui,"skipObjectives",int.MaxValue); // observation counter only; authoritative objective history stays intact
+        while(ui.Skipping)yield return null;var actual=saves.CaptureData();ScenarioReferenceArchive.Canonicalize(direct);ScenarioReferenceArchive.Canonicalize(actual);
+        Check(JsonUtility.ToJson(direct)==JsonUtility.ToJson(actual),"mortality boundary complete JSON direct parity");
+        string reason=isolateBoundary?"Review boundary reached.":"An objective was achieved.";
+        CadenceParity.RejectWrongStopReason(ui,24,25,reason);LogInputs("Year25 "+reason,inputs);DestinationAck();
+        Debug.Log("CADENCE408_BOUNDARY_PRIORITY year=25 reason="+reason+" outcome="+manager.Outcome+" direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual)+" objectiveCounterOverride="+isolateBoundary);
     }
 
 }
