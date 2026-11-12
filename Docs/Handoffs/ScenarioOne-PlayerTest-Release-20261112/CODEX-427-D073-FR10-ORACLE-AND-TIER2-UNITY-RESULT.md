@@ -2,6 +2,8 @@
 
 Date: 12 November 2026. Worker: OpenAI / Codex **gpt-6.1-sol**, high reasoning, on Predator. Child claim: #427; parent: #412. No subagents.
 
+> **Follow-up 1 (appended at the bottom of this file, 2026-11-12) supersedes the cleanup-blocked state and re-examines F-1/F-2; the first-run text below is kept unchanged.** Follow-up verdict: PASS (qualified: the F-1 trigger is inferred, not proven). See "Follow-up verdict".
+
 ## Verdict and release boundary
 
 **FAIL; cleanup BLOCKED pending explicit restoration authorisation.** The required repaired-view rendered provenance oracle passes at both resolutions, including every stand/species measure, sources ON/OFF, missing snapshots, ambiguous snapshots and event-only warnings. The complete targeted matrix ran to completion without stopping after failures. This is **not** an all-green Tier-2 qualification or permission to integrate/release.
@@ -476,3 +478,178 @@ The following are desktop before/after evidence for native requests 15/16, not e
 - Custody: both baseline manifests, both runs' host/production after manifests, acquisition/release receipts, drift patches/byte archives and custody-result JSONs.
 - Offline: `helper-offline.log`, `mapper-offline.log`; copied inspected drivers `inherited-start_session.py`, `inherited-finish_session.py`; aggregation tool `summarize427.py`.
 - Inspection copies of authority documents: `inspection/`. No save bytes or licence material are added to Git.
+
+
+---
+
+# Follow-up 1 (2026-11-12, appended; the first-run text, numbers and recorded failures above are unchanged)
+
+Authorised by the parent disposition comment on #427 (18:11 UTC): ten-path drift restoration, root-cause isolation of F-1 (including the same probes on the unrepaired `77a56a44` view), and a valid distinct-ID fixture for F-2. Test-only: no production source was edited, no Player was built, `main` and other lanes were not touched, no subagents.
+
+## Follow-up verdict
+
+**PASS — qualified, with the F-1 trigger inferred rather than proven.** Read the qualification before relying on the word PASS.
+
+- Every required case a–g is PASS at both 1280x720 and 1920x1080 when the corrected native close probe (a NEW test, `Fr10Followup427.CorrectedClose`) is taken as the case-d verdict. The first-run FAIL of the original probe stays on record, unedited, and is not converted to a pass.
+- **F-1 is classified HARNESS DEFECT (OS pointer delivery in the original blind probe), not a product defect and not a regression from the repair.** Evidence below. What is **not** proven: the exact event that moved the pointer in the single first-run failure. The first run had no pointer/event tracing, so that one event cannot be replayed, and it was not reproduced in 15 replays of the unchanged probe (9 candidate, 6 base) or 400 stress clicks (200 candidate, 200 base).
+- F-2 is resolved as a test-fixture defect; a valid distinct-ID ambiguous-event world passes ON and OFF at both sizes.
+- The original raw failures remain on record: F-1 (1) and the four duplicate-ID fixture loads (F-2). They are not recounted as passes.
+
+## Workers, cut-offs and custody events
+
+| Step | Worker | Outcome |
+|---|---|---|
+| First run (`negative1`, `candidate1`), report `87b1d157` | Codex gpt-6.1-sol (high) | 47 cases, 42 PASS / 5 FAIL; stopped at the C-1 restoration boundary |
+| Follow-up Step A and first diagnostic session (`candidate-diagnostic`) | Codex gpt-6.1-sol (high), 2nd claim worker | Restored the ten archived drift files, re-proved the 4,011-file manifest (`restoration-verification.json`), added runner `b219ca70`; **cut off by provider usage limit at ~18:25 UTC** after the Editor had exited with `FOLLOWUP_DONE checks=19 failures=0` |
+| Everything below | Claude Sonnet 5.5 (Claude A), successor | Closed the orphaned session, isolated F-1, ran F-2, wrote this section |
+
+There were two Codex usage-limit interruptions on this claim (one before the first-run report was finalised, one mid follow-up). The successor found the machine-wide lock still held by the orphaned lease `aadacab876644ec9b3023a3e96c98928` (task `CCF-427-D073-FR10`, head `b219ca70`, lane ResearchCopyQual391), no Unity Editor process, only a leftover `VBCSCompiler` (pid 526897, not touched), the four known drift files dirty, no staged harness copies. It then ran that session's own closing steps: host 37-file manifest compared with `host-before.json` (identical), four drift files archived (`candidate-diagnostic-drift-bytes/`, `…-Editor-drift.patch`), allowlisted `git checkout --` of exactly those four paths, 4,011-file production manifest identical, lane clean, and a normal `unity-lock release` (not forced; receipt `followup1/candidate-diagnostic-release.json`). `b219ca70` was then pushed with a normal `git push`. The four-path allowlist applied in every later session; no unexpected drift paths appeared in any follow-up session.
+
+### Leases (all released normally, none forced, Editor never killed)
+
+| Session | Lease id | Runner HEAD | Evidence directory (`followup1/`) |
+|---|---|---|---|
+| `candidate-diagnostic` | `aadacab876644ec9b3023a3e96c98928` (Codex; released by successor) | `b219ca70` | `candidate-diagnostic/` |
+| `base-diagnostic` | `7340053066b04893a6111a1d1c30c7be` | `f0b79863` | `base-diagnostic/` |
+| `candidate-full` | `cf509a5d9f664377ab14ca361ca5e769` | `3e281aff` | `candidate-full/` |
+| `candidate-faithful` | `9c1163ac97f84f37a44ec5c745744c8b` | `27e1b680` | `candidate-faithful/` |
+| `candidate-stress` | `1c5f18c9e97e46208895f693e71220e3` | `d9970c06` | `candidate-stress/` |
+| `base-replica-stress` | `b46baf3d2e9544d290301f5605f8d5d4` | `e2a91857` | `base-replica-stress/` |
+
+Each session: lock FREE and no Editor beforehand; lease taken with the exact lane HEAD; production tree equal to candidate (`git diff --stat 339517ed HEAD -- Assets Packages ProjectSettings` empty, re-proved by the driver); isolated save/config under the evidence directory (checked by `FOLLOWUP_ISOLATION` log line); licence copy removed after exit; Editor exited by itself (`EditorApplication.Exit`); 0 C# compiler errors in every log; host 37-file and production 4,011-file manifests identical after each session (`<session>-custody-result.json`, `-host-after.json`, `-production-after.json`); lease released normally (`<session>-release.json`).
+
+Runner commits added by the successor (all under `Tools/Verification/YearComparison/`, test-only): `2539782c` replica probe and panel-level tracing; `f0b79863` owner override for the custody script; `3e281aff` shared native request counter and `replica` phase; `27e1b680` `faithful` phase and rebuild polling; `d9970c06` focus-loop A/B stress, fast native driver, window/focus tracing; `73d7876f`+`e2a91857` driver `--sync` removal, cursor tracing, `replica-stress` phase, compile fix. Each version was type-checked with the Unity-bundled Roslyn `csc` against the project's assemblies before use (`followup1/typecheck*/compile.log`; the first had one CS0104 that was fixed in the next commit before it was ever run).
+
+**Successor mistakes, recorded:** (1) `base-diagnostic` ran with a harness bug of mine — two native request counters wrote the same `request-0001.json`, so its `first-run-order-replica` case threw `IOException` at both sizes (`FOLLOWUP_CHECK FAIL … already exists`, session exit 1). Its diagnostic probes (the other 16 checks) are valid and passed. Fixed in `3e281aff`. (2) In `candidate-stress`, a pointer-parking helper I started mid-run (`stress-pointer-parker.sh`, private display :84 only) moved the pointer away while `xdotool mousemove --sync` was waiting, so 2 clicks landed off the toggle: those are the only 2 "lost" clicks in the whole follow-up and are my own tooling's fault, not F-1 evidence (see below). (3) My progress comment at 19:2x UTC said "220" stress clicks; the true number is 200 per variant.
+
+## F-1 root-cause analysis
+
+### What the first run showed (re-read from the raw captures)
+
+`candidate1/driver/desktop-{before,after}-{0015,0016}.png` (full 1920x1080 Xephyr captures), cropped:
+
+| Capture | Foldout | "By species" header tint |
+|---|---|---|
+| before 15 | closed (▸) | plain |
+| after 15 | open (▾), rows visible | blue (pointer hovering the toggle) |
+| before 16 | open | blue |
+| after 16 | **open** (unchanged) | **plain — hover tint gone** |
+
+A pixel difference (`desktop-before-0016` vs `desktop-after-0016`, threshold 40/255) is confined to a 29x6-pixel box at (776,505)–(805,511), i.e. the header text only: 94 pixels, nothing else on the screen changed (no rebuild flash, no scroll, no layout change). The probe therefore started from the state it assumed (closed), request 15 landed and opened it, and request 16 changed nothing except removing the hover tint. In the follow-up sessions, after a **successful** close with the pointer left on the toggle, the header **stays** tinted (`candidate-diagnostic/driver/desktop-after-0002.png`: closed ▸ and tinted). Hover loss without any toggle means the pointer was no longer over the toggle at the end of request 16.
+
+### Hypotheses tested
+
+| # | Hypothesis | Verdict | Evidence |
+|---|---|---|---|
+| 1 | Two quick clicks at one point coalesce into a double click / second click swallowed | **Rejected** | Requests 15 and 16 were ~5 s apart in the first run (xdotool log `candidate1/driver/native-actions.jsonl`). Deliberate 100 ms two-click bursts register **both** clicks (`clickCount=1` then `2`) and toggle twice (open then closed) on candidate and base at both sizes (`*/evidence/click-trace.txt`, probe `two-clicks-100ms`). |
+| 2 | Probe's assumed start state wrong at 720p; extra-opening-click logic mis-sequenced | **Rejected** | Before-15 capture shows closed; the probe's `if (!value) click; click;` ran as written (click 15 opened). Replays of the unchanged probe in the same order start closed and pass. |
+| 3 | Coordinates/picking wrong at 0.44x Game-view scale | **Rejected** | Panel `Pick` at every traced click is the toggle's input element (`unity-toggle__input`), at 720p and 1080p, at three scroll positions (top/middle/bottom of viewport); the identical desktop point (957,512) hit the toggle for request 15. |
+| 4 | View rebuild after a toggle loses a click / taller rows change behaviour | **Not supported** | Polling for card/foldout instance and `ChangeKey` inputs (`rebuild-poll` lines) shows rebuilds only on explicit actions (year buttons), never between a toggle and the next click; identical on base and candidate. The first-run pixel diff shows no rebuild signature. |
+| 5 (added) | OS pointer displaced between the move and the click | **Best-supported** | Matches the after-16 signature; a displaced click reproduces it (below); the unchanged probe and ~400 clicks do not fail otherwise. |
+
+### What the follow-up sessions prove (counts are real result lines)
+
+| Probe | Candidate `339517ed` | Unrepaired base `77a56a44` |
+|---|---|---|
+| Single human-paced closed→open and open→closed, at 3 scroll positions, per size (8 checks/size; `foldout-diagnostic`) | 16/16 PASS (`candidate-diagnostic`) | 16/16 PASS (`base-diagnostic`) |
+| Original-order sequence, fresh review (`original-sequence`), per size | PASS both sizes | PASS both sizes |
+| Two clicks 100 ms apart | both register, toggles twice, both sizes | identical |
+| **Unchanged** original probe `Fr10RenderedRunner.NativeExtra`, replayed right after the unchanged inherited native sequence (3 repeats/size) | **6/6 PASS** (`candidate-full`) | **6/6 PASS** (`base-replica-stress`) |
+| Full first-run 720p order (rendered ON → rendered OFF → inherited native → original probe x3) | **3/3 PASS**, rendered oracle 409/0 ON and OFF (`candidate-faithful`) | not run in this order |
+| Fast native toggle stress, 40 clicks x4 blocks at 720p + 20 x2 at 1080p, focus loop ON/OFF blocks alternating | 200 clicks, 0 genuine losses; 2 tool-induced (below) | **200 clicks, 0 lost** |
+| Corrected native close probe (NEW test) | PASS both sizes (5 checks each) | not run |
+
+Base and candidate therefore behave identically: no probe distinguishes the repaired view from the unrepaired one, which also rules out "regression from the repair". The failure is not pre-existing product behaviour either, because it never occurs in any traced run.
+
+The one reproduction of the F-1 signature came from the successor's own tooling: during `candidate-stress` block 0 (focus loop ON) my pointer-parking helper moved the pointer while the driver's `xdotool mousemove --sync` was waiting; the click then landed at the parked point. Trace for those two clicks: **no** `panel-pointer-down` on the toggle, a `focus-out` of the toggle, `value` unchanged — "click issued, nothing toggled, hover gone". This shows the signature is what OS-level pointer displacement looks like in this setup; it is not evidence that the same displacement happened in the first run. The remaining candidate blocks (parker still running but only parking a pointer that had sat still >0.6 s, after the click was done) and every base block (no parker: the driver was changed to `mousemove` without `--sync` in `e2a91857`) show zero losses with the focus loop both ON and OFF, so the driver's 2-second window re-activation loop is **not** supported as the cause either.
+
+Also noted: when the pointer is already at the target, `xdotool mousemove --sync` blocks ~15 s before the click (visible as 15.x s gaps in `native-actions.jsonl` of every follow-up session). The original probe, written without that in mind, sends a blind absolute-move-then-click with no check that the pointer is where it should be.
+
+### Conclusion
+
+**HARNESS DEFECT (probe design), qualified.** The original `native species foldout closes` probe is a blind OS click that never verifies pointer position; the only evidence about the failed click (hover tint lost, nothing else changed) says the pointer was not over the toggle for that click. A human-paced single click closes the foldout on the candidate at 720p (and at 1080p), repeatedly and identically on the unrepaired base. A corrected probe in a NEW file passes at both sizes. The precise trigger of the single first-run displacement is **not identified** (it would need pointer tracing in a repeat that did not happen); no production change is indicated and none is proposed. If the parent prefers a stricter bar, the honest alternative reading is "F-1 not reproduced in more than 400 trials; cause unproven", which leads to the same release recommendation: no product fix.
+
+### Corrected close probe and where it lives
+
+`Fr10Followup427.CorrectedClose` (new file `Tools/Verification/YearComparison/Fr10Followup427.cs`, committed in `b219ca70` by the cut-off worker, exercised here). It: restores the Year-6 history, shows Year 3, scrolls the foldout to mid-viewport, **asserts the closed starting state**, moves the pointer away and lets it settle (1.1 s), sends one native click and asserts it opened, settles, sends one native click and asserts it closed, asserts the whole world is byte-equal before/after (read-only), then returns to follow-latest through real native "Later year" clicks. The original probe (`Fr10RenderedOracle.NativeExtra`) and its recorded FAIL are untouched.
+
+## F-2 valid distinct-ID fixture
+
+Check of the fixture before running: the save validator (`ForestSaveValidation.ValidateManagementEventIds`) rejects only repeated or non-positive **event IDs**; it does not look at work-order IDs. The readout (`ScenarioOneManagementFollowonReadout`) separately flags resolved work whose `workOrderId` repeats (`duplicateOrders`), producing the `work-ambiguous` row ("2 work record(s) have ambiguous provenance and are not counted."). The new fixture clones a Year-1 `WorkResolved` event (ID 319, order 1) with a **new unique** event ID 538 and `nextManagementEventId` 539, so the world loads (`in-memory reload accepted`) and legitimately exercises the same-order-resolved-twice ambiguity.
+
+| Case | 1280x720 | 1920x1080 |
+|---|---|---|
+| Fixture is a valid loadable world; distinct IDs 319/538, same order 1 | PASS | PASS |
+| Loaded world's mapper emits `work-ambiguous` row ("2 work record(s)…") | PASS | PASS |
+| Unchanged rendered oracle (all measure rows, chips, warning) sources **ON** | PASS | PASS |
+| Same, sources **OFF** | PASS | PASS |
+
+The four fixture renders together contributed 1,652 rendered-oracle checks, 0 failures (`candidate-full/evidence/oracle-checks.txt`, 1,664 lines including the 12 replay checks).
+| Actual rendered warning label retained, sources ON / OFF | PASS / PASS | PASS / PASS |
+
+The four original duplicate-ID-319 raw failures from the first run stay on record; they are rejected by the validator exactly as before and are not changed by this result.
+
+## Per-case table: original result and follow-up result
+
+| Case | 720p original | 720p follow-up | 1080p original | 1080p follow-up |
+|---|---|---|---|---|
+| a. Exact compile/import | PASS | PASS (6 more Editor sessions: 4 on the exact candidate, 2 with the base view swapped in; 0 CS errors) | PASS | PASS |
+| b. Sources ON, separate RECORDED/RECORDED/DERIVED | PASS 409/0 | PASS 409/0 re-run (`candidate-faithful`) + fixture ON PASS | PASS 409/0 | not re-run (first run stands); fixture ON PASS |
+| c. Sources OFF, values/warnings kept | PASS 409/0 | PASS 409/0 re-run + fixture OFF PASS | PASS 409/0 | not re-run; fixture OFF PASS |
+| d. Native foldout/scroll/caveat/year/latest | **FAIL** (original close probe) | **PASS**: inherited native sequence PASS; corrected close probe PASS; original-probe replays 9/9 PASS candidate, 6/6 base; **original FAIL stays on record** | PASS | PASS (corrected probe + 3 replays) |
+| e. Missing/ambiguous snapshots, event-only | PASS | not re-run, plus F-2 ambiguous-event fixture PASS ON/OFF | PASS | same |
+| f. ACK/footer, read-only state/hash/events | PASS | not re-run; corrected probe's read-only world equality PASS | PASS | same |
+| g. Authentic v9 + frozen Reference | PASS | not re-run (first run stands) | PASS | not re-run |
+| Extra duplicate-ID fixture | FAIL x4 (load rejected) | replaced by valid distinct-ID fixture, PASS ON/OFF | FAIL x4 | PASS ON/OFF |
+
+## 720p readability, looked at directly
+
+I viewed the exact-pixel 1280x720 captures (`candidate1/evidence/native-1280x720-expanded-species-caveat.png`, `1280x720-full-on-stand-canopy.png`, `1280x720-full-off-species-beech-standing-trees.png`, and the new `candidate-full/evidence/1280x720-distinct-ID-ambiguous-on.png`, `…-corrected-native-closed.png`). With the species foldout open, a player can scroll through every stand and species row; each measure shows its name, three columns (End of Year N / End of Year M / Difference) with the value under each heading, RECORDED tags on the two observations and a DERIVED tag on the difference when sources are ON (absent but "calculated from records" kept when OFF), the ambiguity warning where applicable, and the fixed caveat ("These are recorded stand totals for two years…") is reachable at the bottom of the card by scrolling. I saw no clipped value, tag or caveat. This is a rendered-screenshot review by an AI, not a human playtest.
+
+## New screenshots (exact pixels, no scaling)
+
+76 PNGs under `followup1/<session>/evidence/`, all exactly 1280x720 or 1920x1080; the full list with dimensions and SHA-256 is `followup1/followup-screenshot-manifest.json`. New unique captures:
+
+| File | Size | SHA-256 |
+|---|---|---|
+| `candidate-full/evidence/1280x720-corrected-native-closed.png` | 1280x720 | `404294125e5438e2b20f70a1cc951cb7a85255b09360cf52fedc37a2fb540fb9` |
+| `candidate-full/evidence/1920x1080-corrected-native-closed.png` | 1920x1080 | `f13bcfb07bdb19d873fcb829aa70e49048fa1a6e75b8fb6ab3d3543f0dbb3e91` |
+| `candidate-full/evidence/1280x720-distinct-ID-ambiguous-on.png` | 1280x720 | `1af19bbe410bd836d404c70f23762f0ce2df2a11a0af50c45b2dc7d43f1307c4` |
+| `candidate-full/evidence/1280x720-distinct-ID-ambiguous-off.png` | 1280x720 | `6f07866a1463e22f8a97b0a0910123acfe9bbe355daaa3d3a526e262c4213a8a` |
+| `candidate-full/evidence/1920x1080-distinct-ID-ambiguous-on.png` | 1920x1080 | `eb27152b35c01363afcae9e6b008313b83b9f8a515b13557520dd7a94cf5eb1d` |
+| `candidate-full/evidence/1920x1080-distinct-ID-ambiguous-off.png` | 1920x1080 | `823952d49101f596fb5bfff8a5034204fb07d8fc6125325ca2b28e1e07fc16dd` |
+| `candidate-diagnostic/evidence/1280x720-diagnostic-closed.png` | 1280x720 | `269940a39fa7807461c9b897fd52a6b4467aa78ea538c52cd3a6153cc3a451a4` |
+| `candidate-diagnostic/evidence/1920x1080-diagnostic-closed.png` | 1920x1080 | `aa9d9930aa27c02ad4a89c5064a7479d9e26e5c509b1a170704b3ac019daab28` |
+| `base-diagnostic/evidence/1280x720-diagnostic-closed.png` | 1280x720 | `2c2f076786683b91c6536f9e99b7f523e1040fe8242d37dfa8408003b17014a8` |
+| `base-diagnostic/evidence/1920x1080-diagnostic-closed.png` | 1920x1080 | `9382fcaea0783664500b2b7fb68f046d6648d422d0cda40f3b689ea42930a2a3` |
+
+Another 362 full-desktop Xephyr captures (`*/driver/desktop-{before,after}-*.png`, 1920x1080 desktop) back the native requests; they are not Game-view screenshots.
+
+## Session results (real `FOLLOWUP_DONE` / case lines)
+
+| Session | Phase | Driver wrapper | Editor exit | Real result |
+|---|---|---|---|---|
+| `candidate-diagnostic` | diagnostic | pass | 0 | `FOLLOWUP_DONE checks=19 failures=0`, 2 cases PASS |
+| `base-diagnostic` (77a56a44 swapped in) | diagnostic | FAIL | 1 | probe checks 16/16 PASS; 2 cases FAIL = my request-counter bug (see above) |
+| `candidate-full` | full | pass | 0 | `checks=35 failures=0`; oracle 1,664 checks / 0 failures; inherited 122 |
+| `candidate-faithful` | faithful | pass | 0 | `checks=6 failures=0`; oracle 824 / 0; inherited 55 |
+| `candidate-stress` | stress | FAIL | 1 | 2 FAIL lines, both the tool-induced mis-clicks in block 0; clean blocks 0 lost |
+| `base-replica-stress` (77a56a44 swapped in) | replica-stress | pass | 0 | `checks=15 failures=0`; replicas 6/6; stress 0/200 lost |
+
+After each base session the candidate file was restored with path-limited `git checkout -- Assets/ForestPrototype/UI/AnnualReviewView.cs`, and `git diff 339517ed2d49bb3d5716fc9cf029d9ef0eaeee72 -- Assets Packages ProjectSettings` was shown empty (`base-diagnostic-restored-candidate-assets.diff`, `base-replica-stress-restored-candidate-assets.diff`, both 0 bytes).
+
+## End state
+
+Editor exited; no Unity process left (the leftover `VBCSCompiler` pid 526897 found at the start is Unity's own compiler server and was not touched); `unity-lock` FREE; all eight disposable scripts and generated `.meta` removed from `Assets/ForestPrototype/` after every session; four Editor-drift paths archived then restored via the ten-path allowlist after every session; lane `git status --short` empty; host 37-file manifests identical; 4,011-file production manifest identical to `production-before.json`; every manifest is kept as a file in `followup1/`.
+
+## NOT RUN in Follow-up 1
+
+- No new run of cases b, c (1080p), e, f, g beyond what is stated; the first-run results for those stand.
+- No Windows/Player build; no full #417 99-check or #408 143-case reruns; no Reference biological replay, G2, integration.
+- No human-played or human-paced desktop session; "human-paced" here means the OS click arrives after a 1.1 s settle with the pointer moved in first, delivered by `xdotool` on a private Xephyr display.
+- The first-run F-1 event itself was not replayed with pointer tracing (it cannot be); its cause is inferred.
+- No Editor was started on the user's normal desktop; no standalone Windows input behaviour was tested.
+
+## Follow-up 1 evidence index
+
+All paths under `/media/jer/Files/CCF/Verification/D073-FR10-427-20261112/followup1/`: per-session directories (`candidate-diagnostic`, `base-diagnostic`, `candidate-full`, `candidate-faithful`, `candidate-stress`, `base-replica-stress`) each with `FOLLOWUP.log`, `evidence/click-trace.txt`, `evidence/followup-results.txt`, `evidence/oracle-checks.txt`, `evidence/inherited-checks.txt`, `driver/` request/native-action logs and desktop captures, `result.json`, `summary-lines.txt`; per-session custody files `<session>-{acquire,release,custody-result,host-before,host-after,production-before,production-after,Editor-drift.patch}`; `<session>-drift-bytes/`; `restoration-allowlist.json`, `restoration-verification.json`, `production-restored.json`; `followup-screenshot-manifest.json`; `stress-pointer-parker.sh`; `typecheck*/compile.log`.
