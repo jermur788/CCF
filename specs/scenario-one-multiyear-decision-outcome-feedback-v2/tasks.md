@@ -25,7 +25,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
 ## T-01 — Cadence release, integration base and single UI owner
 
 - **Task ID:** T-01
-- **Status:** BLOCKED — waits on the Fable cadence lane ([#402](https://github.com/jermur788/CCF/issues/402) / [#408](https://github.com/jermur788/CCF/issues/408))
+- **Status:** READY FOR BASE RECONCILIATION / NOT RUNNING — #402/#408 handed off and Manager approved isolated cadence verification; exact joint cadence-plus-helper base and new single UI owner still pending.
 - **Goal:** Name one exact base commit and one UI owner for this feature.
 - **Scope:** Record in live coordination: the cadence lane's release of `AnnualReviewView.cs`, `WorkPlanView.cs` and `ScenarioOneUiRoot.cs`; the base branch and full HEAD; the UI owner, branch and worktree.
 - **Exclusions:** No source edits. No merge to `main` or to the personal playtest lane (#382).
@@ -111,7 +111,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
 | Task | Status | Owner / routing | Depends on |
 |---|---|---|---|
 | T-00 | COMPLETE | Overall Manager | — |
-| T-01 | BLOCKED | Overall Manager / integrator | T-00, #408 |
+| T-01 | READY / NOT RUNNING | Overall Manager / integrator | T-00, approved #402/#408; joint base pending |
 | T-02 | TODO | SOL/CODEX, Tier 1 | T-01 |
 | T-03 | TODO | UI owner, Tier 1 | T-02 |
 | T-04 | BLOCKED | UI owner | T-03, T-01 |
