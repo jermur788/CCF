@@ -1,7 +1,7 @@
 # Scenario One — Multi-Year Decision and Outcome Feedback V2 Requirements / Acceptance Checklist
 
 - **Spec ID:** SPEC-scenario-one-multiyear-decision-outcome-feedback-V2
-- **Spec status:** DRAFT — MANAGER REVIEW REQUESTED
+- **Spec status:** APPROVED — BOUNDED D-073 ANNUAL REVIEW V2
 - **Checklist owner:** Overall Manager
 - **Implementation under test:** none — no implementation exists
 - **Date:** 2026-11-12 (HP #409 refinement)
@@ -13,7 +13,7 @@ A checked item needs evidence, not assertion. **Nothing in the implementation se
 - [x] Static source audit of the existing Annual Review, Work Plan boundary and absence of per-rack history — evidence: [#394 audit](https://github.com/jermur788/CCF/blob/docs/scenario-one-multiyear-feedback-source-audit-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MULTIYEAR-FEEDBACK-SOURCE-AND-UX-DELTA-AUDIT.md) (browser worker; source reading only).
 - [x] Manager chose Option B — evidence: [#400 disposition](https://github.com/jermur788/CCF/blob/docs/manager-part5-source-review-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-PART5-BROWSER-400-SOURCE-AND-DRAFT-SPEC-DISPOSITION-20261112.md). A design direction, not a UI release.
 - [x] Read-only helper qualified **offline** — evidence: [#406 result](../../../Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-MANAGEMENT-FOLLOWON-READOUT-SOURCE-QUALIFICATION-RESULT.md) and [Manager verdict](https://github.com/jermur788/CCF/blob/docs/manager-part5-source-review-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-406-SOURCE-QUALIFICATION-INDEPENDENT-REVIEW-20261112.md): 53 assertions PASS, type binding 0 errors, worker-reported with committed logs. Not re-run by #409. Not a Unity result.
-- [ ] Spec `APPROVED` by the Overall Manager with the six open decisions answered (T-00).
+- [x] Overall Manager APPROVED the bounded Option B spec and resolved all six choices (T-00); evidence: `Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-409-D073-SPEC-APPROVAL-AND-SCOPE-RULING-20261112.md` on this approval branch. This is no gameplay or Unity verification.
 - [ ] Cadence lane release of `AnnualReviewView.cs` recorded; base HEAD and single UI owner recorded (T-01).
 - [ ] Helper blob on the base is `2c7bdb3c6b6f13790a325ebabc187c497b335b52` (T-01).
 - [ ] Helper's 53 offline assertions and type binding re-run unchanged on the base (T-02) — evidence:
@@ -22,11 +22,11 @@ A checked item needs evidence, not assertion. **Nothing in the implementation se
 
 Offline — checkable by the T-03 fixture:
 
-- [ ] FR-4: only rows of the viewed year are counted; succeeded by task type, one failed count, one cancelled count; no pending, approved or proposed work — evidence:
-- [ ] FR-5: ambiguous-identity and unresolved rows are excluded from counts and shown on their own lines — evidence:
+- [ ] FR-4: count only viewed-year recorded event outcomes, tagged DERIVED; exclude pending/proposals and false verified-tree claims — evidence:
+- [ ] FR-5: ambiguous/unresolved outcomes excluded with nonduplicated warnings; incomplete retained-order linkage explicitly labelled event-only — evidence:
 - [ ] FR-6: observations appear only for exact recorded years; both years named; no fallback year — evidence:
-- [ ] FR-7: the five stand differences use helper values unmodified, with units and elapsed years — evidence:
-- [ ] FR-8: four species measures kept separate; a species missing in one year reads not recorded, never zero — evidence:
+- [ ] FR-7: five differences with canopy fraction ×100 display conversion and percentage-point change; original units for other measures — evidence:
+- [ ] FR-8: four separate species measures; one-sided missing species explicitly not recorded, not zero or missing on both sides — evidence:
 - [ ] FR-9: each of the six state rows produces its exact wording — evidence:
 - [ ] FR-11: fixed caveat sentence present; no causal wording anywhere — evidence:
 - [ ] FR-12: no currency in any row — evidence:
@@ -42,7 +42,7 @@ Source review — checkable from the T-04 diff:
 Unity — checkable only by T-05:
 
 - [ ] FR-2: year buttons, title, footer rule and Back to forest behave as before; an earlier year does not acknowledge the latest — evidence:
-- [ ] FR-10: provenance words visible and following the Show data sources toggle — evidence:
+- [ ] FR-10: event counts/differences DERIVED; observations RECORDED; missing or unverified origin NOT RECORDED; toggle obeyed — evidence:
 - [ ] FR-13: identical card content after one-year and long advances — evidence:
 
 ## Player / user workflow
@@ -73,14 +73,14 @@ Not applicable: the feature reads records and writes nothing. FR-14 covers the o
 - [ ] AC-2: latest year → single line; footer works as before — evidence:
 - [ ] AC-3: earlier year, both snapshots → counts, two dated observations, five differences, elapsed years — evidence:
 - [ ] AC-4: every other FR-9 state shows its wording and no substitute number — evidence:
-- [ ] AC-5: ambiguous and unresolved rows only on their own lines — evidence:
+- [ ] AC-5: ambiguous/unresolved rows excluded once and warned; incomplete order identity disclosed as event-only outcomes — evidence:
 - [ ] AC-6: species rows correct for Oak, Beech and Sitka spruce where recorded — evidence:
 - [ ] AC-7: same events, saved state and world hash with and without the card — evidence:
 - [ ] AC-8: same card content after one-year and long advances — evidence:
 - [ ] AC-9: readable at 1280×720 and 1920×1080; footer and year buttons never displaced — evidence:
 - [ ] AC-10: current save, genuine older save, Legacy40 and Reference Future v1 unchanged — evidence:
 - [ ] AC-11: no currency, causal, survival, area, score or interval wording — evidence:
-- [ ] AC-12: card counts equal Work column counts on every fixture year — evidence:
+- [ ] AC-12: like-for-like event categories agree on consistent fixture years; report-derived and malformed-source mismatches explained, never forced equal — evidence:
 
 ## Spec conformance
 
