@@ -183,7 +183,7 @@ public sealed class WorkPlanView
         if (confirmingSkipTarget > m.CurrentEcologicalYear && string.IsNullOrEmpty(skipProblem))
         {
             UiKit.Add(footer, $"Advance ordinary annual updates to Year {confirmingSkipTarget}, stopping earlier for decisions or events? No work will be created or approved.", "body");
-            footer.Add(UiKit.Button("Confirm skip", () => { int confirmed = confirmingSkipTarget; confirmingSkipTarget = -1; ui.BeginSkip(confirmed); }));
+            footer.Add(UiKit.Button("Confirm skip", () => { int confirmed = confirmingSkipTarget; confirmingSkipTarget = -1; if (!ui.BeginSkip(confirmed)) Refresh(true); }));
             footer.Add(UiKit.Button("Keep reviewing", () => { confirmingSkipTarget = -1; Refresh(true); }));
         }
         if (ui.NeedsAnnualReview)

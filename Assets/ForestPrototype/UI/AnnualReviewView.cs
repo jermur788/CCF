@@ -24,7 +24,15 @@ public sealed class AnnualReviewView
     public VisualElement Root { get; }
     private readonly Label title;
     private readonly Label skipSummary;
-    public void SetSkipSummary(string text) => skipSummary.text = text;
+    private ScenarioOneManager skipSummaryManager;
+    private int skipSummaryWorldVersion;
+    public void SetSkipSummary(string text)
+    {
+        skipSummaryManager = ui.Manager;
+        skipSummaryWorldVersion = skipSummaryManager != null ? skipSummaryManager.TeachingWorldVersion : -1;
+        skipSummary.text = text;
+        skipSummary.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
+    }
     private readonly ScrollView scroll;
     private readonly VisualElement acknowledgement;
     private readonly Button earlierYear, laterYear, walk;
@@ -48,6 +56,7 @@ public sealed class AnnualReviewView
         VisualElement modal = UiKit.Box("panel", "modal", "modal-review");
         Root.Add(modal);
         skipSummary = UiKit.Add(modal, "", "body");
+        SetSkipSummary("");
         VisualElement header = UiKit.Box("modal-header");
         title = UiKit.Add(header, "", "title");
         VisualElement buttons = UiKit.Box("row", "screen-actions");
@@ -97,6 +106,9 @@ public sealed class AnnualReviewView
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
+        // Loads can replace a world at the same year; the session version identifies that change.
+        if (m != skipSummaryManager || (m != null && m.TeachingWorldVersion != skipSummaryWorldVersion))
+            SetSkipSummary("");
         bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
         // The root calls this every frame while the review is open. HistoryYears rebuilds every completed year, so it is
         // only read once the cheap change key says something changed.
