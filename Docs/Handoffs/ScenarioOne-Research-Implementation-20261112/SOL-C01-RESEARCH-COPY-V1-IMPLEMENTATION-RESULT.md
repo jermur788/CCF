@@ -188,3 +188,18 @@ Both species, all affected places below. Open/done examples use current values 0
 ```
 
 The stat above was captured immediately before appending this stat block; final report line totals increase accordingly. Report commit/pushed head is identified by Git history and the final handoff; push confirmation uses `git ls-remote origin refs/heads/feature/scenario-one-research-copy-v1-20261112`.
+
+
+## Rework 2 — 2026-11-12
+
+Finding **F391-01**: the longer approved clearance values squeeze “Clearance, square A1/A2” into vertical character stacks at 1280×720 and 1920×1080. Source fix `a9eef4da85e3b7ea4bd13172ff0b5daf9f4371d6` adds only `valueBelow: true` to the `UiKit.Line` call in `WorkPlanOverview.BuildClearance`; approved wording is unchanged. `UiKit.Line` already adds `table-row-stacked`, whose existing USS puts the name above the left-aligned value. Other sentence rows already use this parameter. No UiKit/USS/other-row/logic/asset/meta change; P3 and presentation checks contain no structural pin requiring adjustment, so both remain unmodified.
+
+This is explicitly a **one-argument presentation-layout change beyond pure string edits**, authorised because the rendered check failed.
+
+Checks on the source fix:
+
+- `python3 -I -B Tools/Verification/ScenarioOneUiPresentation/run_checks.py --src "$PWD" --out /media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/attempt4/offline/presentation`: PASS 157 checks, five mutants KILLED, composition/source contracts PASS.
+- `python3 -I -B Tools/Verification/ScenarioOneNonUi/compile_runtime_sources.py --src "$PWD" --out /media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/attempt4/offline/compile --extra Tools/Verification/ScenarioOneCompletion/P3/WorkPlanResidualVerification.cs Tools/Verification/ScenarioOneTeachingCopyVerification.cs`: PASS sources=191 refs=116 exit=0 errors=0. Same non-Editor limitation as Rework 1; no runtime/render claim from this check.
+- `git diff --check`: PASS. Only WorkPlanOverview.cs changes in production relative to 868643a1; nothing under ScenarioOne changed.
+
+Real-Editor compile, unmodified P3 gate and clearance rendering are recorded separately in Attempt 4 of the Unity qualification report, after verification on the final feature head. No Windows/Player build, integration, issue or active-tasks edit. Dashboard synchronization remains NOT VERIFIED, coordinator follow-up.
