@@ -1,18 +1,18 @@
 # Scenario One — Multi-Year Decision and Outcome Feedback V2 Bounded Tasks
 
 - **Spec ID:** SPEC-scenario-one-multiyear-decision-outcome-feedback-V2
-- **Spec status:** DRAFT — MANAGER REVIEW REQUESTED
+- **Spec status:** APPROVED — BOUNDED D-073 ANNUAL REVIEW V2
 - **Task list owner:** Overall Manager
 - **Last updated:** 2026-11-12 (HP #409 refinement)
 
-Tasks are implementation units, not new product decisions. **None may be dispatched while the spec is `DRAFT`.** Each stays inside [spec.md](spec.md) and [plan.md](plan.md). A task that exposes a product ambiguity stops and returns it to the Manager. Owners below are routing suggestions, not assignments.
+Tasks are implementation units, not new product decisions. **The spec is approved, but no code task may start without its own approved packet, exclusive owner and exact reconciled base.** Each stays inside [spec.md](spec.md) and [plan.md](plan.md). A task that exposes a product ambiguity stops and returns it to the Manager. Owners below are routing suggestions, not assignments.
 
 Already done and not repeated as tasks: the static source audit ([#394](https://github.com/jermur788/CCF/issues/394)), the helper's offline qualification ([#406](https://github.com/jermur788/CCF/issues/406), Manager-approved for offline scope) and this draft refinement ([#409](https://github.com/jermur788/CCF/issues/409)).
 
 ## T-00 — Manager decision on the spec
 
 - **Task ID:** T-00
-- **Status:** TODO
+- **Status:** COMPLETE — Manager-approved bounded scope and six product rulings on 12 November 2026
 - **Goal:** Record APPROVED, NEEDS CHANGES or REJECTED for this four-file draft, and answer the six open product decisions in the spec.
 - **Scope:** `spec.md` status line and open-decisions section; matching edits to the other three files if an answer changes them.
 - **Exclusions:** No implementation release by implication; no D-074 or D-076 decision.
@@ -20,7 +20,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
 - **Dependencies:** —
 - **Verification:** The four files agree on status, FR/AC numbering and the chosen answers.
 - **Stop conditions:** An answer needs new saved data, per-rack history or causal wording.
-- **Completion state:** Status and each answer are written in `spec.md` with a date.
+- **Completion state:** COMPLETE; approved status, six decisions, truth and unit clarifications written in `spec.md`.
 
 ## T-01 — Cadence release, integration base and single UI owner
 
@@ -57,7 +57,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
 - **Exclusions:** No `AnnualReviewView.cs` edit; no helper edit; no `UnityEngine` reference in the mapper; no existing test weakened.
 - **Owner / routing:** the T-01 UI owner; Tier 1.
 - **Dependencies:** T-02.
-- **Verification:** The fixture asserts, by exact text, each FR-9 row; FR-4 year filtering using a multi-year result; FR-5 exclusion of ambiguous and unresolved rows; FR-8 with a species missing on one side; absence of any currency symbol (FR-12); and that input objects are unchanged after the call (FR-14).
+- **Verification:** Mapper fixture asserts FR-9 state priority and exact wording, FR-4 year filtering, FR-5 exclusions and nonduplicated warnings, FR-7 canopy percentage-point conversion, FR-8 one-sided missing species, FR-10 DERIVED/RECORDED labels, FR-12 no currency, AC-12 event-source parity on clean versus malformed fixtures, and FR-14 input preservation.
 - **Stop conditions:** A rule cannot be expressed from the `Result` as it stands.
 - **Completion state:** Fixture PASS output published; type binding still 0 errors; changed paths are exactly the new files.
 
@@ -89,7 +89,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
   - management-event count and world hash equal before and after opening, stepping and closing the review (AC-7);
   - card rows captured after N one-year advances equal those after one long advance over the same years (AC-8);
   - a current save, a genuine older save, Legacy40 and frozen Reference Future v1 each load, with reference previews unchanged (AC-10);
-  - card counts equal Work column counts on each fixture year (AC-12).
+  - card counts equal event-counted Work-column categories only on complete and consistent event/order fixtures; report-derived and ambiguous cases must show reasoned divergences (AC-12).
 - **Stop conditions:** Footer or year buttons displaced at 720p; any hash or event difference; any old-save load difference.
 - **Completion state:** A full PASS / FAIL / NOT RUN table per item, with evidence paths, on the exact head. A row that was not run is written NOT RUN.
 
@@ -110,7 +110,7 @@ Already done and not repeated as tasks: the static source audit ([#394](https://
 
 | Task | Status | Owner / routing | Depends on |
 |---|---|---|---|
-| T-00 | TODO | Overall Manager | — |
+| T-00 | COMPLETE | Overall Manager | — |
 | T-01 | BLOCKED | Overall Manager / integrator | T-00, #408 |
 | T-02 | TODO | SOL/CODEX, Tier 1 | T-01 |
 | T-03 | TODO | UI owner, Tier 1 | T-02 |
