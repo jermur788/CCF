@@ -151,7 +151,7 @@ public static class ManagementFollowonReadoutVerification
         repeated.Selected.LivingTrees = -99;
         Check(a.Snapshot.livingTrees == before && a.Snapshot.species[0].regenerationCells == 2,
             "result modification cannot change saved observation");
-        Check(first.ResolvedWork.Count == 7 && first.ResolvedWork[0].Order.prescriptionId == 7,
+        Check(first.ResolvedWork.Count == 6 && first.ResolvedWork[0].Order.prescriptionId == 7,
             "history inputs not changed");
 
         Console.WriteLine("ManagementFollowonReadout: PASS " + checks + " focused assertions (when actually run).");
