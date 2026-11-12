@@ -1,0 +1,31 @@
+# C-01G — Focused integration-gate closure (NO new implementation)
+
+**Status:** READY / NOT RUNNING. **Claim:** [#393](https://github.com/jermur788/CCF/issues/393). **Owner/routing:** OpenAI GPT-6.1 Sol **Medium**, local qualification worker. **Difficulty:** MEDIUM, due protected world identity and authentic save fixture; source/gameplay change scope ZERO. **Purpose:** close only the saved-world hash and ambiguous nursery-warning regression, record external wind release limitation, then report Manager-ready integration evidence.
+
+## Source / lane / ownership
+
+**Exact code candidate:** `feature/scenario-one-research-copy-v1-20261112` at `a314d308315b5894263d30461a1e8b52ca0f3605`. Original updated UI baseline: `b62446caf40fc2ac939d55a6bea6e201f41de700`. This branch, not `main`, is the target. `main` has diverged, and user's personal playtest remains pinned independently.
+
+**Execution Unity worktree:** `/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual` registered as `ResearchCopyQual391` in `/media/jer/ZX20/CCF-Ops/lanes.json` according to handed-off orchestrator report; branch `qualify/scenario-one-research-copy-v1-20261112`, exact code candidate above. **Use only if** actual local mount, worktree registration, branch HEAD, clean tracked/untracked/ignored set, licensing assets and permitted player/test save isolation match. **No new cold Unity Library** or source worktree, and no non-owned worktree/registry mutation. Fresh machine-wide exclusive Unity lock; do not touch `/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual` (user #382). Confirm 15 GiB actual floor and reserve, no other Editor/process, no valuable save/Prefs risk. If any gate fails, report BLOCKED and keep work safe.
+
+**Writer scopes:** bounded test run, scratch outputs and dedicated GitHub result only. No gameplay production source edits, no test weakening/rebaseline, no coordination edits (Manager #200 exclusive), no main/integration merge, no registry cleanup.
+
+## Checks — report exact PASS/FAIL/NOT RUN
+
+1. **World identity:** Locate an authentic existing disposable saved-world fixture or safely generate one in an isolated test environment. Run exactly the same saved data through `ScenarioReferenceArchive.CurrentWorldHash` from the original `b62446ca` baseline and `a314d308` candidate. Require identical hashes, including representative legacy/Reference Future anchors if current harness supports them. Record exact commands, save origin/format, years, model selection and before/after hash outputs. Do not copy user's private saves into an untrusted repo. If no correct fixture or safe comparison exists, record NOT VERIFIED/BLOCKED, never infer PASS from source diffs.
+2. **Nursery warning:** Re-run only the reported failing `ScenarioOneTeachingCopyVerification` assertion `nursery warning visible` on candidate and baseline under comparable nonblack visual/editor conditions. If both fail, report existing verification debt without changing expected results. If candidate alone fails, record regression NEEDS CHANGES and exact reproduction. A single accurate baseline/candidate classification is enough; no broad full UI suite.
+3. **External note:** Confirm [EXTERNAL-TEST-LIMITATIONS-C01.md](EXTERNAL-TEST-LIMITATIONS-C01.md) visibly and accurately discloses default Scenario One wind damage is not simulated. This is documentation only and need not be repeated on a crowded screen.
+4. **Optional no-cost Oak/Beech first-reached test:** Inspect the friendly ObjectiveName presentation using existing genuine fixture. If no suitable fixture without work, leave NOT RUN and preserve low-risk inference. Never invent success history.
+5. **Final safety:** Confirm source unchanged, previously accepted 157/5 mutation and Unity data pinned to proper candidates, exact isolated Unity lease released, user save/Prefs integrity and 15GiB floor maintained, registry entry/retire recommendation based on actual local evidence.
+
+No extra Fable/Claude peer review if source is unchanged; Claude B previously approved exact source. Never claim automatic independent review or greater reasoning effort than recorded.
+
+## Exact result, receipt and stop
+
+GitHub Markdown result path: `Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-C01-FOCUSED-INTEGRATION-GATES-RESULT.md` on a single owned docs-only report branch created from a verified current base, **not directly on the author's old feature branch**. Link source compare, test logs, machine/lock/scratch receipts, and the pre/post identity and nursery results. Mark #393 [RUNNING] with actual model/pool/branch/worktree/starting HEAD before execution, [HANDED-OFF] close after GitHub readback; if blocked, mark [BLOCKED], preserve current state and return precise next action. Manager #200 alone then decides integration into a fresh exact UI candidate after inspect/readback.
+
+**Hard stop:** insufficient disk, missing Unity exclusivity, user playtest occupancy, unsupported save fixture, baseline vs candidate identity mismatch, candidate-only nursery regression, unowned dirty local files, risk to historical Reference Future / Legacy40 or user data. Never self-authorise a Windows build.
+
+## Copy/paste dispatch to Sol
+
+GPT-6.1 Sol Medium — execute **CCF #393** as one *focused verification-only* completion task: read full packet https://github.com/jermur788/CCF/blob/docs/manager-c01-integration-gates-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-C01-FOCUSED-INTEGRATION-GATES-PACKET.md . Test exact C-01 source a314d308 against updated UI baseline b62446ca, preserving user #382 and working only in existing ResearchCopyQual391 test lane if safe and exclusive. Compare the **same** authentic saved world's CurrentWorldHash across baseline/candidate; classify old `nursery warning visible` baseline-vs-candidate failure with a small nonblack test; confirm external wind test note; optional Oak/Beech friendly first-reached if cheap. Do not edit gameplay, weaken tests, create a new cold Library, mutate source/main/playtest branches or build Windows. Maintain honest PASS/FAIL/NOT RUN, publish exact result Markdown to GitHub, close #393 at [HANDED-OFF], and return Manager #200 for **integration verdict**.
