@@ -1,6 +1,6 @@
 # Tasks — Minimal Research-Informed Management Learning V1
 
-**Status:** DRAFT. No production task claim has been created.  
+**Status:** APPROVED copy-only V1. No production child claim has been created yet; orchestration issue #390 is READY/NOT RUNNING.  
 **Sources:** [spec.md](spec.md) | [plan.md](plan.md) | [requirements](checklists/requirements.md).
 
 ## Research and independent review (COMPLETE; no redispatch)
@@ -10,7 +10,7 @@
 - **R-03 [HANDED-OFF/CLOSED]** [#389](https://github.com/jermur788/CCF/issues/389) independent Claude four-part critique — [report](https://github.com/jermur788/CCF/blob/docs/claude-review-research-management-spec-20261112-v1/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/CLAUDE-INDEPENDENT-FOUR-PART-SPEC-REVIEW.md). Verdict **NEEDS CHANGES**; Manager accepted its major findings, and this revision addresses the identified scope/persistence failures.
 - **M-01 [DOCUMENTED]** [Manager formal disposition](../../Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/MANAGER-CLAUDE-REVIEW-389-AND-RESEARCH-387-388-DISPOSITION.md). No production approval.
 
-## Only proposed executable V1 task (NOT DISPATCHED)
+## Authorised executable V1 task (to be dispatched by Claude A after preflight)
 
 **C-01 — Residual truthful educational copy**
 
@@ -18,12 +18,12 @@
 - **Difficulty:** **Low** — expected a few strings across a small existing UI owner set, not a new feature or data model.
 - **Provider:** Sol/Codex local C#/Unity UI specialist **only after product acceptance and ownership check**; equivalent capable local source owner acceptable. Do not use an expensive browser research session for pure source copy.
 - **Exact implementation branch/worktree:** **TBD at dispatch** after checking `Docs/Project/coordination/active-tasks.md` and actual UI/Unity lease. The docs branch is **not** a writable local source lane. No guessed path or branch in this task is authority.
-- **Claim/status:** **none yet**; Manager must create a new [READY] GitHub issue and complete source packet before local work. [#389] is a closed reviewer claim, **not** implementation authority.
-- **Spec gate:** this revised DRAFT accepted by product owner; preserve current first-demo freeze unless expressly revised.
+- **Claim/status:** **none yet**; Claude A, delegated as bounded coordinator/integrator under #390, must create a new [READY] child GitHub issue and complete source packet before local work. [#389] is a closed reviewer claim, **not** implementation authority.
+- **Spec gate:** user explicitly accepted this conservative copy-only V1 for implementation now (2026-11-12); preserve all pre-demo gameplay/save, current review, Unity and Windows-build gates.
 - **Allowed scope:** currently inspected presentation strings and Help mapping only; actual filenames whitelisted in a later packet. No saved objective `displayName`, `ScenarioManagementEvent`, save or `HashLayout` changes.
 - **Acceptance:** [requirements.md](checklists/requirements.md), ~8 focused checks, not 69.
 - **End:** one durable GitHub Markdown source/qualification handoff, readback, claim [HANDED-OFF] and closed, Manager integration decision.
-- **User action now:** approve the proposed copy scope/timing when appropriate; no local agent dispatch yet.
+- **User action now:** paste the Claude A orchestration dispatch; no further routine confirmation needed for approved copy work.
 
 ## Optional independent product exploration, outside V1
 
@@ -35,6 +35,6 @@
 
 ## Full handoff for future C-01 dispatch
 
-Before ending the eventual authorisation/dispatch message, Manager must publish a detailed GitHub task packet naming precise current candidate source baseline, local owner/branch/worktree, [READY] issue, allowed source paths, difficulty Low, provider, expected source-only/Tier-1/visual verification, acceptance, exact output report path and paste-ready direct GitHub URL. Do not tell a worker to discover the plan or invent a Unity lane from chat.
+Before local dispatch, Claude A must publish a detailed GitHub child task packet naming precise current candidate source baseline, local owner/branch/worktree, [READY] issue, allowed source paths, difficulty Low, provider, expected source-only/Tier-1/visual verification, acceptance, exact output report path and paste-ready direct GitHub URL. Do not tell a worker to discover the plan or invent a Unity lane from chat.
 
 **No subsequent research task is a prerequisite to writing conservative V1 copy.**
