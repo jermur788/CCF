@@ -86,6 +86,12 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             Snapshot("pointer-up target=" + Element(eventData.target as VisualElement), point);
             review.Root.schedule.Execute(() => Snapshot("after-native-click", point));
         });
+        // Panel-level trickle hooks: show whether an OS click reached the panel at all, and what it picked, even if nothing in the review handled it.
+        var panelRoot = review.Root.panel.visualTree;
+        panelRoot.RegisterCallback<PointerDownEvent>(eventData => Log("panel-pointer-down pos=" + eventData.position.ToString("F2") + " target=" + Element(eventData.target as VisualElement)
+            + " pick=" + Element(review.Root.panel.Pick(eventData.position)) + " clickCount=" + eventData.clickCount + " foldValue=" + Fold?.value + " capture=" + Element(PointerCaptureHelper.GetCapturingElement(review.Root.panel, eventData.pointerId) as VisualElement)), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<PointerUpEvent>(eventData => Log("panel-pointer-up pos=" + eventData.position.ToString("F2") + " target=" + Element(eventData.target as VisualElement) + " foldValue=" + Fold?.value), TrickleDown.TrickleDown);
+        panelRoot.RegisterCallback<ClickEvent>(eventData => Log("panel-click target=" + Element(eventData.target as VisualElement) + " foldValue=" + Fold?.value), TrickleDown.TrickleDown);
         review.Root.RegisterCallback<ChangeEvent<bool>>(eventData => Log("value-change target=" + Element(eventData.target as VisualElement)
             + " before=" + eventData.previousValue + " after=" + eventData.newValue), TrickleDown.TrickleDown);
     }
@@ -143,10 +149,16 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
         {
             Cadence408GameSize.SetGameSize(size.x, size.y); yield return Settle(1.1f);
             Check(Screen.width == size.x && Screen.height == size.y, "exact render dimensions", Screen.width + "x" + Screen.height);
-            if (diagnostic) yield return Case(size + "/foldout-diagnostic", Diagnostic());
+            if (diagnostic)
+            {
+                yield return Case(size + "/foldout-diagnostic", Diagnostic());
+                // Same order as the first run: the unchanged #417 native sequence, then the unchanged original close probe.
+                yield return Case(size + "/first-run-order-replica", Replica(size, true, 3));
+            }
             else
             {
                 yield return Case(size + "/required-d-inherited", Invoke(inherited, "NativeSize", Clone(history), size));
+                yield return Case(size + "/first-run-order-replica-extra", Replica(size, false, 3));
                 yield return Case(size + "/required-d-corrected-close", CorrectedClose());
                 foreach (bool sources in new[] { true, false })
                     yield return Case(size + "/distinct-ID-ambiguous-event-" + (sources ? "on" : "off"), AmbiguousEvent(sources));
@@ -219,6 +231,22 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             Check(!Fold.value, "scroll-position closes " + fraction + " " + variant);
         }
         yield return Invoke(oracle, "Screenshot", "diagnostic-closed");
+    }
+
+    // Runs the UNCHANGED first-run probe (Fr10RenderedRunner.NativeExtra) in its original position right after the unchanged
+    // inherited native sequence, then repeats it. Its results are recorded as oracle checks and stay red if the defect reproduces.
+    IEnumerator Replica(Vector2Int size, bool runInherited, int repeats)
+    {
+        if (runInherited) { probe = "replica-inherited-native-size"; yield return Invoke(inherited, "NativeSize", Clone(history), size); }
+        for (int repeat = 0; repeat < repeats; repeat++)
+        {
+            probe = "replica-original-native-extra-" + repeat;
+            int before = (int)Get(oracle, "failures");
+            Log("replica-start repeat=" + repeat + " oracleFailures=" + before);
+            yield return Invoke(oracle, "NativeExtra");
+            Log("replica-end repeat=" + repeat + " oracleFailuresAdded=" + ((int)Get(oracle, "failures") - before) + " foldValue=" + Fold?.value + " scroll=" + Scroll.scrollOffset.ToString("F4"));
+            Check((int)Get(oracle, "failures") == before, "original unchanged native-extra probe passes, repeat " + repeat + " " + variant + " " + size);
+        }
     }
 
     IEnumerator CorrectedClose()
