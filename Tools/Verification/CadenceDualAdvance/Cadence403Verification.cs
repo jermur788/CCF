@@ -250,7 +250,9 @@ public sealed class Cadence403Runner : MonoBehaviour
     }
     IEnumerator RejectCase(ForestSaveData state,string name,Action action,string reason,Action undo=null) {
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
-        try { action();Debug.Log("CADENCE408_REASON "+name+" exact="+ui.SkipProblem()); CadenceParity.Reject(ui,reason); }
+        try { action();Debug.Log("CADENCE408_REASON "+name+" exact="+ui.SkipProblem());
+            string before=JsonUtility.ToJson(saves.CaptureData());CadenceParity.Reject(ui,reason);
+            Check(before==JsonUtility.ToJson(saves.CaptureData()),"entry blocker full saved-world nonmutation",name); }
         finally {undo?.Invoke();}
     }
     IEnumerator StopCase(ForestSaveData state,string name,Action action,string reason,int k) {
@@ -336,7 +338,10 @@ public sealed class Cadence403Runner : MonoBehaviour
     }
     Button ButtonText(string text) => ui.RootElement.Query<Button>().ToList().FirstOrDefault(b=>b.text==text);
     IEnumerator UiMatrix(ForestSaveData state,ForestSaveData original) {
-        foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080)}) {
+        foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(1920,1080)})
+            yield return Case("UI/"+size.x+"x"+size.y,UiSize(state,original,size));
+    }
+    IEnumerator UiSize(ForestSaveData state,ForestSaveData original,Vector2Int size) {
             Cadence408GameSize.SetGameSize(size.x,size.y);yield return Settle();
             string tag=size.x+"x"+size.y;
             yield return Restore(original);ui.ShowWorkPlan();yield return Shot(tag+"-disabled-work-plan");
@@ -352,6 +357,8 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return NativeButton(ui.RootElement.Query<Button>().ToList().First(b=>b.text.StartsWith("Skip to Year")));
             holdTicks=true;yield return NativeButton(ButtonText("Confirm skip"));
             Check(ui.Skipping,"native Confirm begins held between-tick skip");
+            holdTicks=false;yield return null;holdTicks=true;
+            Check(ui.Skipping,"progress remains active after first ordinary tick");
             if(ui.Skipping) {
                 yield return new WaitForEndOfFrame();var image=ScreenCapture.CaptureScreenshotAsTexture();File.WriteAllBytes(Path.Combine(output,tag+"-progress.png"),image.EncodeToPNG());Destroy(image);
             }
@@ -362,7 +369,13 @@ public sealed class Cadence403Runner : MonoBehaviour
             yield return NativeButton((Button)Field(review,"laterYear"));yield return Shot(tag+"-latest-year");
             yield return Restore(original);ui.ShowReview();yield return Shot(tag+"-loaded-world-hidden-summary");
             Check(summary.text==""&&summary.resolvedStyle.display==DisplayStyle.None,"F8 empty label no layout space");
-        }
+            yield return OneYearClear(state);yield return Shot(tag+"-one-year-cleared-summary");
+            yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);int cancelStart=manager.CurrentEcologicalYear;var prior=InputStates();
+            yield return NativeButton(ui.RootElement.Query<Button>().ToList().First(b=>b.text.StartsWith("Skip to Year")));
+            holdTicks=true;yield return NativeButton(ButtonText("Confirm skip"));Check(ui.Skipping,"native cancellation fixture begins");
+            yield return NativeButton(ButtonText("Cancel after the current year"));holdTicks=false;while(ui.Skipping)yield return null;
+            CadenceParity.RejectWrongStopReason(ui,cancelStart,cancelStart,"Cancelled between years.");LogInputs("native-cancel",prior);DestinationAck();
+            yield return Shot(tag+"-native-cancel-zero-years");
     }
 
     IEnumerator Extra(ForestSaveData state,ForestSaveData original) {
@@ -602,6 +615,12 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(File.Exists(stagePath),"authentic rack problem stage snapshot exists",stagePath);
         yield return Restore(JsonUtility.FromJson<ForestSaveData>(File.ReadAllText(stagePath)));ui.ShowWorkPlan();ui.Learning.Refresh(true);
         if(approval) {
+            var planner=new RackPlanner(manager,ui.Ecology);planner.Refresh();
+            foreach(float line in planner.LayoutLines) {
+                Check(RackGeometry.ClipLineToSquare(new RackPoint(0,line),0,planner.HalfExtentM,out RackPoint start,out RackPoint end),"approval fixture rack clips");
+                Check(manager.AddRack(start,end).Succeeded,"approval fixture real rack draft");
+            }
+            Check(manager.ConfirmRackPlan().Succeeded,"approval fixture real rack plan confirmed");ui.ShowWorkPlan();ui.Learning.Refresh(true);
             string problem=ui.RackApprovalProblem;
             Debug.Log("CADENCE408_RACK_APPROVAL underlying="+problem+" skip="+ui.SkipProblem());
             Check(!string.IsNullOrEmpty(problem),"authentic rack-approval problem present");CadenceParity.Reject(ui,"Finish the current lesson");
