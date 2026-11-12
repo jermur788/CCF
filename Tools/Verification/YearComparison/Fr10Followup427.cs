@@ -70,7 +70,7 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             + " toggleBound=" + fold?.Q<Toggle>()?.worldBound.ToString("F4") + " foldId=" + (fold == null ? 0 : RuntimeHelpers.GetHashCode(fold))
             + " cardId=" + (card == null ? 0 : RuntimeHelpers.GetHashCode(card)) + " rebuiltSinceClick=" + (previousCard != null && !ReferenceEquals(previousCard, card))
             + " elapsedSinceClick=" + (previousClick < 0 ? "none" : (Time.realtimeSinceStartupAsDouble - previousClick).ToString("F6"))
-            + " scroll=" + Scroll.scrollOffset.ToString("F4") + " cursorLock=" + Cursor.lockState + " appFocused=" + Application.isFocused);
+            + " scroll=" + Scroll.scrollOffset.ToString("F4") + " cursorLock=" + UnityEngine.Cursor.lockState + " appFocused=" + Application.isFocused);
     }
 
     void InstallTracing()
