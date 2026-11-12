@@ -97,6 +97,12 @@ public sealed class Cadence403Runner : MonoBehaviour
             Plan(next);
         }
     }
+    void ReviewTree(ForestTree tree) {
+        ui.CloseAll(); ui.CloseHelp();
+        typeof(ForestPlayer).GetMethod("InspectTree",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(ui.Player,new object[]{tree});
+        ui.Learning.ObserveRackInspection(tree);
+        Check(ui.Learning.DecideRackInspection(tree,false),"real retain-here inspection decision",tree.TreeId);
+    }
     IEnumerator Run()
     {
         output=Environment.GetEnvironmentVariable("CCF_DIAG_DIR"); Directory.CreateDirectory(output);
@@ -126,6 +132,15 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(ui.ApproveWorkPlan() && ui.AdvanceFromWorkPlan(),"execute real release"); yield return Settle();
         ui.AcknowledgeAnnualReview(); ui.CloseAll(); ui.CloseHelp(); yield return Settle();
         Check(ScenarioOneTeachingCap.SampleHistoricallyComplete(Bay(),Facts().ReleaseReviewed),"authentic sample completed");
+        foreach (string id in Bay().Future.Select(t=>t.Id).ToArray())
+            ReviewTree(Live().Single(t=>t.TreeId==id));
+        for(int part=0;part<6;part++) {
+            var bay=Bay();
+            ReviewTree(Live().First(t=>!t.IsMarkedForFell && !manager.IsPlannedForFelling(t.TreeId)
+                && bay.Portion(t.transform.position.x,t.transform.position.z)==part));
+        }
+        ui.Learning.Refresh(true);
+        Check(Facts().RackReviewComplete && saves.CaptureData().scenarioOne.firstGuidedRackReviewComplete,"authentic field review earns latch");
         Check(manager.TryPurchaseStock("beech-sapling",1) && manager.TryPurchaseStock("sessile-oak-sapling",1),"buy genuine planting stock");
         Check(manager.TryDesignatePlanting("beech-sapling",20) && manager.TryDesignatePlanting("sessile-oak-sapling",21),"designate real planting");
         Check(ui.ApproveWorkPlan() && ui.AdvanceFromWorkPlan(),"execute planting"); yield return Settle();
