@@ -118,3 +118,73 @@ The runtime world-hash criterion remains NOT RUN: unchanged protected sources ar
 At both 1280×720 and 1920×1080, capture Tree Inspection full Help (Share paragraph), Walking HUD full Help (limitations and general environment sentence), Objectives topic 2, map regeneration lesson, Lesson 3 concept, current Oak/Beech success objectives, Work Plan clearance consequences (empty and populated), and Annual Review work-done young-tree removal row. Open Help with F1 in the relevant context; scroll through the complete text. Expect all copy readable with no clipping/overlap and unchanged controls.
 
 Help's Tree Inspection paragraph has the largest addition; Walking HUD Help adds 40 words; curriculum/lesson and objective label wrapping also need direct review. Existing Help is scrollable; no layout changes were made. Render fit at 720p/1080p is NOT VERIFIED. Independent reviewer/integrator must resolve visual acceptance and the existing stale Rack verifier gates. No source implementation blocker remains; release acceptance is pending review, rendered checks and any required integration qualification. No issues or active-task records edited; dashboard synchronization is left to the coordinator and is NOT VERIFIED.
+
+
+## Rework 1 — 2026-11-12
+
+Source commit: `99af87eeabcdb40b9b36269197198742c944ffb0`. Starting head: `f32be4c5bd7711ab93d92f249f4f02b4f21a3bb1`. Same authorised branch/lane, clean before editing; no unrelated changes. This section supersedes the earlier statement that no source blocker remained and corrects the earlier incomplete verifier search. Review read from `origin/review/scenario-one-research-copy-v1-claude-b-20261112`; approved spec and requirements read from the specified docs branch. No subagents.
+
+### Findings and exact replacements
+
+| Finding | Before | After / outcome |
+|---|---|---|
+| 1 Major, stale P3 pins | `leaving.Contains("cohort portion")`; `leaving.Contains("no regeneration cohorts or planted saplings inside")` | `leaving.Contains("natural young-tree group portion")`; `leaving.Contains("no natural young-tree groups or planted saplings inside")`. Same conditional assertions, exact new wording, stronger full young-group phrase. No weakened check. |
+| 2 Objective label | `Planting completed; species present: ` | `Plant, with species present — `. Deliberate punctuation deviation from reviewer’s simpler colon suggestion: that suggestion still produces two colons in ObjectiveLine. Verb phrase fits open/done states and promises no survival. |
+| 3 First reached display | `return match != null ? match.displayName : objectiveId;` | `return match != null ? ScenarioOneUiFacts.ObjectiveName(match) : objectiveId;`. One-line display-only mapping. Assets/Tools search for `Objective first reached` and `ObjectiveName(m,` found only the display emission at AnnualReviewView:653, no parser. Stored/comparison/hash/lookup code unchanged. |
+| 4 Help restoration | `must go. On a Crop Tree` | `must go. Inspect which neighbours contribute most to the Share before deciding what to remove. On a Crop Tree`. Reviewer’s exact sentence and placement; “Share” follows the reviewer’s narrower wording rather than the original “competition”. |
+| 5a Job count | `{regenerationRemovals} natural young-tree group(s) removed` | `{regenerationRemovals} young-tree removal job(s) completed`. Read AnnualReviewView:347 and ScenarioOneManager.ResolveRegenerationRemoval: both completion paths increment regenerationRemovalTasks once per completed job (cell clearance or species removal), not once per group. |
+| 5b Topic 2 | `In this crown-release exercise, smaller neighbours usually contribute less to the measured Share.` | `When inspecting competition Share, smaller neighbours usually contribute less to the measured Share.` Stands alone before Lesson 3; narrow measured-Share statement retained. Existing teaching verifier pins only the unchanged `smaller neighbours usually contribute less to the measured Share` substring, so no additional pin edit required. |
+| 5c Optional fuller FR-C1 Help | omitted | Remains omitted as instructed. Existing calibration explanation retained. |
+
+### Source-derived display examples (not Unity-rendered evidence)
+
+Both species, all affected places below. Open/done examples use current values 0/1 respectively; the current objective predicate remains successful planting plus species presence somewhere.
+
+**sessile oak**
+
+- Objectives list, open: `○ open · Plant, with species present — sessile oak: 0 / 1`
+- Objectives list, achieved: `✓ done · Plant, with species present — sessile oak: 1 / 1`
+- Annual Review objective list, open: `○ open · Plant, with species present — sessile oak: 0 / 1`
+- Annual Review objective list, achieved: `✓ done · Plant, with species present — sessile oak: 1 / 1`
+- Century / Year-100 current objective list, open: `○ open · Plant, with species present — sessile oak: 0 / 1`
+- Century / Year-100 current objective list, achieved: `✓ done · Plant, with species present — sessile oak: 1 / 1`
+- Annual Review first reached: `Objective first reached: Plant, with species present — sessile oak`
+- Century / Year-100 comparison: `Plant, with species present — sessile oak: yours 1 · target 1` (or `reference 1` for frozen-reference comparison). Comparison rows have no open/done prefix; yours can also be 0.
+
+**beech**
+
+- Objectives list, open: `○ open · Plant, with species present — beech: 0 / 1`
+- Objectives list, achieved: `✓ done · Plant, with species present — beech: 1 / 1`
+- Annual Review objective list, open: `○ open · Plant, with species present — beech: 0 / 1`
+- Annual Review objective list, achieved: `✓ done · Plant, with species present — beech: 1 / 1`
+- Century / Year-100 current objective list, open: `○ open · Plant, with species present — beech: 0 / 1`
+- Century / Year-100 current objective list, achieved: `✓ done · Plant, with species present — beech: 1 / 1`
+- Annual Review first reached: `Objective first reached: Plant, with species present — beech`
+- Century / Year-100 comparison: `Plant, with species present — beech: yours 1 · target 1` (or `reference 1` for frozen-reference comparison). Comparison rows have no open/done prefix; yours can also be 0.
+
+### Commands and actual results
+
+- `git fetch origin`, source/review/spec reads, `git status --short`, branch/head inspection: PASS, requested lane/head and no unrelated changes.
+- Whole-repository tracked-text search excluding Docs (including Assets and Tools), using `python3 -I -B`: searched 24 removed literal/substrings from baseline diff plus old interior phrases. Evidence: `/media/jer/Files/CCF/Verification/ResearchCopy-391/rework1/old-wording-audit.txt`. Nine remaining matches are unchanged titles (`2. Tree inspection and Crop Trees`, `Explore Regeneration`, `Start with a tree worth keeping`), unchanged verifier description (`positive selection without suppression prescription`), row label (`Clearance, square {cell}`), and interpolation fragments. No remaining stale pin/matcher for replaced copy. Protected internal `Establish planted ` remains intentionally as the presentation mapping input and objective source; protected history vocabulary remains unchanged.
+- `python3 -I -B Tools/Verification/ScenarioOneUiPresentation/run_checks.py --src "$PWD" --out /media/jer/Files/CCF/Verification/ResearchCopy-391/rework1/presentation`: PASS 157 checks, all five mutants KILLED, composition/source contracts PASS.
+- `python3 -I -B Tools/Verification/ScenarioOneNonUi/compile_runtime_sources.py --src "$PWD" --out /media/jer/Files/CCF/Verification/ResearchCopy-391/rework1/compile --extra Tools/Verification/ScenarioOneCompletion/P3/WorkPlanResidualVerification.cs Tools/Verification/ScenarioOneTeachingCopyVerification.cs`: PASS `sources=191 refs=116 exit=0 errors=0`. Offline syntax/type compilation, not Unity or a Player build. P3 runtime body included; its Editor-only sections and the entirely UNITY_EDITOR-guarded teaching-copy verifier body are excluded by this non-Editor route. No claim of Editor compilation or runtime execution.
+- `git diff --check`: PASS. `git diff b62446ca -- Assets/ForestPrototype/ScenarioOne`: empty. No objective/persistence/ecology/Share source changed.
+- RackV2HelpTeaching: NOT rerun or repaired; earlier documented pre-existing failures remain outside scope.
+- Unity Editor, builds, save/PlayerPrefs access, rendered screenshots, runtime verifiers and world hashes: NOT RUN. No ZX20 or other worktree access. Visual acceptance and runtime integration remain pending with the coordinator; no GitHub issue or active-tasks edit.
+
+### Cumulative diff from baseline (including this report)
+
+```text
+ Assets/ForestPrototype/UI/AnnualReviewView.cs      |   4 +-
+ .../UI/LearningObjectivesView.Curriculum.cs        |   4 +-
+ Assets/ForestPrototype/UI/MenuHelpView.Text.cs     |   6 +-
+ .../UI/ScenarioOneTeachingSequence.cs              |   2 +-
+ Assets/ForestPrototype/UI/ScenarioOneUiFacts.cs    |   2 +-
+ Assets/ForestPrototype/UI/WorkPlanOverview.cs      |   6 +-
+ ...L-C01-RESEARCH-COPY-V1-IMPLEMENTATION-RESULT.md | 176 +++++++++++++++++++++
+ .../P3/WorkPlanResidualVerification.cs             |   2 +-
+ .../ScenarioOneTeachingCopyVerification.cs         |   2 +-
+ 9 files changed, 190 insertions(+), 14 deletions(-)
+```
+
+The stat above was captured immediately before appending this stat block; final report line totals increase accordingly. Report commit/pushed head is identified by Git history and the final handoff; push confirmation uses `git ls-remote origin refs/heads/feature/scenario-one-research-copy-v1-20261112`.
