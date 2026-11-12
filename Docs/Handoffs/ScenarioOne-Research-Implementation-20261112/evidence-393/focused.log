@@ -1,0 +1,50 @@
+Unity Editor version:    6000.6.0f1 (f7f8ed4d1e24)
+Branch:                  6000.6/respin/6000.6.0f1-fa21a270ab12
+Build type:              Release
+Batch mode:              NO
+System name:             Linux
+Distro version:          #42~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Mon Oct 19 14:43:01 UTC 2
+Kernel version:          7.0.0-42-generic
+Architecture:            x86_64
+Available memory:        15870 MB
+Date:                    2026-11-12T04:53:36Z
+VBCSCompilerPreWarmer: pre-warm launched (dotnet PID 182736)
+VBCSCompiler prewarm took 30.76 ms
+Editor preferences folder (/media/jer/Files/CCF/Verification/CCF-393-IntegrationGates-20261112/candidate/home/.local/share/unity3d) does not exist and could not be created. Preferences won't be saved.
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Channel LicenseClient-jer doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 182738)
+Selected window backend: (null) 
+
+(Unity:182720): Gtk-WARNING **: 04:53:36.531: Theme parsing error: <data>:1:29: Not using units is deprecated. Assuming 'px'.
+
+(Unity:182720): Gtk-WARNING **: 04:53:36.531: Theme parsing error: <data>:1:34: Not using units is deprecated. Assuming 'px'.
+
+(Unity:182720): Gtk-WARNING **: 04:53:36.531: Theme parsing error: <data>:1:29: Not using units is deprecated. Assuming 'px'.
+
+(Unity:182720): Gtk-WARNING **: 04:53:36.531: Theme parsing error: <data>:1:34: Not using units is deprecated. Assuming 'px'.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-jer" at "2026-11-12T04:53:36.860655Z"
+[SignatureVerifier] Application signature verification not supported on this platform.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              4172b127d7c9429a9e59e2a2ca54c7e2
+  Correlation Id:          1c41c3e2ac56cc917610d547959696d6
+  External correlation Id: 3614831562595510868
+  Machine Id:              M30PBovURjdfZuacBF5WY0Dfe7M=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-jer" (connect: 0.57s, validation: 0.12s, handshake: 0.00s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-jer-notifications" at "2026-11-12T04:53:36.976621Z"
+[Licensing::Module] Connected to LicensingClient (PId: 182738, launch time: 0.00, total connection time: 0.69s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 5774119654035-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.02
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.73s
+[ExitDontLaunchBugReporter] Exiting without the bug reporter. Application will exit with return code 1
+
+SDL leaked 2 allocations
+Turn on UNITY_SDL_ALLOCATION_TRACKING for detailed information.
