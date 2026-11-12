@@ -130,3 +130,17 @@ Count work attempted/completed/rejected/blocked, accounted actual model+pool usa
 - **Failure class:** operational prerequisite missed in the Claude A packet (lane registration), not a product or provider failure. Cost: one wasted worker run.
 - **Action by Claude A:** appended exactly one entry to deployed `/media/jer/ZX20/CCF-Ops/lanes.json` (`ResearchCopyQual391`, `unity: true`), following the UIQual275 / AccessSpineMeasure248 / UIQual376 precedent for a user-authorised lane. Backup `lanes.json.before-391` and `lanes-json-391.diff` are in `/media/jer/Files/CCF/Verification/CCF-391-ResearchCopy-Qual-20261112/`. No other config touched; no lock forced. `unity-lock status` after: free, no Editor PIDs. **Manager #200 should confirm or revert this registration.**
 - **Attempt 2:** same route (`gpt-6.1-sol` medium, pool A), fresh session with the attempt-1 report as input. Pool B still unused.
+
+## EVENT 9 — 2026-11-12 02:11 UTC — Unity attempt 2 PARTIAL; attempt 3 dispatched at higher effort
+
+- **Evidence class:** OBSERVED FACT (report, log, disk); diagnosis lines are ORCHESTRATOR CLAIM.
+- **Attempt 2 result:** `gpt-6.1-sol` medium, pool A. **PARTIAL** — [report a962e146](https://github.com/jermur788/CCF/blob/a962e14679fb70d8e4df01989aa9612afd4678f9/Docs/Handoffs/ScenarioOne-Research-Implementation-20261112/SOL-C01-RESEARCH-COPY-V1-UNITY-QUALIFICATION-RESULT.md).
+  - Real-Editor import + compile: **PASS** (0 C# errors, Play Mode reached).
+  - `ScenarioOneTeachingCopyVerification`: **FAIL** `nursery warning visible` (layout-overlap assertion at line 198 on the Work Plan nursery warning; not text changed by this patch). Five 1280 captures all **black**; UI Toolkit render-chain exceptions in log. 1080 NOT RUN.
+  - `WorkPlanResidualVerification`, world-hash comparison, Reference/Legacy40: **NOT RUN**.
+  - Lease `c72e3e0fce27404b88df38b3f3daa146` acquired and released; lock FREE. Editor PID 113621 hung after shutdown markers and was killed by PID (disclosed). Runner 671 s.
+  - 27 licensed ignored assets copied read-only from the #382 lane with matching SHA-256; that lane otherwise untouched. Nine host save/Prefs files unchanged. Lane clean @ `868643a1`.
+  - Disk: ZX20 22.98 → 16.45 GiB free (17,661,034,496 bytes; lock floor 16,106,127,360). **Margin ≈ 1.45 GiB.**
+- **Failure class:** verification-harness/rendering failure on a cold first import with an old harness; no product defect established, and none excluded for the nursery assertion (UNDETERMINED).
+- **ORCHESTRATOR CLAIM:** the worker chose the pre-#376 S1A harness instead of the capture route that produced contentful images in #379/#381; the nursery assertion was evaluated while rendering was faulting. Neither is proven.
+- **Route change:** attempt 3 to `gpt-6.1-sol` at **high** effort (same pool A; no quota event observed in five runs). Justification: the remaining work is harness/render diagnosis rather than LOW copy work, and two medium runs returned without usable captures. Pool B not used (same model; no capacity reason to switch). Declared final bounded Unity attempt; if it cannot produce contentful frames or disk falls under the floor, AC-7 is handed back NOT VERIFIED rather than retried indefinitely.
