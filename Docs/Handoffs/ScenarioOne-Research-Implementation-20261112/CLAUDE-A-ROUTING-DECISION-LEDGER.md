@@ -42,3 +42,38 @@
 ## End-of-run summary (create only from logged events)
 
 Count work attempted/completed/rejected/blocked, accounted actual model+pool usage and switches, token/time where measured, test failures and owner gates, independent review, exact integration and protected-identity evidence, user-required action, dashboard source update and downstream sync/readback separately. Never infer Unity PASS, accepted spec or completed work from an issue title.
+
+---
+
+# LIVE ENTRIES (appended by Claude A from actual start; nothing above this line is an observation)
+
+## Starting observation — 2026-11-12 01:30 UTC
+
+- **Evidence class:** OBSERVED FACT unless marked.
+- **Start timestamp:** 2026-11-12T01:30:46+00:00 (host clock, UTC).
+- **Actual Claude A provider/model/effort:** Anthropic `claude-fable-5-2`, effort `low` (as reported by the harness), Claude Code inside T3 Code, provider instance "Claude A".
+- **Orchestrator checkout:** `/media/jer/Files/CCF-Primary` on `ops/workflow-foundation-v1` @ `46247486`, with two pre-existing uncommitted user edits (`AGENTS.md`, `Docs/Operations/StorageArchitecture.md`) left untouched. Ledger/report writer worktree created: `/media/jer/Files/CCF/Operations/CCF-390-Orchestration-Docs` on `docs/claude-a-fable-orchestration-research-copy-20261112-v1` @ `95eb5639`. (The handoff expected "no local orchestration worktree"; one was created because the ledger must be committed from somewhere. One writer: Claude A.)
+- **Newest UI candidate:** `integration/scenario-one-personal-playtest-candidate-20261111-v1` local = remote = `b62446caf40fc2ac939d55a6bea6e201f41de700`; game source `2aaacad68ed186dbe14531f31ce5bb3a87811441`; `git diff 2aaacad6 b62446ca -- Assets Packages ProjectSettings` empty. Lineage contains #377 `c9c7d010`, #378 `ebe061ba`, #379 `2aaacad6` (post-#373 Sol repairs). Only other remote branches containing `2aaacad6` are the #379 fix branch and `qualify/scenario-one-ui-residual-tier2-20261111-v1` (= `2aaacad6`, no successor commits). No later UI successor found.
+- **Registered Unity lane:** `/media/jer/ZX20/CCF-S1-UI-Presentation-V1-Qual` on `qualify/scenario-one-tagged-text-379-20261111` @ `2aaacad6`, `git status` clean. Not opened, not modified. No process matching "Unity" running. ZX20 mounted, 25 GiB free. User #382 playtest: issue says USER NOT STARTED; whether the user intends to use the lane imminently is UNKNOWN.
+- **main / active-tasks:** `origin/main` @ `20b8c81b`; no row naming #390 as running, no competing writer for the UI copy files. active-tasks.md NOT edited by Claude A (Manager #200 sole writer).
+- **Capacity table:** Claude A — AVAILABLE, quota/reset UNKNOWN. Sol pool A (T3 provider "Codex", `gpt-6.1-sol`) — listed AVAILABLE by the harness, quota UNKNOWN. Sol pool B ("ChatGPT - OpenAI B", `gpt-6.1-sol`) — listed AVAILABLE, quota UNKNOWN. Claude B ("Claude B — Pro", `claude-sonnet-5-5`, `claude-opus-5-5`) — listed AVAILABLE, quota UNKNOWN.
+- **Context limit/used/compactions:** UNKNOWN / UNKNOWN / 0 so far.
+- **Optimisation:** correctness and full completion first, then minimal rework and cost; no test weakening.
+
+## EVENT 1 — 2026-11-12 01:31 UTC — child claim and source lane
+
+- **Evidence class:** OBSERVED FACT.
+- **Task:** create C-01 child claim and isolated writer lane (handoff step 2).
+- **Outputs:** issue [#391](https://github.com/jermur788/CCF/issues/391) [RUNNING]; worktree `/media/jer/Files/CCF/Operations/CCF-S1-ResearchCopy-V1-Sol`, branch `feature/scenario-one-research-copy-v1-20261112` @ `b62446ca`, clean. Allowed file set and protected list are in #391. #390 retitled [RUNNING] with a preflight comment.
+- **Unity lease:** none taken.
+- **ORCHESTRATOR CLAIM (source pre-inventory, read-only grep by Claude A):** "Areas with young trees" already ships in `ScenarioOneUiFacts.cs`; residual candidates are `AnnualReviewView.cs` "regeneration cohort(s) removed", curriculum "tallest natural seedling cohort", curriculum topic 2 "Being smaller or suppressed is not by itself a reason to remove a tree", and no existing wind-not-simulated Help sentence. `ManagementHistoryText.cs` parses lines by the prefix "Areas with young regeneration", so those history strings were placed out of bounds.
+
+## EVENT 2 — 2026-11-12 01:33 UTC — implementation dispatch
+
+- **Evidence class:** OBSERVED FACT (dispatch); ORCHESTRATOR CLAIM (rationale).
+- **Actual provider/model/effort/pool:** OpenAI `gpt-6.1-sol`, reasoningEffort `medium`, Sol pool A (T3 provider "Codex"), default service tier. Executed model as reported by the provider: recorded at completion.
+- **Alternatives considered:** pool B (identical model; held in reserve for a quota/cooldown on A); Claude A self-implementing (rejected: role separation, and it would leave no independent author for Claude B to review against). Exploit, not explore: LOW-difficulty task on the default route.
+- **Claim / lane:** #391, single writer, worktree and branch as in Event 1. Unity lease: none; Unity forbidden in the packet.
+- **Inputs:** the four-part approved spec on this branch; packet text is in the T3 delegated task and summarised in #391.
+- **Outputs:** pending.
+- **Measured calls/tokens/wall time:** UNKNOWN.
