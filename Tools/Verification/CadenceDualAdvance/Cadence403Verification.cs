@@ -311,7 +311,9 @@ public sealed class Cadence403Runner : MonoBehaviour
     IEnumerator DiskCase(ForestSaveData state) {
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"disk skip begins");while(ui.Skipping)yield return null;
         Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/CadenceV1-FixedQual-408-"),"isolated disk save custody",Application.persistentDataPath);var before=saves.CaptureData();saves.Save();saves.Load();yield return Settle();
-        Check(ScenarioReferenceArchive.CurrentWorldHash(before)==ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData()),"disk roundtrip world hash");ui.ShowReview();yield return Settle();
+        var reloaded=saves.CaptureData();ScenarioReferenceArchive.Canonicalize(before);ScenarioReferenceArchive.Canonicalize(reloaded);
+        Check(JsonUtility.ToJson(before)==JsonUtility.ToJson(reloaded),"disk roundtrip complete canonical JSON");
+        Check(ScenarioReferenceArchive.CurrentWorldHash(before)==ScenarioReferenceArchive.CurrentWorldHash(reloaded),"disk roundtrip world hash");ui.ShowReview();yield return Settle();
         var label=(Label)Field(Field(ui,"review"),"skipSummary");Check(label.text==""&&label.resolvedStyle.display==DisplayStyle.None,"disk reload clears hidden session summary");
     }
 
@@ -450,6 +452,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"mortality begin");Set(ui,"skipTarget",manager.CurrentEcologicalYear+1);Check(!ui.Marking.enabled,"marking disabled at death");
         Check(Live().Single(t=>t.TreeId==id).ApplyMortality("qualification identical forced mortality",manager.CurrentEcologicalYear+1),"skip real mortality API");while(ui.Skipping)yield return null;
         var actual=saves.CaptureData();Debug.Log("CADENCE408_MORTALITY direct="+ScenarioReferenceArchive.CurrentWorldHash(direct)+" skip="+ScenarioReferenceArchive.CurrentWorldHash(actual));
+        ScenarioReferenceArchive.Canonicalize(direct);ScenarioReferenceArchive.Canonicalize(actual);Check(JsonUtility.ToJson(direct)==JsonUtility.ToJson(actual),"F9 full canonical JSON direct parity");
         Check(ScenarioReferenceArchive.CurrentWorldHash(direct)==ScenarioReferenceArchive.CurrentWorldHash(actual),"F9 current world equality");yield return new WaitForSecondsRealtime(.7f);
         Check(!ui.Marking.GetCropTreeIds().Contains(id),"dead Crop Tree absent after stale sweep");Debug.Log("CADENCE408_MORTALITY counts crop="+ui.Marking.LivingCropTreeCount+" fell="+ui.Marking.MarkedCount);
     }
@@ -517,7 +520,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         var approved=manager.ApprovePrescription(created.PrescriptionId);Check(approved.Succeeded,"MFM genuine prescription approved",approved.Message);
         ui.ShowWorkPlan();ui.Learning.Refresh(true);CadenceParity.Reject(ui,"Pending and Approved");Debug.Log("CADENCE408_MFM genuine Pending rejected");Check(ui.ApproveWorkPlan(),"MFM work plan approved");CadenceParity.Reject(ui,"Pending and Approved");Debug.Log("CADENCE408_MFM genuine Approved rejected");Check(ui.AdvanceFromWorkPlan(),"MFM approved work executed");yield return Settle();ui.AcknowledgeAnnualReview();ui.CloseAll();ui.CloseHelp();ui.ShowWorkPlan();ui.Learning.Refresh(true);
         int selectedRack=((StandMapView)Field(ui,"map")).RackEditor.SelectedRackId;int confirmed=((RackTool)Field(ui,"rackTool")).ConfirmedCount;var before=saves.CaptureData();string prescriptions=JsonUtility.ToJson(before.scenarioOne);var orders=before.scenarioOne.workOrders.Select(o=>JsonUtility.ToJson(o)).ToArray();var marks=ui.Marking.GetMarkedIds().OrderBy(x=>x).ToArray();
-        Check(ui.BeginSkip(ui.SkipTarget(out _)),"historical MFM skip begins");while(ui.Skipping)yield return null;var after=saves.CaptureData();
+        var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"historical MFM skip begins");while(ui.Skipping)yield return null;var after=saves.CaptureData();LogInputs("historical MFM",inputs);
         Check(before.scenarioOne.prescriptions.Select(o=>JsonUtility.ToJson(o)).SequenceEqual(after.scenarioOne.prescriptions.Select(o=>JsonUtility.ToJson(o))),"historical prescriptions unchanged");Check(selectedRack==((StandMapView)Field(ui,"map")).RackEditor.SelectedRackId&&confirmed==((RackTool)Field(ui,"rackTool")).ConfirmedCount,"MFM rack selection and 3D confirmation unchanged");
         Check(orders.SequenceEqual(after.scenarioOne.workOrders.Select(o=>JsonUtility.ToJson(o)))&&!manager.WorkOrders.Any(o=>o.IsOpen)&&marks.SequenceEqual(ui.Marking.GetMarkedIds().OrderBy(x=>x)),"no automatic order or Fell mark");
     }
@@ -526,11 +529,13 @@ public sealed class Cadence403Runner : MonoBehaviour
         yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
         Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/CadenceV1-FixedQual-408-"),"native hotkey save isolation");
         string path=Path.Combine(Application.persistentDataPath,"forest-save.json");string before=File.Exists(path)?Convert.ToBase64String(File.ReadAllBytes(path)):"ABSENT";
+        saves.Save();before=Convert.ToBase64String(File.ReadAllBytes(path));var writeTime=File.GetLastWriteTimeUtc(path);int worldVersion=manager.TeachingWorldVersion;string world=JsonUtility.ToJson(saves.CaptureData());
         var inputs=InputStates();Check(ui.BeginSkip(ui.SkipTarget(out _)),"native hotkey skip begins");Set(ui,"skipTarget",manager.CurrentEcologicalYear+5);
         Check(inputs.Keys.All(b=>!b.enabled),"all nine disabled before OS save/load/menu keys");
         holdTicks=true;yield return native.Send(RackAuthoringNativeInput.Op.Key("F5"),RackAuthoringNativeInput.Op.Key("F9"),RackAuthoringNativeInput.Op.Key("F10"));
         Check(ui.Skipping&&!StandaloneSessionMenu.IsOpen,"OS keys leave skip running and menu unavailable");
-        Check(before==(File.Exists(path)?Convert.ToBase64String(File.ReadAllBytes(path)):"ABSENT"),"OS save/load keys leave slot bytes unchanged");holdTicks=false;Set(ui,"cancelSkip",true);while(ui.Skipping)yield return null;
+        Check(before==(File.Exists(path)?Convert.ToBase64String(File.ReadAllBytes(path)):"ABSENT"),"OS save/load keys leave slot bytes unchanged");
+        Check(File.GetLastWriteTimeUtc(path)==writeTime&&manager.TeachingWorldVersion==worldVersion&&JsonUtility.ToJson(saves.CaptureData())==world,"OS save/load keys neither write nor reload the actual isolated world");holdTicks=false;Set(ui,"cancelSkip",true);while(ui.Skipping)yield return null;
         Check(inputs.All(p=>p.Key.enabled==p.Value),"native hotkey exit restores nine inputs");
     }
     IEnumerator LossCase(ForestSaveData state,bool loseManager) {
