@@ -209,7 +209,7 @@ public sealed class WorkPlanResidualVerificationRunner : MonoBehaviour
             // Player wording: the 5 m cell is a "map square" (playtest UX revision).
             string label = "Clearance, square " + UiKit.CellLabel(cell, ecology.CellsPerAxis);
             Check(leaving.Contains(label), "missing clearance row " + label);
-            Check(young ? leaving.Contains("cohort portion") : leaving.Contains("no regeneration cohorts or planted saplings inside"), (young ? "F" : "E") + " text: " + leaving);
+            Check(young ? leaving.Contains("natural young-tree group portion") : leaving.Contains("no natural young-tree groups or planted saplings inside"), (young ? "F" : "E") + " text: " + leaving);
             Debug.Log($"P3_CLEARANCE_{(young ? "F" : "E")}_PASS {label} cohorts {c.CohortGroups} density {c.CohortDensityBefore:F3}->{c.CohortDensityAfter:F3} saplings {c.PlantedSaplings} bramble {c.Bramble:F3} bracken {c.Bracken:F3} taller {c.TallerThanEscape}");
         }
         Check(leaving.Contains(LearningObjectivesView.ClearanceExplanation(RegenerationModel.Competition)), "model-aware clearance explanation missing");

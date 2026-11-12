@@ -375,7 +375,7 @@ public sealed class AnnualReviewView
         }
         if (regenerationRemovals > 0)
         {
-            AddTagged(c, HistoryProvenance.Recorded, $"{regenerationRemovals} natural young-tree group(s) removed");
+            AddTagged(c, HistoryProvenance.Recorded, $"{regenerationRemovals} young-tree removal job(s) completed");
             AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.RemoveRegeneration));
         }
         if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) AddTagged(c, HistoryProvenance.Derived, "No work was resolved this year.");
@@ -711,7 +711,7 @@ public sealed class AnnualReviewView
     private static string ObjectiveName(ScenarioOneManager m, string objectiveId)
     {
         ScenarioObjectiveResult match = m.Objectives.FirstOrDefault(o => o.objectiveId == objectiveId);
-        return match != null ? match.displayName : objectiveId;
+        return match != null ? ScenarioOneUiFacts.ObjectiveName(match) : objectiveId;
     }
 
     private void BuildObjectives(ScenarioOneManager m, bool historical = false)
