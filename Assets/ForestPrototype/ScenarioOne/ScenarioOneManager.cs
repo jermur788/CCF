@@ -311,6 +311,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     }
     public bool WorkPlanOpen => workPlanOpen;
     public bool ReferencePreviewActive => referencePreviewActive;
+    public bool ReferenceAuthoringActive => referenceAuthoring;
 
     // ----- Read-only presentation access for the Scenario One UI screens -----
     // The UI reads authoritative state and calls the public actions above; it

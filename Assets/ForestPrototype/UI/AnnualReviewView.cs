@@ -23,6 +23,8 @@ public sealed class AnnualReviewView
     private readonly ScenarioOneUiRoot ui;
     public VisualElement Root { get; }
     private readonly Label title;
+    private readonly Label skipSummary;
+    public void SetSkipSummary(string text) => skipSummary.text = text;
     private readonly ScrollView scroll;
     private readonly VisualElement acknowledgement;
     private readonly Button earlierYear, laterYear, walk;
@@ -45,6 +47,7 @@ public sealed class AnnualReviewView
         UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal", "modal-review");
         Root.Add(modal);
+        skipSummary = UiKit.Add(modal, "", "body");
         VisualElement header = UiKit.Box("modal-header");
         title = UiKit.Add(header, "", "title");
         VisualElement buttons = UiKit.Box("row", "screen-actions");

@@ -21,6 +21,7 @@ public sealed class WorkPlanView
     private bool confirmingAdvance;
     public bool ConfirmingAdvance => confirmingAdvance;
     private int purchaseQuantity = 5;
+    private int confirmingSkipTarget = -1;
     // Extraction racks whose trees are listed one by one (a rack is one line until opened).
     private readonly HashSet<string> expandedSections = new HashSet<string>();
     private readonly HashSet<int> expandedRacks = new HashSet<int>();
@@ -89,7 +90,7 @@ public sealed class WorkPlanView
     }
 
     // Dropped whenever the plan is (re)opened, so an old question never greets the player on a later visit.
-    public void CancelAdvanceConfirmation() => confirmingAdvance = false;
+    public void CancelAdvanceConfirmation() { confirmingAdvance = false; confirmingSkipTarget = -1; }
 
     private void CancelAdvanceConfirmationAndRefresh()
     {
@@ -171,6 +172,20 @@ public sealed class WorkPlanView
             m.CanAdvanceYearNow && !ui.NeedsAnnualReview && string.IsNullOrEmpty(rackProblem), "btn-primary");
         advance.name = "workplan-advance";
         footer.Add(advance);
+        int target = ui.SkipTarget(out int? lastFelling);
+        string skipProblem = ui.SkipProblem();
+        footer.Add(UiKit.Button($"Skip to Year {target} ({target - m.CurrentEcologicalYear} years)", () => {
+            confirmingSkipTarget = target; Refresh(true);
+        }, string.IsNullOrEmpty(skipProblem) && target > m.CurrentEcologicalYear));
+        if (!string.IsNullOrEmpty(skipProblem)) UiKit.Add(footer, skipProblem, "muted");
+        else UiKit.Add(footer, (lastFelling.HasValue ? $"Last recorded felling: Year {lastFelling}. " : "Suggested observation interval. ")
+            + "Four years is a suggested time to reassess, not a compulsory treatment date.", "muted");
+        if (confirmingSkipTarget > m.CurrentEcologicalYear && string.IsNullOrEmpty(skipProblem))
+        {
+            UiKit.Add(footer, $"Advance ordinary annual updates to Year {confirmingSkipTarget}, stopping earlier for decisions or events? No work will be created or approved.", "body");
+            footer.Add(UiKit.Button("Confirm skip", () => { int confirmed = confirmingSkipTarget; confirmingSkipTarget = -1; ui.BeginSkip(confirmed); }));
+            footer.Add(UiKit.Button("Keep reviewing", () => { confirmingSkipTarget = -1; Refresh(true); }));
+        }
         if (ui.NeedsAnnualReview)
         {
             Button results = UiKit.Button("Read annual results to continue", () => ui.ShowReview(), true, "btn-primary");

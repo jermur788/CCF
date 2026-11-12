@@ -92,6 +92,122 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         return false;
     }
 
+    private bool skipping;
+    private bool cancelSkip;
+    private int skipTarget, skipStart, skipObjectives, skipStorms, skipLesson;
+    private ScenarioOneOutcome skipOutcome;
+    private int skipFrame;
+    private readonly Dictionary<Behaviour, bool> skipInputs = new Dictionary<Behaviour, bool>();
+    private readonly Dictionary<VisualElement, bool> skipControls = new Dictionary<VisualElement, bool>();
+    private bool priorModal;
+    private VisualElement skipOverlay;
+    private Label skipProgress;
+    public bool Skipping => skipping;
+
+    // Intermediate unread reviews are expected; only entry requires a genuine acknowledgment.
+    public string SkipProblem(bool betweenTicks = false)
+    {
+        if (!betweenTicks && skipping) return "A skip is already running.";
+        if (manager == null || ecology == null || !manager.isActiveAndEnabled) return "Forest controller unavailable.";
+        if (!manager.WorkPlanOpen) return "Open the Work Plan first.";
+        if (learning.CurrentTopicIndex != 7) return "Finish the current lesson first. Advance 1 Year is still available where permitted.";
+        foreach (var order in manager.WorkOrders)
+            if (order.status == ScenarioWorkStatus.Pending || order.status == ScenarioWorkStatus.Approved)
+                return "Resolve or remove all Pending and Approved work first.";
+        if (!betweenTicks && NeedsAnnualReview) return "Read and acknowledge the latest Annual Review first.";
+        if (manager.ReferencePreviewActive || manager.ReferenceAuthoringActive) return "Return to your forest first.";
+        if ((!betweenTicks && manager.ModalOpen) || StandaloneSessionMenu.IsOpen || Time.timeScale <= 0f
+            || help.IsOpen || workPlan.ConfirmingAdvance || rackTool.Active || rackTool.IntroPending
+            || map.RackEditor.ConsentPending || map.RackEditor.ResetPending || map.ReopenPending
+            || map.RackEditor.Dragging || map.RackEditor.Ghost.HasValue) return "Finish the open question or editing action first.";
+        if (!string.IsNullOrEmpty(RackPlanProblem)) return RackPlanProblem;
+        if (!string.IsNullOrEmpty(RackApprovalProblem)) return RackApprovalProblem;
+        if (!manager.CanAdvanceYearNow || !manager.CanEditWorkPlan) return "Year advance is unavailable. " + manager.Feedback;
+        return "";
+    }
+
+    public int SkipTarget(out int? lastFelling) => ScenarioManagementCadence.Compute(manager.CurrentEcologicalYear,
+        manager.CenturyReviewYear, manager.WorkOrders, manager.ManagementEvents, out lastFelling);
+
+    public bool BeginSkip(int confirmedTarget)
+    {
+        learning.Refresh(true);
+        if (!string.IsNullOrEmpty(SkipProblem()) || confirmedTarget != SkipTarget(out _) || confirmedTarget <= manager.CurrentEcologicalYear) return false;
+        skipStart = manager.CurrentEcologicalYear; skipTarget = confirmedTarget;
+        skipObjectives = manager.ObjectiveAchievements.Count; skipStorms = manager.StormEvents.Count;
+        skipLesson = learning.CurrentTopicIndex; skipOutcome = manager.Outcome;
+        priorModal = manager.ModalOpen;
+        skipping = true; cancelSkip = false; skipFrame = Time.frameCount;
+        try
+        {
+            // Disable both hotkey owners and the session-menu surface. Preserve disabled components too.
+            foreach (Behaviour input in FindObjectsByType<Behaviour>(FindObjectsSortMode.None))
+                if (input is ForestSaveController || input is StandaloneSessionMenu || input is ForestPlayer
+                    || input is ForestTreeMarkingManager || input is RackTool || input is ForestBuildable
+                    || input is ForestSawPit || input is ForestWoodStorage || input is RecentAssetReviewControls)
+                { skipInputs[input] = input.enabled; input.enabled = false; }
+            manager.SetModalOpen(true);
+            foreach (VisualElement child in RootElement.Children()) { skipControls[child] = child.enabledSelf; child.SetEnabled(false); }
+            skipOverlay = UiKit.Box("layer", "modal-backdrop");
+            var card = UiKit.Box("panel", "modal"); skipOverlay.Add(card);
+            skipProgress = UiKit.Add(card, "Preparing year advance…", "body");
+            card.Add(UiKit.Button("Cancel after the current year", () => cancelSkip = true));
+            RootElement.Add(skipOverlay);
+        }
+        catch { RestoreSkipInputs(); throw; }
+        return true;
+    }
+
+    private void RestoreSkipInputs()
+    {
+        foreach (var input in skipInputs) if (input.Key != null) input.Key.enabled = input.Value;
+        skipInputs.Clear();
+        if (manager != null) manager.SetModalOpen(priorModal);
+        skipOverlay?.RemoveFromHierarchy(); skipOverlay = null;
+        foreach (var control in skipControls) control.Key.SetEnabled(control.Value);
+        skipControls.Clear();
+        skipping = false;
+    }
+
+    private void FinishSkip(string reason)
+    {
+        int end = manager.CurrentEcologicalYear;
+        RestoreSkipInputs();
+        review.SetSkipSummary(end == skipStart ? "No years advanced. " + reason
+            : $"Session only: advanced Years {skipStart + 1}–{end}. {reason} Browse earlier years below; only the latest review can be acknowledged.");
+        ShowReview(); review.Refresh(true);
+    }
+
+    private string SkipStopReason()
+    {
+        if (manager == null || ecology == null) return "Forest controller unavailable.";
+        return manager.Outcome != skipOutcome ? "Scenario outcome changed."
+                : manager.ObjectiveAchievements.Count > skipObjectives ? "An objective was achieved."
+                : (manager.CurrentEcologicalYear > skipStart && ecology.LastStormPerformance.Victims > 0) || manager.StormEvents.Count > skipStorms ? "Storm recorded."
+                : learning.CurrentTopicIndex != skipLesson ? "The lesson changed."
+                : (skipStart < 25 && manager.CurrentEcologicalYear >= 25) || manager.CurrentEcologicalYear >= manager.CenturyReviewYear ? "Review boundary reached."
+                : manager.CurrentEcologicalYear >= skipTarget ? "Suggested reassessment year reached." : SkipProblem(true);
+    }
+
+    private void TickSkip()
+    {
+        if (Time.frameCount == skipFrame) return;
+        skipFrame = Time.frameCount;
+        try
+        {
+            string problem = SkipStopReason();
+            if (cancelSkip || !string.IsNullOrEmpty(problem)) { FinishSkip(cancelSkip ? "Cancelled between years." : problem); return; }
+            skipProgress.text = $"Advancing year {manager.CurrentEcologicalYear - skipStart + 1} of {skipTarget - skipStart}";
+            if (!manager.AdvanceYear()) { FinishSkip("Year advance failed: " + manager.Feedback); return; }
+            learning.Refresh(true);
+            string stop = SkipStopReason();
+            if (!string.IsNullOrEmpty(stop)) FinishSkip(stop);
+        }
+        catch (System.Exception exception) { FinishSkip("Stopped after an error: " + exception.Message); Debug.LogException(exception); }
+    }
+
+    private void OnDisable() { if (skipping) RestoreSkipInputs(); }
+
     private void Start()
     {
         ReduceMotion = PlayerPrefs.GetInt("CCF.UI.ReduceMotion", 1) != 0;
@@ -197,6 +313,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         if (manager == null || document == null)
             return;
+        if (skipping) { TickSkip(); return; }
         UiKit.SetCompact(document.rootVisualElement);
         bool preview = manager.ReferencePreviewActive;
         if (preview) CloseHelp();
@@ -662,6 +779,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public bool AdvanceFromWorkPlan()
     {
+        review.SetSkipSummary("");
         if (!string.IsNullOrEmpty(RackPlanProblem)) return false;
         if (NeedsAnnualReview) { ShowReview(); return false; }
         if (!manager.AdvanceYear()) return false;
