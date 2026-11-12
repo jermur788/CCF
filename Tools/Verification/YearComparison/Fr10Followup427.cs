@@ -93,6 +93,17 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
             + " pick=" + Element(review.Root.panel.Pick(eventData.position)) + " clickCount=" + eventData.clickCount + " foldValue=" + Fold?.value + " capture=" + Element(PointerCaptureHelper.GetCapturingElement(review.Root.panel, eventData.pointerId) as VisualElement)), TrickleDown.TrickleDown);
         panelRoot.RegisterCallback<PointerUpEvent>(eventData => Log("panel-pointer-up pos=" + eventData.position.ToString("F2") + " target=" + Element(eventData.target as VisualElement) + " foldValue=" + Fold?.value), TrickleDown.TrickleDown);
         panelRoot.RegisterCallback<ClickEvent>(eventData => Log("panel-click target=" + Element(eventData.target as VisualElement) + " foldValue=" + Fold?.value), TrickleDown.TrickleDown);
+        // Poll for view rebuilds and for changes to the Refresh change-key inputs, so a lost click can be matched to a rebuild.
+        object lastCard = null, lastFold = null; string lastKey = null;
+        review.Root.schedule.Execute(() =>
+        {
+            var card = review.Root.Q("annual-year-comparison"); var fold = Fold;
+            string key = manager.CurrentEcologicalYear + "|" + manager.AnnualReports.Count + "|" + manager.CashCents + "|" + manager.ManagementEvents.Count;
+            if (ReferenceEquals(card, lastCard) && ReferenceEquals(fold, lastFold) && key == lastKey) return;
+            Log("rebuild-poll cardId=" + (card == null ? 0 : RuntimeHelpers.GetHashCode(card)) + " foldId=" + (fold == null ? 0 : RuntimeHelpers.GetHashCode(fold))
+                + " foldValue=" + fold?.value + " key=" + key + " scroll=" + Scroll.scrollOffset.ToString("F2") + " screenVisible=" + review.Root.resolvedStyle.display);
+            lastCard = card; lastFold = fold; lastKey = key;
+        }).Every(20);
         review.Root.RegisterCallback<ChangeEvent<bool>>(eventData => Log("value-change target=" + Element(eventData.target as VisualElement)
             + " before=" + eventData.previousValue + " after=" + eventData.newValue), TrickleDown.TrickleDown);
     }
@@ -146,12 +157,20 @@ public sealed class Fr10FollowupRunner427 : MonoBehaviour
         Set(oracle, "history", history);
         InstallTracing();
         string phase = Environment.GetEnvironmentVariable("CCF_427_PHASE");
-        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica";
+        bool diagnostic = phase == "diagnostic", replicaOnly = phase == "replica", faithful = phase == "faithful";
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(1920,1080) })
         {
             Cadence408GameSize.SetGameSize(size.x, size.y); yield return Settle(1.1f);
             Check(Screen.width == size.x && Screen.height == size.y, "exact render dimensions", Screen.width + "x" + Screen.height);
-            if (replicaOnly) yield return Case(size + "/first-run-order-replica", Replica(size, true, 3));
+            if (faithful)
+            {
+                // Same order as candidate1: rendered ON, rendered OFF, inherited native sequence, then the unchanged original close probe.
+                // Failures from the unchanged rendered oracle count against the oracle's own totals, exactly as in the first run.
+                if (size.x == 1280) yield return Case(size + "/faithful-rendered-on", Invoke(oracle, "Rendered", "full", true));
+                if (size.x == 1280) yield return Case(size + "/faithful-rendered-off", Invoke(oracle, "Rendered", "full", false));
+                if (size.x == 1280) yield return Case(size + "/faithful-order-replica", Replica(size, true, 3));
+            }
+            else if (replicaOnly) yield return Case(size + "/first-run-order-replica", Replica(size, true, 3));
             else if (diagnostic)
             {
                 yield return Case(size + "/foldout-diagnostic", Diagnostic());
