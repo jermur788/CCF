@@ -6,7 +6,7 @@
 **Research lane:** GitHub remote documentation branch docs/research-ccf-marking-wind-20261112-v1, no local worktree.  
 **Publication:** [this report](https://github.com/jermur788/CCF/blob/docs/research-ccf-marking-wind-20261112-v1/Docs/Research/ResearchIntake20261112/IRISH-UK-TREE-RETENTION-RELEASE-WIND-EVIDENCE.md).  
 **Source window:** Irish 2026 professional guidance and current WIS programme, plus primary Irish field studies, UK Forest Research practice and P1/P2/P6 supplied originals. Links and original page/section anchors below.  
-**Readback:** Initial publication pending at drafting; successful remote readback is to be recorded on #387 and in a final metadata update.
+**Readback:** Verified using GitHub remote fetch on the assigned branch on 12 November 2026: complete 36,599-character report, 160 lines, all section headings E01–E17, four copy alternatives, [R1]–[R15] sources, complete final paragraph. The final readback after this metadata update is recorded in #387.
 
 ## Executive decision (under 250 words)
 
