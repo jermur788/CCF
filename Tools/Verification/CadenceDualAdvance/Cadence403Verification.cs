@@ -151,6 +151,7 @@ public sealed class Cadence403Runner : MonoBehaviour
         Check(ui.Learning.CurrentTopicIndex==7,"genuine stage seven fixture");
         var authentic=saves.CaptureData();
         File.WriteAllText(Path.Combine(output,"authentic.json"),JsonUtility.ToJson(authentic));
+        if(Environment.GetEnvironmentVariable("CCF_CADENCE_MATRIX")=="1") { yield return Matrix(authentic,original); yield break; }
         if(Environment.GetEnvironmentVariable("CCF_CADENCE_F8") != "1") {
             yield return Cadence408Parity.Run(ui,saves,authentic);
             yield return Restore(authentic);
@@ -179,5 +180,82 @@ public sealed class Cadence403Runner : MonoBehaviour
         Debug.Log("CADENCE408_F8_PASS twice");
         } finally { Check(saves.LoadData(original,false),"restore original world"); }
     }
+    static void Set(object o,string n,object v) => o.GetType().GetField(n,BindingFlags.NonPublic|BindingFlags.Instance).SetValue(o,v);
+    IEnumerator Case(string name,IEnumerator routine) {
+        Exception failure=null;var frames=new Stack<IEnumerator>();frames.Push(routine);
+        while(frames.Count>0) {
+            bool more=false; object next=null;
+            try {more=frames.Peek().MoveNext();if(more)next=frames.Peek().Current;}catch(Exception e){failure=e;break;}
+            if(!more){frames.Pop();continue;}if(next is IEnumerator c)frames.Push(c);else yield return next;
+        }
+        if(ui.Skipping) {Set(ui,"cancelSkip",true);while(ui.Skipping)yield return null;}
+        Debug.Log("CADENCE408_CASE "+name+" "+(failure==null?"PASS":"FAIL "+failure));
+    }
+    IEnumerator RejectCase(ForestSaveData state,string name,Action action,string reason,Action undo=null) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        try { action();Debug.Log("CADENCE408_REASON "+name+" exact="+ui.SkipProblem()); CadenceParity.Reject(ui,reason); }
+        finally {undo?.Invoke();}
+    }
+    IEnumerator StopCase(ForestSaveData state,string name,Action action,string reason,int k) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        int start=manager.CurrentEcologicalYear;
+        yield return CadenceParity.RunStop(ui,action,reason,k);
+        CadenceParity.RejectWrongStopReason(ui,start,manager.CurrentEcologicalYear,reason);
+        int count=manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged);
+        ui.AcknowledgeAnnualReview();ui.AcknowledgeAnnualReview();
+        Check(manager.ManagementEvents.Count(e=>e.eventType==ScenarioManagementEventType.AnnualReviewAcknowledged)==count+1,"exactly one genuine destination acknowledgment");
+    }
+    IEnumerator Matrix(ForestSaveData state,ForestSaveData original) {
+        yield return Case("entry/early-original",RejectCase(original,"early-original",()=>{},"Finish the current lesson"));
+        yield return Case("entry/closed-plan",RejectCase(state,"closed-plan",()=>manager.OpenWorkPlan(false),"Open the Work Plan first."));
+        yield return Case("entry/paused",RejectCase(state,"paused",()=>Time.timeScale=0,"Finish the open question",()=>Time.timeScale=1));
+        yield return Case("entry/modal",RejectCase(state,"modal",()=>manager.SetModalOpen(true),"Finish the open question",()=>manager.SetModalOpen(false)));
+        yield return Case("entry/authoring",RejectCase(state,"authoring",()=>manager.SetReferenceAuthoring(true),"Return to your forest",()=>manager.SetReferenceAuthoring(false)));
+        yield return Case("entry/controller",RejectCase(state,"controller",()=>manager.enabled=false,"Forest controller unavailable.",()=>manager.enabled=true));
+        foreach(var status in new[]{ScenarioWorkStatus.Pending,ScenarioWorkStatus.Approved}) foreach(bool invalid in new[]{false,true}) foreach(int origin in new[]{0,1}) {
+            var st=status;var bad=invalid;var prescription=origin;
+            string name="entry/order/"+st+"/invalid="+bad+"/prescription="+origin;
+            yield return Case(name,RejectCase(state,name,()=>{
+                var data=manager.CaptureSaveData();data.workOrders.Add(new ScenarioOneWorkOrder{workOrderId=data.nextWorkOrderId++,status=st,type=ScenarioWorkType.FellTree,prescriptionId=prescription,validationMessage=bad?"invalid disposable fixture":""});manager.RestoreSaveData(data);ui.Learning.Refresh(true);
+            },"Pending and Approved"));
+        }
+        yield return Case("stop/cancel0",StopCase(state,"cancel0",()=>Set(ui,"cancelSkip",true),"Cancelled between years.",0));
+        yield return Case("stop/cancel1",StopCase(state,"cancel1",()=>Set(ui,"cancelSkip",true),"Cancelled between years.",1));
+        yield return Case("stop/authoring",StopCase(state,"authoring",()=>manager.SetReferenceAuthoring(true),"Return to your forest first.",1));manager.SetReferenceAuthoring(false);
+        yield return Case("stop/controller-disabled",StopCase(state,"controller",()=>manager.enabled=false,"Forest controller unavailable.",1));manager.enabled=true;
+        yield return Case("stop/new-pending",StopCase(state,"pending",()=>Plan(Live().First(t=>!t.IsCropTree&&!Bay().Contains(t.transform.position.x,t.transform.position.z))),"Resolve or remove all Pending and Approved work first.",1));
+        foreach(var outcome in new[]{ScenarioOneOutcome.Completed,ScenarioOneOutcome.Failed}) {
+            var result=outcome;
+            yield return Case("stop/outcome/"+result,StopCase(state,"outcome",()=>typeof(ScenarioOneManager).GetMethod("SetOutcome",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(manager,new object[]{result,manager.CurrentEcologicalYear,"Disposable qualification injection"}),"Scenario outcome changed.",1));
+        }
+        yield return Case("stop/modal-between-ticks",StopCase(state,"modal",()=>manager.SetModalOpen(true),"Finish the open question or editing action first.",1));
+        yield return Case("fault/OnDisable",DisableCase(state));
+        yield return Case("fault/exception",ExceptionCase(state));
+        yield return Case("compatibility/disk",DiskCase(state));
+        var archive=ScenarioReferenceArchive.Load();
+        foreach(int year in new[]{0,20,50,100}) {
+            var m=archive.AtYear(year);Debug.Log("CADENCE408_REFERENCE year="+year+" current="+ScenarioReferenceArchive.CurrentWorldHash(m.world)+" world="+ScenarioReferenceArchive.WorldHash(m.world));
+        }
+    }
+    IEnumerator DisableCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        var prior=FindObjectsByType<Behaviour>(FindObjectsSortMode.None).Where(b=>b is ForestSaveController||b is StandaloneSessionMenu||b is ForestPlayer||b is ForestTreeMarkingManager||b is RackTool||b is ForestBuildable||b is ForestSawPit||b is ForestWoodStorage||b is RecentAssetReviewControls).ToDictionary(b=>b,b=>b.enabled);
+        Check(ui.BeginSkip(ui.SkipTarget(out _)),"disable begin");Check(prior.Keys.All(b=>!b.enabled),"disable all input types locked");ui.enabled=false;
+        Check(!ui.Skipping&&prior.All(p=>p.Key.enabled==p.Value),"OnDisable restores input states");ui.enabled=true;
+    }
+    IEnumerator ExceptionCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);
+        Check(ui.BeginSkip(ui.SkipTarget(out _)),"exception begin");Set(ui,"skipProgress",null);
+        while(ui.Skipping)yield return null;
+        var label=(Label)Field(Field(ui,"review"),"skipSummary");
+        Check(label.text.StartsWith("No years advanced. Stopped after an error: "),"exception exact summary",label.text);
+    }
+    IEnumerator DiskCase(ForestSaveData state) {
+        yield return Restore(state);ui.ShowWorkPlan();ui.Learning.Refresh(true);Check(ui.BeginSkip(ui.SkipTarget(out _)),"disk skip begins");while(ui.Skipping)yield return null;
+        Check(Application.persistentDataPath.StartsWith("/media/jer/Files/CCF/Verification/CadenceV1-FixedQual-408-"),"isolated disk save custody",Application.persistentDataPath);var before=saves.CaptureData();saves.Save();saves.Load();yield return Settle();
+        Check(ScenarioReferenceArchive.CurrentWorldHash(before)==ScenarioReferenceArchive.CurrentWorldHash(saves.CaptureData()),"disk roundtrip world hash");ui.ShowReview();yield return Settle();
+        var label=(Label)Field(Field(ui,"review"),"skipSummary");Check(label.text==""&&label.resolvedStyle.display==DisplayStyle.None,"disk reload clears hidden session summary");
+    }
+
 }
 #endif
