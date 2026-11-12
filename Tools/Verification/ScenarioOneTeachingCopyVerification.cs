@@ -89,7 +89,7 @@ public sealed class ScenarioOneTeachingCopyRunner : MonoBehaviour
         string help = MenuHelpView.Explanation(MenuHelpView.Menu.WalkingHud), tree = MenuHelpView.Explanation(MenuHelpView.Menu.TreeInspection);
         Check(Has(help, "repeated process") && Has(help, "keeping tree cover") && Has(help, "not one thinning")
             && Has(help, "More felling is not automatically better") && Has(help, "leave standing"), "repeated CCF and residual stand");
-        Check(Has(tree, "Start with a tree worth keeping") && Has(tree, "competitors") && Has(tree, "suppressed does not by itself"), "positive selection without suppression prescription");
+        Check(Has(tree, "Start with a tree worth keeping") && Has(tree, "competitors") && Has(tree, "smaller neighbours usually contribute less to the measured Share"), "positive selection without suppression prescription");
         string lessons = string.Join(" ", LearningObjectivesView.Topics.Select(t => t.Text + " " + string.Join(" ", t.Steps.Select(s => s.Text))));
         Check(Has(lessons, "opportunity for natural regeneration") && Has(lessons, "needs seed") && Has(lessons, "not guaranteed")
             && Has(lessons, "not required for every useful management outcome"), "contingent regeneration");

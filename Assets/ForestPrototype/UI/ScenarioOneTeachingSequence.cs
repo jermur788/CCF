@@ -61,7 +61,7 @@ public static class ScenarioOneTeachingSequence
             "Distribute attention along the rack and compare individuals.", "Choose one Crop Tree in each zone, 8 m apart, using both rack sides.",
             "Three trees and 8 m spacing are teaching choices tied to this game's competition neighbourhood, not a forestry prescription. Spacing alone does not distribute your attention or prove crown position."),
         new Lesson("release", "3. Identify the competitors that matter",
-            "Compare neighbour relationships and competition Share around each retained tree. Selective removal can help more than one tree, but being small is not a reason to fell. Retain useful structure and exercise restraint.",
+            "Compare neighbour relationships and competition Share around each retained tree. Selective removal can help more than one tree. In this crown-release exercise, smaller neighbours usually contribute less to the measured Share. Retain useful structure and exercise restraint.",
             "Inspect each Crop Tree [E]. Compare Share and position; select a listed competitor [1–5] and mark it [X]. Plan in-footprint removals supplying about 30% of each tree's measured competition, then review the Work Plan [Tab].",
             "Consider meaningful competitors and shared relationships; keep retained woodland.", "Compare Share, mark relevant competitors [X], then review the Work Plan [Tab].",
             "The initial 30% target and 40% cumulative trunk-area safeguard are gameplay calibration. Neighbours outside the teaching footprint still compete, but their removal earns no lesson credit."),

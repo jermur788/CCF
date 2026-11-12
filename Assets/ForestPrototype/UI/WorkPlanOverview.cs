@@ -189,10 +189,10 @@ public static class WorkPlanOverview
         {
             ClearanceConsequence c = Consequence(m, eco, order.cellIndex, escape);
             string cell = UiKit.CellLabel(order.cellIndex, eco.CellsPerAxis);
-            UiKit.Line(card, $"Clearance, square {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no regeneration cohorts or planted saplings inside"
-                : $"affects {c.CohortGroups} cohort portion{(c.CohortGroups == 1 ? "" : "s")} and {c.PlantedSaplings} planted sapling{(c.PlantedSaplings == 1 ? "" : "s")}");
+            UiKit.Line(card, $"Clearance, square {cell}", c.CohortGroups + c.PlantedSaplings == 0 ? "no natural young-tree groups or planted saplings inside"
+                : $"affects {c.CohortGroups} natural young-tree group portion{(c.CohortGroups == 1 ? "" : "s")} and {c.PlantedSaplings} planted sapling{(c.PlantedSaplings == 1 ? "" : "s")}");
             if (c.CohortGroups > 0)
-                UiKit.Add(card, $"Relative regeneration density in those cohort portions: {UiKit.F(c.CohortDensityBefore, "0.0")} → {UiKit.F(c.CohortDensityAfter, "0.0")} seedlings/ha equivalent. Cohorts are modelled groups, not individual seedling counts; a portion can remain after clearing.", "muted");
+                UiKit.Add(card, $"Relative young-tree density in those group portions: {UiKit.F(c.CohortDensityBefore, "0.0")} → {UiKit.F(c.CohortDensityAfter, "0.0")} seedlings/ha equivalent. These are modelled groups, not individual seedling counts; a portion can remain after clearing.", "muted");
             if (model2)
                 UiKit.Add(card, $"Bramble {UiKit.F(c.Bramble, "0.00")} · bracken {UiKit.F(c.Bracken, "0.00")} cover here, removed this year and able to return."
                     + (c.TallerThanEscape > 0 ? $" {c.TallerThanEscape} of the young trees removed are already taller than {UiKit.F(escape, "0.0")} m, above the reach of these plants." : ""), "muted");

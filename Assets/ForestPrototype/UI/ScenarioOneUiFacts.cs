@@ -89,7 +89,7 @@ public static class ScenarioOneUiFacts
     {
         if (objective.objectiveId == "regeneration") return RegenerationObjectiveName;
         if (objective.objectiveId == "reference-regeneration") return RegenerationAreasName;
-        return objective.displayName.Replace("sitka-spruce", SpeciesName("sitka-spruce"))
+        return objective.displayName.Replace("Establish planted ", "Planting completed; species present: ").Replace("sitka-spruce", SpeciesName("sitka-spruce"))
             .Replace("sessile-oak", SpeciesName("sessile-oak"));
     }
 

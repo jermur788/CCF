@@ -375,7 +375,7 @@ public sealed class AnnualReviewView
         }
         if (regenerationRemovals > 0)
         {
-            AddTagged(c, HistoryProvenance.Recorded, $"{regenerationRemovals} regeneration cohort(s) removed");
+            AddTagged(c, HistoryProvenance.Recorded, $"{regenerationRemovals} natural young-tree group(s) removed");
             AddDetail(c, year.Year, detail.DoneFor(ScenarioWorkType.RemoveRegeneration));
         }
         if (felled + salvaged + planted.Count + pruned + regenerationRemovals == 0) AddTagged(c, HistoryProvenance.Derived, "No work was resolved this year.");
