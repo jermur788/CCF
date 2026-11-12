@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
-"""#360 copy of the #358 driver (only TASK changed) -- RACK-V2-12 Unity gate runner: stage disposable harness sources into a registered Unity lane, run ONE Editor, ALWAYS remove them.
-
-Derived from the RACK-V2-COMBINED-REPAIR-01 driver run_gate.py (same CLI) and the RACK-V2-09 runner (built-in post-verdict reaper,
-native OS-input driver). Differences: the lock must be held for task RACK-V2-12 naming the lane's exact HEAD; native input is optional
-(--native); the Editor is reaped only after its own pass/fail verdict AND its "Cleanup mono" marker.
-
-  run_gate.py --name RackV2Objective1EndToEnd --method RackV2Objective1EndToEnd.Begin \
-      --files RackV2Objective1/RackV2Objective1EndToEnd.cs --native --normal-startup \
-      --pass-token RACKV2_O1E2E_PASS --fail-token RACKV2_O1E2E_FAIL --out /media/jer/Files/CCF/Verification/<run>
-
---files are relative to the LANE's Tools/Verification (so the staged bytes are the candidate's); --ext-files are absolute paths of
-external disposable sources (diagnostics on a baseline that does not contain them). Evidence goes outside the repository. The Unity
-licence is COPIED into a throwaway XDG_CONFIG_HOME and deleted after the run (only a sha prefix is kept). TMPDIR is kept off ZX20.
+"""#417 task-specific Unity driver, adapted from the inspected #408 driver.
+Stages only disposable sources into the registered lane under its exact normal lease,
+uses isolated save/Prefs/licence copies and private Xephyr native input, and removes
+sources/metas only after Editor exit. No Editor kill or post-verdict reaper exists.
+Evidence stays under Files/CCF/Verification. Short TMPDIR=/tmp/ccf417 must exist.
 """
 import argparse, hashlib, json, os, re, shutil, subprocess, sys, time
 from pathlib import Path
