@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "ccf.source-map.v1",
+  "auditedMain": "fc18190b976f1363f1b5d1b0881810db2f8c6e39",
+  "sourceScope": "Targeted main C# files; lexical literal counts are NOT actual on-screen text coverage.",
+  "files": [
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneOnboardingCopy.cs",
+      "sourceBlob": "e1d90daf37e019dc2b8a731936bed063fd294405",
+      "readStatus": "READ",
+      "lineCount": 42,
+      "quotedLiteralCandidates": 33,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneOnboardingView.cs",
+      "sourceBlob": "7ff5c6fc28818a544c4a3353a4aea08caa1a0691",
+      "readStatus": "READ",
+      "lineCount": 319,
+      "quotedLiteralCandidates": 84,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs",
+      "sourceBlob": "9a705593f388dc1bdddbbe54e94c8be3a33c2330",
+      "readStatus": "READ",
+      "lineCount": 165,
+      "quotedLiteralCandidates": 203,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/LearningObjectivesView.Sequence.cs",
+      "sourceBlob": "7122c113aa63b8077e9992049b8d56a9852c12d0",
+      "readStatus": "READ",
+      "lineCount": 302,
+      "quotedLiteralCandidates": 62,
+      "interpolatedStringStarts": 8
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/LearningObjectivesView.cs",
+      "sourceBlob": "f023a17e1771fc4ae4ae4dd2d8eb140c151aa497",
+      "readStatus": "READ",
+      "lineCount": 283,
+      "quotedLiteralCandidates": 109,
+      "interpolatedStringStarts": 1
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
+      "sourceBlob": "345f8beb3f5a89b340d4080a1bbce6eb23b44151",
+      "readStatus": "READ",
+      "lineCount": 137,
+      "quotedLiteralCandidates": 68,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+      "sourceBlob": "64ae19e3102e8e4739c58966496c827581197711",
+      "readStatus": "READ",
+      "lineCount": 142,
+      "quotedLiteralCandidates": 68,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/MenuHelpView.cs",
+      "sourceBlob": "0d168ac77285c17c49ffd42182c47d85a24049c2",
+      "readStatus": "READ",
+      "lineCount": 162,
+      "quotedLiteralCandidates": 27,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ControlsReference.cs",
+      "sourceBlob": "9beb7c3a3da0ab98b121c546a0b11777fb1f99d4",
+      "readStatus": "READ",
+      "lineCount": 50,
+      "quotedLiteralCandidates": 46,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneRackBayText.cs",
+      "sourceBlob": "e394b9d6e666bd6b438f5a3eb9aac6b9a62232b9",
+      "readStatus": "READ",
+      "lineCount": 71,
+      "quotedLiteralCandidates": 56,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ActiveObjectiveHudWidget.cs",
+      "sourceBlob": "e270c3058bc08bb5ea7955f6a7f31ca00993b5de",
+      "readStatus": "READ",
+      "lineCount": 70,
+      "quotedLiteralCandidates": 39,
+      "interpolatedStringStarts": 1
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs",
+      "sourceBlob": "2709014574869ce21122c5c507bce22bc2ed2199",
+      "readStatus": "READ",
+      "lineCount": 513,
+      "quotedLiteralCandidates": 14,
+      "interpolatedStringStarts": 1
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs",
+      "sourceBlob": "5fe38fec978915f7b5b4252b940bf27a73d02292",
+      "readStatus": "READ",
+      "lineCount": 224,
+      "quotedLiteralCandidates": 46,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/StandaloneSessionMenu.cs",
+      "sourceBlob": "2a46b1c310f6d7d3269154d159ec71daf203a143",
+      "readStatus": "READ",
+      "lineCount": 158,
+      "quotedLiteralCandidates": 41,
+      "interpolatedStringStarts": 2
+    }
+  ],
+  "limitations": [
+    "Quoted-literal candidates include identifiers/style classes and omit generated and conditional messages.",
+    "Scene YAML, prefabs, baked art text and source outside this manifest are not fully covered.",
+    "Re-run source-audit.mjs on a full repo checkout to detect lexical and blob drift."
+  ]
+}
