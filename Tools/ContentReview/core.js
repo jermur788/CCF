@@ -24,14 +24,18 @@
     for(const p of pkg.pages)if(!scenarioIds.has(p.scenarioId))errors.push("Orphan page: "+p.id);
     for(const e of pkg.entries)if(!pageIds.has(e.pageId))errors.push("Orphan entry: "+e.id);
     if(seed){
-      if(pkg.provenance?.sourceCommit!==seed.provenance?.sourceCommit)errors.push("Source baseline changed; re-audit before importing.");
+      if(pkg.packageId!==seed.packageId)errors.push("Protected package identity changed.");
+      if(!same(pkg.provenance,seed.provenance))errors.push("Protected source provenance / approval facts changed.");
+      if(!same(pkg.coverage,seed.coverage))errors.push("Protected source coverage metadata changed.");
+      if(!Number.isSafeInteger(pkg.revision)||pkg.revision<1)errors.push("Invalid draft revision.");
+      if(pkg.authoringStatus!==undefined&&pkg.authoringStatus!=="draft-local-export")errors.push("Unsupported approval/authoring status.");
       if(!same(pkg.scenarios,seed.scenarios))errors.push("Scenario identities/status changed. Text editor cannot modify scenario routing.");
       if(!same(pkg.pages,seed.pages))errors.push("Page order, gameplay IDs or hierarchy changed. This editor only changes text.");
       if(pkg.entries.length!==seed.entries.length)errors.push("Entry count changed; adding/removing fields needs schema review.");
       for(const baseline of seed.entries){
         const e=pkg.entries.find((v)=>v.id===baseline.id);
         if(!e){errors.push("Missing required content ID: "+baseline.id);continue;}
-        for(const prop of ["pageId","fieldKey","variantId","baselineText","required","source","status","protectedGameplayKey","tokens","format"]){
+        for(const prop of ["pageId","fieldKey","variantId","baselineText","required","source","status","protectedGameplayKey","tokens","format","note"]){
           if(!same(e[prop],baseline[prop]))errors.push("Protected "+prop+" modified for "+baseline.id);
         }
       }
