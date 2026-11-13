@@ -3869,8 +3869,8 @@ window.CCF_CONTENT_SEED = {
       "pageId": "s1.objectives.rack.create",
       "fieldKey": "body",
       "variantId": "enlarged80-rack-v2",
-      "text": "",
-      "baselineText": "",
+      "text": "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.",
+      "baselineText": "Open the Stand Map [M] and choose Plan Racks. Create and edit your first rack on the map; no trees are cut by planning.",
       "required": true,
       "source": {
         "path": "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs",
@@ -3929,8 +3929,8 @@ window.CCF_CONTENT_SEED = {
       "pageId": "s1.objectives.rack.map",
       "fieldKey": "body",
       "variantId": "enlarged80-rack-v2",
-      "text": "",
-      "baselineText": "",
+      "text": "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.",
+      "baselineText": "Open the Stand Map [M] and choose Plan Racks to create or edit rack geometry. The map is the rack-planning surface; it does not approve or execute work.",
       "required": true,
       "source": {
         "path": "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs",
