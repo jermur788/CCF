@@ -1,0 +1,37 @@
+# Compact One-Rack Scenario One — Bounded Work Breakdown
+**Status: DRAFT / NOT STARTED / NOT AUTHORISED.** Implementation task IDs are provisional placeholders, **not** existing issue claims, worker starts or granted locks. Each dispatched substantive task later needs a fresh claim [RUNNING] with real model, branch/worktree/HEAD and one writer. Completion needs a GitHub Markdown handoff. No Unity may be started from #454.
+
+| ID | Stage / deliverable | Read/write and dependency | Evidence / exit gate | Suggested lane |
+| --- | --- | --- | --- | --- |
+| C0-01 | Independent four-file DRAFT spec conformance, save risk, objective/biology/economy and compatibility review. | Docs-only, no author self-approval. After #454. | Finding-by-finding verdict; gaps to product owner. | Independent Claude Opus 5.5 High or capable nonauthor reviewer, browser. |
+| C0-02 | Owner access policy + D-082 and existing authority reconciliation. | Manager-only canon edits; needs user OPEN-C1 choice, #424 sync. | Accepted record/version and clean single-context sync receipt. | Overall Manager, GitHub/Drive pipeline. |
+| C0-03 | Source + fixture route/standing-area feasibility. | Read-only original main/latest #443 handoff, no Unity unless separately leased; candidate inputs separately isolated. | 2+ genuine candidate data sets, tree IDs/counts and eligibility, BA/volume, area and corridor, edge/crown-neighbourhood diagnostics; honest unknown human times; recommend or STOP. | Browser/offline audit; local native only with separate permission. |
+| C0-04 | Compact small-stand cash and objectives design audit. | Depends C0-03, latest work-economy source, D-074. | Real candidate cash/min-harvest sensitivity, 3-cycle/no-work viability, proposed calibration and owner sign-off. | Browser+offline quantitative audit. |
+| A-01 | Save router/immutable profile ID + disjoint slot and backup. | Source; after explicit APPROVED spec, #443 release, save-owner review. | Wrong-world/malformed/future saved content rejected before **any** mutation; historical forest-save.json intact. | Single local C#/Unity worker. |
+| A-02 | Legacy and frozen regression protection. | Same owner or coordinated verifier, cannot mutate historical data. | v1–v24 supported old fixtures, Legacy40/Enlarged80/reference hashes and one-way latch, negative cross-load, atomic rollback. | Offline verification then focused native qualification. |
+| B-01 | Authored one-rack generated world and access. | Depends A pass and chosen dimensions/rack setup; unique geometry/content IDs. | Deterministic complete stand, genuine access, tree/cell boundaries, actual two-sided standing area; no Legacy40 alias. | Single local owner. |
+| B-02 | New compact Objective 1 and whole-parcel lesson. | Depends B-01, owner OPEN-C1; keep old five-rack lessons. | No 5/5 ghosts, no MFM teaching-footprint false credit; one real mark or preauthorised access as accepted. | Same owner; #424 reviews source overlap. |
+| C-01 | Reversible 3D marking and Work Plan synchronization. | Depends B-02. | Undo/replace before approval, stable IDs, no automatic fell, no duplicate/mispriced work; stale Pending/Approved guarded. | Single local C#/Unity worker. |
+| C-02 | Accurate plan/actual summary and map/minimap. | Depends C-01. | Current vs Pending/Approved vs Completed, BA/volume/cash, 3D/map same IDs; single rack. | Same owner; UI reviewer. |
+| C-03 | Conditional immediate crown-gap overlay (optional only after evidence). | Depends C-02, model/crown inspection; no L3 future promise. | Read-only deterministic current-crown removal view, undo restores, no proposal or year-after claims. | Local source/renderer worker if accepted. |
+| D-01 | Species and edge ecology new-world parity. | Depends B world; preserve engine/order. | Sitka/Oak/Beech adult/juvenile, seed, mortality, browsing, planting/protection/canopy evidence, 1-year ticks; no parameter invention. | Local C#/Unity worker + independent ecology review. |
+| D-02 | Financial/Work Plan calibration. | Depends C0-04, C-01, D-01. | Real modest harvest/planting/protection, contractor/owner, no-work, harvest floor/cash sensitivity, no false income. | Local economy worker under same file ownership plan. |
+| D-03 | Multi-year review, spaced intervention, new-world completion. | Depends D-01/D-02 and approved D-074 criteria. | Three substantive cycles, quiet years, actual S1-C/S1-D events/ack, completion and continued operation; old IDs unchanged. | Local owner with history reviewer. |
+| D-04 | D-077 skip eligibility and annual-step parity (only if in approved compact slice). | Depends D-03 + independently approved time-advance source. | Max-5 true annual ticks, 4-year navigation advice, all stop gates and records, no fabricated acknowledgements, parity oracle. | Local source/verification worker. |
+| E-01 | 3D trees/floor/understorey/lighting and spray readability. | Depends B/D state mapping; preserve licences and prefabs. | Fixed-seed visual improvements actually driven by source model; collisions/LOD/perf measured. | Owned local Unity/art lane (machine lock). |
+| E-02 | Full map/minimap accuracy and native UI qualification. | Depends C-02/E-01. | 720p/1080p, readable and colour-independent status, marker geometry and rack physical access. | Owned local UI/Unity lane. |
+| F-01 | Single candidate integrated Tier-3 proof. | Depends Stage A–E handoffs, clean exclusive lease. | All checklists, full three-cycle, old/new save, world/rack/Work Plan/annual/economic and rendered/perf. | Independent qualification lane with #424 integration control. |
+| F-02 | Non-author review, Manager verdict, user playtest routing. | Depends F-01. | Review written, APPROVED/NEEDS CHANGES/REJECTED, user exact-candidate playtest; no build until user explicitly authorizes. | Independent reviewer then Overall/Scenario One Managers. |
+
+## Handoff contract for every implementation/verification task
+Packet must name an exact repository handoff file/path, purpose, difficulty/reason, best-suited actual provider, starting candidate/branch/worktree, substantive file allowlist and exclusions, live #424 coordination lock and claim issue, old save/Reference protections, expected Tier-1/2/3 evidence, stop conditions and user action. Worker marks claim [RUNNING] before source and [HANDED-OFF] then closes only with published GitHub result. Do not dispatch Stage A prior to DRAFT approval, save owner assent and handoff of #443/Objective 1.
+
+## Risk escalation and negative controls
+- If save ID/slot collision or old schema cannot be rejected before changing state, **STOP**; do not hope backup compensates for overwritten original save.
+- If one rack cannot serve meaningful whole-stand decisions while maintaining plausible forest edge neighbourhoods or solvent later work, **STOP** and present measured alternative to owner.
+- If objective mapping cannot distinguish rack clearance, true treatments and quiet years, **STOP**; do not fake three-cycle credit.
+- If static canopy preview is mislabeled forecast or art invents ecological state, remove unsupported claim, not the underlying ecology requirement.
+- If original five-rack MFM tests fail because compact is routed through them, repair profile selection, **not** the old tests.
+- If source owner #443 remains busy or Unity lease is occupied, block local work while docs and offline reasoning may continue separately.
+
+**Current #454 deliverable is authoring/review preparation only. All implementation task statuses remain NOT STARTED.**
