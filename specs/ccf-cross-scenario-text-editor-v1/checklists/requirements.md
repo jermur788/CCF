@@ -68,7 +68,7 @@
 
 - [x] SOURCE **E-01** — #473 actual worker and branch registered **before GitHub file edits**, no local worktree/Unity lease; live coordination read and left untouched.
 - [x] REPO **E-02** — all 15 pre-handoff additions read back; branch compared with registered start; all files added and paths inside allowlist.
-- [ ] REPO **E-03** — final GitHub Markdown handoff published at exact packet path, read back, linked to #473 and #424.
+- [x] REPO **E-03** — final GitHub Markdown handoff published at exact packet path and read back; direct task/owner links included.
 - [ ] REPO **E-04** — #473 marked `[HANDED-OFF]`/closed, not marked feature accepted/integrated.
 - [ ] AUTHORITY **E-05** — independent reviewer and Manager #424 decide next gates; dashboard/Drive mirror synchronized only if a tool verifies it (currently NOT VERIFIED).
 
