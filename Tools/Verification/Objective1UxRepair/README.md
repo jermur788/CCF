@@ -50,3 +50,20 @@ Native qualification uses the **full route**, not `diagram-negative`, on a final
 F-1 now uses the direct user decision on `origin/docs/objective1-f1-user-rack-number-disposition-20261113-v1`: the fourteenth production file, `ScenarioOneManager.RackPlan.cs`, permits exactly the Mark/Clear feedback lines. They read `Marked the entrance tree {rack.entranceTreeId}.` and `Cleared the entrance mark.` The offline allowlist compares the whole file against the base with exactly those replacements, rejects extra edits/result-ID changes, and checks both strings. `TrySprayRackEntrance` remains byte-identical. Old wording in matcher examples is deliberately retained to prove that leaked IDs are rejected; no checker depends on production retaining that wording. The full native route below must still prove feedback and rendering on the frozen final candidate.
 
 Prior failures remain visible and unwaived in the previous result and evidence: `NextActionGuidance` stale source predicate/substring exception; `RackV2ConfirmMinimap` old-base inventory; `RackV2HelpTeaching` 10 baseline failures plus the approved O1-13 copy conflict (11 candidate failures); `ScenarioOneFiveRackDiagram` 33 source/pin failures and missing standalone dependency. These older checkers are unchanged, not rebaselined by this repair.
+
+## #450 unnumbered rack marks amendment
+
+The binding #450 packet supersedes only the guided field rack-number/counter copy. Reviewed production comparator: `e115b54053fe96fd2c0b85d0516aa15cb65b1387`. The runner now requires task **#450** on the machine-wide lease. The old commands/results above remain historical; choose fresh `450-*` durable directories, and acquire the lease for the exact clean, pushed amendment HEAD before native launch.
+
+```bash
+python3 -B Tools/Verification/Objective1UxRepair/run_offline.py --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/450-tier1-final/probes
+python3 -B Tools/Verification/Objective1UxRepair/compile_gate.py --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/450-tier1-final/compile
+python3 -B Tools/Verification/Objective1UxRepair/run_gate.py --name Objective1UxNative --method Objective1UxNative.Begin \
+  --files Objective1UxRepair/Objective1UxNative.cs --native --normal-startup --screen 1920x1080 --grace 15 \
+  --pass-token OBJECTIVE1_UX_NATIVE_PASS --fail-token OBJECTIVE1_UX_NATIVE_FAIL \
+  --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/450-g5-full-CANDIDATE
+```
+
+Offline adds a four-file amendment allowlist, byte equality outside the permitted copy seams, string-literal-only prompt changes, and byte identity of spray/aim/equip/visit/target selection against the reviewed comparator. It executes the actual derived counter property at 0, 2 and 5 marks and after re-spray/recomputation, preserving the planning counter. Nonempty field labels must reject `Rack <number>` while permitting curriculum numbers, tree IDs and legitimate planning/progress counts. Previous assertions remain.
+
+Native adds bottom-first progress, a repeat spray at two marks, and **top-first** followed by bottom-second in the reversed-ID plan. Every ordinary confirmed-plan field capture checks exact derived count, unnumbered nonempty labels, target/tree/cue association, distance, minimap tree position and ring projection, plus pairwise prompt/arrow/counter/minimap nonoverlap. All-five screenshots include the completed counter. The invalid-target fixture temporarily substitutes an absent tree ID on the first in-memory rack, tests both missing membership and missing living tree, verifies no fallback target/arrow/ring/cue/mark, then restores the original record in `finally` and rechecks its geometry/orders/target. This fixture never edits a disk save or a production source. `ClearRackEntranceMark` still has no in-game caller; there is no claimed native clearing route. Source invariance and isolated runtime fixtures do not reproduce the player's own saved-world symptom.

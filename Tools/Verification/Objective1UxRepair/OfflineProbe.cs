@@ -11,6 +11,7 @@ public class RackPlanOperationResult { public RackPlanOperationStatus Status; pu
 public enum CursorLockMode { Locked, None }
 public static class Cursor { public static CursorLockMode lockState=CursorLockMode.Locked; }
 public class ScenarioOneManager {
+ public const int RackPlanTargetCount=5; public int PlannedRackCount=>ConfirmedRacks.Count; public int MarkedRackEntranceCount=>ConfirmedRacks.Count(r=>r.EntranceMarked);
  public bool RackPlanningV2Active=true,RackPlanConfirmed=true; public List<RackPlanRack> ConfirmedRacks=new List<RackPlanRack>(); public bool WorkPlanOpen,ReferencePreviewActive; public int InvalidId;
  public bool TryGetRackEntranceTarget(int id,out ForestTree tree,out string problem) { problem=id==InvalidId?"invalid":""; tree= id==InvalidId ? null : new ForestTree{TreeId=ConfirmedRacks.Single(r=>r.Id==id).EntranceTreeId}; return tree!=null; }
  public RackPlanOperationResult MarkRackEntrance(int id) { ConfirmedRacks.Single(r=>r.Id==id).EntranceMarked=true; return new RackPlanOperationResult{Status=RackPlanOperationStatus.Applied}; }
@@ -57,13 +58,25 @@ public static class OfflineProbe {
   for(int i=0;i<5;i++) Check(m.RackVisitIndex(ids[i])==i+1,"physical ordinal "+(i+1));
   Check(m.TryGetRackFieldTarget(out var rack,out var tree,out _)&&rack.Id==9,"before first spray: bottom target, without equipping prerequisite");
   m.RackSprayEquipped=false; Check(m.TryGetRackFieldTarget(out rack,out tree,out _)&&rack.Id==9,"target before spray equipped"); m.RackSprayEquipped=true;
-  m.Aim=new ForestTree{TreeId="tree9"}; Check(m.RackSprayPrompt().StartsWith("Rack 1 entrance"),"bottom prompt ordinal"); m.TrySprayRackEntrance();
+  m.Aim=new ForestTree{TreeId="tree9"}; Check(m.RackSprayPrompt()=="Rack mark · [Left-click] Spray orange · [P] Stow"&&FieldLabelProbe.UnnumberedRackLabel(m.RackSprayPrompt()),"bottom prompt nonempty and unnumbered for aimed tree9"); m.TrySprayRackEntrance();
   Check(m.TryGetRackFieldTarget(out rack,out tree,out _)&&rack.Id==2,"after bottom mark next ordinal 2");
-  m.Aim=new ForestTree{TreeId="tree5"}; Check(m.RackSprayPrompt().StartsWith("Rack 5 entrance"),"out-of-order top prompt retains ordinal 5"); m.TrySprayRackEntrance();
-  Check(m.RackSprayPrompt().StartsWith("Rack 5 entrance · Orange"),"already-marked far tree still says Rack 5");
+  m.Aim=new ForestTree{TreeId="tree5"}; Check(m.RackSprayPrompt()=="Rack mark · [Left-click] Spray orange · [P] Stow"&&FieldLabelProbe.UnnumberedRackLabel(m.RackSprayPrompt()),"out-of-order top prompt nonempty and unnumbered for aimed tree5"); m.TrySprayRackEntrance();
+  Check(m.RackSprayPrompt()=="Rack mark already made · Orange · [P] Stow"&&FieldLabelProbe.UnnumberedRackLabel(m.RackSprayPrompt()),"marked far tree has unnumbered completed prompt");
   Check(m.RackScenario.ConfirmedRacks.Count(r=>r.EntranceMarked)==2&&m.RackScenario.ConfirmedRacks.Single(r=>r.Id==5).EntranceMarked,"out-of-order spray marks its own stable rack");
   Check(m.TryGetRackFieldTarget(out rack,out tree,out _)&&rack.Id==2&&m.RackVisitIndex(rack.Id)==2,"after top as second mark cue stays Rack 2");
   Check(m.RackScenario.ConfirmedRacks.Select(r=>r.Id).SequenceEqual(ids),"spraying does not mutate saved identities or plan order");
+  var counter=new CounterProbe{Manager=m.RackScenario};
+  Check(counter.V2CounterText=="Rack marks: 2 of 5","actual derived counter after two distinct marks");
+  m.TrySprayRackEntrance(); Check(counter.V2CounterText=="Rack marks: 2 of 5","re-spray cannot double count");
+  foreach(var r in m.RackScenario.ConfirmedRacks)r.EntranceMarked=true;
+  Check(counter.V2CounterText=="Rack marks: 5 of 5 — complete","actual completed counter copy");
+  foreach(var r in m.RackScenario.ConfirmedRacks)r.EntranceMarked=false;
+  Check(counter.V2CounterText=="Rack marks: 0 of 5","counter recomputes from records without separate state");
+  m.RackScenario.RackPlanConfirmed=false; Check(counter.V2CounterText=="Racks planned: 5 / 5","map planning counter unchanged"); m.RackScenario.RackPlanConfirmed=true;
+  m.RackScenario.ConfirmedRacks.Single(r=>r.Id==9).EntranceMarked=true;
+  m.RackScenario.ConfirmedRacks.Single(r=>r.Id==5).EntranceMarked=true;
+  Check(!FieldLabelProbe.UnnumberedRackLabel("Rack 1")&&!FieldLabelProbe.UnnumberedRackLabel("next RACK 5 entrance")&&!FieldLabelProbe.UnnumberedRackLabel(""),"field guard rejects all rack numbers and empty labels");
+  Check(FieldLabelProbe.UnnumberedRackLabel("Rack mark · tree PO0203 · Objective 1 of 9 · Racks planned: 1 / 5 · Rack marks: 1 of 5"),"field guard permits tree IDs, curriculum and planning/progress counts");
   m.RackScenario.InvalidId=2; Check(!m.TryGetRackFieldTarget(out rack,out tree,out var problem)&&problem=="invalid","invalid first candidate is disclosed, never silently redirected");
   m.RackScenario.RackPlanConfirmed=false; Check(!m.TryGetRackFieldTarget(out rack,out tree,out _),"unconfirmed negative");
   m.RackScenario.RackPlanConfirmed=true; m.RackScenario.RackPlanningV2Active=false; Check(!m.TryGetRackFieldTarget(out rack,out tree,out _),"Legacy negative");

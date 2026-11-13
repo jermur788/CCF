@@ -14,10 +14,14 @@ from xml.sax.saxutils import escape
 ROOT = Path(__file__).resolve().parents[3]
 UI = ROOT / 'Assets/ForestPrototype/UI'
 BASE = '55863f1b'
+AMENDMENT_BASE = 'e115b54053fe96fd2c0b85d0516aa15cb65b1387'
+AMENDMENT_ALLOWED = {'Assets/ForestPrototype/' + p for p in (
+    'UI/WalkingHudView.cs', 'UI/HudMinimapView.cs',
+    'ForestTreeMarkingManager.RackEntrances.cs', 'UI/RackLayoutTracker.cs')}
 ALLOWED = {'Assets/ForestPrototype/' + p for p in (
     'ForestTreeMarkingManager.RackEntrances.cs', 'UI/ScenarioOneUiRoot.cs', 'UI/LearningObjectivesView.cs',
     'UI/ScenarioOneRackBayText.cs', 'UI/StandMapView.cs', 'UI/Map/StandMapSource.cs', 'UI/HudMinimapView.cs',
-    'UI/WalkingHudView.cs', 'UI/ActiveObjectiveHudWidget.cs', 'UI/MenuHelpView.cs', 'UI/MenuHelpView.Text.cs',
+    'UI/WalkingHudView.cs', 'UI/RackLayoutTracker.cs', 'UI/ActiveObjectiveHudWidget.cs', 'UI/MenuHelpView.cs', 'UI/MenuHelpView.Text.cs',
     'UI/WorkPlanView.cs', 'UI/Resources/ScenarioOneUi.uss', 'ScenarioOne/ScenarioOneManager.RackPlan.cs')}
 checks = []
 def check(ok, why):
@@ -77,11 +81,38 @@ def main():
     mini = (UI/'HudMinimapView.cs').read_text(); source = (UI/'Map/StandMapSource.cs').read_text()
     marking_path = 'Assets/ForestPrototype/ForestTreeMarkingManager.RackEntrances.cs'
     marking = (ROOT/marking_path).read_text(); baseline = git('show', BASE + ':' + marking_path)
-    for signature in ('public RackPlanOperationResult TrySprayRackEntrance()', 'private bool TryRackSprayAim(', 'public bool EquipRackSpray('):
-        check(method(marking, signature) == method(baseline, signature), signature + ' byte-for-byte unchanged')
+    for signature in ('public RackPlanOperationResult TrySprayRackEntrance()', 'private bool TryRackSprayAim(', 'public bool EquipRackSpray(',
+                      'public static IEnumerable<RackPlanRack> RackVisitOrder(', 'public int RackVisitIndex(', 'public bool TryGetRackFieldTarget('):
+        if signature in ('public RackPlanOperationResult TrySprayRackEntrance()', 'private bool TryRackSprayAim(', 'public bool EquipRackSpray('):
+            check(method(marking, signature) == method(baseline, signature), signature + ' byte-for-byte unchanged')
+        check(method(marking, signature) == method(git('show', AMENDMENT_BASE + ':' + marking_path), signature), signature + ' unchanged from reviewed amendment baseline')
     changed = set(git('diff', '--name-only', BASE+'..HEAD', '--', 'Assets', 'ProjectSettings', 'Packages').splitlines())
     changed |= set(git('diff', '--name-only', 'HEAD', '--', 'Assets', 'ProjectSettings', 'Packages').splitlines())
     check(changed <= ALLOWED, 'production allowlist from git diff --name-only 55863f1b..HEAD (also pending edits): ' + ', '.join(sorted(changed-ALLOWED)))
+    amendment = set(git('diff', '--name-only', AMENDMENT_BASE, '--', 'Assets', 'ProjectSettings', 'Packages').splitlines())
+    check(amendment <= AMENDMENT_ALLOWED, 'amendment production allowlist e115b540..working candidate: ' + ', '.join(sorted(amendment-AMENDMENT_ALLOWED)))
+    # Remove the permitted display assignments, then require byte equality for everything else.
+    # This catches even a one-line behaviour edit in these otherwise permitted files.
+    seams = {
+        'UI/WalkingHudView.cs': [r'            waypoint.text = .*?;'],
+        'UI/HudMinimapView.cs': [r'        destinationLabel.text = .*?;'],
+        'UI/RackLayoutTracker.cs': [r'\? \$"Rack (?:entrances marked|marks):.*?(?=\n                :)'],
+        'ForestTreeMarkingManager.RackEntrances.cs': [r'        RackFieldStatus = .*?;', r'    public string RackSprayPrompt\(\).*?(?=\n    private Material OrangePaint)']}
+    for relative, patterns in seams.items():
+        path = 'Assets/ForestPrototype/' + relative
+        old, new = git('show', AMENDMENT_BASE + ':' + path), (ROOT/path).read_text()
+        for pattern in patterns:
+            check(len(re.findall(pattern, old, re.S)) == len(re.findall(pattern, new, re.S)) == 1, 'unique permitted copy seam ' + relative)
+            old, new = re.sub(pattern, '<copy>', old, flags=re.S), re.sub(pattern, '<copy>', new, flags=re.S)
+        check(old == new, 'all bytes outside permitted copy seams unchanged: ' + relative)
+    # Inside the marking prompt only string literals may differ; preserve every branch and call.
+    strings = r'\$?"(?:\\.|[^"\\])*"'
+    check(re.sub(strings, '"copy"', method(marking, 'public string RackSprayPrompt()')) ==
+          re.sub(strings, '"copy"', method(git('show', AMENDMENT_BASE + ':' + marking_path), 'public string RackSprayPrompt()')),
+          'spray prompt differs only in string literals')
+    check('model.HasWaypoint && ui.MapSource.RackFieldTargetOrdinal > 0' in mini, 'minimap ordinal gate retained despite unnumbered text')
+    check('waypoint.text = $"Next rack mark · {distance:0} m";' in hud and 'destinationLabel.text = "Rack mark";' in mini,
+          'exact unnumbered arrow and minimap copy retains distance')
     rack_path = 'Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.RackPlan.cs'
     rack_plan = (ROOT/rack_path).read_text(); old_rack_plan = git('show', BASE + ':' + rack_path)
     check(rack_plan_copy_only(rack_plan, old_rack_plan), 'F-1 allowlist exception: entire manager file equals base with exactly the two authorised feedback lines')
@@ -131,8 +162,10 @@ def main():
     (a.out/'ExtractedReview.cs').write_text('public static class ScenarioOneRackBayText { '+review_copy+' }\npublic partial class GuidanceProbe { public string ReviewReason(VisualElement scope, string reason) { '+review_override+' return reason; } }')
     native = Path(__file__).with_name('Objective1UxNative.cs').read_text()
     (a.out/'ExtractedFeedback.cs').write_text('public static class FeedbackProbe { '+method(native, 'private static bool RackNumbersMatchOrdinal(').replace('private static', 'public static', 1)+' }')
+    (a.out/'ExtractedFieldLabel.cs').write_text('public static class FieldLabelProbe { '+method(native, 'private static bool UnnumberedRackLabel(').replace('private static', 'public static', 1)+' }')
+    (a.out/'ExtractedCounter.cs').write_text('public class CounterProbe { public ScenarioOneManager Manager; public CounterProbe ui => this; '+method((UI/'RackLayoutTracker.cs').read_text(), 'public string V2CounterText')+' }')
     (a.out/'ExtractedKeycaps.cs').write_text('public class KeycapProbe { '+method((UI/'MenuHelpView.cs').read_text(),'private static void AddKeycapProse(').replace('private static','public static',1)+' }')
-    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs',a.out/'ExtractedReview.cs',a.out/'ExtractedFeedback.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
+    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs',a.out/'ExtractedReview.cs',a.out/'ExtractedFeedback.cs',a.out/'ExtractedFieldLabel.cs',a.out/'ExtractedCounter.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
     (a.out/'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup>'+''.join('<Compile Include="'+escape(str(p))+'" />' for p in sources)+'</ItemGroup></Project>')
     env=dict(os.environ,DOTNET_CLI_TELEMETRY_OPTOUT='1',DOTNET_NOLOGO='1')
     p=subprocess.run(['dotnet','run','--project',str(a.out/'probe.csproj'),'-c','Release'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)

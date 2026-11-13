@@ -173,7 +173,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
             if (state == "g14-annual-review-before-acknowledgement") CheckReviewInstruction(true);
             if (state == "g15-annual-review-acknowledged") CheckReviewInstruction(false);
             if (state.Contains("before-first-spray")) CheckFirstArrowPixels(image);
-            if (!manager.ReferencePreviewActive && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !manager.WorkPlanOpen && !ui.Help.IsOpen) CheckMinimapFit(state);
+            if (!manager.ReferencePreviewActive && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !manager.WorkPlanOpen && !ui.Help.IsOpen) { CheckMinimapFit(state); CheckGuidedField(state); }
             File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
             Destroy(image);
             Check(lit > samples / 20, "capture is not black " + file + " lit=" + lit + "/" + samples);
@@ -455,6 +455,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
         yield return Shoot("w03-before-first-spray");
 
         // 5. the player's sequence: spray the physically lowest entrance first
+        yield return InvalidTargetProbe();
         RackPlanRack lowest = southToNorth[0];
         ForestTree lowestTree = Tree(lowest.EntranceTreeId);
         yield return Aim(lowestTree, false);
@@ -471,12 +472,15 @@ public sealed class Objective1UxRunner : MonoBehaviour
         RackPlanRack far = southToNorth[4];
         ForestTree farTree = Tree(far.EntranceTreeId);
         yield return Aim(farTree, true);
-        Check(marks.RackSprayPrompt().StartsWith("Rack 5 entrance"), "far tree prompt says Rack 5 before second physical spray");
+        Check(marks.RackSprayPrompt() == "Rack mark · [Left-click] Spray orange · [P] Stow" && UnnumberedRackLabel(marks.RackSprayPrompt()), "far tree prompt is nonempty and unnumbered before second physical spray");
         yield return Shoot("g09-top-rack5-before-second-spray");
         yield return SprayAndRecord(farTree, "SECOND_SPRAY_TOP");
         yield return Wait(.4f);
         Check(manager.MarkedRackEntranceCount == 2 && CurrentOrdinal() == 2, "top second: count 2/5 and next still Rack 2");
-        Check(marks.RackSprayPrompt().StartsWith("Rack 5 entrance · Orange"), "already marked far tree retains Rack 5 spray label");
+        Check(marks.RackSprayPrompt() == "Rack mark already made · Orange · [P] Stow" && UnnumberedRackLabel(marks.RackSprayPrompt()), "already marked far tree has nonempty unnumbered completed prompt");
+        yield return Native(Click());
+        Check(manager.MarkedRackEntranceCount == 2 && CurrentOrdinal() == 2, "repeat spray does not change derived count or next target");
+        Receipt("REPEAT_SPRAY", "\"count\":" + manager.MarkedRackEntranceCount + "," + Guidance());
         Receipt("AFTER_TOP_SECOND_SPRAY", "\"sprayPrompt\":" + Q(marks.RackSprayPrompt()) + "," + Guidance());
         yield return Shoot("g10-top-second-count2-next-rack2");
 
@@ -540,10 +544,10 @@ public sealed class Objective1UxRunner : MonoBehaviour
         VisualElement arrow = ui.RootElement.Q("hud-waypoint-arrow");
         Check(Visible(arrow), "actual arrow element displayed with nonzero rectangle (correct panel query)");
         Check(Visible(ui.RootElement.Q("hud-waypoint-panel")), "actual named HUD panel visible");
-        Check(CurrentOrdinal() == 1 && ui.RootElement.Q<Label>("hud-waypoint-label").text.StartsWith("Rack 1 entrance · ")
-            && ui.RootElement.Q<Label>("hud-waypoint-label").text.EndsWith(" m"), "HUD label is southern Rack 1 with distance");
+        Check(CurrentOrdinal() == 1 && ui.RootElement.Q<Label>("hud-waypoint-label").text.StartsWith("Next rack mark · ")
+            && ui.RootElement.Q<Label>("hud-waypoint-label").text.EndsWith(" m"), "HUD label is unnumbered southern rack mark with distance");
         Check(ui.MapSource.Model.HasWaypoint && ui.MapSource.RackFieldTargetOrdinal == 1
-            && Visible(ui.RootElement.Q("minimap-rack-target")) && ui.RootElement.Q<Label>("minimap-rack-label").text == "Rack 1", "matching minimap Rack 1 destination visible before first spray");
+            && Visible(ui.RootElement.Q("minimap-rack-target")) && ui.RootElement.Q<Label>("minimap-rack-label").text == "Rack mark", "matching unnumbered minimap destination visible before first spray");
         float scale = image.width / ui.RootElement.worldBound.width;
         Rect rect = arrow.worldBound; int yellow = 0;
         for (int y = Mathf.Max(0, Mathf.CeilToInt(rect.yMin * scale)); y < Mathf.Min(image.height, Mathf.FloorToInt(rect.yMax * scale)); y++)
@@ -666,20 +670,32 @@ public sealed class Objective1UxRunner : MonoBehaviour
         Receipt("SECOND_PLAN_IDENTITIES", "\"racks\":" + RackRows());
         string geometry = GeometryState();
         if (!marks.RackSprayEquipped) { Cursor.lockState=CursorLockMode.Locked; yield return Native(Key("p")); }
-        foreach (RackPlanRack rack in ordered)
+        // Deliberately spray the far/top rack FIRST: progress is independent of the navigation suggestion.
+        foreach (RackPlanRack rack in new[] { ordered[4] }.Concat(ordered.Take(4)))
         {
             ForestTree tree=Tree(rack.EntranceTreeId); yield return Aim(tree,true);
             int ordinal=marks.RackVisitIndex(rack.Id);
-            Check(marks.RackSprayPrompt().StartsWith("Rack "+ordinal+" entrance"), "second plan physical ordinal "+ordinal+" owns stable rack "+rack.Id);
+            Check(marks.RackSprayPrompt() == "Rack mark · [Left-click] Spray orange · [P] Stow" && UnnumberedRackLabel(marks.RackSprayPrompt()), "second plan unnumbered prompt aims at physical ordinal "+ordinal+" owning stable rack "+rack.Id);
             Receipt("SECOND_PLAN_ORDINAL", "\"visitIndex\":"+ordinal+",\"stableRackId\":"+rack.Id+",\"treeId\":"+Q(tree.TreeId)+",\"prompt\":"+Q(marks.RackSprayPrompt()));
             yield return Shoot("g16-edited-plan-ordinal-"+ordinal+"-stable-"+rack.Id);
             yield return SprayAndRecord(tree,"SECOND_PLAN_SPRAY");
+            if (ordinal == 5)
+            {
+                Check(manager.MarkedRackEntranceCount == 1 && CurrentOrdinal() == 1, "reversed plan top first counts one and still suggests bottom");
+                yield return Shoot("450-reversed-top-first-count1");
+            }
+            else if (ordinal == 1)
+            {
+                Check(manager.MarkedRackEntranceCount == 2 && CurrentOrdinal() == 2, "reversed plan distinct bottom second counts two and suggests next south-to-north");
+                yield return Shoot("450-reversed-second-count2");
+            }
             Check(GeometryState()==geometry,"second plan geometry/removal sets/Pending orders unchanged by spray "+ordinal);
             List<ScenarioOneWorkOrder> own = manager.WorkOrders.Where(o=>o.rackId==rack.Id).ToList();
             Check(new HashSet<string>(own.Select(o=>o.targetTreeId)).SetEquals(rack.RemovalTreeIds)
                 && own.All(o=>o.status==ScenarioWorkStatus.Pending) && own.Any(o=>o.targetTreeId==tree.TreeId), "sprayed tree still maps to its own stable rack and own Pending removal orders");
         }
         Check(manager.MarkedRackEntranceCount==5,"second plan all five own entrances marked");
+        yield return Shoot("450-reversed-complete");
         Receipt("SECOND_PLAN_FINAL", "\"racks\":"+RackRows());
     }
 
@@ -729,6 +745,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
         if (!painted) Mismatch(label + ": no orange paint on " + tree.TreeId);
         int ordinal = marks.RackVisitIndex(owner.Id);
         string transient = marks.TransientMessage;
+        Check(UnnumberedRackLabel(transient), "post-spray feedback is nonempty and has no rack identity number");
         VisualElement hudMessageRow = ui.RootElement.Q(className: "hud-message");
         Label hudMessage = hudMessageRow?.Q<Label>();
         foreach (Vector2Int size in Sizes)
@@ -765,6 +782,83 @@ public sealed class Objective1UxRunner : MonoBehaviour
         CheckFeedbackOrdinal(hudMessage.text, ordinal, label + " HUD row");
         CheckFeedbackOrdinal(planFeedback.text, ordinal, label + " Work Plan line");
         CheckFeedbackOrdinal(manager.Feedback, ordinal, label + " manager feedback");
+    }
+
+    private static bool UnnumberedRackLabel(string text)
+        => !string.IsNullOrWhiteSpace(text) && !System.Text.RegularExpressions.Regex.IsMatch(text,
+            @"\brack\s+[0-9]+\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    private void CheckGuidedField(string state)
+    {
+        if (!manager.RackPlanningV2Active || !manager.RackPlanConfirmed) return;
+        int count = manager.MarkedRackEntranceCount;
+        string expected = "Rack marks: " + count + " of 5" + (count == 5 ? " — complete" : "");
+        Check(ui.RackLayout.V2CounterText == expected && ui.Learning.CurrentProgress == expected,
+            "derived rack mark counter and objective progress agree: " + state);
+        Check(Text().Contains(expected) && UnnumberedRackLabel(Text()), "visible field HUD has count and no numbered rack identity: " + state);
+        var panels = new[] { ui.RootElement.Q("hud-context-actions"), ui.RootElement.Q("hud-waypoint-panel"),
+            ui.RootElement.Q("active-objective-widget"), ui.Minimap.Root };
+        for (int i = 0; i < panels.Length; i++)
+            for (int j = i + 1; j < panels.Length; j++)
+                Check(!Visible(panels[i]) || !Visible(panels[j]) || !panels[i].worldBound.Overlaps(panels[j].worldBound),
+                    "prompt/arrow/counter/minimap nonoverlap " + i + "/" + j + " " + state);
+        bool target = marks.TryGetRackFieldTarget(out RackPlanRack rack, out ForestTree tree, out string problem);
+        if (target)
+        {
+            RackPlanRack next = ForestTreeMarkingManager.RackVisitOrder(manager.ConfirmedRacks).First(r => !r.EntranceMarked && !r.IsLocked);
+            Check(rack.Id == next.Id && tree.TreeId == next.EntranceTreeId && marks.CueRackId == rack.Id,
+                "next suggestion keeps physical south-to-north tree/rack association " + state);
+            Check(ui.MapSource.Model.HasWaypoint && ui.MapSource.RackFieldTargetOrdinal == marks.RackVisitIndex(rack.Id)
+                && Vector2.Distance(new Vector2(tree.transform.position.x, tree.transform.position.z),
+                    new Vector2(ui.MapSource.Model.Waypoint.X, ui.MapSource.Model.Waypoint.Z)) < .01f,
+                "minimap destination is the exact target tree position " + state);
+            Label arrow = ui.RootElement.Q<Label>("hud-waypoint-label"), label = ui.RootElement.Q<Label>("minimap-rack-label");
+            float distance = Vector2.Distance(new Vector2(player.transform.position.x, player.transform.position.z),
+                new Vector2(tree.transform.position.x, tree.transform.position.z));
+            Check(Visible(arrow) && arrow.text == $"Next rack mark · {distance:0} m" && UnnumberedRackLabel(arrow.text)
+                && Visible(label) && label.text == "Rack mark" && UnnumberedRackLabel(label.text), "nonempty unnumbered target labels retain correct distance " + state);
+            var transform = new StandMapTransform(ui.MapSource.Model.MinX, ui.MapSource.Model.MinZ, ui.MapSource.Model.SizeM, HudMinimapView.SidePx);
+            MapPosition at = transform.WorldToPixels(ui.MapSource.Model.Waypoint);
+            VisualElement ring = ui.RootElement.Q("minimap-rack-target");
+            Check(Visible(ring) && Mathf.Abs(ring.style.left.value.value - (at.X - 12f)) < .01f
+                && Mathf.Abs(ring.style.top.value.value - (at.Y - 12f)) < .01f, "visible ring retains exact projected placement " + state);
+            if (marks.RackSprayEquipped) Check(UnnumberedRackLabel(marks.RackSprayPrompt()), "nonempty unnumbered spray prompt " + state);
+        }
+        else Check(count == 5 || !string.IsNullOrEmpty(problem), "missing target is complete or fails closed " + state);
+        Receipt("RACK_MARKS_FIELD", "\"state\":" + Q(state) + ",\"size\":" + Q(Screen.width + "x" + Screen.height)
+            + ",\"counter\":" + Q(expected) + "," + Guidance());
+    }
+
+    private IEnumerator InvalidTargetProbe()
+    {
+        RackPlanRack first = ForestTreeMarkingManager.RackVisitOrder(manager.ConfirmedRacks).First();
+        RackSaveData record = manager.Racks.Single(r => r.rackId == first.Id);
+        string original = record.entranceTreeId;
+        string geometry = GeometryState();
+        const string stale = "450-MISSING-TREE";
+        try
+        {
+            record.entranceTreeId = stale;
+            Check(!marks.TryGetRackFieldTarget(out RackPlanRack rack, out ForestTree tree, out string problem)
+                && rack.Id == first.Id && tree == null && !string.IsNullOrEmpty(problem), "invalid membership fails closed on first rack without choosing another tree");
+            record.removalTreeIds.Add(stale);
+            yield return Settle(16);
+            Check(!marks.TryGetRackFieldTarget(out rack, out tree, out problem) && rack.Id == first.Id && tree == null
+                && problem.Contains("no longer standing"), "stale recorded tree fails closed despite removal membership");
+            Check(marks.CueRackId == 0 && ui.MapSource.RackFieldTargetOrdinal == 0
+                && !Visible(ui.RootElement.Q("minimap-rack-target")) && !Visible(ui.RootElement.Q("hud-waypoint-panel")),
+                "stale target hides arrow/ring/cue instead of redirecting to a different rack");
+            Check(manager.MarkedRackEntranceCount == 0, "invalid target probe adds no marks");
+            Receipt("INVALID_TARGET", "\"fixtureOnly\":true,\"noDiskWrite\":true," + Guidance());
+        }
+        finally
+        {
+            record.entranceTreeId = original;
+            record.removalTreeIds.Remove(stale);
+        }
+        yield return Settle(16);
+        Check(GeometryState() == geometry && CurrentOrdinal() == 1 && marks.CueRackId == first.Id,
+            "invalid fixture fully restored with original first target and associations");
     }
 
     private static bool RackNumbersMatchOrdinal(string text, int ordinal)
