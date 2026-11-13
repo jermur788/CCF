@@ -58,6 +58,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
     private int sequence, checks;
     private readonly List<string> receipts = new List<string>();   // JSON objects, one per observation
     private readonly List<string> mismatches = new List<string>();
+    private readonly List<string> feedbackFailures = new List<string>();
 
     // ---- reporting --------------------------------------------------------------------------------------------------
     private void Check(bool ok, string why)
@@ -113,7 +114,8 @@ public sealed class Objective1UxRunner : MonoBehaviour
     [Serializable] private sealed class Request { public int seq; public Op[] ops; }
     private static Op Key(string key) => new Op { op = "key", key = key };
     private static Op Click() => new Op { op = "click", button = 1 };
-    private IEnumerator Native(params Op[] ops)
+    private IEnumerator Native(params Op[] ops) => NativeWithSettle(12, ops);
+    private IEnumerator NativeWithSettle(int settleFrames, params Op[] ops)
     {
         string folder = Environment.GetEnvironmentVariable("CCF_DRIVER_DIR");
         if (string.IsNullOrEmpty(folder)) throw new InvalidOperationException("CCF_DRIVER_DIR (native OS input driver) is required");
@@ -129,7 +131,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
             yield return null;
         }
         if (!File.Exists(Path.Combine(folder, $"done-{seq:D4}"))) throw new TimeoutException("native OS input request " + seq);
-        yield return Settle(12);
+        yield return Settle(settleFrames);
     }
 
     public static void SetGameSize(int width, int height)
@@ -167,6 +169,9 @@ public sealed class Objective1UxRunner : MonoBehaviour
             for (int y = 0; y < image.height; y += 25)
                 for (int x = 0; x < image.width; x += 25) { samples++; if (image.GetPixel(x, y).maxColorComponent > 0.05f) lit++; }
             string file = state + "-" + size.x + "x" + size.y + ".png";
+            if (state == "g08a-plan-racks-editing") CheckPlanningCardAccent();
+            if (state == "g14-annual-review-before-acknowledgement") CheckReviewInstruction(true);
+            if (state == "g15-annual-review-acknowledged") CheckReviewInstruction(false);
             if (state.Contains("before-first-spray")) CheckFirstArrowPixels(image);
             if (!manager.ReferencePreviewActive && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !manager.WorkPlanOpen && !ui.Help.IsOpen) CheckMinimapFit(state);
             File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
@@ -176,6 +181,36 @@ public sealed class Objective1UxRunner : MonoBehaviour
         }
         SetGameSize(1280, 720);
         yield return Settle(10);
+    }
+
+    private void CheckPlanningCardAccent()
+    {
+        VisualElement card = ui.Map.Root.Q("map-edit-card");
+        Check(manager.RackEditingOpen && !manager.RackPlanConfirmed && Visible(card)
+            && card.ClassListContains("map-planning-instructions"), "Plan Racks editing card is on screen before Confirm");
+        Color actual = card.resolvedStyle.borderLeftColor;
+        Color expected = new Color32(110, 163, 157, 255);
+        Receipt("PLANNING_CARD_ACCENT", "\"size\":\"" + Screen.width + "x" + Screen.height + "\",\"colour\":["
+            + F(actual.r) + "," + F(actual.g) + "," + F(actual.b) + "," + F(actual.a) + "],\"leftWidth\":" + F(card.resolvedStyle.borderLeftWidth));
+        Check(Mathf.Abs(actual.r - expected.r) < .005f && Mathf.Abs(actual.g - expected.g) < .005f
+            && Mathf.Abs(actual.b - expected.b) < .005f && actual.a > .99f && card.resolvedStyle.borderLeftWidth >= 3f,
+            "Plan Racks editing card resolves the accent-coloured left edge");
+    }
+
+    private void CheckReviewInstruction(bool needsAcknowledgement)
+    {
+        var reviewView = (AnnualReviewView)typeof(ScenarioOneUiRoot).GetField("review", AnyInstance).GetValue(ui);
+        Label instruction = reviewView.Root.Q<Label>("next-action-reason");
+        Check(instruction != null, "Annual Review has its own instruction label");
+        Receipt("ANNUAL_REVIEW_INSTRUCTION", "\"needsAcknowledgement\":" + (needsAcknowledgement ? "true" : "false")
+            + ",\"size\":\"" + Screen.width + "x" + Screen.height + "\",\"visible\":" + (Visible(instruction) ? "true" : "false") + ",\"instruction\":" + Q(instruction.text));
+        Check(ui.NeedsAnnualReview == needsAcknowledgement, "Annual Review acknowledgement state matches capture");
+        if (needsAcknowledgement)
+            Check(Visible(instruction) && instruction.text == ScenarioOneRackBayText.ReviewOnScreenInstruction,
+                "visible pending Annual Review instruction says Read and acknowledge the Annual Review");
+        else
+            Check(instruction.text.IndexOf("Read and acknowledge", StringComparison.OrdinalIgnoreCase) < 0,
+                "acknowledged Annual Review instruction no longer says Read and acknowledge");
     }
 
     private string Rect(VisualElement e)
@@ -252,6 +287,8 @@ public sealed class Objective1UxRunner : MonoBehaviour
             catch (Exception error) { failure = error; break; }
             if (!more) stack.Pop(); else if (current is IEnumerator next) stack.Push(next); else yield return current;
         }
+        if (failure == null && feedbackFailures.Count > 0)
+            failure = new InvalidOperationException("POST-SPRAY FEEDBACK: " + string.Join("; ", feedbackFailures));
         if (failure != null && ui != null)
         {
             SetGameSize(1280, 720);
@@ -261,7 +298,8 @@ public sealed class Objective1UxRunner : MonoBehaviour
             if (image != null) { File.WriteAllBytes(Path.Combine(output, "FAIL-state-1280x720.png"), image.EncodeToPNG()); Destroy(image); }
         }
         bool saveWritten = !string.IsNullOrEmpty(savePath) && File.Exists(savePath);
-        File.WriteAllText(Path.Combine(output, "native-receipts.json"), "{\"mismatches\":[" + string.Join(",", mismatches.Select(Q)) + "],\"saveWritten\":"
+        File.WriteAllText(Path.Combine(output, "native-receipts.json"), "{\"mismatches\":[" + string.Join(",", mismatches.Select(Q))
+            + "],\"feedbackFailures\":[" + string.Join(",", feedbackFailures.Select(Q)) + "],\"saveWritten\":"
             + (saveWritten ? "true" : "false") + ",\"failure\":" + Q(failure != null ? failure.ToString() : "") + ",\"receipts\":[\n" + string.Join(",\n", receipts) + "\n]}\n");
         string driver = Environment.GetEnvironmentVariable("CCF_DRIVER_DIR");
         if (!string.IsNullOrEmpty(driver)) File.WriteAllText(Path.Combine(driver, "finished"), failure == null ? "done" : "fail");
@@ -348,6 +386,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Map, "native M opens the Stand Map");
         yield return Invoke(Named("map-plan-rack"), "Plan Racks");
         yield return CloseHelp();
+        yield return Shoot("g08a-plan-racks-editing");
         yield return Invoke(Named("map-edit-reset"), "Reset to suggested layout");
         if (ui.Map.RackEditor.ResetPending) yield return Invoke(Named("map-edit-reset-confirm"), "confirm reset");
         IReadOnlyList<SuggestedRackSegment> suggestion = manager.GetSuggestedRackLayout();
@@ -577,7 +616,6 @@ public sealed class Objective1UxRunner : MonoBehaviour
         Check(union.All(stumps.Contains) && manager.CashCents - cashBefore == expectedNet, "own rack trees felled and quoted cash change applied");
         Check(ui.NeedsAnnualReview && !manager.AnnualReviewSeen, "latest results need acknowledgement");
         Check(ui.AnnualReviewInstruction == "Read and acknowledge the Annual Review.", "review screen instruction does not ask to open Work Plan");
-        Label guidance = ui.RootElement.Q<Label>("next-action-reason");
         Check(!Text().Contains("Read and acknowledge the Annual Review: open the Work Plan [Tab]."), "visible Annual Review never gives Work Plan opening direction");
         yield return Shoot("g14-annual-review-before-acknowledgement");
         int reviewYear = ui.Ecology.EcologicalYear;
@@ -652,8 +690,9 @@ public sealed class Objective1UxRunner : MonoBehaviour
     {
         var before = manager.ConfirmedRacks.ToDictionary(r => r.Id, r => r.EntranceMarked);
         int countBefore = manager.MarkedRackEntranceCount;
-        yield return Native(Click());
-        yield return Settle(6);
+        double requestedAt = Time.realtimeSinceStartupAsDouble;
+        yield return NativeWithSettle(0, Click());
+        yield return new WaitForEndOfFrame();
         var newly = manager.ConfirmedRacks.Where(r => r.EntranceMarked && !before[r.Id]).ToList();
         RackPlanRack owner = manager.ConfirmedRacks.FirstOrDefault(r => r.EntranceTreeId == tree.TreeId);
         bool painted = tree.transform.Find("Orange Rack Entrance Mark") != null;
@@ -664,6 +703,53 @@ public sealed class Objective1UxRunner : MonoBehaviour
         else if (owner == null || newly[0].Id != owner.Id || newly[0].EntranceTreeId != tree.TreeId)
             Mismatch(label + ": tree " + tree.TreeId + " marked rack " + newly[0].Id + " (owner " + (owner != null ? owner.Id : 0) + ")");
         if (!painted) Mismatch(label + ": no orange paint on " + tree.TreeId);
+        int ordinal = marks.RackVisitIndex(owner.Id);
+        string transient = marks.TransientMessage;
+        VisualElement hudMessageRow = ui.RootElement.Q(className: "hud-message");
+        Label hudMessage = hudMessageRow?.Q<Label>();
+        string file = label.ToLowerInvariant() + "-post-spray-rack-" + ordinal + "-stable-" + owner.Id + "-" + Screen.width + "x" + Screen.height + ".png";
+        Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
+        double elapsed = Time.realtimeSinceStartupAsDouble - requestedAt;
+        Check(image != null && image.width == Screen.width && image.height == Screen.height, "post-spray rendered capture " + file);
+        File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
+        Destroy(image);
+        Receipt("POST_SPRAY_CAPTURE", "\"file\":" + Q(file) + ",\"visitIndex\":" + ordinal + ",\"stableRackId\":" + owner.Id
+            + ",\"treeId\":" + Q(tree.TreeId) + ",\"secondsSinceInputRequest\":" + elapsed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
+            + ",\"transientMessage\":" + Q(transient) + ",\"hudMessage\":" + Q(hudMessage != null ? hudMessage.text : ""));
+        Check(elapsed < 2.5, "post-spray capture within 2.5 seconds of input request for Rack " + ordinal);
+        Check(!string.IsNullOrEmpty(transient) && Visible(hudMessageRow) && hudMessage != null && hudMessage.text == transient,
+            "post-spray capture shows the live HUD transient message for Rack " + ordinal);
+        var planView = (WorkPlanView)typeof(ScenarioOneUiRoot).GetField("workPlan", AnyInstance).GetValue(ui);
+        planView.Refresh(true);
+        var planFeedback = (Label)typeof(WorkPlanView).GetField("feedback", AnyInstance).GetValue(planView);
+        Receipt("POST_SPRAY_FEEDBACK", "\"visitIndex\":" + ordinal + ",\"stableRackId\":" + owner.Id + ",\"treeId\":" + Q(tree.TreeId)
+            + ",\"transientMessage\":" + Q(transient) + ",\"hudMessage\":" + Q(hudMessage.text) + ",\"managerFeedback\":" + Q(manager.Feedback)
+            + ",\"workPlanFeedback\":" + Q(planFeedback.text) + ",\"workPlanLineVisible\":" + (Visible(planFeedback) ? "true" : "false"));
+        Check(!string.IsNullOrEmpty(planFeedback.text) && !string.IsNullOrEmpty(manager.Feedback), "post-spray Work Plan feedback recorded");
+        CheckFeedbackOrdinal(transient, ordinal, label + " transient");
+        CheckFeedbackOrdinal(hudMessage.text, ordinal, label + " HUD row");
+        CheckFeedbackOrdinal(planFeedback.text, ordinal, label + " Work Plan line");
+        CheckFeedbackOrdinal(manager.Feedback, ordinal, label + " manager feedback");
+    }
+
+    private static bool RackNumbersMatchOrdinal(string text, int ordinal)
+    {
+        foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(text ?? "", @"\brack\s+([0-9]+)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            if (!int.TryParse(match.Groups[1].Value, out int number) || number != ordinal) return false;
+        return true;
+    }
+
+    private void CheckFeedbackOrdinal(string text, int ordinal, string label)
+    {
+        bool matches = RackNumbersMatchOrdinal(text, ordinal);
+        Receipt("FEEDBACK_ORDINAL_ASSERTION", "\"label\":" + Q(label) + ",\"visitIndex\":" + ordinal + ",\"text\":" + Q(text) + ",\"pass\":" + (matches ? "true" : "false"));
+        if (matches) Check(true, label + " names no rack number other than visit ordinal " + ordinal);
+        else
+        {
+            string problem = label + " for visit ordinal " + ordinal + ": " + text;
+            feedbackFailures.Add(problem);
+            Debug.LogWarning("O1443_FEEDBACK_ASSERTION_FAIL " + problem);
+        }
     }
 
     private IEnumerator Aim(ForestTree tree, bool requireValid)

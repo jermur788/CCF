@@ -105,8 +105,10 @@ def main():
     review_override = re.search(r'if \(scope == review.Root\b[^;]+reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;', root)[0]
     review_copy = re.search(r'public const string ReviewOnScreenInstruction = [^;]+;', (UI/'ScenarioOneRackBayText.cs').read_text())[0]
     (a.out/'ExtractedReview.cs').write_text('public static class ScenarioOneRackBayText { '+review_copy+' }\npublic partial class GuidanceProbe { public string ReviewReason(VisualElement scope, string reason) { '+review_override+' return reason; } }')
+    native = Path(__file__).with_name('Objective1UxNative.cs').read_text()
+    (a.out/'ExtractedFeedback.cs').write_text('public static class FeedbackProbe { '+method(native, 'private static bool RackNumbersMatchOrdinal(').replace('private static', 'public static', 1)+' }')
     (a.out/'ExtractedKeycaps.cs').write_text('public class KeycapProbe { '+method((UI/'MenuHelpView.cs').read_text(),'private static void AddKeycapProse(').replace('private static','public static',1)+' }')
-    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs',a.out/'ExtractedReview.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
+    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs',a.out/'ExtractedReview.cs',a.out/'ExtractedFeedback.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
     (a.out/'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup>'+''.join('<Compile Include="'+escape(str(p))+'" />' for p in sources)+'</ItemGroup></Project>')
     env=dict(os.environ,DOTNET_CLI_TELEMETRY_OPTOUT='1',DOTNET_NOLOGO='1')
     p=subprocess.run(['dotnet','run','--project',str(a.out/'probe.csproj'),'-c','Release'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)

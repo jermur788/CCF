@@ -27,3 +27,26 @@ The route captures both resolutions, third intro, initial O cue, Objectives, thr
 **After every run:** remove copied licence directories even on failure; ensure disposable `.cs` and `.meta` removed from Assets. Save exact drift patch, restore only verified Editor drift paths, verify protected saves and Reference hashes again, release exact lease owner/id, stop holder, confirm lock free/no Editor PIDs and clean lane. Preserve failed evidence under an honest `-FAIL-<cause>` name. The runner may reap only its exact Editor after verdict plus `Cleanup mono`, or on its declared timeout; never kill unrelated Editors. No Player/Windows build or merge is performed.
 
 A focused follow-up uses `--env CCF_O1443_MODE=diagram-negative`: it rechecks initial guidance/Objective layout and 3× detail/Esc anchors at both resolutions (including on-screen toggle), then old-world/Reference negatives. It skips the already-proved marking/annual route. Reference Preview intentionally hides the walking HUD, so minimap size/overlap gates run only outside preview; reference no-target and archive integrity checks remain required.
+
+## Repair loop 1 — offline source repair; native rerun pending
+
+F-2 raises only the planning instruction card's selector specificity. The offline cascade contract resolves the actual matching class selectors and border shorthand/source order, checks other rack panels stay unchanged, and rejects the original lower-specificity selector. F-3 applies the guidance override only when `NeedsAnnualReview` and the existing acknowledgement footer's inline display is Flex. That footer is hidden for earlier-year browsing; using its inline state avoids waiting for a layout pass. The extracted production conditional is executed for pending/latest, acknowledged, historical/read-only, other-scope and missing-control cases. Acknowledgement and review-first gates are unchanged.
+
+Use new durable output directories for this loop:
+
+```bash
+python3 -B Tools/Verification/Objective1UxRepair/run_offline.py --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/tier1-loop1-final-probes
+python3 -B Tools/Verification/Objective1UxRepair/compile_gate.py --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/tier1-loop1-final-compile
+```
+
+The later native rerun must use the **full route**, not `diagram-negative`, on the final clean candidate after the F-1 scope ruling. Do not run Unity or acquire its lock for this offline repair. The prepared additions are:
+
+- `g08a-plan-racks-editing` captures the actual instruction card after Plan Racks and before Confirm, at both resolutions. It asserts the resolved left-edge width and accent colour `rgb(110,163,157)`, not merely the stylesheet text.
+- Every successful spray immediately captures a `*-post-spray-rack-N-stable-ID-WxH.png` at the current resolution without switching sizes or waiting twelve additional frames. The screenshot must be taken less than 2.5 seconds after the OS input **request** (a conservative bound preceding the click) and show the live nonempty HUD transient message. This includes the reversed-ID plan's Rack 1 and Rack 5. Ordinary route captures still run at both resolutions.
+- Every spray records the transient message, rendered HUD message, actual refreshed Work Plan feedback label and manager feedback, with tree ID, visit ordinal and stored rack ID. The Work Plan is refreshed while hidden, not opened; receipts explicitly record whether its line is visible, preserving the later first-use help route. Checking manager feedback as well prevents a temporary Work Plan problem/advisory line from masking the defect.
+- Every rack number in those four feedback strings must match the sprayed tree's visit ordinal; neutral copy without a rack number is allowed. The actual matcher is extracted and tested offline against matching, reversed-ID, neutral, multiple-number, case and count examples. Feedback-number failures are collected, logged and **fail the final verdict** after the route, so an early reversed-ID failure cannot prevent the required Rack 5 capture. No skip, waiver or expected-failure pass is enabled.
+- `g14` asserts the visible Annual Review instruction equals the on-screen acknowledgement instruction before acknowledgement; `g15` asserts that the instruction no longer says “Read and acknowledge” afterwards, at both resolutions.
+
+**F-1 remains unfixed and these native feedback assertions are expected to fail** on reversed-ID racks until a separate scope ruling and authorised repair. `ScenarioOneManager.RackPlan.cs` and `TrySprayRackEntrance` remain untouched. Passing offline matcher tests proves the guard, not that current manager copy is correct. No native rendering/behaviour claim is made by this loop.
+
+Prior failures remain visible and unwaived in the previous result and evidence: `NextActionGuidance` stale source predicate/substring exception; `RackV2ConfirmMinimap` old-base inventory; `RackV2HelpTeaching` 10 baseline failures plus the approved O1-13 copy conflict (11 candidate failures); `ScenarioOneFiveRackDiagram` 33 source/pin failures and missing standalone dependency. These older checkers are unchanged, not rebaselined by this repair.

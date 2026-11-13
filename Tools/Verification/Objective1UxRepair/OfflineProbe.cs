@@ -88,6 +88,12 @@ public static class OfflineProbe {
   Check(g.ReviewReason(g.review.Root,previousInstruction)==previousInstruction,"acknowledged latest review keeps previous instruction");
   g.NeedsAnnualReview=true; g.review.Root=new VisualElement();
   Check(g.ReviewReason(g.review.Root,previousInstruction)==previousInstruction,"missing acknowledgement control keeps previous instruction");
+  Check(FeedbackProbe.RackNumbersMatchOrdinal("Marked the entrance tree tree9 for rack 1.",1),"feedback accepts matching visit ordinal, ignoring tree ID");
+  Check(!FeedbackProbe.RackNumbersMatchOrdinal("Marked the entrance tree tree9 for rack 5.",1),"feedback rejects F-1 reversed-ID Rack 1 / stored rack 5");
+  Check(!FeedbackProbe.RackNumbersMatchOrdinal("Marked the entrance tree tree9 for rack 1.",5),"feedback rejects F-1 reversed-ID Rack 5 / stored rack 1");
+  Check(FeedbackProbe.RackNumbersMatchOrdinal("Marked the entrance tree tree9.",5),"feedback accepts neutral copy without a rack number");
+  Check(!FeedbackProbe.RackNumbersMatchOrdinal("Rack 1 marked; RACK 5 next.",1),"feedback checks every rack number case-insensitively");
+  Check(FeedbackProbe.RackNumbersMatchOrdinal("Rack 1 entrance marked; 1 / 5 entrances.",1),"feedback ignores non-rack counts");
   string summary=MenuHelpView.Summary(MenuHelpView.Menu.StandMap), detail=MenuHelpView.Explanation(MenuHelpView.Menu.StandMap), marks=MenuHelpView.Explanation(MenuHelpView.Menu.TreeMarks);
   Check(MenuHelpView.Title(MenuHelpView.Menu.StandMap)=="Stand Map"&&!summary.Contains("The map helps")&&!detail.Contains("The map helps"),"approved Stand Map copy deletions");
   var prose=new VisualElement();KeycapProbe.AddKeycapProse(prose,detail);
