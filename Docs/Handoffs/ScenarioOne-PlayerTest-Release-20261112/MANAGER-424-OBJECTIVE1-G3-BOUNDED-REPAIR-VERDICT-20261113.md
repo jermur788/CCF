@@ -1,0 +1,40 @@
+# Manager #424 — Objective 1 #443 G3 bounded repair approval
+
+**13 November 2026. Verdict: APPROVED WITH BINDING CLARIFICATIONS for bounded G4 source edits; NOT a Unity G5 PASS or user acceptance.**
+
+## Evidence inspected
+
+- [Worker #443 exact G3 repair list](https://github.com/jermur788/CCF/blob/2d94cc26f4047352c2794713029ae7e8cbc82858/Docs/Handoffs/ScenarioOne-PlayerTest-Release-20261112/SOL-OBJECTIVE1-UX-REPAIR-G3-BOUNDED-SPEC-20261112.md). Feature branch compare with qualified playtest baseline: one added 95-line Markdown G3 file, zero production-code edits as of decision.
+- [G2 #438 native witness](https://github.com/jermur788/CCF/blob/ba86c86275523b095559be9e4c3b532bfdb5189f/Docs/Handoffs/ScenarioOne-PlayerTest-Release-20261112/SOL-438-RACK-ENTRANCE-NATIVE-ID-WITNESS-RESULT.md): five observed sprays match their rack/tree associations, 149 orders Pending, no approval or annual advance; first HUD target text exists on fresh suggested plan but minimap target absent. The witness did not reproduce the user's edited/own-plan route and its HUD visibility measurement was faulty. Class A only for tested fixture, B only source-inferred.
+- [Full live feedback report, findings #9 and #14 updated by user at 00:07 and 00:15 on 13 November](https://github.com/jermur788/CCF/blob/docs/scenario-one-d073-live-player-feedback-20261112-v1/Docs/Handoffs/ScenarioOne-PlayerTest-Release-20261112/MANAGER-424-D073-LIVE-PERSONAL-PLAYTEST-FEEDBACK-20261112.md).
+- #443 registered real Claude Opus 5.5 as substitute for rate-limited Sol, on /media/jer/ZX20/CCF-S1-Objective1UX-20261112, branch feature/scenario-one-objective1-ux-repair-20261112-v1. Agent-reported Unity lane clean and lease released, save-integrity cleanup receipts exist but original launcher EXIT trap never completed; do not misdescribe as terminal receipt. Manager has no direct Linux Ops access: worker must independently recheck lock, lane and saves before next native run.
+
+## Source G3 verdict
+
+**APPROVE all items explicitly IN SCOPE in the worker's G3 O1-01..O1-20 list, excluding O1-08.** The approved items cover Objective 1 onboarding cue; Objectives and Stand Map hierarchy/diagram/keycaps; Plan Rack cue and card; dark first-help backdrop; exact audited copy-only deletion; first rack minimap destination and directional guidance; bottom-to-top player-facing visit labels; measured minimap enlargement; 5/5 Tab keycap; Work Plan typographic hierarchy; and context-aware Annual Review copy without changing approval/acknowledgement logic. Diagram anchoring and inline keycaps may be individually DEFERRED if the contained allowed-file solution is unsafe. No silent mechanics expansion.
+
+**DEFER O1-08 rotation-grip cursor.** A new runtime cursor mechanism and reset/capture lifecycle would exceed the strictly proven presentational scope. This is deferred, not rejected. Also DEFER rotation angle snapping, lower-left rack geometry modification, all three unchosen copy alternatives, the single unconfirmed rack-plan lead, and everything in Objective 2.
+
+**Allowed files:** exactly those in the G3 proposal, MINUS the conditional cursor file Assets/ForestPrototype/UI/Map/StandMapRackEditor.cs. Treat LearningObjectivesView.Sequence.cs and LearningObjectivesView.Curriculum.cs as read-only; ScenarioOneTeachingSequence.cs reserved but expected unchanged. No other C#, no scenes/prefabs/.meta or saved rack ID, association, annual-work state, Work Plan mechanics, old-save schema, MFM or Objective 2 source changes. Tools/Verification/Objective1UxRepair may contain disposable tests/native harness only. Stop and report if requested work cannot be kept in allowed files.
+
+## Binding player clarification — G4 and G5
+
+The user started entrance marking in the **clearing in the centre of the map** and observed **no visible yellow HUD direction arrow before the first spray**. They walked down the path to the nearest **bottom rack** and sprayed it. Only afterwards a yellow arrow appeared pointing beyond nearer racks to the **farthest top rack**, labelled **Rack 1**. They sprayed that far rack; count displayed 2, and next arrow labelled **Rack 2**. Player requires **bottommost Rack 1**, **topmost Rack 5**, and an **actually visible arrow from the central clearing immediately on entering the marking stage**, plus first-target minimap cue. This clarified first-person sequence is not disproved by the G2 fresh-world witness.
+
+**Implementation boundary:** bottom-to-top numbering is a presentation visit index only, derived from confirmed entrance world position (with deterministic ties); it is not a mutation of stored rack ID, saved plan, mark ownership, tree selection, removal set, ordinary Work Plan orders or history. HUD direction, spray prompt and minimap target must use the same ordinal for the same physical tree, with the next available **unmarked** rack chosen consistently. Out-of-order user spraying must count marks without claiming that sprayed tree was another rack.
+
+**Mandatory G5 evidence, at BOTH 1280x720 and 1920x1080:**
+
+1. From native central-clearing spawn, with first marking intro dismissed and zero sprays, capture real yellow HUD graphical arrow, Rack 1 bottom entrance label, distance and minimap target in the same frame. Test visibility of rendered element, not only internal target/text; correct or explicitly disclose previously broken harness HUD-visible measurement.
+2. Spray bottom/first tree. Capture count 1/5 and next guide Rack 2. Separately spray top/farthest as the **second physical mark**; capture counter 2/5 and next unmarked bottom-to-top Rack 2, with contextual spray label Rack 5 on far tree. This sequence need not match the historic player-world path exactly, but tests the requested ordinal and out-of-order behaviour.
+3. Test one **edited five-rack plan** where stable rack IDs differ from bottom-to-top ordering: visually show ordinals Rack 1 through Rack 5 by physical entrance order; confirm each sprayed tree still maps to its own stable ID and own Pending work. Never silently relabel persisted rack IDs.
+4. Minimap size, pulse/static Reduce Motion, modal occlusion, readable HUD at both resolutions, Annual Review gate and Legacy40/frozen Reference negatives. No user-world reproduction or general mark correctness claim from a fresh isolated fixture.
+5. If arrow fails to render from central clearing, cannot be fixed inside the allowlist, or any sprayed mark/order association differs, STOP and return NEEDS CHANGES rather than calling a target getter a visible arrow.
+
+## Clarified lower-left layout issue — expressly DEFER geometry
+
+The lowest rack passes **left/west of the central main track** in the portion of plantation bordered by the **small bottom side track connecting main track to headland** and the **plantation edge**. The left-hand rack section creates what the user describes as two tiny rack-served compartments/strips. 'Two very small racks' is a visual description and does not prove extra persisted rack objects. Compare shortened bottom access to the central track only in a separate D-064 compatible product geometry decision. The present G4 approval makes NO geometry, access, mask or saved ID change.
+
+## Execution and handoff
+
+After manager posts this decision on #443 and updates live single-writer coordination, the registered Claude #443 worker may execute G4 within approved file set, and G5 one focused exclusive Unity qualification after fresh Ops machine-wide lease preflight. Result GitHub Markdown: Docs/Handoffs/ScenarioOne-PlayerTest-Release-20261112/SOL-OBJECTIVE1-UX-REPAIR-RESULT-20261112.md. Report actual actor despite inherited SOL filename; publish raw evidence and independent review; Manager later issues integration verdict. No Windows build, no main merge, no Objective 2 coding. User action: none for this bounded G3; three wording choices remain deferred. Dashboard/Drive sync UNVERIFIED.
