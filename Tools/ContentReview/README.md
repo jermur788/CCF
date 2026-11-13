@@ -39,7 +39,7 @@ node Tools/ContentReview/source-audit.mjs .
 node Tools/ContentReview/source-audit.mjs . --json
 ```
 
-The test script and source audit were **not executed under Node in this browser-connected worker environment**. They are provided for a local/code worker to run and record real results. **Eighteen equivalent direct V8 checks of the checked-in `core.js`, current catalogue, `catalog.js` mirror and `app.js` passed** in the GitHub tool environment after repair of two empty Rack V2 variants; see the durable handoff. No browser click-through, visual screenshot or Unity run has been asserted.
+The test script and source audit were **not executed under Node in this browser-connected worker environment**. They are provided for a local/code worker to run and record real results. **Thirty equivalent direct V8 checks of the checked-in `core.js`, current catalogue, `catalog.js` mirror and `app.js` passed** in the GitHub tool environment after repair of two empty Rack V2 variants; see the durable handoff. No browser click-through, visual screenshot or Unity run has been asserted.
 
 The source-audit command needs a **real full repository checkout**; it compares blob hashes for 28 targeted C# files, reports changed or absent sources, lists unindexed C# files under UI/ScenarioOne, and notes potential literal text in relevant serialized files. Changed source is a **stop and re-extract/review signal**, never a request to mechanically replace C# strings. This audit deliberately produces candidate counts rather than a false “all strings found” percentage.
 
@@ -49,4 +49,4 @@ The DRAFT spec proposes a separately approved, typed read-only content loader th
 
 Production work requires approved four-file spec, independently reviewed editor/schema/source audit, Manager #424 source ownership, candidate reconciliation with #443, preserved `CCF.Learning.v1.*` / `CCF.MenuHelp.v1.*` / lesson/save identities, and native Unity 1280×720 / 1920×1080 profile/Legacy40/Reference Future checking. No saved-game or PlayerPrefs schema change is proposed. Do not claim a text round-trip proves the displayed game copy is correct.
 
-**Browser compatibility tested:** NOT RUN / not attested. **Node test script executed:** NOT RUN. **Direct V8 content-contract checks:** PASS (18/18). **Unity import, compile, runtime, rendered check:** NOT RUN. **User copy approval:** NOT GIVEN.
+**Browser compatibility tested:** NOT RUN / not attested. **Node test script executed:** NOT RUN. **Direct V8 content-contract checks:** PASS (30/30). **Unity import, compile, runtime, rendered check:** NOT RUN. **User copy approval:** NOT GIVEN.
