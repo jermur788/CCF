@@ -143,3 +143,116 @@ The #458 handoff's statement "original R-001–R-082 all preserved" is true for 
 ## Requested next action
 
 Manager #425 decides what to do with this verdict. A satisfactory delta review only lets the Manager **commission a separately claimed native/offline C0-03/C0-04 study**, whose packet should settle E-1. E-2 to E-7 go into the amended DRAFT and its bounded delta review. This verdict does not approve the spec or authorise implementation. **User action now:** none required by this review.
+
+---
+
+## Addendum (user instruction, 13 Nov 2026): targeted refactoring recommendation
+
+**Status:** architectural recommendation only. This addendum does **not** authorise refactoring production code, change any accepted product decision, approve the DRAFT or alter the verdict above. Evidence is a read-only static inspection of `main` @ `6c13a9e1`. The #443 Objective 1 branch was **not** inspected and may already change some of these files.
+
+### What the code shows
+
+| System | Inspected fact | Refactor implication |
+| --- | --- | --- |
+| Scenario configuration | `ScenarioOne/ScenarioOneDefinition.cs` is already a ScriptableObject. It holds `scenarioId`, `definitionVersion` (`scenario-one-v13`), economy (€12,000 start, €2,500 minimum per visit, rates), completion thresholds (year 25/100, canopy, regeneration, deadwood) and reference values. The editor script `Editor/ScenarioOneSetup.cs` wires **one** asset into the scene. | **Existing seam; reuse it.** Most compact calibration can be a *second definition asset* (data, not code). The missing piece is choosing which asset is active at New Game/Continue. |
+| Save slot | `ForestSaveController.cs:9-19`: `const SaveFileName = "forest-save.json"`, with `.tmp`/`.bak` derived from it. `CanLoad`, `TryReadSave` and `FindLoadProblem` are already a shared pre-load path (:240, :261, :296). `ForestSaveData` is one class (v24) with a nested `ScenarioOneSaveData`. | **Prerequisite.** The slot must become a parameter, and an identity check must join the existing pre-load path. #436 needs exactly the same change for O2, so it should be done once. |
+| Geometry | `StandGeometryModel` is a plain `int` referenced by 29 files. Binary checks against Legacy40/Enlarged80 appear in `StandGeometryModel.cs:34,62`, `ForestSaveValidation.Geometry.cs:15`, `ForestStartingStand.cs:83`, `ScenarioOneManager.RackPlan.cs:40,92`, `ScenarioOneObjectives.cs:104`, `ScenarioOneRackLayout.cs:18`, `ScenarioReferenceArchive.cs:337` and `StandWorldBoundary.cs:76`. | **Prerequisite.** Use explicit dispatch with fail-closed handling (M1). Useful property: `ScenarioOneRackLayout.AppliesTo` and `RackPlanningV2Active` (59 references) are already true **only for Enlarged80**. A compact geometry ID therefore switches off the five-rack V2 and MFM paths *without new conditionals*, as long as those gates are left alone. |
+| Learning/help | `UI/LearningObjectivesView.Curriculum.cs` has a `const PreferencePrefix` and one static `Topics` array (48 steps, five-rack wording). It is "kept free of UI Toolkit and PlayerPrefs … checked offline". `UI/ScenarioOneTeachingSequence.cs` (136 lines) hard-codes a five-lesson stage machine (`Current(f) == 5`, rack-bay review). `MenuHelpView` has its own constant prefix. | **Prerequisite (small):** pass the prefix and the curriculum in as inputs instead of using constants; legacy values stay byte-identical. **Within the feature:** write a *separate* small compact lesson sequence rather than adding compact branches to the five-rack stage machine. |
+| Scenario manager | `ScenarioOneManager.cs` is ~141 KB plus 9 partial files (racks, rack plan/editing, prescriptions, approval, history, storms, salvage). It is referenced from 40+ files outside `ScenarioOne/`, including shared `ForestEcologyController` (competition/clearance owner through `FindFirstObjectByType<ScenarioOneManager>`, :44/:307/:485). | **Defer.** Splitting or renaming it is broad, high-conflict, and touches files #443 owns. Compact can reuse it with its definition, slot and geometry seams. |
+| Economy | `WorkEconomy/` (`ForestryPriceBook`, `ForestryWorkDomain`) is a separate namespace. `ScenarioOneEconomyAdapter` maps the definition onto it. | **Already shared.** Compact needs a different definition asset, not engine changes. |
+| Species/ecology | Species are ScriptableObject assets. `Species/ScenarioTwo/` assets and `ScenarioTwoSpeciesSiteResponses` already exist. The annual engine is `ForestEcologyController` (~106 KB). | **Keep shared and untouched.** No refactoring is needed for compact. |
+| Stand generation | `ForestStartingStand.Generate` takes an Enlarged80 branch or a legacy lattice branch, and uses `UnityEngine`. | **Within the feature:** add a compact generator branch alongside. Extract only the helpers the compact generator actually reuses. Do not rewrite the Enlarged80 generator, whose output is protected by hashes. |
+| Reference identity | `ScenarioReferenceArchive.cs:248-272` strips fields by text pattern. | Any shared-schema change falls under M2/OPEN-C4. Choosing a separate compact root removes this risk entirely. |
+
+No scenario interface, base class or registry exists, and `ScenarioExecutionMode` has one value. This is a good thing: there is nothing to unwind, and none should be introduced now.
+
+### What stays shared vs scenario-specific
+
+- **Shared, one implementation, no compact forks:**
+  - annual ecology and species engine (growth, competition, regeneration, browse, deadwood, mortality, storms);
+  - WorkEconomy domain, work orders, Work Plan resolution;
+  - management events/history and Annual Review (D-073 L1–L4);
+  - tree marking (`TreeMarkType`);
+  - the pre-load save validation graph (`FindLoadProblem`);
+  - map/minimap rendering;
+  - one-year advance and the approved D-077 skip.
+- **Scenario-specific, as data where possible:**
+  - definition asset (economy and completion values);
+  - save slot name and world/geometry/content IDs;
+  - starting-stand generator and geometry;
+  - curriculum, learning/help prefix and teaching sequence;
+  - objective/completion policy (the compact predicate is a new class; `HasReviewedTwoCycleSequence` is untouched);
+  - access lesson (five-rack V2 legacy vs one-rack compact);
+  - MFM (legacy only).
+- **Scenario Two:** it reuses the same slot parameter, geometry dispatch and prefix/curriculum inputs. Nothing O2-specific should be built now beyond the fixed slot table entry that #436 already proposes (SI-03).
+
+### Prioritised recommendation
+
+**P1 — Prerequisites (foundation). Before compact content, after the S-21 gates and #424 release.**
+
+1. **F-1 Geometry dispatch, fail-closed.**
+   - Change `StandGeometryModel` plus the 10 binary sites listed above to an explicit known-ID lookup.
+   - Unknown IDs fail closed; Legacy40/Enlarged80 behaviour is unchanged; leave `RackLayout.AppliesTo` and `RackPlanningV2Active` as Enlarged80-only.
+   - **Independent of the router decision.** It can land first as a pure, identity-neutral refactor once the compact ID is decided, or even before that, with the unknown-ID path only.
+   - **Risk:** hash or label drift; `StandGeometryModel.Label` strings must stay identical.
+   - **Gate:** Tier-1 dispatch negatives plus before/after Legacy40, Enlarged80, Reference Future v1 and pure-Sitka hash equality (A-02 fixtures).
+2. **F-2 Slot-parameterised save path and identity preflight, plus a minimal active-profile record.**
+   - Replace the `SaveFileName` constant with a small fixed slot table (legacy O1 / compact / O2).
+   - Add the explicit-ID check inside the existing `TryReadSave`/`FindLoadProblem`/`CanLoad` path.
+   - Add one small serializable **profile record**, chosen at the title menu. It names the definition asset, slot, geometry ID and curriculum key. It is passed through existing scene/manager references, **not** a singleton or service locator.
+   - **Owner:** the single approved router writer only (resolves B2; do this together with #436, never twice).
+   - **Risk:** changing legacy load behaviour (see E-2).
+   - **Gate:** the two-way, zero-checksum negatives R-013–R-018 and R-084–R-086.
+3. **F-3 Learning/help inputs.**
+   - Make the prefix and curriculum instance inputs supplied by the profile. Legacy `CCF.Learning.v1.` and `CCF.MenuHelp.v1.` stay exact.
+   - Fold this into the F-2 claim, because the rejected-load oracle includes PlayerPrefs.
+   - **Gate:** R-087–R-089.
+
+**P2 — Refactor inside each feature task. Touch only what the feature needs.**
+
+- **B-01:** compact generator branch in `ForestStartingStand`; map/minimap extent comes for free from F-1.
+- **B-02:** new compact teaching sequence class and curriculum data. Reuse lesson rendering; do not branch inside `ScenarioOneTeachingSequence`.
+- **C-02:** residual BA/opening as a new **pure calculator** class, testable offline, read by `WorkPlanView`/`StandMapCanopyRaster`. No rewrite of either view.
+- **D-02/D-03:** compact values in the second definition asset; compact completion/classifier as a new static class beside `ScenarioOneCompletionRules`. Objective area ratios come from the definition rather than new `if (compact)` checks.
+- **Rule for every feature task:** profile checks only at the entry points listed above. A new compact check deep inside shared ecology, economy or history code is a STOP-and-report signal, not a quick fix.
+
+**P3 — Defer until the compact scenario is playable and accepted.**
+
+- Splitting or renaming `ScenarioOneManager` and its partials.
+- Removing `ForestEcologyController`'s `FindFirstObjectByType<ScenarioOneManager>` coupling.
+- A generic `IScenario`/eight-scenario engine.
+- Restructuring `ForestSaveData`, unless the save owner chooses the separate-root option, which then belongs to F-2.
+- Generalising MFM to N racks (OPEN-1–6).
+- Splitting `ForestTest.unity` or extending `ScenarioExecutionMode`.
+- Renaming `ScenarioOne*` types.
+
+Each of these touches protected or #443-owned files and offers no compact benefit.
+
+### Avoiding unnecessary abstraction
+
+Yes, it can be avoided. Compact needs:
+- **one** extra data asset (definition);
+- **one** small profile record;
+- **one** slot table;
+- **one** geometry lookup;
+- **two** inputs on existing views (prefix and curriculum);
+- a few **new**, separate classes (generator branch, compact lesson sequence, compact completion predicate, residual-BA calculator).
+
+None of the working forestry systems needs rewriting. Generalise further only when O2 *actually* needs something the slot table and definition assets cannot express.
+
+### Sequencing to minimise duplication, conflicts and retesting
+
+1. Existing gates unchanged: native study → amended DRAFT → decisions, including a single router → Manager APPROVED → #424 release. **Suggested DRAFT amendment (not made here):** add F-1 as an explicit foundation task (for example "A-00") ahead of A-01, and add the "entry-point-only profile checks" rule to plan Stage A–D stop rules.
+2. **F-1** (geometry): one writer, after #443's handoff lands so the shared files `ScenarioOneManager.RackPlan.cs` and `ScenarioOneObjectives.cs` aren't edited by two lanes.
+3. **F-2 + F-3** (router, profile, prefs): the single router owner, combined with the #436 amendment.
+4. **A-02** legacy/Reference/pure-Sitka regression suite is established **once** here as the offline Tier-1 baseline.
+5. **B → C → D** features. C (Work Plan/map files) and D (completion/economy files) may run in parallel **only** with disjoint file allowlists. `ScenarioOneManager*` partials and `ForestSaveController` stay single-writer hotspots.
+6. **Retest rule:** any task touching F-1/F-2 files reruns the cheap A-02 Tier-1 legacy suite. Other tasks run their own Tier-1 plus focused Tier-2. **Tier 3 runs once** at F-01, as the DRAFT already requires.
+
+**Main risks:**
+- foundation refactors drifting protected hashes (mitigated by the A-02 before/after gate);
+- the profile record growing into a service locator (keep it as a plain data record passed explicitly);
+- in-feature refactors creeping into #443-owned or shared-engine files (STOP rule);
+- doing the slot work twice (once here, once for #436); avoid this through the single-router decision.
+
+**No hash rebaselining or test weakening is implied by any item above.**
