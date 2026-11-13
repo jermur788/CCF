@@ -1,0 +1,63 @@
+# Manager #425 — compact one-rack post-native four-file DRAFT amendment packet
+
+**13 November 2026 — READY / NOT RUNNING — DOCUMENTATION ONLY.** [Execution claim #462](https://github.com/jermur788/CCF/issues/462). **No compact spec approval, code/refactor/Unity authorisation, choice of final property, save policy or economics implementation.**
+
+## Purpose, provenance, new owner clarification
+
+Amend the existing four-file compact one-rack Scenario One **DRAFT** using real evidence from [completed native study #460](https://github.com/jermur788/CCF/blob/0225ce9a69516a0d98f0fa63fd5e289ea8d29362/Docs/Handoffs/ScenarioOne-Compact-Pivot-20261113/COMPACT-ONE-RACK-NATIVE-FEASIBILITY-STUDY-RESULT-20261113.md), [independent #459 review](https://github.com/jermur788/CCF/blob/docs/compact-one-rack-458-independent-delta-review-20261113-v1/Docs/Handoffs/ScenarioOne-Compact-Pivot-20261113/CLAUDE-ONE-RACK-458-INDEPENDENT-DELTA-REVIEW-20261113.md) E-1–E-7, [Claude target-refactor/plain-C# recommendation](https://github.com/jermur788/CCF/blob/docs/compact-scenario-one-refactor-sim-core-strategy-20261113-v1/Docs/Handoffs/ScenarioOne-Compact-Pivot-20261113/CLAUDE-COMPACT-SCENARIO-ONE-REFACTOR-AND-SIM-CORE-STRATEGY-20261113.md) and [Manager #460 evidence verdict](MANAGER-425-460-NATIVE-STUDY-FINAL-DISPOSITION-20261113.md).
+
+**Latest direct product-owner clarification (16:27 UTC, accepted design direction, precise mechanics still OPEN):** the compact parcel **can be a test/training site**; the player should not need to make tiny-stand timber harvesting commercially profitable to learn forestry. Alternatively, **a local tree surgeon may carry out an appropriately small job** rather than commissioning the existing full-scale harvesting contractor workflow. These are **two acceptable design directions**, not a final implementation or fee choice. Do not present source's €2,500 harvest-job minimum as an immutable compact design requirement. Do not invent a free subsidy formula, actual Irish arborist price, special licence, safe machine/felling capability, or a real-world practice claim; any local tree-surgeon route must be validated or explicitly labelled a gameplay abstraction, with safety/insurance/work scope and production treatment distinguished from forestry contracting. **Do not require owner ratification of profitability as a prerequisite for a *training* scenario.** Existing source WorkEconomy, Work Plan and honest actual outcomes remain shared and protected for legacy worlds. Propose owner decision at OPEN-C5: (a) training/test site costs sponsored, simplified, non-failing or transparently supported; (b) local small-job specialist with appropriately scoped work and separately approved rates; or another explicitly owner-accepted option. Preserve meaningful financial feedback where educational; **neither (a) nor (b) is silently selected.**
+
+**Difficulty HIGH:** four-file cross-consistency, native-vs-derived measures, forestry training economics, save/geometry/curriculum identity, 104 negative-test conditions and all unresolved decisions. **Best-suited author:** OpenAI GPT-6 High (browser/GitHub docs-only). **Next independent reviewer:** nonauthor Claude Opus 5.5 High (separate claim after handoff).
+
+## Branch, ownership and five-file allowlist
+
+Exact precreated writing branch **`docs/compact-one-rack-460-native-amendment-20261113-v1`**, based directly on repaired/reviewed #458 author DRAFT `docs/compact-one-rack-457-review-repair-20261113-v1`. **No worktree / no Editor.** At start, inspect live #424 `Docs/Project/coordination/active-tasks.md` read-only, #462 claim, current branch/head and file ownership; **register actual provider/model [RUNNING] on #462 before first write**. Do not overlap another DRAFT editor.
+
+**Only four modifiable existing files:**
+1. `specs/scenario-one-compact-complete-loop-v1/spec.md`
+2. `specs/scenario-one-compact-complete-loop-v1/plan.md`
+3. `specs/scenario-one-compact-complete-loop-v1/tasks.md`
+4. `specs/scenario-one-compact-complete-loop-v1/checklists/requirements.md`
+
+**Only added handoff:**
+`Docs/Handoffs/ScenarioOne-Compact-Pivot-20261113/COMPACT-ONE-RACK-460-NATIVE-EVIDENCE-DRAFT-AMENDMENT-HANDOFF-20261113.md`.
+
+No other path. No `main`, canonical Decision Log/Game Brief/milestone edits, `active-tasks.md`, #436, source, Unity, save/PlayerPrefs, frozen hashes, packages, spec promotion, mirrored context or task #443 files. No checkbox gets checked.
+
+## Native study evidence that must be carried with qualifications
+
+Two **independently generated temporary Unity-backed scratch derivatives**, not production world IDs, saved scenarios, fully playable complete loop or owner-chosen footprints:
+- **C-A, 20 × 20 m:** age-20 Sitka 82, 69/69 remaining eligible standing stems on both rack sides with **sampled pedestrian** capsule/ray inspection witnesses; current initial BA 1.6150 m² and biological volume 9.9179 m³; net standing area **277.61 m²** and constructive survey route **211 m** (derived, not direct human timing).
+- **C-B, 30 × 30 m:** age-20 Sitka 189, 170/170 standing eligible with pedestrian inspection witnesses; initial BA 3.6501 m² and stem volume 22.2125 m³; net standing area **691.55 m²** and constructive sampled route **498 m** (derived).
+- Direct model edge diagnostic: 79/82 and 157/189 initial Sitka within 8 m of property edge, making edge dominance material. No complete machine swept-envelope, turning, bearing, gameplay interaction or player-time evidence. No human measured marking/inspection; no Irish site empirical precision.
+- Unity Year1/5/9 real-source mark→Pending→Approve→settlement, real planting of Oak and Beech juveniles, quiet years and annual ecology through Year9. No old saved worlds tested; only initial Sitka adult cohort, no mature Oak/Beech, no Year25/100 or substantive-cycle proof. Access felling is only navigation anchor, **not** automatically a major silvicultural episode.
+- **102 native fixture checks PASS** in final run; prior **66 pure-economy fixtures/420 assertions** PASS is separate earlier result. Scratch reflection/live geometry IDs do not mean a third serialised geometry/save/curriculum was implemented. Protected Reference/old-save replay hashes NOT RUN. Physical user UX and performance NOT RUN.
+- Existing source cost examples: historical €12,000 initial cash; six actual commissioned jobs (three per candidate) charged €7,500 **per candidate** at €2,500 minimum **per job**; tiny timber receipts **€138.19 / €193.42 total** and closing source cash €4,622.44/€4,677.67 after real nursery/protection costs. **Source economics verified as executed in scratch**, but this is not required compact profitability. In view of latest owner instruction, label as **diagnostic why legacy full-scale harvesting pricing may be ill-suited to a teaching site**, not a design blocker demanding either bigger parcel or an invented higher subsidy. Distinguish actual contractor settlements from a hypothetical local tree surgeon/sponsored-work alternative not yet modelled.
+- Native Editor exited normally and original sources/profiles protected per worker receipts; Manager GitHub-verified only report/diff, not independently reran off-repo host. Final report was exactly one Markdown path in two research commits.
+
+## Required #459 E-1–E-7 corrections
+
+1. **E-1:** Update C0-03/C0-04 plan/tasks with actual completed bounded study, Unity-Editor exclusive lease and isolated save + PlayerPrefs + EditorPrefs/profile and physical cleanup policy. No claim source implementation verified.
+2. **E-2:** Explicit foreign/compact save identity check rejects **before** legacy future-version best-effort and any mutation, across every load route; note current legacy mismatch warns later and save-owner approval OPEN-C4 required; #436 SI-05 remains only DRAFT.
+3. **E-3:** Replace tasks.md misleading “prior to DRAFT approval” with **only after Manager-APPROVED spec** after all required gates.
+4. **E-4:** Correct R-008 'three cycles' to **Manager DRAFT interpretation, owner ratification pending**. Actual three contractor jobs do not equal three substantive episodes.
+5. **E-5:** Reconcile S-10 `SelectedProjectedRemovalSet` and S-17 `SelectedOpeningRemovalSet` in S-10/S-17, C-02, R-039, R-097: either one clearly selected input or two clearly defined independent options with OPEN-C5/C6. Disambiguate *player-approved* versus *product owner-approved*. Reword S-17 'after approval' to 'status source determined by OPEN-C6 owner decision'; not 'Approved orders only'.
+6. **E-6 optional:** pin isolated D-077 cadence candidate E by source commit where already audited; not proof of compact integration.
+7. **E-7:** Restore R-030 **player can physically reach and inspect every eligible standing tree throughout both sides of the treatment polygon**, not eligibility alone; restore R-039 **no double counting the rack corridor** in area/removal/BA/cost. Research sampled pedestrian reachability is not R-030 production acceptance.
+
+## Nonbinding architecture and task sequencing
+Present Claude's **F-1** explicit known-ID fail-closed geometry, **F-2** shared one-owner save slot/preflight + active profile, **F-3** configurable disjoint learning/help keys, **T-0** potential common offline C# test project under `Tools/Verification/` as **PROPOSED, NOT AUTHORISED**; D-1 adoption, D-2 test-project home, D-3 pre-approval test setup and D-4 single #436 save-router owner still open. Prefer extract pure logic only on touch and preserve `Mathf` / float semantics and exact hash identity; defer large ecology/manager splitting, generic framework, engine migration. Do not reframe T-0 as completed by #460 or demand implementation before later approved spec.
+
+## Checklist, owner decisions, and exit
+Preserve all 104 original unique `R-001`–`R-104` requirements **exactly once, all `[ ]`**, restoring substance as well as IDs. Add the smallest new unchecked acceptance cases only when needed for training-site / possible small-job alternative, explicitly conditional on owner choice and accurate source evidence. Preserve full Sitka/Oak/Beech annual engine, real Work Plan/review/history, S1-C and S1-D, old Legacy40/Enlarged80 v1–v24 saves, frozen Reference Future v1, pure-Sitka model-0, old five-rack Rack V2/MFM, D-073 V2/D-077. No weakening, no rebaseline or invented Irish biological/economic facts.
+
+All **OPEN-C1–C8 and large-world OPEN-1–OPEN-6** remain unresolved unless a *specific latest direct user decision* has settled a portion; the **general training-site/not-required-to-profit direction is supplied by the user**, but the exact sponsored versus tree-surgeon implementation is **OPEN-C5**. No agent selects a contractor fee or real-world operational policy. This difference must be explicit in the amended documents, avoiding unnecessary renewed questioning of whether a training site is acceptable.
+
+Write the new exact named GitHub handoff with per-file diff, #459 E-1–E-7 matrix, native numeric evidence/class labels, user training-site clarification, 104-box proof, owner choices not taken, no direct Unity/old save qualification by doc editor. Fetch/read back **all five** allowed paths and compare author baseline to writing branch: **exactly four modified DRAFTs plus one newly added handoff**, no other changes. Mark #462 [HANDED-OFF] and close; then a separate nonauthor bounded delta review before owner/save approval and Manager-approved spec. **Do not self-review or code.**
+
+**User action now:** none. Dashboard/Drive sync remains #424's pending operational responsibility.
+
+## Paste-ready worker dispatch
+
+> Take ownership of [CCF #462](https://github.com/jermur788/CCF/issues/462). Follow the complete binding Manager packet at https://github.com/jermur788/CCF/blob/docs/manager-425-460-native-result-disposition-20261113-v1/Docs/Handoffs/ScenarioOne-Compact-Pivot-20261113/MANAGER-425-460-NATIVE-EVIDENCE-DRAFT-AMENDMENT-PACKET-20261113.md. Register actual worker/branch/start before writing. Use only `docs/compact-one-rack-460-native-amendment-20261113-v1`, the four DRAFT spec/plan/tasks/checklist files and one exact new amendment handoff. Integrate #460's two scratch candidates with their real cost and edge limitations plus #459 E-1–E-7. **Latest owner direction:** compact may be a training/test site; self-funding is not required; sponsored work or a suitably scoped local tree surgeon is a possible unchosen alternative, so do not make €2,500 harvest fees a final compact blocker or invent a new rate. Keep F-1/F-2/F-3/T-0 proposed, owner/save decisions open, all checklist boxes unchecked. Publish/read back five-file GitHub handoff and close #462. No Unity/source/canonical/coordination edits or spec promotion.
