@@ -169,7 +169,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
             for (int y = 0; y < image.height; y += 25)
                 for (int x = 0; x < image.width; x += 25) { samples++; if (image.GetPixel(x, y).maxColorComponent > 0.05f) lit++; }
             string file = state + "-" + size.x + "x" + size.y + ".png";
-            if (state == "g08a-plan-racks-editing") CheckPlanningCardAccent();
+            if (state == "g08a-plan-racks-editing") CheckPlanningCardAccent(image);
             if (state == "g14-annual-review-before-acknowledgement") CheckReviewInstruction(true);
             if (state == "g15-annual-review-acknowledged") CheckReviewInstruction(false);
             if (state.Contains("before-first-spray")) CheckFirstArrowPixels(image);
@@ -183,7 +183,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
         yield return Settle(10);
     }
 
-    private void CheckPlanningCardAccent()
+    private void CheckPlanningCardAccent(Texture2D image)
     {
         VisualElement card = ui.Map.Root.Q("map-edit-card");
         Check(manager.RackEditingOpen && !manager.RackPlanConfirmed && Visible(card)
@@ -193,8 +193,32 @@ public sealed class Objective1UxRunner : MonoBehaviour
         Receipt("PLANNING_CARD_ACCENT", "\"size\":\"" + Screen.width + "x" + Screen.height + "\",\"colour\":["
             + F(actual.r) + "," + F(actual.g) + "," + F(actual.b) + "," + F(actual.a) + "],\"leftWidth\":" + F(card.resolvedStyle.borderLeftWidth));
         Check(Mathf.Abs(actual.r - expected.r) < .005f && Mathf.Abs(actual.g - expected.g) < .005f
-            && Mathf.Abs(actual.b - expected.b) < .005f && actual.a > .99f && card.resolvedStyle.borderLeftWidth >= 3f,
+            && Mathf.Abs(actual.b - expected.b) < .005f && actual.a > .99f,
             "Plan Racks editing card resolves the accent-coloured left edge");
+        // UI Toolkit quantizes the 3-unit USS edge to device pixels (2 px at 0.8 scale, 3 px at 1.2).
+        // Measure that edge in the capture as well: resolved colour alone cannot prove it rendered.
+        float scale = Screen.width / ui.RootElement.worldBound.width;
+        int expectedPixels = Mathf.Max(1, Mathf.FloorToInt(3f * scale + .01f));
+        Check(card.resolvedStyle.borderLeftWidth * scale >= expectedPixels - .01f,
+            "planning edge retains the 3-unit USS width after device-pixel quantization");
+        Rect bounds = card.worldBound;
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(bounds.xMin * scale) - 1);
+        int x1 = Mathf.Min(image.width, Mathf.CeilToInt(bounds.xMin * scale) + expectedPixels + 1);
+        int y0 = Mathf.Max(0, Mathf.CeilToInt(bounds.yMin * scale) + 4);
+        int y1 = Mathf.Min(image.height, Mathf.FloorToInt(bounds.yMax * scale) - 4);
+        int accentPixels = 0;
+        for (int y = y0; y < y1; y++)
+            for (int x = x0; x < x1; x++)
+            {
+                Color pixel = image.GetPixel(x, image.height - 1 - y);
+                if (Mathf.Abs(pixel.r - expected.r) < .025f && Mathf.Abs(pixel.g - expected.g) < .025f
+                    && Mathf.Abs(pixel.b - expected.b) < .025f) accentPixels++;
+            }
+        Receipt("PLANNING_CARD_PIXELS", "\"size\":" + Q(Screen.width + "x" + Screen.height) + ",\"scale\":" + F(scale)
+            + ",\"expectedWidthPx\":" + expectedPixels + ",\"resolvedWidthPx\":" + F(card.resolvedStyle.borderLeftWidth * scale)
+            + ",\"accentPixels\":" + accentPixels + ",\"sampleHeightPx\":" + (y1 - y0));
+        Check(y1 > y0 && accentPixels >= expectedPixels * (y1 - y0) * .8f,
+            "planning edge visibly renders accent pixels along at least 80 percent of its expected area");
     }
 
     private void CheckReviewInstruction(bool needsAcknowledgement)
