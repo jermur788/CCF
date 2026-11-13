@@ -37,7 +37,7 @@ public sealed partial class LearningObjectivesView
     {
         get
         {
-            if (ReviewFirst) return ScenarioOneRackBayText.ReviewInstruction;
+            if (ReviewFirst) return ui.AnnualReviewInstruction;
             if (!TeachingRacks)
             {
                 return TeachingInstruction(TeachingFacts());
@@ -58,8 +58,8 @@ public sealed partial class LearningObjectivesView
     }
     // The one short line for the current step: the review step first when its acknowledgement is missing, otherwise the HUD's words.
     public const string ReviewFirstInstruction = "First: read and acknowledge the annual results in Work Plan [Tab].";
-    public string CurrentShortInstruction => ReviewFirst ? ScenarioOneRackBayText.ReviewInstruction
-        : NeedsReviewAcknowledgement ? ReviewFirstInstruction
+    public string CurrentShortInstruction => ReviewFirst ? ui.AnnualReviewInstruction
+        : NeedsReviewAcknowledgement ? (ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review ? ScenarioOneRackBayText.ReviewOnScreenInstruction : ReviewFirstInstruction)
         : HudInstruction(TeachingFacts(), CurrentTopicIndex, CurrentLesson);
     public string Summary => ReviewFirst ? "Current objective: " + ScenarioOneRackBayText.ReviewTitle + " · [O] Details" : TeachingRacks
         ? (ui.RackLayout != null && ui.RackLayout.RackPlanV2 ? ui.RackLayout.V2CounterText + " · [O] Details"
@@ -78,7 +78,7 @@ public sealed partial class LearningObjectivesView
         VisualElement modal = UiKit.Box("panel", "modal", "modal-objectives");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Objectives", "title");
+        UiKit.Add(header, "Objectives", "title", "objectives-screen-title");
         VisualElement buttons = UiKit.Box("row", "screen-actions");
         UiKit.Add(buttons, "", "menu-current-status").name = "menu-current-status";
         Button map = UiKit.Button("Stand Map [M]", () => ui.ShowMap());
@@ -154,7 +154,7 @@ public sealed partial class LearningObjectivesView
         VisualElement current = UiKit.Box("card", "objective-current");
         current.name = "current-objective";
         UiKit.Add(current, "CURRENT OBJECTIVE", "subtitle");
-        UiKit.Add(current, CurrentTitle, "title").name = "current-objective-title";
+        UiKit.Add(current, CurrentTitle, "title", "objectives-lesson-title").name = "current-objective-title";
         var lesson = CurrentLesson;
         // The words on the left and the picture on the right, so the whole objective is on screen at once; a window too narrow for both
         // wraps the picture below the words.
@@ -179,13 +179,29 @@ public sealed partial class LearningObjectivesView
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
         if (!ReviewFirst && !string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, CurrentProgress, "heading").name = "current-objective-progress";
-        words.Add(detail);
+        if (!rackV2Objective) words.Add(detail);
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.
-        if (rackV2Objective) body.style.flexDirection = FlexDirection.Column;
-        body.Add(new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective, TeachingBay?.Geometry));
+        var diagram = new TeachingDiagram(ScenarioOneTeachingSequence.ExtensionOffered(TeachingFacts()) ? 4 : CurrentTopicIndex, lesson.Caption, rackV2Objective, TeachingBay?.Geometry);
+        if (rackV2Objective)
+        {
+            body.AddToClassList("objective-one-body");
+            // Details flow below both columns, so opening them cannot push the diagram away from the description.
+            diagram.style.width = Length.Percent(56);
+            diagram.style.flexBasis = 0;
+        }
+        body.Add(diagram);
         current.Add(body);
+        if (rackV2Objective)
+        {
+            current.Add(detail);
+            detail.RegisterValueChangedCallback(e => {
+                if (e.target != detail) return;
+                float anchor = scroll.scrollOffset.y;
+                scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, anchor));
+            });
+        }
         scroll.Add(current);
         var completed = new Foldout { text = "Completed lessons", value = false, name = "completed-lessons" };
         var teachingFacts = TeachingFacts();
@@ -217,7 +233,7 @@ public sealed partial class LearningObjectivesView
         }
         scroll.Add(library);
         ui.RefreshNextActionGuidance();
-        scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, position));
+        scroll.schedule.Execute(() => scroll.scrollOffset = new Vector2(0, rackV2Objective && force ? 0f : position));
     }
 
     private void BuildTopic(VisualElement parent, Topic topic, int regenerationModel, bool market)

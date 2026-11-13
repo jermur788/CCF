@@ -21,7 +21,8 @@ public sealed class ActiveObjectiveHudWidget
     }
 
     public VisualElement Root { get; }
-    private readonly Label now, step, title, instruction, progress;
+    private readonly Label now, step, title, progress;
+    private readonly VisualElement instruction;
     private string shown = "";
 
     public ActiveObjectiveHudWidget(Action onDetails)
@@ -39,7 +40,8 @@ public sealed class ActiveObjectiveHudWidget
         header.Add(details);
         title = UiKit.Add(Root, "", "objective-title");
         title.name = "active-objective-title";
-        instruction = UiKit.Add(Root, "", "objective-instruction");
+        instruction = UiKit.Box("objective-instruction", "row-wrap");
+        Root.Add(instruction);
         instruction.name = "active-objective-instruction";
         progress = UiKit.Add(Root, "", "objective-progress");
         progress.name = "active-objective-progress";
@@ -61,7 +63,12 @@ public sealed class ActiveObjectiveHudWidget
         now.text = model.Complete ? "ONGOING" : "NOW";
         step.text = Step(model);
         title.text = model.Title;
-        instruction.text = model.Instruction;
+        if (model.Number == 1 && model.Instruction.Contains("[Tab]")) UiKit.KeyPrompts(instruction, model.Instruction);
+        else
+        {
+            instruction.Clear();
+            UiKit.Add(instruction, model.Instruction, "objective-instruction-text");
+        }
         progress.text = model.Progress;
         progress.style.display = string.IsNullOrEmpty(model.Progress) ? DisplayStyle.None : DisplayStyle.Flex;
         instruction.style.display = string.IsNullOrEmpty(model.Instruction) ? DisplayStyle.None : DisplayStyle.Flex;

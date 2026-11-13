@@ -16,6 +16,7 @@ public sealed partial class MenuHelpView
     private readonly ScrollView scroll;
     private readonly Button close, more;
     private readonly VisualElement window;
+    private readonly VisualElement keycapBody;
     public ScenarioOneOnboardingView Onboarding { get; }
     public VisualElement Root { get; }
     public bool IsOpen { get; private set; }
@@ -47,6 +48,8 @@ public sealed partial class MenuHelpView
         scroll.style.flexShrink = 1;
         body = UiKit.Add(scroll, "", "body");
         body.name = "menu-help-text";
+        keycapBody = UiKit.Box("help-keycap-prose");
+        scroll.Add(keycapBody);
         panel.Add(scroll);
 
         VisualElement bar = UiKit.Box("menu-help-bar");
@@ -130,9 +133,31 @@ public sealed partial class MenuHelpView
                     .Replace(ControlsReference.KeysLine, ControlsReference.KeysLineFor(true));
         }
         body.text = text;
+        bool keycaps = menu == Menu.StandMap;
+        body.style.display = keycaps ? DisplayStyle.None : DisplayStyle.Flex;
+        keycapBody.style.display = keycaps ? DisplayStyle.Flex : DisplayStyle.None;
+        keycapBody.Clear();
+        if (keycaps) AddKeycapProse(keycapBody, text);
         more.style.display = hasBrief ? DisplayStyle.Flex : DisplayStyle.None;
         more.text = summary != null ? MoreDetailLabel : LessDetailLabel;
         scroll.scrollOffset = Vector2.zero;
+    }
+
+    // Labels wrap at word boundaries; only explicit bracketed keys receive the existing keycap token.
+    // Keep ordinary prose, including Back to forest, as words rather than treating button names as keys.
+    private static void AddKeycapProse(VisualElement parent, string text)
+    {
+        foreach (string paragraph in text.Split(new[] { "\n\n" }, System.StringSplitOptions.None))
+        {
+            VisualElement line = UiKit.Box("row-wrap", "help-prose-paragraph");
+            foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(paragraph, @"\[[^\]]+\]|[^\s\[]+"))
+            {
+                string word = match.Value;
+                bool key = word.StartsWith("[") && word.EndsWith("]");
+                UiKit.Add(line, key ? word.Substring(1, word.Length - 2) : word, key ? "keycap" : "help-prose-word");
+            }
+            parent.Add(line);
+        }
     }
 
     // The same button opens the long explanation and, on a second press, goes back to the short text.

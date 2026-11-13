@@ -37,8 +37,8 @@ public sealed class WorkPlanView
 
         VisualElement header = UiKit.Box("modal-header");
         VisualElement left = new VisualElement();
-        title = UiKit.Add(left, "", "title");
-        owner = UiKit.Add(left, "", "subtitle");
+        title = UiKit.Add(left, "", "title", "workplan-title");
+        owner = UiKit.Add(left, "", "subtitle", "workplan-secondary");
         header.Add(left);
         VisualElement right = UiKit.Box("row", "screen-actions");
         cash = UiKit.Add(right, "", "money", "menu-current-status");

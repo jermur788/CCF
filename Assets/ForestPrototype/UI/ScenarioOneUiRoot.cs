@@ -46,6 +46,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private Label previewBanner;
     private MenuHelpView help;
     public MenuHelpView Help => help;
+    public string AnnualReviewInstruction => screen == UiScreen.Review
+        ? ScenarioOneRackBayText.ReviewOnScreenInstruction : ScenarioOneRackBayText.ReviewInstruction;
     public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;
 
     private UiScreen screen = UiScreen.None;
@@ -53,6 +55,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private float nextModalRefresh;
     private int helpClosedFrame = -1;
     private VisualElement animatedGuidance;
+    private bool objectiveOneDetailsOpened;
     public bool ReduceMotion { get; private set; } = true;
     public void SetReduceMotion(bool reduce) {
         ReduceMotion = reduce; PlayerPrefs.SetInt("CCF.UI.ReduceMotion", reduce ? 1 : 0); PlayerPrefs.Save();
@@ -554,6 +557,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             guidancePrimaries[owned] = owned.ClassListContains("btn-primary");
             owned.RemoveFromClassList("btn-primary");
         }
+        if (scope == review.Root) reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;
         guidanceScope = scope;
         guidanceCandidate = target != null ? scope.Q<Button>(target) : null;
         Label explanation = scope.Q<Label>("next-action-reason");
@@ -589,7 +593,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (!eligible) return;
         nextAction = candidate;
         nextBadge.AddToClassList("next-action-badge");
-        candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
+        if (!(candidate.name == "objective-primary-cta" && learning.TeachingRacks && manager.RackPlanningV2Active))
+            candidate.parent.Insert(candidate.parent.IndexOf(candidate), nextBadge);
         candidate.AddToClassList("btn-primary");
         candidate.AddToClassList("next-action");
     }
@@ -600,7 +605,8 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         bool suspended = Time.timeScale <= 0f || manager == null || manager.ReferencePreviewActive || StandaloneSessionMenu.IsOpen || help == null || help.IsOpen
             || helpClosedFrame == Time.frameCount || map.RackEditor.ConsentPending || map.RackEditor.ResetPending || map.ReopenPending || workPlan.ConfirmingAdvance;
         if (!suspended && nextAction != null && ScenarioOneTeachingSequence.SafePulseTarget(nextAction.name)) target = nextAction;
-        else if (!suspended && manager.RackPlanningV2Active && screen == UiScreen.None && !manager.WorkPlanOpen && learning.CurrentTopicIndex > 0
+        else if (!suspended && manager.RackPlanningV2Active && screen == UiScreen.None && !manager.WorkPlanOpen
+            && (learning.CurrentTopicIndex > 0 || !objectiveOneDetailsOpened)
             && learning.CurrentTopicIndex < 8 && !NeedsAnnualReview && !learning.NeedsReviewAcknowledgement)
             target = hud.ObjectiveWidget.Root;
         if (animatedGuidance != null && animatedGuidance != target) ResetGuidanceBorder(animatedGuidance);
@@ -695,6 +701,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (screen == UiScreen.Map && next == UiScreen.None && map.HasWaypoint)
             learning.Record("map.return");
         screen = next;
+        if (next == UiScreen.Objectives) objectiveOneDetailsOpened = true;
         CloseHelp();
         manager.SetAuxiliaryPanelOpen(screen != UiScreen.None);
         if (screen == UiScreen.Review)
@@ -755,7 +762,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (learning != null) learning.ReloadProgress();
     }
 
-    public void ShowScenarioIntroduction() => help.ShowScenarioIntroduction();
+    public void ShowScenarioIntroduction()
+    {
+        objectiveOneDetailsOpened = false;
+        help.ShowScenarioIntroduction();
+    }
 
     public void AcknowledgeAnnualReview()
     {

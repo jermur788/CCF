@@ -592,6 +592,7 @@ public sealed class StandMapView
         ScenarioOneManager manager = ui.Manager;
         VisualElement card = UiKit.Box("card", "rack-panel");
         card.name = "map-edit-card";
+        card.AddToClassList("map-planning-instructions");
         // The counter is the tracker's derived line: Racks planned while the plan is open, Rack entrances marked once it is confirmed.
         Label counter = UiKit.Add(card, ui.RackLayout != null ? ui.RackLayout.V2CounterText
             : $"Racks planned: {manager.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}", "body");

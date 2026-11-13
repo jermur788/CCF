@@ -55,6 +55,7 @@ public static class ScenarioOneRackBayText
             default: return null;
         }
     }
+    public const string ReviewOnScreenInstruction = "Read and acknowledge the Annual Review.";
     public const string ReviewTitle = "Review the year";
     public const string ReviewInstruction = "Read and acknowledge the Annual Review: open the Work Plan [Tab].";
     public const string ReviewProgress = "Read and acknowledge the annual results before continuing.";

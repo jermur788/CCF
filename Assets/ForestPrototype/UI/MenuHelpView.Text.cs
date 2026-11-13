@@ -38,7 +38,7 @@ public sealed partial class MenuHelpView
         switch (menu)
         {
             case Menu.TreeInspection: return "Tree Inspection · understand one tree";
-            case Menu.StandMap: return "Stand Map · find where to look";
+            case Menu.StandMap: return "Stand Map";
             case Menu.WorkPlan: return "Work Plan · review and approve jobs";
             case Menu.AnnualReview: return "Annual Review · learn from the year";
             case Menu.Rack: return "Extraction racks · open machine routes";
@@ -61,7 +61,7 @@ public sealed partial class MenuHelpView
             case Menu.TreeInspection:
                 return "Start with a tree worth keeping, then see what competes with it. The card shows its size and how crowded it is; press V for more detail. Press C to mark a Crop Tree (keep and favour) or X to propose felling. Marks are only proposals: nothing is cut until you approve work in the Work Plan.";
             case Menu.StandMap:
-                return "The map helps you decide where to look, not what to do. Choose a layer, select a square to read it, set a waypoint, then walk there and inspect the site yourself. It cannot mark, clear, plant or approve anything remotely.";
+                return "Choose a layer, select a square to read it, set a waypoint, then walk there and inspect the site yourself. It cannot mark, clear, plant or approve anything remotely.";
             case Menu.WorkPlan:
                 return "The Work Plan collects your marks and planting spots into jobs you can review and approve. Check each cost, then approve the plan. Approval alone changes nothing: Advance one year carries out the approved jobs, and jobs you have not approved wait.";
             default:
@@ -75,7 +75,7 @@ public sealed partial class MenuHelpView
 
     // Shown inside the Annual Review, beside the button that acknowledges the first results, instead of a help screen opening
     // on top of the review. The detailed explanation stays on Help [F1].
-    public const string AnnualReviewReadPrompt = "Read WORK DONE, MONEY and FOREST. One thinning does not finish continuous-cover forestry: when you have read them, walk back, inspect how the forest responded and reassess before the next intervention.";
+    public const string AnnualReviewReadPrompt = "One thinning does not finish continuous-cover forestry: when you have read them, walk back, inspect how the forest responded and reassess before the next intervention.";
 
     public static string SummaryTitle(Menu menu)
     {
@@ -95,7 +95,6 @@ public sealed partial class MenuHelpView
                     + TreeMarksOrangeText + " One spray paints vertical stripes on four sides of the entrance tree.\n\n"
                     + TreeMarksSimplificationText + "\n\n"
                     + "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first designated rack-removal tree at the headland-side rack entrance, within 3.5 m, and left-click; P stows the marker. "
-                    + "A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. "
                     + "Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].";
             case Menu.Rack:
                 return "An extraction rack is a straight corridor of felled trees across the plantation. The harvesting machine drives along it, so the rest of the stand can be thinned later without driving through standing trees. Racks are permanent extraction routes: they stay open for this and future thinnings.\n\n"
@@ -109,10 +108,10 @@ public sealed partial class MenuHelpView
                     + "Crop Trees are trees you choose to favour for the future. In this crown-release exercise, smaller neighbours usually contribute less to the measured Share. Share is a local (8 m) size-and-distance indicator (DBH/distance, Hegyi). It does not itself assess species, crown shape, height, shade tolerance, light direction, timber quality, habitat or wind stability. The 30% target is this game's calibrated crown-release exercise, not a universal rule or a verdict that one particular neighbour must go. Inspect which neighbours contribute most to the Share before deciding what to remove. On a Crop Tree's card, keys 1–5 show its listed neighbours in the forest.\n\n"
                     + "Close Help, then press E to close inspection and return to walking.";
             case Menu.StandMap:
-                return "The Stand Map is a plan of your property seen from above: every tree is drawn at the size of its crown, with the racks, the forest path and you, on a grid in metres. It helps you find patterns across the forest that are difficult to see among the trees. Open it with M when looking for a site to inspect. Underneath, the ground is divided into squares of 5 m × 5 m, each named by a letter and a number: point at the map to read the square and its figures.\n\n"
+                return "The Stand Map is a plan of your property seen from above: every tree is drawn at the size of its crown, with the racks, the forest path and you, on a grid in metres. It helps you find patterns across the forest that are difficult to see among the trees. Open it with [M] when looking for a site to inspect. Underneath, the ground is divided into squares of 5 m × 5 m, each named by a letter and a number: point at the map to read the square and its figures.\n\n"
                     + "Each layer adds its colour over the same plan: use Light for darker/brighter areas, Regeneration for young growth, Browsing / protection for deer browsing (deer eating the shoots of young trees) and the shelters that protect planted saplings, and Fell & crop marks for your marked trees.\n\n"
-                    + "Select a square, read its information, then choose Set Waypoint. Close the map with M, Esc or Back to forest. Follow the HUD direction and distance, then inspect the site directly before deciding what to do.\n\n"
-                    + "The map helps you find where to look. It cannot mark, clear, plant or approve work remotely, and it does not make the forestry decision for you.";
+                    + "Select a square, read its information, then choose Set Waypoint. Close the map with [M], [Esc] or Back to forest. Follow the HUD direction and distance, then inspect the site directly before deciding what to do.\n\n"
+                    + "It cannot mark, clear, plant or approve work remotely, and it does not make the forestry decision for you.";
             case Menu.WorkPlan:
                 return "The Work Plan collects decisions made in the forest into jobs you can review and approve. Open it with Tab after marking trees or planting/clearance sites; your marks join the plan when you open it.\n\n"
                     + "Review labour, material costs, cash after approved work and expected timber value. A contractor's minimum job charge can make a small harvest expensive. Some tasks let you choose contractor or landowner execution.\n\n"

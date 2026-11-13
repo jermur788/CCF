@@ -11,7 +11,7 @@
     --surface-section: rgb(27, 35, 38);
     --frame-border: rgba(109, 125, 132, 0.46);
     --frame-rule: rgba(109, 125, 132, 0.30);
-    --backdrop: rgba(7, 12, 16, 0.64);
+    --backdrop: rgba(7, 12, 16, 0.94);
     --ink: rgb(235, 237, 233);
     --ink-muted: rgb(174, 185, 189);
     --ink-faint: rgb(151, 165, 171);
@@ -672,3 +672,26 @@
     min-width: 0;
     white-space: normal;
 }
+
+/* #443: Objective 1 reading order and stable description/diagram anchor. */
+.modal-objectives .objectives-screen-title { font-size: 36px; }
+.modal-objectives .objectives-lesson-title { font-size: 28px; }
+.modal-objectives .menu-navigation .btn { font-size: 21px; }
+.modal-objectives .objective-part-text { font-size: 20px; }
+.objective-one-body { flex-wrap: nowrap; align-items: flex-start; }
+.objective-one-body > .objective-words { flex-basis: 40%; flex-grow: 0; flex-shrink: 0; margin-right: 18px; }
+.objective-instruction .context-note { width: auto; color: var(--ink); }
+.objective-instruction .keycap, .objective-instruction .key-verb { font-size: 18px; }
+.objective-instruction .key-control { margin: 0; }
+.help-prose-paragraph { margin-bottom: 10px; align-items: center; }
+.help-prose-word { font-size: var(--fs-reading); white-space: nowrap; margin-right: 5px; }
+.help-keycap-prose .keycap { font-size: var(--fs-reading); margin-right: 5px; }
+.map-planning-instructions { border-left-width: 3px; border-left-color: var(--accent); padding-left: 12px; }
+.map-planning-instructions .rack-heading { font-size: 22px; -unity-font-style: bold; }
+.modal-workplan .workplan-title { font-size: 36px; }
+.modal-workplan .menu-navigation .btn { font-size: 23px; }
+.modal-workplan .work-section { margin-top: 12px; margin-bottom: 12px; }
+.modal-workplan .work-section .unity-foldout__text { font-size: 21px; }
+.modal-workplan .workplan-secondary { font-size: 18px; margin-top: 6px; }
+
+.objective-instruction-text { white-space: normal; }
