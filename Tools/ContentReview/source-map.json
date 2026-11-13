@@ -114,6 +114,118 @@
       "lineCount": 158,
       "quotedLiteralCandidates": 41,
       "interpolatedStringStarts": 2
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/WorkPlanView.cs",
+      "sourceBlob": "1ccc04acedbde781940839a7dfbe310c66a1ed6e",
+      "readStatus": "READ",
+      "lineCount": 619,
+      "quotedLiteralCandidates": 292,
+      "interpolatedStringStarts": 44
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/WorkPlanOverview.cs",
+      "sourceBlob": "72f66ae2db224991487b910cd10bd390ddc97331",
+      "readStatus": "READ",
+      "lineCount": 254,
+      "quotedLiteralCandidates": 107,
+      "interpolatedStringStarts": 21
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
+      "sourceBlob": "8e133b0c28182132a08ed0ad2787614fcd8572c1",
+      "readStatus": "READ",
+      "lineCount": 781,
+      "quotedLiteralCandidates": 319,
+      "interpolatedStringStarts": 53
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/StandMapView.cs",
+      "sourceBlob": "92b3679a76f2a4d24e881112a6ed34d924f208fe",
+      "readStatus": "READ",
+      "lineCount": 990,
+      "quotedLiteralCandidates": 318,
+      "interpolatedStringStarts": 24
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/StandMapTreatmentReview.cs",
+      "sourceBlob": "f01ee8d477014db8fea909a7368406c776864fcf",
+      "readStatus": "READ",
+      "lineCount": 537,
+      "quotedLiteralCandidates": 206,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/TreeInspectionView.cs",
+      "sourceBlob": "92c5f2fa3f425a422cee740fc28918d34e705d2a",
+      "readStatus": "READ",
+      "lineCount": 363,
+      "quotedLiteralCandidates": 213,
+      "interpolatedStringStarts": 17
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/ScenarioOneTreatmentReview.cs",
+      "sourceBlob": "271ba338709e8a353aeb552509cd1763db8246c8",
+      "readStatus": "READ",
+      "lineCount": 605,
+      "quotedLiteralCandidates": 210,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/WalkingHudView.cs",
+      "sourceBlob": "131a2a4343180baa233ddb35376f5583172e8402",
+      "readStatus": "READ",
+      "lineCount": 397,
+      "quotedLiteralCandidates": 172,
+      "interpolatedStringStarts": 25
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/HudMinimapView.cs",
+      "sourceBlob": "34a0086d4818dbf6bfce64b8ba2cba50ec0977bb",
+      "readStatus": "READ",
+      "lineCount": 110,
+      "quotedLiteralCandidates": 11,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/TeachingDiagram.cs",
+      "sourceBlob": "40e868709dc2d4a2b5d1817dee547e978cf817b6",
+      "readStatus": "READ",
+      "lineCount": 297,
+      "quotedLiteralCandidates": 10,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/UI/UiKit.cs",
+      "sourceBlob": "6f2df0fc0701d9089bc00ba3cbe7ed7e5ef840cb",
+      "readStatus": "READ",
+      "lineCount": 119,
+      "quotedLiteralCandidates": 23,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneObjectives.cs",
+      "sourceBlob": "bdb78214c95da90f2c87ecb4ef779a16db4fd2de",
+      "readStatus": "READ",
+      "lineCount": 254,
+      "quotedLiteralCandidates": 54,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompletionGuidance.cs",
+      "sourceBlob": "098884acdc9164c16424c24373ab263d93317590",
+      "readStatus": "READ",
+      "lineCount": 81,
+      "quotedLiteralCandidates": 9,
+      "interpolatedStringStarts": 0
+    },
+    {
+      "path": "Assets/ForestPrototype/ScenarioOne/ManagementHistoryText.cs",
+      "sourceBlob": "45d8a56c0ad0629f86e2458d534c5d241a4d3323",
+      "readStatus": "READ",
+      "lineCount": 231,
+      "quotedLiteralCandidates": 94,
+      "interpolatedStringStarts": 28
     }
   ],
   "limitations": [
