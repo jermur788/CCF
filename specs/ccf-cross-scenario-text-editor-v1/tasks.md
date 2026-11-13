@@ -16,7 +16,7 @@
 | C-01 | Local static browser shell and responsive UX — `index.html`, `styles.css` | **IMPLEMENTED SOURCE** | Actual browser launch/render/focus behavior **UNRUN** |
 | C-02 | One-page navigation, nested sections, current status, search, variant selector, original/draft, revert/dirty — `app.js` | **IMPLEMENTED SOURCE** | JavaScript syntax and static checks PASS; live DOM click-through **UNRUN** |
 | C-03 | File chooser import, explicit export, downloadable revision stamp, in-memory safety — `app.js`, `core.js` | **IMPLEMENTED SOURCE** | Contract validation/round-trip logic PASS direct V8; downloaded file reimport through actual browser **UNRUN** |
-| C-04 | Schema identity/token/source safety, escaping/Unicode negative tests — `core.js`, `tests.mjs` | **IMPLEMENTED SOURCE** | 18/18 direct V8 checks PASS on current catalogue; Node `tests.mjs` **UNRUN** |
+| C-04 | Schema identity/token/source safety, escaping/Unicode negative tests — `core.js`, `tests.mjs` | **IMPLEMENTED SOURCE** | 30/30 direct V8 checks PASS on current catalogue; Node `tests.mjs` **UNRUN** |
 | C-05 | Read-only future drift scanner — `source-audit.mjs` | **IMPLEMENTED SOURCE** | A full local CCF checkout scan **UNRUN** |
 | C-06 | Offline usage/limitations guide — `README.md` | **PUBLISHED** | Explicit file://, optional localhost, import/export and integration gate |
 | D-01 | Pull-back/readback/diff of all new files, changed-path audit, verification matrix | **PENDING FINAL HANDOFF** | Must check allowable new paths and no Unity/source modifications |
