@@ -33,7 +33,7 @@
 - [x] SOURCE/V8 **B-04** — missing, extra and reordered named placeholder tokens rejected; malformed token patterns rejected in validation source.
 - [x] SOURCE/V8 **B-05** — empty required text, duplicate IDs, control characters, and HTML-like markup rejected; very long text checked/warned.
 - [x] SOURCE/V8 **B-06** — edited content exports to `draft-local-export` and always retains `unityIntegrated=false`, `reviewed=false`; no automatic approval.
-- [x] SOURCE/V8 **B-07** — 18/18 directly executed V8 checks PASS on final repaired seed; an earlier invalid initial two-variant seed was corrected, not hidden.
+- [x] SOURCE/V8 **B-07** — 30/30 directly executed V8 checks PASS on final repaired seed; an earlier invalid initial two-variant seed was corrected, not hidden.
 - [ ] BROWSER/NODE **B-08** — run committed `tests.mjs` through actual Node from a checkout and preserve stdout/version/exit status.
 - [ ] AUTHORITY **B-09** — approve a migration and content-ID/variant extension policy if source changes in future; prototype cannot generate approved new record identities.
 - [ ] AUTHORITY **B-10** — establish exact typed plural/units and naming policy before expanding synthetic templates; currently C# maintains numbers, units and plural decisions.
@@ -74,6 +74,6 @@
 
 ### Evidence statement
 
-**Directly executed in this task:** 18 JavaScript V8 parser/content-contract checks, all passed after correcting two source-extraction errors. **Not executed:** committed Node test script, whole-repo drift scanner, local browser interaction/visual screenshots, Unity Editor/compiler/Player, save/load or scenario reference qualification. All future browser/Unity requirements remain unchecked notwithstanding static source implementation.
+**Directly executed in this task:** 30 JavaScript V8 parser/content-contract checks, all passed after correcting two source-extraction errors. **Not executed:** committed Node test script, whole-repo drift scanner, local browser interaction/visual screenshots, Unity Editor/compiler/Player, save/load or scenario reference qualification. All future browser/Unity requirements remain unchecked notwithstanding static source implementation.
 
 A requirements check can be promoted to PASS only with direct evidence from the right execution environment. No routine user question is needed to finish the standalone browser-tool handoff.
