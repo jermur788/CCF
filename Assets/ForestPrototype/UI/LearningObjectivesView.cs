@@ -179,7 +179,7 @@ public sealed partial class LearningObjectivesView
         string practice = rackV2Objective ? RackV2Practice : lesson.Practice;
         if (!ReviewFirst && !string.IsNullOrEmpty(practice)) AddObjectivePart(detail, "What good practice looks like", practice, "current-objective-practice");
         UiKit.Add(words, CurrentProgress, "heading").name = "current-objective-progress";
-        if (!rackV2Objective) words.Add(detail);
+        words.Add(detail);
         body.Add(words);
         // The picture grows with the lessons: this lesson's picture shows only what the lessons so far have taught.
         // The extension has no picture of its own: it keeps the review picture of the lesson before it.
@@ -187,7 +187,7 @@ public sealed partial class LearningObjectivesView
         if (rackV2Objective)
         {
             body.AddToClassList("objective-one-body");
-            // Details flow below both columns, so opening them cannot push the diagram away from the description.
+            // The description and its details share one column; the diagram keeps its own top anchor.
             diagram.style.width = Length.Percent(56);
             diagram.style.flexBasis = 0;
         }
@@ -195,7 +195,6 @@ public sealed partial class LearningObjectivesView
         current.Add(body);
         if (rackV2Objective)
         {
-            current.Add(detail);
             detail.RegisterValueChangedCallback(e => {
                 if (e.target != detail) return;
                 float anchor = scroll.scrollOffset.y;

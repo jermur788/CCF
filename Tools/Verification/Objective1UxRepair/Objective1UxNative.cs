@@ -168,7 +168,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
                 for (int x = 0; x < image.width; x += 25) { samples++; if (image.GetPixel(x, y).maxColorComponent > 0.05f) lit++; }
             string file = state + "-" + size.x + "x" + size.y + ".png";
             if (state.Contains("before-first-spray")) CheckFirstArrowPixels(image);
-            if (ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !manager.WorkPlanOpen && !ui.Help.IsOpen) CheckMinimapFit(state);
+            if (!manager.ReferencePreviewActive && ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && !manager.WorkPlanOpen && !ui.Help.IsOpen) CheckMinimapFit(state);
             File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
             Destroy(image);
             Check(lit > samples / 20, "capture is not black " + file + " lit=" + lit + "/" + samples);
@@ -317,6 +317,12 @@ public sealed class Objective1UxRunner : MonoBehaviour
         Check(!ui.Learning.Root.Query<Label>(className: "next-action-badge").ToList().Any(Visible), "O1 CTA has no Next badge");
         yield return Shoot("g04-objectives");
         yield return DiagramAnchors();
+        if (Environment.GetEnvironmentVariable("CCF_O1443_MODE") == "diagram-negative")
+        {
+            Receipt("DELTA_SCOPE", "\"mode\":\"diagram-negative\",\"coreRouteRepeated\":false");
+            yield return NegativeControls();
+            yield break;
+        }
         yield return Invoke(Named("objective-primary-cta"), "Stand Map from Objectives");
         Check(ui.Help.IsOpen && ui.Help.CurrentMenu == MenuHelpView.Menu.StandMap, "first Stand Map help opens");
         yield return Shoot("g05-stand-map-help");
@@ -503,6 +509,15 @@ public sealed class Objective1UxRunner : MonoBehaviour
             + ",\"rightColumn\":" + this.Rect(ui.RootElement.Q("hud-right-column")) + ",\"reticle\":" + this.Rect(ui.RootElement.Q(className: "reticle")));
     }
 
+    private IEnumerator CaptureCurrent(string state)
+    {
+        yield return new WaitForEndOfFrame();
+        Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
+        Check(image != null && image.width == Screen.width && image.height == Screen.height, "rendered " + state);
+        File.WriteAllBytes(Path.Combine(output, state + "-" + Screen.width + "x" + Screen.height + ".png"), image.EncodeToPNG());
+        Destroy(image);
+    }
+
     private IEnumerator DiagramAnchors()
     {
         foreach (Vector2Int size in Sizes)
@@ -513,7 +528,10 @@ public sealed class Objective1UxRunner : MonoBehaviour
             for (int cycle = 1; cycle <= 3; cycle++)
             {
                 Foldout detail = ui.Learning.Root.Q<Foldout>("objective-more-detail");
+                Rect viewport = ui.Learning.Root.Q<ScrollView>().contentViewport.worldBound;
+                Check(Visible(detail) && detail.Q<Toggle>().worldBound.yMax <= viewport.yMax, "More detail toggle visible without scrolling " + size + " cycle " + cycle);
                 detail.value = true; yield return Settle(12);
+                if (cycle == 1) yield return CaptureCurrent("g04c-objectives-detail-open");
                 Rect opened = ui.Learning.Root.Q("teaching-diagram").worldBound;
                 Check(Vector2.Distance(opened.position, anchor.position) <= 2f, "diagram anchor stable More detail open " + size + " cycle " + cycle);
                 detail.value = false; yield return Settle(12);
@@ -522,6 +540,7 @@ public sealed class Objective1UxRunner : MonoBehaviour
                 yield return Native(Key("Escape"), Key("o")); yield return Settle(12);
                 Rect reopened = ui.Learning.Root.Q("teaching-diagram").worldBound;
                 Check(Vector2.Distance(reopened.position, anchor.position) <= 2f, "diagram anchor stable Esc/reopen " + size + " cycle " + cycle);
+                if (cycle == 3) yield return CaptureCurrent("g04d-objectives-final-anchor");
                 Receipt("DIAGRAM_ANCHOR", "\"size\":" + Q(size.x + "x" + size.y) + ",\"cycle\":" + cycle + ",\"x\":" + F(reopened.x) + ",\"y\":" + F(reopened.y));
             }
         }
