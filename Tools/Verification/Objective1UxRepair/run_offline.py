@@ -18,7 +18,7 @@ ALLOWED = {'Assets/ForestPrototype/' + p for p in (
     'ForestTreeMarkingManager.RackEntrances.cs', 'UI/ScenarioOneUiRoot.cs', 'UI/LearningObjectivesView.cs',
     'UI/ScenarioOneRackBayText.cs', 'UI/StandMapView.cs', 'UI/Map/StandMapSource.cs', 'UI/HudMinimapView.cs',
     'UI/WalkingHudView.cs', 'UI/ActiveObjectiveHudWidget.cs', 'UI/MenuHelpView.cs', 'UI/MenuHelpView.Text.cs',
-    'UI/WorkPlanView.cs', 'UI/Resources/ScenarioOneUi.uss')}
+    'UI/WorkPlanView.cs', 'UI/Resources/ScenarioOneUi.uss', 'ScenarioOne/ScenarioOneManager.RackPlan.cs')}
 checks = []
 def check(ok, why):
     checks.append(bool(ok)); print(('PASS ' if ok else 'FAIL ') + why, flush=True)
@@ -34,6 +34,19 @@ def method(text, signature):
         depth += (text[i] == '{') - (text[i] == '}')
         if depth == 0: return text[start:i + 1]
     raise ValueError(signature)
+
+def rack_plan_copy_only(candidate, baseline):
+    # Direct user F-1 decision: this fourteenth production file permits exactly two copy lines.
+    replacements = (
+        ('        feedback = $"Marked the entrance tree {rack.entranceTreeId} for rack {rackId}.";',
+         '        feedback = $"Marked the entrance tree {rack.entranceTreeId}.";'),
+        ('        feedback = $"Cleared the entrance mark for rack {rackId}.";',
+         '        feedback = "Cleared the entrance mark.";'))
+    for old, new in replacements:
+        if baseline.count(old) != 1:
+            return False
+        baseline = baseline.replace(old, new)
+    return candidate == baseline
 
 def planning_border(styles, planning=True):
     ancestors = [{'modal-map', 'modal'}]
@@ -69,6 +82,17 @@ def main():
     changed = set(git('diff', '--name-only', BASE+'..HEAD', '--', 'Assets', 'ProjectSettings', 'Packages').splitlines())
     changed |= set(git('diff', '--name-only', 'HEAD', '--', 'Assets', 'ProjectSettings', 'Packages').splitlines())
     check(changed <= ALLOWED, 'production allowlist from git diff --name-only 55863f1b..HEAD (also pending edits): ' + ', '.join(sorted(changed-ALLOWED)))
+    rack_path = 'Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.RackPlan.cs'
+    rack_plan = (ROOT/rack_path).read_text(); old_rack_plan = git('show', BASE + ':' + rack_path)
+    check(rack_plan_copy_only(rack_plan, old_rack_plan), 'F-1 allowlist exception: entire manager file equals base with exactly the two authorised feedback lines')
+    check(not rack_plan_copy_only(rack_plan + '// unrelated change\n', old_rack_plan)
+          and not rack_plan_copy_only(old_rack_plan, old_rack_plan)
+          and not rack_plan_copy_only(rack_plan.replace('Applied(feedback, rackId)', 'Applied(feedback, 1)'), old_rack_plan),
+          'F-1 allowlist guard rejects extra edits, unchanged copy and altered result identity')
+    feedback_line = lambda signature: re.findall(r'^        feedback = (.+);$', method(rack_plan, signature), re.M)
+    check(feedback_line('public RackPlanOperationResult MarkRackEntrance(') == ['$"Marked the entrance tree {rack.entranceTreeId}."']
+          and feedback_line('public RackPlanOperationResult ClearRackEntranceMark(') == ['"Cleared the entrance mark."'],
+          'F-1 Mark/Clear feedback has exact neutral copy with no stored rack number')
     check(not git('ls-files', '--others', '--exclude-standard', '--', 'Assets').strip(), 'no staged disposable assets or .meta')
     check('private bool objectiveOneDetailsOpened;' in root and 'if (next == UiScreen.Objectives) objectiveOneDetailsOpened = true;' in root
           and 'objectiveOneDetailsOpened = false;' in method(root,'public void ShowScenarioIntroduction()'), 'session latch set on Objectives entry and reset for a new introduction')

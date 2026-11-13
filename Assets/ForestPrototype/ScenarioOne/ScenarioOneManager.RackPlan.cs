@@ -416,7 +416,7 @@ public sealed partial class ScenarioOneManager
             return RackPlanOperationResult.Invalid("The entrance tree already carries a Fell mark and cannot also carry the rack mark.", rackId);
 
         rack.entranceMarked = true;
-        feedback = $"Marked the entrance tree {rack.entranceTreeId} for rack {rackId}.";
+        feedback = $"Marked the entrance tree {rack.entranceTreeId}.";
         return RackPlanOperationResult.Applied(feedback, rackId);
     }
 
@@ -430,7 +430,7 @@ public sealed partial class ScenarioOneManager
         if (!rack.entranceMarked)
             return RackPlanOperationResult.NoChange("This rack entrance is not marked.", rackId);
         rack.entranceMarked = false;
-        feedback = $"Cleared the entrance mark for rack {rackId}.";
+        feedback = "Cleared the entrance mark.";
         return RackPlanOperationResult.Applied(feedback, rackId, marksCleared: 1);
     }
 

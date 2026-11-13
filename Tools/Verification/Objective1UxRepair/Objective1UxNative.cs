@@ -707,18 +707,29 @@ public sealed class Objective1UxRunner : MonoBehaviour
         string transient = marks.TransientMessage;
         VisualElement hudMessageRow = ui.RootElement.Q(className: "hud-message");
         Label hudMessage = hudMessageRow?.Q<Label>();
-        string file = label.ToLowerInvariant() + "-post-spray-rack-" + ordinal + "-stable-" + owner.Id + "-" + Screen.width + "x" + Screen.height + ".png";
-        Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
-        double elapsed = Time.realtimeSinceStartupAsDouble - requestedAt;
-        Check(image != null && image.width == Screen.width && image.height == Screen.height, "post-spray rendered capture " + file);
-        File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
-        Destroy(image);
-        Receipt("POST_SPRAY_CAPTURE", "\"file\":" + Q(file) + ",\"visitIndex\":" + ordinal + ",\"stableRackId\":" + owner.Id
-            + ",\"treeId\":" + Q(tree.TreeId) + ",\"secondsSinceInputRequest\":" + elapsed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
-            + ",\"transientMessage\":" + Q(transient) + ",\"hudMessage\":" + Q(hudMessage != null ? hudMessage.text : ""));
-        Check(elapsed < 2.5, "post-spray capture within 2.5 seconds of input request for Rack " + ordinal);
-        Check(!string.IsNullOrEmpty(transient) && Visible(hudMessageRow) && hudMessage != null && hudMessage.text == transient,
-            "post-spray capture shows the live HUD transient message for Rack " + ordinal);
+        foreach (Vector2Int size in Sizes)
+        {
+            if (Screen.width != size.x || Screen.height != size.y)
+            {
+                SetGameSize(size.x, size.y);
+                yield return Settle(2);
+                yield return new WaitForEndOfFrame();
+            }
+            string file = label.ToLowerInvariant() + "-post-spray-rack-" + ordinal + "-stable-" + owner.Id + "-" + size.x + "x" + size.y + ".png";
+            Texture2D image = ScreenCapture.CaptureScreenshotAsTexture();
+            double elapsed = Time.realtimeSinceStartupAsDouble - requestedAt;
+            Check(image != null && image.width == size.x && image.height == size.y, "post-spray rendered capture " + file);
+            File.WriteAllBytes(Path.Combine(output, file), image.EncodeToPNG());
+            Destroy(image);
+            Receipt("POST_SPRAY_CAPTURE", "\"file\":" + Q(file) + ",\"visitIndex\":" + ordinal + ",\"stableRackId\":" + owner.Id
+                + ",\"treeId\":" + Q(tree.TreeId) + ",\"secondsSinceInputRequest\":" + elapsed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
+                + ",\"transientMessage\":" + Q(marks.TransientMessage) + ",\"hudMessage\":" + Q(hudMessage != null ? hudMessage.text : ""));
+            Check(elapsed < 2.5, "post-spray capture within 2.5 seconds of input request for Rack " + ordinal + " at " + size);
+            Check(!string.IsNullOrEmpty(marks.TransientMessage) && Visible(hudMessageRow) && hudMessage != null && hudMessage.text == transient,
+                "post-spray capture shows the live HUD transient message for Rack " + ordinal + " at " + size);
+        }
+        SetGameSize(1280, 720);
+        yield return Settle(2);
         var planView = (WorkPlanView)typeof(ScenarioOneUiRoot).GetField("workPlan", AnyInstance).GetValue(ui);
         planView.Refresh(true);
         var planFeedback = (Label)typeof(WorkPlanView).GetField("feedback", AnyInstance).GetValue(planView);
