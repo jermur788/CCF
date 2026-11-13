@@ -48,6 +48,12 @@ check("protected step identity mutation rejected",()=>{
  assert.ok(!v(p).ok);assert.ok(v(p).errors.some(x=>x.includes("Page order")));
 });
 check("source provenance mutation rejected",()=>{const p=mutated(d=>d.entries[0].source.path="Assets/Evil.cs");assert.ok(!v(p).ok);});
+check("untrusted approval stamp rejected",()=>{const p=mutated(d=>d.provenance.reviewed=true);assert.ok(!v(p).ok);});
+check("package ID, note and coverage tampering rejected",()=>{
+ for(const change of [d=>d.packageId="unknown",d=>d.entries[0].note="touched",d=>d.coverage.notes.push("fake")]){
+  assert.ok(!v(mutated(change)).ok);
+ }
+});
 check("duplicate content ID rejected",()=>{const p=mutated(d=>d.entries[1].id=d.entries[0].id);assert.ok(!v(p).ok);});
 check("empty required text rejected",()=>{const p=mutated(d=>d.entries[0].text="   ");assert.ok(!v(p).ok);});
 check("control characters rejected",()=>{const p=mutated(d=>d.entries[0].text="bad\u0000copy");assert.ok(!v(p).ok);});
