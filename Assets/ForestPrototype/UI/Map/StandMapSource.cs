@@ -65,6 +65,7 @@ public sealed class StandMapSource
     private const int HeadlandLookupLimit = 6;
 
     public int HeadlandProjectionReads { get; private set; }
+    public int RackFieldTargetOrdinal { get; private set; }
 
     // How many times the trees were read and how many of those changed the canopy. A verification reads these to show a walk reads nothing.
     public int TreeScans { get; private set; }
@@ -153,6 +154,7 @@ public sealed class StandMapSource
             model.Juveniles.Clear();
             model.Shelters.Clear();
             model.HasPlayer = model.HasWaypoint = false;
+            RackFieldTargetOrdinal = 0;
             model.TeachingFrame = null;
             model.StampTrees();
             model.Restamp();
@@ -208,6 +210,15 @@ public sealed class StandMapSource
 
         Vector2 target = default;
         model.HasWaypoint = ui.Map != null && ui.Map.TryGetWaypointTarget(out target);
+        // Project the same unmarked entrance as the walking arrow, including before the first spray.
+        // This never changes the player's chosen waypoint or any rack record.
+        RackFieldTargetOrdinal = 0;
+        if (player != null && ui.Marking != null && ui.Marking.TryGetRackFieldTarget(out RackPlanRack rack, out ForestTree tree, out _))
+        {
+            model.HasWaypoint = true;
+            target = new Vector2(tree.transform.position.x, tree.transform.position.z);
+            RackFieldTargetOrdinal = ui.Marking.RackVisitIndex(rack.Id);
+        }
         if (model.HasWaypoint)
             model.Waypoint = new RackPoint(target.x, target.y);
         model.Restamp();

@@ -60,6 +60,7 @@ public sealed class WalkingHudView
         contextActions = UiKit.Box("panel", "context-actions", "row-wrap");
         contextActions.name = "hud-context-actions";
         Root.Add(contextActions);
+        contextActions.style.right = HudMinimapView.SidePx + 36f;
 
         waypointPanel = UiKit.Box("panel", "hud-waypoint", "row");
         waypointPanel.name = "hud-waypoint-panel";
@@ -174,7 +175,7 @@ public sealed class WalkingHudView
             rackDestination = hasWaypoint = true;
             target = new Vector2(entranceTree.transform.position.x, entranceTree.transform.position.z);
             float distance = Vector2.Distance(target, new Vector2(player.transform.position.x, player.transform.position.z));
-            waypoint.text = $"Rack {fieldRack.Id} entrance · {distance:0} m";
+            waypoint.text = $"Rack {marks.RackVisitIndex(fieldRack.Id)} entrance · {distance:0} m";
         }
 
         waypointPanel.style.display = hasWaypoint ? DisplayStyle.Flex : DisplayStyle.None;
@@ -186,7 +187,8 @@ public sealed class WalkingHudView
             Vector2 forward = new Vector2(player.transform.forward.x, player.transform.forward.z);
             float bearing = -Vector2.SignedAngle(forward, delta);
             bool arrived = eco != null && delta.magnitude < eco.CellSizeMeters * 0.5f;
-            waypointArrow.style.display = arrived ? DisplayStyle.None : DisplayStyle.Flex;
+            // A rack is complete only after spraying, even inside the normal waypoint arrival radius.
+            waypointArrow.style.display = arrived && !rackDestination ? DisplayStyle.None : DisplayStyle.Flex;
             waypointArrow.SetBearing(bearing);
             waypointDirection.text = rackDestination ? "[P] Spray marker · aim at the cued trunk within 3.5 m"
                 : arrived ? "At destination · inspect the site"

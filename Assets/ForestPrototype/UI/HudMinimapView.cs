@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 public sealed class HudMinimapView
 {
     // Side of the map in UI units (the UI scales with the screen; the reference screen is 1600 x 900).
-    public const float SidePx = 196f;
+    public const float SidePx = 310f;
     private const float FrameAllowancePx = 10f;
 
     private readonly ScenarioOneUiRoot ui;
@@ -27,6 +27,9 @@ public sealed class HudMinimapView
     public StandMapCanopyLayer Canopy => surface.Canopy;
     public bool Visible => Root.style.display != DisplayStyle.None;
     private bool suppressed;
+    private readonly VisualElement destinationRing;
+    private readonly Label destinationLabel;
+    private float firstTargetTime = -1f;
 
     // The dashed/solid teaching note (RACK-V2-07). Session memory only: the schema is not touched by this task, so a new session shows
     // it again. It appears while the suggestions are the thing on the map, for NoteSeconds, and never after the plan is confirmed.
@@ -52,6 +55,21 @@ public sealed class HudMinimapView
         surface.style.width = SidePx;
         surface.style.height = SidePx;
         Root.Add(surface);
+        destinationRing = new VisualElement { name = "minimap-rack-target", pickingMode = PickingMode.Ignore };
+        destinationRing.style.position = Position.Absolute;
+        destinationRing.style.width = destinationRing.style.height = 24f;
+        destinationRing.style.borderTopLeftRadius = destinationRing.style.borderTopRightRadius = 12f;
+        destinationRing.style.borderBottomLeftRadius = destinationRing.style.borderBottomRightRadius = 12f;
+        destinationRing.style.borderTopColor = destinationRing.style.borderBottomColor = UiKit.WaypointColour;
+        destinationRing.style.borderLeftColor = destinationRing.style.borderRightColor = UiKit.WaypointColour;
+        surface.Add(destinationRing);
+        destinationLabel = UiKit.Text("", "keycap");
+        destinationLabel.name = "minimap-rack-label";
+        destinationLabel.pickingMode = PickingMode.Ignore;
+        destinationLabel.style.position = Position.Absolute;
+        destinationLabel.style.fontSize = 16;
+        destinationLabel.style.backgroundColor = new Color(.08f, .11f, .12f, 1f);
+        surface.Add(destinationLabel);
         // "N" beside the north arrow the plan draws (the one word on the minimap).
         Label north = UiKit.Text("N", "hud-minimap-north");
         north.pickingMode = PickingMode.Ignore;
@@ -85,7 +103,29 @@ public sealed class HudMinimapView
         bool show = model != null && model.HasProperty && !suppressed;
         Root.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (show) surface.Sync(model);
+        UpdateDestination(show ? model : null);
         UpdateTeachingNote(show);
+    }
+
+    private void UpdateDestination(StandMapModel model)
+    {
+        bool show = model != null && model.HasWaypoint && ui.MapSource.RackFieldTargetOrdinal > 0;
+        destinationRing.style.display = destinationLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+        if (!show) return;
+        if (firstTargetTime < 0f) firstTargetTime = Time.unscaledTime;
+        var transform = new StandMapTransform(model.MinX, model.MinZ, model.SizeM, SidePx);
+        MapPosition at = transform.WorldToPixels(model.Waypoint);
+        destinationRing.style.left = at.X - 12f;
+        destinationRing.style.top = at.Y - 12f;
+        destinationLabel.text = "Rack " + ui.MapSource.RackFieldTargetOrdinal;
+        destinationLabel.style.left = Mathf.Clamp(at.X + 14f, 2f, SidePx - 82f);
+        destinationLabel.style.top = Mathf.Clamp(at.Y - 30f, 2f, SidePx - 24f);
+        // Static ring is always clear. Only the first appearance adds a gentle tint when motion is allowed.
+        float wave = ui.ReduceMotion || Time.unscaledTime - firstTargetTime > 6f ? 0f
+            : .5f + .5f * Mathf.Sin(Time.unscaledTime * (2f * Mathf.PI / 1.2f));
+        float width = 2f + wave;
+        destinationRing.style.borderTopWidth = destinationRing.style.borderBottomWidth = width;
+        destinationRing.style.borderLeftWidth = destinationRing.style.borderRightWidth = width;
     }
 
     // Shown only while a V2 plan is still open, so the dashed lines it explains are on the map; it ends after NoteSeconds or the moment

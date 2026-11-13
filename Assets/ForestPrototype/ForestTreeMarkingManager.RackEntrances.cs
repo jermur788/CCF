@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -49,13 +51,29 @@ public sealed partial class ForestTreeMarkingManager
         return false;
     }
 
-    // First unmarked, unworked rack by stable ID. Never redirect a broken rack to a nearby tree.
+    // Visit numbers describe confirmed entrance position, not saved identity. Keep marked racks
+    // in this ordering so an out-of-order spray never renumbers the remaining entrances.
+    public static IEnumerable<RackPlanRack> RackVisitOrder(IEnumerable<RackPlanRack> racks)
+        => racks.Where(r => r != null).OrderBy(r => r.Entrance.Z).ThenBy(r => r.Id);
+
+    public int RackVisitIndex(int rackId)
+    {
+        int index = 0;
+        foreach (RackPlanRack rack in RackVisitOrder(RackScenario.ConfirmedRacks))
+        {
+            index++;
+            if (rack.Id == rackId) return index;
+        }
+        return 0;
+    }
+
+    // First unmarked, unworked rack south to north. Never redirect a broken rack to a nearby tree.
     public bool TryGetRackFieldTarget(out RackPlanRack rack, out ForestTree tree, out string problem)
     {
         rack = null; tree = null; problem = "";
         ScenarioOneManager scenario = RackScenario;
         if (scenario == null || !scenario.RackPlanningV2Active || !scenario.RackPlanConfirmed) return false;
-        foreach (RackPlanRack candidate in scenario.ConfirmedRacks)
+        foreach (RackPlanRack candidate in RackVisitOrder(scenario.ConfirmedRacks))
         {
             if (candidate.EntranceMarked || candidate.IsLocked) continue;
             rack = candidate;
@@ -175,7 +193,7 @@ public sealed partial class ForestTreeMarkingManager
             if (tree.IsCropTree) return "Crop Tree · remove its blue designation before spraying";
             if (tree.IsMarkedForFell) return "Fell mark · remove its red designation before spraying";
             if (!scenario.TryGetRackEntranceTarget(rack.Id, out _, out string problem)) return problem;
-            return $"Rack {rack.Id} entrance · [Left-click] Spray orange · [P] Stow";
+            return $"Rack {RackVisitIndex(rack.Id)} entrance · [Left-click] Spray orange · [P] Stow";
         }
         return "Not a rack entrance · follow the entrance cue · [P] Stow";
     }
