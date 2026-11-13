@@ -21,13 +21,21 @@ public partial class ForestTreeMarkingManager {
  private bool TryRackSprayAim(out ForestTree tree) {tree=Aim; return tree!=null;} public bool HasRackEntranceMark(ForestTree tree)=>RackScenario.ConfirmedRacks.Any(r=>r.EntranceTreeId==tree.TreeId&&r.EntranceMarked);
  private void CreateRackEntranceMarker(ForestTree t) {} private void PlaySprayFeedback() {} private void SetMessage(string s) {}
 }
-public class VisualElement { public string name,Text,Class; public List<VisualElement> Children=new List<VisualElement>(); public void Add(VisualElement e)=>Children.Add(e); }
+public enum DisplayStyle { Flex, None }
+public class Style { public DisplayStyle display; }
+public class VisualElement {
+ public string name,Text,Class; public VisualElement parent; public Style style=new Style(); public List<VisualElement> Children=new List<VisualElement>();
+ public void Add(VisualElement element) {element.parent=this;Children.Add(element);}
+ public T Q<T>(string targetName) where T:VisualElement => Children.Select(child=>child.name==targetName?child as T:child.Q<T>(targetName)).FirstOrDefault(child=>child!=null);
+}
+public class Button:VisualElement {}
 public static class UiKit { public static VisualElement Box(params string[] cls)=>new VisualElement(); public static VisualElement Add(VisualElement p,string text,params string[] cls) { var e=new VisualElement{Text=text,Class=string.Join(" ",cls)};p.Add(e);return e; } }
 public class HelpProbe { public bool IsOpen; }
 public class LearningProbe { public int CurrentTopicIndex; public bool NeedsReviewAcknowledgement; }
 public class EditorProbe { public bool ConsentPending,ResetPending; }
 public class MapProbe { public EditorProbe RackEditor=new EditorProbe(); public bool ReopenPending; }
 public class WorkProbe { public bool ConfirmingAdvance; }
+public class ReviewProbe { public VisualElement Root=new VisualElement(); }
 public class HudProbe { public Widget ObjectiveWidget=new Widget(); public class Widget { public VisualElement Root=new VisualElement(); } }
 public enum UiScreen { None,Map,Objectives }
 public static class Time { public static float timeScale=1; public static int frameCount=20; }
@@ -36,6 +44,7 @@ public static class ScenarioOneTeachingSequence { public static bool SafePulseTa
 public partial class GuidanceProbe {
  public ScenarioOneManager manager=new ScenarioOneManager(); public HelpProbe help=new HelpProbe(); public int helpClosedFrame=-1;
  public LearningProbe learning=new LearningProbe(); public MapProbe map=new MapProbe(); public WorkProbe workPlan=new WorkProbe(); public HudProbe hud=new HudProbe();
+ public ReviewProbe review=new ReviewProbe();
  public VisualElement nextAction; public bool objectiveOneDetailsOpened,NeedsAnnualReview; public UiScreen screen;
 }
 public static class OfflineProbe {
@@ -67,6 +76,18 @@ public static class OfflineProbe {
   g.nextAction=new VisualElement{name="map-plan-rack"};Check(g.Select()==g.nextAction,"existing Plan Racks safe pulse");
   g.nextAction=new VisualElement{name="workplan-approve"};Check(g.Select()!=g.nextAction,"Approve never pulses");g.nextAction=null;
   g.manager.RackPlanningV2Active=false;Check(g.Select()==null,"legacy cue negative");
+  var acknowledgement=new VisualElement(); var acknowledge=new Button{name="annual-review-acknowledge"};
+  acknowledgement.Add(acknowledge); g.review.Root.Add(acknowledgement);
+  const string previousInstruction="Previous learning instruction";
+  g.NeedsAnnualReview=true;
+  Check(g.ReviewReason(g.review.Root,previousInstruction)==ScenarioOneRackBayText.ReviewOnScreenInstruction,"pending latest review gets on-screen acknowledgement instruction");
+  Check(g.ReviewReason(new VisualElement(),previousInstruction)==previousInstruction,"non-review scope keeps previous instruction");
+  acknowledgement.style.display=DisplayStyle.None;
+  Check(g.ReviewReason(g.review.Root,previousInstruction)==previousInstruction,"earlier-year read-only review keeps previous instruction even with latest acknowledgement pending");
+  acknowledgement.style.display=DisplayStyle.Flex; g.NeedsAnnualReview=false;
+  Check(g.ReviewReason(g.review.Root,previousInstruction)==previousInstruction,"acknowledged latest review keeps previous instruction");
+  g.NeedsAnnualReview=true; g.review.Root=new VisualElement();
+  Check(g.ReviewReason(g.review.Root,previousInstruction)==previousInstruction,"missing acknowledgement control keeps previous instruction");
   string summary=MenuHelpView.Summary(MenuHelpView.Menu.StandMap), detail=MenuHelpView.Explanation(MenuHelpView.Menu.StandMap), marks=MenuHelpView.Explanation(MenuHelpView.Menu.TreeMarks);
   Check(MenuHelpView.Title(MenuHelpView.Menu.StandMap)=="Stand Map"&&!summary.Contains("The map helps")&&!detail.Contains("The map helps"),"approved Stand Map copy deletions");
   var prose=new VisualElement();KeycapProbe.AddKeycapProse(prose,detail);

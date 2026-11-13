@@ -686,7 +686,7 @@
 .help-prose-paragraph { margin-bottom: 10px; align-items: center; }
 .help-prose-word { font-size: var(--fs-reading); white-space: nowrap; margin-right: 5px; }
 .help-keycap-prose .keycap { font-size: var(--fs-reading); margin-right: 5px; }
-.map-planning-instructions { border-left-width: 3px; border-left-color: var(--accent); padding-left: 12px; }
+.modal-map .map-planning-instructions { border-left-width: 3px; border-left-color: var(--accent); padding-left: 12px; }
 .map-planning-instructions .rack-heading { font-size: 22px; -unity-font-style: bold; }
 .modal-workplan .workplan-title { font-size: 36px; }
 .modal-workplan .menu-navigation .btn { font-size: 23px; }

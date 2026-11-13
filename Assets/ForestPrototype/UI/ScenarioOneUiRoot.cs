@@ -557,7 +557,9 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             guidancePrimaries[owned] = owned.ClassListContains("btn-primary");
             owned.RemoveFromClassList("btn-primary");
         }
-        if (scope == review.Root) reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;
+        if (scope == review.Root && NeedsAnnualReview
+            && review.Root.Q<Button>("annual-review-acknowledge")?.parent.style.display == DisplayStyle.Flex)
+            reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;
         guidanceScope = scope;
         guidanceCandidate = target != null ? scope.Q<Button>(target) : null;
         Label explanation = scope.Q<Label>("next-action-reason");

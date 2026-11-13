@@ -35,6 +35,28 @@ def method(text, signature):
         if depth == 0: return text[start:i + 1]
     raise ValueError(signature)
 
+def planning_border(styles, planning=True):
+    ancestors = [{'modal-map', 'modal'}]
+    card = {'card', 'rack-panel'} | ({'map-planning-instructions'} if planning else set())
+    winner = (-1, -1, -1, '')
+    for order, rule in enumerate(re.finditer(r'([^{}]+)\{([^{}]*)\}', styles)):
+        selectors, declarations = rule.groups()
+        for selector in selectors.split(','):
+            parts = selector.strip().split()
+            if not parts or any(not re.fullmatch(r'(?:\.[\w-]+)+', part) for part in parts):
+                continue
+            classes = [set(re.findall(r'\.([\w-]+)', part)) for part in parts]
+            if not classes[-1] <= card:
+                continue
+            remaining = iter(reversed(ancestors))
+            if not all(any(required <= ancestor for ancestor in remaining) for required in reversed(classes[:-1])):
+                continue
+            for declaration, item in enumerate(declarations.split(';')):
+                name, separator, value = item.partition(':')
+                if separator and name.strip() in ('border-color', 'border-left-color'):
+                    winner = max(winner, (sum(len(group) for group in classes), order, declaration, value.strip()))
+    return winner[-1]
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--out', type=Path, required=True); a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
@@ -64,8 +86,11 @@ def main():
     check('contextActions.style.right = HudMinimapView.SidePx + 36f;' in hud, 'bottom controls reserve actual minimap width')
     check('ui.ReduceMotion || Time.unscaledTime - firstTargetTime > 6f' in mini, 'minimap keeps static ring with motion ON by default')
     check('model.Number == 1 && model.Instruction.Contains("[Tab]")' in (UI/'ActiveObjectiveHudWidget.cs').read_text(), 'completion keycaps are scoped to Objective 1')
-    check('scope == review.Root) reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;' in root
-          and 'screen == UiScreen.Review' in root and 'ui.AnnualReviewInstruction' in (UI/'LearningObjectivesView.cs').read_text(), 'review instruction is screen-aware without gate edits')
+    check('screen == UiScreen.Review' in root and 'ui.AnnualReviewInstruction' in (UI/'LearningObjectivesView.cs').read_text(), 'review instruction is screen-aware without gate edits')
+    styles = (UI/'Resources/ScenarioOneUi.uss').read_text()
+    check(planning_border(styles) == 'var(--accent)', 'planning card accent wins actual class specificity and source order')
+    check(planning_border(styles, planning=False) == 'var(--map-rule)', 'other map rack panels retain map-rule edge')
+    check(planning_border(styles.replace('.modal-map .map-planning-instructions {', '.map-planning-instructions {')) != 'var(--accent)', 'specificity contract rejects original F-2 selector')
     work = (UI/'WorkPlanView.cs').read_text(); old_work = git('show',BASE+':Assets/ForestPrototype/UI/WorkPlanView.cs')
     normal = lambda t: t.replace(', "workplan-title"','').replace(', "workplan-secondary"','')
     check(normal(work)==old_work,'Work Plan C# changes are class mapping only')
@@ -77,8 +102,11 @@ def main():
     # Exercise the actual guidance selection statements with lightweight presentation neighbours.
     animate=method(root,'private void AnimateGuidance()'); selection=animate[animate.index('VisualElement target = null;'):animate.index('if (animatedGuidance != null')]
     (a.out/'ExtractedGuidance.cs').write_text('public partial class GuidanceProbe { public VisualElement Select() { '+selection+'return target; } }')
+    review_override = re.search(r'if \(scope == review.Root\b[^;]+reason = ScenarioOneRackBayText.ReviewOnScreenInstruction;', root)[0]
+    review_copy = re.search(r'public const string ReviewOnScreenInstruction = [^;]+;', (UI/'ScenarioOneRackBayText.cs').read_text())[0]
+    (a.out/'ExtractedReview.cs').write_text('public static class ScenarioOneRackBayText { '+review_copy+' }\npublic partial class GuidanceProbe { public string ReviewReason(VisualElement scope, string reason) { '+review_override+' return reason; } }')
     (a.out/'ExtractedKeycaps.cs').write_text('public class KeycapProbe { '+method((UI/'MenuHelpView.cs').read_text(),'private static void AddKeycapProse(').replace('private static','public static',1)+' }')
-    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
+    sources=[a.out/'ExtractedKeycaps.cs',a.out/'ExtractedMarking.cs',a.out/'ExtractedGuidance.cs',a.out/'ExtractedReview.cs', Path(__file__).with_name('OfflineProbe.cs'), UI/'MenuHelpView.Text.cs',UI/'ControlsReference.cs',UI/'Map/StandMapTransform.cs']
     (a.out/'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup><ItemGroup>'+''.join('<Compile Include="'+escape(str(p))+'" />' for p in sources)+'</ItemGroup></Project>')
     env=dict(os.environ,DOTNET_CLI_TELEMETRY_OPTOUT='1',DOTNET_NOLOGO='1')
     p=subprocess.run(['dotnet','run','--project',str(a.out/'probe.csproj'),'-c','Release'],env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
