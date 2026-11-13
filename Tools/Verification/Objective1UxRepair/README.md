@@ -1,6 +1,6 @@
 # #443 Objective 1 UX repair verification
 
-Production authority: the G3 bounded spec at `2d94cc26` and Manager's 2026-11-13 G3 verdict. O1-08, geometry, unchosen wording and Objective 2 are excluded.
+Production authority: the G3 bounded spec at `2d94cc26`, Manager's 2026-11-13 G3 verdict, and the direct user's 13 November F-1 two-feedback-line scope exception. O1-08, geometry, unchosen wording and Objective 2 are excluded.
 
 Run from the assigned lane with `python3 -B`:
 
@@ -39,9 +39,9 @@ python3 -B Tools/Verification/Objective1UxRepair/run_offline.py --out /media/jer
 python3 -B Tools/Verification/Objective1UxRepair/compile_gate.py --out /media/jer/Files/CCF/Verification/CCF-443-Objective1UX-20261112/tier1-loop1b-compile
 ```
 
-The later native rerun must use the **full route**, not `diagram-negative`, on the final clean candidate after the F-1 scope ruling. Do not run Unity or acquire its lock for this offline repair. The prepared additions are:
+Native qualification uses the **full route**, not `diagram-negative`, on a final clean candidate under its exact-HEAD lease. The earlier `324d6a19` preparation was offline only; final R4 on `e115b540` now passes 522 checks (see the result document for R3 failure, R4 evidence and cleanup). The loop-1 additions are:
 
-- `g08a-plan-racks-editing` captures the actual instruction card after Plan Racks and before Confirm, at both resolutions. It asserts resolved accent colour `rgb(110,163,157)` and the 3-unit edge after device-pixel quantization (2 px at 720p; 3 px at 1080p), and requires accent pixels along at least 80% of that edge in the capture. The earlier `>=3` resolved-unit assertion incorrectly rejected the rendered 720p edge (2.5 resolved units = 2 physical pixels); R3 preserves that harness failure.
+- `g08a-plan-racks-editing` captures the actual instruction card after Plan Racks and before Confirm, at both resolutions. It asserts resolved accent colour `rgb(110,163,157)` and the 3-unit edge after device-pixel quantization (minimum 2 px at 720p; minimum 3 px at 1080p; R4 observed 2 / 4 px), and requires accent pixels along at least 80% of that edge in the capture. The earlier `>=3` resolved-unit assertion incorrectly rejected the rendered 720p edge (2.5 resolved units = 2 physical pixels); R3 preserves that harness failure.
 - Every successful spray immediately captures a `*-post-spray-rack-N-stable-ID-WxH.png` at both resolutions, with only two settle frames after resizing. Each screenshot must be taken less than 2.5 seconds after the OS input **request** (a conservative bound preceding the click) and show the live nonempty HUD transient message. This includes the reversed-ID plan's Rack 1 and Rack 5. Ordinary route captures still run at both resolutions.
 - Every spray records the transient message, rendered HUD message, actual refreshed Work Plan feedback label and manager feedback, with tree ID, visit ordinal and stored rack ID. The Work Plan is refreshed while hidden, not opened; receipts explicitly record whether its line is visible, preserving the later first-use help route. Checking manager feedback as well prevents a temporary Work Plan problem/advisory line from masking the defect.
 - Every rack number in those four feedback strings must match the sprayed tree's visit ordinal; neutral copy without a rack number is allowed. The actual matcher is extracted and tested offline against matching, reversed-ID, neutral, multiple-number, case and count examples. Feedback-number failures are collected, logged and **fail the final verdict** after the route, so an early reversed-ID failure cannot prevent the required Rack 5 capture. No skip, waiver or expected-failure pass is enabled.
