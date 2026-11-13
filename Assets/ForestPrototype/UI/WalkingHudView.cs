@@ -175,7 +175,7 @@ public sealed class WalkingHudView
             rackDestination = hasWaypoint = true;
             target = new Vector2(entranceTree.transform.position.x, entranceTree.transform.position.z);
             float distance = Vector2.Distance(target, new Vector2(player.transform.position.x, player.transform.position.z));
-            waypoint.text = $"Rack {marks.RackVisitIndex(fieldRack.Id)} entrance · {distance:0} m";
+            waypoint.text = $"Next rack mark · {distance:0} m";
         }
 
         waypointPanel.style.display = hasWaypoint ? DisplayStyle.Flex : DisplayStyle.None;

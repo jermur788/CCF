@@ -111,7 +111,8 @@ public sealed partial class ForestTreeMarkingManager
         sprayLockedLastFrame = locked;
 
         bool target = TryGetRackFieldTarget(out RackPlanRack rack, out ForestTree tree, out string problem);
-        RackFieldStatus = !available ? "" : $"Rack entrances marked {scenario.MarkedRackEntranceCount} / {ScenarioOneManager.RackPlanTargetCount}"
+        RackFieldStatus = !available ? "" : $"Rack marks: {scenario.MarkedRackEntranceCount} of {ScenarioOneManager.RackPlanTargetCount}"
+            + (scenario.MarkedRackEntranceCount == ScenarioOneManager.RackPlanTargetCount ? " — complete" : "")
             + (!string.IsNullOrEmpty(problem) ? " · " + problem : "");
         CueRackId = target ? rack.Id : 0;
         if (target)
@@ -183,24 +184,24 @@ public sealed partial class ForestTreeMarkingManager
     public string RackSprayPrompt()
     {
         if (!RackSprayEquipped) return "";
-        if (!TryRackSprayAim(out ForestTree tree)) return "Spray marker · aim at an entrance trunk within 3.5 m · [P] Stow";
+        if (!TryRackSprayAim(out ForestTree tree)) return "Spray marker · aim at a rack mark trunk within 3.5 m · [P] Stow";
         ScenarioOneManager scenario = RackScenario;
         if (HasRackEntranceMark(tree))
         {
             RackPlanRack marked = scenario.ConfirmedRacks.FirstOrDefault(r => r.EntranceTreeId == tree.TreeId);
-            string label = marked != null ? $"Rack {RackVisitIndex(marked.Id)} entrance · " : "";
-            return label + "Orange · entrance already marked · [P] Stow";
+            string label = marked != null ? "Rack mark already made · " : "";
+            return label + "Orange · [P] Stow";
         }
         foreach (RackPlanRack rack in scenario.ConfirmedRacks)
         {
             if (rack.EntranceTreeId != tree.TreeId) continue;
-            if (rack.IsLocked) return "Rack already harvested · entrance locked";
+            if (rack.IsLocked) return "Rack mark locked · rack already harvested";
             if (tree.IsCropTree) return "Crop Tree · remove its blue designation before spraying";
             if (tree.IsMarkedForFell) return "Fell mark · remove its red designation before spraying";
             if (!scenario.TryGetRackEntranceTarget(rack.Id, out _, out string problem)) return problem;
-            return $"Rack {RackVisitIndex(rack.Id)} entrance · [Left-click] Spray orange · [P] Stow";
+            return "Rack mark · [Left-click] Spray orange · [P] Stow";
         }
-        return "Not a rack entrance · follow the entrance cue · [P] Stow";
+        return "Not a rack mark trunk · follow the rack mark cue · [P] Stow";
     }
 
     private Material OrangePaint()

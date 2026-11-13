@@ -117,7 +117,7 @@ public sealed class HudMinimapView
         MapPosition at = transform.WorldToPixels(model.Waypoint);
         destinationRing.style.left = at.X - 12f;
         destinationRing.style.top = at.Y - 12f;
-        destinationLabel.text = "Rack " + ui.MapSource.RackFieldTargetOrdinal;
+        destinationLabel.text = "Rack mark";
         destinationLabel.style.left = Mathf.Clamp(at.X + 14f, 2f, SidePx - 82f);
         destinationLabel.style.top = Mathf.Clamp(at.Y - 30f, 2f, SidePx - 24f);
         // Static ring is always clear. Only the first appearance adds a gentle tint when motion is allowed.

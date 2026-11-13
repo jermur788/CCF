@@ -62,7 +62,8 @@ public sealed class RackLayoutTracker
         {
             ScenarioOneManager m = ui.Manager;
             return m.RackPlanConfirmed
-                ? $"Rack entrances marked: {m.MarkedRackEntranceCount} / {ScenarioOneManager.RackPlanTargetCount}"
+                ? $"Rack marks: {m.MarkedRackEntranceCount} of {ScenarioOneManager.RackPlanTargetCount}"
+                    + (m.MarkedRackEntranceCount == ScenarioOneManager.RackPlanTargetCount ? " — complete" : "")
                 : $"Racks planned: {m.PlannedRackCount} / {ScenarioOneManager.RackPlanTargetCount}";
         }
     }
