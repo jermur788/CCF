@@ -1,0 +1,10 @@
+# #447 orchestration ledger (append-only)
+
+Orchestrator: Anthropic Claude Fable 5.2 (`claude-fable-5-2`), T3 Code / Claude Code harness, Linux host. Control branch `orchestration/scenario-one-objective1-447-20261113-v1` from `origin/main` `fcb2ff79`. Control worktree `/media/jer/Files/CCF/Operations/CCF-T3-Orchestrator447-20261113` (docs only; no Editor is ever launched here). Guidance source: `Docs/Handoffs/PlayerTestReadiness-Overnight-01/ORCHESTRATION-EVIDENCE-APPENDIX-V2.md`. Token, quota, energy and cost figures: UNKNOWN (no runtime receipts) unless a row says otherwise.
+
+| UTC | Event | Evidence |
+|---|---|---|
+| 2026-11-13 00:26–00:31 | Phase 0 preflight. `unity-lock status`: `free`, no Editor PIDs. No Unity/Xephyr/holder processes. #443 lane `/media/jer/ZX20/CCF-S1-Objective1UX-20261112` clean, branch `feature/scenario-one-objective1-ux-repair-20261112-v1`, HEAD = origin = `2d94cc26` (G3 spec, docs only). ZX20 free 60 GB (floor 15 GiB). | commands run by orchestrator |
+| 2026-11-13 00:30 | Protected state re-verified read-only with `sha256sum -c`: host37 37/37 OK, backup81 81/81 OK, production4011 4011/4011 OK (`/media/jer/Files/CCF/Operations/PersonalPlaytest-D073/*.sha256`). This is a re-check, not a launcher EXIT-trap receipt. | orchestrator |
+| 2026-11-13 00:31 | Control branch and worktree created (both were unoccupied locally and on origin). | `git worktree add` |
+| 2026-11-13 00:32 | Routing decision. The user's direct dispatch to this orchestrator says "Start with sol6.1"; fall back to Claude Opus 5.5 on Sol capacity loss. The previous #443 writer (Claude Opus 5.5 session) is stopped: it ended at G3 with a clean lane, everything pushed, lock released. Serial transfer Claude Opus 5.5 → OpenAI GPT-6.1 Sol, same branch, same lane, same G3 scope. T3 lists `gpt-6.1-sol` as available; actual remaining quota UNKNOWN. | T3 `orchestrator_capabilities`; user message |
