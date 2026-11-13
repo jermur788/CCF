@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>CCF Text Editor · Standalone Draft</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">CCF</div>
+      <div><strong>Text Editor</strong><span>Source review · Standalone / NOT integrated into Unity</span></div>
+    </div>
+    <div class="top-actions">
+      <span id="dirty-status" role="status">No edits</span>
+      <button type="button" id="import-button">Import JSON</button>
+      <input type="file" id="import-file" accept=".json,application/json" hidden>
+      <button type="button" id="validate-button">Validate</button>
+      <button type="button" class="primary" id="export-button">Export draft JSON</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Content navigation">
+      <div class="sidebar-header">
+        <h2>Scenarios &amp; pages</h2>
+        <label for="search">Search all imported text</label>
+        <input id="search" type="search" placeholder="Find a sentence, page or topic…">
+        <label for="status-filter">Show sources</label>
+        <select id="status-filter">
+          <option value="all">All source statuses</option>
+          <option value="main-source">Current main source</option>
+          <option value="unmerged-candidate">Unmerged candidate</option>
+        </select>
+      </div>
+      <nav id="scenario-list" aria-label="Scenarios"></nav>
+      <div class="sidebar-pages"><h3 id="pages-heading">Pages</h3><nav id="page-list" aria-label="Page sequence"></nav></div>
+      <div id="coverage" class="coverage"></div>
+    </aside>
+    <main id="main" tabindex="-1">
+      <div class="page-toolbar">
+        <div class="path" id="path">Choose a page</div>
+        <div class="page-nav">
+          <button type="button" id="previous" aria-label="Previous page">← Previous</button>
+          <span id="page-number" aria-live="polite"></span>
+          <button type="button" id="next" aria-label="Next page">Next →</button>
+        </div>
+      </div>
+      <section id="page-content">
+        <h1 id="page-title">CCF source text</h1>
+        <p id="page-description" class="intro">Select a page to review every collected field. Exported text is not automatically applied to the game.</p>
+        <div class="meta" id="page-meta"></div>
+        <div class="variant-row">
+          <label for="variant-filter">Conditional display variant</label>
+          <select id="variant-filter"><option value="all">All variants</option></select>
+          <button type="button" id="revert-page">Revert this page</button>
+        </div>
+        <div id="fields" class="fields" aria-label="Editable text fields"></div>
+      </section>
+      <section class="comparison" aria-label="Text comparison">
+        <div class="section-heading"><h2>Original versus draft</h2><p>Changes appear here immediately. Dynamic tokens remain placeholders.</p></div>
+        <div id="comparison-fields"></div>
+      </section>
+      <section class="validation" aria-label="Catalogue validation">
+        <div class="section-heading"><h2>Validation &amp; integration limits</h2><p>Validation checks the portable text package, not Unity layout, game behavior or save data.</p></div>
+        <div id="validation-results" aria-live="polite">Select Validate to check the entire catalogue before exporting.</div>
+      </section>
+    </main>
+  </div>
+  <div role="status" aria-live="polite" id="notice" class="notice"></div>
+  <script src="./catalog.js"></script>
+  <script src="./core.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
