@@ -38,7 +38,7 @@ Only new `Docs/Research/ContentReview/**`, exactly four files under `specs/ccf-c
 6. Provide `README.md`, `tests.mjs`, read-only `source-audit.mjs`. The source drift scan should report changed blobs/missing sources/new candidates, not auto-replace C#.
 7. Correct any schema or extraction bug before the final handoff; preserve tracked baseline text and full provenance.
 
-**Evidence now:** the source catalogue initially contained two invalid empty Rack V2 variants; both were corrected using exact main C# literals, then **18/18 direct V8 content contract/syntax checks passed**. Node test script and actual browser interaction remain **UNRUN**; no rendered screenshot or local source checkout is claimed. This is an *implemented, source-inspection-verifiable standalone prototype*, not full browser qualification.
+**Evidence now:** the source catalogue initially contained two invalid empty Rack V2 variants; both were corrected using exact main C# literals, then **30/30 direct V8 content contract/syntax checks passed**. Node test script and actual browser interaction remain **UNRUN**; no rendered screenshot or local source checkout is claimed. This is an *implemented, source-inspection-verifiable standalone prototype*, not full browser qualification.
 
 ## Stage D — Worker self-review and handoff
 
