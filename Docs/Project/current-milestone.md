@@ -4,19 +4,25 @@
 
 Define the current Scenario One milestone, its completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
 
-**Last reconciled:** 2026-11-06 for **D-072 Option B Stand Map existing-headland presentation → Objective 1 diagram** and its focused playtest readiness sequence. Other parity/S1-C/S1-D/MFM milestone status retains historically published evidence and requires fresh live claim inspection before scheduling.
+**Product-scope reconciliation proposed 2026-11-13 (D-082):** the newest first external demo target is a **separate compact one-rack** complete-loop Scenario One. The historic Enlarged80 five-rack implementation/review chain remains protected. This document's older feature and qualification sections retain their original dated evidence and must not be treated as proof of compact implementation; refresh live claims/local qualifications before scheduling. The D-072 6 November presentation decision remains historical Enlarged80 scope.
 
 ## Milestone
 
 **Scenario One — Complete-Loop Three-Species Demo Readiness**
 
-The first external demo is the **complete Scenario One** (D-060), not a first-intervention pilot. Before that demo, Sitka spruce, Oak and Beech must be represented to comparable modelling depth (D-059), and the player must be able to assess the stand, plan and execute management, review consequences, make second and later interventions, repeat the management cycle and reach understandable scenario completion.
+The first external demo is the **complete Scenario One** (D-060), not a first-intervention pilot. **Latest owner direction D-082 chooses a separate compact one-rack training/test-site world as the first-demo experience**, with genuinely standing manageable forest on **both sides** of its rack. It retains Sitka spruce, Oak and Beech at comparable modelling depth (D-059), individual-tree choices, the ordinary Work Plan commitment, actual year-by-year ecology/economy and history, second and later substantive interventions and understandable completion. **Profit is not a mandatory training-site success gate**; provider, pricing and funding mechanisms remain unratified. This direction does not identify a final footprint, select an opening/field marking lesson or approve the compact save/router architecture. The [four-file compact spec](https://github.com/jermur788/CCF/blob/docs/compact-one-rack-463-three-findings-repair-20261113-v1/specs/scenario-one-compact-complete-loop-v1/spec.md) remains DRAFT with 104 future requirements UNCHECKED; no compact production candidate or external-demo qualification exists.
 
 No external-demo candidate exists yet. No Windows build is authorised before the user personally playtests the Scenario One candidate and explicitly authorises a Windows build.
 
 ## Current programme state
 
-### Rack V2 / D-064 — feature-scope verified
+### D-082 compact first-demo — product intent accepted, implementation NOT released
+
+This **new world/profile** is not a renamed five-rack save. The older Enlarged80, Legacy40 and frozen Reference Future v1 loads, rack IDs, D-066 teaching latch, D-065 multi-scale management, pure-Sitka and model-0 deterministic contracts remain intact. Distinct stored world/geometry/content identity, a single pre-mutation save/router authority also coherent with future O2, and isolated PlayerPrefs/backup paths require an approved feature specification and independent negative evidence before any code. The first open user choice is player-planned/marked single rack versus preauthorised single rack; actual dimensions, Oak/Beech starting cohorts, compact work/economy, opening overlay and approved-order edits are not yet selected. See the [Overall Manager's decision packet](https://github.com/jermur788/CCF/blob/docs/overall-manager-425-compact-save-triage-20261113-v1/Docs/Handoffs/Management-RoleSplit-20261113/MANAGER-425-COMPACT-FIRST-DEMO-OWNER-SAVE-DECISION-PACKET-20261113.md).
+
+#443/#450's older five-rack Objective 1 source/UX candidate has worker-reported focused Unity tests and independent amendment approval, **not an integrated/accepted compact UX**. #469 whole-rack five-rack extrapolation research and #448 repair are **decision preparation only**, not new first-demo blockers. #418 prescription provenance remains separately open where required. No Windows build before personal playtest and explicit owner authorisation. Actual Unity/physical board ownership is not inferred from a vacant #424 chat. After accepted canonical changes, one-SHA context/Drive/attachment publication remains due under #429; dashboard sync is unverified.
+
+### Rack V2 / D-064 — historic Enlarged80 feature-scope verified
 
 Rack V2 is the authoritative Enlarged80 access-planning workflow. Rack geometry is planned on the Stand Map; confirmed entrances are physically marked in the 3D forest; Legacy40 and frozen Reference Future v1 compatibility remain mandatory.
 
@@ -30,11 +36,11 @@ That review disposes AC-1…AC-20 and D-064 OPEN-1…OPEN-3 as PASS from the acc
 
 The D-065 production gate requiring Rack V2 persistence/integration has therefore been satisfied. This does not bypass later MFM prerequisites or live ownership/Unity serialization.
 
-### Scenario One access-network scope — D-071 current parallel layout retained
+### Historic Enlarged80 access-network scope — D-071 five-rack contract retained
 
-**Accepted latest product choice (5 November 2026):** Scenario One uses the existing **headland-entry, five parallel extraction racks** (illustration “Option A”). The user's earlier spine/diagonal preference (D-067–D-069) is **superseded for Scenario One** and remains independently reviewed historical design research only. No new northern spine, herringbone 3+2, single-family spine entry, player-built northern extension or speculative access-construction gameplay is a Scenario One external-demo requirement. More complex layouts can be considered as **future separate scenarios**, under their own acceptance and specifications.
+**Historical Enlarged80 choice (5 November 2026; superseded by D-082 for NEW first-demo layout only):** the preserved five-rack world uses the existing **headland-entry, five parallel extraction racks** (illustration “Option A”). The user's earlier spine/diagonal preference (D-067–D-069) is **superseded for Scenario One** and remains independently reviewed historical design research only. No new northern spine, herringbone 3+2, single-family spine entry, player-built northern extension or speculative access-construction gameplay is a Scenario One external-demo requirement. More complex layouts can be considered as **future separate scenarios**, under their own acceptance and specifications.
 
-The accepted Rack V2 map planning, field-marked orange first rack-removal-tree entrances, five-rack lesson, conditional 16–20 m site guidance, Work Plan commitment and MFM V1 parallel coverage remain unchanged. No new two-family MFM model, rack clearance-policy or northern save-identity change is authorised. **Do not treat the visual illustration “Option A” as the unrelated research nickname “MFM Option A” for an unapproved two-family algorithm.** The prior spec `specs/scenario-one-access-spine-route-consistency-v1/` is historical / **SUPERSEDED FOR SCENARIO ONE**; its approved research quality is not an approved product implementation.
+For the preserved Enlarged80 world, accepted Rack V2 map planning, field-marked orange first rack-removal-tree entrances, five-rack lesson, conditional 16–20 m site guidance, Work Plan commitment and MFM V1 parallel coverage remain unchanged. No new two-family MFM model, rack clearance-policy or northern save-identity change is authorised. **Do not treat the visual illustration “Option A” as the unrelated research nickname “MFM Option A” for an unapproved two-family algorithm.** The prior spec `specs/scenario-one-access-spine-route-consistency-v1/` is historical / **SUPERSEDED FOR SCENARIO ONE**; its approved research quality is not an approved product implementation.
 
 **Separate D-070:** hidden Forestry Workbench source-level new-game retirement is still an accepted cleanup goal independent of whether a northern spine is built. #284 candidate is source-reviewed but not integrated or Unity-qualified; #287 is WAITING for explicit release of the user's personal playtest and a safe exclusive Unity lease. Keep all old-save/Legacy40/Reference Future protections and the separate Windows build gate. No new spine implementation tasks should enter the pre-demo sequence.
 
