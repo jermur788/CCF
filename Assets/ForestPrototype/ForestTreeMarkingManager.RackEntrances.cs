@@ -184,8 +184,13 @@ public sealed partial class ForestTreeMarkingManager
     {
         if (!RackSprayEquipped) return "";
         if (!TryRackSprayAim(out ForestTree tree)) return "Spray marker · aim at an entrance trunk within 3.5 m · [P] Stow";
-        if (HasRackEntranceMark(tree)) return "Orange · entrance already marked · [P] Stow";
         ScenarioOneManager scenario = RackScenario;
+        if (HasRackEntranceMark(tree))
+        {
+            RackPlanRack marked = scenario.ConfirmedRacks.FirstOrDefault(r => r.EntranceTreeId == tree.TreeId);
+            string label = marked != null ? $"Rack {RackVisitIndex(marked.Id)} entrance · " : "";
+            return label + "Orange · entrance already marked · [P] Stow";
+        }
         foreach (RackPlanRack rack in scenario.ConfirmedRacks)
         {
             if (rack.EntranceTreeId != tree.TreeId) continue;
