@@ -20,7 +20,7 @@
 | C-05 | Read-only future drift scanner — `source-audit.mjs` | **IMPLEMENTED SOURCE** | A full local CCF checkout scan **UNRUN** |
 | C-06 | Offline usage/limitations guide — `README.md` | **PUBLISHED** | Explicit file://, optional localhost, import/export and integration gate |
 | D-01 | Pull-back/readback/diff of all new files, changed-path audit, verification matrix | **COMPLETE — GitHub readback** | All 15 pre-handoff additions fetched; base comparison shows no changed existing file, zero outside allowed paths, no Unity/source modification |
-| D-02 | Publish exact result at `Docs/Handoffs/ScenarioOne-TextEditor-20261113/CCF-TEXT-EDITOR-RESEARCH-SPEC-AND-STANDALONE-TOOL-HANDOFF-20261113.md` | **PENDING FINAL HANDOFF** | Read back and link direct URL |
+| D-02 | Publish exact result at `Docs/Handoffs/ScenarioOne-TextEditor-20261113/CCF-TEXT-EDITOR-RESEARCH-SPEC-AND-STANDALONE-TOOL-HANDOFF-20261113.md` | **COMPLETE — GitHub readback** | Final handoff read back; all 16 paths are added and within allowlist |
 | D-03 | Comment #473 [HANDED-OFF], close; notify #424 | **PENDING FINAL HANDOFF** | Execution closure only |
 
 ## Future externally authorised tasks — NOT STARTED
