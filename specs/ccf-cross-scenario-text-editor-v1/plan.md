@@ -77,3 +77,18 @@ No worker on #473 can self-approve the future adapter or resolve #425 product de
 - Do not make giant automatic “all strings” C# patches; they create cross-owner conflicts and break legacy/progress semantics.
 - Honest coverage categories and source-blob drift checks matter more than a decorative 100% counter.
 - No Windows/Player build before separate user playtest and explicit authorization. Drive is a one-way mirror; Git is canonical.
+
+
+
+## DRAFT Stage C repair / verification addendum from #474
+
+**Status: DRAFT; still NOT APPROVED for Unity.** Independent #474 results were both **NEEDS CHANGES**; #477 is a bounded browser/standalone source repair rather than a new implementation programme.
+
+1. **Repair F-01/F-02 first**: test real 1280×720 scroll reachability with pointer hit testing, and reject unrecognised package/entry/nested metadata before export. Keep exact base candidate read-only.
+2. **Complete F-03…F-13**: ordered entries, invisible/bidi/C1 safety, real text search without repeating scenario names, live page edited count, browser beforeunload on unexported edits, source-literal line corrections, Walking HUD title, null unknown coverage, expanded committed Node tests, candidate commit pin and numerical early-failure validation counts.
+3. **Seed migration:** treat the corrected catalogue as reviewed-source-data candidate revision 2, not an automatic migration of user edits. Old `catalog.json` drafts with a different source baseline require explicit manual compare/re-application; keep `catalog.js` parsed-data mirror identical and `source-map.json` main anchor unchanged. A draft export neither becomes approved nor changes Unity.
+4. **Derived strings and partial variants:** apply spec S-02/S-04 constraints during any future Unity import; the browser editor can display computed placeholders but no flattened C# replacement is authorised. Shared statuses as S-05.
+5. **Focused verification:** source correctness/Node suite + browser at 1280×720 and 1920×1080 including page clicks, search, dirty, beforeunload, JSON import/export and rejection (B01–B05), then a **separate, non-author reviewer** runs a short delta re-check. No Unity physical lease, no Windows build.
+6. **Review exit:** all F-01…F-13 and S-01…S-05 addressed with explicit evidence, actual statuses for browser/Node/unknown tests, GitHub compare against the original author's branch and new durable handoff. Worker **cannot self-approve** standalone tool or DRAFT.
+
+**Current source truth:** original #473 handoff and #474 report stay historic and unchanged. The four-file DRAFT is still subordinate to user, Decision Log and source authority. #424 directs a future typed Unity adapter only under a new APPROVED spec/claim, never from this repair alone.
