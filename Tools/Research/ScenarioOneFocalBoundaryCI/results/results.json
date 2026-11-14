@@ -1,0 +1,2606 @@
+{
+ "candidates": [
+  {
+   "assumed_external_dbh_cm": 15.5696,
+   "candidate_id": "C-A-20",
+   "ci_by_edge_band_recorded": [
+    {
+     "edge_band_m": "0-2",
+     "mean_recorded_ci": 4.91869539227979,
+     "n": 29
+    },
+    {
+     "edge_band_m": "2-4",
+     "mean_recorded_ci": 6.905966329574585,
+     "n": 25
+    },
+    {
+     "edge_band_m": "4-8",
+     "mean_recorded_ci": 7.842206020355224,
+     "n": 25
+    },
+    {
+     "edge_band_m": "8-inf",
+     "mean_recorded_ci": 6.643807252248128,
+     "n": 3
+    }
+   ],
+   "external_nodes_outside_property_considered": 576,
+   "external_primary_stems_kept": 428,
+   "external_stems_in_reach_of_focal": [
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r+00_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.397545892230654,
+       "hegyi_term": 0.13824480886660975
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -8.549999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r+00_c-03",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.219041580673256,
+       "hegyi_term": 0.10336312540682048
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -14.249999999999998,
+     "z": -8.549999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r+01_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.099201328282148,
+       "hegyi_term": 0.1463332494995957
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -6.649999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r+01_c-03",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 6.998779455812837,
+       "hegyi_term": 0.10661611855770639
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -14.249999999999998,
+     "z": -6.649999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r+02_c-01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 3.7853859815373423,
+       "hegyi_term": 0.19712195899165277
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -4.749999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r+02_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.4854541028043275,
+       "hegyi_term": 0.1360293398205101
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -4.749999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r+03_c-01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.063348650531369,
+       "hegyi_term": 0.14736940940100457
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -2.8499999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r+03_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 6.434171216372101,
+       "hegyi_term": 0.11597184394494796
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -2.8499999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+04_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.17355225585656,
+       "hegyi_term": 0.1671609761272342
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": -0.9499999999999993
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r+04_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.741247429788667,
+       "hegyi_term": 0.09639049868743851
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -0.9499999999999993
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+05_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.548881665242938,
+       "hegyi_term": 0.21610444585615535
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": 0.9500000000000011
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+06_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 4.164171406442553,
+       "hegyi_term": 0.2879655711418296
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": 2.8499999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+06_c+11",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.774321903255766,
+       "hegyi_term": 0.2076673274333025
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 12.35,
+     "z": 2.8499999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r+06_c+12",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.520988191893723,
+       "hegyi_term": 0.15943888845366908
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 14.249999999999998,
+     "z": 2.8499999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+07_c+11",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.207017304540459,
+       "hegyi_term": 0.23029268528511918
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 12.35,
+     "z": 4.75
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r+07_c+12",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.094751521369111,
+       "hegyi_term": 0.1690176172875046
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 14.249999999999998,
+     "z": 4.75
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+08_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 3.478619702836565,
+       "hegyi_term": 0.34471661170978085
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": 6.65
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+08_c+11",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.301251265234302,
+       "hegyi_term": 0.22619904950604275
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 12.35,
+     "z": 6.65
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r+08_c+12",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.164198134985786,
+       "hegyi_term": 0.16737923418572295
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 14.249999999999998,
+     "z": 6.65
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+09_c+11",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 6.026068431781437,
+       "hegyi_term": 0.1989917656866393
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 12.35,
+     "z": 8.549999999999999
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+10_c+03",
+     "per_focal": {
+      "P0604": {
+       "distance_m": 7.712833820503654,
+       "hegyi_term": 0.10486406279922543
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8499999999999996,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+10_c+04",
+     "per_focal": {
+      "P0604": {
+       "distance_m": 7.524918180302704,
+       "hegyi_term": 0.10748277532510653
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -0.9499999999999993,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+10_c+05",
+     "per_focal": {
+      "P0604": {
+       "distance_m": 7.809032058955535,
+       "hegyi_term": 0.10357225889292387
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 0.9500000000000011,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+10_c+06",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 6.62807564915712,
+       "hegyi_term": 0.18091797089569997
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 2.8499999999999996,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.45000000000000107,
+     "external_id": "X_r+10_c+09",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.192186112949555,
+       "hegyi_term": 0.2309505035649626
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 8.549999999999999,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.6363961030678943,
+     "external_id": "X_r+10_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 5.978400000977834,
+       "hegyi_term": 0.20057841516000485
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3926972228010794,
+     "external_id": "X_r+10_c+11",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.193311929276896,
+       "hegyi_term": 0.16670179316264522
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 12.35,
+     "z": 10.450000000000001
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+11_c+07",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.328307616257631,
+       "hegyi_term": 0.16363095822130252
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 4.75,
+     "z": 12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+11_c+08",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 6.931562771748168,
+       "hegyi_term": 0.17299677386983803
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 6.65,
+     "z": 12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3499999999999996,
+     "external_id": "X_r+11_c+09",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.043367972701035,
+       "hegyi_term": 0.17025065310180756
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 8.549999999999999,
+     "z": 12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3926972228010794,
+     "external_id": "X_r+11_c+10",
+     "per_focal": {
+      "P0708": {
+       "distance_m": 7.6414332647125995,
+       "hegyi_term": 0.15692579596634168
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 10.450000000000001,
+     "z": 12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r-01_c+00",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 3.8965407429681496,
+       "hegyi_term": 0.19149875477800968
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.549999999999999,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r-01_c+01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 3.723166673257775,
+       "hegyi_term": 0.20041614187722373
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -6.649999999999999,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r-01_c+02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 4.445324554192185,
+       "hegyi_term": 0.16785786754681165
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.749999999999999,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.4499999999999993,
+     "external_id": "X_r-01_c+03",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.7340954567700155,
+       "hegyi_term": 0.1301308472880746
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8499999999999996,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 0.6363961030678917,
+     "external_id": "X_r-01_c-01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 4.870738080246586,
+       "hegyi_term": 0.15319704897422962
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3926972228010777,
+     "external_id": "X_r-01_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 6.2837209622259325,
+       "hegyi_term": 0.11874854162140501
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r-02_c+00",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.723170208371611,
+       "hegyi_term": 0.13037926062878522
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.549999999999999,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r-02_c+01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 5.60656914246484,
+       "hegyi_term": 0.13309078712121863
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -6.649999999999999,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r-02_c+02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 6.110037468337287,
+       "hegyi_term": 0.1221240792854317
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.749999999999999,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.349999999999998,
+     "external_id": "X_r-02_c+03",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.102921805829775,
+       "hegyi_term": 0.10505292337693291
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8499999999999996,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 2.3926972228010777,
+     "external_id": "X_r-02_c-01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 6.426175917195683,
+       "hegyi_term": 0.1161161334260217
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 3.3234018715767704,
+     "external_id": "X_r-02_c-02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.553594945686402,
+       "hegyi_term": 0.09878510902233387
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.349999999999998,
+     "z": -12.349999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r-03_c+01",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.49835082012175,
+       "hegyi_term": 0.09951290865423466
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -6.649999999999999,
+     "z": -14.249999999999998
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.5696,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-A-20",
+     "distance_outside_property_m": 4.249999999999998,
+     "external_id": "X_r-03_c+02",
+     "per_focal": {
+      "P0101": {
+       "distance_m": 7.881890974687934,
+       "hegyi_term": 0.09467051785117146
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.749999999999999,
+     "z": -14.249999999999998
+    }
+   ],
+   "finite_recreation_check": {
+    "float32_emulation_bit_equal_to_recorded": 54,
+    "max_abs_diff_float32_emulation_vs_recorded": 9.5367431640625e-07,
+    "max_abs_diff_float64_vs_recorded": 1.923694670225018e-06,
+    "note": "Python emulation; not a claim of Unity bit-equality (no native comparison run).",
+    "stems_checked": 82
+   },
+   "focal": [
+    {
+     "abs_diff_f32_vs_f64_context": 7.040971450322786e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 0.0,
+     "abs_diff_recomputed_f64_vs_recorded": 2.1899807212122369e-07,
+     "candidate": "C-A-20",
+     "ci_context_f32": 8.49774169921875,
+     "ci_context_f64": 8.497740995121605,
+     "ci_finite_f32": 5.448719501495361,
+     "ci_finite_f64": 5.4487197204934334,
+     "dbh_cm": 20.86566734313965,
+     "delta_ci_f32": 3.0490221977233887,
+     "delta_ci_f64": 3.0490212746281715,
+     "edge_distance_m": 2.747647285461426,
+     "external_contribution_f32": 3.049020767211914,
+     "external_contribution_f64": 3.049021274628171,
+     "external_neighbour_count": 23,
+     "external_neighbour_ids": [
+      "X_r+00_c-02",
+      "X_r+00_c-03",
+      "X_r+01_c-02",
+      "X_r+01_c-03",
+      "X_r+02_c-01",
+      "X_r+02_c-02",
+      "X_r+03_c-01",
+      "X_r+03_c-02",
+      "X_r+04_c-02",
+      "X_r-01_c+00",
+      "X_r-01_c+01",
+      "X_r-01_c+02",
+      "X_r-01_c+03",
+      "X_r-01_c-01",
+      "X_r-01_c-02",
+      "X_r-02_c+00",
+      "X_r-02_c+01",
+      "X_r-02_c+02",
+      "X_r-02_c+03",
+      "X_r-02_c-01",
+      "X_r-02_c-02",
+      "X_r-03_c+01",
+      "X_r-03_c+02"
+     ],
+     "finite_neighbour_count": 24,
+     "finite_neighbour_ids": [
+      "P0000",
+      "P0001",
+      "P0002",
+      "P0003",
+      "P0004",
+      "P0100",
+      "P0102",
+      "P0103",
+      "P0104",
+      "P0200",
+      "P0201",
+      "P0202",
+      "P0203",
+      "P0204",
+      "P0300",
+      "P0301",
+      "P0302",
+      "P0303",
+      "P0304",
+      "P0400",
+      "P0401",
+      "P0402",
+      "P0403",
+      "P0501"
+     ],
+     "focal_id": "P0101",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.5595850909349631,
+     "ratio_f64": 1.5595848990287307,
+     "reason": "#460 native crop anchor",
+     "recorded_native_ci": 5.448719501495361,
+     "s1_expected_ci_context_f32": 8.478096961975098,
+     "s1_expected_ci_context_f64": 8.478097287512815,
+     "s1_expected_external_contribution_f32": 3.0293774604797363,
+     "s1_expected_external_contribution_f64": 3.029377567019382,
+     "s1_external_node_count_in_reach": 30,
+     "side": "south",
+     "source_ci50_multiplier_context": 0.37043235618516573,
+     "source_ci50_multiplier_finite": 0.4785275262186742,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -7.252352714538574,
+     "z": -6.775882244110107
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 2.397168792356297e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 0.0,
+     "abs_diff_recomputed_f64_vs_recorded": 6.252733975031788e-08,
+     "candidate": "C-A-20",
+     "ci_context_f32": 5.774881362915039,
+     "ci_context_f64": 5.77488112319816,
+     "ci_finite_f32": 5.4589619636535645,
+     "ci_finite_f64": 5.458962026180904,
+     "dbh_cm": 19.250268936157227,
+     "delta_ci_f32": 0.3159193992614746,
+     "delta_ci_f64": 0.3159190970172556,
+     "edge_distance_m": 7.072352886199951,
+     "external_contribution_f32": 0.31591910123825073,
+     "external_contribution_f64": 0.31591909701725585,
+     "external_neighbour_count": 3,
+     "external_neighbour_ids": [
+      "X_r+10_c+03",
+      "X_r+10_c+04",
+      "X_r+10_c+05"
+     ],
+     "finite_neighbour_count": 34,
+     "finite_neighbour_ids": [
+      "P0204",
+      "P0302",
+      "P0303",
+      "P0304",
+      "P0305",
+      "P0401",
+      "P0402",
+      "P0403",
+      "P0404",
+      "P0405",
+      "P0407",
+      "P0501",
+      "P0502",
+      "P0503",
+      "P0504",
+      "P0507",
+      "P0600",
+      "P0601",
+      "P0602",
+      "P0603",
+      "P0606",
+      "P0607",
+      "P0608",
+      "P0701",
+      "P0702",
+      "P0703",
+      "P0706",
+      "P0707",
+      "P0801",
+      "P0802",
+      "P0805",
+      "P0806",
+      "P0807",
+      "P0906"
+     ],
+     "focal_id": "P0604",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.0578716982028644,
+     "ratio_f64": 1.0578716421733882,
+     "reason": "#460 native crop anchor",
+     "recorded_native_ci": 5.4589619636535645,
+     "s1_expected_ci_context_f32": 5.698460221290588,
+     "s1_expected_ci_context_f64": 5.698460293629686,
+     "s1_expected_external_contribution_f32": 0.23949825763702393,
+     "s1_expected_external_contribution_f64": 0.23949826744878167,
+     "s1_external_node_count_in_reach": 3,
+     "side": "north",
+     "source_ci50_multiplier_context": 0.46404224258540305,
+     "source_ci50_multiplier_finite": 0.47805891134167855,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -1.146470546722412,
+     "z": 2.927647113800049
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 6.691284832882616e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 0.0,
+     "abs_diff_recomputed_f64_vs_recorded": 6.691284832882616e-07,
+     "candidate": "C-A-20",
+     "ci_context_f32": 6.0594353675842285,
+     "ci_context_f64": 6.059436036712712,
+     "ci_finite_f32": 6.0594353675842285,
+     "ci_finite_f64": 6.059436036712712,
+     "dbh_cm": 19.134014129638672,
+     "delta_ci_f32": 0.0,
+     "delta_ci_f64": 0.0,
+     "edge_distance_m": 8.825294494628906,
+     "external_contribution_f32": 0.0,
+     "external_contribution_f64": 0.0,
+     "external_neighbour_count": 0,
+     "external_neighbour_ids": [],
+     "finite_neighbour_count": 36,
+     "finite_neighbour_ids": [
+      "P0202",
+      "P0203",
+      "P0204",
+      "P0205",
+      "P0302",
+      "P0303",
+      "P0304",
+      "P0305",
+      "P0307",
+      "P0401",
+      "P0402",
+      "P0403",
+      "P0404",
+      "P0405",
+      "P0407",
+      "P0501",
+      "P0502",
+      "P0503",
+      "P0507",
+      "P0508",
+      "P0601",
+      "P0602",
+      "P0603",
+      "P0604",
+      "P0606",
+      "P0607",
+      "P0608",
+      "P0701",
+      "P0702",
+      "P0703",
+      "P0706",
+      "P0707",
+      "P0802",
+      "P0805",
+      "P0806",
+      "P0807"
+     ],
+     "focal_id": "P0504",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.0,
+     "ratio_f64": 1.0,
+     "reason": "most interior retained stem (max edge distance)",
+     "recorded_native_ci": 6.0594353675842285,
+     "s1_expected_ci_context_f32": 6.0594353675842285,
+     "s1_expected_ci_context_f64": 6.059436036712712,
+     "s1_expected_external_contribution_f32": 0.0,
+     "s1_expected_external_contribution_f64": 0.0,
+     "s1_external_node_count_in_reach": 0,
+     "side": "north",
+     "source_ci50_multiplier_context": 0.45210261928384843,
+     "source_ci50_multiplier_finite": 0.45210261928384843,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -0.6205882430076599,
+     "z": 1.1747058629989624
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 1.8735442797179758e-06,
+     "abs_diff_recomputed_f32_vs_recorded": 4.76837158203125e-07,
+     "abs_diff_recomputed_f64_vs_recorded": 1.7343503166955543e-07,
+     "candidate": "C-A-20",
+     "ci_context_f32": 10.809601783752441,
+     "ci_context_f64": 10.809599910208162,
+     "ci_finite_f32": 6.991713523864746,
+     "ci_finite_f64": 6.991712873592556,
+     "dbh_cm": 12.983993530273438,
+     "delta_ci_f32": 3.8178882598876953,
+     "delta_ci_f64": 3.8178870366156055,
+     "edge_distance_m": 2.811176300048828,
+     "external_contribution_f32": 3.817887306213379,
+     "external_contribution_f64": 3.8178870366156024,
+     "external_neighbour_count": 19,
+     "external_neighbour_ids": [
+      "X_r+04_c+10",
+      "X_r+05_c+10",
+      "X_r+06_c+10",
+      "X_r+06_c+11",
+      "X_r+06_c+12",
+      "X_r+07_c+11",
+      "X_r+07_c+12",
+      "X_r+08_c+10",
+      "X_r+08_c+11",
+      "X_r+08_c+12",
+      "X_r+09_c+11",
+      "X_r+10_c+06",
+      "X_r+10_c+09",
+      "X_r+10_c+10",
+      "X_r+10_c+11",
+      "X_r+11_c+07",
+      "X_r+11_c+08",
+      "X_r+11_c+09",
+      "X_r+11_c+10"
+     ],
+     "finite_neighbour_count": 22,
+     "finite_neighbour_ids": [
+      "P0407",
+      "P0408",
+      "P0409",
+      "P0507",
+      "P0508",
+      "P0509",
+      "P0606",
+      "P0607",
+      "P0608",
+      "P0609",
+      "P0706",
+      "P0707",
+      "P0709",
+      "P0805",
+      "P0806",
+      "P0807",
+      "P0808",
+      "P0809",
+      "P0906",
+      "P0907",
+      "P0908",
+      "P0909"
+     ],
+     "focal_id": "P0708",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.5460590235649867,
+     "ratio_f64": 1.546058899391539,
+     "reason": "retained stem nearest the median retained edge distance (2.811 m)",
+     "recorded_native_ci": 6.991713047027588,
+     "s1_expected_ci_context_f32": 10.954723119735718,
+     "s1_expected_ci_context_f64": 10.954722428798762,
+     "s1_expected_external_contribution_f32": 3.9630095958709717,
+     "s1_expected_external_contribution_f64": 3.963009555206206,
+     "s1_external_node_count_in_reach": 25,
+     "side": "north",
+     "source_ci50_multiplier_context": 0.3162635378755873,
+     "source_ci50_multiplier_finite": 0.4169546129653175,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": 7.188823699951172,
+     "z": 5.439411640167236
+    }
+   ],
+   "half_size_m": 10.0,
+   "lattice_origin_m": -8.549999999999999,
+   "lattice_per_axis": 10,
+   "lattice_span_m": 17.099999999999998,
+   "living_stems": 82,
+   "mean_dbh_cm": 15.569575077149926,
+   "negative_control_beyond_cutoff": {
+    "ci_context": 0.0,
+    "ci_finite": 0.0,
+    "external_sum": 0.0
+   },
+   "property_size_m": 20.0,
+   "stocking_fraction_p": 0.7581
+  },
+  {
+   "assumed_external_dbh_cm": 15.4336,
+   "candidate_id": "C-B-30",
+   "ci_by_edge_band_recorded": [
+    {
+     "edge_band_m": "0-2",
+     "mean_recorded_ci": 6.164829298428127,
+     "n": 70
+    },
+    {
+     "edge_band_m": "2-4",
+     "mean_recorded_ci": 7.746706876999292,
+     "n": 39
+    },
+    {
+     "edge_band_m": "4-8",
+     "mean_recorded_ci": 8.7069551050663,
+     "n": 48
+    },
+    {
+     "edge_band_m": "8-inf",
+     "mean_recorded_ci": 7.348545610904694,
+     "n": 32
+    }
+   ],
+   "external_nodes_outside_property_considered": 768,
+   "external_primary_stems_kept": 579,
+   "external_stems_in_reach_of_focal": [
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r+00_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 3.653081257005979,
+       "hegyi_term": 0.19020476869628902
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -14.25
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999999,
+     "external_id": "X_r+00_c-03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.552027028020786,
+       "hegyi_term": 0.1251495124232615
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -19.95,
+     "z": -14.25
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r+00_c-04",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 7.4515102878180555,
+       "hegyi_term": 0.09324733492665305
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -21.85,
+     "z": -14.25
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r+01_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.186287283584755,
+       "hegyi_term": 0.1659784502229811
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999999,
+     "external_id": "X_r+01_c-03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.9165025708004535,
+       "hegyi_term": 0.11743990088785947
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -19.95,
+     "z": -12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r+01_c-04",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 7.726901327173356,
+       "hegyi_term": 0.08992394830694105
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -21.85,
+     "z": -12.35
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+02_c-01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.32030072119216,
+       "hegyi_term": 0.1608298867042376
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -16.15,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r+02_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.378196702531293,
+       "hegyi_term": 0.12919450774095748
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -10.45
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+03_c-01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.106144190235645,
+       "hegyi_term": 0.11379251027656398
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -16.15,
+     "z": -8.55
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r+03_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.895288124620572,
+       "hegyi_term": 0.10076931709881314
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -8.55
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+01",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 5.758246850932612,
+       "hegyi_term": 0.13010307978668625
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+02",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 3.990119517170156,
+       "hegyi_term": 0.18775519035320487
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+03",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 2.429958996841112,
+       "hegyi_term": 0.3083038234193325
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+05",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 2.7444479693342285,
+       "hegyi_term": 0.27297498726494696
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.75,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+06",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 4.37900007095337,
+       "hegyi_term": 0.17108144264432876
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8500000000000014,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r+16_c+07",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 6.167599904860599,
+       "hegyi_term": 0.12146793907430889
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -0.9500000000000011,
+     "z": 16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.049999999999997,
+     "external_id": "X_r+17_c+01",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 6.589188739583978,
+       "hegyi_term": 0.11369618917997797
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": 18.049999999999997
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.049999999999997,
+     "external_id": "X_r+17_c+03",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 4.020535060898488,
+       "hegyi_term": 0.18633481318551193
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": 18.049999999999997
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.049999999999997,
+     "external_id": "X_r+17_c+04",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 3.656275309784653,
+       "hegyi_term": 0.2048985883184067
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -6.65,
+     "z": 18.049999999999997
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.049999999999997,
+     "external_id": "X_r+17_c+05",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 4.218055962877652,
+       "hegyi_term": 0.17760922474039983
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.75,
+     "z": 18.049999999999997
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.049999999999997,
+     "external_id": "X_r+17_c+06",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 5.425462475309783,
+       "hegyi_term": 0.13808327914673205
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8500000000000014,
+     "z": 18.049999999999997
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999996,
+     "external_id": "X_r+18_c+01",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 7.803679240937907,
+       "hegyi_term": 0.09600159442077222
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": 19.949999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999996,
+     "external_id": "X_r+18_c+02",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 6.607651372497801,
+       "hegyi_term": 0.11337850731600017
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": 19.949999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999996,
+     "external_id": "X_r+18_c+03",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 5.800405470783827,
+       "hegyi_term": 0.12915746205188713
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": 19.949999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999996,
+     "external_id": "X_r+18_c+05",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 5.939023282960983,
+       "hegyi_term": 0.12614290494998928
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.75,
+     "z": 19.949999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999996,
+     "external_id": "X_r+18_c+06",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 6.849499581763583,
+       "hegyi_term": 0.10937523837112612
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -2.8500000000000014,
+     "z": 19.949999999999996
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r+19_c+03",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 7.638370577229411,
+       "hegyi_term": 0.09807924895810145
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": 21.85
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r+19_c+04",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 7.453076682827758,
+       "hegyi_term": 0.10051763605283087
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -6.65,
+     "z": 21.85
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r+19_c+05",
+     "per_focal": {
+      "P1504": {
+       "distance_m": 7.744159025041885,
+       "hegyi_term": 0.09673944543956065
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -4.75,
+     "z": 21.85
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+00",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 1.7564171545232103,
+       "hegyi_term": 0.39559706743253004
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -14.25,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 2.6953663519303737,
+       "hegyi_term": 0.25778813889991004
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.32030072119216,
+       "hegyi_term": 0.1608298867042376
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.106144190235645,
+       "hegyi_term": 0.11379251027656398
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+07",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 6.330299275442706,
+       "hegyi_term": 0.1532862267838661
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -0.9500000000000011,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+08",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 5.27202225778381,
+       "hegyi_term": 0.18405606860111345
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 0.9499999999999993,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+10",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 4.989717249139757,
+       "hegyi_term": 0.19446947429988043
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 4.75,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+11",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 5.85481067125661,
+       "hegyi_term": 0.16573510995138457
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 6.649999999999999,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.1499999999999986,
+     "external_id": "X_r-01_c+12",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 7.133045476243489,
+       "hegyi_term": 0.13603553959903714
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 8.549999999999997,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 1.6263455967290572,
+     "external_id": "X_r-01_c-01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 2.474874273632575,
+       "hegyi_term": 0.28075506013390616
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -16.15,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.2596012026013246,
+     "external_id": "X_r-01_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.047839438499672,
+       "hegyi_term": 0.17165539445781733
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -16.15
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+00",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 3.653081257005979,
+       "hegyi_term": 0.19020476869628902
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -14.25,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.186287283584755,
+       "hegyi_term": 0.1659784502229811
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.378196702531293,
+       "hegyi_term": 0.12919450774095748
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.895288124620572,
+       "hegyi_term": 0.10076931709881314
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -8.55,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+08",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 7.033164041610412,
+       "hegyi_term": 0.13796744745385883
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 0.9499999999999993,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+09",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 6.663852204701059,
+       "hegyi_term": 0.145613627154083
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 2.849999999999998,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.0500000000000007,
+     "external_id": "X_r-02_c+11",
+     "per_focal": {
+      "P0209": {
+       "distance_m": 7.479972309166263,
+       "hegyi_term": 0.12972610729536396
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": 6.649999999999999,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 3.2596012026013246,
+     "external_id": "X_r-02_c-01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 4.047839438499672,
+       "hegyi_term": 0.17165539445781733
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -16.15,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.313351365237941,
+     "external_id": "X_r-02_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.161880042141459,
+       "hegyi_term": 0.13460860574925568
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 5.814206738670375,
+     "external_id": "X_r-02_c-03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.642665656123546,
+       "hegyi_term": 0.10460160295393436
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -19.95,
+     "z": -18.05
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999999,
+     "external_id": "X_r-03_c+01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.9165025708004535,
+       "hegyi_term": 0.11743990088785947
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -12.35,
+     "z": -19.95
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 4.949999999999999,
+     "external_id": "X_r-03_c+02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.812121638718984,
+       "hegyi_term": 0.10199956964483008
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -10.45,
+     "z": -19.95
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 5.081830378908764,
+     "external_id": "X_r-03_c-01",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 5.8193647049706625,
+       "hegyi_term": 0.119400228503306
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -16.15,
+     "z": -19.95
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 5.814206738670375,
+     "external_id": "X_r-03_c-02",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 6.642665656123546,
+       "hegyi_term": 0.10460160295393436
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -18.05,
+     "z": -19.95
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 7.000357133746819,
+     "external_id": "X_r-03_c-03",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 7.848885810650337,
+       "hegyi_term": 0.08852638352500111
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -19.95,
+     "z": -19.95
+    },
+    {
+     "assumed_age": 20,
+     "assumed_dbh_cm": 15.4336,
+     "assumed_species": "sitka-spruce",
+     "candidate": "C-B-30",
+     "distance_outside_property_m": 6.850000000000001,
+     "external_id": "X_r-04_c+00",
+     "per_focal": {
+      "P0000": {
+       "distance_m": 7.4515102878180555,
+       "hegyi_term": 0.09324733492665305
+      }
+     },
+     "provenance": "HYPOTHETICAL continuation of source lattice, not measured",
+     "x": -14.25,
+     "z": -21.85
+    }
+   ],
+   "finite_recreation_check": {
+    "float32_emulation_bit_equal_to_recorded": 112,
+    "max_abs_diff_float32_emulation_vs_recorded": 1.9073486328125e-06,
+    "max_abs_diff_float64_vs_recorded": 2.387956529403823e-06,
+    "note": "Python emulation; not a claim of Unity bit-equality (no native comparison run).",
+    "stems_checked": 189
+   },
+   "focal": [
+    {
+     "abs_diff_f32_vs_f64_context": 1.0706349495848144e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 2.384185791015625e-07,
+     "abs_diff_recomputed_f64_vs_recorded": 6.6625871486536425e-09,
+     "candidate": "C-B-30",
+     "ci_context_f32": 6.136045455932617,
+     "ci_context_f64": 6.136045562996112,
+     "ci_finite_f32": 1.8468694686889648,
+     "ci_finite_f64": 1.8468697004449568,
+     "dbh_cm": 22.21194076538086,
+     "delta_ci_f32": 4.289175987243652,
+     "delta_ci_f64": 4.289175862551155,
+     "edge_distance_m": 0.6000003814697266,
+     "external_contribution_f32": 4.289175987243652,
+     "external_contribution_f64": 4.289175862551155,
+     "external_neighbour_count": 29,
+     "external_neighbour_ids": [
+      "X_r+00_c-02",
+      "X_r+00_c-03",
+      "X_r+00_c-04",
+      "X_r+01_c-02",
+      "X_r+01_c-03",
+      "X_r+01_c-04",
+      "X_r+02_c-01",
+      "X_r+02_c-02",
+      "X_r+03_c-01",
+      "X_r+03_c-02",
+      "X_r-01_c+00",
+      "X_r-01_c+01",
+      "X_r-01_c+02",
+      "X_r-01_c+03",
+      "X_r-01_c-01",
+      "X_r-01_c-02",
+      "X_r-02_c+00",
+      "X_r-02_c+01",
+      "X_r-02_c+02",
+      "X_r-02_c+03",
+      "X_r-02_c-01",
+      "X_r-02_c-02",
+      "X_r-02_c-03",
+      "X_r-03_c+01",
+      "X_r-03_c+02",
+      "X_r-03_c-01",
+      "X_r-03_c-02",
+      "X_r-03_c-03",
+      "X_r-04_c+00"
+     ],
+     "finite_neighbour_count": 10,
+     "finite_neighbour_ids": [
+      "P0001",
+      "P0002",
+      "P0003",
+      "P0004",
+      "P0102",
+      "P0103",
+      "P0300",
+      "P0301",
+      "P0400",
+      "P0401"
+     ],
+     "focal_id": "P0000",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 3.3224034291326525,
+     "ratio_f64": 3.3224030701883227,
+     "reason": "#460 native crop anchor",
+     "recorded_native_ci": 1.846869707107544,
+     "s1_expected_ci_context_f32": 6.194976806640625,
+     "s1_expected_ci_context_f64": 6.1949767779672,
+     "s1_expected_external_contribution_f32": 4.34810733795166,
+     "s1_expected_external_contribution_f64": 4.348107077522243,
+     "s1_external_node_count_in_reach": 39,
+     "side": "south",
+     "source_ci50_multiplier_context": 0.44899241581899274,
+     "source_ci50_multiplier_finite": 0.730260720409951,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -14.399999618530273,
+     "z": -14.399999618530273
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 4.058452791610989e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 0.0,
+     "abs_diff_recomputed_f64_vs_recorded": 7.935154755500662e-09,
+     "candidate": "C-B-30",
+     "ci_context_f32": 6.290366172790527,
+     "ci_context_f64": 6.290365766945248,
+     "ci_finite_f32": 3.408665180206299,
+     "ci_finite_f64": 3.408665172271144,
+     "dbh_cm": 20.601051330566406,
+     "delta_ci_f32": 2.8817009925842285,
+     "delta_ci_f64": 2.881700594674104,
+     "edge_distance_m": 0.6000003814697266,
+     "external_contribution_f32": 2.8817009925842285,
+     "external_contribution_f64": 2.8817005946741046,
+     "external_neighbour_count": 19,
+     "external_neighbour_ids": [
+      "X_r+16_c+01",
+      "X_r+16_c+02",
+      "X_r+16_c+03",
+      "X_r+16_c+05",
+      "X_r+16_c+06",
+      "X_r+16_c+07",
+      "X_r+17_c+01",
+      "X_r+17_c+03",
+      "X_r+17_c+04",
+      "X_r+17_c+05",
+      "X_r+17_c+06",
+      "X_r+18_c+01",
+      "X_r+18_c+02",
+      "X_r+18_c+03",
+      "X_r+18_c+05",
+      "X_r+18_c+06",
+      "X_r+19_c+03",
+      "X_r+19_c+04",
+      "X_r+19_c+05"
+     ],
+     "finite_neighbour_count": 19,
+     "finite_neighbour_ids": [
+      "P1103",
+      "P1104",
+      "P1105",
+      "P1202",
+      "P1203",
+      "P1301",
+      "P1302",
+      "P1303",
+      "P1400",
+      "P1401",
+      "P1402",
+      "P1403",
+      "P1500",
+      "P1501",
+      "P1502",
+      "P1503",
+      "P1505",
+      "P1506",
+      "P1507"
+     ],
+     "focal_id": "P1504",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.8454045323424293,
+     "ratio_f64": 1.8454044175755957,
+     "reason": "#460 native crop anchor",
+     "recorded_native_ci": 3.408665180206299,
+     "s1_expected_ci_context_f32": 6.285216808319092,
+     "s1_expected_ci_context_f64": 6.285216507994008,
+     "s1_expected_external_contribution_f32": 2.876551628112793,
+     "s1_expected_external_contribution_f64": 2.8765513357228643,
+     "s1_external_node_count_in_reach": 24,
+     "side": "north",
+     "source_ci50_multiplier_context": 0.4428554489030353,
+     "source_ci50_multiplier_finite": 0.594624699350411,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -6.864117622375488,
+     "z": 14.399999618530273
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 1.4596847996983797e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 0.0,
+     "abs_diff_recomputed_f64_vs_recorded": 1.4596847996983797e-07,
+     "candidate": "C-B-30",
+     "ci_context_f32": 6.076241970062256,
+     "ci_context_f64": 6.076242116030736,
+     "ci_finite_f32": 6.076241970062256,
+     "ci_finite_f64": 6.076242116030736,
+     "dbh_cm": 18.236831665039062,
+     "delta_ci_f32": 0.0,
+     "delta_ci_f64": 0.0,
+     "edge_distance_m": 13.652353286743164,
+     "external_contribution_f32": 0.0,
+     "external_contribution_f64": 0.0,
+     "external_neighbour_count": 0,
+     "external_neighbour_ids": [],
+     "finite_neighbour_count": 35,
+     "finite_neighbour_ids": [
+      "P0406",
+      "P0504",
+      "P0505",
+      "P0506",
+      "P0507",
+      "P0508",
+      "P0703",
+      "P0704",
+      "P0705",
+      "P0706",
+      "P0707",
+      "P0710",
+      "P0803",
+      "P0804",
+      "P0805",
+      "P0806",
+      "P0810",
+      "P0811",
+      "P0903",
+      "P0904",
+      "P0905",
+      "P0906",
+      "P0907",
+      "P0909",
+      "P0910",
+      "P1004",
+      "P1005",
+      "P1006",
+      "P1009",
+      "P1010",
+      "P1104",
+      "P1105",
+      "P1106",
+      "P1108",
+      "P1109"
+     ],
+     "focal_id": "P0807",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.0,
+     "ratio_f64": 1.0,
+     "reason": "most interior retained stem (max edge distance)",
+     "recorded_native_ci": 6.076241970062256,
+     "s1_expected_ci_context_f32": 6.076241970062256,
+     "s1_expected_ci_context_f64": 6.076242116030736,
+     "s1_expected_external_contribution_f32": 0.0,
+     "s1_expected_external_contribution_f64": 0.0,
+     "s1_external_node_count_in_reach": 0,
+     "side": "north",
+     "source_ci50_multiplier_context": 0.45141664001398624,
+     "source_ci50_multiplier_finite": 0.45141664001398624,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": -1.3476470708847046,
+     "z": 1.1747058629989624
+    },
+    {
+     "abs_diff_f32_vs_f64_context": 9.504258047243752e-07,
+     "abs_diff_recomputed_f32_vs_recorded": 4.76837158203125e-07,
+     "abs_diff_recomputed_f64_vs_recorded": 6.67303456935997e-09,
+     "candidate": "C-B-30",
+     "ci_context_f32": 7.425379276275635,
+     "ci_context_f64": 7.42537832584983,
+     "ci_finite_f32": 6.1784892082214355,
+     "ci_finite_f64": 6.178488724711243,
+     "dbh_cm": 15.905226707458496,
+     "delta_ci_f32": 1.2468900680541992,
+     "delta_ci_f64": 1.2468896011385873,
+     "edge_distance_m": 3.6029415130615234,
+     "external_contribution_f32": 1.2468898296356201,
+     "external_contribution_f64": 1.2468896011385873,
+     "external_neighbour_count": 8,
+     "external_neighbour_ids": [
+      "X_r-01_c+07",
+      "X_r-01_c+08",
+      "X_r-01_c+10",
+      "X_r-01_c+11",
+      "X_r-01_c+12",
+      "X_r-02_c+08",
+      "X_r-02_c+09",
+      "X_r-02_c+11"
+     ],
+     "finite_neighbour_count": 26,
+     "finite_neighbour_ids": [
+      "P0006",
+      "P0009",
+      "P0010",
+      "P0011",
+      "P0012",
+      "P0109",
+      "P0110",
+      "P0112",
+      "P0113",
+      "P0207",
+      "P0210",
+      "P0211",
+      "P0306",
+      "P0307",
+      "P0310",
+      "P0311",
+      "P0312",
+      "P0406",
+      "P0407",
+      "P0410",
+      "P0411",
+      "P0412",
+      "P0507",
+      "P0508",
+      "P0510",
+      "P0511"
+     ],
+     "focal_id": "P0209",
+     "negctl_zero_external_equal_f32": true,
+     "negctl_zero_external_equal_f64": true,
+     "ratio_f32": 1.201811482715713,
+     "ratio_f64": 1.2018114229377124,
+     "reason": "retained stem nearest the median retained edge distance (3.617 m)",
+     "recorded_native_ci": 6.178488731384277,
+     "s1_expected_ci_context_f32": 7.574756979942322,
+     "s1_expected_ci_context_f64": 7.574756267542712,
+     "s1_expected_external_contribution_f32": 1.3962677717208862,
+     "s1_expected_external_contribution_f64": 1.39626754283147,
+     "s1_external_node_count_in_reach": 12,
+     "side": "south",
+     "source_ci50_multiplier_context": 0.4024022342722532,
+     "source_ci50_multiplier_finite": 0.447287654273602,
+     "species": "sitka-spruce",
+     "stage": "Year 0 post-Generate, pre-access, all living",
+     "x": 3.2311763763427734,
+     "z": -11.397058486938477
+    }
+   ],
+   "half_size_m": 15.0,
+   "lattice_origin_m": -14.25,
+   "lattice_per_axis": 16,
+   "lattice_span_m": 28.5,
+   "living_stems": 189,
+   "mean_dbh_cm": 15.433567930150915,
+   "negative_control_beyond_cutoff": {
+    "ci_context": 0.0,
+    "ci_finite": 0.0,
+    "external_sum": 0.0
+   },
+   "property_size_m": 30.0,
+   "stocking_fraction_p": 0.7581
+  }
+ ],
+ "constants": {
+  "dbh_floor_cm": 1.0,
+  "distance_floor_m": 0.5,
+  "hegyi_cutoff_m": 8.0,
+  "lattice_spacing_m": 1.9,
+  "sitka_ci50_display_only": 5.0,
+  "starting_stems_per_ha": 2100.0
+ },
+ "custody": {
+  "files_in_root": 89,
+  "key_file_hashes_unchanged": true,
+  "metadata_unchanged": true
+ },
+ "evidence_sha256": {
+  "C-A-20.json": "13f91368d044de2771e56a85a5daaa038a7fe7e5a9cab80995fbe8d45151a9ee",
+  "C-B-30.json": "3e7c37ad010d66382722bbd932db6c93b9de1b78914a38c48b4f1a7e1f9d5a27",
+  "executed-harness.cs": "3c0ebae88448d27b0aae4d0345b37a28026f8c9cc3b417d13920288853019863",
+  "native-result.json": "58524ad4f634378a875313909bb5cf42cfb37468abe0e60a61b63ce00a51de40"
+ },
+ "reconciliation": {
+  "C-A-20": [
+   {
+    "check": "candidate id matches file",
+    "detail": "C-A-20",
+    "pass": true
+   },
+   {
+    "check": "property size matches expected",
+    "detail": 20.0,
+    "pass": true
+   },
+   {
+    "check": "rows == recorded initial count == Year0 living",
+    "detail": "rows=82 initial=82 year0_living=82",
+    "pass": true
+   },
+   {
+    "check": "unique tree ids",
+    "detail": 82,
+    "pass": true
+   },
+   {
+    "check": "all species sitka-spruce",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "all age 20 (generator canonical age)",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "recorded edge == size/2 - max(|x|,|z|) (tol 1e-4)",
+    "detail": "max diff 4.77e-07",
+    "pass": true
+   },
+   {
+    "check": "all stems inside the property polygon",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "living-only list by construction (harness Trees() filters t.IsLiving)",
+    "detail": "executed-harness.cs line 57",
+    "pass": true
+   },
+   {
+    "check": "tree rows captured by MeasureInitial after Generate, before access felling",
+    "detail": "executed-harness.cs lines 85-87",
+    "pass": true
+   },
+   {
+    "check": "recorded CI came from eco.GetCompetitionIndex(t)",
+    "detail": "executed-harness.cs line 162",
+    "pass": true
+   },
+   {
+    "check": "per-candidate file == its copy inside native-result.json",
+    "detail": "",
+    "pass": true
+   }
+  ],
+  "C-B-30": [
+   {
+    "check": "candidate id matches file",
+    "detail": "C-B-30",
+    "pass": true
+   },
+   {
+    "check": "property size matches expected",
+    "detail": 30.0,
+    "pass": true
+   },
+   {
+    "check": "rows == recorded initial count == Year0 living",
+    "detail": "rows=189 initial=189 year0_living=189",
+    "pass": true
+   },
+   {
+    "check": "unique tree ids",
+    "detail": 189,
+    "pass": true
+   },
+   {
+    "check": "all species sitka-spruce",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "all age 20 (generator canonical age)",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "recorded edge == size/2 - max(|x|,|z|) (tol 1e-4)",
+    "detail": "max diff 4.77e-07",
+    "pass": true
+   },
+   {
+    "check": "all stems inside the property polygon",
+    "detail": "",
+    "pass": true
+   },
+   {
+    "check": "living-only list by construction (harness Trees() filters t.IsLiving)",
+    "detail": "executed-harness.cs line 57",
+    "pass": true
+   },
+   {
+    "check": "tree rows captured by MeasureInitial after Generate, before access felling",
+    "detail": "executed-harness.cs lines 85-87",
+    "pass": true
+   },
+   {
+    "check": "recorded CI came from eco.GetCompetitionIndex(t)",
+    "detail": "executed-harness.cs line 162",
+    "pass": true
+   },
+   {
+    "check": "per-candidate file == its copy inside native-result.json",
+    "detail": "",
+    "pass": true
+   }
+  ]
+ },
+ "script": "focal_boundary_ci.py",
+ "script_version": "1.0.0",
+ "stage": "Year 0, immediately after unmodified ForestStartingStand.Generate, before access felling"
+}

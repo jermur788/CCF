@@ -1,0 +1,6 @@
+{
+ "evidence_root": "/media/jer/Files/CCF/Verification/CompactOneRackNativeFeasibility460-20261113T145748Z/native-20261113T152528Z",
+ "platform": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+ "python": "3.12.3",
+ "script_sha256": "a93cf0fb3f71e0a60e88f2f59c03ac3c10d9f92774bb11d70054b68dba0667b2"
+}
