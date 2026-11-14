@@ -1,0 +1,60 @@
+# Manager handoff — Sitka 2D lab DRAFT: #485 eighteen-finding repair and short independent delta check
+
+**Date:** 14 November 2026  
+**Author repair execution claim:** [#486](https://github.com/jermur788/CCF/issues/486); actual author OpenAI ChatGPT GPT-6 GitHub/browser-only, worktree **NONE**.  
+**Independent re-check execution claim:** [#488](https://github.com/jermur788/CCF/issues/488) — **READY / NOT RUNNING**.  
+**Original review:** [#485 Claude Opus 5.5 report](https://github.com/jermur788/CCF/blob/616bd5376986b668589553d4971de7ac2888df41/Docs/Handoffs/MultiRack-Simulation-20261114/INDEPENDENT-SITKA-2D-LAB-V1-DRAFT-SPEC-REVIEW-20261114.md) — **NEEDS CHANGES**, eight MEDIUM D-01–D-08 and ten LOW D-09–D-18.  
+**Candidate revised four-file author branch:** \`docs/multirack-sitka-lab-485-review-repairs-20261114-v1\`, reviewer should pin the live HEAD and compare to original reviewer-pinned author \`754a467c220bde0beef7998256baae785b06fb07\`. Registered author-revision candidate HEAD at handoff: \`e085ede824872a6a57abf5856be09ffc41e6ce60\`.  
+**Status:** FOUR-FILE REVISED **DRAFT**, NOT APPROVED and NOT IMPLEMENTED. This is an evidence/quality gate for a proposed offline P0 laboratory, not a newly accepted CCF ecological model.
+
+## 1. Exact four files to inspect, READ ONLY
+
+- [Revised specification](https://github.com/jermur788/CCF/blob/docs/multirack-sitka-lab-485-review-repairs-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/spec.md)
+- [Revised implementation plan](https://github.com/jermur788/CCF/blob/docs/multirack-sitka-lab-485-review-repairs-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/plan.md)
+- [Revised task breakdown](https://github.com/jermur788/CCF/blob/docs/multirack-sitka-lab-485-review-repairs-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/tasks.md)
+- [Revised requirements checklist](https://github.com/jermur788/CCF/blob/docs/multirack-sitka-lab-485-review-repairs-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/checklists/requirements.md)
+
+**Recorded author verification:** every revised file was fetched/read back from GitHub; compare revised branch against exactly the previously reviewed author head yields **four modified Markdown files and zero extra changed paths**. No Unity, production source, approved spec, CCF saves, main, current milestone, decision log or live coordination changed; no local build/tests executed. Original four files remain unchanged at the reviewer-pinned original author branch. **Do not accept this author-side self-check as an independent verdict.**
+
+## 2. Author's repair map — reviewer must check each against actual text
+
+| Finding | Claimed bounded repair | Required independent delta check |
+|---|---|---|
+| **D-01 MEDIUM** Tree/plan transition ambiguity | \`spec.md\` A5 separates per-tree UNMARKED/PLAYER_MARKED from plan DRAFT/PROPOSED/APPROVED/PENDING_WORK/EXECUTED/REJECTED/CANCELLED/STALE; transition table, reservation, no MANUAL_REVIEW. | All transitions valid and guards unambiguous; no tree in two live plans; cancel/reject not a biological cut; mark/plan status not conflated. |
+| **D-02 MEDIUM** Atomic-vs-filter contradiction | A5, AC-05/06, plan/tasks/checklist now require **all-or-nothing** execution; reject entire plan if one ID invalid, append audit rejection without partial work. | Confirm *all four* docs agree, and reject event does not alter living counts/BA or execute a valid subset. |
+| **D-03 MEDIUM** Undefined stale approvals | Every approved plan binds \`baseForestRevision\` + \`approvalSessionEpoch\`; other execution/calendar step changes revision, fixture reset/load changes session epoch, invalidates old plan; no in-place reapproval. | Test cases in checklist cover all triggers; no load/replay paradox or token bypass. |
+| **D-04 MEDIUM** Determinism under-specified | P0 uses **checked-in immutable synthetic fixtures, NO PRNG** for P0; integer millimetres, canonical JSON **explicit fixed field/property order**, UTF-8 no BOM/LF compact representation, SHA-256 snapshot, monotonically numbered events with before/after hashes. | Confirm canonical order/tree sort and audit-only/replay semantics are implementable; distinguish clean no-plan reload byte equality from intentionally different loaded stale plans. |
+| **D-05 MEDIUM** Edges and subthreshold | Polygon boundary **inclusive**; any out-of-ring stem rejects fixture; below-threshold stems display but cannot be worked or included in adult N/BA/Dq; no edge exception. | Verify exact unit conversion and tree eligibility consistency across files. |
+| **D-06 MEDIUM** Save isolation | Fixed gitignored \`Tools/MultiRackSitkaLab/.lab-data/\`, filename/extension/format/schema checks, path traversal/symlink deny before open, separate lab JSON not \`ForestSaveData\`; loopback-only 127.0.0.1, restrictive Host/Origin/CORS, no remote services. | Explicit negative cases: CCF-shaped JSON and attempted outside-path must fail before reading protected paths. Verify no generic file picker. |
+| **D-07 MEDIUM** Invalid polygon | Simple single ring/no holes, ≥3 distinct noncollinear vertices, finite integer-mm geometry, reverse winding accepted, no self-intersections/self-touches, bow-tie rejected before area formula, area mm²→m²→ha. | Independent simple-polygon/bow-tie and boundary tests; no unsupported "edge ledger." |
+| **D-08 MEDIUM** Wrong approver/open owners | \`spec.md\` §7 names user or designated Overall Manager; original Multi-Rack author cannot self-approve; OPEN-L1/L2/L3 must resolve **before** APPROVED, L4/L5 owner assigned but deferred; current authorised board writer handles any later live ownership. | Confirm no implied #424 Unity/Scenario One approval for this lab, and no unilateral product decision ratified. |
+| **D-09 LOW** Age/year drift | Immutable P0 \`ageAtInventoryYears\`, \`experimentStep\` calendar only and no biological annual changes. | P0 control and tests say no growth/age increment. |
+| **D-10 LOW** Duplicate UI arithmetic | UI receives **Core-derived actual and preview metrics**, no independent browser forestry calculations. | UI/Core equality explicitly tested. |
+| **D-11 LOW** Fixture evidence label | Entire P0 labelled **ENGINEERING TEST FIXTURE** and display “Synthetic Sitka test stand (flat)”; no sneaky sourced Irish coefficients. | All four documents consistent; no unsourced typical-Irish stand claims. |
+| **D-12 LOW** Top-height | No P0 top-height metric; sampling definition deferred to P1 GROWFOR evidence audit. | Check both spec and checklist. |
+| **D-13 LOW** No-economy language | P0 no cash/cost fields; approval/rejection/execute events preserve forest truth. | No core tests depend on invisible economics. |
+| **D-14 LOW** Template sections | Spec now has formal stop conditions, scientific evidence classification, no-CCF-save impact and local host trust sections. | Confirm status remains DRAFT and requirements no silent omissions. |
+| **D-15 LOW** One writer | plan/tasks specify **one P0 implementation writer across Core/Host/UI**, independent reviewer later; UI subowner option removed. | No concurrent write recommendation in other files. |
+| **D-16 LOW** Performance | 2,000-tree test fixture; selection→inspector and preview update ≤2s on recorded local test host/browser. | Check measurable qualification and honest machine-dependent receipt. |
+| **D-17 LOW** Markdown | Removed escaped backticks in all four files; \`plan.md\` folder tree is a real fenced code block. | Ensure rendering valid; no literal \`\\\`...\` escapes left. |
+| **D-18 LOW** Canonical science path | Header cites \`Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md\` in GitHub, not only attached Project copy. | Compare to authoritative research index; no claim that GROWFOR provides spatial per-tree ecology. |
+
+## 3. Independent reviewer instructions and decision gate
+
+**Difficulty:** **MEDIUM**, because a focused four-file delta and contract consistency audit, rather than new ecological research or execution.  
+**Best provider/model:** independent **Claude Opus 5.5 / Claude Code** as non-author (the original #485 reviewer may perform the focused re-check) or equally capable separate **GPT-6 High** non-author. One reviewer/branch, no duplicated reviewers.  
+**Exact reviewer branch (already created, currently untouched):** \`docs/multirack-sitka-lab-486-delta-review-result-20261114-v1\`, created from main at \`fc18190b976f1363f1b5d1b0881810db2f8c6e39\`. Fresh-check live HEAD before work; never claim a local worktree or Unity/HP host if none.  
+**Exact reviewer report:** \`Docs/Handoffs/MultiRack-Simulation-20261114/INDEPENDENT-SITKA-2D-LAB-485-FINDINGS-DELTA-RECHECK-20261114.md\`. Sole allowed tracked write to that branch.  
+**Reviewer claim:** [#488](https://github.com/jermur788/CCF/issues/488) **READY / NOT RUNNING**. Actual non-author reviewer must **register model/provider/branch/starting HEAD/worktree NONE as [RUNNING] on #488 before editing**, then inspect pinned author and review. No read/write ownership to author branch.
+
+**Required review result:** separate D-01–D-18 PASS/FAIL/INCONCLUSIVE table with precise file/section evidence, focused R2/R4/R9 re-check and any regressions; **APPROVED AS REVISED DRAFT QUALITY / NEEDS CHANGES / REJECTED**. Reviewer must clearly distinguish **DRAFT quality** from **formal P0 APPROVED implementation authority**. OPEN-L1/L2/L3 require user/designated Overall Manager resolution; OPEN-L4/L5 remain deferred. P0 synthetic flat Sitka data and actions are engineering-only, **NO BIOLOGICAL GROWTH**, no actual Irish marteloscope imports while #479 raw-data access is blocked; P1 annual ecology and full 2D/3D multi-rack game remain later specs.
+
+**No code, Unity, terminal/local testing, GBIF account/data access, external contact, CCF save or Windows build.** Reviewer may use existing exact GitHub branch and source metadata, but no physical machine/Editor lease. Don't rewrite reviewer #485 or author #486 history. After review, read back report, compare exactly one added Markdown file, post [HANDED-OFF], close #488, notify #486/Manager and return direct result URL.
+
+**If corrections still needed:** quote exact revised sentence or file/line and minimal change; do not invent unapproved forestry physics or new scope. If passing: recommend Manager/user formal P0 approval and subsequent new local implementation packet/claim only after authorisation. No automatic code release.
+
+**Dashboard/Drive sync:** NOT VERIFIED.
+
+## 4. Copy-paste dispatch for a new review chat
+
+> Take ownership of **CCF #488** for a **short independent delta re-check** of the repaired Irish Sitka 2D Reference Laboratory V1 DRAFT. Read the full handoff at https://github.com/jermur788/CCF/blob/docs/multirack-sitka-lab-486-delta-recheck-dispatch-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MANAGER-SITKA-2D-LAB-485-FINDINGS-REPAIR-AND-INDEPENDENT-DELTA-RECHECK-20261114.md . Compare **only** the four DRAFT spec files on \`docs/multirack-sitka-lab-485-review-repairs-20261114-v1\` against the original #485 review. Check D-01–D-18, especially atomic work execution, forestRevision/sessionEpoch, canonical JSON/replay, polygon/DBH eligibility, lab-save security, current approval authority, and proper Markdown rendering. Return detailed PASS/FAIL/INCONCLUSIVE for all findings and verdict **APPROVED AS REVISED DRAFT QUALITY / NEEDS CHANGES / REJECTED**; do **not** approve P0 or run code/Unity. Register your actual worker, dedicated reviewer branch and starting HEAD/worktree NONE on [#488](https://github.com/jermur788/CCF/issues/488) before edits. Sole publication: \`Docs/Handoffs/MultiRack-Simulation-20261114/INDEPENDENT-SITKA-2D-LAB-485-FINDINGS-DELTA-RECHECK-20261114.md\` on \`docs/multirack-sitka-lab-486-delta-review-result-20261114-v1\`; GitHub readback and one-file diff; close claim HANDED-OFF and return to Manager. No production source, Unity, approved-spec, saves, coordination-board, raw data, account, outreach or build changes.
