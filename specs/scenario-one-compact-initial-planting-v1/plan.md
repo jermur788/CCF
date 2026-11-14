@@ -30,6 +30,8 @@
 3. Overall Manager #425 must independently reconcile proposed D-082 first-demo canonical Decision Log/Milestone scope, preserving all older five-rack contracts and accepted Option A/initial all-Sitka/early planting decisions. **No canonical write from this spec branch.**
 4. Unresolved owner/save choices still required: compact identity/root/save router and learning/help namespace (#436/OPEN-C4); whether any internal access is operationally needed OPEN-C1; 30m final geometry, boundary entry/off-road staging safety and player workload OPEN-C2; work funding/professional safety OPEN-C5; recurring substantive treatment/cadence/completion, and any identical-start replay OPEN-C10. This spec's early planting is not a substitute for those decisions.
 
+**Parent reconciliation BLOCKER:** the previous parent compact full-loop DRAFT still assumes one extraction rack. The no-through-rack child cannot be integrated until parent access lesson, candidate geometry/Work Plan and completion rules are explicitly amended and independently quality-checked. This is **not** a modification of existing five-rack approved worlds or automatic approval of boundary extraction.
+
 ## Stage 3 — Conditional implementation design, not released by this DRAFT
 
 **Only after** parent compact four-file spec plus this or integrated child is formally APPROVED, compatibility/save and owner gates met, exact source subsystem owners registered, and the live single-writer board grants ownership:
