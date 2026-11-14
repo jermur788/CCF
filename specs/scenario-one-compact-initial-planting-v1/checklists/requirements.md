@@ -1,27 +1,27 @@
 # scen1 — Compact Initial Woodland and Early Planting V1: Requirements
 
-**Status: ALL UNCHECKED — DESIGN DRAFT.** Each row is a requirement/verification question, **not** evidence that the game already behaves this way. The Manager's 30m, no mandatory internal rack, 4+4, two-site-group, early but unfixed planting year choices are reversible gameplay calibrations under the owner's delegation. Direct source findings, #460/#484/#490 research, and independent future #508 input have separate evidence tiers.
+**Status: ALL UNCHECKED — DESIGN DRAFT.** Each row is a requirement/verification question, **not** evidence that the game already behaves this way. The Manager's 30m, **owner-directed entrance clearing and winding pedestrian path**, no internal rack, 4+4 target, two-site-group and unfixed early planting-year choices are reversible gameplay calibrations under the owner's delegation. Direct source findings, #460/#484/#490 research, and independent future #508 input have separate evidence tiers.
 
-**Checklist jurisdiction:** `CIP-001` through `CIP-026` belong **only to this child spec**; they do not replace or mark the **115 unchecked** `R-001` to `R-115` in the broader compact complete-loop DRAFT. For a FAIL, write the exact witness and suggested smallest revision rather than checking it off. For a not-applicable design option, get authorised spec revision instead of deleting it to look green.
+**Checklist jurisdiction:** `CIP-001` through `CIP-033` belong **only to this child spec**; they do not replace or mark the **115 unchecked** `R-001` to `R-115` in the broader compact complete-loop DRAFT. For a FAIL, write the exact witness and suggested smallest revision rather than checking it off. For a not-applicable design option, get authorised spec revision instead of deleting it to look green.
 
 ## A. Owner intent and research-world identity
 
 - [ ] CIP-001 Latest owner intent preserved: all-Sitka initial forest, early player-led Oak and Beech planting, no mandatory natural Oak/Beech recruits by elapsed Year40 and no required later planting lesson until personal playtest.
 - [ ] CIP-002 Proposed 30×30m bounded property is explicitly labelled **Manager provisional selection** and not rebranded Legacy40/Enlarged80; old five-rack/reference/saves preserved.
-- [ ] CIP-003 Source-authentic original #460 C-B-30 initial inventory/hash used and stage pinned (189 initial age20 Sitka in research); no fake production save or new official world inferred.
-- [ ] CIP-004 **No mandatory 2.4m through-rack or automatic 19-stem Year1 clearance.** In #460 the research rack occupied 72m² (8%) of the 30m property. Any proposed boundary entrance and off-road timber handling require actual safety/permission evidence.
-- [ ] CIP-005 Two separately usable planting areas exist WITHOUT a central rack, and tree/collider and actual pedestrian reach conditions are assessed; #460 post-rack tree-inspection counts do not certify no-rack planting access or player time.
-- [ ] CIP-006 Original #460 **Year0 pre-rack** C-B-30 189-tree inventory and source geometry/hash inspected without deleting the 19 would-be corridor trees; missing original site/access data trigger DATA GATE.
+- [ ] CIP-003 Original #460 C-B-30 **189-tree UNMODIFIED pre-layout inventory** hash/stage pinned. Any new **pre-existing entrance opening/path** affects final Year0 starting tree positions/count only through an explicitly reviewed starting-history/generator rule, with exact affected IDs; never call final inventory both unmodified 189 and pre-cleared without evidence.
+- [ ] CIP-004 **No mandatory 2.4m through-rack or automatic 19-stem Year1 clearance.** Owner-requested pre-existing entrance clearing is a separate, unqualified spatial feature with road approach, possible truck loading/turning, car parking, land/access rights, and any vegetation change documented. The original #460 rack occupied 72m² (8%) but is not imported.
+- [ ] CIP-005 Winding **people-only** path is assessed from the entrance to two useful planting/observation sites without a central rack; actual tree/path collisions, human reach/visibility and route intent checked where possible. #460 post-rack tree-inspection counts do not certify the new layout or measured player time.
+- [ ] CIP-006 Original #460 **Year0 pre-rack** C-B-30 189-tree inventory and geometry/hash inspected. Candidate entrance and path footprints include an exact intersecting-Sitka ID ledger and distinguish existing gaps from proposed historic omissions; any missing terrain, boundary/road location or original tree data triggers DATA GATE, not invented clearance.
 
 ## B. Spatial planting site and source eligibility
 
-- [ ] CIP-007 Eight target positions from original-data/source-derived evidence (4 Oak, 4 Beech) proposed as **candidate** coordinates only after exact stage, tree IDs, bounded land, original living trees and known road/buildable areas are reconciled.
-- [ ] CIP-008 Two source-supported, distinct, accessible mixed planting pockets each holding 2 Oak +2 Beech can be found WITHOUT a mandatory extraction rack, excluding known road/building/edge/collider conflicts; otherwise propose honest smaller/modified arrangement.
+- [ ] CIP-007 Eight 4+4 candidate planting positions evaluated only **after** the tentative entrance/path footprint and remaining original trees are reconciled; no post-rack #490 coordinates promoted, no untracked clearances or fictitious accepted road/parking geometry.
+- [ ] CIP-008 Two distinct accessible mixed planting sites, each targeting 2 Oak +2 Beech, fit **outside** entrance clearing, timber handling/vehicle movement area and winding footpath, with live tree/road/building/boundary exclusions; otherwise propose a smaller/modified arrangement.
 - [ ] CIP-009 Each candidate site is inside actual stand ecology cell and is unique; duplicate open planting order/marker cases are rejected.
 - [ ] CIP-010 Each site passes source current-tree **≥0.7m live stem** admission and negative controls for near-stem, outside-boundary and known structure/road overlap, noting that this alone does not ensure survival.
 - [ ] CIP-011 ~2m between new saplings treated as provisional player legibility/competition preference, with measured actual site distances, not as an Irish forestry regulation or CCF engine limit.
 - [ ] CIP-012 Actual site canopy/light/browsing/bramble/bracken and existing tree/shade relation measured where original data permits, otherwise listed NOT MEASURED; no guaranteed Oak/Beech survival.
-- [ ] CIP-013 At least one genuine inspectable/player-reachable viewpoint for each proposed pocket evidenced when possible; #460 170 tree inspections and 498m constructed tour not called measured user planting time.
+- [ ] CIP-013 Winding pedestrian path offers at least one credible inspection viewpoint for each planned planting group; path route through trees, possible turn/loop and player view remain NOT VERIFIED without actual 3D evidence. #460 post-rack inspection route is not a new no-rack accessibility witness.
 
 ## C. Real Work Plan, costs and annual ecology
 
@@ -37,10 +37,20 @@
 
 ## D. Ownership, review, integration and user test
 
-- [ ] CIP-023 Exact 30m geometry/save/profile/router/PlayerPrefs, real boundary access and any need for a minimal internal path stay gated under parent DRAFT OPEN-C1–C10 and Overall Manager #425 paused D-082; no source/old world/five-rack code changed.
-- [ ] CIP-024 T3 Code #508 pure-offline original-data feasibility result contains PASS/NEEDS CHANGES/DATA GATE, exact validation method, negative cases, actual host provenance, no Unity launch or original evidence mutation.
+- [ ] CIP-023 Exact 30m geometry/save/router/PlayerPrefs, source history for **pre-existing entrance clearing/path**, professional vehicle/parking/loading, and any need for different plot size remain under OPEN-C1–C10 and paused D-082/#471 with #425. No change to old five-rack/Rack V2/Reference Future.
+- [ ] CIP-024 Retargeted T3 Code #508 **pure offline** result separately reports original 189-tree input, tentative entrance/path tree-conflict inventory, 4+4 sites and missing truck/road/walkability evidence, with PASS/NEEDS CHANGES/DATA GATE, negative checks and no Unity/raw-evidence modification.
 - [ ] CIP-025 Independent nonauthor review of verified feasibility and four-file spec issues APPROVED/NEEDS CHANGES/REJECTED for DRAFT quality only; no self-review or early implementation approval.
 - [ ] CIP-026 Owner personal playtest evaluates whether initial eight saplings and normal navigation are manageable and **whether later taught planting is worth adding**; no Windows build before personal candidate playtest plus explicit subsequent approval.
+
+## E. Entrance-clearing, multi-use operations and winding footpath — owner-directed, still NOT VERIFIED
+
+- [ ] CIP-027 Game-world design includes **one pre-existing entrance clearing** connected to a legitimately permitted boundary approach. Its shape, land extent, surface, drainage and affected Sitka IDs must be source-authentic and explicitly approved, not inferred from a fabricated road.
+- [ ] CIP-028 Ordinary-visit **car parking** and timber collection **truck use** are both represented as conditional uses of the entrance clearing, but parked cars, visitors and loading/turning zones cannot overlap during active haulage; safe exclusion/access control is required.
+- [ ] CIP-029 Vehicle type/size, safe approach, stopping/loading/turning/exit and room for timber stacks are qualified for the **actual** proposed clearing and available 30m/boundary land. Do not assume a full articulated timber lorry fits, a public-road loading bay is lawful, or a reduced-size truck is equivalent without a separate design choice.
+- [ ] CIP-030 **Simple winding pedestrian footpath** starts at the clearing and connects real stand inspection and initial planting areas without being a timber truck/harvester route. Exact route, width, surface, drainage/gradient, tree conflicts and walkability must be determined with actual source/Unity evidence.
+- [ ] CIP-031 All Sitka missing from proposed entrance/path footprint have **explicit pre-existing stand-history or starting-generation omission provenance** with exact tree IDs, changed canopy/light and financial/biological implications. No disguised Year1 player Fell, extra 19-rack clearance, or claimed 189 unchanged starting count if any trees are omitted.
+- [ ] CIP-032 If 30×30m cannot support entrance clearing, safe vehicle operation, separated car parking, path and 4+4 sites, produce a bounded documented alternative (appropriate smaller collection vehicle, independently permitted boundary land, modified footprint/cohort or larger world), **not** unverified compression, false turning or forced sapling success.
+- [ ] CIP-033 The player experiences a coherent arrival → parking/entry → walk/inspection → real planting → subsequent management loop; optional timber collection is a legitimate staged operation with quoted/settled financial/material outcomes and no mandatory internal extraction rack.
 
 ## Acceptance distinctions and negative controls
 
@@ -48,6 +58,6 @@
 - **Source inspection**: `TryDesignateExactPlanting`, `ScenarioOneDefinition`, `ForestStartingStand`, `ForestEcologyController`, normal manager mortality handler. Source code does not prove a new compact save profile or actual eight-site survival.
 - **Manager calibration**: 30m preference over 20m, 4+4 broadleaves, two mixed pockets, ≥2m mutual spacing preference, all-shelter tutorial default, target Year2. If local source or user playtest differs, update this document and cite why.
 - **Missing/negative examples**: no fabricated pre-cleared corridor, no 0.7m tree-overlap, no unowned stock, no unsupported planting pocket or fake outside donor, no automatically executed planted individual from a pending mark, no invented financing, no compulsory repeat planting, no wrongful death/deadwood claim.
-- **Qualification hierarchy**: Tier1 #508 source-original-data calculations only; targeted future Tier2 Unity Editor eligibility/visuals only with explicit independent authority and physical isolation; Tier3 integrated old save/Reference preservation only for release candidate. Don't require all 26 checks in the Tier1 result when their source/Unity/owner phases are not applicable; mark **NOT RUN** instead.
+- **Qualification hierarchy**: Tier1 #508 source-original-data calculations only; targeted future Tier2 Unity Editor eligibility/visuals only with explicit independent authority and physical isolation; Tier3 integrated old save/Reference preservation only for release candidate. Don't require all 33 checks in the Tier1 result when their source/Unity/owner phases are not applicable; mark **NOT RUN** instead.
 
-**Current truth:** 0/26 child boxes checked. 0/115 parent boxes checked. Neither spec is APPROVED to implement. Dashboard/Drive sync not verified.
+**Current truth:** 0/33 child boxes checked. 0/115 parent boxes checked. Neither spec is APPROVED to implement. Dashboard/Drive sync not verified.
