@@ -11,17 +11,38 @@ explicit *mark → propose → approve → queue → execute* work planning, an 
 deterministic replay, lab-only saves, and a local 2D browser map. What it deliberately does **not** do: grow trees,
 import real marteloscope/GBIF data, touch Unity, Scenario One, CCF game saves, or the network.
 
-## Quick start (Linux/macOS; .NET SDK 8, any modern Chromium-family browser)
+## Quick start (Linux x64 and Windows with Ubuntu WSL2; .NET SDK 8)
+
+**Windows compatibility qualified:** The standalone lab ran in Ubuntu 26.04 x86_64 under the owner's WSL2 and was operated from **Microsoft Edge on Windows** at **http://127.0.0.1:5187/**, including tree management, save/load/replay and 2,000-tree selection. Chrome, a full WSL distro restart and Linux arm64 have not been tested. **Native Windows and macOS lab-file operations are not supported** (HTTP 501 by design), so do not run the host natively on Windows/macOS expecting lab saves to work. This is not a Windows Unity game build.
+
+**On Windows:** open PowerShell, verify `wsl.exe --list --verbose` reports `Ubuntu` as **VERSION 2**, and enter that distro:
+
+```powershell
+wsl.exe -d Ubuntu
+```
+
+**Inside Ubuntu:** .NET **SDK 8** is required by `global.json`. The qualified WSL PC already has SDK 8 installed **in `~/.dotnet`** (system .NET 10 alone cannot satisfy the pin). Each new Ubuntu shell should use the user-local SDK without editing `.bashrc`:
+
+```bash
+export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
+cd ~/ccf-worktrees/CCF-MULTI-008-SitkaLab-WSL2-20261114/Tools/MultiRackSitkaLab  # qualified worktree; or your own lab checkout
+dotnet --version                    # must select an 8.0.x SDK
+dotnet run --project src/Host      # prints: Listening on http://127.0.0.1:5187
+```
+
+Open **Edge on Windows** at **http://127.0.0.1:5187/**. Do **not** substitute `localhost`: the Host guard deliberately returns 403 for that hostname. Stop the lab with **Ctrl+C** in Ubuntu. Synthetic saves remain in `.lab-data/` on the Ubuntu Linux-native filesystem, not in Windows/CCF production saves. If port 5187 is occupied, run `dotnet run --project src/Host -- --port 5200` and use `http://127.0.0.1:5200/`.
+
+If SDK 8 is missing on another WSL installation, install **.NET SDK 8** with explicit machine-owner permission. The qualified PC already has it and requires no reinstall. A full `wsl.exe --terminate Ubuntu` persistence check was deliberately not run because another user shell was open; do not terminate somebody's distro without permission.
+
+**On a supported native Linux x64 host** (with SDK 8 selected), the same lab commands work from `Tools/MultiRackSitkaLab`:
 
 ```bash
 cd Tools/MultiRackSitkaLab
 dotnet build src/Host
-dotnet run --project src/Host            # prints: Listening on http://127.0.0.1:5187
-# open http://127.0.0.1:5187/ in a browser (loopback only; Ctrl+C stops the host)
-dotnet run --project src/Host -- --port 5200   # another port
+dotnet run --project src/Host
 ```
 
-Windows/WSL users run the same commands. This is a normal local test build — **not** a Windows game build.
+The listener remains loopback-only. No broad LAN bind, Windows firewall change or Host/Origin relaxation is needed.
 
 ## Layout
 
@@ -135,11 +156,11 @@ saves screenshots and a JSON receipt, and removes only the lab files it created.
   kernel's flag values. On first use a self-test in a private temp folder proves the flags behave (symlink refused, FIFO
   opens without blocking, exclusive create/rename/unlink relative to a folder handle work). On any other OS/CPU, or if the
   self-test fails, listing/loading/saving refuse with `PlatformUnsupported` (HTTP 501) instead of falling back to a weaker
-  path-based check. **Only Linux x64 has been run and independently tested**; Linux arm64 is conditional and untested (its
+  path-based check. **Native Linux x64 was independently engineering-tested; Ubuntu x86_64 on WSL2 was tested on the owner's Windows PC with real Edge input**; Linux arm64 is conditional and untested (its
   values come from the kernel headers); native Windows/macOS lab file operations intentionally fail closed with 501.
 * Save isolation is anchored to the folder *handle*, not to the path: a same-user process that renames the real lab folder
   away mid-save does not redirect the save, which lands in that same (moved) folder. A same-user process that renames a
   different **real** folder into `.lab-data` before a save starts has replaced the lab folder itself, and that save goes
-  there; links are never followed. A symlink or FIFO that appears under the final name after the early check is replaced by
+  there; `O_NOFOLLOW` refuses the opened root and final file components, but a symlink in an ancestor path can still be followed. A symlink or FIFO that appears under the final name after the early check is replaced by
   the rename (never written through); a folder there makes the save fail with `WriteFailed`.
 * Accessibility is basic (shapes + letters + text labels, keyboard ID selection); no full certification.
