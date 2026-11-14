@@ -102,7 +102,7 @@ The UI should name “Compact Scenario One”, “Existing Scenario One” and �
 
 ## 6. Teaching, economy and full completion policy
 
-**Early teaching proposal:** brief arrival acknowledgement and real stand/site assessment, four owned-stock Pending planting orders, explicit Work Plan approval, four actual successful PlantJuvenile resolutions, then a subsequent genuine annual ecological tick and an annual review the player actually opens/acknowledges. Persist compact-only evidence sufficient to resume midway. Rejected/failed work earns no planted credit; later normal juvenile death does not erase the historical fact that work occurred. Reassess/replant only through valid optional work, without manufacturing survivors or a compulsory second lesson.
+**Early teaching proposal:** brief arrival acknowledgement and real stand/site assessment, four owned-stock Pending planting orders, explicit Work Plan approval, four actual successful PlantJuvenile resolutions, then the first genuine annual review covering planting resolution and ecological results, actually opened/acknowledged by the player. Use the normal annual ordering; do not insert a dummy extra year if that work and ecology were resolved in the same annual cycle. Persist compact-only evidence sufficient to resume midway. Rejected/failed work earns no planted credit; later normal juvenile death does not erase the historical fact that work occurred. Reassess/replant only through valid optional work, without manufacturing survivors or a compulsory second lesson.
 
 Shelters are editable recommendations; owner execution defaults only where the inspected source supports it. The illustrative source costs remain **€20 stock**, **€20 optional four-shelter materials**, and **€30 estimated contractor planting for four if selected**, not final settlement, Irish prices or free labor. No source quote was executed here.
 
@@ -157,7 +157,7 @@ Then, in order:
 | Old saves/model0/Reference hashes, cross-world rejection/rollback, actual backup/prefs behavior | **NOT RUN**; requirements/proposals, not compatibility qualification. |
 | Owner ratification of exact geometry/save architecture/D-082, final compact completion thresholds, formal spec approval | **PENDING**, explicitly routed; no implementation dispatch. |
 | Personal playtest / Windows build / external release | **NOT RUN / NOT AUTHORISED**. |
-| GitHub publication/readback and exact-start compare | Verify after commit; record final immutable HEAD, exact one-added-Markdown comparison and readback receipt in #521 closure comment. No other tracked file is permitted. |
+| GitHub publication/readback and exact-start compare | **PASS for initial publication c2dc871f5b92913d8a88e5dd5fd97d6973667ed7**: raw GitHub HTTP 200, all 31,301 characters matched; exact-start compare showed one commit, exactly one added Markdown, 165 additions/0 deletions, no other paths. Main remained fc18190b976f1363f1b5d1b0881810db2f8c6e39. This same-file receipt/teaching-order clarification is verified again at final HEAD in #521 closure. |
 | Dashboard / Drive / platform attachments | **NOT VERIFIED**. No generated state or mirror edited; no claim of full operational closure. |
 
 **What changed:** this one Manager decision handoff only: authority/provenance, resolved/deferred defaults, exact geometry/identity proposals, sole shared-router policy ownership, named pending approvals and a bounded next-claim proposal. No source/spec/canonical/main/coordination/save/reference change.
