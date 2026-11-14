@@ -58,4 +58,5 @@ The #516 reconciliation matches the latest owner's compact world: **Sitka-only i
 
 **Registered base:** `fc18190b976f1363f1b5d1b0881810db2f8c6e39`.  
 **Review branch:** `docs/scen1-519-independent-parent-g1-delta-review-20261114-v1`.  
-**Publication and readback:** PENDING actual GitHub file creation and exact-base branch comparison; final verified outcome will be appended to this same one-file handoff before [HANDED-OFF]/closed issue comment. No other tracked file is authorised.
+**Verified GitHub readback:** the first publication was fetched directly from the reviewer branch; exact `scen1-` title, 15,618 UTF-8 characters, `APPROVED (DRAFT QUALITY ONLY)` verdict and required scope were present.  
+**Verified first-publication exact-base compare:** [base → reviewer](https://github.com/jermur788/CCF/compare/fc18190b976f1363f1b5d1b0881810db2f8c6e39...docs/scen1-519-independent-parent-g1-delta-review-20261114-v1) returned **ahead 1, behind 0, exactly ONE ADDED `scen1-` Markdown handoff, zero other tracked file changes**. This one-file update adds the readback receipt; the final refreshed compare/readback is recorded on #519 closure rather than predicted. Neither parent/child/canonical/coordination files nor source/Unity were written.
