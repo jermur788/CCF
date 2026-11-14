@@ -1,10 +1,10 @@
 # Task breakdown — Irish Sitka 2D Reference Laboratory V1
 
-**Status:** DRAFT / NOT EXECUTABLE until the complete feature spec is APPROVED and ownership is registered. Tasks are proposed, not claimed, and do not authorise T3 Code/Unity. No worktree or code has been created.
+**Status:** **APPROVED FOR P0 ONLY** by direct user product decision under MULTI-001 (14 November 2026). **LAB-01 through LAB-05** may be assigned only under a separately registered **MULTI-002** implementation claim and cleared local ownership. LAB-06/07 P1 remain gated, LAB-08 out of scope. No worktree or code has yet been created.
 
 | Task | Goal | Difficulty / best lane | Dependencies / evidence gate | Deliverable and verdict |
 |---|---|---|---|---|
-| **LAB-00** | Independent four-file delta review and explicit user/designated Overall Manager approval of OPEN-L1..L3; OPEN-L4/L5 deferred outside P0 | Medium; distinct non-author GPT-6/Claude reasoning/repo reviewer | Review `spec.md`, project authority, #472/475/479 and Irish GROWFOR extraction | APPROVED / NEEDS CHANGES / REJECTED; no source coding before APPROVED |
+| **LAB-00** | **COMPLETED DOCUMENTARY GATE:** independent #488 revised DRAFT review PASS and user approval of L1 research-only, L2 no-growth P0, L3 isolated C# Core/browser UI; L4/L5 deferred | Medium; distinct non-author GPT-6/Claude reasoning/repo reviewer | Review `spec.md`, project authority, #472/475/479 and Irish GROWFOR extraction | APPROVED / NEEDS CHANGES / REJECTED; no source coding before APPROVED |
 | **LAB-01** | P0 local lane/technology preflight; no-overlap ownership | Low–medium; assigned local Sol/Codex High | Formal approved P0, actual issue claim and branch/HEAD/worktree, physical Ops/host/disk state | Written preflight + isolated new directory only |
 | **LAB-02** | Pure C# canonical integer-mm schema, checked-in synthetic fixtures (NO P0 PRNG), valid polygon, ID and BA/N/Dq exact mathematics | Medium; sole local core writer | LAB-01 and P0 approved scope | Golden immutable fixture SHA, units/adult threshold/polygon (simple, boundary-inclusive; bow-tie/outside rejected), BA/Dq exact hand-oracle tests |
 | **LAB-03** | Explicit tree-mark/plan-state table, atomic work/approval/pending/stale tokens, immutable events and canonical lab-only save/replay | Medium–High; same sole writer | LAB-02 | Atomic reject-all on one bad ID; baseForestRevision/sessionEpoch, eventSeq and SHA-256 per-step replay, bad load/CCF-save/path negative tests |
@@ -40,4 +40,4 @@
 
 ## Dispatch rules
 
-Do not route a local implementation chat until **user or designated Overall Manager records explicit P0 spec APPROVED** after independent delta re-check and resolves OPEN-L1..L3, and live lane ownership is confirmed. Then create a separate implementation claim and a paste-ready **direct GitHub packet URL**, including actual branch/worktree, exact allowed paths, provider, gates, output report path and owner action. The reference lab is parallel to—not a rewrite of—Scenario One.
+**P0 was approved directly by the user; independently reviewed status and L1–L3 decisions are resolved.** Route local implementation only under the separate **MULTI-002** claim/packet **after** fresh live branch/worktree/host ownership preflight, not on the strength of document approval alone. Provide the separate implementation claim and a paste-ready **direct GitHub packet URL**, including actual branch/worktree, exact allowed paths, provider, gates, output report path and owner action. The reference lab is parallel to—not a rewrite of—Scenario One.
