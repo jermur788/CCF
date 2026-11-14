@@ -1,0 +1,59 @@
+# scen1 — Manager #424: #508 research verdict and reverse-in timber-truck design correction
+
+**Date:** 14 November 2026 UTC. **Author:** OpenAI GPT-6, GitHub/browser-only Scenario One Manager #424. **Manager docs claim:** [#512](https://github.com/jermur788/CCF/issues/512). **Research claim:** [#508](https://github.com/jermur788/CCF/issues/508) is already independently handed-off and closed; do not reopen/duplicate it.  
+**Status:** **#508 OFFLINE RESEARCH ACCEPTED FOR ITS LIMITED GEOMETRY AND MODEL MEASUREMENTS; INITIAL VEHICLE/LAYOUT DRAFT NEEDS CHANGES.** This is a **DRAFT correction**, NOT an approved source/Unity feature, safe forestry access arrangement or three-species acceptance.
+**Source revised:** branch `docs/scen1-508-manager-reverse-in-truck-design-20261114-v1` from the prior #509 entrance/footpath child DRAFT; actual worktree NONE, no Unity machine lease. **Allowed changes:** four existing child feature DRAFT Markdown files and only this one NEW `scen1-` handoff; no historical/parent/canonical/coordination/Unity/source/save modifications.  
+**Dashboard/Drive/current context mirror:** NOT VERIFIED.
+
+## 1. Direct owner clarification and precise change to the earlier conclusion
+
+The owner says: **“a truck doesn't need to turn in it, as long as it can back in.”** This follows the #508 worker's earlier conclusion that a full **on-site turning** manoeuvre is not feasible on 30×30m.
+
+**Manager accepts the distinction.** Our candidate scene may show a suitable timber-collection truck **REVERSE INTO** an entrance clearing from an external permitted road/track, load timber **off-road** while the visitor area is closed, and **DRIVE FORWARDS OUT**. There is **no requirement for an internal 180° turning circle**; the winding path into the forest remains pedestrian-only. This continues the owner's previously selected arrival/parking, timber pickup and woodland-walk experience.
+
+**Not accepted/verified:** that any particular full articulated timber lorry can physically reverse into the 12×10m H1 apron, that an external road/track or legal access exists at the scene edge, that reversing from that road is safe/permitted, that off-road stacks and crane clearance fit, that a trained professional would use it, or that 30m has appropriate surfacing, drainage or sightlines. The worker **did not perform a swept-path reversing analysis**; the user's instruction sets the design's *desired manoeuvre*, not a forestry/road-safety exemption or physical verification.
+
+**Specific guidance distinction:** Ireland's Health and Safety Authority [vehicle reversing guidance](https://www.hsa.ie/eng/your_industry/quarrying/vehicle_and_pedestrian_safety/traffic_management/reversing_and_one-way_systems/) says avoid reversing when feasible, but if unavoidable provide planned manoeuvre, visibility, trained/competent supervision and physical separation of pedestrians from vehicles. [HSA general work-related transport legal guidance](https://www.hsa.ie/vehicles_at_work/work_related_vehicle_safety/legal_requirements/) requires relevant risk assessment, safe movement and loading. [Teagasc forest harvesting access guidance](https://teagasc.ie/crops/forestry/advice/timber-harvesting/harvesting-and-selling-timber-from-conifer-forests/prepare-for-harvesting-operations/) describes suitable access, off-road timber loading and normally safe turning to exit; our reverse-in alternative is **NOT** established as a normal or generally approved replacement. Site/vehicle-specific professional review remains essential. Do **not** show a hazardous manoeuvre as effortless standard Irish practice.
+
+## 2. What actual #508 evidence proves (directly inspected, not merely repeated)
+
+The original independent report is [scen1 #508 Tier1 original-data planting/access result](https://github.com/jermur788/CCF/blob/research/scen1-eight-broadleaf-eligibility-20261114-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261114/scen1-TIER1-30M-4PLUS4-PLANTING-SITE-ELIGIBILITY-RESULT-20261114.md). **Actual worker/provider:** Claude Opus 5.5 via T3 Code/Claude Code, self-registered in GitHub before writing; original raw evidence/hashes and worktree were protected. Manager inspected the actual full published  #508 Markdown, issue and one-file GitHub diff; **Manager did not locally rerun the Python scripts or Unity**.
+
+| Claim | Manager acceptance tier | Limitation |
+| --- | --- | --- |
+| **189 original Year0 Sitka** from original C-B-30 reconstruction (matches all positions/IDs) | **SOURCE-EQUIVALENT confirmed by #508 source and hash checks.** | Scene spacing **2.0m**, not generator's 1.9m default. This is **before** any entrance-clearing pre-existing omissions; not the final forest. |
+| **H1 12×10m south-edge apron** at x∈[−9,3], z∈[−15,−5] | Source-derived initial spatial hypothesis; 14 original Sitka intersect, 8 lie within 1m of its exterior | **175** remain only if 14 omitted at generation and starting-history/save changes approved; NOT fells or harvest revenue. Surface, road, truck and safety not qualified. |
+| **H2 15×15m** | Rejected provisional layout: would intersect 28 original Sitka, no turn benefit, poorer site-light trade-off | No authority to make extra clearing. |
+| **Existing gentle winding source track** | 0 extra conflicts at tested 1.2m/1.8m/2.4m widths | 3D Unity walkability, sightlines, branch clearance/gradient NOT RUN; not a truck route. |
+| **Full forward-in/on-site turn/forward-out envelope** | **Rejected manoeuvre**: nominal radius 12.5m → 491m² (55%) and 84 source Sitka overlaps | This **cannot** be used to reject the *different* owner-selected reverse-in/forward-out manoeuvre. It also does not prove reverse-in works. |
+| **Eight Oak/Beech possible source planting markers** | Geometric **0.7m current-living-stem** and ≥2m new-sapling filters PASS for two four-tree groups | These are **placement admission and Manager separation preference**, not viability/survival or final novice navigation. |
+| **G1 mixed 2+2** | Source Year0 cell light 0.221, Oak threshold 0.20; plausibly lit | No genuine Year2 no-rack/cleared-H1 native, browsing, protection or long-horizon. |
+| **G2N path-side mixed 2+2** | Geometry PASS, light proxy **0.0014** | Oak survival/promotion likely unsuitable, do NOT select as a healthy demonstration. |
+| **G2W nearer H1 alternative** | Oaks have light proxy 0.468 | Only **1m** from parking apron vs provisional 2m operational buffer; Beech pair very shaded. No operation-safe, ideal second group established. |
+
+**Verdict on #508:** research itself **APPROVED / USE FOR FURTHER DESIGN within source/model labels**, while the candidate scene **NEEDS CHANGES** in vehicle access details and in planting group two. The worker's report was evidence-honest: it already explicitly said road/site permissions, reverse safety, vehicle type and real timber operation were not verified. We correct only the *product interpretation* that an on-site turn is mandatory. No blame or rewrite of the historic #508 handoff.
+
+## 3. Revised Manager provisional design for further evaluation
+
+1. **Keep 30×30m as a research candidate**, not an approved final saved world. The 12×10m H1 pre-existing opening is the present best source-screened entrance layout (13.3% of parcel). If authorised by world/save history, **14 Sitka would be absent from starting generation** (175 potential starting trees). Never represent them as 14 player fells, a timber sale or 19 rack-removed Sitka. The source winding track acts as a pedestrian path with no new through-rack.
+2. **Working manoeuvre:** a suitable vehicle **backs into** the H1 clearing, loads off-road after visitors/parked cars are excluded, and **exits forwards**. No on-site turn, no lorry along winding forest path. A **reasonably sized rigid collection truck** is a Manager feasibility hypothesis, *not* an approved 7.5t/18t/rigid/articulated exact class or physical safe sweep. User specified “truck,” not a weight or dimensions. Leave exact vehicle size and any road right unselected until grounded.
+3. **Operational stop gate:** require actual vehicle dimensions and trailer/overhang/reverse sweep, entrance geometry, real external road/track width and control, sightlines, safe off-road stack/crane/load space, support for a documented reversing-safe work method, surface/ground and permissions. A competent forestry/transport/road-safety judgement must consider the chosen site. If unsafe or unrealistically compressed, revise parcel/clearing/collection method before gameplay implementation rather than making a small animated lorry magically fit.
+4. **First Oak/Beech** remains player-led early, target 4 Oak+4 Beech total, but *not* mandatory two equally successful 2+2 pockets: #508 shows first G1 credible as source-lite hypothesis and second group unresolved. Alternative second distribution, partial grouping or changed cohort size/real approved opening require evidence; **no dark-location Oak survival guarantee**. Do not decide to introduce a later mandatory planting lesson; the owner reserved that for personal playtesting.
+5. **Complete loop** retains subsequent real forest monitoring, protection, no-work and justified management actions under D-059/D-060. No compulsory Rack V2 crossing or virtual outside seed donors in new compact world. No changes to historic five-rack Enlarged80, Legacy40/model0, frozen Reference Future v1.
+6. **Formal approval blockers:** child DRAFT independent delta review; parent compact one-rack complete-loop DRAFT **conflicts** with owner's entrance/footpath/no-rack decision and must be revised/reviewed; paused canonical D-082/#471 under Overall Manager #425; explicit new save/profile router; access/collection and site-light evidence; eventual proportionate Unity/old-world qualification only after authorised production.
+
+## 4. What was changed, what passed and what is next
+
+**Modified ONLY**:
+- `specs/scenario-one-compact-initial-planting-v1/spec.md`: explicitly accept reverse-in/forward-out as manoeuvre, not safety PASS, quote measured #508 and second planting site caveat.
+- `specs/scenario-one-compact-initial-planting-v1/plan.md`: mark #508 complete, do not repeat irrelevant turning-circle test; outline vehicle/external road safety and G2 review.
+- `specs/scenario-one-compact-initial-planting-v1/tasks.md`: close Tier1 source phase, add only prospective *not-dispatched* focused vehicle/road and G2 design gate, preserve approval/ownership.
+- `specs/scenario-one-compact-initial-planting-v1/checklists/requirements.md`: correct existing CIP-024/CIP-028/029/030/032 at same **33** unique IDs, all UNCHECKED. Do not interpret evidence as feature verified.
+
+**Added ONLY** this new file `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261114/scen1-MANAGER-508-REVERSE-IN-TRUCK-ACCESS-AND-PLANTING-RESEARCH-VERDICT-20261114.md`.
+
+Expected compare to exact #509 baseline **four MODIFIED docs + ONE NEW `scen1` handoff**, no production, parent, original research, canonical decision or live coordination changes. GitHub readback and diff are required before marking #512 HANDOFF/CLOSED.
+
+**No next Unity task is released.** A new small vehicle swept-path/road-approach check is meaningful only after selecting a representative truck size and grounding the fictional entry road geometry; otherwise another offline check would fabricate precision. Prefer a single bounded owner/Manager design correction plus independent docs review when those inputs are available. No repeated #508 reconstruction or 40-year native sweep. Respect the owner's personal test gate for additional later planting and Windows build authorisation.
+
+**User action required:** None on this immediate clarification. Continue with product design around reverse-in/forward-out; later ask only for a material vehicle/site/product choice if Manager default cannot be justified. **Dashboard/Drive/context mirrors:** NOT VERIFIED.
