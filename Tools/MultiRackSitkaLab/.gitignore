@@ -1,0 +1,13 @@
+# The repository root ignores Unity-generated *.sln / *.csproj. These are hand-written lab project files and MUST be tracked.
+!*.sln
+!*.csproj
+
+# Lab-only saves (never committed)
+.lab-data/
+# Build output
+bin/
+obj/
+TestResults/
+# Local evidence scratch (durable evidence lives off-repo under /media/jer/Files/CCF/Verification)
+evidence/*
+!evidence/README.md

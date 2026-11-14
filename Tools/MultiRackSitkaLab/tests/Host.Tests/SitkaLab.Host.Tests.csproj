@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaLab.Host.Tests</AssemblyName>
+    <RootNamespace>SitkaLab.Host.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="..\Shared\MiniTest.cs" Link="MiniTest.cs" />
+    <ProjectReference Include="..\..\src\Host\SitkaLab.Host.csproj" />
+    <ProjectReference Include="..\..\src\Core\SitkaLab.Core.csproj" />
+  </ItemGroup>
+</Project>

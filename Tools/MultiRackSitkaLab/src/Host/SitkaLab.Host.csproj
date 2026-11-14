@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>SitkaLab.Host</AssemblyName>
+    <RootNamespace>SitkaLab.Host</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Offline, no telemetry: nothing in this project talks to the network except the loopback listener. -->
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\SitkaLab.Core.csproj" />
+    <!-- The browser UI lives in src/Ui/wwwroot and is copied next to the host binary. -->
+    <Content Include="..\Ui\wwwroot\**\*" Link="wwwroot\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

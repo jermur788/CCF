@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ccf:sitka-lab:file:v1",
+  "title": "ccf-sitka-lab file, labSchemaVersion 1 (Synthetic engineering test fixture)",
+  "description": "Structural shape only. Property ORDER, canonical (compact) bytes, sorting, uniqueness, geometry, state-machine and hash rules are defined in lab-file-v1.md and enforced by the reader.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "labSchemaVersion", "sourceClass", "fixtureId", "snapshot", "eventLog", "snapshotHash"],
+  "properties": {
+    "format": { "const": "ccf-sitka-lab" },
+    "labSchemaVersion": { "const": 1 },
+    "sourceClass": { "const": "Synthetic" },
+    "fixtureId": { "$ref": "#/$defs/id" },
+    "snapshot": { "$ref": "#/$defs/snapshot" },
+    "eventLog": { "type": "array", "maxItems": 200000, "items": { "$ref": "#/$defs/event" } },
+    "snapshotHash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "epoch": { "type": "string", "pattern": "^[0-9a-f]{8,64}$" },
+    "mm": { "type": "integer", "minimum": -1000000000, "maximum": 1000000000 },
+    "positiveMm": { "type": "integer", "minimum": 1, "maximum": 1000000000 },
+    "snapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["forestId", "inventoryYear", "experimentStep", "forestRevision", "adultThresholdMm", "standAreaPolygon", "siteProfile", "trees", "plans"],
+      "properties": {
+        "forestId": { "$ref": "#/$defs/id" },
+        "inventoryYear": { "type": "integer", "minimum": 1, "maximum": 9999 },
+        "experimentStep": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "forestRevision": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "adultThresholdMm": { "$ref": "#/$defs/positiveMm" },
+        "standAreaPolygon": {
+          "type": "array", "minItems": 3, "maxItems": 256,
+          "items": { "type": "object", "additionalProperties": false, "required": ["xMm", "yMm"], "properties": { "xMm": { "$ref": "#/$defs/mm" }, "yMm": { "$ref": "#/$defs/mm" } } }
+        },
+        "siteProfile": { "type": "object", "additionalProperties": false, "required": ["slopeDeg"], "properties": { "slopeDeg": { "const": 0 } } },
+        "trees": { "type": "array", "maxItems": 20000, "items": { "$ref": "#/$defs/tree" } },
+        "plans": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/plan" } }
+      }
+    },
+    "tree": {
+      "type": "object", "additionalProperties": false,
+      "required": ["treeId", "species", "xMm", "yMm", "zMm", "dbhMm", "heightMm", "ageAtInventoryYears", "status", "markState"],
+      "properties": {
+        "treeId": { "$ref": "#/$defs/id" },
+        "species": { "const": "Sitka" },
+        "xMm": { "$ref": "#/$defs/mm" }, "yMm": { "$ref": "#/$defs/mm" }, "zMm": { "const": 0 },
+        "dbhMm": { "$ref": "#/$defs/positiveMm" }, "heightMm": { "$ref": "#/$defs/positiveMm" },
+        "ageAtInventoryYears": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "status": { "enum": ["live", "dead", "felled"] },
+        "markState": { "enum": ["UNMARKED", "PLAYER_MARKED"] }
+      }
+    },
+    "plan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["planId", "planState", "treeIds", "baseForestRevision", "approvalSessionEpoch"],
+      "properties": {
+        "planId": { "$ref": "#/$defs/id" },
+        "planState": { "enum": ["DRAFT", "PROPOSED", "APPROVED", "PENDING_WORK", "EXECUTED", "REJECTED", "CANCELLED", "STALE"] },
+        "treeIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } },
+        "baseForestRevision": { "type": ["integer", "null"], "minimum": 0 },
+        "approvalSessionEpoch": { "oneOf": [{ "$ref": "#/$defs/epoch" }, { "type": "null" }] }
+      }
+    },
+    "event": {
+      "type": "object", "additionalProperties": false,
+      "required": ["eventSeq", "eventType", "treeIds", "payload", "prevStateHash", "postStateHash"],
+      "properties": {
+        "eventSeq": { "type": "integer", "minimum": 1 },
+        "eventType": { "enum": ["TreeMarked", "TreeUnmarked", "PlanCreated", "PlanProposed", "PlanApproved", "PlanQueued", "PlanRejected", "PlanCancelled", "PlanStale", "TestWorkExecuted", "PlanExecutionRejected", "ExperimentStepAdvanced"] },
+        "treeIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "payload": { "type": "object", "additionalProperties": { "type": ["string", "integer"] } },
+        "prevStateHash": { "$ref": "#/$defs/sha256" },
+        "postStateHash": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

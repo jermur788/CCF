@@ -1,0 +1,260 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Builder;
+using SitkaLab.Core;
+using SitkaLab.Host;
+using SitkaLab.Testing;
+
+namespace SitkaLab.Host.Tests;
+
+/// <summary>A real host on a real loopback port with a throw-away tool root (fixtures copied, fresh .lab-data).</summary>
+internal sealed class TestHost : IDisposable
+{
+    public readonly string Root;
+    public readonly LabHost.Running Running;
+    public readonly HttpClient Http = new(new SocketsHttpHandler { UseProxy = false }) { Timeout = TimeSpan.FromSeconds(20) };
+    public string Base => Running.BaseUrl;
+    public string LabData => Path.Combine(Root, ".lab-data");
+
+    public TestHost()
+    {
+        Root = Directory.CreateTempSubdirectory("sitkalab-host-").FullName;
+        Directory.CreateDirectory(Path.Combine(Root, "fixtures", "synthetic"));
+        foreach (var f in Directory.GetFiles(ToolPaths.FixtureDir, "*.sitkalab.json"))
+            File.Copy(f, Path.Combine(Root, "fixtures", "synthetic", Path.GetFileName(f)));
+        Running = LabHost.Build(new LabHostOptions { ToolRoot = Root, WebRoot = Path.Combine(ToolPaths.ToolRoot, "src", "Ui", "wwwroot"), Port = 0 });
+        Running.App.StartAsync().GetAwaiter().GetResult();
+    }
+
+    public HttpRequestMessage Req(HttpMethod m, string path, object? body = null, bool good = true, string? host = null, string? origin = null, bool labHeader = true, string contentType = "application/json")
+    {
+        var r = new HttpRequestMessage(m, Base + path);
+        if (host is not null) r.Headers.Host = host;
+        if (m == HttpMethod.Post)
+        {
+            if (good) r.Headers.TryAddWithoutValidation("Origin", Base);
+            if (origin is not null) { r.Headers.Remove("Origin"); r.Headers.TryAddWithoutValidation("Origin", origin); }
+            if (labHeader) r.Headers.TryAddWithoutValidation("X-Sitka-Lab", "1");
+            r.Content = new StringContent(body is null ? "{}" : (body as string ?? JsonSerializer.Serialize(body)), Encoding.UTF8, contentType);
+        }
+        else if (origin is not null) r.Headers.TryAddWithoutValidation("Origin", origin);
+        return r;
+    }
+
+    public async Task<(HttpStatusCode Status, JsonElement Json)> Post(string path, object? body = null)
+    {
+        var res = await Http.SendAsync(Req(HttpMethod.Post, path, body));
+        string text = await res.Content.ReadAsStringAsync();
+        return (res.StatusCode, text.Length > 0 && text[0] == '{' ? JsonDocument.Parse(text).RootElement.Clone() : default);
+    }
+
+    public async Task<JsonElement> GetJson(string path) => JsonDocument.Parse(await Http.GetStringAsync(Base + path)).RootElement.Clone();
+
+    public void Dispose()
+    {
+        Running.App.StopAsync().GetAwaiter().GetResult();
+        Running.App.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        Http.Dispose();
+        try { Directory.Delete(Root, true); } catch { /* best effort */ }
+    }
+}
+
+public static class HostTests
+{
+    private static T R<T>(Func<Task<T>> f) => f().GetAwaiter().GetResult();
+
+    [Test]
+    public static void Host_ListensOnLoopbackOnly()
+    {
+        using var h = new TestHost();
+        var addrs = h.Running.App.Urls.ToList();
+        T.True(addrs.Count == 1 && addrs[0].StartsWith("http://127.0.0.1:"), "bound addresses: " + string.Join(",", addrs));
+        var health = h.GetJson("/api/health").GetAwaiter().GetResult();
+        T.Eq("127.0.0.1", health.GetProperty("bind").GetString(), "reported local address");
+        var listening = File.ReadAllLines("/proc/net/tcp").Concat(File.ReadAllLines("/proc/net/tcp6")).Skip(1)
+            .Select(l => l.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Where(p => p.Length > 3 && p[3] == "0A")
+            .Where(p => p[1].EndsWith(":" + h.Running.Port.ToString("X4"))).Select(p => p[1]).ToList();
+        T.True(listening.Count >= 1, "found the listening socket in /proc/net/tcp");
+        T.True(listening.All(a => a.StartsWith("0100007F:")), "every listener for this port is 127.0.0.1 (0100007F): " + string.Join(",", listening));
+    }
+
+    [Test]
+    public static void Hostile_HostOriginMethodAndHeaderCases_AreRefused()
+    {
+        using var h = new TestHost();
+        int Code(HttpRequestMessage r) => (int)R(() => h.Http.SendAsync(r)).StatusCode;
+        T.Eq(403, Code(h.Req(HttpMethod.Get, "/api/state", host: "evil.example")), "foreign Host");
+        T.Eq(403, Code(h.Req(HttpMethod.Get, "/api/state", host: $"localhost:{h.Running.Port}")), "localhost alias (DNS-rebinding shape)");
+        T.Eq(403, Code(h.Req(HttpMethod.Get, "/api/state", host: $"127.0.0.1:{h.Running.Port + 1}")), "wrong port in Host");
+        T.Eq(403, Code(h.Req(HttpMethod.Get, "/api/state", origin: "http://evil.example")), "foreign Origin on GET");
+        T.Eq(403, Code(h.Req(HttpMethod.Post, "/api/step/advance", origin: "http://evil.example")), "foreign Origin on POST");
+        T.Eq(403, Code(h.Req(HttpMethod.Post, "/api/step/advance", good: false)), "POST with no Origin");
+        T.Eq(403, Code(h.Req(HttpMethod.Post, "/api/step/advance", labHeader: false)), "POST without the lab header");
+        T.Eq(415, Code(h.Req(HttpMethod.Post, "/api/step/advance", contentType: "text/plain")), "POST with the wrong content type");
+        var preflight = h.Req(HttpMethod.Options, "/api/state"); preflight.Headers.TryAddWithoutValidation("Origin", "http://evil.example"); preflight.Headers.TryAddWithoutValidation("Access-Control-Request-Method", "POST");
+        var pr = R(() => h.Http.SendAsync(preflight));
+        T.Eq(405, (int)pr.StatusCode, "CORS preflight");
+        T.False(pr.Headers.Contains("Access-Control-Allow-Origin"), "no CORS allow header");
+        foreach (var m in new[] { HttpMethod.Put, HttpMethod.Delete, HttpMethod.Patch, HttpMethod.Trace })
+            T.Eq(405, Code(h.Req(m, "/api/state")), "method " + m);
+        var ok = R(() => h.Http.SendAsync(h.Req(HttpMethod.Get, "/api/state")));
+        T.Eq(200, (int)ok.StatusCode, "control: a well-formed request works");
+        T.False(ok.Headers.Contains("Access-Control-Allow-Origin"), "no CORS header on success either");
+        T.True(ok.Headers.GetValues("Content-Security-Policy").Single().Contains("default-src 'none'"), "restrictive CSP");
+        T.True(ok.Headers.GetValues("Cache-Control").Single().Contains("no-store"), "no-store");
+        T.Eq(0, h.Running.State.Session.Events.Count, "hostile requests changed nothing");
+    }
+
+    [Test]
+    public static void Responses_CannotReadUnrelatedFiles_AndNoEndpointTouchesProductionSaves()
+    {
+        using var h = new TestHost();
+        // Sentinels a hostile request might try to reach: next to the tool root, in the lab root's parent, and a CCF-save look-alike.
+        string secret = "SECRET-SENTINEL-" + Guid.NewGuid().ToString("N");
+        var ccfSave = Path.Combine(Path.GetDirectoryName(h.Root)!, "forest-save-" + Guid.NewGuid().ToString("N") + ".json");
+        File.WriteAllText(ccfSave, secret); var stamp = File.GetLastWriteTimeUtc(ccfSave);
+        File.WriteAllText(Path.Combine(h.Root, "secret.txt"), secret);
+        try
+        {
+            string[] paths = { "/secret.txt", "/../secret.txt", "/%2e%2e/secret.txt", "/..%2fsecret.txt", "/fixtures/synthetic/oracle-quarter-ha.sitkalab.json", "/.lab-data/", "/appsettings.json",
+                "/SitkaLab.Host.dll", "/SitkaLab.Host.deps.json", "/api/", "/api/../secret.txt", "/index.html/../../secret.txt", "/etc/passwd", "//etc/passwd", "/app.js/../../../../etc/passwd" };
+            foreach (var p in paths)
+            {
+                var res = R(() => h.Http.SendAsync(h.Req(HttpMethod.Get, p)));
+                string body = R(() => res.Content.ReadAsStringAsync());
+                T.False(body.Contains(secret), $"GET {p} must not leak files");
+                T.False(body.Contains("root:x:") || body.Contains("\"trees\":["), $"GET {p} must not serve system or fixture files");
+                T.True((int)res.StatusCode is 400 or 404 or 405 or 301 or 308, $"GET {p} → {(int)res.StatusCode}");
+            }
+            foreach (var name in new[] { ccfSave, "../" + Path.GetFileName(ccfSave), Path.GetFileName(ccfSave), "/etc/passwd", "forest-save.json", "ForestSaveData.json", "../../.." })
+            {
+                var (st, _) = R(() => h.Post("/api/saves/load", new { fileName = name }));
+                T.True((int)st is 403 or 400, $"load '{name}' refused ({(int)st})");
+                var (st2, _) = R(() => h.Post("/api/saves/save", new { name }));
+                T.Eq(400, (int)st2, $"save as '{name}' refused");
+            }
+            T.Eq(secret, File.ReadAllText(ccfSave), "CCF-save look-alike untouched"); T.Eq(stamp, File.GetLastWriteTimeUtc(ccfSave), "…and never rewritten");
+            T.Eq(0, Directory.GetFiles(h.LabData).Length, "nothing was written under .lab-data");
+            T.False(Directory.GetFiles(Path.GetDirectoryName(h.Root)!, "*.sitkalab.json", SearchOption.TopDirectoryOnly).Any(), "nothing escaped next to the tool root");
+        }
+        finally { File.Delete(ccfSave); }
+    }
+
+    [Test]
+    public static void RequestBodies_AreBoundedAndValidated()
+    {
+        using var h = new TestHost();
+        var big = new string('x', 1_200_000);
+        var res = R(() => h.Http.SendAsync(h.Req(HttpMethod.Post, "/api/preview", "{\"treeIds\":[\"" + big + "\"]}")));
+        T.Eq(413, (int)res.StatusCode, "oversized body refused with 413");
+        T.False(R(() => res.Content.ReadAsStringAsync()).Contains("Exception"), "no server exception text leaks to the client");
+        var bad = R(() => h.Http.SendAsync(h.Req(HttpMethod.Post, "/api/marks/mark", "{not json")));
+        T.Eq(400, (int)bad.StatusCode, "malformed JSON → 400");
+        var (st, js) = R(() => h.Post("/api/marks/mark", new { treeIds = new[] { "bad id with spaces" } }));
+        T.Eq(409, (int)st, "unsafe ID refused"); T.Eq("InvalidId", js.GetProperty("code").GetString(), "code");
+        var (st2, _) = R(() => h.Post("/api/plans/..%2f..%2fx/execute"));
+        T.True((int)st2 is 400 or 404, "plan id path trick refused: " + (int)st2);
+        var (st3, js3) = R(() => h.Post("/api/plans/P0001/explode"));
+        T.Eq(404, (int)st3, "unknown action"); T.Eq("UnknownAction", js3.GetProperty("code").GetString(), "code");
+        var (st4, js4) = R(() => h.Post("/api/fixture/load", new { fixtureId = "oracle-quarter-ha", confirm = false }));
+        T.Eq(400, (int)st4, "reset requires confirmation"); T.Eq("ConfirmationRequired", js4.GetProperty("code").GetString(), "code");
+        var (st5, js5) = R(() => h.Post("/api/fixture/load", new { fixtureId = "../../x", confirm = true }));
+        T.Eq(400, (int)st5, "unknown fixture"); T.Eq("UnknownFixture", js5.GetProperty("code").GetString(), "no path-based fixture loading");
+    }
+
+    [Test]
+    public static void HttpWorkflow_MarkToExecute_MatchesCoreAndIsAtomic()
+    {
+        using var h = new TestHost();
+        var st0 = R(() => h.GetJson("/api/state"));
+        var trees = st0.GetProperty("trees").EnumerateArray().Where(t => t.GetProperty("eligible").GetBoolean()).Take(5).Select(t => t.GetProperty("treeId").GetString()!).ToList();
+        var n0 = st0.GetProperty("metrics").GetProperty("eligibleLiveN").GetInt32();
+        var prev = R(() => h.Post("/api/preview", new { treeIds = trees })).Json;
+        T.True(prev.GetProperty("valid").GetBoolean(), "preview valid");
+        T.Eq(0, R(() => h.GetJson("/api/state")).GetProperty("eventCount").GetInt32(), "preview wrote nothing");
+        foreach (var (path, body) in new (string, object?)[] { ("/api/marks/mark", new { treeIds = trees }), ("/api/plans/create", new { treeIds = trees }) })
+            T.Eq(HttpStatusCode.OK, R(() => h.Post(path, body)).Status, path);
+        foreach (var a in new[] { "propose", "approve", "queue" }) T.Eq(HttpStatusCode.OK, R(() => h.Post($"/api/plans/P0001/{a}")).Status, a);
+        var mid = R(() => h.GetJson("/api/state"));
+        T.Eq(n0, mid.GetProperty("metrics").GetProperty("eligibleLiveN").GetInt32(), "nothing felled before Execute");
+        var done = R(() => h.Post("/api/plans/P0001/execute"));
+        T.Eq(HttpStatusCode.OK, done.Status, "execute");
+        var st1 = done.Json.GetProperty("state");
+        T.Eq(n0 - 5, st1.GetProperty("metrics").GetProperty("eligibleLiveN").GetInt32(), "N after");
+        T.Eq(prev.GetProperty("after").GetProperty("baM2").GetDouble(), st1.GetProperty("metrics").GetProperty("baM2").GetDouble(), "BA after == Core preview");
+        var again = R(() => h.Post("/api/plans/P0001/execute"));
+        T.Eq(HttpStatusCode.Conflict, again.Status, "second execute refused"); T.Eq("PlanAlreadyExecuted", again.Json.GetProperty("code").GetString(), "code");
+        T.Eq(n0 - 5, again.Json.GetProperty("state").GetProperty("metrics").GetProperty("eligibleLiveN").GetInt32(), "nothing more felled");
+        var replay = R(() => h.GetJson("/api/replay"));
+        T.True(replay.GetProperty("ok").GetBoolean() && replay.GetProperty("matchesCurrentState").GetBoolean(), "server-side replay matches");
+    }
+
+    [Test]
+    public static void Saves_RoundTripOverHttp_AndWrongFormatContentFailsAtTheHeaderGate()
+    {
+        using var h = new TestHost();
+        var ids = R(() => h.GetJson("/api/state")).GetProperty("trees").EnumerateArray().Where(t => t.GetProperty("eligible").GetBoolean()).Take(3).Select(t => t.GetProperty("treeId").GetString()!).ToList();
+        R(() => h.Post("/api/marks/mark", new { treeIds = ids })); R(() => h.Post("/api/plans/create", new { treeIds = ids }));
+        foreach (var a in new[] { "propose", "approve" }) R(() => h.Post($"/api/plans/P0001/{a}"));
+        var before = R(() => h.GetJson("/api/state"));
+        var saved = R(() => h.Post("/api/saves/save", new { name = "http-run" }));
+        T.Eq(HttpStatusCode.OK, saved.Status, "save"); T.Eq("http-run.sitkalab.json", saved.Json.GetProperty("fileName").GetString(), "server appended suffix");
+        T.True(File.Exists(Path.Combine(h.LabData, "http-run.sitkalab.json")), "file landed under .lab-data");
+        var listed = R(() => h.GetJson("/api/saves")).GetProperty("files").EnumerateArray().Select(e => e.GetString()).ToList();
+        T.Seq(new[] { "http-run.sitkalab.json" }, listed!, "lab list");
+        R(() => h.Post("/api/fixture/load", new { fixtureId = "oracle-quarter-ha", confirm = true }));
+        var loaded = R(() => h.Post("/api/saves/load", new { fileName = "http-run.sitkalab.json" }));
+        T.Eq(HttpStatusCode.OK, loaded.Status, "load");
+        var plans = loaded.Json.GetProperty("state").GetProperty("plans").EnumerateArray().ToList();
+        T.Eq("STALE", plans[0].GetProperty("planState").GetString(), "approved plan stale after load");
+        T.True(loaded.Json.GetProperty("state").GetProperty("stateHash").GetString() != before.GetProperty("stateHash").GetString(), "stale transition changes the hash");
+        T.Eq(before.GetProperty("eventCount").GetInt32() + 1, loaded.Json.GetProperty("state").GetProperty("eventCount").GetInt32(), "one activation event");
+
+        // CCF-shaped JSON placed inside the lab root: rejected at the header gate, nothing written, nothing changed.
+        File.WriteAllText(Path.Combine(h.LabData, "ccf-look-alike.sitkalab.json"), "{\"saveVersion\":3,\"trees\":[{\"species\":\"Oak\"}],BROKEN");
+        var entries = Directory.GetFileSystemEntries(h.LabData).OrderBy(x => x).ToList();
+        var hash = R(() => h.GetJson("/api/state")).GetProperty("stateHash").GetString();
+        var bad = R(() => h.Post("/api/saves/load", new { fileName = "ccf-look-alike.sitkalab.json" }));
+        T.Eq(HttpStatusCode.BadRequest, bad.Status, "wrong format refused"); T.Eq("WrongFormat", bad.Json.GetProperty("code").GetString(), "header gate code (not JsonInvalid)");
+        T.Seq(entries, Directory.GetFileSystemEntries(h.LabData).OrderBy(x => x), "no file created or changed");
+        T.Eq(hash, R(() => h.GetJson("/api/state")).GetProperty("stateHash").GetString(), "session untouched by the failed load");
+
+        // a symlink in the lab root is neither listed nor loadable
+        File.CreateSymbolicLink(Path.Combine(h.LabData, "link.sitkalab.json"), Path.Combine(h.Root, "fixtures", "synthetic", "oracle-quarter-ha.sitkalab.json"));
+        T.False(R(() => h.GetJson("/api/saves")).GetProperty("files").EnumerateArray().Any(e => e.GetString() == "link.sitkalab.json"), "symlink not offered");
+        var viaLink = R(() => h.Post("/api/saves/load", new { fileName = "link.sitkalab.json" }));
+        T.Eq(HttpStatusCode.Forbidden, viaLink.Status, "symlink load refused");
+    }
+
+    [Test]
+    public static void Host_SourceNeverReferencesProductionSavesUnityOrOutboundNetwork()
+    {
+        var banned = new[] { "ForestSaveData", "forest-save", "persistentDataPath", "UnityEngine", "Assets/", "HttpClient", "WebRequest", "TcpClient", "System.Net.Http", "System.Net.Sockets", "AddHttpClient", "Application Insights" };
+        var files = Directory.GetFiles(Path.Combine(ToolPaths.ToolRoot, "src"), "*.*", SearchOption.AllDirectories)
+            .Where(f => (f.EndsWith(".cs") || f.EndsWith(".csproj") || f.EndsWith(".js") || f.EndsWith(".html")) && !f.Contains("/bin/") && !f.Contains("/obj/")).ToList();
+        T.True(files.Count > 10, "scanned the production source tree");
+        foreach (var f in files)
+        {
+            string text = File.ReadAllText(f);
+            foreach (var b in banned)
+            {
+                if (text.Contains(b, StringComparison.Ordinal))
+                    throw new TestFailure($"{Path.GetRelativePath(ToolPaths.ToolRoot, f)} mentions '{b}'");
+            }
+        }
+        foreach (var f in Directory.GetFiles(Path.Combine(ToolPaths.ToolRoot, "src", "Ui", "wwwroot"), "*.js")) // browser must not do external fetches
+            T.False(System.Text.RegularExpressions.Regex.IsMatch(File.ReadAllText(f).Replace("http://www.w3.org/2000/svg", ""), @"https?://"), "no absolute URLs in browser code (the SVG XML namespace identifier is not a network address)");
+    }
+
+    [Test]
+    public static void Browser_CodeContainsNoForestryArithmetic()
+    {
+        // The front end may format and draw but must never compute BA, density, Dq or removal fractions.
+        string js = File.ReadAllText(Path.Combine(ToolPaths.ToolRoot, "src", "Ui", "wwwroot", "app.js"));
+        foreach (var banned in new[] { "Math.PI", "Math.sqrt", "Math.pow", "** 2", "basalArea(", "reduce((a, b) => a + b", ".reduce(" })
+            T.False(js.Contains(banned), "app.js must not contain " + banned);
+        T.True(js.Contains("NO forestry arithmetic"), "header comment states the rule");
+    }
+}

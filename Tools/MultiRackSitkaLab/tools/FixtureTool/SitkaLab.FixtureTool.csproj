@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaLab.FixtureTool</AssemblyName>
+    <RootNamespace>SitkaLab.FixtureTool</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\SitkaLab.Core.csproj" />
+  </ItemGroup>
+</Project>

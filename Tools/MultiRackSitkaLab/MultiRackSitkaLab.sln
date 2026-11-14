@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{05407E62-4622-4251-B823-978A1EA2CABE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SitkaLab.Core", "src\Core\SitkaLab.Core.csproj", "{FB2D917B-BCD7-4AF8-A88B-3FA98C046175}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SitkaLab.Host", "src\Host\SitkaLab.Host.csproj", "{9C91E205-744B-43DF-896B-2B63E9C73110}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C05042F8-6A4D-4B06-A33C-3E9493ACC5DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SitkaLab.Core.Tests", "tests\Core.Tests\SitkaLab.Core.Tests.csproj", "{C772214B-F3AC-4DE0-B7FA-599ECB5FD444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SitkaLab.Host.Tests", "tests\Host.Tests\SitkaLab.Host.Tests.csproj", "{0F4AD9CB-ADBD-4892-959C-34C017A674C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{E3E58B0D-C0DC-458B-921D-49966EF65943}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SitkaLab.FixtureTool", "tools\FixtureTool\SitkaLab.FixtureTool.csproj", "{73257E5E-E1FE-4E37-9F2D-A820F8727285}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB2D917B-BCD7-4AF8-A88B-3FA98C046175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB2D917B-BCD7-4AF8-A88B-3FA98C046175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB2D917B-BCD7-4AF8-A88B-3FA98C046175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB2D917B-BCD7-4AF8-A88B-3FA98C046175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C91E205-744B-43DF-896B-2B63E9C73110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C91E205-744B-43DF-896B-2B63E9C73110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C91E205-744B-43DF-896B-2B63E9C73110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C91E205-744B-43DF-896B-2B63E9C73110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C772214B-F3AC-4DE0-B7FA-599ECB5FD444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C772214B-F3AC-4DE0-B7FA-599ECB5FD444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C772214B-F3AC-4DE0-B7FA-599ECB5FD444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C772214B-F3AC-4DE0-B7FA-599ECB5FD444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F4AD9CB-ADBD-4892-959C-34C017A674C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F4AD9CB-ADBD-4892-959C-34C017A674C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F4AD9CB-ADBD-4892-959C-34C017A674C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F4AD9CB-ADBD-4892-959C-34C017A674C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73257E5E-E1FE-4E37-9F2D-A820F8727285}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73257E5E-E1FE-4E37-9F2D-A820F8727285}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73257E5E-E1FE-4E37-9F2D-A820F8727285}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73257E5E-E1FE-4E37-9F2D-A820F8727285}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FB2D917B-BCD7-4AF8-A88B-3FA98C046175} = {05407E62-4622-4251-B823-978A1EA2CABE}
+		{9C91E205-744B-43DF-896B-2B63E9C73110} = {05407E62-4622-4251-B823-978A1EA2CABE}
+		{C772214B-F3AC-4DE0-B7FA-599ECB5FD444} = {C05042F8-6A4D-4B06-A33C-3E9493ACC5DD}
+		{0F4AD9CB-ADBD-4892-959C-34C017A674C9} = {C05042F8-6A4D-4B06-A33C-3E9493ACC5DD}
+		{73257E5E-E1FE-4E37-9F2D-A820F8727285} = {E3E58B0D-C0DC-458B-921D-49966EF65943}
+	EndGlobalSection
+EndGlobal

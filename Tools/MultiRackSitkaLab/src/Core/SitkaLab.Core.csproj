@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>SitkaLab.Core</AssemblyName>
+    <RootNamespace>SitkaLab.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="SitkaLab.Core.Tests" />
+  </ItemGroup>
+</Project>
