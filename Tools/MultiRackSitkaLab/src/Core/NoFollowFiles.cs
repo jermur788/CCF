@@ -6,6 +6,9 @@ namespace SitkaLab.Core;
 /// <summary>What a name inside the lab data folder really is, judged without following links and without opening it.</summary>
 public enum LabEntryKind { Missing, Regular, HardLinked, Symlink, Directory, Fifo, Other }
 
+/// <summary>Points inside one save transaction where a test may inject a hostile folder swap (MULTI-006). Production never sets a hook.</summary>
+internal enum WriteStage { DirectoryOpened, TempWritten }
+
 /// <summary>
 /// Handle-anchored, no-follow file access for the lab data folder (MULTI-004 F-1/F-2).
 ///
@@ -17,6 +20,11 @@ public enum LabEntryKind { Missing, Regular, HardLinked, Symlink, Directory, Fif
 ///   3. O_NONBLOCK means opening a FIFO returns immediately instead of waiting for a writer;
 ///   4. the type, link count and size are then read from the OPEN descriptor (statx on the fd), so the bytes that are read belong
 ///      to exactly the object that was checked. Only a regular file with a single link is ever read, and reading is size-capped.
+///
+/// Saves (MULTI-006 R-1) use the same idea: the folder is opened ONCE and that one handle is used for every step of the save —
+/// create the temp file (openat O_CREAT|O_EXCL|O_NOFOLLOW), write it, rename it over the final name (renameat) and, if anything
+/// fails, remove that temp file (unlinkat). The folder path is never looked up again during the save, so swapping the folder for a
+/// link to another folder half-way through cannot redirect any step of it.
 ///
 /// Platform restriction (deliberate, fail-closed): this is implemented for Linux on x64 and arm64 only, where the O_* flag values
 /// below come from the kernel headers. The first use runs a tiny self-test in a private temp folder (symlink refused, FIFO opens
@@ -31,9 +39,10 @@ internal static class NoFollowFiles
     private const int AT_SYMLINK_NOFOLLOW = 0x100;
     private const int AT_EMPTY_PATH = 0x1000;
     private const uint STATX_TYPE = 0x1, STATX_NLINK = 0x4, STATX_SIZE = 0x200, STATX_BASIC_STATS = 0x7ff;
-    private const int O_RDONLY = 0, O_NONBLOCK = 0x800, O_CLOEXEC = 0x80000;
+    private const int O_RDONLY = 0, O_WRONLY = 1, O_CREAT = 0x40, O_EXCL = 0x80, O_NONBLOCK = 0x800, O_CLOEXEC = 0x80000;   // same on x64 and arm64
+    private const uint Mode0600 = 0x180;
     private const int S_IFMT = 0xF000, S_IFREG = 0x8000, S_IFDIR = 0x4000, S_IFLNK = 0xA000, S_IFIFO = 0x1000;
-    private const int EINTR = 4, ENOENT = 2, ENXIO = 6, ENOTDIR = 20, ELOOP = 40;
+    private const int EINTR = 4, ENOENT = 2, ENXIO = 6, EEXIST = 17, ENOTDIR = 20, ELOOP = 40;
 
     // x86 / generic and arm64 differ for these two flags.
     private static int ODirectory => RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? 0x4000 : 0x10000;
@@ -41,6 +50,15 @@ internal static class NoFollowFiles
 
     [DllImport("libc", EntryPoint = "openat", SetLastError = true)]
     private static extern int OpenAt(int dirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
+    // openat is variadic in C; the mode argument is a plain int-class register argument on Linux x64 and arm64, so this fixed signature is ABI-compatible there.
+    [DllImport("libc", EntryPoint = "openat", SetLastError = true)]
+    private static extern int OpenAtCreate(int dirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags, uint mode);
+    [DllImport("libc", EntryPoint = "write", SetLastError = true)]
+    private static extern IntPtr Write(int fd, ref byte buffer, UIntPtr count);
+    [DllImport("libc", EntryPoint = "renameat", SetLastError = true)]
+    private static extern int RenameAt(int oldDirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, int newDirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath);
+    [DllImport("libc", EntryPoint = "unlinkat", SetLastError = true)]
+    private static extern int UnlinkAt(int dirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
     [DllImport("libc", EntryPoint = "close", SetLastError = true)]
     private static extern int Close(int fd);
     [DllImport("libc", EntryPoint = "read", SetLastError = true)]
@@ -113,8 +131,51 @@ internal static class NoFollowFiles
         finally { Close(dfd); }
     }
 
+    /// <summary>
+    /// Atomically saves <paramref name="bytes"/> as <paramref name="name"/> inside <paramref name="dir"/> (MULTI-006 R-1).
+    /// <paramref name="dir"/> is resolved exactly once, no-follow; every later step is relative to that one directory handle:
+    ///   openat(dfd, temp, O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC, 0600) → write every byte → close → renameat(dfd, temp, dfd, name).
+    /// If any step after the temp file exists fails, unlinkat(dfd, temp) removes exactly that temp file — never another name, never in
+    /// another folder. A failure is always a <see cref="LabException"/> and means the final name was not changed by this call.
+    /// renameat replaces the directory ENTRY, so a symlink or FIFO squatting the final name is replaced, never written through; a folder
+    /// squatting it makes the rename fail (WriteFailed) and the folder is left alone.
+    /// </summary>
+    internal static void WriteAtomic(string dir, string name, byte[] bytes, Action<WriteStage>? stageHook = null)
+    {
+        RequireSupported();
+        if (string.IsNullOrEmpty(name) || name is "." or ".." || name.Contains('/') || name.Contains('\0'))
+            throw new LabException("PathRejected", "only a bare lab file name can be saved");
+        int dfd = OpenDirectory(dir, forWrite: true);
+        try
+        {
+            stageHook?.Invoke(WriteStage.DirectoryOpened);
+            string tmp = name + ".tmp-" + Guid.NewGuid().ToString("N");
+            int fd = OpenAtCreate(dfd, tmp, O_WRONLY | O_CREAT | O_EXCL | ONoFollow | O_CLOEXEC, Mode0600);
+            if (fd < 0) throw SaveFailed();                   // nothing was created, so there is nothing to clean up
+            bool renamed = false;
+            try
+            {
+                LabException? failure = null;
+                try { WriteAll(fd, bytes); } catch (LabException ex) { failure = ex; }
+                if (Close(fd) != 0) failure ??= SaveFailed();   // close can report a deferred write error
+                if (failure is not null) throw failure;
+                stageHook?.Invoke(WriteStage.TempWritten);
+                if (RenameAt(dfd, tmp, dfd, name) != 0) throw SaveFailed();
+                renamed = true;
+            }
+            finally
+            {
+                // Same handle, same unique name: only this call's own temp file can be removed. Best effort (result ignored).
+                if (!renamed) UnlinkAt(dfd, tmp, 0);
+            }
+        }
+        finally { Close(dfd); }
+    }
+
+    private static LabException SaveFailed() => new("WriteFailed", "the save could not be written; the existing entry was left unchanged");
+
     // ---- internals ---------------------------------------------------------------------------------------------------
-    private static int OpenDirectory(string dir)
+    private static int OpenDirectory(string dir, bool forWrite = false)
     {
         int fd = OpenAt(AT_FDCWD, dir, O_RDONLY | ODirectory | ONoFollow | O_CLOEXEC);
         if (fd >= 0) return fd;
@@ -122,9 +183,27 @@ internal static class NoFollowFiles
         throw errno switch
         {
             ELOOP or ENOTDIR => new LabException("SymlinkRejected", "the lab data root is a symbolic link or not a directory and is refused"),
+            _ when forWrite => SaveFailed(),
             ENOENT => new LabException("RootMissing", "lab data root does not exist"),
             _ => new LabException("ReadFailed", "the lab data root could not be opened"),
         };
+    }
+
+    /// <summary>Writes every byte, retrying on EINTR and continuing after partial writes; a write that makes no progress is a failure, never a spin.</summary>
+    private static void WriteAll(int fd, byte[] bytes)
+    {
+        int offset = 0;
+        while (offset < bytes.Length)
+        {
+            long n = Write(fd, ref bytes[offset], (UIntPtr)(uint)(bytes.Length - offset)).ToInt64();
+            if (n < 0)
+            {
+                if (Marshal.GetLastPInvokeError() == EINTR) continue;
+                throw SaveFailed();
+            }
+            if (n == 0) throw SaveFailed();
+            offset += (int)n;
+        }
     }
 
     /// <summary>Interprets a statx buffer (layout is architecture independent): mask@0, nlink@16, mode@28, size@40.</summary>
@@ -188,6 +267,16 @@ internal static class NoFollowFiles
                 if (FdKind(d, "reg") != LabEntryKind.Regular) return "regular file not recognised";
                 if (FdKind(d, "fifo") != LabEntryKind.Fifo) return "FIFO not recognised (or its open blocked)";
                 if (FdKind(d, "lnk") != LabEntryKind.Symlink) return "symlink not recognised by statx";
+                // the save primitives (MULTI-006): exclusive no-follow create, write, rename and unlink, all relative to the handle
+                if (OpenAtCreate(d, "lnk", O_WRONLY | O_CREAT | O_EXCL | ONoFollow | O_CLOEXEC, Mode0600) is var viaLink && viaLink >= 0) { Close(viaLink); return "O_CREAT|O_EXCL accepted an existing symlink"; }
+                if (Marshal.GetLastPInvokeError() != EEXIST) return "exclusive create on a symlink failed with an unexpected errno";
+                int w = OpenAtCreate(d, "w", O_WRONLY | O_CREAT | O_EXCL | ONoFollow | O_CLOEXEC, Mode0600);
+                if (w < 0) return "cannot create a file relative to a directory handle";
+                try { WriteAll(w, new byte[] { 7 }); } catch (LabException) { return "write to a created file failed"; } finally { Close(w); }
+                if (RenameAt(d, "w", d, "w2") != 0) return "renameat failed";
+                if (FdKind(d, "w2") != LabEntryKind.Regular) return "renamed file not found under its new name";
+                if (UnlinkAt(d, "w2", 0) != 0) return "unlinkat failed";
+                if (StatX(d, "w2", AT_SYMLINK_NOFOLLOW, STATX_BASIC_STATS, new byte[256]) == 0 || Marshal.GetLastPInvokeError() != ENOENT) return "unlinkat did not remove the file";
             }
             finally { Close(d); }
             return null;

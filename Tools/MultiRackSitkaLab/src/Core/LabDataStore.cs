@@ -16,12 +16,21 @@ public interface ILabFileAccess
     /// that it is a single-link regular file, and returns at most <paramref name="maxBytes"/> bytes. Throws <see cref="LabException"/> otherwise.
     /// </summary>
     byte[] ReadRegularFile(string dir, string fileName, long maxBytes);
-    void WriteAtomic(string finalPath, byte[] bytes);
+    /// <summary>
+    /// The only way lab bytes are written. Opens <paramref name="dir"/> once (no-follow) and creates, writes, renames and on failure removes
+    /// the temp file relative to that one handle, so the folder path is never re-resolved mid-save. <paramref name="fileName"/> is a bare name.
+    /// </summary>
+    void WriteAtomic(string dir, string fileName, byte[] bytes);
     void CreateDirectory(string path);
 }
 
 public sealed class RealLabFileAccess : ILabFileAccess
 {
+    private readonly Action<WriteStage>? _writeStageHook;
+    public RealLabFileAccess() { }
+    /// <summary>Test-only: runs <paramref name="writeStageHook"/> at fixed points inside each save so a test can swap the folder mid-transaction.</summary>
+    internal RealLabFileAccess(Action<WriteStage> writeStageHook) { _writeStageHook = writeStageHook; }
+
     public bool DirectoryExists(string path) => Directory.Exists(path);
     public string? LinkTarget(string path)
     {
@@ -34,29 +43,12 @@ public sealed class RealLabFileAccess : ILabFileAccess
     public byte[] ReadRegularFile(string dir, string fileName, long maxBytes) => NoFollowFiles.ReadRegular(dir, fileName, maxBytes);
 
     /// <summary>
-    /// Writes a sibling temp file with CreateNew (never follows a link), then renames it over the target (rename replaces the directory entry
-    /// itself, so a symlink or FIFO squatting the name is replaced, never written through). If anything fails after the temp file was created,
-    /// exactly that temp file is removed and a controlled <see cref="LabException"/> is thrown; no other path is ever deleted.
+    /// Handle-anchored atomic save (MULTI-006 R-1; see <see cref="NoFollowFiles.WriteAtomic"/>): temp create, write, rename over the final name and
+    /// failure cleanup all use ONE directory handle opened no-follow, so a concurrent swap of the folder cannot redirect any step to another folder.
+    /// rename replaces the directory entry itself, so a symlink or FIFO squatting the name is replaced, never written through. On failure exactly
+    /// this call's temp file is removed and a controlled <see cref="LabException"/> is thrown; no other name is ever deleted.
     /// </summary>
-    public void WriteAtomic(string finalPath, byte[] bytes)
-    {
-        string tmp = finalPath + ".tmp-" + Guid.NewGuid().ToString("N");
-        bool created = false;
-        try
-        {
-            using (var fs = new FileStream(tmp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            {
-                created = true;                       // CreateNew succeeded, so this exact path is ours
-                fs.Write(bytes, 0, bytes.Length);
-            }
-            File.Move(tmp, finalPath, overwrite: true);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            if (created) { try { File.Delete(tmp); } catch (Exception) { /* best effort; the name is unique to this call */ } }
-            throw new LabException("WriteFailed", "the save could not be written; the existing entry was left unchanged");
-        }
-    }
+    public void WriteAtomic(string dir, string fileName, byte[] bytes) => NoFollowFiles.WriteAtomic(dir, fileName, bytes, _writeStageHook);
     public void CreateDirectory(string path) => Directory.CreateDirectory(path);
 }
 
@@ -139,7 +131,7 @@ public sealed class LabDataStore
         if (!SaveBaseName.IsMatch(baseName ?? "")) throw new LabException("PathRejected", "save name must be 1-64 characters of [A-Za-z0-9_-]");
         EnsureRoot();
         string fileName = baseName + LabConstants.FileSuffix;
-        string full = Resolve(fileName);
+        Resolve(fileName);   // string-level containment check only; the write itself never uses a concatenated path
         switch (_io.Classify(RootPath, fileName))
         {
             case LabEntryKind.Missing:
@@ -148,7 +140,9 @@ public sealed class LabDataStore
             case LabEntryKind.Symlink: throw new LabException("SymlinkRejected", "refusing to overwrite a symbolic link");
             default: throw new LabException("NotRegularFile", "a folder or special file already uses that name; refusing to replace it");
         }
-        _io.WriteAtomic(full, bytes);
+        // The classification above is an early, raceable courtesy check. What keeps the save inside the lab folder is that WriteAtomic resolves
+        // the folder once and renames within that one handle.
+        _io.WriteAtomic(RootPath, fileName, bytes);
         return fileName;
     }
 }

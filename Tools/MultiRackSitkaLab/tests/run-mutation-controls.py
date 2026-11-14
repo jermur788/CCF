@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Negative controls for the P0 test suites (M01-M17 original; M18-M30 added by MULTI-004 for the file-safety and layered-guard tests).
+"""Negative controls for the P0 test suites (M01-M17 original; M18-M30 added by MULTI-004 for the file-safety and layered-guard tests;
+M31-M35 added by MULTI-006 for handle-anchored saves (R-1) and the read-loop size guard (R-2); M28 re-expressed for the new save code).
 
 Copies the lab tree to a scratch directory (the real tree is never modified), breaks one safeguard at a time
 and checks that the matching suite goes RED. A suite that stays green on a broken safeguard would be vacuous.
@@ -44,9 +45,19 @@ MUTATIONS = [
     ("M26", "core", "src/Core/NoFollowFiles.cs", "S_IFREG => nlink > 1 ? LabEntryKind.HardLinked : LabEntryKind.Regular,", "S_IFREG => LabEntryKind.Regular,", "hard-linked files accepted"),
     ("M27", "core", "src/Core/NoFollowFiles.cs", "int fd = OpenAt(AT_FDCWD, dir, O_RDONLY | ODirectory | ONoFollow | O_CLOEXEC);", "int fd = OpenAt(AT_FDCWD, dir, O_RDONLY | ODirectory | O_CLOEXEC);", "lab folder opened following links (a swapped-in folder link is accepted)"),
     # F-5: atomic save failure and error codes
-    ("M28", "core", "src/Core/LabDataStore.cs", "if (created) { try { File.Delete(tmp); }", "if (false) { try { File.Delete(tmp); }", "failed atomic write leaves its temp file behind"),
+    # M28 re-expressed by MULTI-006 against the handle-anchored save (same safeguard: a failed save removes its own temp file)
+    ("M28", "core", "src/Core/NoFollowFiles.cs", "if (!renamed) UnlinkAt(dfd, tmp, 0);", "if (false) UnlinkAt(dfd, tmp, 0);", "failed atomic write leaves its temp file behind"),
     ("M29", "host", "src/Host/LabHost.cs", "code = CodeForStatus(code), message = why", "code = \"Forbidden\", message = why", "every refusal reports code 'Forbidden' again"),
     ("M30", "core", "src/Core/LabDataStore.cs", "default: throw new LabException(\"NotRegularFile\", \"a folder or special file already uses that name; refusing to replace it\");", "default: break;", "save onto a folder / special file no longer refused up front (surfaces as a raw write failure)"),
+    # ---- MULTI-006 additions (M31-M35) ---------------------------------------------------------------------------------------------
+    # R-1: each step of the save re-resolves the folder PATH instead of using the one trusted handle
+    ("M31", "core", "src/Core/NoFollowFiles.cs", "int fd = OpenAtCreate(dfd, tmp, O_WRONLY", "int fd = OpenAtCreate(AT_FDCWD, Path.Combine(dir, tmp), O_WRONLY", "temp file created by folder path (not the trusted handle)"),
+    ("M32", "core", "src/Core/NoFollowFiles.cs", "if (RenameAt(dfd, tmp, dfd, name) != 0)", "if (RenameAt(AT_FDCWD, Path.Combine(dir, tmp), AT_FDCWD, Path.Combine(dir, name)) != 0)", "rename by folder path (not the trusted handle)"),
+    ("M33", "core", "src/Core/NoFollowFiles.cs", "if (!renamed) UnlinkAt(dfd, tmp, 0);", "if (!renamed) UnlinkAt(AT_FDCWD, Path.Combine(dir, tmp), 0);", "failure cleanup by folder path (orphans the temp in the trusted folder)"),
+    ("M34", "core", "src/Core/LabDataStore.cs", "public void WriteAtomic(string dir, string fileName, byte[] bytes) => NoFollowFiles.WriteAtomic(dir, fileName, bytes, _writeStageHook);",
+     "public void WriteAtomic(string dir, string fileName, byte[] bytes) { _writeStageHook?.Invoke(WriteStage.DirectoryOpened); string fin = Path.Combine(dir, fileName); string tmp = fin + \".tmp-\" + Guid.NewGuid().ToString(\"N\"); bool created = false; try { using (var fs = new FileStream(tmp, FileMode.CreateNew, FileAccess.Write, FileShare.None)) { created = true; fs.Write(bytes, 0, bytes.Length); } _writeStageHook?.Invoke(WriteStage.TempWritten); File.Move(tmp, fin, overwrite: true); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { if (created) { try { File.Delete(tmp); } catch (Exception) { } } throw new LabException(\"WriteFailed\", \"x\"); } }", "whole save reverted to the MULTI-004 path-based FileStream/File.Move/File.Delete (stage hooks kept so the swap tests still fire)"),
+    # R-2: the read loop's second size check (the one that catches content beyond the statx size)
+    ("M35", "core", "src/Core/NoFollowFiles.cs", "if (ms.Length > maxBytes) throw new LabException(\"FileTooLarge\", \"file exceeds the size limit\");", "", "read loop no longer re-checks the size (content larger than statx reported is returned)"),
 ]
 
 def run(cmd, cwd):
@@ -90,7 +101,7 @@ def main():
             print(f"{mid} {verdict:9} {len(set(failed)):2} failing — {what}")
         finally:
             open(path, "w", encoding="utf-8").write(original)
-    orig = [r for r in results if r["id"] <= "M17"]          # the original P0 controls (M01-M17); M18+ were added by MULTI-004
+    orig = [r for r in results if r["id"] <= "M17"]          # the original P0 controls (M01-M17); M18-M30 MULTI-004, M31-M35 MULTI-006
     summary = {"baselineGreen": True, "mutations": len(results), "caught": sum(r["verdict"] == "CAUGHT" for r in results),
                "original17": {"run": len(orig), "caught": sum(r["verdict"] == "CAUGHT" for r in orig)}, "results": results}
     print(f"\nORIGINAL P0 CONTROLS (M01-M17): CAUGHT {summary['original17']['caught']} of {summary['original17']['run']}")

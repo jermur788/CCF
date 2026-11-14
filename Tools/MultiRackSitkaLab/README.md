@@ -78,6 +78,11 @@ Regenerate (only as a deliberate, reviewed change): `dotnet run --project tools/
   The refusal is made **at the open, on the open handle** (MULTI-004): the lab folder is opened without following links,
   the file is opened relative to that handle with `O_NOFOLLOW|O_NONBLOCK`, and its type, link count and size are read
   from the open descriptor, so a name swapped for a symlink or FIFO after a check cannot be followed or block the host.
+  **Saves** (MULTI-006) open the lab folder once, the same no-follow way, and use that one folder handle for every step:
+  create a unique temp file (`openat … O_CREAT|O_EXCL|O_NOFOLLOW`, mode 0600), write it, `renameat` it over the final name
+  and, if anything fails, `unlinkat` exactly that temp file. The folder path is never looked up again mid-save, so swapping
+  the folder for a link to another folder cannot redirect a save or leave a temp file behind; a failed save reports
+  `WriteFailed` and leaves the existing save unchanged.
   A file whose first three root properties are not `ccf-sitka-lab`/`1`/`Synthetic` is rejected before its
   body is parsed; a loaded file must replay from its named checked-in fixture and reproduce its `snapshotHash`.
 * The host listens on `127.0.0.1` only (never all interfaces), requires `Host: 127.0.0.1:<port>`, rejects any other
@@ -126,11 +131,15 @@ saves screenshots and a JSON receipt, and removes only the lab files it created.
 * The SVG map redraws every glyph on each state change; fine for the 2,000-tree fixture (see handoff for measured
   timings) but not designed for tens of thousands of stems.
 * Single local operator; the in-memory session is not shared and a host restart returns to the default fixture.
-* **Lab saves need Linux (x64 or arm64).** The no-follow open uses `openat`/`statx` through libc with the kernel's flag values.
-  On first use a self-test in a private temp folder proves the flags behave (symlink refused, FIFO opens without blocking).
-  On any other OS/CPU, or if the self-test fails, listing/loading/saving refuse with `PlatformUnsupported` (HTTP 501) instead
-  of falling back to a weaker path-based check. Only Linux x64 has been run; arm64 values come from the kernel headers.
-* Writes are still path-based inside the checked lab folder: `CreateNew` for the temp file and `rename` over the target never
-  follow a final-component symlink, but a same-user process that swaps the *folder itself* during a save is not defended
-  (reads are; writes cannot reveal data). A failed save removes only its own temp file and reports `WriteFailed`.
+* **Lab saves need Linux.** The no-follow file layer uses `openat`/`statx`/`renameat`/`unlinkat` through libc with the
+  kernel's flag values. On first use a self-test in a private temp folder proves the flags behave (symlink refused, FIFO
+  opens without blocking, exclusive create/rename/unlink relative to a folder handle work). On any other OS/CPU, or if the
+  self-test fails, listing/loading/saving refuse with `PlatformUnsupported` (HTTP 501) instead of falling back to a weaker
+  path-based check. **Only Linux x64 has been run and independently tested**; Linux arm64 is conditional and untested (its
+  values come from the kernel headers); native Windows/macOS lab file operations intentionally fail closed with 501.
+* Save isolation is anchored to the folder *handle*, not to the path: a same-user process that renames the real lab folder
+  away mid-save does not redirect the save, which lands in that same (moved) folder. A same-user process that renames a
+  different **real** folder into `.lab-data` before a save starts has replaced the lab folder itself, and that save goes
+  there; links are never followed. A symlink or FIFO that appears under the final name after the early check is replaced by
+  the rename (never written through); a folder there makes the save fail with `WriteFailed`.
 * Accessibility is basic (shapes + letters + text labels, keyboard ID selection); no full certification.

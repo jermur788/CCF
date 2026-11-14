@@ -354,4 +354,56 @@ public static class HostTests
             T.False(js.Contains(banned), "app.js must not contain " + banned);
         T.True(js.Contains("NO forestry arithmetic"), "header comment states the rule");
     }
+    // ---- MULTI-006 R-1: saves over HTTP while a same-user process keeps exchanging the lab folder with a link -----------------
+
+    [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "renameat2", SetLastError = true)]
+    private static extern int RenameAt2(int oldDirFd, [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)] string oldPath, int newDirFd, [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)] string newPath, uint flags);
+    private static bool Exchange(string a, string b) => RenameAt2(-100, a, -100, b, 2 /* RENAME_EXCHANGE */) == 0;
+
+    [Test]
+    public static void SavesDuringAConcurrentLabFolderExchange_NeverWriteTheAlternateFolder_LeaveNoTempFiles_AndReportHonestly()
+    {
+        using var h = new TestHost();
+        // A VALID lab save from a different fixture sits in the attacker's alternate folder (the reviewer's sentinel shape).
+        T.Eq(HttpStatusCode.OK, R(() => h.Post("/api/fixture/load", new { fixtureId = "oracle-quarter-ha", confirm = true })).Status, "switch fixture");
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "w" })).Status, "make a valid lab save");
+        string alternate = Path.Combine(h.Root, "alternate"); Directory.CreateDirectory(alternate);
+        File.Move(Path.Combine(h.LabData, "w.sitkalab.json"), Path.Combine(alternate, "w.sitkalab.json"));
+        byte[] sentinel = File.ReadAllBytes(Path.Combine(alternate, "w.sitkalab.json"));
+        T.Eq(HttpStatusCode.OK, R(() => h.Post("/api/fixture/load", new { fixtureId = "sitka-flat-demo-v1", confirm = true })).Status, "back to the demo fixture");
+        string link = Path.Combine(h.Root, "swaplink"); Directory.CreateSymbolicLink(link, alternate);
+
+        int stop = 0; long swaps = 0;
+        var swapper = new Thread(() => { while (Volatile.Read(ref stop) == 0) if (Exchange(h.LabData, link)) swaps++; }) { IsBackground = true };
+        var outcomes = new Dictionary<string, int>(); int alternateChanges = 0, okButAlternate = 0;
+        swapper.Start();
+        try
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (sw.Elapsed < TimeSpan.FromSeconds(3))
+            {
+                var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "w" }), seconds: 8);
+                string k = $"{(int)r.Status}:{(r.Json.ValueKind == JsonValueKind.Object ? r.Json.GetProperty("code").GetString() : "?")}";
+                outcomes[k] = outcomes.GetValueOrDefault(k) + 1;
+                if (!File.ReadAllBytes(Path.Combine(alternate, "w.sitkalab.json")).AsSpan().SequenceEqual(sentinel))
+                {
+                    alternateChanges++; if (r.Status == HttpStatusCode.OK) okButAlternate++;
+                    File.WriteAllBytes(Path.Combine(alternate, "w.sitkalab.json"), sentinel);
+                }
+            }
+        }
+        finally { Volatile.Write(ref stop, 1); swapper.Join(); }
+        if (new DirectoryInfo(h.LabData).LinkTarget is not null) T.True(Exchange(h.LabData, link), "swap back");
+        string summary = $"swaps={swaps} responses={string.Join(",", outcomes.Select(kv => kv.Key + "=" + kv.Value))} alternate-overwrites={alternateChanges} (reported 200: {okButAlternate})";
+        Console.WriteLine("    INFO " + summary);
+        T.True(swaps > 50, "the swapper really raced the host: " + summary);
+        T.True(outcomes.GetValueOrDefault("200:ok") > 0, "some saves succeeded: " + summary);
+        T.True(outcomes.Keys.All(k => k is "200:ok" or "403:SymlinkRejected" or "500:WriteFailed"), "only controlled outcomes: " + summary);
+        T.Eq(0, alternateChanges, "alternate-folder overwrites: " + summary);
+        T.Seq(new[] { "w.sitkalab.json" }, Directory.GetFileSystemEntries(alternate).Select(Path.GetFileName), "nothing created in the alternate folder (no temp files there)");
+        T.Eq(0, Directory.GetFiles(h.LabData, "*.tmp-*").Length, "no temp file orphaned in the lab folder");
+        var load = Send(h, h.Req(HttpMethod.Post, "/api/saves/load", new { fileName = "w.sitkalab.json" }));
+        T.True(load.Status == HttpStatusCode.OK && load.Raw.Contains("\"fixtureId\":\"sitka-flat-demo-v1\""), "the lab folder holds a genuine demo-fixture save that loads");
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Get, "/api/state")).Status, "host still healthy");
+    }
 }

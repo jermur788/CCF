@@ -54,7 +54,7 @@ public static class LabDataStoreTests
             return kind;
         }
         public byte[] ReadRegularFile(string dir, string fileName, long maxBytes) { Reads++; BeforeOpen?.Invoke(dir, fileName); return Real.ReadRegularFile(dir, fileName, maxBytes); }
-        public void WriteAtomic(string finalPath, byte[] bytes) { Writes++; Real.WriteAtomic(finalPath, bytes); }
+        public void WriteAtomic(string dir, string fileName, byte[] bytes) { Writes++; Real.WriteAtomic(dir, fileName, bytes); }
         public void CreateDirectory(string path) { Probes++; Real.CreateDirectory(path); }
     }
 
@@ -439,7 +439,7 @@ public static class LabDataStoreTests
         string target = Path.Combine(sc.Data, "late.sitkalab.json"); Directory.CreateDirectory(target); File.WriteAllText(Path.Combine(target, "inside.txt"), "INSIDE");
         string decoy = target + ".tmp-0000decoy"; File.WriteAllText(decoy, "DECOY");     // looks like a temp file but is not ours
         string neighbour = sc.Lab("neighbour.sitkalab.json", "NEIGHBOUR");
-        var ex = T.Throws<LabException>(() => real.WriteAtomic(target, new byte[] { 1, 2, 3 }), "write onto a folder");
+        var ex = T.Throws<LabException>(() => real.WriteAtomic(sc.Data, "late.sitkalab.json", new byte[] { 1, 2, 3 }), "write onto a folder");
         T.Eq("WriteFailed", ex.Code, "controlled error, not a raw IOException");
         T.False(ex.Message.Contains(sc.Root), "no file-system path leaks into the message");
         T.Seq(new[] { "decoy" }, Directory.GetFiles(sc.Data, "*.tmp-*").Select(f => f.EndsWith("decoy") ? "decoy" : "OURS-LEFT-BEHIND"), "only the foreign decoy remains; our own temp file was removed");
@@ -447,9 +447,179 @@ public static class LabDataStoreTests
         T.Eq("INSIDE", File.ReadAllText(Path.Combine(target, "inside.txt")), "the folder was not replaced");
         T.Eq("NEIGHBOUR", File.ReadAllText(neighbour), "neighbouring save untouched");
         // A failure before any temp file exists must not delete anything either.
-        var ex2 = T.Throws<LabException>(() => real.WriteAtomic(Path.Combine(sc.Data, "no-such-folder", "x.sitkalab.json"), new byte[] { 1 }), "write into a missing folder");
+        var ex2 = T.Throws<LabException>(() => real.WriteAtomic(Path.Combine(sc.Data, "no-such-folder"), "x.sitkalab.json", new byte[] { 1 }), "write into a missing folder");
         T.Eq("WriteFailed", ex2.Code, "controlled error when the temp file cannot even be created");
         T.Eq("DECOY", File.ReadAllText(decoy), "still untouched");
+    }
+
+    // ---- MULTI-006 R-1: the lab FOLDER is swapped while a save is in progress ---------------------------------------------
+    //
+    // Attack shape (independent MULTI-005 review): a same-user process atomically exchanges `.lab-data` with a symlink to another folder
+    // (renameat2 RENAME_EXCHANGE). Before MULTI-006 the save re-resolved the folder path for create / rename / cleanup, so steps landed in the
+    // attacker's folder. Now the folder is opened once and every step is relative to that handle. Guarantee being tested: no file is created,
+    // replaced or deleted in the alternate folder, and no temp file is orphaned. (The real folder itself may have been MOVED by the attacker —
+    // it is then found under the link's old name; that is the inode-anchored guarantee, not a promise about path geography.)
+
+    [DllImport("libc", EntryPoint = "renameat2", SetLastError = true)]
+    private static extern int RenameAt2(int oldDirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, int newDirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath, uint flags);
+    private static bool Exchange(string a, string b) => RenameAt2(-100 /* AT_FDCWD */, a, -100, b, 2 /* RENAME_EXCHANGE */) == 0;
+
+    /// <summary>A scratch tool root plus an "alternate" folder the attacker wants saves to land in, a symlink to it, and decoys inside it.</summary>
+    private sealed class SwapRig : IDisposable
+    {
+        public readonly Scratch Sc = new();
+        public string Alternate => Path.Combine(Sc.Root, "alternate");
+        public string Link => Path.Combine(Sc.Root, "swaplink");
+        public readonly Dictionary<string, string> AlternateBefore = new();
+        public SwapRig()
+        {
+            Directory.CreateDirectory(Alternate);
+            foreach (var (n, text) in new[] { ("w.sitkalab.json", "{\"format\":\"sitka-lab\",\"VICTIM\":true}"), ("w.sitkalab.json.tmp-0000decoy", "DECOY"), ("unrelated.txt", "UNRELATED") })
+                File.WriteAllText(Path.Combine(Alternate, n), text);
+            foreach (var f in Directory.GetFileSystemEntries(Alternate)) AlternateBefore[Path.GetFileName(f)] = File.ReadAllText(f);
+            Directory.CreateSymbolicLink(Link, Alternate);
+        }
+        /// <summary>Where the real lab folder currently is (the attacker may have exchanged it into the link's place).</summary>
+        public string RealFolder => new DirectoryInfo(Sc.Data).LinkTarget is null ? Sc.Data : Link;
+        public void Restore() { if (new DirectoryInfo(Sc.Data).LinkTarget is not null) T.True(Exchange(Sc.Data, Link), "swap back"); }
+        public void AssertAlternateUntouched(string when)
+        {
+            var now = Directory.GetFileSystemEntries(Alternate).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+            T.Seq(AlternateBefore.Keys.OrderBy(n => n, StringComparer.Ordinal), now, when + ": nothing created or deleted in the alternate folder");
+            foreach (var (n, text) in AlternateBefore) T.Eq(text, File.ReadAllText(Path.Combine(Alternate, n)), when + ": " + n + " in the alternate folder unchanged");
+        }
+        public int TempFilesIn(string dir) => Directory.GetFiles(dir, "*.tmp-*").Count(f => !f.EndsWith("decoy", StringComparison.Ordinal));
+        public void Dispose() { try { Restore(); } catch (Exception) { /* best effort */ } Sc.Dispose(); }
+    }
+
+    /// <summary>Runs one WriteSave with <paramref name="atStage"/> executed once at <paramref name="stage"/> inside the save transaction.</summary>
+    private static (string Outcome, int HookRuns) SaveWithHook(SwapRig rig, WriteStage stage, Action atStage, byte[] payload)
+    {
+        int runs = 0;
+        var io = new RealLabFileAccess(s => { if (s == stage) { runs++; atStage(); } });
+        var store = new LabDataStore(rig.Sc.Root, io);
+        string outcome;
+        try { store.WriteSave("w", payload); outcome = "saved"; } catch (LabException ex) { outcome = ex.Code; }
+        return (outcome, runs);
+    }
+
+    [Test]
+    public static void FolderSwappedForALink_AfterTheFolderWasOpened_TempAndRenameStayInTheTrustedFolder()
+    {
+        using var rig = new SwapRig();
+        byte[] payload = System.Text.Encoding.UTF8.GetBytes("{\"format\":\"sitka-lab\",\"LAB\":1}");
+        var (outcome, runs) = SaveWithHook(rig, WriteStage.DirectoryOpened, () => T.True(Exchange(rig.Sc.Data, rig.Link), "exchange the lab folder with the link"), payload);
+        T.Eq(1, runs, "the swap happened inside the transaction, after the folder handle was opened and before the temp file was created");
+        T.True(new DirectoryInfo(rig.Sc.Data).LinkTarget is not null, "the lab path really pointed at the alternate folder for the rest of the save");
+        T.Eq("saved", outcome, "the save completed (in the folder that was opened) and reported success truthfully");
+        rig.AssertAlternateUntouched("after a mid-save folder swap");
+        T.Seq(payload, File.ReadAllBytes(Path.Combine(rig.RealFolder, "w.sitkalab.json")), "the bytes are in the trusted (moved) lab folder");
+        T.Eq(0, rig.TempFilesIn(rig.RealFolder) + rig.TempFilesIn(rig.Alternate), "no temp file left anywhere");
+        rig.Restore();
+        T.Seq(payload, new LabDataStore(rig.Sc.Root).ReadSave("w.sitkalab.json"), "after the folder is back, the save loads normally");
+    }
+
+    [Test]
+    public static void FolderSwappedForALink_BetweenTempWriteAndRename_TheRenameStaysInTheTrustedFolder()
+    {
+        using var rig = new SwapRig();
+        rig.Sc.Lab("w.sitkalab.json", "OLD-LAB-SAVE");
+        byte[] payload = System.Text.Encoding.UTF8.GetBytes("{\"format\":\"sitka-lab\",\"LAB\":2}");
+        var (outcome, runs) = SaveWithHook(rig, WriteStage.TempWritten, () => T.True(Exchange(rig.Sc.Data, rig.Link), "exchange the lab folder with the link"), payload);
+        T.Eq(1, runs, "the swap happened after the temp file was written and before the rename");
+        T.Eq("saved", outcome, "rename relative to the folder handle succeeded and was reported truthfully");
+        rig.AssertAlternateUntouched("after a swap just before rename");
+        T.Seq(payload, File.ReadAllBytes(Path.Combine(rig.RealFolder, "w.sitkalab.json")), "the existing lab save was replaced in the trusted folder");
+        T.Eq(0, rig.TempFilesIn(rig.RealFolder) + rig.TempFilesIn(rig.Alternate), "no temp file left anywhere");
+    }
+
+    [Test]
+    public static void FolderSwappedForALink_AndTheRenameFails_TheTempIsRemovedFromTheTrustedFolder_AndNothingElse()
+    {
+        using var rig = new SwapRig();
+        string keep = rig.Sc.Lab("neighbour.sitkalab.json", "NEIGHBOUR");
+        byte[] payload = System.Text.Encoding.UTF8.GetBytes("{\"format\":\"sitka-lab\",\"LAB\":3}");
+        var (outcome, runs) = SaveWithHook(rig, WriteStage.TempWritten, () =>
+        {
+            // a folder appears under the final name in the real lab folder (so the rename must fail), then the lab folder is swapped away
+            Directory.CreateDirectory(Path.Combine(rig.Sc.Data, "w.sitkalab.json"));
+            T.True(Exchange(rig.Sc.Data, rig.Link), "exchange the lab folder with the link");
+        }, payload);
+        T.Eq(1, runs, "hook ran once");
+        T.Eq("WriteFailed", outcome, "the failed rename is reported as a failure, never as saved");
+        rig.AssertAlternateUntouched("after a failed save under a folder swap (the decoy temp-like file was not deleted)");
+        T.Eq(0, rig.TempFilesIn(rig.RealFolder), "this save's own temp file was removed from the trusted folder via the same handle (no orphan)");
+        T.True(Directory.Exists(Path.Combine(rig.RealFolder, "w.sitkalab.json")), "the squatting folder was left alone");
+        T.Eq("NEIGHBOUR", File.ReadAllText(Path.Combine(rig.RealFolder, Path.GetFileName(keep))), "neighbouring save untouched");
+    }
+
+    [DllImport("libc", EntryPoint = "open", SetLastError = true)]
+    private static extern int OpenPath([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
+    [DllImport("libc", EntryPoint = "close", SetLastError = true)]
+    private static extern int ClosePath(int fd);
+
+    [Test]
+    public static void ConcurrentFolderExchange_DuringSaves_NeverWritesToTheAlternateFolder_OrOrphansTempFiles_AndOutcomesAreTruthful()
+    {
+        // The reviewer's store-level attack (MULTI-005 W probe: 1,223 alternate-folder overwrites before the fix), as a bounded regression test.
+        using var rig = new SwapRig();
+        var store = new LabDataStore(rig.Sc.Root);
+        store.WriteSave("w", System.Text.Encoding.UTF8.GetBytes("INITIAL"));
+        // A handle on the real lab folder lets the test look inside it wherever the attacker has moved it (/proc/self/fd/N).
+        int realFd = OpenPath(rig.Sc.Data, 0x10000 /* O_DIRECTORY */ | 0x80000 /* O_CLOEXEC */);
+        T.True(realFd >= 0, "test handle on the real lab folder");
+        string realView = $"/proc/self/fd/{realFd}/w.sitkalab.json";
+        int stop = 0; long swaps = 0;
+        var swapper = new Thread(() => { while (Volatile.Read(ref stop) == 0) if (Exchange(rig.Sc.Data, rig.Link)) swaps++; }) { IsBackground = true };
+        var outcomes = new Dictionary<string, int>(); int falseOutcome = 0, alternateChanges = 0; string? firstProblem = null;
+        string lastSaved = "INITIAL";
+        swapper.Start();
+        try
+        {
+            var sw = Stopwatch.StartNew();
+            for (int i = 0; sw.Elapsed < TimeSpan.FromSeconds(2.5); i++)
+            {
+                string text = "{\"format\":\"sitka-lab\",\"n\":" + i + "}";
+                string k;
+                try { store.WriteSave("w", System.Text.Encoding.UTF8.GetBytes(text)); k = "saved"; }
+                catch (LabException ex) { k = ex.Code; }
+                catch (Exception ex) { k = "RAW:" + ex.GetType().Name; }
+                outcomes[k] = outcomes.GetValueOrDefault(k) + 1;
+                string now = File.ReadAllText(realView);
+                // success must mean exactly these bytes are in the real folder; failure must mean the real folder's save is unchanged
+                if (k == "saved" ? now != text : now != lastSaved) { falseOutcome++; firstProblem ??= $"{k} but the real folder holds '{now}'"; }
+                if (k == "saved") lastSaved = text;
+                if (File.ReadAllText(Path.Combine(rig.Alternate, "w.sitkalab.json")) != rig.AlternateBefore["w.sitkalab.json"]) { alternateChanges++; firstProblem ??= "alternate folder save overwritten at iteration " + i; }
+            }
+        }
+        finally { Volatile.Write(ref stop, 1); swapper.Join(); ClosePath(realFd); }
+        rig.Restore();
+        string summary = $"swaps={swaps} outcomes={string.Join(",", outcomes.Select(kv => kv.Key + "=" + kv.Value))} first problem: {firstProblem ?? "-"}";
+        T.True(swaps > 50, "the swapper really raced the saves: " + summary);
+        T.True(outcomes.GetValueOrDefault("saved") > 0 && outcomes.GetValueOrDefault("SymlinkRejected") > 0, "both saved and refused outcomes were exercised: " + summary);
+        T.True(outcomes.Keys.All(k => k is "saved" or "SymlinkRejected" or "WriteFailed"), "only controlled outcomes: " + summary);
+        T.Eq(0, alternateChanges, "alternate-folder overwrites during the race: " + summary);
+        rig.AssertAlternateUntouched("after the concurrent folder-exchange race");
+        T.Eq(0, rig.TempFilesIn(rig.Sc.Data), "temp files orphaned in the lab folder: " + summary);
+        T.Eq(0, falseOutcome, "reported outcome matched the real folder every time: " + summary);
+        T.Eq(lastSaved, System.Text.Encoding.UTF8.GetString(store.ReadSave("w.sitkalab.json")), "the last reported save is what loads");
+    }
+
+    // ---- MULTI-006 R-2: content larger than the limit although statx reported a small size ---------------------------------
+
+    [Test]
+    public static void ReadRegular_RefusesContentThatOutgrowsTheStatxSize_ProcfsStatus()
+    {
+        // /proc/<pid>/status is a regular, single-link procfs file whose statx size is 0 but whose read returns hundreds of bytes: a deterministic
+        // stand-in for "the file grew after it was inspected". Only the second, read-loop size check can stop it. The numeric PID folder is used
+        // because /proc/self is a symlink that the no-follow folder open (correctly) refuses. procfs is required on the supported Linux host.
+        string dir = "/proc/" + Environment.ProcessId;
+        T.True(File.Exists(Path.Combine(dir, "status")), "procfs is mounted (required on the supported Linux qualification host)");
+        T.Eq(0L, new FileInfo(Path.Combine(dir, "status")).Length, "procfs reports size 0, so the first (statx) size check cannot see the content");
+        T.Eq(LabEntryKind.Regular, new RealLabFileAccess().Classify(dir, "status"), "it is a single-link regular file by the existing guards");
+        byte[] full = NoFollowFiles.ReadRegular(dir, "status", 1 << 20);
+        T.True(full.Length > 10 && System.Text.Encoding.ASCII.GetString(full).Contains("Pid:"), $"positive control: generous limit returns the real content ({full.Length} bytes)");
+        T.Eq("FileTooLarge", T.Throws<LabException>(() => NoFollowFiles.ReadRegular(dir, "status", 10), "read with a 10-byte limit").Code, "the read loop enforces the limit after statx said 0");
     }
 
     [Test]
