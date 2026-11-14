@@ -1,10 +1,10 @@
 # Implementation plan — Irish Sitka 2D Reference Laboratory V1
 
-**Status:** DRAFT, non-authorising. Derived from [spec.md](spec.md). No actual implementation worker/branch/host/Unity lease exists under this plan.
+**Status:** **APPROVED FOR P0 ONLY by direct user decision (MULTI-001, 14 November 2026)**. Derived from [approved P0 spec](spec.md). **P1 NOT APPROVED**; no implementation worker, physical host/worktree, or Unity lease has been claimed.
 
 ## Work classification
 
-**SPEC REQUIRED**: new standalone user interaction and per-tree state/persistence, forestry calculations, experimental annual model validation and eventual 2D/3D interface boundary. Do not dispatch as a quick packet bypassing approval. **P0 is independently implementable once APPROVED; P1 needs a separate model-evidence gate.** 
+**SPEC REQUIRED**: new standalone user interaction and per-tree state/persistence, forestry calculations, experimental annual model validation and eventual 2D/3D interface boundary. Do not dispatch as a quick packet bypassing approval. **P0 is implementation-authorised by product scope, but may execute only after a distinct worker claim and safe live ownership preflight; P1 still needs separate model-evidence approval.** 
 
 ## Parallel delivery boundary
 
@@ -31,9 +31,9 @@ Actual worker must inspect available .NET, Node, browser, disk and project sourc
 
 ## Sequence and gates
 
-**G0 – Spec review/approval.** **The user or designated Overall Manager (not the draft author)** resolves **OPEN-L1, OPEN-L2 and OPEN-L3 explicitly before P0 APPROVED**; record **OPEN-L4 and OPEN-L5 as deferred/not P0**; ensure UX includes explicit proposal/approval/execution separation and no biology claims. Independent forestry evidence review confirms GROWFOR is only aggregate benchmark (and cannot supply per-tree spatial dynamics); no field-data unlock necessary. Designated Overall Manager or user records formal APPROVED status and the chosen implementation approach before source dispatch; independent reviewer recommendation is not approval.
+**G0 – P0 approval PASS, 14 November 2026.** Independent #488 reviewed the revised four-file DRAFT; **user directly approved OPEN-L1 (research-only), OPEN-L2 (P0 NO biological growth; P1 independently gated), OPEN-L3 (isolated C#/.NET Core and loopback-only browser UI)** under MULTI-001. OPEN-L4 real marteloscope import and OPEN-L5 empirical Irish calibration are explicitly deferred. This records product approval only; no actual code/test/Unity success. Re-check approved spec HEAD at worker start.
 
-**G1 – Worker/ownership preflight.** Create dedicated issue claim for P0 implementation. Worker registers actual provider/model, isolated branch/worktree and pinned starting HEAD. Refresh live `active-tasks.md` and physical Ops read-only, get actual owner permission if machine/file overlap or any Unity process would be impacted. No simultaneous writers in same new directory. Never move, reset or stash unrelated dirty work.
+**G1 – Worker/ownership preflight.** Use the dedicated **MULTI-002 P0** implementation execution claim and binding handoff created after approval. Worker registers actual provider/model, isolated branch/worktree and pinned starting HEAD. Refresh live `active-tasks.md` and physical Ops read-only, get actual owner permission if machine/file overlap or any Unity process would be impacted. No simultaneous writers in same new directory. Never move, reset or stash unrelated dirty work.
 
 **G2 – Core and data contract.** Implement **checked-in golden synthetic fixtures (no P0 PRNG/seed)**, canonical UTF-8 no-BOM/LF/ordered compact JSON, SHA-256, integer-mm `ForestState`/`TreeState` and positive measurement guards; validate a single simple polygon (including reversed winding, boundary-inclusive points and bow-tie rejection), derive area, adult threshold, BA/N/Dq, and stable immutable IDs. Headless hand-calculated test vectors and invalid-input negatives first. Do not implement actual biological growth at this gate.
 
@@ -55,8 +55,8 @@ Actual worker must inspect available .NET, Node, browser, disk and project sourc
 
 ## Stop conditions
 
-Stop and report BLOCKED if P0 not formally APPROVED by user/designated Overall Manager, mandatory OPEN-L1..L3 not resolved, branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
+Stop and report BLOCKED if approved P0 scope changes or is superseded, branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
 
 ## Publication plan
 
-Each substantive implementation and independent review requires its **own GitHub Markdown handoff** with actual evidence and unchanged linked source lineage, claim status and Manager verdict. This document is only a DRAFT plan; no implementation or test passed merely because these steps are written. Dashboard/Drive mirror sync must be reported NOT VERIFIED unless evidenced.
+Each substantive implementation and independent review requires its **own GitHub Markdown handoff** with actual evidence and unchanged linked source lineage, claim status and Manager verdict. This is an APPROVED-P0 plan only; no implementation or test has passed merely because these steps are written. Dashboard/Drive mirror sync must be reported NOT VERIFIED unless evidenced.
