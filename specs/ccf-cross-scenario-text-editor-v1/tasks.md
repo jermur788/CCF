@@ -50,3 +50,31 @@
 **Stop** on a new source writer/lock conflict, missing approved spec, source drift or unverified #443 copy, wrong world/profile, unaccounted dynamic text, changed saved/game identity, uncertain existing literal fallback, or a hazardous user-owned Unity/save environment. A failed browser test or missing local test runtime is reported as FAILED/UNRUN and handed to a bounded review/repair task; do not infer pass.
 
 **No user decision is needed to inspect the standalone prototype.** User approval is required before content becomes canonical or any production adapter is released. Dashboard/Drive sync remains unverified pending Manager-owned pipeline checks.
+
+
+
+## #474 NEEDS CHANGES → #477 repair task addendum (DRAFT)
+
+Prior A/B/C implementation and #473 execution remain historical. **#473 was HANDED-OFF/CLOSED; #474 independent reviewer was HANDED-OFF/CLOSED, with two NEEDS CHANGES verdicts.** Earlier “PENDING” rows describe the original worker's time-of-writing, not live task state. This addendum is the current execution matrix.
+
+| Repair requirement | Source owner | Status before independent delta review |
+|---|---|---|
+| F-01 720p page list reachability; F-02 closed recursive metadata allowlists | #477 standalone editor writer | **SOURCE REPAIR IN PROGRESS / independently UNVERIFIED** |
+| F-03 entry order; F-04 C1/bidi/zero-width; F-05 search | #477 | **SOURCE REPAIR IN PROGRESS / independently UNVERIFIED** |
+| F-06 live page dirty; F-07 beforeunload; F-13 numeric early errors | #477 | **SOURCE REPAIR IN PROGRESS / independently UNVERIFIED** |
+| F-08 source-line anchors; F-09 Walking HUD title; F-10 unknown coverage; F-12 candidate commit pin | #477 catalogue revision 2 | **SOURCE REPAIR IN PROGRESS / independently UNVERIFIED** |
+| F-11 committed negative suite and browser/Node checks | #477 | **EXECUTION EVIDENCE PENDING** |
+| S-01 strict unknown-key rule; S-02 C# composition; S-03 Unicode; S-04 atomic variant family; S-05 common statuses | #477 four-file DRAFT | **DOCUMENTED / independent quality review PENDING** |
+| Independent non-author short delta review and verdict | Fresh claimed reviewer, NOT #477 | **NOT DISPATCHED / NOT RUN** |
+| Typed Unity content adapter, saved-game/profile/720p and 1080p Unity qualification | New source owner only after approved spec and #424 gate | **NOT AUTHORISED / NOT STARTED** |
+
+### Execution constraints
+Only `Tools/ContentReview/**`, these four DRAFT files, and one newly authored GitHub repair handoff are writable. A partial repaired legacy/V2 family in a future approved package is **invalid as a family** (per S-04) and must use original-C# fallback as a unit. The corrected offline seed contains **269** source fields and 79 pages, not 268; no future O2–O8 curriculum was invented. No claim of full player-visible string census, no automatic source changes. #477 reports Node and browser evidence but never an independent verdict.
+
+### Closure checklist (all evidence-gated, not automatic)
+- [ ] #477 actual source diff and allowed paths read back.
+- [ ] Committed Node suite executed and reported; all B01/B02/B03/B04/B05 negatives reject.
+- [ ] Real browser 720p/1080p scroll and pointer, search, JSON round-trip, unsaved warning and invalid import tested.
+- [ ] All F-01…F-13 and S-01…S-05 enumerated with PASS/FAIL/NOT RUN.
+- [ ] New handoff published, read back, claim closed as HANDED-OFF.
+- [ ] Different independent reviewer re-checks, issues separate verdicts, and #424 decides next integration gate.
