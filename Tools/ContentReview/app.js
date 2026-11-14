@@ -4,6 +4,10 @@
   const core=window.CCFContentCore;
   const seed=core.clone(window.CCF_CONTENT_SEED);
   let catalog=core.clone(seed),scenarioId="s1",pageId=null,variantId="all",query="",statusFilter="all";
+  // JSON export/import is the only saved draft. Text edited after the last export is unsaved.
+  let savedTextFingerprint=JSON.stringify(catalog.entries.map(e=>e.text));
+  const fingerprint=()=>JSON.stringify(catalog.entries.map(e=>e.text));
+  const hasUnsavedChanges=()=>fingerprint()!==savedTextFingerprint;
   const $=(id)=>document.getElementById(id);
   const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;};
   const add=(parent,tag,className,text)=>{const n=element(tag,className,text);parent.appendChild(n);return n;};
@@ -18,7 +22,8 @@
     const pages=catalog.pages.filter((p)=>statusFilter==="all"||p.status===statusFilter);
     const matching=pages.filter((p)=>{
       if(!query)return p.scenarioId===scenarioId;
-      const source=(p.title+" "+p.section+" "+p.id+" "+(catalog.scenarios.find(s=>s.id===p.scenarioId)?.label||"")+" "+pageEntries(p.id).map(e=>e.text+" "+e.baselineText+" "+e.id).join(" ")).toLocaleLowerCase();
+      // Search page and actual wording, not the repeated scenario ancestor or technical IDs.
+      const source=(p.title+" "+p.section+" "+pageEntries(p.id).map(e=>e.text+" "+e.baselineText).join(" ")).toLocaleLowerCase();
       return source.includes(query);
     });
     return matching.sort((a,b)=>a.order-b.order);
@@ -28,7 +33,7 @@
   }
   function renderGlobal(){
     const n=totalChanged();
-    $("dirty-status").textContent=n?n+" locally edited field"+(n===1?"":"s")+" · not approved":"No edits · source baseline";
+    $("dirty-status").textContent=n?n+" locally edited field"+(n===1?"":"s")+(hasUnsavedChanges()?" · not exported":" · exported draft")+" · not approved":"No edits · source baseline";
     const cov=$("coverage");clear(cov);
     add(cov,"strong","",catalog.pages.length+" source pages · "+catalog.entries.length+" fields");
     add(cov,"div","",n+" fields changed. Prototype inventory is not all Unity text.");
@@ -118,7 +123,11 @@
       const changed=dirty(entry);card.classList.toggle("changed",changed);
       flag.textContent=changed?"EDITED":"ORIGINAL";revert.disabled=!changed;
       $("revert-page").disabled=!pageEntries(pageId).some(dirty);
-      renderGlobal();renderComparison();
+      renderGlobal();
+      // Update the selected page's changed count without rebuilding the navigation or losing focus.
+      const navStatus=document.querySelector("#page-list .page-button.active small");
+      if(navStatus){const edits=pageEntries(pageId).filter(dirty).length;navStatus.textContent=getPage().status+(edits?" · "+edits+" edited":"");}
+      renderComparison();
     });
     const path=entry.source?.path||"unknown";const line=entry.source?.line;
     add(card,"div","source",(entry.source?.branch||"?")+" · "+path+(line?" : "+line:"")+" · "+entry.source?.kind);
@@ -147,7 +156,7 @@
   function showValidation(result,prefix=""){
     const root=$("validation-results");clear(root);
     add(root,"strong","",prefix+(result.ok?"PASS: portable catalogue structure and tokens":"INVALID: do not export/apply"));
-    add(root,"p","",result.entryCount+" entries / "+result.pageCount+" pages / "+result.changedCount+" edited fields. "+result.errors.length+" errors, "+result.warnings.length+" warnings.");
+    add(root,"p","",Number(result.entryCount||0)+" entries / "+Number(result.pageCount||0)+" pages / "+Number(result.changedCount||0)+" edited fields. "+result.errors.length+" errors, "+result.warnings.length+" warnings.");
     if(result.errors.length){add(root,"h3","","Errors");const ul=add(root,"ul");result.errors.slice(0,100).forEach((s)=>add(ul,"li","",s));if(result.errors.length>100)add(root,"p","","More than 100 errors; showing the first 100.");}
     if(result.warnings.length){add(root,"h3","","Warnings");const ul=add(root,"ul");result.warnings.slice(0,100).forEach((s)=>add(ul,"li","",s));}
     add(root,"p","","Not checked: Unity compilation, built-game fonts/line breaks, conditional runtime routing, saves, or user acceptance.");
@@ -182,26 +191,37 @@
     link.href=url;link.download="ccf-text-draft-"+new Date().toISOString().slice(0,10)+".json";
     document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
+    savedTextFingerprint=fingerprint();
+    renderGlobal();
     notify("Downloaded a local draft JSON file. This does not write into Unity or GitHub.");
   });
   $("import-button").addEventListener("click",()=>$("import-file").click());
   $("import-file").addEventListener("change",async(e)=>{
     const file=e.target.files?.[0];if(!file)return;
     try{
-      const text=await file.text();if(text.length>3000000)throw new Error("File is too large (3 MB maximum).");
+      if(file.size>3000000)throw new Error("File is too large (3 MB maximum).");
+      const text=await file.text();
       const incoming=JSON.parse(text);
       const check=core.validate(incoming,seed);
       showValidation(check,"Import: ");
       if(!check.ok){notify("Import rejected; "+check.errors.length+" validation errors.");return;}
       if(totalChanged()&&!window.confirm("Replace your current unsaved draft with the imported file?"))return;
       catalog=core.clone(incoming);scenarioId="s1";pageId=catalog.pages[0]?.id||null;variantId="all";query="";statusFilter="all";$("search").value="";$("status-filter").value="all";
+      savedTextFingerprint=fingerprint();
       render();notify("Imported "+file.name+"; "+core.changed(catalog).length+" edited fields restored.");
     }catch(error){showValidation({ok:false,entryCount:0,pageCount:0,changedCount:0,errors:[String(error.message||error)],warnings:[]},"Import: ");notify("Import failed. Original draft remains unchanged.");}
     finally{e.target.value="";}
   });
+  window.addEventListener("beforeunload",(e)=>{
+    if(!hasUnsavedChanges())return;
+    e.preventDefault();
+    e.returnValue=""; // Browser-controlled confirmation; no custom dialog text.
+  });
   document.addEventListener("keydown",(e)=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();$("export-button").click();}
-    if(e.altKey&&!e.ctrlKey&&!e.metaKey){
+    const target=e.target;
+    const editing=target?.isContentEditable||["TEXTAREA","INPUT","SELECT"].includes(target?.tagName);
+    if(e.altKey&&!e.ctrlKey&&!e.metaKey&&!editing){
       if(e.key==="ArrowLeft"){e.preventDefault();move(-1);}
       if(e.key==="ArrowRight"){e.preventDefault();move(1);}
     }
