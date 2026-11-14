@@ -8,11 +8,11 @@
 
 ## Parallel delivery boundary
 
-This research/lab lane is separate from Scenario One implementation #424 and portfolio authority #425, existing \`Tools/ContentReview/\` text-editor development and #481 small-stand ecology review. The proposed entirely **new** file namespace is \`Tools/MultiRackSitkaLab/**\`. Do not edit \`Assets/**\`, \`Packages/**\`, existing project code, \`specs/**\` outside this spec, Game Brief/Decision Log/Current Milestone, \`Docs/Project/coordination/active-tasks.md\`, or protected saves. Read current GitHub and physical active ownership before claiming any implementation lane. Initial normal local test build is not a Windows game build; stop if a host/Unity machine conflict.
+This research/lab lane is separate from Scenario One implementation #424 and portfolio authority #425, existing `Tools/ContentReview/` text-editor development and #481 small-stand ecology review. The proposed entirely **new** file namespace is `Tools/MultiRackSitkaLab/**`. Do not edit `Assets/**`, `Packages/**`, existing project code, `specs/**` outside this spec, Game Brief/Decision Log/Current Milestone, `Docs/Project/coordination/active-tasks.md`, or protected saves. Read current GitHub and physical active ownership before claiming any implementation lane. Initial normal local test build is not a Windows game build; stop if a host/Unity machine conflict.
 
 ## Proposed package shape, not yet a created implementation
 
-\`\`\`text
+```text
 Tools/MultiRackSitkaLab/
   README.md                        # execution, evidence labels, no game integration
   src/Core/                        # standalone C# class library (no Unity deps)
@@ -21,26 +21,27 @@ Tools/MultiRackSitkaLab/
   tests/Core.Tests/                # deterministic headless fixtures and negatives
   tests/Host.Tests/                # serialisation/API/event tests
   tests/Ui/                        # actual browser path, after implementation
-  fixtures/synthetic/              # **clearly synthetic** small auditable inputs
-  schemas/                         # versioned lab-only input/event/snapshot contract
+  fixtures/synthetic/              # checked-in hand-audited synthetic sources only
+  schemas/                         # field/property ordering and snapshot/event JSON contract
+  .lab-data/                       # gitignored lab-only saves; reject outside paths
   evidence/README.md               # no real/personal data committed
-\`\`\`
+```
 
 Actual worker must inspect available .NET, Node, browser, disk and project source before pinning framework/dependencies. Prefer minimal package dependencies, offline/no telemetry and local-only host; record dependency licences and reproducible build. Do not develop a full GIS or cloud service. Avoid copying Unity save or code by assumption.
 
 ## Sequence and gates
 
-**G0 – Spec review/approval.** Resolve OPEN-L1..L5 enough to approve *P0* assumptions; ensure UX includes explicit proposal/approval/execution separation and no biology claims. Independent forestry evidence review confirms GROWFOR is only aggregate benchmark (and cannot supply per-tree spatial dynamics); no field-data unlock necessary. Manager records formal APPROVED status before source dispatch.
+**G0 – Spec review/approval.** **The user or designated Overall Manager (not the draft author)** resolves **OPEN-L1, OPEN-L2 and OPEN-L3 explicitly before P0 APPROVED**; record **OPEN-L4 and OPEN-L5 as deferred/not P0**; ensure UX includes explicit proposal/approval/execution separation and no biology claims. Independent forestry evidence review confirms GROWFOR is only aggregate benchmark (and cannot supply per-tree spatial dynamics); no field-data unlock necessary. Designated Overall Manager or user records formal APPROVED status and the chosen implementation approach before source dispatch; independent reviewer recommendation is not approval.
 
-**G1 – Worker/ownership preflight.** Create dedicated issue claim for P0 implementation. Worker registers actual provider/model, isolated branch/worktree and pinned starting HEAD. Refresh live \`active-tasks.md\` and physical Ops read-only, get actual owner permission if machine/file overlap or any Unity process would be impacted. No simultaneous writers in same new directory. Never move, reset or stash unrelated dirty work.
+**G1 – Worker/ownership preflight.** Create dedicated issue claim for P0 implementation. Worker registers actual provider/model, isolated branch/worktree and pinned starting HEAD. Refresh live `active-tasks.md` and physical Ops read-only, get actual owner permission if machine/file overlap or any Unity process would be impacted. No simultaneous writers in same new directory. Never move, reset or stash unrelated dirty work.
 
-**G2 – Core and data contract.** Implement synthetic fixture manifest, seed/replay, \`ForestState\` and \`TreeState\` with strict schema and unit guards, polygon area, BA/N/Dq and immutable individual-tree/event identities. Headless hand-calculated test vectors and invalid-input negatives first. Do not implement actual biological growth at this gate.
+**G2 – Core and data contract.** Implement **checked-in golden synthetic fixtures (no P0 PRNG/seed)**, canonical UTF-8 no-BOM/LF/ordered compact JSON, SHA-256, integer-mm `ForestState`/`TreeState` and positive measurement guards; validate a single simple polygon (including reversed winding, boundary-inclusive points and bow-tie rejection), derive area, adult threshold, BA/N/Dq, and stable immutable IDs. Headless hand-calculated test vectors and invalid-input negatives first. Do not implement actual biological growth at this gate.
 
-**G3 – Action authority and histories.** Implement one authoritative mark/propose/review/approve/pending/explicit-execute chain, deduplication and stale-state guards, deterministic events and snapshots, lab-only storage isolated from CCF saves. Negative tests for proposed-only no change and duplicate/executed/dead IDs before UI.
+**G3 – Action authority and histories.** Implement **separate tree-mark and plan-state transition tables** as spec A5; explicit Approve → Queue Test Work → Execute Test Work; **atomic all-or-nothing** execution, plan ID membership, baseForestRevision/sessionEpoch staleness, audit-only rejection events and monotonic eventSeq with post-state hashes. Build **lab-root-only `.sitkalab.json`** load/save, reject outside path/traversal/symlink and CCF-shaped save **before file acceptance**. Headless negative tests must cover proposal-only no change, dead/duplicate/below-threshold IDs, calendar step, fixture reload, malformed hashes, runtime rev/epoch mismatch.
 
-**G4 – 2D viewer.** Bind map to core only, with pan/zoom, selection, tree details, status legend, plan preview vs actual metrics, explicit approval and separate execution. Load only synthetic lab fixtures. Actual browser test with GUI and screenshots, no screen depiction accepted as tree-state authority.
+**G4 – 2D viewer.** Bind map to Core only, with pan/zoom, actual Core metric API (browser computes no forestry arithmetic), selection, tree details, status legend, plan preview vs actual metrics, **distinct approval, queue and execution**. Load only listed synthetic lab-root fixtures. Bind host to **127.0.0.1**, restrictive Host/Origin/CORS, no telemetry or external networking. Actual browser test with GUI and screenshots; no screen depiction accepted as tree-state authority.
 
-**G5 – Proportionate qualification.** Tier 1: deterministic headless unit/property tests; area/BA/unique ID/event/stale-state and save/replay invariants. Tier 2: local browser pathway at ordinary desktop and constrained viewport, at least one real click/approval/execution/replay and negative path. Do NOT run Unity/Windows Player. Independently review outputs and scope before publication; preserve failed attempts/defects. One bounded pass unless problems require targeted repair, not repeated full integration suites.
+**G5 – Proportionate qualification.** Tier 1: deterministic headless unit/property tests; identity/area/BA/Dq, boundary and **self-crossing polygon**, below-threshold, event/atomic/stale status, rejected outside-root/CCF JSON, canonical snapshot and event-by-event SHA-256 replay. Tier 2: local browser pathway at ordinary desktop and constrained viewport, at least one real click/approve/**queue**/execute/replay and negative path; Core-to-UI metric parity; **2,000-tree** perf fixture ≤2 seconds for selection/preview on the recorded host and browser. Do NOT run Unity/Windows Player. Independently review outputs and scope before publication; preserve failed attempts/defects. One bounded pass unless problems require targeted repair, not repeated full integration suites.
 
 **G6 – P0 handoff and review.** Report exact branch, diff, test receipts, actual inspected runtime, small synthetic inventory manifest and known missing processes. Reviewer verdict APPROVED / NEEDS CHANGES / REJECTED for **engineering P0** only. No automatic production integration, source-cherry-pick into Unity or release.
 
@@ -48,13 +49,13 @@ Actual worker must inspect available .NET, Node, browser, disk and project sourc
 
 ## Effort and provider
 
-**P0 difficulty MEDIUM–HIGH:** C# deterministic event model, polygon calculations, UI, offline host and real browser testing; simpler than forestry growth calibration. Best-suited **Sol/Codex High in local T3 Code** with .NET/Node/browser capability, single dedicated worktree and new directory ownership; independent **Claude Opus High or separate Sol High** source/UX review. No permanent discipline ownership claimed; actual worker registers. Do not send to multiple code writers at once.
+**P0 difficulty MEDIUM–HIGH:** C# deterministic event model, polygon calculations, UI, offline host and real browser testing; simpler than forestry growth calibration. Best-suited **Sol/Codex High in local T3 Code** with .NET/Node/browser capability, single dedicated worktree and new directory ownership; **one sole implementation writer for P0 Core, Host and UI (no parallel UI subowner)**; independent **Claude Opus High or separate Sol High** source/UX review. No permanent discipline ownership claimed; actual worker registers. Do not send to multiple code writers at once.
 
 **P1 difficulty HIGH:** biological source inspection, scientific versioning, heterogeneous future effects; split research/source and software qualification with explicit model outcome/holdout gates.
 
 ## Stop conditions
 
-Stop and report BLOCKED if branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
+Stop and report BLOCKED if P0 not formally APPROVED by user/designated Overall Manager, mandatory OPEN-L1..L3 not resolved, branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
 
 ## Publication plan
 
