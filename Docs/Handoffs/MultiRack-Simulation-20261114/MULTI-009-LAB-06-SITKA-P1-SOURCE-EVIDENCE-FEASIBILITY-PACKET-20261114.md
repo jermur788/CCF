@@ -1,0 +1,83 @@
+# MULTI-009 / LAB-06 — Read-only P1 Sitka annual biology source-and-evidence feasibility audit
+
+**Issued:** 14 November 2026  
+**Execution claim:** [CCF #522](https://github.com/jermur788/CCF/issues/522) — **READY / NOT RUNNING**; no actual worker, machine, physical worktree or ownership lock is registered.  
+**Task type:** **LAB-06 research/source audit only**. **No P1 implementation, Unity verification, data import or specimen acquisition authorised.**  
+**Difficulty:** **HIGH**, because reproducibly inspecting accepted CCF adult Sitka models, preserving old/save compatibility and evaluating Irish empirical growth domain/evidence classes is more demanding than a simple code review.  
+**Best-suited provider:** **Sol/Codex High local T3 Code** for actual repository biology/source and deterministic test-vector inspection, complemented by the existing published GROWFOR evidence. An independent **Claude Opus 5.5** forestry/source researcher is suitable for a separate critical review; do not count one author's own assertions as a second review. No particular model permanently owns ecology.  
+**User action:** dispatch the complete line in §6 into a fresh technical-research/code-inspection lane. No additional owner decision is necessary to do the read-only study. **P1 code requires a new explicit gate after findings.**
+
+## 1. Why this is next, and what has already passed
+
+The owner approved a **research-only, flat, synthetic Sitka P0 2D lab** with no biological growth. The independently approved engineering P0 candidate and later bounded R-1/R-2 repairs have been demonstrated on Linux x64, and the actual owner's Windows + installed Ubuntu WSL2 + Windows Edge passed [MULTI-008 #514](https://github.com/jermur788/CCF/issues/514) (Manager [acceptance](https://github.com/jermur788/CCF/blob/docs/manager-multi-008-wsl-acceptance-readme-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MANAGER-MULTI-008-WINDOWS-WSL2-QUALIFICATION-ACCEPTANCE-20261114.md)). No source work is needed to establish the P0 lab's map/actions/BA/history.
+
+The **approved P0-only four-file spec** is [spec](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/spec.md), [plan](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/plan.md), [tasks](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/tasks.md), and [requirements](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/checklists/requirements.md). **Tasks LAB-06** is the **optional audited annual-model comparator choice and source-parity feasibility, no engine code**. **LAB-07 P1 annual growth/competition/mortality implementation is gated on this study, independent model review and fresh product approval.**
+
+The first external demo remains **complete-loop three-species Scenario One (Sitka/Oak/Beech)** per [Current Milestone](https://github.com/jermur788/CCF/blob/main/Docs/Project/current-milestone.md), [Game Brief](https://github.com/jermur788/CCF/blob/main/Docs/Project/game-brief.md) and [Decision Log](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md). The 2D standalone lab is **not** an integrated or reduced-scope version of Scenario One; this research does not block Scenario One delivery or authorise game source edits, player saves or Windows Unity builds.
+
+## 2. Sources to open, actual authority and lineage
+
+**Scientific evidence (published in repo):** [GROWFOR Technical Evidence Extraction V1B](https://github.com/jermur788/CCF/blob/main/Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md) and its referenced primary Broad & Lynch (2006a/2006b), GROWFOR manual, 2013 comparison and 2017 NFI evaluation. These distinguish a **stand-level** empirical state-space Sitka model for **B, N, H**, with site index **top height at age 30** and thinned/unthinned variants, from unsupported individual-neighbour accuracy or irregular continuous-cover calibration. The 2006b panel-data study is **not longitudinal validation of the final predictive model**. Do not substitute unsupported claims from secondary recollections; cite primary/source page or document section precisely.
+
+**Current Unity/CCF model source:** inspect the **actual present repository** and relevant accepted **D-048 growth / D-059 species-depth** decisions (GitHub main and, when relevant, source/current integrated branch and exact HEAD). Locate and read exact production sources and tests implementing Sitka adult DBH increment, height/site age, competition/Hegyi, crown release, adult density mortality, biological-vs-felling provenance, annual schedule, model-v0/v1 switches and persistence. Likely historic symbols from the [Unity overview](https://github.com/jermur788/CCF/blob/main/Docs/Project/unity-project-overview.md) include \`SitkaGrowthModel\` and \`ForestEcologyController\`, but **that overview is historical context, not implementation truth**. Do not invent file paths or treat a branch name/old SHA as proof of current integrated state.
+
+**Validated lab source:** [MULTI-006 implementation candidate](https://github.com/jermur788/CCF/blob/feature/multi-006-sitka-lab-p0-handle-anchored-writes-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-006-SITKA-LAB-P0-WRITE-SAFETY-REPAIR-HANDOFF-20261114.md), [MULTI-007 independent recheck](https://github.com/jermur788/CCF/blob/review/multi-007-sitka-lab-p0-write-safety-delta-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-007-SITKA-LAB-P0-R1-R2-INDEPENDENT-DELTA-REVIEW-20261114.md) and [MULTI-008 WSL qualification](https://github.com/jermur788/CCF/blob/feature/multi-008-sitka-lab-wsl2-ubuntu-qualification-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-008-SITKA-LAB-P0-WINDOWS-WSL2-UBUNTU-QUALIFICATION-HANDOFF-20261114.md). P0 Core models marks, execution, synthetic stand summaries and time *without biology*. Audit the existing one-tree IDs/persistence/event schema only for P1 adapter feasibility; do not modify code.
+
+**Irish plot/field constraint:** [#479 GBIF Irish marteloscope raw audit](https://github.com/jermur788/CCF/issues/479) is HANDED-OFF but the original Irish raw-plot download and exact licensed tree XY/DBH/polygon were **not verified**. Do not silently use this as a measured dataset or claim an Irish marteloscope validation set exists. No contacting organisations, scraping gated data or downloading restricted data without new owner permission.
+
+**Evidence categories required:** DIRECT SOURCE-CODE OBSERVED, VERIFIED HISTORICAL TEST, PUBLISHED EMPIRICAL SUPPORT, STAND-LEVEL REFERENCE, SOURCE-BASED DERIVATION, GAMEPLAY CALIBRATION, PROPOSED RESEARCH HYPOTHESIS, UNSUPPORTED/NEEDS DECISION.
+
+## 3. Bounded questions to answer — no model coding
+
+### A. Source-level CCF biology and persistence contract
+- Identify exact class/file/method/line and verified source HEAD for **adult Sitka DBH growth, height, Hegyi/spatial competition, mortality**; indicate where “growth model 0 vs 1” is selected on a new game or loaded save and how frozen Reference Future/Legacy40 behave. Track event order in the annual ecology loop and whether thinning changes the following year's source state.
+- Extract **deterministic test vectors** from the source or existing verified tests (one adult high/low competition, edge/below-threshold where applicable, one intervention then subsequent-year growth, one natural mortality vs harvested tree); record input tree/stand, year, source-model switches, numeric units, exact expected value/hash, and source/test citations. A vector without a run should be marked **source-derived, NOT REPRODUCED**.
+- Determine whether an adapter can read the standalone lab's tree table and safely produce per-ID biological annual deltas without mutating P0 fixtures, history contract, UI, game saves or the frozen archive. Identify any incompatibility or existing scientific assumptions. No actual adapter implementation is authorised.
+- Identify output requirements for an annual event/account: per-tree age, DBH/height pre/post, competition, live/felled/biologically-dead state, cause/year for natural mortality and separate executed felling, plus stand N, BA and a defensible top-height convention. Declare any light/regeneration/cohorts/juvenile assumptions **NOT IMPLEMENTED** unless sourced and separately approved.
+
+### B. GROWFOR/Broad–Lynch domain, not a false “individual-tree calibration”
+- Make a small **evidence-to-code matrix**: B,N,H, age, site index age 30, thinned/unthinned dynamics, mortality/stocking, height range and first thinning/stand domains. State whether each item can be compared to the current CCF test model, requires aggregation, is outside domain, or has no matching field/model.
+- Compare **reference** pure Sitka even-aged aggregate trends under explicit site/age/stand constraints; don't claim validation of CCF's individual-tree release, uneven-aged CCF, mixed species or 3D crown/regeneration effects. Cite the 2006 model coefficients as **2006 source**, not the guaranteed code of every later distributed GROWFOR executable. British max-density and gameplay-calibration constants must be labelled honestly.
+- Specify **holdout provenance**. The 2006b estate-versus-research data were used in fitting the original model; they are not an untouched longitudinal independent forecast set. No observational field accuracy claim without a licensed, longitudinal stand/tree holdout.
+
+### C. Feasible P1 route and explicit go/no-go
+Compare **Option A (likely minimal): faithfully port/adapter existing accepted CCF Sitka rules** with reproducible model-v1 parity vectors; versus **Option B: explicitly experimental alternative isolated lab model**, with evidence boundaries/version and separate review. Describe what each changes in the lab, complexity, reproducibility, versioning, model-v0 compatibility, scientific claims, uncertainty, actual observed CCF behaviour and an estimate of smallest executable P1 work packets. Decide whether A, B or **NO-GO** is justified from inspected evidence, not preference.
+
+State exact missing source/parameter/evidence gates. Provide a proposed four-file **P1 spec *outline* or decision record**, but DO NOT create/approve an implementation spec or edit the approved P0 four-file files under LAB-06. The Overall Manager and product owner decide whether to authorise a separate **P1 SPEC REQUIRED** phase. No Unity or full release testing as a side effect.
+
+## 4. Ownership, live coordination, execution boundaries
+
+**Created read-only study branch (at main when packet published; not yet used):**
+\`research/multi-009-sitka-p1-source-evidence-feasibility-20261114-v1\`
+
+**Proposed distinct worktree (NOT created/reserved):**
+\`/media/jer/Files/CCF/Operations/CCF-MULTI-009-SitkaP1-SourceAudit-20261114\`
+
+Use this path **only if the worker really runs on the Linux laptop and it is free**. A Windows-only worker must pick a separate WSL ext4 worktree after preflight; no one may assume laptop ownership or machine lease. No Unity/editor/visual gate needed. The worker should record actual available host + branch + worktree + source revision.
+
+**Sole allowed tracked result:**
+\`Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-009-LAB-06-SITKA-P1-SOURCE-AND-EVIDENCE-FEASIBILITY-HANDOFF-20261114.md\`
+
+All \`Assets/**\`, \`Tools/MultiRackSitkaLab/**\`, \`specs/**\`, \`Docs/Project/**\`, \`Docs/Research/**\`, \`main\`, scene, saves, frozen Reference Future, board and existing worker branches are **READ ONLY**. Work may do static inspection and **small read-only deterministic source/test-vector extraction** from an isolated scratch copy if safe, not compile/modify Unity, execute full batches, install packages or edit model source. No heavy Unity process, Windows game build, file cleanup or destructive command.
+
+Before source inspection or report writes:
+1. Fresh-read this packet, #522 and live [active-tasks.md](https://github.com/jermur788/CCF/blob/main/Docs/Project/coordination/active-tasks.md), local worktree/process/physical machine availability, actual main and candidate branch exact HEAD, recent integrated source and #424/#425 owner scopes. Do not treat absence of board row as self-granted ownership.
+2. Verify source is read-only, worktree path unused; never reset, stash, clean, rewrite or absorb another lane's dirty files. On collision/source ambiguity, mark #522 **[BLOCKED]**, stop and identify what Manager must resolve.
+3. Register **actual provider/model, host, worktree, study branch, starting full HEAD, source snapshot(s), permitted output and phase as [RUNNING] on #522 BEFORE inspecting/testing/writing**. Claim is execution presence, not file ownership. No board edit without a delegated writer.
+4. If source needs code execution to generate vectors, only bounded, read-only, non-Unity source-check reproduction in independently owned scratch, with command/result classification; no mutation of current candidate or plant save. If impossible, flag derived not reproduced, do not fill gaps.
+
+## 5. Report, external review and next gate
+
+The one GitHub handoff above must include:
+1. Actual worker, source HEAD and worktree, claim registration, exact inspected CCF current file/method/line/test references and lab candidate, with source-truth vs historical overview distinctions.
+2. Irish source matrix and range/validation caveats with citations to primary paper/extraction sections; test vector table with labels **REPRODUCED** vs **DERIVED** vs **UNAVAILABLE**.
+3. Clear A/B/NO-GO model route and expected yearly ledger/stand validation: N, BA, H, cause-specific natural mortality vs felling, real-data gap, reproducible deterministic seed/time policy, labels.
+4. Explicit compatibility/identity/fixture and model-version choices, P1 scope boundaries and user decisions genuinely needed. Do **not** quietly declare numerical Irish forestry prediction correctness or GROWFOR individual-tree equivalence.
+5. GitHub one-new-Markdown diff/readback on study branch, off-repo evidence if any (do not silently copy private sources), claim [HANDED-OFF] and close.
+6. A **separate independent forestry + implementation-method review** should evaluate the study before Manager verdict **APPROVED AS P1 EVIDENCE PLAN / NEEDS CHANGES / REJECTED**. If approved as evidence, a **new four-file P1 spec and explicit product go/no-go** precede LAB-07 implementation. No self-authorisation.
+
+**Dashboard/Drive mirror sync:** NOT VERIFIED; no new canonical decision or context snapshot update in this task.
+
+## 6. Paste-ready dispatch
+
+> Take ownership of **MULTI-009 / LAB-06 / CCF #522** — read-only source and evidence feasibility for annual Sitka ecology in the standalone lab. Read the complete binding packet at https://github.com/jermur788/CCF/blob/docs/multi-009-sitka-p1-source-evidence-dispatch-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-009-LAB-06-SITKA-P1-SOURCE-EVIDENCE-FEASIBILITY-PACKET-20261114.md. **NO P1 CODE IS AUTHORISED.** Difficulty HIGH; recommended **Sol/Codex High in local T3 Code** for exact current CCF source and deterministic test vectors, followed by independent forestry/source review. New study branch \`research/multi-009-sitka-p1-source-evidence-feasibility-20261114-v1\`, from inspected main. Proposed **unreserved** laptop worktree \`/media/jer/Files/CCF/Operations/CCF-MULTI-009-SitkaP1-SourceAudit-20261114\` only if actual laptop free; otherwise choose a separate WSL-ext4 worktree after live ownership check. Fresh-read live board and actual source branch/current HEAD, register real model/provider/host/worktree/HEAD as RUNNING on #522 before any inspection or test; BLOCKED if conflict. Audit Sitka per-tree adult DBH/height/competition/natural mortality + D-048/D-059 model switches and frozen compatibility against the primary GROWFOR/Broad–Lynch stand-level evidence, distinguishing **B,N,H aggregate plausibility** from unvalidated individual-tree or uneven-aged predictions. Provide deterministic source-parity vectors and compare a faithful isolated CCF adapter vs an experimental variant or NO-GO. No code, approved spec, Unity, saves, field-data download, P1 implementation or Windows game build. Publish only \`Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-009-LAB-06-SITKA-P1-SOURCE-AND-EVIDENCE-FEASIBILITY-HANDOFF-20261114.md\` with GitHub readback/one-file proof and return for **independent evidence review before any P1 spec/implementation decision**.
