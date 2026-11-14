@@ -2,7 +2,7 @@
 window.CCF_CONTENT_SEED = {
   "schemaVersion": "ccf.content.v1",
   "packageId": "ccf-s1-main-source-audit-20261113",
-  "revision": 1,
+  "revision": 2,
   "provenance": {
     "repository": "jermur788/CCF",
     "sourceBranch": "main",
@@ -11,7 +11,8 @@ window.CCF_CONTENT_SEED = {
     "extractedOn": "2026-11-13",
     "unityIntegrated": false,
     "reviewed": false,
-    "coverageClaim": "representative source-extracted catalogue, not all runtime text"
+    "coverageClaim": "representative source-extracted catalogue, not all runtime text",
+    "comparisonCandidateCommit": "acb4e1111fdc9aa9b295413038eda4e03fe56402"
   },
   "scenarios": [
     {
@@ -3975,7 +3976,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 35,
+        "line": 36,
         "kind": "literal"
       },
       "status": "main-source",
@@ -3995,7 +3996,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 35,
+        "line": 37,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4015,7 +4016,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 35,
+        "line": 38,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4035,7 +4036,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 35,
+        "line": 38,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4055,7 +4056,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 35,
+        "line": 39,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4095,7 +4096,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 40,
+        "line": 41,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4115,7 +4116,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 40,
+        "line": 42,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4135,7 +4136,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 40,
+        "line": 43,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4155,7 +4156,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 40,
+        "line": 43,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4175,7 +4176,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 40,
+        "line": 44,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4215,7 +4216,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 45,
+        "line": 46,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4235,7 +4236,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 45,
+        "line": 47,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4255,7 +4256,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 45,
+        "line": 48,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4275,7 +4276,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 45,
+        "line": 48,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4295,7 +4296,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 45,
+        "line": 49,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4335,7 +4336,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 50,
+        "line": 51,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4355,7 +4356,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 50,
+        "line": 52,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4375,7 +4376,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 50,
+        "line": 53,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4395,7 +4396,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 50,
+        "line": 53,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4415,7 +4416,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 50,
+        "line": 54,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4455,7 +4456,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 55,
+        "line": 56,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4475,7 +4476,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 55,
+        "line": 57,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4495,7 +4496,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 55,
+        "line": 58,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4515,7 +4516,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 55,
+        "line": 58,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4535,7 +4536,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 55,
+        "line": 59,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4575,7 +4576,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 60,
+        "line": 61,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4595,7 +4596,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 60,
+        "line": 62,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4615,7 +4616,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 60,
+        "line": 63,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4635,7 +4636,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 60,
+        "line": 63,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4675,7 +4676,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 64,
+        "line": 65,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4695,7 +4696,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 64,
+        "line": 66,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4715,7 +4716,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 64,
+        "line": 67,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4735,7 +4736,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 64,
+        "line": 67,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4775,7 +4776,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 68,
+        "line": 69,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4795,7 +4796,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 68,
+        "line": 70,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4815,7 +4816,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 68,
+        "line": 71,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4835,7 +4836,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/ScenarioOneTeachingSequence.cs",
         "branch": "main",
-        "line": 68,
+        "line": 71,
         "kind": "literal"
       },
       "status": "main-source",
@@ -4875,7 +4876,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 40,
+        "line": 62,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -4895,7 +4896,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 40,
+        "line": 106,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -4935,7 +4936,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 41,
+        "line": 64,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -4955,7 +4956,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 41,
+        "line": 112,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -4995,7 +4996,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 42,
+        "line": 66,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -5015,7 +5016,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 42,
+        "line": 117,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -5055,7 +5056,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 43,
+        "line": 122,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -5095,7 +5096,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 44,
+        "line": 60,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -5115,7 +5116,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 44,
+        "line": 101,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -5155,7 +5156,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 45,
+        "line": 93,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -6015,7 +6016,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 132,
+        "line": 122,
         "kind": "generated"
       },
       "status": "main-source",
@@ -6037,7 +6038,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 132,
+        "line": 122,
         "kind": "generated"
       },
       "status": "main-source",
@@ -6060,7 +6061,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 135,
+        "line": 127,
         "kind": "literal"
       },
       "status": "main-source",
@@ -6080,7 +6081,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 156,
+        "line": 146,
         "kind": "literal"
       },
       "status": "main-source",
@@ -6100,7 +6101,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 157,
+        "line": 147,
         "kind": "literal"
       },
       "status": "main-source",
@@ -6120,7 +6121,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/AnnualReviewView.cs",
         "branch": "main",
-        "line": 158,
+        "line": 148,
         "kind": "literal"
       },
       "status": "main-source",
@@ -6140,7 +6141,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/WorkPlanView.cs",
         "branch": "main",
-        "line": 120,
+        "line": 128,
         "kind": "generated"
       },
       "status": "main-source",
@@ -6162,7 +6163,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/WorkPlanView.cs",
         "branch": "main",
-        "line": 124,
+        "line": 132,
         "kind": "generated"
       },
       "status": "main-source",
@@ -6189,7 +6190,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/WorkPlanView.cs",
         "branch": "main",
-        "line": 121,
+        "line": 130,
         "kind": "generated"
       },
       "status": "main-source",
@@ -6213,7 +6214,8 @@ window.CCF_CONTENT_SEED = {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "feature/scenario-one-objective1-ux-repair-20261112-v1",
         "line": 41,
-        "kind": "conditional"
+        "kind": "conditional",
+        "commit": "acb4e1111fdc9aa9b295413038eda4e03fe56402"
       },
       "status": "unmerged-candidate",
       "protectedGameplayKey": null,
@@ -6233,7 +6235,8 @@ window.CCF_CONTENT_SEED = {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "feature/scenario-one-objective1-ux-repair-20261112-v1",
         "line": 64,
-        "kind": "conditional"
+        "kind": "conditional",
+        "commit": "acb4e1111fdc9aa9b295413038eda4e03fe56402"
       },
       "status": "unmerged-candidate",
       "protectedGameplayKey": null,
@@ -6253,13 +6256,34 @@ window.CCF_CONTENT_SEED = {
         "path": "Assets/ForestPrototype/UI/LearningObjectivesView.Curriculum.cs",
         "branch": "feature/scenario-one-objective1-ux-repair-20261112-v1",
         "line": 102,
-        "kind": "conditional"
+        "kind": "conditional",
+        "commit": "acb4e1111fdc9aa9b295413038eda4e03fe56402"
       },
       "status": "unmerged-candidate",
       "protectedGameplayKey": null,
       "format": "plain-text",
       "tokens": [],
       "note": ""
+    },
+    {
+      "id": "s1.help.walkinghud.title",
+      "pageId": "s1.help.walkinghud",
+      "fieldKey": "title",
+      "variantId": "default",
+      "text": "Walking HUD · your forest at a glance",
+      "baselineText": "Walking HUD · your forest at a glance",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 46,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "F1 Walking HUD default Title(Menu) branch"
     },
     {
       "id": "s1.help.walkinghud.explanation.full-F1",
@@ -6272,7 +6296,7 @@ window.CCF_CONTENT_SEED = {
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 127,
+        "line": 128,
         "kind": "conditional"
       },
       "status": "main-source",
@@ -6286,19 +6310,20 @@ window.CCF_CONTENT_SEED = {
   ],
   "coverage": {
     "classifications": {
-      "collected": 235,
+      "collected": 236,
       "conditional": 28,
       "generated": 5,
-      "serialized": 0,
-      "unlocated": 0,
-      "outOfScope": 0
+      "serialized": null,
+      "unlocated": null,
+      "outOfScope": null
     },
     "notes": [
       "Only checked-in main C# literals from listed sources are source-extracted; no Unity runtime output is tested.",
       "Work Plan/Annual Review numeric sentences are displayed as proposed parameterized templates and still require a typed Unity adapter.",
       "Conditional Old Legacy40 and Enlarged80 Rack V2 variants are separate; unmerged #443 wording is candidate-only.",
       "Future O2–O8 and compact O1 are empty placeholders, not invented curriculum.",
-      "Walking HUD F1 default branch preserved with a named keysLine insertion token."
+      "Walking HUD F1 default branch preserved with a named keysLine insertion token.",
+      "Unenumerated serialized, unlocated and out-of-scope categories are UNKNOWN, not measured zero."
     ]
   }
 };
