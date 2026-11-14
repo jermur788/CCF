@@ -1,15 +1,15 @@
 # Requirements / verification checklist — Irish Sitka 2D Reference Laboratory V1
 
-**Status:** DRAFT. These are proposed acceptance tests, not execution results. Mark PASS only after actual run evidence.
+**Status:** **APPROVED FOR P0 REQUIREMENTS ONLY** (direct user decision, MULTI-001, 14 November 2026); acceptance boxes are **still unchecked** until actual implementation tests. P1 requirements remain conditional/not authorised.
 
 ## Product and scope
 
-- [ ] **REQ-P01** Owner confirms this is a standalone research lab, not new Scenario One/Unity map UI.
-- [ ] **REQ-P02** Site is flat, Sitka-only, synthetically generated **engineering test fixture**, titled “Synthetic Sitka test stand (flat)” with no false field-measured or typical-Irish claim.
+- [ ] **REQ-P01** **OWNER APPROVED P0 scope:** standalone research lab, not Scenario One/Unity map UI; implementer must conform.
+- [ ] **REQ-P02** Site is flat, Sitka-only, **checked-in synthetic ENGINEERING TEST FIXTURE**, titled “Synthetic Sitka test stand (flat)” with no false field-measured or typical-Irish claim.
 - [ ] **REQ-P03** Original full 2D ↔ 3D gameplay ambition remains intact, but 3D/multi-rack extrapolation is **not implemented** under this spec.
 - [ ] **REQ-P04** Separate Scenario One Sitka/Oak/Beech parity and complete-loop demo authority unchanged.
 - [ ] **REQ-P05** The raw GBIF/marteloscope access blocker does not magically become solved by this lab.
-- [ ] **REQ-P06** OPEN-L1..L3 explicitly decided by user/designated Overall Manager before APPROVED; OPEN-L4/L5 explicitly deferred and not a P0 dependency.
+- [ ] **REQ-P06** **Owner-approved L1** research-only, **L2** no biology in P0 with P1 later, **L3** isolated .NET/browser; L4/L5 expressly deferred and not P0. Check implementer conformance rather than re-requesting approval.
 
 ## Core integrity — P0
 
@@ -21,13 +21,14 @@
 - [ ] **REQ-C06** Dead/felled IDs persist for history but never contribute to eligible live counts. Below-threshold stems are displayed but excluded from adult metrics and **ineligible for work**; out-of-polygon fixture **rejected on load**.
 - [ ] **REQ-C07** Same checked-in immutable synthetic fixture and runtime/schema yield identical canonical UTF-8 no-BOM/LF compact ordered JSON, SHA-256 hash, sorted tree IDs and Core-derived metrics; **no P0 PRNG**.
 - [ ] **REQ-C08** Synthetic numbers never described as measured Irish field inventory or universally correct spacing/caps.
+- [ ] **REQ-C09** **No P0 top-height output**; the source-specific GROWFOR sampling rule is P1-only.
 
 ## Player decisions — P0
 
 - [ ] **REQ-D01** Separate per-tree UNMARKED/PLAYER_MARKED and per-plan DRAFT/PROPOSED/APPROVED/PENDING_WORK/EXECUTED/REJECTED/CANCELLED/STALE are visible; every transition follows spec A5 with one open-plan membership max.
 - [ ] **REQ-D02** Mark, propose, approve, queue pending, reject and cancel produce **zero actual TreeState live/felled or BA changes**; audit/rejection events are not successful work.
 - [ ] **REQ-D03** Execute Test Work atomically fells **all and only** unique current eligible planned live adult IDs; one bad/missing/stale/dead/duplicate/below-threshold ID rejects the **entire plan**, audit-only.
-- [ ] **REQ-D04** Duplicate execution, dead ID, revised fixture, **baseForestRevision/sessionEpoch mismatch**, calendar advance or load-reset invalidation, and rejected/cancelled plan all fail closed; stale plan cannot be reapproved in place.
+- [ ] **REQ-D04** Duplicate execution, dead ID, **load/reset of any fixture**, **baseForestRevision/sessionEpoch mismatch**, calendar advance or load-reset invalidation, and rejected/cancelled plan all fail closed; stale plan cannot be reapproved in place.
 - [ ] **REQ-D05** Proposals can be rejected/cancelled without modifying forest; a revised ID list must use **new plan ID**, not silent mutation of an approved plan.
 - [ ] **REQ-D06** EventSeq, prevStateHash/postStateHash (**SHA-256 over canonical forest snapshot bytes**) and immutable IDs allow event-by-event deterministic replay and matching actual adult metrics; no silent loss.
 
