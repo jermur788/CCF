@@ -1,0 +1,103 @@
+# MULTI-010 — Independent forestry-evidence and implementation-method review of Sitka LAB-06
+
+**Date:** 14 November 2026  
+**Independent review claim:** [#525](https://github.com/jermur788/CCF/issues/525), **READY / NOT RUNNING**. No worker, host lock, worktree or actual source inspection is registered for this reviewer.  
+**Task type:** read-only review of the already-published [MULTI-009 / LAB-06 Codex source/evidence study](https://github.com/jermur788/CCF/blob/research/multi-009-sitka-p1-source-evidence-feasibility-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-009-LAB-06-SITKA-P1-SOURCE-AND-EVIDENCE-FEASIBILITY-HANDOFF-20261114.md). **NO P1 coding, source edits, approved-spec edits, Unity build, or model adoption.**  
+**Difficulty:** **HIGH** — biology source truth, numeric reproducibility/precision, versioned state and persistence, Irish stand-level model provenance and scientific inference require a separate critical reviewer.  
+**Recommended reviewer:** **Claude Opus 5.5 High in an independent Claude Code/local T3 Code lane**, not Codex GPT-6.1 Sol (the author). An equally capable different non-author reviewer is acceptable if actual source and PDFs are accessible. Provider/model/effort must be recorded honestly, not assumed.  
+**Purpose:** independent **APPROVED AS P1 EVIDENCE PLAN / NEEDS CHANGES / REJECTED** judgement on the quality and feasibility of a future research-only annual Sitka comparator. This is emphatically **NOT** authorisation to implement LAB-07 or introduce ecological effects into the current P0 lab.
+
+## 1. Canonical product gates, candidate and facts already established
+
+The user approved **P0 research-only** with a separate C# Core + loopback 2D browser, flat synthetic Sitka fixtures, deterministic mark → propose → approve → queue → execute, accurate stand arithmetic, immutable event replay and **NO BIOLOGICAL GROWTH**. [Approved four-file P0 spec](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/spec.md) §5 explicitly requires **independent P1 source/evidence review, a separate P1 go/no-go and a versioned specification before any new model**. [LAB-06 approved task scope](https://github.com/jermur788/CCF/blob/docs/multi-001-sitka-lab-p0-approved-spec-20261114-v1/specs/multirack-sitka-2d-reference-lab-v1/tasks.md) is a source/model comparator feasibility study — not coding.
+
+[Accepted MULTI-006/007 engineering safety review](https://github.com/jermur788/CCF/blob/review/multi-007-sitka-lab-p0-write-safety-delta-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-007-SITKA-LAB-P0-R1-R2-INDEPENDENT-DELTA-REVIEW-20261114.md) and [MULTI-008 Windows/Ubuntu WSL2 qualification](https://github.com/jermur788/CCF/blob/feature/multi-008-sitka-lab-wsl2-ubuntu-qualification-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-008-SITKA-LAB-P0-WINDOWS-WSL2-UBUNTU-QUALIFICATION-HANDOFF-20261114.md) established the current **standalone P0 laboratory** for its tested engineering purpose; they do not validate Irish Sitka annual predictions. The first **external game demo** remains the *complete Scenario One with Sitka, Oak and Beech*, pre-demo S1-C/S1-D repeated management and approved multi-scale management. Keep this lane separate from [Scenario One delivery](https://github.com/jermur788/CCF/blob/main/Docs/Project/current-milestone.md), Unity, and the [Decision Log](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md). No Windows Unity Player build is authorised.
+
+**Source study under review:** [MULTI-009 GitHub handoff](https://github.com/jermur788/CCF/blob/research/multi-009-sitka-p1-source-evidence-feasibility-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-009-LAB-06-SITKA-P1-SOURCE-AND-EVIDENCE-FEASIBILITY-HANDOFF-20261114.md). It was written by **OpenAI Codex GPT-6.1 Sol** on a separate Windows/WSL-connected T3 worktree. Original claim [#522](https://github.com/jermur788/CCF/issues/522) registered RUNNING before source inspection and HANDED-OFF later; execution is finished. The Manager inspected the published report and GitHub comparison:
+- exact research candidate **\`2212544e90fc5c48195f708c525e58be8a8cd936\`**, based on main source snapshot **\`fc18190b976f1363f1b5d1b0881810db2f8c6e39\`**;
+- **one added Markdown** against main, zero source/spec/Unity edits; report fetched through GitHub with **42,803 characters**, GitHub blob **\`663e8173da473eed89d6ee0bb454bc377b194c46\`**;
+- **14 proposed vectors**: **9 executed Python arithmetic reconstructions, 3 source-derived only, 2 unavailable**. The nine are **NOT Unity runtime parity**. No original forestry PDFs, Unity run, full P1 state, save continuation or field holdout was checked by the author;
+- author recommendation **Option A — conditional evidence plan**, not a coding GO. Pure-Sitka new-game model route must distinguish **growth model 2** from equivalent/conditional use of model-1 adult density; frozen legacy growth model 0 must survive;
+- existing P0 schema v1 is strict and integer-millimetre/calendar-only. Adding full-precision biology as a hidden field in that schema, using existing Advance Step as a growth event, or editing P0 saved hashes is **not allowed**.
+
+**Study branch is not the independent review.** Review its evidence critically. Any claimed "REPRODUCED" in its vector table refers only to *formula arithmetic*; do not treat that label as audited current Unity behaviour.
+
+## 2. Reviewer branch, exact report path and ownership
+
+**Independent review branch already created and untouched** from study final HEAD:
+\`review/multi-010-lab06-sitka-p1-forestry-method-20261114-v1\`
+at \`2212544e90fc5c48195f708c525e58be8a8cd936\`.
+
+**Suggested independent worktree, NOT CREATED or RESERVED:** \`/media/jer/Files/CCF/Operations/CCF-MULTI-010-SitkaP1-EvidenceReview-20261114\` — **only** if running on the Linux laptop with verified availability. If reviewer is on Windows + Ubuntu WSL, create an independent **WSL ext4** worktree after preflight; do not reuse Codex's NTFS T3 worktree or modify its global/local Git settings.
+
+**Suggested evidence folder, NOT CREATED:** \`/media/jer/Files/CCF/Verification/MULTI-010-SitkaP1-EvidenceReview-20261114/\` on approved laptop; otherwise a distinct off-repo local scratch folder.
+
+**Only tracked output permitted:**
+\`Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-010-LAB-06-SITKA-P1-INDEPENDENT-FORESTRY-AND-METHOD-REVIEW-20261114.md\`
+
+**Everything else READ ONLY**: \`Assets/**\`, \`Tools/MultiRackSitkaLab/**\`, \`Tools/Verification/Growfor/**\`, \`Docs/Research/**\`, \`specs/**\`, \`Docs/Project/**\` including coordination, CCF saves and frozen Reference Future, current main, Codex/Unity worker branches and other physical worktrees. Pure scratch **recomputations** and reading supplied scientific PDFs are allowed outside Git; no P1 code, source edits, package changes, heavy Unity Editor, compiled game, production save, unapproved data download or Windows game/Player build.
+
+**Mandatory live preflight BEFORE inspecting or executing any local source test and BEFORE editing report:**
+1. Fresh-read [#525](https://github.com/jermur788/CCF/issues/525), this packet, the source handoff, live [active-tasks.md](https://github.com/jermur788/CCF/blob/main/Docs/Project/coordination/active-tasks.md), actual local repo/worktrees/process ownership, available PDFs and source/current HEADs. A no-MULTI board row in another worker's report **is not** an ownership grant.
+2. Verify the review worktree can be created separately from Codex and that the branch starts at the pinned source-study HEAD. Avoid \`git clean\`, reset, stash, permission normalization or process termination on another worker's tree. The Codex worker reported **559 Windows/WSL mode-only \`Assets/**\` status entries**, not content edits; independently verify actual patch content and don't destroy unrelated state. The user separately mentioned changing Windows \`safe.directory\` and removing two T3-private scratch files; these are not part of the tracked study patch and do not authorise reviewer cleanup.
+3. Once safe, register **actual reviewer model/provider, host, separate worktree, review branch, full starting HEAD, inspected CCF source snapshot, available source PDFs, read-only scope and phase as [RUNNING] on #525 before work**. If conflict/insufficient source availability, mark [BLOCKED] and return a precise blocker; don't silently use unrelated worktrees/older contexts.
+4. Reviewer must not be the Codex author. The claim tracks execution presence, not authority over \`active-tasks.md\`.
+
+## 3. Scientific and technical review matrix — findings must be falsifiable
+
+For each theme, cite **exact current source file/method/line/HEAD**, separately cite study section and relevant GROWFOR extraction/primary page. Mark conclusions **REPRODUCED ARITHMETIC**, **DIRECT SOURCE CHECK**, **PUBLISHED EMPIRICAL**, **DERIVED**, **HISTORICAL TEST ONLY**, **NOT VERIFIED** or **UNSUPPORTED / NEEDS DECISION**.
+
+### A. Source identity and numerical parity route
+
+- Confirm actual current Unity sources: \`Assets/ForestPrototype/SitkaGrowthModel.cs\`, \`ForestEcologyController\`, adult SiteTopHeight/NextHeight, DBH increment & Hegyi neighbourhood 8 m, crown updates, post-growth relative density and hazard, deterministic mortality roll including year + full tree ID; source order and local/global annual state. Verify the report's **specific** line ranges and behaviour on the pinned CCF main source, not the historic Unity overview alone.
+- **New game selects growth model 2**, but the study recommends **model-1 adult pure-Sitka rules**. Verify exact conditions where model 2 defers to model 1, and where non-reference demand, neighbour species, site class or save version changes it. Determine the exact subset in which "faithful" has meaning and when the adapter must reject inputs as **out of scope**.
+- Frozen reference/missing legacy field must keep model 0 for old saves. Study says current schema **24**, while a historical verification harness still expects **23**; confirm and classify this as pre-existing test staleness vs a source defect. **Do not edit/weaken the harness** to obtain green.
+- Independently calculate at least **three** study vectors from source equations (e.g. high/low Hegyi DBH V01/V02; age20→21 height V04; RD onset/hazard V05/V06; stable ID/year roll V09) with known numeric units and rounding. May write a **new scratch script** but do not copy the Codex script as independent verification. **Do not claim in-game runtime parity** unless you actually run the exact source against an authorised reference harness (not requested).
+- Inspect severe edge/boundary cases: tiny stand/single tree, density pressure, floating point vs P0 integer mm quantisation, exact m↔cm↔mm conversions, competition ties/inclusion at 8m, death idempotency and whether executing a felling before annual step changes CI and follow-on growth.
+
+### B. Adult-only P1 state design and causality
+
+- Examine P0 strict \`labSchemaVersion=1\`, header/keys/hashes, integer mm snapshots, time-step no-growth semantics, plan state/revision/epoch validation, canonical replay. Decide whether **completely separate, versioned P1 state and save/replay** can preserve P0 byte-for-byte, including legitimate safe synthesis of initial P1 crown/precision state from P0 synthetic input (label assumptions).
+- Reconcile **CCF all-living tree population** in RD vs P0 **action-eligible adult-threshold** counts. Which trees are included in growth, competition, deaths and aggregate N/BA/H? Is an adult-only *closed population* a coherent experiment or does it create misleading density dynamics? Identify **precise product/design decisions** (not fabricated defaults).
+- Distinguish natural mortality, selection/contractor execution felling, planted/juvenile exclusion, source cause/year, per-tree and stand-level ledger identities, no duplicated death/felling, and plan staleness when a modelled death occurs. Evaluate replays, deterministic seed/year/ID, unknown-version refusal, restart continuation and no hidden mutation of frozen Reference.
+- Assess whether five staged future packets (source parity oracle, adapter, versioned annual ledger/save/replay, B/N/H comparator, minimal UI) have correct order/ownership and measurable gates, or whether a dependency/order gap exists.
+
+### C. Irish empirical reference and attribution
+
+- Open published canonical [GROWFOR Technical Evidence Extraction V1B](https://github.com/jermur788/CCF/blob/main/Docs/Research/SitkaGrowthMortality/GROWFOR_Technical_Evidence_Extraction_v1.md). **If the original GROWFOR User Manual/Broad & Lynch 2006a and 2006b/2013/2017 PDFs are available on the review host or project attachments, inspect the actual originals** to verify page claims. Do not pretend to have read PDFs when only the extraction is present; label unverified originals as a limitation. Source PDFs require ordinary safe PDF reading, not code execution.
+- Confirm stand-level model vector **basal area B, stems N, top height H**, rather than individual-tree growth truth. Confirm **site index = top height at 30 years**, thinned/unthinned domain and limited mainly low-thinning/plantation observations, broad age/site/height boundary, mixed/multi-cohort/irregular CCF exclusion. Check the illustrated thinned-model **H<49.3m** runtime caveat in the proper context, not as a universal model limit.
+- **GROWFOR 2006b** concerns source-panel/site representativeness and data used in the 2006a model development; **NOT an untouched final-model longitudinal holdout**. Report any evidence/claim that overstates predictive RMSE, confidence bounds or field accuracy. 2017 NFI stand data ranges are observed marginal ranges, not safe joint admissibility conditions.
+- Confirm existing standalone Broad–Lynch 2006 verification tool is already present under \`Tools/Verification/Growfor/**\`, but may be historical/unrun and does not prove current executable GROWFOR code uses the same coefficients. Do not propose duplicating it without a reason. Separate CCF gameplay calibration / British density transfer / unsupported crown-release mortality from Irish empirical models. No mapped licensed Irish marteloscope/longitudinal holdout was verified by [#479](https://github.com/jermur788/CCF/issues/479); this report must not smuggle in a dataset.
+- Decide whether standalone experimental Option B would add unsupported per-tree allocation assumptions relative to Option A, and under what *specific* new source/range/rights evidence its evaluation might become worthwhile.
+
+## 4. Independent review findings and explicit verdict
+
+The independent report must distinguish four questions, **not collapse them**:
+1. **Evidence-to-source mapping**: do the claimed CCF rules, source versions and vectors appear accurately described at actual current source HEAD? Note exact corrections.
+2. **Scientific claim boundary**: does the GROWFOR/Broad–Lynch discussion avoid false Irish per-tree/CCF forecast validation, and clearly separate measured source data from game calibration?
+3. **P1 architecture and scope**: is a new adult-only, versioned model adapter *feasible in principle* without modifying P0, and what is the smallest falsifiable missing numerical parity/test contract?
+4. **Product authorisation**: **NONE HERE**. Approval of an evidence plan is permission to draft the **separate four-file P1 DRAFT** for user/Manager review, not to code LAB-07 or to label predictions scientifically valid. The product owner must still choose whether the parallel standalone P1 experiment is worth doing and accepts adult-only/site/crown and non-forecast labels.
+
+Require grading **BLOCKING / MAJOR / MINOR** by concrete consequences, not style alone; any severe false version parity or empirical claim constitutes NEEDS CHANGES. For each defect provide exact source reference and **smallest authorised documentation-only repair**, never sneak in code.
+
+**Final review verdict required:**
+- **APPROVED AS P1 EVIDENCE PLAN** — source mapping/science/architecture adequate to support a new **DRAFT only**, with specified clarifications and still-missing parity/source/holdout work; or
+- **NEEDS CHANGES** — specific demonstrable corrections before an acceptable P1 evidence plan; or
+- **REJECTED** — unsupported/infeasible route requiring a material reframe or fresh sources.
+
+**Not valid verdicts:** "P1 scientific growth verified", "Irish field accuracy PASS", "Unity-model parity PASS", "P1 spec approved" or "LAB-07 code authorised".
+
+## 5. Proportionate evidence, publication and handoff
+
+No full Unity compile, scene import, long simulation, 720p/1080p render, Windows game build, active game-save test, field-data acquisition, biological calibration experiment, broad news research or dashboard snapshot refresh is required for this read-only review. Source static audit, independent arithmetic checks and available primary-PDF evidence are the actual bounded work. If source inaccessible, precisely mark **NOT INSPECTED** and reflect that in verdict.
+
+**One new tracked output, on reviewer branch only:**
+\`Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-010-LAB-06-SITKA-P1-INDEPENDENT-FORESTRY-AND-METHOD-REVIEW-20261114.md\`
+
+Include actual non-Codex reviewer identity/host/worktree/starting HEAD; exact source file/line/HEAD and paper page anchors; independent spot-check results; review of 14-vector labels and no runtime parity; finding severity/owner-resolution; separate verdict and go/no-go readiness; notes on why P0 and Scenario One remain untouched. Off-repo scratch source scripts/hashes only if actually generated. Demonstrate **GitHub readback of report and exactly ONE ADDED Markdown against pinned Codex candidate**; source changes and other tracked files must be absent. After publication mark [#525](https://github.com/jermur788/CCF/issues/525) [HANDED-OFF] and close. Notify [#522](https://github.com/jermur788/CCF/issues/522) and [Overall Manager #425](https://github.com/jermur788/CCF/issues/425). **Then Manager** inspects independent report and gives **APPROVED AS P1 EVIDENCE PLAN / NEEDS CHANGES / REJECTED** disposition; *user owner then decides whether to proceed to separate P1 spec*. No automatic implementation.
+
+**Dashboard/Drive sync status:** NOT VERIFIED. No context regenerations, permanent Drive mirror or canonical Decision Log/Main changes authorised by this review.
+
+## 6. Paste-ready independent reviewer dispatch
+
+> Take ownership of **MULTI-010 / CCF #525** — independent forestry/science and implementation-method review of Codex's MULTI-009 LAB-06 Sitka P1 feasibility study. Read the complete binding packet at https://github.com/jermur788/CCF/blob/docs/multi-010-lab06-sitka-p1-independent-review-packet-20261114-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-010-LAB-06-SITKA-P1-INDEPENDENT-FORESTRY-AND-METHOD-REVIEW-PACKET-20261114.md . Use **Claude Opus 5.5 High or another independent non-Codex source+scientific reviewer**; HIGH difficulty. Reviewer branch \`review/multi-010-lab06-sitka-p1-forestry-method-20261114-v1\` is untouched from the published Codex study. Proposed separate uncreated Linux-laptop worktree \`/media/jer/Files/CCF/Operations/CCF-MULTI-010-SitkaP1-EvidenceReview-20261114\` ONLY after actual host/board/worktree inspection; on Windows use a separate WSL ext4 worktree, not Codex's NTFS one. Register real provider/model/host/worktree/source HEAD as RUNNING on #525 before inspection/tests/writing, BLOCKED on ownership conflict. Inspect exact current CCF Sitka DBH/height/Hegyi/crown/density/mortality/model0/1/2 sources, version24-vs-stale23 harness, P0 strict integer-mm/schema1 compatibility, independent source formula spot-checks and scientific B/N/H evidence from original Broad & Lynch/GROWFOR PDFs if accessible (label if not). Test the study's nine Python reconstructions as **arithmetic only, NOT Unity parity**, three derived, two missing. Distinguish adult-only CCF learning comparator from Irish field forecast, natural death/felling and P1 save/replay. Deliver a reasoned **APPROVED AS P1 EVIDENCE PLAN / NEEDS CHANGES / REJECTED** for **study quality only**, with exact evidence and minimum fixes; no LAB-07 code or P1 spec approval. Publish solely \`Docs/Handoffs/MultiRack-Simulation-20261114/MULTI-010-LAB-06-SITKA-P1-INDEPENDENT-FORESTRY-AND-METHOD-REVIEW-20261114.md\` on reviewer branch, GitHub readback/one-file diff, close #525 HANDED-OFF and notify Manager/#522. No source/spec/Unity/coordination edits, production saves, field imports, Windows game build or dashboard sync.
