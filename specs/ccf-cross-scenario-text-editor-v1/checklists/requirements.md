@@ -77,3 +77,21 @@
 **Directly executed in this task:** 30 JavaScript V8 parser/content-contract checks, all passed after correcting two source-extraction errors. **Not executed:** committed Node test script, whole-repo drift scanner, local browser interaction/visual screenshots, Unity Editor/compiler/Player, save/load or scenario reference qualification. All future browser/Unity requirements remain unchecked notwithstanding static source implementation.
 
 A requirements check can be promoted to PASS only with direct evidence from the right execution environment. No routine user question is needed to finish the standalone browser-tool handoff.
+
+
+
+## #474 independent review repairs: additional evidence-gated DRAFT requirements
+
+**DRAFT / NOT APPROVED.** Original checklist and earlier execution values are historical #473 source status only; #477 repair and later independent delta review are separate.
+
+- [ ] **R474-01 (F-01 MAJOR):** Real Chromium/Firefox at **1280×720** can click first/middle/last page in sidebar, scroll both scenarios and pages, view coverage; repeat basic layout at **1920×1080** and narrow width.
+- [ ] **R474-02 (F-02 MAJOR, S-01):** Unknown keys are rejected with path-specific errors at package/provenance/scenario/page/entry/source/coverage/classes levels; forged `approved`, `integrated`, `approvedBy`, `reviewedBy` never pass import or survive re-export. Bundled baseline equality is not cryptographic approval.
+- [ ] **R474-03 (F-03/F-04, S-03):** Entry array order cannot change, C1/bidi/zero-width/BOM edits reject, ordinary Irish Unicode plus tabs/newlines pass; Node negatives actually committed.
+- [ ] **R474-04 (F-05/F-06/F-07/F-13):** Search `sitka` and `plantation` returns actual matching pages instead of 79; live sidebar changed-count updates while typing without caret loss; only unexported edits trigger a native beforeunload prompt; malformed import errors show numerical counts, never undefined.
+- [ ] **R474-05 (F-08/F-09/F-10/F-12):** Source-line audit corrects all reported mismatches, Walking HUD help title added, unknown coverage uses `null`, and pinned #443 candidate commit retained on three candidate records. Seed revision 2 has **79 pages / 269 fields**, same parsed data in `catalog.js`.
+- [ ] **R474-06 (F-11):** Node suite includes all #474 missing categories; version, command, stdout and zero/nonzero exit actually recorded. Add separate real browser regression, do not call it Node equivalence.
+- [x] **R474-07 (S-01…S-05 DRAFT drafting):** The revised spec states closed metadata, immutable source/composition, Unicode policy, atomic coupled-profile fallback and shared source-status vocabulary; still NOT APPROVED.
+- [ ] **R474-08 (independent review):** Different non-author checks changed source and focused tests and provides separate **APPROVED / NEEDS CHANGES / REJECTED** verdicts for standalone tool and DRAFT quality.
+- [ ] **R474-09 (Unity separation):** Any future production adapter requires new APPROVED spec, exclusive source/Unity ownership, current/Legacy40/Reference fallback qualifications and explicit acceptance. **No Unity code or save work in #477.**
+
+**Historical status clarification:** original #473 HANDED-OFF/CLOSED, #474 HANDED-OFF/CLOSED with NEEDS CHANGES. #477 is the only current browser-repair execution claim. Dashboard and Drive sync NOT VERIFIED. No feature release has occurred.
