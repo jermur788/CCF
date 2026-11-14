@@ -45,6 +45,8 @@
 6. Subsequent years support real monitoring, shelter/protection where the current source permits, deliberate no-work, optional further planting through existing valid actions and **genuine separate forestry interventions** as allowed by the larger approved compact spec. A second taught planting episode is **not** required or automatically credited as a substantive forestry episode.
 7. During owner personal testing, assess difficulty, field visibility, planting burden and whether a later specific planting/replanting lesson would materially improve learning. That user decision is a **new scope gate**, not pre-approved by this spec.
 
+**Parent DRAFT conflict / explicit approval gate:** The inherited `scenario-one-compact-complete-loop-v1` DRAFT was previously formulated around **one extraction rack**. This child proposes **no compulsory through-rack** in response to the owner's question. These are **not automatically compatible accepted specs**. Before either is promoted to APPROVED, Manager #424/#425 must revise and independently review the parent access workflow, teaching objective and required Work Plan/wood-handling model; old five-rack Rack V2 is outside this change. Do not implement from two conflicting DRAFTs.
+
 ## 4. Hard boundaries, risks and non-goals
 
 - **No coding on DRAFT:** This document does not authorise a new 30m saved profile, player lesson, rack clearance helper, broadened forest bounds, second save slot, auto planting, price change or Unity scene/prefab/C# change.
