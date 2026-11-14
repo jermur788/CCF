@@ -1,6 +1,6 @@
 # scen1 — Compact Initial Woodland and Early Planting V1: Requirements
 
-**Status: ALL UNCHECKED — DESIGN DRAFT.** Each row is a requirement/verification question, **not** evidence that the game already behaves this way. The Manager's 30m, one-rack, 4+4, two-pocket, provisional Year2 choices are reversible gameplay calibrations under the owner's delegation. Direct source findings, #460/#484/#490 research, and independent future #508 input have separate evidence tiers.
+**Status: ALL UNCHECKED — DESIGN DRAFT.** Each row is a requirement/verification question, **not** evidence that the game already behaves this way. The Manager's 30m, no mandatory internal rack, 4+4, two-site-group, early but unfixed planting year choices are reversible gameplay calibrations under the owner's delegation. Direct source findings, #460/#484/#490 research, and independent future #508 input have separate evidence tiers.
 
 **Checklist jurisdiction:** `CIP-001` through `CIP-026` belong **only to this child spec**; they do not replace or mark the **115 unchecked** `R-001` to `R-115` in the broader compact complete-loop DRAFT. For a FAIL, write the exact witness and suggested smallest revision rather than checking it off. For a not-applicable design option, get authorised spec revision instead of deleting it to look green.
 
@@ -9,16 +9,16 @@
 - [ ] CIP-001 Latest owner intent preserved: all-Sitka initial forest, early player-led Oak and Beech planting, no mandatory natural Oak/Beech recruits by elapsed Year40 and no required later planting lesson until personal playtest.
 - [ ] CIP-002 Proposed 30×30m bounded property is explicitly labelled **Manager provisional selection** and not rebranded Legacy40/Enlarged80; old five-rack/reference/saves preserved.
 - [ ] CIP-003 Source-authentic original #460 C-B-30 initial inventory/hash used and stage pinned (189 initial age20 Sitka in research); no fake production save or new official world inferred.
-- [ ] CIP-004 One genuine ~2.4m corridor from source-linked entrance, with real 19-stem research access removal as precedent only; no automatic removal or false machine-swept access claim.
-- [ ] CIP-005 Two sides of rack genuinely contain standing forest and usable planting space after legitimate source clearance; source #460 pedestrian inspection counts not misrepresented as planting access or human playtime.
-- [ ] CIP-006 Original #460 raw C-B-30 inventory/Year1 removal evidence checked with exact data hashes/manifest; missing fields produce a DATA GATE rather than generated substitutes.
+- [ ] CIP-004 **No mandatory 2.4m through-rack or automatic 19-stem Year1 clearance.** In #460 the research rack occupied 72m² (8%) of the 30m property. Any proposed boundary entrance and off-road timber handling require actual safety/permission evidence.
+- [ ] CIP-005 Two separately usable planting areas exist WITHOUT a central rack, and tree/collider and actual pedestrian reach conditions are assessed; #460 post-rack tree-inspection counts do not certify no-rack planting access or player time.
+- [ ] CIP-006 Original #460 **Year0 pre-rack** C-B-30 189-tree inventory and source geometry/hash inspected without deleting the 19 would-be corridor trees; missing original site/access data trigger DATA GATE.
 
 ## B. Spatial planting site and source eligibility
 
-- [ ] CIP-007 Eight target positions from original-data/source-derived evidence (4 Oak, 4 Beech) proposed as **candidate** coordinates only after exact stage, tree IDs, bounding land, rack and nearby structures are reconciled.
-- [ ] CIP-008 Two separate mixed pockets on opposite rack sides genuinely possible; each has 2 real Oak +2 real Beech sites, not on the rack, road, stump or inaccessible exclusion zone.
+- [ ] CIP-007 Eight target positions from original-data/source-derived evidence (4 Oak, 4 Beech) proposed as **candidate** coordinates only after exact stage, tree IDs, bounded land, original living trees and known road/buildable areas are reconciled.
+- [ ] CIP-008 Two source-supported, distinct, accessible mixed planting pockets each holding 2 Oak +2 Beech can be found WITHOUT a mandatory extraction rack, excluding known road/building/edge/collider conflicts; otherwise propose honest smaller/modified arrangement.
 - [ ] CIP-009 Each candidate site is inside actual stand ecology cell and is unique; duplicate open planting order/marker cases are rejected.
-- [ ] CIP-010 Each site passes source current-tree **≥0.7m live stem** admission and negative controls for near-stem, outside-boundary and rack-overlap, noting that this alone does not ensure survival.
+- [ ] CIP-010 Each site passes source current-tree **≥0.7m live stem** admission and negative controls for near-stem, outside-boundary and known structure/road overlap, noting that this alone does not ensure survival.
 - [ ] CIP-011 ~2m between new saplings treated as provisional player legibility/competition preference, with measured actual site distances, not as an Irish forestry regulation or CCF engine limit.
 - [ ] CIP-012 Actual site canopy/light/browsing/bramble/bracken and existing tree/shade relation measured where original data permits, otherwise listed NOT MEASURED; no guaranteed Oak/Beech survival.
 - [ ] CIP-013 At least one genuine inspectable/player-reachable viewpoint for each proposed pocket evidenced when possible; #460 170 tree inspections and 498m constructed tour not called measured user planting time.
@@ -37,17 +37,17 @@
 
 ## D. Ownership, review, integration and user test
 
-- [ ] CIP-023 Exact 30m geometry/save/profile/router/PlayerPrefs and rack P/A alternatives stay gated under parent DRAFT/OPEN-C1–C10 and Overall Manager #425 paused D-082; no code or old saves changed.
+- [ ] CIP-023 Exact 30m geometry/save/profile/router/PlayerPrefs, real boundary access and any need for a minimal internal path stay gated under parent DRAFT OPEN-C1–C10 and Overall Manager #425 paused D-082; no source/old world/five-rack code changed.
 - [ ] CIP-024 T3 Code #508 pure-offline original-data feasibility result contains PASS/NEEDS CHANGES/DATA GATE, exact validation method, negative cases, actual host provenance, no Unity launch or original evidence mutation.
 - [ ] CIP-025 Independent nonauthor review of verified feasibility and four-file spec issues APPROVED/NEEDS CHANGES/REJECTED for DRAFT quality only; no self-review or early implementation approval.
 - [ ] CIP-026 Owner personal playtest evaluates whether initial eight saplings and normal navigation are manageable and **whether later taught planting is worth adding**; no Windows build before personal candidate playtest plus explicit subsequent approval.
 
 ## Acceptance distinctions and negative controls
 
-- **Direct Unity research**: #460's original 20/30m scratch site geometry, access, count/route *constructive* measures and Year2 two individual plants; #490 one-pair Year40 growth/visual descriptions. These support plausibility, not the eight-sapling proposal.
+- **Direct Unity research**: #460's original 20/30m scratch site geometry and research-only corridor access, count/route *constructive* measures and Year2 two individual plants; #490 one-pair Year40 growth/visual descriptions. These support plausibility, not the eight-sapling proposal.
 - **Source inspection**: `TryDesignateExactPlanting`, `ScenarioOneDefinition`, `ForestStartingStand`, `ForestEcologyController`, normal manager mortality handler. Source code does not prove a new compact save profile or actual eight-site survival.
 - **Manager calibration**: 30m preference over 20m, 4+4 broadleaves, two mixed pockets, ≥2m mutual spacing preference, all-shelter tutorial default, target Year2. If local source or user playtest differs, update this document and cite why.
-- **Missing/negative examples**: no site in a protected corridor, no 0.7m tree-overlap, no unowned stock, no unsupported side pocket or fake outside donor, no automatically executed planted individual from a pending mark, no invented financing, no compulsory repeat planting, no wrongful death/deadwood claim.
+- **Missing/negative examples**: no fabricated pre-cleared corridor, no 0.7m tree-overlap, no unowned stock, no unsupported planting pocket or fake outside donor, no automatically executed planted individual from a pending mark, no invented financing, no compulsory repeat planting, no wrongful death/deadwood claim.
 - **Qualification hierarchy**: Tier1 #508 source-original-data calculations only; targeted future Tier2 Unity Editor eligibility/visuals only with explicit independent authority and physical isolation; Tier3 integrated old save/Reference preservation only for release candidate. Don't require all 26 checks in the Tier1 result when their source/Unity/owner phases are not applicable; mark **NOT RUN** instead.
 
 **Current truth:** 0/26 child boxes checked. 0/115 parent boxes checked. Neither spec is APPROVED to implement. Dashboard/Drive sync not verified.
