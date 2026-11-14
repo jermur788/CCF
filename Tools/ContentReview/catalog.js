@@ -2,7 +2,7 @@
 window.CCF_CONTENT_SEED = {
   "schemaVersion": "ccf.content.v1",
   "packageId": "ccf-s1-main-source-audit-20261113",
-  "revision": 2,
+  "revision": 3,
   "provenance": {
     "repository": "jermur788/CCF",
     "sourceBranch": "main",
@@ -5146,44 +5146,144 @@ window.CCF_CONTENT_SEED = {
       "note": ""
     },
     {
-      "id": "s1.help.treemarks.explanation.full-F1",
+      "id": "s1.help.treemarks.explanationIntro.full-F1",
       "pageId": "s1.help.treemarks",
-      "fieldKey": "explanation",
+      "fieldKey": "explanationIntro",
       "variantId": "full-F1",
-      "text": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:\n\n•  — \n\n One spray paints vertical stripes on four sides of the entrance tree.\n\n\n\nAfter Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
-      "baselineText": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:\n\n•  — \n\n One spray paints vertical stripes on four sides of the entrance tree.\n\n\n\nAfter Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
+      "text": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:",
+      "baselineText": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:",
       "required": true,
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
         "line": 93,
-        "kind": "conditional"
+        "kind": "literal"
       },
       "status": "main-source",
       "protectedGameplayKey": null,
       "format": "plain-text",
       "tokens": [],
-      "note": "Conditional screen text; first-use/full help may differ. Any C# constructed portions require adapter audit."
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. Opening sentence; its trailing line break is C# glue. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
     },
     {
-      "id": "s1.help.rack.explanation.enlarged80-rack-v2",
-      "pageId": "s1.help.rack",
-      "fieldKey": "explanation",
-      "variantId": "enlarged80-rack-v2",
-      "text": "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. Back in the forest, mark each rack entrance tree in orange with the spray marker [P]. ",
-      "baselineText": "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. Back in the forest, mark each rack entrance tree in orange with the spray marker [P]. ",
+      "id": "s1.help.treemarks.TreeMarkEntries0Label.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries0Label",
+      "variantId": "full-F1",
+      "text": "Orange vertical stripes",
+      "baselineText": "Orange vertical stripes",
       "required": true,
       "source": {
         "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
         "branch": "main",
-        "line": 31,
-        "kind": "conditional"
+        "line": 21,
+        "kind": "literal"
       },
       "status": "main-source",
       "protectedGameplayKey": null,
       "format": "plain-text",
       "tokens": [],
-      "note": ""
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[0][0] (zero-based), shown as the bullet label. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.TreeMarkEntries0Meaning.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries0Meaning",
+      "variantId": "full-F1",
+      "text": "Rack / machine-path removal",
+      "baselineText": "Rack / machine-path removal",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 21,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[0][1] (zero-based), shown after the dash. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.TreeMarkEntries1Label.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries1Label",
+      "variantId": "full-F1",
+      "text": "Red",
+      "baselineText": "Red",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 22,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[1][0] (zero-based), shown as the bullet label. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.TreeMarkEntries1Meaning.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries1Meaning",
+      "variantId": "full-F1",
+      "text": "Fell",
+      "baselineText": "Fell",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 22,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[1][1] (zero-based), shown after the dash. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.TreeMarkEntries2Label.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries2Label",
+      "variantId": "full-F1",
+      "text": "Blue",
+      "baselineText": "Blue",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 23,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[2][0] (zero-based), shown as the bullet label. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.TreeMarkEntries2Meaning.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "TreeMarkEntries2Meaning",
+      "variantId": "full-F1",
+      "text": "Crop Tree / future timber",
+      "baselineText": "Crop Tree / future timber",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 23,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. TreeMarkEntries[2][1] (zero-based), shown after the dash. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
     },
     {
       "id": "s1.help.treemarks.TreeMarksOrangeText.enlarged80-rack-v2",
@@ -5206,6 +5306,26 @@ window.CCF_CONTENT_SEED = {
       "note": ""
     },
     {
+      "id": "s1.help.treemarks.explanationSprayLine.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "explanationSprayLine",
+      "variantId": "full-F1",
+      "text": "One spray paints vertical stripes on four sides of the entrance tree.",
+      "baselineText": "One spray paints vertical stripes on four sides of the entrance tree.",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 95,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. Sentence appended after TreeMarksOrangeText; the single leading space and trailing blank line are C# glue. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
       "id": "s1.help.treemarks.TreeMarksSimplificationText.enlarged80-rack-v2",
       "pageId": "s1.help.treemarks",
       "fieldKey": "TreeMarksSimplificationText",
@@ -5218,6 +5338,157 @@ window.CCF_CONTENT_SEED = {
         "branch": "main",
         "line": 28,
         "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": ""
+    },
+    {
+      "id": "s1.help.treemarks.explanationClosing.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "explanationClosing",
+      "variantId": "full-F1",
+      "text": "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
+      "baselineText": "After Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 97,
+        "kind": "literal"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "Source-exact constituent of the composed Tree Marks F1 text built at MenuHelpView.Text.cs:93-99. Closing paragraph: three adjacent C# literals on lines 97-99 are concatenated and edited here as one paragraph. The surrounding bullet, dash and line-break glue is C# formatting, not editable here; the read-only composed preview below recomposes from this field. Changing the wording does not change any in-game mark colour or mechanic."
+    },
+    {
+      "id": "s1.help.treemarks.explanation.full-F1",
+      "pageId": "s1.help.treemarks",
+      "fieldKey": "explanation",
+      "variantId": "full-F1",
+      "text": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:\n• Orange vertical stripes — Rack / machine-path removal\n• Red — Fell\n• Blue — Crop Tree / future timber\n\nOrange vertical stripes identify rack entrance trees associated with machine-path removal in Scenario 1. One spray paints vertical stripes on four sides of the entrance tree.\n\nThe game asks you to mark the rack entrance tree as a teaching action. Real marking practice may mark additional trees along a route.\n\nAfter Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
+      "baselineText": "Scenario 1 introduces 3 CCF markings. In this forest a paint mark records a management decision on the tree itself:\n• Orange vertical stripes — Rack / machine-path removal\n• Red — Fell\n• Blue — Crop Tree / future timber\n\nOrange vertical stripes identify rack entrance trees associated with machine-path removal in Scenario 1. One spray paints vertical stripes on four sides of the entrance tree.\n\nThe game asks you to mark the rack entrance tree as a teaching action. Real marking practice may mark additional trees along a route.\n\nAfter Confirm Rack Plan, walk to a rack entrance and press P to equip the spray marker. Aim at the first rack tree nearest the path, within 3.5 m, and left-click; P stows the marker. A tree carries only one of these marks: the spray will not mark a Fell or Crop Tree, and X or C cannot change an orange mark. Marking cuts nothing: the rack's removal work still needs approval in the Work Plan [Tab].",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 93,
+        "kind": "conditional"
+      },
+      "status": "main-source",
+      "protectedGameplayKey": null,
+      "format": "plain-text",
+      "tokens": [],
+      "note": "DERIVED / READ-ONLY. C# composes this help text at runtime from the fields above (three TreeMarkEntries pairs, TreeMarksOrangeText, TreeMarksSimplificationText and literal fragments) plus bullet/dash/line-break glue. It is shown as a preview that recomposes from your draft; it is not a replacement string and cannot be exported as an edit. Revision 3 replaced the earlier flattened editable copy, whose bullets were blank. Conditional screen text; the first-use help may differ.",
+      "derived": {
+        "readOnly": true,
+        "composedBy": "MenuHelpView.Explanation(Menu.TreeMarks), MenuHelpView.Text.cs:93-99",
+        "parts": [
+          {
+            "entryId": "s1.help.treemarks.explanationIntro.full-F1"
+          },
+          {
+            "glue": "\n",
+            "line": 93
+          },
+          {
+            "glue": "• ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries0Label.full-F1"
+          },
+          {
+            "glue": " — ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries0Meaning.full-F1"
+          },
+          {
+            "glue": "\n",
+            "line": 94
+          },
+          {
+            "glue": "• ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries1Label.full-F1"
+          },
+          {
+            "glue": " — ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries1Meaning.full-F1"
+          },
+          {
+            "glue": "\n",
+            "line": 94
+          },
+          {
+            "glue": "• ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries2Label.full-F1"
+          },
+          {
+            "glue": " — ",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarkEntries2Meaning.full-F1"
+          },
+          {
+            "glue": "\n\n",
+            "line": 94
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarksOrangeText.enlarged80-rack-v2"
+          },
+          {
+            "glue": " ",
+            "line": 95
+          },
+          {
+            "entryId": "s1.help.treemarks.explanationSprayLine.full-F1"
+          },
+          {
+            "glue": "\n\n",
+            "line": 95
+          },
+          {
+            "entryId": "s1.help.treemarks.TreeMarksSimplificationText.enlarged80-rack-v2"
+          },
+          {
+            "glue": "\n\n",
+            "line": 96
+          },
+          {
+            "entryId": "s1.help.treemarks.explanationClosing.full-F1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "s1.help.rack.explanation.enlarged80-rack-v2",
+      "pageId": "s1.help.rack",
+      "fieldKey": "explanation",
+      "variantId": "enlarged80-rack-v2",
+      "text": "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. Back in the forest, mark each rack entrance tree in orange with the spray marker [P]. ",
+      "baselineText": "Plan extraction racks on the Stand Map [M]. Choose Plan Racks, create or edit the corridors, then choose Confirm Rack Plan. Back in the forest, mark each rack entrance tree in orange with the spray marker [P]. ",
+      "required": true,
+      "source": {
+        "path": "Assets/ForestPrototype/UI/MenuHelpView.Text.cs",
+        "branch": "main",
+        "line": 31,
+        "kind": "conditional"
       },
       "status": "main-source",
       "protectedGameplayKey": null,
@@ -6310,7 +6581,7 @@ window.CCF_CONTENT_SEED = {
   ],
   "coverage": {
     "classifications": {
-      "collected": 236,
+      "collected": 245,
       "conditional": 28,
       "generated": 5,
       "serialized": null,
@@ -6323,7 +6594,8 @@ window.CCF_CONTENT_SEED = {
       "Conditional Old Legacy40 and Enlarged80 Rack V2 variants are separate; unmerged #443 wording is candidate-only.",
       "Future O2–O8 and compact O1 are empty placeholders, not invented curriculum.",
       "Walking HUD F1 default branch preserved with a named keysLine insertion token.",
-      "Unenumerated serialized, unlocated and out-of-scope categories are UNKNOWN, not measured zero."
+      "Unenumerated serialized, unlocated and out-of-scope categories are UNKNOWN, not measured zero.",
+      "Revision 3 (#487): the Tree Marks full-F1 help is a read-only DERIVED entry composed by C# from nine independently sourced editable constituent fields plus the two existing constants; the earlier flattened editable copy with blank bullets is removed. Drafts exported from the 269-entry revision-2 seed are not import-compatible."
     ]
   }
 };

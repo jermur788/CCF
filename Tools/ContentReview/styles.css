@@ -19,3 +19,14 @@ main{padding:26px clamp(18px,4vw,64px) 80px;max-width:1500px;width:100%;margin:0
   .sidebar { overflow:visible; }
   .coverage { max-height:none; }
 }
+
+/* #487 N-01: derived (C#-composed) text is a visibly read-only preview, never an editable textarea. */
+.field.derived{background:#f1f4f7;border:1px dashed #7d8fa3;border-left:4px solid #5b708a;padding-left:17px}
+.field.derived .derived-label{margin:0;font-size:inherit;font-weight:600}
+.flag.derived-flag{background:#dfe6ee;color:#2b3f57;border:1px solid #9aabbd}
+.derived-explain{margin:8px 0;color:#34495e}
+.derived-deps{margin:8px 0;font-size:12px;color:#34495e}
+.derived-deps summary{cursor:pointer}
+.derived-deps ol{margin:6px 0 6px 18px;padding:0}
+.derived-status{font-size:12px;font-weight:600;color:#2b3f57;margin:6px 0 4px}
+.derived-preview{margin:0;padding:12px 14px;background:#fff;border:1px solid #c6d0db;border-radius:7px;white-space:pre-wrap;word-break:break-word;font:inherit;color:#1a2b2a;user-select:text;max-height:320px;overflow-y:auto}

@@ -102,7 +102,44 @@
     $("variant-filter").disabled=!p;
     $("revert-page").disabled=!p||!pageEntries(pageId).some(dirty);
   }
+  // Derived entries mirror a string that C# composes from other entries. They are previews: no textarea, no revert, never exported as edits.
+  const isDerived=(entry)=>entry.derived!==undefined;
+  const liveComposition=(entry)=>core.compose(entry.derived,catalog.entries,"text").text;
+  const derivedViews=[];
+  function refreshDerived(){
+    for(const view of derivedViews){
+      const now=liveComposition(view.entry),edited=view.entry.derived.parts.filter((p)=>p.entryId&&catalog.entries.some((e)=>e.id===p.entryId&&dirty(e))).length;
+      view.preview.textContent=now;
+      view.status.textContent=edited?"Recomposed from "+edited+" edited fragment"+(edited===1?"":"s")+" in your draft. Preview only: not exported as an edit.":"Matches the original source composition.";
+      clear(view.list);
+      for(const part of view.entry.derived.parts){
+        if(!part.entryId)continue;
+        const dep=catalog.entries.find((e)=>e.id===part.entryId);
+        add(view.list,"li","",dep?dep.fieldKey+" · variant "+dep.variantId+" · "+dep.id+(dirty(dep)?" · EDITED":""):part.entryId+" (missing)");
+      }
+    }
+  }
+  function displayDerived(entry){
+    const card=add($("fields"),"article","field derived");
+    const top=add(card,"div","field-top");
+    add(top,"h3","derived-label",entry.fieldKey+" · composed help text");
+    add(add(top,"div","field-actions"),"span","flag derived-flag","DERIVED · READ-ONLY");
+    add(card,"div","field-meta","Content ID (locked): "+entry.id+" · variant: "+entry.variantId+" · "+entry.status);
+    add(card,"p","derived-explain","Read-only preview. C# builds this text at runtime from the fields listed below plus fixed bullet, dash and line-break formatting. Edit the individual fields on this page instead; this preview then recomposes automatically. It is not an editable replacement string, and this tool does not change how the game composes it.");
+    const deps=add(card,"details","derived-deps");deps.open=true;
+    const ids=entry.derived.parts.filter((p)=>p.entryId).map((p)=>p.entryId);
+    add(deps,"summary","","Built from "+ids.length+" editable fields (in this order)");
+    const list=add(deps,"ol");
+    add(deps,"p","field-meta","Fixed glue (not editable): "+entry.derived.parts.filter((p)=>typeof p.glue==="string").map((p)=>JSON.stringify(p.glue)).join(" "));
+    const status=add(card,"div","derived-status","");
+    const preview=add(card,"pre","derived-preview","");
+    preview.tabIndex=0;preview.setAttribute("aria-label","Composed help text preview, read-only, not editable");
+    derivedViews.push({entry,preview,status,list});
+    add(card,"div","source",(entry.source?.branch||"?")+" · "+(entry.source?.path||"unknown")+(entry.source?.line?" : "+entry.source.line:"")+" · "+entry.source?.kind+" · "+entry.derived.composedBy);
+    if(entry.note)add(card,"p","muted",entry.note);
+  }
   function displayField(entry){
+    if(isDerived(entry)){displayDerived(entry);return;}
     const card=add($("fields"),"article","field"+(dirty(entry)?" changed":""));
     const top=add(card,"div","field-top");
     const lbl=add(top,"label","",entry.fieldKey);
@@ -123,7 +160,7 @@
       const changed=dirty(entry);card.classList.toggle("changed",changed);
       flag.textContent=changed?"EDITED":"ORIGINAL";revert.disabled=!changed;
       $("revert-page").disabled=!pageEntries(pageId).some(dirty);
-      renderGlobal();
+      renderGlobal();refreshDerived();
       // Update the selected page's changed count without rebuilding the navigation or losing focus.
       const navStatus=document.querySelector("#page-list .page-button.active small");
       if(navStatus){const edits=pageEntries(pageId).filter(dirty).length;navStatus.textContent=getPage().status+(edits?" · "+edits+" edited":"");}
@@ -135,11 +172,12 @@
     if(entry.note)add(card,"p","muted",entry.note);
   }
   function renderFields(){
-    clear($("fields"));const p=getPage();if(!p){$("variant-filter").disabled=true;$("revert-page").disabled=true;return;}
+    clear($("fields"));derivedViews.length=0;const p=getPage();if(!p){$("variant-filter").disabled=true;$("revert-page").disabled=true;return;}
     renderVariants();
     const items=visibleEntries();
     if(!items.length)add($("fields"),"p","intro","No fields in this variant.");
     else items.forEach(displayField);
+    refreshDerived();
   }
   function renderComparison(){
     const root=$("comparison-fields");clear(root);
@@ -147,6 +185,15 @@
     if(!items.length){add(root,"p","intro","Choose a page to compare source and current draft.");return;}
     for(const e of items){
       const block=add(root,"article","compare-item");
+      if(isDerived(e)){
+        // Derived: compare the source composition with a live recomposition; the derived entry itself can never be an edit.
+        const live=liveComposition(e),recomposed=live!==e.baselineText;
+        add(block,"h3","",e.fieldKey+" · "+e.variantId+" · DERIVED READ-ONLY"+(recomposed?" · recomposed from edited fragments":" · unchanged"));
+        const dcols=add(block,"div","compare-cols");
+        const dorig=add(dcols,"div");add(dorig,"h4","","Original source (composed from source fragments)");add(dorig,"pre","",e.baselineText);
+        const dedit=add(dcols,"div");add(dedit,"h4","","Live composition of your draft (preview only)");add(dedit,"pre",recomposed?"edited":"",live);
+        continue;
+      }
       add(block,"h3","",e.fieldKey+" · "+e.variantId+(dirty(e)?" · CHANGED":" · unchanged"));
       const cols=add(block,"div","compare-cols");
       const orig=add(cols,"div");add(orig,"h4","","Original source");add(orig,"pre","",e.baselineText);
