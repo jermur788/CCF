@@ -73,8 +73,12 @@ Regenerate (only as a deliberate, reviewed change): `dotnet run --project tools/
 
 * Saves exist only as `<name>.sitkalab.json` directly inside `Tools/MultiRackSitkaLab/.lab-data/`. The API takes a bare
   name (save) or a name from the lab-generated list (load). There is no path argument, no file picker and no way to name a
-  CCF game save. Names are shape-checked *before* any file-system call; symlinks (including a symlinked root) are refused
-  before opening; a file whose first three root properties are not `ccf-sitka-lab`/`1`/`Synthetic` is rejected before its
+  CCF game save. Names are shape-checked *before* any file-system call. Only a **single-link regular file** is ever offered
+  or read: symlinks (including a symlinked root), FIFOs, sockets, devices, folders and hard-linked files are refused.
+  The refusal is made **at the open, on the open handle** (MULTI-004): the lab folder is opened without following links,
+  the file is opened relative to that handle with `O_NOFOLLOW|O_NONBLOCK`, and its type, link count and size are read
+  from the open descriptor, so a name swapped for a symlink or FIFO after a check cannot be followed or block the host.
+  A file whose first three root properties are not `ccf-sitka-lab`/`1`/`Synthetic` is rejected before its
   body is parsed; a loaded file must replay from its named checked-in fixture and reproduce its `snapshotHash`.
 * The host listens on `127.0.0.1` only (never all interfaces), requires `Host: 127.0.0.1:<port>`, rejects any other
   `Origin`, requires `Origin` + `X-Sitka-Lab` + `application/json` on POST, allows only GET/POST, sends no CORS headers,
@@ -122,4 +126,11 @@ saves screenshots and a JSON receipt, and removes only the lab files it created.
 * The SVG map redraws every glyph on each state change; fine for the 2,000-tree fixture (see handoff for measured
   timings) but not designed for tens of thousands of stems.
 * Single local operator; the in-memory session is not shared and a host restart returns to the default fixture.
+* **Lab saves need Linux (x64 or arm64).** The no-follow open uses `openat`/`statx` through libc with the kernel's flag values.
+  On first use a self-test in a private temp folder proves the flags behave (symlink refused, FIFO opens without blocking).
+  On any other OS/CPU, or if the self-test fails, listing/loading/saving refuse with `PlatformUnsupported` (HTTP 501) instead
+  of falling back to a weaker path-based check. Only Linux x64 has been run; arm64 values come from the kernel headers.
+* Writes are still path-based inside the checked lab folder: `CreateNew` for the temp file and `rename` over the target never
+  follow a final-component symlink, but a same-user process that swaps the *folder itself* during a save is not defended
+  (reads are; writes cannot reveal data). A failed save removes only its own temp file and reports `WriteFailed`.
 * Accessibility is basic (shapes + letters + text labels, keyboard ID selection); no full certification.

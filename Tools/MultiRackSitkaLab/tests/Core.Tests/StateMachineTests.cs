@@ -259,6 +259,16 @@ public static class StateMachineTests
         AssertAtomicRejection("unreserved tree", "TreeNotReserved", CorruptSession((snap, ids) => snap.FindTree(ids[0])!.Mark = MarkState.Unmarked));
 
     [Test]
+    public static void Atomic_TreeAlsoReservedByAnotherOpenPlan_RejectsTheWholePlan()
+    {
+        // X06. A tree shared by two open plans cannot be built through the public API (create/propose/approve/queue each refuse it, and a loaded snapshot is validated),
+        // so the corrupt-state seam is the realistic way to prove the execution-time reservation check is real: the tree IS marked, only the other plan's claim differs.
+        var c = CorruptSession((snap, ids) => snap.Plans.Add(new PlanRecord { PlanId = "P0002", Stage = PlanStage.Draft, TreeIds = new List<string> { ids[0] } }));
+        AssertAtomicRejection("tree reserved by two open plans", "TreeNotReserved", c);
+        T.Seq(new[] { c.Ids[0] }, c.S.Events[0].TreeIds, "the doubly reserved tree is the one listed in the audit event");
+    }
+
+    [Test]
     public static void Atomic_ForestRevisionMismatch_RejectsTheWholePlan() =>
         AssertAtomicRejection("revision mismatch", "RevisionMismatch", CorruptSession((snap, ids) => snap.ForestRevision = 7));
 

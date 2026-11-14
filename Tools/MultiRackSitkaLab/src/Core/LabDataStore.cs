@@ -2,16 +2,20 @@ using System.Text.RegularExpressions;
 
 namespace SitkaLab.Core;
 
-/// <summary>Thin file-system seam so tests can prove that rejected paths never reach a file open.</summary>
+/// <summary>Thin file-system seam so tests can prove that rejected paths never reach a file open (and can inject a swap into the open window).</summary>
 public interface ILabFileAccess
 {
     bool DirectoryExists(string path);
-    /// <summary>Non-null when <paramref name="path"/> is a symbolic link / reparse point.</summary>
+    /// <summary>Non-null when <paramref name="path"/> is a symbolic link / reparse point. Used for the lab root only.</summary>
     string? LinkTarget(string path);
-    bool IsRegularFile(string path);
-    long FileLength(string path);
     IReadOnlyList<string> ListFileNames(string dir);
-    byte[] ReadAllBytes(string path);
+    /// <summary>What <paramref name="fileName"/> inside <paramref name="dir"/> is, judged without following links and without opening it (never blocks).</summary>
+    LabEntryKind Classify(string dir, string fileName);
+    /// <summary>
+    /// The only way lab bytes are read. Opens the entry no-follow relative to a handle on <paramref name="dir"/>, verifies on the OPEN handle
+    /// that it is a single-link regular file, and returns at most <paramref name="maxBytes"/> bytes. Throws <see cref="LabException"/> otherwise.
+    /// </summary>
+    byte[] ReadRegularFile(string dir, string fileName, long maxBytes);
     void WriteAtomic(string finalPath, byte[] bytes);
     void CreateDirectory(string path);
 }
@@ -24,28 +28,42 @@ public sealed class RealLabFileAccess : ILabFileAccess
         FileSystemInfo info = Directory.Exists(path) ? new DirectoryInfo(path) : new FileInfo(path);
         return info.LinkTarget;
     }
-    public bool IsRegularFile(string path)
-    {
-        var fi = new FileInfo(path);
-        return fi.Exists && (fi.Attributes & (FileAttributes.Directory | FileAttributes.Device | FileAttributes.ReparsePoint)) == 0;
-    }
-    public long FileLength(string path) => new FileInfo(path).Length;
     public IReadOnlyList<string> ListFileNames(string dir) =>
         new DirectoryInfo(dir).EnumerateFileSystemInfos().Select(f => f.Name).OrderBy(n => n, StringComparer.Ordinal).ToList();
-    public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
+    public LabEntryKind Classify(string dir, string fileName) => NoFollowFiles.Classify(dir, fileName);
+    public byte[] ReadRegularFile(string dir, string fileName, long maxBytes) => NoFollowFiles.ReadRegular(dir, fileName, maxBytes);
+
+    /// <summary>
+    /// Writes a sibling temp file with CreateNew (never follows a link), then renames it over the target (rename replaces the directory entry
+    /// itself, so a symlink or FIFO squatting the name is replaced, never written through). If anything fails after the temp file was created,
+    /// exactly that temp file is removed and a controlled <see cref="LabException"/> is thrown; no other path is ever deleted.
+    /// </summary>
     public void WriteAtomic(string finalPath, byte[] bytes)
     {
         string tmp = finalPath + ".tmp-" + Guid.NewGuid().ToString("N");
-        using (var fs = new FileStream(tmp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            fs.Write(bytes, 0, bytes.Length);
-        File.Move(tmp, finalPath, overwrite: true);
+        bool created = false;
+        try
+        {
+            using (var fs = new FileStream(tmp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                created = true;                       // CreateNew succeeded, so this exact path is ours
+                fs.Write(bytes, 0, bytes.Length);
+            }
+            File.Move(tmp, finalPath, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            if (created) { try { File.Delete(tmp); } catch (Exception) { /* best effort; the name is unique to this call */ } }
+            throw new LabException("WriteFailed", "the save could not be written; the existing entry was left unchanged");
+        }
     }
     public void CreateDirectory(string path) => Directory.CreateDirectory(path);
 }
 
 /// <summary>
 /// The only gateway to lab saves. Accepts nothing but a bare file name from the lab-generated listing; there is no path,
-/// no directory argument and no way to name a CCF game save. Checks run before any file is opened.
+/// no directory argument and no way to name a CCF game save. Name checks run before any file-system access; the file itself is then opened
+/// no-follow relative to a handle on the lab folder and verified on the open handle (see <see cref="NoFollowFiles"/>).
 /// </summary>
 public sealed class LabDataStore
 {
@@ -81,7 +99,7 @@ public sealed class LabDataStore
         return full;
     }
 
-    /// <summary>Lab-generated list of loadable files (regular files with a safe name; symlinks are not offered).</summary>
+    /// <summary>Lab-generated list of loadable files: safe name AND a single-link regular file (symlinks, FIFOs, directories, hard-linked files are not offered).</summary>
     public IReadOnlyList<string> ListSaves()
     {
         EnsureRoot();
@@ -89,8 +107,7 @@ public sealed class LabDataStore
         foreach (var n in _io.ListFileNames(RootPath))
         {
             if (!SaveFileName.IsMatch(n)) continue;
-            string full = Resolve(n);
-            if (_io.LinkTarget(full) is not null || !_io.IsRegularFile(full)) continue;
+            if (_io.Classify(RootPath, n) != LabEntryKind.Regular) continue;
             names.Add(n);
         }
         return names;
@@ -103,12 +120,17 @@ public sealed class LabDataStore
         // 2. root + listing membership
         CheckRoot();
         if (!ListSaves().Contains(fileName!, StringComparer.Ordinal)) throw new LabException("NotListed", "that file is not in the lab file list");
-        // 3. symlink / type check on the exact entry, still without opening it
-        string full = Resolve(fileName!);
-        if (_io.LinkTarget(full) is not null) throw new LabException("SymlinkRejected", "symbolic links are refused");
-        if (!_io.IsRegularFile(full)) throw new LabException("NotRegularFile", "not a regular file");
-        if (_io.FileLength(full) > LabConstants.MaxFileBytes) throw new LabException("FileTooLarge", "file exceeds the size limit");
-        return _io.ReadAllBytes(full);
+        // 3. early, non-opening classification of the exact entry. This is only a cheap first line: it can be raced, so it is NOT what makes the read safe.
+        switch (_io.Classify(RootPath, fileName!))
+        {
+            case LabEntryKind.Regular: break;
+            case LabEntryKind.Symlink: throw new LabException("SymlinkRejected", "symbolic links are refused");
+            case LabEntryKind.HardLinked: throw new LabException("HardLinkRejected", "files with more than one hard link are refused");
+            case LabEntryKind.Missing: throw new LabException("NotListed", "that file is not in the lab file list");
+            default: throw new LabException("NotRegularFile", "not a regular file");
+        }
+        // 4. the authoritative check: no-follow open relative to the lab folder handle, type/link-count verified on the open handle, size-capped read
+        return _io.ReadRegularFile(RootPath, fileName!, LabConstants.MaxFileBytes);
     }
 
     /// <summary>Saves under a new or existing lab name. The server appends the suffix; the caller never supplies a path.</summary>
@@ -118,7 +140,14 @@ public sealed class LabDataStore
         EnsureRoot();
         string fileName = baseName + LabConstants.FileSuffix;
         string full = Resolve(fileName);
-        if (_io.LinkTarget(full) is not null) throw new LabException("SymlinkRejected", "refusing to overwrite a symbolic link");
+        switch (_io.Classify(RootPath, fileName))
+        {
+            case LabEntryKind.Missing:
+            case LabEntryKind.Regular:
+            case LabEntryKind.HardLinked: break;   // replacing a regular file is allowed: the rename swaps the directory entry and leaves other links untouched
+            case LabEntryKind.Symlink: throw new LabException("SymlinkRejected", "refusing to overwrite a symbolic link");
+            default: throw new LabException("NotRegularFile", "a folder or special file already uses that name; refusing to replace it");
+        }
         _io.WriteAtomic(full, bytes);
         return fileName;
     }

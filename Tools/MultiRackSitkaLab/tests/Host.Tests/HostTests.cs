@@ -228,6 +228,103 @@ public static class HostTests
         T.Eq(HttpStatusCode.Forbidden, viaLink.Status, "symlink load refused");
     }
 
+    // ---- MULTI-004: special files, controlled save errors and honest error codes ------------------------------------------
+
+    private static void MkFifo(string path) { var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("mkfifo", path) { UseShellExecute = false })!; p.WaitForExit(); T.Eq(0, p.ExitCode, "mkfifo available"); }
+
+    private static (HttpStatusCode Status, JsonElement Json, string Raw) Send(TestHost h, HttpRequestMessage r, int seconds = 5)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
+        try
+        {
+            var res = h.Http.SendAsync(r, cts.Token).GetAwaiter().GetResult();
+            string text = res.Content.ReadAsStringAsync(cts.Token).GetAwaiter().GetResult();
+            return (res.StatusCode, text.Length > 0 && text[0] == '{' ? JsonDocument.Parse(text).RootElement.Clone() : default, text);
+        }
+        catch (OperationCanceledException) { throw new TestFailure($"{r.Method} {r.RequestUri?.AbsolutePath} did not answer within {seconds} s (the host is hung)"); }
+    }
+
+    [Test]
+    public static void FifoInTheLabFolder_NeverHangsTheHost_EvenWithConcurrentStateRequests()
+    {
+        using var h = new TestHost();
+        string fifo = Path.Combine(h.LabData, "pipe.sitkalab.json"); MkFifo(fifo);
+        T.False(R(() => h.GetJson("/api/saves")).GetProperty("files").EnumerateArray().Any(e => e.GetString() == "pipe.sitkalab.json"), "FIFO is not offered");
+        // Loads of the FIFO name run concurrently with state reads. Before the fix the load blocked while holding the session lock and every other request timed out.
+        var loads = Enumerable.Range(0, 4).Select(_ => Task.Run(() => Send(h, h.Req(HttpMethod.Post, "/api/saves/load", new { fileName = "pipe.sitkalab.json" })))).ToList();
+        var states = Enumerable.Range(0, 12).Select(_ => Task.Run(() => Send(h, h.Req(HttpMethod.Get, "/api/state")))).ToList();
+        T.True(Task.WaitAll(loads.Concat(states).Cast<Task>().ToArray(), TimeSpan.FromSeconds(8)), "every request finished within the bound");
+        foreach (var l in loads) { T.Eq(HttpStatusCode.Forbidden, l.Result.Status, "FIFO load refused"); T.Eq("NotListed", l.Result.Json.GetProperty("code").GetString(), "refused by the listing layer"); }
+        foreach (var st in states) T.Eq(HttpStatusCode.OK, st.Result.Status, "state stays available");
+        T.Eq(0, h.Running.State.Session.Events.Count, "session untouched");
+        T.True(File.Exists(fifo) && new RealLabFileAccess().Classify(h.LabData, "pipe.sitkalab.json") == LabEntryKind.Fifo, "the FIFO was not deleted or replaced by the host");
+        // ordinary lab saves still round-trip next to the FIFO
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "beside-fifo" })).Status, "save works");
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Post, "/api/saves/load", new { fileName = "beside-fifo.sitkalab.json" })).Status, "load works");
+    }
+
+    [Test]
+    public static void SaveOntoAFolderOrFifo_IsAControlled409_NotAnUnhandled500_AndLeavesNoTempFile()
+    {
+        using var h = new TestHost();
+        string dir = Path.Combine(h.LabData, "squat.sitkalab.json"); Directory.CreateDirectory(dir); File.WriteAllText(Path.Combine(dir, "keep.txt"), "KEEP");
+        MkFifo(Path.Combine(h.LabData, "pipe2.sitkalab.json"));
+        foreach (var name in new[] { "squat", "pipe2" })
+        {
+            var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name }));
+            T.Eq(HttpStatusCode.Conflict, r.Status, name + " → 409");
+            T.Eq("NotRegularFile", r.Json.GetProperty("code").GetString(), name + " code");
+            T.False(r.Json.GetProperty("ok").GetBoolean(), name + " ok=false");
+            T.False(r.Raw.Contains(h.Root), name + ": no path in the body");
+        }
+        T.Eq(0, Directory.GetFiles(h.LabData, "*.tmp-*").Length, "no leftover temp file");
+        T.Eq("KEEP", File.ReadAllText(Path.Combine(dir, "keep.txt")), "the folder and its content are untouched");
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Get, "/api/state")).Status, "host still healthy");
+    }
+
+    [Test]
+    public static void SaveThatCannotBeWritten_IsAControlled500_WithAMatchingCode_AndNoTempFileOrPathLeak()
+    {
+        if (!OperatingSystem.IsLinux()) return;   // the lab file layer is Linux-only; directory modes are used here to provoke a write failure
+        using var h = new TestHost();
+        var original = File.GetUnixFileMode(h.LabData);
+        File.SetUnixFileMode(h.LabData, UnixFileMode.UserRead | UnixFileMode.UserExecute);   // read-only lab folder
+        try
+        {
+            bool canStillWrite;
+            try { File.WriteAllText(Path.Combine(h.LabData, "probe.tmp"), "x"); File.Delete(Path.Combine(h.LabData, "probe.tmp")); canStillWrite = true; } catch (UnauthorizedAccessException) { canStillWrite = false; }
+            if (canStillWrite) return;   // running with privileges that ignore directory modes: this failure cannot be provoked here
+            var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "denied" }));
+            T.Eq(HttpStatusCode.InternalServerError, r.Status, "write failure → 500");
+            T.Eq("WriteFailed", r.Json.GetProperty("code").GetString(), "code names the problem, not 'Forbidden'");
+            T.False(r.Raw.Contains(h.Root) || r.Raw.Contains("Exception"), "no path or exception text leaks");
+        }
+        finally { File.SetUnixFileMode(h.LabData, original); }
+        T.Eq(0, Directory.GetFiles(h.LabData).Length, "nothing was left behind");
+        T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "after" })).Status, "saving works again once the folder is writable");
+    }
+
+    [Test]
+    public static void RefusalCodes_MatchTheirHttpStatus()
+    {
+        using var h = new TestHost();
+        void Expect(string what, HttpRequestMessage req, HttpStatusCode status, string code)
+        {
+            var r = Send(h, req);
+            T.Eq(status, r.Status, what + " status");
+            T.Eq(code, r.Json.GetProperty("code").GetString(), what + " code");
+            T.False(r.Json.GetProperty("ok").GetBoolean(), what + " ok=false");
+        }
+        Expect("foreign Host", h.Req(HttpMethod.Get, "/api/state", host: "evil.example"), HttpStatusCode.Forbidden, "Forbidden");
+        Expect("PUT", h.Req(HttpMethod.Put, "/api/state"), HttpStatusCode.MethodNotAllowed, "MethodNotAllowed");
+        Expect("text/plain POST", h.Req(HttpMethod.Post, "/api/step/advance", contentType: "text/plain"), HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType");
+        Expect("oversized body", h.Req(HttpMethod.Post, "/api/preview", "{\"treeIds\":[\"" + new string('x', 1_200_000) + "\"]}"), HttpStatusCode.RequestEntityTooLarge, "PayloadTooLarge");
+        // An unexpected server-side failure (the lab folder was replaced by a plain file behind the host's back) is a 500 with its own code and no detail.
+        Directory.Delete(h.LabData, true); File.WriteAllText(h.LabData, "not a folder");
+        Expect("broken lab folder", h.Req(HttpMethod.Get, "/api/saves"), HttpStatusCode.InternalServerError, "InternalError");
+        T.False(Send(h, h.Req(HttpMethod.Get, "/api/saves")).Raw.Contains(h.Root), "no path leaks from the generic 500");
+    }
+
     [Test]
     public static void Host_SourceNeverReferencesProductionSavesUnityOrOutboundNetwork()
     {

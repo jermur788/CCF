@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Negative controls for the P0 test suites.
+"""Negative controls for the P0 test suites (M01-M17 original; M18-M30 added by MULTI-004 for the file-safety and layered-guard tests).
 
 Copies the lab tree to a scratch directory (the real tree is never modified), breaks one safeguard at a time
 and checks that the matching suite goes RED. A suite that stays green on a broken safeguard would be vacuous.
@@ -30,6 +30,23 @@ MUTATIONS = [
     ("M15", "host", "src/Host/LabHost.cs", "if (ctx.Request.Headers.TryGetValue(\"Origin\", out var origin) && !string.Equals(origin.ToString(), expectedOrigin, StringComparison.Ordinal))", "if (false)", "Origin check removed"),
     ("M16", "host", "src/Host/LabHost.cs", "k.Listen(IPAddress.Loopback, o.Port);", "k.ListenAnyIP(o.Port);", "listener bound to all interfaces instead of 127.0.0.1"),
     ("M17", "core", "src/Core/Engine.cs", "case EventType.PlanQueued:\n            {\n                if (plan.Stage != PlanStage.Approved)", "case EventType.PlanQueued:\n            {\n                if (false)", "queue accepted from any plan state"),
+    # ---- MULTI-004 additions (M18-M30). M01-M17 above are the original P0 controls and are unchanged. --------------------------------
+    # F-4: layered guards, each removed on its own (the reviewer's X01 / X06 / X16 / X22 / X08 shapes, expressed against the current code)
+    ("M18", "core", "src/Core/Engine.cs", "if (plan.Stage is not (PlanStage.Approved or PlanStage.PendingWork)) return", "if (false) return", "PlanStale replay guard removed (forged STALE on a DRAFT/EXECUTED plan)"),
+    ("M19", "core", "src/Core/Engine.cs", "if (t.Mark != MarkState.PlayerMarked || others.Contains(id)) unreserved.Add(id);", "if (t.Mark != MarkState.PlayerMarked) unreserved.Add(id);", "execute ignores a tree reserved by another open plan"),
+    ("M20", "core", "src/Core/SnapshotValidator.cs", "if (reserved.TryGetValue(id, out var other)) throw", "if (false && reserved.TryGetValue(id, out var other)) throw", "validator allows a tree in two open plans"),
+    ("M21", "core", "src/Core/LabDataStore.cs", "if (_io.Classify(RootPath, n) != LabEntryKind.Regular) continue;", "", "ListSaves no longer filters symlinks, FIFOs, folders and hard-linked files"),
+    ("M22", "core", "src/Core/LabDataStore.cs", "switch (_io.Classify(RootPath, fileName!))", "switch (LabEntryKind.Regular)", "ReadSave per-entry pre-check removed (authoritative open alone remains)"),
+    # F-1 / F-2: the authoritative open
+    ("M23", "core", "src/Core/NoFollowFiles.cs", "int fd = OpenAt(dfd, name, O_RDONLY | ONoFollow | O_NONBLOCK | O_CLOEXEC);", "int fd = OpenAt(dfd, name, O_RDONLY | O_NONBLOCK | O_CLOEXEC);", "open follows symbolic links again (O_NOFOLLOW removed)"),
+    ("M24", "core", "src/Core/NoFollowFiles.cs", "default: throw new LabException(\"NotRegularFile\", \"not a regular file\");", "default: break;", "open handle type is no longer checked (FIFO / folder accepted)"),
+    ("M25", "core", "src/Core/NoFollowFiles.cs", "int fd = OpenAt(dfd, name, O_RDONLY | ONoFollow | O_NONBLOCK | O_CLOEXEC);", "int fd = OpenAt(dfd, name, O_RDONLY | ONoFollow | O_CLOEXEC);", "open may block on a FIFO again (O_NONBLOCK removed)"),
+    ("M26", "core", "src/Core/NoFollowFiles.cs", "S_IFREG => nlink > 1 ? LabEntryKind.HardLinked : LabEntryKind.Regular,", "S_IFREG => LabEntryKind.Regular,", "hard-linked files accepted"),
+    ("M27", "core", "src/Core/NoFollowFiles.cs", "int fd = OpenAt(AT_FDCWD, dir, O_RDONLY | ODirectory | ONoFollow | O_CLOEXEC);", "int fd = OpenAt(AT_FDCWD, dir, O_RDONLY | ODirectory | O_CLOEXEC);", "lab folder opened following links (a swapped-in folder link is accepted)"),
+    # F-5: atomic save failure and error codes
+    ("M28", "core", "src/Core/LabDataStore.cs", "if (created) { try { File.Delete(tmp); }", "if (false) { try { File.Delete(tmp); }", "failed atomic write leaves its temp file behind"),
+    ("M29", "host", "src/Host/LabHost.cs", "code = CodeForStatus(code), message = why", "code = \"Forbidden\", message = why", "every refusal reports code 'Forbidden' again"),
+    ("M30", "core", "src/Core/LabDataStore.cs", "default: throw new LabException(\"NotRegularFile\", \"a folder or special file already uses that name; refusing to replace it\");", "default: break;", "save onto a folder / special file no longer refused up front (surfaces as a raw write failure)"),
 ]
 
 def run(cmd, cwd):
@@ -73,8 +90,11 @@ def main():
             print(f"{mid} {verdict:9} {len(set(failed)):2} failing — {what}")
         finally:
             open(path, "w", encoding="utf-8").write(original)
-    summary = {"baselineGreen": True, "mutations": len(results), "caught": sum(r["verdict"] == "CAUGHT" for r in results), "results": results}
-    print(f"\nCAUGHT {summary['caught']} of {summary['mutations']}")
+    orig = [r for r in results if r["id"] <= "M17"]          # the original P0 controls (M01-M17); M18+ were added by MULTI-004
+    summary = {"baselineGreen": True, "mutations": len(results), "caught": sum(r["verdict"] == "CAUGHT" for r in results),
+               "original17": {"run": len(orig), "caught": sum(r["verdict"] == "CAUGHT" for r in orig)}, "results": results}
+    print(f"\nORIGINAL P0 CONTROLS (M01-M17): CAUGHT {summary['original17']['caught']} of {summary['original17']['run']}")
+    print(f"ALL CONTROLS: CAUGHT {summary['caught']} of {summary['mutations']}")
     if out_json:
         json.dump(summary, open(out_json, "w"), indent=2)
     shutil.rmtree(scratch, ignore_errors=True)

@@ -104,7 +104,7 @@ public static class LabHost
         {
             ctx.Response.StatusCode = code;
             ctx.Response.ContentType = "application/json";
-            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new { ok = false, code = "Forbidden", message = why }, Json));
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new { ok = false, code = CodeForStatus(code), message = why }, Json));
         }
 
         string expectedHost = $"127.0.0.1:{r.Port}";
@@ -157,6 +157,23 @@ public static class LabHost
         }
     }
 
+    /// <summary>Machine-readable code that matches the HTTP status of a refused request (never "Forbidden" for a 405/413/415/500).</summary>
+    private static string CodeForStatus(int status) => status switch
+    {
+        400 => "BadRequest", 403 => "Forbidden", 404 => "NotFound", 405 => "MethodNotAllowed", 409 => "Conflict",
+        413 => "PayloadTooLarge", 415 => "UnsupportedMediaType", 500 => "InternalError", 501 => "NotImplemented", _ => "Error",
+    };
+
+    /// <summary>HTTP status for a lab-store refusal. Bad names and content/format problems stay 400 (as before); the rest say who is at fault.</summary>
+    private static int StoreStatus(string code) => code switch
+    {
+        "SymlinkRejected" or "HardLinkRejected" => 403,
+        "NotRegularFile" => 409,
+        "WriteFailed" or "ReadFailed" => 500,
+        "PlatformUnsupported" => 501,
+        _ => 400,
+    };
+
     private static IResult Bad(string code, string message, int status = 400) => Reply(status, new ActionResponse(false, code, message, null, null, null));
 
     private static void MapApi(WebApplication app, LabState st)
@@ -174,7 +191,7 @@ public static class LabHost
         app.MapGet("/api/saves", () =>
         {
             try { return Reply(200, new { root = ".lab-data", files = st.Store.ListSaves() }); }
-            catch (LabException ex) { return Bad(ex.Code, ex.Message); }
+            catch (LabException ex) { return Bad(ex.Code, ex.Message, StoreStatus(ex.Code)); }
         });
 
         app.MapPost("/api/fixture/load", async (HttpContext c) =>
@@ -199,7 +216,7 @@ public static class LabHost
                     return Reply(200, new { ok = true, code = "ok", message = "saved " + file, fileName = file, files = st.Store.ListSaves() });
                 }
             }
-            catch (LabException ex) { return Bad(ex.Code, ex.Message); }
+            catch (LabException ex) { return Bad(ex.Code, ex.Message, StoreStatus(ex.Code)); }
         });
 
         app.MapPost("/api/saves/load", async (HttpContext c) =>
@@ -217,7 +234,7 @@ public static class LabHost
                     return Reply(200, new ActionResponse(true, "ok", "loaded; approved and pending plans were made STALE", null, null, Views.Build(session)));
                 }
             }
-            catch (LabException ex) { return Bad(ex.Code, ex.Message, ex.Code == "NotListed" || ex.Code == "PathRejected" ? 403 : 400); }
+            catch (LabException ex) { return Bad(ex.Code, ex.Message, ex.Code is "NotListed" or "PathRejected" ? 403 : StoreStatus(ex.Code)); }
         });
 
         app.MapPost("/api/preview", async (HttpContext c) =>
