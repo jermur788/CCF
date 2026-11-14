@@ -90,10 +90,10 @@ Host binds to **127.0.0.1 only**, never all interfaces; deny permissive CORS and
 ## 4. P0 2D map and interaction requirements
 
 - Local-only desktop browser application (no sign-in/network dependency). Read actual forest-state values from a single core, 2D top-down plot in metres. Pan/zoom, visible scale bar, whole plot bounds, hover/selection showing stable tree ID, species, x/y, DBH, height, live/felled, provenance and mark/work stage. Distinct visible layers for live, selected, proposed, approved/pending, executed/stump; color alone never sole distinction.
-- One-click or explicit tree-ID selection; multi-select proposals with immediately updated **preview metrics** (N, BA, BA fraction of current live stand and affected IDs). Proposed preview must never change actual inventory, year, biological response or cash.
-- Separate **Approve Experiment Plan** and **Execute Test Work** actions with an explicit review table of exact affected IDs, counts and BA. Must reject dead IDs, duplicate IDs, cancelled marks, out-of-scope stems and stale snapshots. Aborted/rejected work leaves authoritative inventory unchanged.
-- Local controls: regenerate/reset only disposable lab fixture with confirmation; switch to saved synthetic fixture; load P0 local file; advance/replay test year; export provenance manifest + event log + stand summary. Never offer “Open Scenario One save.”
-- Reasonably usable for small test fixture and scaled independent performance fixture; no requirement for 3D, polished game art, map GPS, full accessibility certification or automatic rack proposal layer at this stage.
+- One-click or explicit tree-ID selection; multi-select proposals with immediately updated **Core-provided preview metrics** (N, BA, BA fraction of current live stand and affected IDs). Proposed preview must never change actual inventory, experiment step, or biological response; P0 has no cash or costs.
+- Separate **Approve Experiment Plan** and **Execute Test Work** actions with an explicit review table of exact affected IDs, counts and BA. Must **reject the entire plan execution atomically** (no eligible-subset filtering) for any dead, duplicate, below-threshold, cancelled, outside-scope or stale ID. A rejection event does not fell any tree. Aborted/rejected work leaves authoritative inventory unchanged.
+- Local controls: regenerate/reset only disposable lab fixture with confirmation; switch to saved synthetic fixture; load only allowed lab-root `.sitkalab.json` files; advance/replay experiment step (no age/growth); export provenance manifest + event log + stand summary. Never offer “Open Scenario One save.”
+- Reasonably usable for small test fixture and a **2,000-tree** performance fixture, with selection and updated preview/inspector in **≤2 seconds** on a documented local test host/browser, no missing visible tree IDs; no requirement for 3D, polished game art, map GPS, full accessibility certification or automatic rack proposal layer at this stage.
 
 ## 5. P1 evidence and biology gate
 
@@ -110,30 +110,33 @@ P1 **cannot** be declared scientifically correct solely because annual numbers l
 
 - **AC-01** New standalone build/test files exist only in the agreed `Tools/MultiRackSitkaLab/` lane (or separately manager-approved non-overlapping folder); no Unity source/Assets, scene, package, prefabs, player saves, current specs, decisions, coordinator board or frozen Reference Future touched.
 - **AC-02** Same stable tree ID, XY, DBH, status and action stage in headless state and displayed 2D map; exact single data authority, no duplicate biological store.
-- **AC-03** Same seed, fixture/config/schema version produces identical initial JSON bytes and metric summaries across consecutive runs and after lab save/load/replay.
-- **AC-04** Exact BA, density, area, Dq and unique selected removal BA independently verified from hand-computable fixtures including dead/stump/duplicate handling and non-square polygon; finite values.
-- **AC-05** Mark → propose → approve/pending without executing changes **zero living count, BA, tree state, event harvest, costs or growth**; confirm explicit one-time execution changes precisely the eligible selected IDs with correct BA and event history.
-- **AC-06** Reject repeated execution, stale ID, already dead tree, duplicate order/tree, invalid polygon or unit, unexpected earlier snapshot, and overflow/NaN without corrupting state. Cancellation and manual-review are safe.
-- **AC-07** A saved experiment is versioned and isolated, with sourceClass Synthetic immutable provenance; CCF production saves and frozen Reference are not searched, read or written.
-- **AC-08** UI allows plotting, filtering, inspection, selection, proposal preview, separate approval/execution and replay with non-color status labels; screenshots and a scripted browser/demo path verified on actual app.
-- **AC-09** Test fixture says `SYNTHETIC TEST FOREST`, model is `NO BIOLOGICAL GROWTH` for P0, and no misleading GROWFOR/Irish prediction claim. An “Advance Year” in P0 is explicitly **calendar/event replay only**.
+- **AC-03** Same checked-in immutable fixture/checksum, pinned runtime and schema version produces identical canonical initial JSON bytes and metric summaries across consecutive runs and after lab save/load/replay.
+- **AC-04** Exact BA, density, area, Dq and unique selected removal BA independently verified from hand-computable fixtures including dead/stump/duplicate handling and non-square polygon; boundary-on-segment stem allowed; outside coordinate, below-threshold attempted work, and self-crossing bow-tie polygons fail closed.
+- **AC-05** Mark → propose → approve → queue pending without execution changes **zero living count, BA, biological tree status, successful-work events or growth**; confirm explicit one-time execution changes precisely **all and only** approved selected eligible IDs with correct BA and event history.
+- **AC-06** Atomically reject repeated execution, stale forest revision/session epoch, dead or below-threshold IDs, duplicate order/tree, malformed/self-intersecting polygon, invalid coordinate/unit, outside-path or wrong-format load, and overflow/NaN without corrupting the forest state; audit-only rejection events are permitted, but partial execution and MANUAL_REVIEW are not.
+- **AC-07** A saved experiment is versioned and isolated with format marker, fixed lab-root and sourceClass Synthetic provenance; every event has an explicit sequence/post-state hash. CCF-shaped JSON, path traversal and symlink escapes fail before file read, and production saves/frozen Reference are never searched, read or written.
+- **AC-08** UI allows plotting, filtering, inspection, selection, Core-only proposal metrics, separate approval/queue/execution and replay with non-color status labels; all displayed metrics equal Core API values; screenshots and a scripted browser/demo path verified on actual app.
+- **AC-09** Test fixture says `SYNTHETIC TEST FOREST`, model is `NO BIOLOGICAL GROWTH` for P0, and no misleading GROWFOR/Irish prediction claim. “Advance experiment step” is calendar/event only, and `ageAtInventoryYears` never increments in P0.
 - **AC-10** No real Irish dataset import, no marteloscope “exact replica” label, no multi-rack auto-prescription or Unity synchronization shipped under P0.
 - **AC-11** Negative-case, performance, source ownership, dependency/licence, test evidence and reusable data/API contract documented; independent bounded review concludes **APPROVED/NEEDS CHANGES/REJECTED**. P0 verification is **not** acceptance of scientific predictions or future game integration.
 
 P1 cannot PASS by satisfying P0 alone. Its metrics, model/age domain, parity and holdout gates must be separately reviewed before implementation and labelled claims.
 
-## 7. Decision gates, ownership and exclusions
+## 7. Decision gates, owner routes, evidence and stop conditions
 
-**No blocking further external research for P0.** We already have adequate information to implement a synthetic flat-stand engineering harness after this DRAFT is independently reviewed and approved. **More research/verification is required for Irish empirical ecological accuracy, P1 numerical model choice, true marteloscope input and long-run multi-rack transfer.**
+**P0 does not require additional external field research.** P1 numerical-model provenance, Irish ecological accuracy and a genuine marteloscope import do.
 
-Product-level open decisions that must be explicit at **DRAFT review/approval**, not silently guessed by code worker:
-- **OPEN-L1:** Is this an *independent research/engineering tool only* (recommended), with no promise to ship as the player interface, or should a later spec cover a distributable 2D game mode? This draft assumes research-only.
-- **OPEN-L2:** Confirm P0 **no biological stepping** and P1 separately gated (recommended) versus source-parity Sitka growth required in the first implementation. This draft recommends P0 first to avoid false science/complexity.
-- **OPEN-L3:** Confirm isolated local .NET + browser UI versus alternate simple implementation after host inventory; must remain Unity-free, preserve shared-state API and be testable locally.
-- **OPEN-L4:** Whether any future field inventory can be loaded remains **UNRESOLVED/NOT P0** until GBIF/Teagasc actual data/rights pass; no automatic decision.
-- **OPEN-L5:** Exact stand stocking/DBH defaults are intentionally **engineering fixture values**, not accepted Irish ecology constants; adopting an Irish evidence-constrained baseline is a separate calibration step.
+| Decision | Actual authority / route | Required timing |
+|---|---|---|
+| **OPEN-L1:** independent research tool or distributable 2D game mode | **User (product owner)** or designated **Overall Manager acting for the user**; resolve in spec approval record; **recommend research-only** | **MUST RESOLVE BEFORE P0 APPROVED** |
+| **OPEN-L2:** P0 no biological growth, separate P1 annual model | **User or designated Overall Manager**; explicit approval choice; recommend **yes** | **MUST RESOLVE BEFORE P0 APPROVED** |
+| **OPEN-L3:** independent .NET C# Core and local-only browser UI versus other stack | **Designated Overall Manager** with user escalation for changed player-facing design; document chosen runtime and amend spec if materially different; recommend .NET/browser | **MUST RESOLVE BEFORE P0 APPROVED** |
+| **OPEN-L4:** genuine Irish field data access/import | **User** for external data/outreach decision; separate independently reviewed data-source/rights work and Overall Manager spec gate | **DEFERRED, NOT P0**; #479 raw archive blocked |
+| **OPEN-L5:** empirical Irish stocking/diameter/growth calibration | **Designated Overall Manager**, with independent forestry evidence reviewer and user product direction as needed; separate P1/evidence acceptance | **DEFERRED, NOT P0**; P0 values are engineering test fixtures |
 
-**Authorisation:** DRAFT forbids production/implementation work. After independent source/science/UX/ownership review, a delegated overall product owner must explicitly approve V1/P0 scope, advance to APPROVED, and issue an actual bounded implementation claim/packet in a new safe lane. The Scenario One #424 manager retains sole live coordination writer and Unity scheduling authority. No Windows build before user personal playtest + explicit authorisation; this stand-alone tool does not request one. This spec itself grants no host ownership or implementation lease.
+**Approval authority:** The **user is product owner; the designated Overall Manager acting for the user** approves feature specifications under [AgentWorkflow](https://github.com/jermur788/CCF/blob/main/Docs/Project/AgentWorkflow.md). The Multi-Rack DRAFT author **must not self-approve**. Reviewer verdict ≠ APPROVED status. The **current authorised coordination-board writer**, subject to live coordination rules, registers a later implementation lane. Do not assume #424's Scenario One/Unity manager grants a standalone lab spec approval or that a past one-off board exception is general. No physical resource or Unity/editor lease is granted here.
+
+**Stop conditions:** Stop before P0 code if the DRAFT is not expressly APPROVED, OPEN-L1..L3 unresolved, branch/host ownership conflicts, source/save paths overlap other work, trusted local host or allowed lab data root cannot be enforced, fixture schema/geometry/IDs are ambiguous, unit/BA and event replay acceptance fail, or any unsupported numerical forestry assumption enters the implementation. Preserve defects rather than weaken tests. Stop P1 if current CCF Sitka source and exact Irish GROWFOR domain remain uninspected, or if expected parity cannot be evidenced. No fake measured plot, unlicensed data import, Unity integration, old-save migration or Windows build.
 
 ## 8. Verification ladder and success meaning
 
