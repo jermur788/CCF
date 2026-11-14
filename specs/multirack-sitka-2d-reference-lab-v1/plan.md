@@ -1,10 +1,10 @@
 # Implementation plan — Irish Sitka 2D Reference Laboratory V1
 
-**Status:** DRAFT, non-authorising. Derived from [spec.md](spec.md). No actual implementation worker/branch/host/Unity lease exists under this plan.
+**Status:** **APPROVED FOR RESEARCH-ONLY P0 PLANNING AND IMPLEMENTATION**, derived from formally approved [spec.md](spec.md), 14 November 2026. **P1 / UNITY / GAME INTEGRATION NOT APPROVED.** No actual implementation worker/branch/host/Unity lease exists; separate claimed P0 task and live ownership preflight mandatory.
 
 ## Work classification
 
-**SPEC REQUIRED**: new standalone user interaction and per-tree state/persistence, forestry calculations, experimental annual model validation and eventual 2D/3D interface boundary. Do not dispatch as a quick packet bypassing approval. **P0 is independently implementable once APPROVED; P1 needs a separate model-evidence gate.** 
+**SPEC REQUIRED**: new standalone user interaction and per-tree state/persistence, forestry calculations, experimental annual model validation and eventual 2D/3D interface boundary. Do not dispatch as a quick packet bypassing approval. **P0 spec now APPROVED after #488 independent DRAFT-quality review and explicit Overall Manager L1–L3 decisions; P1 needs a separate model-evidence gate.** 
 
 ## Parallel delivery boundary
 
@@ -31,13 +31,13 @@ Actual worker must inspect available .NET, Node, browser, disk and project sourc
 
 ## Sequence and gates
 
-**G0 – Spec review/approval.** **The user or designated Overall Manager (not the draft author)** resolves **OPEN-L1, OPEN-L2 and OPEN-L3 explicitly before P0 APPROVED**; record **OPEN-L4 and OPEN-L5 as deferred/not P0**; ensure UX includes explicit proposal/approval/execution separation and no biology claims. Independent forestry evidence review confirms GROWFOR is only aggregate benchmark (and cannot supply per-tree spatial dynamics); no field-data unlock necessary. Designated Overall Manager or user records formal APPROVED status and the chosen implementation approach before source dispatch; independent reviewer recommendation is not approval.
+**G0 – P0 SPEC APPROVAL RECORDED (not implementation evidence).** Independent #488 reviewer approved revised DRAFT quality. The distinct designated Overall Manager subsequently resolved **L1 research-only**, **L2 no biological growth P0 / separate P1**, **L3 .NET C# Core plus 127.0.0.1-only local browser UI**, and **L4/L5 DEFERRED OUTSIDE P0**. Preserve explicit proposal/approval/execution distinction and no biology claims. GROWFOR is only a later aggregate benchmark. Worker must pin the approved spec branch and register a new execution claim/physical lane before code; nothing has been built or tested under this decision.
 
 **G1 – Worker/ownership preflight.** Create dedicated issue claim for P0 implementation. Worker registers actual provider/model, isolated branch/worktree and pinned starting HEAD. Refresh live `active-tasks.md` and physical Ops read-only, get actual owner permission if machine/file overlap or any Unity process would be impacted. No simultaneous writers in same new directory. Never move, reset or stash unrelated dirty work.
 
-**G2 – Core and data contract.** Implement **checked-in golden synthetic fixtures (no P0 PRNG/seed)**, canonical UTF-8 no-BOM/LF/ordered compact JSON, SHA-256, integer-mm `ForestState`/`TreeState` and positive measurement guards; validate a single simple polygon (including reversed winding, boundary-inclusive points and bow-tie rejection), derive area, adult threshold, BA/N/Dq, and stable immutable IDs. Headless hand-calculated test vectors and invalid-input negatives first. Do not implement actual biological growth at this gate.
+**G2 – Core and data contract.** Implement **checked-in golden synthetic fixtures (no P0 fixture generator/PRNG)**, canonical UTF-8 no-BOM/LF/ordered compact JSON, SHA-256, integer-mm `ForestState`/`TreeState` and positive measurement guards; validate a single simple polygon (including reversed winding, boundary-inclusive points and bow-tie rejection), derive area, adult threshold, BA/N/Dq, and stable immutable IDs. Headless hand-calculated test vectors and invalid-input negatives first. Do not implement actual biological growth at this gate.
 
-**G3 – Action authority and histories.** Implement **separate tree-mark and plan-state transition tables** as spec A5; explicit Approve → Queue Test Work → Execute Test Work; **atomic all-or-nothing** execution, plan ID membership, baseForestRevision/sessionEpoch staleness, audit-only rejection events and monotonic eventSeq with post-state hashes. Build **lab-root-only `.sitkalab.json`** load/save, reject outside path/traversal/symlink and CCF-shaped save **before file acceptance**. Headless negative tests must cover proposal-only no change, dead/duplicate/below-threshold IDs, calendar step, fixture reload, malformed hashes, runtime rev/epoch mismatch.
+**G3 – Action authority and histories.** Implement **separate tree-mark and plan-state transition tables** as spec A5; explicit Approve → Queue Test Work → Execute Test Work; **atomic all-or-nothing** execution, plan ID membership, baseForestRevision/approvalSessionEpoch staleness, audit-only rejection events and monotonic eventSeq with post-state hashes. Build **lab-root-only `.sitkalab.json`** load/save; reject outside path/traversal/symlink **before file open**, and reject CCF-shaped/wrong-format content inside the fixed root at the header check **before forest/event parsing**, with no write. Headless negative tests must cover proposal-only no change, dead/duplicate/below-threshold IDs, calendar step, fixture reload, malformed hashes, runtime rev/epoch mismatch.
 
 **G4 – 2D viewer.** Bind map to Core only, with pan/zoom, actual Core metric API (browser computes no forestry arithmetic), selection, tree details, status legend, plan preview vs actual metrics, **distinct approval, queue and execution**. Load only listed synthetic lab-root fixtures. Bind host to **127.0.0.1**, restrictive Host/Origin/CORS, no telemetry or external networking. Actual browser test with GUI and screenshots; no screen depiction accepted as tree-state authority.
 
@@ -55,8 +55,8 @@ Actual worker must inspect available .NET, Node, browser, disk and project sourc
 
 ## Stop conditions
 
-Stop and report BLOCKED if P0 not formally APPROVED by user/designated Overall Manager, mandatory OPEN-L1..L3 not resolved, branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
+Stop and report BLOCKED if the published P0-approved spec cannot be pinned, the new implementation claim/live ownership is missing, branch ownership conflicts, host capacity/Unity process conflicts, missing suitable isolated worktree, source state divergence from approved spec, model source not verified for P1, anonymous "real" GBIF plot substituted, CCF production save encountered, unreviewed numerical forestry constants proposed, or non-Sitka/slope/rack/Unity game code appears. Do not weaken tests to pass.
 
 ## Publication plan
 
-Each substantive implementation and independent review requires its **own GitHub Markdown handoff** with actual evidence and unchanged linked source lineage, claim status and Manager verdict. This document is only a DRAFT plan; no implementation or test passed merely because these steps are written. Dashboard/Drive mirror sync must be reported NOT VERIFIED unless evidenced.
+Each substantive implementation and independent review requires its **own GitHub Markdown handoff** with actual evidence and unchanged linked source lineage, claim status and Manager verdict. This is a formally APPROVED P0 implementation **plan**, not implementation evidence. No implementation or test passed merely because these steps are written. P1 remains gated. Dashboard/Drive mirror sync must be reported NOT VERIFIED unless evidenced.
