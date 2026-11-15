@@ -481,6 +481,23 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **State after this event:** T-01 **IMPLEMENTED → REVIEWED (source)**. Not integrated, not Unity-verified, not accepted. **Awaiting the Manager's source verdict** on `#549`, which I keep open. T-02–T-05 remain unreleased.
 - **Failure classification:** UNKNOWN/NONE. **Review cycles:** 1 full review, 0 repairs needed, 0 re-reviews — proportionate for a 9-file bounded stage.
 
+### EVENT 026 — 2026-11-15T17:05Z — Manager verdict: T-01 APPROVED; #549 closed; T-02 released (#551) and dispatched after clean preflight
+
+- **Evidence class:** OBSERVED FACT (ruling text, live git/issue state) + ORCHESTRATOR CLAIM (dispatch design).
+- **Event type:** ACCEPTED (source stage) → DISPATCH.
+- **Ruling:** [scen1-MANAGER-T01-SOURCE-VERDICT-AND-T02-CONSTRUCTION-PACKET-20261115.md](https://github.com/jermur788/CCF/blob/docs/scen1-manager-t01-verdict-t02-release-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-MANAGER-T01-SOURCE-VERDICT-AND-T02-CONSTRUCTION-PACKET-20261115.md). **T-01 source APPROVED FOR T-02 CONSTRUCTION** (0/0/3/2, no repair round); [#549](https://github.com/jermur788/CCF/issues/549) **CLOSED** as an execution claim with no merge, rebase or revert; [#551](https://github.com/jermur788/CCF/issues/551) **released for offline T-02 only**. Critically, the ruling also recorded **my OBS-1/OBS-2 as dismissed confusion with superseded DRAFT wording, not violations** — matching my own EVENT 025 self-correction, now independently confirmed by the Manager.
+- **Preflight performed by the orchestrator before dispatch (all green):** worktree `/media/jer/Files/CCF/Operations/CCF-Scen1-SharedSave-T01-20261115` **clean**, HEAD **exactly `da962372`** = the reviewed T-01 head, in sync with `origin/feature/scen1-shared-three-profile-save-v2`; **no active competing writer**; `/media/jer/Files` **129 GB free**; `#551` OPEN/READY; **`#443` still `[RUNNING CLAIM / G3 APPROVED]` and untouched** — frozen per the packet.
+- **`main` moved again, and I checked what that means rather than assuming:** now `4212b977`, but `git diff --name-only fc18190b origin/main -- Assets/` = **0 files**. So the move is non-source (coordination/docs) and the pinned source baseline `da962372` remains the correct base. Recorded because a moved `main` is exactly where a silent base swap would hide.
+- **Dispatch:** OpenAI **B**, `gpt-6.1-sol`, `high` — **seventh consecutive B success path**, A still quota-exhausted until 2026-11-18T13:43. Reuses the **existing** worktree (no second worktree, no new branch), per the packet's sequential single-writer rule.
+- **The five functional requirements carried verbatim in intent:** raw-first envelope admission (three unique root keys, recursive duplicate rejection, exact binding); **preserve genuine/ambiguous legacy policy entirely** with the **one** D-079/D-081 exception that an explicit nonempty foreign identity rejects **before any** world/scene/PlayerPrefs/file mutation; close typed/public bypasses behind one immutable source-bound boundary including `LoadData` and `RestoreSaveData`; **pure capture** with a refusal sentinel that cannot mutate anything; and the **F-1 operational path gate** (a bare `ForestSaveProfiles.GetPaths` in operational code = review failure).
+- **All three minors carried as hard requirements, not advice:** F-1 (path gate), F-2 (raw-JSON explicit-null/duplicate testing — **never** claim a typed `JsonUtility.ToJson` round-trip proves it), F-3 (**compact/O2 stay unavailable**; flipping the flag to make a test easier is forbidden and belongs to T-03 with the explicit-choice startup).
+- **Write ceiling treated as a maximum, not a to-do list** — the worker must post a **narrower per-file and per-method** list before editing, and must *request* any expansion. This is the specific discipline that prevented T-01 from sprawling.
+- **Protected set carried explicitly:** `ForestSaveData.cs`, `ScenarioReferenceArchive.cs`, archive resources, signed spec/checklists, real saves, historical prefs, scenes, packages, project settings, and **all of `#443`**.
+- **Hard stops enumerated** so the worker stops rather than improvises: legacy admission beyond the foreign correction, a missed pre-mutation reject, mutable capture, a trusted-DTO escape, a protected edit, enabled availability, invented world/CG-TRIG, ownership conflict, destructive test, or any pressure to call a stub compile "Unity verification".
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** worker `[RUNNING]` receipt with the narrower allowlist → source → offline evidence → `[HANDED-OFF]` on #551, **left open** for Manager disposition. Then a **new** independent Opus claim against the exact T-02 head.
+
+
 
 
 
