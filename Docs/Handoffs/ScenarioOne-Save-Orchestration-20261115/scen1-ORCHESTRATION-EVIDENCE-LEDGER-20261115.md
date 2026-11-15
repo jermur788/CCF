@@ -203,6 +203,31 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** unchanged.
 
+### EVENT 009 — 2026-11-15T11:38Z — four-file APPROVAL CANDIDATE V2 handed off and verified; V2-C review dispatched
+
+- **Evidence class:** OBSERVED FACT (git/GitHub verification by the orchestrator).
+- **Event type:** CODE_HANDOFF → REVIEW_START.
+- **Work unit / claim:** V2-B, [#538](https://github.com/jermur788/CCF/issues/538), stage A/G1.
+- **Provider:** OpenAI **B**, `gpt-6.1-sol`, reasoningEffort `high` — **second consecutive success on B**. Capacity source is now two real completions, still **no quota percentage** (the provider never reports one).
+- **Delivery verified, not trusted:** branch `docs/scen1-shared-save-final-spec-candidate-20261115-v1`, commit `117f76179e828244a8d084f63ae10070ace1c8cf`; `git show --stat` = **exactly 5 files** (`spec.md` +323/−…, `plan.md`, `tasks.md`, `checklists/requirements.md`, one new 166-line report); **ISO count still 63, checked count still 0** (independently recounted); status line reads `APPROVAL CANDIDATE V2 — NOT APPROVED — NO IMPLEMENTATION AUTHORITY`; #538 CLOSED. The child did **not** convert itself into an approval — the single most important non-event of this run.
+- **Candidate:** [scen1-SHARED-SAVE-SPEC-V2-APPROVAL-CANDIDATE-20261115.md](https://github.com/jermur788/CCF/blob/117f76179e828244a8d084f63ae10070ace1c8cf/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-SHARED-SAVE-SPEC-V2-APPROVAL-CANDIDATE-20261115.md). The child surfaced the three decision clusters a manager must settle: (1) filenames/identities/envelope/version counters; (2) staged restoration, safe replacement failure and backup-to-memory recovery; (3) the proposed `Compact30 = 2` geometry value and identity-materiality rules, with H1/G1 viability, completion rules and #471/D-082 left separately gated.
+- **Orchestrator judgement on the deliverable:** the child's own summary is *not* acceptance. It is a **candidate** whose central risk — that a spec can describe safety the code lacks — now needs an adversarial reader who did not write it. Hence V2-C.
+- **Next:** V2-C dispatch.
+
+### EVENT 010 — 2026-11-15T11:42Z — V2-C dispatch: independent Opus 5.5 Medium nonauthor review
+
+- **Evidence class:** OBSERVED FACT (issue creation + dispatch return).
+- **Event type:** REVIEW_START.
+- **Work unit / claim:** new child claim [#539](https://github.com/jermur788/CCF/issues/539) — independent nonauthor review of the approval candidate.
+- **Actual provider/model/effort:** **Claude A** (`claudeAgent`), `claude-opus-5-5`, effort **medium** — the owner's explicitly preauthorised reviewer and effort for exactly this high-risk save work.
+- **Independence (stated, not assumed):** the reviewer is a **different provider and a different session** from the author (`codex_c75d8114`, `gpt-6.1-sol`). Cross-provider independence therefore holds and does **not** need the Sonnet-fallback disclosure the handoff requires. The reviewer is forbidden to edit the artefact — a reviewer who repairs destroys the independence the review exists to supply.
+- **Bounded scope (not a re-review of unchanged text):** delta vs `88a2db30` only, against nine adversarial tests — the most important being **test 1**: does the spec still assume a protection the audit marked CONTRADICTED. Secondary tests target approval-inflation, silent tightening of legacy admission, anchor preservation, testability of all 63 requirements, honesty of the single signature block, smuggled product decisions (notably `Compact30 = 2`), and internal consistency across the four files.
+- **Hard requirement on the reviewer:** a finding without `file:line` is not a finding; verdict must be exactly one of APPROVED / NEEDS CHANGES / REJECTED, scoped to the document's fitness for signature — explicitly **not** Unity verification, runtime evidence, integration acceptance or spec approval.
+- **Unity / board / lock:** none.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** on verdict → bounded repair only if a real defect exists, then focused delta re-check; then the consolidated owner decision packet.
+
+
 
 
 
