@@ -256,6 +256,32 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** on handoff → focused delta re-check by Opus limited to the repaired findings; then the consolidated decision packet and final result.
 
+### EVENT 013 — 2026-11-15T12:55Z — repair R1 handed off and verified; canon-staleness finding sharpened
+
+- **Evidence class:** OBSERVED FACT (git/GitHub) + ORCHESTRATOR CLAIM (judgement on cause).
+- **Event type:** CODE_HANDOFF.
+- **Work unit / claim:** V2-D, [#540](https://github.com/jermur788/CCF/issues/540). **Provider:** OpenAI B, `gpt-6.1-sol` `high`. **Fourth consecutive B success.**
+- **Delivery verified:** branch `docs/scen1-save-spec-v2-repair-r1-20261115-v1`, commit `200add4e`, **exactly 5 files** (spec +112/−…, plan, tasks, checklist, one 60-line repair report); **63 ISO IDs, 63 unchecked, 0 checked**; status still `APPROVAL CANDIDATE V2 — NOT APPROVED`; `§0.4 What changes for a historical player` exists; `D-081` cited 17×. #540 CLOSED. **All 13 findings reported addressed, none declined.**
+- **Substantive correction now visible:** `§0.4` is a genuine disclosure table with a column **"Can a previously loadable save fail?"** — including H-02 (removing the copy fallback can newly fail a historical Save where atomic replace is unsupported) and H-05 (foreign identity now refuses **before** mutation, per D-081). That is the difference between a spec the owner can sign knowingly and one that hides a compatibility change.
+- **CANON-STALENESS FINDING, sharpened and corrected from my own earlier note (append-only correction):** my EVENT 011 wording implied worker staleness was the likely cause of the D-081 conflict. Direct checks now show **both** of these, which are different problems:
+  1. The **spec's own base commit `62e39ec` IS an ancestor of `origin/main` and already contained D-081.** So the #530 DRAFT author **had canon available and still excluded pre-mutation rejection** — a **reconciliation failure**, not a missing-context accident. That is more serious than staleness and is recorded that way.
+  2. Separately and independently, the **coordination anchor is genuinely stale**: `/media/jer/Files/CCF-Primary/Docs/Project/decision-log.md` at `46247486` holds **65** decision rows while `origin/main` at `fc18190b` holds **81** (`052c648e` vs `3d39eded`), and the anchor commit is **not an ancestor of main** (divergent `ops/workflow-foundation-v1`). Any worker that reads only the anchor misses **D-066–D-081**. Real hazard, real recommendation.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** V2-E delta re-check.
+
+### EVENT 014 — 2026-11-15T12:58Z — DISPATCH: focused delta re-check (V2-E)
+
+- **Evidence class:** OBSERVED FACT (issue creation + dispatch).
+- **Event type:** REVIEW_START.
+- **Work unit / claim:** [#541](https://github.com/jermur788/CCF/issues/541). **Provider:** Claude A, `claude-opus-5-5`, effort `medium`.
+- **Reviewer choice rationale:** the **same** reviewer as #539, deliberately. For a delta check the valuable property is that the reviewer holds the exact finding list and is immune to a repair report's rhetoric. Using a fresh reviewer would force a re-derivation of the original findings and cost more for less.
+- **Bounded scope:** `git diff 117f7617 200add4e` only; all 13 findings adjudicated RESOLVED / PARTIALLY RESOLVED / NOT RESOLVED against the document text (not the repair report); regression check limited to the five repair areas; explicit verification that nothing the #539 review PASSED was disturbed.
+- **Explicit anti-drift instruction:** the reviewer may not widen scope or re-litigate passed areas — this is the handoff's "one bounded repair/delta check", not an open-ended review loop.
+- **Unity / board / lock:** none.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** on verdict → consolidated decision packet + final result, notifications, #535 closure.
+
+
 
 
 
