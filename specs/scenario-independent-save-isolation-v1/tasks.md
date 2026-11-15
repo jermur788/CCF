@@ -1,125 +1,92 @@
 # Independent Scenario Save Isolation V1 — Future Task Packets
 
-**Status: DRAFT — NOT APPROVED — NO IMPLEMENTATION AUTHORITY.**
-These packets are **BLOCKED** until the four-part spec is explicitly APPROVED and a fresh, separate production claim / live ownership record exists. Task #436 authorised Markdown drafting only; **#524 (three-profile amendment) likewise authorises Markdown drafting only.** Do not mark any task started, implemented, verified or accepted based on this document. No task may be marked [RUNNING] without independent approval and an actual registered local owner.
+**APPROVAL CANDIDATE V2 — NOT APPROVED — NO IMPLEMENTATION AUTHORITY. Requires one owner/manager signature; see §0.3.**
 
-**Authority split (#524):** **#425** is the accountable shared save-policy/spec owner and decides spec approval and blockers B-01–B-15 (with owner/save sign-off where required). **#424** owns later source integration, the live board, the one named source writer and Unity scheduling. Neither role is assumed by a docs claim.
+#538 candidate, 15 November 2026. All tasks below **BLOCKED / NOT STARTED**. No source writer, lease or implementation authority is created by documentation publication. Spec.md owns policy; plan.md maps execution; checklist owns all 63 unchecked criteria. #425 policy, #424 source/integration/Unity coordination. No automatic delegation or concurrent writers.
 
 ## Task dependency graph
 
-T-00 audit + approval → T-01 three-profile slot routing → T-02 fail-closed, profile-specific preflight → T-03 profile/session/scene lifecycle, preview and namespaces → T-04 backup/legacy and reference protection → T-05 exact-head feature qualification + independent review → Manager integration disposition.
+T-00 actual signature/source-delta/claim → T-01 registry/context → T-02 profile-specific admission/pure capture → T-03 staged lifecycle/geometry/preview/prefs/teaching → T-04 safe writer/read-only backup recovery → T-05 exact-head conformance/independent review → separate Manager integration decision.
 
-An approved implementer may merge or subdivide adjacent bounded packets only after confirming non-overlap and the actual current source; no automatic team dispatch or simultaneous writers on ForestSaveController. The O2 authored starting forest and the compact authored world (H1/path/G1 generator, geometry) are **separate approved dependencies**, not included in these docs. The compact feature consumes T-01–T-03 rather than building its own router.
+Compact and O2 authored-world approvals are independent dependencies. T-01/02 can prepare unavailable reservations; T-03 full runtime acceptance and T-05 whole-feature completion block on actual bindings. Never count unavailable UI as passing authored-world runtime requirements. D-082 remains separate #471 decision.
 
-### T-00 — Re-pin source, resolve open questions and obtain spec approval
+### T-00 — Signature, source delta, fixture manifest and production preflight
 
-- **State:** BLOCKED. **Difficulty:** High; cross-world ownership, schema and old files. **Route:** FREE HERE Manager/source analysis, with independent review where material.
-- **Permitted:** read-only current code and real historical save/archived Reference Future fixtures; propose a signed identity/scene/backup/prefs policy and an exact three-slot file/path matrix. No source changes.
-- **Inspect:** ForestSaveController, ForestSaveData, ForestSaveValidation (+ partials), StandGeometryModel, ScenarioOneManager/Definition/SaveMigration, ScenarioReferenceArchive, StandaloneSessionMenu, LearningObjectivesView*, MenuHelpView*, ForestStartingStand, current tests, current live coordination and #424 ownership.
-- **Output:** revised approved spec/plan/checklist; an old-version fixture manifest with genuine/synthetic provenance (B-06); a source-caller map, including every direct LoadData/CaptureData caller (B-15); recorded rulings on B-01–B-15; explicit Manager review. No code launch before that approval.
-- **Stop:** missing old fixtures, unclear ID/provenance, O2 or compact definition absent, D-082 unresolved where compact is presented as first demo, active overlap or product scope disagreement.
+- **State:** BLOCKED; no execution here. **Difficulty:** High (save compatibility and authority). **Role:** future accountable policy/source analyst; no code.
+- **Inputs:** real §0.3 signature on exact four-file candidate; G0 commit3c8d7a50a8f9f1baae417c46d7d0a06b68e495f8 §1–11/AppendixA; audited sourcefc18190b976f1363f1b5d1b0881810db2f8c6e39; live source/coordination.
+- **Do:** independently review policy package, then refresh caller/source delta and read-only provenance manifest; record actual baseline admission/byte anchors and known B-09/10/11 repair gaps. No repeat owner poll for settled F5/Continue/Reference. Record separate world/corpus/completion/D-082 holds.
+- **Output:** real signature reference, independent review, exact candidate/owner/allowed-path claim, old-version coverage manifest and authored-world availability map. Missing evidence explicit UNVERIFIED; OPTION L excluded and legacy admission preserved.
+- **Checks:** static scope/caller/signature mapping; ISO-31/35/60/61 preparation. No code launch without signature and fresh source ownership.
+- **Stop:** absent authority, changed material contract, competing writer or unclear fixture provenance. No self-approval, full-corpus inference or active board write by this docs task.
 
-### T-01 — Fixed three-profile slot and selection routing (amended #524)
+### T-01 — Fixed three-profile routing and selected context
 
-- **State:** BLOCKED. **Difficulty:** Medium; shared disk risk. **Route:** SOL/CODEX local for implementation, only after approval and an exact claim.
-- **Tentative code ownership (must re-check):** ForestSaveController.cs, a narrowly reviewed fixed slot-router helper if needed, the session-selection seam in UI/StandaloneSessionMenu*. No generic eight-world framework and no per-species content.
-- **Required behaviour:**
-  - existing O1 forest-save.json, .tmp and .bak continue unchanged;
-  - proposed compact slot forest-save-scenario-one-compact-v1.json and proposed O2 slot forest-save-scenario-two.json, each with only its own sidecars;
-  - strict compile-time allowlist and pairwise-distinct paths (case-insensitive too);
-  - no implicit migration/fallback in any of the six directions, no deleted save, and no new game overwriting an old slot;
-  - selecting a profile writes nothing;
-  - the UI duplicate path literal is replaced by the router query.
-- **Verification:** Tier 1 path/alias tests and a static F5/F9/F10/Continue route audit; before/after hashes on all three primaries and .bak files. Later targeted Editor confirmation where relevant.
-- **Handoff:** exact commit, test evidence, remaining risks; no own integration authority.
-- **Stop:** any path collision, unexpected O1 write or existing file ownership conflict.
+- **State:** BLOCKED on T-00. **Difficulty:** Medium; filenames protect historical data. **Role:** future single source writer in owned lane.
+- **Tentative seams (not edit authority):** ForestSaveController and UI/StandaloneSessionMenu*. Future packet names exact files/helper/metas.
+- **Implement:** signed §4.1 registry and SI-09 prefix bindings; one query for both hardcoded filename sites. Historical location/sidecars unchanged. New slots disjoint; selecting/starting writes nothing. O2 and unapproved compact remain unavailable, no legacy fallback.
+- **Checks:** static/offline ISO-01/02/05/37/38/39: all nine path collisions, eight primary combinations, independent visibility, no input-derived filename. Later Unity route checks remain pending.
+- **Handoff:** commit/path/query map, actual commands/results and before/after hashes; no integration claim.
+- **Stop:** historical write/rename, alias/collision, unavailable profile allowed to play, overlap or second router.
 
-### T-02 — Profile-specific identity and no-mutation load preflight (amended #524)
+### T-02 — New-envelope admission, typed-route closure and pure capture
 
-- **State:** BLOCKED. **Difficulty:** High; greatest cross-save risk. **Route:** SOL/CODEX local, optionally independent read-only browser review.
-- **Tentative files:** ForestSaveData.cs (additive envelope type only, if B-02 approves), ForestSaveValidation.cs (+ relevant partial), ForestSaveController.cs, StandGeometryModel.cs only for B-11 compact dispatch and unknown fail-closed; minimal ScenarioOneManager.cs identity alignment only if directly required; narrowly bounded verification tests.
-- **Required behaviour:**
-  - **one shared preflight** for every route (spec FR-01/FR-02);
-  - new-profile envelope with raw presence/type/duplicate checks (a JsonUtility default cannot masquerade as explicit input); fixed slot, active scene/definition, geometry/content and nested ID agree;
-  - historical slot rejects an envelope marker, and a foreign nested scenarioId per the B-03 ruling, before any version rule; v1–v9 legacy O1-only; v10–v24 classified per the B-04 ruling;
-  - **compact/O2 missing/unknown/newer versions reject before first mutation; genuine historical newer-version warn/best-effort is preserved**;
-  - malformed/missing/conflicting/duplicate identity rejected in CanLoad/Load/LoadData alike;
-  - existing duplicate-tree, cell, rack, species, model and management-event validation stays intact; preserve original rejection reasons where possible.
-- **Verification:** Tier 1 deterministic table cases and a no-mutation sentinel; genuine O1 old-save fixtures; all six copied/renamed cross-placements; unsupported future-version tests per profile; a historical serialization byte-identity check. Source review of mutating order. Do not weaken checks to pass old malformed files.
-- **Handoff:** proof that each load entrypoint fails closed per profile and that legacy identity classification follows the recorded ruling; schema/v24 compatibility report.
-- **Stop:** legacy ambiguity unreviewed, archive/hash drift, fallthrough to the manager's late warning, any failed-load state mutation, or any global tightening of historical newer-version behaviour without approval.
+- **State:** BLOCKED on T-01. **Difficulty:** High; raw defaults and mutation boundaries.
+- **Tentative seams:** separate envelope/evidence type, ForestSaveController/Validation partials, minimal manager capture/subrestore boundaries, explicitly allocated tests.
+- **Implement:** signed §4.2 exact raw keys/types/tuple and payload agreement; strict new-profile identity/content/version checks; existing typed content validators. Preserve **unchanged historical raw parsing/admission/normalization**, including foreign-ID warning/continued restore and absent-ID behavior. Canonical new envelopes fail legacy validators via disjoint root, not a new marker/foreign-ID reject rule.
+- **Close audited gaps:** direct LoadData raw bypass (controller:324–337), public RestoreSaveData bypass (manager:1451–1456) and impure CaptureSaveData (manager:1398). Restricted admitted disk/archive/same-session contexts; arbitrary DTO/bool grants none. Initialization cannot occur in supposed pure capture.
+- **Checks:** static/offline ISO-06–12/23/24/31/40–49/50/51/53; genuine available fixtures plus labelled synthetic foreign/absent/future controls. Baseline/candidate same-state historical bytes match; missing genuine corpus remains blocked. Editor JsonUtility absent/0/negative experiment is later Unity criterion, never guessed from initializer.
+- **Handoff:** exact caller/first-mutation map, negative-case results, serialization delta and unverified cells. Historical best effort after existing validation stays intact; no autosave.
+- **Stop:** any legacy tightening, admission/default confusion, public bypass, capture mutation, archive/hash-helper change or unsupported accepted tuple.
 
-### T-03 — Three authored forest sessions, UI, preview bridge and namespaces (amended #524)
+### T-03 — Early selection, staged worlds, explicit geometry, preview and namespaces
 
-- **State:** BLOCKED on T-02 **and** on the separately qualified O2 and compact authored-world/scene dependencies. **Difficulty:** High; session and scene transition can mutate before validation. **Route:** SOL/CODEX local with serialized Unity.
-- **Tentative files:** StandaloneSessionMenu.cs/.Startup.cs, authorised profile selection UI, scene/new-game bootstrapping (B-10) and a minimal manager/definition interface; the Reference preview bridge only for the profile gate (FR-12); LearningObjectivesView*/MenuHelpView* for profile prefixes (FR-10). **No mass scene rewrite without a new packet.**
-- **Required behaviour:**
-  - the player explicitly selects historical O1, compact O1 or O2;
-  - each uses its actual authored start, not a relabelled O1;
-  - first save/reload selects the correct slot;
-  - wrong-profile load refusal leaves the current scene, selection, forest, UI and prefs;
-  - historical Reference Future preview return stays byte/state compatible, and preview is not offered in compact/O2;
-  - historical prefs keys unchanged by any compact/O2 action, including reset;
-  - compact teaching evidence persisted per FR-11 (B-08).
-- **Verification:** narrow Tier 2 Editor New/Continue/F9/F10 and preview contract; prefs snapshot; retain O1 tests, with screenshot evidence only for changed UI. No first external O2 or compact-complete claim.
-- **Handoff:** actual candidate/Unity logs, scene-world identity before/after, saved history/cash/order witness, prefs diff.
-- **Stop:** unqualified O2/compact scene/model, preview bypass, transition before preflight, or any historical prefs change.
+- **State:** BLOCKED on T-02; full authored runtime witnesses also require separately accepted compact/O2 world specs. **Difficulty:** High; lifecycle and geometry.
+- **Tentative seams:** authorised startup/session bootstrap, manager/apply/preview bridge, geometry helper/generator/ecology/boundary/objective/rack consumers, learning/help prefixes. Separate world owners supply content, exact source list and serialized locks. No mass scene rewrite implied.
+- **Implement:** profile chosen before destination generation; validate exact admitted data; restore staged target while prior world retained; publish active world/profile/menu only on success. Failure discards target without old-world/UI/prefs/file change. Current AfterSceneLoad/Awake is insufficient; prove small maintainable mechanism.
+- **Geometry:** signed recommendation Compact30=2 only with independently accepted30m/H1/G1 binding. Close 40m helper and legacy-generator fallbacks via exhaustive dispatch. Preserve Legacy40=0/Enlarged80=1/five-rack historical behavior; a plain historical file claiming geometry2 still refuses as baseline. Unknown/unbound refuses everywhere; no one-constant IsKnown patch.
+- **Preview:** historical-only public/UI gate before unchanged IdentityMatches/archive/hash. Pure return snapshot and pose/profile. Return failure retains snapshot/preview guard and reports failure; retry possible, no disk save/load or false Returned. Test entry refusal too.
+- **Preferences/teaching:** active-only SI-09 namespaces; compact exact evidence with designated real order IDs, completion/juvenile links and actual eligible review acknowledgement. One2+2 group; Pending/Failed/prefs/rack latch never credit; no full completion invented.
+- **Checks:** Unity Tier2 ISO-03/04/12/13/15/16/25–28/38/39/44/49/52/57–59; include genuine midway save/load and staged-failure injections. Missing authored dependencies block runtime cells.
+- **Handoff:** exact candidate/logs, input/rendered evidence of identity/geometry/old-world retention, prefs snapshots and real work/review history. Full Scenario One demo and O2 completion not implied.
+- **Stop:** partial apply, chapter-only preview admission, failed-return snapshot loss, unknown fallback, historical prefs changes or unaccepted H1/G1/completion decision.
 
-### T-04 — Backup, fault injection and v1–v24 regression
+### T-04 — Safe commit, explicit backup-to-memory recovery and legacy regression
 
-- **State:** BLOCKED on T-03. **Difficulty:** High; accidental data loss. **Route:** SOL/CODEX local focused verification/repairs, no broad refactor.
-- **Tentative files:** limited ForestSaveController.cs (if needed), a small explicit recovery UI seam, targeted verification under Tools/Verification/SaveHardeningVerification.cs / SaveCellIndexHardening/ / Parity08Save/ / RackV2Save/ / TeachingPersistence/ / Startup/ / ScenarioReferenceVerification.cs. This list is an inspection map, **not** permission to edit every listed file.
-- **Required behaviour:**
-  - per-slot .tmp/.bak containment for **all three** profiles;
-  - no automatic unsafe fallback; preserve primary and backup until an explicit valid recovery;
-  - cases: corrupted primary + valid own backup; corrupted/foreign backup (including another profile's file in the .bak position); stale temp; failed write/replace; permission error; future-version file;
-  - no false success or cross-slot recovery; no frozen v12 archive edits.
-- **Verification:** Tier 1 offline corruption/IO tests; Tier 2 only for actual runtime/Editor recovery and UI. Byte/hash checks on the O1 v1–v24 fixture set, Legacy40, Enlarged80, model 0, Rack V2, MFM v23, v24 teaching, the frozen Reference Future preview+resume, and all three slots. Avoid test re-baselining.
-- **Handoff:** test/failure matrix, old-file preservation, platform fallback caveats, recovery UX.
-- **Stop:** the test harness damages unbacked-up real saves, file-promotion ambiguity, or a non-atomic fallback with unmitigated loss.
+- **State:** BLOCKED on T-03 implementation handoff (bounded writer primitives may be prepared earlier if separately packeted). **Difficulty:** High; data loss.
+- **Tentative seams:** narrow ForestSaveController writer/recovery and allocated UI/tests. No additional filename/artifact; no frozen fixture changes.
+- **Implement:** FR-05 pre-write profile validation, selected temp flush, qualified first move/atomic replace. Delete unsafe File.Copy-over-primary fallback; unsupported replace fails without touching primary/bak. Messages track actual commit point. F5 no modal; F10 replacement confirmation unchanged.
+- **Recovery:** missing/invalid primary + independently validated own backup offers explicit load into staged memory. Decline/refusal preserves all. Acceptance still preserves primary/bak/all disk bytes, no promotion/rename/resave/new artifact. Legacy backup admission unchanged; new backup strict.
+- **Checks:** offline then Unity Tier2 ISO-19–24/47/54–56 plus historical/protected anchors. Inject temp/move/replace/unsupported/permission/apply errors, stale temp and invalid/foreign backups. Before commit, selected tmp alone may change; selected primary/bak, other slots/prefs/live state unchanged. Qualify interruption/platform limits; never claim directory durability without evidence.
+- **Handoff:** exact candidate and IO matrix, byte/prefs/world sentinels, honest platform/crash limits and unresolved genuine fixture cells. Inspect each harness first; disposable isolated saves/prefs and copy/run/remove cleanup.
+- **Stop:** original-only-good-copy loss, hidden fallback/promotion, false success, real user-save exposure or frozen Reference change.
 
-### T-05 — Feature conformance and integration decision
+### T-05 — Exact-head feature conformance and independent integration handoff
 
-- **State:** BLOCKED on implementation handoffs T-01…T-04. **Difficulty:** High; compound identity/compatibility. **Route:** one serialized Unity Tier 2 qualification worker, an independent focused reviewer, then the #425/#424 integration decision.
-- **Scope:** read/qualify the exact candidate branch/HEAD; no opportunistic source edits. One feature-level acceptance matrix covering:
-  - historical O1 old/current;
-  - compact and O2 initial authored worlds, and profile switching;
-  - six-way wrong-load, partial/backup and long-form annual history;
-  - frozen preview, namespaces, real negative UI, and no cross-profile money/trees.
-
-  Check each item in requirements.md (ISO-01–ISO-63).
-- **Verification:** Tier 2 FEATURE, including Editor runtime and rendered/input evidence where relevant. Existing relevant Tier 1 negative fixtures remain supplementary; no repetitive full Tier 3 and no weakening of expected results. Any source repair after a failed gate requires a new candidate and a proportional retest.
-- **Handoff:** durable GitHub Markdown with exact source and test evidence, reviewer verdict (APPROVED / NEEDS CHANGES / REJECTED), present/absent Unity evidence, legacy hash checks and unresolved issues. The Manager decides REVIEWED/INTEGRATED/VERIFIED separately.
-- **Stop:** an unresolved failure; any missing exact-HEAD proof; a protected archive difference; accidental world transfer or an unregistered lock.
+- **State:** BLOCKED on T-01–T-04 and required authored dependencies/evidence. **Difficulty:** High; cross-system acceptance. **Role:** future authorised verifier, independent nonauthor persistence reviewer, then Manager; no opportunistic edits.
+- **Qualify:** all ISO-01–ISO-63 on exact candidate, named static/offline/Unity Tier2 types. Three real authored worlds, independent multiple-year management/review, all eight slot states, canonical six cross-file placements and legacy-preservation controls, backup/mutation/IO failures, prefs, both historical geometries/Reference/return.
+- **Evidence:** exact commands/menu steps, fixture origin/hash, log and before/after sentinel paths; clearly pass/fail/blocked/unverified. Genuine missing history is not created by version-header edits. No check without its named types/evidence. Compile/import alone insufficient.
+- **Review:** independent reviewer explicitly assesses source correctness and spec conformance; author does not approve own change. Manager decides integration; exact integration gates still apply. Tier3 only later nominated milestone, not every slice.
+- **Handoff:** exact SHA and durable report, per-ISO results, review verdict, protected anchors, unavailable evidence/dependency list, decisions/next action, dashboard/Drive status. Any repair repins candidate and proportionally retests. No full qualification with blocked ISO-14/25/33/60, for example.
+- **Stop:** unresolved failure, missing exact-head/lease proof, fake three-world witness, protected difference, scope creep or weakened tests. No Windows build without owner playtest plus explicit permission; no compact first-demo promotion without separate #471/D-082.
 
 ## Delivery rules for every later task
 
-Each dispatched packet must explicitly name:
-- its exact handoff path and public GitHub URL, and a plain-English purpose;
-- Low/Medium/High difficulty and the reason, and the best-suited actual model/provider;
-- branch/worktree/starting HEAD, the current live lock owner and the exact writable file list;
-- claim number + [RUNNING]/[BLOCKED]/[HANDED-OFF] lifecycle, verification tier, exclusions and safe stopping conditions;
-- one paste-ready dispatch line.
-
-A claim tracks execution; it does not confer source ownership or override Docs/Project/coordination/active-tasks.md.
-
-No implementation may start from a DRAFT spec. Not permitted without separate authority: concurrent overlapping writers; stashes/cleans/discards of unrelated dirty files; editor bypass; archive regeneration; game source changes via a docs-only claim; a Windows build; a main merge.
+Packet must name exact spec acceptance/candidate, plain-English purpose, difficulty/role/actual provider-model-effort, exclusive branch/worktree/owner/allowed files, claim lifecycle, current coordination/Unity lease where required, verified harness commands or exact manual steps, expected observations, stop conditions and durable GitHub report URL. No automatic dispatcher invocation here. A claim does not grant source ownership. No stash/clean/discard of unrelated work; preserve .meta/GUIDs and project packages; no speculative framework or manual Unity YAML in a code-only packet.
 
 ## Gate status ledger
 
-| Gate | Current status |
+| Gate | Current state in #538 |
 | --- | --- |
-| Four draft documents and review | DRAFT under #436, amended under #524 to three profiles; no acceptance |
-| Independent nonauthor persistence/doc review of #524 amendment | NOT STARTED — next, under #425 |
-| Manager spec approval | NOT GIVEN |
-| Owner/save rulings B-01–B-15 | OPEN |
-| D-082 canonical compact first-demo exception (#471) | PAUSED / NOT ACCEPTED |
-| Compact authored world (H1/path/G1, geometry) | DRAFT specs only; NOT RELEASED |
-| O2 authored forest / six-species modelling | NOT RELEASED; 3 additional species HOLD |
-| Production locks and claims | NOT REGISTERED by #436 or #524 |
-| Tier 1 code tests | NOT RUN by #436 or #524 |
-| Unity/Editor Tier 2 | NOT RUN by #436 or #524 |
-| First complete O1 external demo / personal test gate | Separate #424 programme, not satisfied by this specification |
-| O2 Gate 1 | FUTURE INTERNAL ONLY |
-| O2 complete six-species Gate 2/3 | FUTURE, SEPARATE SPECS AND ACCEPTANCE |
-| Dashboard/Drive sync | NOT VERIFIED |
+| Four-file package and report | APPROVAL CANDIDATE V2; NOT APPROVED |
+| Single signature | Blank; no owner/manager package acceptance |
+| G0 source/caller audit | Read at exact commit; static/byte evidence only, not runtime |
+| B-09/10/11 current guarantees | CONTRADICTED by G0; future closure requirements explicit |
+| Other B/Q dispositions | Exactly one each in spec§8.2/8.3; recommendations unsigned, owner-fixed rules distinguished |
+| Genuine complete historical corpus | UNPROVEN; partial anchors known, no waiver |
+| Exact compact H1/G1/completion | Separate proposed dependencies, not accepted here |
+| O2 authored definition/binding | Absent/unproven; O2 unavailable |
+| D-082/#471 | Separate canonical decision; compact PROPOSED |
+| Source claim/Unity lease | None granted or acquired by this task |
+| Compiler/offline implementation/Unity runtime/save-load | NOT RUN by #538; all 63 ISO boxes unchecked |
+| Review/integration/release/build | Not performed or authorised |
+| Dashboard/Drive | NOT VERIFIED; parent operational follow-up, forbidden paths not edited |
