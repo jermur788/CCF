@@ -96,6 +96,29 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** SCOPE/AUTH (genuine product-approval gate), not PRODUCT/DEFECT.
 - **Next:** create the G0 child claim, dispatch Sol 6.1, and in parallel author the approval-candidate package on this branch.
 
+### EVENT 003 — 2026-11-15T10:04Z — child claim created for G0 audit
+
+- **Evidence class:** OBSERVED FACT (GitHub CLI output).
+- **Event type:** DISPATCH (preparation).
+- **Work unit:** new separate child claim [#537](https://github.com/jermur788/CCF/issues/537) — "V2-A — read-only save/profile source and fixture provenance audit (G0, Sol 6.1)". Created `[READY / NOT RUNNING]` by the orchestrator, containing: purpose, difficulty, intended provider/effort, hard read-only scope, one-file write allowlist, exact start HEAD, forbidden paths, negative-case expectations (no fabricated v1–v24 corpus, no save mutation, no Unity), acceptance bar (`path:line` per claim, NOT VERIFIED discipline, B-gate disposition table, risk register), and a `[HANDED-OFF]` handoff/closure protocol.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** dispatch Sol 6.1 as sole writer of the single report file.
+
+### EVENT 004 — 2026-11-15T10:06Z — CAPACITY: OpenAI A quota exhausted; switch to OpenAI B
+
+- **Evidence class:** **OBSERVED FACT** — verbatim provider error returned to the orchestrator for the first dispatch.
+- **Event type:** CAPACITY → SWITCH.
+- **Work unit, claim, stage, attempt:** V2-A G0 audit, [#537](https://github.com/jermur788/CCF/issues/537), stage A attempt 1 → attempt 2.
+- **Actual provider/model/effort:** dispatch 1 targeted OpenAI **A** (`codex`), `gpt-6.1-sol`, reasoningEffort `high`. The provider returned: *"You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 18th, 2026 1:43 PM."*
+- **Observed pool state now:** OpenAI **A = QUOTA-EXHAUSTED**, with a provider-stated reset `2026-11-18T13:43` (timezone not stated by the provider — recorded as stated, not converted). OpenAI **B = AVAILABLE** (declared) — proven only by whether its own dispatch succeeds. Claude A/B, Opus and Sonnet pools untouched and still declaratively AVAILABLE. **Quota percentages for every pool remain UNKNOWN: the provider reports a limit and a reset, never a percentage.**
+- **Policy, routing reason, previous outcome:** handoff §2 switch rule — "If A exhausted, try B after observed fresh availability". This is a **capacity** failure, not a code/capability failure, and it is recorded as such. Sonnet is **not** eligible: the user's fallback condition is *both* OpenAI pools unavailable, and B has not yet been shown unavailable.
+- **Checkpoint / salvage / switching cost:** dispatch 1 produced **no artefact and no branch** — the provider refused before any tool work, so there is nothing to salvage and no ownership to transfer. Attempt 2 re-uses the identical bounded brief, so no rework cost beyond one dispatch. **Switching cost: one lost provider call, zero lost work.**
+- **Live state:** no branch `docs/scen1-g0-save-source-audit-20261115-v1` existed on origin at the time of the switch (checked before re-dispatch). Orchestration lane unchanged and clean; no Unity; no Unity lease.
+- **Timestamp and clock source:** `2026-11-15T10:06Z`, host `date -u`.
+- **Failure classification:** **PROVIDER_QUOTA** (OpenAI A).
+- **Handoff / next action:** attempt 2 dispatched to OpenAI B (`codex_c75d8114-…`) with `gpt-6.1-sol`, reasoningEffort `high`. If B also refuses with a quota/auth error, the run then checks the Sonnet fallback condition per policy — and only then.
+
+
 
 
 ## 3. Current prospective stage/task ledger
