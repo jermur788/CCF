@@ -421,6 +421,25 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Why this is not a safety weakening:** the properties that actually identify the volume — filesystem UUID and type, plus the mount target — remain enforced, and the negative cases above prove they still reject a wrong volume. This is removing a false negative, not removing a check.
 - **Status: PROPOSAL.** Not applied, not approved. The operations owner decides; the continuation packet requires a separate scoped ops claim with both positive and negative verification and no Editor launches. The demonstration above is the positive/negative evidence that claim would need.
 
+### EVENT 023 — 2026-11-15T15:10Z — Manager ruling received: T-00 accepted, T-01 released offline; baseline re-verified; T-01 dispatched
+
+- **Evidence class:** OBSERVED FACT (ruling text, live git, issue states) + ORCHESTRATOR CLAIM (dispatch design).
+- **Event type:** RESUMED → DISPATCH.
+- **Ruling:** [scen1-MANAGER-T00-ACCEPTANCE-T01-BASE-OWNERSHIP-OPS-RULING-20261115.md](https://github.com/jermur788/CCF/blob/docs/scen1-manager-424-save-t01-ownership-ruling-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-MANAGER-T00-ACCEPTANCE-T01-BASE-OWNERSHIP-OPS-RULING-20261115.md). **T-00 APPROVED as read-only audit evidence only.** Base route **(c)**: T-01 on clean current `main` at the audited baseline; **#443 deferred and independently reconciled**. Exclusive save-subsystem source reservation granted, **one actual Sol writer at a time**, candidate ceiling = T-00 §3's 36 C# + 3 new `.meta`, and the child must post a **narrower** allowlist before editing.
+- **Baseline re-verified by the orchestrator, independently of the ruling's own claim:** `origin/main` = **`f52dec246d8e68608150e60f7e26f3104a38a836`**, and `git diff --name-only fc18190b origin/main` returns **exactly one file: `Docs/Project/coordination/active-tasks.md`** — **0 files under `Assets/`**. So the coordination-only advance is real, T-00's source audit still governs, and no repin is required. The worker is separately instructed to re-verify this itself and to **STOP on any `Assets/` change**.
+- **Live ownership refreshed:** [#549](https://github.com/jermur788/CCF/issues/549) `[READY / NOT RUNNING]` (the T-01 claim); [#548](https://github.com/jermur788/CCF/issues/548) `[BLOCKED / NOT RUNNING]` — the **separate** CCF-Ops lease/capacity claim, correctly **not** coupled to offline T-01; [#544](https://github.com/jermur788/CCF/issues/544) OPEN; `#443` on **INTEGRATION HOLD**. No overlapping save writer observed.
+- **Binding constraints carried into the worker, verbatim in intent:**
+  - **`ForestSaveData.cs` and `ScenarioReferenceArchive.cs` are READ-ONLY preservation anchors** — explicitly excluded even though a broader request had named them. Editing either would put the frozen Reference contract at risk.
+  - **No inheritance from `#443`** — no merge, cherry-pick, rebase or hunk copying. Its buildable-retirement and preview-pose work is *not* ours, and adopting it would silently import exactly the unguarded historical-save behaviour I flagged in EVENT 021.
+  - **T-01 scope only**: registry + path table + envelope *data definitions* + prefs constants + availability fail-closed + a narrow early-selection seam. Explicitly **not** T-02 admission, T-03 lifecycle/preview, T-04 writer/recovery. Those are separate claims.
+  - **All 63 ISO items stay UNCHECKED**; the signed blobs at `200add4e` stay byte-identical.
+  - **No Unity** (correctly decoupled: #548 is the ops gate), no save-file access, no board/canonical writes.
+- **Lane:** branch `feature/scen1-shared-three-profile-save-v2`, worktree `/media/jer/Files/CCF/Operations/CCF-Scen1-SharedSave-T01-20261115`, created only if freshly absent; **not** a root-hosted T3 worktree, because `/dev/sda2` remains 100% full (EVENT 020).
+- **Provider:** OpenAI **B**, `gpt-6.1-sol`, `high` — A remains quota-exhausted until 2026-11-18T13:43. **Sixth B dispatch.**
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** worker `[RUNNING]` receipt with its narrower allowlist, then source → offline checks → `[HANDED-OFF]` on #549 for Manager source review. I do **not** close #549 and do **not** give an integration verdict.
+
+
 
 
 
