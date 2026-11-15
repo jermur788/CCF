@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta,timezone
 import json
 import os
+import stat
 from pathlib import Path
 import subprocess
 import tempfile
@@ -15,6 +16,7 @@ sys.path.insert(0,str(OPS/'scripts'))
 from _ccf import ROOT, BOARD_FIELDS, board_read, command, fields_read, storage_check, on_storage, storage_health, require_storage
 
 storage_check()
+DEVICE=command(['findmnt','-n','-o','SOURCE','-T',str(ROOT)])
 TMP=on_storage(ROOT/'CCF-Temp')
 os.environ.update(TMPDIR=str(TMP),TMP=str(TMP),TEMP=str(TMP),XDG_CACHE_HOME=str(TMP/'cache'),PYTHONDONTWRITEBYTECODE='1',GIT_OPTIONAL_LOCKS='0')
 SCRATCH=Path(tempfile.mkdtemp(prefix='foundation-test-',dir=TMP))
@@ -25,6 +27,14 @@ def check(condition,label):
     global count
     if not condition: raise AssertionError(label)
     count+=1; print('PASS:',label,flush=True)
+
+def backing_device_matches(device,path):
+    # Compare a block device with the guarded filesystem, not its kernel name.
+    try:
+        info=os.stat(device)
+        return stat.S_ISBLK(info.st_mode) and info.st_rdev==os.stat(path).st_dev
+    except OSError:
+        return False
 
 def run(args,code=0):
     p=subprocess.run([str(v) for v in args],capture_output=True,text=True,env=os.environ)
@@ -67,7 +77,7 @@ run(['git','-C',seed,'worktree','add','-b','test/clean',clean]); run(['git','-C'
 run(['git','-C',clean,'branch','--set-upstream-to=test/seed'])
 board=SCRATCH/'board.md'; board.write_text('| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n')
 config=SCRATCH/'lanes.json'
-cfg={'schema':1,'storage':{'root':str(ROOT),'uuid':'18D6-896E','fstype':'exfat','device':'/dev/sda2','minimum_free_bytes':15*1024**3},'repository':str(seed/'.git'),'git_stores':[{'name':'fixture','git_dir':str(seed/'.git')}],'board':'board.md','lanes':[{'lane':n,'path':str(p),'purpose':'isolated test','unity':n=='U1'} for n,p in [('U1',clean),('dirty',dirty),('missing',missing),('NonUnity',seed)]]}
+cfg={'schema':1,'storage':{'root':str(ROOT),'uuid':'18D6-896E','fstype':'exfat','device':DEVICE,'minimum_free_bytes':15*1024**3},'repository':str(seed/'.git'),'git_stores':[{'name':'fixture','git_dir':str(seed/'.git')}],'board':'board.md','lanes':[{'lane':n,'path':str(p),'purpose':'isolated test','unity':n=='U1'} for n,p in [('U1',clean),('dirty',dirty),('missing',missing),('NonUnity',seed)]]}
 config.write_text(json.dumps(cfg))
 # Byte content AND mtimes of fixture Git metadata must not change under inventory.
 metadata=list((seed/'.git').rglob('*'))
@@ -75,8 +85,8 @@ before={str(p):(p.stat().st_mtime_ns,p.read_bytes()) for p in metadata if p.is_f
 rows=json.loads(cli('lane-status','--config',config,'--json'))
 check(rows[0]['exists'] and rows[0]['registered_worktree'] and rows[0]['dirty'] is False,'lane clean')
 check(rows[0]['ahead_behind']==['0','0'],'lane ahead/behind local refs')
-check(rows[0]['zx20'] is True and rows[0]['backing_device']=='/dev/sda2','lane verifies backing device and ZX20 YES')
-check(rows[2]['zx20'] is True and rows[2]['backing_device']=='/dev/sda2','absent lane reports nearest-parent ZX20 device')
+check(rows[0]['zx20'] is True and backing_device_matches(rows[0]['backing_device'],ROOT),'lane verifies backing device and ZX20 YES')
+check(rows[2]['zx20'] is True and backing_device_matches(rows[2]['backing_device'],ROOT),'absent lane reports nearest-parent ZX20 device')
 check(rows[1]['dirty'] is True,'lane dirty is data, exit zero')
 check(not rows[2]['exists'] and not rows[2]['registered_worktree'],'lane missing tolerated')
 check(before=={str(p):(p.stat().st_mtime_ns,p.read_bytes()) for p in metadata if p.is_file()},'lane-status leaves Git metadata bytes/mtimes unchanged')
@@ -96,7 +106,7 @@ config.write_text(json.dumps(cfg))
 off=json.loads(json.dumps(cfg)); off['lanes'].append({'lane':'off-storage','path':'/','purpose':'read-only negative sentinel','unity':False})
 config.write_text(json.dumps(off))
 off_rows=json.loads(cli('lane-status','--config',config,'--json'))
-check(off_rows[-1]['zx20'] is False and off_rows[-1]['backing_device']=='/dev/sdb2','off-storage reports actual root device and ZX20 NO')
+check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],'/') and not backing_device_matches(off_rows[-1]['backing_device'],ROOT),'off-storage reports actual root device and ZX20 NO')
 check('ZX20: NO' in cli('lane-status','--config',config),'off-storage human output clearly says ZX20: NO')
 check(off_rows[-1]['HEAD'] is None and any('STOP' in w for w in off_rows[-1]['conflict_warning']),'off-storage warning stops writable-lane inspection')
 config.write_text(json.dumps(cfg))
@@ -107,7 +117,7 @@ check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board
 health=storage_health(cfg['storage'])
 check(health['ready'] and health['writable'] and health['free_bytes']>=15*1024**3,'actual ZX20 rw/free PASS')
 check(storage_health(cfg['storage'],free_bytes=0)['status']=='LOW SPACE','shared low-space admission BLOCK')
-ro={'source':'/dev/sda2','target':str(ROOT),'fstype':'exfat','uuid':'18D6-896E','options':'ro,nosuid'}
+ro={'source':DEVICE,'target':str(ROOT),'fstype':'exfat','uuid':'18D6-896E','options':'ro,nosuid'}
 check(storage_health(cfg['storage'],mount_info=ro)['status']=='READ ONLY','read-only mount admission BLOCK')
 low=json.loads(cli('lane-status','--storage-only','--json','--config',config,'--test-free-bytes','0',code=1))
 check(low['status']=='LOW SPACE' and not low['ready'] and low['minimum_free_bytes']==15*1024**3,'lane-status low-space hard stop')
