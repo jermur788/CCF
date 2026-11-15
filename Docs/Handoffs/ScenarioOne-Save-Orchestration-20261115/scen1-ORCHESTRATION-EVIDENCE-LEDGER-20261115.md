@@ -397,6 +397,31 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE. **Retries:** 1 (harness provisioning, already logged as EVENT 020), zero rework.
 - **Blocker status:** T-01 **cannot** start. It needs #424's file-set exclusivity and base ruling. This is an ownership gate, so per the continuation packet the run stops here rather than working around it.
 
+### EVENT 022 — 2026-11-15T14:20Z — CCF-Ops device-pin defect: exact minimal fix identified and safety-tested (proposal only, NOT applied)
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator read the tooling and executed a read-only identity simulation).
+- **Event type:** OTHER (ops diagnosis for the operations owner).
+- **Why this belongs in the ledger:** request 3 to #424 was "nominate someone to repair the lease tooling". A nomination request is weak; a located defect with a provable minimal fix and a negative test is directly actionable. This converts an open blocker into one reviewable decision. **I did not modify the tooling.**
+- **The defect, located precisely.** `CCF-Ops/scripts/_ccf.py` binds storage identity to the **Linux device node**:
+  - `storage_check()` line 36: `if info['source'] != device or …` 
+  - `storage_health()` line 45–46: `identity = (info['source'] == storage['device'] and …)`
+  `device` comes from `lanes.json` (`/dev/sda2`). The live mount is `/dev/sdc2`. **The device node is the one component of that identity Linux does not keep stable** across boots and port changes; UUID exists precisely to survive that. The check therefore produces a **false negative**: the storage is the correct physical volume and is rejected as not being it.
+- **Demonstrated, not argued — live output:**
+
+  | Test | Result | Meaning |
+  | --- | --- | --- |
+  | Live mount | `source=/dev/sdc2 target=/media/jer/ZX20 fstype=exfat uuid=18D6-896E` | real backing volume |
+  | Config | `device=/dev/sda2 uuid=18D6-896E fstype=exfat` | stale device node, **correct UUID** |
+  | Identity **with** device binding | **False** | fails today (false negative) |
+  | Identity **without** device binding | **True** | passes on the real storage |
+  | Negative: wrong UUID `DEAD-BEEF` | **False** | protection still bites |
+  | Negative: wrong FSTYPE `ext4` | **False** | protection still bites |
+
+- **Proposed minimal fix for owner review:** stop binding on `source`; keep `target` + `fstype` + `uuid` as the binding identity in **both** functions (fixing only `storage_check` would leave `storage_health` reporting `WRONG DEVICE`), and demote `device` in `lanes.json` to a recorded **advisory** value that is reported but never authoritative.
+- **Why this is not a safety weakening:** the properties that actually identify the volume — filesystem UUID and type, plus the mount target — remain enforced, and the negative cases above prove they still reject a wrong volume. This is removing a false negative, not removing a check.
+- **Status: PROPOSAL.** Not applied, not approved. The operations owner decides; the continuation packet requires a separate scoped ops claim with both positive and negative verification and no Editor launches. The demonstration above is the positive/negative evidence that claim would need.
+
+
 
 
 
