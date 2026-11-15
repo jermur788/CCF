@@ -91,6 +91,21 @@ A future independently reviewed P1 schema must represent:
 
 **Automatic BLOCK / NO-GO** if the owner instead requires a predictive Irish individual-tree model without licensed repeated-measure spatial field data; if parity cannot be reliably reproduced; if source model switching depends on mixed demand; if P0 byte/hash/history safety is compromised; if unknown/unsupported platform I/O falls back to weak path-based writes; if scope expands to player workflow/Unity/racks/mixed species without a new approved spec; or if evidence is presented as field validation without held-out observations.
 
+### Reviewer finding crosswalk — complete m-1…m-8
+
+These independent findings have **not** been independently resolved by this DRAFT; they define what a spec reviewer must check:
+
+| Finding | Explicit design coverage | Status |
+|---|---|---|
+| **m-1** Stage-sensitive height | Mature-equivalent only; refuse Sapling/Young, §3 and §5 | **DRAFT** |
+| **m-2** Site productivity is always 1 in current source | Treat as source parity, not a site-class claim, §3/§5 | **DRAFT** |
+| **m-3** Pre-existing dead P0 trees lack cause/year | Synthetic pre-inventory mapping, no new death event, §5 | **OPEN** |
+| **m-4** Mixed float32/double source and float saves | Exact precision/roundtrip needs oracle and policy, §5–6 | **OPEN** |
+| **m-5** Square centred CCF stand vs polygon P0 | Square source-parity fixture before polygon extension, §3/§5 | **OPEN** |
+| **m-6** RNG version determines death roll independently of growth | Record separate RNG + growth versions and test both, §3/§5 | **OPEN** |
+| **m-7** 113 observations used in **volume-equation** calibration | Explicit model and PDF vs print-page attribution, §2 | **DRAFT** |
+| **m-8** Below-threshold population and near-onset density fixture | Separate all-living/P0 eligible metrics and fixture policies, §5–6 | **OPEN** |
+
 ## 7. DRAFT decision register (C-1…C-7) — NOT YET ADOPTED
 
 | ID | Reviewer-required decision | DRAFT proposal for independent scrutiny | Status |
