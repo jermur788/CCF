@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 
 ROOT = Path('/media/jer/ZX20')
@@ -30,11 +31,37 @@ def on_storage(path, root=ROOT):
         raise ValueError(f'path is on another filesystem: {path}')
     return path
 
-def storage_check(root=ROOT, uuid='18D6-896E', fstype='exfat', device='/dev/sda2'):
+def same_device(a, b):
+    """True when two paths name the same block device.
+
+    Kernel names such as /dev/sda2 can change between boots, so the config
+    registers a persistent /dev/disk/by-id path and we compare device numbers.
+    """
+    try:
+        sa, sb = os.stat(a), os.stat(b)
+    except OSError:
+        return False
+    return stat.S_ISBLK(sa.st_mode) and stat.S_ISBLK(sb.st_mode) and sa.st_rdev == sb.st_rdev
+
+
+def visible_uuid_devices(uuid):
+    """Every visible block device carrying this filesystem UUID."""
+    data = json.loads(command(['lsblk','-lJ','-o','PATH,UUID']))
+    return [d['path'] for d in data.get('blockdevices', []) if (d.get('uuid') or '').lower() == uuid.lower()]
+
+
+def require_unique_uuid(uuid):
+    devices = visible_uuid_devices(uuid)
+    if len(devices) != 1:
+        raise ValueError(f'filesystem UUID {uuid} must be visible on exactly one device, found: {devices}')
+
+
+def storage_check(root=ROOT, uuid='18D6-896E', fstype='exfat', device='/dev/disk/by-id/ata-NetacPortableSSD_AA20260702512G231151-part2'):
     root = Path(root).resolve(strict=True)
     info = json.loads(command(['findmnt','-J','-T',str(root),'-o','SOURCE,TARGET,FSTYPE,UUID']))['filesystems'][0]
-    if info['source'] != device or info['target'] != str(root) or info['fstype'] != fstype or (info['uuid'] or '').lower() != uuid.lower():
+    if not same_device(info['source'], device) or info['target'] != str(root) or info['fstype'] != fstype or (info['uuid'] or '').lower() != uuid.lower():
         raise ValueError(f'ZX20 mount identity mismatch: {info}')
+    require_unique_uuid(uuid)
     return root
 
 
@@ -42,9 +69,11 @@ def storage_health(storage, free_bytes=None, mount_info=None):
     """Observe storage; test arguments may only lower the reported free space."""
     root = Path(storage['root']).resolve(strict=True)
     info = mount_info or json.loads(command(['findmnt','-J','-T',str(root),'-o','SOURCE,TARGET,FSTYPE,UUID,OPTIONS']))['filesystems'][0]
-    identity = (info['source'] == storage['device'] and info['target'] == str(root)
+    identity = (same_device(info['source'], storage['device']) and info['target'] == str(root)
                 and info['fstype'] == storage['fstype']
                 and (info['uuid'] or '').lower() == storage['uuid'].lower())
+    if identity and mount_info is None and len(visible_uuid_devices(storage['uuid'])) != 1:
+        identity = False  # duplicate visible UUID: cannot trust which device is ZX20
     stats = os.statvfs(root)
     available = stats.f_bavail * stats.f_frsize
     if free_bytes is not None:

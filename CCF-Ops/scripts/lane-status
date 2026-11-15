@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 import argparse
 import json
 from pathlib import Path
-from _ccf import command, config_read, board_read, board_conflicts, storage_health, resolve_lane, store_checkouts, branch_conflicts
+from _ccf import same_device, command, config_read, board_read, board_conflicts, storage_health, resolve_lane, store_checkouts, branch_conflicts
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -28,7 +28,7 @@ def main():
         path=Path(item['path']);resolved=path.resolve();exists=path.exists();probe=resolved
         while not probe.exists():probe=probe.parent
         mount=json.loads(command(['findmnt','-J','-T',str(probe),'-o','SOURCE,TARGET,UUID']))['filesystems'][0]
-        zx20=(mount['source']==cfg['storage']['device'] and (mount['uuid'] or '').lower()==cfg['storage']['uuid'].lower() and resolved.is_relative_to(Path(cfg['storage']['root'])) and probe.stat().st_dev==Path(cfg['storage']['root']).stat().st_dev)
+        zx20=(same_device(mount['source'],cfg['storage']['device']) and (mount['uuid'] or '').lower()==cfg['storage']['uuid'].lower() and resolved.is_relative_to(Path(cfg['storage']['root'])) and probe.stat().st_dev==Path(cfg['storage']['root']).stat().st_dev)
         registered=any(Path(c['path']).resolve()==resolved and Path(c['git_dir']).resolve()==Path(cfg['repository']).resolve() for c in checkouts)
         row=dict(lane=item['lane'],path=str(path),resolved_path=str(resolved),backing_device=mount['source'],zx20=zx20,unity_capable=item['unity'],exists=exists,registered_worktree=registered,branch=None,HEAD=None,dirty=None,ahead_behind=None,unity_library=(path/'Library').is_dir(),approx_disk_usage=None,owner=[],conflict_warning=list(duplicates),storage=health,dual_store_conflicts=[])
         active=[t for t in tasks if t['Lane'] in {item['lane'],'CCF-'+item['lane'],str(path)}]
