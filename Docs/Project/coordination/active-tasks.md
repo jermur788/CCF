@@ -2,9 +2,12 @@
 
 Live coordination, **outside the project context commit**. Workers read this file at task start; packets carry locks for workers without live Git access. Lock changes do not advance context.
 
-Temporary authoritative physical record designated by Overall Manager/user for this publication:
-`ops/workflow-foundation-v1:Docs/Project/coordination/active-tasks.md`.
-Only Overall Manager/assigned integrator or the explicitly assigned T1 editor maintains these locks. This designation names one physical record; it does not promote the CCF-Ops board. Future designation is a live coordination change, not a permanent branch requirement.
+**SUPERSEDED AUTHORITY DESIGNATION — 2026-11-15, Scenario One Manager #424:** This October transitional record is NOT the current ownership/lock authority. The single current live GitHub authority is **[`main:Docs/Project/coordination/active-tasks.md`](https://github.com/jermur788/CCF/blob/main/Docs/Project/coordination/active-tasks.md)**, as maintained by the assigned sole Manager/integrator writer under the newer source `main:Docs/Project/AgentWorkflow.md` §Live task locks. Do not use rows below as evidence of current READY, RUNNING or missing ownership; they remain historical and are not bulk-updated. Do not update an old local checkout of this branch as a substitute for fetching current `main`. The CCF-Ops board is only a supporting physical view; it has NOT been physically synchronized for T-02 at this designation change. Manager's exact offline-source-only #551 exception and physical sync claim #553 are recorded in current `main` and the dedicated handoff at `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-MANAGER-T02-LIVE-LOCK-AUTHORITY-RECONCILIATION-20261115.md` on its docs branch. No Unity/Editor/physical lease or other source owner is granted by this historic-branch pointer update.
+
+~~Temporary authoritative physical record designated by Overall Manager/user for this publication:
+`ops/workflow-foundation-v1:Docs/Project/coordination/active-tasks.md`.~~
+**Re-designated:** `main:Docs/Project/coordination/active-tasks.md`.
+Only the current designated Overall/Scenario One Manager or assigned integrator writes the current `main` coordination record; this historical branch is read-only for task status. No CCF-Ops working-view promotion and no physical lock reassignment follows.
 
 Phase 1 worktree stabilisation (2026-10-16) materialises this record in the neutral coordination anchor `/media/jer/ZX20/CCF-Primary` (linked worktree of the bare common store `/media/jer/Files/CCF/Repository.git`, currently checked out on `ops/workflow-foundation-v1`). The anchor's branch is transitional; its role as coordination anchor persists. On 2026-10-21 the shared bare store moved to Files; see `Docs/Operations/StorageArchitecture.md` for the storage policy and path map.
 
