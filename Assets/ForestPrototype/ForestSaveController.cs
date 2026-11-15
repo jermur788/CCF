@@ -6,17 +6,15 @@ using UnityEngine.InputSystem;
 
 public sealed class ForestSaveController : MonoBehaviour
 {
-    private const string SaveFileName = "forest-save.json";
-
     private string message = "";
     private float messageTimer;
     private GUIStyle messageStyle;
 
-    private static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
+    private static string SavePath => ForestSaveSessionContext.CurrentPaths.Primary;
     // The new save is written here first and only swapped in once complete.
-    private static string TempSavePath => SavePath + ".tmp";
+    private static string TempSavePath => ForestSaveSessionContext.CurrentPaths.Temporary;
     // The previous good save, kept by the swap so a bad save is recoverable.
-    private static string BackupSavePath => SavePath + ".bak";
+    private static string BackupSavePath => ForestSaveSessionContext.CurrentPaths.Backup;
 
     private void Update()
     {

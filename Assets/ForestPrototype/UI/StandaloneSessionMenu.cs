@@ -74,7 +74,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         if (document != null) UiKit.SetCompact(document.rootVisualElement);
         if (IsOpen) { UnityEngine.Cursor.lockState = CursorLockMode.None; UnityEngine.Cursor.visible = true; }
     }
-    private static string SavePath => Path.Combine(Application.persistentDataPath, "forest-save.json");
+    private static string SavePath => ForestSaveSessionContext.CurrentPaths.Primary;
     public void Open()
     {
         if (IsOpen || FindFirstObjectByType<ScenarioOneManager>()?.ReferencePreviewActive == true) return;
