@@ -598,6 +598,21 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** PROVIDER_QUOTA (A only). **Retries:** 1 capacity retry, 0 rework.
 - **State:** T-02 source **RUNNING on B**; ops durability **RUNNING on B**; no Unity, no merge, no scope violation, no protected edit at this point in the run.
 
+### EVENT 032 — 2026-11-15T22:52Z — Ops durability handed off and orchestrator-verified; the branch fails its OWN self-test, so a bounded repair is dispatched rather than accepted
+
+- **Evidence class:** OBSERVED FACT (my own re-runs and hashes) + ORCHESTRATOR CLAIM (repair dispatch). **The child's claims were checked, not accepted.**
+- **Handoff:** [#548 comment](https://github.com/jermur788/CCF/issues/548#issuecomment-6902689802), branch `ops/unity-lease-persistent-identity-20261115-v1` at **`dee4ee59`**, worktree `/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115`. Changed: `CCF-Ops/lanes.json`, `scripts/_ccf.py`, `scripts/lane-status`, new `deployment.json`, plus a twelve-file evidence directory and the result doc. `git status` clean.
+- **What I verified independently:**
+  - **The live deployment was not touched.** Live `_ccf.py` = `ab4343ef…`, live `lanes.json` = `1b6d70eb…`, live `lane-status` = `e7102a83…` — all **byte-identical to the values I recorded before the child ran**.
+  - The negatives were legitimate: `unity-lock` accepts `--config` **only** when the alternate config is inside `ZX20/CCF-Temp`, and it errors otherwise (`scripts/unity-lock:97-99`). So the 24 rejected commands exercised the real code path against scratch config, not the live one.
+  - The candidate **deliberately does not hash-match live**, and the child said so rather than pretending: it excluded the live 16-lane list and other migration drift. Honest, and the correct call under its instructions.
+- **BUT it does not pass its own gate, and that is disqualifying for a "durable" artefact.** I ran `python3 -B tests/self-test.py` on the branch: **`AssertionError … ERROR: missing repository: /media/jer/ZX20/CCF-Repository.git`**. The branch still carries the **pre-migration repository path** — the same class of defect as the device node it just fixed — so its own test suite cannot run. A branch that fixes one stale storage identity while keeping another is not the durable fix it claims to be.
+- **Second, deeper finding — the manifest model itself is wrong, not just stale.** `deployment.json` records `source_hashes` for files that are **operationally mutable by design** (`board/active.md`, `ledger/`, `state/`, and the lane list inside `lanes.json`). Those can never hash-match source. Encoding them as source hashes guarantees permanent false failures — **which is exactly the condition under which a real drift gets ignored**. The truthful fix is to separate pure source from declared live state, not to chase hashes.
+- **Dispatch (bounded repair, same child line of work):** set `repository` to the migrated Files path (that field only, **no** 16-lane import); re-run **both** gates and paste real output; classify any remaining failure as (a) inherited base defect, (b) migration drift to fix, or (c) live state that must not be imported — fix only (b) and **leave a legitimate failure failing** rather than faking green; make provenance truthful with an explicit live-state exclusion and **prove it both ways** (passes on the live tree, still fails on a deliberately tampered source copy in scratch); one permitted live write, the provenance file only, with a timestamped backup and before/after hashes.
+- **Why this is not scope creep:** a lease tool whose own test suite cannot run is not verifiable, and unverifiable tooling is how the previous session's false blocker happened in the first place. This closes the same defect at its root instead of declaring the tool "fine because status printed free".
+- **State:** ops **RUNNING (repair)**; T-02 **RUNNING**. No Unity, no Editor, no game source, no board write, user's two dirty anchor files untouched.
+
+
 
 
 
