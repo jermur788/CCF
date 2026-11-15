@@ -281,6 +281,21 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** on verdict → consolidated decision packet + final result, notifications, #535 closure.
 
+### EVENT 015 — 2026-11-15T13:30Z — delta re-check DELTA RESOLVED / FIT TO SIGN; run closed HANDED-OFF
+
+- **Evidence class:** OBSERVED FACT (delivery verified by the orchestrator) + reviewer verdict.
+- **Event type:** REVIEW_END → CHECKPOINT.
+- **Work unit / claim:** V2-E, [#541](https://github.com/jermur788/CCF/issues/541). **Provider:** Claude A, `claude-opus-5-5`, effort `medium`, same reviewer as #539 (intentional).
+- **Delivery verified:** branch `docs/scen1-save-spec-v2-delta-recheck-20261115-v1`, commit `23e923b5`, **1 file changed / 107 insertions**, #541 CLOSED. No candidate file edited.
+- **Verdict: DELTA RESOLVED — FIT TO SIGN. 13/13 findings resolved, 0 unresolved.** Report: [scen1-SHARED-SAVE-SPEC-V2-DELTA-RECHECK-20261115.md](https://github.com/jermur788/CCF/blob/23e923b5/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-SHARED-SAVE-SPEC-V2-DELTA-RECHECK-20261115.md).
+- **Substance confirmed by the reviewer against document text (not the repair report):** §0.4 discloses nine historical changes with none called "unchanged", and answers **"yes, a previously loadable save can fail"** for H-05 (foreign scenario identity) and H-08 (direct code-level loads bypassing validation). M-4: pre-mutation rejection of another scenario's save is now the **default** citing D-079/D-081, genuine O1 loads unchanged, warn-and-continue demoted to a canon departure needing owner re-decision, the clause forbidding a fix **removed**, and ISO-42 now *requires* the narrow fix if it fails. M-5: ISO-58 blocked wholesale on CG-TRIG with stated unblocking conditions. Regression: intact.
+- **One NEW NIT (verified by the orchestrator):** `spec.md:34` contains a blank line that terminates the change-register table, so `C-22…C-34` render as a paragraph on GitHub. **Deliberately NOT fixed** — editing after the delta check would break the rule that the signable artefact is byte-identical to the reviewed commit; a repair would need a new candidate and a fresh delta check, which is disproportionate for a blank line. Recorded in the final result (§1) instead of silently diverging.
+- **Run accounting at closure:** 5 child claims created, 5 closed, 0 abandoned, 0 leaked; 1 quota dispatch lost with zero work loss; 4/4 Sol tasks successful on OpenAI B; 2/2 Opus reviews successful on Claude A; **0 Sonnet fallback uses** (condition never met); **0 Unity leases, 0 imports, 0 builds, 0 production source edits, 0 save-file writes, 0 live-board writes**.
+- **Failure classification:** UNKNOWN/NONE.
+- **Final state:** Stage A **COMPLETE**; stages B–G **gate-blocked** with one grouped owner decision ready. #535 closed **[HANDED-OFF]**, not falsely complete and not [BLOCKED] — the authorised work is finished, and the remaining stop is a deliberate product gate, not a failure.
+- **Handoff URLs:** [final result](https://github.com/jermur788/CCF/blob/orchestration/scen1-shared-save-compact-complete-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-DEEPSEEK-SHARED-SAVE-COMPACT-ORCHESTRATION-FINAL-RESULT-20261115.md); notifications to [#424](https://github.com/jermur788/CCF/issues/424) and [#425](https://github.com/jermur788/CCF/issues/425).
+
+
 
 
 
