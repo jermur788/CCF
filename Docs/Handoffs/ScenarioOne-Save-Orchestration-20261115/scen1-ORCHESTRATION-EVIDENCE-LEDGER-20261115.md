@@ -545,6 +545,25 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** `[RUNNING]` receipt with the narrower allowlist → source → offline evidence → `[HANDED-OFF]` on #551 left open → **new** independent Opus claim on the exact T-02 head → Manager verdict.
 
+### EVENT 029 — 2026-11-15T19:20Z — T-02 second hard stop: a REAL packet gap (requirement names menu routes; ceiling excludes the menu file)
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator read the actual source and the worktree) + ORCHESTRATOR CLAIM (recommendation).
+- **Event type:** BLOCK_START. **Failure class: SCOPE/AUTH (packet internal inconsistency)** — not a defect in the code, not a capacity event.
+- **What the worker found, independently verified by me in source — it is correct and material:**
+  - `UI/StandaloneSessionMenu.cs:123` — `ActionButton(… () => { Close(); saves?.Load(); })` — **closes before loading**, so a foreign or corrupt save still closes the menu.
+  - `UI/StandaloneSessionMenu.cs:145` — `SaveAndClose() { Close(); saves?.Save(); }` — closes before save validation.
+  - `Close()` at `:94–102` mutates `IsOpen`, `startupScreen`, `sessionNote`, **`Time.timeScale`**, session document `display`, **`saves.enabled`**, **`forestUi.enabled` + root display**, **`player.enabled`**.
+  - `UI/StandaloneSessionMenu.Startup.cs:94–105` — `CanLoad` validates, then help is dismissed, `Close()` runs, **then `saves.Load()` re-reads the file**. No same-bytes token binds the two reads, so a refusal or an intervening file change leaves help dismissed and the menu closed.
+  These breach **FR-04** (refusal must preserve UI active selection and the live world) and **FR-02 step 9** (bytes unchanged between admission and apply). G0 had already flagged the same two-read structure at `StandaloneSessionMenu.Startup.cs:102–105`.
+- **Why this is a packet gap, not worker error:** the packet's requirement 3 explicitly names *"menu Save/Load/Continue"* and requirement 2 says pre-mutation rejection must hold *"on every allowed route"* — while the candidate write ceiling **excludes both menu files** and requires prior grant for caller expansion. **The requirement cannot be satisfied within the ceiling.** The worker refused to widen scope to satisfy it, which is exactly the discipline the packet asked for. A weaker worker would have edited the menu file and reported success.
+- **Escalated with two rulings and a recommendation (Option A):** grant the narrow two-file menu repair — admit → then close → then apply, plus a same-bytes binding on startup Continue, with **no visual/layout/wording/navigation change** — because a refused load closing the player's menu is precisely the "honest failure" defect the contract exists to prevent. Option B offered as the alternative: declare menu pre-mutation closure a **T-03** deliverable and record it as a **dated, explicit residual FR-04 breach**, not a silent omission.
+- **Worktree state verified by me and preserved:** HEAD **unchanged** at `da962372`; **no commit, no push, no result doc**; exactly **three** modified in-ceiling files (`ForestSaveController.cs`, `ForestSaveValidation.cs`, `ScenarioOne/ScenarioOneManager.cs`) and nothing else. **This is real partial work that must not be discarded** — the next sequential writer will adopt it and commit it as a checkpoint before continuing.
+- **Worker's own evidence, kept at its stated grade:** **160 Tier1 assertions, 0 failed** on the final run; C#9 syntax checks pass; **all 25 existing historical-validator methods unchanged**; `git diff --check` clean; earlier harness failures disclosed. It states explicitly these are **Newtonsoft + source-derived fields + stubs, not Unity compilation or runtime**, and that genuine-fixture/native serialisation equivalence is **pending**. I did **not** upgrade that claim.
+- **Protected state confirmed untouched:** availability flags unchanged (Compact/O2 still unavailable), no real save/pref access, no protected asset edit, no `#443` inheritance, all 63 ISO items unchecked, no Unity.
+- **Failure classification:** **SCOPE/AUTH**. **Retries:** 2 (both correct stops), **zero bad edits**, zero scope violations.
+- **Next:** on Manager ruling → adopt partial work + narrow repair (A) or finalise against narrowed contract (B) → handoff → independent review.
+
+
 
 
 
