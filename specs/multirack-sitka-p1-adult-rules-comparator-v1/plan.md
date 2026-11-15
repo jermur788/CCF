@@ -95,6 +95,10 @@ The [spec decision register](spec.md#7-draft-decision-register-c-1c-7--not-yet-a
 - Original 2006 volume selected-page spot check covered stand state/age30 SI, 113 **volume-model** calibration observations and G2b's 70/43 plot split. Full original GROWFOR manual/executable, full 2013/2017 originals and precise field H definition remain unchecked. Mark every cross-source accuracy assertion with its level of verification.
 - No GBIF plot import: [#479](https://github.com/jermur788/CCF/issues/479) did not establish complete licensed Irish spatial tree data or longitudinal observations.
 
+### Exact independent review trace (m-1…m-8)
+
+The spec review must confirm **m-1** Mature-only stage-sensitive height, **m-2** fixed source productivity, **m-3** synthetic pre-inventory dead provenance, **m-4** float32/double and serialization, **m-5** square centred source geometry versus P0 polygon, **m-6** RNG-version-separated mortality rolls, **m-7** 113 stand observations used in *volume-equation* calibration and page-base clarification, and **m-8** quantitative threshold/density/SI fixture risk. Every one must remain testable and independently reviewed before G2 spec approval.
+
 ## 7. Expected handoffs and integration verdicts
 
 For each later substantive execution or independent review, publish a **durable GitHub Markdown handoff** with exact branch/source HEAD, actual owner/model/host, live lock/claim, exact file set, commands/observations and true verdict. Separate **IMPLEMENTED**, **REVIEWED**, **INTEGRATED**, **VERIFIED** and **ACCEPTED**. Manager review labels **APPROVED / NEEDS CHANGES / REJECTED** do not automatically imply user product acceptance or game integration.
