@@ -42,6 +42,62 @@ DeepSeek MUST refresh direct provider/tool evidence before first child dispatch 
 
 **Switch rule:** Try Sol A/B as user requested; if A limited, check B; Sonnet only if both A/B unavailable by direct evidence. A claim of quota exhaustion must include source/error and time, checkpoint and clear ownership transfer; no duplicate writer. Treat missing login as AUTH, not model-code incapability. Opus does not become an implementation fallback without fresh user instruction.
 
+### 2A. Pool register — REFRESHED BY ACTUAL DEEPSEEK ORCHESTRATOR, 2026-11-15T09:55Z
+
+The seed table in §2 above is left unedited as manager-provenance history. This is the orchestrator's own direct refresh, taken from one `orchestrator_capabilities` call in this session (single source, tool-reported; no quota endpoint exists in this harness).
+
+| Pool | Directly observed state | Exact model id / effort control | Quota remaining / reset | Capacity-to-completion | Source and confidence |
+| --- | --- | --- | --- | --- | --- |
+| **DeepSeek (parent/orchestrator)** | **AVAILABLE — this session** | `opencode-go/deepseek-v4.1-flash`, variant **high** | **UNKNOWN** (no quota surface) | sufficient for docs/orchestration | OBSERVED FACT, runtime inherited config + capabilities call |
+| **OpenAI A** (`codex`, display "Codex") | **AVAILABLE** | `gpt-6.1-sol`, reasoningEffort `low…ultra` (+`serviceTier`) | **UNKNOWN** | UNKNOWN until first call | OBSERVED FACT, capabilities enumeration |
+| **OpenAI B** (`codex_c75d8114-…`, display "ChatGPT - OpenAI B") | **AVAILABLE** | `gpt-6.1-sol`, reasoningEffort `low…ultra` | **UNKNOWN** | UNKNOWN until first call | OBSERVED FACT, capabilities enumeration |
+| **Claude A** (`claudeAgent`) | AVAILABLE | `claude-sonnet-5-5` (effort `low…ultrathink`), `claude-opus-5-5` (same) | **UNKNOWN** | UNKNOWN | OBSERVED FACT, capabilities enumeration |
+| **Claude B — Pro** (`claudeAgent_claude_b_pro`) | AVAILABLE | `claude-sonnet-5-5`, `claude-opus-5-5` | **UNKNOWN** | UNKNOWN | OBSERVED FACT, capabilities enumeration |
+| Cursor / Grok / Antigravity / fx / Kiro / Muse / Pi | **DISABLED** (provider constraint string) | n/a | n/a | unusable | OBSERVED FACT, capabilities enumeration |
+
+**Consequence for routing:** both OpenAI pools are declaratively available, so the user's Sonnet-fallback condition (**both** OpenAI pools unavailable) is **not met** and has not been triggered anywhere in this run. "Available in the catalogue" is **not** proof of usable quota; every real dispatch is recorded with its own observed outcome. No reset time was observed anywhere and none is invented.
+
+---
+
+## 4A. DeepSeek orchestrator LIVE entries (appended from run start)
+
+### EVENT 001 — 2026-11-15T09:52:41Z — PARENT RUN START and registration
+
+- **Evidence class:** OBSERVED FACT (local git/CLI/tool output) + ORCHESTRATOR CLAIM (routing decisions). Each is marked.
+- **Event type:** RUNNING_START.
+- **Work unit, claim, stage, attempt, difficulty:** parent orchestration claim [#535](https://github.com/jermur788/CCF/issues/535), Stage 0 admission, attempt 1, difficulty HIGH (5/5) as stated in the binding handoff.
+- **Actual provider/model/effort and pool:** `opencode-go/deepseek-v4.1-flash`, variant `high`, OpenCode provider (`opencode-go`). **OBSERVED FACT** (session runtime info + capabilities `inheritedOptions`).
+- **Previous provider/model:** none — first actual registration; the seed's "UNKNOWN / NOT REGISTERED" state is hereby superseded by direct observation.
+- **Policy and routing reason:** user's direct 15 Nov instruction (DeepSeek High parent orchestrator ONLY, Sol 6.1 primary developer, Sonnet only on both-OpenAI exhaustion, Opus 5.5 Medium independent review). Orchestrator role is fixed; no self-implementation, no self-review, no Unity lease.
+- **Observed pool state:** see §2A refresh above — A/B/Sonnet/Opus all declaratively AVAILABLE; all quotas **UNKNOWN**.
+- **Timestamp and clock source:** `2026-11-15T09:52:41Z`, host `date -u` (`/media/jer/Files/CCF-Primary`).
+- **Branch / worktree / start full HEAD:** NEW orchestration branch `orchestration/scen1-shared-save-compact-complete-20261115-v1`, created **at** the published Manager release head `b5ae52d4c057bad819259c135d48a7b2ec32be6e` (verified by `git worktree add -b` output "HEAD is now at b5ae52d4"). Isolated docs-only worktree `/media/jer/Files/CCF/Orchestration/CCF-Scen1-SharedSave-20261115` (new directory, did not previously exist), clean at creation (`git status --short --branch` empty). **This is NOT `/media/jer/Files/CCF-Primary`**, which stays read-only for this run.
+- **Authority / ownership:** single writer of this ledger, new child packets and the final result on the orchestration branch. **No live-board write**, no production source, no Unity.
+- **Live board receipt:** `Docs/Project/coordination/active-tasks.md` on `ops/workflow-foundation-v1` read at `46247486b37904f6b36825bb40fb6ed7bea35e88`; **no SCENARIO-ONE-SAVE row exists and no save/compact owner is registered**; unrelated rows are historical and preserve their own locks.
+- **Unity process / Ops lease / disk:** **NO Unity lease held or requested.** `pgrep -fa "Unity|unity-editor|Xephyr|openbox"` returned no Unity process. `/media/jer/ZX20/CCF-Ops/state/unity/lock.json` **does not exist** ⇒ physical lock FREE by record, and `history.jsonl` last mtime 2026-11-14. Disk: Files 143 GiB free, ZX20 52 GiB free (above the 15 GiB lane floor).
+- **Environment finding (recorded, not a product failure):** `CCF-Ops/scripts/unity-lock status` **fails** with `ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', …}` because `CCF-Ops/lanes.json:storage.device` records `/dev/sda2` while the live mount is `/dev/sdc2` (UUID `18D6-896E` and fstype `exfat` both match). **Consequence:** the documented lease CLI cannot be exercised from this session. This does not block any authorised work in this run (no Unity is authorised), but it **is** a real blocker for any future Unity stage until the ops owner reconciles the device pin.
+- **Protected user work preserved:** `/media/jer/Files/CCF-Primary` still shows exactly the two user-owned modifications `AGENTS.md` and `Docs/Operations/StorageArchitecture.md` and `HEAD 46247486b37904f6b36825bb40fb6ed7bea35e88` on `ops/workflow-foundation-v1`. Nothing was stashed, reset, cleaned, committed or absorbed.
+- **Repository-topology finding (important, OBSERVED FACT):** the Manager release branch is **not** a descendant of `main`. Its parent is `8217f5f8` ("release DeepSeek-only orchestrator packet …"), whose tree is content-identical to `main` at `fc18190b`; `git diff --name-status origin/main origin/docs/scen1-deepseek-shared-save-implementation-release-20261115-v1` reports **exactly 2 added files** (the handoff and this ledger) and **0 modifications**. So the release head is content-equivalent to `main@fc18190b` plus the two documents, but shares no merge-base with `main`. Basing the orchestration branch on it (as the handoff instructs) is content-safe yet will need a deliberate rebase/cherry-pick decision at integration time. Recorded so nobody later mistakes this for a mergeable fast-forward.
+- **Failure classification:** UNKNOWN/NONE.
+- **Retries / checkpoint:** none.
+- **Handoff URL / issue status / next action:** this ledger commit on the orchestration branch; #535 to be marked [RUNNING] with an explicit link; next = child claim for the read-only source/fixture audit.
+
+### EVENT 002 — 2026-11-15T09:55Z — pre-dispatch authority triage (dependency DAG fixed)
+
+- **Evidence class:** ORCHESTRATOR CLAIM on OBSERVED documentary facts (#533 result, #530 four-file DRAFT, main Decision Log, live board).
+- **Event type:** OTHER (planning / gate classification). No dispatch yet, so no child is blocked by this record.
+- **What was read, and its status:** #533 "[DECISION INTAKE COMPLETED … NOT APPROVED]" (`docs/overall-425-three-profile-bq-decision-20261115-v1@8f44056`); the #530 four-file shared-save DRAFT (`spec.md` 47,614 B / 185 lines, `plan.md` 15,687 B, `tasks.md` 13,358 B, `checklists/requirements.md` 22,216 B / 123 lines, **63 ISO items, all unchecked**); the live Decision Log (D-056/D-064/D-065/D-071 five-rack Enlarged80 policy still canonical; **D-082 absent**); `specs/` on the release tree contains only `multiscale-forestry-management-v1`, `scenario-one-objective-1-rack-planning-field-marking-v2`, `_template`, `README` — **the save-isolation and compact specs are NOT on this branch or on main**.
+- **Gate decision (the operative conclusion of this event):**
+  1. **G0 (read-only source/provenance audit) — AUTHORISED NOW**, per handoff §4 "Immediate, authorised now without coding". Dispatch a Sol 6.1 child.
+  2. **G1 (formal four-file APPROVED spec) — NOT MET.** #533 §5 requires an actual owner/#425 ratification of the B/Q package; the user's 15 Nov "approved" is recorded by the Manager as *design direction, not spec ratification*. **No production implementation may start.**
+  3. **Compact parent/child + D-082 — NOT MET.** #516 (115 unchecked) and #515 (33 unchecked) remain DRAFT; #471 paused; D-082 absent from the Decision Log. **No compact code, no new world.**
+  4. Therefore stages **B, C, D, E, F, G** of handoff §5 are **gate-blocked, not resource-blocked**. Safe parallel work for this run = G0 audit + the final-spec *approval candidate* + independent nonauthor review of that candidate's changed policy + the consolidated decision packet.
+- **Why this is not premature escalation:** the handoff explicitly classifies "missing four-file APPROVED authority" as an escalation trigger and forbids DeepSeek from self-approving persistence policy. The run continues on every safe deliverable instead of stopping.
+- **Failure classification:** SCOPE/AUTH (genuine product-approval gate), not PRODUCT/DEFECT.
+- **Next:** create the G0 child claim, dispatch Sol 6.1, and in parallel author the approval-candidate package on this branch.
+
+
+
 ## 3. Current prospective stage/task ledger
 
 | Stage | Status at seed | Claim / owning provider | Qualification gate |
