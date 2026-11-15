@@ -16,6 +16,8 @@
 
 **Only P1-S0 is the logical next review after the DRAFT publication.** Even P1-S0 requires a separately created claim and task packet; it is not active just because this row exists. G0 and P1-01…05 are **BLOCKED / NOT RELEASED**.
 
+**Complete unresolved specification decisions:** **C-1** distinct P1 identity/import/fork; **C-2** source-precision/roundtrip; **C-3** all-living biological population vs P0 action subset; **C-4** Mature/crown/dead/site/seed initial states; **C-5** square/polygon and SI/top-height; **C-6** current-source oracle and stale harness ownership; **C-7** scientific UI/export labels. All remain **OPEN** until reviewed and approved; their presence in this task table is not acceptance.
+
 ## 2. Pre-task source/ownership protocol (all future workers)
 
 Before local inspection/tests/edits, the worker must:
