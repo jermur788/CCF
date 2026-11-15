@@ -7,7 +7,7 @@
     "device": "/dev/disk/by-id/ata-NetacPortableSSD_AA20260702512G231151-part2",
     "minimum_free_bytes": 16106127360
   },
-  "repository": "/media/jer/ZX20/CCF-Repository.git",
+  "repository": "/media/jer/Files/CCF/Repository.git",
   "board": "board/active.md",
   "lanes": [
     {

@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Read-only deployment hash audit; PASS=0, drift=1, invalid receipt=2."""
+import sys
+sys.dont_write_bytecode = True
+import argparse
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import re
+
+
+# These are the only exclusions. Source code cannot be declared live state.
+LIVE_STATE = {'board/active.md', 'ledger/', 'state/',
+              'lanes.json#/lanes', 'scripts/__pycache__/'}
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def config_digest(data):
+    """Hash every config key except the explicitly mutable lane registrations."""
+    cfg = json.loads(data)
+    if not isinstance(cfg, dict) or not isinstance(cfg.get('lanes'), list):
+        raise ValueError('lanes.json must contain a lanes list')
+    del cfg['lanes']
+    return digest(json.dumps(cfg, sort_keys=True, separators=(',', ':'),
+                             ensure_ascii=True).encode('utf-8'))
+
+
+def checked_path(root, name):
+    path = PurePosixPath(name)
+    if path.is_absolute() or '..' in path.parts or str(path) != name:
+        raise ValueError('invalid relative hash path: ' + name)
+    target = root / name
+    if target.is_symlink() or not target.resolve().is_relative_to(root.resolve()):
+        raise ValueError('hash path escapes root or is a symlink: ' + name)
+    return target
+
+
+def expected_hash(value):
+    if not isinstance(value, str) or not re.fullmatch('[0-9a-f]{64}', value):
+        raise ValueError('expected a lowercase SHA-256 digest')
+    return value
+
+
+def operational(name):
+    return name == 'board/active.md' or any(name.startswith(prefix) for prefix in
+            ('ledger/', 'state/', 'scripts/__pycache__/'))
+
+
+def metadata(name):
+    return name == 'deployment.json' or bool(re.fullmatch(
+        r'deployment\.json\.bak-\d{8}T\d{6}Z', name))
+
+
+def verify(manifest, root, candidate_root=None):
+    if manifest.get('schema') != 2:
+        raise ValueError('deployment receipt requires schema 2')
+    state = manifest['live_state']
+    if set(state) != LIVE_STATE or any(not isinstance(v, str) or not v.strip()
+                                     for v in state.values()):
+        raise ValueError('live_state must name exactly the documented paths with reasons')
+    hashes = dict(manifest['source_hashes'])
+    if not hashes:
+        raise ValueError('source_hashes cannot be empty')
+    overrides = manifest['deployed_overrides']
+    if set(hashes) & set(overrides):
+        raise ValueError('source_hashes and deployed_overrides overlap')
+    for name, entry in overrides.items():
+        if not entry.get('reason'):
+            raise ValueError('deployed override needs a reason: ' + name)
+        hashes[name] = entry['sha256']
+    if not {'scripts/_ccf.py', 'scripts/lane-status', 'scripts/packet-lint',
+            'scripts/unity-lock'}.issubset(hashes):
+        raise ValueError('all four deployed tools must remain hash checked')
+    if any(operational(n) or metadata(n) or n == 'lanes.json' for n in hashes):
+        raise ValueError('state, metadata and mixed config are not whole-file source hashes')
+    cfg = manifest['configuration_hashes']
+    if set(cfg) != {'lanes.json'} or not cfg['lanes.json'].get('reason'):
+        raise ValueError('configuration_hashes must cover lanes.json with a reason')
+    errors = []
+    for name, expected in sorted(hashes.items()):
+        expected_hash(expected)
+        path = checked_path(root, name)
+        actual = digest(path.read_bytes()) if path.is_file() else 'MISSING'
+        if actual != expected:
+            errors.append(f'{name}: expected {expected}, got {actual}')
+    expected = expected_hash(cfg['lanes.json']['sha256_without_lanes'])
+    actual = config_digest(checked_path(root, 'lanes.json').read_bytes())
+    if actual != expected:
+        errors.append(f'lanes.json (except /lanes): expected {expected}, got {actual}')
+    # Every file is accounted for, including newly added source files.
+    for path in sorted(root.rglob('*')):
+        if path.is_file() or path.is_symlink():
+            name = path.relative_to(root).as_posix()
+            if name not in hashes and name != 'lanes.json' and not operational(name) and not metadata(name):
+                errors.append('unclassified file: ' + name)
+    candidate_count = 0
+    if candidate_root is not None:
+        candidate = manifest['candidate']
+        if not candidate['source_hashes']:
+            raise ValueError('candidate source_hashes cannot be empty')
+        for name, expected in sorted(candidate['source_hashes'].items()):
+            expected_hash(expected)
+            path = checked_path(candidate_root, name)
+            actual = digest(path.read_bytes()) if path.is_file() else 'MISSING'
+            if actual != expected:
+                errors.append(f'candidate {name}: expected {expected}, got {actual}')
+            candidate_count += 1
+    if errors:
+        print('FAIL: deployment provenance')
+        for error in errors:
+            print('  ' + error)
+        return 1
+    print(f'PASS: deployment provenance ({len(manifest["source_hashes"])} source hashes, '
+          f'{len(overrides)} pinned deployed overrides, 1 config projection, '
+          f'{len(state)} reasoned live-state entries)')
+    if candidate_root is not None:
+        print(f'PASS: candidate provenance ({candidate_count} source hashes)')
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--root', type=Path, required=True, help='deployment to audit; never written')
+    parser.add_argument('--manifest', type=Path,
+                        default=Path(__file__).resolve().parents[1] / 'deployment.json')
+    parser.add_argument('--candidate-root', type=Path, help='also check the candidate source files')
+    args = parser.parse_args()
+    if not args.root.is_dir():
+        raise ValueError('missing deployment root: ' + str(args.root))
+    return verify(json.loads(args.manifest.read_text()), args.root, args.candidate_root)
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        print('ERROR: ' + str(error), file=sys.stderr)
+        sys.exit(2)
