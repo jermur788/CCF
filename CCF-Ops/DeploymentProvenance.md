@@ -41,6 +41,16 @@ receipt, invalid JSON or a filesystem error is exit 2. The optional candidate
 check validates the narrow source-file set at its separately named source
 commit, rather than pretending this branch is already deployed.
 
+Round 2 ports repository/board admission for the documented Files CCF tree,
+the two migrated Git-store paths, and durable non-Unity inventory. The candidate
+retains its persistent default device pin. Explicit off-storage inventory
+permission is restricted to non-Unity lanes inside the Files CCF tree; it is
+not permission for arbitrary paths, and default callers remain ZX20-only.
+These intentional differences from live are inventoried in the task result.
+No live lane registrations or board content are imported. Candidate hashes
+also cover the unchanged lock, linter and self-test so the tested scripts and
+the inherited test-device assumptions remain identifiable.
+
 When updating provenance, inspect every immutable difference first. Do not
 make an audit green by excluding source code, rehashing unexplained drift or
 copying board, ledger, state or live registrations into Git. Source acceptance,

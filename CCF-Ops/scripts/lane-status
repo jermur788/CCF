@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 import argparse
 import json
 from pathlib import Path
-from _ccf import same_device, command, config_read, board_read, board_conflicts, storage_health, resolve_lane, store_checkouts, branch_conflicts
+from _ccf import same_device, command, config_read, board_read, board_conflicts, storage_health, resolve_lane, store_checkouts, branch_conflicts, DURABLE_CCF
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -34,7 +34,9 @@ def main():
         active=[t for t in tasks if t['Lane'] in {item['lane'],'CCF-'+item['lane'],str(path)}]
         row['owner']=[t['Owner']+' ('+t['Task ID']+')' for t in active]
         if not health['ready']:row['conflict_warning'].append('BLOCK / '+health['status'])
-        if not zx20:row['conflict_warning'].append('ZX20: NO — STOP; writable-lane inspection skipped')
+        off_durable=(not zx20) and (not item['unity']) and resolved.is_relative_to(DURABLE_CCF.resolve())
+        if not zx20 and item['unity']:row['conflict_warning'].append('ZX20: NO — STOP; writable Unity lane inspection skipped')
+        elif not zx20 and not off_durable:row['conflict_warning'].append('ZX20: NO — STOP; off-storage lane is not in the durable Files CCF tree')
         elif exists:
             row['approx_disk_usage']=command(['du','-sh',str(path)]).split('\t')[0]
             if not (path/'.git').exists():row['conflict_warning'].append('occupied path is not a Git worktree')

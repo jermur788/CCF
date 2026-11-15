@@ -38,11 +38,11 @@
   "git_stores": [
     {
       "name": "ZX20",
-      "git_dir": "/media/jer/ZX20/CCF-Repository.git"
+      "git_dir": "/media/jer/Files/CCF/Repository.git"
     },
     {
       "name": "legacy-SSD",
-      "git_dir": "/home/jer/CCF/.git"
+      "git_dir": "/media/jer/Files/CCF-Legacy/.git"
     }
   ]
 }

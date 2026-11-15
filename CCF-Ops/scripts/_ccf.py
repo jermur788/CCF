@@ -7,6 +7,8 @@ import stat
 import subprocess
 
 ROOT = Path('/media/jer/ZX20')
+FILES_ROOT = Path('/media/jer/Files')
+DURABLE_CCF = FILES_ROOT / 'CCF'
 BOARD_FIELDS = ['Task ID', 'State', 'Owner', 'Harness', 'Model', 'Quota source',
                 'Lane', 'Branch', 'HEAD', 'Subsystem', 'Locks', 'Unity required?',
                 'Unity queue position', 'Verification tier', 'Open gate', 'Dependency', 'Next action']
@@ -30,6 +32,19 @@ def on_storage(path, root=ROOT):
     if os.stat(parent).st_dev != os.stat(root).st_dev:
         raise ValueError(f'path is on another filesystem: {path}')
     return path
+
+def on_durable_ccf(path):
+    path = Path(path).resolve()
+    root = DURABLE_CCF.resolve(strict=True)
+    if not path.is_relative_to(root):
+        raise ValueError(f'path is outside the Files CCF tree: {path}')
+    return path
+
+def on_project_storage(path, root=ROOT):
+    resolved = Path(path).resolve()
+    if resolved.is_relative_to(root):
+        return on_storage(path, root)
+    return on_durable_ccf(path)
 
 def same_device(a, b):
     """True when two paths name the same block device.
@@ -108,7 +123,10 @@ def config_read(path, permit_off_storage_lanes=False):
     # Alternate mounts/lock universes are not silently configurable.
     if root != ROOT:
         raise ValueError('config root must be the verified ZX20 mount')
-    repo = on_storage(cfg['repository'], root)
+    repo_path = Path(cfg['repository']).resolve()
+    if not (repo_path.is_relative_to(root) or repo_path.is_relative_to(DURABLE_CCF.resolve())):
+        raise ValueError(f'repository must be on ZX20 or the Files CCF tree: {repo_path}')
+    repo = on_project_storage(repo_path, root)
     if not repo.is_dir():
         raise ValueError(f'missing repository: {repo}')
     seen_names, seen_paths = set(), set()
@@ -121,9 +139,12 @@ def config_read(path, permit_off_storage_lanes=False):
             raise ValueError('lane needs nonempty lane, purpose and absolute path')
         if not Path(lane['path']).is_absolute():
             raise ValueError('lane path must be absolute')
-        # Only the read-only inventory may observe off-storage paths so it can
-        # report ZX20: NO; mutation callers retain strict storage rejection.
-        resolved = str(Path(lane['path']).resolve() if permit_off_storage_lanes else on_storage(lane['path'], root))
+        # Explicit inventory permission covers only durable non-Unity lanes.
+        # Unity lanes and every caller without permission remain ZX20-only.
+        if permit_off_storage_lanes and not lane['unity']:
+            resolved = str(on_project_storage(lane['path'], root))
+        else:
+            resolved = str(on_storage(lane['path'], root))
         if lane['lane'] in seen_names or resolved in seen_paths:
             raise ValueError('duplicate lane name/path')
         seen_names.add(lane['lane']); seen_paths.add(resolved)
@@ -137,7 +158,7 @@ def config_read(path, permit_off_storage_lanes=False):
         store_paths.append(str(Path(store['git_dir']).resolve()))
     if len(set(store_paths)) != len(store_paths) or str(repo.resolve()) not in store_paths:
         raise ValueError('duplicate Git store or configured repository missing from git_stores')
-    board = on_storage(path.resolve().parent / cfg['board'], root)
+    board = on_project_storage(path.resolve().parent / cfg['board'], root)
     return cfg, board
 
 def board_read(path):
