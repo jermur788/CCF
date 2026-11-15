@@ -640,6 +640,16 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** AUTH_BILLING (Claude A), otherwise UNKNOWN/NONE. **Retries:** 1 provider switch, 0 rework.
 - **Next:** Opus verdict → on APPROVED, Manager source verdict for T-02 and T-03 release; on NEEDS CHANGES, **bounded repair to the same Sol writer on the specific defect only**, then a focused delta re-check — not the whole 63-item list.
 
+### EVENT 035 — 2026-11-15T23:24Z — Ops round 2 largely closed the gap (board + fixture lint PASS); the last failure is the TEST hardcoding `/dev/sda2`; final round dispatched
+
+- **Evidence class:** OBSERVED FACT (my own read of `tests/self-test.py`; the child's verbatim gate output) + ORCHESTRATOR CLAIM (dispatch).
+- **Round-2 result, head `4d24f3b1`:** a real delta table was produced and four migration semantics were ported — durable repository admission, bounded non-Unity inventory, Files board-path admission, migrated Git-store paths — while **excluding** live's automatic lane exception and importing **no** live lane registrations or board content. Gates: **board lint exit 0** (`PASS: board schema and duplicate checks (15 live tasks)`), **valid-fixture lint exit 0**, **75 boundary + 18 identity checks** and eight provenance probes passing; provenance still proven both ways. All five regressions held, including the new boundary (a repository/lane path escaping both roots is rejected, and Files lanes cannot be given a Unity lane).
+- **The remaining failure is not a tool defect — it is the test asserting a transient kernel name.** I located it precisely in `CCF-Ops/tests/self-test.py`: line 70 builds its scratch config with `'device':'/dev/sda2'`, lines 78–79 assert `backing_device=='/dev/sda2'`, line 110 uses it as a mount override. Physical ZX20 is `/dev/sdc2`. **Fourth instance of the same root cause**, now inside the test suite that is supposed to catch it.
+- **Final round dispatched, strictly bounded:** express the real invariant instead — derive the device from the live mount or compare **block-device numbers** against the guarded root, which is exactly what the production check now does — **without weakening any assertion**: a lane on a *different* device must still fail, and wrong uuid / wrong fstype / non-existent device must still fail closed. Historical documents that record `/dev/sda2` in prose stay untouched: that is history, not a live assertion.
+- **End condition stated to the child:** self-test **exit 0**, or an honest residual left failing with its cause classified. **No further ops rounds after this one**, regardless of outcome — the lease tool Unity actually needs has been proven working since EVENT 030, and the save implementation is the critical path.
+- **State:** ops **RUNNING (final round)**; T-02 **under independent review on Claude B**; no Unity, no merge, no protected edit.
+
+
 
 
 
