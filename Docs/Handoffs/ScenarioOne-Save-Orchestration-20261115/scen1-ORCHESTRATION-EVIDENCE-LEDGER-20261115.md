@@ -672,6 +672,27 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** PRODUCT/DEFECT (M-1, worker-introduced, reviewer-caught). **Retries:** 0 rework yet; 1 review cycle used exactly as intended.
 - **Next:** new head → **focused delta re-check** by a fresh independent Opus claim on the changed delta only (not the entire 63-item list) → Manager source verdict for T-02 and T-03 release.
 
+### EVENT 038 — 2026-11-15T23:55Z — Sen-1 overnight amendment CONSUMED; all four pools probed; Opus 5.5 becomes the fallback source writer; P2 and P1B lanes opened in parallel
+
+- **Evidence class:** OBSERVED FACT (verbatim provider refusals; clean worktree at `2353a792`; GitHub comment URLs) + ORCHESTRATOR CLAIM (routing, lane design).
+- **Amendment:** [Sen-1](https://github.com/jermur788/CCF/blob/docs/sen-1-overnight-player-test-amendment-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/Sen-1-OVERNIGHT-PLAYER-TEST-READINESS-AMENDMENT-20261115.md), received via the owner directly. **Consumed without restarting the run**; acknowledgement posted to [#544](https://github.com/jermur788/CCF/issues/544#issuecomment-6903481037). It changes urgency and sequencing, not product design or the signed contract. The precommitted conditional Manager predicate for T-02→T-03A is noted and will only be invoked with its evidence.
+- **The amendment's Manager packet superseded my own repair brief, and I reconciled to the Manager's version rather than mine.** Differences that mattered: the packet requires **menu Save** refusal feedback (my brief covered only Continue and Load), restricts the foreign-ID typed check to **nonempty explicit foreign `scenarioOne.scenarioId` for historical v10+**, and names the result file exactly `Sen-1-T02-REFUSAL-AND-ADMISSION-REPAIR-RESULT-20261115.md`. My brief was close but incomplete; the worker now holds the Manager's text.
+- **CAPACITY — the whole pool board, by direct probe, not inference:**
+  | Pool | Observed | Outcome |
+  | --- | --- | --- |
+  | OpenAI A | quota-refused, reset **2026-11-18T13:43** (verbatim) | unavailable |
+  | OpenAI B | **usage limit reached mid-repair**, before any edit | unavailable now |
+  | Claude A | **billing "payment is past due"** — AUTH_BILLING, not quota | unavailable until paid |
+  | Claude B — Pro | working (carried the #557 review; now carries development) | **in use** |
+- **The failed B attempt cost nothing but a dispatch:** I verified the source worktree is **clean at `2353a792`, zero edits**, so there was no partial state to salvage or risk. **Retries: 1 provider switch, 0 rework.**
+- **P0 re-dispatched to Opus 5.5 high** — the accepted fallback (both OpenAI pools down) *and* the owner's explicit instruction. The receipt must state it is a fallback writer, so the eventual independence statement stays truthful. Same four-file Manager allowlist, same clean lane, and the **test-integrity requirement** carried: the assertions that encode silence as success must be corrected to fail, never deleted.
+- **Two non-conflicting lanes opened in parallel, both read-only Markdown on their own branches:**
+  - **P2 five-rack readiness (Opus 5.5, Claude B):** distinguishes **Candidate A** (historical five-rack `55863f1b`), **Candidate B** (new save source — unintegrated/unqualified) and **Candidate C** (compact — on hold), walks the real player path, and must mark each gate RAN / PREPARED-ONLY / UNAVAILABLE. A false READY is named as the worst outcome.
+  - **P1B T-04 fault/recovery matrix (Sonnet, Claude B):** docs-only from signed `tasks.md` T-04 plus audited source; no production C#, **no `File.Copy` fallback**, no atomicity claimed from mocks.
+- **Deliberately not started:** **P1A/T-03A** (conditional on the delta review predicate), Compact/D-082/CG-TRIG (paused), Unity/Editor (no designated physical owner yet), Windows build, merge, #443 integration, board or `active-tasks.md` writes.
+- **Honest independence limitation, recorded in advance:** with both OpenAI pools down, the repaired source will be authored by Opus 5.5 on Claude B, and its nonauthor delta reviewer will therefore be **same-provider**. That is weaker than the cross-provider review #557 enjoyed, and the delta verdict must state the limitation rather than imply full independence.
+
+
 
 
 
