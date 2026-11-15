@@ -71,7 +71,7 @@
 - [ ] **REQ-F06:** The 113 2006 nonresearch observations are attributed specifically to **volume-equation calibration**, not used as an untouched final-growth-forecast holdout (m-7). Cite PDF-relative vs printed journal pagination correctly; full manual/2013/2017/executable identity remain unverified unless checked.
 - [ ] **REQ-F07:** Other unsupported claims: Irish individual/cause mortality, irregular continuous-cover transformation, crown/competition physiology, mixed stands, long-term measured predictions and verified licensed marteloscope raw data; **never** present them as PASS without separate evidence.
 - [ ] **REQ-F08:** Every P1 UI/figure/export bears "**CCF adult rules — closed pure-Sitka population; NOT an Irish field forecast**" and source/model/RNG/fixture/stand-domain flags; P0 retains its existing no-growth banner.
-- [ ] **REQ-F09:** All P1-01..05 substantive tasks and independent reviews have separate GitHub Markdown handoffs, factual test provenance, owners/claims/locks and Manager dispositions; no code before G0 approval.
+- [ ] **REQ-F09:** All P1-01, P1-02, P1-03, P1-04 and P1-05 substantive tasks and independent reviews have separate GitHub Markdown handoffs, factual test provenance, owners/claims/locks and Manager dispositions; no code before P1-G0 SPEC/product approval.
 
 ## G. Independent quality-review checklist for this DRAFT (not implementation)
 
