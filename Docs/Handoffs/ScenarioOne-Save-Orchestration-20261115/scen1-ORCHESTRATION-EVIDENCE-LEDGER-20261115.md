@@ -380,6 +380,24 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Retry cost:** one dispatch, zero rework, ~1 minute of diagnosis.
 - **Next:** T-00 on the Files lane.
 
+### EVENT 021 — 2026-11-15T14:05Z — T-00 handed off; my own recommendation revised on evidence; two NEW material findings
+
+- **Evidence class:** OBSERVED FACT (delivery + orchestrator's own fixture re-hashing) + ORCHESTRATOR CLAIM (revised recommendation).
+- **Event type:** CODE_HANDOFF + CHECKPOINT.
+- **Work unit / claim:** T-00, [#545](https://github.com/jermur788/CCF/issues/545). **Provider:** OpenAI **B**, `gpt-6.1-sol` `high` — **fifth consecutive B success** across both runs.
+- **Delivery verified:** branch `docs/scen1-t00-save-ownership-preflight-20261115-v1`, commit `f86e3010`, **exactly 1 file / 212 lines**, #545 CLOSED. No source edit, no compile, no Unity, no save mutation (as required).
+- **Report:** [scen1-T00-SAVE-OWNERSHIP-PREFLIGHT-20261115.md](https://github.com/jermur788/CCF/blob/f86e3010b338d627fb8be9272549442e27dd8368/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-T00-SAVE-OWNERSHIP-PREFLIGHT-20261115.md).
+- **Fixture claims independently re-verified by the orchestrator:** 5/5 re-hashed here (host v9 `.bak`, frozen Reference, `v20-y5`, `v21-y1`, `v21-y0-rack`) — **all MATCH**; the sixth (`v22-year3`) was verified at three paths in the prior run. The child's evidence is trustworthy, not merely asserted.
+- **Allowlist:** **36 C# files + 3 `.cs.meta` companions**, stage-mapped to T-01…T-04.
+- **#443 overlap:** **15 files — 5 SEMANTIC, 10 TEXTUAL ONLY**, each with exact zero-context hunk ranges. Semantic set: `ForestSaveController.cs`, `ScenarioOneManager.cs`, `ForestStartingStand.cs`, `UI/ScenarioOneUiRoot.cs`, and conditionally `UI/AnnualReviewView.cs`.
+- **I revised my own recommendation, and I want that recorded as a change of mind rather than smoothed over.** I had recommended "integrate #443 first". Sol recommended "base on current `main`", arguing that basing on `acb4e111` would **inherit 47 unmerged, unqualified Asset changes as the historical baseline** — i.e. silently treat unverified world behaviour as the reference in a save-safety task. **That objection is correct and my original framing under-weighted it.** The synthesis now recommended to #424 is: **integrate #443 first, then repin the save base to the newly accepted `main` and redo only the changed source/caller/fixture delta** — which obtains both properties (no unmerged baseline, no late semantic collision) instead of trading one for the other.
+- **NEW material finding 1 — #443 changes historical save behaviour.** At `ForestSaveController.cs:+464–474` the candidate builds the saved-buildable-ID set and calls `SetRetiredFromStartingWorld` for every retirement-enabled scene object, **treating absence from the save as retirement, with no version guard**. A valid old world whose save has no entry for such an object can therefore newly retire it, and a later capture **omits** it. This lands in a **G3-approved** candidate and is exactly the class of change the save contract exists to control. #424 must see it **before** integrating. It is *not* a fabricated-fixture regression claim: the child explicitly did not load a genuine fixture to prove a visible difference, and neither did I.
+- **NEW material finding 2 — a new global preference.** #443 adds `CCF.UI.ReduceMotion` (`ScenarioOneUiRoot.cs:57–60/217`). It is **not** either protected namespace (`CCF.Learning.v1.*`, `CCF.MenuHelp.v1.*` are verified untouched), but T-03 must inventory it in the prefs sentinel under FR-04 so a profile switch cannot leak it.
+- **Confirmation of an open risk:** #443's preview-return pose repair is **compatible** with the spec's intent and should be **kept** when reconciling — but the candidate does **not** close the snapshot-loss / false-"Returned" risk, which remains T-03 work.
+- **Failure classification:** UNKNOWN/NONE. **Retries:** 1 (harness provisioning, already logged as EVENT 020), zero rework.
+- **Blocker status:** T-01 **cannot** start. It needs #424's file-set exclusivity and base ruling. This is an ownership gate, so per the continuation packet the run stops here rather than working around it.
+
+
 
 
 
