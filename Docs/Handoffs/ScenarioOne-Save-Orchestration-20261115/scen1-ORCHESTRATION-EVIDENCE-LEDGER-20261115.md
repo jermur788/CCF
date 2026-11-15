@@ -587,6 +587,18 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE. **Retries/salvage:** no work lost across three sessions; two for-cause stops, zero bad edits.
 - **Next:** worker `[RUNNING]` receipt with its narrower allowlist → source → offline evidence → `[HANDED-OFF]` on #551 (left open) → **new** independent Opus 5.5 Medium claim on the exact T-02 head → Manager verdict.
 
+### EVENT 031 — 2026-11-15T22:44Z — CAPACITY: OpenAI A refused T-02 before any tool work (reset re-confirmed, not assumed); T-02 switched to B and the parent registered [RUNNING]
+
+- **Evidence class:** OBSERVED FACT (verbatim provider refusal; GitHub comment URLs; issue title state).
+- **Event type:** RUNNING_START / CAPACITY / SWITCH.
+- **Registration:** [#544](https://github.com/jermur788/CCF/issues/544) retitled **[RUNNING]** and the full registration comment posted — actual DeepSeek model/effort, inherited branch `4b67983a` → ledger `37ec31af` pushed and read back, docs worktree path, live board/claim state, preflight evidence, and the Option A basis. [Bounded notice to #424](https://github.com/jermur788/CCF/issues/424#issuecomment-6902572615) posted for the two things that are #424-relevant: the two-path scope grant (amendable to Option B) and the **retraction** of my own EVENT 022 ops diagnosis.
+- **A attempt, verbatim:** *"You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro) … or try again at Nov 18th, 2026 1:43 PM."* — refused **before any tool work**, so this is a **re-probe confirming the EVENT 004 reset rather than an inference from elapsed hours**. Timezone still not stated by the provider; recorded as provider-local.
+- **Switch:** T-02 re-dispatched on **B** (`gpt-6.1-sol`, `high`) immediately, same brief, same preserved partial work. **B carries two children concurrently** — T-02 source and the disjoint CCF-Ops durability/witness task — which is safe because their write sets do not intersect (game source vs ops tree) and neither is Unity work.
+- **Cost of the A attempt:** one dispatch, **zero work loss** (no tool call ran). **Sonnet never used**; both OpenAI sessions remain the only development pools used in this run.
+- **Failure classification:** PROVIDER_QUOTA (A only). **Retries:** 1 capacity retry, 0 rework.
+- **State:** T-02 source **RUNNING on B**; ops durability **RUNNING on B**; no Unity, no merge, no scope violation, no protected edit at this point in the run.
+
+
 
 
 
