@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "record_type": "source-candidate-provenance",
+  "source_repository": "/media/jer/Files/CCF/Repository.git",
+  "source_worktree": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115",
+  "source_branch": "ops/unity-lease-persistent-identity-20261115-v1",
+  "source_head": "8483e5b844564dcedc47d289c877aed49076cdab",
+  "recorded_at": "2026-11-15T22:45:58.349487+00:00",
+  "deployed_at": null,
+  "deployment_status": "NOT_DEPLOYED",
+  "deployment_target": "/media/jer/ZX20/CCF-Ops",
+  "source_hashes": {
+    "scripts/_ccf.py": "429e35ae7b4333f343334e02b30de17843c40a3dca25fe1feacc2f6df4c2ffb3",
+    "scripts/lane-status": "a240098779136a0a586956bdbf985624ad79cdd1abb41ad501f3eba380726546",
+    "lanes.json": "daf54563c6ddccf7f23fff764093ab44189c3c20e27ab461ce81cf010ea5e2f2"
+  },
+  "hash_scope": "Only the three identity-change source files. source_head is the exact commit containing those bytes; this receipt is committed afterward to avoid a self-referential commit hash.",
+  "live_deployment_metadata_sha256": "22bb354343c699cc78903d4a5d1b1b13548e126a4a04351f54f25586905195ed",
+  "live_observed_hashes": {
+    "scripts/_ccf.py": "ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001",
+    "scripts/lane-status": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
+    "lanes.json": "1b6d70eb1a884d21dffc1e9d92db20a57cb728dd7a534aeec52ab8386cecaf21"
+  },
+  "live_deployment_modified": false,
+  "notes": [
+    "No deployment performed: candidate differs from live due to deliberately excluded Files-migration and lane-registration drift.",
+    "deployed_at is null because no deploy occurred; recorded_at records candidate provenance capture, not a fictitious deployment.",
+    "The existing live deployment.json still has stale provenance; it was not overwritten under the user hard limit.",
+    "Source files AGENTS.md, README.md, environment.sh, board, ledger, state and role/fixture files were not imported from live.",
+    "live_deployment_modified refers to deployed tooling/config/provenance. The explicitly authorised normal lock cycle created/released its own lock record and appended the standard release history event; no history or ledger was imported into Git."
+  ]
+}

@@ -1,0 +1,386 @@
+[
+  {
+    "source": "live",
+    "case": "wrong-uuid",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "live",
+    "case": "wrong-uuid",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:29.999633+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-uuid",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-device",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "live",
+    "case": "wrong-device",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:30.441264+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-device",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-root",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "live",
+    "case": "wrong-root",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:30.843168+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-root",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-fstype",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "live",
+    "case": "wrong-fstype",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:31.273552+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "live",
+    "case": "wrong-fstype",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-uuid",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "branch",
+    "case": "wrong-uuid",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:31.680604+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-uuid",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-device",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "branch",
+    "case": "wrong-device",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:32.084880+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-device",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-root",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "branch",
+    "case": "wrong-root",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:32.487025+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-root",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-fstype",
+    "operation": "status",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": []
+  },
+  {
+    "source": "branch",
+    "case": "wrong-fstype",
+    "operation": "acquire",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lane",
+      "UIQual376",
+      "--branch",
+      "qualify/scenario-one-tagged-text-379-20261111",
+      "--head",
+      "2aaacad68ed186dbe14531f31ce5bb3a87811441",
+      "--eta",
+      "2026-11-15T22:55:32.890198+00:00",
+      "--notes",
+      "Negative identity verification only; must reject before lock access",
+      "--pid",
+      "775399"
+    ]
+  },
+  {
+    "source": "branch",
+    "case": "wrong-fstype",
+    "operation": "release",
+    "exit": 2,
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n",
+    "full_arguments": [
+      "--owner",
+      "Codex-Ops548-durability",
+      "--task-id",
+      "CCF-548-IDENTITY-DURABILITY",
+      "--lock-id",
+      "8d77dccc25ca468baf1a69af92fa45f5"
+    ]
+  }
+]
