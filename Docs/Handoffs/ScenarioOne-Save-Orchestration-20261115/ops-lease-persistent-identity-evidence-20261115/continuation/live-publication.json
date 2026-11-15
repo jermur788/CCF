@@ -1,0 +1,17 @@
+{
+  "backup": "/media/jer/ZX20/CCF-Ops/deployment.json.bak-20261115T225732Z",
+  "before_sha256": "22bb354343c699cc78903d4a5d1b1b13548e126a4a04351f54f25586905195ed",
+  "after_sha256": "bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5",
+  "backup_sha256": "22bb354343c699cc78903d4a5d1b1b13548e126a4a04351f54f25586905195ed",
+  "branch_live_byte_identical": true,
+  "changed_existing_paths": [
+    "deployment.json"
+  ],
+  "added_paths": [
+    "deployment.json.bak-20261115T225732Z"
+  ],
+  "removed_paths": [],
+  "post_audit_exit": 0,
+  "post_audit_stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\nPASS: candidate provenance (5 source hashes)\n",
+  "post_audit_stderr": ""
+}

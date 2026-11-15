@@ -1,0 +1,102 @@
+{
+  "scripts/_ccf.py": {
+    "base_commit": "a29c2fa480f1077e12434dcf6679f2f5d9465cdc",
+    "base_sha256": "b12a613379d69c5afa8e4c20ae0fcdcff6b8772c39501f60c01933263cf46923",
+    "snippets": {
+      "def on_storage": [
+        [
+          21,
+          "def on_storage(path, root=ROOT):"
+        ]
+      ],
+      "repo = on_storage": [
+        [
+          82,
+          "    repo = on_storage(cfg['repository'], root)"
+        ]
+      ],
+      "configured repository missing": [
+        [
+          110,
+          "        raise ValueError('duplicate Git store or configured repository missing from git_stores')"
+        ]
+      ],
+      "board = on_storage": [
+        [
+          111,
+          "    board = on_storage(path.resolve().parent / cfg['board'], root)"
+        ]
+      ]
+    },
+    "config_read_byte_identical_to_base": true
+  },
+  "tests/self-test.py": {
+    "base_commit": "a29c2fa480f1077e12434dcf6679f2f5d9465cdc",
+    "base_sha256": "2a12a19d848ae789a1404c7ebd5285457e061b0a7142b91de95ed0b79cdeeaf3",
+    "snippets": {
+      "legacy path/device assumptions": [
+        [
+          70,
+          "cfg={'schema':1,'storage':{'root':str(ROOT),'uuid':'18D6-896E','fstype':'exfat','device':'/dev/sda2','minimum_free_bytes':15*1024**3},'repository':str(seed/'.git'),'git_stores':[{'name':'fixture','git_dir':str(seed/'.git')}],'board':'board.md','lanes':[{'lane':n,'path':str(p),'purpose':'isolated test','unity':n=='U1'} for n,p in [('U1',clean),('dirty',dirty),('missing',missing),('NonUnity',seed)]]}"
+        ],
+        [
+          78,
+          "check(rows[0]['zx20'] is True and rows[0]['backing_device']=='/dev/sda2','lane verifies backing device and ZX20 YES')"
+        ],
+        [
+          79,
+          "check(rows[2]['zx20'] is True and rows[2]['backing_device']=='/dev/sda2','absent lane reports nearest-parent ZX20 device')"
+        ],
+        [
+          99,
+          "check(off_rows[-1]['zx20'] is False and off_rows[-1]['backing_device']=='/dev/sdb2','off-storage reports actual root device and ZX20 NO')"
+        ],
+        [
+          110,
+          "ro={'source':'/dev/sda2','target':str(ROOT),'fstype':'exfat','uuid':'18D6-896E','options':'ro,nosuid'}"
+        ]
+      ]
+    }
+  },
+  "lanes.json": {
+    "base_commit": "a29c2fa480f1077e12434dcf6679f2f5d9465cdc",
+    "base_sha256": "53d3ed9c79adbe032b406d1f1ea4342613532b4c432e6df2c5d354f9719e77f9",
+    "snippets": {
+      "legacy path/device assumptions": [
+        [
+          7,
+          "    \"device\": \"/dev/sda2\","
+        ],
+        [
+          10,
+          "  \"repository\": \"/media/jer/ZX20/CCF-Repository.git\","
+        ],
+        [
+          41,
+          "      \"git_dir\": \"/media/jer/ZX20/CCF-Repository.git\""
+        ],
+        [
+          45,
+          "      \"git_dir\": \"/home/jer/CCF/.git\""
+        ]
+      ]
+    }
+  },
+  "configuration": {
+    "repository": "/media/jer/Files/CCF/Repository.git",
+    "source_lanes": 4,
+    "live_lanes": 16,
+    "only_repository_field_changed_since_dee4ee5": true,
+    "source_git_stores": [
+      {
+        "name": "ZX20",
+        "git_dir": "/media/jer/ZX20/CCF-Repository.git"
+      },
+      {
+        "name": "legacy-SSD",
+        "git_dir": "/home/jer/CCF/.git"
+      }
+    ],
+    "git_store_membership_would_fail_if_repository_admission_were_fixed": true
+  }
+}

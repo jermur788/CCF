@@ -1,0 +1,6 @@
+{
+  "command": "python3 -B /media/jer/ZX20/CCF-Ops/scripts/packet-lint --board /media/jer/ZX20/CCF-Ops/board/active.md",
+  "exit_code": 1,
+  "stdout": "FAIL: Unity required? must be Yes/No\n",
+  "stderr": ""
+}

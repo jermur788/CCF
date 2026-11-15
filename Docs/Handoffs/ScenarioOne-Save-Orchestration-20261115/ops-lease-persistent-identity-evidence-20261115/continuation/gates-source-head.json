@@ -1,0 +1,23 @@
+[
+  {
+    "head": "a16b66f747138f99378a5eb8f72b88181f94a760",
+    "command": "python3 -B tests/self-test.py",
+    "exit_code": 1,
+    "stdout": "Scratch: /media/jer/ZX20/CCF-Temp/foundation-test-95s5zvjd\n",
+    "stderr": "Traceback (most recent call last):\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 38, in <module>\n    check(cli('packet-lint',f/'valid.md').splitlines()[0]=='PASS','packet valid PASS')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 34, in cli\n    def cli(name,*args,code=0): return run([sys.executable,'-B',OPS/'scripts'/name,*args],code)\n                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 31, in run\n    if p.returncode!=code: raise AssertionError(f'expected {code}, got {p.returncode}: {args}\\n{p.stdout}\\n{p.stderr}')\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: expected 0, got 2: ['/usr/bin/python3', '-B', PosixPath('/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/packet-lint'), PosixPath('/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/fixtures/valid.md')]\n\nERROR: path escapes ZX20: /media/jer/Files/CCF/Repository.git\n\n"
+  },
+  {
+    "head": "a16b66f747138f99378a5eb8f72b88181f94a760",
+    "command": "python3 -B scripts/packet-lint --board board/active.md",
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: path escapes ZX20: /media/jer/Files/CCF/Repository.git\n"
+  },
+  {
+    "head": "a16b66f747138f99378a5eb8f72b88181f94a760",
+    "command": "python3 -B scripts/packet-lint tests/fixtures/valid.md",
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: path escapes ZX20: /media/jer/Files/CCF/Repository.git\n"
+  }
+]

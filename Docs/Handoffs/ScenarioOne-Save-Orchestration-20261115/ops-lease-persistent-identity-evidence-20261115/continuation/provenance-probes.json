@@ -1,0 +1,132 @@
+[
+  {
+    "label": "LIVE READ-ONLY AUDIT",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/ZX20/CCF-Ops",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json",
+      "--candidate-root",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops"
+    ],
+    "expected_exit": 0,
+    "exit_code": 0,
+    "stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\nPASS: candidate provenance (5 source hashes)\n",
+    "stderr": ""
+  },
+  {
+    "label": "ISOLATED CHECKED-FILE COPY",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 0,
+    "exit_code": 0,
+    "stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\n",
+    "stderr": ""
+  },
+  {
+    "label": "REAL SOURCE DRIFT (_ccf.py)",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 1,
+    "exit_code": 1,
+    "stdout": "FAIL: deployment provenance\n  scripts/_ccf.py: expected ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001, got 8b59365afeaa748d7add5e92239a8b3bcc1f2d216a22aa69e37d73e362150362\n",
+    "stderr": ""
+  },
+  {
+    "label": "CONFIG DRIFT OUTSIDE /lanes",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 1,
+    "exit_code": 1,
+    "stdout": "FAIL: deployment provenance\n  lanes.json (except /lanes): expected ed642a520d25470f1192cbbd88b4ccede16bebc6259a5bb1db039df45864cca6, got 20e249b3ddcd0448a16cba46c022d3e4571f49eecc8fcfc684a04c72c826bfed\n",
+    "stderr": ""
+  },
+  {
+    "label": "EXPECTED OPERATIONAL /lanes DRIFT",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 0,
+    "exit_code": 0,
+    "stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\n",
+    "stderr": ""
+  },
+  {
+    "label": "UNCLASSIFIED SOURCE ADDITION",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 1,
+    "exit_code": 1,
+    "stdout": "FAIL: deployment provenance\n  unclassified file: scripts/unexpected-source.py\n",
+    "stderr": ""
+  },
+  {
+    "label": "SOURCE EXCLUSION REJECTED",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg/deployment.json"
+    ],
+    "expected_exit": 2,
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: live_state must name exactly the documented paths with reasons\n"
+  },
+  {
+    "label": "ISOLATED COPY RESTORED",
+    "command": [
+      "python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/Files/CCF/Operations/Ops548Provenance-246mwswg",
+      "--manifest",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json"
+    ],
+    "expected_exit": 0,
+    "exit_code": 0,
+    "stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\n",
+    "stderr": ""
+  }
+]
