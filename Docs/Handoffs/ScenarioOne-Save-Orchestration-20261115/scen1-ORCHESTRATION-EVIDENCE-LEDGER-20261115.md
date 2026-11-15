@@ -150,6 +150,41 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Worth noting for the decision packet:** this fixture was found **before** any implementation, which is the correct order — the DRAFT's own stop-rule forbids implementing against an unproven historical-compatibility claim.
 - **Next:** child audit to corroborate/extend with a full caller inventory; then the approval candidate.
 
+### EVENT 006 — 2026-11-15T10:52Z — G0 audit HANDED-OFF, independently spot-checked, and B-06 materially advanced
+
+- **Evidence class:** OBSERVED FACT (GitHub/git verification performed by the orchestrator) for the delivery mechanics; the report's own contents are **the child's evidence**, classified as its claims plus its own `file:line` citations — **not** promoted to orchestrator-verified facts except where spot-checked below.
+- **Event type:** CODE_HANDOFF (docs research handoff) → REVIEW-pending.
+- **Work unit / claim / stage:** V2-A G0 read-only source and fixture provenance audit, [#537](https://github.com/jermur788/CCF/issues/537), stage A, attempt 2 (attempt 1 died on OpenAI A quota).
+- **Actual provider/model/effort:** OpenAI **B** (`codex_c75d8114-…`), `gpt-6.1-sol`, reasoningEffort `high`. **Successful** — so OpenAI B is now **proven usable**, not merely "declared available". Capacity-to-completion: **sufficient** for this class of task.
+- **Delivery verified by the orchestrator (not taken on trust):** branch `docs/scen1-g0-save-source-audit-20261115-v1`; commit `3c8d7a50a8f9f1baae417c46d7d0a06b68e495f8`; `git show --stat` = **1 file changed, 1110 insertions(+), 0 deletions** — the single allowed report; issue **#537 CLOSED**. Report size 300,886 B.
+- **Report:** [scen1-SHARED-SAVE-G0-SOURCE-PROVENANCE-AUDIT-20261115.md](https://github.com/jermur788/CCF/blob/3c8d7a50a8f9f1baae417c46d7d0a06b68e495f8/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-SHARED-SAVE-G0-SOURCE-PROVENANCE-AUDIT-20261115.md). Structure: 11 sections + Appendix A (call references), B (exact learning keys), C (464-path byte inventory).
+- **Headline findings (child's claims, each carrying `file:line`):**
+  - **B-15 PROVEN within static scope** — full entry-point and caller inventory, including `RestoreSaveData` and verification callers.
+  - **B-09, B-10, B-11 CONTRADICTED** — i.e. the *current* code does **not** provide the safety properties the DRAFT assumed: backup is notification-only with a non-atomic `File.Copy` fallback (`ForestSaveController.cs:84-85, 286`); foreign-`scenarioId` only warns **after** geometry/tree/ecology restoration (`ScenarioOneManager.cs:1481`); a third geometry value would silently inherit 40 m legacy sizing at `StandGeometryModel.cs:34` and `ForestStartingStand.cs:83`.
+  - **B-06 UNPROVEN for completeness but materially advanced** — genuine fixtures now provably exist in the durable evidence tree, with byte-verified provenance: **v19/v20/v21/v22** writer outputs, frozen **v12** archive (`sha256 789e3edd…1fc`), host-archived **v9** (the same `c0169790…62a3` this orchestrator found independently) and a **v8** flatpak-save. **No genuine v10–v24 missing-ID file exists in the established set.**
+  - Two findings the orchestrator had **not** previously recorded: `CaptureData` is **not universally pure** (it can initialise live model-2 understorey, `ScenarioOneManager.cs:1398`), and **preview return is not an all-or-nothing rollback** (flag cleared before restore, snapshot discarded on failure, `ScenarioOneManager.cs:725-740`).
+- **Orchestrator spot-check (independent):** the audit's two most load-bearing citations were re-read by the orchestrator earlier in this session and reproduce exactly (`StandGeometryModel.StandSizeMeters` else-40 m; `IdentityMatches` chapter-only), and the audit **independently reproduced** the v9 fixture hash this orchestrator discovered separately. That mutual corroboration is the strongest evidence in this run so far; it is still **static** evidence.
+- **What this audit did NOT do (as it states):** no compile, no Unity, no Player, no actual save/load, no `File.Replace` platform behaviour, no failure injection, no PlayerPrefs I/O, no independent review, no integration, no product approval.
+- **Failure classification:** UNKNOWN/NONE. **Retries:** 1 (quota), zero rework.
+- **Next:** V2-B dispatch (four-file approval candidate V2) with the audit as authoritative source input.
+
+### EVENT 007 — 2026-11-15T10:58Z — DISPATCH: four-file spec APPROVAL CANDIDATE V2
+
+- **Evidence class:** OBSERVED FACT (GitHub issue creation + dispatch return).
+- **Event type:** DISPATCH.
+- **Work unit / claim:** new separate child claim [#538](https://github.com/jermur788/CCF/issues/538) — "V2-B — four-file shared-save spec: APPROVAL CANDIDATE V2 (docs only)", created `[READY / NOT RUNNING]`.
+- **Actual provider/model/effort:** OpenAI **B**, `gpt-6.1-sol`, reasoningEffort `high`, isolation `worktree`, role `design`.
+- **Bounded write allowlist (exactly five files, on its own branch):** the four `specs/scenario-independent-save-isolation-v1/*` files **plus** one new change report. Nothing else.
+- **Base commit for staging:** `88a2db30c17d076730fad4ad0b1a3145f16faabc` (the #530 docs-branch head). Verified by the orchestrator to be `main@62e39ec` **plus exactly 8 added docs files and 0 modifications** — so staging the four spec files from it is a deliberate, reviewable act rather than a blind merge or a duplicate-file creation.
+- **Task design decisions worth recording:**
+  - The child is explicitly forbidden from marking anything APPROVED or checking any ISO item. The candidate ships a **single signature block** (§0.3) so that approval is one act, not 63.
+  - The owner's settled Q-03 (F5 has no prompt) is fed in as a **fixed rule**, and any DRAFT text that was conditional on the unrecorded Q-03 ruling must be de-conditioned. That removes one of the three original open Q items without inventing authority, because the owner really did settle it.
+  - The audit's **CONTRADICTED** verdicts are converted into *requirements to close gaps*, not into descriptions of existing safety. This is the specific failure mode this instruction exists to prevent: a spec that quietly assumes protection it does not have.
+- **Unity / board / lock:** none. No Unity lease, no `active-tasks.md` write, no source touched.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** on handoff → independent Opus 5.5 Medium nonauthor review of the *changed policy*; then the consolidated owner decision packet.
+
+
 
 
 
@@ -219,6 +254,14 @@ Do not attribute entire open-issue lifetime to active worker CPU/token runtime. 
 | Claim / stage | Actual start UTC (clock/source) | End UTC | Elapsed classification | Queue/blocked reason and interval | Provider/model/pool | Review cycles | Unity lease/import time | Evidence URL | Confidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | #535 initial | NOT RUN | NOT RUN | UNKNOWN | awaiting actual DeepSeek dispatch | DeepSeek model UNKNOWN | 0 | NONE | [#535](https://github.com/jermur788/CCF/issues/535) | manager-preparation only |
+| #535 parent run start | 2026-11-15T09:52:41Z (host `date -u`) | — (open) | active orchestration | none | DeepSeek `opencode-go/deepseek-v4.1-flash` high | 0 | **NONE held** | [EVENT 001](https://github.com/jermur788/CCF/blob/orchestration/scen1-shared-save-compact-complete-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-ORCHESTRATION-EVIDENCE-LEDGER-20261115.md) | HIGH (OBSERVED) |
+| V2-A G0 audit — attempt 1 | 2026-11-15T10:03Z (host) | 2026-11-15T10:04Z | **~1 min, zero output** | **PROVIDER_QUOTA** — OpenAI A refused before any tool work | OpenAI A `gpt-6.1-sol` high | 0 | NONE | [#537](https://github.com/jermur788/CCF/issues/537) | HIGH (provider message verbatim) |
+| V2-A G0 audit — attempt 2 | 2026-11-15T10:07Z (host) | 2026-11-15T10:52Z | **~45 min wall**; active-work time UNKNOWN (not observable from orchestrator) | none after switch | OpenAI B `gpt-6.1-sol` high | 0 (review pending) | NONE | [report `3c8d7a50`](https://github.com/jermur788/CCF/blob/3c8d7a50a8f9f1baae417c46d7d0a06b68e495f8/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-SHARED-SAVE-G0-SOURCE-PROVENANCE-AUDIT-20261115.md) | HIGH for delivery; report content is child evidence |
+| V2-B spec candidate V2 | 2026-11-15T10:58Z (host) | — (running) | active | none | OpenAI B `gpt-6.1-sol` high | 0 | NONE | [#538](https://github.com/jermur788/CCF/issues/538) | HIGH for dispatch |
+| **OpenAI A exhausted interval** | 2026-11-15T10:04Z | provider-stated reset **2026-11-18T13:43** (tz not stated by provider) | **blocked pool, ~3 days** | quota | — | — | — | provider message, EVENT 004 | HIGH (verbatim provider text); timezone UNKNOWN |
+
+**Throughput observations actually measurable in this run:** one provider-quota loss with **zero work loss** (the refusal preceded any tool call, so re-dispatch cost one call, not a rework cycle); one audit cycle completed and verified end-to-end; no Unity/import time at all because no Unity was authorised. **Active-vs-wall time cannot be separated** for delegated children from this harness — the orchestrator sees dispatch and completion only, so no token count, no per-child CPU time and no "energy" estimate is asserted.
+
 
 After meaningful closure and final report, supply these evidence rows to #424/#425 for a management-owned **append** to the project-wide throughput ledger. Do not write old timestamps backward from memory; use issue created_at only if labelled as such.
 
