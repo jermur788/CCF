@@ -568,10 +568,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             Destroy(deadwoodMaterial);
     }
 
+    private bool worldSetupComplete;
+
     private void Start()
     {
         ApplyBrowsingConfiguration();
         EnsureBaselineSnapshot();
+        worldSetupComplete = true;
         referenceArchive = ScenarioReferenceArchive.Load();
     }
 
@@ -663,13 +666,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         planningPlantingMethod = WorkExecutionMethod.Contractor;
         planningInstallShelter = false;
         feedback = StartGuidanceToken;
-        if (ecology != null && ecology.RegenerationModelVersion == RegenerationModel.Competition)
+        // Awake still uses the existing Start/baseline-snapshot setup after the stand is generated.
+        // Later explicit resets initialize here; serialization itself must stay observational.
+        if (worldSetupComplete && ecology != null && ecology.RegenerationModelVersion == RegenerationModel.Competition)
             EnsureUnderstoreyGrid();
     }
 
     public bool TryBeginReferencePreview(int year)
     {
-        if (referencePreviewActive)
+        if (referencePreviewActive || !ForestSaveProfiles.CanUse(ForestSaveSessionContext.Current.SelectedProfile, out _)
+            || !ReferenceEquals(ForestSaveSessionContext.Current.SelectedProfile, ForestSaveProfiles.Historical))
             return false;
         if (referenceArchive == null)
             referenceArchive = ScenarioReferenceArchive.Load();
@@ -693,6 +699,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return false;
         }
         ForestSaveData returnData = saves.CaptureData();
+        if (!saves.CanRestoreCapture(returnData)) return false;
         ForestPlayer currentPlayer = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         Vector3 returnPosition = currentPlayer != null ? currentPlayer.transform.position : Vector3.zero;
         Quaternion returnRotation = currentPlayer != null ? currentPlayer.transform.rotation : Quaternion.identity;
@@ -724,7 +731,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         if (!referencePreviewActive)
             return;
         ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
-        if (saves == null || previewReturnData == null || !saves.LoadData(previewReturnData, false))
+        if (saves == null || previewReturnData == null || !saves.RestoreCapturedData(previewReturnData))
         {
             Debug.LogError("Returning from the reference preview failed: the captured forest was rejected on reload.", this);
             return;

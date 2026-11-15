@@ -17,7 +17,13 @@ public sealed class ForestSaveController : MonoBehaviour
     {
         internal readonly string Json;
         internal readonly ForestSaveSessionContext Context;
-        internal CapturedSource(string json, ForestSaveSessionContext context) { Json = json; Context = context; }
+        internal readonly string PrimaryPath;
+        internal CapturedSource(string json, ForestSaveSessionContext context)
+        {
+            Json = json;
+            Context = context;
+            PrimaryPath = context.GetSelectedPaths(Application.persistentDataPath).Primary;
+        }
     }
 
     private static readonly ConditionalWeakTable<ForestSaveData, CapturedSource> captures = new ConditionalWeakTable<ForestSaveData, CapturedSource>();
@@ -47,12 +53,6 @@ public sealed class ForestSaveController : MonoBehaviour
             problem = ForestSaveValidation.ValidateSelectedJson(json, context.SelectedProfile);
             if (problem != null) return false;
             ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(json);
-            if (!string.IsNullOrEmpty(data?.scenarioOne?.scenarioId)
-                && data.scenarioOne.scenarioId != context.SelectedProfile.ChapterId)
-            {
-                problem = "the save explicitly belongs to a different scenario";
-                return false;
-            }
             problem = ForestSaveValidation.ValidateGeometryJson(json, data)
                 ?? ForestSaveValidation.ValidateStormJson(json, data)
                 ?? ForestSaveValidation.ValidateCompetitionJson(json, data)
@@ -68,6 +68,7 @@ public sealed class ForestSaveController : MonoBehaviour
         {
             return ReferenceEquals(context, ForestSaveSessionContext.Current)
                 && ReferenceEquals(profile, context.SelectedProfile)
+                && ForestSaveProfiles.CanUse(profile, out _)
                 && primaryPath == context.GetSelectedPaths(Application.persistentDataPath).Primary;
         }
 
@@ -90,7 +91,7 @@ public sealed class ForestSaveController : MonoBehaviour
             return problem == null;
         }
 
-        internal bool Apply(ForestSaveController controller, bool showMessage)
+        internal bool Apply(ForestSaveController controller, bool showMessage, System.Action onAdmitted = null)
         {
             if (!TryPrepare(out ForestSaveData data, out string problem))
             {
@@ -98,6 +99,9 @@ public sealed class ForestSaveController : MonoBehaviour
                 if (showMessage) controller.SetMessage("Save not loaded: " + problem + ".");
                 return false;
             }
+            // The caller may now release paused input/UI. Apply uses this exact admitted snapshot;
+            // it never rereads a file or accepts a caller-supplied replacement DTO after this point.
+            onAdmitted?.Invoke();
             applyingManager = Object.FindFirstObjectByType<ScenarioOneManager>();
             applying = true;
             try { return controller.ApplyAdmittedData(data, this, showMessage); }
@@ -140,27 +144,56 @@ public sealed class ForestSaveController : MonoBehaviour
             Load();
     }
 
-    public void Save()
+    public void Save() => TrySave(null);
+
+    // Menu teardown is permitted only after context, pure capture and semantic admission succeed.
+    internal bool TrySave(System.Action onAdmitted)
     {
-        ForestSaveSessionContext.Current.GetSelectedPaths(Application.persistentDataPath);
+        if (!CanOperateOnSelectedWorld(out string problem))
+        {
+            SetMessage("Save refused: " + problem);
+            return false;
+        }
         ForestSaveData data = CaptureData();
-        if (!AdmittedSave.TryCreate(JsonUtility.ToJson(data), out AdmittedSave admission, out string problem)
+        string json = JsonUtility.ToJson(data, true);
+        if (!AdmittedSave.TryCreate(json, out AdmittedSave admission, out problem)
             || !admission.TryPrepare(out _, out problem))
         {
             SetMessage("Save refused: " + problem);
-            return;
+            return false;
         }
+        onAdmitted?.Invoke();
         try
         {
-            WriteSaveAtomically(JsonUtility.ToJson(data, true));
+            WriteSaveAtomically(json);
         }
         catch (System.Exception error) when (error is IOException || error is System.UnauthorizedAccessException)
         {
             Debug.LogError($"Saving to {SavePath} failed: {error}");
             SetMessage("Save failed: the file could not be written. Your previous save is unchanged.");
-            return;
+            return false;
         }
         SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
+        return true;
+    }
+
+    private static bool CanOperateOnSelectedWorld(out string problem)
+    {
+        ForestSaveSessionContext context = ForestSaveSessionContext.Current;
+        if (!ForestSaveProfiles.CanUse(context.SelectedProfile, out problem)) return false;
+        context.GetSelectedPaths(Application.persistentDataPath);
+        ScenarioOneManager manager = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (manager != null && manager.ReferencePreviewActive)
+        {
+            problem = "disk save/load is unavailable during reference preview";
+            return false;
+        }
+        if (manager != null && (manager.Definition == null || manager.Definition.ScenarioId != context.SelectedProfile.ChapterId))
+        {
+            problem = "the active scenario does not match the selected save profile";
+            return false;
+        }
+        return true;
     }
 
     // Writing straight over the only save slot means a crash or full disk
@@ -340,35 +373,37 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Load()
     {
-        if (!File.Exists(SavePath))
-        {
-            SetMessage("No save found (press F5 to save)");
-            return;
-        }
-
-        if (!TryReadSave(out AdmittedSave admission, out string refusal))
-        {
-            SetMessage(refusal);
-            return;
-        }
-        admission.Apply(this, true);
+        if (!TryLoad(null, out string problem)) SetMessage(problem);
     }
 
-    // Read-only: would Load() accept the save file right now? The title screen offers Continue only when this is
-    // true. It runs exactly the checks Load() runs before it changes anything (the same two helpers), against the
-    // scene as it is, and never touches the scene. "problem" is a short player-readable reason when it returns false.
-    public bool CanLoad(out string problem)
+    // Read once at the action, then carry the immutable bytes through admission and caller teardown.
+    // CanLoad is only an observation; it never grants permission to load a later file revision.
+    internal bool TryLoad(System.Action onAdmitted, out string problem)
     {
+        if (!TryPrepareDiskLoad(out AdmittedSave admission, out problem)) return false;
+        if (admission.Apply(this, true, onAdmitted)) return true;
+        problem = "Save not loaded.";
+        return false;
+    }
+
+    public bool CanLoad(out string problem) => TryPrepareDiskLoad(out _, out problem);
+
+    private static bool TryPrepareDiskLoad(out AdmittedSave admission, out string problem)
+    {
+        admission = null;
+        if (!CanOperateOnSelectedWorld(out problem)) return false;
         if (!File.Exists(SavePath))
         {
             problem = "No saved forest on this device yet.";
             return false;
         }
-        if (!TryReadSave(out AdmittedSave admission, out problem))
+        if (!TryReadSave(out admission, out problem)) return false;
+        if (!admission.TryPrepare(out _, out string loadProblem))
+        {
+            problem = $"Save not loaded: {loadProblem}.";
             return false;
-        admission.TryPrepare(out _, out string loadProblem);
-        problem = loadProblem == null ? null : $"Save not loaded: {loadProblem}.";
-        return loadProblem == null;
+        }
+        return true;
     }
 
     // File and JSON checks for the disk-load path. On failure "refusal" is the exact message Load() shows.
@@ -501,19 +536,39 @@ public sealed class ForestSaveController : MonoBehaviour
     // usable save. Every check runs before the first change to the scene.
     public bool LoadData(ForestSaveData data, bool showMessage = true)
     {
+        if (!CanOperateOnSelectedWorld(out _)) return false;
+        return RestoreCapturedData(data, showMessage);
+    }
+
+    // Internal same-session origin for preview return; public disk/typed loads stay blocked in preview.
+    internal bool RestoreCapturedData(ForestSaveData data, bool showMessage = false)
+    {
+        if (!TryPrepareCapture(data, out AdmittedSave admission, out _)) return false;
+        return admission.Apply(this, showMessage);
+    }
+
+    internal bool CanRestoreCapture(ForestSaveData data)
+        => TryPrepareCapture(data, out _, out _);
+
+    private static bool TryPrepareCapture(ForestSaveData data, out AdmittedSave admission, out string problem)
+    {
+        admission = null;
+        problem = "original raw source or unchanged same-session capture required";
         if (data == null || !captures.TryGetValue(data, out CapturedSource source)
             || !ReferenceEquals(source.Context, ForestSaveSessionContext.Current)
+            || !ForestSaveProfiles.CanUse(source.Context.SelectedProfile, out _)
+            || source.PrimaryPath != source.Context.GetSelectedPaths(Application.persistentDataPath).Primary
             || source.Json != JsonUtility.ToJson(data))
         {
             Debug.LogWarning("Typed save refused: original raw source or unchanged same-session capture required.");
             return false;
         }
-        if (!AdmittedSave.TryCreate(source.Json, out AdmittedSave admission, out string problem))
+        if (!AdmittedSave.TryCreate(source.Json, out admission, out problem))
         {
             Debug.LogWarning("Captured save refused: " + problem);
             return false;
         }
-        return admission.Apply(this, showMessage);
+        return admission.TryPrepare(out _, out problem);
     }
 
     private bool ApplyAdmittedData(ForestSaveData data, AdmittedSave admission, bool showMessage)
@@ -526,14 +581,7 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestEcologyController ecology = Object.FindFirstObjectByType<ForestEcologyController>();
         ForestTreeSpawner spawner = Object.FindFirstObjectByType<ForestTreeSpawner>();
 
-        string problem = FindLoadProblem(data, trees.Length, ecology, spawner, out int geometry);
-        if (problem != null)
-        {
-            Debug.LogWarning($"Save rejected before loading: {problem}. The current forest was not changed.");
-            if (showMessage)
-                SetMessage($"Save not loaded: {problem}.");
-            return false;
-        }
+        int geometry = StandGeometryModel.ForSave(data);
 
         if (data.version > ForestSaveData.CurrentVersion)
             Debug.LogWarning($"Save version {data.version} is newer than supported version {ForestSaveData.CurrentVersion}; loading best-effort.");

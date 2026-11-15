@@ -84,25 +84,23 @@ public sealed partial class StandaloneSessionMenu
             + " year=" + (ecology != null ? ecology.EcologicalYear : -1));
     }
 
-    // Loads through the existing validated path, in the same order the F10 menu's own load button uses: give
-    // the forest its input back, then Load(). The save is checked again here because the file may have changed
-    // since the screen opened; when it no longer loads, nothing is touched and the reason is shown instead.
+    // The action admits a fresh immutable source before releasing the title/help UI. The later
+    // apply consumes those same bytes, even if the file changes after admission.
     public void ContinueSavedForest()
     {
         if (!IsOpen || !startupScreen) return;
         string problem = null;
-        if (saves == null || !saves.CanLoad(out problem))
+        if (saves == null || !saves.TryLoad(() =>
         {
-            continueChecked = true;
-            continueAvailable = false;
-            continueNote = problem ?? "Saving is not available in this scene.";
-            StartupCard();
+            forestUi?.Help.DismissScenarioIntroduction();
+            forestUi?.CloseHelp();
+            Close();
+        }, out problem))
+        {
+            // Retain this card and its current focus/help state when the action is refused.
+            Debug.LogWarning(problem ?? "Saving is not available in this scene.");
             return;
         }
-        forestUi?.Help.DismissScenarioIntroduction();
-        forestUi?.CloseHelp();
-        Close();
-        saves.Load();
         Debug.Log("CCF_STARTUP_CONTINUE");
     }
 

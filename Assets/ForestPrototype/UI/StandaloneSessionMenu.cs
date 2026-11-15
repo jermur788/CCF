@@ -120,7 +120,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
         ActionButton("Continue current forest [F10]", Close, "btn-primary");
-        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { Close(); saves?.Load(); });
+        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { saves?.TryLoad(Close, out _); });
         ActionButton("Save current forest and return…", () => {
             if (File.Exists(SavePath)) Confirm("Replace your existing forest save with the current forest? Use saves only with this build.", SaveAndClose);
             else SaveAndClose();
@@ -142,7 +142,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         card.Clear(); Text(identity.buildId); Text(prompt);
         ActionButton("Confirm", action, "btn-primary"); ActionButton("Cancel", MainCard);
     }
-    public void SaveAndClose() { Close(); saves?.Save(); }
+    public void SaveAndClose() { saves?.TrySave(Close); }
     public void Restart()
     {
         Close(); SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

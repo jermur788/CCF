@@ -36,12 +36,19 @@ public static partial class ForestSaveValidation
             using (var reader = new JsonTextReader(new StringReader(json)))
             {
                 reader.DateParseHandling = DateParseHandling.None;
+                bool envelope = false, payload = false, teaching = false;
                 while (reader.Read())
                 {
-                    if (reader.TokenType == JsonToken.PropertyName && reader.Depth == 1
-                        && (reader.Path == "ccfSaveEnvelope" || reader.Path == "ccfWorldPayload"
-                            || reader.Path == "ccfCompactTeaching"))
-                        return "a new-profile envelope cannot be loaded into the historical slot";
+                    if (reader.TokenType == JsonToken.PropertyName && reader.Depth == 1)
+                    {
+                        envelope |= reader.Path == "ccfSaveEnvelope";
+                        payload |= reader.Path == "ccfWorldPayload";
+                        teaching |= reader.Path == "ccfCompactTeaching";
+                        // Recognize the disjoint-root envelope, without treating a lone unknown
+                        // historical property as proof of a different profile.
+                        if (envelope && payload && teaching)
+                            return "a new-profile envelope cannot be loaded into the historical slot";
+                    }
                     if (reader.TokenType == JsonToken.String && reader.Path == "scenarioOne.scenarioId"
                         && !string.IsNullOrEmpty((string)reader.Value)
                         && !string.Equals((string)reader.Value, chapterId, StringComparison.Ordinal))
