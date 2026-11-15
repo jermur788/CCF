@@ -227,6 +227,36 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** on verdict → bounded repair only if a real defect exists, then focused delta re-check; then the consolidated owner decision packet.
 
+### EVENT 011 — 2026-11-15T12:20Z — independent review verdict NEEDS CHANGES; the decisive finding verified against canonical source
+
+- **Evidence class:** OBSERVED FACT for delivery mechanics and for the canonical-citation check below; the review's opinions remain the reviewer's.
+- **Event type:** REVIEW_END.
+- **Work unit / claim:** V2-C, [#539](https://github.com/jermur788/CCF/issues/539). **Provider:** Claude A, `claude-opus-5-5`, effort `medium`. **Independence:** cross-provider and cross-session from the Sol author — genuine, no fallback disclosure needed.
+- **Delivery verified:** branch `docs/scen1-save-spec-v2-independent-review-20261115-v1`, commit `ad15e1d6`, **1 file changed / 101 insertions**, #539 CLOSED. The reviewer edited no candidate file — independence preserved.
+- **Verdict: NEEDS CHANGES — 0 BLOCKER, 5 MATERIAL, 5 MINOR, 3 NIT.** Report: [scen1-SHARED-SAVE-SPEC-V2-INDEPENDENT-REVIEW-20261115.md](https://github.com/jermur788/CCF/blob/ad15e1d68a3545bb05d1214873c5a659a8ab7aa6/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-SHARED-SAVE-SPEC-V2-INDEPENDENT-REVIEW-20261115.md).
+- **What the review PASSED (so it must not be disturbed by the repair):** all three CONTRADICTED audit gaps converted into requirements to close them; unchanged legacy admission for genuine saves; every preservation anchor intact; 63 ISO IDs present and unchecked; **22 groups of `file:line` citations re-checked against `fc18190b`, all reproduce** except two line-offset nits.
+- **The finding that justifies this whole review stage — M-4, VERIFIED BY THE ORCHESTRATOR INDEPENDENTLY:** the reviewer claimed a conflict with accepted canon. I checked the canonical Decision Log on `origin/main` directly (note: `Docs/Project/decision-log.md` on the coordination anchor at `46247486` is **older** and does not contain D-078–D-081; main at `fc18190b` does — a genuine staleness the ledger records so no one repeats it):
+  - **D-081**: the multi-scenario save policy must have "independent per-scenario save slots, **reject wrong-scenario loads before any mutation**, preserve the existing Scenario One `forest-save.json` and v1–v24 older saves, Legacy40 and frozen Reference Future v1".
+  - **D-079**: "**pre-mutation rejection** of saves belonging to other scenarios".
+  The V2 candidate instead **preserved today's late warning after restoration** and **forbade a fix if ISO-42 failed**. That would have shipped, under an owner signature, a policy contradicting a confirmed decision. **M-4 is upheld.** The other four material findings are: M-1 undisclosed changes to historical-player behaviour; M-2 `Compact30 = 2` silently fixing an excluded world dimension; M-3 menu ordering anticipating D-082; M-5 untestable ISO-58.
+- **Judgement recorded:** zero blockers means the candidate was *sound but not signable*; the review earned its cost by catching a canon conflict that no amount of solo authoring found. This is direct evidence for the V2 appendix's "review value" assessment.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** bounded repair R1 (one repair, per handoff §5 stage C), then a focused delta re-check — not a second full review.
+
+### EVENT 012 — 2026-11-15T12:28Z — DISPATCH: bounded repair R1
+
+- **Evidence class:** OBSERVED FACT (issue creation + dispatch).
+- **Event type:** DISPATCH.
+- **Work unit / claim:** new child claim [#540](https://github.com/jermur788/CCF/issues/540) — bounded repair of the candidate against review findings.
+- **Provider:** OpenAI **B**, `gpt-6.1-sol`, `high` — third consecutive B success. **No Sonnet fallback used anywhere in this run.**
+- **Why the author repairs its own document:** the reviewer's independence is what matters, and it is preserved by keeping the pen with the author and the judgement with the reviewer. The repair is explicitly forbidden from touching anything the review **passed**.
+- **Scope discipline recorded:** exactly the 5 material findings plus trivial minors; status stays `APPROVAL CANDIDATE V2`; **all 63 ISO items stay unchecked**; write allowlist is the four spec files plus one repair report.
+- **M-4 handling decision (orchestrator, not the author's):** because D-079/D-081 are *accepted canon*, compliance is **the default** — an explicitly foreign identity rejects before any mutation — while **genuine historical O1 admission stays untouched**. The owner-retained alternative (warn-and-continue) must be labelled a departure from canon requiring explicit re-decision. This is applying an existing decision, **not** making a new product choice, and the repair is told to remove the clause that forbade fixing a failed ISO-42.
+- **Unity / board / lock:** none.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** on handoff → focused delta re-check by Opus limited to the repaired findings; then the consolidated decision packet and final result.
+
+
 
 
 
