@@ -344,6 +344,44 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** **SCOPE/AUTH (ownership & integration ordering)** — a genuine #424 gate. Not a defect and not a capacity problem.
 - **Next:** request #424's ruling and file-set grant; start only the read-only T-00 delta audit meanwhile.
 
+### EVENT 018 — 2026-11-15T13:20Z — #544 registered RUNNING; #424 ownership/ordering/ops requests posted
+
+- **Evidence class:** OBSERVED FACT (GitHub comment IDs) + ORCHESTRATOR CLAIM (recommendations).
+- **Event type:** DISPATCH (ownership request).
+- **#544 registration:** posted `[RUNNING]` with actual model/effort, new branch and its base (`cf4f1499`), worktree, inherited-ledger state, the **4/4 signature blob verification**, and the #443 collision in full. Comment `6896374893`.
+- **#424 request:** posted the three pre-work asks — (1) **exclusive save-subsystem file set** for the T-01…T-04 writer, (2) an **integration-ordering ruling on #443** with three workable options and a stated recommendation, (3) **nomination of the bounded CCF-Ops device-pin repair** with positive *and* negative device verification. Comment `6896378899`.
+- **Orchestrator recommendation offered, decision withheld:** I recommended option **(a)** — integrate #443 to `main` first, then base save work on the post-#443 head — because it removes a known collision from an unrecoverable area and #443 is already G3-approved. I explicitly did **not** act on it: no rebase, no cherry-pick, no branch movement. Ownership and integration order are #424's authority.
+- **Ops recommendation offered, safety decision withheld:** key lane identity on **UUID + fstype** rather than the `/dev/sdX` passthrough, since enumeration demonstrably changes across boots — but flagging that this must not be an unreviewed weakening of an identity check.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** T-00 dispatch.
+
+### EVENT 019 — 2026-11-15T13:24Z — DISPATCH: T-00 read-only ownership preflight
+
+- **Evidence class:** OBSERVED FACT (issue creation + dispatch).
+- **Event type:** DISPATCH.
+- **Work unit / claim:** new child claim [#545](https://github.com/jermur788/CCF/issues/545) — T-00 save-subsystem ownership preflight and current-source delta, **read-only**.
+- **Provider:** OpenAI **B**, `gpt-6.1-sol`, `high`. **A remains quota-exhausted**, so B is the only Sol route; five consecutive B successes so far across both runs.
+- **Why this is dispatched before any source work:** the continuation packet permits read-only/offline work without a lease or ownership, and the two open questions (base choice, allowlist) are exactly what T-01 needs answered. Dispatching it now means T-01 can start the moment #424 rules, instead of waiting a further round.
+- **Bounded to eight deliverables:** source delta since G0; fixture re-hash (including the *path + hash, never filename* rule I found in the prior run); exact allowlist derived from the **signed** plan; #443 overlap quantified as **semantic vs textual** per file; per-anchor historical-preservation impact of #443; an ownership *recommendation* (not a decision); honest fixture-coverage statement with ISO-58 BLOCKED and O2 unavailable; and an explicit "what I did not do".
+- **Protective instructions carried into the child:** do not edit the signed blobs (no banner "fix", no `spec.md:34` tidy), do not open or resave any real save, no Unity, do not move #443 or `main`, and no product decisions.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** on handoff → feed allowlist into #424's ruling; then T-01 on the agreed base.
+
+### EVENT 020 — 2026-11-15T13:38Z — ENVIRONMENT: host root filesystem is 100% full; T3 auto-worktree provisioning unavailable; re-dispatched on an isolated Files lane
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own `git` and `df` output).
+- **Event type:** DISPATCH failure → recovery. **Failure class: LOCK/STORAGE/ENVIRONMENT.**
+- **What failed:** the first T-00 dispatch (`delegate_task`, isolation `worktree`) returned `Workspace preparation failed during provision worktree: git worktree add failed`. No branch was created, no path existed, so **zero work was lost** — the failure occurred before the child ran.
+- **Root cause, proven not guessed:** `df -h /` → `/dev/sda2` **100% used, 255 MB free**. T3 provisions child worktrees under `/home/jer/.t3/worktrees`, which is on that filesystem. A direct probe reproduced the real error: `fatal: cannot create directory at 'Assets/ForestPrototype/Art/CropTreePruning/Sessile_Oak_Young_01': No space left on device`.
+- **Not the cause, explicitly ruled out:** `/media/jer/Files` has **134 GB free and 7% inodes** — the durable storage tree is healthy. Inodes are not exhausted. The bare store and branch namespace are fine. This is **not** a model, quota, capability or product failure.
+- **Recovery taken (safe, additive, non-destructive):** re-dispatched with isolation `shared` and an explicit instruction to create its own worktree on `/media/jer/Files` (`/media/jer/Files/CCF/Operations/CCF-545-T00`), starting from `origin/main`. This is the same pattern the five prior-run children used successfully. The probe worktree created during diagnosis was removed and its temporary branch deleted, so no residue.
+- **Explicitly NOT done:** I did **not** delete, prune or move any other session's worktrees, even though ~20 T3 worktrees sit on the full filesystem and would relieve pressure. Those belong to other tasks and sessions. Cleaning them is an owner/ops decision, not an orchestrator's.
+- **Consequence beyond this task — worth recording for ops:** **any** `isolation:'worktree'` child in this T3 installation will now fail until `/dev/sda2` is relieved. Workarounds: provision on `/media/jer/Files`, or free root space. Also relevant to the Unity gate: ZX20 (52 GB free) is a **different** disk, so the Unity library headroom question is separate from this one.
+- **Retry cost:** one dispatch, zero rework, ~1 minute of diagnosis.
+- **Next:** T-00 on the Files lane.
+
+
+
 
 
 
