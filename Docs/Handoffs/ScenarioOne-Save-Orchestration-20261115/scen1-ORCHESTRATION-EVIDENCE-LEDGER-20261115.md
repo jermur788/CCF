@@ -497,6 +497,30 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** worker `[RUNNING]` receipt with the narrower allowlist → source → offline evidence → `[HANDED-OFF]` on #551, **left open** for Manager disposition. Then a **new** independent Opus claim against the exact T-02 head.
 
+### EVENT 027 — 2026-11-15T17:40Z — T-02 HARD STOP on a genuine board-authority conflict; the worker is right and the defect is wider than it reported
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own reads of all three records + the governing workflow text) + ORCHESTRATOR CLAIM (recommendation).
+- **Event type:** BLOCK_START. **Failure class: SCOPE/AUTH (coordination-record disagreement).**
+- **What the worker did — and this was correct behaviour, not a stall:** it verified the clean pinned worktree (`da962372`, in sync, 129 GB free), found no competing writer or Unity process, then checked ownership records and **stopped before editing** because the physical CCF-Ops board carries no T-02 entry. It cited `AgentWorkflow.md`'s rule and explicitly declined to write the board or choose the more permissive record. Zero source edits, zero tests, zero claims. It also noted it had already traced the three real defects it was sent to fix — the public `LoadData` raw-check bypass, `RestoreSaveData`'s early mutations, and capture's `EnsureUnderstoreyGrid` call — and repaired none of them.
+- **I adjudicated the blocker from source rather than accepting or overruling it. The governing rule is explicit** (`Docs/Project/AgentWorkflow.md`, "Live task locks"): *"CCF-Ops may maintain an operational board as a working view… While active-tasks.md remains authoritative, the board grants no lock, ownership or permission. **A task is READY only when the board and authoritative lock record agree; disagreement or a missing record means NOT READY. Overall Manager reconciles; never choose the more permissive record.**"* So the worker's reading holds: a missing board record is a **NOT READY** condition that only the Overall Manager can clear.
+- **The defect is WIDER than the worker reported — three records disagree, not two:**
+
+  | # | Record | T-02 / shared-save entries | Head |
+  | --- | --- | --- | --- |
+  | 1 | **Designated** record `ops/workflow-foundation-v1:Docs/Project/coordination/active-tasks.md` | **0** | `46247486` — **has not advanced at all** |
+  | 2 | `main:Docs/Project/coordination/active-tasks.md` | **2** (carries the Manager's T-02 release) | `4212b977` |
+  | 3 | CCF-Ops working view `/media/jer/ZX20/CCF-Ops/board/active.md` | **0** | — |
+
+  The worker reported (2) and (3). The deeper problem is **(1): the record the documentation *designates as authoritative* has received none of the T-02-era entries.** A worker who follows the documented designation literally concludes T-02 was never released — while `main` says it was. That is a real trap, and it is the same class of staleness I logged at EVENT 013 (designated record 65 decisions vs main's 81), now reaching production dispatch.
+- **Why this is not a false blocker and not something I may fix:** the board is single-writer owned by #424; I have no authority to write it, and AgentWorkflow forbids choosing the more permissive record. Granting myself an "exception" would be exactly the bypass the rule exists to prevent.
+- **Recommendation to #424 (three parts, any of which unblocks):**
+  1. **Reconcile the designated record** — either advance `ops/workflow-foundation-v1`'s `active-tasks.md` to carry the T-02 entry, or formally **re-designate `main`** as the authoritative record and say so in the file itself, so the documented designation stops pointing at a stale branch;
+  2. **reconcile the CCF-Ops working view** with the same T-02 entry, since the READY rule requires agreement between board and authoritative record;
+  3. **explicitly confirm** that the unchanged pinned baseline `da962372` remains released for T-02, as the worker requested — the candidate has not moved, so no repin is needed.
+- **Cost of this stop: nil in work terms.** The worker had already localised all three defects from source without editing; its analysis is available for immediate reuse once the record agrees. The stop cost one dispatch, and it **prevented a source writer from editing protected-save code under a contested ownership record** — which is the outcome the rule is designed to produce.
+- **State:** T-02 **NOT STARTED / BLOCKED on coordination**, [#551](https://github.com/jermur788/CCF/issues/551) left **OPEN** and correctly marked `[BLOCKED]` by the worker. No source changed. All 63 ISO items unchecked. Compact/O2 still unavailable. No Unity.
+
+
 
 
 
