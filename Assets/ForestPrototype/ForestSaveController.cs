@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,6 +12,109 @@ public sealed class ForestSaveController : MonoBehaviour
     private string message = "";
     private float messageTimer;
     private GUIStyle messageStyle;
+
+    private sealed class CapturedSource
+    {
+        internal readonly string Json;
+        internal readonly ForestSaveSessionContext Context;
+        internal CapturedSource(string json, ForestSaveSessionContext context) { Json = json; Context = context; }
+    }
+
+    private static readonly ConditionalWeakTable<ForestSaveData, CapturedSource> captures = new ConditionalWeakTable<ForestSaveData, CapturedSource>();
+
+    internal sealed class AdmittedSave
+    {
+        private readonly string json;
+        private readonly ForestSaveSessionContext context;
+        private readonly ForestSaveProfiles.Profile profile;
+        private readonly string primaryPath;
+        private ScenarioOneManager applyingManager;
+        private bool applying;
+
+        private AdmittedSave(string raw, ForestSaveSessionContext sourceContext)
+        {
+            json = raw;
+            context = sourceContext;
+            profile = context.SelectedProfile;
+            primaryPath = context.GetSelectedPaths(Application.persistentDataPath).Primary;
+        }
+
+        internal static bool TryCreate(string json, out AdmittedSave admission, out string problem)
+        {
+            admission = null;
+            ForestSaveSessionContext context = ForestSaveSessionContext.Current;
+            context.GetSelectedPaths(Application.persistentDataPath);
+            problem = ForestSaveValidation.ValidateSelectedJson(json, context.SelectedProfile);
+            if (problem != null) return false;
+            ForestSaveData data = JsonUtility.FromJson<ForestSaveData>(json);
+            if (!string.IsNullOrEmpty(data?.scenarioOne?.scenarioId)
+                && data.scenarioOne.scenarioId != context.SelectedProfile.ChapterId)
+            {
+                problem = "the save explicitly belongs to a different scenario";
+                return false;
+            }
+            problem = ForestSaveValidation.ValidateGeometryJson(json, data)
+                ?? ForestSaveValidation.ValidateStormJson(json, data)
+                ?? ForestSaveValidation.ValidateCompetitionJson(json, data)
+                ?? ForestSaveValidation.ValidateRackV2Json(json, data)
+                ?? ForestSaveValidation.ValidateObjectiveHistoryJson(json, data)
+                ?? ForestSaveValidation.ValidatePrescriptionsJson(json, data);
+            if (problem != null) return false;
+            admission = new AdmittedSave(json, context);
+            return true;
+        }
+
+        private bool MatchesCurrentContext()
+        {
+            return ReferenceEquals(context, ForestSaveSessionContext.Current)
+                && ReferenceEquals(profile, context.SelectedProfile)
+                && primaryPath == context.GetSelectedPaths(Application.persistentDataPath).Primary;
+        }
+
+        internal bool TryPrepare(out ForestSaveData data, out string problem)
+        {
+            data = null;
+            problem = "the admitted save no longer belongs to the selected context";
+            if (!MatchesCurrentContext()) return false;
+            ScenarioOneManager manager = Object.FindFirstObjectByType<ScenarioOneManager>();
+            if (manager != null && (manager.Definition == null || manager.Definition.ScenarioId != profile.ChapterId))
+            {
+                problem = "the active scenario does not match the selected save profile";
+                return false;
+            }
+            data = JsonUtility.FromJson<ForestSaveData>(json);
+            if (data != null && data.version <= 0) data.version = 1;
+            problem = FindLoadProblem(data,
+                Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length,
+                Object.FindFirstObjectByType<ForestEcologyController>(), Object.FindFirstObjectByType<ForestTreeSpawner>(), out _);
+            return problem == null;
+        }
+
+        internal bool Apply(ForestSaveController controller, bool showMessage)
+        {
+            if (!TryPrepare(out ForestSaveData data, out string problem))
+            {
+                Debug.LogWarning("Save rejected before loading: " + problem);
+                if (showMessage) controller.SetMessage("Save not loaded: " + problem + ".");
+                return false;
+            }
+            applyingManager = Object.FindFirstObjectByType<ScenarioOneManager>();
+            applying = true;
+            try { return controller.ApplyAdmittedData(data, this, showMessage); }
+            finally { applying = false; applyingManager = null; }
+        }
+
+        internal bool TryGetManagementData(ScenarioOneManager manager, out ScenarioOneSaveData data, out int version)
+        {
+            data = null;
+            version = 0;
+            if (!applying || !ReferenceEquals(manager, applyingManager) || !MatchesCurrentContext()) return false;
+            ForestSaveData payload = JsonUtility.FromJson<ForestSaveData>(json);
+            version = payload.version <= 0 ? 1 : payload.version;
+            data = version >= 10 ? payload.scenarioOne : null;
+            return true;
+        }
+    }
 
     private static string SavePath => ForestSaveSessionContext.CurrentPaths.Primary;
     // The new save is written here first and only swapped in once complete.
@@ -36,7 +142,14 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Save()
     {
+        ForestSaveSessionContext.Current.GetSelectedPaths(Application.persistentDataPath);
         ForestSaveData data = CaptureData();
+        if (!AdmittedSave.TryCreate(JsonUtility.ToJson(data), out AdmittedSave admission, out string problem)
+            || !admission.TryPrepare(out _, out problem))
+        {
+            SetMessage("Save refused: " + problem);
+            return;
+        }
         try
         {
             WriteSaveAtomically(JsonUtility.ToJson(data, true));
@@ -98,6 +211,15 @@ public sealed class ForestSaveController : MonoBehaviour
     // The same authoritative capture powers local saves and verified reference
     // milestones without modifying the player's on-disk save slot.
     public ForestSaveData CaptureData()
+    {
+        ForestSaveSessionContext context = ForestSaveSessionContext.Current;
+        context.GetSelectedPaths(Application.persistentDataPath);
+        ForestSaveData data = CaptureWorldData();
+        captures.Add(data, new CapturedSource(JsonUtility.ToJson(data), context));
+        return data;
+    }
+
+    private ForestSaveData CaptureWorldData()
     {
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -224,12 +346,12 @@ public sealed class ForestSaveController : MonoBehaviour
             return;
         }
 
-        if (!TryReadSave(out ForestSaveData data, out string refusal))
+        if (!TryReadSave(out AdmittedSave admission, out string refusal))
         {
             SetMessage(refusal);
             return;
         }
-        LoadData(data);
+        admission.Apply(this, true);
     }
 
     // Read-only: would Load() accept the save file right now? The title screen offers Continue only when this is
@@ -242,37 +364,24 @@ public sealed class ForestSaveController : MonoBehaviour
             problem = "No saved forest on this device yet.";
             return false;
         }
-        if (!TryReadSave(out ForestSaveData data, out problem))
+        if (!TryReadSave(out AdmittedSave admission, out problem))
             return false;
-        if (data != null && data.version <= 0)
-            data.version = 1; // as LoadData does before validating
-        string loadProblem = FindLoadProblem(data,
-            Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length,
-            Object.FindFirstObjectByType<ForestEcologyController>(),
-            Object.FindFirstObjectByType<ForestTreeSpawner>(),
-            out _);
+        admission.TryPrepare(out _, out string loadProblem);
         problem = loadProblem == null ? null : $"Save not loaded: {loadProblem}.";
         return loadProblem == null;
     }
 
     // File and JSON checks for the disk-load path. On failure "refusal" is the exact message Load() shows.
-    private static bool TryReadSave(out ForestSaveData data, out string refusal)
+    private static bool TryReadSave(out AdmittedSave admission, out string refusal)
     {
-        data = null;
+        admission = null;
         refusal = null;
         try
         {
             string json = File.ReadAllText(SavePath);
-            data = JsonUtility.FromJson<ForestSaveData>(json);
-            string competitionProblem = ForestSaveValidation.ValidateGeometryJson(json, data)
-                ?? ForestSaveValidation.ValidateStormJson(json, data)
-                ?? ForestSaveValidation.ValidateCompetitionJson(json, data)
-                ?? ForestSaveValidation.ValidateRackV2Json(json, data)
-                ?? ForestSaveValidation.ValidateObjectiveHistoryJson(json, data)
-                ?? ForestSaveValidation.ValidatePrescriptionsJson(json, data);
-            if (competitionProblem != null)
+            if (!AdmittedSave.TryCreate(json, out admission, out string problem))
             {
-                refusal = "Save refused: " + competitionProblem;
+                refusal = "Save refused: " + problem;
                 return false;
             }
         }
@@ -282,11 +391,82 @@ public sealed class ForestSaveController : MonoBehaviour
             // ArgumentException is JsonUtility's error for malformed JSON.
             Debug.LogWarning($"Could not read save {SavePath}: {error}");
             refusal = File.Exists(BackupSavePath)
-                ? $"Save file unreadable. The previous save is kept as {SaveFileName}.bak."
+                ? $"Save file unreadable. The previous save is kept as {Path.GetFileName(BackupSavePath)}."
                 : "Save file unreadable.";
             return false;
         }
         return true;
+    }
+
+    internal bool TryPrepareReference(int year, out AdmittedSave admission, out ForestSaveData example)
+    {
+        admission = null;
+        example = null;
+        ForestSaveSessionContext.Current.GetSelectedPaths(Application.persistentDataPath);
+        if (!ReferenceEquals(ForestSaveSessionContext.Current.SelectedProfile, ForestSaveProfiles.Historical)) return false;
+        ScenarioReferenceArchive archive = ScenarioReferenceArchive.Load();
+        ScenarioReferenceMilestone milestone = archive?.AtYear(year);
+        ScenarioOneManager manager = Object.FindFirstObjectByType<ScenarioOneManager>();
+        if (milestone == null || !milestone.verifiedFrozenWorld || manager == null
+            || !archive.IdentityMatches(manager.Definition, Object.FindFirstObjectByType<ForestEcologyController>())) return false;
+        TextAsset asset = Resources.Load<TextAsset>(ScenarioReferenceArchive.ResourceName);
+        if (asset == null) return false;
+        try
+        {
+            string text;
+            using (var source = new MemoryStream(asset.bytes))
+            using (var decoder = new GZipStream(source, CompressionMode.Decompress))
+            using (var reader = new StreamReader(decoder, Encoding.UTF8))
+                text = reader.ReadToEnd();
+            JObject root = JObject.Parse(text);
+            int milestoneIndex = archive.milestones.IndexOf(milestone);
+            if ((int)root["milestones"][milestoneIndex]["year"] != year) return false;
+            string raw = ExtractReferenceWorld(text, milestoneIndex);
+            if (raw == null || ScenarioReferenceArchive.Hash(raw) != milestone.worldHash) return false;
+            return AdmittedSave.TryCreate(raw, out admission, out _) && admission.TryPrepare(out example, out _);
+        }
+        catch (System.Exception error) when (error is IOException || error is Newtonsoft.Json.JsonException
+            || error is System.ArgumentException || error is System.InvalidOperationException)
+        {
+            Debug.LogWarning("Reference source admission failed: " + error.Message);
+            return false;
+        }
+    }
+
+    private static string ExtractReferenceWorld(string text, int milestoneIndex)
+    {
+        int offset = 0;
+        for (int milestone = 0; milestone <= milestoneIndex; milestone++)
+        {
+            int key = text.IndexOf("\"world\"", offset, System.StringComparison.Ordinal);
+            if (key < 0) return null;
+            int opening = text.IndexOf(':', key + 7) + 1;
+            while (opening < text.Length && char.IsWhiteSpace(text[opening])) opening++;
+            if (opening >= text.Length || text[opening] != '{') return null;
+            var raw = new StringBuilder();
+            bool quoted = false, escaped = false;
+            int depth = 0;
+            for (int position = opening; position < text.Length; position++)
+            {
+                char character = text[position];
+                if (!quoted && char.IsWhiteSpace(character)) continue;
+                raw.Append(character);
+                if (character == '"' && !escaped) quoted = !quoted;
+                if (!quoted)
+                {
+                    if (character == '{') depth++;
+                    if (character == '}' && --depth == 0)
+                    {
+                        if (milestone == milestoneIndex) return raw.ToString();
+                        offset = position + 1;
+                        break;
+                    }
+                }
+                escaped = quoted && character == '\\' ? !escaped : false;
+            }
+            if (depth != 0) return null;
+        }
+        return null;
     }
 
     // Every check that must pass before the first change to the scene. Returns null when the data can be loaded,
@@ -321,9 +501,23 @@ public sealed class ForestSaveController : MonoBehaviour
     // usable save. Every check runs before the first change to the scene.
     public bool LoadData(ForestSaveData data, bool showMessage = true)
     {
-        // Saves written before versioning load as version 1. Future migrations belong here.
-        if (data != null && data.version <= 0)
-            data.version = 1;
+        if (data == null || !captures.TryGetValue(data, out CapturedSource source)
+            || !ReferenceEquals(source.Context, ForestSaveSessionContext.Current)
+            || source.Json != JsonUtility.ToJson(data))
+        {
+            Debug.LogWarning("Typed save refused: original raw source or unchanged same-session capture required.");
+            return false;
+        }
+        if (!AdmittedSave.TryCreate(source.Json, out AdmittedSave admission, out string problem))
+        {
+            Debug.LogWarning("Captured save refused: " + problem);
+            return false;
+        }
+        return admission.Apply(this, showMessage);
+    }
+
+    private bool ApplyAdmittedData(ForestSaveData data, AdmittedSave admission, bool showMessage)
+    {
 
         ForestPlayer player = Object.FindFirstObjectByType<ForestPlayer>();
         ForestTree[] trees = Object.FindObjectsByType<ForestTree>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -512,7 +706,7 @@ public sealed class ForestSaveController : MonoBehaviour
         // especially planted or naturally established cohorts.
         ScenarioOneManager scenario = Object.FindFirstObjectByType<ScenarioOneManager>();
         if (scenario != null)
-            scenario.RestoreSaveData(data.version >= 10 ? data.scenarioOne : null, data.version);
+            scenario.RestoreAdmittedSaveData(admission);
         else if (ecology != null)
             ecology.Browsing.ClearProtection();
 

@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 // Checks a parsed save before it is allowed to touch the live world.
@@ -14,6 +18,180 @@ public static partial class ForestSaveValidation
 {
     // Highest ForestTreeStage value (Mature, Stump, Sapling, Young).
     private const int MaxTreeStage = 3;
+
+    internal static string ValidateSelectedJson(string json, ForestSaveProfiles.Profile profile)
+    {
+        if (ReferenceEquals(profile, ForestSaveProfiles.Historical))
+            return ValidateHistoricalIdentityJson(json, profile.ChapterId);
+        string problem = ValidateEnvelopeStructure(json, profile, out _);
+        if (problem != null) return problem;
+        if (!ForestSaveProfiles.CanUse(profile, out string reason)) return reason;
+        return "no authored new-profile geometry admission is installed";
+    }
+
+    private static string ValidateHistoricalIdentityJson(string json, string chapterId)
+    {
+        try
+        {
+            using (var reader = new JsonTextReader(new StringReader(json)))
+            {
+                reader.DateParseHandling = DateParseHandling.None;
+                while (reader.Read())
+                {
+                    if (reader.TokenType == JsonToken.PropertyName && reader.Depth == 1
+                        && (reader.Path == "ccfSaveEnvelope" || reader.Path == "ccfWorldPayload"
+                            || reader.Path == "ccfCompactTeaching"))
+                        return "a new-profile envelope cannot be loaded into the historical slot";
+                    if (reader.TokenType == JsonToken.String && reader.Path == "scenarioOne.scenarioId"
+                        && !string.IsNullOrEmpty((string)reader.Value)
+                        && !string.Equals((string)reader.Value, chapterId, StringComparison.Ordinal))
+                        return "the save explicitly belongs to a different scenario";
+                }
+            }
+        }
+        catch (JsonException) { }
+        return null;
+    }
+
+    internal static string ValidateEnvelopeStructure(string json, ForestSaveProfiles.Profile profile, out string payloadJson)
+    {
+        payloadJson = null;
+        if (!ReferenceEquals(profile, ForestSaveProfiles.Compact) && !ReferenceEquals(profile, ForestSaveProfiles.ScenarioTwo))
+            return "a new envelope requires a registered new profile";
+        try
+        {
+            JObject root;
+            using (var reader = new JsonTextReader(new StringReader(json)))
+            {
+                reader.DateParseHandling = DateParseHandling.None;
+                root = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                if (reader.Read()) return "unexpected content after the save envelope";
+            }
+            string problem = ValidateExactKeys(root, "ccfSaveEnvelope", "ccfWorldPayload", "ccfCompactTeaching");
+            if (problem != null) return problem;
+            JObject identity = root["ccfSaveEnvelope"] as JObject;
+            problem = ValidateExactKeys(identity, "schemaVersion", "chapterId", "profileId", "worldId", "geometryKey", "contentKey", "payloadVersion");
+            if (problem != null) return problem;
+            problem = ValidateNewShape(identity, typeof(ForestSaveEnvelopeIdentity), "ccfSaveEnvelope");
+            if (problem != null) return problem;
+            if ((int)identity["schemaVersion"] != ForestSaveEnvelopeIdentity.SupportedSchemaVersion
+                || (int)identity["payloadVersion"] != ForestSaveEnvelopeIdentity.SupportedPayloadVersion)
+                return "unsupported envelope schema/payload version tuple";
+            if ((string)identity["chapterId"] != profile.ChapterId || (string)identity["profileId"] != profile.ProfileId
+                || (string)identity["worldId"] != profile.WorldId || (string)identity["geometryKey"] != profile.GeometryKey
+                || (string)identity["contentKey"] != profile.ContentKey)
+                return "the envelope identity does not exactly match the selected profile";
+            JObject payload = root["ccfWorldPayload"] as JObject;
+            if (payload == null) return "the envelope requires an object world payload";
+            problem = ValidateNewShape(payload, typeof(ForestSaveData), "ccfWorldPayload");
+            if (problem != null) return problem;
+            if ((int)payload["version"] != ForestSaveEnvelopeIdentity.SupportedPayloadVersion
+                || payload["scenarioOne"]?.Type != JTokenType.Object
+                || (string)payload["scenarioOne"]["scenarioId"] != profile.ChapterId)
+                return "the nested version/scenario identity does not match the envelope";
+            if (ReferenceEquals(profile, ForestSaveProfiles.ScenarioTwo))
+            {
+                if (root["ccfCompactTeaching"].Type != JTokenType.Null)
+                    return "Scenario Two requires explicit null compact teaching";
+            }
+            else
+            {
+                if ((int)payload["standGeometryModel"] != 2)
+                    return "Compact requires its reserved geometry identity, not historical geometry";
+                JObject scenario = (JObject)payload["scenarioOne"];
+                if ((int)scenario["rackPlanningModel"] != 0 || (bool)scenario["rackPlanConfirmed"]
+                    || (int)scenario["nextRackId"] != 1 || ((JArray)scenario["racks"]).Count != 0
+                    || (bool)scenario["firstGuidedRackReviewComplete"])
+                    return "Compact requires neutral historical rack and teaching state";
+                foreach (JToken order in (JArray)scenario["workOrders"])
+                    if (order["rackId"] != null && (int)order["rackId"] != 0)
+                        return "Compact cannot contain rack-owned work orders";
+                if (root["ccfCompactTeaching"].Type != JTokenType.Object)
+                    return "Compact requires an object teaching block";
+                problem = ValidateNewShape(root["ccfCompactTeaching"], typeof(ForestCompactTeachingEvidence), "ccfCompactTeaching");
+                if (problem != null) return problem;
+                JObject teaching = (JObject)root["ccfCompactTeaching"];
+                if ((int)teaching["evidenceVersion"] != ForestCompactTeachingEvidence.SupportedEvidenceVersion
+                    || (int)teaching["reviewAcknowledgedYear"] < -1)
+                    return "unsupported Compact teaching evidence version/year";
+                var orderIds = new HashSet<int>();
+                foreach (JToken orderId in (JArray)teaching["groupOrderIds"])
+                    if ((int)orderId <= 0 || !orderIds.Add((int)orderId) || orderIds.Count > 4)
+                        return "invalid Compact group order identities";
+                var plantingIds = new HashSet<int>();
+                var juvenileIds = new HashSet<string>(StringComparer.Ordinal);
+                foreach (JToken planting in (JArray)teaching["plantings"])
+                    if (!orderIds.Contains((int)planting["workOrderId"]) || !plantingIds.Add((int)planting["workOrderId"])
+                        || ((string)planting["speciesId"] != "sessile-oak" && (string)planting["speciesId"] != "beech")
+                        || string.IsNullOrWhiteSpace((string)planting["juvenileId"]) || !juvenileIds.Add((string)planting["juvenileId"])
+                        || (int)planting["completionYear"] < 0)
+                        return "invalid Compact planting evidence identities";
+            }
+            payloadJson = payload.ToString(Formatting.None);
+            return null;
+        }
+        catch (Exception error) when (error is JsonException || error is ArgumentException || error is OverflowException
+            || error is InvalidCastException || error is FormatException)
+        {
+            return "invalid envelope JSON, key or numeric type";
+        }
+    }
+
+    private static string ValidateExactKeys(JObject value, params string[] names)
+    {
+        if (value == null || value.Count != names.Length) return "missing, null or unknown envelope keys";
+        foreach (string name in names)
+            if (value.Property(name, StringComparison.Ordinal) == null) return "missing or wrong-case envelope key " + name;
+        return null;
+    }
+
+    private static string ValidateNewShape(JToken token, Type type, string path)
+    {
+        if (type == typeof(string)) return token.Type == JTokenType.String ? null : path + " requires a non-null string";
+        if (type == typeof(bool)) return token.Type == JTokenType.Boolean ? null : path + " requires a boolean";
+        if (type.IsEnum || type == typeof(int) || type == typeof(long))
+        {
+            if (token.Type != JTokenType.Integer) return path + " requires an integer";
+            long number = token.ToObject<long>();
+            if (type != typeof(long) && (number < int.MinValue || number > int.MaxValue)) return path + " exceeds signed32";
+            if (type.IsEnum && !Enum.IsDefined(type, (int)number)) return path + " has an unknown enum value";
+            return null;
+        }
+        if (type == typeof(float) || type == typeof(double))
+        {
+            if (token.Type != JTokenType.Float && token.Type != JTokenType.Integer) return path + " requires a number";
+            double number = token.ToObject<double>();
+            return double.IsNaN(number) || double.IsInfinity(number) || (type == typeof(float) && Math.Abs(number) > float.MaxValue)
+                ? path + " has an invalid numeric range" : null;
+        }
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            if (!(token is JArray items)) return path + " requires an array";
+            foreach (JToken item in items)
+            {
+                if (item.Type == JTokenType.Null) return path + " contains a null record";
+                string problem = ValidateNewShape(item, type.GetGenericArguments()[0], path + "[]");
+                if (problem != null) return problem;
+            }
+            return null;
+        }
+        if (token.Type == JTokenType.Null && !type.IsValueType) return null;
+        if (!(token is JObject record)) return path + " requires an object";
+        FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (FieldInfo field in fields)
+        {
+            if (Attribute.IsDefined(field, typeof(NonSerializedAttribute))) continue;
+            names.Add(field.Name);
+            JProperty property = record.Property(field.Name, StringComparison.Ordinal);
+            if (property == null) return path + " is missing " + field.Name;
+            string problem = ValidateNewShape(property.Value, field.FieldType, path + "." + field.Name);
+            if (problem != null) return problem;
+        }
+        foreach (JProperty property in record.Properties())
+            if (!names.Contains(property.Name)) return path + " has unknown key " + property.Name;
+        return null;
+    }
 
     // Returns null when the save is safe to load, otherwise a short
     // player-readable reason.

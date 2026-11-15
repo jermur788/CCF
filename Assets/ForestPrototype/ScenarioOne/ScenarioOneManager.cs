@@ -663,6 +663,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         planningPlantingMethod = WorkExecutionMethod.Contractor;
         planningInstallShelter = false;
         feedback = StartGuidanceToken;
+        if (ecology != null && ecology.RegenerationModelVersion == RegenerationModel.Competition)
+            EnsureUnderstoreyGrid();
     }
 
     public bool TryBeginReferencePreview(int year)
@@ -685,35 +687,34 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             feedback = "The save controller is unavailable for reference preview.";
             return false;
         }
-        ForestSaveData example = JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(milestone.world));
-        if (!milestone.verifiedFrozenWorld)
+        if (!saves.TryPrepareReference(year, out ForestSaveController.AdmittedSave admission, out ForestSaveData example))
         {
             feedback = "Reference milestone hash mismatch; preview was not opened.";
             return false;
         }
-        previewReturnData = saves.CaptureData();
-        player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
-        if (player != null)
-        {
-            previewPlayerPosition = player.transform.position;
-            previewPlayerRotation = player.transform.rotation;
-            previewPlayerPitch = player.LookPitch;
-        }
+        ForestSaveData returnData = saves.CaptureData();
+        ForestPlayer currentPlayer = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
+        Vector3 returnPosition = currentPlayer != null ? currentPlayer.transform.position : Vector3.zero;
+        Quaternion returnRotation = currentPlayer != null ? currentPlayer.transform.rotation : Quaternion.identity;
+        float returnPitch = currentPlayer != null ? currentPlayer.LookPitch : 0f;
         Camera camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
-        previewCameraRotation = camera != null ? camera.transform.localRotation : Quaternion.identity;
-        SetWorkPlanOpen(false);
-        previewYear = year;
-        referencePreviewActive = true;
-        if (!saves.LoadData(example, false))
+        Quaternion returnCameraRotation = camera != null ? camera.transform.localRotation : Quaternion.identity;
+        if (!admission.Apply(saves, false))
         {
             // The milestone was rejected before anything in the world changed,
             // so the player's own forest is still in place.
-            referencePreviewActive = false;
-            previewReturnData = null;
-            previewYear = 0;
             feedback = "The reference milestone could not be loaded; preview was not opened.";
             return false;
         }
+        previewReturnData = returnData;
+        player = currentPlayer;
+        previewPlayerPosition = returnPosition;
+        previewPlayerRotation = returnRotation;
+        previewPlayerPitch = returnPitch;
+        previewCameraRotation = returnCameraRotation;
+        SetWorkPlanOpen(false);
+        previewYear = year;
+        referencePreviewActive = true;
         MoveToReferenceView(example);
         return true;
     }
@@ -722,10 +723,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         if (!referencePreviewActive)
             return;
-        referencePreviewActive = false;
         ForestSaveController saves = UnityEngine.Object.FindFirstObjectByType<ForestSaveController>();
-        if (saves != null && previewReturnData != null && !saves.LoadData(previewReturnData, false))
+        if (saves == null || previewReturnData == null || !saves.LoadData(previewReturnData, false))
+        {
             Debug.LogError("Returning from the reference preview failed: the captured forest was rejected on reload.", this);
+            return;
+        }
+        referencePreviewActive = false;
         previewReturnData = null;
         player = UnityEngine.Object.FindFirstObjectByType<ForestPlayer>();
         if (player != null)
@@ -1393,10 +1397,6 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public ScenarioOneSaveData CaptureSaveData()
     {
-        // A freshly reset model-2 scenario must be saveable before its first
-        // annual step or map/inspection access initializes the vegetation grid.
-        if (ecology != null && ecology.RegenerationModelVersion == RegenerationModel.Competition)
-            EnsureUnderstoreyGrid();
         return new ScenarioOneSaveData
         {
             firstGuidedRackReviewComplete = firstGuidedRackReviewComplete,
@@ -1453,6 +1453,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void RestoreSaveData(ScenarioOneSaveData data, int saveVersion)
     {
+        Debug.LogWarning("Management restore refused: an active source-bound full-world admission is required.", this);
+    }
+
+    internal void RestoreAdmittedSaveData(ForestSaveController.AdmittedSave admission)
+    {
+        if (admission == null || !admission.TryGetManagementData(this, out ScenarioOneSaveData data, out int saveVersion))
+        {
+            Debug.LogWarning("Management restore refused: no active matching admission.", this);
+            return;
+        }
         TeachingWorldVersion++;
         InvalidateEconomyQuotes();
         ClearRackGroups();
@@ -1478,8 +1488,6 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             InitializeNewScenario();
             return;
         }
-        if (definition != null && !string.IsNullOrEmpty(data.scenarioId) && data.scenarioId != definition.ScenarioId)
-            Debug.LogWarning($"Save scenario '{data.scenarioId}' is being loaded into '{definition.ScenarioId}'.", this);
         initialized = data.initialized;
         firstGuidedRackReviewComplete = saveVersion >= 24 && data.firstGuidedRackReviewComplete;
         cashCents = Math.Max(0L, data.cashCents);
