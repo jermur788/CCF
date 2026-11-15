@@ -1,0 +1,205 @@
+[
+  {
+    "label": "test helper accepts guarded-root backing device",
+    "passed": true,
+    "device": "/dev/sdc2"
+  },
+  {
+    "label": "test helper rejects a DIFFERENT existing block device",
+    "passed": true,
+    "device": "/dev/sda2"
+  },
+  {
+    "label": "test helper independently identifies root backing device",
+    "passed": true,
+    "device": "/dev/sda2"
+  },
+  {
+    "label": "test helper rejects character device",
+    "passed": true
+  },
+  {
+    "label": "test helper rejects regular file",
+    "passed": true
+  },
+  {
+    "label": "test helper rejects nonexistent device",
+    "passed": true
+  },
+  {
+    "label": "storage_health rejects different block device",
+    "passed": true,
+    "health": {
+      "status": "WRONG DEVICE",
+      "ready": false,
+      "backing_device": "/dev/sdc2",
+      "writable": true,
+      "free_bytes": 55398498304,
+      "free_gib": 51.5938720703125,
+      "minimum_free_bytes": 16106127360,
+      "minimum_free_gib": 15.0
+    }
+  },
+  {
+    "label": "storage_health rejects wrong UUID",
+    "passed": true,
+    "health": {
+      "status": "WRONG DEVICE",
+      "ready": false,
+      "backing_device": "/dev/sdc2",
+      "writable": true,
+      "free_bytes": 55398498304,
+      "free_gib": 51.5938720703125,
+      "minimum_free_bytes": 16106127360,
+      "minimum_free_gib": 15.0
+    }
+  },
+  {
+    "label": "storage_health rejects wrong fstype",
+    "passed": true,
+    "health": {
+      "status": "WRONG DEVICE",
+      "ready": false,
+      "backing_device": "/dev/sdc2",
+      "writable": true,
+      "free_bytes": 55398498304,
+      "free_gib": 51.5938720703125,
+      "minimum_free_bytes": 16106127360,
+      "minimum_free_gib": 15.0
+    }
+  },
+  {
+    "label": "storage_health rejects nonexistent device",
+    "passed": true,
+    "health": {
+      "status": "WRONG DEVICE",
+      "ready": false,
+      "backing_device": "/dev/sdc2",
+      "writable": true,
+      "free_bytes": 55398498304,
+      "free_gib": 51.5938720703125,
+      "minimum_free_bytes": 16106127360,
+      "minimum_free_gib": 15.0
+    }
+  },
+  {
+    "label": "candidate: different physical device rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/candidate/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-392242bf0a6345a998e73d786c2ab805",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: rejected status creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: different physical device rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/candidate/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-392242bf0a6345a998e73d786c2ab805",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: rejected acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: different physical device rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/candidate/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-392242bf0a6345a998e73d786c2ab805",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: rejected release creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: different physical device rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/live-copy/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-90173ffc36e3428893a51642bda725ba",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: rejected status creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: different physical device rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/live-copy/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-90173ffc36e3428893a51642bda725ba",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: rejected acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: different physical device rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548FinalIdentity-7um3m0bl/live-copy/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-final-never-created-90173ffc36e3428893a51642bda725ba",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: rejected release creates no state",
+    "passed": true
+  }
+]

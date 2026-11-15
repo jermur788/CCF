@@ -1,0 +1,8 @@
+{
+  "label": "identity",
+  "chunk_id": "9a9e4f",
+  "wall_time_seconds": 0.255012005,
+  "exit_code": 0,
+  "original_token_count": 197,
+  "output": "PASS: enumerated source and persistent pin share block device number\nPASS: character devices rejected\nPASS: regular files rejected even with matching rdev\nPASS: absent pin rejected\nPASS: exactly one physically visible UUID\nPASS: default storage_check uses persistent pin\nPASS: physical storage health PASS\nPASS: low capacity remains blocked\nPASS: read-only remains blocked\nPASS: mount target remains bound\nPASS: zero/duplicate UUID storage_check rejected: []\nPASS: zero/duplicate UUID health blocked\nPASS: zero/duplicate UUID storage_check rejected: ['/dev/sdc2', '/dev/CCF-DUPLICATE-FIXTURE']\nPASS: zero/duplicate UUID health blocked\nPASS: Python parse: _ccf.py\nPASS: Python parse: lane-status\nPASS: Python parse: unity-lock\nPASS: Python parse: packet-lint\nIDENTITY_VERIFICATION_PASS 18\n"
+}

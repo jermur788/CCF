@@ -1,0 +1,7 @@
+{
+  "backup": "/media/jer/ZX20/CCF-Ops/deployment.json.bak-20261115T231825Z",
+  "before_sha256": "2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc",
+  "backup_sha256": "2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc",
+  "after_sha256": "8c66b290c247708846cb8b59f83626a10a3fa1d052397a3316dc5f23fc157b18",
+  "candidate_source_head": "60f97b06bd41f9a89fde4eb775527ebc6947560b"
+}

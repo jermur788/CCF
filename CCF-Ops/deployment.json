@@ -6,9 +6,9 @@
   "source_head": "dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e",
   "deployed_at": "2026-10-15T00:20:00+00:00",
   "deployment_target": "/media/jer/ZX20/CCF-Ops",
-  "recorded_at": "2026-11-15T23:07:16.644303+00:00",
+  "recorded_at": "2026-11-15T23:18:25.883045+00:00",
   "provenance_status": "RECONCILED_OBSERVATION_NOT_SOURCE_ACCEPTANCE",
-  "previous_manifest_sha256": "bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5",
+  "previous_manifest_sha256": "2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc",
   "source_hashes": {
     "ActiveTasksTransition.md": "e2fe59102b8b408a313f48807323c5d1befb6e89407e8a50dfdf169cd8e7a68d",
     "CLAUDE.md": "625065153e9b69634723b6a6f678fa2371350cb7f436393461a62a07a28e2335",
@@ -99,7 +99,7 @@
     "source_repository": "/media/jer/Files/CCF/Repository.git",
     "source_worktree": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115",
     "source_branch": "ops/unity-lease-persistent-identity-20261115-v1",
-    "source_head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
+    "source_head": "60f97b06bd41f9a89fde4eb775527ebc6947560b",
     "deployment_status": "NOT_DEPLOYED",
     "deployed_at": null,
     "source_hashes": {
@@ -110,9 +110,9 @@
       "DeploymentProvenance.md": "a08fb8a5d38e82ab3dad1b6b1e0df7280cf28e1751fd1359b61cc2947b288db4",
       "scripts/unity-lock": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
       "scripts/packet-lint": "a776ec42a13224936a5c7c6a68ec2ed7ddc4e2cf21a96e287e6843a31e243e43",
-      "tests/self-test.py": "2a12a19d848ae789a1404c7ebd5285457e061b0a7142b91de95ed0b79cdeeaf3"
+      "tests/self-test.py": "6bba90d82e6ce2297295998c3e7035f3360ada04af338e2c25c167a99abf1a62"
     },
-    "hash_scope": "Eight bounded candidate files at the implementation commit, including unchanged lock/linter/self-test; receipt/evidence commit follows. Live tooling/config remains unchanged."
+    "hash_scope": "Eight bounded candidate files at the implementation commit; self-test uses verified live backing-device numbers. Receipt/evidence commit follows. Live tooling/config remains unchanged."
   },
   "notes": [
     "This receipt is identical in Git and live, describes existing live bytes separately from candidate bytes, and does not claim the candidate was deployed.",

@@ -1,0 +1,20 @@
+{
+  "changed_live": [
+    "deployment.json"
+  ],
+  "added_live": [
+    "deployment.json.bak-20261115T231825Z"
+  ],
+  "removed_live": [],
+  "protected_branch_hashes": {
+    "CCF-Ops/board/active.md": "cb6bcc40e10a4668168bed9b90e5a7f9e3bb167997f0b5248e6fd850d3e2b24c",
+    "Docs/Project/coordination/active-tasks.md": "e1f80488b68493ca624ce8918a595ad91d9699af1ba870459a492acec49b085a",
+    "CCF-Ops/WorkflowFoundationVerification.md": "05d1f8cc3df50180e226e0da16994bd0cc3c6b77d025acb7b18fa5889763b60d",
+    "CCF-Ops/scripts/_ccf.py": "1295def55a4821ccd00423f65ab58e64a3be916dc18b127ed99ae1099c3e7677",
+    "CCF-Ops/scripts/lane-status": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
+    "CCF-Ops/scripts/unity-lock": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
+    "CCF-Ops/lanes.json": "f73d1c08556ebb5a2befeeb7dd9fee7cde08184c935a2af73aded2c8dcefe477"
+  },
+  "primary_accessed": false,
+  "production_lock_changed": false
+}

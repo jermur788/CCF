@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/verify-deployment",
+    "--root",
+    "/media/jer/ZX20/CCF-Ops",
+    "--manifest",
+    "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/deployment.json",
+    "--candidate-root",
+    "/media/jer/Files/CCF/Operations/Ops548FinalCandidate-1rias47d"
+  ],
+  "exit_code": 1,
+  "stdout": "FAIL: deployment provenance\n  candidate tests/self-test.py: expected 6bba90d82e6ce2297295998c3e7035f3360ada04af338e2c25c167a99abf1a62, got a06af23310d2d67a3e4b98a34d763bb84b49a0b362761a0d5ba30f4503a6ce1e\n",
+  "stderr": ""
+}

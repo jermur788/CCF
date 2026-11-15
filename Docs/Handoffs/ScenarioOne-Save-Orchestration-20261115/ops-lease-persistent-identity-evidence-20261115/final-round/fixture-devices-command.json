@@ -1,0 +1,8 @@
+{
+  "label": "fixture-devices",
+  "chunk_id": "b9eb44",
+  "wall_time_seconds": 0.583063323,
+  "exit_code": 0,
+  "original_token_count": 295,
+  "output": "PASS: test helper accepts guarded-root backing device\nPASS: test helper rejects a DIFFERENT existing block device\nPASS: test helper independently identifies root backing device\nPASS: test helper rejects character device\nPASS: test helper rejects regular file\nPASS: test helper rejects nonexistent device\nPASS: storage_health rejects different block device\nPASS: storage_health rejects wrong UUID\nPASS: storage_health rejects wrong fstype\nPASS: storage_health rejects nonexistent device\nPASS: candidate: different physical device rejects status\nPASS: candidate: rejected status creates no state\nPASS: candidate: different physical device rejects acquire\nPASS: candidate: rejected acquire creates no state\nPASS: candidate: different physical device rejects release\nPASS: candidate: rejected release creates no state\nPASS: live-copy: different physical device rejects status\nPASS: live-copy: rejected status creates no state\nPASS: live-copy: different physical device rejects acquire\nPASS: live-copy: rejected acquire creates no state\nPASS: live-copy: different physical device rejects release\nPASS: live-copy: rejected release creates no state\nFIXTURE_DEVICE_VERIFICATION_PASS 22\n"
+}

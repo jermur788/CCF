@@ -1,6 +1,6 @@
 # CCF-Ops persistent identity durability result — 2026-11-15
 
-> Latest status: see **Round 2 — complete storage semantic repair** below. That section corrects and supersedes the earlier classification (a) and outstanding storage-admission conclusions; prior evidence remains historical.
+> Latest status: see **Final round — portable self-test device assertions; residual inherited boundary fixture** below. The transient-device defect is fixed; self-test still exits 1 after 33 passes because its existing `/` sentinel conflicts with the required storage boundary. No green self-test or integration is claimed. Earlier rounds remain historical.
 
 Implementation worker under orchestrator #544, claim #548. PACKET ONLY; operations tooling; ready for bounded review, **not integrated, deployed or fully qualified**. Issue #548 remains OPEN for Manager.
 
@@ -626,3 +626,196 @@ Full operational evidence: `/media/jer/Files/CCF/Operations/OpsLeaseEvidence-202
 - **#548 stays OPEN.** DASHBOARD SYNC: NOT PERFORMED (no board write authority).
   PUBLISHED DASHBOARD REFLECTS THIS TASK: UNVERIFIED. Manager/#544 follow-up;
   this source/evidence publication confers no physical ownership or acceptance.
+
+
+## Final round — portable self-test device assertions; residual inherited boundary fixture
+
+Direct user packet under #544/#548; implementation worker, no delegates.
+Implementation commit: `60f97b06bd41f9a89fde4eb775527ebc6947560b`.
+Starting publication head: `4d24f3b1535741bcef142d72d162d6f818bc4133`.
+**#548 stays OPEN. Self-test remains FAIL; both requested source lint gates PASS.**
+No production helper, live script/config, game source, board or active-tasks
+change. No Editor, force, steal, production acquisition/release or Primary access.
+The publication head follows this evidence update; exact final-head gate output
+is preserved externally and posted verbatim on #548 after push/readback.
+
+### Exact bounded test repair and retained coverage
+
+[Exact self-test unified diff](ops-lease-persistent-identity-evidence-20261115/final-round/self-test.patch).
+Only `CCF-Ops/tests/self-test.py` changes executable test behavior:
+
+- After the existing persistent-pin `storage_check()` succeeds, derive `DEVICE`
+  from `findmnt SOURCE` for the guarded `ROOT`. UUID `18D6-896E`, exfat, mount
+  target, visible UUID uniqueness and minimum capacity checks remain mandatory.
+- The clean/absent-lane assertions require their existing ZX20 boolean AND a
+  real block device whose `st_rdev` equals the guarded root's `st_dev`.
+  This independently checks physical identity without assuming `/dev/sdX` text.
+- The existing off-storage assertion likewise checks the actual `/` filesystem
+  device and explicitly rejects the ZX20 device. Its path, expected success,
+  STOP warning and HEAD assertions are unchanged, so its stale acceptance
+  expectation is exposed rather than adjusted to fit current production rules.
+- The read-only mount fixture uses the same verified live source; its expected
+  `READ ONLY` result remains unchanged. Historical documents are untouched.
+
+[Exact-helper negative verification](ops-lease-persistent-identity-evidence-20261115/final-round/verify-fixture-devices.py)
+loads only the helper's AST from this self-test, without executing the harness.
+**22 checks PASS**: correct ZX20 block accepted; different actual root block,
+character/regular/nonexistent devices rejected; root identity independently
+verified; storage_health rejects wrong physical device/UUID/fstype/nonexistent
+pin. Wrong physical-device status/acquire/release probes on candidate and
+isolated live script copies each exit 2 with mount-identity mismatch before
+creating any state/guard. Production/live config never changes.
+
+Retained verification also passes **75 boundary checks + 18 identity checks**.
+Wrong UUID, wrong fstype, absent by-id and wrong mount root each reject
+status/acquire/release on candidate and isolated live copies (exit 2, no state).
+Repository/lane sibling and symlink escapes remain rejected; Files non-Unity
+admission still needs explicit permission; Files Unity stays forbidden.
+Positive physical identity/capacity and candidate/live FREE status, null
+metadata, zero Editor PIDs hold. Low space, read-only and mocked absent/duplicate
+UUID remain blocked. These are focused results, not full lease qualification.
+
+### Exact residual classification
+
+Self-test now passes **33** assertions, including both repaired lane-device
+assertions and Git-metadata byte/mtime preservation. It stops at line **108**:
+`off_rows=json.loads(cli('lane-status','--config',config,'--json'))` expects exit
+0, receives exit 2 and `ERROR: path is outside the Files CCF tree: /`.
+The old fixture at line 106 appends `/` as a non-Unity lane. Round 2's required
+bounded inventory rule correctly rejects that path even with permission.
+
+**Classification: inherited test debt (stale arbitrary-root acceptance
+expectation), not environment failure or live-board state.** This fixture
+already existed at starting head and remains unchanged. The final packet
+explicitly requires legitimate residual failures be documented and left failing;
+no path substitution, skip, expected-exit relaxation or production admission
+change was made. The `/` rejection is separately re-proved by the retained
+boundary verifier. Subsequent storage/lease/force/concurrency/pilot self-test
+sections are **NOT REACHED**. There is no claim they pass.
+
+The independently read live board still returns exit 1,
+`FAIL: Unity required? must be Yes/No` (#553/Manager scope). Source board lint
+passes against the unchanged 15-row source snapshot; its self-test label
+`live board schema PASS` refers to that source board. Neither board was edited.
+
+### Verbatim required gates at implementation head
+
+Working directory: task worktree `CCF-Ops/`.
+[Full stdout/stderr/exits](ops-lease-persistent-identity-evidence-20261115/final-round/gates-source-head.json).
+
+`python3 -B tests/self-test.py` — exit **1**:
+
+```text
+Scratch: /media/jer/ZX20/CCF-Temp/foundation-test-ekt27myh
+PASS: packet valid PASS
+PASS: nonunity-lane-head PASS without Unity inference
+PASS: canonical-style PASS without Unity inference
+PASS: missing-unity-required FAIL
+PASS: unity-nonunity-lane FAIL
+PASS: stop-placeholder FAIL
+PASS: handoff-placeholder FAIL
+PASS: missing-role-file FAIL
+PASS: draft missing Unity declaration WARN
+PASS: packet valid Unity PASS
+PASS: Unity lane is required
+PASS: packet missing-base FAIL
+PASS: packet missing-verification-tier FAIL
+PASS: packet conflicting-unity-ownership FAIL
+PASS: packet missing-stop-condition FAIL
+PASS: partial draft WARN
+PASS: partial final FAIL
+PASS: draft does not hide explicit Unity conflict
+PASS: malformed SHA FAIL
+PASS: Markdown heading packet PASS
+PASS: live board schema PASS
+PASS: lane clean
+PASS: lane ahead/behind local refs
+PASS: lane verifies backing device and ZX20 YES
+PASS: absent lane reports nearest-parent ZX20 device
+PASS: lane dirty is data, exit zero
+PASS: lane missing tolerated
+PASS: lane-status leaves Git metadata bytes/mtimes unchanged
+PASS: malformed duplicate lane config fails clearly
+PASS: malformed JSON fails clearly
+PASS: malformed config shape fails clearly
+PASS: malformed config shape fails clearly
+PASS: malformed config shape fails clearly
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 108, in <module>
+    off_rows=json.loads(cli('lane-status','--config',config,'--json'))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 44, in cli
+    def cli(name,*args,code=0): return run([sys.executable,'-B',OPS/'scripts'/name,*args],code)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 41, in run
+    if p.returncode!=code: raise AssertionError(f'expected {code}, got {p.returncode}: {args}\n{p.stdout}\n{p.stderr}')
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: expected 0, got 2: ['/usr/bin/python3', '-B', PosixPath('/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/lane-status'), '--config', PosixPath('/media/jer/ZX20/CCF-Temp/foundation-test-ekt27myh/lanes.json'), '--json']
+
+ERROR: path is outside the Files CCF tree: /
+
+```
+
+`python3 -B scripts/packet-lint --board board/active.md` — exit **0**:
+
+```text
+PASS: board schema and duplicate checks (15 live tasks)
+```
+
+`python3 -B scripts/packet-lint tests/fixtures/valid.md` — exit **0**:
+
+```text
+PASS
+```
+
+### Final provenance audit in both directions
+
+Live read-only audit returns exit 0:
+
+```text
+PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)
+PASS: candidate provenance (8 source hashes)
+```
+
+All eight existing provenance probes matched: pristine live/copy PASS;
+deliberate `_ccf.py` source drift FAIL (exit 1); config drift outside `/lanes`
+FAIL (1); expected lane-registration drift PASS; unclassified source FAIL (1);
+attempted source exclusion rejected (2); restored copy PASS. An additional
+isolated candidate `tests/self-test.py` tamper fails (exit 1), proving the
+repaired test is still enforced by candidate provenance. All **36** historical
+and candidate source hashes match their exact recorded Git blobs.
+
+No immutable live hash or exclusion was changed. The candidate receipt now
+pins the eight candidate files at the implementation commit, including the
+new self-test hash, and remains `NOT_DEPLOYED`. Only the live provenance file
+was published with a byte-identical timestamped backup:
+
+- Backup: `/media/jer/ZX20/CCF-Ops/deployment.json.bak-20261115T231825Z`.
+- Before/backup SHA-256: `2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc`.
+- After SHA-256: `8c66b290c247708846cb8b59f83626a10a3fa1d052397a3316dc5f23fc157b18`.
+
+[Whole-tree protection evidence](ops-lease-persistent-identity-evidence-20261115/final-round/protection.json)
+proves only existing `deployment.json` changed and its backup was added; no
+other live file changed or disappeared. Branch board/active-tasks/historical
+verification document/config and production scripts remain byte-identical.
+Primary and its dirty files were not accessed in this round. The stopped
+self-test's own scratch was inventoried, checked for absence of lock/guard/history,
+then removed; no other scratch or existing operational data was removed.
+
+### Remaining unproven / handoff
+
+Self-test exit 0 is **NOT achieved**. The legitimate inherited `/` fixture
+failure is deliberately left visible as required. Downstream self-test
+storage/lease/occupied-owner/concurrency/pilot behavior remains unproven.
+No force operation ran. No reboot/hotplug/physical UUID duplication test,
+independent acceptance/review/integration, candidate deployment, Unity/game/save
+qualification, or dashboard/Drive synchronization is claimed. Live board #553
+validity remains a separate FAIL. Original publication source of two supplemental
+live documents remains unestablished. Device observations are snapshots, not
+continuous process or hotplug monitoring.
+
+DASHBOARD SYNC NOT PERFORMED (no board write authority); published dashboard
+state UNVERIFIED, Manager/#544 follow-up. #548 stays OPEN. Final publication-head
+receipts and remote readback live at
+`/media/jer/Files/CCF/Operations/OpsLeaseEvidence-20261115/final-round/`;
+source-head receipts and the exact diff are committed alongside this result.

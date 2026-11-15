@@ -1,0 +1,704 @@
+[
+  {
+    "label": "candidate: wrong UUID rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong UUID status creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong UUID rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong UUID acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong UUID rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong UUID release creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong fstype rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong fstype status creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong fstype rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong fstype acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong fstype rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: wrong fstype release creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: nonexistent by-id rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: nonexistent by-id status creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: nonexistent by-id rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: nonexistent by-id acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: nonexistent by-id rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "candidate: nonexistent by-id release creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong mount root rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "candidate: wrong mount root status creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong mount root rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "candidate: wrong mount root acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "candidate: wrong mount root rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/candidate/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-81cbca9e21814afda7b3e6e9ae77e20b",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "candidate: wrong mount root release creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong UUID rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong UUID status creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong UUID rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong UUID acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong UUID rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong UUID release creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong fstype rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong fstype status creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong fstype rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong fstype acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong fstype rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: wrong fstype release creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: nonexistent by-id rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: nonexistent by-id status creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: nonexistent by-id rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: nonexistent by-id acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: nonexistent by-id rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n"
+  },
+  {
+    "label": "live-copy: nonexistent by-id release creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong mount root rejects status",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "status",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "live-copy: wrong mount root status creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong mount root rejects acquire",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "acquire",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "live-copy: wrong mount root acquire creates no state",
+    "passed": true
+  },
+  {
+    "label": "live-copy: wrong mount root rejects release",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/live-copy/scripts/unity-lock",
+      "release",
+      "--test-state-dir",
+      "/media/jer/ZX20/CCF-Temp/ops548-never-created-d6cd63bc41374f19a8cf830457f52bea",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdb4', 'target': '/media/jer/Files', 'fstype': 'ext4', 'uuid': '2283b135-bf37-42d6-921f-2fb861d0a8d4'}\n"
+  },
+  {
+    "label": "live-copy: wrong mount root release creates no state",
+    "passed": true
+  },
+  {
+    "label": "Files repository and config-relative Files board admitted",
+    "passed": true
+  },
+  {
+    "label": "ZX20 project path remains admitted",
+    "passed": true
+  },
+  {
+    "label": "repository outside both trees rejected: /",
+    "passed": true,
+    "error": "repository must be on ZX20 or the Files CCF tree: /",
+    "permission": false
+  },
+  {
+    "label": "repository outside both trees rejected: /tmp",
+    "passed": true,
+    "error": "repository must be on ZX20 or the Files CCF tree: /tmp",
+    "permission": false
+  },
+  {
+    "label": "repository outside both trees rejected: /media/jer/Files/CCF-sibling/repository.git",
+    "passed": true,
+    "error": "repository must be on ZX20 or the Files CCF tree: /media/jer/Files/CCF-sibling/repository.git",
+    "permission": false
+  },
+  {
+    "label": "repository symlink escape rejected",
+    "passed": true,
+    "error": "repository must be on ZX20 or the Files CCF tree: /tmp",
+    "permission": false
+  },
+  {
+    "label": "board outside both trees rejected",
+    "passed": true,
+    "error": "path is outside the Files CCF tree: /tmp/outside-board.md",
+    "permission": false
+  },
+  {
+    "label": "Files non-Unity lane rejected without explicit permission",
+    "passed": true,
+    "error": "path escapes ZX20: /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane",
+    "permission": false
+  },
+  {
+    "label": "Files non-Unity lane admitted with explicit permission",
+    "passed": true
+  },
+  {
+    "label": "Files Unity lane rejected (permission=False)",
+    "passed": true,
+    "error": "path escapes ZX20: /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane",
+    "permission": false
+  },
+  {
+    "label": "Files Unity lane rejected (permission=True)",
+    "passed": true,
+    "error": "path escapes ZX20: /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane",
+    "permission": true
+  },
+  {
+    "label": "lane escape rejected: / (permission=False)",
+    "passed": true,
+    "error": "path escapes ZX20: /",
+    "permission": false
+  },
+  {
+    "label": "lane escape rejected: / (permission=True)",
+    "passed": true,
+    "error": "path is outside the Files CCF tree: /",
+    "permission": true
+  },
+  {
+    "label": "lane escape rejected: /tmp (permission=False)",
+    "passed": true,
+    "error": "path escapes ZX20: /tmp",
+    "permission": false
+  },
+  {
+    "label": "lane escape rejected: /tmp (permission=True)",
+    "passed": true,
+    "error": "path is outside the Files CCF tree: /tmp",
+    "permission": true
+  },
+  {
+    "label": "lane escape rejected: /media/jer/Files/CCF-sibling/lane (permission=False)",
+    "passed": true,
+    "error": "path escapes ZX20: /media/jer/Files/CCF-sibling/lane",
+    "permission": false
+  },
+  {
+    "label": "lane escape rejected: /media/jer/Files/CCF-sibling/lane (permission=True)",
+    "passed": true,
+    "error": "path is outside the Files CCF tree: /media/jer/Files/CCF-sibling/lane",
+    "permission": true
+  },
+  {
+    "label": "lane escape rejected: /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/escape (permission=False)",
+    "passed": true,
+    "error": "path escapes ZX20: /tmp",
+    "permission": false
+  },
+  {
+    "label": "lane escape rejected: /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/escape (permission=True)",
+    "passed": true,
+    "error": "path is outside the Files CCF tree: /tmp",
+    "permission": true
+  },
+  {
+    "label": "isolated durable Git fixture created",
+    "passed": true,
+    "command": [
+      "git",
+      "init",
+      "-b",
+      "test/ops548-durable",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane"
+    ],
+    "exit_code": 0,
+    "stdout": "Initialized empty Git repository in /media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane/.git/\n",
+    "stderr": ""
+  },
+  {
+    "label": "isolated fixture HEAD created",
+    "passed": true,
+    "command": [
+      "git",
+      "-C",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane",
+      "-c",
+      "user.name=CCF Offline Test",
+      "-c",
+      "user.email=test@invalid.local",
+      "-c",
+      "commit.gpgSign=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "--allow-empty",
+      "-m",
+      "isolated durable inventory fixture"
+    ],
+    "exit_code": 0,
+    "stdout": "[test/ops548-durable (root-commit) 3314b05] isolated durable inventory fixture\n",
+    "stderr": ""
+  },
+  {
+    "label": "durable non-Unity inventory inspected as Git worktree",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/lane-status",
+      "--config",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/boundary.json",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "[\n  {\n    \"lane\": \"fixture\",\n    \"path\": \"/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane\",\n    \"resolved_path\": \"/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/durable-lane\",\n    \"backing_device\": \"/dev/sdb4\",\n    \"zx20\": false,\n    \"unity_capable\": false,\n    \"exists\": true,\n    \"registered_worktree\": true,\n    \"branch\": \"test/ops548-durable\",\n    \"HEAD\": \"3314b0510436817daf0f446cce42166f91cfaa9c\",\n    \"dirty\": false,\n    \"ahead_behind\": null,\n    \"unity_library\": false,\n    \"approx_disk_usage\": \"180K\",\n    \"owner\": [],\n    \"conflict_warning\": [],\n    \"storage\": {\n      \"status\": \"PASS\",\n      \"ready\": true,\n      \"backing_device\": \"/dev/sdc2\",\n      \"writable\": true,\n      \"free_bytes\": 55398498304,\n      \"free_gib\": 51.5938720703125,\n      \"minimum_free_bytes\": 16106127360,\n      \"minimum_free_gib\": 15.0\n    },\n    \"dual_store_conflicts\": []\n  }\n]\n",
+    "stderr": ""
+  },
+  {
+    "label": "durable inventory preserves Git metadata bytes and mtimes",
+    "passed": true
+  },
+  {
+    "label": "lane-status explicit permission cannot admit arbitrary root",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/lane-status",
+      "--config",
+      "/media/jer/Files/CCF/Operations/Ops548Boundary-w13cd5y6/boundary.json",
+      "--json"
+    ],
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "ERROR: path is outside the Files CCF tree: /\n"
+  },
+  {
+    "label": "positive physical storage identity and capacity PASS",
+    "passed": true,
+    "health": {
+      "status": "PASS",
+      "ready": true,
+      "backing_device": "/dev/sdc2",
+      "writable": true,
+      "free_bytes": 55398498304,
+      "free_gib": 51.5938720703125,
+      "minimum_free_bytes": 16106127360,
+      "minimum_free_gib": 15.0
+    }
+  },
+  {
+    "label": "candidate lock reports free with zero Editor PIDs",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/unity-lock",
+      "status",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"free\",\n  \"metadata\": null,\n  \"unity_editor_pids\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "live lock reports free with zero Editor PIDs",
+    "passed": true,
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/media/jer/ZX20/CCF-Ops/scripts/unity-lock",
+      "status",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"free\",\n  \"metadata\": null,\n  \"unity_editor_pids\": []\n}\n",
+    "stderr": ""
+  }
+]
