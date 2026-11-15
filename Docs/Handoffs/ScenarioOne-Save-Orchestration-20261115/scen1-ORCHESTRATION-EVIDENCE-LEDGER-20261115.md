@@ -520,6 +520,32 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Cost of this stop: nil in work terms.** The worker had already localised all three defects from source without editing; its analysis is available for immediate reuse once the record agrees. The stop cost one dispatch, and it **prevented a source writer from editing protected-save code under a contested ownership record** — which is the outcome the rule is designed to produce.
 - **State:** T-02 **NOT STARTED / BLOCKED on coordination**, [#551](https://github.com/jermur788/CCF/issues/551) left **OPEN** and correctly marked `[BLOCKED]` by the worker. No source changed. All 63 ISO items unchecked. Compact/O2 still unavailable. No Unity.
 
+### EVENT 028 — 2026-11-15T18:30Z — authority reconciled; T-02 re-dispatched; and the false-blocker's ROOT CAUSE found in a stale file
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own three-revision diff of `AgentWorkflow.md`; live preflight) + ORCHESTRATOR CLAIM (dispatch).
+- **Event type:** RESUMED → DISPATCH.
+- **Ruling:** [scen1-MANAGER-T02-LIVE-LOCK-AUTHORITY-RECONCILIATION-20261115.md](https://github.com/jermur788/CCF/blob/docs/scen1-manager-t02-coordination-authority-reconciliation-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-MANAGER-T02-LIVE-LOCK-AUTHORITY-RECONCILIATION-20261115.md). It **permanently re-designates `main:Docs/Project/coordination/active-tasks.md` as the only authoritative live GitHub record**, de-designates the old branch **in the file itself**, and **expressly excepts the missing CCF-Ops working-view row for this offline T-02 slice** (mirror sync moved to [#553](https://github.com/jermur788/CCF/issues/553), blocked for the physical owner). It also confirms the earlier `[BLOCKED]` stop **"remains correct and recorded"**.
+- **De-designation verified, not assumed:** `origin/ops/workflow-foundation-v1` now opens with `**SUPERSEDED AUTHORITY DESIGNATION — 2026-11-15**`, the old designation struck through, and `**Re-designated:** main:Docs/Project/coordination/active-tasks.md`. `origin/main` opens with `**AUTHORITATIVE LIVE LOCK RECORD — 2026-11-15 ~21:12 UTC**`. Both read directly by me.
+- **ROOT CAUSE OF THE FALSE BLOCKER — found, and it is the staleness hazard I logged twice, now proven at exact file level.** The worker cited `AgentWorkflow.md:337` "the board and authoritative lock record agree". I diffed three revisions:
+
+  | Revision | "board and authoritative lock record agree" | "stale or dirty local coordination copy does not override" |
+  | --- | --- | --- |
+  | `origin/main` | **absent (0)** | **present** |
+  | `da962372` (worker's pinned source) | **absent (0)** | **present** |
+  | `46247486` (**stale local anchor**) | **present (1)** | absent |
+
+  The sentence the worker relied on exists **only in the stale local anchor** `/media/jer/Files/CCF-Primary` (checked out at `46247486`, the superseded October text). It does **not** exist in the worker's own pinned source or in current `main` — both of which instead say a stale local coordination copy **does not override** a newer live GitHub registration. **The worker read project documentation out of the stale anchor instead of its pinned ref**, so it blocked on a rule that had already been replaced. Its *instinct* was right and the Manager upheld it; its *citation* was from the wrong revision.
+- **Correction issued to the worker, explicitly:** read project docs via `git show <ref>:path` from the pinned candidate or `main`, **never** from the checkout at the anchor. This is the third distinct defect this run has traced to the stale anchor (decision-log drift at EVENT 013, three-record disagreement at EVENT 027, and now a false readiness rule) — and it is the strongest possible argument for the recommendation that canonical context be read from `main`.
+- **Fresh preflight on re-dispatch — every condition re-proven, none inherited:**
+  - worktree `/media/jer/Files/CCF/Operations/CCF-Scen1-SharedSave-T01-20261115` **clean**, HEAD **exactly `da962372`**, in sync with `origin/feature/scen1-shared-three-profile-save-v2`;
+  - Files **128 GB free**; **0 real Unity PIDs**; `#551` OPEN; `#553` OPEN;
+  - `main` advanced again to **`a9b89ab8`** with **`Assets/` delta vs `fc18190b` = 0** ⇒ **no repin required**, and the packet's "changed source HEAD is a STOP" condition is not triggered.
+- **Dispatch:** OpenAI **B**, `gpt-6.1-sol`, `high` (eighth B path; **A still quota-exhausted until 2026-11-18T13:43**; **Sonnet never used in either run**). Reuses the existing worktree; no new branch.
+- **Carried into the retry:** the Manager exception stated as an exception (**not** as a blanket waiver); both stop conditions preserved (**real conflicting owner** or **changed HEAD**); the worker's own three located defects to **reuse rather than re-audit** (public `LoadData` raw bypass, `RestoreSaveData` early mutations, capture's `EnsureUnderstoreyGrid`) — a deliberate efficiency saving since it had already done that analysis read-only; and all five T-02 requirements plus F-1/F-2/F-3 unchanged.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** `[RUNNING]` receipt with the narrower allowlist → source → offline evidence → `[HANDED-OFF]` on #551 left open → **new** independent Opus claim on the exact T-02 head → Manager verdict.
+
+
 
 
 
