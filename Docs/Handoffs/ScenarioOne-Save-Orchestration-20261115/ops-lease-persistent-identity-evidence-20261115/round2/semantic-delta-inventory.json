@@ -1,0 +1,42 @@
+{
+  "_ccf.py": {
+    "before_sha256": "429e35ae7b4333f343334e02b30de17843c40a3dca25fe1feacc2f6df4c2ffb3",
+    "candidate_sha256": "1295def55a4821ccd00423f65ab58e64a3be916dc18b127ed99ae1099c3e7677",
+    "live_sha256": "ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001",
+    "initial_semantic_nodes_differing": [
+      "assign:DURABLE_CCF",
+      "assign:FILES_ROOT",
+      "config_read",
+      "on_durable_ccf",
+      "storage_check"
+    ],
+    "remaining_semantic_nodes_differing": [
+      "config_read",
+      "on_project_storage",
+      "storage_check"
+    ],
+    "remaining_diff": "--- /media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/_ccf.py\t2026-11-15 23:04:28.709306316 +0000\n+++ /media/jer/ZX20/CCF-Ops/scripts/_ccf.py\t2026-11-05 17:16:51.040000000 +0000\n@@ -40,12 +40,6 @@\n         raise ValueError(f'path is outside the Files CCF tree: {path}')\n     return path\n \n-def on_project_storage(path, root=ROOT):\n-    resolved = Path(path).resolve()\n-    if resolved.is_relative_to(root):\n-        return on_storage(path, root)\n-    return on_durable_ccf(path)\n-\n def same_device(a, b):\n     \"\"\"True when two paths name the same block device.\n \n@@ -71,7 +65,7 @@\n         raise ValueError(f'filesystem UUID {uuid} must be visible on exactly one device, found: {devices}')\n \n \n-def storage_check(root=ROOT, uuid='18D6-896E', fstype='exfat', device='/dev/disk/by-id/ata-NetacPortableSSD_AA20260702512G231151-part2'):\n+def storage_check(root=ROOT, uuid='18D6-896E', fstype='exfat', device='/dev/sda2'):\n     root = Path(root).resolve(strict=True)\n     info = json.loads(command(['findmnt','-J','-T',str(root),'-o','SOURCE,TARGET,FSTYPE,UUID']))['filesystems'][0]\n     if not same_device(info['source'], device) or info['target'] != str(root) or info['fstype'] != fstype or (info['uuid'] or '').lower() != uuid.lower():\n@@ -124,9 +118,12 @@\n     if root != ROOT:\n         raise ValueError('config root must be the verified ZX20 mount')\n     repo_path = Path(cfg['repository']).resolve()\n-    if not (repo_path.is_relative_to(root) or repo_path.is_relative_to(DURABLE_CCF.resolve())):\n+    if repo_path.is_relative_to(ROOT):\n+        repo = on_storage(cfg['repository'], root)\n+    elif repo_path.is_relative_to(DURABLE_CCF.resolve()):\n+        repo = on_durable_ccf(cfg['repository'])\n+    else:\n         raise ValueError(f'repository must be on ZX20 or the Files CCF tree: {repo_path}')\n-    repo = on_project_storage(repo_path, root)\n     if not repo.is_dir():\n         raise ValueError(f'missing repository: {repo}')\n     seen_names, seen_paths = set(), set()\n@@ -139,10 +136,12 @@\n             raise ValueError('lane needs nonempty lane, purpose and absolute path')\n         if not Path(lane['path']).is_absolute():\n             raise ValueError('lane path must be absolute')\n-        # Explicit inventory permission covers only durable non-Unity lanes.\n-        # Unity lanes and every caller without permission remain ZX20-only.\n-        if permit_off_storage_lanes and not lane['unity']:\n-            resolved = str(on_project_storage(lane['path'], root))\n+        # Only the read-only inventory may observe off-storage paths so it can\n+        # report ZX20: NO; mutation callers retain strict storage rejection.\n+        if permit_off_storage_lanes:\n+            resolved = str(Path(lane['path']).resolve())\n+        elif not lane['unity'] and Path(lane['path']).resolve().is_relative_to(DURABLE_CCF.resolve()):\n+            resolved = str(Path(lane['path']).resolve())\n         else:\n             resolved = str(on_storage(lane['path'], root))\n         if lane['lane'] in seen_names or resolved in seen_paths:\n@@ -158,7 +157,7 @@\n         store_paths.append(str(Path(store['git_dir']).resolve()))\n     if len(set(store_paths)) != len(store_paths) or str(repo.resolve()) not in store_paths:\n         raise ValueError('duplicate Git store or configured repository missing from git_stores')\n-    board = on_project_storage(path.resolve().parent / cfg['board'], root)\n+    board = on_storage(path.resolve().parent / cfg['board'], root)\n     return cfg, board\n \n def board_read(path):\n",
+    "remaining_diff_exit": 1
+  },
+  "lane-status": {
+    "before_sha256": "a240098779136a0a586956bdbf985624ad79cdd1abb41ad501f3eba380726546",
+    "candidate_sha256": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
+    "live_sha256": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
+    "initial_semantic_nodes_differing": [
+      "from:_ccf",
+      "main"
+    ],
+    "remaining_semantic_nodes_differing": [],
+    "remaining_diff": "",
+    "remaining_diff_exit": 0
+  },
+  "unity-lock": {
+    "before_sha256": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
+    "candidate_sha256": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
+    "live_sha256": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
+    "initial_semantic_nodes_differing": [],
+    "remaining_semantic_nodes_differing": [],
+    "remaining_diff": "",
+    "remaining_diff_exit": 0
+  }
+}

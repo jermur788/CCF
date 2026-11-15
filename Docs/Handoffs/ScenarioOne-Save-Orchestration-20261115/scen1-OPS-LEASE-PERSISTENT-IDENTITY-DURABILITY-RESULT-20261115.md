@@ -1,5 +1,7 @@
 # CCF-Ops persistent identity durability result — 2026-11-15
 
+> Latest status: see **Round 2 — complete storage semantic repair** below. That section corrects and supersedes the earlier classification (a) and outstanding storage-admission conclusions; prior evidence remains historical.
+
 Implementation worker under orchestrator #544, claim #548. PACKET ONLY; operations tooling; ready for bounded review, **not integrated, deployed or fully qualified**. Issue #548 remains OPEN for Manager.
 
 - Branch: `ops/unity-lease-persistent-identity-20261115-v1`
@@ -329,3 +331,298 @@ or manual guard/history deletion was performed.
 - #548 remains OPEN for the Manager; #544 orchestration and board authority
   are unchanged. DASHBOARD SYNC: NOT PERFORMED (no live board write authority);
   PUBLISHED DASHBOARD REFLECTS THIS TASK: UNVERIFIED, Manager follow-up.
+
+
+## Round 2 — complete storage semantic repair (2026-11-15)
+
+Direct implementation sub-agent continuation under #548 / orchestrator #544.
+**The earlier classification (a) was wrong:** the rejected Files repository
+was a missing storage-migration behaviour, not an inherited validator to retain.
+This section supersedes the earlier continuation's outstanding storage-admission
+conclusions without rewriting its historical evidence. No delegates, acceptance,
+integration or tooling deployment. **#548 remains OPEN.**
+
+Start: `4f85ad2aba15c57896fce5a62b7f70fbb0289303`, clean isolated worktree
+`/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115`, branch
+`ops/unity-lease-persistent-identity-20261115-v1`. Retained packet context:
+`46247486b37904f6b36825bb40fb6ed7bea35e88`. Latest direct user packet is
+implementation authority; StorageArchitecture is storage authority. The live
+`main` coordination record was read, not edited. Actual runtime is T3 Code /
+Codex / gpt-6.1-sol high. No Unity Editor or game/source/save/prefs work.
+
+Implementation commit: `a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3`.
+The following receipt/evidence commit is the publication head, recorded with
+its full SHA in the #548 comment. All eight candidate source hashes are verified
+against exact blobs at the implementation commit. Required gates are rerun at
+the final publication head; their complete final output and that head are in
+#548 and the external `round2/final-head-gates.json` receipt. This avoids a
+self-referential commit hash in a file being committed.
+
+### Complete live-versus-start semantic delta inventory
+
+The entire three-script diff was inspected. This table covers every behavioural
+hunk; imports/constants are included where they enable behaviour. No row is a
+formatting or comment-only difference. [Raw initial script diffs](ops-lease-persistent-identity-evidence-20261115/round2/initial-script-diffs.json)
+and [AST node/hash coverage plus complete remaining diff](ops-lease-persistent-identity-evidence-20261115/round2/semantic-delta-inventory.json)
+make the surface independently inspectable.
+
+| Script / behaviour at start | Live versus starting branch | Reason | Decision and final outcome |
+|---|---|---|---|
+| `_ccf.py`: Files root and `on_durable_ccf` | Only live defines the Files CCF boundary and resolves paths before checking containment. | Durable CCF storage moved to Files. | **PORT** constants/helper exactly; resolved siblings and symlink escapes remain rejected. |
+| `_ccf.py`: `storage_check` default device | Live helper default is `/dev/sda2`; branch default is the persistent Netac by-id pin. Both config-driven paths use the configured persistent pin. | Kernel enumeration is unstable; this is the defect the durability repair prevents. | **EXCLUDE** live's stale default; retain the previously proved persistent default. No UUID/fstype/device/unique-UUID checks removed. |
+| `_ccf.py`: repository admission | Live accepts ZX20 with `on_storage`, or Files CCF with `on_durable_ccf`; branch accepts only ZX20. Live explicitly rejects locations outside both. | The canonical bare repository legitimately moved. | **PORT** the union and explicit outside-both rejection; `on_project_storage` shares this bounded dispatch with the board. |
+| `_ccf.py`: lane admission without permission | Live automatically accepts non-Unity lanes under Files CCF even when `permit_off_storage_lanes=False`; starting branch keeps all lanes ZX20-only by default. | Migrated NonUnity registration needs Files; direct packet requires explicit permission for off-ZX20 lanes. | **PORT WITH REQUIRED BOUNDARY** through the existing explicit inventory flag; **exclude** live's automatic default exception. Unity always remains ZX20-only. No registration imported. |
+| `lane-status`: durable non-Unity inspection | Live imports `DURABLE_CCF` and inspects an existing Files non-Unity lane with the existing Git/du logic; branch skips all off-ZX20 lanes. | Legitimate non-Unity operations checkouts live on Files. | **PORT**; real Files Git fixture is inspected without changing its Git metadata bytes/mtimes. |
+| `lane-status`: off-ZX20 Unity warning | Live says `STOP; writable Unity lane inspection skipped`; branch has a generic off-storage warning. | Unity must remain on ZX20. | **PORT** the warning/skip branch. Candidate config now rejects an off-ZX20 Unity registration before this defensive branch is reached. |
+| `lane-status`: other off-storage warning | Live distinguishes an off-storage lane outside durable CCF and skips it; branch uses one generic warning. | Durable non-Unity is the sole intended exception. | **PORT** the defensive warning/skip branch; arbitrary paths now fail candidate config admission first. |
+| `unity-lock`: all behaviour | No difference: same SHA-256 `54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5`. | Shared storage admission fixes the lock's config failure. | **EXCLUDE changes**: no delta to port, lock algorithm/state universe/force rules unchanged. |
+
+Additional necessary candidate changes, distinguished from live deltas:
+
+- Both starting trees allow arbitrary paths when the inventory flag is true.
+  The packet explicitly forbids that escape. Candidate now allows only resolved
+  non-Unity paths under ZX20 or Files CCF with that flag. Default callers remain
+  ZX20-only; the flag cannot admit Unity on Files, `/`, `/tmp`, a sibling prefix,
+  or a symlink escaping either boundary.
+- The config-relative board is admitted under the same bounded project-storage
+  union, so this authorised Files worktree can run its own lint/lock. No board
+  content is copied, changed or bypassed. Outside-both board paths still fail.
+- `lanes.json.git_stores` changes only its two migrated `git_dir` values:
+  `/media/jer/Files/CCF/Repository.git` and `/media/jer/Files/CCF-Legacy/.git`.
+  Both were physically verified. Store names retain their existing values;
+  labels do not determine identity. All four source lane registrations and
+  every other config value are unchanged from the starting head.
+- `lane-status` and `unity-lock` are now each byte-identical to live. Remaining
+  `_ccf.py` differences are exactly the retained persistent default, bounded
+  explicit lane permission, the shared path helper and board admission. There
+  are no unexplained remaining differences in the requested scripts.
+- No live board, lane registrations, ledger, state, README/environment or other
+  operational content was imported. NonUnity's old source registration is
+  deliberately retained, even though its old directory is absent. This is not
+  a drop-in live configuration deployment.
+
+### Five regression results after the port
+
+[Repeatable boundary verification script](ops-lease-persistent-identity-evidence-20261115/round2/verify-storage-boundaries.py),
+[all 75 checks with real commands/output](ops-lease-persistent-identity-evidence-20261115/round2/regression-probes.json),
+and [all 18 retained identity checks](ops-lease-persistent-identity-evidence-20261115/round2/identity-verification.json).
+
+| Regression | Result | Actual evidence / limit |
+|---|---|---|
+| Wrong UUID | **PASS: rejected** | `DEAD-BEEF`: status/acquire/release exit 2 with mount-identity error in candidate and isolated live-script copies; no test state/guard created. |
+| Wrong fstype | **PASS: rejected** | `ext4` against physical exFAT: same 6 CLI refusals, no state created. |
+| Nonexistent by-id device | **PASS: rejected** | `/dev/disk/by-id/CCF-NONEXISTENT-548`: same 6 CLI refusals, no state created. Wrong mount root is also rejected in 6 additional operations. |
+| Repository and lane boundaries | **PASS** | Repository outside both trees rejected for `/`, `/tmp`, Files sibling prefix and escaping symlink; board escape rejected. Files non-Unity rejected by default, admitted only with explicit inventory permission; Files Unity rejected with either flag value; arbitrary/sibling/symlink lanes rejected with either flag value. Actual `lane-status` rejects `/` even though it enables inventory permission. |
+| Positive identity and lock status | **PASS** | Physical by-id equivalence, unique UUID, exFAT, exact mount, rw/free capacity pass; branch and live `unity-lock status --json` each exit 0 with `status: free`, `metadata: null`, `unity_editor_pids: []`. No live acquire/release/force/steal. |
+
+The earlier 18 checks also re-prove character/regular/missing-device refusal,
+low space, read-only, wrong target, zero/duplicate UUID refusal (mocked UUID
+visibility only), and parsing all four tools. The new boundary proof uses real
+mounts and filesystem paths, including a real Files Git fixture. Negative CLI
+copies contain only scripts/config, never operational board/ledger/state.
+
+### Required gate output at the implementation head
+
+Real commands from the task worktree's `CCF-Ops/` directory, stdout followed by
+stderr without filtering. [Machine-readable commands, output and exits](ops-lease-persistent-identity-evidence-20261115/round2/gates-source-head.json).
+
+`python3 -B tests/self-test.py` — exit **1**:
+
+```text
+Scratch: /media/jer/ZX20/CCF-Temp/foundation-test-8nrb0qwc
+PASS: packet valid PASS
+PASS: nonunity-lane-head PASS without Unity inference
+PASS: canonical-style PASS without Unity inference
+PASS: missing-unity-required FAIL
+PASS: unity-nonunity-lane FAIL
+PASS: stop-placeholder FAIL
+PASS: handoff-placeholder FAIL
+PASS: missing-role-file FAIL
+PASS: draft missing Unity declaration WARN
+PASS: packet valid Unity PASS
+PASS: Unity lane is required
+PASS: packet missing-base FAIL
+PASS: packet missing-verification-tier FAIL
+PASS: packet conflicting-unity-ownership FAIL
+PASS: packet missing-stop-condition FAIL
+PASS: partial draft WARN
+PASS: partial final FAIL
+PASS: draft does not hide explicit Unity conflict
+PASS: malformed SHA FAIL
+PASS: Markdown heading packet PASS
+PASS: live board schema PASS
+Traceback (most recent call last):
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 75, in <module>
+    rows=json.loads(cli('lane-status','--config',config,'--json'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 34, in cli
+    def cli(name,*args,code=0): return run([sys.executable,'-B',OPS/'scripts'/name,*args],code)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py", line 31, in run
+    if p.returncode!=code: raise AssertionError(f'expected {code}, got {p.returncode}: {args}\n{p.stdout}\n{p.stderr}')
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: expected 0, got 2: ['/usr/bin/python3', '-B', PosixPath('/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/lane-status'), '--config', PosixPath('/media/jer/ZX20/CCF-Temp/foundation-test-8nrb0qwc/lanes.json'), '--json']
+
+ERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}
+
+```
+
+`python3 -B scripts/packet-lint --board board/active.md` — exit **0**:
+
+```text
+PASS: board schema and duplicate checks (15 live tasks)
+```
+
+`python3 -B scripts/packet-lint tests/fixtures/valid.md` — exit **0**:
+
+```text
+PASS
+```
+
+Classification: the storage-migration/config-admission defect is **fixed**.
+The unchanged self-test passes **21 assertions**, including its branch-board
+schema check, then fails at line 75 because its isolated fixture's line 70
+still pins `/dev/sda2`; actual ZX20 is `/dev/sdc2`. This is an **inherited stale
+test-device fixture**, not a product identity failure or reason to weaken
+validation. The self-test was not edited. No fixture lock/force/concurrency
+section was reached, so the packet's no-force limit was preserved.
+
+Static downstream limitations (not executed failures): lines 78–79/110 also
+hardcode `/dev/sda2`; line 99 hardcodes `/dev/sdb2`. Its `/` lane sentinel expects
+arbitrary off-storage inventory, which conflicts with this packet's required
+bounded permission and would need separately reviewed test repair. The source
+`environment.sh` still references historical ZX20 output directories; it was
+not changed or executed by this worker. The existing preflight readiness rule
+still requires ZX20 even for a durable non-Unity inventory row; this worker
+ported the live inventory delta, not assignment policy. None is silently green.
+
+The branch board has no inherited `Unity required?` content defect: its
+unchanged 15-task table passes. The separate **live** read-only board gate is
+still #553/Manager operational state, not imported or edited:
+
+```text
+FAIL: Unity required? must be Yes/No
+```
+
+Exit **1**. [Exact live lint receipt](ops-lease-persistent-identity-evidence-20261115/round2/live-board-lint.json).
+No board schema gate was bypassed. The stopped self-test's own fixture files
+were hash-inventoried and removed only after checking that no guard, history
+or lock existed; production state and Git metadata were untouched.
+
+### Provenance, publication and protection
+
+The five reasoned live-state exclusions are unchanged. All **28 historical
+source hashes**, **7 pinned live immutable overrides**, and the config projection
+of every key except `/lanes` are retained. No live immutable hash is refreshed
+to hide drift; only explanatory override reasons and the separate candidate
+receipt change. Candidate now pins **8 files** (the previous five plus unchanged
+unity-lock, packet-lint and self-test) to the implementation commit.
+[All 36 exact Git-blob checks](ops-lease-persistent-identity-evidence-20261115/round2/source-blob-verification.json)
+pass. The candidate remains **NOT_DEPLOYED**.
+
+Both-way provenance proof, rerun after the port (all eight expected outcomes
+match):
+
+LIVE READ-ONLY AUDIT — exit **0**:
+
+```text
+PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)
+PASS: candidate provenance (8 source hashes)
+```
+
+ISOLATED CHECKED-FILE COPY — exit **0**:
+
+```text
+PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)
+```
+
+REAL SOURCE DRIFT (_ccf.py) — exit **1**:
+
+```text
+FAIL: deployment provenance
+  scripts/_ccf.py: expected ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001, got 8b59365afeaa748d7add5e92239a8b3bcc1f2d216a22aa69e37d73e362150362
+```
+
+CONFIG DRIFT OUTSIDE /lanes — exit **1**:
+
+```text
+FAIL: deployment provenance
+  lanes.json (except /lanes): expected ed642a520d25470f1192cbbd88b4ccede16bebc6259a5bb1db039df45864cca6, got 20e249b3ddcd0448a16cba46c022d3e4571f49eecc8fcfc684a04c72c826bfed
+```
+
+EXPECTED OPERATIONAL /lanes DRIFT — exit **0**:
+
+```text
+PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)
+```
+
+UNCLASSIFIED SOURCE ADDITION — exit **1**:
+
+```text
+FAIL: deployment provenance
+  unclassified file: scripts/unexpected-source.py
+```
+
+SOURCE EXCLUSION REJECTED — exit **2**:
+
+```text
+ERROR: live_state must name exactly the documented paths with reasons
+```
+
+ISOLATED COPY RESTORED — exit **0**:
+
+```text
+PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)
+```
+
+[All actual provenance probe commands/output](ops-lease-persistent-identity-evidence-20261115/round2/provenance-probes.json).
+No source/config mismatch is excused as mutable lane state.
+
+Only `deployment.json` was published to live, with backup:
+
+- Backup: `/media/jer/ZX20/CCF-Ops/deployment.json.bak-20261115T230935Z`.
+- Before and byte-identical backup SHA-256: `bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5`.
+- After SHA-256: `2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc`.
+- Whole live-tree hashes: only `deployment.json` changed, only the required
+  backup was added, nothing removed; all tooling/config/board/ledger/state,
+  permanent guard and history retain their exact bytes.
+- Branch/live provenance bytes match; audit using the published live manifest
+  passes deployment and all eight candidate hashes.
+- Primary's two dirty-file hashes and branch board/active-tasks hashes remain
+  identical to the start. Primary was never written to.
+
+[Publication and post-publication audit](ops-lease-persistent-identity-evidence-20261115/round2/live-publication.json),
+[whole live tree before](ops-lease-persistent-identity-evidence-20261115/round2/live-before-hashes.json),
+[after](ops-lease-persistent-identity-evidence-20261115/round2/live-after-hashes.json),
+[protected before](ops-lease-persistent-identity-evidence-20261115/round2/protected-before-hashes.json),
+[after](ops-lease-persistent-identity-evidence-20261115/round2/protected-after-hashes.json).
+Full operational evidence: `/media/jer/Files/CCF/Operations/OpsLeaseEvidence-20261115/round2/`.
+
+### Exactly what remains unproven / open
+
+- The **full self-test is not passing**: stale device fixtures stop execution
+  before lane/storage/lease/concurrency/pilot sections. Their assertions were
+  not relaxed, skipped or rewritten. No new occupied/foreign-owner/normal
+  acquire/release/concurrent-acquire proof is claimed by this round; earlier
+  normal-cycle evidence remains historical. No force or steal occurred.
+- The mandatory bounded inventory permission intentionally rejects the
+  self-test's later arbitrary-root sentinel. Repairing that harness expectation,
+  portable device fixtures, historical environment outputs, and durable-lane
+  assignment preflight remains outside this bounded source port and unverified.
+- The **live board still fails** its independent content gate (#553). Provenance
+  PASS is not board validity. There was no live board/active-tasks write.
+- No candidate scripts/config were deployed; applying candidate helpers to
+  live registrations is not qualified. Strict default admission would reject
+  a Files lane in callers that do not explicitly enable inventory permission;
+  operational deployment would need its own reviewed caller/config plan.
+- No reboot/re-enumeration/hotplug or physical duplicate UUID was induced.
+  Current kernel-name versus by-id equivalence is physical; duplicate UUID
+  refusal uses a mock. Editor scans/status snapshots observed zero Editors;
+  they are not kernel-wide continuous proof about unrelated processes.
+- Independent G2/G3/G4 review, integration, Manager acceptance, Unity/gameplay/
+  save qualification, dashboard/Drive sync and historical provenance of the
+  two supplemental deployed documents remain unproven. Hashes detect drift
+  against the observed baseline, not coordinated hostile receipt alteration.
+- **#548 stays OPEN.** DASHBOARD SYNC: NOT PERFORMED (no board write authority).
+  PUBLISHED DASHBOARD REFLECTS THIS TASK: UNVERIFIED. Manager/#544 follow-up;
+  this source/evidence publication confers no physical ownership or acceptance.

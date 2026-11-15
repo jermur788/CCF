@@ -6,9 +6,9 @@
   "source_head": "dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e",
   "deployed_at": "2026-10-15T00:20:00+00:00",
   "deployment_target": "/media/jer/ZX20/CCF-Ops",
-  "recorded_at": "2026-11-15T22:55:27.739062+00:00",
+  "recorded_at": "2026-11-15T23:07:16.644303+00:00",
   "provenance_status": "RECONCILED_OBSERVATION_NOT_SOURCE_ACCEPTANCE",
-  "previous_manifest_sha256": "22bb354343c699cc78903d4a5d1b1b13548e126a4a04351f54f25586905195ed",
+  "previous_manifest_sha256": "bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5",
   "source_hashes": {
     "ActiveTasksTransition.md": "e2fe59102b8b408a313f48807323c5d1befb6e89407e8a50dfdf169cd8e7a68d",
     "CLAUDE.md": "625065153e9b69634723b6a6f678fa2371350cb7f436393461a62a07a28e2335",
@@ -70,13 +70,13 @@
     },
     "scripts/_ccf.py": {
       "sha256": "ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001",
-      "reason": "Live persistent-device identity and Files repository/non-Unity admission differ from historical source and candidate; captured, not imported or independently accepted.",
+      "reason": "Observed live persistent-device identity and Files admission differ from historical source. Round 2 ports repository admission; candidate retains the persistent default pin, restricts explicit lane permission to durable non-Unity paths and admits config-relative boards on project storage. Live bytes remain pinned, not deployed from candidate or independently accepted.",
       "previous_source_sha256": "b12a613379d69c5afa8e4c20ae0fcdcff6b8772c39501f60c01933263cf46923",
       "previous_deployed_sha256": "b12a613379d69c5afa8e4c20ae0fcdcff6b8772c39501f60c01933263cf46923"
     },
     "scripts/lane-status": {
       "sha256": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
-      "reason": "Live persistent-device comparison and Files non-Unity inventory differ from historical source and candidate; captured, not imported or independently accepted.",
+      "reason": "Observed live persistent-device comparison and durable non-Unity inventory differ from historical source. Round 2 candidate ports these inventory semantics, but its shared config admission has stricter explicit path boundaries. Live bytes remain pinned; no candidate deployment or independent acceptance claimed.",
       "previous_source_sha256": "7fca072046997d43caf51a87397d2735c579cc2c1732515cfa088c9dff4b3761",
       "previous_deployed_sha256": "7fca072046997d43caf51a87397d2735c579cc2c1732515cfa088c9dff4b3761"
     }
@@ -99,17 +99,20 @@
     "source_repository": "/media/jer/Files/CCF/Repository.git",
     "source_worktree": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115",
     "source_branch": "ops/unity-lease-persistent-identity-20261115-v1",
-    "source_head": "a16b66f747138f99378a5eb8f72b88181f94a760",
+    "source_head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
     "deployment_status": "NOT_DEPLOYED",
     "deployed_at": null,
     "source_hashes": {
-      "scripts/_ccf.py": "429e35ae7b4333f343334e02b30de17843c40a3dca25fe1feacc2f6df4c2ffb3",
-      "scripts/lane-status": "a240098779136a0a586956bdbf985624ad79cdd1abb41ad501f3eba380726546",
-      "lanes.json": "f7564e0cc0e3c362bf24c7c728d48278204d89c6e1bb63f488987fd18561ae32",
+      "scripts/_ccf.py": "1295def55a4821ccd00423f65ab58e64a3be916dc18b127ed99ae1099c3e7677",
+      "scripts/lane-status": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
+      "lanes.json": "f73d1c08556ebb5a2befeeb7dd9fee7cde08184c935a2af73aded2c8dcefe477",
       "scripts/verify-deployment": "ee001216fb020ae33ed54f4c317e2c8e19ce4bdb407f4e6bb8ae457248a02386",
-      "DeploymentProvenance.md": "bb28b1c31e620e46784bc1e161e6af74054ec2a1aded4351d03377b3b7b55e52"
+      "DeploymentProvenance.md": "a08fb8a5d38e82ab3dad1b6b1e0df7280cf28e1751fd1359b61cc2947b288db4",
+      "scripts/unity-lock": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
+      "scripts/packet-lint": "a776ec42a13224936a5c7c6a68ec2ed7ddc4e2cf21a96e287e6843a31e243e43",
+      "tests/self-test.py": "2a12a19d848ae789a1404c7ebd5285457e061b0a7142b91de95ed0b79cdeeaf3"
     },
-    "hash_scope": "Five bounded candidate files; source_head is the implementation commit, receipt/evidence commit follows. Live tooling/config remains unchanged."
+    "hash_scope": "Eight bounded candidate files at the implementation commit, including unchanged lock/linter/self-test; receipt/evidence commit follows. Live tooling/config remains unchanged."
   },
   "notes": [
     "This receipt is identical in Git and live, describes existing live bytes separately from candidate bytes, and does not claim the candidate was deployed.",

@@ -1,0 +1,42 @@
+[
+  {
+    "head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
+    "command": [
+      "python3",
+      "-B",
+      "tests/self-test.py"
+    ],
+    "cwd": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops",
+    "exit_code": 1,
+    "stdout": "Scratch: /media/jer/ZX20/CCF-Temp/foundation-test-8nrb0qwc\nPASS: packet valid PASS\nPASS: nonunity-lane-head PASS without Unity inference\nPASS: canonical-style PASS without Unity inference\nPASS: missing-unity-required FAIL\nPASS: unity-nonunity-lane FAIL\nPASS: stop-placeholder FAIL\nPASS: handoff-placeholder FAIL\nPASS: missing-role-file FAIL\nPASS: draft missing Unity declaration WARN\nPASS: packet valid Unity PASS\nPASS: Unity lane is required\nPASS: packet missing-base FAIL\nPASS: packet missing-verification-tier FAIL\nPASS: packet conflicting-unity-ownership FAIL\nPASS: packet missing-stop-condition FAIL\nPASS: partial draft WARN\nPASS: partial final FAIL\nPASS: draft does not hide explicit Unity conflict\nPASS: malformed SHA FAIL\nPASS: Markdown heading packet PASS\nPASS: live board schema PASS\n",
+    "stderr": "Traceback (most recent call last):\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 75, in <module>\n    rows=json.loads(cli('lane-status','--config',config,'--json'))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 34, in cli\n    def cli(name,*args,code=0): return run([sys.executable,'-B',OPS/'scripts'/name,*args],code)\n                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/tests/self-test.py\", line 31, in run\n    if p.returncode!=code: raise AssertionError(f'expected {code}, got {p.returncode}: {args}\\n{p.stdout}\\n{p.stderr}')\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: expected 0, got 2: ['/usr/bin/python3', '-B', PosixPath('/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts/lane-status'), '--config', PosixPath('/media/jer/ZX20/CCF-Temp/foundation-test-8nrb0qwc/lanes.json'), '--json']\n\nERROR: ZX20 mount identity mismatch: {'source': '/dev/sdc2', 'target': '/media/jer/ZX20', 'fstype': 'exfat', 'uuid': '18D6-896E'}\n\n",
+    "scratch_cleanup": "Own disposable fixture tree removed after hash inventory and explicit absence of guard/history/lock; no production Git metadata or state touched."
+  },
+  {
+    "head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
+    "command": [
+      "python3",
+      "-B",
+      "scripts/packet-lint",
+      "--board",
+      "board/active.md"
+    ],
+    "cwd": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops",
+    "exit_code": 0,
+    "stdout": "PASS: board schema and duplicate checks (15 live tasks)\n",
+    "stderr": ""
+  },
+  {
+    "head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
+    "command": [
+      "python3",
+      "-B",
+      "scripts/packet-lint",
+      "tests/fixtures/valid.md"
+    ],
+    "cwd": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops",
+    "exit_code": 0,
+    "stdout": "PASS\n",
+    "stderr": ""
+  }
+]

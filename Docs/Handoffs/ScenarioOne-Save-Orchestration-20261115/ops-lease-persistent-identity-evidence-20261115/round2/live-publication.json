@@ -1,0 +1,30 @@
+{
+  "backup": "/media/jer/ZX20/CCF-Ops/deployment.json.bak-20261115T230935Z",
+  "before_sha256": "bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5",
+  "backup_sha256": "bc27de755194bd4c8ff34d24f55583db52376915301bfb22fabbb6405d7ca0e5",
+  "after_sha256": "2034c77fac082ec8107deef073605ce9314d594e79568e28f32aa8584dc4f5bc",
+  "changed": [
+    "deployment.json"
+  ],
+  "added": [
+    "deployment.json.bak-20261115T230935Z"
+  ],
+  "removed": [],
+  "branch_live_manifest_equal": true,
+  "audit": {
+    "command": [
+      "python3",
+      "-B",
+      "CCF-Ops/scripts/verify-deployment",
+      "--root",
+      "/media/jer/ZX20/CCF-Ops",
+      "--manifest",
+      "/media/jer/ZX20/CCF-Ops/deployment.json",
+      "--candidate-root",
+      "CCF-Ops"
+    ],
+    "exit_code": 0,
+    "stdout": "PASS: deployment provenance (28 source hashes, 7 pinned deployed overrides, 1 config projection, 5 reasoned live-state entries)\nPASS: candidate provenance (8 source hashes)\n",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "head": "a4a7e6cc3f2ee0563ef4bee38757cc00d3ba32b3",
+  "command": [
+    "python3",
+    "-B",
+    "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/ops-lease-persistent-identity-evidence-20261115/verify-identity.py",
+    "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/scripts",
+    "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115/CCF-Ops/lanes.json"
+  ],
+  "exit_code": 0,
+  "stdout": "PASS: enumerated source and persistent pin share block device number\nPASS: character devices rejected\nPASS: regular files rejected even with matching rdev\nPASS: absent pin rejected\nPASS: exactly one physically visible UUID\nPASS: default storage_check uses persistent pin\nPASS: physical storage health PASS\nPASS: low capacity remains blocked\nPASS: read-only remains blocked\nPASS: mount target remains bound\nPASS: zero/duplicate UUID storage_check rejected: []\nPASS: zero/duplicate UUID health blocked\nPASS: zero/duplicate UUID storage_check rejected: ['/dev/sdc2', '/dev/CCF-DUPLICATE-FIXTURE']\nPASS: zero/duplicate UUID health blocked\nPASS: Python parse: _ccf.py\nPASS: Python parse: lane-status\nPASS: Python parse: unity-lock\nPASS: Python parse: packet-lint\nIDENTITY_VERIFICATION_PASS 18\n",
+  "stderr": ""
+}
