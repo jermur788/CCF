@@ -118,6 +118,39 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** **PROVIDER_QUOTA** (OpenAI A).
 - **Handoff / next action:** attempt 2 dispatched to OpenAI B (`codex_c75d8114-…`) with `gpt-6.1-sol`, reasoningEffort `high`. If B also refuses with a quota/auth error, the run then checks the Sonnet fallback condition per policy — and only then.
 
+### EVENT 005 — 2026-11-15T10:20Z — independent source cross-check and the FIRST GENUINE HISTORICAL FIXTURE
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own read-only commands; no reliance on the DRAFT's summary and no reliance on a child's claims).
+- **Event type:** OTHER (evidence) / CHECKPOINT.
+- **Work unit:** orchestrator due-diligence, so that no later stage inherits an unverified premise from a DRAFT document.
+- **A. Five highest-risk DRAFT claims re-read in source on `fc18190b` — all five REPRODUCE exactly:**
+  1. `Assets/ForestPrototype/StandGeometryModel.cs`: `public static float StandSizeMeters(int model) => model == Enlarged80 ? 80f : 40f;` and `IsKnown` accepts only `0`/`1`. **An unknown geometry value silently sizes as 40 m / 64 cells wherever `IsKnown` is not consulted first.** (This is the real B-11 hazard, confirmed, not theorised.)
+  2. `Assets/ForestPrototype/ScenarioOne/ScenarioReferenceArchive.cs:121-129` `IdentityMatches` compares `scenarioId == definition.ScenarioId` only — **chapter-level**. A compact profile reusing chapter `scenario-one` would therefore satisfy the frozen Legacy40 archive's identity check. B-07 is a real hazard, confirmed.
+  3. `Assets/ForestPrototype/ForestSaveController.cs:283-284` — the unreadable-save refusal text names `forest-save.json.bak`, and there is **no code path that loads it**. B-09 is a real gap, confirmed.
+  4. `ForestSaveController.cs:340-341` — `if (data.version > ForestSaveData.CurrentVersion) Debug.LogWarning(…"loading best-effort")`. Historical newer-version best-effort is real current behaviour (B-05).
+  5. `ForestSaveController.cs:9,15,17,19` — `forest-save.json`, `.tmp`, `.bak` literals, `File.Replace` at line 79 with `File.Copy` fallback at line 84 (B-01/B-02 baseline).
+  **Consequence:** the DRAFT spec's *source-facts* section is credible. Its problem is **policy approval**, not factual accuracy. That distinction is what lets this run prepare an approval candidate rather than re-litigating evidence.
+- **B. Genuine historical fixture discovery (B-06 — materially advanced).** `git ls-files` finds **no** tracked player save and **no** v1–v24 corpus manifest; the only tracked frozen artefact is `Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceFutureV1.bytes`. Outside Git, on this machine's real `Application.persistentDataPath` (`/home/jer/.config/unity3d/DefaultCompany/CCF/`), there is **one genuine historical player save**:
+
+  | Field | Observed value |
+  | --- | --- |
+  | Path | `/home/jer/.config/unity3d/DefaultCompany/CCF/forest-save.json.bak` |
+  | Size / sha256 | 249,552 bytes / `c0169790c8bba169ffd27c486e6a83bf67d6c938e170da58d42031bbcdf862a3` |
+  | mtime | 2026-10-02 |
+  | `version` | **9** (explicit numeric) |
+  | Top-level keys (9) | `buildables, cells, ecologicalYear, markedTreeIds, simulationSeed, storages, trees, version, wood` |
+  | `scenarioOne` | **ABSENT** ⇒ a genuine v1–v9 "no authored scenario ID" file, exactly the SI-05 legacy class |
+  | `standGeometryModel`, `rngModel`, `regenerationModel`, `growthModel`, `stormModel` | **all ABSENT** (pre-v20 legacy defaults) |
+  | `trees` | 361 |
+
+  **Privacy/handling:** metadata only — path, size, hash, version, key names, counts. **No save content is copied into Git, no file was modified, no primary was created.** The user's save directory was read, never written.
+  **Secondary finding, relevant to B-09 and reported plainly rather than dramatised:** there is **no `forest-save.json` primary** beside it — only the `.bak`. Whatever the cause (a much later `.bak`-only state, or an earlier manual cleanup), the current codebase **cannot load this file through the UI at all**, because the refusal message points at `.bak` while no recovery route exists. That is precisely the gap B-09 asks to close, and it now has a **real** example rather than a hypothetical one.
+  **Still open:** genuine **v10–v24** fixtures (Legacy40 and Enlarged80), model-0, Rack V2, MFM v23 and v24-teaching saves remain **NOT FOUND**. B-06 is therefore *partially* satisfied: one genuine v9 exists; the rest must be sourced from the owner or recorded as a release risk. **A single v9 file must never be presented as a v1–v24 compatibility proof.**
+- **Failure classification:** UNKNOWN/NONE.
+- **Worth noting for the decision packet:** this fixture was found **before** any implementation, which is the correct order — the DRAFT's own stop-rule forbids implementing against an unproven historical-compatibility claim.
+- **Next:** child audit to corroborate/extend with a full caller inventory; then the approval candidate.
+
+
 
 
 
