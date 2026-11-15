@@ -295,6 +295,56 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Final state:** Stage A **COMPLETE**; stages B–G **gate-blocked** with one grouped owner decision ready. #535 closed **[HANDED-OFF]**, not falsely complete and not [BLOCKED] — the authorised work is finished, and the remaining stop is a deliberate product gate, not a failure.
 - **Handoff URLs:** [final result](https://github.com/jermur788/CCF/blob/orchestration/scen1-shared-save-compact-complete-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-DEEPSEEK-SHARED-SAVE-COMPACT-ORCHESTRATION-FINAL-RESULT-20261115.md); notifications to [#424](https://github.com/jermur788/CCF/issues/424) and [#425](https://github.com/jermur788/CCF/issues/425).
 
+---
+
+# CONTINUATION RUN — post-signature implementation, parent [#544](https://github.com/jermur788/CCF/issues/544)
+
+**Ledger continuity:** this is the **same** ledger file, inherited on the new parent branch. EVENTS 001–015 above are the closed #535 orchestration evidence and are **not** rewritten. New events continue at **016**.
+
+### EVENT 016 — 2026-11-15T13:05Z — CONTINUATION RUN START (post-signature), registration
+
+- **Evidence class:** OBSERVED FACT (git/CLI/GitHub) + ORCHESTRATOR CLAIM (routing).
+- **Event type:** RUNNING_START.
+- **Work unit / claim / stage:** parent continuation [#544](https://github.com/jermur788/CCF/issues/544) `[READY / NOT RUNNING]` → registered **RUNNING** by this event. Difficulty HIGH (5/5).
+- **Trigger, and why this is not a repeat run:** the previous run closed at a genuine product gate (D-A unsigned). **The gate has since moved.** At **2026-11-15T12:28:06Z** the user-appointed Scenario One Overall Manager signed **D-A ACCEPT PACKAGE** and issued the binding continuation packet. The owner's new dispatch therefore resumes at the *next* stage; **G0, #538 authoring, #539 review, #540 repair and #541 delta re-check are complete and are NOT re-run.**
+- **Actual provider/model/effort:** `opencode-go/deepseek-v4.1-flash`, variant **high**, ORCHESTRATOR ONLY.
+- **Previous provider/model:** unchanged (same orchestrator instance continuing).
+- **New parent branch:** `orchestration/scen1-save-v2-post-signature-20261115-v1`, created **from the actual closed #535 orchestration head `cf4f1499d442ccb327d6d5b14408c28d36424735`** — so the ledger and final result are inherited, not cloned.
+- **Isolated docs-only worktree:** `/media/jer/Files/CCF/Orchestration/CCF-Scen1-SaveV2-PostSig-20261115` (new path, verified unused before creation), clean at creation (`git status --short --branch` empty). **Not** `/media/jer/Files/CCF-Primary`.
+- **Ledger inheritance verified:** `grep -c "^### EVENT"` = **15** before this append ⇒ EVENTS 001–015 present locally on the new branch.
+- **Provider pool register carried forward, refreshed state:** OpenAI **A = QUOTA-EXHAUSTED** (provider-stated reset 2026-11-18T13:43, tz unstated, from EVENT 004); OpenAI **B = AVAILABLE and proven** (4/4 successful Sol tasks in the prior run); Claude A/B AVAILABLE (`opus-5-5`, `sonnet-5-5`); DeepSeek parent AVAILABLE. **Quota percentages UNKNOWN everywhere.** Sonnet condition remains unmet.
+- **Live board:** read-only from `origin/main`; **not written**. Live open claims inspected: [#443 RUNNING CLAIM / G3 APPROVED — G4 NOT YET VERIFIED], [#447 READY], [#439 READY], [#438 pending], [#471 PAUSED], [#542 RUNNING]. See EVENT 017 for the material consequence.
+- **Unity/Editor/lease:** **NONE for the orchestrator.** No Unity planned at this stage. `lock.json` previously absent; the CCF-Ops device-pin defect (EVENT 001) is a known outstanding gate and is *not* bypassed.
+- **Protected user work:** `/media/jer/Files/CCF-Primary` verified to still hold exactly its two user-owned dirty files (`AGENTS.md`, `Docs/Operations/StorageArchitecture.md`) at `46247486`. Untouched.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** preflight verification and the first ownership request.
+
+### EVENT 017 — 2026-11-15T13:12Z — preflight: signature bytes verified; a LIVE UNMERGED CANDIDATE collides with the save subsystem
+
+- **Evidence class:** **OBSERVED FACT** (the orchestrator's own git commands).
+- **Event type:** OTHER (preflight) / BLOCK-START candidate.
+- **A. Signature integrity — VERIFIED EXACTLY.** The four Git blob IDs at the signed candidate `200add4e6e5116268b79ef63131ff9b836f14c5d` were recomputed and compared to the attestation:
+
+  | File | Recomputed blob | Signed blob | Match |
+  | --- | --- | --- | --- |
+  | `spec.md` | `8ac551022adb578abed0d9fbd413c8e9d002c3f9` | same | **YES** |
+  | `plan.md` | `4ba91d909a3b8ddbb15c88a8e011f8b6d3720b50` | same | **YES** |
+  | `tasks.md` | `88052dc58a9f3128131ec701d39a92c1500caf2b` | same | **YES** |
+  | `checklists/requirements.md` | `505ab550a2b5dbdd65ce9dafb1f24c437828d2fb` | same | **YES** |
+
+  **4/4 match.** The signature is cryptographically tied to the reviewed bytes and the "NOT APPROVED" banner is correctly understood as a pre-signature snapshot, per the attestation. **No worker may "fix" that banner, `spec.md:34`, or any signed byte in place.**
+- **B. `main` has NOT moved:** `origin/main` = `fc18190b976f1363f1b5d1b0881810db2f8c6e39`, identical to the G0 audit's source HEAD. So for now the G0 `file:line` facts are still valid — **but see C, which makes "main is unchanged" misleading.**
+- **C. MATERIAL COLLISION — a live, G3-approved, UNMERGED candidate already modifies the save subsystem.** [#443](https://github.com/jermur788/CCF/issues/443) is `[RUNNING CLAIM / G3 APPROVED — G4 NOT YET VERIFIED]`, candidate `acb4e1111fdc9aa9b295413038eda4e03fe56402`, **awaiting the #424 integration verdict and explicitly "Not merged, not user-accepted"**. Its own commits (merge-base `50042bbe`) touch **47 Asset files**, of which these are inside the save subsystem this spec must rewrite:
+  - `Assets/ForestPrototype/ForestSaveController.cs` (+13/−1): buildable-retirement filtering inside **`CaptureData` and `LoadData`** — the two methods the save router restructures.
+  - `Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs` (+14): adds `ReferenceAuthoringActive`, and **fixes preview-return pose restore** by disabling/re-enabling the `CharacterController` and calling `Physics.SyncTransforms()` — i.e. **the exact preview-return area the signed spec must make all-or-nothing (H-07, B-10)**.
+  - `Assets/ForestPrototype/ForestStartingStand.cs` (2 lines) and `LearningObjectivesView.Curriculum.cs`.
+  - **Checked and cleared:** the `LearningObjectivesView.Curriculum.cs` changes are **lesson prose only** — the `CCF.Learning.v1.` prefix anchor is **not** touched. No preservation anchor is endangered by #443.
+- **Why this is material and not a detail:** if the save work is based on `main@fc18190b` while #443 later merges, the collision lands precisely in `CaptureData`/`LoadData`/preview-return — the three places where a mistake loses or mis-restores a player's historical save. The continuation packet anticipated exactly this ("no simultaneous Objective1/#443/#447, Rack, menu/source writer overlap"), so it is a **live ownership/topology question for #424**, not something the orchestrator may decide.
+- **What the orchestrator will NOT do:** rebase #443, cherry-pick its save hunks, choose an integration order unilaterally, or start source work on a base whose ownership is contested.
+- **Failure classification:** **SCOPE/AUTH (ownership & integration ordering)** — a genuine #424 gate. Not a defect and not a capacity problem.
+- **Next:** request #424's ruling and file-set grant; start only the read-only T-00 delta audit meanwhile.
+
+
 
 
 
