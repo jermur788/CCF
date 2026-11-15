@@ -461,6 +461,27 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** Opus verdict → bounded repair only if a real defect exists → Manager source verdict. **I do not close #549 and do not issue an integration verdict.**
 
+### EVENT 025 — 2026-11-15T16:25Z — T-01 source REVIEWED: APPROVED FOR T-02; BOTH my observations dismissed; self-correction recorded
+
+- **Evidence class:** OBSERVED FACT (review verdict + orchestrator's own re-check of the signed text) + ORCHESTRATOR CLAIM (self-correction).
+- **Event type:** REVIEW_END.
+- **Work unit / claim:** T-01-R, [#550](https://github.com/jermur788/CCF/issues/550). **Provider:** Claude A, `claude-opus-5-5`, effort `medium`, cross-provider from the Sol author.
+- **Verdict: APPROVED FOR T-02 CONSTRUCTION — 0 BLOCKER, 0 MATERIAL, 3 MINOR, 2 NIT.** Commit `08a494dc`, one file changed, #550 CLOSED. Report: [scen1-T01-SHARED-SAVE-REGISTRY-INDEPENDENT-REVIEW-20261115.md](https://github.com/jermur788/CCF/blob/08a494dc3564616dfa23a4cce1ce3ff8db503f77/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-T01-SHARED-SAVE-REGISTRY-INDEPENDENT-REVIEW-20261115.md).
+- **Independently confirmed by the reviewer:** with no explicit choice the historical path traces to exactly `Path.Combine(Application.persistentDataPath, "forest-save.json")` plus `.tmp`/`.bak` — the same string as before; compact/O2 unavailable everywhere; selection refused after world creation begins; envelope is data-only; `ForestSaveData.cs` and `ScenarioReferenceArchive.cs` unchanged; **no `acb4e111` code carried over**; all 63 ISO items still unchecked.
+- **⚠️ BOTH OF MY OBSERVATIONS WERE WRONG — and the record says so.** I raised OBS-1 (O2 geometry/content literals alleged unauthorised) and OBS-2 (`o1-historical` alleged unauthorised). The reviewer dismissed both. **I then checked the signed text myself and the reviewer is right:**
+  - signed `spec.md:147` — *"existing chapter `scenario-one`; **internal router profile `o1-historical`**; no persisted new profile/world ID"* — literally authorises OBS-2's literal;
+  - signed `spec.md:149` — *"**reserved** `o2-working-mixed-geometry-v1` / `o2-working-mixed-content-v1`"* — literally authorises OBS-1's literals.
+  **Cause of my error, stated plainly:** I was reading the *#530 DRAFT's* wording ("geometry/content keys set by the separate O2 world spec"), which the V2 candidate and the signature superseded with explicit reserved literals. I flagged from memory of an earlier revision instead of re-reading the **signed** text. Lesson: on a signed contract, verify against the signed commit every time, not against a remembered draft. The independent review caught my error — which is precisely the value it exists to provide, and an argument against an orchestrator issuing findings from recollection.
+- **Three MINOR findings carried forward as T-02 packet requirements (not fixed now, not silently dropped):**
+  - **F-1:** `ForestSaveProfiles.GetPaths` (`ForestSaveProfiles.cs:103-111`) is **public and does not check availability**, returning reserved compact/O2 paths. Nothing calls it today, but a T-02/T-04 writer could use it to bypass the availability gate. → **T-02 must require that save code obtains paths only via `ForestSaveSessionContext.GetSelectedPaths`/`CurrentPaths`.**
+  - **F-2:** Unity `JsonUtility` cannot express the signed "explicit null for O2" through this envelope class (documented Unity behaviour; **not** Unity-tested). → T-02/T-04 must write/verify that on **raw JSON**.
+  - **F-3:** making a second profile available before T-03's explicit-choice startup exists would make every historical save path **throw** — fails safe, but breaks save and load. → availability is only to be flipped **with** T-03's startup selection.
+- **Reviewer's self-reported "stray write under `/home/jer`": investigated, no action taken, and the report was too harsh on itself.** The write was an appended entry in the **pre-existing project memory index** `/home/jer/.claude/projects/-media-jer-Files-CCF-Repository-git/memory/MEMORY.md` (7 KB, entries going back to 2026-10-22, including this session's own #539/#541 entries). That is the standard mechanism these sessions use, not a rogue file. Root filesystem unchanged at 266 MB free. **Not moved and not deleted** — relocating it would break the memory tooling's expected location for a 1-line gain.
+- **Author's 310 offline assertions:** the reviewer's assessment is that they genuinely exercise the helper code **but against hand-written Unity stubs**, and that the 64-assertion "presence matrix" proves very little (NIT). The author's report was honest about the stubbing. This stands as the run's clearest example of "stubbed compile is not Unity compile".
+- **State after this event:** T-01 **IMPLEMENTED → REVIEWED (source)**. Not integrated, not Unity-verified, not accepted. **Awaiting the Manager's source verdict** on `#549`, which I keep open. T-02–T-05 remain unreleased.
+- **Failure classification:** UNKNOWN/NONE. **Review cycles:** 1 full review, 0 repairs needed, 0 re-reviews — proportionate for a 9-file bounded stage.
+
+
 
 
 

@@ -10,9 +10,15 @@
 
 ## 1. Status: BLOCKED on ownership — deliberately, not by failure
 
-**T-00 is complete. T-01 is blocked on `#424`'s file-set grant and base ruling, and I am not working around it.**
+**Update (2026-11-15T15:10Z): unblocked by the Manager's T-01 ruling, and T-01 has since been implemented and independently reviewed.** This section is kept for continuity; the current state is at the top of the table in §2 and summarised here.
 
-That is the correct stop: the signed contract authorises a design, not a writer, and the continuation packet makes `#424` the sole authority for save-subsystem ownership and integration order. Writing C# on an unresolved baseline — with a live unmerged candidate holding five *semantic* overlaps in the same files — is precisely the failure this gate prevents.
+**Current state:** T-00 **APPROVED as audit**. T-01 **IMPLEMENTED** (`da962372`, 9 files) → **REVIEWED (source)** by independent Opus 5.5 Medium → **APPROVED FOR T-02 CONSTRUCTION**, 0 blocker / 0 material / 3 minor / 2 nit. `#549` is **open**, awaiting the **Manager's source verdict** — which is not mine to give. T-02–T-05 remain **unreleased**. Unity remains blocked on the separate `#548` ops claim.
+
+**Original blocked handback (kept as history, superseded):**
+
+T-00 is complete. T-01 was blocked on `#424`'s file-set grant and base ruling, and I did not work around it.
+
+That was the correct stop at the time: the signed contract authorises a design, not a writer, and the continuation packet makes `#424` the sole authority for save-subsystem ownership and integration order. Writing C# on an unresolved baseline — with a live unmerged candidate holding five *semantic* overlaps in the same files — is precisely the failure this gate prevents.
 
 **State distinctions, kept honest:**
 
@@ -32,7 +38,9 @@ That is the correct stop: the signed contract authorises a design, not a writer,
 
 | Claim | Work unit | Provider | Commit | State |
 | --- | --- | --- | --- | --- |
-| [#545](https://github.com/jermur788/CCF/issues/545) | **T-00** ownership preflight + current-source delta (read-only) | OpenAI **B** `gpt-6.1-sol` high | `f86e3010` | **HANDED-OFF**, closed |
+| [#545](https://github.com/jermur788/CCF/issues/545) | **T-00** ownership preflight + current-source delta (read-only) | OpenAI **B** `gpt-6.1-sol` high | `f86e3010` | **HANDED-OFF**, Manager **APPROVED as audit**, closed |
+| [#549](https://github.com/jermur788/CCF/issues/549) | **T-01** fixed three-profile registry + early-selection seam | OpenAI **B** `gpt-6.1-sol` high | `da962372` | **IMPLEMENTED → REVIEWED (source)**; **open**, awaiting Manager source verdict |
+| [#550](https://github.com/jermur788/CCF/issues/550) | **T-01-R** independent source review | Claude **A** `claude-opus-5-5` **medium** | `08a494dc` | **APPROVED FOR T-02 CONSTRUCTION** — 0 blocker, 0 material, 3 minor, 2 nit; closed |
 
 [Report](https://github.com/jermur788/CCF/blob/f86e3010b338d627fb8be9272549442e27dd8368/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-T00-SAVE-OWNERSHIP-PREFLIGHT-20261115.md) — 212 lines. **Re-verified by me rather than trusted:** 5/5 fixture hashes re-hashed here (host v9 `.bak`, frozen Reference, `v20-y5`, `v21-y1`, `v21-y0-rack`) all **MATCH**; the sixth was verified at three paths in the prior run. `main` is unchanged at `fc18190b`, so G0's `file:line` facts still hold.
 
