@@ -439,6 +439,29 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** worker `[RUNNING]` receipt with its narrower allowlist, then source → offline checks → `[HANDED-OFF]` on #549 for Manager source review. I do **not** close #549 and do **not** give an integration verdict.
 
+### EVENT 024 — 2026-11-15T15:55Z — T-01 handed off; orchestrator verification of the actual diff; independent review dispatched
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own git reads of the pushed candidate) + ORCHESTRATOR CLAIM (findings OBS-1/OBS-2, referred for adjudication).
+- **Event type:** CODE_HANDOFF → REVIEW_START.
+- **Work unit / claim:** T-01, [#549](https://github.com/jermur788/CCF/issues/549). **Provider:** OpenAI **B**, `gpt-6.1-sol`, `high` — **sixth consecutive B success**, no Sonnet fallback used at any point in either run.
+- **Delivery verified:** branch `feature/scen1-shared-three-profile-save-v2`, commit `da962372`, based on `f52dec24`. **Exactly 9 files, +482/−6:** `ForestSaveProfiles.cs` (+128), `ForestSaveSessionContext.cs` (+84), `ForestSaveEnvelope.cs` (+54), three new `.meta`, **8 lines** in `ForestSaveController.cs`, **2 lines** in `UI/StandaloneSessionMenu.cs`, one 206-line result doc. Scope discipline is good: no `ForestStartingStand`, no `ScenarioOneManager` partials, no `#443` files.
+- **Orchestrator checks performed on the actual bytes (not the author's summary):**
+  - **Preservation anchors `ForestSaveData.cs` and `ScenarioReferenceArchive.cs`: UNCHANGED** vs `fc18190b` — the two files the Manager explicitly carved out as read-only.
+  - **Both hardcoded path literals now route through one query.** `ForestSaveController.cs` drops `private const string SaveFileName = "forest-save.json"` and resolves `SavePath`/`TempSavePath`/`BackupSavePath` from `ForestSaveSessionContext.CurrentPaths`; `UI/StandaloneSessionMenu.cs` drops its duplicate literal likewise. This closes the FR-13 duplicate-literal defect and the second hardcoded site G0 identified. **No logic change** in either file.
+  - **Registry literals match the signed contract** on every audited value: chapters `scenario-one`/`scenario-two`; compact `o1-compact-v1`, `scenario-one-compact-v1`, `compact30-v1`, `scen1-compact-h1-g1-v1`, `forest-save-scenario-one-compact-v1.json`; O2 `o2-working-mixed-v1`, `scenario-two-working-mixed-v1`, `forest-save-scenario-two.json`; SI-09 prefixes for both new profiles; historical prefixes and `forest-save.json` intact.
+  - **The critical default is right:** `CreateInitialSelection()` chooses the *only available* profile, which today is Historical, so **existing saves resolve to exactly today's path** — the failure mode that would have stranded every player save is not present.
+  - **Fail-closed is real:** compact and O2 are `IsAvailable = false` with explicit reasons; `GetSelectedPaths` **throws** rather than falling back; `TrySelect` refuses after `WorldCreationStarted`; `CanUse` rejects caller-constructed lookalikes by registry identity.
+  - **Historical record deliberately carries `null` world/geometry/content** so no new historical identity field is invented or persisted.
+- **Two orchestrator observations referred to the reviewer, explicitly not conclusions:**
+  - **OBS-1:** O2 carries locally invented geometry/content literals (`o2-working-mixed-geometry-v1`, `o2-working-mixed-content-v1`) while the signed spec **defers those keys to the separate O2 world spec**. Non-routing today (O2 unavailable), but an unauthorised literal can become permanent by inertia.
+  - **OBS-2:** `HistoricalProfileId = "o1-historical"` is also not a signed literal; harmless **only if** it provably never reaches a save, envelope, pref key or filename.
+  I recorded these as questions for adjudication rather than asserting them as defects — but I flagged them because unauthorised literals are exactly how a signed contract quietly drifts.
+- **What the worker honestly did NOT do:** no Unity import, no full-project compilation, no runtime, no actual save/load. Its 310 assertions ran against **stubbed** Unity types, which is **not** Unity compilation and must not be reported as such.
+- **Independent review dispatched:** [#550](https://github.com/jermur788/CCF/issues/550) — Claude A `claude-opus-5-5` effort `medium`, cross-provider from the Sol author, nine adversarial tests with historical-slot default as a BLOCKER-if-defective, plus explicit adjudication of OBS-1/OBS-2.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** Opus verdict → bounded repair only if a real defect exists → Manager source verdict. **I do not close #549 and do not issue an integration verdict.**
+
+
 
 
 
