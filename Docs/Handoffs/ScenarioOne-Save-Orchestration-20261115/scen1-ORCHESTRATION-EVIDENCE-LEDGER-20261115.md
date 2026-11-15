@@ -184,6 +184,26 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Failure classification:** UNKNOWN/NONE.
 - **Next:** on handoff → independent Opus 5.5 Medium nonauthor review of the *changed policy*; then the consolidated owner decision packet.
 
+### EVENT 008 — 2026-11-15T11:10Z — orchestrator verification of the audit's new historical fixture anchors
+
+- **Evidence class:** **OBSERVED FACT** (orchestrator's own byte hashing of files on disk, independent of the child's report).
+- **Event type:** OTHER (evidence) / CHECKPOINT.
+- **Why it matters:** the G0 audit newly claimed that genuine historical writer-output fixtures exist outside Git. Those files are intended to become the **historical regression anchors** for any future save work, so they cannot be accepted on a child's word.
+- **Result — the three S1C-T05 fixtures confirm exactly:**
+
+  | Fixture | Bytes | sha256 vs manifest | `version` | `standGeometryModel` | year | `scenarioOne.scenarioId` | original source path still present |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | `v20-y5.json` | 1,334,812 | **MATCH** | 20 | 1 | 5 | `scenario-one` | yes |
+  | `v21-y1.json` | 1,986,468 | **MATCH** | 21 | 1 | 1 | `scenario-one` | yes |
+  | `v21-y0-rack.json` | 1,553,452 | **MATCH** | 21 | 1 | 0 | `scenario-one` | yes |
+
+  Base: `/media/jer/Files/CCF/Verification/S1C-T05-Unity-20261029/fixtures/`, manifest hashes reproduced byte-exactly, and each recorded original `forest-save.json` path in the manifest **still exists**. This is strong provenance: genuine earlier writer outputs, not reconstructed files.
+- **A real evidence-hygiene caveat found while checking (recorded because it will bite a future verifier):** the filename `recorded-v22-year3-save.json` exists in **several different evidence roots with different contents**. Three copies match the audit's expected `95e5dd37d7f546d78cb94cda8e5af1641b576c925cc37313ce88aa0a54167b9e` (1,301,407 B), while other same-named copies hash to `63dc8167…`, `c594031c…`, `2d10deb2…`, `3e3a4956…`, `9fb12ba5…` (1,301,407 B and 1,302,235 B variants). **Therefore a fixture may never be identified by filename alone — provenance must be path + sha256 + version.** This directly sharpens ISO-60 and is worth fixing while the spec is still editable.
+- **Consequence for B-06 (now stated precisely):** genuine coverage **does** exist for **v8, v9, v12 (frozen), v19 (harness output), v20, v21, v22**; it does **not** exist for **v1–v7, v10, v11, v13–v18, v23, v24**, and in particular **no genuine v10–v24 file whose nested `scenarioId` is raw-absent** has been located. So B-04 (missing-ID classification) **cannot be closed by evidence in this run** and remains an owner decision with a source-derived recommendation.
+- **Failure classification:** UNKNOWN/NONE.
+- **Next:** unchanged.
+
+
 
 
 
