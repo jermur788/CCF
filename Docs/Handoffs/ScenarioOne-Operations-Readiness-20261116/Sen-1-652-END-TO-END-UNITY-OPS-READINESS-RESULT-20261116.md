@@ -1,3 +1,55 @@
+# #652 cumulative result — BLOCKED deployment; source APPROVED and full self-test GREEN
+
+Updated 2026-11-16 after the Manager continuation. **NOT DEPLOYED.** Same issue, same branch/worktree, same primary worker; no new implementation issue. The first red result below is historical, superseded by these current source/review results. Live/native readiness is still NOT qualified.
+
+## Current disposition and exact unresolved gate
+
+Source runtime **83c17c027e6427ebf0fa42728ac7dd170510c1f8**, reviewed source/receipt **9ee40f1d567df441de8d0c8349b0fd1ae7071ed9**. Full original self-test **90 PASS, exit0 from Files**, and **90 PASS, exit0 from safe ZX20 copy** on the same ten candidate file hashes. Focused security witnesses **10 PASS, exit0**. Separate Anthropic Claude Sonnet5.5 high reviewer [APPROVED the exact source](https://github.com/jermur788/CCF/issues/652#issuecomment-6931560520) but explicitly **BLOCKED deployment pending Manager policy ruling**. [Reviewer identity registration](https://github.com/jermur788/CCF/issues/652#issuecomment-6931549330); actual provider/worker distinct from author despite shared GitHub login. Reviewer independently ran provenance and bounded admission probes, read full logs, and explicitly did not rerun the full suites. This resolves the earlier NEEDS CHANGES source verdict, not the deployment gate.
+
+Exact failing read-only trial: candidate `_ccf.config_read('/media/jer/ZX20/CCF-Ops/lanes.json')` rejects `path escapes ZX20: /media/jer/Files/CCF/Operations/CCF-NonUnity`. The retained live non-Unity lane is on bounded Files CCF. Candidate intentionally restricts default callers to ZX20 while inventory alone opts into bounded Files admission. Live helper admits bounded Files non-Unity by default. Installing the candidate helper would break default callers (`unity-lock`, `packet-lint`, `environment.sh`); retaining the old helper makes the candidate environment/test imports incompatible. Rewriting live lane registrations is forbidden. Reviewer independently confirmed this is a genuine documented admission-policy gate, not another ordinary fixture defect.
+
+**Manager ruling needed within this same #652 workstream:** may default callers admit bounded Files CCF non-Unity lanes, while Unity remains ZX20-only and arbitrary/sibling/symlink escapes remain rejected? Reviewer recommends yes, but that recommendation is NOT accepted policy or implemented source. Do not dispatch a native gate or claim machine-wide lease readiness. If accepted, a bounded shared-helper correction plus explicit default-caller positive/negative tests, proportionate qualification, exact delta review and renewed deployment gates remain necessary. No new implementation issue is requested.
+
+## Resumed admission and physical custody
+
+Read complete [amended binding packet](https://github.com/jermur788/CCF/blob/docs/sen-1-652-end-to-end-ops-readiness-packet-20261116-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261116/Sen-1-652-END-TO-END-UNITY-OPS-READINESS-AND-CONTROLLED-DEPLOYMENT-PACKET-20261116.md), refreshed main prospective reservation and #548/#553/#640/#647/#648/#652. Registry showed only this active worker; both configured Git stores had no competing target-branch checkout. Existing clean isolated worktree and remote/local starting HEAD723767de rechecked. Actual author remains OpenAI gpt-6.1-sol medium / configured Codex provider / Codex via T3 Code, jer-laptop. [Resumed pre-edit RUNNING](https://github.com/jermur788/CCF/issues/652#issuecomment-6931262852). Known dirty anchor files preserved.
+
+As expressly authorised by continuation, amended **only the existing #652 row** to add environment.sh to the exact ceiling. Actual board-directory exclusive nonblocking flock, second-descriptor contention rejection, exact recovery bytes, original unchanged packet-lint PASS32 before/after, atomic compare-before-replace and independent byte readback. Normal lock release in finally. No second row or unrelated row edit. Before board `c9eb74c397691d07d5527a2d66ca86811e05cd54c39a2aaff19b581ffbcfa057`; after **4138a62787d9546e425d632480c6f4030a2dd8cf52a4c020ca7636a86fc8bf29**. Final full live hash-set comparison confirms this one-row amendment is the only live-file change. lanes.json, scripts, deployment.json, ledger and lease state remain byte-identical. Original packet-lint final PASS32. Prospective row remains READY/RESERVED ONLY, not a false RUNNING claim; final source worker is handed off. Physical custodian/Manager must reconcile that reservation before future mutation.
+
+## Source corrections and complete verification
+
+Cumulative source delta since #548 parent343ae990: tests/self-test.py, README.md, environment.sh, candidate deployment.json and this SAME named result only. No production `_ccf.py`, lane-status, packet-lint or unity-lock changes. The four earlier test findings are repaired: actual state-writing CLI rejects out-of-bounds config before guard creation, paired with a valid-config positive control reaching guard; bounded Files fixture is an actual separate registered worktree regardless of source location; root/sibling/parent/symlink/ZX20-sibling negatives; explicit blocked Files writable preflight. Additional source controls cover wrong/missing UUID, fstype, device pin, mount root, foreign Git store and mismatched task/lease release.
+
+Source environment now retains scratch on ZX20 and checks existing bounded Files CCF Verification/Builds outputs; compares inspected already-live migration semantics and strengthens resolved durable-root admission. UUID/fstype/mount/capacity checks unchanged. No retired output directory created. README reconciles storage facts and admission semantics. Provenance candidate identifies ten exact semantic/config/document file hashes at83c17c02 without claiming installation. The final report/metadata-only commit corrects the stale note about Git/live receipt equality; runtime and all ten reviewed candidate hashes stay unchanged.
+
+Final commands, both exit0:
+
+```bash
+cd /media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116
+python3 -B CCF-Ops/tests/self-test.py
+python3 -B /media/jer/ZX20/CCF-Temp/ops652-final-source/tests/self-test.py
+python3 -B /media/jer/Files/CCF/Verification/ScenarioOne652Resume-20261116/focused.py
+python3 -B CCF-Ops/scripts/verify-deployment --root /media/jer/ZX20/CCF-Ops --manifest CCF-Ops/deployment.json --candidate-root CCF-Ops
+```
+
+Both original FULL90-check runs include previously unreached dual-store collision, duplicate lane/branch, ownership, stale/malformed record, audited force release, concurrent acquisition (exactly one winner), isolated lock release and complete pilot/ledger closure. No skip/silence/rebaseline. Initial resumed full87-check run passed before adding three extra foreign-store/task/lease witnesses; final source was then committed and both final90-check runs executed. Focused10 includes real mounted identity positive plus explicitly simulated missing/duplicate visible UUID, wrong mount source/target/fstype/UUID and prohibited capacity inflation. Simulation labels distinguish these from actual-device checks. Source-versus-live immutable audit **PASS28 source hashes,7 pinned overrides,1 config projection,5 reasoned live-state entries**; candidate **PASS10 hashes**. Reviewer independently rehashed copy10/10.
+
+The ZX20 copied test has no `.git`, so its emitted `source_head=dfe445e5...` is the historical receipt fallback, NOT runtime provenance. Exact copy byte hashes and source candidate receipt prove83c17c02 runtime; this mismatch is explicitly disclosed rather than misrepresented. Prior failing runs remain historical evidence in the earlier result and issue comments.
+
+## Deployment inventory, recovery and limitations
+
+[Published full passing logs, focused output and migration plan](https://github.com/jermur788/CCF/issues/652#issuecomment-6931450891). Durable root `/media/jer/Files/CCF/Verification/ScenarioOne652Resume-20261116`: full-files-final.log, full-zx20-final.log, focused.py/log, zx20-copy.json, live-before.json/live-final.json, physical-proof.json/physical.diff, board-recovery.md, migration-inventory.json (all50 live files), deployment-plan.md, issue/review snapshots and copied pilot/result receipts. Earlier cumulative evidence remains in ScenarioOne652Readiness-20261116.
+
+No deployment passed gate(f); no install attempted, no live script backup/rollback needed. Complete hash inventory classifies identical files, immutable overrides and protected state/config. Candidate helper/environment/tests/docs projection is incompatible until admission ruling. Prospective rollback plan requires timestamped verified Files backup of all live bytes, exclusive board-directory flock, compare-before-write for each reviewed file, atomic replace/fsync, installed-only provenance, original validator/status/identity and protected-state equality; on failure restore exact backup only if installed bytes still match expected new bytes and exclusivity remains. No blanket recopy/lanes/board/lease overwrite. Reviewer considers recipe reasonable but requests scratch-copy dry run before any future install; it has NOT been exercised. Fresh no-Editor/lease deployment gate not reached and must be repeated, never inferred from source tests.
+
+Reviewer nonblocking findings: own durable `escape -> /` fixture links from three runs were removed exactly and recorded in fixture-symlink-cleanup.json; future test still creates such a disposable negative fixture. Stale receipt equality note corrected; this cumulative report replaces old RED current status. Default-caller Files config witness remains explicitly absent from the passing suite and is the exposed policy gate, not a claimed tested capability.
+
+Final readback: original32-row validator PASS, live provenance unchanged, all protected anchor hashes match the historical section. No Unity Editor/import/runtime, production game source, saves/Prefs, native Player, main merge, Windows build or frozen reference change. No production Unity lease acquired/forced/released. #548 remains open. Dashboard audit/ingestion/published dashboard/Drive **NOT VERIFIED**, outstanding authorised-custodian follow-up. No generated dashboard file edited. Source verified/reviewed; physical deployment BLOCKED; native Unity unverified.
+
+---
+
+# Historical first result (superseded source status; retained cumulative evidence)
+
 # #652 End-to-end Unity Operations Readiness — NEEDS CHANGES
 
 2026-11-16. **NOT DEPLOYED. Full original self-test is RED.** Returned to Overall Manager #640 at the mandatory outside-ceiling defect and independent review gates. No native Unity readiness claimed.

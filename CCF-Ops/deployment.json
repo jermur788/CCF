@@ -117,7 +117,7 @@
     "hash_scope": "Ten candidate semantic/config/document files at named source commit. Live receipt remains historical observed deployment; no live install implied."
   },
   "notes": [
-    "This receipt is identical in Git and live, describes existing live bytes separately from candidate bytes, and does not claim the candidate was deployed.",
+    "The historical observed live baseline is retained in source_hashes/deployed_overrides; candidate metadata is updated only in Git. Git and live receipts now intentionally differ; candidate is NOT DEPLOYED.",
     "source_head/deployed_at retain the historical deployment baseline; observed overrides have no falsely attributed source commit or deployment date.",
     "No source mismatch was excluded as operational state: all immutable live overrides retain enforced SHA-256 comparisons.",
     "Legacy mutable_paths and immutable_deployed_hashes were replaced by non-overlapping source_hashes, deployed_overrides, configuration_hashes and reasoned live_state.",
