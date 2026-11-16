@@ -753,6 +753,26 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Cost:** one dispatch, zero work loss, zero rework. **Retries:** 1 provider switch.
 - **Standing lesson recorded for the rest of this run and for the final handoff:** only a provider refusal proves unavailability, and only a completed run proves availability. Neither dispatch acceptance nor elapsed time is evidence of quota.
 
+### EVENT 045 — 2026-11-16T01:52Z — T-03A handed off at `09ade4c4`, scope verified; author self-reported PARTIAL verification; reviewer dispatched with an explicit duty to FINISH the mutants and the typecheck
+
+- **Evidence class:** OBSERVED FACT (my own diff/scope/availability checks; author's verbatim admissions) + ORCHESTRATOR CLAIM (review dispatch design).
+- **Delivered:** head **`09ade4c4`**, source `b730459a`, in sync `0/0`. **Exactly the five allowlisted C# files + one result doc, 330 insertions.** My own scope verification passed: **no new source file, no `.meta`, no protected anchor touched**, and **Compact and Scenario Two still `false`** in the registry. Receipts on [#570](https://github.com/jermur788/CCF/issues/570) `[RUNNING]` before editing and `[HANDED-OFF]` after.
+- **The author was told to run mutations synchronously and did not** — it ended **two** turns waiting on a background runner while 126 insertions sat uncommitted. I steered it a third time with an explicit "kill the watcher, run the harness once in the foreground, commit and push FIRST, label mutation coverage PARTIAL" instruction. That produced the handoff. **The lesson for the run: stall risk is a real delivery risk on this work and needs a committed-work-first instruction up front, not only at the end.**
+- **Outcome, honestly split between implemented and stopped at the seam:**
+  - **Selection before creation:** implemented for `ScenarioOneManager.Awake` (profile sealed + available + scenario match, before any world change); **stopped** for `ForestStartingStand.Awake` and `ForestEcologyController.Awake` — outside the allowlist.
+  - **Staged apply:** implemented as a **fail-safe** — a part-way load is refused and never reported as loaded, and **saving is disabled until a whole save loads or a new forest starts**, so the previous save file stays byte-identical. **Stopped** for true off-scene staging, with an explicit refusal to attempt an undo because Unity only finishes destroying objects at frame end and an in-frame undo could not be shown to work — **that is the right call, not a shortcut.**
+  - **Reference preview/return:** partly; existing guard and retry verified, part-way failure contained by the fail-safe. Two gaps stopped at the seam: failed return does not update feedback text; failed entry drops the return snapshot.
+  - **Geometry `2`:** implemented in the validator — refused for every profile with no signed manifest, `StandGeometryModel.IsKnown` unchanged.
+  - **Preference namespaces:** seam implemented (lookup plus key-ownership check); switching existing views stopped at the seam.
+  - **No spec gap found**; every stop attributed to the allowlist or to Unity lifecycle.
+- **A genuine player-visible improvement worth naming:** before this, a half-loaded world could be **saved over the good file**. Now a part-way failure is refused and saving is off until a complete load or a new forest. That is a real safety gain even though nothing was Unity-tested.
+- **Verification, and its limits — kept exactly where the author put them:** offline harness **748 pass / 0 fail** (original 460 unchanged + 288 new), ordering proof **18 pass / 0 fail**, `git diff --check` clean. **Mutation PARTIAL: 3 of 16 (T1–T3 killed), T4–T16 NOT run. Unity-assembly typecheck NOT run.** Both scripts were left ready for the reviewer. **No Unity, no Editor, no Player, no real save or preference was touched, and no ISO item is claimed.**
+- **Review dispatched with the unfinished work assigned to it:** [#571](https://github.com/jermur788/CCF/issues/571), Sonnet 5.5 high, with an explicit duty to **run T4–T16** and **run the typecheck in both define sets**, and a hard instruction to judge whether the **fail-safe can strand a player unable to save**, whether a preview round-trip can wrongly re-enable saving, and whether each seam stop is **legitimate (allowlist/lifecycle) or simply running out of scope** — because those are different facts and the record must distinguish them.
+- **Independence:** author Opus 5.5, reviewer Sonnet 5.5 — same-provider again, stated in the issue before any verdict. Cross-provider debt grows; both OpenAI pools remain down.
+- **T-03B is NOT authorised by me.** The stopped-at-seam items need files outside this allowlist, so they must go to #424 as a **request with an exact file list**, not be absorbed into this stage by reinterpretation.
+- **Failure classification:** UNKNOWN/NONE; one process defect (background-wait stall, resolved by steering).
+
+
 
 ### EVENT 042 — 2026-11-16T00:55Z — Compact decisions card delivered (10 identifiers, not 8); a canonical D-082 number COLLISION found; and an owner re-scope on #425 that I must state rather than quietly ignore
 
