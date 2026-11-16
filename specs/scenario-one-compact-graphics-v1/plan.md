@@ -6,6 +6,10 @@
 - **Authority:** subordinate to `spec.md`, direct user direction, Project Decision Log/Milestone, signed three-profile save contract and active world/planting specs.
 - **Evidence sources:** [#577 Opus first-party inventory and scratch look-dev](https://github.com/jermur788/CCF/blob/docs/sen-1-compact-asset-lookdev-opus55-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-OPUS55-COMPACT-ASSET-PREPRODUCTION-RESULT-20261116.md), [#583 source-only Route A/G1 clearance](https://github.com/jermur788/CCF/blob/docs/sen-1-583-compact-path-g1-clearance-20261116-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-583-ROUTE-A-G1-PATH-CLEARANCE-AND-MANIFEST-BOUNDARY-RESULT-20261116.md), [#573 independent E80 graphics finding list](https://github.com/jermur788/CCF/blob/review/sen-1-ground-graphics-spec-independent-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-G01-G02-INDEPENDENT-GRAPHICS-SPEC-AND-REFERENCE-REVIEW-20261116.md), [#584 independent compact-doc correction PASS](https://github.com/jermur788/CCF/blob/b2bcb3974650bae429ddd47ccf6bc8c41d560537/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-580-INDEPENDENT-CHANGED-LINES-RECHECK-RESULT-20261116.md).
 
+## #657 — D-084 graphics plan delta (DRAFT)
+
+**Phase 0** no longer waits for an owner shelter/route choice. **D-084 Geometry A** keeps the original four G1 sites and sets the Compact failed-guard footprint target at **r ≤ 0.10 m**, a 1.2 m walking core and a ≤ 0.20 m visual-only verge. **GQ-07** (scene/plank architecture) and **D-032** still block production. In **Phase 4**, the shelter prototype must show a damaged failed state inside the r ≤ 0.10 m envelope and keep the juvenile visible. It must be measured natively for all states at 720p and 1080p.
+
 ## Architecture / current-state source findings
 
 | Domain | Source-observed or worker-graded evidence | Implication / caution |

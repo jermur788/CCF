@@ -7,6 +7,17 @@
 - **Date:** 2026-11-16
 - **Evidence policy:** A checked item requires exact source branch, world/content version, native logs/captures and/or signed owner decision. A passed #577 Blender scratch render, #583 source calculation, #573 E80 source review or #584 document review cannot check a Compact Unity requirement.
 
+## #657 — D-084 reading of existing graphics entries (no new entries; 66 remain unchecked)
+
+| Existing entry | Binding D-084 reading |
+| --- | --- |
+| FR-04, FR-05, AC-02 | 1.2 m walking-core **target** and ≤ 0.20 m **visual-only** verge are owner intent (Geometry A); still need a signed spline/mesh/collider and native walk. |
+| FR-06 | Owner selected Geometry A (original four sites kept). FR-06 STOP now applies only to **new** native conflicts, not to the former A/B choice. |
+| FR-15, NEG-02, AC-06 | Compact failed guard = honestly damaged representation within an **r ≤ 0.10 m** full visual/physical/stake footprint, distinguishable beyond colour; the current 28° / +0.25 m pose stays a known source FAIL until the Compact representation is measured natively. Browsing/protection semantics unchanged. |
+| SA-02 | D-083 and D-084 are **published** on `main`; this entry still needs its own evidence review before any check. |
+| FR-09, G573-M2 | **Not decided by D-084** — GQ-07 scene/plank architecture remains open. |
+| FR-18, AC-07 | D-032 remains OPEN. |
+
 ## Functional requirements — all unverified
 
 - [ ] **FR-01:** Graphics bind only to signed/authorised Compact world/H1/route/G1/profile version; no independent source-tree placement, lost manifest or extra saved identity. — evidence:

@@ -8,6 +8,10 @@
 
 These are proposed separate tasks, not dispatches. Every source/Unity/art implementation item (T-02 through T-09) MUST require **`spec.md` status APPROVED by #424 after owner and independent review gates**, a real [RUNNING] GitHub task claim, exclusive allowed files and local worktree, and a machine-wide Unity lease where relevant. `#577` first-party asset report and `#583` geometry calculations are inputs, **not implementation permissions**.
 
+## #657 — D-084 graphics task delta (DRAFT)
+
+Every dependency that reads "**GQ-02 failed-guard path envelope accepted**" or "owner GQ-02 accepted shelter/failed-state envelope" is now read as follows. **Owner intent is accepted by D-084 Geometry A:** an honestly damaged failed state within r ≤ 0.10 m at the original four sites. **What remains** is the implemented mesh/stake bounds, their native measurement, and owner visual acceptance of the look. GQ-07, D-032 and SPEC APPROVED remain blocking. No task is released by this text.
+
 ## T-01 — Owner appearance/policy and four-file graphics spec review
 
 - **Task ID:** T-01
