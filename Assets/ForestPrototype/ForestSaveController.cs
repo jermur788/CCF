@@ -60,6 +60,16 @@ public sealed class ForestSaveController : MonoBehaviour
                 ?? ForestSaveValidation.ValidateObjectiveHistoryJson(json, data)
                 ?? ForestSaveValidation.ValidatePrescriptionsJson(json, data);
             if (problem != null) return false;
+            // Second, typed check of the raw historical foreign-ID preflight, in case that streaming
+            // reader stopped early on JSON the save parser still accepts. Only a nonempty, explicitly
+            // different v10+ scenario ID refuses; absent/null/empty IDs and v1-v9 saves are unchanged.
+            if (ReferenceEquals(context.SelectedProfile, ForestSaveProfiles.Historical) && data != null
+                && data.version >= 10 && data.scenarioOne != null && !string.IsNullOrEmpty(data.scenarioOne.scenarioId)
+                && !string.Equals(data.scenarioOne.scenarioId, context.SelectedProfile.ChapterId, System.StringComparison.Ordinal))
+            {
+                problem = "the save explicitly belongs to a different scenario";
+                return false;
+            }
             admission = new AdmittedSave(json, context);
             return true;
         }
@@ -92,11 +102,17 @@ public sealed class ForestSaveController : MonoBehaviour
         }
 
         internal bool Apply(ForestSaveController controller, bool showMessage, System.Action onAdmitted = null)
+            => Apply(controller, showMessage, onAdmitted, out _);
+
+        // refusal is the exact player-readable message for a refusal, so callers can show it unchanged.
+        internal bool Apply(ForestSaveController controller, bool showMessage, System.Action onAdmitted, out string refusal)
         {
+            refusal = null;
             if (!TryPrepare(out ForestSaveData data, out string problem))
             {
                 Debug.LogWarning("Save rejected before loading: " + problem);
-                if (showMessage) controller.SetMessage("Save not loaded: " + problem + ".");
+                refusal = "Save not loaded: " + problem + ".";
+                if (showMessage) controller.SetMessage(refusal);
                 return false;
             }
             // The caller may now release paused input/UI. Apply uses this exact admitted snapshot;
@@ -146,12 +162,17 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Save() => TrySave(null);
 
+    internal bool TrySave(System.Action onAdmitted) => TrySave(onAdmitted, out _);
+
     // Menu teardown is permitted only after context, pure capture and semantic admission succeed.
-    internal bool TrySave(System.Action onAdmitted)
+    // On failure, refusal is the same message shown on the HUD, for a menu that has this controller disabled.
+    internal bool TrySave(System.Action onAdmitted, out string refusal)
     {
+        refusal = null;
         if (!CanOperateOnSelectedWorld(out string problem))
         {
-            SetMessage("Save refused: " + problem);
+            refusal = "Save refused: " + problem;
+            SetMessage(refusal);
             return false;
         }
         ForestSaveData data = CaptureData();
@@ -159,7 +180,8 @@ public sealed class ForestSaveController : MonoBehaviour
         if (!AdmittedSave.TryCreate(json, out AdmittedSave admission, out problem)
             || !admission.TryPrepare(out _, out problem))
         {
-            SetMessage("Save refused: " + problem);
+            refusal = "Save refused: " + problem;
+            SetMessage(refusal);
             return false;
         }
         onAdmitted?.Invoke();
@@ -170,7 +192,8 @@ public sealed class ForestSaveController : MonoBehaviour
         catch (System.Exception error) when (error is IOException || error is System.UnauthorizedAccessException)
         {
             Debug.LogError($"Saving to {SavePath} failed: {error}");
-            SetMessage("Save failed: the file could not be written. Your previous save is unchanged.");
+            refusal = "Save failed: the file could not be written. Your previous save is unchanged.";
+            SetMessage(refusal);
             return false;
         }
         SetMessage($"Game saved (v{ForestSaveData.CurrentVersion}): wood {data.wood}, trees {data.trees.Count}, objects {data.buildables.Count}, storages {data.storages.Count}, cells {data.cells.Count}");
@@ -381,8 +404,9 @@ public sealed class ForestSaveController : MonoBehaviour
     internal bool TryLoad(System.Action onAdmitted, out string problem)
     {
         if (!TryPrepareDiskLoad(out AdmittedSave admission, out problem)) return false;
-        if (admission.Apply(this, true, onAdmitted)) return true;
-        problem = "Save not loaded.";
+        if (admission.Apply(this, true, onAdmitted, out problem)) return true;
+        // Keep Apply's specific reason (for example a scene change since the file was read).
+        problem = problem ?? "Save not loaded.";
         return false;
     }
 

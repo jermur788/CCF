@@ -182,7 +182,9 @@ public static partial class ForestSaveValidation
             }
             return null;
         }
-        if (token.Type == JTokenType.Null && !type.IsValueType) return null;
+        // New-format records never accept null for a nested object: the save parser would quietly replace it
+        // with a default record. Scenario Two's explicit-null teaching block is checked by its caller, not here.
+        if (token.Type == JTokenType.Null) return path + " requires an object, not null";
         if (!(token is JObject record)) return path + " requires an object";
         FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
         var names = new HashSet<string>(StringComparer.Ordinal);

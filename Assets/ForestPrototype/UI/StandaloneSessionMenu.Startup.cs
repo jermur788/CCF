@@ -86,6 +86,8 @@ public sealed partial class StandaloneSessionMenu
 
     // The action admits a fresh immutable source before releasing the title/help UI. The later
     // apply consumes those same bytes, even if the file changes after admission.
+    // The file may have changed since the screen offered Continue. A refusal happens before admission,
+    // so nothing has been released or applied: show the reason and disable Continue on this same card.
     public void ContinueSavedForest()
     {
         if (!IsOpen || !startupScreen) return;
@@ -97,8 +99,11 @@ public sealed partial class StandaloneSessionMenu
             Close();
         }, out problem))
         {
-            // Retain this card and its current focus/help state when the action is refused.
-            Debug.LogWarning(problem ?? "Saving is not available in this scene.");
+            if (!IsOpen || !startupScreen) return;
+            continueChecked = true;
+            continueAvailable = false;
+            continueNote = problem ?? "Saving is not available in this scene.";
+            StartupCard();
             return;
         }
         Debug.Log("CCF_STARTUP_CONTINUE");

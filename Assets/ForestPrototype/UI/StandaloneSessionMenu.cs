@@ -120,7 +120,13 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
         ActionButton("Continue current forest [F10]", Close, "btn-primary");
-        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { saves?.TryLoad(Close, out _); });
+        // A refused load happens before admission: keep this menu open and show the reason in the session note.
+        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () =>
+        {
+            if (saves == null || saves.TryLoad(Close, out string problem) || !IsOpen) return;
+            sessionNote = problem;
+            MainCard();
+        });
         ActionButton("Save current forest and return…", () => {
             if (File.Exists(SavePath)) Confirm("Replace your existing forest save with the current forest? Use saves only with this build.", SaveAndClose);
             else SaveAndClose();
@@ -142,7 +148,17 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         card.Clear(); Text(identity.buildId); Text(prompt);
         ActionButton("Confirm", action, "btn-primary"); ActionButton("Cancel", MainCard);
     }
-    public void SaveAndClose() { saves?.TrySave(Close); }
+    // A refused save happens before admission and before any file write, so the menu stays on its current
+    // card. The save controller is disabled while this menu is open and its HUD message is hidden, so the
+    // reason is added to this card instead (once, however many times Confirm is pressed).
+    public void SaveAndClose()
+    {
+        if (saves == null || saves.TrySave(Close, out string problem) || !IsOpen) return;
+        sessionNote = problem;
+        foreach (VisualElement shown in card.Children())
+            if (shown is Label label && label.text == problem) return;
+        Text(problem);
+    }
     public void Restart()
     {
         Close(); SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
