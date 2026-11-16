@@ -1,0 +1,123 @@
+# Sen-1 — Compact30 Woodland Graphics, Footpath and Planting Presentation V1
+
+- **Spec ID:** SPEC-SEN1-COMPACT-GRAPHICS-V1
+- **Status:** **DRAFT — NOT APPROVED / NO PRODUCTION, ASSET OR UNITY AUTHORITY**
+- **Owner:** Scenario One Implementation Manager #424 (product and technical approval coordinated with the direct owner and project canonical authority as needed)
+- **Created / last updated:** 2026-11-16
+- **Decision Log references:** D-020 (honest ecological presentation), D-032 (**OPEN** binary storage/provenance), D-045 (historical accepted track look), D-059/D-060 (three-species complete-loop demo), D-064/D-065/D-071/D-072 (historical Enlarged80 rack and Stand Map support), proposed **D-083** (compact-first-beta exception; **NOT PUBLISHED TO MAIN**). **D-082 is a separate Sitka growth experiment, not this decision.**
+- **Milestone:** Scenario One complete-loop three-species demo readiness; the owner's latest direct decision selects Compact30 for the next personal Editor test and first invited beta.
+- **Related specs:** [Compact Complete Loop V1 DRAFT](https://github.com/jermur788/CCF/blob/docs/sen-1-580-compact-draft-six-findings-repair-20261116-v1/specs/scenario-one-compact-complete-loop-v1/spec.md); [Compact Initial Planting V1 DRAFT](https://github.com/jermur788/CCF/blob/docs/sen-1-580-compact-draft-six-findings-repair-20261116-v1/specs/scenario-one-compact-initial-planting-v1/spec.md); [signed three-profile save contract](https://github.com/jermur788/CCF/blob/200add4e6e5116268b79ef63131ff9b836f14c5d/specs/scenario-independent-save-isolation-v1/spec.md).
+- **Supersedes:** Nothing. The historical **Enlarged80-only** `scenario-one-ground-graphics-parity-v1` four-file DRAFT stays historical and unapproved; it is **not** the Compact30 graphics implementation contract. This spec is the new compact-only complement, not a replacement for parent/child forestry rules.
+
+## Product intent
+
+Present the new 30 × 30 m Scenario One as a credible **Irish Sitka spruce woodland that the player can actually walk and manage**. The site starts all-Sitka, has a visibly pre-existing ~12 × 10 m entrance/parking and occasional closed-yard collection apron (H1), a single winding **pedestrian** footpath with **no internal extraction rack**, and one early **player-led group of 2 sessile Oak + 2 European Beech**. The player must recognise the path, assess the existing stand, find the planted broadleaves and read browsing/protection and management outcomes over actual years. The graphics must not invent harvest, simulated recruitment, ecology or access features. Complete-loop gameplay and education belong to the separate parent/child specs.
+
+**Direct owner ratified design baseline:** [16 Nov owner decision](https://github.com/jermur788/CCF/blob/docs/sen-1-owner-30m-baseline-ratification-20261116-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-OWNER-RATIFIED-30M-NO-RACK-BETA-DESIGN-BASELINE-20261116.md). **Exact geometry/looks/asset use remain unapproved.**
+
+## Problem and evidence
+
+The current `ForestTest` presentation was authored for historical Legacy40/Enlarged80: shared ground/path materials and 52 old plank-path objects, with headland/approach clone dependencies; in-place changes would alter protected old worlds. A source audit found the forest floor and track share a base-colour texture with no normal/roughness channels. Source-only inspection by Claude Opus #577 found reusable tracked first-party Sitka and understorey, but no reproducible compact footpath/apron, and reported 2 m Oak/Beech sapling art uniformly scaled to a 0.6 m planted juvenile, with the current 1.2 m shelter largely hiding it. Local Ultimate Nature prefab copies appear partial and gitignored. Opus created illustrative Blender **scratch** comparisons, not native Unity captures.
+
+[Independent #573 graphics review](https://github.com/jermur788/CCF/blob/review/sen-1-ground-graphics-spec-independent-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-G01-G02-INDEPENDENT-GRAPHICS-SPEC-AND-REFERENCE-REVIEW-20261116.md) identified seven major source/spec pitfalls. [#577 asset preproduction](https://github.com/jermur788/CCF/blob/docs/sen-1-compact-asset-lookdev-opus55-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-OPUS55-COMPACT-ASSET-PREPRODUCTION-RESULT-20261116.md) was **APPROVED AS PREPRODUCTION INPUT ONLY** by #424. [#583 exact Route A/G1 source geometry](https://github.com/jermur788/CCF/blob/docs/sen-1-583-compact-path-g1-clearance-20261116-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-583-ROUTE-A-G1-PATH-CLEARANCE-AND-MANIFEST-BOUNDARY-RESULT-20261116.md) was **APPROVED AS SOURCE DESIGN-CALIBRATION INPUT ONLY**. Neither approval qualifies a scene or authorises production.
+
+## Goals
+
+1. A legible and believable entrance → winding walking route → G1 planting view, photographed at actual player eye height.
+2. Distinct, coherent low-cost compact-only soil/needle litter, worn path, clearing transition, modest groundcover and shelter/transplant visuals, using already tracked first-party assets where appropriate.
+3. Visually honest Site and forestry state: no player-felled H1 stumps, imaginary mature Oak/Beech, fake recruitment, tree/mark movement or coverage changes.
+4. Protected Legacy40, Enlarged80 Rack V2/MFM, old v1–v24 saves, and frozen Reference Future v1 with zero accidental shared-material/render/gameplay regressions.
+5. Explicit, bounded native acceptance with evidence from the **new Compact world**, not historical E80 frames or scratch renders.
+
+## Non-goals
+
+- No new forestry, growth, planting, Work Plan, Browse, ecology, regeneration, save schema or economy behaviour.
+- No internal rack, road or driveable extraction track; no vehicle-driving/turning/road engineering tutorial. Collection truck is only occasional staged visitor-free context.
+- No changes to historical five-rack topology or Stand Map data; no recycling the 52 E80 source planks as the new compact footpath.
+- No guaranteed survival/recruitment or planting extension to 4+4/G2, and no authorisation to invent new off-boundary biological seed donors.
+- No unconditional post-processing/sky/fog/camera change, new downloadable asset pack dependency, broad environmental scenery pack or Windows build.
+- No binary asset storage budget or licence policy established by this draft.
+
+## User/player workflow
+
+**A. Arrival (normal visitor mode):** user spawns in the existing H1 site with no fresh simulated felling or harvest piles. The apron looks like small, reasonably irregular established woodland access, not a huge paved car park; the footpath mouth is unmistakable from human eye level. Visitor cars may appear as separately scoped staging. A timber collection vignette may only show the apron **closed to visitors** and must not imply a truck drives down the footpath.
+
+**B. Walk & assess:** player can follow the single narrow footpath from H1 to first bend, interior and planting area without invisible collision traps. Groundcover can fill shaded cells and edges in source-consistent, non-grid patterns but stays visually off the physically walkable surface. Forestry marks and tree-state UI remain distinguishable from floor colours at both requested resolutions.
+
+**C. Plant & return:** after true stock and approved Work Plan planting, 2 Oak and 2 Beech at exactly the approved source-owning site positions are physically legible to the player. Species-differentiated transplant art represents genuine small nursery plants, not merely 2 m tree art shrunken uniformly; protection is visibly readable without permanently concealing the young plant. Earlier/later care and stand change remain honest. Visual versions do not decide biology or protect against browsing without actual orders/state.
+
+## Proposed functional requirements
+
+- **FR-01 (content-bound visual layer):** Compact-only presentation MUST bind to a signed Compact world/profile and source-authored H1, Route A, G1 and version; until exact manifest is signed this is **design-only**. Graphics MUST NOT generate its own tree omissions, planting positions, Stand Map geometry or save IDs.
+- **FR-02 (source census):** Beginning forest MUST depict the source-authorised initially all-Sitka stand. The research input **189 original Sitka**, **14 H1 preworld omissions**, and **175 conditional remainder** are NOT a guaranteed produced scene count. No fresh stumps or income from those omissions without separately accepted history. All 8 H1 buffer survivors stay.
+- **FR-03 (path classification):** Exactly one winding **pedestrian-only** Compact footpath MUST be distinguishable from E80 extraction track/rack. No internal rack or drivable timber extraction route.
+- **FR-04 (draft path geometry):** First native candidate SHOULD use #583's **1.2 m symmetric physical walking core** on the source 8-waypoint Route A, not a default 1.8/2.4 m core with unchanged G1. This is **Manager-recommended source geometry ONLY** pending exact signed spline/mesh/collider/path footprint and native walking. Preserve all four proposed G1 source coordinates and count for first tests.
+- **FR-05 (different footprints):** The actual walked/collidable core, rendered path ribbon, faded disturbed fringe and **display-only vegetation exclusion** MUST be documented as separate footprints. Near the G1 sites, a candidate **at most 0.20 m outward soft visual fringe** is an **illustrative sensitivity bound only**, not a hidden 1.6 m collision/gameplay road. Actual shelters/stakes/fallen-state sweeps, adverse spline shifts and path/player reach MUST be measured before manifest sign-off. At source +0.10 m shelter radius and +0.20 m visual fringe, nearest B2 headroom is **0.121 m**; adverse 0.10 m spline shift leaves **0.021 m**.
+- **FR-06 (fallback):** If actual path clearance/turning/visual inspection fails, worker MUST STOP and present a source-screened local bend, narrower edge or new explicit G1 positions with original-tree/0.7 m and planted/0.5 m guards, **not** silently move planted coordinates, remove extra Sitka, hide a shelter intersection or change the 2+2 owner count.
+- **FR-07 (surfaces):** H1, footpath and Sitka needle-litter floor MUST have independently readable materials, coherent UV/texel scale, sensible albedo/roughness and soft (not perfect disk/rectangle) transitions. Material choices MUST support visible forestry marks/HUD and adequate grayscale path contrast from H1 and at a bend.
+- **FR-08 (material isolation):** Compact MUST use separate material assets/instances, never modify `Forest Ground.mat`, `Forest Path.mat` or the shared `ScenarioOneFloorPresentationSetup` Editor menu outputs. No global URP profile, Quality settings, fog/sky/camera alteration without a separately approved explicit scope and state restoration/legacy evidence.
+- **FR-09 (historic rendering):** Compact path MUST use new Compact-only geometry/renderer (or separately approved equivalent) and MUST NOT disable, deactivate, destroy, rematerial or move the 52 original `Dirt Path` GameObjects, `Dirt Path X###`, `Approach Track ###`, cutting/headland/feeder or their renderer/template dependencies. Historical Legacy40, E80 pre-approach, E80 with approach, and Rack V2 on/off states remain valid.
+- **FR-10 (display mask):** H1/path groundcover exclusions MUST affect only the **render/display instance pipeline** after the authoritative `ScenarioHabitatVisuals.VegetationSites` generation. They MUST NOT change `VegetationSites` output, `ScenarioOneClearance` targets, `ClearancePreview` markers/counts, `VegetationClearance` summary, ecological cover, cell light, site state, tree positions or planting eligibility.
+- **FR-11 (blocked visual sites):** Where no honest alternate display site exists in the **same ecology cell**, visual decoration MAY be suppressed with the original ecological count unchanged; the system MUST record/report suppressed instances, distinguish visual census from ecology/clearance census, and never invent cover or move plants across cells just to preserve instance count. Fully masked cells are permitted and must be tested.
+- **FR-12 (reuse and provenance):** Reuse tracked, documented original Sitka/understorey/moss/deadwood families before new modeling. Do not rely on locally present **gitignored/partial Ultimate Nature** or unverified `ForestFloorV1` external candidates for reproducibility. Declare exact asset/source/licence before adoption.
+- **FR-13 (new P0 kit):** A compact H1 apron/path mouth, one Compact-only footpath, one compact-only forest-floor material, real-scale Oak and Beech small transplant variants, and a visible protective guard/shelter are the **P0 design families**. Any model/texture count, LOD and byte budget shown in #577 is **proposed**, not preapproved.
+- **FR-14 (transplant fidelity):** New planted Oak and Beech art MUST be recognizable at actual small juvenile height (source current nominal 0.6 m) without scaling leaf and branch anatomy from 2 m uniformly; the underlying species identity, juvenile height, growth or protection state MUST NOT be changed by a visual fix. Source-quality nursery morphology must be researched/labelled as such before claiming fidelity.
+- **FR-15 (shelter visibility):** Guard/shelter type, height, transparency/slats, stake and damaged-state visibility remain **owner/protection-spec decisions**. A prototype MUST show the actual juvenile is inspectable and the guard state readable; any art change MUST NOT alter browser/deer protection mechanics or invent collider behaviour. The historical 1.2 m × radius-0.1 m primitive is source comparison, not a signed final guard.
+- **FR-16 (style choice):** W worn mineral-earth path vs N2 needle-litter path is OPEN for owner look selection. Opus scratch grayscale indicators W≈1.13, N v1≈1.00 (failed), N2≈1.07 are **Blender worker-reported** and NOT native acceptance metrics. W is Manager's first **comparison preference only**; no material finalisation without seeing real Compact native views.
+- **FR-17 (sky/edge):** Lighting, fog, tonemapping and exterior fence/field/hedgerow MAY be proposed separately only; no global change or fake outside-tree recruitment. Use a neutral baseline by default for observation, pending owner visual gate and camera feasibility.
+- **FR-18 (asset storage):** **D-032 OPEN** means no new production PNG/FBX/BLEND/textures, Git LFS setup, third-party packs, source licences or budget may be committed/imported under this DRAFT. Production asset work stops for owner/project-wide storage and provenance decision first. Scratch-only previews outside Git are not production-ready binaries or Unity proof.
+- **FR-19 (reproducible native benchmark):** After an APPROVED spec and owned Unity lane, establish fresh Compact Year0 H1, first bend, interior, G1 planted/sheltered and at least one later-year frame. Capture at **1280×720 and 1920×1080**, eye height, HUD on/off as relevant; pin active camera/URP quality tier, pack presence/fallback, world/source identity and light state before/after.
+- **FR-20 (performance and release):** Repeated same-machine warm-up/samples MUST record frame median/p95, load time, memory/texture footprint and LOD/material counts, compared to a **new Compact baseline** with identical settings. Do **not** use historical E80 ≈40 ms as the Compact budget or invent an approved +15% cap. Independent targeted feature qualification, Manager verdict and **owner visual acceptance** are required; no Windows build before personal Compact playtest and separate explicit user authorisation.
+
+## Authority and evidence classification
+
+1. **DIRECT OWNER INTENT:** 30m no-rack stand, initial all-Sitka, H1 arrival, pedestrian path, and *count* 2 Oak+2 Beech, first compact personal/external beta.
+2. **SOURCE-EQUIVALENT research / MANAGER DESIGN-CALIBRATION:** #508 H1 candidate original 189/14, eight Route A coordinates, four G1 positions; #583 raw point-to-line/clearance calculation. This is reproducible geometry, **not** signed native geometry.
+3. **SOURCE INSPECTION / WORKER-REPORTED:** #577 asset inventory, prefab scaling, historical materials and missing third-party assets; #573 graphics cross-system dependencies. #424 has not independently executed Unity/art code or inspected local scratch scene files.
+4. **ILLUSTRATIVE MODEL/BLENDER RENDER:** W/N/N2 grayscale, apron and shelter appearance; source trees were stand-ins. No evidence of actual final forest view.
+5. **UNVERIFIED NEEDS NATIVE:** exact mesh/spline/colliders, planting stock eligibility, Year1+ ecology/browsing, human walkability, first-person readability, save/load and old-world regression, performance/URP fidelity.
+6. **OWNER/POLICY OPEN:** final appearance W/N2, shelter design, H1 stump context, exterior context, sky/fog, D-032 licence/storage policy, final H1/path/G1 content and accepted 1.2m geometry. No unaccepted choices are silently upgraded to accepted gameplay rules.
+
+## Save / backward compatibility
+
+This graphics spec **adds no persisted fields, new save identities, tree positions or changes to approved order semantics**. It renders from the source-authorised Compact world and signed profile/version once available. The signed three-profile contract and ISO-58 stay separate and **BLOCKED for Compact activation**; T-03B/T-04/T-05/63 ISO native checks remain. Material path/roster/shelter geometry changes after first integrated writer require a reviewed **new manifest/content version** and refusal/migration decision, never silent scene swapping behind saves. Historical `forest-save.json`, v1–v24, Enlarged80, Legacy40, MFM and frozen Reference Future v1 remain unchanged. The same authored `ForestTest.unity` scene is shared by historical worlds; visual changes must not leak across profile states.
+
+## Security, licence and write-back
+
+- Production writers MUST inspect active-tasks/physical CCF-Ops lease, own clean branch/worktree and exact file allowlist before first asset, scene, source or Unity edit; never overwrite unrelated dirty Primary work.
+- D-032 storage choice and first-party provenance/license chain must be accepted **before** committing/importing new binary files. Third-party art with unread licences is excluded. Developer/source generated objects require traceable origin/hash and permitted distribution.
+- Runtime must not write to legacy slots, mutate ecological/harvest orders or create phantom fells for a visual effect. Never erase shared assets, reset user state, or alter User/Prefs.
+- Material changes touching shared source assets or global camera/fog require separate approval and before/after isolated world-state proof.
+
+## Acceptance criteria (all unchecked; evidence required)
+
+- **AC-01 World and provenance:** approved/signed exact Compact H1, original tree omission/8 buffer survivors, route, 4 candidate-to-final G1 sites and content version; graphics read authoritative source rather than duplicate geometry. Native census/checks reported.
+- **AC-02 Path/G1:** from H1 through full route, 1.2 m candidate physically walkable/collidable/visible or explicitly revised; no G1 clipping with actual upright/failed shelters, soft fringe, player capsule, real spline smoothing and exact placement. No extra preworld Sitka omissions.
+- **AC-03 Floor/path/H1:** real 720p and 1080p scene from H1 and first bend passes owner look/wayfinding; natural soil/needle scale and clear grayscale read; no false forest-road/rack impression.
+- **AC-04 Ecology/display split:** actual VegetationSites/clearance-target/summary/cell-light/tree/stock before/after counts identical with display mask; any hidden instances reported with fully covered cell negative tests.
+- **AC-05 Protected world rendering:** Legacy40 and E80 pre-approach/approach, Rack V2 off/on and Reference v1 visuals and source anchors unchanged; old `.mat`, menu, plank, clones, scene defaults untouched except separately accepted delta.
+- **AC-06 Planting readability:** exactly the true resulting 2 Oak +2 Beech positions/species and genuine shelter state visible without changing growth/protection; distance/inspect/readability tested at both resolutions.
+- **AC-07 Asset/provenance:** tracked first-party sources classified, new binaries licensed/hashed and storage-approved under D-032; no Ultimate Nature required; no unapproved local-only candidates.
+- **AC-08 Lighting isolation:** camera clear/URP/fog mechanism actually qualified if enabled; legacy before/after controls; otherwise neutral compact baseline no global modifications.
+- **AC-09 Performance:** reproducible new Compact baseline and after figures at both resolutions with quality/LOD/sample count, median/p95/frame/load/texture reporting and approved owner/Manager threshold, no hidden perf waiver.
+- **AC-10 Annual honest views:** initial, planted, no-work, later work and review display authentic tree/groundcover/history state; no fabricated broadleaf recruits/harvest from H1 omissions.
+- **AC-11 Save regression:** true profile-isolated save/load, old v1–v24/Reference and incompatible content-version negative tests under separately approved save spec/Unity lease.
+- **AC-12 Review and release:** nonauthor source/art delta, targeted Tier-2 feature qualification on exact candidate, user visual acceptance; no Windows build without personal Compact playtest and explicit separate authorisation.
+
+## Stop conditions
+
+STOP and return to #424/owner/spec if: path is only source-feasible but not walkable or G1 collides; any extra Sitka omission or hidden moved planting is proposed; display mask alters clearance gameplay; history tree ID/Stand Map/source state changes; a shared material/plank/template, global camera, URP or fog would be altered; D-032/licence unapproved; Ultimate Nature becomes a dependency; Compact profile/save activation assumed; reviewer finds missing canonical authority; a Unity machine lease/write-owner conflict occurs; rendering depends on unqualified external binary; a graphics improvement changes foliage ecology counts; 720p/1080p user-facing access becomes unclear.
+
+## Open product and technical decisions
+
+| ID | Authority | Open decision / required evidence |
+| --- | --- | --- |
+| GQ-01 | Owner | W worn-earth vs N2 needle-litter route, after actual first-person native comparison (W recommended for initial trial only) |
+| GQ-02 | Owner + forestry/protection spec | Shelter style, height, visibility, species morphology and real browsing semantics, not just procedural mesh |
+| GQ-03 | Owner / #425 for policy | D-032 binary tracking/Git LFS/licence/provenance/source archiving and byte limits; explicit first-party redistribution rights |
+| GQ-04 | #424 + owner content sign-off | Exact 1.2 m physical core, visible soft shoulders, spline/guard envelope and four G1 coordinate final binding in the **signed** compact manifest; native proof still required |
+| GQ-05 | Owner | H1 stump/history look, fence/field background/hedgerow and sky/fog scope; neutral/no-fresh-stumps are Manager defaults only |
+| GQ-06 | #424/#425 | Corrected first-beta canonical D-083 publication and approved compact parent/planting specs; OPEN-C1/C5/C7/8 save/teaching/finance separate |
+| GQ-07 | Technical under approved spec | Which renderer/mask/camera implementation preserves ALL old worlds, what native perf budget is acceptable, whether new compact scene/camera is required |
+
+**Do not mark APPROVED from this document alone.** First obtain independent spec review, record owner/policy decisions, sign the manifest and publish an explicit Manager approval. `plan.md` and `tasks.md` are draft implementation decomposition only.
