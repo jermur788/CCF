@@ -12,7 +12,7 @@
 
 ### #604 correction — staged child dependency; DRAFT / no implementation authority
 
-**Before planting:** Parent source owner must resolve **neutral no-world title vs gameplay-bound menu**, single persistent boot host, profile→scene New/Continue/Restart and both `forest-save.json` call sites through signed registry (#544). Current startup creates Enlarged80 before the gameplay-bound title appears. Saved scene address is a derived destination, **not a routing identity**. Use signed identity criteria ISO-07/08/42/44/48/54/55 + ISO-15; **ISO-58 is still the BLOCKED teaching/CG-TRIG gate**.
+**Before planting:** Parent source owner must resolve **neutral no-world title picker **independent of gameplay-bound menu.Open()****, single persistent session-menu host (boot UI distinct), profile→scene New/Continue/**Restart selected validated gameplay profile without title** and both `forest-save.json` call sites through signed registry (#544). Current startup creates Enlarged80 before the gameplay-bound title appears. Saved scene address is a derived destination, **not a routing identity**. Use signed identity criteria ISO-07/08/42/44/48/54/55 + ISO-15; **ISO-58 is still the BLOCKED teaching/CG-TRIG gate**.
 
 **Before finance/teaching:** Current shelter and execution selectors are **batch** settings, not independent per-tree UI controls; decide whether an approved per-tree affordance is necessary. Quote four trees at €20 stock, optionally €20 protection materials, ~€30 contracted planting labour (or 40 owner minutes) as separate costs. Preserve owner count and source FR-06 STOP for path/G1 changes. No native success claim.
 
