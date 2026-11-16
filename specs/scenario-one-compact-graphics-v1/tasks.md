@@ -26,10 +26,10 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 - **Task ID:** T-02
 - **Status:** BLOCKED
 - **Goal:** obtain authoritative 30m H1/Route A/G1 visual-frame data and an owned native baseline.
-- **Scope:** read exact approved world manifest and source tree roster; verify 14 pre-world omissions and 8 H1-buffer survivors; 8 path points, 1.2m trial *physical* core, distinct soft/verge/veg-mask footprints, final 4 G1 sites; actual collider/stakes, player camera, LOD/quality; capture baseline at 720p and 1080p with HUD and source state. This task consumes world generation owned by a separate approved compact feature, not authorises building it.
+- **Scope:** require **GQ-07 resolved first**: a separate Compact scene without the 2.6 m historical planks, or a reviewed profile-gated renderer-only exclusion with all E80/Legacy source/corridor/Stand Map and clone-state protections. Read exact approved world manifest and 14 pre-world omissions/8 H1-buffer survivors, 8 path points, 1.2m *test* core and distinct soft/verge/mask, final four G1 sites and **upright/failed/expired** shelter envelopes. The current failed state crosses O1 by **0.141 m in the proposed 1.2 m core**; record this as a **known source FAIL**, not a possible future issue. Record player camera/LOD/quality and native H1/bend/G1 720p/1080p baseline; world generation belongs to another approved feature.
 - **Exclusions:** new art import, source tree additions/removals, path width approval by this worker, edits to old scenes/materials.
 - **Owner / routing:** dedicated local Unity verifier with actual CCF-Ops lease, selected by #424 after approved world/graphics specs.
-- **Dependencies:** **SPEC APPROVED**, approved parent/child feature world/content + signed manifest, safe save/profile gates, clean exclusive native lane.
+- **Dependencies:** **SPEC APPROVED**, **GQ-07 scene/old-plank choice recorded in parent Compact source spec and accepted**, **GQ-02 failed-guard path envelope accepted** or candidate explicitly marked BLOCKED for qualification, approved parent/child world/content + signed manifest, safe save/profile gates, clean exclusive native lane.
 - **Verification:** native world/source tree ID census, real mesh/collider distances including 0.10m shelter and adverse spline trial, player walk/turn/stop, authentic G1 normal player path and screenshots, full machine/quality/pose/pack state.
 - **Stop conditions:** conflicting scene ownership, no native compact profile, unsigned world, path G1 margin lost, historical save custody unknown.
 - **Completion state:** pinned genuine before screenshots and negative cases, no claim of renderer quality yet.
@@ -52,11 +52,11 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 - **Task ID:** T-04
 - **Status:** BLOCKED
 - **Goal:** display separate natural footpath and existing H1 arrival, while preserving physics and protected old access.
-- **Scope:** create compact-only materials and new path mesh on the **signed** route/width and H1 ground with readable path mouth/edges; document core/ribbon/decorative fringe/collider. Use source-grounded slope/camera and correct path/Stand Map information; no vehicle access on footpath. If W/N2 look still open, provide isolated real comparison and defer final.
+- **Scope:** create Compact-only materials/footpath and H1 on **signed** geometry AFTER GQ-07 old-plank exclusion; verify **no 2.6 m planks visible or gameplay-consumed in Compact** and historical scenes remain original. Document physical core/ribbon/fringe/collider separately. **W scratch has 0.35 m soft edge; must be tapered/re-proportioned to <=0.20 m at G1 for the illustrative path test**, not imported unchanged. Real W/N2 look comparison is only a proposal, not owner acceptance.
 - **Exclusions:** 52 old planks, `Dirt Path X###`, `Approach Track ###`, headland/feeder objects/materials, `Forest Ground.mat`, `Forest Path.mat`, Editor floor setup, code modifying original tree positions or G1.
 - **Owner / routing:** a separate local Unity/graphics integrator, one writer, real exclusive lease.
-- **Dependencies:** **SPEC APPROVED**, T-02 signed geometry, T-03 licensed assets, actual production lock.
-- **Verification:** 720p/1080p H1 bend and complete walk, real collider/shelter margins for all four G1, diff/old-world state matrix, material hash, headland clone/Stand Map tests.
+- **Dependencies:** **SPEC APPROVED**, **GQ-07 path scene architecture/parent spec reconciliation**, **GQ-02 accepted failed guard envelope**, T-02 signed geometry, T-03 licensed assets, actual production lock.
+- **Verification:** 720p/1080p H1 bend and complete walk with **no visible 2.6 m historical plank track**; real core/visual fringe and **upright + failed + expired** guard/stake margins for all G1, including known O1 failed-state interference; scene-profile tests, old E80/Legacy state/clone/Stand Map/corridor regression, material hashes.
 - **Stop conditions:** path overlaps G1 or requires extra Sitka omissions; share asset/code dependency breaks; any negative clearance.
 - **Completion state:** source plus native exact-world evidence handed off, not yet final integrated ACCEPTED.
 
@@ -65,11 +65,11 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 - **Task ID:** T-05
 - **Status:** BLOCKED
 - **Goal:** suppress or safely relocate **render-only** groundcover without changing ecology or spot-clearing gameplay.
-- **Scope:** operate on visual-placement output downstream of `VegetationSites`, only within original ecology cell when feasible; report absent-free-space and suppressed instances, preserve true vegetation intensity, actual cleared plants and source accepted groundcover; use tracked first-party plants with appropriate LOD.
+- **Scope:** operate ONLY downstream of source `VegetationSites`; for each ecology cell and vegetation kind use a declared footprint radius **including rush anchors** and deterministic `Jitter(cell, kind, plant, axis)`-derived site sampling or a separately verified stable mapping, never `UnityEngine.Random`. Track `rendered + suppressed = source-intended visual instance count` even for fully masked cells; keep ecology, previews, clearance targets and authentic understorey unchanged.
 - **Exclusions:** change to `ScenarioHabitatVisuals.VegetationSites`, `ScenarioOneClearance`, `ClearancePreview`, `VegetationClearance` summary/counts, ecology/cell lighting/Work Plan, fake additional plants, cross-cell relocation.
 - **Owner / routing:** C# source visual-layer owner in separate worktree; source reviewer distinct from author.
 - **Dependencies:** **SPEC APPROVED**, T-02 actual H1/path display-only mask, T-04 surface footprint, exclusive source ownership and native lease for integration.
-- **Verification:** actual 6x6 Compact cell census including fully masked cells; same source vegetation-sites/cell state/clearance target IDs/count, spot-clear preview and summary before and after mask, source negative tests and visual occupancy.
+- **Verification:** actual 6×6 Compact per-kind census including rushes and fully masked cells, same `VegetationSites`/ecology light, spot-clear previews and target IDs/count/summary before/after. `ScenarioHabitatPresentationVerification.VerifyYear0GrassSupport` currently assumes visible patches == `GrassPatchCount` (~line 202); use a **Compact-only** visible+suppressed assertion without disabling/weakening original legacy/Reference check. Verify deterministic placement and suppressed ledger are stable after save/reload.
 - **Stop conditions:** shared vegetation function must change for cosmetic effect; no same-cell free site and suppressing UI is misleading.
 - **Completion state:** independent source and targeted Unity proof, count differences explained as **visual-only** and not gameplay.
 
@@ -78,11 +78,11 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 - **Task ID:** T-06
 - **Status:** BLOCKED
 - **Goal:** make early G1 four true planted trees identifiable while preserving actual planting/work/protection state.
-- **Scope:** add two distinct species-appropriate 0.6m-class transplant variants with correct size-of-leaf read at 2–6m; show accepted guard/shelter and state (intact/damaged) while plant remains inspectable; map models by actual species/juvenile IDs and protection state; keep existing later-stage adult/sapling variants.
+- **Scope:** add distinct species-appropriate ~0.6 m-class transplant variants with honest leaf/branch morphology **recognisable close to 2–3 m** without false size inflation; at **4–6 m**, findability depends on an owner-approved small marker/inspection affordance rather than enlarged foliage. Render genuine upright/expired/failed protective states while keeping plant inspectable; the **current failed 28°/+0.25 m shift overlaps O1 1.2 m core** and demands an accepted **bounded/path-aware replacement** or signed geometry revision. Do not alter actual tree size/biology or browser-protection mechanics.
 - **Exclusions:** changing growth height or forest stocking to make art fit, relocating four G1 positions, inventing PlantJuvenile success from pending orders, changing deer browse/protection effect.
 - **Owner / routing:** local Blender art author (T-03), separate gameplay-safe visual integrator; independent review.
-- **Dependencies:** **SPEC APPROVED**, G1 signed source world and real order/stock workflow, owner shelter/protection look and separately accepted height/source evidence, T-03 assets and T-04 path clearance.
-- **Verification:** real Pending vs Completed order negative/positive witness, 2 Oak+2 Beech only after real resolution, actual shelter envelope against path in upright/failed state, source 2–3m and 4–6m native screens, both resolutions, unchanged true heights.
+- **Dependencies:** **SPEC APPROVED**, owner GQ-02 accepted shelter/failed-state envelope and accepted 4–6 m inspection/marker affordance, GQ-07 scene choice and signed G1 world/real Work Plan/stock, species height source evidence, T-03 art and T-04 verified footprint.
+- **Verification:** Pending/Completed order negative/positive witnesses, two Oak+two Beech only after real annual execution, guard **upright/expired/failed** envelope against true core and soft fringe with 0 known overlap, at 2–3 m verify genuine species art distinctions and at 4–6 m verify accepted inspection/marker discoverability at both resolutions; unchanged biological heights.
 - **Stop conditions:** fail G1 margin, art modifies planting mechanics/guards, young foliage invisible behind shelter and no accepted solution.
 - **Completion state:** source and first-person native proof that the species/guard state is findable, not only a Blender render.
 
@@ -136,7 +136,7 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 | T-05 visual ecology mask | BLOCKED | C# visual source | T-02+T-04 and APPROVED spec | **NO** |
 | T-06 juvenile/shelter | BLOCKED | Art + visual integration | T-03/04 and APPROVED spec | **NO** |
 | T-07 optional atmosphere | BLOCKED/OPTIONAL | Unity graphics | Owner choice, APPROVED spec | **NO** |
-| T-08 feature qualification | BLOCKED | Independent verifier | T-02..06 integrated; APP spec | **NO** |
+| T-08 feature qualification | BLOCKED | Independent verifier | T-02..06 integrated; **APPROVED** spec | **NO** |
 | T-09 visual owner signoff | BLOCKED | User / Manager | T-08 and source/loop gates | **NO** |
 
 **No tasks have source/Unity verification or a production claim now.** The status labels above are accurate for a documentation-only proposal as of 16 November 2026.
