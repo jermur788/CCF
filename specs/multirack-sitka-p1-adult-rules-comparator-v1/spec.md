@@ -17,6 +17,8 @@ Companions: [plan](plan.md), [tasks](tasks.md), [requirements](checklists/requir
 
 **#555 ten-finding repair, 15 November 2026:** Anthropic Claude Opus 5.5, Claude Code in T3 Code, docs-only repair of [#554 independent review](https://github.com/jermur788/CCF/blob/a6bf2d01ff4ce53e63796406c89323dfc9fb2099/Docs/Handoffs/MultiRack-Simulation-20261114/SITKA-ANNUAL-TREE-GROWTH-AND-MORTALITY-INDEPENDENT-DESIGN-REVIEW-20261115.md) findings **M-1…M-4 and m-A…m-F**, under the [Manager NEEDS CHANGES ruling](https://github.com/jermur788/CCF/blob/docs/manager-sitka-annual-growth-ten-finding-disposition-20261115-v1/Docs/Handoffs/MultiRack-Simulation-20261114/MANAGER-SITKA-ANNUAL-GROWTH-DESIGN-REVIEW-NEEDS-CHANGES-20261115.md) and [binding packet](https://github.com/jermur788/CCF/blob/docs/manager-sitka-annual-growth-ten-finding-disposition-20261115-v1/Docs/Handoffs/MultiRack-Simulation-20261114/SITKA-ANNUAL-TREE-GROWTH-TEN-FINDING-DRAFT-REPAIR-PACKET-20261115.md). The corrections cite historical static source text at CCF `fc18190b` and P0 lab `2659db99`; no Unity, lab or simulation was run. This writer is the same model as the #554 reviewer, so the focused delta review must be by a reviewer who is **neither the Codex #552 author nor Claude Opus**. **Still DRAFT / NOT APPROVED; all C decisions OPEN.** [Repair handoff](../../Docs/Handoffs/MultiRack-Simulation-20261114/SITKA-ANNUAL-GROWTH-MORTALITY-FOUR-MAJOR-SIX-MINOR-DRAFT-REPAIR-HANDOFF-20261115.md).
 
+**#562 technical contract proposals, 15 November 2026:** Anthropic Claude Opus 5.5 (`claude-opus-5-5`), Claude Code in T3 Code, docs-only, under [#562](https://github.com/jermur788/CCF/issues/562) and its [binding packet](https://github.com/jermur788/CCF/blob/docs/manager-sitka-growth-technical-design-dispatch-20261115-v1/Docs/Handoffs/MultiRack-Simulation-20261114/Multi-Sitka-Annual-Growth-Technical-Design-Resolution-Packet-20261115.md). New **§9** proposes technical answers for C-1 (trust tables, lineage, file/host boundary, compact archive, rejected-command IDs), C-2a (what an uninstrumented capture can observe, a second CI-getter trap, and when a verification-only instrumented copy is admissible) and C-3/C-4/C-5 (evidence class and named gate per item). Source re-inspected read-only at CCF `main` `f0031848` (its `Assets` tree is identical to `fc18190b`) and P0 `2659db99`; nothing was built or run. **These are proposals, not decisions:** the nine-row register in §7 is unchanged (C-1A and C-7 owner CONFIRMED under D-082; C-2b and C-6 OPEN; the technical items OPEN until independently reviewed). The independent reviewer must **not** be Claude Opus; Claude Sonnet 5.5 High is recommended, and a non-Codex reviewer is preferred because some #552 proposals are being judged. **Still DRAFT / NOT APPROVED.** [Handoff](../../Docs/Handoffs/MultiRack-Simulation-20261114/Multi-Sitka-Annual-Growth-Technical-Contract-Resolution-Handoff-20261115.md).
+
 ## 1. Purpose, scope and non-goals
 
 **Research question:** Can a separately versioned annual experiment reproduce the *existing* CCF adult Sitka rules (DBH increment, local Hegyi competition, relative height, crown relaxation and density-based natural mortality) on a restricted, closed, fully mature-equivalent, pure-Sitka synthetic stand, with deterministic per-tree replay, without modifying the accepted P0 laboratory? What aggregate **B/N/H** behaviour emerges under no-thin and controlled thinning compared with the historical Broad–Lynch 2006 stand reference?
@@ -104,7 +106,7 @@ Proposed import is all-or-nothing:
 - the canonical P0 snapshot hash;
 - the P0 repository revision from which the record was prepared.
 
-The revision is **provenance metadata**: runtime compares the bytes to the embedded reviewed values and never queries Git. The P1 import owner prepares the table from the pinned P0 revision, and the independent file-security reviewer checks it before any deployment. Adding or changing a record is a new P1 version with its own review. Values are **pending**; this DRAFT invents no hash. A consistent fixture-plus-manifest forgery must still be refused, because the embedded anchor does not change. A SHA-256 match establishes integrity relative to the reviewed anchor only. It is not authorship, a signature, or evidence that any forest or Irish measurement is authentic.
+The revision is **provenance metadata**: runtime compares the bytes to the embedded reviewed values and never queries Git. The P1 import owner prepares the table from the pinned P0 revision, and the independent file-security reviewer checks it before any deployment. Adding or changing a record is a new P1 version with its own review. Values are **pending**; this DRAFT invents no hash. A consistent fixture-plus-manifest forgery must still be refused, because the embedded anchor does not change. A SHA-256 match establishes integrity relative to the reviewed anchor only. It is not authorship, a signature, or evidence that any forest or Irish measurement is authentic. #562 proposes the record fields and the runtime check order in §9.2 (still a proposal; values pending).
 
 **P1-owned derived capture-fixture catalog (M-1, proposal).** Source-parity runs need square stands the pinned game source can actually configure (40 m or 80 m, §5.1), and no original P0 fixture is one: `oracle-quarter-ha` is a 50 m square and the demo/performance stands are polygons. New **derived capture fixtures** therefore live in a separate P1-owned catalog with its own format, schema version, fixture identity and a trust table of the same kind as above. They are:
 - designed test fixtures, never presented as original P0 inputs;
@@ -124,7 +126,7 @@ Separate service launch is preferred for v1 isolation. A future P1 packet must a
 | **Full per-ID payload** (≈10 typed datums × ≈80 B: before/after DBH, H and crown, plus CI, S, p, roll and age) | ≈800 B | ≈1.6 / 16 / 64 MB | ≈16 / 160 / 640 MB |
 | **Compact** (per-year post-state hash; deaths with ID, mechanism and roll inputs; work events; per-ID values recomputed on replay) | ≈20–40 B, plus a fixed per-year overhead | <0.1 / <1 / <4 MB | <1 / <10 / <35 MB |
 
-Under a 64 MiB file, a full per-ID archive of a 20,000-tree stand would fill in about **4 years**. Load already recomputes every year from the pinned model (§5.2), so the compact layout loses no replay integrity. Per-ID inspection of any year is then served by deterministic recomputation from genesis, or by an optional per-year exported trace kept outside the authoritative save. The P1 format owner chooses the layout and caps at C-1, with review. Whatever the cap, a save or annual commit that would exceed it **fails closed before commit**: no truncation, no partial history, no unsafe overwrite, and a truthful error status.
+Under a 64 MiB file, a full per-ID archive of a 20,000-tree stand would fill in about **4 years**. Load already recomputes every year from the pinned model (§5.2), so the compact layout loses no replay integrity. Per-ID inspection of any year is then served by deterministic recomputation from genesis, or by an optional per-year exported trace kept outside the authoritative save. The P1 format owner chooses the layout and caps at C-1, with review; #562 proposes the compact layout, caps and a replay-time measurement in §9.3. Whatever the cap, a save or annual commit that would exceed it **fails closed before commit**: no truncation, no partial history, no unsafe overwrite, and a truthful error status.
 
 ## 5. Annual P1 state, provenance and metrics (C-2…C-5)
 
@@ -190,9 +192,9 @@ Conversion proposal: perform exact integer/rational recentering first; DBH mm/10
 - `OnTreeMortality` removes the victim's cached CI and invalidates competition (`:429–443`).
 
 So a CI read through the public getter **after** `AdvanceOneYear` can be a post-growth, post-death recomputation, not the pre-growth CI that drove DBH, crown and S, and a victim's value can be gone entirely. Proposed contract:
-1. **Pre-advance read.** With storm 0, fixed configuration and no intervening action or state change, record every living ID's pre-growth CI through the source competition path immediately before `AdvanceOneYear`. Any forced recompute used for this (for example invalidate-then-read) must be reviewed to show that it cannot change the next step's inputs or float results.
-2. **Values at evaluation.** Record S, p, RNG call/key and roll **only for the IDs and branches where the source actually evaluates each value**, including eventual victims. When density pressure is nonpositive or a branch short-circuits, record each non-evaluated S/p/roll as `notEvaluated` with the exact reason; any separately computed S is a clearly labelled **derived diagnostic, never a source observation**. S/p and mean-vulnerability can be private-method locals; the future C-2a capture owner must decide and have independently reviewed **whether a verification-only instrumented source copy is acceptable and feasible before scheduling capture**. Without approved access to required locals, the S/p oracle criterion BLOCKS rather than fabricating a value. Never reconstruct a victim's actual S from a post-death getter or from tree state.
-3. **Post-step cross-check without the getter.** Read survivors' retained cache entries directly, without calling the lazy public getter, and require raw-bit agreement with the pre-advance CI wherever source ordering implies identity. If the cache is absent or invalidated and cannot be read, mark the value **unavailable** and fail that criterion closed; never fill it in.
+1. **Pre-advance read.** With storm 0, fixed configuration and no intervening action or state change, record every living ID's pre-growth CI through the source competition path immediately before `AdvanceOneYear`. Any forced recompute used for this (for example invalidate-then-read) must be reviewed to show that it cannot change the next step's inputs or float results. A plain getter read is **not** enough: after a year with no death or felling the cache is still marked current although every tree grew, so the getter returns last year's CI (#562 trap 2, §9.5). The public `InvalidateCompetition()` (`:563–566`) must come first.
+2. **Values at evaluation.** Record S, p, RNG call/key and roll **only for the IDs and branches where the source actually evaluates each value**, including eventual victims. When density pressure is nonpositive or a branch short-circuits, record each non-evaluated S/p/roll as `notEvaluated` with the exact reason; any separately computed S is a clearly labelled **derived diagnostic, never a source observation**. S/p and mean-vulnerability can be private-method locals; the future C-2a capture owner must decide and have independently reviewed **whether a verification-only instrumented source copy is acceptable and feasible before scheduling capture**. Without approved access to required locals, the S/p oracle criterion BLOCKS rather than fabricating a value. Never reconstruct a victim's actual S from a post-death getter or from tree state. #562 classifies these values as BLOCKED without instrumentation, proposes a falsifiable roll/p bracket check as the minimum-oracle substitute (§9.5), and states when an instrumented copy is admissible (§9.6).
+3. **Post-step cross-check without the getter.** Read survivors' retained cache entries directly, without calling the lazy public getter (proposed: read-only reflection after the step returns, subject to an explicit reviewer ruling, §9.5), and require raw-bit agreement with the pre-advance CI wherever source ordering implies identity. If the cache is absent or invalidated and cannot be read, mark the value **unavailable** and fail that criterion closed; never fill it in.
 4. **No-perturbation control.** Compare instrumented and uninstrumented runs in the same Editor: one year, and the existing long-run anchors where used. Any output difference blocks the oracle.
 
 The future source owner decides, under review, whether direct private-state access or targeted capture instrumentation is needed. This DRAFT claims no capture, no verified bits and no proven feasibility.
@@ -215,11 +217,11 @@ Candidate immutable event envelope: event-schema version, contiguous sequence, k
 | Ecological year, growth/RNG model versions, seed, fixture/initialization identity | Yes | Yes | Through post-state hash |
 | Plans, stages, base revision and `ApprovalSessionEpoch` on approved plans | Yes | No | Through post-state hash and event payload |
 | **Current** session epoch | **No**: runtime only, as in P0, where only approvals carry an epoch | No | Only where an event payload records it |
-| Committed command-ID set (dedup) | Yes | No | Through post-state hash |
+| Command-ID dedup index | **#562 proposal: No** (rebuilt from history on load; T-10, §9.4). The earlier draft said Yes | No | Yes: every command-originated envelope carries `commandId` and `commandDigest` |
 | Death/felling ledger (IDs, causes, years, roll inputs) | Yes | Yes | Through payload and post-state hash |
 
 Consequences:
-- An audit-only `ExecutionRejected` changes **no** biological value and extends the history if the event is permitted. **OPEN C-1 technical decision:** whether a rejected command consumes its command ID in the committed deduplication set; if yes, the state hash changes, and retries with that ID must follow the reviewed rejection/idempotency policy; if no, state hash stays unchanged and the event-history digest alone changes. Both policies need explicit replay/golden-vector and same-ID retry tests before the event schema is approved; no policy is selected here.
+- An audit-only `ExecutionRejected` changes **no** biological value and extends the history if the event is permitted. **#562 technical proposal (§9.4), still OPEN C-1 until independently reviewed:** a *recorded* rejection consumes its command ID; a *refused* request records nothing and consumes nothing; the dedup index is rebuilt from history and is not in `P1-STATE-V1`, so an audit-only rejection leaves the state hash unchanged (as P0's `PlanExecutionRejected` does) and changes only the history digest. Golden vectors G-01…G-08 separate this from the not-consumed alternative.
 - A `PlanStale` event changes state (plan stage) and history.
 - A P0-like conditional load with no open plan changes neither.
 - An always-on `SessionLoaded` variant, which is not proposed here, would change history only.
@@ -231,7 +233,7 @@ Proposed commands and transitions:
 - `CreateExperiment` records verified fork and initialization once. P1 plans follow Draft→Proposed→Approved→PendingWork→Executed, with explicit Rejected/Cancelled/Stale terminals. Marking/proposing/approving/queueing never changes living N/BA. Ordinary action eligibility is Live plus current authoritative DBH at or above the imported threshold, compared without annual integer-mm rounding; biology always includes all living. Reservation conflicts, duplicate IDs, stale revisions and absent/dead IDs reject execution atomically. A new proposal/approval is needed to replace a stale terminal plan; approval cannot be silently resurrected.
 - `ExecuteWork` validates the whole exact reserved set, current forest revision and current session epoch, then records felling at **current DBH and current ecological year**, with plan provenance. No partial execution or natural-death timber/reward is introduced. An audit-only `ExecutionRejected` may append if safe; its pre/post biological state is identical. Invalid files cannot append to an untrusted chain.
 - `AdvanceAnnual` stages a copy, validates expected revision/year and command ID, then records one atomic **`P1AnnualAdvanced` compound event**: increment year; compute competition from post-work living set; grow and age; relax crowns; calculate post-growth density/hazard using stored pre-growth CI; gather hazard then boundary victims using source suppression/ID priority; apply each natural death once; finish metrics; stale open approved/pending plans by reason. Death entries are child records of this event, **not additional mutation events replayed a second time**. Source biological cause stays `self-thinning`; `hazard`/`boundary` are mechanism annotations. Natural-dead reserved IDs invalidate affected draft/proposed plans as well; record ID-specific `ReservedTreeDied` before the general annual-revision stale reason, at most one terminal transition per plan, sorted by plan ID. These plan rules are lab design, not a claim that CCF/P0 already implements them.
-- `Save` serializes a consistent committed snapshot+full ledger+tip. `Load` first validates/replays in detached state from trusted genesis, recomputes annual results from pinned model and verifies all payload/state/digest fields, compares saved snapshot, then atomically activates. No fallback to unknown model or fresh seed. Failed validation/commit leaves year, trees, plans and active tip unchanged. For **successfully committed commands**, a retry with identical ID/payload returns the existing result without another advance; same ID/different payload refuses. **Rejected-command ID consumption and retry behaviour remain an OPEN C-1 technical design choice** with separate positive and negative replay checks; a rejected attempt cannot advance biology. Record committed IDs in replayed state. Atomic file save failure reports failure and preserves the prior disk file; it must not imply a preceding in-memory advance was rolled back.
+- `Save` serializes a consistent committed snapshot+full ledger+tip. `Load` first validates/replays in detached state from trusted genesis, recomputes annual results from pinned model and verifies all payload/state/digest fields, compares saved snapshot, then atomically activates. No fallback to unknown model or fresh seed. Failed validation/commit leaves year, trees, plans and active tip unchanged. For **successfully committed commands**, a retry with identical ID/payload returns the existing result without another advance; same ID/different payload refuses. **Rejected-command ID consumption and retry behaviour:** #562 proposes the §9.4 policy (recorded outcomes consume the ID; identical retry returns the recorded outcome; different payload refuses `CommandIdConflict`; refusals consume nothing), still OPEN C-1 until independently reviewed; a rejected attempt cannot advance biology. Rebuild the dedup index from the replayed history. Atomic file save failure reports failure and preserves the prior disk file; it must not imply a preceding in-memory advance was rolled back.
 
 **Proposed P0-like conditional stale-on-load option (C-1A owner-CONFIRMED initial-experiment policy D-082; M-4):** after successful detached validation, create a fresh session epoch and append exactly one `PlanStale(SessionLoaded)` per open Approved/PendingWork plan, in ordinal plan-ID order. **If no such plan is open, the load appends zero events.** This matches P0 `LabSession.FromFile` (`LabSession.cs:76–85, 144–149` at `2659db99`), which appends no other load event; P0 code is unchanged. No duplicate stale is appended for a plan already terminal. Loading the same old file with open plans in two new independent sessions creates two distinct valid histories, not duplicate deaths. An unconditional `SessionLoaded` audit event is **not** part of this option. If a future design wants one, it is a separate unapproved alternative that makes raw-history equality across any load impossible, and it must be put to the owner as such. Epoch is approval authority only, never biological RNG seed. Reapproval requires a fresh legal plan path. Alternative persistent approvals require a separate binding/revocation/security contract and owner decision. P0 policy is unchanged.
 
@@ -338,6 +340,269 @@ The Overall Manager authored this DRAFT. It may coordinate and record verdicts, 
 | tasks.md | plan.md | Meaning |
 |---|---|---|
 | — | G0 | Evidence plan, **COMPLETE** |
-| P1-S0 | G1 | Baseline DRAFT quality COMPLETE via MULTI-016; #552 expansion reviewed NEEDS CHANGES (#554); #555 repair passed focused independent DRAFT-quality delta review #556 (10/10 PASS, six minor reconciliations being documented) |
+| P1-S0 | G1 | Baseline DRAFT quality COMPLETE via MULTI-016; #552 expansion reviewed NEEDS CHANGES (#554); #555 repair passed focused independent DRAFT-quality delta review #556 (10/10 PASS, six minor reconciliations documented in #558); #562 technical proposals (§9) await an independent non-Opus technical-spec delta review |
 | P1-G2 | G2 | Spec approval: independent review + product owner |
 | P1-01 … P1-05 | G3 … G7 | Each **NOT AUTHORISED** |
+
+## 9. #562 technical contract proposals (C-1, C-2a, C-3, C-4, C-5) — PROPOSED, NOT ACCEPTED
+
+**Status.** Everything in this section is a **technical proposal for independent review**. It selects no owner policy, approves no specification, checks no requirement box, books no Unity time and authorises no code, fixture, capture or source copy. The nine-row decision register in §7 is unchanged: C-1A and C-7 stay owner CONFIRMED (D-082), C-2b stays OPEN until a real Unity capture exists, C-6 stays OPEN and unbooked, and C-1/C-2a/C-3/C-4/C-5 stay OPEN until an independent reviewer accepts or replaces these proposals.
+
+**Author and independence.** Anthropic Claude Opus 5.5 (`claude-opus-5-5`), Claude Code in T3 Code, docs-only, under [#562](https://github.com/jermur788/CCF/issues/562). The dispatch recommended Codex Sol High; the actual author is Opus. Opus also wrote the #555 repair. So the independent reviewer of this section must **not** be Claude Opus. Claude Sonnet 5.5 High is the natural choice. A Codex reviewer would be judging some of its own #552 proposals, so a non-Codex reviewer is preferred.
+
+**Source pins actually inspected (read-only `git show`, no build or run).**
+- CCF `main` at `f0031848b839888674a8033a60b1044150aa7c6f`. Its `Assets` tree object `824a1394c69404c847a9841d5f531e398589730b` is **identical** to the `Assets` tree at `fc18190b`, so every `fc18190b` line citation in this spec holds at current main. Line numbers below are at this pin.
+- P0 lab at `2659db99e317d4aa93b51cf97131a61eab5fdeec` on `feature/multi-008-sitka-lab-wsl2-ubuntu-qualification-20261114-v1`. No newer P0 lab branch head existed on `origin` at inspection.
+- These are historical static-text checks. None of them is a Unity, Mono, .NET or lab execution.
+
+**Evidence classes used below.**
+- **DSC** — direct source check of text at the pins above.
+- **SDI** — source-derived inference: follows from the text, but no run confirms it.
+- **SA** — synthetic or gameplay assumption, deliberately chosen; not a measured Irish value.
+- **FUE** — needs future observed Unity (Editor, Mono) evidence.
+- **UND** — unsupported as stated; needs a named decision before it can be used.
+
+### 9.1 Decision and trade-off matrix
+
+| ID | Question | #562 proposal | Main alternative and why not preferred | Evidence | Reviewer / gate |
+|---|---|---|---|---|---|
+| **T-01** | Where does P1 live, and on what base? | Sibling `Tools/MultiRackSitkaP1Lab/` on a P1 branch cut from the **exact qualified P0 head** (`2659db99` today), referencing P0 Core **read-only** for import parsing and P0 hashing (§9.2) | Copy or reimplement P0 Core on `main` (duplicates security code; copying is not requalification). Wait for P0 on `main` (blocks P1 on an unscheduled merge) | DSC: P0 is not on `main`; `LabFile.Parse` and `CanonicalJson.SnapshotHash` are public | Manager fixes lineage before P1-02 (existing gate); file-security reviewer |
+| **T-02** | Original-fixture trust anchor | Compiled-in P1 table, one record per original fixture, checked in the order in §9.2; size checked before reading | Packaged config file (one more swappable file); P0 `MANIFEST.sha256` (co-located, not read by P0, forgeable together with the fixture) | DSC: `FixtureCatalog.LoadFrom` hashes what it reads and never reads the manifest (`FixtureCatalog.cs:20–44`) | Import owner prepares values; independent file-security reviewer checks them |
+| **T-03** | Derived 40/80 m capture fixtures | Separate compiled-in catalog, separate format and ID namespace, separate import function (§9.2) | Reusing the original table or P0's directory (lets a derived fixture pass as original) | SDI | Same reviewer, before any derived fixture exists |
+| **T-04** | How are fixture bytes read? | P1's own handle-relative, no-follow, size-capped read; then P0's public strict parser on those bytes | `FixtureCatalog.LoadFrom` (path-based `DirectoryInfo.EnumerateFiles`, whole-directory enumeration) | DSC: `FixtureCatalog.cs:25` | File-security reviewer |
+| **T-05** | Data root and file operations | `.p1-data/` under the P1 root; descriptor-based checks; `fsync` of file and directory; ownership and mode checks on the root (§9.2) | Copying P0's `NoFollowFiles` unchanged (no `fsync`, no root ownership or mode check; copying is not requalification) | DSC of P0 mechanisms; the extra checks are new P1 requirements | File-security reviewer; P1-03 |
+| **T-06** | Host and launch | Separate loopback service; default port **5188**, configurable, never 5187; P0's guard set plus a P1-specific header (§9.2) | Sharing P0's Host (couples routing, regressions and qualification) | DSC: P0 guards (`LabHost.cs:68–73, 110–122`) | File-security / browser reviewer; P1-05 |
+| **T-07** | Serialization and time | Typed canonical JSON, strict reader, versioned schemas, **no wall-clock fields anywhere in a save or hash** (§9.2) | Timestamps in saves (break byte-identical Mode A histories) | DSC: P0 strict reader (`LabFile.cs:13–22, 132`) | Replay reviewer; P1-03 |
+| **T-08** | Archive layout (C-1) | **Compact authoritative archive** with full replay on load, plus a separate, non-authoritative per-ID **trace export** (§9.3) | Full per-ID archive (640 MB at 20,000 trees × 40 years) | SDI arithmetic; replay time is FUE-like (P1-03 measurement) | Replay + file reviewer; P1-03 |
+| **T-09** | Does an audit-only rejected command consume its command ID? (#556 D-6) | **Yes.** Any *recorded* outcome consumes the ID. A *refused* request records nothing and consumes nothing (§9.4) | Not consuming (one ID could later yield a second, different outcome; repeated retries spam audit events) | SDI; P0 has **no** command IDs (DSC: `LabSession.cs`) | Independent replay/security reviewer; P1-03 golden vectors |
+| **T-10** | Is the dedup index in the state hash? | **No.** It is rebuilt from history on load and covered by the history digest. An audit-only rejection leaves the state hash unchanged, as in P0 (§9.4). This amends the §5.2 table row | Keeping it in `P1-STATE-V1` (the state grows by about one record per command, up to 200,000) | DSC: P0 `PlanExecutionRejected` changes no state (`Engine.cs:161–167`) | Replay reviewer |
+| **T-11** | How is the growth-driving CI observed? | Pre-step: public `InvalidateCompetition()` then the getter, for every living ID. Post-step survivor cross-check by **read-only** reflection of the private cache (§9.5) | A plain getter read (can be **stale**: §9.5 trap 2) or any post-death getter read (recomputes: M-3) | DSC (lines in §9.5); bit identity of the two recomputations is SDI, then FUE | Numerical reviewer; P1-01 |
+| **T-12** | Victim order and hazard/boundary split | Subscribe to the public static `ForestTree.MortalityApplied` event; the first `HazardDeaths` victims are hazard, the rest boundary | Inferring order from final state (loses order) | DSC: `ForestTree.cs:31, 562`; `ForestEcologyController.cs:1108, 1134–1153` | Numerical reviewer |
+| **T-13** | N/ha, Dq, RD, P | Read the public `LastAdultMortality` account after each step | Recomputing them in the harness (codegen-sensitive) | DSC: `:154, 1065`; `AdultMortalityAccount.cs` | Numerical reviewer |
+| **T-14** | S, Vulnerability, mean vulnerability, p | **BLOCKED without source instrumentation**: they are method locals. The minimum oracle uses a falsifiable bracket check instead (§9.5) | Reconstructing them in the harness and calling that "captured" (forbidden) | DSC: `:1086–1102` | Numerical reviewer decides if brackets suffice for C-2b |
+| **T-15** | Verification-only instrumented source copy | **Not necessary** for the minimum oracle; **admissible only** under §9.6 conditions, for intermediate-value evidence | Mandatory instrumentation (needs Unity time and a source owner for little parity gain) | SDI | Source owner (#424) + numerical reviewer; C-6 |
+| **T-16** | Transcendental functions | Header records OS, libc/libm identity and version, CPU model and flags; any secondary harness must run on the same host | Assuming `Math.Pow`/`Math.Exp` are portable | DSC: `SitkaGrowthModel.cs:41, 48, 74, 105`. That Mono calls the platform libm is SDI → FUE | Numerical reviewer |
+| **T-17** | Store-arithmetic hazard | Capture stored after-values; an adapter must not shortcut `h' = (float)(h·r)` (§9.5) | Shortcut formulas (may differ by rounding) | DSC: `:1029`, `ForestTree.cs:626–627`; runtime effect is FUE | Numerical reviewer; C-2b |
+| **T-18** | Capture datum status | Every captured value carries one of seven statuses (§9.5) | A single "value" field (hides recomputed and derived values) | Design | Numerical reviewer |
+| **T-19** | C-3, C-4, C-5 provenance | Per-item evidence class and named gate (§9.7) | — | Mixed, as labelled | Source/spec reviewer; science reviewer for SI/H |
+
+### 9.2 C-1 proposal: trust tables, lineage, file and host boundary
+
+**Lineage and protection of P0 (T-01).**
+- The P1 branch starts from the exact P0 head the Manager names. Today that is `2659db99`, a feature/qualification branch, **not** game `main`.
+- P1 code lives only under `Tools/MultiRackSitkaP1Lab/`. It references `Tools/MultiRackSitkaLab/src/Core` read-only and uses only P0's **public** API: `LabFile.Parse(byte[])` and `CanonicalJson.SnapshotHash(...)` (DSC). P0 grants `InternalsVisibleTo` only to its own tests; P1 must not add itself there, because that is a P0 edit.
+- Every P1 handoff proves `git diff --quiet <P0 pin> HEAD -- Tools/MultiRackSitkaLab` (no P0 change at all, including `.gitignore`, fixtures and `MANIFEST.sha256`). P1 never opens P0's `.lab-data/`, never binds port 5187 and never changes P0 qualification receipts.
+- Integration order: (1) Manager names the P0 head; (2) P1 branch from it; (3) P1-02/P1-03 land only under the P1 directory; (4) if P0 later moves (for example a merge to `main` or a P0 repair), P1 rebases onto it, re-prepares the trust table from the new P0 revision and re-runs the import tests. The trust table never silently follows P0.
+
+**Original-fixture trust record (T-02).** One record per fixture, compiled into P1 source so that every change is a reviewed diff:
+
+| Field | Meaning |
+|---|---|
+| `trustTableVersion` | Version of the whole table; recorded in every P1 experiment header |
+| `fixtureId` | P0 fixture ID, verbatim |
+| `fileName` | Exact file name, `<fixtureId>.sitkalab.json` |
+| `fileByteLength` | Exact expected length in bytes |
+| `fileSha256` | SHA-256 of the complete file bytes |
+| `p0SnapshotHash` | P0 canonical snapshot hash |
+| `p0Format`, `p0SchemaVersion` | `ccf-sitka-lab`, `1` |
+| `p0SourceRevision` | Full 40-hex P0 commit the record was prepared from. Provenance only; never queried at runtime |
+| `reviewRef` | Where the independent review of this record is published |
+
+The **values are pending**. This DRAFT invents no hash and copies no value from P0's `MANIFEST.sha256`, because that file is exactly what the table must not trust.
+
+Runtime order, all-or-nothing, before any P1 state exists:
+1. The requested ID must be in the table; otherwise refuse `UnknownOriginalFixture`.
+2. Open the P0 fixture directory with `O_DIRECTORY|O_NOFOLLOW`; open the file relative to it with `O_RDONLY|O_NOFOLLOW|O_NONBLOCK|O_CLOEXEC`.
+3. `fstat` the **descriptor**: regular file, link count 1, size equal to `fileByteLength`. Refuse otherwise, before reading.
+4. Read at most `fileByteLength + 1` bytes; any other count refuses (the file changed underneath).
+5. SHA-256 of the bytes equals `fileSha256`.
+6. `LabFile.Parse(bytes)` succeeds (P0's strict reader and canonical-byte check).
+7. `CanonicalJson.SnapshotHash` of the parsed snapshot equals `p0SnapshotHash`, and so does the file's own embedded `snapshotHash`.
+8. The original-state rules of §4.1 step 2 hold.
+
+A consistently forged fixture plus `MANIFEST.sha256` fails at step 5. A whitespace change that keeps the snapshot hash fails at step 5 (and at step 6, canonical bytes). The experiment header records `trustTableVersion` and the table's own SHA-256. On every later load the genesis fixture is re-verified against the **current** table. If its record was removed or changed, load refuses: there is no silent re-anchoring.
+
+**Derived capture-fixture catalog (T-03).** A separate compiled-in table and a separate file format, candidate `format="ccf-sitka-p1-derived-fixture"`, `derivedSchemaVersion=1`, suffix `.sitkap1fx.json`. Each record binds: `derivedFixtureId` (always prefixed `p1d-`, a prefix no original ID may use), file SHA-256 and length, canonical content hash, `geometryModel` (`Legacy40` or `Enlarged80`), the declared source area as **f32 bits**, a purpose class (`wiring`, `dense`, `edge`, `singleton`, `tie`), the derivation (source original fixture ID and file SHA-256 when derived from one, or `designed`), the transform ID and version (for example `corner-square-to-centred-xz-v1`), and `reviewRef`. Original import and derived import are **different functions** with different tables. Each refuses the other's IDs and formats. Derived fixture files live in a P1-owned directory, never in P0's `fixtures/synthetic/`.
+
+**Data root and file operations (T-05).**
+- Root `.p1-data/` under the P1 tool root, ignored by the **P1** `.gitignore`. It is opened once with `O_DIRECTORY|O_NOFOLLOW`. Refuse to start if the root is not a directory, not owned by the running user, or group/world-writable. That last check is a **new P1 requirement**; P0 does not make it.
+- Save names: `^[A-Za-z0-9_-]{1,64}$` plus `.sitkap1.json`, never a client path, separator or extension choice.
+- Reads: the same descriptor-based sequence as the trust import (open no-follow and non-blocking, classify the **opened descriptor**, cap the size, bounded read). This keeps P0's MULTI-006 behaviour, which already classifies the descriptor with `statx(fd, "", AT_EMPTY_PATH)` before reading (DSC: `NoFollowFiles.cs:96–129`). P1 must reimplement and requalify it, not assume it by copying.
+- Writes: serialize fully in memory; refuse if over the cap **before** creating any temp file; then `openat(O_CREAT|O_EXCL|O_NOFOLLOW, 0600)` a temp name, write every byte, `fsync` the file, `renameat` over the final name, `fsync` the directory. On any failure, `unlinkat` exactly that temp name. P0 has no `fsync` (DSC: no call in `NoFollowFiles.cs`), so crash durability is a new P1 property that the reviewer must accept or drop explicitly.
+- Platform: Linux x64 and Ubuntu on WSL2 only, with a P0-style startup self-test of the no-follow primitives. Any other platform disables the file API. There is no path-based fallback.
+
+**Host (T-06).** Bind `127.0.0.1` only, default port 5188 (configurable; refuse to start if busy; never 5187). Keep P0's guard set: loopback client, exact `Host`, exact `Origin` on POST, `Sec-Fetch-Site` same-origin or none, JSON content type, 1 MB request bodies, `Cross-Origin-Resource-Policy: same-origin`, no CORS. Use a P1-specific header, `X-Sitka-P1-Lab: 1`, so the two services' clients are never interchangeable.
+
+**Serialization (T-07).**
+- UTF-8, no BOM, LF only, no insignificant whitespace, fixed per-schema key order, ordinal ID order, strict reader (duplicate keys, unknown keys, comments, trailing commas, depth over 16 all refuse).
+- Integers are base-10 JSON integers within ±(2^53−1).
+- Authoritative floats are stored **as bits only**: `{"k":"f32","b":"<8 hex>"}` or `{"k":"f64","b":"<16 hex>"}`, lowercase, most significant digit first. A decimal string appears only in captures and exports, where it must agree exactly with the bits.
+- Every root carries `format` and its schema version. Unknown formats or versions refuse.
+- **No wall-clock time** in any save, event, hash or capture record. The session epoch stays random approval authority only, as in P0. Any displayed calendar is derived (`inventoryYear + elapsed`) and never stored as authority.
+
+### 9.3 C-1 proposal: archive layout and capacity
+
+**Proposal (T-08): compact authoritative archive; full replay on every load; per-ID trace as a separate, non-authoritative export.**
+
+What the save holds:
+- header, trust references, initialization manifest version and hash;
+- the current snapshot, with tree values as bits;
+- ordered event envelopes;
+- for each annual compound event: post-state hash, stand summary (N, BA, Dq, RD, P as bits) and one child record per death (ID, mechanism `hazard` or `boundary`, roll bits, kill order);
+- work-plan events.
+
+Load replays every year from the trusted fixture and verifies every hash, as P0 does today (`LabSession.cs:76–83`). A trace export (candidate `format="ccf-sitka-p1-trace"`) re-derives per-ID detail. It records the experiment tip hash it was derived from, carries the C-7 label, and can never be loaded as state.
+
+**Why compact is bounded.** Each ID dies at most once. So death records total at most N₀ × (about 120 B), whatever the horizon. The compact save grows as roughly 200·N₀ + 650·Y + 120·D + W bytes (the snapshot keeps every ID, living or not) (D ≤ N₀ deaths, W work events). The full layout grows as 800·N·Y. These are **rough estimates, not measurements**:
+
+| Layout | 2,000 trees, 40 years | 20,000 trees, 40 years | 5,000 trees, 200 years |
+|---|---|---|---|
+| Full per-ID archive | ≈ 64 MB | ≈ 640 MB | ≈ 800 MB |
+| Compact (current snapshot + years + all possible deaths) | < 1 MB + W | < 7 MB + W | < 2 MB + W |
+| One year of trace export | ≈ 1.6 MB | ≈ 16 MB | ≈ 4 MB |
+
+**Proposed P1 caps (for review; P0's own caps are not inherited automatically):**
+- `MaxTrees` = 5,000. This covers both original fixtures (≤ 2,000 trees) and an 80 m square at about 7,800 stems/ha. 20,000 is not a realistic source-legal parity population on 0.64 ha.
+- `MaxEcologicalYears` = 200 per experiment.
+- `MaxEvents` = 200,000.
+- `MaxFileBytes` = 64 MiB for saves.
+- 32 MiB per trace file, one file per year.
+
+Every command that would exceed a cap refuses **before commit**. A save over the cap refuses before any temp file exists, and the previous file stays intact. A negative test must show that the refusal leaves the prior save byte-identical.
+
+**Cost to measure in P1-03.** Source Hegyi CI is an all-pairs loop (DSC: `ForestEcologyController.cs:964–996`). Full replay of 5,000 trees for 200 years is about 5×10⁹ pair checks, which may take tens of seconds. A spatial index is allowed only if it preserves the exact included-pair set **and** the ascending summation order; the source's own comment records a hash change from merely moving the sum into a function (`:990–993`). If load time is unacceptable, the answer is a separately reviewed checkpoint design, **not** skipping verification.
+
+### 9.4 C-1 proposal: command IDs, rejected commands and retries (#556 D-6)
+
+**Source fact.** P0 has **no command IDs** (DSC: `LabSession.cs`). Every click appends events. An execution failure appends one `PlanExecutionRejected` that changes no state, so its post-state hash equals its pre-state hash (`LabSession.cs:229–239`, `Engine.cs:161–167`). P1's command IDs are therefore a new design, not P0 parity.
+
+**Three outcome classes:**
+
+| Class | Examples | Event? | ID consumed? | State hash | History digest |
+|---|---|---|---|---|---|
+| **Refused request** | Malformed JSON, unknown version, bad ID syntax, size limit, Host/Origin/CSRF failure, envelope `expectedForestRevision` ≠ current (client view stale), over-capacity | None | **No** | Unchanged | Unchanged |
+| **Audit-only rejection** | `ExecuteWork` failing a domain rule: plan not pending, stale, cancelled, revision or epoch mismatch, absent/dead/reserved tree (P0's rejection reasons) | One `ExecutionRejected` | **Yes**, outcome `Rejected` | **Unchanged** (no biology or plan change) | Extended |
+| **Committed** | Any successful command | Its events | **Yes**, outcome `Committed` | Changed as the command defines | Extended |
+
+**Rules.**
+- `commandId`: client-generated, opaque, `^[A-Za-z0-9_-]{16,64}$`. Never used by RNG or biology. Its scope is the whole experiment history, across saves and loads.
+- `commandDigest` = SHA-256 over the domain tag `P1-COMMAND-V1` and the canonical command bytes (kind, arguments, expected revision). It is stored in the envelope.
+- **Retry with the same ID and same digest:** return the recorded outcome (`Committed` or `Rejected`, its event sequence and that event's post-state hash). Append nothing. Advance nothing.
+- **Same ID, different digest:** refuse `CommandIdConflict`. No event; the original record is unchanged.
+- **A refused request** leaves the ID unused, so a corrected request may reuse it.
+- **Check order:** (1) transport, size and syntax checks (refusal); (2) dedup lookup by `commandId` (identical digest → recorded outcome; different digest → `CommandIdConflict`); (3) only then revision and domain checks. Step 2 must come before step 3: a legitimate retry of an earlier committed command carries an old `expectedForestRevision` and would otherwise be refused as stale.
+- **One ID per command, not per event.** A command's transaction may append several events (for example a work execution followed by the plans it stales, as P0 does at `LabSession.cs:240–244`). Only the **primary** event carries `commandId` and `commandDigest`; follow-on events in the same transaction carry `commandId: null` and the primary event's sequence number.
+- **System events** carry `commandId: null` and an `origin`. Load staling (`PlanStale`, origin `SessionLoaded`) is the only system event proposed. It consumes nothing. This keeps D-082 exact: zero load events when no plan is open, and no command identity is invented for load. Plan staling inside the annual compound event is a child record of that command's event and needs no ID of its own.
+- **Dedup index (T-10):** rebuilt from history during replay and covered by the history digest; **not** part of `P1-STATE-V1`. A history in which one `commandId` appears on two primary events is invalid and refuses on load.
+- No audit-only event can change biology, plans or the forest revision. The replayer refuses any `ExecutionRejected` whose post-state hash differs from its pre-state hash.
+
+**Golden tests that separate the alternatives** (future P1-03; proposed, not written or run):
+
+| # | Sequence | Expected under this proposal | What it would show under "not consumed" |
+|---|---|---|---|
+| G-01 | `ExecuteWork(id=A)` rejected → identical retry `A` | History length unchanged; response cites the first event's sequence | A second `ExecutionRejected` |
+| G-02 | Rejected `A` → plan becomes executable → identical retry `A` | Still returns the recorded `Rejected`; no felling | The same ID now fells trees: one ID, two outcomes |
+| G-03 | Rejected `A` → retry `A` with different arguments | `CommandIdConflict`, no event | Accepted as a new attempt |
+| G-04 | Refused malformed request `B` → valid request `B` | Accepted (refusals consume nothing) | Same |
+| G-05 | Committed `AdvanceAnnual(C)` → identical retry `C` | Ecological year +1 once; one compound event | Same |
+| G-06 | Audit rejection | State hash before = after; history digest changes | State hash changes only if the ID set is in state |
+| G-07 | Tampered history with duplicate command ID | Load refuses atomically | Load refuses |
+| G-08 | Save → load with an open approved plan → identical retry of an earlier rejected `A` | One `PlanStale(SessionLoaded)` from the load; the retry returns the recorded `Rejected`; no second audit | A second audit |
+
+**Effect on §4 Mode A.** Two runs can have byte-identical raw histories only if they used identical command IDs and digests. That is already in the restricted Mode A condition ("identical command IDs, payloads and hashed state"). No projection or normalized hash is introduced.
+
+### 9.5 C-2a proposal: what the uninstrumented capture can observe
+
+**Source facts (DSC at `f0031848`, `ForestEcologyController.cs` unless noted):**
+- The CI cache is a private `Dictionary<ForestTree, float>` (`:52`). `AdvanceOneYear` refills it unconditionally (`:475`) and sets `competitionCurrent = true` (`:476`, `:998`).
+- `competitionCurrent` becomes false **only** on a living-tree removal (`QueueLivingCanopyRebuild`, `:441`), `RestoreEcologyState`, `ResetForDeterministicRun` and the public `InvalidateCompetition()` (`:563–566`). **Growth does not invalidate it.**
+- `GetCompetitionIndex` (`:1811–1821`) recomputes only when `competitionCurrent` is false. It returns **`0f` for a dead or absent tree**.
+- `GetCurrentSuppression` (`:1825–1831`) is a clamped **f32** expression, not the f64 S that mortality uses (`:1092`). `tree.RecordSuppressionYear` (`:1033`) accumulates a clamped f32 value. Neither is the mortality S.
+- `OnTreeMortality` removes the victim's CI and requested-growth entries (`:433–434`).
+- Victims die in list order through `ApplyMortality`, which raises the public static event `ForestTree.MortalityApplied` (`ForestTree.cs:31, 562`). Hazard victims are appended first, in ordinal living order; boundary victims follow in suppression-then-ID order (`:1098–1131`).
+- `LastAdultMortality` is public (`:154`), assigned at the start of each mortality pass (`:1065`). It holds `LivingBefore`, `StemsPerHectare`, `QuadraticMeanDbhCm`, `Route`, `RelativeDensity`, `DensityPressure`, `HazardDeaths`, `BoundaryDeaths` and `Deaths`. `StemsPerHectare` is `int / float` evaluated, then stored as `double` (`:1222`).
+- S, Vulnerability, `meanVulnerability` and `probability` are locals (`:1086–1102`). The pass returns before S exists when `DensityPressure <= 0` (`:1084`). The roll is evaluated only when `probability > 0.0` (`:1103`).
+- `SimulationRandom.Roll` is a public, pure integer hash returning an exact 24-bit fraction (`SimulationRandom.cs:41–55`).
+- `GetCompetitionIndex` is also called by `StandDiagnostics()` (`:2006, 2015`), `ForestPlayer`, `ForestTreeMarkingManager`, `TreeInspectionView` and `CropTreeCompetition` (DSC grep). `LogSummary` (`:2120–2128`) does not call it.
+
+**Trap 2 (new; extends M-3).** After a year with **no** death or felling, `competitionCurrent` is still true, but every tree has grown. A plain getter read before the next step then returns **last year's** pre-growth CI, not the CI that the next step will compute. A pre-step read must therefore call `InvalidateCompetition()` first.
+
+**Observation tiers (T-11 to T-14):**
+
+| Quantity | How (Tier 1, no source change) | Status label |
+|---|---|---|
+| DBH, height, crown before/after; age; status; cause/year | `SimulationDiameterCm`, `SimulationHeightMeters`, `SimulationCrownRadiusMeters` (`ForestTree.cs:164–166`), `AgeYears`, mortality fields. Never `Height` (`:161`), which is stage-dependent | `observedStored` |
+| Growth-driving CI, every living ID | `InvalidateCompetition()`, then the getter for each ID in ordinal order, immediately before `AdvanceOneYear` | `observedPreStepRecompute` |
+| Survivor in-step CI cross-check | **Read-only** reflection of the private cache after the step, without the getter. Must equal the pre-step bits | `observedStored`; mismatch blocks the oracle |
+| Requested DBH increment (survivors) | Read-only reflection of `annualDbhGrowth` (`:53, 1036`) after the step | `observedStored`; victims `unavailable(RemovedOnDeath)` |
+| Applied increments; clamp hit | after − before in the harness | `derivedDiagnostic` |
+| N/ha, Dq, RD, P, route, death counts | `LastAdultMortality` after the step, as f64 bits | `observedStored` |
+| Victim kill order; hazard vs boundary | `MortalityApplied` subscription; first `HazardDeaths` entries are hazard | `observedAtEvaluation` |
+| Roll value | Harness calls `SimulationRandom.Roll(rngModel, "ADULT-MORT-" + TreeId, year, seed)` | `sourceFunctionRecomputed` (exact: integer-only) |
+| Whether the roll was evaluated | `notEvaluated(DensityPressureNonPositive)` when P ≤ 0; `notEvaluated(ProbabilityNonPositive)` when the captured CI bits are zero (S = 0, so p = 0); otherwise `evaluationInferred` (S⁴ could underflow for tiny CI) | as stated |
+| S, Vulnerability, mean vulnerability, p; boundary-loop RD sequence; crown potential/factor/target; requested height increment | **Not observable without a source change.** P ≤ 0 years: `notEvaluated(DensityPressureNonPositive)`. Otherwise `unavailable(PrivateLocal)` or `unavailable(NotStoredBySource)` | **BLOCKED** as observed values (T-14) |
+
+Seven statuses: `observedStored`, `observedAtEvaluation`, `observedPreStepRecompute`, `sourceFunctionRecomputed`, `derivedDiagnostic`, `notEvaluated(reason)` (the source skipped it) and `unavailable(reason)` (the capture could not obtain it). Only the first four count as source observations. `derivedDiagnostic` is never authoritative. `notEvaluated` and `unavailable` never carry a number.
+
+**Substitute for unobservable p (T-14).** The minimum oracle can still test the hazard branch without seeing p. For every hazard victim, `roll < p_adapter`; for every survivor whose roll was evaluated, `roll ≥ p_adapter`; boundary victims must match the captured order. Here `p_adapter` is the future P1-02 adapter's value. This check can fail, so it is falsifiable; but it is **not** an observation of Unity's p. Whether brackets plus outputs are enough for parity is a **C-2b** question, decided after real capture.
+
+**Reflection admissibility.** M-1 forbids reflection used to *configure* an unsupported stand. The read-only reads above happen after `AdvanceOneYear` returns, and they do not change the controller's IL, so they should not change its generated code (SDI). The reviewer must rule on this explicitly. If refused, the survivor cross-check may use the getter **only** in years with zero deaths and zero fellings (the cache is then still current). Each fixture class needs at least one satisfied cross-check year, or the pre-step CI stays unverified and the CI criterion **BLOCKS**.
+
+**Scene inventory (precondition).** The capture scene must contain no `ForestTreeSpawner`, `ForestPlayer`, `ForestTreeMarkingManager`, `TreeInspectionView`, `CropTreeCompetition` or any other active `GetCompetitionIndex` caller. The harness reads back the component inventory and the `MortalityApplied` subscriber list into the header. It must not call `StandDiagnostics()`, `GetCurrentSuppression` or `GetCompetitionLabel` before the post-step reads.
+
+**Numeric hazards the capture must expose, not hide.**
+- **T-16:** `Math.Exp` and `Math.Pow` feed Class III height (`SitkaGrowthModel.cs:41, 48`), RD (`:74`) and Vulnerability (`:105`). Their last-bit results can depend on the platform maths library. The header records OS, libc/libm identity and version, and CPU model and flags. A secondary harness counts only on the same host and only after matching the capture vectors.
+- **T-17:** height is stored as `clamp(h + ((float)(h·E(a+1)/E(a)) − h))` (`:1029`; `ForestTree.cs:627`), and DBH as `clamp(D + ΔD)` (`ForestTree.cs:626`). In strict binary32, `h + (x − h)` need not equal `x`; with wider intermediates it may. The capture records stored values; an adapter must not use a shortcut formula; C-2b judges.
+
+**Three runs in the same Editor (no-perturbation control):**
+- **R0** — bare: the same configuration and fixtures, no hooks; only public final-state reads after each year.
+- **R1** — Tier 1: pre-step recompute, event subscription and post-step reflection reads.
+- **R2** — Tier 2, optional: the instrumented copy (§9.6).
+
+R1 must equal R0 **bit for bit** on every stored tree value, account field and victim order, every year. Any difference blocks the capture. Repeat R0 after R1 to show run-to-run repeatability.
+
+### 9.6 Verification-only instrumented source copy: admissibility proposal (T-15)
+
+**Is it necessary?** **No** for the minimum oracle: stored outputs, pre-step CI, RD/P, victim order, exact rolls and the bracket check need no source change. **Yes** only for observed bit values of S, p, mean vulnerability, the boundary-loop RD sequence and crown intermediates. Without it, those criteria are `unavailable` and **BLOCKED** (evidence: §9.5). That is a technical gate, not a reason to invent values.
+
+**Admissible only if all of these hold:**
+1. **Owner and reviewer.** The Scenario One source/Unity owner (#424) authorises the copy, because it lives in a Unity project worktree. An independent numerical reviewer signs the A/B. The work is part of a C-6 allocation, not extra to it.
+2. **Scope.** A throwaway verification branch and worktree, never merged, never pushed to a game or integration branch. The only edit is in `ForestEcologyController.ApplyAdultDensityMortality` (and, if crown intermediates are wanted, `RelaxCrowns`). Each insertion **copies already computed locals** into a preallocated buffer after their computation. It must not reorder, split or rewrite any arithmetic expression, add temporaries inside an expression, or change public API or serialized fields.
+3. **Evidence.** The handoff publishes the exact diff against the pinned source blob, the Editor version and the R0/R1/R2 results.
+4. **Bit-exact control.** R2 must equal R0 bit for bit on every stored output, account field and victim order, every year and fixture. **Any** difference discards all R2 intermediate data as perturbed; it is never partly used.
+5. **Honest limit.** R2 = R0 on outputs is necessary but **not sufficient** to prove the instrumented intermediates equal the uninstrumented ones. An intermediate difference that flips no branch would be invisible. The report must say so.
+
+**If not allowed, or if it perturbs:** S/p/mean-vulnerability criteria stay `unavailable`, the oracle runs on Tier 1 only, and C-2b is decided on outputs, discrete outcomes and brackets. No reconstruction is promoted to an observation.
+
+### 9.7 C-3, C-4 and C-5: provenance and evidence classes (T-19)
+
+| Item | Statement | Evidence class | Named future gate |
+|---|---|---|---|
+| Population | Every P0 `live` stem, including those below the P0 action threshold, is in CI, growth, density and natural mortality. The action-eligible subset is a separate label and metric | DSC that source uses all living (`:1066–1069, 964–996`); SA that every P0 live stem is Mature-equivalent | Source/spec reviewer before fixtures (C-3) |
+| Stage | Every live stem is forced to `Mature`, so `Height` = stored height (`ForestTree.cs:264–275`). Not a measured age class | DSC getter; **SA** stage | Same |
+| Species/demand | Sitka asset; `growingSpaceDemand` is absent from `SitkaSpruce.asset` and defaults to `Reference` (`TreeSpeciesDefinition.cs:30`). Read back at runtime | DSC; runtime value **FUE** | P1-01 readback |
+| Site | `site` = 1: no source writer, and the off-grid fallback is also 1 (`:1957–1961`) | DSC | — |
+| Initial crown | `max(0.1, 0.9415 + 0.07635·D)`: zero-competition target, linear branch | **SA** (crown does not affect adult outputs on this route: SDI, #556 m-B) | C-4 reviewer |
+| Age | Copied per ID from P0 `ageAtInventoryYears`. Class III uses `max(1, age)` (`SitkaGrowthModel.cs` `NextHeight`), so ages 0 and 1 give the same envelope ratio base | P0 values: **SA** fixture data; clamp: DSC | C-4 reviewer; small-age vector in P1-01 |
+| Ecological year | Starts at 0; first advance makes it 1; independent of `inventoryYear` 2026 | **SA** mapping; increment order DSC (`:467`) | C-4 reviewer |
+| Seed, RNG, growth versions | Explicit integers; never time or random defaults | **SA** values; key form DSC (`:1103`) | C-4 reviewer |
+| Pre-inventory dead | `cause=null`, `deathYear=null`, `crown=null`, `NotRecordedInP0`; no new death | **SA** provenance; P0 lacks cause/year (DSC) | C-4 reviewer |
+| Legacy40 / Enlarged80 | Only 40 m (0.16 ha) or 80 m (0.64 ha); area is the f32 expression `standSizeMeters*standSizeMeters/10000f` (`:73`) | DSC; actual area bits **FUE** | P1-01 readback |
+| Half-open bound | Cell index is in-bounds for `[-S/2, S/2)` (`StandGeometryModel.cs:46–56`), closing #556 note (c) for the grid. Adult growth does not need the grid: off-grid site is 1, so the bound is a **fixture validity rule**, not a source behaviour boundary | DSC; float edge **FUE** | C-5 reviewer |
+| Enlarged80 approach path | `StandApproachPath.Apply` builds track objects and has **no** `ForestTree` reference (DSC). Spawner planting avoids the track, but with no spawner nothing moves hand-placed trees (SDI). Keep the cheap readback | DSC + SDI → **FUE** | P1-01 readback |
+| Recentred probe | `oracle-quarter-ha` → (−15,−15), (0,0), (+15,+15) m in Legacy40; CI 0, P 0; wiring only | Arithmetic (#556) | — |
+| Top height | `k = min(N, max(1, ceil(100·areaHa)))` = 16 and 64 at the two legal sizes; equivalence to the Broad–Lynch field method **NOT VERIFIED** | **SA** definition; field equivalence **UND** | Science reviewer before P1-04 |
+| SI30 | Inferred from synthetic H and age only, labelled inferred, or the comparison is blocked | **SA**; admissible solution **UND** | Science reviewer before P1-04 |
+| GROWFOR comparator | Stand B/N/H model-to-model only; 113 plots are volume-equation calibration evidence | DSC of the evidence documents (§2) | Science reviewer |
+
+### 9.8 Still blocked, open or unverified after #562
+
+- **C-2b** is OPEN until a real capture exists. **C-6** is OPEN and unbooked. No Unity time, lock or machine is requested.
+- S, p, mean vulnerability, boundary-loop RD and crown intermediates are **BLOCKED** as observed values without an admitted instrumented copy (§9.6).
+- The survivor CI cross-check needs a reviewer ruling on read-only reflection, or it falls back to no-death years (§9.5).
+- That Mono uses the platform libm for `Math.Pow` and `Math.Exp` is SDI only (T-16).
+- Trust-table values are not prepared. No derived fixture exists.
+- The P1 base lineage is a Manager decision; T-01 is a recommendation.
+- `fsync` durability and root ownership/mode checks are new P1 requirements beyond P0. The file-security reviewer must accept or drop each explicitly.
+- Caps and replay-time budget are proposals; P1-03 must measure load time.
+- The original Broad–Lynch top-height field method, the GROWFOR executable identity and Irish predictive validity are unverified, as before.
