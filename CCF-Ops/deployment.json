@@ -97,22 +97,24 @@
   "audit_metadata": "deployment.json and deployment.json.bak-YYYYMMDDTHHMMSSZ are receipt/backup metadata; no self-hash. Every other file must be hashed or explicitly classified.",
   "candidate": {
     "source_repository": "/media/jer/Files/CCF/Repository.git",
-    "source_worktree": "/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115",
-    "source_branch": "ops/unity-lease-persistent-identity-20261115-v1",
-    "source_head": "60f97b06bd41f9a89fde4eb775527ebc6947560b",
+    "source_worktree": "/media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116",
+    "source_branch": "ops/sen-1-652-unity-lease-readiness-20261116-v1",
+    "source_head": "83c17c027e6427ebf0fa42728ac7dd170510c1f8",
     "deployment_status": "NOT_DEPLOYED",
     "deployed_at": null,
     "source_hashes": {
       "scripts/_ccf.py": "1295def55a4821ccd00423f65ab58e64a3be916dc18b127ed99ae1099c3e7677",
       "scripts/lane-status": "e7102a83ad942cc7365cb22db9a8f79823744ea98bc2cf8a6738a11f1897173f",
-      "lanes.json": "f73d1c08556ebb5a2befeeb7dd9fee7cde08184c935a2af73aded2c8dcefe477",
-      "scripts/verify-deployment": "ee001216fb020ae33ed54f4c317e2c8e19ce4bdb407f4e6bb8ae457248a02386",
-      "DeploymentProvenance.md": "a08fb8a5d38e82ab3dad1b6b1e0df7280cf28e1751fd1359b61cc2947b288db4",
       "scripts/unity-lock": "54cf0a95561d0a8c350d89adbee83f393990b728d6127b94f69c587260f048e5",
       "scripts/packet-lint": "a776ec42a13224936a5c7c6a68ec2ed7ddc4e2cf21a96e287e6843a31e243e43",
-      "tests/self-test.py": "6bba90d82e6ce2297295998c3e7035f3360ada04af338e2c25c167a99abf1a62"
+      "scripts/verify-deployment": "ee001216fb020ae33ed54f4c317e2c8e19ce4bdb407f4e6bb8ae457248a02386",
+      "DeploymentProvenance.md": "a08fb8a5d38e82ab3dad1b6b1e0df7280cf28e1751fd1359b61cc2947b288db4",
+      "tests/self-test.py": "a25be4f899da5d5e6711956556c118375ea6581b397d005cce87bfd10654e340",
+      "README.md": "d21387d54694feae0e89129684975f5f295b343b43d37f23224efbc8a73095e3",
+      "environment.sh": "fc1744b25c82fd136c176c8f678a3245dd718d7e98985a1ac5a9f86de51c3409",
+      "lanes.json": "f73d1c08556ebb5a2befeeb7dd9fee7cde08184c935a2af73aded2c8dcefe477"
     },
-    "hash_scope": "Eight bounded candidate files at the implementation commit; self-test uses verified live backing-device numbers. Receipt/evidence commit follows. Live tooling/config remains unchanged."
+    "hash_scope": "Ten candidate semantic/config/document files at named source commit. Live receipt remains historical observed deployment; no live install implied."
   },
   "notes": [
     "This receipt is identical in Git and live, describes existing live bytes separately from candidate bytes, and does not claim the candidate was deployed.",
