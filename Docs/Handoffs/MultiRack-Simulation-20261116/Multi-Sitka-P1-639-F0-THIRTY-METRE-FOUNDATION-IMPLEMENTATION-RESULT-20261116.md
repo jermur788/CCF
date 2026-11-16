@@ -14,6 +14,13 @@ manifest, catalog and trust records are unchanged and still pending. **NO ECOLOG
 `9fc3a88b`). Its self-tests pass, but the native cold run surfaced 38 UNRESOLVED .NET runtime kernel-object descriptors.
 **#649 is BLOCKED pending a Manager ruling** (see **§9**). Fixture and trust records are unchanged and still pending.
 
+**Update, #651 (16 November 2026):** Manager Option A was carried out as a verification-only comparison (see **§10**),
+with no repository source change.
+- **Default runtime:** L4 still **FAIL**, 38 UNRESOLVED (preserved).
+- **Verification-only switched runtime:** L4 PASS within the traced scope.
+- All P1 outputs, refusals, binaries and P0 state **MATCH** between the two.
+- **NO ECOLOGICAL YEAR RUN.**
+
 ## 1. Worker, lane and source
 
 | Item | Value |
@@ -324,3 +331,106 @@ keeps its two recorded symlinks, which point into scratch.
 
 **Next:** Manager #641 chooses A, B or C. A or B is then a small follow-up in this lane, followed by the narrow
 independent recheck. #639, #644 and #649 stay open; no record is promoted.
+
+## 10. #651 controlled .NET runtime trace comparison (Manager Option A, verification-only)
+
+**Status: VERIFICATION COMPLETED, NOT REVIEWED. NO ECOLOGICAL YEAR RUN. No repository source or test change in #651.**
+
+| Default runtime (production-like) | Verification-only switched runtime |
+|---|---|
+| **L4 FAIL**: 0 P0 hits, 0 failed protected attempts, **38 UNRESOLVED** (19 `ftruncate` on `memfd:doublemapper`, 19 `fchmod` on 19 distinct diagnostics sockets) | **L4 PASS (traced scope only)**: 0 P0 hits, 0 failed protected attempts, **0 UNRESOLVED** |
+
+The switched result is **conditional on** `DOTNET_EnableWriteXorExecute=0` and `DOTNET_EnableDiagnostics=0`. These
+are verification settings only. They are **not** a P1 launch default, not a recommended production configuration, and not
+evidence about the default runtime. The default-runtime L4 FAIL stands as recorded.
+
+| Item | Value |
+|---|---|
+| Packet / claim | [#651 packet](https://github.com/jermur788/CCF/blob/docs/multi-p1-651-controlled-runtime-trace-option-a-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-651-CONTROLLED-DOTNET-TRACE-OPTION-A-VERIFICATION-PACKET-20261116.md); [#651 RUNNING](https://github.com/jermur788/CCF/issues/651#issuecomment-6930412142), posted before any action |
+| Worker / host / lane | Claude Code `claude-opus-5-5`, effort low; `jer-laptop` native Ubuntu 24.04 x64; existing worktree and branch |
+| Candidate | `342cce6d8db16d8ec0acb11d0a5d7805b5541cc4`. Tracked changes before and after: 0. The only commit added by #651 is this §10 |
+| Frozen identities (both runs, `inputs.txt`) | Fixture SHA-256 `bcaaa5c3…f757c4`; `TrustTables.cs` blob `2ecc1a71…` (four `PendingIndependentReview` records); analyzer SHA-256 `35c549f7…`, **identical to `9fc3a88b`**; harness SHA-256 `b2b990a3…`; P0 tree `f212c8f6…` |
+
+### 10.1 Method (no repository change)
+
+An **external** wrapper (`run651-wrapper.sh`, SHA-256 `cb6f34ad…`, kept in the evidence folder and not in the
+repository) ran the **unchanged** harness `tests/p0-isolation.sh`, with the **unchanged** strict
+`tests/l4_analyze.py`, twice and sequentially on the same head. Each run was a cold build plus tests plus CLI under
+`strace`:
+
+- **A (default):** `env -u DOTNET_EnableWriteXorExecute -u DOTNET_EnableDiagnostics tests/p0-isolation.sh …`
+- **B (verification-only):** `env -u … DOTNET_EnableWriteXorExecute=0 DOTNET_EnableDiagnostics=0 tests/p0-isolation.sh …`
+
+**Scope of the switches.**
+- They are set only in run B's subprocess environment, via `env`.
+- That run's only .NET processes are the 19 started inside the traced command. The rest of the harness is git, stat, bash and python, which ignore them.
+- The wrapper's own shell had **0** switch lines before and after (`scope-check.txt`).
+- `dotnet-env-seen-by-subprocess.txt` records the exact `DOTNET_*` variables per run. The only other one present is the user's pre-existing `DOTNET_BUNDLE_EXTRACT_BASE_DIR`, identical in both runs.
+
+**Confirmation that the switches took effect.** Run B has 0 `memfd` descriptors, 0 socket `fchmod`s and 0
+`clr-debug-pipe` FIFOs; run A has 19, 19 and 38 respectively.
+
+### 10.2 Comparison matrix (A default vs B switched)
+
+| Comparison | Result |
+|---|---|
+| `generate-manifest --check` output | **MATCH** (identical to committed fixture, 32,567 bytes) |
+| `generate-manifest --stdout \| sha256sum` | **MATCH** (`bcaaa5c3…`) |
+| `verify-derived` output (100 trees, 12 below threshold, content hash, catalog digest, UNTRUSTED label) | **MATCH** |
+| `inspect-original` output: 3 review-evidence inspections + 3 `OriginalTrustNotAccepted` refusals | **MATCH** |
+| `annual` refusals, all three domains | **MATCH** |
+| Core tests: 33 per-test PASS lines | **MATCH** (33/33 both) |
+| Built binaries: P0 Core reference `9a99f781…`, `SitkaP1.Core.dll` `502b816d…`, `sitkap1.dll` `b0d96703…`, `SitkaP1.Core.Tests.dll` `2ea2f7fa…` | **MATCH** (byte-identical) |
+| Inputs (head, harness, analyzer, fixture, `TrustTables` blob, P0 tree) | **MATCH** |
+| P0: 52 tracked-file SHA-256 list (A before vs B after) | **MATCH** |
+| P0: L2 status (before/after) and L3 ignored snapshot (before/after; 0 ignored files) | **MATCH** (all empty) |
+| L0 / L1 / L2 / L3 / L3+ | PASS in both |
+| Analyzer synthetic self-test output | **MATCH** (23/23 both) |
+| Decoy: 13/13 distinct identities, each sighted once, 0 unresolved; read-only control clean | **MATCH** |
+| L4 real run | **DIFFER, as expected and explained**: A FAIL 38 UNRESOLVED / B PASS 0 UNRESOLVED; 0 P0 hits in both |
+| Successful traced mutations (926 vs 812, Δ114) | **DIFFER, fully attributed** (table below); none in P0 or in P1 outputs |
+| Host / save / replay / UI / Unity / Windows | **NOT RUN** (out of scope) |
+
+**Attribution of the 114 extra successful mutations in A** (by syscall and target):
+
+| Δ | What | Attribution |
+|---|---|---|
+| +19 | `fchmod(socket:[…], 0600)` | Diagnostics IPC socket (off in B) |
+| +19 | `ftruncate(memfd:doublemapper)` | W^X double-mapping (off in B) |
+| +38 / +38 | `mknodat` / `unlink` of `clr-debug-pipe-<pid>-…-in/out` FIFOs in TMPDIR | Debugger transport, part of diagnostics (off in B) |
+| +16 | `unlink` of `dotnet-diagnostic-…` socket files in TMPDIR | Diagnostics (off in B) |
+| +2 | Writes to `/proc/<pid>/task/<tid>/comm` (thread names) | One fewer runtime thread with diagnostics off; not a filesystem file |
+| ±3 | `~/.dotnet/shm` MSBuild session entries | Build-server timing |
+| −20 | 4 NuGet HTTP-cache entries (`~/.local/share/NuGet/http-cache/…`) rewritten in **B only** | Cache refresh in the later run. Attributed to cache-expiry timing; **not causally verified**. Outside P0 and P1 |
+
+Both runs also create and remove 24 random-named MSBuild `CASESENSITIVETEST*` probe files (same count, different names).
+
+### 10.3 Negative assurance (analyzer unchanged)
+
+Run in the switched environment against the #649 synthetic traces:
+- bare `ftruncate`/`fallocate`/`fchmod` → **exit 1, 3 UNRESOLVED**;
+- decoded protected fd → **exit 1, HIT**;
+- benign fd plus read-only calls → **exit 0**;
+- `--self-test` → **23/23**.
+
+No whitelist, filter or classification change was made. Ambiguous descriptors still fail closed.
+
+### 10.4 Residual restrictions
+
+- The switched-runtime L4 PASS covers only that configuration and the traced syscall set and process tree. For the
+  default runtime, P0 integrity rests on L2/L3/L3+ (all PASS) plus an L4 that is correctly FAIL on 38 identified
+  non-filesystem runtime descriptors.
+- The switches change JIT memory mapping and remove the diagnostics endpoint. This comparison shows identical P1
+  outputs, refusals and binaries for this F0 candidate only; it does not show general equivalence.
+- The NuGet cache difference is attributed to timing, not proven.
+- Earlier limits stand: deletion calls are not in the decoy, legacy relative paths are joined lexically, per-thread cwd,
+  and the builder's same-user race (§8.4).
+
+Evidence: `/media/jer/Files/CCF/Verification/CCF-651-P1-F0-ControlledDotnetTrace-20261116/` (with `SHA256SUMS`).
+It holds the wrapper; per run `inputs.txt`, `command.txt`, `dotnet-env-seen-by-subprocess.txt`, `exit-code.txt`
+(A 1, B 0), `built-binaries.sha256` and the full `iso/` harness output (raw traces, analysis JSON, CLI outputs, P0
+before/after lists); `negatives/`; `scope-check.txt`.
+
+**Next:** a narrow, independent non-author review of the switch scoping, the unchanged analyzer and negatives, the
+matching P1 results, and the conditional nature of the switched-runtime L4. Then a Manager verdict. #639, #644, #649 and
+#651 stay open. All four records stay `PendingIndependentReview`; the first ecological year stays on HOLD.
