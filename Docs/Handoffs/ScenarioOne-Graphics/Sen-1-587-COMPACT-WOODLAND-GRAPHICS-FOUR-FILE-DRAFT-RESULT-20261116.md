@@ -12,10 +12,10 @@ New directory: **`specs/scenario-one-compact-graphics-v1/`**, the missing Compac
 
 | File | Purpose | Status |
 | --- | --- | --- |
-| [`spec.md`](../../../../specs/scenario-one-compact-graphics-v1/spec.md) | Owner compact intent and visual goals, **20 FR**, **12 AC**, evidence tiers, exact 1.2m **candidate**, seven #573 source constraints, old-world/save protection, GQ-01..07 open decisions | **DRAFT** |
-| [`plan.md`](../../../../specs/scenario-one-compact-graphics-v1/plan.md) | Current repo/source findings, proposed isolated content and asset architecture, source-to-Unity release plan, Tier1/Tier2 not overtesting, ownership and physical locks | **DRAFT** |
-| [`tasks.md`](../../../../specs/scenario-one-compact-graphics-v1/tasks.md) | Nine bounded tasks: T-01 docs review/owner decisions permitted; **T-02..T-09 BLOCKED** on APPROVED spec, licence/manifest, exclusive paths and native lease | **DRAFT** |
-| [`checklists/requirements.md`](../../../../specs/scenario-one-compact-graphics-v1/checklists/requirements.md) | **66 unchecked** evidence/negative/old-world/owner-facing assertions; distinct requirement and acceptance IDs, all #573 majors mapped | **DRAFT / NOT VERIFIED** |
+| [`spec.md`](https://github.com/jermur788/CCF/blob/docs/sen-1-587-compact-graphics-asset-spec-20261116-v1/specs/scenario-one-compact-graphics-v1/spec.md) | Owner compact intent and visual goals, **20 FR**, **12 AC**, evidence tiers, exact 1.2m **candidate**, seven #573 source constraints, old-world/save protection, GQ-01..07 open decisions | **DRAFT** |
+| [`plan.md`](https://github.com/jermur788/CCF/blob/docs/sen-1-587-compact-graphics-asset-spec-20261116-v1/specs/scenario-one-compact-graphics-v1/plan.md) | Current repo/source findings, proposed isolated content and asset architecture, source-to-Unity release plan, Tier1/Tier2 not overtesting, ownership and physical locks | **DRAFT** |
+| [`tasks.md`](https://github.com/jermur788/CCF/blob/docs/sen-1-587-compact-graphics-asset-spec-20261116-v1/specs/scenario-one-compact-graphics-v1/tasks.md) | Nine bounded tasks: T-01 docs review/owner decisions permitted; **T-02..T-09 BLOCKED** on APPROVED spec, licence/manifest, exclusive paths and native lease | **DRAFT** |
+| [`checklists/requirements.md`](https://github.com/jermur788/CCF/blob/docs/sen-1-587-compact-graphics-asset-spec-20261116-v1/specs/scenario-one-compact-graphics-v1/checklists/requirements.md) | **66 unchecked** evidence/negative/old-world/owner-facing assertions; distinct requirement and acceptance IDs, all #573 majors mapped | **DRAFT / NOT VERIFIED** |
 
 These documents are not the already-existing E80-only 52-plank/path graphics DRAFT, and do not use the old five-rack benchmark as evidence for the new beta.
 
