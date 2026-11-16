@@ -59,14 +59,16 @@ New-profile payload: exact `ccfSaveEnvelope` (schemaVersion 1 and payloadVersion
 
 ## D. One G1 2+2 group — source candidates ONLY, exact placement unsigned
 
-| Species | Proposed x | Proposed z | Source cell | Nearest original living Sitka (m) | Source Year0 **pre-H1 validation proxy** light |
+| Species | Proposed x | Proposed z | Source cell | Nearest original living Sitka (m) | Source Year0 **static H1-adjusted canopy proxy** light (cell 15 unchanged) |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Sessile Oak | 1.17 | −0.47 | 15 | 2.43 | 0.221 |
 | Sessile Oak | 1.57 | −2.73 | 15 | 2.07 | 0.221 |
 | European Beech | 3.43 | −0.07 | 15 | 1.69 | 0.221 |
 | European Beech | 3.83 | −2.33 | 15 | 1.58 | 0.221 |
 
-#508 screened all four from its *research source* (valid cell; >=0.7m original live stems; >=0.5m duplicate exclusion; about 2.3m new sapling spacing, a **gameplay legibility** choice; outside H1/footpath; no required G2). It did **not** establish actual G1 stock ownership, living juveniles, post-H1/Year2 light, bramble/bracken/browsing, true tree-vs-marker collision or real player's sightline. Its source oak promotion minimum-light anchor is 0.20: **0.221 does not guarantee survival, release or promotion**, and real time may change the value. G2N and G2W dark/yard-conflicting groups are **not** in the ratified first lesson.
+#579 independently checked the #508 ledger: G1 cell 15 has **canopyBase = canopyAfter = 0.7789** before/after the 14 H1 omissions, hence **1 − 0.7789 ≈ 0.221**. This is a **Year0 static SOURCE-EQUIVALENT proxy after H1 source exclusions**, not a new Unity observation. The 14 H1 omissions have no effect on this specific cell. Real Compact Year1/Year2+ light, bramble/browsing and survival remain **NOT VERIFIED**; do not rerun an unnecessary static H1-light calculation or call this an eligible native planting witness.
+
+#508 screened all four from its *research source* (valid cell; >=0.7m original live stems; >=0.5m duplicate exclusion; about 2.3m new sapling spacing, a **gameplay legibility** choice; outside H1/footpath; no required G2). It did **not** establish actual G1 stock ownership, living juveniles, native Year1/Year2+ evolving light, bramble/bracken/browsing, true tree-vs-marker collision or real player's sightline. Its source oak promotion minimum-light anchor is 0.20: **0.221 does not guarantee survival, release or promotion**, and real time may change the value. G2N and G2W dark/yard-conflicting groups are **not** in the ratified first lesson.
 
 ## E. Required local signed witness and immutability policy
 
