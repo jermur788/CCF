@@ -6,6 +6,10 @@ pending independent review and Manager acceptance**, as the packet's hard gate r
 
 > SYNTHETIC CLOSED ADULT SITKA. NOT AN IRISH FIELD FORECAST. NOT UNITY NUMERICAL OR GEOMETRY PARITY.
 
+**Update, #644 (16 November 2026):** the #643 file-safety findings B-01, M-01 and M-02, and the minors m-01 and m-02,
+are repaired in source commit `24805388`; see **§8**. Status: IMPLEMENTED, awaiting independent delta review. The
+manifest, catalog and trust records are unchanged and still pending. **NO ECOLOGICAL YEAR RUN.**
+
 ## 1. Worker, lane and source
 
 | Item | Value |
@@ -137,3 +141,76 @@ Independent non-author review (not Claude Opus 5.5) of §3 and §4 plus the secu
 `FixtureAccess.cs`, `DerivedManifest.cs`), then a Manager decision. Only after acceptance may a separately claimed
 step change the records to `Accepted` and start the annual source-rule adapter. #639 stays **OPEN** for Manager
 disposition.
+
+## 8. #644 bounded file-safety repair (after #643 NEEDS CHANGES)
+
+**Status: IMPLEMENTED — NOT REVIEWED, NOT ACCEPTED. NO ECOLOGICAL YEAR RUN.** The result is recorded here, in the
+already-reserved #639 document, because the packet's new path
+`Multi-2D-SITKA-P1-644-F0-FILE-SAFETY-REPAIR-RESULT-20261116.md` is not reserved on the live board (main `eaa245c9`).
+That is the packet's stated fallback.
+
+| Item | Value |
+|---|---|
+| Packet | [#644 bounded repair](https://github.com/jermur788/CCF/blob/docs/multi-p1-644-f0-security-repair-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-644-643-FILE-SAFETY-BOUNDED-REPAIR-PACKET-20261116.md); review [#643](https://github.com/jermur788/CCF/blob/review/multi-p1-643-manifest-p0-trust-file-safety-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-643-INDEPENDENT-30M-MANIFEST-P0-TRUST-FILE-SAFETY-RESULT-20261116.md) |
+| Worker / host / lane | Same as §1: Claude Code `claude-opus-5-5`, effort low; `jer-laptop` native Ubuntu 24.04 x64; existing worktree and branch |
+| Claim | [#644 RUNNING](https://github.com/jermur788/CCF/issues/644#issuecomment-6928456814), posted before any edit |
+| Base → source commit | `0636ddc3` → `24805388e88cf9463ff89eb1c1c9ced18660953b` (11 files, all under `Tools/MultiRackSitkaP1Lab/`; +618/−31) |
+
+### 8.1 Repairs, path by path
+
+| Finding | Change |
+|---|---|
+| **B-01** `generate-manifest` destination | `src/Cli/Program.cs`: the `<out>` path form is removed (it now gives a usage refusal, exit 64). `generate-manifest --stdout` writes only to an inherited stdout that `NoFollowRead.RequireStreamDescriptor` (statx on fd 1) confirms is a pipe, socket or terminal. A regular file or anything else is refused with `OutputNotStream` before any byte is written. `generate-manifest --check <dir>` compares the generator output with the committed fixture through the no-follow reader. **P1 production source now has no file-writing or path-based file API**; a unit test scans `src/` and fails if one appears (`File.Write*/Create/Open/Append/Copy/Move/Delete/ReadAll*`, `FileStream`, `Directory.Create/Delete/Move`, `StreamWriter`). Remaining caller responsibility: a user's own shell or `tee` writing P1's stdout somewhere is outside P1 |
+| **M-01** `.p0ref` symlink redirect | `build/build-p0-core-ref.sh` now checks, before any build work and again just before installing:<br>• the P1 root is the real, non-symlinked `Tools/MultiRackSitkaP1Lab` and not inside P0;<br>• `.p0ref` is not a symlink (live or dangling) or a non-directory, is owned by the current user and resolves to itself;<br>• each of the three output names is absent or a regular, single-link, non-symlink file.<br>Outputs are first prepared in the external work dir. Each is then installed by `mktemp` (O_CREAT\|O_EXCL) inside `.p0ref` and `mv -fT` (`rename(2)`), which replaces the name and never writes through a symlink or into a hard-linked inode. The `.p0ref` dev:inode is re-verified after installing. The `git archive` → external build → input-hash check and the DLL SHA `9a99f781…` are unchanged. Residual: a same-user race between check and rename (local script; documented in the README) |
+| **M-02** `verify-derived` read | `FixtureAccess.ReadDerived(dir, id, use)` checks ID prefix, catalog record, domain and review status **before opening**. It then uses `NoFollowRead.ReadExact` with the catalog's file name and exact length: no-follow on every path component, statx on the open descriptor (regular, 1 link, exact size), and a bounded read of at most length+1. Only then come SHA-256, strict canonical parse, domain and content hash. The CLI now takes a directory and never a caller file name. Refusal codes are unchanged |
+| **m-01** duplicate XY | `DerivedManifest.Parse` refuses two stems at the same `(xMm, yMm)` (`DuplicatePosition`). The committed fixture still parses |
+| **m-02** L4 scope | New `tests/l4_analyze.py` replaces the text grep:<br>• tracks each traced process's working directory (`chdir`, `fchdir`, fork/clone inheritance) and resolves legacy relative paths, `*at` dirfds, fd-based mutators and the kernel-resolved path of every write-intent open;<br>• counts any unresolvable relative mutating call as UNRESOLVED, which fails the check;<br>• the traced syscall set is widened (adds `rmdir`, `mknod*`, `ftruncate`, `fallocate`, `fchmod`, `fchown`, `lchown`, `utime*`, `*xattr`, `open_by_handle_at`).<br>`p0-isolation.sh` first runs a **decoy self-test** and only then the cold run. The PASS wording is limited to the traced scope |
+| **m-03** density | Deferred as instructed; generator and data unchanged |
+
+A probe on this host showed the reason for m-02: `strace -y` decodes `AT_FDCWD` for `*at` calls but **not** for legacy
+calls. On the decoy, the old grep filter caught 9 of 13 writes; it missed three relative `mkdir`s and an `ftruncate`.
+The analyzer catches 13 of 13.
+
+### 8.2 Frozen values (verified unchanged against `0636ddc3`)
+
+`git diff --quiet 0636ddc3` is clean for the fixture (still SHA-256 `bcaaa5c3…f757c4`, 32,567 bytes), `TrustTables.cs`
+(all four records still `PendingIndependentReview, null, null`), `ManifestGenerator.cs` and `CcfSourcePins.cs`.
+`generate-manifest --check` and `--stdout | sha256sum` both reproduce `bcaaa5c3…`. No acceptance reference was added.
+
+### 8.3 Verification on Ubuntu (this host)
+
+Durable evidence: `/media/jer/Files/CCF/Verification/CCF-644-P1-F0-FileSafety-20261116/` (with `SHA256SUMS`).
+
+| Check | Command | Result |
+|---|---|---|
+| Unit tests | `dotnet tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll` | **33/33 PASS** (27 original + 6 new: duplicate XY; ReadDerived pending/ID; symlink leaf, symlinked ancestor, hard link, FIFO, directory, 1 MiB oversized, undersized, missing, file-as-directory; same-size altered bytes and wrong-domain data under a test catalog → `DomainMismatch`; stream-descriptor guard on a regular file vs a pipe; no-file-API source scan) |
+| Mutants | Backup → mutate → test → restore | **3/3 new mutants caught** (duplicate check off; stream guard off; ReadDerived back to `File.ReadAllBytes`), plus the 4 from stage 1. Sources restored byte-identical |
+| Builder, hostile root (M-01) | `tests/build-output-safety.sh` | **8/8 PASS**: C1 `.p0ref`→scratch directory at a `Tools/MultiRackSitkaLab` path, C2 dangling symlink, C3 regular file, C4 output-name symlink, C5 output-name hard link, C6 output-name directory → all **exit 4, victim unchanged**; C7 cold build and C8 rebuild → exit 0, DLL `9a99f781…`, 3 regular single-link files, no temp leftovers. P0 digest and status unchanged |
+| Same test on the **pre-repair** builder | `0636ddc3` script swapped in temporarily, then restored | **FAIL as expected**: C1 exit 0 with three files written into the scratch stand-in "P0"; C4 wrote through the symlink. Reproduces #643 M-01 on stand-ins only |
+| CLI (B-01/M-02) | `tests/cli-safety.sh` | **23/23 PASS**:<br>• `--stdout` pipe hash equals the committed fixture;<br>• `--stdout >>` onto a stand-in P0 fixture and onto a new file → exit 2 `OutputNotStream`, stand-in unchanged, new file 0 bytes;<br>• old path form (stand-in, `..` traversal, new name) and extra argument → exit 64, nothing created;<br>• `--check` → 0;<br>• `verify-derived`: good dir 0; file-path form, symlink leaf, symlinked ancestor, hard link, FIFO (no hang, 30 s timeout), directory, 64 MiB oversized, wrong-domain bytes, original ID and missing → exit 2 with the expected code;<br>• P0 digest unchanged |
+| Cold L0–L4 | `tests/p0-isolation.sh` | **OVERALL PASS**:<br>• L0, L1 PASS;<br>• L2 empty before and after;<br>• L3 0 ignored files unchanged; L3+ all 52 tracked P0 files SHA-identical;<br>• **L4 self-test 13/13, read control 0**;<br>• **L4: 1,086 mutating calls resolved, 0 P0 hits, 0 unresolved** (10,968 trace lines);<br>• 33/33 tests; CLI `annual` refuses all three domains; normal `inspect-original` refuses all three pending records |
+
+Notes on the evidence:
+- The cold run and the hostile-root and CLI suites ran on the working tree that was then committed as `24805388`. The
+  only difference is README wording, edited during the cold run; it has no effect on the build.
+- L0/L1/L2 hold at the committed head.
+- The P0-isolation run uses the in-repo `Tools/MultiRackSitkaLab` as the named build-input tree; P0 Core itself is built
+  from the external `git archive` extraction with before/after input hashes.
+
+### 8.4 Not run, limits and residual risks
+
+- **Not exercised in the decoy:** deletion syscalls (`unlink`, `rmdir`). This session's command guard blocks scripted
+  removals, so they are covered only by the analyzer's shared code path, not by an executed decoy case.
+- **L4 limits:** syscalls outside the traced set (for example io_uring), processes outside the traced tree, and
+  symlinked intermediate components in legacy relative paths are not observed. L2/L3/L3+ are the independent content
+  and metadata checks. A PASS is evidence for this run only, not proof that every write is impossible.
+- **Builder:** a same-user race between the checks and `rename(2)` remains.
+- **CLI refusal code:** `verify-derived` given a file path reports `DirectorySymlinkRefused`, whose message says
+  "symlink or not a directory"; the code name is broader than its meaning.
+- **Not run:** Host, saves, replay, annual engine, Unity, C-2b, WSL2, the Windows build, and any acceptance-status change.
+
+### 8.5 Requested next step
+
+A narrow, independent changed-lines and security delta check (ideally reviewer #643) of `0636ddc3..24805388` against
+B-01, M-01, M-02, m-01 and m-02, then a Manager decision. #639 and #644 stay open. The trust and catalog records stay
+`PendingIndependentReview` until a separate reviewed acceptance commit.
