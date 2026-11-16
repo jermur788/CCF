@@ -8,6 +8,18 @@
 
 **Status: ALL UNCHECKED — DESIGN DRAFT.** Owner asks NOT to overthink driveway: simple pre-existing entrance/parking, occasional collection truck in a closed yard, winding pedestrian path and no internal rack. Owner-ratified **one first G1 group of 2 Oak+2 Beech**; exact source-screened placements not yet signed/qualified. #508 source and #513 browser evidence reviewed; actual gameplay, saved-world and vehicle procedural safety NOT VERIFIED.
 
+## #614 — Child G1 verification overlay, 33 original CIP checks preserved
+
+**CIP-001…013 / 024 / 027…033 — genuine arrival and forest, not decoration:** exact approved no-rack 30m H1, 14 historically omitted Sitka/8 surviving buffers, Route A candidate 1.2m walking core, 4 G1 sites, live tree IDs/current Stand Map, no phantom rack. Linux Editor player capsule really reaches and inspects all four sites; upright/failed/expired guard mesh **and collider** reality matters. O1 guard core intrusion **0.141m is a FAIL** until FR-06 signed-content resolution; O2 0.155m verge and B2 margin still need native witness. Primitive placeholders expose, not conceal, physical conflict.
+
+**CIP-014…022 — real planting/finance/history:** player-owned 2 Oak+2 Beech nursery stock, four individual Pending exact-position Work Plan orders, approved quote and actual annual costs/outcomes, €20 stock, up to €20 shelter materials, ≈€30 contractor or 40 owner minutes calibration, future biological survival/loss and S1-C/S1-D review. Current actor/shelter methods are batch controls (executor applies to all open `PlantJuvenile`, shelter to open exact orders); per-tree choice requires approved UI/source change or explicitly approved batch-only constraint. 2m Oak/Beech art cannot be 0.3× scaled and labelled physically correct 0.6m first-year sapling; neutral honest **0.6m stage-labelled placeholder** is permitted until authentic juvenile is approved.
+
+**CIP-021…026 / 032…033 — core complete loop, boot/save and test:** true later forestry/no-work, finance/completion owner decision and real annual review, #544 shared three-profile scene-independent boot New/Continue validation without scene-bound `ForestSaveController.CanLoad`, genuine old v1–v24/Reference and no-mutation refusal, ISO-58 separately BLOCKED CG-TRIG. Tier-1 local source, Tier-2 bounded Linux-native gameplay/path/720p/1080p and one candidate Tier-3; actual personal owner Linux Editor playtest before explicit Windows build permission. D-083, D-032 and substantive approval remain open; no new criterion is satisfied by documentation.
+
+**Reuse evidence:** tracked Sitka Plantation02/other stage-appropriate Sitka, first-party moss/fern/bracken/bramble/leaf litter/deadwood and true 2m Oak/Beech are **source-path/provenance/licence/Unity-version/performance checks to conduct**, not reverified here. New W path/0.6m juvenile/guard art is one-item-at-a-time **parallel** work; #605/#611 is not a core gameplay blocker. But tested geometry, truthful silhouette, readable marks and state-to-art mapping are core. Never mutate shared `Forest Ground.mat`/`Forest Path.mat`, 52 historical E80 planks/tracks, old E80/Legacy40/Reference saves; no unlicensed `ForestFloorV1` or partial gitignored Ultimate Nature. D-032 and explicit hash-authorised Windows scratch transfer remain gating for binary import.
+
+**Checklist evidence:** all **33 original unchecked `CIP-001…CIP-033` lines below remain byte-identical**, 0 checks passed or added. This is a DRAFT crosswalk, not native verification, acceptance or implemented art.
+
 ## #600 — Child scene/planting source-contract verification notes (no new CIP IDs)
 
 ### #604 correction — mapped future acceptance, no new CIP boxes or tests run
