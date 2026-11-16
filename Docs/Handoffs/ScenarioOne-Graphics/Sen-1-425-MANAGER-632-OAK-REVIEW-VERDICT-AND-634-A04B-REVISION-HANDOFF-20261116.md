@@ -1,0 +1,27 @@
+# Sen-1 Overall Manager — #632 Oak scratch review and #634 revision decision
+
+**Date:** 2026-11-16, GPT-6 Overall Manager #425, GitHub/browser only.
+
+## Verified evidence and ruling
+
+Inspected exact [#632 botanical / art review](https://github.com/jermur788/CCF/blob/review/sen-1-632-oak-juvenile-botany-art-scratch-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-632-INDEPENDENT-OAK-JUVENILE-BOTANY-AND-SCRATCH-ART-REVIEW-20261116.md) and compared review branch against current main. **Exactly one added Markdown**, no tracked mesh/production edits. The reviewer states direct read of five source Blender renders, local all 35/35 file hashes PASS, and independently rebuilt three OBJ LODs/stats byte-identical. The review author is **different Claude Opus 5.5 session but same model family with shared short operational memory**; its verdict is independent by session/file custody, NOT independent by model family. Manager cannot directly inspect the locally stored artwork from GitHub, so accepting report as documented evidence, not independently viewing the model.
+
+**Overall Manager verdict: APPROVED REVIEW WORK / NEEDS CHANGES ART SCRATCH.** Two **major** findings: A-04a represents single-season stem but is called a transplant, and its ~9.2–10.3mm root collar falls below the cited 11mm minimum for 60cm bare-root stock (8mm for cell-grown). Seven **minor** and three **nit** findings include leaf too tip-obovate, four-to-five rather than five-to-eight lobe pairs, separated LOD2 leaves (7.9–45.0mm), weak intermediate LOD optimization, no vein detail, edge-on half-moon side views and crowded lammas cluster. These claims have **UK/European literature transfer** and direct OBJ measurements per reviewer, not verified Irish nursery requirements or native engine renders.
+
+**Manager's REVERSIBLE SCRATCH design selection ONLY:** model the next revision **A-04b as 60cm bare-root 1+1 sessile Oak**, a commonly described two-year nursery form, with a previous-season older wood section and ≥11mm visible root-collar diameter. This is **not** binding CCF first-G1 stock type, not Irish empirical calibration, and not acceptance of D-032 or DRAFT asset spec #619. A-04a stays described **0.6m nursery transplant, age not established**. Owner product choice if planting stock type ever affects gameplay must be separately accepted.
+
+## User desktop side effect
+
+Review narrowed the potential loss of user's Blender recovery file `/tmp/quit.blend`: on the examined host the boot was 09:14 UTC; A-04a GUI quit around 17:24. An earlier **user** recovery snapshot is possibly lost only if the owner used Blender after that boot and before the art worker's first GUI exit. No positive evidence of user Blender use was found, but absence cannot be proved. Reviewer read only, found `/tmp/quit.blend` currently absent and did not restore/move it. A headless isolated TMPDIR/BLENDER_USER run proved clean for #632; GUI isolation remains unqualified. **Never imply recovery is possible without a surviving original file.** Require every further Blender task to STOP if a shared `quit.blend` is present, use isolated temp/settings, prefer headless, and obtain permission for desktop focus.
+
+## Concrete next task
+
+**[#634](https://github.com/jermur788/CCF/issues/634) READY / NOT RUNNING.** **Purpose:** one local Linux procedural Oak scratch improvement A-04b, fix two majors and seven minors in a separate versioned source directory while preserving all original #627 evidence. **Difficulty MEDIUM–HIGH** because procedural biology/LOD and user desktop/temp ownership. **Recommended model:** Claude Opus 5.5 Code or GPT-6.1 Sol High on Linux Blender. **Proposed docs branch:** `docs/sen-1-634-oak-a04b-revision-20261116-v1`, owned by actual worker after fresh source/board check; exact local scratch path to be registered. **Result:** `Docs/Handoffs/ScenarioOne-Graphics/Sen-1-634-OAK-A04B-SCRATCH-REVISION-AND-REPRODUCIBILITY-RESULT-20261116.md`. This is an art-only scratch task; requires no Unity, D-032 binary import or screen takeover. Source only in new local folder, one GitHub Markdown; no change to primary repo or previous samples.
+
+**Paste-ready Linux dispatch:**
+
+Take CCF Scenario One **#634**, full binding handoff https://github.com/jermur788/CCF/issues/634 . Create a new original A-04b 0.6m sessile Oak scratch revision on Linux from the existing #627 procedural script and the full #632 needs-changes report. Use **provisional** 1+1 bare-root art reference, correct prior-season wood/terminal scar and root collar ≥11mm, leaf outlines/lobes, attached LOD2, LOD cost, orientation and overlaps. Keep #627 evidence immutable. Register actual worker, machine, branch, start HEAD and isolated scratch folder. Protect any `/tmp/quit.blend`, use task-specific TMPDIR/BLENDER_USER directories, prefer headless, no new installs/GUI focus without user consent. Publish one named GitHub Markdown plus local hashes/rebuild proof. Do not touch Unity, Assets, saves, game code, D-032 binary tracking or Windows builds.
+
+**Next independent assessment:** a short non-Claude review of changed A-04b mesh/renders vs #632; no repeat of resource or broad nursery research unless a specific disputed finding requires it.
+
+**Unity/Blender coexistence:** not tested, TIME-SLICED until an approved lease holder permits a controlled matched workload. This asset is off the core gameplay critical path. **Dashboard/Drive sync:** not verified.
