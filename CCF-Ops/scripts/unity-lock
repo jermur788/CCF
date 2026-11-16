@@ -102,6 +102,10 @@ def main():
     if a.test_state_dir and not state.is_relative_to(ROOT/'CCF-Temp'):
         p.error('test state must be beneath ZX20/CCF-Temp')
     if a.operation!='release' and a.force: p.error('--force only applies to release')
+    # Reject known non-Unity lanes before even creating the state/guard.
+    # The guarded acquire below still checks every ordinary ownership gate.
+    if a.operation=='acquire' and a.lane and not resolve_lane(cfg,a.lane)['unity']:
+        raise ValueError('configured lane is not Unity-capable')
     if a.operation=='status' and not state.exists():
         emit(inspect(None,None),a.json); return 0
     with guarded(state):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline integration checks. All generated data stays in verified ZX20 scratch."""
+"""Offline integration checks. Isolated ZX20 fixtures; owned temporary Files lane is removed in finally."""
 import sys
 sys.dont_write_bytecode=True
 from concurrent.futures import ThreadPoolExecutor
@@ -7,13 +7,14 @@ from datetime import datetime,timedelta,timezone
 import json
 import os
 import stat
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
 
 OPS=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(OPS/'scripts'))
-from _ccf import ROOT, BOARD_FIELDS, board_read, command, fields_read, storage_check, on_storage, storage_health, require_storage, DURABLE_CCF
+from _ccf import ROOT, BOARD_FIELDS, board_read, command, fields_read, storage_check, on_storage, storage_health, require_storage, DURABLE_CCF, config_read
 
 storage_check()
 DEVICE=command(['findmnt','-n','-o','SOURCE','-T',str(ROOT)])
@@ -110,167 +111,246 @@ check(p.returncode==2 and 'outside the Files CCF tree: /' in p.stderr and not p.
 # Actual state-writing CLI: invalid config must fail before guard creation.
 rejected_state=SCRATCH/'rejected-config-state'
 p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'acquire','--config',str(config),'--test-state-dir',str(rejected_state)],capture_output=True,text=True)
-check(p.returncode==2 and 'escapes ZX20: /' in p.stderr and not rejected_state.exists(),'out-of-bounds lock config creates no state or guard')
+check(p.returncode==2 and 'outside the Files CCF tree: /' in p.stderr and not rejected_state.exists(),'out-of-bounds lock config creates no state or guard')
 config.write_text(json.dumps(cfg))
 p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'acquire','--config',str(config),'--test-state-dir',str(rejected_state)],capture_output=True,text=True)
 check(p.returncode==2 and (rejected_state/'guard').exists(),'positive control reaches guard creation with valid config')
 # Explicit read-only inventory admits a bounded Files CCF non-Unity lane.
 files_fixture=Path(tempfile.mkdtemp(prefix='ops652-files-fixture-',dir=DURABLE_CCF/'Verification'))
 files_lane=files_fixture/'lane'
-run(['git','-C',seed,'worktree','add','-b','test/files',files_lane])
-off['lanes'][-1]['path']=str(files_lane)
-config.write_text(json.dumps(off))
-off_rows=json.loads(cli('lane-status','--config',config,'--json'))
-check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],files_lane),'bounded Files non-Unity reports actual device and ZX20 NO')
-check('ZX20: NO' in cli('lane-status','--config',config),'bounded Files human inventory clearly says ZX20 NO')
-check(off_rows[-1]['HEAD']==command(['git','-C',str(seed),'rev-parse','HEAD']) and off_rows[-1]['registered_worktree'] and off_rows[-1]['dirty'] is False,'bounded Files inventory checks registered clean repository identity')
-check('BLOCKED' in cli('lane-status','--config',config,'--preflight','--lane','off-storage','--branch','test/files',code=1),'bounded Files writable preflight remains blocked')
-# The same Files path never becomes a Unity lane.
-off['lanes'][-1]['unity']=True
-config.write_text(json.dumps(off))
-p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
-check(p.returncode==2 and 'escapes ZX20' in p.stderr,'Files Unity lane rejected')
-config.write_text(json.dumps(cfg))
-# Real resolved path escapes; symlink fixture is on ext4.
-escape=files_fixture/'escape';escape.symlink_to('/')
-for invalid in ['/',str(DURABLE_CCF)+'-sibling/lane',str(ROOT)+'-sibling/lane',str(DURABLE_CCF/'../outside-ccf'),str(escape)]:
-    bad=json.loads(json.dumps(cfg));bad['lanes'].append({'lane':'escape','path':invalid,'purpose':'negative boundary','unity':False});config.write_text(json.dumps(bad))
-    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
-    check(p.returncode==2 and 'outside the Files CCF tree:' in p.stderr,'resolved inventory path escape rejected: '+invalid)
-config.write_text(json.dumps(cfg))
-for key,value in [('uuid',''),('uuid','0000-0000'),('fstype','ext4'),('device','/dev/null'),('root',str(ROOT/'CCF-Temp'))]:
-    bad=json.loads(json.dumps(cfg));bad['storage'][key]=value;config.write_text(json.dumps(bad))
-    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
-    check(p.returncode==2 and 'mount identity mismatch' in p.stderr,'wrong storage '+key+' rejected: '+value)
-config.write_text(json.dumps(cfg))
-broken_board=SCRATCH/'broken-board.md'; broken_board.write_text('| ID | State |\n|---|---|\n')
-check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board missing required fields FAIL')
-
-# Storage admission and board checks.
-health=storage_health(cfg['storage'])
-check(health['ready'] and health['writable'] and health['free_bytes']>=15*1024**3,'actual ZX20 rw/free PASS')
-check(storage_health(cfg['storage'],free_bytes=0)['status']=='LOW SPACE','shared low-space admission BLOCK')
-ro={'source':DEVICE,'target':str(ROOT),'fstype':'exfat','uuid':'18D6-896E','options':'ro,nosuid'}
-check(storage_health(cfg['storage'],mount_info=ro)['status']=='READ ONLY','read-only mount admission BLOCK')
-low=json.loads(cli('lane-status','--storage-only','--json','--config',config,'--test-free-bytes','0',code=1))
-check(low['status']=='LOW SPACE' and not low['ready'] and low['minimum_free_bytes']==15*1024**3,'lane-status low-space hard stop')
-check('PASS:' in run(['bash','-c','source "$1"','ccf-test',OPS/'environment.sh']),'environment.sh actual rw/free PASS')
-# No fixture store or branch is production data.
-second=SCRATCH/'second-store'
-run(['git','clone','--no-hardlinks',seed,second])
-run(['git','-C',second,'checkout','-b','test/clean'])
-dual=json.loads(json.dumps(cfg));dual['git_stores'].append({'name':'second','git_dir':str(second/'.git')});config.write_text(json.dumps(dual))
-blocked=cli('lane-status','--config',config,'--preflight','--lane','U1','--branch','test/clean',code=1)
-check('BLOCKED' in blocked and 'another writable checkout' in blocked,'dual-store branch collision blocks preflight')
-run(['git','-C',second,'checkout','test/seed'])
-check(cli('lane-status','--config',config,'--preflight','--lane','U1','--branch','test/clean').rstrip().endswith('READY'),'nonconflicting assignment READY')
-config.write_text(json.dumps(cfg))
-# Duplicate board claims fail mechanically; no board authority is promoted.
-row=['DUP-1','ACTIVE','fixture','Codex','test','test','U1','test/clean',command(['git','-C',str(seed),'rev-parse','HEAD']),'fixture','fixture only','No','None','Tier 1','fixture','None','test']
-for duplicate_field in ['Lane','Branch']:
-    other=list(row);other[0]='DUP-2'
-    other[BOARD_FIELDS.index('Branch' if duplicate_field=='Lane' else 'Lane')]='other'
-    board.write_text('| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n| '+' | '.join(row)+' |\n| '+' | '.join(other)+' |\n')
-    check('duplicate live '+duplicate_field in cli('packet-lint','--config',config,'--board',board,code=1),'duplicate board '+duplicate_field+' FAIL')
-board.write_text('| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n')
-
-# Lock exercises only isolated test state; never acquire production lock.
-state=SCRATCH/'lock-state'
-base=['--test-state-dir',str(state),'--config',str(config)]
-head=command(['git','-C',str(seed),'rev-parse','HEAD'])
-eta=(datetime.now(timezone.utc)+timedelta(minutes=20)).isoformat()
-acquire=['acquire',*base,'--owner','test-owner','--task-id','TEST','--lane',str(clean),'--branch','test/clean','--head',head,'--eta',eta,'--notes','isolated offline self-test','--json']
-def lock(*args,code=0): return cli('unity-lock',*args,code=code)
-check(json.loads(lock('status',*base,'--json'))['status']=='free','lock initial status free')
-for args,label in [(['--lane','NonUnity'],'NonUnity lane rejected'),(['--branch','wrong-branch'],'wrong branch rejected'),(['--head','0'*40],'wrong HEAD rejected')]:
-    lock(*acquire,*args,code=2);check(True,label)
-# A nonempty path from another Git store cannot be acquired as our Unity lane.
-foreign=json.loads(json.dumps(cfg));foreign['lanes'][0]['path']=str(second);config.write_text(json.dumps(foreign))
-p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire,'--lane',str(second)],capture_output=True,text=True)
-check(p.returncode==2 and 'unexpected lane Git store' in p.stderr and not (state/'lock.json').exists(),'foreign Git store lane rejected without lease')
-config.write_text(json.dumps(cfg))
-held=json.loads(lock(*acquire)); check(held['status']=='held','lock acquire')
-check(json.loads(lock('status',*base,'--json'))['metadata']['owner']=='test-owner','lock status metadata')
-lock(*acquire,'--owner','second-owner',code=2); check(True,'lock second owner rejected')
-lock('release',*base,'--owner','wrong-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'],code=2); check((state/'lock.json').exists(),'lock wrong owner cannot release')
-for task,lock_id in [('WRONG-TASK',held['metadata']['lock_id']),('TEST','wrong-lock-id')]:
-    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'release',*base,'--owner','test-owner','--task-id',task,'--lock-id',lock_id],capture_output=True,text=True)
-    check(p.returncode==2 and (state/'lock.json').exists(),'mismatched task or lease identity cannot release')
-lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
-check(json.loads(lock('status',*base,'--json'))['status']=='free','lock owner release')
-
-# Start a fixture process and let it exit naturally; never kill any process.
-proc=subprocess.Popen([sys.executable,'-B','-c','import sys; sys.stdin.read()'],stdin=subprocess.PIPE)
 try:
-    held=json.loads(lock(*acquire,'--pid',str(proc.pid)))
+    run(['git','-C',seed,'worktree','add','-b','test/files',files_lane])
+    off['lanes'][-1]['path']=str(files_lane)
+    config.write_text(json.dumps(off))
+    off_rows=json.loads(cli('lane-status','--config',config,'--json'))
+    check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],files_lane),'bounded Files non-Unity reports actual device and ZX20 NO')
+    check('ZX20: NO' in cli('lane-status','--config',config),'bounded Files human inventory clearly says ZX20 NO')
+    check(off_rows[-1]['HEAD']==command(['git','-C',str(seed),'rev-parse','HEAD']) and off_rows[-1]['registered_worktree'] and off_rows[-1]['dirty'] is False,'bounded Files inventory checks registered clean repository identity')
+    check('BLOCKED' in cli('lane-status','--config',config,'--preflight','--lane','off-storage','--branch','test/files',code=1),'bounded Files writable preflight remains blocked')
+    # Default readers recognise the same bounded non-Unity registration.
+    loaded,_=config_read(config)
+    check(loaded['lanes'][-1]['path']==str(files_lane),'default loader admits registered bounded Files non-Unity')
+    # Copy candidate tools byte-for-byte, then project untouched live config/board.
+    # Default consumer CLI config arguments remain omitted; only lock state is isolated.
+    consumer=SCRATCH/'default-consumers';shutil.copytree(OPS,consumer)
+    shutil.copyfile(ROOT/'CCF-Ops/lanes.json',consumer/'lanes.json')
+    shutil.copyfile(ROOT/'CCF-Ops/board/active.md',consumer/'board/active.md')
+    consumer_before={str(p.relative_to(consumer)):p.read_bytes() for p in consumer.rglob('*') if p.is_file()}
+    consumer_state=SCRATCH/'default-consumer-state'
+    matrix=[]
+    for args,label,code in [
+        ([sys.executable,'-B',consumer/'scripts/unity-lock','status','--test-state-dir',consumer_state,'--json'],'default unity-lock status',0),
+        ([sys.executable,'-B',consumer/'scripts/packet-lint',f/'valid.md'],'default packet-lint',0),
+        (['bash','-c','source "$1"','ops652',consumer/'environment.sh'],'default environment',0),
+        ([sys.executable,'-B',consumer/'scripts/unity-lock','acquire','--lane','NonUnity','--test-state-dir',consumer_state],'default NonUnity acquire rejects before guard',2)]:
+        p=subprocess.run([str(v) for v in args],capture_output=True,text=True)
+        matrix.append({'command':[str(v) for v in args],'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr})
+        expected=('"status": "free"' in p.stdout if 'status' in label else 'not Unity-capable' in p.stderr if code==2 else p.stdout.startswith('PASS'))
+        check(p.returncode==code and expected,label)
+    check(not consumer_state.exists(),'default NonUnity/status consumers create no state or guard')
+    check(consumer_before=={str(p.relative_to(consumer)):p.read_bytes() for p in consumer.rglob('*') if p.is_file()},'default consumers leave projected config/tool bytes unchanged')
+    (SCRATCH/'default-caller-matrix.json').write_text(json.dumps(matrix,indent=2)+'\n')
+    # Real live configuration is read only; no production lock command is run.
+    actual,_=config_read(ROOT/'CCF-Ops/lanes.json')
+    check(any(l['lane']=='NonUnity' and l['unity'] is False and l['path']=='/media/jer/Files/CCF/Operations/CCF-NonUnity' for l in actual['lanes']),'default loader reads actual untouched live NonUnity registration')
+    # Invalid mixed config must fail in the real default consumers as well.
+    consumer_config=consumer/'lanes.json';consumer_original=consumer_config.read_bytes()
+    invalid_consumer=json.loads(consumer_original)
+    next(l for l in invalid_consumer['lanes'] if l['lane']=='NonUnity')['path']='/'
+    try:
+        consumer_config.write_text(json.dumps(invalid_consumer))
+        for args,expected_code in [
+            ([sys.executable,'-B',consumer/'scripts/unity-lock','status','--test-state-dir',consumer_state],2),
+            ([sys.executable,'-B',consumer/'scripts/packet-lint',f/'valid.md'],2),
+            (['bash','-c','source "$1"','ops652',consumer/'environment.sh'],1)]:
+            p=subprocess.run([str(v) for v in args],capture_output=True,text=True)
+            check(p.returncode==expected_code and 'outside the Files CCF tree: /' in p.stderr,'default consumer rejects invalid mixed config with cause-specific error')
+        check(not consumer_state.exists(),'invalid default consumers create no state or guard')
+    finally:
+        consumer_config.write_bytes(consumer_original)
+    # The same Files path never becomes a Unity lane.
+    off['lanes'][-1]['unity']=True
+    config.write_text(json.dumps(off))
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+    check(p.returncode==2 and 'escapes ZX20' in p.stderr,'Files Unity lane rejected')
+    for permit in [False,True]:
+        try:config_read(config,permit_off_storage_lanes=permit)
+        except ValueError as e:check('escapes ZX20' in str(e),'default/inventory Files Unity rejected')
+        else:raise AssertionError('Files Unity admitted')
+    unity_rejected_state=SCRATCH/'rejected-files-unity'
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'acquire','--config',str(config),'--test-state-dir',str(unity_rejected_state),'--lane','off-storage'],capture_output=True,text=True)
+    check(p.returncode==2 and 'escapes ZX20' in p.stderr and not unity_rejected_state.exists(),'Files Unity rejected before lock state/guard')
+    config.write_text(json.dumps(cfg))
+    # Real resolved path escapes; symlink fixture is on ext4.
+    escape=files_fixture/'escape';escape.symlink_to('/')
+    sibling_escape=files_fixture/'sibling-escape';sibling_escape.symlink_to(str(DURABLE_CCF)+'-sibling')
+    for invalid in ['/',str(DURABLE_CCF)+'-sibling/lane',str(ROOT)+'-sibling/lane',str(DURABLE_CCF/'../outside-ccf'),str(escape),str(sibling_escape)]:
+        bad=json.loads(json.dumps(cfg));bad['lanes'].append({'lane':'escape','path':invalid,'purpose':'negative boundary','unity':False});config.write_text(json.dumps(bad))
+        for permit in [False,True]:
+            try:config_read(config,permit_off_storage_lanes=permit)
+            except ValueError as e:check('outside the Files CCF tree:' in str(e),'default/inventory resolved escape rejected: '+invalid)
+            else:raise AssertionError('out-of-bounds configuration admitted')
+        p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+        check(p.returncode==2 and 'outside the Files CCF tree:' in p.stderr,'resolved inventory path escape rejected: '+invalid)
+    config.write_text(json.dumps(cfg))
+    for key,value in [('uuid',''),('uuid','0000-0000'),('fstype','ext4'),('device','/dev/null'),('root',str(ROOT/'CCF-Temp'))]:
+        bad=json.loads(json.dumps(cfg));bad['storage'][key]=value;config.write_text(json.dumps(bad))
+        p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+        check(p.returncode==2 and 'mount identity mismatch' in p.stderr,'wrong storage '+key+' rejected: '+value)
+    config.write_text(json.dumps(cfg))
+    # Malformed configuration remains rejected with either caller mode.
+    invalid_configs=[]
+    for path in ['relative/lane','/']:
+        bad=json.loads(json.dumps(cfg));bad['lanes'][0]['path']=path;invalid_configs.append((bad,'lane path must be absolute' if path!='/' else 'escapes ZX20'))
+    for value in ['false',0,None]:
+        bad=json.loads(json.dumps(cfg));bad['lanes'][0]['unity']=value;invalid_configs.append((bad,'unity: true/false'))
+    bad=json.loads(json.dumps(cfg));bad['lanes'].append(dict(bad['lanes'][0]));invalid_configs.append((bad,'duplicate lane'))
+    bad=json.loads(json.dumps(cfg));bad['lanes'].append(dict(bad['lanes'][0],lane='same-path'));invalid_configs.append((bad,'duplicate lane'))
+    for repo in ['/',str(SCRATCH/'missing-repo')]:
+        bad=json.loads(json.dumps(cfg));bad['repository']=repo;invalid_configs.append((bad,'repository must be' if repo=='/' else 'missing repository'))
+    bad=json.loads(json.dumps(cfg));bad['git_stores'][0]['git_dir']='relative';invalid_configs.append((bad,'absolute git_dir'))
+    bad=json.loads(json.dumps(cfg));bad['git_stores'].append(dict(bad['git_stores'][0]));invalid_configs.append((bad,'duplicate Git store'))
+    for bad,message in invalid_configs:
+        config.write_text(json.dumps(bad))
+        for permit in [False,True]:
+            try:config_read(config,permit_off_storage_lanes=permit)
+            except ValueError as e:check(message in str(e),'default/inventory malformed config rejected: '+message)
+            else:raise AssertionError('malformed configuration admitted')
+    config.write_text(json.dumps(cfg))
+    broken_board=SCRATCH/'broken-board.md'; broken_board.write_text('| ID | State |\n|---|---|\n')
+    check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board missing required fields FAIL')
+
+    # Storage admission and board checks.
+    health=storage_health(cfg['storage'])
+    check(health['ready'] and health['writable'] and health['free_bytes']>=15*1024**3,'actual ZX20 rw/free PASS')
+    check(storage_health(cfg['storage'],free_bytes=0)['status']=='LOW SPACE','shared low-space admission BLOCK')
+    ro={'source':DEVICE,'target':str(ROOT),'fstype':'exfat','uuid':'18D6-896E','options':'ro,nosuid'}
+    check(storage_health(cfg['storage'],mount_info=ro)['status']=='READ ONLY','read-only mount admission BLOCK')
+    low=json.loads(cli('lane-status','--storage-only','--json','--config',config,'--test-free-bytes','0',code=1))
+    check(low['status']=='LOW SPACE' and not low['ready'] and low['minimum_free_bytes']==15*1024**3,'lane-status low-space hard stop')
+    check('PASS:' in run(['bash','-c','source "$1"','ccf-test',OPS/'environment.sh']),'environment.sh actual rw/free PASS')
+    # No fixture store or branch is production data.
+    second=SCRATCH/'second-store'
+    run(['git','clone','--no-hardlinks',seed,second])
+    run(['git','-C',second,'checkout','-b','test/clean'])
+    dual=json.loads(json.dumps(cfg));dual['git_stores'].append({'name':'second','git_dir':str(second/'.git')});config.write_text(json.dumps(dual))
+    blocked=cli('lane-status','--config',config,'--preflight','--lane','U1','--branch','test/clean',code=1)
+    check('BLOCKED' in blocked and 'another writable checkout' in blocked,'dual-store branch collision blocks preflight')
+    run(['git','-C',second,'checkout','test/seed'])
+    check(cli('lane-status','--config',config,'--preflight','--lane','U1','--branch','test/clean').rstrip().endswith('READY'),'nonconflicting assignment READY')
+    config.write_text(json.dumps(cfg))
+    # Duplicate board claims fail mechanically; no board authority is promoted.
+    row=['DUP-1','ACTIVE','fixture','Codex','test','test','U1','test/clean',command(['git','-C',str(seed),'rev-parse','HEAD']),'fixture','fixture only','No','None','Tier 1','fixture','None','test']
+    for duplicate_field in ['Lane','Branch']:
+        other=list(row);other[0]='DUP-2'
+        other[BOARD_FIELDS.index('Branch' if duplicate_field=='Lane' else 'Lane')]='other'
+        board.write_text('| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n| '+' | '.join(row)+' |\n| '+' | '.join(other)+' |\n')
+        check('duplicate live '+duplicate_field in cli('packet-lint','--config',config,'--board',board,code=1),'duplicate board '+duplicate_field+' FAIL')
+    board.write_text('| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n')
+
+    # Lock exercises only isolated test state; never acquire production lock.
+    state=SCRATCH/'lock-state'
+    base=['--test-state-dir',str(state),'--config',str(config)]
+    head=command(['git','-C',str(seed),'rev-parse','HEAD'])
+    eta=(datetime.now(timezone.utc)+timedelta(minutes=20)).isoformat()
+    acquire=['acquire',*base,'--owner','test-owner','--task-id','TEST','--lane',str(clean),'--branch','test/clean','--head',head,'--eta',eta,'--notes','isolated offline self-test','--json']
+    def lock(*args,code=0): return cli('unity-lock',*args,code=code)
+    check(json.loads(lock('status',*base,'--json'))['status']=='free','lock initial status free')
+    for args,label in [(['--lane','NonUnity'],'NonUnity lane rejected'),(['--branch','wrong-branch'],'wrong branch rejected'),(['--head','0'*40],'wrong HEAD rejected')]:
+        lock(*acquire,*args,code=2);check(True,label)
+    # A nonempty path from another Git store cannot be acquired as our Unity lane.
+    foreign=json.loads(json.dumps(cfg));foreign['lanes'][0]['path']=str(second);config.write_text(json.dumps(foreign))
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire,'--lane',str(second)],capture_output=True,text=True)
+    check(p.returncode==2 and 'unexpected lane Git store' in p.stderr and not (state/'lock.json').exists(),'foreign Git store lane rejected without lease')
+    config.write_text(json.dumps(cfg))
+    held=json.loads(lock(*acquire)); check(held['status']=='held','lock acquire')
+    check(json.loads(lock('status',*base,'--json'))['metadata']['owner']=='test-owner','lock status metadata')
+    lock(*acquire,'--owner','second-owner',code=2); check(True,'lock second owner rejected')
+    lock('release',*base,'--owner','wrong-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'],code=2); check((state/'lock.json').exists(),'lock wrong owner cannot release')
+    for task,lock_id in [('WRONG-TASK',held['metadata']['lock_id']),('TEST','wrong-lock-id')]:
+        p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'release',*base,'--owner','test-owner','--task-id',task,'--lock-id',lock_id],capture_output=True,text=True)
+        check(p.returncode==2 and (state/'lock.json').exists(),'mismatched task or lease identity cannot release')
+    lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
+    check(json.loads(lock('status',*base,'--json'))['status']=='free','lock owner release')
+
+    # Start a fixture process and let it exit naturally; never kill any process.
+    proc=subprocess.Popen([sys.executable,'-B','-c','import sys; sys.stdin.read()'],stdin=subprocess.PIPE)
+    try:
+        held=json.loads(lock(*acquire,'--pid',str(proc.pid)))
+    finally:
+        proc.stdin.close(); proc.wait(timeout=5)
+    stale=json.loads(lock('status',*base,'--json'))
+    check(stale['status']=='stale' and stale['metadata']['pid']==proc.pid,'lock stale PID inspection')
+    lock(*acquire,code=2); check(True,'stale record still rejects acquire')
+    lock('release',*base,'--force','--owner','test-inspector',code=2); check((state/'lock.json').exists(),'force release requires reason')
+    lock('release',*base,'--force','--owner','test-inspector','--reason','fixture exited',code=2)
+    check((state/'lock.json').exists(),'force without Manager approval reference rejected')
+    lock('release',*base,'--force','--owner','test-inspector','--reason','fixture PID exited; no Unity was launched','--manager-approval','user-packet:isolated-force-test')
+    events=[json.loads(l) for l in (state/'history.jsonl').read_text().splitlines()]
+    check(events[-1]['event']=='force-release' and events[-1]['previous']==stale['metadata'] and events[-1]['inspection']['status']=='stale' and events[-1]['manager_approval']=='user-packet:isolated-force-test','force release audits complete previous state')
+    (state/'lock.json').write_text('{broken fixture metadata')
+    check(json.loads(lock('status',*base,'--json'))['status']=='malformed','malformed stale metadata inspectable')
+    lock(*acquire,code=2)
+    lock('release',*base,'--force','--owner','test-inspector','--reason','isolated malformed fixture','--manager-approval','user-packet:isolated-force-test')
+    check(json.loads((state/'history.jsonl').read_text().splitlines()[-1])['previous']['raw']=='{broken fixture metadata','force release preserves malformed raw state')
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        attempts=list(pool.map(lambda _:subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire],capture_output=True,text=True),range(6)))
+    check(sum(p.returncode==0 for p in attempts)==1 and sum(p.returncode==2 for p in attempts)==5,'atomic concurrent acquisition: exactly one winner')
+    held=json.loads(lock('status',*base,'--json'))
+    lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
+    check(json.loads(lock('status',*base,'--json'))['status']=='free','isolated lock free after tests')
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'status','--test-state-dir',str(ROOT/'CCF-Verification/invalid-test-lock')],capture_output=True,text=True)
+    check(p.returncode==2,'test lock override cannot escape scratch')
+
+    # A tiny dummy workflow; every stage is explicitly simulated.
+    pilot=SCRATCH/'pilot'; pilot.mkdir(); board=pilot/'active.md'
+    header='| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n'
+    source_repo=OPS.parent
+    if (source_repo/'.git').exists():
+        source_head=command(['git','-C',str(source_repo),'rev-parse','HEAD'])
+        source_branch=command(['git','-C',str(source_repo),'rev-parse','--abbrev-ref','HEAD'])
+    else:
+        deployment=json.loads((OPS/'deployment.json').read_text())
+        source_head=deployment['source_head']; source_branch=deployment['source_branch']
+    packet_text=(OPS/'pilot/manager-packet.md').read_text()
+    check(cli('packet-lint',OPS/'pilot/manager-packet.md').startswith('PASS'),'pilot manager packet lint')
+    # Production lane inventory is read-only and archived in the pilot receipt.
+    (pilot/'lane-status.json').write_text(cli('lane-status','--json'))
+    values=['CCF-DUMMY-T1','ACTIVE','simulated worker','Codex','GPT-6.1 Sol','OpenAI allowance','NonUnity',source_branch,source_head,'operations dummy','isolated fixture only','No','None','Tier 1','mock handoff','None','produce simulated handoff']
+    def snapshot(state,action):
+        values[1]=state; values[-1]=action
+        board.write_text(header+'| '+' | '.join(values)+' |\n'); board_read(board)
+        (pilot/(state+'.md')).write_text(board.read_text())
+    snapshot('ACTIVE','produce simulated handoff')
+    (pilot/'worker-handoff.md').write_text(f'SIMULATED WORKER HANDOFF\nBranch: {source_branch}\nBase: c6dc136b7f1f8668d9f67f95f48968d290ad5067\nContext: c6dc136b7f1f8668d9f67f95f48968d290ad5067\nExact HEAD: {source_head}\nResult: no implementation; fixture-only handoff\n')
+    snapshot('VERIFY','mock verify packet fields and fixture handoff')
+    check((pilot/'worker-handoff.md').exists() and len(board_read(board))==1,'pilot ACTIVE → handoff → VERIFY')
+    ledger=f'''Task ID: CCF-DUMMY-T1
+    Purpose: Prove offline board/handoff/ledger mechanics using a simulation.
+    Worker route: Codex / GPT-6.1 Sol / OpenAI allowance
+    Base: c6dc136b7f1f8668d9f67f95f48968d290ad5067
+    Final HEAD: {source_head}
+    Verification: Packet lint; read-only lane status; board schema; fixture handoff presence; mock verdict.
+    Verdict: SIMULATED PASS; no independent gate or production acceptance.
+    Integrated?: Simulated
+    Canonical impact: None
+    Evidence path: {pilot}
+    Date: {datetime.now(timezone.utc).date()}
+    '''
+    (pilot/'ledger.md').write_text(ledger)
+    required={'task id','purpose','worker route','base','final head','verification','verdict','integrated?','canonical impact','evidence path','date'}
+    check(required.issubset(fields_read(ledger)),'pilot closed ledger required fields')
+    for entry in (OPS/'ledger').glob('*.md'):
+        if entry.name!='README.md': check(required.issubset(fields_read(entry.read_text())),'stored ledger schema: '+entry.name)
+    board.write_text(header)
+    check(board_read(board)==[] and (pilot/'ledger.md').exists(),'pilot ledger exists before board close')
 finally:
-    proc.stdin.close(); proc.wait(timeout=5)
-stale=json.loads(lock('status',*base,'--json'))
-check(stale['status']=='stale' and stale['metadata']['pid']==proc.pid,'lock stale PID inspection')
-lock(*acquire,code=2); check(True,'stale record still rejects acquire')
-lock('release',*base,'--force','--owner','test-inspector',code=2); check((state/'lock.json').exists(),'force release requires reason')
-lock('release',*base,'--force','--owner','test-inspector','--reason','fixture exited',code=2)
-check((state/'lock.json').exists(),'force without Manager approval reference rejected')
-lock('release',*base,'--force','--owner','test-inspector','--reason','fixture PID exited; no Unity was launched','--manager-approval','user-packet:isolated-force-test')
-events=[json.loads(l) for l in (state/'history.jsonl').read_text().splitlines()]
-check(events[-1]['event']=='force-release' and events[-1]['previous']==stale['metadata'] and events[-1]['inspection']['status']=='stale' and events[-1]['manager_approval']=='user-packet:isolated-force-test','force release audits complete previous state')
-(state/'lock.json').write_text('{broken fixture metadata')
-check(json.loads(lock('status',*base,'--json'))['status']=='malformed','malformed stale metadata inspectable')
-lock(*acquire,code=2)
-lock('release',*base,'--force','--owner','test-inspector','--reason','isolated malformed fixture','--manager-approval','user-packet:isolated-force-test')
-check(json.loads((state/'history.jsonl').read_text().splitlines()[-1])['previous']['raw']=='{broken fixture metadata','force release preserves malformed raw state')
-
-with ThreadPoolExecutor(max_workers=6) as pool:
-    attempts=list(pool.map(lambda _:subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire],capture_output=True,text=True),range(6)))
-check(sum(p.returncode==0 for p in attempts)==1 and sum(p.returncode==2 for p in attempts)==5,'atomic concurrent acquisition: exactly one winner')
-held=json.loads(lock('status',*base,'--json'))
-lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
-check(json.loads(lock('status',*base,'--json'))['status']=='free','isolated lock free after tests')
-p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'status','--test-state-dir',str(ROOT/'CCF-Verification/invalid-test-lock')],capture_output=True,text=True)
-check(p.returncode==2,'test lock override cannot escape scratch')
-
-# A tiny dummy workflow; every stage is explicitly simulated.
-pilot=SCRATCH/'pilot'; pilot.mkdir(); board=pilot/'active.md'
-header='| '+' | '.join(BOARD_FIELDS)+' |\n|'+'---|'*len(BOARD_FIELDS)+'\n'
-source_repo=OPS.parent
-if (source_repo/'.git').exists():
-    source_head=command(['git','-C',str(source_repo),'rev-parse','HEAD'])
-    source_branch=command(['git','-C',str(source_repo),'rev-parse','--abbrev-ref','HEAD'])
-else:
-    deployment=json.loads((OPS/'deployment.json').read_text())
-    source_head=deployment['source_head']; source_branch=deployment['source_branch']
-packet_text=(OPS/'pilot/manager-packet.md').read_text()
-check(cli('packet-lint',OPS/'pilot/manager-packet.md').startswith('PASS'),'pilot manager packet lint')
-# Production lane inventory is read-only and archived in the pilot receipt.
-(pilot/'lane-status.json').write_text(cli('lane-status','--json'))
-values=['CCF-DUMMY-T1','ACTIVE','simulated worker','Codex','GPT-6.1 Sol','OpenAI allowance','NonUnity',source_branch,source_head,'operations dummy','isolated fixture only','No','None','Tier 1','mock handoff','None','produce simulated handoff']
-def snapshot(state,action):
-    values[1]=state; values[-1]=action
-    board.write_text(header+'| '+' | '.join(values)+' |\n'); board_read(board)
-    (pilot/(state+'.md')).write_text(board.read_text())
-snapshot('ACTIVE','produce simulated handoff')
-(pilot/'worker-handoff.md').write_text(f'SIMULATED WORKER HANDOFF\nBranch: {source_branch}\nBase: c6dc136b7f1f8668d9f67f95f48968d290ad5067\nContext: c6dc136b7f1f8668d9f67f95f48968d290ad5067\nExact HEAD: {source_head}\nResult: no implementation; fixture-only handoff\n')
-snapshot('VERIFY','mock verify packet fields and fixture handoff')
-check((pilot/'worker-handoff.md').exists() and len(board_read(board))==1,'pilot ACTIVE → handoff → VERIFY')
-ledger=f'''Task ID: CCF-DUMMY-T1
-Purpose: Prove offline board/handoff/ledger mechanics using a simulation.
-Worker route: Codex / GPT-6.1 Sol / OpenAI allowance
-Base: c6dc136b7f1f8668d9f67f95f48968d290ad5067
-Final HEAD: {source_head}
-Verification: Packet lint; read-only lane status; board schema; fixture handoff presence; mock verdict.
-Verdict: SIMULATED PASS; no independent gate or production acceptance.
-Integrated?: Simulated
-Canonical impact: None
-Evidence path: {pilot}
-Date: {datetime.now(timezone.utc).date()}
-'''
-(pilot/'ledger.md').write_text(ledger)
-required={'task id','purpose','worker route','base','final head','verification','verdict','integrated?','canonical impact','evidence path','date'}
-check(required.issubset(fields_read(ledger)),'pilot closed ledger required fields')
-for entry in (OPS/'ledger').glob('*.md'):
-    if entry.name!='README.md': check(required.issubset(fields_read(entry.read_text())),'stored ledger schema: '+entry.name)
-board.write_text(header)
-check(board_read(board)==[] and (pilot/'ledger.md').exists(),'pilot ledger exists before board close')
+    # Only this mkdtemp-owned directory is removed, even after a failed assertion.
+    if (files_lane/'.git').is_file():
+        run(['git','-C',seed,'worktree','remove',files_lane])
+    shutil.rmtree(files_fixture)
+    check(not files_fixture.exists(),'owned Files lane and escape symlinks cleaned in finally')
 result={'result':'PASS','checks':count,'scratch':str(SCRATCH),'pilot_evidence':str(pilot),'source_head':source_head,'unity_launched':False,'production_lock_acquired':False}
 (SCRATCH/'result.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result,indent=2),flush=True)

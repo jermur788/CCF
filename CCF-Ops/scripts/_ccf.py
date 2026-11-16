@@ -139,9 +139,10 @@ def config_read(path, permit_off_storage_lanes=False):
             raise ValueError('lane needs nonempty lane, purpose and absolute path')
         if not Path(lane['path']).is_absolute():
             raise ValueError('lane path must be absolute')
-        # Explicit inventory permission covers only durable non-Unity lanes.
-        # Unity lanes and every caller without permission remain ZX20-only.
-        if permit_off_storage_lanes and not lane['unity']:
+        # Owner-approved Option A: reading a registered non-Unity row may
+        # admit bounded Files CCF. This grants no writable/Unity admission.
+        # Keep the legacy inventory flag for callers; it cannot widen bounds.
+        if not lane['unity']:
             resolved = str(on_project_storage(lane['path'], root))
         else:
             resolved = str(on_storage(lane['path'], root))
