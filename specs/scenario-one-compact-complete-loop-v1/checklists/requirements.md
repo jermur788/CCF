@@ -7,6 +7,20 @@
 
 **Status: DRAFT — ALL 115 ITEMS UNCHECKED / UNVERIFIED.** #516 is browser-only owner-scope/spec reconciliation against #515, #508 and #513; no Unity, new save, production code or native path/planting/old-world test executed. Older #460 one-rack scratch and #490 post-rack annual research remain **historical**, not evidence of the new no-rack world. A checkbox requires exact authorised production and cited verification evidence; it is never checked by writing/reviewing a DRAFT.
 
+## #614 — Evidence overlay: complete Linux gameplay before final art (DRAFT; no new R IDs)
+
+**Core physical scene/first personal playtest:** Existing unchecked R-005…007, R-026…030, R-065…066, R-070…072 and R-075 still require signed H1/14 historical omissions/8 buffers, Route A, *actual* Sitka/tree/Stand Map IDs, four G1 positions, real capsule/guard collider/walk and 720p/1080p legibility. **O1 0.141 m path-core guard overlap remains a FAIL**, O2 0.155 m verge and B2 margin remain warnings until native proof/FR-06 owner-signed amendment. A neutral primitive stand-in may depict a correct physical state, **not suppress a collider** to pass.
+
+**True teaching and forestry:** R-040…064, R-093…098, R-102 and R-105…113 require four genuine owner-stock 2 Oak+2 Beech Pending orders, approved Work Plan, quote and annual settlement, first-year/long-year browsing and recruitment, comparable true Sitka/Oak/Beech, meaningful later interventions and no-work, S1-C/S1-D history/review, and owner-decided OPEN-C5 cash/completion. Do not award intervention credit for H1 omissions/initial planting/guards/token Fell; do not invent funding, natural broadleaf donors or a mandatory three-cycle quota.
+
+**Shared scene-independent admission:** R-011…025, R-080, R-083…092, R-101 protect actual #544 one registry for three profiles, New/Continue/Restart **pre-scene** foreign/future/backup refusal, no boot-dependent `ForestSaveController.CanLoad`, genuine old v1–v24/frozen Reference. Preserve ISO-07/08/42/44/48/54/55 + ISO-15 identity; ISO-58 is **BLOCKED teaching/CG-TRIG**. R-031…039 retain existing *non-Enlarged80* rack eligibility refusal, not a Compact-only prescription bypass.
+
+**Asset/quality mapping — #606 n-1 clarified:** R-070/071 are stage/state-accurate render requirements; **R-073 explicitly remains provenance/licence/LOD/import checks** and **R-074 explicitly remains measured hardware/performance evidence**. Existing stage-appropriate tracked first-party Sitka Plantation02, understory/deadwood and 2 m Oak/Beech can be reused only after real source/version/rights inspection. For initial 0.6 m Oak/Beech, a labelled simple placeholder is safer than a 0.3× shrunken 2 m model; this is *not* a Unity render pass. Final art pack, #605 v2 and #611 look are **not blockers for beginning core code**. Personal playtest does require readable honest graphics/physics; external beta later requires suitable visual quality/licence/performance. Do not alter protected `Forest Ground.mat`, `Forest Path.mat`, 52 E80 planks/tracks, old worlds or import unlicensed `ForestFloorV1`/partial Ultimate Nature. D-032 is open.
+
+**Test and user gate:** R-076/077 require registered exclusive Linux worktree/HEAD/Unity lease, Tier-1 FAST for bounded source, Tier-2 FEATURE for native walk/plant/save proof and one Tier-3 milestone candidate (not full suite per art item). R-079 requires owner personally testing exact Linux Editor candidate **before separately authorising** any Windows build. R-081 precludes asserting acceptance from source/aesthetic screenshot alone; R-082 dashboard/Drive receipt remain unverified.
+
+**Preservation:** all original 115 `- [ ] R-001…R-115` checkbox lines below remain byte-for-byte unchanged, all **NOT RUN**. This overlay adds no checks, no acceptance and no DRAFT→APPROVED transition.
+
 ## #600 — Source-to-requirement witness guide (commentary only; zero new IDs/checks)
 
 ### #604 correction — existing-ID acceptance crosswalk only; all original R boxes stay unchecked
