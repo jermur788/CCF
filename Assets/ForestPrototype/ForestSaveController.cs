@@ -13,16 +13,24 @@ public sealed class ForestSaveController : MonoBehaviour
     private float messageTimer;
     private GUIStyle messageStyle;
 
+    // Not null while the live world may be only partly applied: a load stopped part-way through and
+    // there is no proven way to put the previous world back in place. Save is refused until a whole
+    // source is applied, so a partial world can never replace the previous save on disk.
+    private string incompleteWorldReason;
+
     private sealed class CapturedSource
     {
         internal readonly string Json;
         internal readonly ForestSaveSessionContext Context;
         internal readonly string PrimaryPath;
-        internal CapturedSource(string json, ForestSaveSessionContext context)
+        // A capture of a possibly incomplete world stays incomplete when it is restored later.
+        internal readonly string IncompleteWorldReason;
+        internal CapturedSource(string json, ForestSaveSessionContext context, string incompleteWorldReason)
         {
             Json = json;
             Context = context;
             PrimaryPath = context.GetSelectedPaths(Application.persistentDataPath).Primary;
+            IncompleteWorldReason = incompleteWorldReason;
         }
     }
 
@@ -34,18 +42,22 @@ public sealed class ForestSaveController : MonoBehaviour
         private readonly ForestSaveSessionContext context;
         private readonly ForestSaveProfiles.Profile profile;
         private readonly string primaryPath;
+        // Null for a disk or archive source; a same-session capture carries its world's state.
+        private readonly string carriedIncompleteReason;
         private ScenarioOneManager applyingManager;
         private bool applying;
 
-        private AdmittedSave(string raw, ForestSaveSessionContext sourceContext)
+        private AdmittedSave(string raw, ForestSaveSessionContext sourceContext, string incompleteReason)
         {
             json = raw;
             context = sourceContext;
             profile = context.SelectedProfile;
             primaryPath = context.GetSelectedPaths(Application.persistentDataPath).Primary;
+            carriedIncompleteReason = incompleteReason;
         }
 
-        internal static bool TryCreate(string json, out AdmittedSave admission, out string problem)
+        internal static bool TryCreate(string json, out AdmittedSave admission, out string problem,
+            string carriedIncompleteReason = null)
         {
             admission = null;
             ForestSaveSessionContext context = ForestSaveSessionContext.Current;
@@ -70,7 +82,7 @@ public sealed class ForestSaveController : MonoBehaviour
                 problem = "the save explicitly belongs to a different scenario";
                 return false;
             }
-            admission = new AdmittedSave(json, context);
+            admission = new AdmittedSave(json, context, carriedIncompleteReason);
             return true;
         }
 
@@ -120,8 +132,26 @@ public sealed class ForestSaveController : MonoBehaviour
             onAdmitted?.Invoke();
             applyingManager = Object.FindFirstObjectByType<ScenarioOneManager>();
             applying = true;
-            try { return controller.ApplyAdmittedData(data, this, showMessage); }
+            bool applied = false;
+            System.Exception failure = null;
+            try { applied = controller.ApplyAdmittedData(data, this, showMessage); }
+            catch (System.Exception error) { failure = error; }
             finally { applying = false; applyingManager = null; }
+            if (failure == null)
+            {
+                // A whole source now defines the live world: a disk or archive source is complete, and a
+                // same-session capture brings back the completeness its world had when it was captured.
+                if (applied) controller.incompleteWorldReason = carriedIncompleteReason;
+                return applied;
+            }
+            // A partial apply is refused, never completed or reported as loaded. Putting the previous world
+            // back in place is not attempted: Unity finishes Destroy at the end of the frame, so a same-frame
+            // reapply cannot be proven to restore it. Refusing Save keeps the previous save file intact.
+            Debug.LogException(failure);
+            controller.incompleteWorldReason = "the last load stopped part-way, so this forest may be incomplete";
+            refusal = "Save not loaded: it stopped part-way. This forest may be incomplete, so saving is off until a save loads fully or a new forest starts.";
+            controller.SetMessage(refusal);
+            return false;
         }
 
         internal bool TryGetManagementData(ScenarioOneManager manager, out ScenarioOneSaveData data, out int version)
@@ -172,6 +202,12 @@ public sealed class ForestSaveController : MonoBehaviour
         if (!CanOperateOnSelectedWorld(out string problem))
         {
             refusal = "Save refused: " + problem;
+            SetMessage(refusal);
+            return false;
+        }
+        if (incompleteWorldReason != null)
+        {
+            refusal = "Save refused: " + incompleteWorldReason + ". Load a save or start a new forest first.";
             SetMessage(refusal);
             return false;
         }
@@ -271,7 +307,7 @@ public sealed class ForestSaveController : MonoBehaviour
         ForestSaveSessionContext context = ForestSaveSessionContext.Current;
         context.GetSelectedPaths(Application.persistentDataPath);
         ForestSaveData data = CaptureWorldData();
-        captures.Add(data, new CapturedSource(JsonUtility.ToJson(data), context));
+        captures.Add(data, new CapturedSource(JsonUtility.ToJson(data), context, incompleteWorldReason));
         return data;
     }
 
@@ -587,7 +623,7 @@ public sealed class ForestSaveController : MonoBehaviour
             Debug.LogWarning("Typed save refused: original raw source or unchanged same-session capture required.");
             return false;
         }
-        if (!AdmittedSave.TryCreate(source.Json, out admission, out problem))
+        if (!AdmittedSave.TryCreate(source.Json, out admission, out problem, source.IncompleteWorldReason))
         {
             Debug.LogWarning("Captured save refused: " + problem);
             return false;

@@ -15,9 +15,32 @@ public static partial class ForestSaveValidation
             return data.standGeometryModel == StandGeometryModel.Legacy40
                 ? null
                 : "a save older than version 20 cannot carry a stand geometry model";
-        return StandGeometryModel.IsKnown(data.standGeometryModel)
-            ? null
-            : $"unknown stand geometry model {data.standGeometryModel}";
+        // Only the historical slot reaches this validator; new-profile envelopes are refused earlier.
+        return ValidateGeometryBinding(data.standGeometryModel, ForestSaveProfiles.Historical);
+    }
+
+    // The signed contract reserves the number 2 for Compact30. This is a reservation in a switch, not a
+    // world: it names no dimensions, cells or content, and StandGeometryModel.IsKnown stays false for it.
+    internal const int ReservedCompactGeometryModel = 2;
+
+    // Exhaustive geometry dispatch. Every value is named here, so adding a model cannot silently fall back
+    // to the 40 m helper defaults. Value 2 refuses for every profile until a signed world manifest is
+    // bound to it, and none exists. The historical slot only ever accepts 0 and 1.
+    internal static string ValidateGeometryBinding(int model, ForestSaveProfiles.Profile profile)
+    {
+        bool historical = ReferenceEquals(profile, ForestSaveProfiles.Historical);
+        switch (model)
+        {
+            case StandGeometryModel.Legacy40:
+            case StandGeometryModel.Enlarged80:
+                return historical ? null : $"stand geometry model {model} belongs to the historical save slot";
+            case ReservedCompactGeometryModel:
+                return historical
+                    ? "stand geometry model 2 is reserved for a separately signed world and cannot be used by a historical save"
+                    : "stand geometry model 2 is reserved, and no signed world manifest is bound to it";
+            default:
+                return $"unknown stand geometry model {model}";
+        }
     }
 
     // JsonUtility turns a missing field into 0 (Legacy40). The disk-load path therefore checks that a v20

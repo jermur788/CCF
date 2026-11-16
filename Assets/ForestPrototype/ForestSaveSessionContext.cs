@@ -44,6 +44,33 @@ public sealed class ForestSaveSessionContext
         return true;
     }
 
+    // Construction gate for code that builds a world (ScenarioOneManager.Awake today). Pure: it reads
+    // only this context. A world may be built only after its profile has been sealed (BeforeSceneLoad,
+    // or a later staged context) and only for that profile's chapter.
+    public static bool TryAuthorizeWorldConstruction(string chapterId, out string reason)
+        => Current.TryAuthorizeConstruction(chapterId, out reason);
+
+    public bool TryAuthorizeConstruction(string chapterId, out string reason)
+    {
+        if (!WorldCreationStarted)
+        {
+            reason = "The save profile was not sealed before world creation.";
+            return false;
+        }
+        if (!ForestSaveProfiles.CanUse(SelectedProfile, out reason)) return false;
+        if (!string.Equals(SelectedProfile.ChapterId, chapterId, StringComparison.Ordinal))
+        {
+            reason = "The scenario being built does not match the selected save profile.";
+            return false;
+        }
+        reason = null;
+        return true;
+    }
+
+    // SI-09: learning/help preference keys belong to the selected profile's own namespace.
+    public bool TryGetPreferencePrefixes(out string learningPrefix, out string menuHelpPrefix, out string reason)
+        => ForestSaveProfiles.TryGetPreferencePrefixes(SelectedProfile, out learningPrefix, out menuHelpPrefix, out reason);
+
     public ForestSavePaths GetSelectedPaths(string persistentDataPath)
     {
         if (!ForestSaveProfiles.CanUse(SelectedProfile, out string reason))

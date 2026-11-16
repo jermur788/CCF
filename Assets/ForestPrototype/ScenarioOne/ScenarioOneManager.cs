@@ -459,7 +459,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             if (GetComponent<ScenarioOneUiRoot>() == null)
                 gameObject.AddComponent<ScenarioOneUiRoot>();
         }
-        if (!initialized && definition != null)
+        // Selection before creation: the save profile must already be sealed, and match this scenario,
+        // before the first line below changes the world (geometry, then scenario state).
+        string selectionProblem = null;
+        if (!initialized && definition != null
+            && !ForestSaveSessionContext.TryAuthorizeWorldConstruction(definition.ScenarioId, out selectionProblem))
+            Debug.LogError("Scenario One world was not created: " + selectionProblem, this);
+        else if (!initialized && definition != null)
         {
             // A fresh session is a new game: it uses the corrected, versioned
             // random domains. Loads replace this with the model recorded in the

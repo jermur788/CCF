@@ -110,6 +110,29 @@ public static class ForestSaveProfiles
         return new ForestSavePaths(Path.Combine(persistentDataPath, profile.PrimaryFileName));
     }
 
+    // SI-09 namespaces. Only a registered, usable profile gets prefixes, so an unavailable reserved
+    // profile can never read, write or reset its keys. Historical prefixes stay exactly as before.
+    public static bool TryGetPreferencePrefixes(Profile profile, out string learningPrefix, out string menuHelpPrefix,
+        out string reason)
+    {
+        learningPrefix = null;
+        menuHelpPrefix = null;
+        if (!CanUse(profile, out reason)) return false;
+        learningPrefix = profile.LearningPreferencePrefix;
+        menuHelpPrefix = profile.MenuHelpPreferencePrefix;
+        reason = null;
+        return true;
+    }
+
+    // For enumerated resets: true only for a key inside this profile's own learning/help namespace.
+    // Other profiles' keys and the global ReduceMotion key are never owned.
+    public static bool OwnsPreferenceKey(Profile profile, string key)
+    {
+        if (!IsRegistered(profile) || string.IsNullOrEmpty(key)) return false;
+        return key.StartsWith(profile.LearningPreferencePrefix, StringComparison.Ordinal)
+            || key.StartsWith(profile.MenuHelpPreferencePrefix, StringComparison.Ordinal);
+    }
+
     private static bool IsRegistered(Profile profile)
     {
         foreach (Profile candidate in All)
