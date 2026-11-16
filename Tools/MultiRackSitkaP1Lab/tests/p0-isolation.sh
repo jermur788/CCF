@@ -38,15 +38,43 @@ l2 > "$evidence/L2-before.txt"; l3 > "$evidence/L3-before.txt"; tracked > "$evid
 # Cold run: remove only P1-owned build output, then build the P0 Core reference, build P1, run tests and CLI under strace.
 rm -rf -- "$p1_root/.p0ref" "$p1_root/src/Core/bin" "$p1_root/src/Core/obj" "$p1_root/src/Cli/bin" "$p1_root/src/Cli/obj" \
           "$p1_root/tests/Core.Tests/bin" "$p1_root/tests/Core.Tests/obj"
+# #643 m-02: wider syscall set (incl. fd-based mutators and open_by_handle_at) plus chdir/fchdir/fork/clone so that
+# tests/l4_analyze.py can resolve legacy relative paths against each process's working directory.
+readonly L4_SYSCALLS=open,openat,openat2,creat,rename,renameat,renameat2,unlink,unlinkat,rmdir,mkdir,mkdirat,mknod,mknodat,link,linkat,symlink,symlinkat,truncate,ftruncate,fallocate,chmod,fchmod,fchmodat,chown,fchown,lchown,fchownat,utime,utimes,utimensat,futimesat,setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr,open_by_handle_at,chdir,fchdir,clone,clone3,fork,vfork
+analyze() { python3 -I -B "$p1_root/tests/l4_analyze.py" "$@"; }
+
+# L4 self-test first: the analyzer must detect scripted writes in a scratch decoy (relative legacy calls, at-calls,
+# fd-based calls and a write through a symlinked directory) and report nothing for a read-only control. Deletion calls
+# are not part of the decoy (this environment blocks scripted removals); they go through the same generic code path.
+decoy="$(mktemp -d "${TMPDIR:-/tmp}/ccf-p1-l4decoy.XXXXXXXX")"
+mkdir "$decoy/protected" "$decoy/outside"; echo seed > "$decoy/protected/seed.txt"; ln -s "$decoy/protected" "$decoy/outside/via"
+(cd "$decoy/outside" && strace -f -y -qq -o "$evidence/L4-selftest-write.trace" -e trace="$L4_SYSCALLS" bash -c '
+  cd ../protected; mkdir sub; cd sub; echo x > rel.txt; mkdir d; mv rel.txt r2.txt; ln r2.txt hl; ln -s r2.txt sl
+  touch r2.txt; chmod 600 r2.txt; truncate -s 0 r2.txt; cd /; echo y > "$1/outside/via/through-link.txt"
+  cd "$1/protected"; python3 -I -B -c "import os; os.mkdir(\"pyrel\")"' _ "$decoy")
+(cd "$decoy/outside" && strace -f -y -qq -o "$evidence/L4-selftest-read.trace" -e trace="$L4_SYSCALLS" bash -c '
+  cat ../protected/seed.txt > /dev/null; ls -la ../protected > /dev/null; cd ../protected; cat seed.txt > /dev/null')
+selftest_write_hits=0
+analyze "$evidence/L4-selftest-write.trace" "$decoy/protected" "$decoy/outside" --json "$evidence/L4-selftest-write.json" > "$evidence/L4-selftest-write.txt" || true
+selftest_write_hits="$(python3 -I -B -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["protectedHits"]))' "$evidence/L4-selftest-write.json")"
+selftest_read_rc=0
+analyze "$evidence/L4-selftest-read.trace" "$decoy/protected" "$decoy/outside" > "$evidence/L4-selftest-read.txt" || selftest_read_rc=$?
+if [[ "$selftest_write_hits" -ge 13 && "$selftest_read_rc" == 0 ]]; then
+  say "L4 self-test PASS: $selftest_write_hits/13 scripted decoy writes detected (incl. 3 legacy relative mkdir and a write through a symlinked dir); read-only control 0"
+else say "L4 self-test FAIL: write hits $selftest_write_hits (need 13), read control exit $selftest_read_rc"; fail=1; fi
+
+cd "$p1_root"
 strace -f -y -qq -o "$evidence/L4-strace.txt" \
-  -e trace=open,openat,openat2,creat,rename,renameat,renameat2,unlink,unlinkat,mkdir,mkdirat,link,linkat,symlink,symlinkat,truncate,chmod,fchmodat,chown,fchownat,utimensat,setxattr,removexattr \
+  -e trace="$L4_SYSCALLS" \
   bash -c '
     set -e
     cd "$1"
     build/build-p0-core-ref.sh
     dotnet build MultiRackSitkaP1Lab.sln --nologo -v quiet
     dotnet tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll > "$2/tests.txt"
-    dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll verify-derived p1d-30m-sitka-adult-v1 fixtures/derived/p1d-30m-sitka-adult-v1.sitkap1fx.json > "$2/cli-verify-derived.txt"
+    dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll verify-derived p1d-30m-sitka-adult-v1 fixtures/derived > "$2/cli-verify-derived.txt"
+    dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll generate-manifest --check fixtures/derived > "$2/cli-generate-check.txt"
+    dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll generate-manifest --stdout | sha256sum > "$2/cli-generate-stdout.sha256"
     for id in oracle-quarter-ha sitka-flat-demo-v1 sitka-flat-perf-2000-v1; do
       dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll inspect-original "$3/fixtures/synthetic" "$id" --review-evidence >> "$2/cli-inspect-original.txt"
       dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll inspect-original "$3/fixtures/synthetic" "$id" >> "$2/cli-inspect-original.txt" 2>&1 || true
@@ -71,16 +99,14 @@ if cmp -s "$evidence/tracked-before.txt" "$evidence/tracked-after.txt"; then
   say "L3+ PASS: SHA-256 of all $(wc -l < "$evidence/tracked-before.txt") tracked P0 files unchanged"
 else say "L3+ FAIL: a tracked P0 file changed"; fail=1; fi
 
-# L4 — any write-intent or mutating call naming the P0 tree. -y decodes descriptor paths, so dirfd-relative calls are covered.
-p0_esc="$(printf '%s' "$p0/" | sed 's/[.[\*^$/]/\\&/g')"
-grep -E "$p0_esc" "$evidence/L4-strace.txt" > "$evidence/L4-p0-lines.txt" || true
-grep -E 'O_WRONLY|O_RDWR|O_CREAT|O_TRUNC|O_APPEND|^[0-9]+ +(creat|rename|renameat2?|unlink|unlinkat|mkdir|mkdirat|link|linkat|symlink|symlinkat|truncate|chmod|fchmodat|chown|fchownat|utimensat|setxattr|removexattr)\(' \
-  "$evidence/L4-p0-lines.txt" > "$evidence/L4-p0-writes.txt" || true
-total_calls="$(wc -l < "$evidence/L4-strace.txt")"
-p0_calls="$(wc -l < "$evidence/L4-p0-lines.txt")"
-if [[ ! -s "$evidence/L4-p0-writes.txt" ]]; then
-  say "L4 PASS: 0 write-intent/mutating calls on the P0 tree ($p0_calls read-only P0 calls among $total_calls traced file calls)"
-else say "L4 FAIL: $(wc -l < "$evidence/L4-p0-writes.txt") write-intent calls on the P0 tree"; fail=1; fi
+# L4 — every traced mutating call, with relative paths resolved against tracked working directories (tests/l4_analyze.py).
+# Scope of the claim: the traced syscall set, in processes descended from the traced command, during this run only.
+l4_rc=0
+analyze "$evidence/L4-strace.txt" "$p0" "$p1_root" --json "$evidence/L4-analysis.json" > "$evidence/L4-analysis.txt" || l4_rc=$?
+if [[ "$l4_rc" == 0 ]]; then
+  say "L4 PASS (traced scope only): $(head -1 "$evidence/L4-analysis.txt"); $(wc -l < "$evidence/L4-strace.txt") trace lines"
+else say "L4 FAIL: $(head -1 "$evidence/L4-analysis.txt")"; fail=1; fi
+say "L4 limits: untraced syscalls (e.g. io_uring), processes outside the traced tree, and symlinked intermediate components in legacy relative paths are not observed; L2/L3/L3+ are the independent content and metadata checks"
 
 say "P1 tests: $(tail -1 "$evidence/tests.txt")"
 say "OVERALL: $([[ $fail == 0 ]] && echo PASS || echo FAIL)"

@@ -293,6 +293,7 @@ public sealed class DerivedManifest
         Expect(treeCount == trees.Items.Count, "TreeCountMismatch", "treeCount differs from the number of trees");
         Expect(treeCount is >= 1 and <= MaxTrees, "TreeCountMismatch", "tree count outside 1..10000");
         string? previous = null;
+        var positions = new HashSet<(long, long)>();
         foreach (var node in trees.Items)
         {
             var o = J.Keys(node, "tree", "treeId", "xMm", "yMm", "status", "ageYears", "dbhMm", "heightMm",
@@ -313,6 +314,8 @@ public sealed class DerivedManifest
                 UnityZBits = J.F32Bits(o["unityZ"], "unityZ"),
             };
             ValidateTree(t, previous);
+            // #643 m-01: two stems may not share an XY position (CI distance would be degenerate). Current fixture already complies.
+            Expect(positions.Add((t.XMm, t.YMm)), "DuplicatePosition", "two trees share the same XY position: " + t.TreeId);
             previous = t.TreeId;
             m.Trees.Add(t);
         }

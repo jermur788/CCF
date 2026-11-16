@@ -95,11 +95,21 @@ public static class FixtureAccess
     }
 
     /// <summary>
-    /// Loads a derived 30 m fixture from bytes through its compiled catalog record. Original P0 IDs and files are refused.
-    /// A pending record loads only for reviewer evidence; it never unlocks an annual step (see <see cref="AnnualGate"/>).
+    /// #643 M-02: reads a derived fixture from <paramref name="directory"/> with the same descriptor-anchored, no-follow,
+    /// size-capped read as the original import. The file name and exact length come from the compiled catalog record (never
+    /// from the caller), and ID, domain and review status are checked BEFORE any file is opened. A symlinked ancestor or
+    /// leaf, hard link, FIFO, directory or wrong-size file is refused without reading its contents; then the bytes go through
+    /// <see cref="LoadDerived"/> (SHA-256, strict canonical parse, domain, content hash).
     /// </summary>
-    public static DerivedLoad LoadDerived(string derivedFixtureId, byte[] bytes, TrustUse use,
+    public static DerivedLoad ReadDerived(string directory, string derivedFixtureId, TrustUse use,
         IReadOnlyList<DerivedCatalogRecord>? catalog = null)
+    {
+        var rec = DerivedRecordFor(derivedFixtureId, use, catalog);
+        byte[] bytes = NoFollowRead.ReadExact(directory, rec.FileName, rec.FileByteLength);
+        return LoadDerived(derivedFixtureId, bytes, use, catalog);
+    }
+
+    private static DerivedCatalogRecord DerivedRecordFor(string derivedFixtureId, TrustUse use, IReadOnlyList<DerivedCatalogRecord>? catalog)
     {
         if (!derivedFixtureId.StartsWith(DerivedManifest.IdPrefix, StringComparison.Ordinal))
             throw new P1Refusal("NotDerivedFixtureId", "only p1d- IDs are derived fixtures; original P0 IDs use the original import");
@@ -109,6 +119,17 @@ public static class FixtureAccess
             throw new P1Refusal("DomainUnavailable", "only the 30 m derived domain exists in F0");
         if (rec.Status != ReviewStatus.Accepted && use != TrustUse.ReviewEvidenceOnly)
             throw new P1Refusal("ManifestNotAccepted", "the derived manifest is pending independent review and Manager acceptance");
+        return rec;
+    }
+
+    /// <summary>
+    /// Loads a derived 30 m fixture from bytes through its compiled catalog record. Original P0 IDs and files are refused.
+    /// A pending record loads only for reviewer evidence; it never unlocks an annual step (see <see cref="AnnualGate"/>).
+    /// </summary>
+    public static DerivedLoad LoadDerived(string derivedFixtureId, byte[] bytes, TrustUse use,
+        IReadOnlyList<DerivedCatalogRecord>? catalog = null)
+    {
+        var rec = DerivedRecordFor(derivedFixtureId, use, catalog);
         if (bytes.Length != rec.FileByteLength) throw new P1Refusal("FileSizeMismatch", "derived fixture size differs from the catalog");
         if (DerivedManifest.Sha256Hex(bytes) != rec.FileSha256) throw new P1Refusal("FileHashMismatch", "derived fixture SHA-256 differs from the catalog");
         var m = DerivedManifest.Parse(bytes);

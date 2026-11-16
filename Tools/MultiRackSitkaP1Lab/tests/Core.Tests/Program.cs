@@ -328,6 +328,88 @@ T.Add("source: Class III height envelope anchors at 20.4 m at age 30 (function p
     T.True(Math.Abs(SitkaGrowthModel.SiteTopHeightM(30) - 20.4) < 1e-12, "E(30)=20.4");
 });
 
+// ------------------------------------------------------------------ #644 repair: m-01 duplicate XY positions
+T.Add("644 m-01: two trees at the same XY position refused (committed fixture unaffected)", () =>
+{
+    var m = ManifestGenerator.Generate();
+    var a = m.Trees[0];
+    var b = m.Trees[1];
+    b.XMm = a.XMm; b.YMm = a.YMm;
+    b.UnityXBits = DerivedManifest.UnityAxisBitsFor(b.XMm); b.UnityZBits = DerivedManifest.UnityAxisBitsFor(b.YMm);
+    m.ContentHash = DerivedManifest.Sha256Hex(m.BodyBytes());
+    T.Refuses("DuplicatePosition", () => DerivedManifest.Parse(m.FileBytes()));
+    T.Eq(100, DerivedManifest.Parse(manifestBytes).Trees.Count, "committed fixture still parses");
+});
+
+// ------------------------------------------------------------------ #644 repair: M-02 descriptor-checked derived read
+string derivedDir = Path.GetDirectoryName(manifestPath)!;
+const string DerivedId = "p1d-30m-sitka-adult-v1";
+string derivedName = DerivedId + ".sitkap1fx.json";
+T.Add("644 M-02: committed fixture reads through ReadDerived; pending status refuses before opening", () =>
+{
+    var load = FixtureAccess.ReadDerived(derivedDir, DerivedId, TrustUse.ReviewEvidenceOnly);
+    T.Eq(100, load.Manifest.Trees.Count, "trees");
+    T.Refuses("ManifestNotAccepted", () => FixtureAccess.ReadDerived("/nonexistent-dir", DerivedId, TrustUse.RequireAccepted));
+    T.Refuses("NotDerivedFixtureId", () => FixtureAccess.ReadDerived(derivedDir, "oracle-quarter-ha", TrustUse.ReviewEvidenceOnly));
+    T.Refuses("UnknownDerivedFixture", () => FixtureAccess.ReadDerived(derivedDir, "p1d-other", TrustUse.ReviewEvidenceOnly));
+});
+T.Add("644 M-02: symlink leaf, symlinked ancestor, hard link, FIFO, directory, oversized, undersized and missing refused", () =>
+{
+    var good = Fx.Dir(scratch, "d-good"); File.Copy(manifestPath, Path.Combine(good, derivedName));
+    FixtureAccess.ReadDerived(good, DerivedId, TrustUse.ReviewEvidenceOnly); // control
+    var sl = Fx.Dir(scratch, "d-symlink"); File.CreateSymbolicLink(Path.Combine(sl, derivedName), Path.Combine(good, derivedName));
+    T.Refuses("SymlinkRefused", () => FixtureAccess.ReadDerived(sl, DerivedId, TrustUse.ReviewEvidenceOnly));
+    var anc = Path.Combine(scratch, "d-ancestor-link"); Directory.CreateSymbolicLink(anc, scratch);
+    T.Refuses("DirectorySymlinkRefused", () => FixtureAccess.ReadDerived(Path.Combine(anc, "d-good"), DerivedId, TrustUse.ReviewEvidenceOnly));
+    var hl = Fx.Dir(scratch, "d-hardlink"); File.Copy(manifestPath, Path.Combine(hl, derivedName));
+    T.Eq(0, Fx.Link(Path.Combine(hl, derivedName), Path.Combine(hl, "alias")), "link()");
+    T.Refuses("HardLinked", () => FixtureAccess.ReadDerived(hl, DerivedId, TrustUse.ReviewEvidenceOnly));
+    var ff = Fx.Dir(scratch, "d-fifo"); T.Eq(0, Fx.MkFifo(Path.Combine(ff, derivedName), 0x180), "mkfifo()");
+    T.Refuses("NotRegularFile", () => FixtureAccess.ReadDerived(ff, DerivedId, TrustUse.ReviewEvidenceOnly));
+    var dd = Fx.Dir(scratch, "d-dir"); Directory.CreateDirectory(Path.Combine(dd, derivedName));
+    T.Refuses("NotRegularFile", () => FixtureAccess.ReadDerived(dd, DerivedId, TrustUse.ReviewEvidenceOnly));
+    var big = Fx.Dir(scratch, "d-oversized"); File.WriteAllBytes(Path.Combine(big, derivedName), manifestBytes.Concat(new byte[1 << 20]).ToArray());
+    T.Refuses("FileSizeMismatch", () => FixtureAccess.ReadDerived(big, DerivedId, TrustUse.ReviewEvidenceOnly));
+    var small = Fx.Dir(scratch, "d-undersized"); File.WriteAllBytes(Path.Combine(small, derivedName), manifestBytes[..^1]);
+    T.Refuses("FileSizeMismatch", () => FixtureAccess.ReadDerived(small, DerivedId, TrustUse.ReviewEvidenceOnly));
+    T.Refuses("FileMissing", () => FixtureAccess.ReadDerived(Fx.Dir(scratch, "d-missing"), DerivedId, TrustUse.ReviewEvidenceOnly));
+    T.Refuses("DirectorySymlinkRefused", () => FixtureAccess.ReadDerived(Path.Combine(good, derivedName), DerivedId, TrustUse.ReviewEvidenceOnly));
+});
+T.Add("644 M-02: same-size altered bytes and wrong-domain data refused after the bounded read", () =>
+{
+    var alt = Fx.Dir(scratch, "d-altered");
+    File.WriteAllBytes(Path.Combine(alt, derivedName), Mut("\"generatorSeed\":6390001", "\"generatorSeed\":6390002"));
+    T.Refuses("FileHashMismatch", () => FixtureAccess.ReadDerived(alt, DerivedId, TrustUse.ReviewEvidenceOnly));
+    // Wrong-domain data under a test-only catalog record whose length and SHA match it, so the domain rule is what refuses.
+    var wrong = Mut("\"domain\":\"DerivedP1ThirtyMetreExperimentV1\"", "\"domain\":\"OriginalPolygonExploratoryV1\"");
+    var wd = Fx.Dir(scratch, "d-wrong-domain"); File.WriteAllBytes(Path.Combine(wd, derivedName), wrong);
+    var rec = DerivedCatalog.Find(DerivedId)! with { FileByteLength = wrong.Length, FileSha256 = DerivedManifest.Sha256Hex(wrong) };
+    T.Refuses("DomainMismatch", () => FixtureAccess.ReadDerived(wd, DerivedId, TrustUse.ReviewEvidenceOnly, new[] { rec }));
+});
+
+// ------------------------------------------------------------------ #644 repair: B-01 no file output
+T.Add("644 B-01: generated bytes may only go to a pipe/terminal descriptor, never a regular file", () =>
+{
+    var f = Path.Combine(Fx.Dir(scratch, "b01"), "sentinel.txt");
+    File.WriteAllText(f, "sentinel");
+    using (var fs = new FileStream(f, FileMode.Open, FileAccess.Read))
+        T.Refuses("OutputNotStream", () => NoFollowRead.RequireStreamDescriptor((int)fs.SafeFileHandle.DangerousGetHandle()));
+    using (var pipe = new System.IO.Pipes.AnonymousPipeServerStream(System.IO.Pipes.PipeDirection.Out))
+        NoFollowRead.RequireStreamDescriptor((int)pipe.SafePipeHandle.DangerousGetHandle());
+    T.Eq("sentinel", File.ReadAllText(f), "sentinel unchanged");
+});
+T.Add("644 B-01: P1 production source contains no file-writing or path-based file API", () =>
+{
+    var banned = new[] { "File.Write", "File.Create", "File.Open", "File.Append", "File.Copy", "File.Move", "File.Delete",
+        "File.Replace", "File.ReadAll", "FileStream", "Directory.Create", "Directory.Delete", "Directory.Move", "StreamWriter" };
+    foreach (var file in Directory.EnumerateFiles(Path.Combine(p1Root, "src"), "*.cs", SearchOption.AllDirectories))
+    {
+        if (file.Contains("/bin/") || file.Contains("/obj/")) continue;
+        var text = File.ReadAllText(file);
+        foreach (var b in banned) T.True(!text.Contains(b, StringComparison.Ordinal), $"{Path.GetFileName(file)} uses {b}");
+    }
+});
+
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;

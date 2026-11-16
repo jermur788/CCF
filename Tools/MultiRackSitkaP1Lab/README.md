@@ -24,6 +24,8 @@ build/build-p0-core-ref.sh              # P0 Core DLL from the pinned tree, buil
 dotnet build MultiRackSitkaP1Lab.sln
 dotnet tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll
 tests/p0-isolation.sh <evidence-dir>    # cold rebuild + tests under strace; L0–L4 proof that P0 is untouched
+tests/build-output-safety.sh <evidence-dir>  # builder vs hostile .p0ref states (symlink, file, hard link, ...) using scratch stand-ins
+tests/cli-safety.sh <evidence-dir>      # documented CLI vs hostile outputs/inputs using scratch stand-ins
 ```
 
 Set `TMPDIR` to a directory **outside** the repository. The build script refuses to run if it is inside.
@@ -31,16 +33,27 @@ Set `TMPDIR` to a directory **outside** the repository. The build script refuses
 ## CLI
 
 ```bash
-dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll verify-derived p1d-30m-sitka-adult-v1 fixtures/derived/p1d-30m-sitka-adult-v1.sitkap1fx.json
+dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll generate-manifest --stdout | sha256sum          # streams to a pipe/terminal only
+dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll generate-manifest --check fixtures/derived       # compare with the committed fixture
+dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll verify-derived p1d-30m-sitka-adult-v1 fixtures/derived
 dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll inspect-original ../MultiRackSitkaLab/fixtures/synthetic oracle-quarter-ha [--review-evidence]
 dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll annual DerivedP1ThirtyMetreExperimentV1 p1d-30m-sitka-adult-v1   # always REFUSED in F0
 ```
 
-`--review-evidence` lets a reviewer run the full check sequence on a pending record. Its output is labelled
-`UNTRUSTED-PENDING-REVIEW` and never creates experiment state.
+- **No P1 command opens a file for writing.** `generate-manifest --stdout` refuses (`OutputNotStream`) unless standard
+  output is a pipe, socket or terminal, so redirecting it to a file is refused before any byte is written (#643 B-01).
+- Fixture commands take a **directory**. The file name and exact length come from the compiled catalog or trust table, and
+  the file is read through the no-follow, descriptor-checked reader (#643 M-02).
+- `--review-evidence` lets a reviewer run the full check sequence on a pending record. Its output is labelled
+  `UNTRUSTED-PENDING-REVIEW` and never creates experiment state.
 
 ## Isolation rules
 
+- `build/build-p0-core-ref.sh` refuses to write if `.p0ref` (or any of its three output names) is a symlink, a non-directory,
+  a foreign-owned directory, a non-regular file or a hard link. It installs files by exclusive temp name + `rename(2)` (#643 M-01).
+  Residual risk: a same-user process racing the script between its checks and the rename.
+- The L4 write trace (`tests/l4_analyze.py`) resolves relative paths against each traced process's working directory and
+  self-tests on a scratch decoy. Its PASS covers only the traced syscalls in the traced process tree for that run.
 - P0 is a **binary** reference (never a `ProjectReference`). The project build fails if the DLL's SHA-256 differs from the
   expected value in `src/Core/SitkaP1.Core.csproj`.
 - Only P0's public `LabFile.Parse`, `LabFile.Serialize` (tests only) and `CanonicalJson.SnapshotHash` are used.
