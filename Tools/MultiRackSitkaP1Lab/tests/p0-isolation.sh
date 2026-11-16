@@ -43,25 +43,52 @@ rm -rf -- "$p1_root/.p0ref" "$p1_root/src/Core/bin" "$p1_root/src/Core/obj" "$p1
 readonly L4_SYSCALLS=open,openat,openat2,creat,rename,renameat,renameat2,unlink,unlinkat,rmdir,mkdir,mkdirat,mknod,mknodat,link,linkat,symlink,symlinkat,truncate,ftruncate,fallocate,chmod,fchmod,fchmodat,chown,fchown,lchown,fchownat,utime,utimes,utimensat,futimesat,setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr,open_by_handle_at,chdir,fchdir,clone,clone3,fork,vfork
 analyze() { python3 -I -B "$p1_root/tests/l4_analyze.py" "$@"; }
 
-# L4 self-test first: the analyzer must detect scripted writes in a scratch decoy (relative legacy calls, at-calls,
-# fd-based calls and a write through a symlinked directory) and report nothing for a read-only control. Deletion calls
-# are not part of the decoy (this environment blocks scripted removals); they go through the same generic code path.
+# L4 self-test first (#649). Three parts, all must pass before the real run counts:
+#  (a) the analyzer's built-in synthetic cases (bare/undecoded fds -> UNRESOLVED, decoded protected fd -> HIT, benign fd and
+#      read-only calls -> clean, failed attempts, unresolved dirfd/cwd, duplicate sightings do not satisfy two identities);
+#  (b) a scratch decoy where EACH scripted operation targets a distinct name, so every operation has a unique
+#      (syscall, target) identity; all 13 expected identities must be matched (not merely >= 13 hit records), and the decoy
+#      trace must contain 0 UNRESOLVED calls (an undecoded native descriptor would surface here, never be whitelisted);
+#  (c) a read-only control in the same decoy must report nothing.
+# Deletion calls are not part of the decoy (this environment blocks scripted removals); they use the same rules.
+# Identities are pinned to this host's coreutils/bash/python syscall choices (Ubuntu 24.04), observed in #644.
+selftest_ok=1
+analyze --self-test > "$evidence/L4-selftest-synthetic.txt" || selftest_ok=0
 decoy="$(mktemp -d "${TMPDIR:-/tmp}/ccf-p1-l4decoy.XXXXXXXX")"
 mkdir "$decoy/protected" "$decoy/outside"; echo seed > "$decoy/protected/seed.txt"; ln -s "$decoy/protected" "$decoy/outside/via"
 (cd "$decoy/outside" && strace -f -y -qq -o "$evidence/L4-selftest-write.trace" -e trace="$L4_SYSCALLS" bash -c '
   cd ../protected; mkdir sub; cd sub; echo x > rel.txt; mkdir d; mv rel.txt r2.txt; ln r2.txt hl; ln -s r2.txt sl
-  touch r2.txt; chmod 600 r2.txt; truncate -s 0 r2.txt; cd /; echo y > "$1/outside/via/through-link.txt"
+  touch t.txt; chmod 600 r2.txt; truncate -s 0 tr.txt; cd /; echo y > "$1/outside/via/through-link.txt"
   cd "$1/protected"; python3 -I -B -c "import os; os.mkdir(\"pyrel\")"' _ "$decoy")
+cat > "$evidence/L4-selftest-expected.txt" <<'EXPECTED'
+# one line per scripted operation: <syscall> <target relative to the protected decoy dir>
+mkdir sub
+openat sub/rel.txt
+mkdir sub/d
+renameat2 sub/r2.txt
+linkat sub/hl
+symlinkat sub/sl
+openat sub/t.txt
+utimensat sub/t.txt
+fchmodat sub/r2.txt
+openat sub/tr.txt
+ftruncate sub/tr.txt
+openat through-link.txt
+mkdir pyrel
+EXPECTED
+analyze "$evidence/L4-selftest-write.trace" "$decoy/protected" "$decoy/outside" --json "$evidence/L4-selftest-write.json" \
+  --expect "$evidence/L4-selftest-expected.txt" > "$evidence/L4-selftest-write.txt" || true
+read -r decoy_matched decoy_expected decoy_unresolved < <(python3 -I -B -c '
+import json, sys
+r = json.load(open(sys.argv[1]))
+print(r["expectCheck"]["matched"], r["expectCheck"]["expected"], len(r["unresolved"]))' "$evidence/L4-selftest-write.json")
 (cd "$decoy/outside" && strace -f -y -qq -o "$evidence/L4-selftest-read.trace" -e trace="$L4_SYSCALLS" bash -c '
   cat ../protected/seed.txt > /dev/null; ls -la ../protected > /dev/null; cd ../protected; cat seed.txt > /dev/null')
-selftest_write_hits=0
-analyze "$evidence/L4-selftest-write.trace" "$decoy/protected" "$decoy/outside" --json "$evidence/L4-selftest-write.json" > "$evidence/L4-selftest-write.txt" || true
-selftest_write_hits="$(python3 -I -B -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["protectedHits"]))' "$evidence/L4-selftest-write.json")"
 selftest_read_rc=0
 analyze "$evidence/L4-selftest-read.trace" "$decoy/protected" "$decoy/outside" > "$evidence/L4-selftest-read.txt" || selftest_read_rc=$?
-if [[ "$selftest_write_hits" -ge 13 && "$selftest_read_rc" == 0 ]]; then
-  say "L4 self-test PASS: $selftest_write_hits/13 scripted decoy writes detected (incl. 3 legacy relative mkdir and a write through a symlinked dir); read-only control 0"
-else say "L4 self-test FAIL: write hits $selftest_write_hits (need 13), read control exit $selftest_read_rc"; fail=1; fi
+if [[ "$selftest_ok" == 1 && "$decoy_expected" == 13 && "$decoy_matched" == 13 && "$decoy_unresolved" == 0 && "$selftest_read_rc" == 0 ]]; then
+  say "L4 self-test PASS: synthetic $(tail -1 "$evidence/L4-selftest-synthetic.txt"); decoy $decoy_matched/$decoy_expected distinct expected operation identities matched, 0 unresolved; read-only control clean"
+else say "L4 self-test FAIL: synthetic ok=$selftest_ok; decoy identities $decoy_matched/$decoy_expected, unresolved $decoy_unresolved; read control exit $selftest_read_rc"; fail=1; fi
 
 cd "$p1_root"
 strace -f -y -qq -o "$evidence/L4-strace.txt" \
