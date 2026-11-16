@@ -8,6 +8,20 @@
 
 **Status: ALL UNCHECKED — DESIGN DRAFT.** Owner asks NOT to overthink driveway: simple pre-existing entrance/parking, occasional collection truck in a closed yard, winding pedestrian path and no internal rack. Owner-ratified **one first G1 group of 2 Oak+2 Beech**; exact source-screened placements not yet signed/qualified. #508 source and #513 browser evidence reviewed; actual gameplay, saved-world and vehicle procedural safety NOT VERIFIED.
 
+## #600 — Child scene/planting source-contract verification notes (no new CIP IDs)
+
+The **33 original CIP-001…CIP-033 acceptance lines remain unchanged and unchecked**. These notes describe *future* proof, not performed tests.
+
+| Existing child IDs | Additional source-specific witness before approval |
+| --- | --- |
+| **CIP-001–006, CIP-024, CIP-027–033** | Dedicated Compact30 scene and explicit build registration, not an old ForestTest E80 overlay; 189 raw original Sitka, 14 proposed preworld omitted IDs and eight remaining H1 buffers, untouched Route A eight anchors, no 2.6m planks/fresh H1 stumps, no Rack V2/MFM. Current source only supports Legacy40/E80 and old path-object clearance. |
+| **CIP-007–013, CIP-025–026** | Four original G1 positions and owner **2 sessile Oak +2 Beech count**; actual post-H1 cells/light/shelter/player route tested. 1.2m core is candidate; O1 guard intrudes **0.141m core**, O2 **0.155m verge**, minimum B2 margin **0.121m** in source assumptions. Must invoke FR-06 STOP + reviewed versioned manifest for a change, not move silently. |
+| **CIP-014–022** | Correct owned nursery stock and reserves; **four** player-created Pending orders and optionally protected real shelters; real Work Plan approval, annual `Completed PlantJuvenile` or failure, actual latest `AnnualReviewAcknowledged`. Quote vs settled actor cost and cash, €20 stock plus up to €20 shelter materials, not a  €2,500 planting fee or promised funding. |
+| **CIP-023, CIP-027, CIP-032–033** | Shared three-profile ISO-58 preflight handles profile→scene New/Continue/Restart, persistent menu rebind and no accidental `forest-save.json` writes/old-world identity, correct primary/temp/backup and old v1–v24, Reference v1. Future/unknown/missing Compact identity refuses before any scene/Prefs/disk/live mutation. |
+| **CIP-021–026** | OPEN-C1/C5/C7 genuine teaching, finance and no-rack later management/completion remain decisions; no compelled G2, no fake substantive credit from H1/planting/guards or isolated Fell, no Windows build before owner playtest/approval. |
+
+Sources inspected read-only: `EditorBuildSettings.asset`, both `StandaloneSessionMenu` partials, `ForestStartingStand`, `StandGeometryModel`, `UI/Map/StandMapSource`, `ScenarioOneManager`, `ScenarioOneManager.PrescriptionApproval`, `AnnualReviewView`, `ForestSaveController` and `ForestSaveData`. Production/native behaviour remains **UNVERIFIED**; independent targeted source-contract review required.
+
 **Checklist jurisdiction:** `CIP-001` through `CIP-033` belong **only to this child spec**; they do not replace or mark the **115 unchecked** `R-001` to `R-115` in the broader compact complete-loop DRAFT. For a FAIL, write the exact witness and suggested smallest revision rather than checking it off. For a not-applicable design option, get authorised spec revision instead of deleting it to look green.
 
 ## A. Owner intent and research-world identity
