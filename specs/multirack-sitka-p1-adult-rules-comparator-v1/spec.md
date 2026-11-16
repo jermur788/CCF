@@ -21,6 +21,8 @@ Companions: [plan](plan.md), [tasks](tasks.md), [requirements](checklists/requir
 
 **#575 residual repair, 16 November 2026:** Anthropic Claude **Sonnet 5.5** (`claude-sonnet-5-5`), Claude Code in T3 Code, docs-only, under [#575](https://github.com/jermur788/CCF/issues/575) and its [binding Manager packet](https://github.com/jermur788/CCF/blob/docs/multi-sitka-p1-566-manager-repair-packet-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-566-MANAGER-DRAFT-QUALITY-VERDICT-AND-REPAIR-PACKET-20261116.md). The author is **not** Claude Opus 5.5 (the packet's preference) and **not** the #562 author. The task repairs the three MATERIAL residuals **F-1** (archive caps and replay cost), **F-2** (maths-library and platform replay) and **F-3** (P0 lineage and non-mutating proof), and the twelve MINOR corrections **m-1…m-12**, of the independent [#566 review](https://github.com/jermur788/CCF/blob/7bca1903227832d7097f41ad9ce8487e5d42b346/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-Annual-Growth-Technical-Proposals-Independent-Review-20261116.md), which graded #562 **APPROVED AS DRAFT QUALITY only** (16 PASS, 3 PARTIAL: T-01, T-08, T-16; 0 FAIL). Edits are in §3, §4.1, §5.1, §6 and §9. The nine-row register in §7 is **byte-unchanged**; the 72 requirements stay unchecked; N01–N13 are still not run; C-2b and C-6 stay OPEN. Static source text only (CCF `81470c59`, P0 `861b81d3`): nothing was built or run, and every number added below is labelled an **observation** (read from source or git at a stated pin) or an **estimate** (arithmetic on stated assumptions; unmeasured). **Still DRAFT / NOT APPROVED.** The focused delta review must be by a non-author and not this session. [Repair result](../../Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-566-Residuals-Documentation-Repair-Result-20261116.md).
 
+**#581 second/final DRAFT correction, 16 November 2026:** DeepSeek V4.1 Flash (`deepseek-v4.1-flash`, provider `opencode-go`, OpenCode in T3 Code; **effort not observable and not claimed**), docs-only, under [#581](https://github.com/jermur788/CCF/issues/581) and its [binding Manager packet](https://github.com/jermur788/CCF/blob/docs/multi-sitka-p1-578-manager-final-repair-packet-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-578-MANAGER-VERDICT-SECOND-FINAL-DRAFT-REPAIR-PACKET-20261116.md). **Independence limitation:** this worker is also the author of the [#578 review](https://github.com/jermur788/CCF/blob/5bd4b1dbf43d8b5676592002db9015327c38bbc6/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-575-Focused-Independent-Delta-Review-20261116.md) whose findings it now repairs, so this is **author-side work on its own findings, not independent verification of it**. It applies corrections **N-1…N-10** only: portability option B restricted to diagnostic mismatches with a **deferred, separately scoped** checkpoint alternative; the fingerprint split into bit-affecting/candidate, provenance and diagnostic classes with option A′ noted; a session-generation fence with atomic activation and concurrent-load refusal; a fixed refusal precedence; probe-digest adoption rules; the event-cap and smallest-legal-event relabelling with both threshold figures; one published tree-record field set with recomputed totals; decimal MB versus binary MiB; the L0 history layer and named build-input-tree scope; and committed example strings. Static text and arithmetic only: nothing was built, compiled, run or measured. The nine-row register is **byte-unchanged**, the **72 requirements stay unchecked**, **N01–N13 stay unrun**, **C-2b** and **C-6** stay OPEN and no cap, portability option, checkpoint, `fsync` contract or hash optimisation is selected. **Still DRAFT / NOT APPROVED.** [Result](../../Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-578-Final-Bounded-Documentation-Correction-Result-20261116.md).
+
 ## 1. Purpose, scope and non-goals
 
 **Research question:** Can a separately versioned annual experiment reproduce the *existing* CCF adult Sitka rules (DBH increment, local Hegyi competition, relative height, crown relaxation and density-based natural mortality) on a restricted, closed, fully mature-equivalent, pure-Sitka synthetic stand, with deterministic per-tree replay, without modifying the accepted P0 laboratory? What aggregate **B/N/H** behaviour emerges under no-thin and controlled thinning compared with the historical Broad–Lynch 2006 stand reference?
@@ -127,7 +129,7 @@ Separate service launch is preferred for v1 isolation. A future P1 packet must a
 | Archive layout | Rough bytes per tree-year | 2,000 trees: 1 / 10 / 40 years | 20,000 trees: 1 / 10 / 40 years |
 |---|---|---|---|
 | **Full per-ID payload** (≈10 typed datums × ≈80 B: before/after DBH, H and crown, plus CI, S, p, roll and age) | ≈800 B | ≈1.6 / 16 / 64 MB | ≈16 / 160 / 640 MB |
-| **Compact** (header, current snapshot, one envelope per annual event, one child record per death, work events; per-ID values recomputed on replay). **One model for the whole spec: §9.3** | not per tree-year: ≈ 200·N₀ + 900·Y + 120·D + W bytes (§9.3; estimate) | ≈ 0.64 / 0.65 / 0.68 MB (D = N₀, W = 0) | ≈ 6.40 / 6.41 / 6.44 MB (D = N₀, W = 0) |
+| **Compact** (header, current snapshot, one envelope per annual event, one child record per death, work events; per-ID values recomputed on replay). **One model for the whole spec: §9.3** | not per tree-year: ≈ 242·N₀ + 786·Y + 102·D + W bytes (§9.3; estimate; **MB is decimal 10⁶**) | ≈ 0.69 / 0.70 / 0.72 MB (D = N₀, W = 0) | ≈ 6.88 / 6.89 / 6.91 MB (D = N₀, W = 0) |
 
 Under a 64 MiB file, a full per-ID archive of a 20,000-tree stand would fill in about **4 years**. Load already recomputes every year from the pinned model (§5.2), so the compact layout loses no replay integrity. Per-ID inspection of any year is then served by deterministic recomputation from genesis, or by an optional per-year exported trace kept outside the authoritative save. The P1 format owner chooses the layout and caps at C-1, with review; #562 proposed the compact layout, and #575 (F-1) restates its caps as **unvalidated placeholders** with a mandatory replay benchmark in §9.3. The earlier compact figures in this table (≈20–40 B per tree-year, <35 MB at 20,000 trees × 40 years) came from a second size model that disagreed with §9.3 and are **withdrawn** (m-9). Whatever the cap, a save or annual commit that would exceed it **fails closed before commit**: no truncation, no partial history, no unsafe overwrite, and a truthful error status.
 
@@ -394,24 +396,27 @@ The Overall Manager authored this DRAFT. It may coordinate and record verdicts, 
 
 ### 9.2 C-1 proposal: trust tables, lineage, file and host boundary
 
-**Lineage and protection of P0 (T-01; rewritten by #575, F-3).**
+**Lineage and protection of P0 (T-01; rewritten by #575 F-3; L0 and build-input-tree scope added by #581 N-9).**
 - **Working reference versus implementation base.** The Manager's working reference for *documentation comparisons* is the qualified, README-only P0 head `861b81d3540429d241bba0732a610212626f6828` (source and fixtures identical to `2659db99`; pins in §9). That choice does **not** select a P1 implementation branch. The P0 Host repair [#567](https://github.com/jermur788/CCF/issues/567) has separate ownership and may advance a P0 branch, possibly in Core or Host. After independent #567 disposition the **Manager explicitly names and re-pins** the implementation base. P1 never floats to the newest P0 branch, never assumes `main` (which has no `Tools/MultiRackSitkaLab/`), and never follows P0 silently (§9.10, decision 1).
 - P1 code lives only under `Tools/MultiRackSitkaP1Lab/`. It references `Tools/MultiRackSitkaLab/src/Core` read-only and uses only P0's **public** API: `LabFile.Parse(byte[])` and `CanonicalJson.SnapshotHash(...)` (DSC). P0 grants `InternalsVisibleTo` only to its own tests; P1 must not add itself there, because that is a P0 edit.
 - **Why the earlier proof was insufficient.** `git diff --quiet <P0 pin> HEAD -- Tools/MultiRackSitkaLab` compares two **commits**. It cannot see uncommitted edits, untracked files or ignored build output, so a build can dirty the P0 tree while that command still passes. The proof is therefore **layered**, and each layer says what it proves and what it does not:
 
 | Layer | Command or observation (proposed; none run here except the scratch check noted) | Proves | Does **not** prove |
 |---|---|---|---|
+| **L0 history** | `git log --oneline <P0 pin>..HEAD -- <P0 build-input tree>` is empty (N-9) | No commit on the P1 branch ever touched the P0 subtree, including an edit that was committed and later reverted — a case the tree comparison in L1 cannot see | Anything about the working tree, ignored files or what a build wrote |
 | **L1 committed bytes** | `git rev-parse <P0 pin>:Tools/MultiRackSitkaLab` equals `git rev-parse HEAD:Tools/MultiRackSitkaLab` (tree object ids). Observed id for `861b81d3`: `fa25ae6e39e715cc1d44a36d42607c309c7b5f7d` | The **committed** P0 tree on the P1 branch is byte-identical to the pin: no change to P0 source, fixtures, `.gitignore`, `global.json` or `MANIFEST.sha256` | Anything about the working tree, untracked files, ignored files or what a build wrote |
-| **L2 working tree** | `git status --porcelain --ignored --untracked-files=all -- Tools/MultiRackSitkaLab`, taken **before and after** every P1 build or test command. Observation in a scratch repository (this repair): plain `--ignored` collapses an ignored directory into one `!! bin/` line, so a new file inside an already-ignored `bin/` or `obj/` is invisible; `--untracked-files=all` lists each file | No tracked modification, no untracked file, and an identical ignored-file **list** | An in-place rewrite of an existing ignored file; a write that was later reverted |
-| **L3 physical snapshot** | Before the first P1 command record, for every **ignored** file under the P0 tree: path, size and mtime in nanoseconds (hash the small ones). Repeat afterwards. Identical, or STOP | No ignored P0 file was added, removed, resized or touched | Writes outside the P0 tree (out of scope here) |
-| **L4 write observation** | During each P1 build or test, a file-write trace filtered to the P0 path (for example `strace -f -e trace=file` or `inotifywait -m -r`; the tool is the build reviewer's choice and its availability is not verified here); the result must be **empty** | No process opened a P0 path for writing, even transiently | Writes that bypass the traced calls, so it complements L3 and does not replace it |
+| **L2 working tree** | `git status --porcelain --ignored --untracked-files=all -- <P0 build-input tree>`, taken **before and after** every P1 build or test command. Observation in a scratch repository (this repair): plain `--ignored` collapses an ignored directory into one `!! bin/` line, so a new file inside an already-ignored `bin/` or `obj/` is invisible; `--untracked-files=all` lists each file | No tracked modification, no untracked file, and an identical ignored-file **list** | An in-place rewrite of an existing ignored file; a write that was later reverted |
+| **L3 physical snapshot** | Before the first P1 command record, for every **ignored** file under the named **P0 build-input tree**: path, size and mtime in nanoseconds (hash the small ones). Repeat afterwards. Identical, or STOP | No ignored P0 file was added, removed, resized or touched | Writes outside the named tree (out of scope here); content changes in a large file that preserve size and mtime |
+| **L4 write observation** | During each P1 build or test, a file-write trace filtered to the named **P0 build-input tree** (for example `strace -f -e trace=file` or `inotifywait -m -r`; the tool is the build reviewer's choice and its availability is not verified here); the result must be **empty** | No process opened that tree for writing, even transiently | Writes that bypass the traced calls, so it complements L3 and does not replace it |
+
+  **Which tree the layers name (N-9).** `<P0 build-input tree>` is the tree the build actually reads. Under mechanism (b) below it is the in-repo `Tools/MultiRackSitkaLab` subtree. Under mechanism (a) the build reads a `git archive` extraction **outside the repository**, so L2–L4 must be run against that extraction root: running them on the in-repo subtree would pass vacuously and prove nothing about the build. Every handoff names the tree it ran against; the binary SHA-256 recorded under mechanism (a) covers input identity, not the write observation.
 
   **Pre-existing ignored files.** A P0 worktree may legitimately hold ignored files from earlier P0 builds (`bin/`, `obj/`, `TestResults/`, `.lab-data/`, `evidence/*`). They are **not** a failure and are **never cleaned**: the L3 baseline simply records them before P1 starts. If tracked files are modified, untracked files exist or the baseline cannot be taken, the worker **STOPS and reports**. No `git clean`, `git checkout`, `git restore`, `chmod` or `rm` inside the P0 tree.
 
-  **Committed bytes versus observed writes.** L1 tests **commit bytes**. L2–L4 test **observed physical writes**. A handoff states which layers ran; a layer that did not run is reported as NOT RUN and is never implied.
+  **Committed bytes versus observed writes.** L0 and L1 test committed history and bytes. L2–L4 test **observed physical writes** on the named build-input tree. A handoff states which layers ran and which tree they ran against; a layer that did not run is reported as NOT RUN and is never implied.
 - **Build-output isolation.** A `ProjectReference` from P1 to P0's `SitkaLab.Core` makes MSBuild write `bin/` and `obj/` (and restore output) **inside the P0 tree**. P0's `.gitignore` ignores those paths, so L1 passes while the tree is dirty. The requirement is the outcome: **a P1 restore, build, test and run write nothing under `Tools/MultiRackSitkaLab`**. Candidate mechanisms for the build reviewer to compare (none selected, none tested here): (a) build the pinned P0 Core from a `git archive` extraction **outside the repository** and give P1 a binary reference whose SHA-256 is recorded in P1 provenance; (b) redirect P0's output and intermediate paths into a P1-owned folder with global MSBuild properties, and show that restore output moved too. A mechanism whose isolation L2–L4 cannot show is refused.
 - **P1's own build files.** A sibling P1 directory inherits none of P0's configuration. P1 carries its **own** `global.json` (observation: P0's pins SDK `8.0.133` with `rollForward: latestPatch`), its own `Directory.Build.props` (P0's sets net8.0, nullable, warnings as errors, deterministic builds and invariant globalization) and its own `.gitignore`. The repository root `.gitignore` ignores `*.csproj` and `*.sln` (root lines 26 and 28 at `861b81d3`), so the P1 `.gitignore` must re-include them (`!*.sln`, `!*.csproj`) exactly as P0's does, and must ignore `.p1-data/`, `bin/`, `obj/`, `TestResults/` and local evidence scratch. P1 states which parent `Directory.Build.props` files it would inherit and shows none changes its build. No root `.gitignore` edit is proposed.
-- Every P1 handoff reports L1–L4 (or NOT RUN), the P0 pin used, and that P1 never opens P0's `.lab-data/`, never binds port 5187 and never changes P0 qualification receipts. P1 stays a sibling tool, **not** a mutation of qualified P0, and keeps the P0 public-API boundary and the qualified WSL2 no-growth baseline.
+- Every P1 handoff reports L0–L4 (or NOT RUN), the P0 pin used and **which build-input tree L2–L4 ran against**, and that P1 never opens P0's `.lab-data/`, never binds port 5187 and never changes P0 qualification receipts. P1 stays a sibling tool, **not** a mutation of qualified P0, and keeps the P0 public-API boundary and the qualified WSL2 no-growth baseline.
 - Integration order: (1) the Manager names the implementation base after #567 is independently dispositioned; (2) P1 branch from it; (3) P1-02/P1-03 land only under the P1 directory; (4) if P0 later moves, P1 rebases onto the newly named base, re-prepares the trust table from that P0 revision and re-runs the import tests. The trust table never silently follows P0.
 
 **Original-fixture trust record (T-02).** One record per fixture, compiled into P1 source so that every change is a reviewed diff:
@@ -460,7 +465,7 @@ A consistently forged fixture plus `MANIFEST.sha256` fails at step 5. A whitespa
 - Every root carries `format` and its schema version. Unknown formats or versions refuse.
 - **No wall-clock time** in any save, event, hash or capture record. The session epoch stays random approval authority only, as in P0. Any displayed calendar is derived (`inventoryYear + elapsed`) and never stored as authority.
 
-### 9.3 C-1 proposal: archive layout and capacity (rewritten by #575, F-1 and m-9)
+### 9.3 C-1 proposal: archive layout and capacity (rewritten by #575 F-1/m-9; terms, units and the smallest-event label corrected by #581 N-6…N-8 and N-10)
 
 **Proposal (T-08): compact authoritative archive; full replay on every load; per-ID trace as a separate, non-authoritative export.** Three layouts stay distinct: the **full archive** (every per-ID datum stored), the **compact archive** (authoritative; per-ID values recomputed on replay) and the **trace export** (derived, non-authoritative, never loadable as state). #575 adds **no** incremental-hash or checkpoint semantics to the proposed design; such options appear below only as open alternatives.
 
@@ -473,22 +478,26 @@ What the compact save holds:
 
 Load replays every year from the trusted fixture and verifies every hash, as P0 does today (`LabSession.cs:76–83`). A trace export (candidate `format="ccf-sitka-p1-trace"`) re-derives per-ID detail. It records the experiment tip hash it was derived from, carries the C-7 label, and can never be loaded as state.
 
-**One compact-size model (m-9).** The earlier text held two incompatible models: §4.1 (≈20–40 B per tree-year) and this section's formula. This section's formula is the **single** model and the §4.1 figures are withdrawn. Each term is an **estimate from an illustrative layout**: scratch byte counts of example JSON strings that use the field names in this spec. The layout is not a schema, and nothing was run in the project.
+**One compact-size model (m-9; terms reconciled by N-7 and N-10).** The earlier text held two incompatible models: §4.1 (≈20–40 B per tree-year) and this section's formula. This section's formula is the **single** model and the §4.1 figures are withdrawn. Each term is an **estimate from an illustrative layout**, counted byte-for-byte from the exact example strings committed in §9.11. The layout is not a schema, and nothing was run in the project.
 
-| Term | Estimate | Basis (illustrative) |
+**Units (N-8).** `MB` and `GB` here are decimal (10⁶ and 10⁹ bytes); `MiB` is binary (2²⁰ = 1,048,576 B); `KB` is not used. The proposed file cap is 64 MiB = **67,108,864 B**.
+
+| Term | Estimate | Basis (illustrative; exact strings in §9.11) |
 |---|---|---|
-| tree record, `200·N₀` | 200 B (f32 bits, 16-character IDs) to ≈ 290 B (f64 bits, 64-character IDs) per tree | A record of `id`, `x`, `y`, `status`, `dbh`, `height`, `crown`, `age` and `provenance`, with floats as `{"k":"f32","b":"<8 hex>"}`, counted at 204 B (f32, 16-char ID), 228 B (f64, 16-char ID) and 290 B (f64, 64-char ID; the longest ID P0 admits, `^[A-Za-z0-9_-]{1,64}$`, `Models.cs:30`). The snapshot keeps every ID, living or not |
-| annual event, `900·Y` | ≈ 900 B | Descriptive-key envelope with a 64-character `commandId`, four 64-hex digests, years, revision and a five-datum f64 stand summary, counted at 907 B. #562's 650 B is **superseded** |
-| death child record, `120·D` | ≈ 90–140 B | 93 B with a 16-character ID, ≈ 141 B with a 64-character ID |
-| work and audit events, `W` | ≥ 380 B each (below) | Bounded only by the caps; this is the term that makes the byte cap bind |
+| tree record, `242·N₀` | **242 B** (f32 bits, 16-character ID) to **330 B** (f64 bits, 64-character ID) per tree | One published field set — `id`, `x`, `y`, `status`, `dbh`, `height`, `crown`, `age`, `provenance` — with floats as `{"k":"f32","b":"<8 hex>"}`, counted at **242 B** (T1: f32, 16-character ID), **282 B** (T2: f64, 16-character ID) and **330 B** (T3: f64, 64-character ID; the longest ID P0 admits, `^[A-Za-z0-9_-]{1,64}$`, `Models.cs:30`). The three counts come from one field set: five float fields widen by 5 × 8 = 40 B (242 → 282) and the ID grows by 48 B (282 → 330). The snapshot keeps every ID, living or not |
+| annual event, `786·Y` | **786 B** (A1) | Descriptive-key envelope with a 64-character `commandId`, four 64-hex digests, `yearBefore`/`yearAfter`, revision, a 64-hex initialization reference, a five-datum f64 stand summary and an empty `deaths` array; death children are counted separately. #562's 650 B is **superseded** |
+| death child record, `102·D` | **102 B** (D1) to **150 B** (D2) | `id`, `mechanism`, an f64 roll and `killOrder`; the 48 B difference between D1 and D2 is the ID length alone. The earlier 93/141 B pair came from a field set that was never published |
+| work and audit events, `W` | ≈ **495 B** per event (W1) | `payload.kind`, `planId` and a one-element `treeIds`; a real work event names the plan's tree list, so this term is **not** bounded above by the example. This is the term that makes the byte cap bind |
 
-The compact save therefore grows as roughly `200·N₀ + 900·Y + 120·D + W` bytes (`D ≤ N₀`, because each ID dies at most once in a closed no-recruitment stand; `W` is the total bytes of work and audit events). The full layout grows as `800·N·Y`. **Estimates, not measurements:**
+The compact save therefore grows as roughly `242·N₀ + 786·Y + 102·D + W` bytes, where `D ≤ N₀` (each ID dies at most once in a closed no-recruitment stand) and `W` is the total bytes of work and audit events. The full layout still grows as `800·N·Y` (unchanged #562 estimate; no example is committed for it). **Estimates, not measurements.** The totals below use the low-end 242 B record and the 102 B child; a 330 B f64 record raises the snapshot term by 36% and the totals with it:
 
 | Layout | 2,000 trees, 40 years | 20,000 trees, 40 years | 5,000 trees, 200 years |
 |---|---|---|---|
 | Full per-ID archive | ≈ 64 MB | ≈ 640 MB | ≈ 800 MB |
-| Compact (`D = N₀`, `W = 0`) | ≈ 0.68 MB | ≈ 6.44 MB | ≈ 1.78 MB |
+| Compact (`D = N₀`, `W = 0`) | ≈ 0.72 MB | ≈ 6.91 MB | ≈ 1.88 MB |
 | One year of trace export | ≈ 1.6 MB | ≈ 16 MB | ≈ 4 MB |
+
+Check (decimal MB): 2,000 × 242 + 40 × 786 + 2,000 × 102 = **719,440 B = 0.72 MB**; 20,000 × 242 + 40 × 786 + 20,000 × 102 = **6,911,440 B = 6.91 MB**; 5,000 × 242 + 200 × 786 + 5,000 × 102 = **1,877,200 B = 1.88 MB**. The same totals are 0.69, 6.59 and 1.79 MiB.
 
 **Which proposed caps are P0's, which are new, and which are undecided (F-1).** All five are **unvalidated design proposals, not accepted supported limits**. This section substitutes no new number and changes no cap silently.
 
@@ -502,46 +511,63 @@ The compact save therefore grows as roughly `200·N₀ + 900·Y + 120·D + W` by
 
 P0's other constants (`MaxPlans = 5_000`, `MaxYears = 1_000_000` calendar steps; `Models.cs:23, 26`) are not proposed for P1.
 
-**Event byte envelope and the event cap (F-1).** Every event envelope (§5.2) carries a `commandDigest`, a previous-event digest and pre- and post-state hashes: four 64-hex strings are 4 × 66 = 264 B once quoted, before keys, the command ID, years, revision or payload. Scratch counts of illustrative canonical envelopes (no schema is fixed and key names are undecided):
+**Event byte envelope and the event cap (F-1; relabelled by N-6, examples committed by N-10).** Every event envelope (§5.2) carries a `commandDigest`, a previous-event digest and pre- and post-state hashes: four 64-hex strings are 4 × 66 = 264 B once quoted, before keys, the command ID, years, revision or payload. The counts below are of the exact example strings committed in §9.11. They are **examples, not a schema**, and **none of them is a lower bound**:
 
-| Illustrative smallest event | Bytes (observation of counted example strings) |
+| Illustrative event (exact string in §9.11) | Bytes |
 |---|---|
-| Descriptive keys, 16-character `commandId`, payload `{"planId":"p"}` | 542 |
-| Same with a 64-character `commandId` | 590 |
-| Same, plus a 64-hex initialization reference in every envelope | 629 |
-| Terse one-letter keys, 16-character `commandId`, empty payload (practical floor) | 383 |
-| System event (`commandId` null), descriptive keys, empty payload | 416 |
+| E1 descriptive keys, 16-character `commandId`, payload `{"planId":"p"}` | 429 |
+| E2 same, 64-character `commandId` | 477 |
+| E3 E2 plus a 64-hex `initializationRef` in the envelope | 564 |
+| E4 terse one-letter keys, 16-character `commandId`, empty payload — **one example, not a floor** | 333 |
+| E5 system event (`commandId` null), descriptive keys, empty payload | 428 |
+| E6 terse variant of E4 **without** `year`/`revision` | 321 |
 
-Reproducible bound: **reachable events ≤ ⌊(MaxFileBytes − snapshot − header) ÷ e_min⌋**, where `e_min` is the smallest canonical event. For 5,000 trees (snapshot ≈ 1.0 MB at 200 B/tree) and an assumed 2 KiB header that is about **105,000** events (e_min 629 B), **122,000** (542 B) or **173,000** (383 B) (estimates). Under every counted variant the byte cap therefore binds **before** 200,000 events: 64 MiB ÷ 200,000 = 335.5 B per event. The four digests alone (264 B) do **not** prove this, since 200,000 × 264 B = 52.8 MB is under 64 MiB, so the conclusion depends on the still-unfixed envelope. Consequences:
+Reproducible bound: **reachable events ≤ ⌊(MaxFileBytes − snapshot − header) ÷ e_min⌋**, where `e_min` is the smallest canonical event. **The smallest legal event is UNDECIDED**, because no schema fixes it, §9.11 commits examples rather than a grammar, and E6 shows a shorter envelope than the "terse" E4. For 5,000 trees (snapshot ≈ 1,210,000 B at 242 B/tree from §9.11 T1) and an assumed 2,048 B header, the available event bytes are 67,108,864 − 1,210,000 − 2,048 = **65,896,816 B**:
+
+| `e_min` | Reachable events | Byte cap binds before 200,000? |
+|---|---|---|
+| 564 (E3) | ≈ 116,800 | yes |
+| 477 (E2) | ≈ 138,100 | yes |
+| 429 (E1) | ≈ 153,600 | yes |
+| 428 (E5) | ≈ 154,000 | yes |
+| 333 (E4) | ≈ 197,900 | yes — by about 1% |
+| 321 (E6) | ≈ 205,300 | **no — `MaxEvents` binds first** |
+
+Two thresholds matter, and neither is a capacity guarantee. The **generic** one is 64 MiB ÷ 200,000 = **335.54432 B per event**, before any header or snapshot is subtracted. The **working** one, for the assumptions immediately above, is 65,896,816 ÷ 200,000 = **329.48408 B per event**. So nothing here shows that all 200,000 events are unreachable: that holds only while `e_min` stays above ≈ 329.5 B, and E6 at 321 B is below it. The four digests alone (264 B) certainly do not prove it, since 200,000 × 264 B = 52,800,000 B = **50.35 MiB**, which is under 64 MiB. Consequences:
 1. The event cap and the byte cap are **not independent**.
-2. The quantitative event cap is **UNDECIDED**. Either derive `MaxEvents` from the byte cap and the fixed envelope once P1-03 produces canonical golden examples, or drop it as redundant and keep only the replay-cost guard below.
+2. The quantitative event cap is **UNDECIDED** and must not be treated as settled. Derive `MaxEvents` from the byte cap and the fixed envelope once P1-03 produces a canonical grammar with committed golden examples, or drop it as redundant and keep only the replay-cost guard below. Until that exists, no claim that all 200,000 events are unreachable is supported.
 3. The worst case is a large file of small events (for example repeated audit-only rejections). A realistic experiment has about `Y + W` events, of the order of hundreds.
 
 **Replay cost: every per-event state hash counts (F-1).** The earlier text costed replay as the Hegyi term only. P0 hashes the **whole snapshot after every event**: on append (`LabSession.cs:131`) and again on replay (`Replayer.Replay`, `LabSession.cs:18, 34`; observation at `861b81d3`, source identical to `2659db99`). P1's envelope carries pre- and post-state hashes of a canonical **full** state. The pre-state hash equals the previous event's post-state hash, so it costs a comparison; the post-state hash needs one full serialisation plus SHA-256 per event. Replay therefore has three terms:
 - **H1, pair checks:** about N² ordered pairs per year; 5,000 trees × 200 years ≈ 5×10⁹ (upper bound, since trees die). Carried from #562, whose "tens of seconds" was an unmeasured guess.
-- **H2, per-event state hash (new):** bytes hashed = E × S, with S the canonical state size ≈ `200·N₀` (200–290 B per tree) and E the number of events replayed.
+- **H2, per-event state hash (new):** bytes hashed = E × S, with S the canonical state size ≈ `242·N₀` (242–330 B per tree from §9.11) and E the number of events replayed.
 - **H3, history digest:** E × envelope bytes; small.
 
-Estimate of H2 at S = 1.0 MB (5,000 trees, 200 B/tree) and **assumed** serialise-plus-hash rates of 0.1, 0.5 and 1 GB/s. The rates are assumptions, not measurements:
+Estimate of H2 at S = 1,210,000 B (5,000 trees × 242 B, §9.11 T1) and **assumed** serialise-plus-hash rates of 0.1, 0.5 and 1 GB/s. The rates are assumptions, not measurements:
 
 | Events E | Bytes hashed | At 0.1 GB/s | At 0.5 GB/s | At 1 GB/s |
 |---|---|---|---|---|
-| 1,000 | 1 GB | 10 s | 2 s | 1 s |
-| 10,000 | 10 GB | 100 s | 20 s | 10 s |
-| ≈ 105,000 (byte-cap bound, heaviest counted envelope) | ≈ 105 GB | ≈ 1,050 s | ≈ 210 s | ≈ 105 s |
-| ≈ 173,000 (byte-cap bound, terse floor) | ≈ 173 GB | ≈ 1,730 s | ≈ 346 s | ≈ 173 s |
-| 200,000 (P0 constant; unreachable by bytes above) | 200 GB | 2,000 s | 400 s | 200 s |
+| 1,000 | ≈ 1.21 GB | 12 s | 2 s | 1 s |
+| 10,000 | ≈ 12.1 GB | 121 s | 24 s | 12 s |
+| ≈ 116,800 (heaviest counted envelope E3, 564 B) | ≈ 141 GB | ≈ 1,410 s | ≈ 283 s | ≈ 141 s |
+| ≈ 197,900 (terse example E4, 333 B) | ≈ 239 GB | ≈ 2,390 s | ≈ 479 s | ≈ 239 s |
+| 200,000 (P0 constant; reachable by bytes for E6 at 321 B, above) | ≈ 242 GB | 2,420 s | 484 s | 242 s |
 
-This agrees in order of magnitude with the #566 reviewer's estimate (minutes to tens of minutes), which is also **unmeasured**. In the worst case H2 outweighs H1; in a realistic run (E of the order of hundreds) H2 is about 1 GB or less. At the largest original fixture (2,000 trees, S ≈ 0.4 MB) the same E gives 0.4 times these volumes.
+This agrees in order of magnitude with the #566 reviewer's estimate (minutes to tens of minutes), which is also **unmeasured**. In the worst case H2 outweighs H1; in a realistic run (E of the order of hundreds) H2 is about 0.6–1.2 GB. At the largest original fixture (2,000 trees, S ≈ 0.48 MB) the same E gives about 0.4 times these volumes.
 
 **Mandatory P1-03 load benchmark (proposed gate; not run).** No cap in this section is accepted before it. It uses synthetic, deterministic load files generated by P1's own writer (never real saves), on each target platform of §9.9. The tree counts are N ∈ {162 (the demo fixture), 2,000 (the performance fixture), 5,000 (the proposed cap)} (existing fixture sizes and the proposed cap; observation), crossed with event counts from tens up to the largest file the byte cap admits, **including the adversarial file made of the smallest legal events**. Per cell it records file bytes, N, E, canonical state bytes per tree and per state, serialisation time, hash time, per-event replay time, total load time, peak memory, and the model-replay time for the Y annual events. The report states the measured rates that replace the assumed 0.1–1 GB/s and the achieved load time against a **replay-time budget the Manager sets**. No budget value is proposed here.
 
-**Refuse or abort, never block (proposed).**
+**Refuse or abort, never block (proposed; concurrency fence added by N-3).**
 1. **Static pre-check.** After the byte cap and strict parse, and before any replay, compute the planned replay work (`E × S`, and the Hegyi bound from the parsed counts). Above the budget, refuse with `ReplayBudgetExceeded` and leave the file untouched.
-2. **Cancellable replay.** Replay runs detached from the live session as a cancellable job that checks a deadline and a cancel flag between events. On abort it returns `ReplayAborted`; nothing is activated and nothing is written. The deadline is a runtime guard only and never enters a save or hash, which is consistent with T-07 (no wall-clock data in a save).
-3. **No long synchronous request.** The client polls a job status instead of waiting on one HTTP request.
+2. **Detached replay with a session fence.** Replay runs as a cancellable job outside the live session and checks a deadline and a cancel flag between events. At dispatch the job records the **session identity**, a monotonically increasing **session generation**, the history tip, the forest revision and the save epoch. The generation must advance on any committed history change, **including a history-only audit-only rejection** that leaves the biological state hash unchanged but extends the history digest; otherwise the fence is blind to exactly the commands most likely to interleave. The job derives a detached candidate and applies nothing.
+3. **Atomic activation.** Activation re-checks the recorded generation, identity, tip, revision and save epoch **under one exclusive activation/commit gate**, and installs the replayed candidate only if all still match. If a command, audit-only rejection, save, unload or a second load changed the session in between, activation aborts with `SessionChanged` (proposed name). The live in-memory forest, plans, history tip, accepted commands and save bytes are left exactly as they were; no state is partially applied and no file is written.
+4. **One load job at a time.** A second load request while a job is in flight is refused with `LoadInProgress` (proposed) rather than run concurrently; the first job may be cancelled explicitly, which returns `ReplayAborted` and activates nothing.
+5. **No long synchronous request.** The client polls a job status instead of waiting on one HTTP request.
+6. **Runtime guard only.** The deadline and cancel flag never enter a save or a hash, which is consistent with T-07 (no wall-clock data in a save).
 
-The budget value, job API and polling contract are **UNDECIDED**: the Manager and the replay reviewer set them after the benchmark.
+**Negative controls for the fence (proposed, not run; fold into N08).** (a) A mutating command commits while a load job replays → activation refuses with `SessionChanged`; the accepted command survives, no state is applied, no disk write occurs. (b) A history-only audit-only rejection during the job → the same refusal, proving the generation tracks history-only events. (c) Two simultaneous load requests → the second refuses with `LoadInProgress` and the first still activates or aborts cleanly. (d) Any refused, aborted or failed load leaves the previous save **byte-identical** and the in-memory forest, plans and history tip unchanged.
+
+The budget value, job API, polling contract and the two proposed class names are **UNDECIDED**: the Manager and the replay reviewer set them after the benchmark.
 
 **Open options that could reduce H2 (not adopted, not designed).** The replay reviewer may weigh: (a) the status quo, one full-state hash per event; (b) hashing state only for events that can change it, with audit-only events carrying no state hash while the replayer re-checks they changed nothing; (c) periodic checkpoint hashes with a history digest on every event; (d) an incremental or Merkle-style state hash. (b)–(d) change the §5.2 envelope and the G-01…G-08 and N08 expectations.
 
@@ -686,60 +712,80 @@ R1 must equal R0 **bit for bit** on every stored tree value, account field and v
 - The P1 implementation base is a Manager decision, made explicitly after independent #567 disposition; `861b81d3` is a documentation working reference only (§9.2). T-01 is a recommendation.
 - `fsync` durability and root ownership/mode checks are reviewer-supported **proposed** P1 additions beyond P0, limited to an opened root handle on a local POSIX filesystem (§9.2, m-8). The file-security reviewer must accept or drop each explicitly, and both need independent security and runtime qualification.
 - Caps (`MaxTrees` 5,000, 200 years, `MaxEvents` 200,000, `MaxFileBytes` 64 MiB, trace 32 MiB) are **unvalidated proposals**; two are P0's own constants. The quantitative event cap is UNDECIDED, the replay-time budget is unset, and P1-03 must run the §9.3 benchmark before any cap is accepted.
-- Cross-host save portability is an OPEN owner/Manager choice. The platform fingerprint schema, refusal classes and options of §9.9 are proposals.
+- Cross-host save portability is an OPEN owner/Manager choice. The platform fingerprint schema, its three field classes, the refusal classes and options A, A′, B and C of §9.9 are proposals; cross-platform continuation across differing arithmetic is **deferred** as a separately scoped checkpoint alternative.
 - The original Broad–Lynch top-height field method, the GROWFOR executable identity and Irish predictive validity are unverified, as before.
 
-### 9.9 Platform fingerprint, save portability and refusal classes (F-2, #575) — PROPOSED, NOT ACCEPTED
+### 9.9 Platform fingerprint, save portability and refusal classes (F-2 #575; classes, precedence and options corrected by #581 N-1…N-5) — PROPOSED, NOT ACCEPTED
 
 **Why this exists.** P1 loads by recomputing every year from the trusted fixture and checking every hash (§5.2, §9.3). The growth source calls `Math.Exp` and `Math.Pow` (`SitkaGrowthModel.cs:41, 48, 74, 105`). If a different runtime or maths-library build returns different last bits, a **valid** save would fail replay with a hash mismatch, which an unmodified design would report as corruption or tampering. That risk is background knowledge and **not verified here**; the fingerprint exists to classify it and, optionally, to measure it. P1 targets Linux x64 and Ubuntu on WSL2 (§4), where distribution upgrades change the C library.
 
-**Proposed fingerprint (candidate; field availability not verified; not a schema).** One record in every P1 save header, canonical-serialised like the rest of the file:
+**Proposed fingerprint (candidate; field availability not verified; not a schema).** One record in every P1 save header, canonical-serialised like the rest of the file. The **class** column is the N-2 repair: fields are separated by the role they are proposed to play, and **no field is asserted to change an arithmetic result** — that causal question is unmeasured and is exactly what a cross-host comparison would have to show.
 
-| Field | Meaning | Compared on load? | If it cannot be read |
-|---|---|---|---|
-| `fingerprintVersion` | version of this record layout | yes (unknown → `UnsupportedVersion`) | constant |
-| `os.family`, `os.release` | OS family; distribution identifier and version on Linux, build number on Windows | yes | **fail closed** |
-| `cpu.arch` | architecture, for example x86-64 | yes | fail closed |
-| `cpu.featureClass` | the CPU capability flags that can change maths-library code paths (candidate: FMA and AVX2 availability; the relevant set is itself **unverified** and is fixed by the numerical reviewer), as a sorted flag list plus a derived class label | yes (the flag list) | fail closed |
-| `runtime.name`, `runtime.version`, `runtime.build` | for the P1 service, the .NET runtime and exact version; for a Unity capture, the Editor version and Mono build | yes | fail closed |
-| `libm.identity`, `libm.version` | C library and version (for example glibc and its version string), or the Windows C runtime build | yes | **fail closed; never guessed, never defaulted** |
-| `model.version`, `source.pin`, `archive.version` | P1 model and algorithm version; the CCF source pin and the `SitkaGrowthModel.cs` blob hash the adapter follows; archive/format version | yes | build constants |
-| `trust.tableVersion`, `trust.tableDigest` | the §9.2 trust table | yes | build constants |
-| `mathProbeDigest` (OPTIONAL) | SHA-256 over the result bits of `Math.Exp` and `Math.Pow` on a fixed argument list the spec defines (the arguments the model actually uses): a **measured** behavioural signal | yes, if adopted | computed at start-up; cannot be unavailable |
-| `cpu.model`, `os.kernel` | free-text CPU model and kernel release | **no** (diagnosis only; the capture header records them, saves may omit them) | omit |
+| Field | Class | Meaning | Gate on load | If it cannot be read |
+|---|---|---|---|---|
+| `fingerprintVersion` | schema | version of this record layout | unknown → `UnsupportedVersion` | constant |
+| `cpu.arch` | **A — candidate bit-affecting identity** | architecture, for example x86-64 | compared; a difference refuses under option A | fail closed |
+| `libm.identity`, `libm.version` | A | C library and version (for example glibc and its version string), or the Windows C runtime build | compared; **never guessed, never defaulted** | fail closed |
+| `runtime.name`, `runtime.build` | A | the runtime or Mono build that performs float evaluation (for a Unity capture, the Editor version and Mono build) | compared | fail closed |
+| `cpu.featureClass` | A (candidate; the set is unverified) | capability flags that **could** select different maths-library code paths, as a sorted flag list plus a derived class label; the relevant set is fixed by the numerical reviewer | compared (the flag list) | fail closed |
+| `mathProbeDigest` (OPTIONAL) | A, if adopted | SHA-256 over the result bits of `Math.Exp` and `Math.Pow` on the fixed, versioned argument list of §9.9.1 — a **measured** signal | compared only when the archive version adopts it (§9.9.1) | computed at start-up; a platform that cannot compute it is `PlatformUnverifiable` |
+| `model.version`, `source.pin`, `archive.version` | **B — provenance / compatibility** | P1 model and algorithm version; the CCF source pin and the `SitkaGrowthModel.cs` blob hash the adapter follows; archive/format version | compared for **identity only**; not a maths property | build constants |
+| `trust.tableVersion`, `trust.tableDigest` | B | the §9.2 trust table, that is fixture **identity** | compared as **data provenance**. A reviewed trust-table revision therefore makes saves written under the previous table refuse until that is separately handled; this is not a claim that the table changes arithmetic | build constants |
+| `os.family`, `os.release` | **C — diagnostics** | OS family; distribution identifier and version on Linux, build number on Windows | **recorded, not compared** | omit |
+| `runtime.version` | C, unless the numerical reviewer moves it to A | routine runtime release string; a servicing patch need not change numerics | recorded, not compared | omit |
+| `os.kernel`, `cpu.model` | C | kernel release and free-text CPU model | recorded, not compared | omit |
+
+The class membership is itself a **hypothesis awaiting evidence**: the numerical reviewer may move `cpu.featureClass` or `runtime.version` between A and C after a cross-host comparison, and if `cpu.featureClass` is demoted the option A gate narrows to architecture, libm identity/version and runtime build. Unknown values for any field the reviewer keeps in A fail closed rather than comparing equal.
 
 No host name, user name, path or other machine identifier is recorded. The record is **self-reported by the writer**: an edited file can lie, so the fingerprint is a classification aid, **never** a trust anchor, and it never replaces replay verification. `mathProbeDigest`, if adopted, can only show that two platforms **differ** on at least one probed argument; equality proves nothing about arguments that were not probed. A platform on which a required field cannot be read **refuses to start the file API**, as for an unsupported OS (§9.2); no "unknown" value compares equal to itself.
 
+#### 9.9.1 Optional probe digest (N-5)
+
+`mathProbeDigest` is **not adoptable yet**. Before it may be used it needs, in one reviewed change: a **fixed, versioned argument list** (`mathProbeArgListVersion = 1`) naming every probed `Math.Exp` and `Math.Pow` argument; the digest domain tag including that version; and a statement of which archive versions require the field. Adoption is then **all-or-nothing per archive version**: a save whose archive version requires the digest but does not contain it, or contains a malformed or differently-versioned one, refuses with `FingerprintMissingOrInvalid`; a save whose archive version does not require it must omit it and is never compared on it (a present-but-unrequired digest is a duplicate/unknown-key structural refusal, not a match). The argument list itself is **UNDECIDED** and no value is invented here. Equality remains a bounded probe over the listed arguments only.
+
 **Refusal classes (distinct; proposed).** None is reported as tamper unless the fingerprints are equal and replay still fails.
+
+**Evaluation order (N-4).** Exactly one class is reported, determined in this order:
+1. **Strict parse and type/format checks** by the reader (T-07). A file that fails here is never reported in a fingerprint class.
+2. **Archive and format version** → `UnsupportedVersion`. A save whose archive version **predates** the fingerprint record is caught here, not as a missing fingerprint.
+3. **Fingerprint record presence and structure** in the current schema → `FingerprintMissingOrInvalid`.
+4. **Fingerprint comparison** → `PlatformFingerprintMismatch`.
+5. **Replay hash verification** → `ReplayMismatch`, or `ReplayPlatformMismatch` under option B.
+6. **Host capability**, checked at start-up before any file is opened → `PlatformUnverifiable`.
 
 | Code | When | Disk bytes | In-memory session | Never reported as |
 |---|---|---|---|---|
 | `PlatformFingerprintMismatch` | the saved compared fields differ from the current platform's, detected **before** replay | untouched | untouched | corruption, tamper, wrong format |
-| `ReplayPlatformMismatch` | **only under option B below:** replay fails a hash check and the fingerprints differ | untouched | untouched | corruption or tamper |
+| `ReplayPlatformMismatch` | **only under option B below** | untouched | untouched | corruption or tamper |
 | `ReplayMismatch` | replay fails a hash check and the fingerprints are **equal** (corruption, tamper or a defect; P0's own class, `LabSession.cs:81`) | untouched | untouched | a platform issue |
-| `FingerprintMissingOrInvalid` | the record is absent, truncated, has a duplicate or unknown key, or holds an "unavailable" value: a **structural** refusal by the strict reader (T-07) | untouched | untouched | a platform mismatch |
-| `UnsupportedVersion` | unknown fingerprint, format or archive version | untouched | untouched | corruption |
+| `FingerprintMissingOrInvalid` | in the **current** archive schema the record is absent, truncated, duplicated, carries an unknown key, or holds an "unavailable" value: a **structural** refusal by the strict reader (T-07) | untouched | untouched | a platform mismatch, or a legacy archive |
+| `UnsupportedVersion` | unknown or older archive/format version, including one that predates the fingerprint record | untouched | untouched | corruption |
 | `PlatformUnverifiable` | the **current** platform cannot produce a required field, so the file API is disabled at start-up | not applicable | not applicable | — |
 
 User-facing text for the platform case (intent, not final copy): *"This save was written on a different computing platform from this one (differing: …). Nothing was changed or deleted, and the save was not loaded. Open it on the platform that wrote it."* It names the differing field names and never host or user identifiers. Every refusal in the table loads in a **detached** state: no partial in-memory apply, no repair, no rewrite, no rename and no temp file.
 
-**Cross-host portability is an OPEN owner/Manager choice and is not decided here.** The conservative draft default is **A**. A save is never promised to load on another host.
+**Cross-host portability is an OPEN owner/Manager choice and is not decided here (N-1, N-2).** The conservative draft default is **A**. A save is never promised to load on another host.
 
 | Option | Behaviour | Cost and risk | Needs |
 |---|---|---|---|
-| **A. Same platform only (draft default)** | any compared-field difference refuses with `PlatformFingerprintMismatch` before replay; a file is never continued on another platform | Simplest and cheapest; no false corruption. A routine distribution upgrade that changes the C library makes older saves unopenable on that host (data intact, not loadable) | the owner accepts the usability cost |
-| **B. Attempt and classify** | on a difference, still replay; success is accepted, failure is `ReplayPlatformMismatch` | Saves survive harmless upgrades. Needs a **fingerprint chain** (the platform of each segment of history), because a file continued on platform B may no longer replay on A. Pays full replay time before refusing | owner choice, replay reviewer, the §9.3 budget |
+| **A. Same platform only (draft default; unapproved)** | any **compared** field difference refuses with `PlatformFingerprintMismatch` before replay; a file is never continued on another platform | Simplest and produces no false corruption. **Its real cost, stated explicitly:** because the gate includes class-A fields *and* class-B provenance, a routine runtime servicing build, OS release change, CPU feature-list change or a reviewed trust-table revision can force a refusal **even when `exp`/`pow` return identical bits**. That is a **costly, unapproved draft choice, not a software-safe fact**, and it may make routine upgrades incompatible on the writing host. Class C diagnostics never cause this | the owner accepts the usability cost |
+| **B. Attempt and classify — diagnostic-mismatch case only** | on a difference **confined to class-C diagnostics** (or a class-B/C difference where every class-A field still matches), replay and accept a successful replay; a hash failure refuses with `ReplayPlatformMismatch` | Covers only the cosmetic case: the recorded diagnostic text differs while the arithmetic-defining fields match. **It does not make an arithmetically different history portable.** Replay recomputes from genesis, so a segment produced with different `exp`/`pow` bits cannot be re-derived and every later hash fails; a fingerprint chain records *where* the platform changed but not the other platform's bits. Pays full replay time before refusing | owner choice, replay reviewer, the §9.3 budget |
 | **C. Platform-independent arithmetic** | P1's replay uses its own pinned deterministic `exp` and `pow` instead of the platform library | Portable by construction, but its results differ from the Unity capture by the difference between the implementations, so it needs a C-2b tolerance and a reviewed algorithm or **package (needs approval; none is proposed)** | C-2b evidence first; not before any Unity capture |
+
+**Narrower gate (alternative A′; not selected).** A candidate option is to gate only on class A (architecture, libm identity/version, runtime build, and `cpu.featureClass` while it stays in A, plus the probe digest if adopted) and to record the rest. That reduces the refusals described under A, but it is **unverified**: until a cross-host comparison shows which fields actually matter, unknown values for any field kept in A would still fail closed. Selecting A′ is an **owner/Manager decision**, not a documentation edit, and neither A nor A′ is adopted here.
+
+**Deferred: platform-boundary checkpoint (not proposed here).** Actual cross-platform continuation across differing arithmetic would need a canonical **state checkpoint at each platform boundary** in the archive, replay restarted from the checkpoint, hashes compared within segments, a rule for the cross-segment history digest, and therefore new envelope, hash and capacity arithmetic. That is a **separately scoped, costed future alternative** requiring owner approval. It is **not** introduced into §9.3's current no-checkpoint proposal, changes no cap, envelope or budget here, and does not decide A, A′, B or C.
 
 **Minimum tests (proposed, not run; fold into N03 and N08, no new N-row):**
 1. *Same environment:* write then load on the same fingerprint; replay matches every hash (positive).
-2. *Altered fingerprint:* change each compared field in turn (library version, runtime build, architecture, one CPU flag) in a **copy**. Load refuses with `PlatformFingerprintMismatch`; the file's SHA-256 before and after is identical; the active session is unchanged.
+2. *Altered fingerprint field:* change each **compared** field in turn (a class-A libm version, runtime build, architecture or one CPU-flag entry) in a **copy**. Load refuses with `PlatformFingerprintMismatch`; the file's SHA-256 before and after is identical; the active session is unchanged. Change a **class-C** diagnostic in a copy and the load must behave as if it were unchanged.
 3. *Changed raw bits:* flip one bit of one stored float with the fingerprint **unchanged**. Load refuses with `ReplayMismatch`, not a platform class.
-4. *Missing or malformed fingerprint:* refuses with `FingerprintMissingOrInvalid`, not as a platform mismatch.
-5. *Old and unknown versions:* unknown fingerprint, format or archive versions refuse with `UnsupportedVersion`.
+4. *Fingerprint absent or malformed, current schema:* in a copy of a current-version save, delete the record → `FingerprintMissingOrInvalid`; truncate it, duplicate a key or write an "unavailable" value → `FingerprintMissingOrInvalid`. *Genuine legacy schema:* a save whose archive version predates the fingerprint record → `UnsupportedVersion`, **not** a fingerprint class.
+5. *Old and unknown versions:* an unknown archive or fingerprint version refuses with `UnsupportedVersion`.
 6. *No unsafe partial apply:* every refusal leaves the in-memory forest, plans and history tip unchanged and writes nothing to disk (no overwrite, temp file or rename).
 7. *Mismatch reported as mismatch:* the platform case never produces the corruption or tamper message, and test 3 never produces the platform message.
-8. *Option-specific:* under B, a harmless difference that still replays is accepted and the next save records the fingerprint chain; under C, a differential run against the captured vectors.
+8. *Option-specific:* under B, a class-C diagnostic difference that replays to identical hashes is accepted and activated, while a class-A difference still refuses; under C, a differential run against the captured vectors; under A′, unknown values for any field kept in A fail closed.
+9. *Probe digest (§9.9.1), only if adopted:* a save whose archive version requires the digest and omits or malforms it refuses with `FingerprintMissingOrInvalid`; a save whose archive version does not require it and nevertheless carries one is a structural refusal; a matching digest never substitutes for replay verification.
 
 The fingerprint provider is **injectable**, so tests can simulate a different platform without a second machine. None of these tests shows Linux-versus-Windows behaviour; that needs a real run on each platform, which this DRAFT does not authorise.
 
@@ -757,10 +803,110 @@ The fingerprint provider is **injectable**, so tests can simulate a different pl
 | # | Decision | Gates | Proposed handling |
 |---|---|---|---|
 | 1 | Final implementation P0 base, after independent #567 disposition | P1-02 start; trust-table preparation | The Manager names and pins it explicitly; never float |
-| 2 | Cross-platform save portability (§9.9 options A, B, C) | P1-03 save/load format | Default A (refuse, preserve file); the owner chooses |
+| 2 | Cross-platform save portability (§9.9 options A, A′, B, C; the checkpoint continuation is deferred) | P1-03 save/load format | Default A (refuse, preserve file); the owner chooses. Selecting A′ or funding a checkpoint is a separate decision |
 | 3 | Empirical replay and byte caps; whether 200 years is needed; event cap or replay-cost guard; replay-time budget | P1-03 file format and load API | After the §9.3 benchmark; tie the year horizon to a named experiment |
 | 4 | Trust-table values for original fixtures, and any derived fixtures | P1-02 import | The import owner prepares them; the file-security reviewer checks them; values pending |
 | 5 | C-2b numerical proof and C-6 machine booking | P1-01 capture; P1-02 acceptance | Remain OPEN; a Linux Unity Editor capture is Linux evidence only (§3) |
 | 6 | Remaining unpublished field and GROWFOR evidence (Broad–Lynch top-height field method, GROWFOR executable identity, Irish predictive validity) | P1-04 science claims | Unverified, as before |
 | 7 | `fsync` and root owner/mode acceptance (§9.2) | P1-03 | Reviewer accepts or drops each |
 | 8 | Which hash design, if any, replaces one full-state hash per event (§9.3 options a–d) | P1-03 envelope | The replay reviewer, after the benchmark |
+
+### 9.11 Committed illustrative example strings for the byte counts (N-10) — not a schema, not a golden vector
+
+Every byte count in §4.1 and §9.3 **that is derived from the compact layout** comes from one of the strings below, so each figure can be re-counted from this text without the author's session. (The full-archive and trace-export rows remain #562 estimates and have no committed example.) They are **illustrative only**: they fix field names and counts for audit and are **not** a schema, a grammar, a canonicalisation rule, a golden vector or a requirement. `A` repeated stands in for any 16- or 64-character `[A-Za-z0-9_-]` identifier, `a` repeated 64 times for a 64-hex digest, and `3ff0000000000000` / `3f800000` for f64 / f32 bit patterns. Each string is compact JSON with no whitespace and ASCII only, counted in UTF-8 bytes (equal to the character count here).
+
+| ID | Describes | Bytes |
+|---|---|---|
+| E1 | client command event, descriptive keys, 16-character `commandId`, payload `{"planId":"p"}` | 429 |
+| E2 | the same event with a 64-character `commandId` (+48 B) | 477 |
+| E3 | E2 plus a 64-hex `initializationRef` in the envelope | 564 |
+| E4 | client command event, terse one-letter keys, 16-character `commandId`, empty payload — **one example, not a floor** | 333 |
+| E5 | system event, `commandId` null, descriptive keys, empty payload (`PlanStale(SessionLoaded)` shape) | 428 |
+| E6 | E4 without `year`/`revision` — the sub-threshold case in §9.3 | 321 |
+| A1 | annual compound event, 64-character `commandId`, five-datum f64 stand summary, empty `deaths` array | 786 |
+| D1 | death child record, 16-character ID | 102 |
+| D2 | death child record, 64-character ID (+48 B) | 150 |
+| T1 | tree record, f32 bits, 16-character ID | 242 |
+| T2 | tree record, f64 bits, 16-character ID (+40 B for five floats) | 282 |
+| T3 | tree record, f64 bits, 64-character ID (+48 B for the ID) | 330 |
+| W1 | work event with `payload.kind`, `planId` and a one-element `treeIds` | 495 |
+
+Re-check tie-in: 5,000 × T1 = 1,210,000 B is the snapshot S used in §9.3 and in the H2 table; A1 supplies the `786·Y` term, D1 the `102·D` term, and W1 the work-event example. **Re-count by byte length; do not re-serialise.** A different JSON writer, key order or escaping would change every count, which is one reason none of these strings is a schema.
+
+**E1 — 429 B**
+
+```text
+{"sequence":1,"commandId":"AAAAAAAAAAAAAAAA","commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","year":1,"revision":0,"payload":{"planId":"p"}}
+```
+
+**E2 — 477 B**
+
+```text
+{"sequence":1,"commandId":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","year":1,"revision":0,"payload":{"planId":"p"}}
+```
+
+**E3 — 564 B**
+
+```text
+{"sequence":1,"commandId":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","year":1,"revision":0,"initializationRef":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","payload":{"planId":"p"}}
+```
+
+**E4 — 333 B**
+
+```text
+{"s":1,"c":"AAAAAAAAAAAAAAAA","d":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","p":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","q":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","h":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","y":1,"r":0,"e":{}}
+```
+
+**E5 — 428 B**
+
+```text
+{"sequence":1,"commandId":null,"commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","year":1,"revision":0,"origin":"SessionLoaded","payload":{}}
+```
+
+**E6 — 321 B**
+
+```text
+{"s":1,"c":"AAAAAAAAAAAAAAAA","d":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","p":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","q":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","h":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","e":{}}
+```
+
+**A1 — 786 B**
+
+```text
+{"sequence":7,"commandId":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","yearBefore":6,"yearAfter":7,"revision":3,"initializationRef":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","standSummary":{"n":{"k":"f64","b":"3ff0000000000000"},"ba":{"k":"f64","b":"3ff0000000000000"},"dq":{"k":"f64","b":"3ff0000000000000"},"rd":{"k":"f64","b":"3ff0000000000000"},"p":{"k":"f64","b":"3ff0000000000000"}},"deaths":[]}
+```
+
+**D1 — 102 B**
+
+```text
+{"id":"AAAAAAAAAAAAAAAA","mechanism":"hazard","roll":{"k":"f64","b":"3ff0000000000000"},"killOrder":1}
+```
+
+**D2 — 150 B**
+
+```text
+{"id":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","mechanism":"hazard","roll":{"k":"f64","b":"3ff0000000000000"},"killOrder":1}
+```
+
+**T1 — 242 B**
+
+```text
+{"id":"AAAAAAAAAAAAAAAA","x":{"k":"f32","b":"3f800000"},"y":{"k":"f32","b":"3f800000"},"status":"alive","dbh":{"k":"f32","b":"3f800000"},"height":{"k":"f32","b":"3f800000"},"crown":{"k":"f32","b":"3f800000"},"age":28,"provenance":"inventory"}
+```
+
+**T2 — 282 B**
+
+```text
+{"id":"AAAAAAAAAAAAAAAA","x":{"k":"f64","b":"3ff0000000000000"},"y":{"k":"f64","b":"3ff0000000000000"},"status":"alive","dbh":{"k":"f64","b":"3ff0000000000000"},"height":{"k":"f64","b":"3ff0000000000000"},"crown":{"k":"f64","b":"3ff0000000000000"},"age":28,"provenance":"inventory"}
+```
+
+**T3 — 330 B**
+
+```text
+{"id":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","x":{"k":"f64","b":"3ff0000000000000"},"y":{"k":"f64","b":"3ff0000000000000"},"status":"alive","dbh":{"k":"f64","b":"3ff0000000000000"},"height":{"k":"f64","b":"3ff0000000000000"},"crown":{"k":"f64","b":"3ff0000000000000"},"age":28,"provenance":"inventory"}
+```
+
+**W1 — 495 B**
+
+```text
+{"sequence":8,"commandId":"AAAAAAAAAAAAAAAA","commandDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","previousEventDigest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","preStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","postStateHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","year":7,"revision":4,"payload":{"kind":"ExecuteWork","planId":"PLAN-0000000001","treeIds":["AAAAAAAAAAAAAAAA"]}}
+```
