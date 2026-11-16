@@ -692,6 +692,22 @@ The seed table in §2 above is left unedited as manager-provenance history. This
 - **Deliberately not started:** **P1A/T-03A** (conditional on the delta review predicate), Compact/D-082/CG-TRIG (paused), Unity/Editor (no designated physical owner yet), Windows build, merge, #443 integration, board or `active-tasks.md` writes.
 - **Honest independence limitation, recorded in advance:** with both OpenAI pools down, the repaired source will be authored by Opus 5.5 on Claude B, and its nonauthor delta reviewer will therefore be **same-provider**. That is weaker than the cross-provider review #557 enjoyed, and the delta verdict must state the limitation rather than imply full independence.
 
+### EVENT 039 — 2026-11-16T00:10Z — P2 five-rack readiness: CONDITIONAL; and the plan-changing fact that the save work is a SIBLING line missing 74 Candidate A commits
+
+- **Evidence class:** OBSERVED FACT (my own `git rev-list`/`merge-base` counts and a direct comparison of the launcher allowlist against the recorded 12 Nov drift paths) + ORCHESTRATOR CLAIM (end-state recommendation).
+- **P2 delivered:** [matrix](https://github.com/jermur788/CCF/blob/sen-1/five-rack-readiness-matrix-20261116-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/Sen-1-FIVE-RACK-PLAYER-TEST-READINESS-MATRIX-20261116.md) at `cf836906` on `sen-1/five-rack-readiness-matrix-20261116-v1`, read-only, **no Unity, no launcher run, no hashes** — and it says so rather than implying a native pass. **Verdict CONDITIONAL, not READY**, with four reasons, **none of them a game defect**.
+- **THE STRUCTURAL FACT — verified by me, not relayed.** Candidate B (the reviewed save source) is a **sibling**, not a newer Candidate A:
+  - `git rev-list --count 55863f1b ^2353a792` = **74** — A's commits are **absent** from B;
+  - `git rev-list --count 2353a792 ^55863f1b` = **378** — B's commits are absent from A;
+  - `merge-base` = `50042bbe` (old).
+  **Consequence: the save work cannot reach a playable candidate without a merge that is neither authorised nor qualified, and no test result transfers between A and B in either direction.** Tonight's honest ceiling is therefore **Candidate A playable-but-CONDITIONAL** + **save source approved-but-unintegrated**. I explicitly decline to close that gap by shortcut.
+- **The launcher drift-list defect is real and I confirmed it exactly.** Launcher `1d43336e…` allows 10 paths at lines 110–121; the **actual** 12 Nov drift in `runs/20261112T212725Z-624305/agent-completed-cleanup/drift-paths.txt` includes `Berry_Calyx.mat` and `Bilberry_Berries.mat`, **neither** in the allowlist. So a normal exit will likely emit `STOP: unexpected lane changes` and the next `--check-only` will refuse — the 12 Nov session only escaped this because the terminal was closed and an agent cleaned up (`launcher_cleanup=NOT_RUN`).
+- **Recommendation given, decision left with the owner/manager:** **option (b)** — keep the launcher **byte-identical** to the artefact the GO covers and document the exit STOP plus its recovery. Option (a) — widening the allowlist by exactly those two material paths — is the better permanent fix but **voids the launcher check the GO was granted against**, so it must not be done under time pressure by a worker. I did **not** edit the launcher.
+- **Other pack items needing no decision:** the throwaway profile is **not fresh** (12 Nov prefs persist, so first-time help won't reappear — fix in-game via F10 → "Reset tutorial/help progress…"); **Continue/F9 restore has never been run by a human on A**; the **#443 rack-number hazard** is present on an *edited* plan (marks still land correctly, #438 showed 0 mismatches) and the pack avoids it by using "Reset to suggested layout" and no rack edits. **#443 remains frozen.**
+- **Decision card posted to [#424](https://github.com/jermur788/CCF/issues/424#issuecomment-6903586195):** Gate 1 second-session re-GO (a one-session GO is not standing permission), Gate 2 launcher (a)/(b), Gate 3 stale physical board #553. Only Gate 3 needs the physical owner.
+- **Failure classification:** UNKNOWN/NONE — these are **authority and artefact gates**, not defects. **Retries:** 0.
+
+
 
 
 
