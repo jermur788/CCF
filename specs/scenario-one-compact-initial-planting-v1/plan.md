@@ -8,11 +8,23 @@
 
 **Status: DRAFT / NOT APPROVED; no production or Unity execution authority.**  
 
+## #614 — Child core critical path and parallel one-asset art (DRAFT)
+
+| Phase, after parent/child spec and signed world authority | Required Linux-only game/source and Editor proof | Art operating independently |
+| --- | --- | --- |
+| CP0 — decisions | #425 D-083; OPEN-C1/C5/C7/C8, #544 profile/boot contract, H1/14 omissions/8 buffer IDs and Route A/G1/guard signed manifest; independent nonauthor review | Source/provenance/licence inventory for tracked Sitka Plantation02, stage variants, ground flora/deadwood, true 2 m Oak/Beech |
+| CP1 — world/boot | Separate Compact hierarchy/true Stand Map, source-generated all-Sitka initial state, one registry and **scene-independent New/Continue preflight** (no `ForestSaveController.CanLoad` at boot); no accidental E80 generation; old saves/Reference untouched | Neutral Compact-only scene-local materials and age/stage-correct primitive silhouettes |
+| CP2 — G1 geometry | Walk entrance/path to all four G1 sites with Linux capsule; test real upright/failed/expired guards and O1 **0.141 m core collision FAIL**/O2 **0.155 m verge**/B2 margin, invoke FR-06 signed revision when unsafe | W path/juvenile/guard authored and reviewed **one material/prefab at a time** without moving source geometry |
+| CP3 — planting and first year | Four true owned 2+2 Pending orders, batch vs per-tree shelter/actor explicitly accepted, Work Plan approval and authoritative annual settlement; €20 stock, optional €20 guard materials, ~€30 contractor or 40 owner minutes; genuine survivor/failure event history | Correct stage: **labelled neutral 0.6 m** juvenile until a reviewed real one exists; no 0.3× scaled 2 m foliage as final-quality |
+| CP4 — later forestry and acceptance | Genuine repeated interventions/no-work/Annual Review, S1-C/S1-D, finance/completion owner policy; Tier-1 targeted, Tier-2 bounded feature proof in Linux Editor 720p/1080p, one Tier-3 at milestone; **owner personal Editor test** | Final visual integration/rights/performance for external beta, not gameplay critical path |
+
+Never mutate shared `Forest Ground.mat`/`Forest Path.mat` or E80 52 planks/track, nor import unlicensed `ForestFloorV1` or incomplete Ultimate Nature. #605/#611 appearance review does not gate CP1–4; D-032 still gates binary provenance/import, exact #605 transfer needs owner SHA-256 approval. Linux owns **all** production Unity/scene/C# and tests; Windows scratch is not a Scenario One Unity host. No Windows build until owner personally tests and explicitly approves afterward. Original historical Stage 0–4 below are retained, but this newer #614 schedule governs any contradictory final-art prerequisites. DRAFT only.
+
 ## #600 — Planting integration sequence for separate Compact scene (DRAFT)
 
 ### #604 correction — staged child dependency; DRAFT / no implementation authority
 
-**Before planting:** Parent source owner must resolve **neutral no-world title picker **independent of gameplay-bound menu.Open()****, single persistent session-menu host (boot UI distinct), profile→scene New/Continue/**Restart selected validated gameplay profile without title** and both `forest-save.json` call sites through signed registry (#544). Current startup creates Enlarged80 before the gameplay-bound title appears. Saved scene address is a derived destination, **not a routing identity**. Use signed identity criteria ISO-07/08/42/44/48/54/55 + ISO-15; **ISO-58 is still the BLOCKED teaching/CG-TRIG gate**.
+**Before planting:** Parent source owner must resolve **neutral no-world title picker independent of gameplay-bound menu.Open()**, single persistent session-menu host (boot UI distinct), profile→scene New/Continue/**Restart selected validated gameplay profile without title** and both `forest-save.json` call sites through signed registry (#544). Current startup creates Enlarged80 before the gameplay-bound title appears. Saved scene address is a derived destination, **not a routing identity**. Use signed identity criteria ISO-07/08/42/44/48/54/55 + ISO-15; **ISO-58 is still the BLOCKED teaching/CG-TRIG gate**.
 
 **Before finance/teaching:** Current shelter and execution selectors are **batch** settings, not independent per-tree UI controls; decide whether an approved per-tree affordance is necessary. Quote four trees at €20 stock, optionally €20 protection materials, ~€30 contracted planting labour (or 40 owner minutes) as separate costs. Preserve owner count and source FR-06 STOP for path/G1 changes. No native success claim.
 
