@@ -1,0 +1,47 @@
+# Multi — owner confirms FULL P1, not reduced prototype: scope and shortest safe route to execution
+
+**Date:** 16 November 2026. **Direct user product instruction:** “Let's go for the full P1.” **Manager interpretation:** the user explicitly rejects the Manager's proposed limited Option A in favour of the **full standalone Multi-Rack 2D Sitka P1 annual-growth/mortality laboratory**. This establishes **product scope**, not blanket signoff of the currently DRAFT four-file spec, undecided technical contracts, a P1 code writer, Unity machine time, or a Windows Player build.
+
+**Portfolio:** standalone synthetic **2D** laboratory, separate from Scenario One. Scenario One remains the first external full-game demo and has priority over shared exclusive Unity time. No Windows game build until user personal Scenario One candidate playtest and distinct explicit authorisation. Git is canonical. Dashboard/Google Drive not verified.
+
+## Accepted product intention and scope
+
+P1 is a complete opt-in, separate full laboratory rather than a quick temporary growth script. Retain all of these as the intended deliverable, each requiring reviewed implementation and qualification evidence:
+
+1. **Original synthetic Sitka import** from independently verified P0 fixture inventory only, no preceding interventions, histories or imported approvals, no modification of P0 lab/code/saves. P0 qualified source reference selected by [#589 Manager](https://github.com/jermur788/CCF/blob/docs/multi-sitka-p0-589-manager-acceptance-and-p1-base-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P0-589-MANAGER-WSL2-EDGE-ACCEPTANCE-AND-P1-BASE-RULING-20261116.md), rather than floating main/old docs branch.
+2. **Actual repeated annual biology in P1 only:** current CCF adult Sitka competition, diameter/height/crown/age, all-living density, natural mortality and source cause/year/order under explicit source/version/rng/seed provenance. Comparison of no intervention and executed selective/repeated work plans. Approvals become STALE upon load with exactly one per open approved/pending plan and no load event when none is open, as owner-confirmed D-082.
+3. **Two explicitly different geometry/evidence domains:** derived legal-square **40/80 m** fixtures to test numerical Unity-Editor source parity; original P0 inventories include non-legal 50m/polygon geometry, so any original-polygon annual experiment must be transparently **source-inspired/non-Unity-geometry-parity** if its separate technical policy is approved; otherwise the original annual run remains blocked, **never substituted by a derived 40/80m forest**. Choosing “full P1” does NOT quietly approve a particular original-polygon adapter and arithmetic policy.
+4. **Standalone durable research application**, not disposable scratch: own versioned P1 records, immutable original-source provenance and trusted fixture identity, deterministic commands/events/replay, clear save/load outcomes, bounded file/resource policy, separate secure P1 Host/root, Windows Edge+Ubuntu WSL2 targeted validation and no security regression for P0.
+5. **Per-tree and stand-level views/exports**, annual history, source limitations, valid comparisons of management choices. Stand-level **B/N/H** against appropriately matched historical Broad–Lynch/GROWFOR references are **model-to-model diagnostics only**, never empirical Irish individual-tree validation.
+6. **Actual Unity Editor numeric evidence:** independent exact source/Mono configuration, Tier-1 observable stored/public and pre-growth CI/death-set evidence; separately reviewed and owner-authorised verification-only Tier-2 source instrumentation only where indispensable; per-ID raw bits, A/B controls, later C-2b parity gate and source-sensitive float/libm/host limits. Unity machine usage remains a **separate C-6 owner approval**, not granted here.
+7. **Mandatory scientific disclaimer** under D-082 on every screen/export/plot: closed synthetic pure-Sitka adult experiment, no juveniles, storm, recruitment, browsing, mixed species, site-class variation, field forecast or claim of validated Irish forest trajectories.
+
+**No narrowing to an isolated prototype.** Full P1 includes the full integration *within the 2D lab*, not integration into Scenario One or a Windows Unity game build.
+
+## What is NOT approved by the current owner statement
+
+- The current four-file [P1 DRAFT](https://github.com/jermur788/CCF/tree/docs/multi-sitka-p1-607-operative-reconciliation-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1) remains **DRAFT / NOT APPROVED FOR IMPLEMENTATION**. Nine C-register entries remain in their previously reviewed state; 72 requirements UNCHECKED, N01–N13 UNRUN. [#610](https://github.com/jermur788/CCF/issues/610) was accepted **as an in-place docs correction**, with author overlap, not independent technical approval. [#613](https://github.com/jermur788/CCF/issues/613) independent changed-sentence check was **DEFERRED / NOT RUN**, per the user's direct request to move on; do not record it as PASSED or restart iterative review churn.
+- Specific technical policy: C-1 source trust/table, save/root/Host/fingerprint and error semantics; C-2a pre-capture observable evidence vs Tier-2; C-3 all-living population; C-4 synthetic initial state; C-5 original nonparity polygon mode vs derived square, top-height/SI; A/A′/B/C portability, power-loss/dir-fsync and caps/replay budget. These are proposed contracts until owner/technical G2 adoption in a concrete approved implementation spec.
+- C-2b matching tolerances and branch/death-set equivalence **must follow real Unity vectors**; impossible to accept prospectively. C-6 exclusive Unity time requires a fresh explicit owner decision and lock. A P1 source author must not quietly borrow Scenario One's machine or build Windows game.
+- No P1 implementation writer, main integration, P0 mutation, new fixture, code, tests, source/Unity process, user-save change, or physical workstation lease has been started by this Manager.
+
+## Efficient execution path: no more blanket spec review loop
+
+**G2 single approval gate (NEXT OWNER/TECHNICAL ACTION, not another docs review cycle):** prepare a compact, explicit final implementation-authorisation ruling to the owner: “approve the full P1 four-file implementation plan with [named conservative technical choices] for phased coding; permit the original source-inspired polygon mode with transparent non-parity boundaries; preserve strict source trust and unsupported-platform refusal; defer C-2b numerical acceptance to real Unity evidence and C-6 machine booking to a later separate owner GO.” For any remaining nontrivial decision (original geometry, cross-host file portability, postrename durability return), put the recommendation and consequences in the **owner decision**, not another recursive full-spec critique. If an owner has not accepted the specific technical scope, leave it gated rather than call the user’s general “full P1” instruction an approval of everything.
+
+**After explicit implementation-spec approval**, split the complete P1 into **sequential exclusive execution phases** with durable handoffs/claims and independent proportionate checks:
+
+| Phase | Intended output | Release condition |
+|---|---|---|
+| P1-S0 | Separate P1-owned project/root, immutable P0 origin trust/source and forest geometry import, versioned files and type/schema contracts, unit-level security negative tests; no annual growth | G2 approved spec + ownership on source files |
+| P1-01 | Oracle-prep and derived 40/80m fixture manifests, source-read-only C-2a Tier-1 capture pipeline, exact source/Editor config and no-perturbation controls | Approved numeric capture contract; **owner C-6 Unity slot separately** before any Editor run |
+| P1-02 | Adult annual update of diameter, height, crowns, density, natural mortality with exact audited source ordering, deterministic RNG and explicit original non-parity mode | Actual C-2b postcapture parity disposition for tested platform and phase qualification |
+| P1-03 | Plans/interventions across years, canonical event/replay/save/load and Host/browser safety; P0 entirely unchanged | Independent file-security + replay/source provenance controls |
+| P1-04 | B/N/H and correctly bounded Broad–Lynch stand reference comparisons | Explicit model-domain and SI/H method rules, no field-validation claim |
+| P1-05 | Opt-in UI, charts/exports, save/restart and real Windows Edge/WSL2 regression qualification | One integrated feature qualification and release handoff; no Scenario One game build |
+
+The code phases above are **roadmap descriptions, not dispatched or approved production tasks**. Serialise actual shared Unity use, avoid duplicating qualification where untouched components retain evidence, and do not require full-game Tier-3 verification for an isolated 2D lab. Do not substitute file/Handoff completion for executable evidence.
+
+**User action required for scope:** NONE; already explicitly chosen FULL P1. **Next meaningful owner action:** approve or revise a succinct G2 implementation/risk and original-polygon decision before any production source task. This Manager does not silently accept technical choices or dispatch coding from an unapproved DRAFT.
+
+**Issue:** [#615](https://github.com/jermur788/CCF/issues/615), **OWNER FULL SCOPE CONFIRMED / G2 IMPLEMENTATION GATED**; not a running worker claim.
