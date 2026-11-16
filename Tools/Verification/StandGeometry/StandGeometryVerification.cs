@@ -82,9 +82,11 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
     // The literal bytes save v21 adds while a world's V2 rack plan is still the empty default: the four
     // rack-plan fields (declared last and adjacent in ScenarioOneSaveData), each work order's rack link,
     // the empty v22 objectiveAchievements list and the default v23 prescription fields (declared last), and the version-header bump the pre-v21
-    // byte stream never had.
+    // byte stream never had. Teaching v24 is persisted but excluded from every world identity.
     private static string WithoutDefaultRackV2(string json)
-        => json.Replace(",\"rackPlanningModel\":0,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
+        => json.Replace("\"firstGuidedRackReviewComplete\":false,", "")
+               .Replace("\"firstGuidedRackReviewComplete\":true,", "")
+               .Replace(",\"rackPlanningModel\":0,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackPlanningModel\":1,\"rackPlanConfirmed\":false,\"nextRackId\":1,\"racks\":[]", "")
                .Replace(",\"rackId\":0", "")
                .Replace(",\"objectiveAchievements\":[]", "")
@@ -92,6 +94,25 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
                .Replace(",\"prescriptionId\":0,\"prescriptionCoverageUnitId\":\"\",\"prescriptionCropTreeId\":\"\",\"prescriptionReason\":0", "")
                .Replace(",\"prescriptionId\":0", "")
                .Replace("\"version\":" + ForestSaveData.CurrentVersion + ",", "\"version\":20,");
+
+    // Raw fixtures use the same immutable admission boundary as disk loads, without disk IO.
+    // A DTO clone is deliberately NOT registered as a trusted capture.
+    private bool LoadRaw(string json, out string problem)
+    {
+        if (!ForestSaveController.AdmittedSave.TryCreate(json, out var admission, out problem))
+            return false;
+        if (!admission.TryPrepare(out _, out problem))
+            return false;
+        return admission.Apply(saves, false, null, out problem);
+    }
+
+    private void CheckRawRefused(string json, string expectedProblem, string context)
+    {
+        var before = Snapshot();
+        Check(!LoadRaw(json, out string problem), context + " raw source must be refused");
+        Check(problem == expectedProblem, context + ": expected geometry/identity refusal, got " + problem);
+        Check(Snapshot().Equals(before), context + " raw refusal left the world untouched");
+    }
 
     private (string hash, int cells, int trees, int model) Snapshot() => (WorldHash(), e.CellCount, LivingTrees(), e.StandGeometryModelVersion);
 
@@ -120,7 +141,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
 
         // ---- 2. Capture records the active geometry; v20 round trip ---------------------------------------
         ForestSaveData start = saves.CaptureData();
-        Check(start.version == 23 && ForestSaveData.CurrentVersion == 23 && start.standGeometryModel == 0, "capture writes v23 + geometry 0");
+        Check(start.version == 24 && ForestSaveData.CurrentVersion == 24 && start.standGeometryModel == 0, "capture writes v24 + geometry 0");
         string startHash = ScenarioReferenceArchive.WorldHash(start);
         Check(startHash == ScenarioReferenceArchive.Hash(V19Layout(start)), "a Legacy40 world hashes exactly as the pre-v20 layout (historical anchors stay valid)");
         string currentJson = JsonUtility.ToJson(start);   // current-schema JSON (captured at whatever the schema version is)
@@ -130,7 +151,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         // LEGACY-COMPATIBLE hash is the historical layout for Legacy40 only. An Enlarged80 world must never hash
         // like an otherwise equivalent Legacy40 world just because compatibility hashing drops the new field.
         string currentHash = ScenarioReferenceArchive.CurrentWorldHash(start);
-        Check(currentJson.Contains("\"version\":23")
+        Check(currentJson.Contains("\"version\":24")
             && currentHash == ScenarioReferenceArchive.Hash(WithoutDefaultRackV2(currentJson)) && currentHash != startHash,
             "CurrentWorldHash hashes the current JSON minus default V2 rack state, geometry field included (it is not the legacy identity)");
         Check(ScenarioReferenceArchive.LegacyCompatibleWorldHash(start) == startHash, "LegacyCompatibleWorldHash is the historical layout for a Legacy40 world");
@@ -144,32 +165,67 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Pass("hash identities explicit: current hash keeps the geometry field and drops only default rack state; Legacy40 compat stays historical; Enlarged80 can never collide with it");
         ForestSaveData parsed = JsonUtility.FromJson<ForestSaveData>(currentJson);
         Check(ForestSaveValidation.ValidateGeometryJson(currentJson, parsed) == null && ForestSaveValidation.Validate(parsed, 336, 64) == null, "a current Legacy40 save validates");
-        Check(saves.LoadData(parsed, false), "v20 geometry-0 save loads");
+        var beforeClone = Snapshot();
+        Check(!saves.LoadData(parsed, false), "a parsed DTO is not an unchanged same-session capture");
+        Check(Snapshot().Equals(beforeClone), "refused DTO clone left the world untouched");
+        ForestSaveData changedCapture = saves.CaptureData();
+        changedCapture.wood++;
+        Check(!saves.LoadData(changedCapture, false), "a changed same-session capture is refused");
+        Check(Snapshot().Equals(beforeClone), "refused changed capture left the world untouched");
+        Check(saves.LoadData(saves.CaptureData(), false), "an unchanged same-session capture loads");
         yield return null;
-        Check(WorldHash() == startHash && e.CellCount == 64 && e.StandGeometryModelVersion == 0, "v20 geometry-0 round trip is exact");
+        Check(WorldHash() == startHash, "same-session capture round trip is exact");
+        Check(LoadRaw(currentJson, out string currentProblem), "v24 raw geometry-0 save loads: " + currentProblem);
+        yield return null;
+        Check(WorldHash() == startHash && e.CellCount == 64 && e.StandGeometryModelVersion == 0, "v24 raw geometry-0 round trip is exact");
         Pass("current round trip exact; Legacy40 world hash == pre-v20 layout hash " + startHash);
 
-        // ---- 3. A v19 save loads as Legacy40 and is written back as v20 + geometry 0 -----------------------
+        // ---- 3. Synthetic v19-layout regression, followed by genuine frozen pre-v20 input -----------------------
+        // Synthetic layout coverage only; genuine historical provenance is tested separately below.
         string v19Json = V19Layout(start);
         Check(!v19Json.Contains("standGeometryModel"), "the v19 layout has no geometry field");
         ForestSaveData v19 = JsonUtility.FromJson<ForestSaveData>(v19Json);
         Check(v19.version == 19 && v19.standGeometryModel == 0, "v19 parses with the default geometry 0");
         Check(StandGeometryModel.ForSave(v19) == StandGeometryModel.Legacy40, "a save before v20 is read as Legacy40");
         Check(ForestSaveValidation.ValidateGeometryJson(v19Json, v19) == null && ForestSaveValidation.Validate(v19, 336, 64) == null, "v19 validates");
-        Check(saves.LoadData(v19, false), "v19 save loads");
+        Check(LoadRaw(v19Json, out string v19Problem), "synthetic v19-layout raw fixture loads: " + v19Problem);
         yield return null;
         ForestSaveData rewritten = saves.CaptureData();
-        Check(rewritten.version == 23 && rewritten.standGeometryModel == 0, "v19 -> saved again writes v23 + geometry 0");
+        Check(rewritten.version == 24 && rewritten.standGeometryModel == 0, "synthetic v19 -> capture writes v24 + geometry 0");
         Check(ScenarioReferenceArchive.WorldHash(rewritten) == startHash, "v19 loaded then re-saved is the same world (hash unchanged)");
-        Pass("v19 loads as Legacy40; re-save writes v21 + geometry 0 with an identical world hash");
+        Pass("synthetic v19-layout fixture loads as Legacy40; v24 capture preserves world hash");
+
+        // This is a genuine v12 archive source: production authenticates its original embedded JSON.
+        Check(saves.TryPrepareReference(0, out var oldSource, out ForestSaveData oldWorld),
+            "genuine pre-v20 Reference Year-0 raw source prepares");
+        Check(oldWorld.version == 12 && StandGeometryModel.ForSave(oldWorld) == 0,
+            "genuine historical fixture retains its v12/Legacy40 identity");
+        Check(oldSource.Apply(saves, false), "genuine pre-v20 raw source loads");
+        yield return null;
+        ForestSaveData historicalCapture = saves.CaptureData();
+        Check(historicalCapture.version == 24 && historicalCapture.standGeometryModel == 0
+            && historicalCapture.ecologicalYear == oldWorld.ecologicalYear && e.CellCount == 64,
+            "genuine pre-v20 load captures as current-schema Legacy40");
+        var historicalTrees = historicalCapture.trees.ToDictionary(t => t.treeId);
+        Check(historicalTrees.Count == oldWorld.trees.Count && oldWorld.trees.All(t =>
+            historicalTrees.TryGetValue(t.treeId, out var actual) && actual.speciesId == t.speciesId
+            && actual.position == t.position && actual.stage == t.stage),
+            "genuine old-save tree identities, species, positions and stages survive");
+        Check(LoadRaw(currentJson, out string restoreProblem), "restore current raw fixture: " + restoreProblem);
+        yield return null;
+        Check(WorldHash() == startHash, "current world restored exactly after genuine old-save load");
+        Pass("genuine v12 raw archive load keeps Legacy40 and every saved tree; current world restored");
 
         // ---- 4. Malformed / unknown geometry is rejected BEFORE any world mutation --------------------------
         var before = Snapshot();
-        foreach (int bad in new[] { 2, 7, -1, 1000 })
+        foreach (int bad in new[] { 2, 7, -1, 1000, int.MaxValue })
         {
             ForestSaveData forged = JsonUtility.FromJson<ForestSaveData>(currentJson);
             forged.standGeometryModel = bad;
-            Check(ForestSaveValidation.Validate(forged, 336, 64) != null, "unknown geometry " + bad + " fails validation");
+            string geometryProblem = ForestSaveValidation.Validate(forged, 336, 64);
+            Check(geometryProblem != null, "unknown geometry " + bad + " fails validation");
+            JObject badRaw = JObject.Parse(currentJson); badRaw["standGeometryModel"] = bad;
+            CheckRawRefused(badRaw.ToString(), geometryProblem, "unknown geometry " + bad);
             Check(!saves.LoadData(forged, false), "unknown geometry " + bad + " is refused by LoadData");
             Check(Snapshot().Equals(before), "refused unknown geometry " + bad + " left the world untouched");
         }
@@ -177,10 +233,16 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         olderWithModel.standGeometryModel = 1;
         Check(ForestSaveValidation.Validate(olderWithModel, 336, 64) != null && !saves.LoadData(olderWithModel, false) && Snapshot().Equals(before),
             "a save older than v20 cannot claim a geometry model");
+        JObject oldBadRaw = JObject.Parse(v19Json); oldBadRaw["standGeometryModel"] = 1;
+        CheckRawRefused(oldBadRaw.ToString(), ForestSaveValidation.ValidateGeometry(olderWithModel), "pre-v20 claimed geometry");
         JObject missing = JObject.Parse(currentJson); missing.Remove("standGeometryModel");
         Check(ForestSaveValidation.ValidateGeometryJson(missing.ToString(), parsed) != null, "a v20 save with the field missing is rejected on the disk path");
         JObject asText = JObject.Parse(currentJson); asText["standGeometryModel"] = "1";
         Check(ForestSaveValidation.ValidateGeometryJson(asText.ToString(), parsed) != null, "a non-integer geometry is rejected on the disk path");
+        CheckRawRefused(missing.ToString(), "version 20 requires an explicit integer stand geometry model", "missing geometry");
+        CheckRawRefused(asText.ToString(), "version 20 requires an explicit integer stand geometry model", "non-integer geometry");
+        JObject foreign = JObject.Parse(currentJson); foreign["scenarioOne"]["scenarioId"] = "scenario-two";
+        CheckRawRefused(foreign.ToString(), "the save explicitly belongs to a different scenario", "foreign scenario");
         JObject mismatched = JObject.Parse(currentJson); mismatched["standGeometryModel"] = 1;
         Check(ForestSaveValidation.ValidateGeometryJson(mismatched.ToString(), parsed) != null, "raw JSON disagreeing with the parsed value is rejected");
         Pass("unknown/forged/missing/non-integer geometry rejected before world mutation (world unchanged)");
@@ -203,7 +265,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Check(ForestSaveValidation.Validate(enlarged, 336, StandGeometryModel.CellCount(1)) == null, "an Enlarged80 save validates against 256 cells");
         int eventsBefore = geometryEvents;
         Check(e.StandGeometryModelVersion == 0 && e.CellCount == 64, "the live world is still Legacy40 (64 cells) when the Enlarged80 save arrives");
-        Check(saves.LoadData(enlarged, false), "an Enlarged80 save loads into a Legacy40 live world (validated against ITS grid)");
+        Check(LoadRaw(JsonUtility.ToJson(enlarged), out _), "an Enlarged80 save loads into a Legacy40 live world (validated against ITS grid)");
         yield return null;
         Check(e.StandGeometryModelVersion == 1 && e.CellCount == 256 && e.CellsPerAxis == 16 && Mathf.Approximately(e.StandBounds.width, 80f), "geometry was applied from the save (256 cells, 80 m bounds)");
         Check(Mathf.Approximately(e.Cells[200].RecentOpening, 1.5f), "the cell-200 record was restored onto the 256-cell grid");
@@ -211,7 +273,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Check(saves.CaptureData().standGeometryModel == 1, "a capture now records geometry 1");
         Check(m.UnderstoreyCells.Count == 256, "understorey state follows the 256-cell grid");
         // and back: a Legacy40 save puts the 64-cell grid back (never validated against the 256-cell live grid)
-        Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(currentJson), false), "a Legacy40 save loads into an Enlarged80 live world");
+        Check(LoadRaw(currentJson, out _), "a Legacy40 save loads into an Enlarged80 live world");
         yield return null;
         Check(e.StandGeometryModelVersion == 0 && e.CellCount == 64 && WorldHash() == startHash, "Legacy40 restored exactly (64 cells, identical world hash)");
         Pass("load order verified: model decided and validated first, grid applied before restore, both directions");
@@ -244,7 +306,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Pass("preview from Legacy40: archive on its own grid; exact world restored");
 
         // From an Enlarged80 grid: the player's world is an Enlarged80 capture; preview must switch to Legacy40 and back.
-        Check(saves.LoadData(enlarged, false), "Enlarged80 world loaded for the preview test");
+        Check(LoadRaw(JsonUtility.ToJson(enlarged), out _), "Enlarged80 world loaded for the preview test");
         yield return null;
         string enlargedHash = WorldHash();
         Check(e.StandGeometryModelVersion == 1 && e.CellCount == 256, "player world is Enlarged80 (256 cells)");
@@ -271,7 +333,7 @@ public sealed class StandGeometryVerificationRunner : MonoBehaviour
         Pass("preview from Enlarged80: switched to Legacy40 and back; exact world, light and waypoint restored");
 
         // leave the scratch session in the Legacy40 start world
-        Check(saves.LoadData(JsonUtility.FromJson<ForestSaveData>(currentJson), false), "scratch world returned to Legacy40");
+        Check(LoadRaw(currentJson, out _), "scratch world returned to Legacy40");
         yield return null;
         Check(WorldHash() == startHash, "final world equals the starting world");
         Debug.Log("STAND_GEOMETRY_START_WORLD_HASH " + startHash);
