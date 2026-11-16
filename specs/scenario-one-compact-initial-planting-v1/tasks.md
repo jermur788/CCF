@@ -8,6 +8,20 @@
 
 **Status: DRAFT / NOT IMPLEMENTATION AUTHORISED.** Current Manager default: 30m compact stand, pre-existing H1 arrival clearing, winding footpath, one G1 **2 Oak+2 Beech** early planting episode. Small truck collection is a staged gameplay event; driveway engineering is NOT a new task. #508 and #513 research closed; #515 Manager documentation active. Legacy five-rack and Reference Future protected.
 
+## #614 — Separate Linux core implementation from optional visual finishing (DRAFT task candidates)
+
+| New planning task (not acceptance/dispatch) | Future exclusive owner / output | Gate/evidence |
+| --- | --- | --- |
+| CP-C0 source-policy and signed content | #424/#425 approve parent+child drafts after independent review, D-083, OPEN-C1/C5/C7/C8 and actual signed H1/Route A/G1/guard/tree-ID manifest | No production work while DRAFT; 14 historical omissions/8 buffer Sitka identity |
+| CP-C1 Compact scene/field | Linux source scene owner creates standalone 30m no-rack world, preserved Sitka IDs/Stand Map and player walk to all four planting locations | O1 0.141m guard core overlap treated **FAIL/FR-06 STOP** until approved source amendment; O2 verge/B2 checked |
+| CP-C2 three-profile boot/save | Single #544 owner implements scene-independent shared registry preflight for New/Continue/Restart and correct slot/scene; genuine old saves/Reference preserved | No gameplay `ForestSaveController.CanLoad` in no-world boot; ISO identity 07/08/42/44/48/54/55 + 15, ISO-58 only blocked CG-TRIG |
+| CP-C3 planting Work Plan | Linux planting owner creates four individual Pending owned-stock 2 Oak+2 Beech, source-authentic actor/shelter policy, €20 stock + optional €20 guards + ≈€30 contractor/40 owner min quotes then annual actual settlement | Current actor/shelter controls are batch-wide; per-tree choice requires separate approved source/UI implementation or approved batch constraint |
+| CP-C4 ecology and review | Linux ecology/history owner verifies planted biological individuals by true age/stage, browse/competition/ground/light survival/failure, later actual forestry/no-work and S1-C/S1-D | OPEN-C5 substantive intervention/completion and review, no automatic broadleaf donors or fake grant |
+| CP-C5 native/user | Linux integrator Tier-1 focused/Tier-2 feature, 720p+1080p route/guard/G1/work/save old worlds, one Tier-3 milestone candidate, owner personal Editor test | Exact lane/HEAD/lease/old save history, no Windows Unity or Windows build before later owner approval |
+| CP-A1+ visual, independent | Inventory original tracked Sitka Plantation02, stage variants, flora/deadwood and true 2m Oak/Beech, then separate one-at-a-time W path/real 0.6m juvenile/guard art | Scratch/rights D-032, optional #605 local source transfer with explicit owner SHA-256, no old E80 master/plank edits |
+
+**Critical path is CP-C0→C1/C2→C3→C4→C5. CP-A1+ does not block code/Unity core unless actual provenance/rights for a specific asset, physical collider or essential readability fails.** Stage-appropriate neutral 0.6m juvenile placeholders are allowed for initial personal playtest, not claimed final art. #605 v2 and #611 local-only scratch review do not become mandatory precursors. Every future Scenario One implementation and Unity test occurs on Linux, registered isolated lane and one machine-wide Editor lease. Windows only optional art scratch; Windows build remains separately gated by owner playtest+explicit decision. These proposed tasks are not dispatched.
+
 ## #600 — Child tasks aligned to parent scene/source bridge (DRAFT / NOT DISPATCHED)
 
 ### #604 correction — child task contracts; DRAFT / no implementation authority
