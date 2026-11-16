@@ -4,15 +4,25 @@
 
 Define the current Scenario One milestone, its completion boundary and the work that remains. Verified implementation detail belongs in `Docs/Project/unity-project-overview.md`; accepted product decisions belong in `Docs/Project/decision-log.md`; temporary ownership and execution locks belong in `Docs/Project/coordination/active-tasks.md`.
 
-**Last reconciled:** 2026-11-06 for **D-072 Option B Stand Map existing-headland presentation → Objective 1 diagram** and its focused playtest readiness sequence. Other parity/S1-C/S1-D/MFM milestone status retains historically published evidence and requires fresh live claim inspection before scheduling.
+**Last reconciled:** 2026-11-16 — owner-ratified Compact30 first invited closed-beta and next personal Editor-test scope recorded under D-083 in a controlled canonical publication branch. Historical Enlarged80 qualification remains dated evidence, not Compact runtime proof.
 
 ## Milestone
 
 **Scenario One — Complete-Loop Three-Species Demo Readiness**
 
-The first external demo is the **complete Scenario One** (D-060), not a first-intervention pilot. Before that demo, Sitka spruce, Oak and Beech must be represented to comparable modelling depth (D-059), and the player must be able to assess the stand, plan and execute management, review consequences, make second and later interventions, repeat the management cycle and reach understandable scenario completion.
+The first external invited closed beta targets the **new Compact30, no-internal-rack complete Scenario One** (D-083 clarifies D-060), not the previous Enlarged80 five-rack forest and not a first-intervention pilot. Before that demo, Sitka spruce, Oak and Beech must be represented to comparable modelling depth (D-059), and the player must be able to assess the stand, plan and execute management, review consequences, make second and later interventions, repeat the management cycle and reach understandable scenario completion.
 
-No external-demo candidate exists yet. No Windows build is authorised before the user personally playtests the Scenario One candidate and explicitly authorises a Windows build.
+No qualified Compact30 external-demo candidate exists yet. No Windows build is authorised before the user personally playtests the **exact Compact30 Scenario One Editor candidate** and separately explicitly authorises a Windows build.
+
+## Active first-beta target — Compact30 (D-083 owner-ratified product scope)
+
+**First personal Editor-test and first invited closed-beta target:** a **new, independent 30×30 m (0.09 ha) initially all-Sitka woodland**, no internal extraction racks, ~12×10 m **pre-existing** H1 southern arrival/parking/collection clearing, one winding *pedestrian-only* woodland footpath, and a first genuine player-led planting group of **2 sessile Oak + 2 European Beech**. The fourteen source-screened Sitka tree omissions inside H1 represent **pre-world layout**, never player felling, timber revenue, or annual intervention. The original 189 Sitka is a pre-layout source model; 175 is conditional arithmetic, **not a signed or runtime-qualified final tree count**. Actual G1 coordinates, four plant admissibility, post-H1 light, path core/collision and damaged guards are **NOT signed or Unity verified**. The proposed 1.2m walkable core is an initial source-screened candidate only; O1 damaged guard currently has a documented 0.141m visual intrusion. Do not assume route PASS.
+
+**Full-loop commitment remains:** Sitka/Oak/Beech comparable species depth (D-059), genuine stock and Work Plan approval, actual annual execution and causal ecology, browsing/protection, cost and time, later substantive interventions/no-work decisions, annual review/history (S1-C), repeated adaptive decisions (S1-D), and meaningful completion (D-060). The new Compact world **does not require** historical five-rack planning/rack-first marking/MFM lessons inside its no-rack boundary; D-064/D-065/D-071/D-072 continue to govern **historical Enlarged80 only**.
+
+**Implementation gates, not accepted features:** Parent and initial-planting four-file specs remain **DRAFT**; #614/#616/#617 passed targeted document-quality checks only. #576 world manifest candidate and #583 source geometry are unsigned/not native. OPEN-C1/C7 **CG-TRIG and ISO-58**, OPEN-C5 finite financing/later-management/completion criteria, OPEN-C8 approved Work Plan edit behaviour, and scene/identity/Stand Map/profile routing must obtain explicit authority. The immutable signed three-profile **save policy** is not proof that the Compact profile has been implemented, activated, run or safe against v1–v24 older saves. D-032 full art source/licence/binary policy remains OPEN, and the separated visual-art spec is DRAFT. Final artwork may develop one-at-a-time in parallel with **approved** Linux gameplay using stage-honest existing first-party assets and built-in primitive stand-ins; correct geometry is not optional art polish. No #611 Windows material experiment is a dependency of the Linux core loop.
+
+**Historical continuity:** Existing Enlarged80 with its **five-rack layout**, Rack V2/MFM/Stand Map, Legacy40, historical exact saves and frozen Reference Future v1 remain intact and separately regression-tested. Nothing in D-083 retrospectively un-verifies their earlier feature evidence or automatically integrates the new Compact world. All Scenario One production development/Unity qualification is on **Linux**, apart from the explicitly isolated #611 temporary Windows scratch material-look exception. No Windows Player build before the owner personally tests the exact qualified Compact Editor candidate and explicitly permits a build.
 
 ## Current programme state
 
