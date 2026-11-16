@@ -21,6 +21,10 @@ with no repository source change.
 - All P1 outputs, refusals, binaries and P0 state **MATCH** between the two.
 - **NO ECOLOGICAL YEAR RUN.**
 
+**Erratum, #658 (16 November 2026):** §10 contained a counting error in its thread-name row (now +1, not +2). The four
+evidence folders also had checksum-manifest packaging defects; new checksum sidecars were added alongside the preserved
+originals. See **§10.5**.
+
 ## 1. Worker, lane and source
 
 | Item | Value |
@@ -434,3 +438,58 @@ before/after lists); `negatives/`; `scope-check.txt`.
 **Next:** a narrow, independent non-author review of the switch scoping, the unchanged analyzer and negatives, the
 matching P1 results, and the conditional nature of the switched-runtime L4. Then a Manager verdict. #639, #644, #649 and
 #651 stay open. All four records stay `PendingIndependentReview`; the first ecological year stays on HOLD.
+
+### 10.5 Erratum and evidence-manifest addenda (#658, added 16 November 2026 — original §10 text above left unchanged)
+
+**Source of the corrections:** the independent #656 native witness (Codex `gpt-6.1-sol`, High), recorded
+[here](https://github.com/jermur788/CCF/issues/656#issuecomment-6931891738); Manager #641 NEEDS CHANGES (evidence
+packaging and report only); the #658 packet and Manager dispatch. **Authority** for this erratum and the sidecars: the
+product owner's direct authorisation, recorded as a one-entry owner-transferred board write on main
+[`97ed6a2f`](https://github.com/jermur788/CCF/commit/97ed6a2f3a51a3e91e5d98e1cff503093e7e77b0) (gates A/B/C).
+[#658 RUNNING](https://github.com/jermur788/CCF/issues/658#issuecomment-6932218665). **NO ECOLOGICAL YEAR RUN; no
+retest, no source change.**
+
+**1. Corrected count.**
+- The §10.2 row "+2 | writes to `/proc/<pid>/task/<tid>/comm` … (114 vs 112)" is **wrong**.
+- The correct figures are: successful `/proc/.../comm` **write-intent opens**: **A = 117, B = 116, Δ = +1**. My original auxiliary `grep` missed some unfinished/resumed strace records.
+- These are opens with write intent (`O_WRONLY`/`O_RDWR`). They are **not proven `write` syscalls**: `write` was not in the traced set.
+
+**2. Reconciliation.**
+- The 114 total stands: successful traced mutations A 926 vs B 812.
+- Corrected sum: **19 + 19 + 38 + 38 + 16 + 1 + 3 − 20 = 114** (socket `fchmod`, memfd `ftruncate`, `clr-debug-pipe` `mknodat`, their `unlink`s, `dotnet-diagnostic` socket-file `unlink`s, `comm` opens, MSBuild `~/.dotnet/shm`, NuGet cache).
+- §10.2's "**fully attributed**" is corrected to **fully count-reconciled; causation partly unproven**. The diagnostics-related identities, the thread-count reason for the `comm` delta, MSBuild timing and NuGet cache expiry are attributions from paths and switch scope, not established causes.
+
+**3. Unchanged conclusions.**
+- Default .NET runtime: **L4 FAIL, 38 UNRESOLVED** (not accepted).
+- Verification-only switched runtime: **L4 PASS with 0 unresolved, only within the traced scope and that configuration**.
+- P0 tracked snapshots, simulator outputs, pins, tests and binaries matched, as independently read by #656.
+
+**4. Evidence-manifest addenda.** Every original was preserved: no historical manifest, trace, binary or receipt was
+overwritten, renamed, moved, deleted or re-hashed in place. Exactly two **new** files were created exclusively in each
+folder, `SHA256SUMS-CORRECTED-20261116` and `MANIFEST-CORRECTION-20261116.md`.
+
+| Folder (`/media/jer/Files/CCF/Verification/…`) | Historical defect (result preserved) | New manifest: entries / SHA-256 | `sha256sum --strict -c` on the **new** manifest |
+|---|---|---|---|
+| `CCF-651-P1-F0-ControlledDotnetTrace-20261116/` | `SHA256SUMS` lists itself; #656: 71/72 OK, `./SHA256SUMS: FAILED` | 72 / `8723a7d6…bf2d` | exit 0, 72 OK |
+| `CCF-649-P1-F0-L4-FailClosed-20261116/` | same self-entry defect; author check 51/52 OK | 52 / `e61085e1…a8d7`; the 2 decoy symlinks are listed in the note, **not followed or hashed** | exit 0, 52 OK |
+| `CCF-644-P1-F0-FileSafety-20261116/` | same self-entry defect; author check 75/76 OK | 76 / `d398062e…29cc5` | exit 0, 76 OK |
+| `CCF-639-P1-F0-20261116/` | `isolation-run-1.SHA256SUMS` sits in the parent but its paths are relative to `isolation-run-1/`, so in place: 14 files could not be read; no self-entry | 15 / `0ce1bae6…f214` (`./isolation-run-1/<file>` × 14 + the historical manifest) | exit 0, 15 OK |
+
+**How the new manifests were built.**
+- Each lists every regular file under its folder at creation time, sorted by byte value with `./` paths, walked without following symlinks.
+- **The historical manifest is included as a payload file**, so its preserved bytes are pinned, while its content is not trusted.
+- Each excludes only itself and its note. Its own SHA-256 is recorded in the note, not in itself.
+- Inventory check per folder: regular files now = entries + 2.
+- They were made by an author script kept outside the repository (`make_sidecars_658.py`, SHA-256 `aae526bc…3042`). The manifests are standard `sha256sum` format and do not need it to verify.
+
+**Provenance boundary.**
+- A clean new manifest proves only that the files matched **at creation time** (16 November 2026, about 23:2x UTC).
+- It does not prove the files were identical when originally written, and it is not an independent witness of the original runs.
+- The historical failures remain the record of what was originally stored.
+- **Status: not yet independently re-verified**; the same #656 reviewer is to read the addenda.
+
+**Next:**
+1. The independent #656 Codex reviewer re-reads the eight sidecars, the preserved originals and this erratum, then publishes its reserved one-file result (gate C on `97ed6a2f`) with APPROVED / NEEDS CHANGES / REJECTED.
+2. Manager #641 issues its verdict.
+
+All four records stay `PendingIndependentReview`; the first year stays on HOLD.
