@@ -1,0 +1,37 @@
+# Multi — #650 browser-only 2D Sitka first-year UI and workflow preparation
+
+**Date:** 16 November 2026  
+**Status:** READY / NOT RUNNING. This is a **DRAFT design deliverable**, not new accepted product authority, released production UI, code, Unity or annual execution.  
+**Claim:** [#650](https://github.com/jermur788/CCF/issues/650). **Manager:** [#641](https://github.com/jermur788/CCF/issues/641). **Current source custody:** [#639](https://github.com/jermur788/CCF/issues/639) Claude Opus 5.5 native Ubuntu laptop, currently working on [#649](https://github.com/jermur788/CCF/issues/649).  
+**Owner-approved four-file technical-spec authority:** [spec.md](https://github.com/jermur788/CCF/blob/docs/multi-p1-637-owner-approved-four-file-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1/spec.md), [plan.md](https://github.com/jermur788/CCF/blob/docs/multi-p1-637-owner-approved-four-file-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1/plan.md), [tasks.md](https://github.com/jermur788/CCF/blob/docs/multi-p1-637-owner-approved-four-file-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1/tasks.md), [requirements.md](https://github.com/jermur788/CCF/blob/docs/multi-p1-637-owner-approved-four-file-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1/checklists/requirements.md). Direct owner approvals and project decisions rank above these; don't rewrite them.
+
+## Purpose and model/lane
+
+Design the **first small, usable 2D player workflow** for the standalone Sitka P1 scientific/gameplay experiment, so the later UI engineer has unambiguous screens and interactions without waiting for the foundation's current safety-test correction.
+
+**Difficulty MEDIUM**: multiple states and domain/refusal distinctions but no implementation. Best suited **OpenAI GPT-6 High browser ChatGPT** with connected GitHub. **Environment:** GitHub browser read-only source/spec inspection; distinct documentation-only branch `docs/multi-p1-650-browser-firstyear-ui-result-20261116-v1` created from the then-current inspected main HEAD, **no physical worktree**, no source edits. Register actual reviewer/designer model, branch and starting HEAD as [RUNNING] comment on #650 **before writing**. If conflicting ownership or unapproved spec assumptions appear, stop and report.
+
+**Exact single output path:** `Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-650-FIRST-YEAR-2D-PLAYER-FLOW-AND-MOCK-UI-DRAFT-20261116.md`. Create only on independent docs branch, and verify the GitHub compare shows exactly one added Markdown. No live coordination edit; #640 retains main live-board writer custody.
+
+## Deliverable, bounded
+
+A reviewable Markdown **DRAFT** with:
+
+1. **One-page player journey:** open standalone P1 experiment → see 30×30m synthetic adult Sitka overview → inspect individual trees and all-living stand metrics versus 17cm actionable subset → read explicit non-Irish-forecast/non-Unity-parity disclosure → see first-year action availability or current refusal states → eventual advance-year command and year-to-year comparison. Include screen states for *current F0 (annual unavailable)* versus *future approved annual engine*; do not imply working year execution now.
+2. **Screen-by-screen wireframes**, feasible as Markdown ASCII diagrams or documented layout sketches; include forest map, stand inventory summary, selected-tree inspector, year change comparison, refusal/error state, future work-plan approval boundary and future save/replay placeholders. Provide desktop/laptop browser-first layout, sensible widths, labels, focus/readability and an accessible list/table alternative to spatial clicks.
+3. **User stories and acceptance criteria** limited to presentation and workflow; each linked to existing approved spec requirement/decision where it truly exists. Explicitly distinguish mandatory approved requirement, model-derived proposal, synthetic design choice and unapproved product decision. Do not silently invent new forestry mechanics, action approval semantics, numerical parity, thresholds or save policy.
+4. **DTO/API information inventory, NOT IMPLEMENTATION:** list data needed per screen and state transition, producer/consumer relationship, read-only metrics from current source labels, and missing later contract fields. Use domain labels exactly: `DerivedP1ThirtyMetreExperimentV1` (first 30m simulation), `OriginalPolygonExploratoryV1` (read-only inspect, no annual/work), `DerivedUnitySquareParityV1` (later legal 40/80 after owner C-6 GO). State no original-to-30m rescaling. Do not choose a Host port or pretend it is implemented.
+5. **Separation of real and mock:** for any sample UI screenshot/ASCII/example, clearly label synthetic illustrative data and no empirical Irish forecast. The frozen 100-tree manifest and original P0 trust/catalog hashes remain unchanged; unaccepted records stay PendingIndependentReview. Include empty, pending review, denied action, unsupported source mode and unavailable annual engine states.
+6. **Handoff to later implementation:** a smallest-first UI backlog in priority order, nonoverlapping file-set ownership proposal to be checked at dispatch, and a focused UI test matrix. Identify dependence on actual adapter, Host, save/replay and P1 source APIs; do not release code under this packet. External first demo remains complete Scenario One, not standalone P1.
+
+**Explicit exclusions:** no code (C#/JS/HTML), built web app, mock data written to source, asset changes, actual Unity/Editor run, game build, P0 refactor, new spec approval, field/empirical claims, annual ecology, persistence implementation, claim of parity, UI service port allocation, physical machine lease, Windows build, full manifest re-audit or P1 source ownership. **Do not duplicate #649's active trace work or broad security testing.**
+
+## Completion and review
+
+Publish exactly the named Markdown to separate docs-only branch. Report actual files/spec paragraphs inspected, conflicts/unknown decisions, a concise requirement-to-screen trace table, explicit planned-versus-implemented labels, and source/branch compare verifying no code/source changes. Post [HANDED-OFF] link on #650 and notify Manager #641. Manager reviews whether draft is useful for later P1-05 implementation; independent functional acceptance is **NOT** implied. No move to source implementation until its API contract is stable and file custody is formally allocated.
+
+## Paste-ready dispatch
+
+> Take ownership of **Multi #650** as a browser-only UI/workflow designer (GPT-6 High preferred). Follow the COMPLETE [Multi #650 first-year 2D player workflow packet](https://github.com/jermur788/CCF/blob/docs/multi-p1-650-browser-firstyear-ui-workflow-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-650-BROWSER-UI-FIRST-YEAR-WORKFLOW-DRAFT-PACKET-20261116.md). Refresh current ownership and owner-approved four-file P1 specs, register actual model/branch/starting HEAD on #650 before writing, then publish one GitHub Markdown DRAFT with player journey, screen wireframes, DTO information needs, synthetic/non-parity disclosures, refusal states and UI acceptance criteria. Use a separate docs-only branch; no P1/P0 code, annual execution, save implementation, Unity, Windows build, live-board changes or source ownership overlap. Hand off result to Manager #641.
+
+**User action:** send the dispatch to a separate GPT-6 High browser chat; not the existing #649 Claude code chat. Dashboard/Drive/physical Ops status: not verified.
