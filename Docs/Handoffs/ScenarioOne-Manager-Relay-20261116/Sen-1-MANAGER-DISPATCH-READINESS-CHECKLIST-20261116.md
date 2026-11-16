@@ -6,6 +6,14 @@
 
 **Prepare → reserve → verify → dispatch.** Before presenting an executable implementation handoff to the user, Manager must make a best effort to **complete all prerequisites under Manager control**, route other prereqs to authorised maintainers, and read back resulting evidence. A technically complete packet is not **dispatch-ready** unless its external permissions are also present.
 
+## Workstream sizing and autonomous continuation
+
+**New owner instruction (2026-11-16):** default to **one substantial outcome-based assignment**, not one issue/handoff for every 5–15-minute edit or verification step. Scope the approved workstream to include several related stages such as source inspection → implementation → proportional tests → bounded correction → evidence/reproducibility → final GitHub handoff. Specify all pre-authorised stages and per-stage objective completion/stop conditions in the initial packet. Where the same exclusive writer remains authorised and checks pass, **continue automatically without requesting Manager sign-off or another user-dispatched microtask**.
+
+**One primary owner and one final result per coherent workstream**, with interim progress in its issue comments; do not generate a fresh claim merely for routine substeps. Use separate claims/owners only for truly different file/machine custody, genuinely independent review or mandatory gate. The Manager resolves prerequisite reservations and coordinates those specialists **before** issuing an executable implementation dispatch, rather than making the original worker repeatedly return for administrative checks. Never use a broad handoff to bypass spec approval, conflict checks, physical Ops authority, #548 Unity lease, protected saves, independent review, or user playtest/Windows-build restrictions.
+
+**Dispatch-worthiness:** prefer deliverables that move the current milestone materially (for example a complete save-qualification phase) over isolated one-line fixes. Do not invent extra tests or approvals solely to fill a larger task. Status checkpoints are useful, but only real blocker/approval/safety gates require a new Manager decision.
+
 ### Dispatch readiness gate — all required items
 
 1. **Product/spec authority:** cite specific accepted owner decision and approved (not draft) spec or bounded packet. Record exact allowed feature state, preserved compatibility and unresolved decisions. Do not start code from draft-only requirements.
@@ -22,7 +30,7 @@
 ## Application to existing flow
 
 - #642 was blocked because its exact two-fixture GitHub reservation was omitted before source-worker dispatch. Manager later wrote it; this should have happened first.
-- #647 was blocked because the physical Ops board had no #647 row although GitHub custody existed and original physical linter passed. #648 is the **prerequisite** physical reservation task, not #647 source execution. Until #648 returns actual physical PASS and #647 rechecks source exclusivity, source #647 remains BLOCKED/NOT RUNNING.
+- #647 was initially blocked because the physical Ops board lacked its reservation. #648 separately installed the physical row, Manager accepted it, and #647 subsequently incorporated the two reviewed fixtures. This approval chain should have been pre-arranged and communicated as a single broader workstream; do not repeat the avoidable dispatch loop.
 - #645 independent browser source review did not require physical file or Unity lane, so a correctly registered docs-only reviewer could execute directly.
 - Never relabel source incorporation as Unity verification, or runner-preflight as integration completion.
 
