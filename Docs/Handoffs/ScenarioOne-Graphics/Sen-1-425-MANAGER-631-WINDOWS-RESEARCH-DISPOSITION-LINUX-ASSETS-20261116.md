@@ -1,0 +1,22 @@
+# Sen-1 #425 — owner selection: native Linux for asset creation; Windows native look deferred
+
+**Date:** 16 November 2026. **Overall Manager:** GPT-6. **Owner's latest direct decision (18:10 UTC):** “We will stick with linux for asset creation.” This supersedes the request to choose among Windows remedies for the current asset-production programme. It is **not** approval to deploy Linux Unity without the existing lease/ownership gates.
+
+## Manager review and disposition
+
+**[#631 browser Windows SAC research](https://github.com/jermur788/CCF/blob/research/sen-1-631-windows-unity-sac-supported-remedy-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-631-BROWSER-WINDOWS-UNITY-SMART-APP-CONTROL-REMEDY-RESEARCH-20261116.md): APPROVED RESEARCH QUALITY / HANDED-OFF; CLOSED.** Read full result and verified GitHub comparison to starting main shows **one new Markdown only**. Official Microsoft has no per-app SAC exception. No confirmed Unity official signed fix exists for the installed 6000.6.9f1 `Bee.Stevedore.Program.dll` load denial (0x800711C7), as of this bounded review. VM/Sandbox cannot be represented as Unity-supported native Editor graphics qualification. Vendor support may offer future information; no bug submission has been authorised or sent. Browser research does not prove no vendor fix will ever exist.
+
+**[#611 Windows material look](https://github.com/jermur788/CCF/issues/611): DEFERRED / OPEN, NOT RUNNING, NATIVE UNQUALIFIED.** Keep intact its local owner-approved Windows Ops/licence/isolated 6000.6.9f1 setup, provenance and evidence, all 41 source hashes and **zero native 720p/1080p captures**; no further local SAC setting, Windows Editor installation/relaunch, signing or file action. Historical #611 did not complete its native verification; do not close as PASS or mark material SUITABLE. Later restart would require a **new direct owner route decision and updated local safe packet**, not inference from older approval. Do not delete Windows local scratch without owner consent.
+
+**Native Linux is the asset creation lane.** Existing [#634](https://github.com/jermur788/CCF/issues/634) A-04b Oak scratch revision is READY and remains the sole next asset-authoring assignment; it is strictly scratch, with no Unity or production import. Do not create a competing writer or re-run #627 Blender resource benchmark. Source art, procedural meshes, renders and hashes stay in separately owned local scratch, not repo, unless later D-032 source/licence/binary and asset-spec #619 approval. The proposed worn-earth W texture/native URP look originally in #611, if still needed, must be **replanned as a separate Linux task only after checking existing Linux provenance and graphics ownership**. Do not assume 41 Windows v2 textures are present or legally/technically cleared for transfer to Linux. No new material look task is dispatched here.
+
+**Live machine safety:** local [#626](https://github.com/jermur788/CCF/issues/626) found Unity 6000.6.0f1 matches Linux pin but physical Ops #548 repair not deployed/self-test red, physical #553 board stale, no approved clean Compact Unity lane and unqualified per-run Library/Prefs. Therefore **Linux Blender scratch remains the immediate art lane** and **Linux Unity import/rendering remains NOT ADMITTED** until #424/ops owner actually addresses the safety gates and grants a fresh exclusive lease. Respect the time-sliced rule; #627 measured Blender alone, not concurrent Unity+Blender.
+
+**Other boundaries:** historical E80 Rack V2/MFM/Legacy40/frozen Reference Future v1 and old saves remain protected. No Windows Player build before owner personally tests exact qualified Compact Editor candidate and separately approves a build. Dashboard/Drive mirror NOT VERIFIED.
+
+## Action and task routing
+
+- **No extra user approval required** to respect the owner's Linux asset-platform decision.
+- **#634** remains ready: dispatch its [existing packet](https://github.com/jermur788/CCF/issues/634) to one local Linux asset author; scratch A-04b only. For any future W material look, Manager first checks actual Linux source ownership and prepares its own packet instead of changing #634.
+- **#424:** reconcile live coordination and #611 historical stale rows, ensure Windows **DEFERRED** and Linux scratch **READY** are recorded truthfully; no backdated lock approval. No windows/local/Unity action is taken by this docs ruling.
+- **#611 local Windows work:** pause in place and preserve evidence; no new tests.
