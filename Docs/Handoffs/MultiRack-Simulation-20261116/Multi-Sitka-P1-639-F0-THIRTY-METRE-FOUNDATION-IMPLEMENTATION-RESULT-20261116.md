@@ -10,6 +10,10 @@ pending independent review and Manager acceptance**, as the packet's hard gate r
 are repaired in source commit `24805388`; see **§8**. Status: IMPLEMENTED, awaiting independent delta review. The
 manifest, catalog and trust records are unchanged and still pending. **NO ECOLOGICAL YEAR RUN.**
 
+**Update, #649 (16 November 2026):** the L4 analyzer now fails closed on undecoded mutating descriptors (source
+`9fc3a88b`). Its self-tests pass, but the native cold run surfaced 38 UNRESOLVED .NET runtime kernel-object descriptors.
+**#649 is BLOCKED pending a Manager ruling** (see **§9**). Fixture and trust records are unchanged and still pending.
+
 ## 1. Worker, lane and source
 
 | Item | Value |
@@ -214,3 +218,109 @@ Notes on the evidence:
 A narrow, independent changed-lines and security delta check (ideally reviewer #643) of `0636ddc3..24805388` against
 B-01, M-01, M-02, m-01 and m-02, then a Manager decision. #639 and #644 stay open. The trust and catalog records stay
 `PendingIndependentReview` until a separate reviewed acceptance commit.
+
+
+## 9. #649 L4 undecoded-descriptor fail-closed repair (after #646 NEEDS CHANGES)
+
+**Status: REPAIR IMPLEMENTED; NATIVE L4 RUN **BLOCKED** (fails closed on 38 genuine non-filesystem descriptors);
+awaiting a Manager ruling. NOT REVIEWED. NO ECOLOGICAL YEAR RUN.**
+
+| Item | Value |
+|---|---|
+| Packet / review | [#649 packet](https://github.com/jermur788/CCF/blob/docs/multi-p1-649-l4-undecoded-fd-repair-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-649-646-UNDECODED-FD-TRACE-FAIL-CLOSED-REPAIR-PACKET-20261116.md); [#646 review](https://github.com/jermur788/CCF/blob/review/multi-p1-646-644-file-safety-delta-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-646-INDEPENDENT-644-FILE-SAFETY-DELTA-RESULT-20261116.md) |
+| Worker / host / lane | Claude Code `claude-opus-5-5`, effort low; `jer-laptop` native Ubuntu 24.04 x64; existing worktree and branch |
+| Claim | [#649 RUNNING](https://github.com/jermur788/CCF/issues/649#issuecomment-6929702579), posted before any edit |
+| Base → source commit | `33c05069` → `9fc3a88b378b0cfff55d87afdd74f28a2dbf411c`. Only `tests/l4_analyze.py` and `tests/p0-isolation.sh` changed (+331/−121) |
+| Unchanged (`git diff --quiet 33c05069`) | `fixtures/derived/…sitkap1fx.json` (SHA `bcaaa5c3…`), all of `src/` (incl. `TrustTables.cs`, 4 records `PendingIndependentReview`), `build/`, and the P0 tree `f212c8f6` |
+
+### 9.1 The repair
+
+The #646 MAJOR was that the pre-repair regex silently dropped bare descriptors (`ftruncate(9, 0) = 0` gave no target and
+no "unknown" flag, so the run PASSED). `tests/l4_analyze.py` now uses an **explicit argument model per traced mutator**
+(`ARG_SPEC`) and a top-level argument splitter:
+
+| Argument kind | Rule |
+|---|---|
+| fd-only mutators (`ftruncate`, `fallocate`, `fchmod`, `fchown`, `fsetxattr`, `fremovexattr`, `utimensat(fd, NULL, …)`) | Target is the absolute path strace `-y` decodes for the descriptor. A **bare** descriptor (`9`) or a **non-path** decoding (`9<pipe:[…]>`, `8</memfd:…>(deleted)`, `9<socket:[…]>`) → **UNRESOLVED** |
+| `*at` calls | Each path string is paired with the dirfd argument immediately before it. A relative path needs that dirfd decoded to an absolute path, or bare `AT_FDCWD` with a known tracked cwd; otherwise UNRESOLVED |
+| Legacy path calls | A relative path is joined to the process's tracked cwd; an unknown cwd → UNRESOLVED |
+| Write-intent opens | The returned descriptor's decoded path is added (catches routes through symlinks) |
+| Catch-all | Any **successful** traced mutator with no reliable pathname → UNRESOLVED |
+| Failed calls (`= -1 …`) | Not counted as writes. If aimed at the protected tree → `FAILED_PROTECTED_ATTEMPT` (fatal, reported separately). An outcome-unknown `= ?` is treated as success (fail closed) |
+
+Exit 0 only with no HIT, UNRESOLVED or FAILED_PROTECTED_ATTEMPT. Read-only calls and read-only opens are not mutations.
+Existing legacy-cwd and `*at` handling, P0 HIT classification and the declared limitations are kept.
+
+**Self-test, three parts, all wired into `p0-isolation.sh` before the real run:**
+1. **Built-in synthetic cases** (`--self-test`): **23/23 PASS**. They cover:
+   - the packet's exact cases: bare `ftruncate`, `fallocate` and `fchmod` → UNRESOLVED; `ftruncate(9</scratch/protected/file>)` → HIT; `ftruncate(9</scratch/outside/file>)` → clean; `read(9…)` / `openat(…O_RDONLY)` / `open(…O_RDONLY)` → no mutation;
+   - bare `fchown`, `fsetxattr`, `fremovexattr`; a pipe fd; bare `utimensat(fd, NULL)`;
+   - relative `*at` with a bare dirfd; a second `rename` operand with a bare dirfd; legacy `mkdir` with an unknown cwd; `open_by_handle_at` with an undecoded return; a mutator with no string path (all UNRESOLVED);
+   - a decoded protected dirfd; `chdir` then relative `mkdir`; a write through a symlink (all HIT);
+   - a failed protected attempt, a failed write elsewhere, unfinished/resumed bare `ftruncate`, and `= ?`;
+   - **two sightings of one operation do not satisfy two expected identities**.
+2. **Decoy with unique operation identities:** each of the 13 scripted operations now targets a distinct name (`touch t.txt`, `truncate -s 0 tr.txt`, `chmod r2.txt`, …), giving 13 distinct `(syscall, target)` identities listed in `L4-selftest-expected.txt`. `--expect` requires every identity to match a hit. The count is certified by identity, not by `hits ≥ 13`. Natively: **13/13 identities matched, each sighted exactly once, 0 unresolved.** The only extra identities reported are the source names of the same `mv`/`ln` operations.
+3. **Read-only control** in the decoy: clean.
+
+Identities are pinned to this host's coreutils/bash/python syscall choices (Ubuntu 24.04). Deletion calls are still not
+in the decoy (this session blocks scripted removals); they use the same rules.
+
+**Demonstration of the defect:** on the same synthetic bare-fd trace, the **pre-repair** analyzer (`33c05069`) exits 0
+with "unresolved=0". The repaired analyzer exits 1 with 3 UNRESOLVED. The decoded-protected and benign traces give exit
+1 (HIT) and exit 0 respectively.
+
+### 9.2 Native cold L0–L4 run — BLOCKED diagnostic (preserved, not whitelisted)
+
+`tests/p0-isolation.sh` on the committed analyzer:
+
+| Layer | Result |
+|---|---|
+| L0, L1 | PASS (no P0 commit since `a7f41983`; tree `f212c8f6`) |
+| L2 | PASS: P0 status empty before and after |
+| L3 / L3+ | PASS: 0 ignored files; all **52 tracked P0 files SHA-identical** |
+| L4 self-test | **PASS**: synthetic 23/23; decoy 13/13 distinct identities, 0 unresolved; read control clean |
+| **L4 real run** | **FAIL (fail-closed)**: 947 successful mutating calls, 169 failed calls, **0 P0 hits**, **0 failed protected attempts**, **38 UNRESOLVED** |
+| P1 tests / CLI | 33/33; `generate-manifest --check` and `--stdout` reproduce `bcaaa5c3…`; `annual` refuses all three domains |
+
+**All 38 UNRESOLVED calls are of exactly two kinds, one of each per `dotnet` process start (19 processes):**
+
+| Count | Raw example | Origin (verified on this host) |
+|---|---|---|
+| 19 | `ftruncate(8</memfd:doublemapper>(deleted), 2199023255552) = 0` | `memfd_create("doublemapper", MFD_CLOEXEC)`: the .NET runtime's anonymous in-memory W^X double-mapping. Not a filesystem file |
+| 19 | `fchmod(9<socket:[1401775]>, 0600) = 0` | The .NET diagnostics IPC socket, followed by `bind` to `/tmp/dotnet-diagnostic-<pid>-…-socket` (outside P0) |
+
+Read-only probe (`dotnet sitkap1.dll annual …`, traced with `memfd_create,ftruncate,fchmod,bind`):
+- default settings: memfd 1, socket `fchmod` 1;
+- `DOTNET_EnableWriteXorExecute=0`: memfd 0, socket 1;
+- `DOTNET_EnableDiagnostics=0`: memfd 1, socket 0.
+
+Every other `ftruncate`/`fchmod` in the trace (192 in total) decodes to a real path (NuGet cache, the external P0-Core
+build directory, P1 `obj/`) and resolves outside P0. **The pre-repair #644 run contained the same 19 `memfd` calls and
+passed them silently**, which confirms the #646 finding on native data.
+
+Because the packet says to "preserve that diagnostic and report [BLOCKED] rather than whitelist/ignore them to green",
+I have **not** changed any classification or runtime setting to get L4 green.
+
+### 9.3 Options for the Manager (choose one; each then needs the narrow independent recheck)
+
+| Option | Change | Trade-off |
+|---|---|---|
+| **A — runtime switches in the traced run** (recommended) | `p0-isolation.sh` runs the traced command with `DOTNET_EnableWriteXorExecute=0` and `DOTNET_EnableDiagnostics=0`. The analyzer stays fully strict | No analyzer relaxation; probe shows both sources disappear. Cost: the traced runtime differs from the default configuration (JIT memory-mapping mode and the diagnostics endpoint). I don't expect either switch to change P1's file I/O, but that is an assumption, not verified |
+| B — narrow, provenance-bound classification | Add `memfd_create` and `socket` to the traced set. Classify an fd-only mutation as NON_FILESYSTEM only when that exact pid/fd was returned by a traced `memfd_create`/`socket` and not since reassigned. Report these separately; bare and other undecoded fds stay UNRESOLVED | Keeps default runtime; more analyzer logic to review; still a relaxation of the fail-closed rule |
+| C — keep strict, accept a known L4 FAIL | No change. L4 reported as "FAIL: 38 non-filesystem runtime descriptors, 0 P0 hits"; L2/L3/L3+ remain the P0 integrity gates | No new code; L4 cannot be green on .NET |
+
+### 9.4 Limits
+
+- L4 claims cover only the traced syscall set in the traced process tree for this run.
+- Legacy relative paths are joined lexically.
+- A `chdir` by one thread is applied to that thread id only.
+- Deletion calls are not exercised.
+- The builder's same-user race (§8.4) is unchanged and out of scope.
+- The decoy identity list is host-specific.
+
+Evidence: `/media/jer/Files/CCF/Verification/CCF-649-P1-F0-L4-FailClosed-20261116/` (with `SHA256SUMS`): cold run,
+synthetic traces with pre/post-repair outputs, decoy pre-check, runtime probe traces, self-test log. The copied decoy
+keeps its two recorded symlinks, which point into scratch.
+
+**Next:** Manager #641 chooses A, B or C. A or B is then a small follow-up in this lane, followed by the narrow
+independent recheck. #639, #644 and #649 stay open; no record is promoted.
