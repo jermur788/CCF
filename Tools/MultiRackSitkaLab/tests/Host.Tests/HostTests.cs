@@ -18,13 +18,13 @@ internal sealed class TestHost : IDisposable
     public string Base => Running.BaseUrl;
     public string LabData => Path.Combine(Root, ".lab-data");
 
-    public TestHost()
+    public TestHost(ILabFileAccess? fileAccess = null)
     {
         Root = Directory.CreateTempSubdirectory("sitkalab-host-").FullName;
         Directory.CreateDirectory(Path.Combine(Root, "fixtures", "synthetic"));
         foreach (var f in Directory.GetFiles(ToolPaths.FixtureDir, "*.sitkalab.json"))
             File.Copy(f, Path.Combine(Root, "fixtures", "synthetic", Path.GetFileName(f)));
-        Running = LabHost.Build(new LabHostOptions { ToolRoot = Root, WebRoot = Path.Combine(ToolPaths.ToolRoot, "src", "Ui", "wwwroot"), Port = 0 });
+        Running = LabHost.Build(new LabHostOptions { ToolRoot = Root, WebRoot = Path.Combine(ToolPaths.ToolRoot, "src", "Ui", "wwwroot"), Port = 0, FileAccess = fileAccess });
         Running.App.StartAsync().GetAwaiter().GetResult();
     }
 
@@ -58,6 +58,29 @@ internal sealed class TestHost : IDisposable
         Running.App.DisposeAsync().AsTask().GetAwaiter().GetResult();
         Http.Dispose();
         try { Directory.Delete(Root, true); } catch { /* best effort */ }
+    }
+}
+
+/// <summary>
+/// Real lab file access with one-shot hooks around the atomic write, so a test can change the lab folder at an exact point:
+/// just before the write opens the folder (pre-commit) or just after the rename has committed (post-commit).
+/// </summary>
+internal sealed class HookedFileAccess : ILabFileAccess
+{
+    private readonly RealLabFileAccess _real = new();
+    public Action? BeforeWrite;
+    public Action? AfterWrite;
+    public bool DirectoryExists(string path) => _real.DirectoryExists(path);
+    public string? LinkTarget(string path) => _real.LinkTarget(path);
+    public IReadOnlyList<string> ListFileNames(string dir) => _real.ListFileNames(dir);
+    public LabEntryKind Classify(string dir, string fileName) => _real.Classify(dir, fileName);
+    public byte[] ReadRegularFile(string dir, string fileName, long maxBytes) => _real.ReadRegularFile(dir, fileName, maxBytes);
+    public void CreateDirectory(string path) => _real.CreateDirectory(path);
+    public void WriteAtomic(string dir, string fileName, byte[] bytes)
+    {
+        var before = BeforeWrite; BeforeWrite = null; before?.Invoke();
+        _real.WriteAtomic(dir, fileName, bytes);
+        var after = AfterWrite; AfterWrite = null; after?.Invoke();
     }
 }
 
@@ -375,7 +398,7 @@ public static class HostTests
 
         int stop = 0; long swaps = 0;
         var swapper = new Thread(() => { while (Volatile.Read(ref stop) == 0) if (Exchange(h.LabData, link)) swaps++; }) { IsBackground = true };
-        var outcomes = new Dictionary<string, int>(); int alternateChanges = 0, okButAlternate = 0;
+        var outcomes = new Dictionary<string, int>(); int alternateChanges = 0, okButAlternate = 0, okListNotRefreshed = 0, okWithoutFileName = 0;
         swapper.Start();
         try
         {
@@ -385,6 +408,12 @@ public static class HostTests
                 var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "w" }), seconds: 8);
                 string k = $"{(int)r.Status}:{(r.Json.ValueKind == JsonValueKind.Object ? r.Json.GetProperty("code").GetString() : "?")}";
                 outcomes[k] = outcomes.GetValueOrDefault(k) + 1;
+                if (r.Status == HttpStatusCode.OK)
+                {
+                    // #567: a 200 always names the committed file; a list refresh refused by the swap is reported beside it, never as a failed save.
+                    if (r.Json.GetProperty("fileName").GetString() != "w.sitkalab.json") okWithoutFileName++;
+                    if (!r.Json.GetProperty("listRefreshed").GetBoolean()) okListNotRefreshed++;
+                }
                 if (!File.ReadAllBytes(Path.Combine(alternate, "w.sitkalab.json")).AsSpan().SequenceEqual(sentinel))
                 {
                     alternateChanges++; if (r.Status == HttpStatusCode.OK) okButAlternate++;
@@ -394,16 +423,116 @@ public static class HostTests
         }
         finally { Volatile.Write(ref stop, 1); swapper.Join(); }
         if (new DirectoryInfo(h.LabData).LinkTarget is not null) T.True(Exchange(h.LabData, link), "swap back");
-        string summary = $"swaps={swaps} responses={string.Join(",", outcomes.Select(kv => kv.Key + "=" + kv.Value))} alternate-overwrites={alternateChanges} (reported 200: {okButAlternate})";
+        string summary = $"swaps={swaps} responses={string.Join(",", outcomes.Select(kv => kv.Key + "=" + kv.Value))} alternate-overwrites={alternateChanges} (reported 200: {okButAlternate}) 200-with-list-not-refreshed={okListNotRefreshed}";
         Console.WriteLine("    INFO " + summary);
         T.True(swaps > 50, "the swapper really raced the host: " + summary);
         T.True(outcomes.GetValueOrDefault("200:ok") > 0, "some saves succeeded: " + summary);
         T.True(outcomes.Keys.All(k => k is "200:ok" or "403:SymlinkRejected" or "500:WriteFailed"), "only controlled outcomes: " + summary);
         T.Eq(0, alternateChanges, "alternate-folder overwrites: " + summary);
+        T.Eq(0, okWithoutFileName, "every 200 names the committed file: " + summary);
         T.Seq(new[] { "w.sitkalab.json" }, Directory.GetFileSystemEntries(alternate).Select(Path.GetFileName), "nothing created in the alternate folder (no temp files there)");
         T.Eq(0, Directory.GetFiles(h.LabData, "*.tmp-*").Length, "no temp file orphaned in the lab folder");
         var load = Send(h, h.Req(HttpMethod.Post, "/api/saves/load", new { fileName = "w.sitkalab.json" }));
         T.True(load.Status == HttpStatusCode.OK && load.Raw.Contains("\"fixtureId\":\"sitka-flat-demo-v1\""), "the lab folder holds a genuine demo-fixture save that loads");
         T.Eq(HttpStatusCode.OK, Send(h, h.Req(HttpMethod.Get, "/api/state")).Status, "host still healthy");
+    }
+
+    // ---- #567 (historical #517 R-3): the save response reports the committed save, not the optional list refresh that follows it -------------
+
+    /// <summary>Lab folder with a sibling "alternate" folder holding one sentinel file, and a symlink to it that <see cref="Exchange"/> can swap in.</summary>
+    private static (string Alternate, string Link, byte[] Sentinel) AlternateFolder(TestHost h)
+    {
+        string alternate = Path.Combine(h.Root, "alternate"); Directory.CreateDirectory(alternate);
+        byte[] sentinel = Encoding.UTF8.GetBytes("ALTERNATE-SENTINEL-" + Guid.NewGuid().ToString("N"));
+        File.WriteAllBytes(Path.Combine(alternate, "keep.sitkalab.json"), sentinel);
+        string link = Path.Combine(h.Root, "swaplink"); Directory.CreateSymbolicLink(link, alternate);
+        return (alternate, link, sentinel);
+    }
+
+    private static void AssertAlternateUntouched(string alternate, byte[] sentinel)
+    {
+        T.Seq(new[] { "keep.sitkalab.json" }, Directory.GetFileSystemEntries(alternate).Select(Path.GetFileName), "nothing created in the alternate folder");
+        T.True(File.ReadAllBytes(Path.Combine(alternate, "keep.sitkalab.json")).AsSpan().SequenceEqual(sentinel), "alternate sentinel unchanged");
+    }
+
+    [Test]
+    public static void SaveThatCommits_ThenMeetsASwappedLabFolder_Reports200WithTheFile_AndSaysTheListWasNotRefreshed()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+        var io = new HookedFileAccess();
+        using var h = new TestHost(io);
+        var (alternate, link, sentinel) = AlternateFolder(h);
+        // The rename has committed; a same-user process now exchanges the lab folder with the link before the host refreshes the list.
+        io.AfterWrite = () => T.True(Exchange(h.LabData, link), "exchange after commit");
+        var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "committed" }));
+        try
+        {
+            T.Eq(HttpStatusCode.OK, r.Status, "committed save → 200 (was a false 403 before #567): " + r.Raw);
+            T.True(r.Json.GetProperty("ok").GetBoolean(), "ok=true");
+            T.Eq("ok", r.Json.GetProperty("code").GetString(), "save code");
+            T.Eq("committed.sitkalab.json", r.Json.GetProperty("fileName").GetString(), "file name of the committed save");
+            T.False(r.Json.GetProperty("listRefreshed").GetBoolean(), "list refresh reported as not done");
+            T.Eq("SymlinkRejected", r.Json.GetProperty("listCode").GetString(), "why the list was not refreshed");
+            T.Eq(JsonValueKind.Null, r.Json.GetProperty("files").ValueKind, "no file list offered from a folder that failed the checks");
+            T.False(r.Raw.Contains(h.Root) || r.Raw.Contains("Exception"), "no path or exception text leaks");
+            // The listing endpoint itself still refuses the swapped folder: nothing about the security check was relaxed.
+            var list = Send(h, h.Req(HttpMethod.Get, "/api/saves"));
+            T.Eq(HttpStatusCode.Forbidden, list.Status, "GET /api/saves still refuses the swapped-in link");
+            T.Eq("SymlinkRejected", list.Json.GetProperty("code").GetString(), "listing refusal code");
+        }
+        finally { if (new DirectoryInfo(h.LabData).LinkTarget is not null) T.True(Exchange(h.LabData, link), "swap back"); }
+        AssertAlternateUntouched(alternate, sentinel);
+        T.Seq(new[] { "committed.sitkalab.json" }, Directory.GetFileSystemEntries(h.LabData).Select(Path.GetFileName), "the save is in the real lab folder, with no temp file");
+        var load = Send(h, h.Req(HttpMethod.Post, "/api/saves/load", new { fileName = "committed.sitkalab.json" }));
+        T.True(load.Status == HttpStatusCode.OK && load.Raw.Contains("\"fixtureId\":\"sitka-flat-demo-v1\""), "the committed save loads: " + load.Status);
+    }
+
+    [Test]
+    public static void SaveThatCommits_ThenCannotListForAnUnexpectedIoReason_StillReports200_WithAGenericListCode()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+        var io = new HookedFileAccess();
+        using var h = new TestHost(io);
+        string moved = h.LabData + "-moved";
+        // After the commit the lab folder is moved away and a plain file takes its name, so the refresh fails with an ordinary IOException.
+        io.AfterWrite = () => { Directory.Move(h.LabData, moved); File.WriteAllText(h.LabData, "not a folder"); };
+        var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "io-after" }));
+        File.Delete(h.LabData); Directory.Move(moved, h.LabData);
+        T.Eq(HttpStatusCode.OK, r.Status, "committed save → 200 (was a generic 500 before #567): " + r.Raw);
+        T.True(r.Json.GetProperty("ok").GetBoolean(), "ok=true");
+        T.Eq("io-after.sitkalab.json", r.Json.GetProperty("fileName").GetString(), "file name");
+        T.False(r.Json.GetProperty("listRefreshed").GetBoolean(), "list not refreshed");
+        T.Eq("ListFailed", r.Json.GetProperty("listCode").GetString(), "generic code, no exception detail");
+        T.False(r.Raw.Contains(h.Root) || r.Raw.Contains("Exception") || r.Raw.Contains("not a folder"), "no path or exception text leaks");
+        T.Seq(new[] { "io-after.sitkalab.json" }, Directory.GetFileSystemEntries(h.LabData).Select(Path.GetFileName), "the save is in the lab folder, with no temp file");
+    }
+
+    [Test]
+    public static void SaveThatMeetsASwappedLabFolderBeforeCommit_StillFails403_AndWritesNothingAnywhere()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+        var io = new HookedFileAccess();
+        using var h = new TestHost(io);
+        var (alternate, link, sentinel) = AlternateFolder(h);
+        // The name/classification checks have passed; the folder is exchanged just before the write opens it.
+        io.BeforeWrite = () => T.True(Exchange(h.LabData, link), "exchange before commit");
+        var r = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "precommit" }));
+        try
+        {
+            T.Eq(HttpStatusCode.Forbidden, r.Status, "pre-commit refusal still fails: " + r.Raw);
+            T.False(r.Json.GetProperty("ok").GetBoolean(), "ok=false");
+            T.Eq("SymlinkRejected", r.Json.GetProperty("code").GetString(), "refusal code");
+            T.False(r.Json.TryGetProperty("fileName", out _), "no file name is claimed for a refused save");
+            T.False(r.Json.TryGetProperty("listRefreshed", out _), "no list-refresh field on a refusal");
+        }
+        finally { if (new DirectoryInfo(h.LabData).LinkTarget is not null) T.True(Exchange(h.LabData, link), "swap back"); }
+        AssertAlternateUntouched(alternate, sentinel);
+        T.Eq(0, Directory.GetFileSystemEntries(h.LabData).Length, "nothing written to the lab folder");
+        // Control: with no interference the same save succeeds and the list is refreshed as before.
+        var ok = Send(h, h.Req(HttpMethod.Post, "/api/saves/save", new { name = "precommit" }));
+        T.Eq(HttpStatusCode.OK, ok.Status, "undisturbed save → 200");
+        T.True(ok.Json.GetProperty("listRefreshed").GetBoolean(), "list refreshed");
+        T.Eq(JsonValueKind.Null, ok.Json.GetProperty("listCode").ValueKind, "no list code when the refresh worked");
+        T.Seq(new[] { "precommit.sitkalab.json" }, ok.Json.GetProperty("files").EnumerateArray().Select(e => e.GetString()!), "refreshed list");
     }
 }

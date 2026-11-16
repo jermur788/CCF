@@ -21,6 +21,11 @@ public sealed class LabHostOptions
     public string? WebRoot { get; init; }
     /// <summary>0 picks a free loopback port (tests).</summary>
     public int Port { get; init; } = 5187;
+    /// <summary>
+    /// Tests only: the lab file access the store uses (null = the real no-follow access). Lets a host test change the lab folder at an exact point
+    /// of a save. In-process option only: Program.cs never sets it and no HTTP input can reach it.
+    /// </summary>
+    public ILabFileAccess? FileAccess { get; init; }
 }
 
 public sealed record ActionResponse(bool Ok, string Code, string Message, string? PlanId, IReadOnlyList<string>? TreeIds, SessionView? State);
@@ -33,10 +38,12 @@ public sealed class LabState
     public LabDataStore Store { get; }
     public LabSession Session { get; set; }
 
-    public LabState(string toolRoot)
+    public LabState(string toolRoot) : this(toolRoot, null) { }
+
+    public LabState(string toolRoot, ILabFileAccess? fileAccess)
     {
         Catalog = FixtureCatalog.LoadFrom(Path.Combine(toolRoot, "fixtures", "synthetic"));
-        Store = new LabDataStore(toolRoot);
+        Store = new LabDataStore(toolRoot, fileAccess);
         Store.EnsureRoot();
         var first = Catalog.TryGet("sitka-flat-demo-v1") ?? Catalog.All[0];
         Session = LabSession.FromFixture(first);
@@ -57,7 +64,7 @@ public static class LabHost
 
     public static Running Build(LabHostOptions o)
     {
-        var state = new LabState(o.ToolRoot);
+        var state = new LabState(o.ToolRoot, o.FileAccess);
         string webRoot = o.WebRoot ?? Path.Combine(AppContext.BaseDirectory, "wwwroot");
         if (!Directory.Exists(webRoot)) throw new DirectoryNotFoundException("UI files not found: " + webRoot);
 
@@ -208,15 +215,24 @@ public static class LabHost
         {
             var req = await Body<SaveRequest>(c);
             if (req?.Name is null) return Bad("BadRequest", "name required");
-            try
+            lock (st.Gate)
             {
-                lock (st.Gate)
-                {
-                    string file = st.Store.WriteSave(req.Name, LabFile.Serialize(st.Session.ToFile()));
-                    return Reply(200, new { ok = true, code = "ok", message = "saved " + file, fileName = file, files = st.Store.ListSaves() });
-                }
+                // 1. The save itself. Any refusal or failure here happens before the rename commits, so it is reported as a failed save.
+                string file;
+                try { file = st.Store.WriteSave(req.Name, LabFile.Serialize(st.Session.ToFile())); }
+                catch (LabException ex) { return Bad(ex.Code, ex.Message, StoreStatus(ex.Code)); }
+
+                // 2. WriteSave returned, so the rename has committed. Refreshing the file list is optional and re-checks the folder by path, so a
+                //    same-user folder swap (or any other failure) can still refuse it. That must not turn a committed save into a reported failure
+                //    (#567, historical #517 R-3). The refusal is reported separately; no list is offered; only a code, never a path or exception text.
+                IReadOnlyList<string>? files = null;
+                string? listCode = null;
+                try { files = st.Store.ListSaves(); }
+                catch (LabException ex) { listCode = ex.Code; }
+                catch (Exception) { listCode = "ListFailed"; }
+                string message = files is null ? $"saved {file}; the lab file list could not be refreshed ({listCode})" : "saved " + file;
+                return Reply(200, new { ok = true, code = "ok", message, fileName = file, files, listRefreshed = files is not null, listCode });
             }
-            catch (LabException ex) { return Bad(ex.Code, ex.Message, StoreStatus(ex.Code)); }
         });
 
         app.MapPost("/api/saves/load", async (HttpContext c) =>
