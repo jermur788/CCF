@@ -351,7 +351,10 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         ScenarioReferenceMilestone finalMilestone = archive.AtYear(100);
         Check(finalMilestone != null && archive.AtYear(50) != null,
             "missing reference resume or final-world save");
-        saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(archive.AtYear(50).world)));
+        // This is a current authoring candidate, not the frozen v1 source. Admit its captured JSON explicitly.
+        Check(ForestSaveController.AdmittedSave.TryCreate(JsonUtility.ToJson(archive.AtYear(50).world),
+            out var candidateSource, out string candidateProblem), "captured Year-50 source admission: " + candidateProblem);
+        Check(candidateSource.Apply(saves, false), "captured Year-50 raw source did not apply");
         yield return null;
         yield return null;
         Check(ecology.EcologicalYear == 50
@@ -502,7 +505,18 @@ public sealed class ScenarioReferenceVerificationRunner : MonoBehaviour
         ForestSaveData continued = null;
         for (int run = 0; run < 2; run++)
         {
-            saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(year50)), false);
+            // Keep typed-clone refusal as a negative control; a genuine archive load must use original bytes.
+            string beforeClone = ScenarioReferenceArchive.WorldHash(saves.CaptureData());
+            Check(!saves.LoadData(JsonUtility.FromJson<ForestSaveData>(JsonUtility.ToJson(year50)), false),
+                "a typed clone of the historical Year-50 world must be refused");
+            Check(ScenarioReferenceArchive.WorldHash(saves.CaptureData()) == beforeClone,
+                "refused Year-50 clone changed the player world");
+            Check(saves.TryPrepareReference(50, out var historicalSource, out ForestSaveData original),
+                "original frozen Year-50 raw source could not be admitted");
+            Check(original.version == 12 && original.ecologicalYear == 50
+                && StandGeometryModel.ForSave(original) == StandGeometryModel.Legacy40,
+                "original frozen Year-50 version/year/geometry identity changed");
+            Check(historicalSource.Apply(saves, false), "original frozen Year-50 raw source did not apply");
             yield return null;
             yield return null;
             Check(ecology.EcologicalYear == 50, "historical Year-50 save did not load");
