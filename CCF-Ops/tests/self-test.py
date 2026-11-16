@@ -102,13 +102,24 @@ for malformed in [[], {'schema':1,'storage':[],'lanes':[{}]}, dict(cfg,lanes=[42
     p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
     check(p.returncode==2 and p.stderr.startswith('ERROR:') and 'Traceback' not in p.stderr,'malformed config shape fails clearly')
 config.write_text(json.dumps(cfg))
-# Read-only negative config: observe existing /; create no files or worktree there.
+# Out-of-bounds inventory must fail at admission, before writable state exists.
 off=json.loads(json.dumps(cfg)); off['lanes'].append({'lane':'off-storage','path':'/','purpose':'read-only negative sentinel','unity':False})
 config.write_text(json.dumps(off))
+p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config),'--json'],capture_output=True,text=True)
+check(p.returncode==2 and 'outside the Files CCF tree: /' in p.stderr and not p.stdout,'arbitrary root rejected for the specific path boundary')
+check(not (SCRATCH/'lock-state').exists(),'rejected inventory creates no lock state or guard')
+# Explicit read-only inventory admits a bounded Files CCF non-Unity lane.
+off['lanes'][-1]['path']=str(OPS.parent)
+config.write_text(json.dumps(off))
 off_rows=json.loads(cli('lane-status','--config',config,'--json'))
-check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],'/') and not backing_device_matches(off_rows[-1]['backing_device'],ROOT),'off-storage reports actual root device and ZX20 NO')
-check('ZX20: NO' in cli('lane-status','--config',config),'off-storage human output clearly says ZX20: NO')
-check(off_rows[-1]['HEAD'] is None and any('STOP' in w for w in off_rows[-1]['conflict_warning']),'off-storage warning stops writable-lane inspection')
+check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],OPS.parent),'bounded Files non-Unity reports actual device and ZX20 NO')
+check('ZX20: NO' in cli('lane-status','--config',config),'bounded Files human inventory clearly says ZX20 NO')
+check(off_rows[-1]['HEAD'] is None and any('unexpected repository' in w for w in off_rows[-1]['conflict_warning']),'bounded Files inventory retains repository identity guard')
+# The same Files path never becomes a Unity lane.
+off['lanes'][-1]['unity']=True
+config.write_text(json.dumps(off))
+p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+check(p.returncode==2 and 'escapes ZX20' in p.stderr,'Files Unity lane rejected')
 config.write_text(json.dumps(cfg))
 broken_board=SCRATCH/'broken-board.md'; broken_board.write_text('| ID | State |\n|---|---|\n')
 check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board missing required fields FAIL')
