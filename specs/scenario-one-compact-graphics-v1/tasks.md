@@ -78,7 +78,7 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 - **Task ID:** T-06
 - **Status:** BLOCKED
 - **Goal:** make early G1 four true planted trees identifiable while preserving actual planting/work/protection state.
-- **Scope:** add distinct species-appropriate ~0.6 m-class transplant variants with honest leaf/branch morphology **recognisable close to 2–3 m** without false size inflation; at **4–6 m**, findability depends on an owner-approved small marker/inspection affordance rather than enlarged foliage. Render genuine upright/expired/failed protective states while keeping plant inspectable; the **current failed 28°/+0.25 m shift overlaps O1 1.2 m core** and demands an accepted **bounded/path-aware replacement** or signed geometry revision. Do not alter actual tree size/biology or browser-protection mechanics.
+- **Scope:** add distinct species-appropriate ~0.6 m-class transplant variants with honest leaf/branch morphology **recognisable close to 2–3 m** without false size inflation; at **4–6 m**, findability depends on an owner-approved small marker/inspection affordance rather than enlarged foliage. **Map models by actual species/juvenile IDs and protection state; keep existing later-stage adult/sapling variants unchanged.** Render genuine upright/expired/failed protective states while keeping plant inspectable; the **current failed 28°/+0.25 m shift overlaps O1 1.2 m core** and demands an accepted **bounded/path-aware replacement** or signed geometry revision. Do not alter actual tree size/biology or browser-protection mechanics.
 - **Exclusions:** changing growth height or forest stocking to make art fit, relocating four G1 positions, inventing PlantJuvenile success from pending orders, changing deer browse/protection effect.
 - **Owner / routing:** local Blender art author (T-03), separate gameplay-safe visual integrator; independent review.
 - **Dependencies:** **SPEC APPROVED**, owner GQ-02 accepted shelter/failed-state envelope and accepted 4–6 m inspection/marker affordance, GQ-07 scene choice and signed G1 world/real Work Plan/stock, species height source evidence, T-03 art and T-04 verified footprint.
@@ -130,9 +130,9 @@ These are proposed separate tasks, not dispatches. Every source/Unity/art implem
 | Task | Status at draft | Primary lane | Depends on | Allowed under current DRAFT? |
 | --- | --- | --- | --- | --- |
 | T-01 review/decisions | TODO | Browser docs / owner | Owner and reviewer | **YES docs/review only** |
-| T-02 true world baseline | BLOCKED | Local Unity/source | APPROVED spec, world manifest/save | **NO** |
+| T-02 true world baseline | BLOCKED | Local Unity/source | APPROVED spec, **GQ-07 scene/plank choice, GQ-02 guard envelope**, signed world manifest/save | **NO** |
 | T-03 licensed asset kit | BLOCKED | Opus Blender | APPROVED spec, D-032, owner look | **NO** |
-| T-04 H1/path surfaces | BLOCKED | Unity graphics | T-02+T-03 and APPROVED spec | **NO** |
+| T-04 H1/path surfaces | BLOCKED | Unity graphics | T-02+T-03, **GQ-07/GQ-02**, APPROVED spec | **NO** |
 | T-05 visual ecology mask | BLOCKED | C# visual source | T-02+T-04 and APPROVED spec | **NO** |
 | T-06 juvenile/shelter | BLOCKED | Art + visual integration | T-03/04 and APPROVED spec | **NO** |
 | T-07 optional atmosphere | BLOCKED/OPTIONAL | Unity graphics | Owner choice, APPROVED spec | **NO** |
