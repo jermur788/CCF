@@ -1,0 +1,20 @@
+# Sen-1 #619 — Asset-only four-file DRAFT separation: completed document result
+
+**Date:** 16 November 2026. **Actual author:** OpenAI GPT-6, GitHub/browser documentation, **no local worktree, Unity or binary access**. Dedicated branch `docs/sen-1-619-asset-only-spec-separation-20261116-v1` from observed current main; [#619](https://github.com/jermur788/CCF/issues/619). **Verdict:** new asset-only **DRAFT**, not approved for production, not merged to main, not replacing any original spec or granting D-032 licence.
+
+## Output
+Created exactly four new Markdown documents under `specs/scenario-one-compact-asset-production-v1/` (spec, plan, tasks, checklists/requirements), in an exclusive new path with no original spec modifications:
+- Inventory **REUSE**: tracked original Sitka plantation/young/mature/defect/seedling; stage-correct Oak/Beech growth art; tracked fern/bracken/bramble/moss/rush/grass/leaf litter/deadwood. Every reuse requires inspection of path/GUID, provenance/rights, stage/LOD and native performance. Never depend on locally partial Ultimate Nature or unapproved ForestFloorV1.
+- **MAKE one by one**: A-01 existing H1 apron/forest transition, A-02 W worn-earth pedestrian material/visual ribbon, A-03 Compact needle-litter floor, A-04 real ~0.6m Oak/Beech young transplant variants, A-05 correctly bounded translucent/vented guard+stake upright/failed/expired art.
+- **DEFER**: staged truck/timber collection props, new boundary/fence/pasture, decorative bags and optional fog/environment/exterior/extra pack.
+- **Separate** art authoring, provenance/source review, Linux Unity render integration and owner visual acceptance into distinct statuses/lanes; 16 unchecked AA-R asset-only checklist criteria. Keep external beta coherent/licensed but never block a core developer's initial work waiting for final polished art.
+- **Core non-negotiable:** signed H1, Route A, four G1 site/tree IDs, true corridor/capsule/upright and failed guard envelopes and O1 0.141 m overlap, biology, Stand Map, controls, saves, teaching/finance, annual work/complete loop are **not art-authoring deliverables**. Built-in neutral primitive stand-ins for core after approved specs; protected copied materials require provenance/ownership.
+- No mutation of original historical five-rack 80 m path/planks/`Forest Ground.mat`/`Forest Path.mat`, Legacy40/E80, frozen Reference Future v1, original saves.
+
+## Existing graphics spec integration pending
+The current separate `specs/scenario-one-compact-graphics-v1/` DRAFT still contains combined T-03 creation and T-02/04–09 scene/render integration. This new draft **does not silently supersede it**: #424 graphics owner must reconcile it in a later **single-writer four-file DRAFT change**, retaining the source/display-mask/runtime and visual qualification tests but moving Blender/material source production to this asset-only spec. #617 is concurrently RUNNING on parent/planting and its eight-file lock was respected; none of those files touched. Canonical D-083/#425 and full D-032 policy are open, and an independent nonauthor review is required before asset-only spec approval.
+
+## Verification / limits
+GitHub created four new Markdown files and this result only on an isolated branch, with GitHub readback to verify; no C#, assets, scenes, ProjectSettings, saves or Unity changed. No new binary/source commits or source licensing grants. #605 v2 remains tuned/unreviewed, #611 Windows one-off scratch test unrelated to core Linux production. **No new R-001..R-115/CIP-001..033 acceptance lines modified.** No native render/runtime, legal licensing or empirical plant morphology verified. No Window Player build.
+
+**Manager handoff:** inspect 5-path diff, issue **APPROVED / NEEDS CHANGES / REJECTED for DRAFT separation quality**, then arrange independent review and bounded graphics four-file alignment. Owner action: none for this documentation draft; any further asset source/licence or exact guard/manifest decision remains an actual gate. Dashboard/Drive not verified.
