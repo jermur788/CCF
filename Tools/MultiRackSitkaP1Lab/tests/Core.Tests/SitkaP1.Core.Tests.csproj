@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Core/SitkaP1.Core.csproj" />
+    <!-- Tests also call P0's public API directly (to build non-pristine P0 files); same isolated binary, never a ProjectReference. -->
+    <Reference Include="SitkaLab.Core"><HintPath>$(P1Root).p0ref/SitkaLab.Core.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

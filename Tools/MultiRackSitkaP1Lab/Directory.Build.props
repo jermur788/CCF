@@ -1,0 +1,20 @@
+<Project>
+  <!--
+    P1-owned build settings. This file is the first Directory.Build.props MSBuild finds above any P1 project,
+    so the upward search stops here: P1 inherits nothing from the repository root or from the P0 lab
+    (Tools/MultiRackSitkaLab is a sibling, not a parent). Settings mirror P0's on purpose but are not shared with it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- P1 tool root, used to locate the isolated P0 Core reference and the CCF source files linked read-only. -->
+    <P1Root>$(MSBuildThisFileDirectory)</P1Root>
+    <CcfRepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../'))</CcfRepoRoot>
+  </PropertyGroup>
+</Project>
