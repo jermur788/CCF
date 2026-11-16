@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Isolated, synthetic 2D forest UI prototype. No simulation, backend, saved data, or ecological execution.">
+  <title>CCF | Multi P1 — 2D Interface Mock</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to the forest interface</a>
+  <div class="app-shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">CCF</span><span>EXPERIMENTAL INTERFACE <small>Multi P1 / isolated browser mock</small></span></div>
+      <span class="masthead-tag">STATIC • OFFLINE • NO BACKEND</span>
+    </header>
+
+    <div class="hard-banner" role="note">
+      <strong>SYNTHETIC MOCK DATA — UI PROTOTYPE, NOT A RUNNING FOREST SIMULATION OR IRISH FIELD FORECAST</strong>
+      <span>No ecological year has run. No P0/P1 fixture, Unity world, Host, or real management data is loaded.</span>
+    </div>
+
+    <main id="content">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">CLOSED PURE-SITKA DEMONSTRATION • SCHEMATIC ONLY</p>
+          <h1>Read the stand. Inspect the trees.</h1>
+          <p class="subheading">An interaction study for a future 2D forest manager, not a forestry recommendation or a first-year result.</p>
+        </div>
+        <div class="stage-pill">F0: ANNUAL ENGINE ABSENT</div>
+      </div>
+
+      <section class="mode-panel" aria-labelledby="domain-heading">
+        <div class="section-line">
+          <h2 id="domain-heading">Source domain</h2>
+          <span class="micro">Switching only changes this mock view. No source import occurs.</span>
+        </div>
+        <fieldset class="source-choices">
+          <legend class="sr-only">Choose a source domain to inspect</legend>
+          <label class="source-choice active" id="domain-choice-derived">
+            <input type="radio" name="domain" value="derived" checked>
+            <span class="source-choice-title">Derived 30 m experiment <span class="choice-status">Mock view</span></span>
+            <code>DerivedP1ThirtyMetreExperimentV1</code>
+            <span class="source-choice-desc">30 × 30 m / 900 m² / 0.09 ha synthetic sketch. P1 catalog not imported; production manifest review pending.</span>
+          </label>
+          <label class="source-choice" id="domain-choice-original">
+            <input type="radio" name="domain" value="original">
+            <span class="source-choice-title">Original polygon <span class="choice-status">Inspect-only</span></span>
+            <code>OriginalPolygonExploratoryV1</code>
+            <span class="source-choice-desc">Original P0 geometry and IDs must stay intact. This mock does not load them.</span>
+          </label>
+          <label class="source-choice" id="domain-choice-unity">
+            <input type="radio" name="domain" value="unity">
+            <span class="source-choice-title">Unity parity squares <span class="choice-status">Unavailable</span></span>
+            <code>DerivedUnitySquareParityV1</code>
+            <span class="source-choice-desc">Future 40 m / 80 m source-legal candidates only. Not equivalent to this 30 m diagram.</span>
+          </label>
+        </fieldset>
+      </section>
+
+      <div class="section-line worktop">
+        <nav class="screen-tabs" aria-label="Prototype screens">
+          <button type="button" id="tab-overview" class="tab active" aria-current="page">Stand overview</button>
+          <button type="button" id="tab-comparison" class="tab">Illustrative comparison</button>
+        </nav>
+        <span id="source-state" class="source-state">MOCK VIEW • P1 MANIFEST PendingIndependentReview</span>
+      </div>
+
+      <section id="overview-screen" aria-labelledby="overview-heading">
+        <h2 id="overview-heading" class="sr-only">Stand overview</h2>
+        <div id="derived-content">
+          <div class="summary-header">
+            <div><p class="eyebrow">SCHEMATIC DOMAIN • NOT THE P1 CATALOG</p><h3>Mock inventory snapshot</h3></div>
+            <span class="summary-note">Illustrative inventory only • ecological year: not applicable</span>
+          </div>
+          <div class="metrics-grid" aria-label="Synthetic stand metrics">
+            <section class="metric-card" aria-labelledby="living-heading">
+              <div class="metric-top"><h4 id="living-heading">All living <span class="help">Biological population mock</span></h4><span class="metric-source">MOCK / FIXTURE</span></div>
+              <div class="metric-pair"><div><span class="metric-value" id="living-n">—</span><span class="metric-label">living stems (N)</span></div><div><span class="metric-value" id="living-ba">—</span><span class="metric-label">basal area (m²)</span></div></div>
+              <p class="metric-bottom">N/ha: <strong id="living-nha">—</strong> · BA/ha: <strong id="living-baha">—</strong> m²/ha</p>
+            </section>
+            <section class="metric-card accent" aria-labelledby="action-heading">
+              <div class="metric-top"><h4 id="action-heading">Work-actionable <span class="help">Mock subset of living stems</span></h4><span class="metric-source">MOCK / FIXTURE</span></div>
+              <div class="metric-pair"><div><span class="metric-value" id="action-n">—</span><span class="metric-label">actionable stems (N)</span></div><div><span class="metric-value" id="action-ba">—</span><span class="metric-label">basal area (m²)</span></div></div>
+              <p class="metric-bottom">Illustrative DBH threshold: <strong>170 mm</strong> (17 cm). Not an authoritative P1 rule.</p>
+            </section>
+          </div>
+          <p class="metric-footnote">Calculated solely from the 14 authored mock tree records below: living stems have status “Living”; actionable = living and mock DBH ≥ 170 mm; BA = Σ π(DBH in metres)²/4. Per-hectare values divide by 0.09 ha. No simulated growth, hazard or ecological forecast.</p>
+
+          <div class="inspection-layout">
+            <section class="panel map-panel" aria-labelledby="map-heading">
+              <div class="panel-heading">
+                <div><p class="eyebrow">SELECT BY MAP OR TABLE</p><h3 id="map-heading">Forest map</h3></div>
+                <span class="tag">30 × 30 m • illustrative</span>
+              </div>
+              <svg id="forest-map" viewBox="0 0 500 500" role="group" aria-label="Schematic 30 metre square map with keyboard-selectable synthetic trees">
+                <rect x="67" y="58" width="374" height="374" class="map-land"></rect>
+                <path class="map-grid" d="M191.67 58V432 M316.33 58V432 M67 182.67H441 M67 307.33H441"></path>
+                <rect x="67" y="58" width="374" height="374" class="map-outline"></rect>
+                <text class="map-edge" x="254" y="36" text-anchor="middle">30 m (EAST)</text>
+                <text class="map-edge" x="254" y="467" text-anchor="middle">0–30 m • X</text>
+                <text class="map-edge" transform="translate(27 245) rotate(-90)" text-anchor="middle">0–30 m • Y (NORTH)</text>
+                <text class="map-north" x="457" y="77">N ↑</text>
+                <g id="map-points"></g>
+              </svg>
+              <div class="legend"><span><i class="dot live"></i>Living</span><span><i class="dot below"></i>Living, below mock threshold</span><span><i class="dot dead"></i>Dead (mock)</span><span><i class="dot selected"></i>Selected</span></div>
+              <p id="map-hint" class="muted" aria-live="polite">Activate a circle or table “Select” button. Tab and Enter/Space work on map markers.</p>
+            </section>
+
+            <aside class="panel inspector-panel" aria-labelledby="inspector-heading">
+              <div class="panel-heading"><div><p class="eyebrow">SYNTHETIC TREE RECORD</p><h3 id="inspector-heading">Tree inspector</h3></div><span class="tag selected-tag">SELECTED</span></div>
+              <div id="inspector-content" aria-live="polite" aria-atomic="true">
+                <p class="inspector-id" id="tree-id">—</p>
+                <div class="inspector-status" id="tree-status">—</div>
+                <dl class="inspector-values">
+                  <div><dt>Species</dt><dd id="tree-species">—</dd></div>
+                  <div><dt>DBH</dt><dd id="tree-dbh">—</dd></div>
+                  <div><dt>Height</dt><dd id="tree-height">—</dd></div>
+                  <div><dt>Crown diameter</dt><dd id="tree-crown">—</dd></div>
+                  <div><dt>Age</dt><dd id="tree-age">—</dd></div>
+                  <div><dt>XY location</dt><dd id="tree-xy">—</dd></div>
+                  <div><dt>Mock eligibility</dt><dd id="tree-eligibility">—</dd></div>
+                </dl>
+                <div class="inspector-provenance"><strong>Provenance</strong><p id="tree-provenance">Hand-authored synthetic mock record; not P0/P1/Unity data.</p></div>
+                <p class="muted">Prior ecological year: not applicable. Cause/year of dead stems: unknown, not inferred.</p>
+              </div>
+            </aside>
+          </div>
+
+          <section class="panel list-panel" aria-labelledby="table-heading">
+            <div class="panel-heading"><div><p class="eyebrow">SAME IDS AS MAP</p><h3 id="table-heading">Tree inventory</h3></div><span class="tag" id="filter-count">—</span></div>
+            <div class="table-controls">
+              <label for="search-tree">Search synthetic ID</label>
+              <input id="search-tree" type="search" placeholder="e.g. MOCK-007" autocomplete="off">
+              <label for="filter-tree">Filter</label>
+              <select id="filter-tree"><option value="all">All records</option><option value="living">Living only</option><option value="actionable">Mock actionable only</option><option value="below">Living below mock threshold</option><option value="dead">Dead only</option></select>
+              <label for="sort-tree">Sort</label>
+              <select id="sort-tree"><option value="id">ID ↑</option><option value="id-desc">ID ↓</option><option value="dbh-asc">DBH ↑</option><option value="dbh-desc">DBH ↓</option></select>
+            </div>
+            <div class="table-scroll">
+              <table aria-label="Synthetic tree inventory; Select controls synchronize with map and inspector">
+                <thead><tr><th scope="col">Select tree</th><th scope="col">Status</th><th scope="col">DBH (mm)</th><th scope="col">Height (m)</th><th scope="col">XY (m)</th><th scope="col">Mock work eligibility</th></tr></thead>
+                <tbody id="tree-rows"></tbody>
+              </table>
+            </div>
+            <p class="muted" id="filter-hint" aria-live="polite">Filtering changes only the visible table rows, never source or tree status.</p>
+          </section>
+        </div>
+
+        <div id="domain-placeholder" class="panel domain-placeholder" hidden aria-live="polite">
+          <p class="eyebrow" id="placeholder-label">SOURCE NOT LOADED</p>
+          <h3 id="placeholder-title">Unavailable source</h3>
+          <p id="placeholder-body">No source fixture is loaded by this mock.</p>
+          <p class="placeholder-shield">No fabricated map, derived coordinates, counts, or source-status promotion.</p>
+        </div>
+      </section>
+
+      <section id="comparison-screen" class="panel comparison-screen" hidden aria-labelledby="comparison-heading">
+        <p class="example-warning">EXAMPLE SCREEN — NO ECOLOGICAL YEAR EXECUTED</p>
+        <h2 id="comparison-heading">What a future review layout might look like</h2>
+        <p class="subheading">Static illustration only. The two sketches are not observations, simulation snapshots, approved work or a before/after calculation. Example B intentionally omits a symbol to illustrate comparison layout, not a tree felling.</p>
+        <div class="comparison-layout">
+          <div class="comparison-panel"><span class="compare-label">ILLUSTRATIVE A / example before</span><svg viewBox="0 0 310 190" role="img" aria-label="An example sketch with five circles"><rect x="9" y="9" width="292" height="172" class="example-land"></rect><g class="example-trees"><circle cx="60" cy="54" r="13"></circle><circle cx="145" cy="44" r="13"></circle><circle cx="246" cy="66" r="13"></circle><circle cx="103" cy="130" r="13"></circle><circle cx="220" cy="140" r="13"></circle></g></svg><p>Display sample only · no recorded ecological year</p></div>
+          <div class="comparison-panel"><span class="compare-label">ILLUSTRATIVE B / hypothetical after</span><svg viewBox="0 0 310 190" role="img" aria-label="An example sketch with four circles and one dashed empty position"><rect x="9" y="9" width="292" height="172" class="example-land"></rect><g class="example-trees"><circle cx="60" cy="54" r="13"></circle><circle cx="145" cy="44" r="13"></circle><circle cx="103" cy="130" r="13"></circle><circle cx="220" cy="140" r="13"></circle></g><circle class="example-empty" cx="246" cy="66" r="14"></circle></svg><p>Hypothetical visual only · no executed felling</p></div>
+        </div>
+        <div class="comparison-empty"><strong>Actual previous year:</strong> none <span>•</span> <strong>Actual current year:</strong> none <span>•</span> <strong>Changed tree IDs / growth / mortality / money:</strong> not available</div>
+      </section>
+
+      <section class="actions-panel" aria-labelledby="actions-heading">
+        <div><p class="eyebrow">DENIED BY DESIGN</p><h2 id="actions-heading">Work and annual advance</h2><p>These are refusal-state demonstrations, not enabled game commands. Selecting a tree does not mark, fell, advance, approve or save it.</p></div>
+        <div class="action-buttons" aria-label="Unavailable commands">
+          <button type="button" disabled title="No work API or approved P1 execution">Plan work — unavailable</button>
+          <button type="button" disabled title="No approval or commitment API">Approve — unavailable</button>
+          <button type="button" disabled title="No execution API">Execute — unavailable</button>
+          <button type="button" class="primary-disabled" disabled title="Annual engine absent; no year is advanced">Advance ecological year — refused</button>
+        </div>
+        <p class="action-reason" role="status">F0 source review pending • no authorised work or annual engine • no ecological year executed • no persistence</p>
+      </section>
+
+      <details class="limits-panel" open>
+        <summary>Source &amp; limitations <span>Read before interpreting numbers</span></summary>
+        <div class="limits-grid">
+          <p><strong>Only data source:</strong> 14 hand-authored <code>MOCK-###</code> records in <code>app.js</code>. No P0 original polygon, P1 100-tree candidate catalog, verified SHA, real inventory or Unity data has been loaded. The sketch's 30 m boundary is a UI proportion, not source geometry.</p>
+          <p><strong>Source review:</strong> the P1 30 m and original trust catalogs were reported as <code>PendingIndependentReview</code> in the #639 source handoff. This UI does not query current production trust state, accept a manifest or test legal parity.</p>
+          <p><strong>Metrics:</strong> stand-level N and BA use mock geometry, not measured Irish stands, the P0 eligible-only definition or P1 authoritative all-living metrics. The 170 mm value is a synthetic work-eligibility display rule modelled on the older P0 example, not a verified P1 runtime threshold.</p>
+          <p><strong>Unavailable:</strong> ecological years, weather, recruitment, mortality, work commitments, save/load, Host networking, external resources and public deployment. No after-year comparison may be inferred from this page.</p>
+        </div>
+      </details>
+    </main>
+    <footer>CCF / MULTI P1 / #655 <span>Isolated UI research • no simulation state • no network dependencies</span></footer>
+  </div>
+</body>
+</html>
