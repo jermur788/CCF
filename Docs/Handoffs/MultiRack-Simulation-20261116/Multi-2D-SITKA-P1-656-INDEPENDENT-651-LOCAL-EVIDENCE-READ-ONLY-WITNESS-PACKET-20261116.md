@@ -1,0 +1,39 @@
+# Multi — #656 independent read-only witness of #651 existing native evidence
+
+**Date:** 16 November 2026. **Claim:** [#656](https://github.com/jermur788/CCF/issues/656), READY / NOT RUNNING pending worker/host permission. **Manager:** [#641](https://github.com/jermur788/CCF/issues/641).
+
+**Purpose:** one **independent non-author read-only witness** of already-recorded native filesystem/security receipts from #651; no repetition of tests, forest source audit or source implementation.
+
+## Authority and current gate
+
+Read [Manager #641 narrowly approving #654 source/record review](https://github.com/jermur788/CCF/blob/docs/multi-p1-641-654-security-manager-verdict-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-654-INDEPENDENT-SECURITY-MANAGER-VERDICT-20261116.md), [independent #654 source review](https://github.com/jermur788/CCF/blob/review/multi-p1-654-controlled-runtime-l4-delta-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-654-INDEPENDENT-651-L4-RUNTIME-SECURITY-RESULT-20261116.md), [author's §10 #651 report](https://github.com/jermur788/CCF/blob/0cf9fea7dc4c4056b938929e455c7bf766d14957/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-639-F0-THIRTY-METRE-FOUNDATION-IMPLEMENTATION-RESULT-20261116.md#10-651-controlled-net-runtime-trace-comparison-manager-option-a-verification-only), and [#651 issue](https://github.com/jermur788/CCF/issues/651).
+
+**Known distinction to preserve:** default .NET L4 **FAIL** with 38 UNRESOLVED (19 memfd and 19 diagnostics-socket mutators), versus **verification-only** L4 author-reported PASS, 0 unresolved. No production/default-runtime L4 acceptance. Four records `PendingIndependentReview`; first ecological year HOLD. This packet cannot promote records or run a biological year.
+
+## Ownership and execution: read-only, separate reviewer
+
+**Difficulty LOW–MEDIUM**: finite custody/hash, shell-wrapper and JSON evidence inspection, not running heavy tests. **Best suited:** independent OpenAI Codex/T3 Code High **on the native Linux host** with direct read-only evidence-path access; must **not** be the Claude Opus 5.5 original author or share the author's live P1 source worktree. A browser reviewer cannot directly inspect native /media/jer/Files receipts without a mounting connector.
+
+**Only native read root:** `/media/jer/Files/CCF/Verification/CCF-651-P1-F0-ControlledDotnetTrace-20261116/`. **No modification of evidence files, original P0 subtree, `Tools/MultiRackSitkaP1Lab/**`, author worktree, Unity, source/build outputs, current coordination board, or trust catalog.** Commands must be purely read-only, including `sha256sum -c SHA256SUMS` and display/parse of existing receipts, not any `dotnet`, `strace` execution or build.
+
+**Single new writable GitHub Markdown result:** `Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-656-INDEPENDENT-651-NATIVE-EVIDENCE-WITNESS-RESULT-20261116.md`, proposed GitHub branch `review/multi-p1-656-native-receipts-20261116-v1` from current checked main. The result is separate from Claude's reserved #639 result and all P1 files.
+
+**Before native access:** refresh `main:Docs/Project/coordination/active-tasks.md`, issue #656 and physical Ops source/host reservation where applicable. Independent witness must identify actual worker/model, native host/worktree (if any), starting HEAD, exact evidence root, and post `[RUNNING]` on #656 before writing. As no live-board ownership for this new Markdown is yet confirmed by Manager #640, ask its sole writer to prospectively reserve the exact result file and witness's separate lane **before making any repository edits**. If the physical Ops resource/lease is unavailable or another worker owns it, stay `[BLOCKED]`; do not bypass/kill/clean/modify any process. For a truly read-only inspection with no physical worktree, record that fact and obtain explicit host/evidence-read authorisation.
+
+## Narrow steps; no suite rerun
+
+1. Confirm evidence root/paths; inspect `SHA256SUMS` and execute **only** `sha256sum -c SHA256SUMS` within the evidence root. Report missing/mismatched entries exactly; never rewrite checksums.
+2. Read `run651-wrapper.sh`, `scope-check.txt`, A/B `command.txt`, `inputs.txt`, `dotnet-env-seen-by-subprocess.txt`, and `exit-code.txt`. Confirm A unsets both settings, B sets `DOTNET_EnableWriteXorExecute=0` and `DOTNET_EnableDiagnostics=0` **only for that subprocess**, parent/environment receipt reports no leakage. Confirm identical input pins/analyzer/harness and unrelated environment variables across both runs. Note wrapper source proves intended environment structure; raw receipts substantiate what ran, not a global no-leak theorem.
+3. Parse A/B recorded `iso/L4-analysis.json` (find actual names first) and compare `protectedHits`, `unresolved`, `failedProtectedAttempts`: A expected **38 unresolved**, B **0**, both zero P0 HITS/failed protected. Independently inspect representative recorded trace lines for 19 `memfd:doublemapper` ftruncate and 19 socket fchmod in A, their absence in B, and no hidden unmatched category. Do not call this evidence outside original traced syscall/descendant scope.
+4. Inspect tracked P0 before/after SHA lists (all 52), ignored-file/status receipts, actual CLI stdout/check/checksum/refusal and built binary summaries only as needed to cross-check A/B **same input/same output**. If report asserts delta 114 but trace arithmetic does not agree or cache timing is inconclusive, label precise differences as unexplained, not fabricated.
+5. Publish concise PASS / PARTIAL / FAIL matrix distinguishing **independently read native recorded evidence** from actual **replay not run**, with blocker severity and one review verdict **APPROVED / NEEDS CHANGES / REJECTED**, strictly for the existing #651 receipt provenance. Include exact commands/filenames read, source commit/head, checksums and unverified properties.
+
+## Completion
+
+One GitHub result Markdown only; review branch compare against its pinned starting head must show that file only. Post [HANDED-OFF] on #656 and notify Manager #641 with direct URL. If access blocked, post [BLOCKED] on #656 with exact permission/path issue, do not produce a fictitious PASS. Manager then may decide whether F0 provenance is sufficient to *prepare* a **separate reviewed status-promotion source commit**. That still does not authorise first ecological-year execution: annual adapter not implemented, original P0 annual remains refused, and Unity C-6/Windows are unrelated separate gates.
+
+No full 100-tree forest audit, full P0 SHA recomputation from source, native cold rerun, independent growth implementation, trust promotion or arbitrary new security tests. Dashboard/Drive/physical Ops sync: NOT VERIFIED.
+
+## Copy/paste independent local dispatch
+
+> Take ownership of **Multi #656** as an independent non-author Linux evidence reviewer (Codex/T3 Code High preferred). Follow the COMPLETE [#656 read-only evidence-witness packet](https://github.com/jermur788/CCF/blob/docs/multi-p1-656-native-evidence-witness-packet-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-656-INDEPENDENT-651-LOCAL-EVIDENCE-READ-ONLY-WITNESS-PACKET-20261116.md). Refresh GitHub and physical coordination, obtain the distinct reviewer-result reservation and host evidence-read permission, register actual model/branch/HEAD on #656. Read only existing #651 SHA256SUMS, wrapper/env receipts, A/B L4 JSON/raw traces, P0 52-file hash lists and comparison outputs; independently judge that default is still L4 FAIL 38, verification-only switched L4 has 0 unresolved, no P0 hits and source/payload identities match. Publish exactly the reserved result Markdown with APPROVED/NEEDS CHANGES/REJECTED and notify Manager #641. Do **not** run dotnet/strace/build/Unity/annual years or edit source, evidence, P0, trust or main board.
