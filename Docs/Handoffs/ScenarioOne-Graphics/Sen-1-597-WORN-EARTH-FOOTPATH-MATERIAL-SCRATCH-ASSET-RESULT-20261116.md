@@ -145,6 +145,10 @@ A **separate nonauthor graphics/source-art reviewer** should assess this against
 
 ## 9. Git diff readback
 
-READBACK-PENDING
+Starting head `afad222f607a2dbc05de04a030ba3d8a1cf6cb71` (`origin/main`). Branch `docs/sen-1-597-worn-earth-material-artist-result-20261116-v1`.
+
+- **First commit** `4a51092b4be43c9c835ed16f7295742a9882af0e` was pushed and read back through the GitHub contents API: the 20,916-byte body had the same SHA-256 (`49acbc1b73643c3004556b85bfeb4da0b2e4c9030c501ea97a50967093142b08`) as `git show` of the local commit, and the GitHub compare API from the starting head reported `ahead_by 1`, `behind_by 0`, files: `added` × 1 — this file.
+- **This section** was added in a **second commit** to the same file (a file cannot contain its own final commit SHA). The final commit SHA, and the final `git diff --name-status afad222f607a2dbc05de04a030ba3d8a1cf6cb71..HEAD` readback (expected: exactly `A` + this one path, nothing else), are reported in the closing #597 comment.
+- No other tracked file was touched. No binary, PNG, `.mat`, Unity asset, spec, coordination document or `Assets/` path is in the diff. No PR was opened: the packet asks for a pushed branch plus GitHub readback, and my keyword search of `AgentWorkflow.md` found no PR requirement for worker result handoffs (not a full read).
 
 Issue #597: set to **[HANDED-OFF]** and closed with a comment linking this file (see the issue). Notification of #424 is included in that comment. Dashboard/Drive: **NOT VERIFIED.**
