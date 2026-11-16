@@ -7,6 +7,21 @@
 
 **Status: DRAFT / IMPLEMENTATION NOT STARTED / NOT AUTHORISED.** Previous #460 scratch racks and #490 one-pair ecology are historical research, not the proposed compact layout or Unity proof. #508 source spatial screen, #513 browser guidance and #515 Manager decision now supersede **one-rack and required 4+4** in the new compact world. #516 edits documentation only. Each later substantive implementation requires its own claim [RUNNING], actual provider, branch/HEAD/worktree/allowlist, exclusive Unity lease where needed and a published handoff; DRAFT tasks are not claims or approval.
 
+## #600 — Explicit unstarted tasks for the separate-scene source bridge (DRAFT; not authorising work)
+
+| Proposed task | Purpose and precise source touchpoints | Dependency / proof |
+| --- | --- | --- |
+| **SC-00 review** | Independent nonauthor read-only review of parent+child #600 changes against `EditorBuildSettings.asset`, both `StandaloneSessionMenu` partials, `ForestStartingStand`, `StandGeometryModel`, `StandMapSource`, `PrescriptionApproval`, Work Plan/Annual Review, signed save/profile policy and old protected worlds. | After this doc result; feedback is DRAFT source-contract quality only, no spec/Unity approval. |
+| **SC-01 content** | Source owner signs **versioned** 30m/H1/8 Route A/G1/guard/scene manifest, 14 omitted original Sitka plus 8 buffer survivor IDs; 2 Oak+2 Beech exactly, with FR-06 STOP for every physical route/position amendment. | Failed O1/O2 guard visuals and 1.2m candidate need accepted physical solution; no fictional native pass. |
+| **SC-02 scene/build** | Separate `ScenarioOneCompact30.unity` **proposed** hierarchy, BuildSettings additional scene, own daylight and no inherited 2.6m plank/H1 road objects; preserve `ForestTest` startup compatibility. | Approved spec, one Unity writer and machine lease, Editor serialized evidence. |
+| **SC-03 session/router** | Single persistent `StandaloneSessionMenu` host, profile→scene for New/Continue/Restart, stable address instead of current active `buildIndex`, old and compact F5/F9/F10/profile transitions fail safely. | Same signed shared-save owner or reviewed interface handoff; ISO-58 preflight before mutation; never compete with #544. |
+| **SC-04 stand/map/no-rack** | Distinct generation/geometry, H1 preworld omissions/history; `StandMapSource` true Compact path and clearing; no Compact Rack V2/MFM/Pending fake rack, while E80/Legacy40 remain intact. | ID/cell/route and old-world deterministic evidence; `PrescriptionApproval` rack dependency explicitly bypassed for Compact, not globally removed. |
+| **SC-05 loop/planting** | Four actual G1 pending/approved/completed tree orders, owned/reserved stock and optional shelter, real annual Work Plan/AnnualReviewAcknowledged, owner/contractor quotes and cash; honest sustained later intervention. | OPEN-C1/C5/C7 and substantive completion classifier explicitly approved; no fake initial H1 Fell/automatic first-year transplant. |
+| **SC-06 save regressions** | Three slots: Compact vs old Scenario One vs O2, primary/temp/backup, malformed/foreign/future identity, genuine v1–v24, Legacy40/E80/Reference v1, direct LoadData and Editor Player. | Signed ISO-58 three-profile policy implemented and independently reviewed; no protect-test weakening. |
+| **SC-07 native/owner** | Tier-2 new scene/render/collider/footpath/guard/G1 walkthrough + repeated cycles and failure money; proportionate old-world negative path; owner personally plays. | No Windows build without owner's later explicit permission. |
+
+All listed work is **future**, not dispatched to an implementation worker by this document. Existing C0 tasks and **115 unchanged R IDs** retain their state. #594 graphics draft review is **not** a substitute for the targeted independent **source-contract** review.
+
 | ID | Stage / deliverable | Read/write and dependency | Evidence / exit gate | Suggested lane |
 | --- | --- | --- | --- | --- |
 | C0-01 | **COMPLETED #459:** nonauthor 20-finding DELTA review of #458 four-file DRAFT; document quality only. | Reviewer claim closed; no source/Unity, no product decisions. | 18 fixed, 2 partly fixed; #459 E-1–E-7 enter this amendment; all checkboxes remain unverified. | Independent Claude Opus 5.5 reviewer, done. |
