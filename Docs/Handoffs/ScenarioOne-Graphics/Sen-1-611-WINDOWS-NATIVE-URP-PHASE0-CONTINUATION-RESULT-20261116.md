@@ -1,3 +1,21 @@
+# Latest #611 status: Editor exception accepted; Ops admission still BLOCKED
+
+**Update UTC: 2026-11-16T15:54:30.353775+00:00.** The owner directly instructed the local worker to **"continue with the editor"**, following the explicit proposal to use installed **6000.6.9f1** for this disposable material preview. This clears the Editor-version blocker **for #611 only**. Existing production project pins, Linux production-host policy, global D-032 and asset/save/build exclusions remain unchanged. No further Editor-version permission is required for this experiment.
+
+Actual worker remains OpenAI GPT-6.1 Sol High on DESKTOP-DL1BQI7. [Pre-edit exception/recheck registration](https://github.com/jermur788/CCF/issues/611#issuecomment-6921458803). Current integration main inspected at `a297a3d0579284ac78d169c00482035ec1049d90`, live coordination blob `957b140f402f7e3fec11b4ff82ab31792a518162`. Primary checkout remains clean at `04defad6f28c33156cc986dd0685dcb1998073a4`. Existing result-only branch/base remain unchanged; no execution lane repinned or created.
+
+**Remaining blocker: no usable physical CCF-Ops board/registry, registered approved isolated worktree/Library/Prefs custody or machine-wide Unity lease has been established.** Rechecked Windows root/Documents/configuration/command paths and searched accessible hp user/ProgramData directories (106 inaccessible directories); only unrelated dashboard ccf-ops test fixtures were found. Also inspected the already-running WSL Ubuntu read-only under `/home`, `/opt`, `/media`, `/srv`, `/usr/local/bin`: only unrelated fixtures; `unity-lock` absent from PATH. WSL discovery is not proof of remote Linux availability or global lease status. No compatible board/lock facility was found from which to acquire the required lease. FREE is not asserted.
+
+Continuation preflight step 4 explicitly says **"Do not install or deploy Ops tooling, create a bypass lock, force-release a lock or borrow another owner lane."** It also forbids an empty project as a substitute for the ownership/lease safeguard. The owner's Editor exception resolves the version question; these independent safety requirements still apply. No Ops deployment, substitute lock or borrowed lane was attempted.
+
+Fresh v2 source check: **41/41 PASS**, manifest SHA-256 `ecc97ca6580c5477eab23cc706464c80316da9d97d67e783a0f53cbe53615673`. Hub reports installed Editor 6000.6.9f1 and 0 running Editors; URP 17.6.0 metadata remains the previously verified version. No Editor project launch, native import/captures, save/Prefs operation or build. No experiment worktree/Library/lease created; no worker Editor cleanup or lease release is due. Native verdict **UNQUALIFIED**. All earlier unperformed gates remain unperformed.
+
+External recheck receipt: `C:\Users\hp\Documents\CCF-Scratch\Sen-1-611-Windows-Continuation-Preflight-20261116\editor-exception-ops-recheck.json`. SHA-256 `19ae2bc716b8175755c961e854b82b8a354d0cad48428026153432b52ab32d3e`. No credentials. GitHub publication/readback/compare receipt is posted to #611 after this update. Live board remains Manager-owned; dashboard/Drive NOT VERIFIED.
+
+**#611 remains OPEN / BLOCKED ON OPS ONLY.** Resume after the actual compatible Ops root/board, isolated lane/custody and exclusive lease are established; use the now-approved 6000.6.9f1 for the bounded experiment. This report does not authorise deploying Ops or waiving its safeguards. Earlier report is preserved verbatim below as historical evidence; its Editor-version stop is superseded by this dated owner exception.
+
+---
+
 # Sen-1 #611 - Windows native URP Phase-0 continuation: BLOCKED
 
 2026-11-16. **OPEN / BLOCKED before project launch. Native result: UNQUALIFIED.** The owner-authorised one-off Windows exception is confirmed. Technical admission failed; the native material experiment is not complete.
