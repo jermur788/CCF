@@ -1,0 +1,33 @@
+# Multi — Manager #641 verdict on #653 annual Sitka test-oracle draft
+
+**Date:** 16 November 2026. **Verdict:** **APPROVED AS TEST-PLANNING INPUT ONLY**. This approves the usefulness and boundedness of a documentation deliverable; it does **not** qualify a numeric oracle, approve code/biological coefficients, enact a source release, pass implementation checks, accept catalogs, establish Unity parity, or authorise the first ecological year.
+
+**Reviewed handoff:** [#653 exact source-to-test draft](https://github.com/jermur788/CCF/blob/docs/multi-p1-653-annual-oracle-result-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-653-ANNUAL-GROWTH-MORTALITY-SOURCE-TO-TEST-ORACLE-DRAFT-20261116.md). **Task claim:** [#653](https://github.com/jermur788/CCF/issues/653), already HANDED-OFF and CLOSED. **Binding original assignment:** [Multi #653 preparation packet](https://github.com/jermur788/CCF/blob/docs/multi-p1-653-annual-oracle-browser-packet-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-653-BROWSER-ANNUAL-GROWTH-MORTALITY-TEST-ORACLE-PREPARATION-PACKET-20261116.md). **Manager:** OpenAI ChatGPT GPT-6, browser/GitHub only.
+
+## Evidence inspected and scope verdict
+
+Read the entire #653 draft sections 1–8, including pinned source-version/evidence labels, biological call and data order, density/mortality/rng distinction, 12 static golden-test candidates G01–G12, 100-tree all-living and work-eligible accounting, refusal matrix, smallest proportional Tier 1/Tier 2 verification sequence, and decisions/unknowns. Inspected actual #653 issue registration and handoff, approved P1 spec authority, current board, and #651 issue state. GitHub compared the result branch with the recorded starting parent: one commit, exactly **one added Markdown** (132 source lines; no other paths). No code/source/assets/P0/spec/board changes in this published artifact.
+
+**Review PASSES as bounded planning:**
+- Faithful source-to-test categories: CI as the per-ID pre-growth input, growth/age then crown then RD/pressure/hazard/boundary; separate source Float32, Float64 and RNG model-1 properties from speculative real-number arithmetic or unavailable Unity observations.
+- All **100** living starting stems, including **12** below the **170 mm action threshold**, correctly belong to ecological metrics; action eligibility is not a biological denominator. Distinguishes work-felled from natural self-thinning, hazard from boundary selections, and pre-inventory dead from same-year deaths.
+- Finite G01–G12 candidates are explicitly *not* compiled source tests or actual first-year P1 outputs; example numbers are labelled synthetic/algebraic, with future bit-exact source and Unity evidence gated separately. No mortality outcome is forecast for the frozen 30m candidate.
+- Negative cases distinguish current F0 annual-refusal authority from future APIs, transactions and replay. The smallest-first testing plan avoids repeating #643 fixture/trust audit, filesystem review, all 72 unrun acceptance rows, N01–N13, or an inappropriate full integration suite at first-adapter stage.
+- Properly preserves exact domain boundaries: derived 30m model-derived experiment ≠ original polygon read-only P0 ≠ later legal Unity 40/80 parity. No unsupported claim of Irish field mortality forecast or source numeric parity.
+
+## Qualifications carried forward, not blockers to accepting this planning draft
+
+1. **G01–G12 become authoritative test goldens only after real compiled source/adapter verification.** The one isolated JS integer-hash calculation in G10–G11 is a proposed isolated-function witness, not evidence that the actual Unity source controller evaluated that mortality branch. All mixed-float bit patterns, source branch boundaries and exact per-ID outcomes remain NOT RUN.
+2. **Current source version must be re-pinned at actual implementation dispatch.** #653 records historical source blobs and then-current P1 foundation; #651 subsequently published a separate controlled runtime observation. A future author must inspect actual head, accepted catalogs, source API and gate status, not inherit this browser draft as current implementation truth.
+3. **Source-observable vs reconstructed data:** private S, meanV, hazard p and occurrence of each RNG branch cannot be called an observed Unity Tier-1 value. A post-year lazy CI getter is not proof of its pre-year evaluated value. Model-derived diagnostics must preserve source classification.
+4. **Open design gates remain open:** current F0 status is `PendingIndependentReview` for four catalog/trust entries. C-2b numerical tolerances wait for legal 40/80 Unity evidence and C-6 owner machine GO. Approved four-file P1 spec controls authorisation; this draft does not settle C-1 storage/replay, diagnostic H/site convention, empirical mortality calibration, annual source contract or source-side acceptance.
+
+**Manager decision:** accept this #653 result as reusable **DRAFT test-planning baseline**. No further documentation rewrite or independent full draft-quality review is necessary at this stage. Independent code/numeric review is required once a bounded implementation exists; recheck specific numeric candidates against compiled source and relevant test evidence then, not now. #653 remains closed.
+
+## Next executable gate (separate from this verdict)
+
+The latest [#651 author handoff](https://github.com/jermur788/CCF/issues/651#issuecomment-6931163290) reports default .NET runtime **L4 FAIL** (38 unresolved non-filesystem descriptor calls preserved), versus an explicitly verification-only switched-runtime **L4 PASS within the traced scope**, with unchanged simulator functional outputs and protected P0 files according to worker evidence. This author report **has not yet passed its required independent non-author focused review**. Same Claude Opus native Ubuntu worker continues exclusive #639 source custody. The manager must arrange the narrow independent #651 review before deciding F0 trust/safety acceptance; do not equate an adjusted-environment pass with default-runtime L4 acceptance. First ecological year **HOLD**.
+
+Only after independent review, Manager acceptance, a separate reviewed catalog-status promotion of all four pending records, and a new source-ownership/annual-adapter dispatch may a first ecological-year implementation be authored or tested. #653 draft provides candidate scalar and transaction tests for that later work; it cannot itself promote any record or release execution.
+
+**No user action for #653 documentation acceptance.** **Dashboard/Drive/physical Ops:** NOT VERIFIED; this Manager published only a GitHub verdict Markdown. No Unity, production/source changes, P0 edit or Windows build.
