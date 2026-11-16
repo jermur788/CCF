@@ -13,7 +13,7 @@ import tempfile
 
 OPS=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(OPS/'scripts'))
-from _ccf import ROOT, BOARD_FIELDS, board_read, command, fields_read, storage_check, on_storage, storage_health, require_storage
+from _ccf import ROOT, BOARD_FIELDS, board_read, command, fields_read, storage_check, on_storage, storage_health, require_storage, DURABLE_CCF
 
 storage_check()
 DEVICE=command(['findmnt','-n','-o','SOURCE','-T',str(ROOT)])
@@ -107,19 +107,41 @@ off=json.loads(json.dumps(cfg)); off['lanes'].append({'lane':'off-storage','path
 config.write_text(json.dumps(off))
 p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config),'--json'],capture_output=True,text=True)
 check(p.returncode==2 and 'outside the Files CCF tree: /' in p.stderr and not p.stdout,'arbitrary root rejected for the specific path boundary')
-check(not (SCRATCH/'lock-state').exists(),'rejected inventory creates no lock state or guard')
+# Actual state-writing CLI: invalid config must fail before guard creation.
+rejected_state=SCRATCH/'rejected-config-state'
+p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'acquire','--config',str(config),'--test-state-dir',str(rejected_state)],capture_output=True,text=True)
+check(p.returncode==2 and 'escapes ZX20: /' in p.stderr and not rejected_state.exists(),'out-of-bounds lock config creates no state or guard')
+config.write_text(json.dumps(cfg))
+p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'acquire','--config',str(config),'--test-state-dir',str(rejected_state)],capture_output=True,text=True)
+check(p.returncode==2 and (rejected_state/'guard').exists(),'positive control reaches guard creation with valid config')
 # Explicit read-only inventory admits a bounded Files CCF non-Unity lane.
-off['lanes'][-1]['path']=str(OPS.parent)
+files_fixture=Path(tempfile.mkdtemp(prefix='ops652-files-fixture-',dir=DURABLE_CCF/'Verification'))
+files_lane=files_fixture/'lane'
+run(['git','-C',seed,'worktree','add','-b','test/files',files_lane])
+off['lanes'][-1]['path']=str(files_lane)
 config.write_text(json.dumps(off))
 off_rows=json.loads(cli('lane-status','--config',config,'--json'))
-check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],OPS.parent),'bounded Files non-Unity reports actual device and ZX20 NO')
+check(off_rows[-1]['zx20'] is False and backing_device_matches(off_rows[-1]['backing_device'],files_lane),'bounded Files non-Unity reports actual device and ZX20 NO')
 check('ZX20: NO' in cli('lane-status','--config',config),'bounded Files human inventory clearly says ZX20 NO')
-check(off_rows[-1]['HEAD'] is None and any('unexpected repository' in w for w in off_rows[-1]['conflict_warning']),'bounded Files inventory retains repository identity guard')
+check(off_rows[-1]['HEAD']==command(['git','-C',str(seed),'rev-parse','HEAD']) and off_rows[-1]['registered_worktree'] and off_rows[-1]['dirty'] is False,'bounded Files inventory checks registered clean repository identity')
+check('BLOCKED' in cli('lane-status','--config',config,'--preflight','--lane','off-storage','--branch','test/files',code=1),'bounded Files writable preflight remains blocked')
 # The same Files path never becomes a Unity lane.
 off['lanes'][-1]['unity']=True
 config.write_text(json.dumps(off))
 p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
 check(p.returncode==2 and 'escapes ZX20' in p.stderr,'Files Unity lane rejected')
+config.write_text(json.dumps(cfg))
+# Real resolved path escapes; symlink fixture is on ext4.
+escape=files_fixture/'escape';escape.symlink_to('/')
+for invalid in ['/',str(DURABLE_CCF)+'-sibling/lane',str(ROOT)+'-sibling/lane',str(DURABLE_CCF/'../outside-ccf'),str(escape)]:
+    bad=json.loads(json.dumps(cfg));bad['lanes'].append({'lane':'escape','path':invalid,'purpose':'negative boundary','unity':False});config.write_text(json.dumps(bad))
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+    check(p.returncode==2 and 'outside the Files CCF tree:' in p.stderr,'resolved inventory path escape rejected: '+invalid)
+config.write_text(json.dumps(cfg))
+for key,value in [('uuid',''),('uuid','0000-0000'),('fstype','ext4'),('device','/dev/null'),('root',str(ROOT/'CCF-Temp'))]:
+    bad=json.loads(json.dumps(cfg));bad['storage'][key]=value;config.write_text(json.dumps(bad))
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/lane-status'),'--config',str(config)],capture_output=True,text=True)
+    check(p.returncode==2 and 'mount identity mismatch' in p.stderr,'wrong storage '+key+' rejected: '+value)
 config.write_text(json.dumps(cfg))
 broken_board=SCRATCH/'broken-board.md'; broken_board.write_text('| ID | State |\n|---|---|\n')
 check(cli('packet-lint','--board',broken_board,code=1).startswith('FAIL'),'board missing required fields FAIL')
@@ -162,10 +184,18 @@ def lock(*args,code=0): return cli('unity-lock',*args,code=code)
 check(json.loads(lock('status',*base,'--json'))['status']=='free','lock initial status free')
 for args,label in [(['--lane','NonUnity'],'NonUnity lane rejected'),(['--branch','wrong-branch'],'wrong branch rejected'),(['--head','0'*40],'wrong HEAD rejected')]:
     lock(*acquire,*args,code=2);check(True,label)
+# A nonempty path from another Git store cannot be acquired as our Unity lane.
+foreign=json.loads(json.dumps(cfg));foreign['lanes'][0]['path']=str(second);config.write_text(json.dumps(foreign))
+p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire,'--lane',str(second)],capture_output=True,text=True)
+check(p.returncode==2 and 'unexpected lane Git store' in p.stderr and not (state/'lock.json').exists(),'foreign Git store lane rejected without lease')
+config.write_text(json.dumps(cfg))
 held=json.loads(lock(*acquire)); check(held['status']=='held','lock acquire')
 check(json.loads(lock('status',*base,'--json'))['metadata']['owner']=='test-owner','lock status metadata')
 lock(*acquire,'--owner','second-owner',code=2); check(True,'lock second owner rejected')
 lock('release',*base,'--owner','wrong-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'],code=2); check((state/'lock.json').exists(),'lock wrong owner cannot release')
+for task,lock_id in [('WRONG-TASK',held['metadata']['lock_id']),('TEST','wrong-lock-id')]:
+    p=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),'release',*base,'--owner','test-owner','--task-id',task,'--lock-id',lock_id],capture_output=True,text=True)
+    check(p.returncode==2 and (state/'lock.json').exists(),'mismatched task or lease identity cannot release')
 lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
 check(json.loads(lock('status',*base,'--json'))['status']=='free','lock owner release')
 

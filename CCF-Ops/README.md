@@ -1,6 +1,6 @@
 # CCF-Ops foundation — G4 corrections
 
-Versioned source: CCF repository `CCF-Ops/` on branch `ops/workflow-foundation-v1` in `/media/jer/ZX20/CCF-NonUnity`. Live deployment: `/media/jer/ZX20/CCF-Ops`. The deployment is an explicit copy, not a second repository or a symlink (ZX20 is exFAT). `deployment.json` records source commit and file hashes. Update scripts/roles/config deliberately from a reviewed commit; never overwrite the live board, ledger or state with a blanket recopy. Initial board is a source snapshot; the deployed board is the operational live copy. Reconcile with authoritative active-tasks before dispatch.
+Versioned source: CCF repository `CCF-Ops/` (verify source branch/HEAD against the deployment receipt before updating). Live deployment: `/media/jer/ZX20/CCF-Ops`. The deployment is an explicit copy, not a second repository or a symlink (ZX20 is exFAT). `deployment.json` records source commit and file hashes. Update scripts/roles/config deliberately from a reviewed commit; never overwrite the live board, ledger or state with a blanket recopy. Initial board is a source snapshot; the deployed board is the operational live copy. Reconcile with authoritative active-tasks before dispatch.
 
 Persistent lanes / disposable threads. User → ChatGPT Overall Manager → mechanical checks → thin T3 Execution Manager → disposable workers. T3 does not autonomously create threads. Scope/authority comes from Manager packets. Until a later canonical context update wires role persistence into project entry files, dispatch must supply `ROLE FILE` plus the explicit task packet. The first-message reminder is reinforcement only; the complete role-loading chain is not operational yet. Role files grant no independent scope or acceptance authority.
 
@@ -15,13 +15,13 @@ ZX20 is UUID `18D6-896E`, exFAT, mounted at `/media/jer/ZX20`. Verify it; do not
 
 U1/U2 have `unity: true`; Integration/NonUnity have `unity: false`. Below the configured threshold, status reports BLOCK / LOW SPACE and no new substantial lane/cache/build work is allowed.
 
-The ZX20 common repository was changed locally from unset `core.fsync` to `all` using `git --git-dir=/media/jer/ZX20/CCF-Repository.git config --local core.fsync all`. The older store configuration was not changed. This improves Git write durability on exFAT; it is not a backup. In-flight work is not safely recoverable merely because its worktree exists on ZX20. Every handoff requires a pushed remote branch, or an explicitly recorded Git bundle/backup when pushing is impossible; backups also stay on designated external storage.
+The canonical common repository is `/media/jer/Files/CCF/Repository.git`; its preserved `core.fsync=all` setting improves durability but is not a backup. Handoffs require a pushed remote branch or explicitly recorded bundle on Files.
 
-Each lane has a distinct branch and common Git store on ZX20/CCF-Repository.git. No per-task worktree creation. Reuse lanes only after checking ownership/dirty state. No Library copying. All future Unity caches stay under their ZX20 lane. Builds/staging/archives: CCF-Builds. Large verification receipts, CSVs, captures and profiling: CCF-Verification. Scratch and tool caches: CCF-Temp. Existing SSD and Files-device material is inventory only; migration is separately authorised.
+Unity lanes and their Library/cache remain on ZX20. Durable builds, archives and verification output belong under `/media/jer/Files/CCF/{Builds,Archives,Verification}`; scratch stays in ZX20/CCF-Temp. environment.sh checks scratch and bounded durable output directories before exporting cache paths. Do not recreate retired ZX20 Builds/Verification directories.
 
 ## Dual Git stores and assignment
 
-The older SSD-backed store `/home/jer/CCF/.git` and ZX20 `CCF-Repository.git` coexist. Origin is the exchange boundary. A branch writable/active in either store must not simultaneously be writable in the other. Before assigning a branch, inspect both configured stores with `lane-status --preflight --lane CCF-NonUnity --branch BRANCH`. Conflicting checkout, unreadable store, dirty lane or invalid board means not READY; do not bypass it or switch another owner’s checkout. No old-store migration/deletion is part of these corrections. Detached candidate validation does not share a writable branch.
+The canonical Files store and legacy `/media/jer/Files/CCF-Legacy/.git` coexist. Origin is the exchange boundary. Inspect both configured stores before assigning a writable branch; unreadable stores, competing checkouts, dirty lanes or invalid boards block assignment. Never switch another owner's checkout. Non-Unity Files inventory is read-only; Unity admission remains ZX20-only.
 
 ## Commands
 
