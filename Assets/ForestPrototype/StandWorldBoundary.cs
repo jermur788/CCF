@@ -70,6 +70,13 @@ public sealed class StandWorldBoundary : MonoBehaviour
     {
         if (model == appliedModel)
             return;
+        // Only Legacy40 keeps the authored scene and only Enlarged80 is resized below. Any other value would
+        // otherwise be built as an 80 m property, so it leaves the scene as it is.
+        if (!StandGeometryModel.IsKnown(model))
+        {
+            Debug.LogError($"StandWorldBoundary: unknown stand geometry model {model}; the boundary was not changed.", this);
+            return;
+        }
         appliedModel = model;
         float size = StandGeometryModel.StandSizeMeters(model);
         float half = size * 0.5f;

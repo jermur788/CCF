@@ -31,7 +31,18 @@ public static class StandGeometryModel
 
     public static bool IsKnown(int model) => model == Legacy40 || model == Enlarged80;
 
-    public static float StandSizeMeters(int model) => model == Enlarged80 ? 80f : 40f;
+    // Exhaustive: every known model is named, so a future model cannot silently get the 40 m answer.
+    // An unknown value (including the number 2 that a signed contract reserves for a later world) throws:
+    // a size is not a guess. Every caller already checks IsKnown or holds a model the ecology accepted.
+    public static float StandSizeMeters(int model)
+    {
+        switch (model)
+        {
+            case Legacy40: return 40f;
+            case Enlarged80: return 80f;
+            default: throw new ArgumentOutOfRangeException(nameof(model), model, "unknown stand geometry model");
+        }
+    }
 
     public static int CellsPerAxis(int model) => Mathf.Max(1, Mathf.CeilToInt(StandSizeMeters(model) / CellSizeMeters));
 
@@ -45,6 +56,10 @@ public static class StandGeometryModel
     // Used where a save must be checked against the geometry it was made in before the live grid is changed.
     public static int CellIndex(int model, Vector3 worldPosition)
     {
+        // -1 already means "not on this grid" to every caller, so an unknown model refuses with it
+        // instead of being measured against a 40 m grid.
+        if (!IsKnown(model))
+            return -1;
         float size = StandSizeMeters(model);
         float origin = -size * 0.5f;
         int axis = CellsPerAxis(model);

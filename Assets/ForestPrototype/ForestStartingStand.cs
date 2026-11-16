@@ -85,6 +85,12 @@ public sealed class ForestStartingStand : MonoBehaviour
             GenerateEnlarged80(spawner, ecology);
             return;
         }
+        // Everything below is the Legacy40 lattice. No other model may fall into it.
+        if (ecology.StandGeometryModelVersion != StandGeometryModel.Legacy40)
+        {
+            Debug.LogError($"ForestStartingStand has no generator for stand geometry model {ecology.StandGeometryModelVersion}; no trees were planted.", this);
+            return;
+        }
 
         int perAxis = Mathf.Max(2, latticePerAxis);
         int total = perAxis * perAxis;
