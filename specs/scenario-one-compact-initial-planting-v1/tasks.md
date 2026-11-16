@@ -8,6 +8,19 @@
 
 **Status: DRAFT / NOT IMPLEMENTATION AUTHORISED.** Current Manager default: 30m compact stand, pre-existing H1 arrival clearing, winding footpath, one G1 **2 Oak+2 Beech** early planting episode. Small truck collection is a staged gameplay event; driveway engineering is NOT a new task. #508 and #513 research closed; #515 Manager documentation active. Legacy five-rack and Reference Future protected.
 
+## #600 — Child tasks aligned to parent scene/source bridge (DRAFT / NOT DISPATCHED)
+
+| Task | Assigned scope only after approval | Proof / stop |
+| --- | --- | --- |
+| **CP-S0 independent document/source review** | Separate nonauthor checks this child against parent #600, `StandaloneSessionMenu` persistent scene bootstrap, `EditorBuildSettings.asset`, `ForestStartingStand`, `StandMapSource`, `ScenarioOneManager` planting/orders and `AnnualReviewView`; signed safe-save contract. | Written source-specific DRAFT verdict; does not mark CIP or R checks green. |
+| **CP-S1 versioned planting manifest** | Content owner reviews initial 189 Sitka source → 14 *preworld* H1 omissions / eight live buffers, unchanged Route A anchors and four original G1 **2 Oak +2 Beech** candidates, true post-layout ecology/clearance and optional guard envelope. | FR-06 stop on failed 1.2m core, O1/O2 guard crossings or shifted G1/path; source-checked alternatives plus manifest version, no forced G2. |
+| **CP-S2 scene/menu/stand map** | One local scene owner after parent APPROVED: new `ScenarioOneCompact30.unity` **proposed** independent hierarchy and build registration; no historical E80 2.6m planks; correct Stand Map, scene routing, profile-bound New/Continue/Restart. | Unity/Editor serialized scene proof, only one persistent menu, no historical world regressions or phantom racks; #600 does not own production. |
+| **CP-S3 authentic planting and review** | Four player-chosen exact Pending PlantJuvenile orders, nursery species+stock reservations, optional shelters, Work Plan actor/payment and approval, ordinary annual execution, real latest-year read/ack. | Honest `Completed`/failure/survival histories, no H1 Fell, no instant juvenile on marking, no automatic CG-TRIG credit before OPEN-C1/C7. |
+| **CP-S4 economics/save/old-world negative** | One shared save owner implements ISO-58 three-profile scene/slot identity isolation, Compact future-version refusal and correct primary/tmp/backup; independent finance/repeated-intervention policy. | OPEN-C5 decision and signed router proof; protect `forest-save.json`, v1–v24, Rack V2/MFM, frozen Reference Future v1. |
+| **CP-S5 native/user** | Bounded Unity 720p/1080p G1 route/guard/cell/planting/yearly outcomes and distinct real old-world regression; personal owner test. | Only then consider explicit separate Windows-build permission. |
+
+Original M/E/P/I/V/U task history stays intact. No duplicate #508 site study or wholesale 33+115 fake check run is requested. **No local worker, source, Unity, asset, save or build task is authorised by this DRAFT.**
+
 | Item | Owner/lane; difficulty | Dependencies / exact permitted work | Exit and status |
 | --- | --- | --- | --- |
 | M-01 Prior provisional no-rack four-file spec | **Scenario One Manager #424 / GPT-6 GitHub browser**, MEDIUM | User delegated best reversible selection; read #460/#484/#490 and current source; branch `docs/scen1-provisional-30m-eight-broadleaf-spec-20261114-v1`. **Exactly four NEW child spec files plus two NEW `scen1-` handoffs.** No edits to parent DRAFT or canonical, source or live coordination. [#507](https://github.com/jermur788/CCF/issues/507) | DRAFT with rationale, source classifications, stop conditions, document readback/diff and GitHub handoff. **HANDED-OFF / CLOSED in #507; superseded for entrance/path details by #509.** |
