@@ -7,6 +7,20 @@
 
 **Status: DRAFT — ALL 115 ITEMS UNCHECKED / UNVERIFIED.** #516 is browser-only owner-scope/spec reconciliation against #515, #508 and #513; no Unity, new save, production code or native path/planting/old-world test executed. Older #460 one-rack scratch and #490 post-rack annual research remain **historical**, not evidence of the new no-rack world. A checkbox requires exact authorised production and cited verification evidence; it is never checked by writing/reviewing a DRAFT.
 
+## #600 — Source-to-requirement witness guide (commentary only; zero new IDs/checks)
+
+These are **inspection and future qualification mappings**, not PASS results. Keep the original **115 R-001…R-115 lines byte-for-byte in meaning and all unchecked**.
+
+| Existing IDs | Exact extra witness/negative required for the owner-chosen separate scene |
+| --- | --- |
+| **R-005–007, R-026–030, R-065–072** | Versioned Compact30 scene/hierarchy, no old E80 2.6 m `Dirt Path*`/20 H1 planks; 30m 189 original Sitka source, **14 proposed preworld omissions**, **eight retained H1 buffer stems**, all eight Route A points, G1 2 Oak+2 Beech, true Stand Map source, no rack glyphs; failed O1 **0.141m core** and O2 **0.155m verge** guard remain failure until approved FR-06 reviewed manifest change and real native witness. |
+| **R-012–024, R-080–092** | `EditorBuildSettings.asset` build only ForestTest today; `StandaloneSessionMenu` persistent `AfterSceneLoad` menu and `Restart()` currently active buildIndex. Profile→scene+slot preflight/refusal BEFORE scene, prefs, disk, live mutation for New/Continue/Restart/F5/F9/F10/LoadData, ISO-58 and wrong/unknown/future Compact IDs, foreign temp/backup; genuine v1–v24 legacy, E80/Rack V2/MFM and frozen Reference v1 unchanged. |
+| **R-032–044, R-051–064, R-093–098** | No-rack direct manual marks + real Work Plan; `PrescriptionApproval` currently requires Rack V2 confirmed and MUST NOT fabricate a rack; four authentic owned-stock G1 orders, optional guards, real settled work, latest Annual Review read/acknowledgement and separate OPEN-C1/C5/C7 decisions; distinguish €12,000 starting gameplay cash/€2,500 commissioned harvest minimum, €20 stock and optional €20 shelter materials from actual affordable work. |
+| **R-035–036, R-069, R-080, R-095–096** | No new Rack V2/MFM proposals/coverage or old headland work fake credits in Compact; historical five-rack tests intact; H1 omissions, initial planting, guards, pruning, no-work and lone token Fell do **not** automatically prove repeated substantive CCF treatment. |
+| **R-001–004, R-074–082, R-100–115** | Document owner acceptance *only* for separate scene/W look/path-safe guard/H1/no fresh stumps/neutral daylight and G1 2+2 count. Scene content, three-profile save, risk, financing/teaching/completion, licence, source and Unity verification remain gated by nonauthor review and source owners; no Windows build pending owner playtest/authorisation. |
+
+**Read-only source audit anchor:** `ProjectSettings/EditorBuildSettings.asset`, `StandaloneSessionMenu.cs` + `.Startup.cs`, `ForestStartingStand.cs`, `StandGeometryModel.cs`, `UI/Map/StandMapSource.cs`, `ScenarioOneManager.PrescriptionApproval.cs`, `ForestSaveController.cs`, `ForestSaveData.cs`. Checklists are not a substitute for the actual compiler/Editor/collision/save evidence.
+
 ## A. Ownership, approvals and candidate feasibility
 - [ ] R-001 Product owner/Manager selects OPEN-C1 **first-use orientation and teaching-complete pathway** for a pre-existing H1-style entrance, winding **pedestrian-only** path, no internal rack and first real G1 planting. The former map-draw-rack P versus preauthorised-rack A choices are superseded for **new compact only**; do not silently decide arrival/assessment UI or reuse old five-rack teaching IDs.
 - [ ] R-002 Independent nonauthor reviewer **identifies** blockers and returns DRAFT-quality verdict; ONLY product owner/Manager/save owner resolves decisions and Manager explicitly promotes status after gates.
