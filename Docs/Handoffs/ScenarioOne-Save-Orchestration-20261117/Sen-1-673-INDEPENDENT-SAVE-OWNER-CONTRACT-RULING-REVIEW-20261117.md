@@ -69,3 +69,30 @@ Static, read-only, document and source review only. I ran no Unity, Editor, comp
 ## 7. Handoff
 
 DeepSeek orchestrator B (#673) → author, for optional bounded corrections F-01..F-03 with a delta check limited to the changed lines → **the real authorised save-policy signer**, who decides B, the CG-TRIG controls, the review-edge rules, W-A and the S1 questions → **Overall Manager #671**. Until a real signature exists, the outcome remains **CONTRACT SIGNATURE BLOCKED** and ISO-58 remains **BLOCKED**.
+
+## Delta re-check — 2026-11-17
+
+| Item | Observed |
+| --- | --- |
+| Delta reviewed tip | `docs/sen-1-673-save-contract-rulings-20261117-v1` @ `0cf07062c389a9a4fbcc15c9e4acd8b5fdbc0da6` (parent `a43fbef3`) |
+| Delta range / scope | `a43fbef3..0cf07062`: 1 file modified, +17/−12. Branch vs `afd5484f`: exactly 1 added file; no other path in either commit |
+| Line count / sha256 | 341 / `791646812715407eb928634aaab058faded12f4c25c1e6e93417b9e04d8927d6` (both match) |
+| Reviewer host / UTC / model | `jer-laptop` / 2026-11-17 13:25 UTC / Anthropic Claude Opus 5.5 (`claude-opus-5-5`), effort high, T3 Claude provider; review base `afac59e2` matched |
+
+| Finding | Status | Evidence |
+| --- | --- | --- |
+| F-01 | RESOLVED | D:165 labels invalid-claim refusal as signed SAVE:167. D:167–168 label bare-state refusal an UNSIGNED stricter proposal. D:169 gives the E667:146 admit-incomplete route: CT-3 hold, genuine late acknowledgement, no backdating/credit, cannot-load vs loads-held. D:171 and D:178 remove the old contradiction. |
+| F-02 | RESOLVED | D:247 admits 3+1 work with CT-1 false and no completion, citing S:165–167's 2+2 predicate + C. Rows still reject for a non-exact speciesId (SAVE:165, D:86) or duplicate/mismatched evidence. Forward designation guard (D:131) is kept as a control, not a load refusal. |
+| F-03 | RESOLVED | NOT RUN rows D:228 (assessment true / arrival false: admit, S:167 + C), D:236 (Completed without row: conditional strict C, S:165–167 credit-only) and D:241 (CT-1, review −1, past Y*: signer choice, both outcomes). Each matches §5/§6. |
+| N-01 | RESOLVED | D:205 keeps D-084 for general Approved-order immutability and cancel→new order. D:206 relabels the field freeze and confirmation as GAME-CALIBRATION-PROPOSAL and says D-084 does not list them. |
+| N-02 | RESOLVED | D:138 binds `completionYear`/Y* to the resolution/report year, never `createdYear`/designation/approval. Spot-checked: M:157 `createdYear`, M:1280 report year = current+1, M:1902 `plantingYear = report.year`, M:1921 `resolvedYear = report.year`. Consistent with D:134–135/D:91. |
+| N-03 | RESOLVED | D:23 and D:27 present registration-before-first-write as author-reported and timestamp-consistent, not provable from Git. |
+
+**New defects in changed lines:** none blocking. No signature/approval drift, invented key/version, fourth root, historical-DTO field, M-A-SCOPE decision, weakened old-save rule or credit leak. D:228 adds no binding path because new binding still needs both booleans.
+- **Residual NOTE (unchanged line, no action needed):** S02 at D:110 still says "explicit review-edge refusal rules". Read with D:171, these are conditional signer choices.
+
+Banner (D:3), **CONTRACT SIGNATURE BLOCKED** (D:5/194/340), M-A-SCOPE DEFERRED (D:114/317) and every-row NOT RUN (D:217–224) are unchanged.
+
+**DELTA APPROVED — CONTRACT DOCUMENT QUALITY ONLY**
+
+Limits: bounded static delta check of the changed lines and their immediate dependencies only. No signature, no save-policy or owner approval, no spec approval. I ran no Unity, Editor, compiler, tests, saves or runtime.
