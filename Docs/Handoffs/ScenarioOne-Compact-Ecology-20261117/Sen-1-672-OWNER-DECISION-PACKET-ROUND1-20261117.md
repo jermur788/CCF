@@ -1,6 +1,7 @@
 # Sen-1 #672 — Compact30 owner decision packet, round 1 (bounded)
 
-**DECISION SUPPORT ONLY. NO OPTION BELOW IS CHOSEN. SIGNING, SPEC APPROVAL, IMPLEMENTATION AND NATIVE QUALIFICATION REMAIN SEPARATE GATES.**
+**DECISION SUPPORT ONLY. SIGNING, SPEC APPROVAL, IMPLEMENTATION AND NATIVE QUALIFICATION REMAIN SEPARATE GATES.**
+**STATUS: ROUND 1 ANSWERED BY THE PRODUCT OWNER ON 2026-11-17 — five directions recorded in §"Recorded owner answers" below. A direction is not an attestation over exact bytes; no field or cell became SIGNED.**
 
 Owner-directed follow-on to the reviewed W1 candidate at [`aab606ca`](https://github.com/jermur788/CCF/blob/aab606ca02f3c1099997c140aafe3a4748dfba9e/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-672-COMPACT30-COMPLETE-WORLD-CONTENT-SIGNATURE-CANDIDATE-AND-OWNER-GATES-20261117.md). Round 1 contains **five** decisions only: the signing authority and the four choices that unblock the largest share of the world. The remaining OD items (02, 03, 05, 06, 07, 08, 09, 10, 11, 12, 14, 17) are deliberately deferred to a later round; OD-16 (M-A-SCOPE) is still **not open** and is not asked here.
 
@@ -18,6 +19,34 @@ Basis: the world is `WORLD SIGNATURE BLOCKED` with **SIGNED 0 · CANDIDATE 36 ·
 ## How to answer
 
 Answer each item with a letter. An answer selects a **direction**, not exact authored bytes: exact values, meshes, recipes and witnesses are still produced and reviewed afterwards. "Unlocks" lists which W1 rows stop being BLOCKED in principle; it does not make them SIGNED.
+
+---
+
+## Recorded owner answers — round 1 (verbatim, 2026-11-17)
+
+Recorded by the orchestrator from the owner's direct answers in T3 Code, in the owner's own session, and transcribed without interpretation. Channel: interactive owner question round on the published packet; the owner is `jermur788`, the project's product owner and final decision-maker.
+
+| Item | Owner's answer | Selected direction |
+| --- | --- | --- |
+| D1 / OD-00 | **A — "You sign personally"** | The product owner personally is the authorised content owner for the Compact30 world signature |
+| D2 / OD-01 | **A — "Flat plane y=0, no hydrology"** | Declared flat plane `y = 0`; no authored heightfield and no hydrology layer for the first beta |
+| D3 / OD-04 | **A — "Pin the source recipe + seed"** | Pin the installed source initialisation recipe, model selectors and seed after the exact H1 omission. Sub-answers as offered and not overridden: grid edge **half-open `[−15, +15)`**; the dormant `Reference` site profile is **not** applied to Compact |
+| D4 / OD-13 | **A — "Separate Compact scene + D-032 first-party rights"** | Separate Compact scene and hierarchy; adopt the D-032 first-party asset rights disposition for any new Compact-only binaries, with recorded provenance, no LFS and no new dependency without approval |
+| D5 / OD-15 | **A — "Adopt roster dac06a3b… verbatim"** | Adopt the authenticated 175-row roster verbatim, including the 8 one-metre buffer stems and the 19 former rack-labelled stems |
+
+### What these answers do and do not change
+
+**They do:** convert five previously open *choices* into owner-selected directions. Each affected row is still limited by the authored data the direction requires; nothing is signed.
+
+| Item | Immediate effect | Still required before any affected row can be SIGNED |
+| --- | --- | --- |
+| D1 | A named signer now exists (the product owner) | An actual attestation act over exact bytes and digests — not inferred from this direction |
+| D2 | Terrain height `y = 0`, up vector and absence of hydrology are fixed by owner choice; the reviewed flat-plane margins remain the operative geometry | A formal attestation; the collider/walk witness (W07); no heightfield bytes to hash |
+| D3 | The production route for the 36 cells is chosen: pinned recipe + selectors + seed, half-open grid edge, no `Reference` profile | The actual pinned recipe, selector and seed values recorded in the manifest; independent ecological review of that mapping; then attestation |
+| D4 | GQ-07 architecture is chosen (separate scene) and the rights route is chosen (D-032 first-party) | The scene identity/asset list with provenance; the presentation rows (W02/W11) still need their asset and mesh decisions |
+| D5 | The roster question is closed in favour of the authenticated candidate | The owner's formal attestation over `dac06a3b…`; native census readback later |
+
+**Nothing else moved.** `SIGNED 0 · CANDIDATE 36 · BLOCKED 52` and 36 BLOCKED cells stand as published at `aab606ca`; OD-02, 03, 05, 06, 07, 08, 09, 10, 11, 12, 14 and 17 remain open for round 2; **OD-16 (M-A-SCOPE) was not asked and remains deferred**; no spec is approved; ISO-58 remains BLOCKED and #652 remains HELD.
 
 ---
 
