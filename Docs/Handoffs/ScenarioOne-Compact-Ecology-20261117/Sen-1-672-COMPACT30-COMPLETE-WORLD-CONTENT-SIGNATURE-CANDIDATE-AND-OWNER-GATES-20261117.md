@@ -14,6 +14,7 @@
 | Own path (the only file written) | `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-672-COMPACT30-COMPLETE-WORLD-CONTENT-SIGNATURE-CANDIDATE-AND-OWNER-GATES-20261117.md` |
 | Checkout | `/media/jer/Files/CCF/Orchestration/CCF-672-WorldContent-20261117` (docs-only git tree; no `Library`, no Unity, no lease) |
 | Helper (outside the repo, non-durable) | `/tmp/claude-1000/-media-jer-Files-CCF-Primary/7e124beb-8dc5-44bd-ad91-acc4786056b2/scratchpad/w1-672/w1_verify.py`, 189 lines, SHA-256 `6b2accd55a30c42ded0a377d50f12ae67174ceb9db3f0b639527ff4507dae287`, run with `python3 -I -B` (Python 3.12.3) |
+| Correction round (one bounded round) | Author correction after the Stage-W2 independent review at `bd6208f2` (`Docs/Handoffs/ScenarioOne-Overnight-Gates-20261117/Sen-1-672-INDEPENDENT-WORLD-SIGNATURE-CANDIDATE-REVIEW-20261117.md`, OpenAI `gpt-6.1-sol`, NEEDS CHANGES 0/0/1/2) of this file at `3082b7d7`. Changes: F-01 (eight mixed-evidence rows relabelled UNS under C1, dependent counts only), F-02 (class vs signature wording, §8), F-03 (manifest-member limitation, §1.1). No hash, number, signature status or OD option changed. |
 
 **Independence disclosure.** This author's model family (Claude Opus 5.5) also wrote the #657 roster annex whose digest this document reproduces, and wrote the #669 independent review of #667 and its delta. My roster reproduction uses a freshly written script. It is still **not** independent of the roster's origin. The Stage-W2 review must come from a different model family (the packet names GPT-6.1 Sol). This author must not review this document.
 
@@ -62,7 +63,9 @@ Apply the steps **in order. The first step that matches decides the class.**
 
 **Effect on the disputed rows.** Every tree row whose candidate is a fresh source or DTO default lands at C1 → **UNS**. That covers `stageTimer`, `chopProgress`, `hasSimulation`, `equivalentSuppressedYears`, `pruningLifts`, `crownBaseHeightM`, `lastPruningYear`, the three mortality fields, `markType` and status. The suppression-class row and its persisted field both land at **UNS**, so they no longer disagree. Route A anchors are not named in D-083/D-084 (D-084 names only the four G1 positions), so they land at C4 → **SV**. The G1 positions land at C2 → **OC**.
 
-**Resulting counts.** These reproduce the `a94d3d91` recount: **SV 21 · MD 5 · OC 17 · GCP 1 · UNS 44 = 88.** The row-by-row step column in §3 lets anyone recount.
+**Mixed-evidence rows (Stage-W2 F-01 correction).** C1 is tested against the row's **whole** Compact requirement, before any owner decision or derivation is considered. Eight rows combine accepted owner intent or a source formula with a datum the row itself records as missing: **41** (boundary dispatch at +15 unsigned), **46** (visitor/parking placements and capacity), **47** (collection staging footprints and state controls), **61** (path ribbon/collider), **62** (exact verge width and fade recipe), **73** (effective guard mesh / complete footprint), **74** (distinct expired shape), **75** (failed Compact mesh/stakes/pose). Under C1 each whole requirement is **UNS**. Their D-083/D-084 owner intent, the cell formula, the anchors and the guard/path evidence remain recorded in the value and provenance columns, and in the Prov. type column, unchanged. Only the class of the incomplete whole requirement changes. All eight were already BLOCKED, so no signature status changes.
+
+**Resulting counts.** **SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52 = 88.** This deliberately differs from the `a94d3d91` labels (SV 21 · MD 5 · OC 17 · GCP 1 · UNS 44): the difference is exactly the eight mixed-evidence rows above (MD −1, OC −7, UNS +8). The row-by-row step column in §3 lets anyone recount.
 
 ### 0.4 Signature-status rule
 
@@ -121,6 +124,8 @@ CANDIDATE is not "approved" and not "complete". **The world is signable only whe
 | `E/scripts/slide.py` | 554 | `8bf70fe6fd5572bc41fb1c9e5804f29d4ad1ff36eebf36d0b3c6841f822751b7` | integrity only | — |
 
 All 14 hashes equal W667:51–64 (CARRIED values, now reproduced).
+
+**Manifest-member limitation (Stage-W2 F-03).** This author checked only the `N/evidence-manifest.json` entries for the inputs used here (C-B-30 and the executed harness). A full reviewer sweep of all 62 native-manifest members found 61 matching and one mismatch: `N/closure-receipt.json` (377 bytes) has manifest expectation `db414df73114bbbb84a87a3e98e065fe52222256b880a2067a1aeb59e47e3c29` and current bytes `e715ff7eff8a15a6232745916b836624464ad3de4e8ac437745953f8844f7dc6`. That receipt is not an input to the roster or geometry calculation, and every hash this document publishes was reproduced as correct. Blanket integrity of every manifest member must not be inferred from the manifest's own digest. The cause and date of the mismatch are not established. No archived evidence file or checksum register was repaired or edited.
 
 **Absent input.** `N/ledger.json` **does not exist** (`ls`: "No such file or directory"). No hash is claimed for it and no substitute was opened. The authenticated ledger is `E/ledger.json`.
 
@@ -238,6 +243,7 @@ The rows below are #667's 88 rows (W667:131–218), in the same order and under 
 - **Step** is the §0.3 rule step that fired.
 - **Prov. type:** OWNER-CONCEPT = accepted owner conceptual choice; SRC-AUTHORED = source-verified authored value; MISSING = missing authored value.
 - Every row carries a signature status. **No row is SIGNED.**
+- Rows 41, 46, 47, 61, 62, 73, 74 and 75 are UNS (C1) as whole requirements (§0.3 mixed-evidence rows). Their Prov. type still records the accepted owner concept or source-authored formula that remains valid evidence for part of the requirement.
 
 <!-- FIELD-MATRIX-BEGIN -->
 | # | Field | Required value / rule (candidate defaults are not values) | Class (step) | Verif. | Provenance | Prov. type | Signature | Blocker |
@@ -282,13 +288,13 @@ The rows below are #667's 88 rows (W667:131–218), in the same order and under 
 | 38 | cell.browse state | No per-cell export; DEF:58 background 0.2 is `[C]` calibration | UNS (C1) | SC | DEF:56–58, 135 | MISSING | BLOCKED | W04 |
 | 39 | cell.deadwood state | No initial deadwood inventory; no H1 felling implied | UNS (C1) | SC | SD:68–69 | MISSING | BLOCKED | W04 |
 | 40 | cell.canopy / light base | Only #508 static proxies for 10 cells (§4); not a native grid | UNS (C1) | VN | `L /H1/canopyCellsChanged`, `/H1/sites`; EC:914–918 | MISSING | BLOCKED | W04 |
-| 41 | cell.coordinate formula | `floor((z+15)/5)·6 + floor((x+15)/5)`; G1 → 15. Boundary dispatch at +15 unsigned (EC:1963–1973 returns −1 when x or z = +15). | MD (C3) | VN / SC | ANN:291; `L /H1/sites` cell 15; EC:1963–1973 | SRC-AUTHORED | BLOCKED | W04 |
+| 41 | cell.coordinate formula | `floor((z+15)/5)·6 + floor((x+15)/5)`; G1 → 15. Boundary dispatch at +15 unsigned (EC:1963–1973 returns −1 when x or z = +15). | UNS (C1) | VN / SC | ANN:291; `L /H1/sites` cell 15; EC:1963–1973 | SRC-AUTHORED | BLOCKED | W04 |
 | 42 | cell.per-cell initial values | All 36 rows in §4; zero stems ≠ zero ecology | UNS (C1) | SC | §4; SD:244–272; US:7–19 | MISSING | BLOCKED | W04 |
 | 43 | cell.site drivers / opening / suitability | SiteProductivity / SoilStability / EstablishmentSuitability (C# default 1.0, `[C]`), recentOpening; dormant Reference site profile | UNS (C1) | SC | CELL:47–50; SD:255–259; SSP:22–27 | MISSING | BLOCKED | W04 |
 | 44 | H1.surfaces / edge / stump depiction | None; GQ-05 undecided | UNS (C1) | SC | ANN:310; G:149 | MISSING | BLOCKED | W05 |
 | 45 | H1.spawn pose | No xyz/yaw or camera pose | UNS (C1) | SC | ANN:310; MAN:80 | MISSING | BLOCKED | W07 |
-| 46 | H1.visitor / parking staging | Visitors/cars separated from timber collection; placements/capacity unknown | OC (C2) | SC | DL:149; C:93, 108; MAN:35 | OWNER-CONCEPT | BLOCKED | W06 |
-| 47 | H1.collection area | Occasional small-truck closed-yard staging; no driving or road certification | OC (C2) | SC | DL:149; C:100, 108; MAN:35 | OWNER-CONCEPT | BLOCKED | W06 |
+| 46 | H1.visitor / parking staging | Visitors/cars separated from timber collection; placements/capacity unknown | UNS (C1) | SC | DL:149; C:93, 108; MAN:35 | OWNER-CONCEPT | BLOCKED | W06 |
+| 47 | H1.collection area | Occasional small-truck closed-yard staging; no driving or road certification | UNS (C1) | SC | DL:149; C:100, 108; MAN:35 | OWNER-CONCEPT | BLOCKED | W06 |
 | 48 | H1.clearing geometry | x = [−9, 3], z = [−15, −5]; 120 m²; 14 omissions before Year 0 | MD (C3) | VN | `L /H1/rect`, `/H1/inside`; §2 | SRC-AUTHORED | CANDIDATE | W05 / W14 |
 | 49 | H1.outside buffer | Eight listed retained stems within 1 m; no extra omission | MD (C3) | VN | `L /H1/buffer1m`; §2 | SRC-AUTHORED | CANDIDATE | W05 |
 | 50 | H1.must NOT contain | §6 list | OC (C2) | SC | DL:149, 151; P:130 (FA-2); C:108 | OWNER-CONCEPT | CANDIDATE | W06 (native negative later) |
@@ -302,8 +308,8 @@ The rows below are #667's 88 rows (W667:131–218), in the same order and under 
 | 58 | footpath.anchor A7 | (−2.71, 10.75) | SV (C4) | VN | `…/samples[7]` | SRC-AUTHORED | CANDIDATE | W01 / W08 / W10 |
 | 59 | footpath.spline / interpolation | No algorithm/tangents; polyline is only the checked baseline | UNS (C1) | SC | ANN:294, 308; G:68 | MISSING | BLOCKED | W08 |
 | 60 | footpath.terrain projection | No height-offset or normal-alignment recipe | UNS (C1) | SC | ANN:308; ST:115; PV:85–87 precedents only | MISSING | BLOCKED | W01 / W08 |
-| 61 | footpath.width / collider policy | 1.2 m symmetric walking-core target; ribbon/collider unauthored | OC (C2) | SC | DL:151 (D-084); P:28; G:18, 68–70 | OWNER-CONCEPT | BLOCKED | W07 / W08 |
-| 62 | footpath.visual verge | Optional ≤ 0.20 m per side, display-only; exact width and fade recipe absent | OC (C2) | SC | DL:151; P:28; G:18 | OWNER-CONCEPT | BLOCKED | W08 |
+| 61 | footpath.width / collider policy | 1.2 m symmetric walking-core target; ribbon/collider unauthored | UNS (C1) | SC | DL:151 (D-084); P:28; G:18, 68–70 | OWNER-CONCEPT | BLOCKED | W07 / W08 |
+| 62 | footpath.visual verge | Optional ≤ 0.20 m per side, display-only; exact width and fade recipe absent | UNS (C1) | SC | DL:151; P:28; G:18 | OWNER-CONCEPT | BLOCKED | W08 |
 | 63 | footpath.off-path refusal | No Compact path/H1 planting refusal; source checks cell/stem/duplicate only | UNS (C1) | SC | M:105–165; `L /negativeControls` offline | MISSING | BLOCKED | W09 |
 | 64 | north.A7 end behaviour | Inherited gap beside A7 must be declared; alternatives §5.3, neither chosen | UNS (C1) | VN / SC | ANN:309; CB `/anchors`; `L /buildables`; §5.3 | MISSING | BLOCKED | W10 |
 | 65 | G1.O1 | sessile-oak; x = 1.17, z = −0.47; cell 15; exact species/x/z match to `L /H1/sites` | OC (C2) | VN | DL:151; P:26; C:15; `L /H1/sites` | OWNER-CONCEPT | CANDIDATE | W01 / W12 / W14 |
@@ -314,9 +320,9 @@ The rows below are #667's 88 rows (W667:131–218), in the same order and under 
 | 70 | G1.composition | Exactly 2 sessile Oak + 2 European Beech by real player orders; none at Year 0 | OC (C2) | SC | DL:149, 151; C:19 | OWNER-CONCEPT | CANDIDATE | — (native T1 witness) |
 | 71 | G1.site-match tolerance | No signed tolerance; question in §5.5 | UNS (C1) | SC | P:96; M:167–175 (0.5 m duplicate); M:133–138 (0.7 m stem guard) | MISSING | BLOCKED | W12 |
 | 72 | G1.guard absent state | Shelter optional per tree; no record/visual = no protection | OC (C2) | SC | DL:151 (per-tree shelter choice, CIP-016); C:17, 19; M:1908–1914; PV:64–70 | OWNER-CONCEPT | CANDIDATE | W11 / W13 |
-| 73 | G1.guard effective state | Honest upright protection from real shelter state; full footprint r ≤ 0.10 m | OC (C2) | SC | DL:151; PV:11–12, 64–70; C:17 | OWNER-CONCEPT | BLOCKED | W11 |
-| 74 | G1.guard expired state | Distinct from effective and failed by more than colour; no efficacy invention | OC (C2) | SC | DL:151 ("honestly distinguishable"); C:17; G:20; PV:99–100 (colour only) | OWNER-CONCEPT | BLOCKED | W11 |
-| 75 | G1.guard failed state | Honestly damaged; full visual/physical/stake footprint r ≤ 0.10 m; current pose not selected | OC (C2) | VN / SC | DL:151; P:27, 30; G:20; PV:91–95; §5.6 | OWNER-CONCEPT | BLOCKED | W11 |
+| 73 | G1.guard effective state | Honest upright protection from real shelter state; full footprint r ≤ 0.10 m | UNS (C1) | SC | DL:151; PV:11–12, 64–70; C:17 | OWNER-CONCEPT | BLOCKED | W11 |
+| 74 | G1.guard expired state | Distinct from effective and failed by more than colour; no efficacy invention | UNS (C1) | SC | DL:151 ("honestly distinguishable"); C:17; G:20; PV:99–100 (colour only) | OWNER-CONCEPT | BLOCKED | W11 |
+| 75 | G1.guard failed state | Honestly damaged; full visual/physical/stake footprint r ≤ 0.10 m; current pose not selected | UNS (C1) | VN / SC | DL:151; P:27, 30; G:20; PV:91–95; §5.6 | OWNER-CONCEPT | BLOCKED | W11 |
 | 76 | player.capsule / collider | CharacterController required; no Compact radius/height/step/slope/layer | UNS (C1) | SC | PLAYER:4; ANN:308–310; G:125; EH walk capsule 0.30 / 1.80 m is harness-only | MISSING | BLOCKED | W07 |
 | 77 | player.core | 1.2 m is a route width, not a capsule diameter or proof of turning | OC (C2) | SC | DL:151; P:28–31; G:68 | OWNER-CONCEPT | CANDIDATE | W07 / W08 (witness) |
 | 78 | player.verge | ≤ 0.20 m visual-only; never enlarges the collidable corridor | OC (C2) | SC | DL:151; P:28; G:18 | OWNER-CONCEPT | CANDIDATE | W08 |
@@ -336,13 +342,14 @@ The rows below are #667's 88 rows (W667:131–218), in the same order and under 
 
 | Measure | SV | MD | OC | GCP | UNS | Total |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Rows | 21 | 5 | 17 | 1 | 44 | 88 |
+| Rows | 21 | 4 | 10 | 1 | 52 | 88 |
 | CANDIDATE | 21 | 4 | 10 | 1 | 0 | 36 |
-| BLOCKED | 0 | 1 | 7 | 0 | 44 | 52 |
+| BLOCKED | 0 | 0 | 0 | 0 | 52 | 52 |
 | SIGNED | 0 | 0 | 0 | 0 | 0 | 0 |
 
-- **Row lists by class:** SV = 1–8, 27, 51–58, 81, 82, 84, 85. MD = 33, 41, 48, 49, 69. OC = 31, 46, 47, 50, 61, 62, 65–68, 70, 72–75, 77, 78. GCP = 88. UNS = the other 44 rows.
-- **BLOCKED outside UNS:** MD 41; OC 46, 47, 61, 62, 73, 74, 75.
+- **Row lists by class:** SV = 1–8, 27, 51–58, 81, 82, 84, 85. MD = 33, 48, 49, 69. OC = 31, 50, 65–68, 70, 72, 77, 78. GCP = 88. UNS = the other 52 rows.
+- **BLOCKED outside UNS:** none. Every BLOCKED row is UNS (C1); every SV/MD/OC/GCP row is CANDIDATE.
+- **Mixed-evidence UNS rows (§0.3):** 41 (formerly MD), 46, 47, 61, 62, 73, 74, 75 (formerly OC). Owner intent / formula evidence is retained in their provenance.
 
 ---
 
@@ -468,7 +475,7 @@ Adopting this recipe is a content choice (OD-04). It does not change any row's c
 
 **Nearest retained stem (MD, VN).** Clamped point-to-segment distance over the eight-anchor polyline gives **P1106 at 1.6004984013 m**. Its trunk-edge margin to a 1.2 m core is d − DBH/200 − 0.6 = **+0.9194443718 m**. No retained stem centre lies within 0.8 m of the centreline. The ledger's 1.592 m (`/H1/path/minTrunkCentreDist`) is measured against the whole historical track.
 
-**Core / verge (OC, D-084).**
+**Core / verge (OC rules, D-084; rows 77–78 OC; rows 61–62 UNS as whole requirements because ribbon/collider and exact verge recipe are absent).**
 
 - **Core:** a 1.2 m symmetric pedestrian walking-core target. It is a route width, not a capsule diameter or a turning proof.
 - **Verge:** optional, at most 0.20 m per side, display-only. It has no collider, removes no tree, and has no effect on ecology, clearance or planting eligibility (P:28; G:18).
@@ -565,7 +572,7 @@ The P:96 transaction leaves "site-match tolerance" to the content signature. Two
 | Buffered retained stems | The 8 IDs in §2 stay standing. A local visual/collider hazard goes back to the owner; it never auto-erases trees. | MD / CANDIDATE |
 | Surfaces / edge / stumps | No asset or rule. GQ-05 (G:149) leaves stump/history look to the owner; "no fresh stumps" is only a Manager default. Options: (a) a flat apron with edge transition and no stumps; (b) an old-stump context with supplied provenance, never player felling. | UNS / BLOCKED, W05 |
 | Spawn pose | No xyz, yaw or camera pose exists anywhere. `originalPlayerPosition` must not be recycled without a value (MAN:80). | UNS / BLOCKED, W07 |
-| Visitor mode vs closed-yard collection | D-083: an occasional small truck in a **staged closed-yard** event. C:93 / 108: no simultaneous parked cars/visitors and loading; the truck backs in if movement is shown, leaves forwards, never uses the footpath, and there is no public-road loading. Exact footprints, capacities and state controls are absent. | OC / BLOCKED, W06 |
+| Visitor mode vs closed-yard collection | D-083: an occasional small truck in a **staged closed-yard** event. C:93 / 108: no simultaneous parked cars/visitors and loading; the truck backs in if movement is shown, leaves forwards, never uses the footpath, and there is no public-road loading. Exact footprints, capacities and state controls are absent. | UNS (C1; D-083 owner intent recorded) / BLOCKED, W06 |
 | **Must not contain** | Year-1 harvest or revenue from H1; any grant or automatic cash; any rack, extraction corridor or historical plank; a truck on the footpath; public-road loading; simultaneous visitors and collection; any imported historical buildable; any inherited crop pick or Fell mark | OC / CANDIDATE |
 
 No parking count, vehicle envelope or road/rights certification is proposed or implied.
@@ -585,7 +592,7 @@ ANN authors only `id, species, x, z, age, dbh, height, crown`. TreeSaveData (SD:
 - biologicallyDead, mortalityCause, mortalityYear;
 - position.
 
-Each extra field needs either an explicit per-tree value or a pinned, versioned constructor recipe. The obvious candidate is "fresh source spawn state", which gives stage `Mature`, zero timers, no marks, no deaths, zero recorded suppression, and unpruned trees with a crown base from the source initialiser. **It stays UNS (§0.3 C1) until signed.**
+Each extra field needs either an explicit per-tree value or a pinned, versioned constructor recipe. The obvious candidate is "fresh source spawn state", which gives stage `Mature`, zero timers, no marks, no deaths, zero recorded suppression, and unpruned trees with a crown base from the source initialiser. **It stays UNS (§0.3 C1) until a complete authenticated value or pinned recipe supplies the missing datum.** Signature is a separate axis (§0.4): an attestation without a complete recipe supplies no value, and a complete recipe that is still unsigned would change the class but not make the row signed.
 
 **Honest biology.**
 
@@ -715,12 +722,12 @@ The W01–W14 IDs are group identifiers, not 14 independent dispatches. The owne
 | Measure | Value |
 | --- | --- |
 | Fields | 88 |
-| Fields by class | SV 21 · MD 5 · OC 17 · GCP 1 · UNS 44 |
+| Fields by class | SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52 |
 | Fields by status | SIGNED 0 · CANDIDATE 36 · BLOCKED 52 |
 | Cells | 36 |
 | Cells by class | occupancy MD 36 / initial ecology UNS 36 |
 | Cells by status | SIGNED 0 · CANDIDATE 0 · BLOCKED 36 |
-| Unsupported table rows (fields + cells) | 44 + 36 = **80**, equal to W667:342 |
+| Unsupported table rows (fields + cells) | 52 + 36 = **88**. W667:342's 44 + 36 = 80 used the earlier labels; the +8 is exactly the mixed-evidence rows 41, 46, 47, 61, 62, 73, 74, 75 (§0.3), all already BLOCKED |
 | Owner-decision items | 18 (OD-00 to OD-17), one of which (OD-16) is deferred and not offered for decision |
 
 **Minimum set the owner must attest to make the world signable.** All four steps are required.
@@ -795,9 +802,9 @@ The W01–W14 IDs are group identifiers, not 14 independent dispatches. The owne
 | File SHA-256 / line count | Reported in the handoff reply (cannot self-reference) |
 | Expected `git diff --stat afd5484f..HEAD` | exactly one added file (this one); nothing else |
 | Roster reproduction | `dac06a3b…` reproduced byte-for-byte (generated = extracted fence) |
-| Field counts | SV 21 · MD 5 · OC 17 · GCP 1 · UNS 44; CANDIDATE 36 · BLOCKED 52 · SIGNED 0 |
+| Field counts | SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52; CANDIDATE 36 · BLOCKED 52 · SIGNED 0 |
 | Cell counts | 36 BLOCKED (occupancy MD; ecology UNS) |
 | Owner questions | OD-00 to OD-17 (OD-16 M-A-SCOPE deferred, not offered) |
 | Verdict | **SIGNATURE-BLOCKED** |
 | Unresolved | W01–W14; OD-00; the GQ-07 architecture; D-032 rights; A7; W12; M-A-SCOPE (deferred) |
-| Next | Stage-W2 independent review by a non-Claude model family (GPT-6.1 Sol per packet), or `[PAUSED — CAPACITY]` if unavailable. This author must not review it. |
+| Next | Changed-lines-only Stage-W2 re-check of this correction round by a non-Claude model family (GPT-6.1 Sol per packet), or `[PAUSED — CAPACITY]` if unavailable. This author must not perform the re-check. |
