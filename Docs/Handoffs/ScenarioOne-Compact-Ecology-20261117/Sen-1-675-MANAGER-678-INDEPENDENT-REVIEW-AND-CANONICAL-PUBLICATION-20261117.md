@@ -1,0 +1,32 @@
+# Sen-1 #675 — Manager result: #678 owner choices D-085 independently reviewed and canonically published
+
+**MANAGER VERDICT: APPROVED — CANONICAL DOCUMENT QUALITY AND PUBLICATION ONLY.**
+**#678 AUTHOR TASK HANDED OFF; #679 INDEPENDENT REVIEW HANDED OFF. NO WORLD SIGNATURE, SPEC APPROVAL, NATIVE UNITY QUALIFICATION OR SOURCE RELEASE.**
+
+## 1. Authorship and independent evidence
+
+- Original author: [#678](https://github.com/jermur788/CCF/issues/678), actual DeepSeek V4.1 Flash, T3 OpenCode on jer-laptop, separate docs-only worktree and author branch `docs/sen-1-678-owner-canonical-author-20261117-v1`. Author candidate was frozen at `8dfb193037e10b5ffaff982de002b3905a0a6941`; baseline `ef50830542df2218cdf24412e6e93701e0d62fd9`. Three files changed on author branch: Decision Log, Current Milestone, one NEW result handoff. Source author [durable handoff](https://github.com/jermur788/CCF/blob/8dfb193037e10b5ffaff982de002b3905a0a6941/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-678-CANONICAL-OWNER-DECISION-RECONCILIATION-RESULT-20261117.md).
+- Independent nonauthor reviewer: [#679](https://github.com/jermur788/CCF/issues/679), actual OpenAI ChatGPT **GPT-6** in the Manager's GitHub session; different model family/provider from DeepSeek author, no authorship of reviewed source, separate branch `review/sen-1-678-owner-canonical-independent-20261117-v1`, sole NEW report file. [Complete independent review](https://github.com/jermur788/CCF/blob/review/sen-1-678-owner-canonical-independent-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-678-INDEPENDENT-CANONICAL-OWNER-DECISION-REVIEW-20261117.md). **APPROVED: 0 critical, 0 major, 0 minor, 1 nonblocking note** on whole-world digest computed after complete canonical input/review and **before** final personal owner attestation. This is documentation approval only.
+- Owner source fidelity checked: five exact Round-1 owner answers in #672 packet/receipt and twelve direct Round-2 issue comment receipts; all 17 D-085 entries correct. OD-16 (M-A-SCOPE) deferred. All initial 175 tree crop marks None; player later selects/retains/favours **three** crop trees, not three mandatory Fell operations. Exact world bytes/geometry, source ecology values, save policy still unsigned.
+- D-083/D-084 original rows preserved byte-for-byte. B2 spline + verge clearance is only +0.1209757m on old centreline; existing O1 guard intrusion 0.141m must be removed, not approved as safe; native source/scene proof NOT RUN.
+
+## 2. Canonical main publication performed by #675
+
+**Result: APPROVED / PUBLISHED to main** via [PR #680](https://github.com/jermur788/CCF/pull/680), one squash integration on 2026-11-17. Manager used a separate integration branch `integrate/sen-1-678-canonical-d085-milestone-20261117-v1` created from the then current main after confirming main drift since author base was **only the live active-tasks coordination file**. The branch assembled exactly the two reviewed canonical blobs and retained that coordination change. PR preflight declared mergeable with exactly two changed files, no pending commit CI statuses, expected head pinned and last main identity checked. The successful squash main publication commit is `d435292b29e7e3c987e3df57d7b3555d82e84a8e`.
+
+**Post-merge remote readback PASS:**
+- `Docs/Project/decision-log.md`: D-085 appended **once**, exact blob `9994c609b19c0afc3d594bc03f3f3b2768ee8acf`, **byte-identical to source author's final candidate**. D-083 and D-084 unchanged; no deletions.
+- `Docs/Project/current-milestone.md`: bounded D-085 intent reconciliation, exact blob `96e39520b7cf2ee40b4f2874f898a3f6c7e136ae`, **byte-identical to source author's candidate**.
+- Main parent→published compare lists **exactly two files**: Decision Log (+2/−0) and milestone (+4/−2), no specs, code, scenes, assets, saves, coordination or worker handoff files in main squash. The one additional author result and reviewer report remain accessible on their own durable GitHub branches. The live coordination update was preserved by the merge.
+
+**This is a canonical accepted product-direction update, not DRAFT specification approval.** The status of the world remains last published evidence **SIGNED 0 / CANDIDATE 36 / BLOCKED 52, 36 ecology cells BLOCKED** unless separately superseded by an actual current #676 handoff. #676 was registered RUNNING after 15:30Z; no output/prequalification inferred here. [#677](https://github.com/jermur788/CCF/issues/677) save-policy normative signer gate still BLOCKED pending identified human authority. OD-16 remains deferred; 3 selected retained crop trees ≠ 3 Fell quota.
+
+## 3. Exact remaining gates / continuation
+
+- **World**: [#676](https://github.com/jermur788/CCF/issues/676) running DeepSeek whole-world manifest/deterministic 36-cell closure; await a real GitHub result and separate actual personal owner attestation over complete bytes, not a synthetic digest.
+- **Save**: [#677](https://github.com/jermur788/CCF/issues/677) real authorised save-policy signer must approve policy B, CG-TRIG, review-edge choices, order↔juvenile atomic evidence and W-A guards in a separate normative action; S1 new M-A evidence requires its **own** separately authorised amendment and M-A-SCOPE remains deferred.
+- **Implementation**: three Compact feature specs `DRAFT`/unchecked, ISO-58 BLOCKED, #652 live Ops HELD. No source/assets/Unity/integration/Windows authorisation from this canonical publication; old v1–v24/Legacy40/Enlarged80 Rack V2/MFM/frozen Reference Future preserved.
+- **Context sync**: Regenerate canonical context only from one clean full Git SHA snapshot with hash manifest and effective live-board exclusion; refresh permanent Drive mirrors/attachments if and when real publication tool access and verification allow. **Dashboard local producer/health/render NOT VERIFIED; Drive/context mirrors NOT SYNCED by this result.** Do not claim remote mirror currency from GitHub.
+- **Owner action required now**: none for #678 acceptance; later personal exact-world-content attestation and any actual authorised save-policy signer appointment when needed. No Windows build before owner's own exact-candidate Editor playtest and separate Windows authorisation.
+
+**Handoff**: Overall Manager [#675](https://github.com/jermur788/CCF/issues/675) retains Scenario One canonical/coordination writer role. This document is the durable integration receipt; no local physical worktree or Unity lease used.
