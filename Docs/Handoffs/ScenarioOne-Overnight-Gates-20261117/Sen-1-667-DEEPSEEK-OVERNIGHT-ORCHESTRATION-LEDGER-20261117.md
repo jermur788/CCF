@@ -211,3 +211,38 @@ Every event below was written by the registered orchestrator session. The Manage
 - **Decision / stop / state:** corrected tip `a94d3d91` **accepted as the recheck subject**; the formal one-file review verdict remains valid **only** for `d0520778` and is not restated as covering the new tip.
 - **Next executable step and delegated owner:** fresh Opus 5.5 session rechecks the changed lines only (dispatched). Its verdict is posted as a **single #669 comment**, not a second review file: the review lane's reservation is exactly one new Markdown output, the original review file is frozen evidence about the earlier tip, and rewriting it would destroy that provenance. The final result must present both records explicitly so no reader mistakes the comment for a second formal review file.
 - **User action required:** NONE.
+
+### EVENT 9 — 2026-11-17T02:05Z — delta recheck read back (APPROVED DELTA) + TIMESTAMP CORRECTION
+
+- **Classification:** OBSERVED FACT (GitHub comment, verified Git state) + ORCHESTRATOR CORRECTION of its own earlier estimates.
+- **Why event is material:** it closes the changed-lines recheck and it corrects a real accuracy defect in this ledger's own timestamps.
+- **Previous worker/model/pool:** fresh `claude-opus-5-5` / `claudeAgent` delta-recheck session (EVENT 8).
+- **Selected worker/model/pool/effort:** unchanged.
+- **Alternatives considered:** none at this event.
+- **Capacity / quota / reset evidence:** the fourth delegated run started and completed with no observed quota, throttle or auth error. Token usage **UNKNOWN / NOT EXPOSED**.
+- **Duration/resource data:** dispatch before 02:00Z, verdict read back at approximately 02:03–02:05Z. Approximate.
+- **File ownership, host, branch, starting HEAD, local worktree:** recheck wrote **no repository file** by design; author tip unchanged at `a94d3d9198161c5ee236a36f0c8d17bff688f4cd`; review branch unchanged at `9f571297…`; review worktree clean as reported by the reviewer.
+- **Child claim/packet/pushed result:** delta verdict https://github.com/jermur788/CCF/issues/669#issuecomment-6935623341 .
+- **Prior attempt and outcome influencing routing:** the APPROVED review (EVENT 6) and the correction round (EVENT 8).
+- **Test/inspection evidence and quality class:** verdict **APPROVED DELTA**; F-01…F-05 all PASS with independent source citation checks (including confirming `annualReviewSeen=false` occurs only at `M:660` and that `M:1538` merely restores the saved value); recount **21 SOURCE-VERIFIED / 44 UNSUPPORTED / 17 OWNER CHOICE / 5 MODEL-DERIVED / 1 GAME-CALIBRATION-PROPOSAL = 88**, cell table 36 all unsupported, **44 + 36 = 80** exactly true and mirrored at WORLD:342 / SAVE:349; minimality **2 files, 17 insertions, 17 deletions**, changed lines enumerated (WORLD 144, 146–149, 152, 153, 156, 342; SAVE 96, 113, 144, 186, 194, 195, 318, 349); no-drift PASS by before/after status-term counts; one non-blocking NOTE that SAVE:137 still omits "future" outside F-05's cited lines and needs no change. Both corrected file hashes match the orchestrator's recomputation.
+- **Decision / stop / state:** recheck **ACCEPTED**. The corrected tip `a94d3d91` now has an independent, minimality-checked delta verdict; the formal review file remains the record for `d0520778` only.
+- **Next executable step and delegated owner:** publish the final result and appendices, then parent handoff.
+- **User action required:** NONE.
+- **TIMESTAMP CORRECTION (append-only, earlier text not rewritten):** the stamps in EVENT 6 (`01:58Z`), EVENT 7 (`02:00Z`) and EVENT 8 (`02:12Z`) were written as the orchestrator's estimates during execution. The observed wall clock when the recheck was read back was **2026-11-17T02:03:42Z**, so EVENT 8's `02:12Z` was **ahead of the real clock** and EVENTS 6–8 should be read as approximately 01:50–02:03Z. No duration, quota, token or capacity figure in this ledger depends on those estimates, and none is fabricated; the only claimed end-to-end figure is the observed 01:02:32Z → 02:03:42Z span (≈61 min).
+
+### EVENT 10 — 2026-11-17T02:07Z — final result published, parent handoff and closure
+
+- **Classification:** OBSERVED FACT (commit/push, issue actions) + ORCHESTRATOR CLAIM (outcome completeness).
+- **Why event is material:** this is the terminal state of the umbrella orchestration; the Manager needs one document that joins the evidence, the verdicts, the preserved gates, the routing history and the remaining authority gates.
+- **Previous worker/model/pool:** all four delegated runs (EVENTS 3–9) complete and read back.
+- **Selected worker/model/pool/effort:** none further. No new worker is launched for the finale; DeepSeek writes only its own four files.
+- **Alternatives considered:** leaving #667 open pending #640 — rejected: the packet authorises closure once the objective is objectively done, and the objective (two reviewed evidence documents + review + ledger + final result) is done. Declaring BLOCKED-PARTIAL — not applicable: no mandatory evidence witness was unavailable.
+- **Capacity / quota / reset evidence:** orchestration session live throughout; no observed quota or rate-limit event for any of the four child runs. Token/billing data **UNKNOWN / NOT EXPOSED**.
+- **Duration/resource data:** observed end-to-end 2026-11-17T01:02:32Z → 2026-11-17T02:03:42Z ≈ 61 minutes. No overnight duration is claimed.
+- **File ownership, host, branch, starting HEAD, local worktree:** orchestration branch (this commit) — the four reserved orchestrator files only; author branch `a94d3d91`; review branch `9f571297`; no `main` write, no force push, no second writer on any file set.
+- **Child claim/packet/pushed result:** final result `Sen-1-667-OVERNIGHT-FINAL-RESULT-20261117.md` in this commit; parent `[HANDED-OFF]` comment and issue closure immediately after this push; child claims #668 and #669 closed as completed with links.
+- **Prior attempt and outcome influencing routing:** EVENTS 1–9.
+- **Test/inspection evidence and quality class:** deliverable register with branch/tip/hash for all seven files; verification-attribution table distinguishing author, reviewer and orchestrator checks; preserved-gate table; 22 blocker entries; ordered authority gates; 12-row routing appendix; explicit limitations including dashboard non-synchronization.
+- **Decision / stop / state:** **COMPLETED** — evidence package only. Not a signed world, not a signed save contract, not an approved spec, no implementation/Unity/deployment authority. `DASHBOARD SYNC: NOT AVAILABLE` and recorded as a follow-up for #640; live coordination record not edited (only #640 may).
+- **Next executable step and delegated owner:** #640 (Overall Manager) accept/reject the package, record outcome and synchronization, then sequence content-owner and save-owner gates separately; #652 stays HELD.
+- **User action required:** NONE tonight. The owner's one-tree M-A-SCOPE decision remains deferred and is not being solicited.
