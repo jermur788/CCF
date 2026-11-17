@@ -143,3 +143,10 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **No premature closure:** the S1 candidate is recorded as decision-ready but unreviewed; no signature, spec approval or implementation status was granted by this orchestration.
 - **Handoff:** result posted to #673 with a short handoff notice to Manager #671; the author claim and this orchestration claim are handed off, not silently closed as accepted.
 - **Resume cursor if work continues later:** restore Anthropic/gateway access → dispatch Opus 5.5 against frozen author tip `a43fbef33589bc2ce2df0e19f557036d8b446c9f` on a fresh review branch → independent verdict → real save-policy signer decision on policy B, CG-TRIG supplement and S03/S04 requirements → separate S1 amendment if authorised.
+
+### E11 — 2026-11-17T09:27Z — post-publication state check and unused review lane removed (OBSERVED)
+
+- **Remote refs actually observed after publication:** `docs/sen-1-673-deepseek-save-orchestration-20261117-v1` = `82f39a3e9190113175a981949a03e38f73b4bc4a`; `docs/sen-1-673-save-contract-rulings-20261117-v1` = `a43fbef33589bc2ce2df0e19f557036d8b446c9f`. No `review/sen-1-673*` ref exists, consistent with the blocked review gate.
+- **Cleanup:** the unused review worktree `/media/jer/Files/CCF/Orchestration/CCF-673-Save-Review-20261117` (clean at `afd5484f`, zero commits) was removed and its never-pushed local branch deleted. No evidence, commit or file was lost; the review gate remains blocked and is not implied to have passed.
+- **Preservation:** the author worktree remains at `a43fbef3` for any future review, and the pre-existing user modifications in `/media/jer/Files/CCF-Primary` (`AGENTS.md`, `Docs/Operations/StorageArchitecture.md`) are untouched.
+- **Claim state:** #673 orchestration handed off with a notification on #671; no acceptance, signature or integration is implied by publication.
