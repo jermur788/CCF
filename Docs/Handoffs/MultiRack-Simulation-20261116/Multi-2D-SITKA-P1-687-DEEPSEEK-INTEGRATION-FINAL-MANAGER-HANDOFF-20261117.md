@@ -49,6 +49,8 @@ Performed against live GitHub object data; no fetch, no local object writes, no 
 | Source author custody | [#639](https://github.com/jermur788/CCF/issues/639) **OPEN**, "BOARD RESERVED / AWAITING CLAUDE RE-PREFLIGHT" — not transferred |
 | Raw security evidence physically present | `/media/jer/Files/CCF/Verification/CCF-649-P1-F0-L4-FailClosed-20261116/isolation-cold-run/L4-strace.txt` and `…/CCF-651-P1-F0-ControlledDotnetTrace-20261116/{A-default,B-verification-switches}` exist (2.9 MB + 5.2 MB) — this is the raw trace #682 said is needed |
 
+**Post-publication drift (recorded, not a STOP).** `main` advanced from `58951f2e` to `c66bf005` with a **coordination-only** change (`active-tasks.md` +3 lines, #688 planning reservation). Re-checked at the new commit: four CCF source pins still PASS, P0 and P1 directories still absent. Child A must therefore be pinned to the commit Manager #641 names **at dispatch**, not to the registration snapshot. Full detail in ledger E-009.
+
 ## 4. Exact blocked gates, owner and next action
 
 | # | Unmet gate | Exact permit/decision needed | Owner | Next action |

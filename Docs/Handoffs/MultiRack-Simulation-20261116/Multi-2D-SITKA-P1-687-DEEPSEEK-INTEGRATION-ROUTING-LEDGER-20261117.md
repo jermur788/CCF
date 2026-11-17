@@ -86,4 +86,14 @@ No source mutation, no P0 ancestry merge, no P1 extraction, no build/test, no qu
 
 **Ledger status: OPEN — awaiting physical custodian lane reservation + Manager #641 source permit. Subsequent events must be appended as E-009, E-010, …**
 
-<!-- END E-008 -->
+## E-009 · 2026-11-17T18:55Z · Publication, remote readback and main drift · READONLY-REMOTE
+
+- Parent commit pushed: `c5854b7bf9bb4be2c5a3f0caa0de7982c2ed4b1a` on `docs/multi-p1-687-deepseek-integration-orchestration-20261117-v1`; remote readback of the branch ref matches.
+- Remote compare `main...branch` lists **exactly two added files and nothing else** (this ledger and the final handoff); 0 deletions, 0 modifications.
+- **Main advanced during orchestration:** `58951f2e` → `c66bf0050589be97ae4eeed46f134b01830641e4` ("reserve #688 H1 entrance/path asset planning; owner selects existing detailed Sitka"). Diff is **coordination-only**: `Docs/Project/coordination/active-tasks.md` +3 lines. No P0/P1 source, no canonical decision, no Scenario One asset change.
+- Re-verified at the new main `c66bf005`: the four target-source CCF pins still **PASS** (`bb83d7f8…`, `e4c73402…`, `e638e28e…`, `51faaa0d…`) and `Tools/MultiRackSitkaLab` / `Tools/MultiRackSitkaP1Lab` are still **absent** (both 404).
+- Consequence: this drift does **not** touch P0/P1 source, ownership or scope, so it is not a STOP for the orchestration record. The **binding target commit for any future child A/B remains to be named by Manager #641 at dispatch time** — child A must re-read main and use the then-current approved commit, not `58951f2e`. The branch is intentionally not rebased onto `c66bf005`; its two-file diff is unaffected.
+
+**Gates unchanged: G1 (physical custody) and G2 (Manager source permit) still BLOCKED. No child dispatched.**
+
+<!-- END E-009 -->
