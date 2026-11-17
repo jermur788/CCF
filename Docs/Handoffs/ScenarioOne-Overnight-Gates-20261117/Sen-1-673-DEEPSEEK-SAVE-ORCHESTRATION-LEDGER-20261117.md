@@ -189,3 +189,12 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Corrections reported by the author:** F-01 claim-vs-bare-state separation with an explicit unsigned signer choice and visible consequences; F-02 3+1 admissible without credit plus row-level rejection; F-03 three new NOT RUN matrix rows; N-01 frozen-field/cancellation relabelled as candidate requirements; N-02 `completionYear` = resolution/report year never `createdYear`; N-03 pre-write ordering qualified as author-reported and not Git-verifiable.
 - **Unchanged:** CANDIDATE/UNSIGNED banner, `CONTRACT SIGNATURE BLOCKED`, M-A-SCOPE deferral, NOT RUN matrix marking, no other file.
 - **Next action:** fresh independent delta re-check of the changed lines only, appended to the existing review artifact; no full re-audit.
+
+### E16 — 2026-11-17T13:54Z — independent delta re-check dispatched (OBSERVED)
+
+- **Child:** same reviewer role, new delegated review task (per the one-task-per-review rule), provider `claudeAgent_claude_b_pro`, model `claude-opus-5-5`, `effort=high`; `status=running`.
+- **Task id:** `node:delegated-task:command%3Amcp%3Ad64329d4-fb7b-4dce-b2e7-a3a96a73198e%3Adelegate-task%3A8c6628fb-580b-4c5e-aa2c-a3d389dc05b6`.
+- **Scope:** delta only — `a43fbef3..0cf07062` (+17/−12 in one file), checking resolution of F-01..F-03 and N-01..N-03, absence of new defects in the changed lines, unchanged banner/signature/M-A-SCOPE/NOT-RUN status, and unchanged total branch scope (one added file vs `afd5484f`). Output is an appended delta section in the existing review file, not a new file.
+- **Pre-flight:** reviewer must confirm `origin/review/...` is still its own prior commit `afac59e2` and STOP on drift; repository `origin/main` remains `afd5484f`.
+- **Capacity:** T3 Claude provider accepted the launch; quota/reset `UNKNOWN`.
+- **Next action:** record the delta verdict, then publish the final-result addendum and hand back to #671.
