@@ -231,3 +231,90 @@ One author repair, limited to these lines, then a changed-lines-only recheck:
 - Full 115/33/66 semantic audits: **NOT RE-RUN**, as instructed. Only line identity and the #684 crosswalk were checked.
 - Dashboard and Drive/context mirrors: **NOT VERIFIED**.
 - The source reads (`ScenarioOneCompletionRules.cs:62-68`, `ScenarioOneManager.cs:391-401`) are static only.
+
+## 11. Changed-lines-only recheck of the bounded repair
+
+**NEW VERDICT (delta `b1150a5f..7f0b5ce7` only): APPROVED. CRITICAL 0 / MAJOR 0 / MINOR 0 / NIT 3.**
+
+All nine findings from §4 are **RESOLVED**. The repair added three non-blocking NITs (D-1 to D-3 below). This is a document and policy-fidelity recheck only. It is **not** spec approval, not implementation authority, and not a Unity, save, native or Windows result. All eight specs stay DRAFT, and every witness they name is **NOT RUN**.
+
+### 11.1 Identity and custody
+
+| Field | Value |
+| --- | --- |
+| Rechecker | **Anthropic Claude Opus 5.5** (`claude-opus-5-5`), Claude Code in the T3 Code harness, local Linux host `jer-laptop`. This is a **new session**. It did not write the repair |
+| Registration | [#684 comment 6957076957](https://github.com/jermur788/CCF/issues/684#issuecomment-6957076957), posted before any write |
+| Branch / worktree | `review/sen-1-684-compact-draft-cgtrig-independent-20261117-v1` at `/media/jer/Files/CCF/Worktrees/CCF-684-Review-20261117` |
+| Starting HEAD | `128ffa2f96104df324bc29e751d225f6d54826e8`. The worktree was clean and `128ffa2f` is on this branch |
+| Delta under review | `b1150a5f..7f0b5ce7`: `0725f078a2b0f0ceac81f9f962ee1e66f3a28c72` (eight spec files, `M` only) and then `7f0b5ce7fe8792ca97e24bd3a454685d3e965194` (author result only). I fetched the author branch and it was at `7f0b5ce7` |
+| Sole written file | This document. I only appended this section; §1–§10 are unchanged |
+| Independence caveat | §1 still applies: an earlier Claude Opus 5.5 session wrote the #663 base text and the #681 D-N1 note |
+
+### 11.2 Signed sources, re-verified
+
+- **Supplement:** `git rev-parse bfa01f86:<supplement>` and `git hash-object` of the shown bytes both give **`bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b`**. They match.
+- **#677 signature:** the branch `docs/sen-1-677-manager-cgtrig-exact-byte-signature-20261117-v1` is at `94c9835a` (checked with `ls-remote`). Its only change from `bfa01f86` is the attestation file. I used §2 items 5, 6 and 7 and the "NOT ACCEPTED" D-N1 bullet.
+- **#681 review:** `1e923e54` (DELTA APPROVED), D-N1 row at line 131.
+- **D-085 OD-12 A:** `origin/main` is `254d8b0e`; the entry is at `Docs/Project/decision-log.md:153`.
+- **Save §4.2:** the file at `200add4e` has blob `8ac55102…`. The file `specs/scenario-independent-save-isolation-v1/spec.md` does not exist at `7f0b5ce7`, so the repair cannot have touched §4.2.
+- **Dedup source:** `ScenarioOneCompletionRules.ShouldRecordAcknowledgement` at `b1150a5f`, lines 62–68 (static read only). It allows one acknowledgement per year **after the last `WorkResolved`**, and newly resolved work permits a fresh one.
+
+Line numbers below are at `7f0b5ce7`. "Parent" means `specs/scenario-one-compact-complete-loop-v1/`; "child" means `specs/scenario-one-compact-initial-planting-v1/`.
+
+### 11.3 Per-finding disposition
+
+| Finding | Disposition | Evidence (path, section/line) and signed basis |
+| --- | --- | --- |
+| **M-1** child text recast a refusal state as loadable no-credit history | **RESOLVED** | Child `spec.md:39`: "or that never gets its covering review in time" is gone. A new sentence says that state "is **not** admitted as no-credit history — it is the refusal case in the bullet above". The heading now reads "admitted, not repaired". "Loses a row" became "is found with a `Completed` designated order missing its row", and the bullet adds that the producer must **prevent** those states. Child `spec.md:38` adds the owner-escalation clause. The child plan (`plan.md:22`) adds a matching prevention clause. Basis: signature §2 item 5 ("Do not transform it into no-credit-but-loadable … escalate … to the product owner"), item 6 ("Incorrect forward producer states must be prevented, not excused by this admission"), supplement D:38, D:78 and D:80. The child no longer contradicts parent §684-2 or CT-7 case 13 |
+| **M-2** invented rule barring rows for a `Completed` 3+1 group | **RESOLVED** | Child `spec.md:36`: the clause "must never create a row for a `Completed` 3+1/other non-2+2 group" is deleted. In its place: rows are written "per order at its own successful resolution", a genuine 3+1 group "keeps its **verified** rows", and "Forward designation already refuses a third same-species order". The child checklist (`:35`) now says "3+1 group with its verified rows". Basis: D:48 (third same-species forward designation refused), D:49 (each successful Completed order adds its own row), D:77 ("every positive row verified"), T-05 D:30. No new restriction is added |
+| **m-1** D-N1 "used consistently" was untrue, and the admitted outcome was unstated | **RESOLVED** (see NIT D-1 for one leftover echo) | Parent `spec.md:59` (CT-2): the split state is now "a **covering** event9 for Y\* existing **at or after the final group `WorkResolved`**". The same line defines the dedup once as "one event9 per year per resolution boundary (`ScenarioOneCompletionRules.ShouldRecordAcknowledgement`), not an absolute one-per-year ban". It also gives the admitted pre-final outcome: CT-3 holds and release comes from the covering acknowledgement, with CT-7 case 7 (`:80`) as the witness, NOT RUN. The qualifier was also added at parent `:251` and `:287-288`, parent `plan.md:39`, parent checklist `:38` and `:48`, parent `tasks.md:33`, child `spec.md:21`, `:37` and `:41`, child checklist `:34` and `:39`, child `plan.md:21` and child `tasks.md:25`. Author result `:102` is corrected. Basis: T-05 D:30 qualifier; #681 D-N1 (`1e923e54:131`: "admitting it would not deadlock"); signature "NOT ACCEPTED" D-N1 bullet, which asks for exactly this spec-level alignment. No wire rule, key or event is added |
+| **m-2** fault-injection and exact G1 x/z round-trip obligations were missing | **RESOLVED** (see NIT D-2 on where one clause was placed) | Fault injection, "complete old or complete new state": parent PJ-4a `spec.md:108`, §684-1 T-06 `:255`, §684-6 `:298`, parent checklist `:41`, child checklist `:32` and child CP-S6 `tasks.md:24`. Exact G1 x/z save→load round-trip: parent `:298`, parent checklist `:41`, RV2 `tasks.md:34`, child checklist `:32` and child CP-S6. Each carries the reason "OD-12 zero planar placement is not a demonstrated `JsonUtility` bitwise equality". All are NOT RUN. Basis: signature §2 item 7, supplement D:88 and D:90 |
+| **m-3** PJ-1 still said the site tolerance was undecided | **RESOLVED** | Parent `spec.md:101` (PJ-1) now says: "**zero planar placement tolerance** required by signed #677 and by D-085 OD-12 A — the order uses the selected G1 site's exact stored x/z; the exact coordinates themselves remain **unsigned** and owned by the separate #676 world lane." Basis: D:48 "exact zero planar tolerance"; `origin/main:decision-log.md:153` OD-12 A. It does not sign any coordinates |
+| **N-1** per-file +/− counts | **RESOLVED** | Author result `:35-42`: running `git diff --numstat 1e0fba5f 7f0b5ce7` reproduces all eight rows. The parent `spec.md` count is now +84/−9 and the child `spec.md` count is +17/−3 |
+| **N-2** undeclared D84-CF-1R in-place edit and the "satisfied" wording | **RESOLVED** | Parent `tasks.md:15` now reads "**Accepted by #665 for document quality only** (the controller #640 accepts/rejects, not #665)". The edit is declared in author result §2.1 at `:63` |
+| **N-3** CT-7 preamble cited only §4.2 | **RESOLVED** | Parent `spec.md:73` now reads: "where §4.2 says 'refuses' or where signed #677 T-05 requires a Compact consistency refusal" |
+| **N-4** overlapping R-ID ranges and the missing R-092 | **RESOLVED** | Parent checklist `:43` and spec `:300` now list R-051–R-055, R-059, R-062 and R-063, which no longer overlap the T-02/T-03 rows (`:38-39`: R-056/057/058/060/061). R-092 (same-slot backup validation) is now in both parent checklist `:40` and spec `:297`. Spec `:297` adds "a same-slot backup is offered only if independently validated", which matches signature §2 item 5 and D:80 ("no … silent backup promotion") |
+
+### 11.4 Did the repair introduce anything new?
+
+I found no new rule beyond the signed text and no material issue. In detail:
+
+- **Requirement IDs:** no new ones. Every ID in the added lines (CP-S6/S7, D84-SC-RV1/RV2, D84-CF-1R, D84-T-E, PJ-4a, CT-*, T-*, OD-12/16, D-085) already exists at `b1150a5f`.
+- **Checkboxes:** no checkbox line was added or removed, and the delta contains no `[x]`.
+- **Claims:** no claim of approval, implementation or a passed test. The new "implemented" wording is all negative or conditional, for example "required before this counts as implemented".
+- **Save surface:** no new save key, event, DTO, root, profile or sidecar. The only identifiers not seen before are `ScenarioOneCompletionRules.ShouldRecordAcknowledgement` and `JsonUtility`. Both are citations of existing source or signed text, not new contract surface.
+- **Protected items:** term counts across the eight files are unchanged from `b1150a5f` to `7f0b5ce7`: `OD-16` 8→8, "deferred" 61→61, `175` 39→39, `0.141` 16→16, `v1–v24` 39→39 and `DRAFT` 194→194. `NOT RUN` rose from 33 to 41. So OD-16 stays DEFERRED, the 175-row roster stays unsigned, the O1 0.141 m intrusion stays unresolved, historical v1–v24 admission is untouched and §4.2 is absent from the branch.
+- **Recomputed preservation at `7f0b5ce7` against `1e0fba5f`:**
+  - parent `- [ ] R-###`: 115 on both sides, 0 checked, sha256 prefix `3d6334b9f97780ff` on both sides (identical);
+  - planting `- [ ] CIP-###`: 33 on both sides, 0 checked, `181911abc3c4e767` on both sides (identical);
+  - all checkbox lines: 115 and 33;
+  - `specs/scenario-one-compact-graphics-v1/**`: tree `42388b4aae74004d5f68379899b1dc4ea7029b63` on both sides, 66 unchecked, 0 checked.
+- **Author result claims that reproduce:**
+  - all eight after-blob IDs (`04077712`, `1d03e3de`, `011f21fc`, `bcd0d678`, `720e5e00`, `862f1894`, `d715c679`, `649ae957`) and the eight before-blob IDs;
+  - the per-file counts;
+  - commit `5f22e8a5`, review commit `128ffa2f` and its verdict;
+  - `0725f078` (full SHA above), which is the parent of `7f0b5ce7` and changes only the eight specs;
+  - the §7 disposition table, row by row, matches §11.3;
+  - the "repaired, not re-accepted" stance.
+
+**New NITs (non-blocking; no recheck needed):**
+
+- **D-1:** Parent `spec.md:296` (§684-6, R-056/R-058/R-060/R-061 witness row) still says "one event9/year dedup; … split state refused" without "per resolution boundary" or "covering".
+  - The CT-2 definition at `:59` and the T-02 row at `:251` govern it, so it cannot be read as a different rule.
+  - Even so, it is the one place where the author result's "used consistently" claim (`:102`) is not literally true.
+  - Fix in a later edit: use the same wording as `:251`.
+- **D-2:** Parent `tasks.md:33` puts "**fault-injected settlement** must leave a complete old or complete new state" in the acceptance cell of **D84-SC-RV1**. That task is the Annual Review event9+field transaction.
+  - Signature §2 item 7 attaches failure-injection evidence to the **planting settlement** (T-06).
+  - The correct places (PJ-4a, the T-06 row, §684-6, both checklists and child CP-S6) already carry it, so nothing is lost and nothing is invented.
+  - The clause is only filed under the wrong task. It could instead say "fault-injected combined event9+field commit" (D:88), or move to a T-06 task.
+- **D-3:** Author result `:18` says the full `0725f078` SHA is "in the #684 comment". The author comment ([6957061533](https://github.com/jermur788/CCF/issues/684#issuecomment-6957061533)) gives only the short `0725f078`. This is not ambiguous: the full SHA is `0725f078a2b0f0ceac81f9f962ee1e66f3a28c72`, the parent of the full `7f0b5ce7…` that the comment does give.
+
+### 11.5 Scope statement and NOT RUN
+
+- This is a changed-lines-only document and policy-fidelity recheck of `b1150a5f..7f0b5ce7`.
+- It is **not** spec approval. Only the Manager (#675/#640) may issue that.
+- It is **not** implementation authority and not a Unity, Editor, compile, test, Save/Load, native, failure-injection, Ops or Windows result. All of those are **NOT RUN**.
+- The full 115/33/66 semantic audits: **NOT RE-RUN**. Only line identity and the delta were checked.
+- Unchanged text outside the delta: **NOT RE-AUDITED**.
+- The author's live board state and the Drive/context mirrors: **NOT VERIFIED**.
+- Source reads are static only.
