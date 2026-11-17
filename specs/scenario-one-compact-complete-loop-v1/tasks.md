@@ -30,10 +30,12 @@ Manager #677 D-A signed the CG-TRIG/save-policy supplement (reviewed commit `bfa
 | Proposed task | Depends on | Acceptance (existing R-IDs only; all NOT RUN) |
 | --- | --- | --- |
 | **D84-CF-4** independent non-author review of the #684 reconciliation (these eight parent/planting DRAFT files + one result) | this author result handed off; different model family | APPROVED / NEEDS CHANGES / REJECTED on signed-policy fidelity, preserved 115+33+66 unchecked IDs, D-N1 disposition and old-world preservation; not a repeat 115/33/66 audit (R-002, R-078) |
-| **D84-SC-RV1** one existing Annual Review control writes event9 + `reviewAcknowledgedYear=Y*` atomically, one per year per resolution boundary, idempotent, covering split state refused | approved specs + #544 + lease + CG-TRIG policy signed | T-02 witnesses in R-056/R-058/R-060/R-061; **fault-injected settlement** must leave a complete old or complete new state with no half-commit; static source reading only until a real lane exists |
+| **D84-SC-RV1** one existing Annual Review control writes event9 + `reviewAcknowledgedYear=Y*` atomically, one per year per resolution boundary, idempotent, covering split state refused | approved specs + #544 + lease + CG-TRIG policy signed | T-02 witnesses in R-056/R-058/R-060/R-061; static source reading only until a real lane exists |
 | **D84-SC-RV2** strict pre-mutation Save capture/Load refusal for the two deadlocked CT-1 states, with cannot-load messaging and unchanged checksums | D84-SC-RV1; validated admission design | T-05 witnesses in R-011–R-020, R-085, R-086, R-092; exact **G1 x/z save→load round-trip** (OD-12 is not a demonstrated `JsonUtility` bitwise equality); genuine v1–v24 admission unchanged |
 | **D84-SC-RV3** Policy B load-and-diagnose for false acknowledgements, missing planting row and 3+1 Completed groups, with permanent no-credit outcome | D84-SC-RV1 | T-01/T-05 witnesses in R-001, R-027, R-057, R-093, R-102, R-107 |
 | **D84-SC-RV4** service-level Approved freeze and CT-3 advance hold on every public manager/service/bulk route | approved specs | T-03/T-07 witnesses in R-032–R-034, R-037, R-038, R-057, R-098 |
+
+T-06 settlement atomicity, including fault-injected settlement evidence and the exact G1 x/z round-trip, is carried by D84-PJ-4a/5 and the child task CP-S6 rather than duplicated in an RV row.
 
 Each later task needs its own [RUNNING] claim, actual provider, branch/HEAD/worktree, exclusive Unity lease where relevant and a published handoff. A signed policy is **not** an implemented control, and no Unity/native PASS may be inferred from this DRAFT.
 
