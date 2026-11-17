@@ -150,3 +150,13 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Cleanup:** the unused review worktree `/media/jer/Files/CCF/Orchestration/CCF-673-Save-Review-20261117` (clean at `afd5484f`, zero commits) was removed and its never-pushed local branch deleted. No evidence, commit or file was lost; the review gate remains blocked and is not implied to have passed.
 - **Preservation:** the author worktree remains at `a43fbef3` for any future review, and the pre-existing user modifications in `/media/jer/Files/CCF-Primary` (`AGENTS.md`, `Docs/Operations/StorageArchitecture.md`) are untouched.
 - **Claim state:** #673 orchestration handed off with a notification on #671; no acceptance, signature or integration is implied by publication.
+
+### E12 — 2026-11-17T13:15Z — RESUME: reviewer gate reopened on restored T3 provider access (OBSERVED)
+
+- **Why this is a resume, not a rewrite:** E9 recorded `INDEPENDENT REVIEW BLOCKED — NO PERMITTED REVIEWER AVAILABLE` because the direct Anthropic key was invalid and the OpenCode gateway was disconnected. The published final result stays as the record of that run; this event starts a new, separately registered attempt.
+- **Observed state on resume:** parent session is back in the T3 project (`/media/jer/Files/CCF-Primary`); the T3 orchestration provider catalog is available again and lists `claude-opus-5-5` under two `claudeAgent` providers (`Claude A`, `Claude B — Pro`) with an `effort` option. `git ls-remote` still shows author tip `a43fbef33589bc2ce2df0e19f557036d8b446c9f` and orchestration tip `1e75f8ccc779c8174dc9ab368eb827d6b93eeda0`. Observed clock `2026-11-17T13:15:36Z`.
+- **Fresh claim:** S3 reviewer, retry 2. Branch `review/sen-1-673-deepseek-save-ruling-20261117-v1` to be created at `afd5484fc11697e6bde64f99d57d22e98f572f1f` in the child's own prepared worktree; sole writable path remains `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-673-INDEPENDENT-SAVE-OWNER-CONTRACT-RULING-REVIEW-20261117.md`. No other file, no source, no spec, no board.
+- **Reviewed material is frozen:** author tip `a43fbef3`, 336 lines, sha256 `4cbaa1f9…d7e45`. The author is not re-run and its file is read-only to the reviewer.
+- **Model/config:** Anthropic Claude Opus 5.5 via T3 `claudeAgent` (Pro instance), effort high — still a different model family from the OpenAI author, so independence is preserved. Actual executed identity to be recorded from the child's report.
+- **Capacity:** T3 Claude provider catalog-present and launchable; quota/reset `UNKNOWN`.
+- **Next action:** dispatch; on completion record verdict and revise the final result with a dated addendum rather than silently rewriting the earlier blocked declaration.
