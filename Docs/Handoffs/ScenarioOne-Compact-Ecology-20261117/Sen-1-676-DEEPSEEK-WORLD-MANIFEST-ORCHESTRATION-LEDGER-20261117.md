@@ -151,6 +151,34 @@ A W2 session was started at 2026-11-17T17:07Z (delegated task `…/bceb6b20-c94b
 
 **D-013.** If the gateway review also fails before producing a review, mark W2 `[BLOCKED — PROVIDER ACCESS]`, keep the frozen author deliverable and the reserved review path as the resume cursor, and hand off a coherent blocked result. Do not self-review in the parent and do not describe a requested review as executed.
 
+## E-012 — W2 review BLOCKED: all callable distinct-family reviewer providers failed (2026-11-17T17:08Z)
+
+The gateway re-issue (`opencode/claude-fable-5-2`, task `…/bceb6b20-c94b-4ddd-8d20-62d536b2bab0`) also failed before any review work, with `Reconnect OpenCode Console to continue.` No claim, no review file, no branch commit.
+
+**Observed provider state at this point:**
+
+| Reviewer route | Result |
+| --- | --- |
+| Anthropic Opus 5.5, provider `claudeAgent` | `UNABLE_TO_VERIFY_LEAF_SIGNATURE` (TLS) |
+| Anthropic Opus 5.5, provider `claudeAgent_claude_b_pro` | `UNABLE_TO_VERIFY_LEAF_SIGNATURE` (TLS) |
+| Anthropic Fable 5.2, provider `opencode` gateway | `Reconnect OpenCode Console to continue.` |
+| OpenAI GPT-6.1 Sol | **not eligible**: same model family as the W1 author |
+| Cursor, Grok | provider instances disabled |
+| MiMo v2.6 Pro | same OpenCode gateway that just refused the session; not attempted as a speculative substitute |
+
+**D-014.** The independent review is `[BLOCKED — PROVIDER ACCESS]`. It is **not** APPROVED, not NEEDS CHANGES and not REJECTED. Do not self-review in the parent, do not re-label the author's own self-checks as a review, and do not claim a requested review as executed. Preserve:
+- the frozen W1 target at `8617587e` (unchanged);
+- the reserved reviewer branch `review/sen-1-676-world-manifest-independent-20261117-v1` and its one file path, still unwritten;
+- this ledger and the final result as the durable resume cursor.
+
+**Resume cursor.** When a distinct-family reviewer provider is reachable, run W2 with the existing brief against the exact frozen commit and files above: claim on #676, independent recomputation, APPROVED / NEEDS CHANGES / REJECTED, separate SIGNATURE-READY / SIGNATURE-BLOCKED verdict, then at most one bounded author correction round and a changed-lines-only recheck. No author rework is needed or permitted merely because the reviewer was unreachable.
+
+## E-013 — Final result published (2026-11-17T17:12Z)
+
+The parent result document was written at the reserved path, committed and pushed on the parent branch, and linked from #676 and #675. It records: W1 COMPLETE / FROZEN; W2 BLOCKED — PROVIDER ACCESS (three exact failures); content `SIGNATURE-BLOCKED`; `SIGNED 0`; owner attestation unfilled; 8 remaining author-declared content blockers; the authoring/native evidence split; and the explicit stop before source, Unity, assets, saves, Ops and Windows.
+
+**D-015.** #676 returns to the Manager as **BLOCKED / HANDED-OFF**, not CLOSED, because the finite delegated work did not complete. No claim remains falsely RUNNING.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
