@@ -2,6 +2,8 @@
 
 **STATUS: `CONTRACT SIGNATURE BLOCKED` · `INDEPENDENT REVIEW BLOCKED — NO PERMITTED REVIEWER AVAILABLE` · NOT IMPLEMENTED · ISO-58 STILL BLOCKED · NOT UNITY-VERIFIED.**
 
+> **Addendum 2026-11-17T13:28Z — the review gate was later reopened on restored provider access and passed:** `APPROVED — CONTRACT DOCUMENT QUALITY ONLY`, then `DELTA APPROVED` after bounded fixes. See §11. The substantive outcome above, `CONTRACT SIGNATURE BLOCKED`, is unchanged: an approved document is not a signed contract.
+
 This is the actual final result of the DeepSeek orchestrator B for parent claim [#673](https://github.com/jermur788/CCF/issues/673), run under Overall Manager [#671](https://github.com/jermur788/CCF/issues/671). It reports what was really produced, what was really not, and the exact next authority step. Nothing here is a save-policy signature, spec approval, product-owner acceptance, content signature, implementation, or runtime qualification.
 
 ## 1. Actual run identity and custody
@@ -133,3 +135,24 @@ Return path: DeepSeek orchestrator B → **independent non-author reviewer (bloc
 | [Manager #671](https://github.com/jermur788/CCF/issues/671) | Authority for review dispatch and signer routing |
 
 **User action required now:** none. The deferred one-tree `M-A-SCOPE` question is not reopened by this result.
+
+---
+
+## 11. Addendum — independent review gate reopened and passed (2026-11-17T13:28Z)
+
+The §5 `INDEPENDENT REVIEW BLOCKED` declaration was caused by reviewer-provider access failure (direct Anthropic `invalid x-api-key`; OpenCode gateway disconnected). It remains an accurate record of that run. Access was later restored through T3, the gate was reopened under a fresh claim, and both reviews completed:
+
+| Attempt | Model / provider | Outcome |
+| --- | --- | --- |
+| 1 (blocked) | `claude-opus-5-5`, direct Anthropic | `invalid x-api-key` — no session |
+| 2 (blocked) | `claude-opus-5-5`, OpenCode gateway | console not connected — no session |
+| 3 (passed) | `claude-opus-5-5`, T3 `Claude B — Pro`, effort high | **APPROVED — CONTRACT DOCUMENT QUALITY ONLY**; CRITICAL 0 · MAJOR 0 · MINOR 3 · NOTE 3 |
+| Delta (passed) | same reviewer, new review task | **DELTA APPROVED** after bounded fixes; all six findings RESOLVED |
+
+- Reviewer identity as reported: Anthropic Claude Opus 5.5 via the Claude Code harness in T3 Code on `jer-laptop`; UTC starts `13:16:30Z` and `13:25Z`; effort high is the dispatched setting and is not independently observable. Independence held: different model family and session from the OpenAI GPT-6.1 Sol author, separate checkout, read-only on the frozen tip.
+- Review artifacts: commit `afac59e2` (71-line review), then `6eea5088` (27-line appended delta) on `review/sen-1-673-deepseek-save-ruling-20261117-v1`; total review-branch scope vs `afd5484f` is one added 98-line file.
+- Author artifact after bounded fixes: `0cf07062c389a9a4fbcc15c9e4acd8b5fdbc0da6`, 341 lines, sha256 `791646812715407eb928634aaab058faded12f4c25c1e6e93417b9e04d8927d6`; delta vs the reviewed tip `a43fbef3` is `1 file changed, +17/−12`.
+- Findings and disposition: F-01 unsupported-claim refusal (signed) separated from bare-state refusal (unsigned stricter proposal, with the non-refusal alternative and player consequences); F-02 3+1 work admitted with no credit, row-level rejection retained; F-03 three explicit NOT RUN matrix rows added; N-01 D-084 attribution narrowed; N-02 `completionYear` pinned to the resolution/report year; N-03 registration ordering qualified as author-reported. One non-blocking residual note: S02 line still says "review-edge refusal rules", now read as conditional signer choices.
+- **What this changes:** the candidate is now independently reviewed and is a sound basis for the signer's decision.
+- **What this does not change:** no signature, no policy B / CG-TRIG / W-A / S1 approval, no spec approval, no ISO-58 release, no implementation, no Unity/runtime evidence. `CONTRACT SIGNATURE BLOCKED` remains the outcome, and the next action for #671 is unchanged: put the exact policy questions to the real save-policy signer, keep S1 a separate amendment, keep `M-A-SCOPE` deferred.
+
