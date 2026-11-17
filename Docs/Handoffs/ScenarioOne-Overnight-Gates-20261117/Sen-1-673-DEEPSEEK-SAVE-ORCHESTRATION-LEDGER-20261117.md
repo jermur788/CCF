@@ -87,3 +87,14 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Signed contract:** §4.2 bytes at `200add4e` are treated as IMMUTABLE. No orchestrator, author or reviewer child is authorised to edit that file, the DRAFT spec families, source, saves, Prefs, Ops or Unity assets.
 - **M-A-SCOPE:** remains owner-DEFERRED. The 08:34Z owner comment adds a three-crop-tree product intent but explicitly leaves one-treated-stem sufficiency and an exact competitor-Fell minimum unresolved; it does not authorise a new S1 field, classifier or threshold, and this workstream does not reopen the question.
 - **Next action:** dispatch.
+
+### E4 — 2026-11-17T08:44Z — S1 author child claimed and dispatched (OBSERVED dispatch; executed model PENDING child report)
+
+- **Child:** S1 author. Claim receipt posted on #673 as a child-claim comment. Branch `docs/sen-1-673-save-contract-rulings-20261117-v1` (created locally from freshly observed `origin/main` `afd5484f`), worktree `/media/jer/Files/CCF/Orchestration/CCF-673-Save-Ruling-20261117`. Sole writable path: `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-673-COMPACT30-CGTRIG-AND-MAE-SAVE-OWNER-CONTRACT-RULING-20261117.md`.
+- **Requested model/config:** OpenAI `gpt-6.1-sol`, reasoning effort high. **Actual executed model: to be recorded from the child's own report; not inferred from the dispatch string.**
+- **Runner:** harness `subagent` (T3 cross-provider `delegate_task` was withdrawn from the catalog after the session moved to the orchestration worktree — recorded in E2). Child session id `ses_e175310a8ffei4drSgQU1kI4ZQ`.
+- **Capacity at dispatch:** child pool OpenAI — catalog-present, launch accepted by the harness; reported quota/reset `UNKNOWN`; no capacity telemetry source exists. Context estimate `UNKNOWN`.
+- **Independence:** author is OpenAI GPT-6.1 Sol; the planned S3 reviewer is Anthropic Claude Opus 5.5 in a separate worktree, separate branch and separate session. The author is told it holds no signature authority.
+- **What the child was authorised to do:** read-only inspection of the signed spec, #667 dossier and review, the earlier #673 packet, decision log/milestone and current C# source; author exactly one new candidate ruling Markdown; commit and push its own branch.
+- **What it was forbidden to do:** edit the signed §4.2 spec, DRAFT spec families, source/assets/scenes, saves/Prefs, Ops, coordination or main; add fields to the historical v24 DTO; reopen or decide M-A-SCOPE; claim a signature; run Unity or tests.
+- **Next action:** on child completion, record the observed model/branch/HEAD/commit, then dispatch the S3 reviewer against that exact tip.
