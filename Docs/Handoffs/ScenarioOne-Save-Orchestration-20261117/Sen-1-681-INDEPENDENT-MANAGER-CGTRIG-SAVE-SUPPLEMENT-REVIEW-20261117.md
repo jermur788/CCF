@@ -88,3 +88,54 @@ Policy B, T-04 strict refusal, the order↔juvenile pairing rule, W-A and the S1
 - **To Manager #675 (author):** make one bounded correction on the #677 docs branch covering F-01 and F-02, plus F-03 and F-04 if convenient. Then ask for a changed-lines-only recheck pinned to the new commit/blob. Do **not** sign `c866e3c9`.
 - **If F-01's disposition changes player-facing gameplay** (for example a world that can never advance, or slot refusal), C:38 and C:90 already say this goes back to the owner.
 - The recheck should look only at changed lines and at C:30/38/51–52/78–81, and confirm that N-01–N-03 have not become errors.
+
+---
+
+## 7. Delta re-check — changed lines only (2026-11-17)
+
+| Field | Observed value |
+| --- | --- |
+| Reviewer | Same original reviewer: Anthropic Claude Opus 5.5 (`claude-opus-5-5`), Claude Code in T3 Code, `jer-laptop`. Not an author of #677 |
+| Registration | 2026-11-17 17:43 UTC, [#681 receipt](https://github.com/jermur788/CCF/issues/681#issuecomment-6956071418), before this append |
+| Starting HEAD / branch | `a47ddd6f1762efdaaace04523cb466accc253e23` on `review/sen-1-681-compact-save-supplement-independent-20261117-v1` (matched remote, clean); live main `ce533b2a`, with `Assets/` unchanged since `a9fb2ca7` |
+| Original / corrected | `c866e3c9` (blob `b6620569`) → `bfa01f86310bd013b87ff6686958e8b73315b591`, blob `bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b`, 33,198 characters. Verified |
+| Changed lines | `git diff -U0` shows hunks exactly at 27, 30, 36, 38, 51–52, 54, 58, 77–82, 84, 90 and 101: **17 lines**, matching the packet. `c866e3c9..bfa01f86` touches only the supplement and the review handoff. No signed spec, source, Docs/Project or #673 file changed |
+
+"D" below means the corrected candidate at `bfa01f86`.
+
+### Finding dispositions
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| F-01 | **RESOLVED** | D:30, D:38, D:80 and D:81 now **refuse Save capture and Load before any mutation** in both deadlock states: (a) CT-1 true, review −1, current year > Y\*; (b) CT-1 true, an event9 already present for Y\*, field −1. They state the player consequence plainly ("cannot load this slot", D:80) instead of "no credit". D:52 and D:54 now say the hold can be reached and released in every *admitted* CT-1 true / CT-2 false state. The refusal is labelled a delegated technical integrity choice taken from #673's explicit signer alternatives (D:30, D:90; R673:166–169), not a reading of §4.2. Any backup offer goes only through the signed FR-06 validated backup-to-memory route (D:38; SAVE:198) |
+| F-02 | **RESOLVED** | D:27, D:51 and D:54 bind the **existing** acknowledgement (UI:438–444 → M:391–401) as the only Compact covering control. It must write event9 and `reviewAcknowledgedYear=Y*` in one logical commit, with CR:62–68 deduplication applied to the combined operation, a repeat press idempotent, and no second button or event9. Before CT-1, event9 stays generic history (D:51, D:58). This answers the question §4.2 delegated to CG-TRIG (SAVE:167) and matches D-084's "authentic event-9 acknowledgement" (DL:151) |
+| F-03 | **RESOLVED** | D:77 and D:78 now say T1 is permanently unreachable for 3+1 Completed rows and for a Completed member with no row, because §4.2 lets only failed/cancelled references be replaced (SAVE:165). Ordinary management continues, because CT-1 is false and so CT-3 never engages |
+| F-04 | **RESOLVED** | D:36 lists the full positive-claim set as each `plantings` row and `reviewAcknowledgedYear >= 0`. The booleans, group IDs, a Completed order and event9 alone are each classified as not being claims. This is consistent with D:58, D:78 and D:84 and with the SAVE:165 key set |
+
+### Is the new refusal reachable in ordinary play? (static, NOT RUN)
+
+I checked whether ordinary play could produce either refused state, which would be a hidden material gameplay change:
+
+- Rows are added only at resolution, and their year is the year of the advance being resolved (M:1280, M:1921). Designation is allowed only for Pending orders (D:48; SAVE:165). So CT-1 can become true only during an advance, and its last row carries the maximum year. That means Y\* is always the year in which CT-1 became true, and CurrentYear = Y\* right after that advance.
+- The only event9 writer requires an existing report (M:393) and dates the event to CurrentYear (M:398). Report Y\* is created by that same advance. So no event9 dated Y\* can exist before CT-1 becomes true, and under D:51 the first event9 at Y\* is the combined write.
+- State (a) needs an advance past Y\* while CT-3 is active. D:52 forbids that on every route, including any future skip (consistent with D-077, DL:135).
+
+**Conclusion:** if the future producer honours the D:51 atomic binding and the D:52 all-route hold, neither refused state can come from ordinary play. They come only from producer defects or edited files. D:38 and D:90 say to stop and escalate to the owner if native evidence ever shows otherwise. **I found no material gameplay consequence that needs an owner decision now.** These are prospective requirements: current source has no Compact producer and no CT-3 hold (original review §4).
+
+**Compatibility with signed §4.2:** compatible. §4.2 contains no requirement to admit these two states, and it gives the exact review binding and edge cases to CG-TRIG (SAVE:163, SAVE:167). SAVE:167's "an incomplete … group simply remains incomplete" still governs every admitted partial state, and Policy B is unchanged (D:36, D:58). No key, root, tuple, enum value or historical v1–v24 rule is added or changed (D:36, D:58, D:90).
+
+### New items
+
+| ID | Severity | Location | Observation | Disposition |
+| --- | --- | --- | --- | --- |
+| D-N1 | NOTE | D:30 vs D:51, D:81 | D:30 limits refusal case (b) to an event9 at Y\* "at or after the final WorkResolved". D:51 and D:81 leave that qualifier out. An event9 dated Y\* but *before* the final WorkResolved cannot be produced (see above). CR:62–68 would still allow a valid covering event9 in that case, so admitting it would not deadlock. The two readings differ only for that edited-file state, and neither creates a trap | Non-blocking. A future spec can align the wording; no further recheck needed |
+
+**Earlier notes:** N-01 unchanged. N-02 is now carried into the native-qualification list (D:90), so it is addressed. N-03 unchanged (the signed files are still only at `200add4e`).
+
+**Counts for this delta:** CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 1 (new).
+
+# **DELTA APPROVED**
+
+This approves the document fidelity of the exact corrected bytes `bfa01f86` / blob `bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b` only. It is **not** a signature. Manager #675 may now write its separate out-of-band exact-byte D-A attestation pinning those bytes. That attestation would not authorise source, Unity, the Compact specs, ISO-58, #652 Ops, #676 world content, S1/OD-16 or Windows work.
+
+**NOT RUN:** compiler, Unity, tests, save/load, native read-signal or deadlock witnesses, Ops, Windows. This is static document and source reading only.
