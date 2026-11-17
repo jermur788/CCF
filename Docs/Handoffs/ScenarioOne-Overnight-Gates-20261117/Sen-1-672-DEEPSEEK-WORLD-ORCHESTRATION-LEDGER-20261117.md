@@ -85,3 +85,27 @@ Provider **availability** is observed. Quota, remaining tokens and reset times a
 M-A-SCOPE one-treated-stem sufficiency remains **DEFERRED** (the 08:35Z owner "three crop trees" note selects crop-tree intent; it does not settle the competitor-count question). Three Compact spec families remain **DRAFT**. Roster stays **UNSIGNED**. ISO-58 stays **BLOCKED**. #652 live Ops stays **HELD**. Legacy40 / Enlarged80 / Rack V2 / MFM / frozen Reference Future v1 and genuine v1–v24 saves are untouched. No Unity, source, asset, save, Ops, Windows or main-integration action.
 
 **Next executable action at this cursor:** append E-002 after registering the Stage-W1 content-child claim (separate branch, sole one-file writer) and dispatching it to GPT-6.1 Sol high.
+
+## E-002 — 2026-11-17T08:44Z — Stage-W1 content child claimed and dispatched (GPT-6.1 Sol high)
+
+**Child claim registered** on #672 at [comment 6943093772](https://github.com/jermur788/CCF/issues/672#issuecomment-6943093772) **before** any child write, naming: role, allocated model, branch, base, starting HEAD, sole one-file path, disjoint docs-only checkout, read-only evidence set and bans.
+
+| Item | Value |
+| --- | --- |
+| Child claim | Stage-W1 world-content signature author (documentation only) |
+| Branch | `docs/sen-1-672-world-content-signature-20261117-v1` |
+| Base / starting HEAD | `afd5484fc11697e6bde64f99d57d22e98f572f1f` (verified `origin/main`) |
+| Sole writable path | `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-672-COMPACT30-COMPLETE-WORLD-CONTENT-SIGNATURE-CANDIDATE-AND-OWNER-GATES-20261117.md` |
+| Checkout | `/media/jer/Files/CCF/Orchestration/CCF-672-WorldContent-20261117` (docs-only git tree; no `Library`, no Unity, no lease) |
+| Requested worker | `gpt-6.1-sol`, `reasoningEffort=high`, provider instance `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb` ("ChatGPT - OpenAI B") |
+| Dispatch mode | T3 `delegate_task`, async, `role=implementation`, no writable worktree isolation flag (child directed to the pre-created disjoint checkout instead) |
+| Dispatch result (observed) | task started, status `running`; `providerInstanceId=codex_c75d8114-7118-4224-8bf2-b9b62637e1fb`, `model=gpt-6.1-sol`, `options=[{reasoningEffort: high}]`; `executedModel` not yet reported |
+| Child thread | `t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/thread:delegated-task:command%3Amcp%3A148b334d-d4d9-40b8-9a60-baa82ad5bc04%3Adelegate-task%3Ae70c78d0-316b-4385-8aa5-dc42771e8297` |
+
+**Dispatch brief content (recorded so the child's scope is auditable without a separate dispatch file):** read both #672 packets, the #667 world dossier at `a94d3d91`, the #669 independent review at `9f571297` (whose MINOR F-02 evidence-class split must be resolved in the new document), the #657 annex at `55f79067`, the Compact manifest candidate, D-079…D-084, the three DRAFT Compact specs and the named static C# sources; re-hash the raw fixtures and reproduce the 175-row roster digest, the 14 H1 omissions, the 8 buffered stems, the 36-cell occupancy and the carried geometry; produce one cohesive signing candidate with a per-field signature status (SIGNED / CANDIDATE / BLOCKED — nothing may be signed), all 88 fields, all 36 ecology cells, terrain/hydrology, A7 alternatives, path core/verge/refusal, G1 sites and tolerance question, H1 arrival content, tree residual state and presentation/collider/guard/GQ-07/rights, identity and content-binding policy, a consolidated owner-decision register, blocker summary and NOT-RUN section. Bans: any other path, source, spec, asset, save, Prefs, Unity, Ops, signing, invented numbers, or an M-A-SCOPE decision.
+
+**Capacity observation at dispatch (before):** OpenAI Sol pool `AVAILABLE` (the dispatch was accepted and started), remaining quota/reset **UNKNOWN**, context usage **UNKNOWN**. No prior Sol failure recorded in this run. Switching cost: none (first child). DeepSeek orchestrator remains `AVAILABLE`, quota **UNKNOWN**. Opus pool unchanged `UNKNOWN`, no claim.
+
+**Concurrency:** one writer on the child branch; the parent branch and the child branch are disjoint, and the orchestrator writes only its own two files. No two writers on any one branch; no Unity resource involved anywhere.
+
+**Next executable action at this cursor:** append E-003 with the child's observed completion/failure, exact commit and file digest; then register a distinct Stage-W2 Opus 5.5 nonauthor review claim.
