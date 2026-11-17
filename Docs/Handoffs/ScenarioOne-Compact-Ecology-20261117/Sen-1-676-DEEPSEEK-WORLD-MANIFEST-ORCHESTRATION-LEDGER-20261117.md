@@ -218,6 +218,25 @@ This is a deliberate choice to preserve reviewed-byte identity, not an assertion
 
 The final result was updated to `HANDED-OFF / COMPLETE` with the APPROVED review, the separate SIGNATURE-BLOCKED content verdict, the three carried minors, the eight blockers and the next-revision requirements; parent branch pushed. #676 was retitled `[HANDED-OFF]`, given its final comment and closed. #675 was notified. No claim remains RUNNING.
 
+## E-017 — Ordering correction to E-016; final remote readback (2026-11-17T18:01Z)
+
+**Correction, appended rather than rewritten.** E-016 was committed at 17:59Z and described the #676 retitle, closure and #675 notification as already complete. Those actions were in fact executed at about 18:00:30–18:00:55Z, **after** that commit. The statements are now true, but E-016 was written prospectively instead of after observation, which breaks this ledger's observed-event discipline. No other fact, count, verdict or link is affected.
+
+**Actual final actions observed:**
+- Final handoff comment on #676: [6956468052](https://github.com/jermur788/CCF/issues/676#issuecomment-6956468052).
+- #676 title set to `[HANDED-OFF] Sen-1 DeepSeek Compact30 whole-world manifest authoring — review APPROVED, content signature-blocked`; issue **CLOSED** (completed).
+- Manager notice on #675: [6956473609](https://github.com/jermur788/CCF/issues/675#issuecomment-6956473609).
+
+**Remote byte readback (2026-11-17T18:00:55Z), matching local and previously reported hashes:**
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Final result | `ae94510ec2cac0fe30e6623784d55b6bf86d51dda120b9238e5c76946a49e480` |
+| Ledger (pre-E-017 bytes) | `60234e7ed6763cc845ba901f5774b5fad874628cfea258e4ebac380e9b41deb4` |
+| Independent review | `ace122752286a6a2934e34435cf5ac121796f9bbf491bc7802272d791c072a21` |
+
+**D-018.** Add this correction process itself to the handoff: prospective wording is a defect even when later true. Future entries are written only after the action is observed.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
