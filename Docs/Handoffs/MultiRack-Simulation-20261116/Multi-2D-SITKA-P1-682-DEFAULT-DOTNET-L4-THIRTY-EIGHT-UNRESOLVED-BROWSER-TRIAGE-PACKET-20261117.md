@@ -1,0 +1,41 @@
+# Multi #682 — default .NET L4 unresolved syscall evidence triage (browser only)
+
+**17 November 2026. Manager:** #641, Multi-Rack Sitka 2D Simulator. **Claim:** [#682](https://github.com/jermur788/CCF/issues/682). **READY / NOT RUNNING; registration required.** **Difficulty MEDIUM–HIGH**: fd-based syscall provenance, strace path resolution, security test integrity, separation of source defects from .NET runtime background behavior.
+
+## Purpose
+
+The #674 isolated **P0 ancestry proof** is owned by another worker and is not a prerequisite for read-only triage of this separate later blocker: ordinary/default .NET P1 isolation layer L4 remains **FAIL, 38 unresolved calls**. Existing evidence identifies 19 `memfd:doublemapper` `ftruncate` and 19 diagnostic-socket `fchmod` findings. An earlier **verification-only** launch with `DOTNET_EnableWriteXorExecute=0` and `DOTNET_EnableDiagnostics=0` recorded conditional PASS with zero unresolved; this is **NOT** default runtime qualification or a production waiver. Explain the mechanism, attribution limits, meaningful threat models, smallest safe remediation/disposition routes and a narrowly scoped *future* native discriminating experiment. **No test weakening merely to get a green result.**
+
+**Avoid duplicate work:** #653 annual Sitka source-to-test oracle already completed and was accepted as planning input; #655 isolated synthetic mock UI was accepted as a mock, and #661/#664 four-record source review is closed. This task does NOT re-review them.
+
+## Evidence to read
+
+- [#670 native P0 ancestry/physical Ops evidence](https://github.com/jermur788/CCF/blob/070f9cafb70a7a9718391e0459e04d34fcee4af8/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-670-P0-ANCESTRY-FEASIBILITY-AND-OPS-PREFLIGHT-RESULT-20261117.md) (L0/L1 explained; default L4 still red).
+- [#666 integration admission](https://github.com/jermur788/CCF/blob/review/multi-p1-666-integration-admission-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-666-EXACT-CANDIDATE-INTEGRATION-ADMISSION-RESULT-20261117.md), [#662 author native status-change result](https://github.com/jermur788/CCF/blob/e302f15bf6188605a2c2cbeddbd973b3d8ac0f66/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-662-FOUR-RECORD-TRUST-STATUS-IMPLEMENTATION-RESULT-20261117.md), and original [#656 witness issue](https://github.com/jermur788/CCF/issues/656), [#651 test issue](https://github.com/jermur788/CCF/issues/651), [#649 analyser repair issue](https://github.com/jermur788/CCF/issues/649). Open exact GitHub reports and receipts as necessary; do not invent access to machine-only strace artifacts.
+- [Immutable P1 analyser source](https://github.com/jermur788/CCF/blob/e302f15bf6188605a2c2cbeddbd973b3d8ac0f66/Tools/MultiRackSitkaP1Lab/tests/l4_analyze.py), [original unchanged P0 isolation harness](https://github.com/jermur788/CCF/blob/e302f15bf6188605a2c2cbeddbd973b3d8ac0f66/Tools/MultiRackSitkaP1Lab/tests/p0-isolation.sh), [P0 Core builder](https://github.com/jermur788/CCF/blob/e302f15bf6188605a2c2cbeddbd973b3d8ac0f66/Tools/MultiRackSitkaP1Lab/build/build-p0-core-ref.sh).
+- Approved P1 spec files in `specs/multirack-sitka-p1-adult-rules-comparator-v1/**` on exact [P1 source feature tip](https://github.com/jermur788/CCF/tree/e302f15bf6188605a2c2cbeddbd973b3d8ac0f66/specs/multirack-sitka-p1-adult-rules-comparator-v1). Stay subordinate to current Decision Log/user authority.
+
+## Exact ownership and output
+
+**Preferred model/provider:** independent **OpenAI GPT-6 browser/GitHub** reviewer, no native machine required, not the #674 opencode-go proof worker and not the original P0/#639 Claude author. No checkout, Ops lease or Git source write required for browser-only work.
+
+**Prospective review branch:** `docs/multi-p1-682-l4-analysis-result-20261117-v1`, to be created from a freshly inspected main target after preflight. **One and only new GitHub output file:** `Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-682-DEFAULT-L4-THIRTY-EIGHT-UNRESOLVED-EVIDENCE-TRIAGE-RESULT-20261117.md`.
+
+Manager must reserve and verify this exact result path in LIVE `main:Docs/Project/coordination/active-tasks.md`. Worker refreshes live main, #682, target and output-path absence, confirms no writer conflict, registers actual provider/model/branch/start HEAD [RUNNING] on #682 BEFORE file writing. If no reservation, mark BLOCKED. Output only on own docs branch, not `main`.
+
+## Required result
+
+1. **Trace classification and factual limits:** What exact default-run evidence supports the 19+19 count, provenance/commit/host/command, and which `strace -f -y` syscall/fd records are unresolved rather than actual writes to the protected P0 tree? Distinguish unresolved attribution from confirmed harmlessness. If raw lines inaccessible, quote the report-level evidence and explicitly mark native rerun necessary.
+2. **Security test semantics:** Inspect `l4_analyze.py` and unchanged `p0-isolation.sh`. Identify current guard invariants and why L4 cannot be declared PASS until all unresolved operations are explained, while L2/L3/L3+ are separately narrower before/after evidence.
+3. **Environment effect:** Compare default versus the two verification-only .NET switches, what they disable, and reasons not to silently treat them as safe production configuration. No unsupported general runtime assertion; trace/runtime source citations if available.
+4. **Alternatives** with risk/effort and non-weakening decision gate: (A) safely proving fd destinations for the actual traces; (B) separately approved production runtime flags with policy/security implications + subsequent default/intended-mode qualification; (C) instrumented native runner/trace enhancement that does not suppress unresolved events; (D) if necessary, independently reviewed verifier specification refinement. Mark assumptions clearly.
+5. **Smallest future T3/native packet:** identify a single short targeted experiment, exact expected inputs/outputs, immutable source/fixture/guard pins, per-test red/green witness, negative controls and mutation sensitivity, risk to active physical Ops, restricted external scratch/verification storage; future code/files only after separate Manager/physical ownership reservation and explicit authorisation. Do not replay all 33 tests or broad Tier3 if unnecessary.
+6. **Verdict:** `EVIDENCE TRIAGE COMPLETE / NEEDS MORE RAW TRACE / BLOCKED`, with specific confidence boundaries and next actionable dependency. Do not label ordinary/default L4 PASS, annual engine/first-year authorised or whole P1 F0 integrated.
+
+**Absolute exclusions:** NO GitHub source/test/fixtures/spec/canonical edits; NO `Tools/**` changes, no test disabling/relaxation/whitelist, no native dotnet or strace, no external physical Ops/Unity worktree/lease, no P0/ #674 merge/tree/object writes, no main merge or P1 annual source implementation. Preserve default L4 FAIL 38 and original P0 read-only policy. No claim of Linux or Windows runtime qualification from a browser report.
+
+At handoff, one report Markdown exact parent→tip diff/readback, post [HANDED-OFF] #682 and notify Manager #641. Report exact tested vs author-reported vs model-reasoned distinctions. Dashboard/Drive/physical Ops synchronization NOT VERIFIED unless independently observed.
+
+### Paste-ready dispatch
+
+> Take **CCF Multi #682** as independent GPT-6 browser/GitHub evidence reviewer. Follow the COMPLETE [default .NET L4 unresolved-syscalls triage handoff](https://github.com/jermur788/CCF/blob/docs/multi-p1-682-default-l4-browser-triage-packet-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-682-DEFAULT-DOTNET-L4-THIRTY-EIGHT-UNRESOLVED-BROWSER-TRIAGE-PACKET-20261117.md). Refresh live task board, register actual provider/model/branch/starting HEAD [RUNNING] before writing. Read exact pinned L4 analyser/harness and historical evidence, classify all 38 unresolved default-runtime events with documented confidence limits, propose non-weakening discriminating native follow-up; publish ONLY the one reserved result Markdown. Browser documentation only: NO native execution, test/code edits, P0/P1 source, physical Ops, #674 scratch, L4 waiver, ecological year, Unity/Windows.
