@@ -123,6 +123,18 @@ The parent additionally confirmed, before W2 started: the author's commit is exa
 
 These are identity/scope/format checks only. They do **not** establish that the content is correct, complete or signable; that is W2's job.
 
+## E-010 — W2 first review attempt failed at provider connection; retried (2026-11-17T16:47Z)
+
+The first W2 session (Anthropic `claude-opus-5-5` via provider instance `claudeAgent`, effort high, delegated task `…/d36aac21-39d5-4374-8e52-a754a8aae5cd`) **failed before doing any review work**: the harness returned `API Error: Unable to connect to API: SSL certificate verification failed (UNABLE_TO_VERIFY_LEAF_SIGNATURE)`.
+
+**Observed corpus impact:** none. No claim comment, no review file, no branch commit and no target modification exists from that attempt. The frozen W1 target at `8617587e` is unchanged.
+
+**D-010.** This is an explicit provider-access failure, recorded rather than hidden. Retry the same named reviewer model once through the second Claude provider instance (`claudeAgent_claude_b_pro`, display "Claude B — Pro", same `claude-opus-5-5` model). This preserves the packet's model-family routing: the author is OpenAI, the reviewer is Anthropic, so independence is unaffected by which Claude provider instance is used.
+
+A replacement W2 session was started at 2026-11-17T16:47Z (delegated task `…/446f86f6-ab52-4a40-b01b-c3af14a31d28`) with the identical review brief and single writable path. **Status:** RUNNING; no claim or review file asserted.
+
+**D-011.** If this retry also fails at the provider/API layer before posting a claim, mark W2 `[BLOCKED — PROVIDER ACCESS]` in the final result with the exact error, keep the frozen W1 deliverable and the review file reservation as the resume cursor, and do not self-review in the parent. The packet permits a logged reversal only with a genuinely callable alternate family; it does not permit inventing a review.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
