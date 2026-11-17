@@ -89,7 +89,7 @@ For *each distinct* source family, texture atlas, mesh export, material, source 
 > **Product-owner D-032 choices (NOT PROVIDED):** [ST-1…ST-7 selections, separate material/look decisions, dated explicit approval]  
 > **Independent nonauthor review and Manager verdict (NOT PROVIDED):** [review link, APPROVED/NEEDS CHANGES/REJECTED, exact checked revision]
 
-Minimum independent sign-off rows: **(1) Pole 01, (2) Young 02, (3) Mature 01, (4) Mature Benchmark 01 including bake sources, (5) #688 generated H1/path source and textures, (6) #698 Oak/Beach transplants and protection meshes, (7) Unity import/meta/baked-art custody, (8) URP/other vendor dependency notices**, plus separate third-party package/font/texture licence evidence where actually included. Correct spelling for category 6 is **Oak/Beech**; this is a category label, not an existing original. Not every row is controlled by the same holder: **do not ask the game owner to grant rights in Unity/Ultimate Nature/fonts that belong to other licensors.**
+Minimum independent sign-off rows: **(1) Pole 01, (2) Young 02, (3) Mature 01, (4) Mature Benchmark 01 including bake sources, (5) #688 generated H1/path source and textures, (6) #698 Oak/Beech transplants and protection meshes, (7) Unity import/meta/baked-art custody, (8) URP/other vendor dependency notices**, plus separate third-party package/font/texture licence evidence where actually included. Not every row is controlled by the same holder: **do not ask the game owner to grant rights in Unity/Ultimate Nature/fonts that belong to other licensors.**
 
 ## 7. Eight frozen #676 world-content blockers: rights/storage crosswalk
 
