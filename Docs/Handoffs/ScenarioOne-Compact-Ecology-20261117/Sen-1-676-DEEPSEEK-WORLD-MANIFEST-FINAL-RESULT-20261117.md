@@ -1,150 +1,130 @@
 # Sen-1 #676 — DeepSeek whole-world manifest: final orchestration result
 
-**BLOCKED / HANDED-OFF — INDEPENDENT REVIEW COULD NOT BE OBTAINED (PROVIDER ACCESS).**
-**W1 AUTHORING IS COMPLETE AND FROZEN. W2 REVIEW IS NOT RUN. NOTHING IS SIGNED. NO UNITY, SOURCE, ASSET, SAVE, OPS OR WINDOWS ACTION WAS TAKEN.**
+**HANDED-OFF / COMPLETE. INDEPENDENT REVIEW: APPROVED (document/evidence quality). CONTENT: SIGNATURE-BLOCKED.**
+**NOTHING IS SIGNED. NO UNITY, SOURCE, ASSET, SAVE, OPS OR WINDOWS ACTION WAS TAKEN.**
 
 | Field | Value |
 | --- | --- |
-| Parent issue | [#676](https://github.com/jermur788/CCF/issues/676) |
+| Parent issue | [#676](https://github.com/jermur788/CCF/issues/676) — closed as HANDED-OFF |
 | Manager | [#675](https://github.com/jermur788/CCF/issues/675) |
-| Orchestrator | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`), variant high, provider instance `opencode`, T3 Code / OpenCode Code Mode, host `jer-laptop`, thread `bad29852-ef50-4c21-a4b3-f5d92e93d8ad` |
+| Orchestrator | DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`), variant high, provider `opencode`, T3 Code / OpenCode Code Mode, host `jer-laptop` |
 | Parent branch | `docs/sen-1-676-deepseek-whole-world-orchestration-20261117-v1` |
-| Parent base | `18d9c60afb7f969ea6edced4ec9a6512a70279b2` at start; live main advanced during the task (observed `ab0911168…`, then `a9fb2ca7…` while finalising) |
-| Parent ledger | [Sen-1-676-DEEPSEEK-WORLD-MANIFEST-ORCHESTRATION-LEDGER-20261117.md](https://github.com/jermur788/CCF/blob/docs/sen-1-676-deepseek-whole-world-orchestration-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-DEEPSEEK-WORLD-MANIFEST-ORCHESTRATION-LEDGER-20261117.md) |
-| Content status | **SIGNATURE-BLOCKED** (`world_digest = null`; owner signature unfilled) |
-| Document/evidence verdict | **NOT ISSUED** — independent review blocked; W1 must not be read as approved |
-| Registered claim | [RUNNING registration](https://github.com/jermur788/CCF/issues/676#issuecomment-6952599071) |
-| Final status | `[BLOCKED — INDEPENDENT REVIEW PROVIDER ACCESS] / HANDED-OFF`; **not** CLOSED, nothing falsely RUNNING |
+| Parent base | `18d9c60a` at start; live main advanced through docs/coordination-only commits during the task |
+| Ledger | [Sen-1-676-DEEPSEEK-WORLD-MANIFEST-ORCHESTRATION-LEDGER-20261117.md](https://github.com/jermur788/CCF/blob/docs/sen-1-676-deepseek-whole-world-orchestration-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-DEEPSEEK-WORLD-MANIFEST-ORCHESTRATION-LEDGER-20261117.md) |
+| Content status | **SIGNATURE-BLOCKED** — 8 field rows blocked, `world_digest = null`, owner signature unfilled |
+| Review verdict | **APPROVED** — CRITICAL 0 / MAJOR 0 / MINOR 3 / NOTE 6 |
+| Claims | [Orchestrator registration](https://github.com/jermur788/CCF/issues/676#issuecomment-6952599071) · [W1 claim](https://github.com/jermur788/CCF/issues/676#issuecomment-6953585462) · [W2 claim](https://github.com/jermur788/CCF/issues/676#issuecomment-6955878013) |
+| Final handoff | [comment 6955227199](https://github.com/jermur788/CCF/issues/676#issuecomment-6955227199) (blocked status) superseded by the final handoff comment on #676 |
 
 ---
 
-## 1. What was delivered
+## 1. Delivered artifacts
 
 ### 1.1 W1 author lane — COMPLETE / FROZEN
 
 | Item | Value |
 | --- | --- |
-| Author | OpenAI `gpt-6.1-sol`, provider instance `codex`, reasoning effort high, separate child session |
-| Author claim | [#676 comment 6953585462](https://github.com/jermur788/CCF/issues/676#issuecomment-6953585462) |
-| Author handoff | [#676 comment 6954344816](https://github.com/jermur788/CCF/issues/676#issuecomment-6954344816) |
+| Author | OpenAI `gpt-6.1-sol`, provider `codex`, effort high, separate nonauthor session |
 | Branch | `docs/sen-1-676-world-manifest-author-20261117-v1` |
-| Base | `ab09111681bf1acce3823d6fe3343642a851f3d9` (live `origin/main` when the author started; three coordination commits after the orchestrator's preflight) |
-| Frozen commit | `8617587ebb7e118183bdd3eec7de5b099c371fdd` (single commit on the base) |
-| Diff | exactly **three added files**, 11,456 insertions, no modification, no source/asset/meta/save/spec/canonical/board change |
-| Checkout | isolated T3 worktree; reported clean; **not** `/media/jer/Files/CCF-Primary` |
-
-**The three candidate files (durable GitHub bytes):**
+| Base | `ab09111681bf1acce3823d6fe3343642a851f3d9` (live main when authoring began; `Assets` identical to `afd5484f`) |
+| Frozen commit | `8617587ebb7e118183bdd3eec7de5b099c371fdd` — one commit, exactly three added files |
+| Author handoff | [comment 6954344816](https://github.com/jermur788/CCF/issues/676#issuecomment-6954344816) |
 
 | File | Bytes | SHA-256 |
 | --- | ---: | --- |
-| [Sen-1-676-COMPACT30-WHOLE-WORLD-MANIFEST-CANDIDATE-20261117.json](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-WHOLE-WORLD-MANIFEST-CANDIDATE-20261117.json) | 308,748 | `342e1afc4d39cf44c22e434dac3b7ad56d9902084bf3f61026e89086a561a677` |
-| [Sen-1-676-COMPACT30-36-CELL-INITIALISATION-CANDIDATE-20261117.json](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-36-CELL-INITIALISATION-CANDIDATE-20261117.json) | 82,840 | `2441926a0a619b9731166149ca2121f2bb89f4a56a8d8ff827c39e9d77e86123` |
-| [Sen-1-676-COMPACT30-CONSTRUCTION-REPRODUCIBILITY-AND-OWNER-SIGNATURE-CANDIDATE-20261117.md](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-CONSTRUCTION-REPRODUCIBILITY-AND-OWNER-SIGNATURE-CANDIDATE-20261117.md) | 88,048 | `f553fff031246311d0000050b2a9ece8a81efd0c54f1006a34e74289fe8a0f26` |
+| [Whole-world manifest candidate](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-WHOLE-WORLD-MANIFEST-CANDIDATE-20261117.json) | 308,748 | `342e1afc4d39cf44c22e434dac3b7ad56d9902084bf3f61026e89086a561a677` |
+| [36-cell initialisation candidate](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-36-CELL-INITIALISATION-CANDIDATE-20261117.json) | 82,840 | `2441926a0a619b9731166149ca2121f2bb89f4a56a8d8ff827c39e9d77e86123` |
+| [Construction / owner-signature dossier](https://github.com/jermur788/CCF/blob/docs/sen-1-676-world-manifest-author-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-COMPACT30-CONSTRUCTION-REPRODUCIBILITY-AND-OWNER-SIGNATURE-CANDIDATE-20261117.md) | 88,048 | `f553fff031246311d0000050b2a9ece8a81efd0c54f1006a34e74289fe8a0f26` |
 
-### 1.2 W2 independent review lane — BLOCKED, NOT RUN
+### 1.2 W2 independent reviewer lane — COMPLETE
 
-The reviewer branch and its single reserved file remain **unwritten**:
-
-- Branch: `review/sen-1-676-world-manifest-independent-20261117-v1`
-- Reserved file: `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-INDEPENDENT-WHOLE-WORLD-CONTENT-REVIEW-20261117.md`
-
-Three separate reviewer sessions were attempted and all failed **before any review work**:
-
-| Attempt | Model / provider | Observed failure |
-| --- | --- | --- |
-| 1 | Anthropic Claude Opus 5.5, `claudeAgent` | `API Error: Unable to connect to API: SSL certificate verification failed (UNABLE_TO_VERIFY_LEAF_SIGNATURE)` |
-| 2 | Anthropic Claude Opus 5.5, `claudeAgent_claude_b_pro` | same `UNABLE_TO_VERIFY_LEAF_SIGNATURE` |
-| 3 | Anthropic Claude Fable 5.2, `opencode` gateway | `Reconnect OpenCode Console to continue.` |
-
-No claim comment, review file or branch commit exists from any attempt. The OpenAI author family cannot review its own output, and Cursor/Grok providers are disabled. **No review verdict — APPROVED, NEEDS CHANGES or REJECTED — has been issued, and none may be inferred from this document.** The orchestrator's checks below are scope/format/hash checks, not an independent content review.
-
----
-
-## 2. Orchestrator-observed checks (not a review)
-
-The parent independently observed, from the remote bytes:
-
-| Check | Result |
+| Item | Value |
 | --- | --- |
-| Author commit ancestry | one commit on `ab0911168`; base is an ancestor of live main |
-| Source-citation validity | `git diff afd5484f..ab0911168 -- Assets` empty |
-| Diff scope | exactly three `A` entries, the reserved paths; no other path |
-| File bytes | byte counts and SHA-256 reproduce the author's table exactly |
-| JSON | both parse strictly; UTF-8, LF, no BOM; **zero** NaN/Infinity values |
-| Header status | `document_status = [CANDIDATE, NOT_SIGNED, SIGNATURE_BLOCKED]`; `world_digest = null`, status `UNAVAILABLE_INCOMPLETE_NOT_UNSIGNED_CANDIDATE_DIGEST` |
-| Roster | 175 rows; digest `dac06a3b7775f884fac9f8df6b95178cbaf9d912b44687082a161eaf0426cca1` |
-| Field closure | 88 rows; `CANDIDATE 80`, `BLOCKED 8`; blocked rows 10, 12, 30, 44, 73, 74, 75, 83; blocker ids B-W02-RIGHTS, B-W02-SCALE, B-W13-RENDER-DEPS, B-W14-WHOLE |
-| Cells | 36 cells; occupancy sum **175**; zero-stem cells `[2,7,8]`; all 36 author-declared `CANDIDATE` (expected values, **not** native readback) |
-| Owner signature | `name/date/exact_bytes_digest/statement` all `null` in both JSON documents |
-| Dependencies | inventory states 347 entries; a parent spot-check of the first 8 Git blobs matched path, blob, bytes and SHA-256 |
-| Author scope claim | no source, Unity, asset, save, spec, board, Ops, build, Windows or integration action; no PR |
+| Reviewer | Anthropic Claude Opus 5.5 (`claude-opus-5-5`), provider `claudeAgent`, effort high |
+| Branch | `review/sen-1-676-world-manifest-independent-20261117-v1` |
+| Base | `12711c99957f6b70b8e0da7890be17251b030f96` (live main; `Assets` still identical to `afd5484f`) |
+| Commit | `16783336451d327802e1bbe9ab6fcd1675e8c9c7` — one commit, one added file |
+| [Review report](https://github.com/jermur788/CCF/blob/review/sen-1-676-world-manifest-independent-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-INDEPENDENT-WHOLE-WORLD-CONTENT-REVIEW-20261117.md) | 50,689 bytes, 551 lines, SHA-256 `ace122752286a6a2934e34435cf5ac121796f9bbf491bc7802272d791c072a21` |
+| Verdict | **APPROVED** — CRITICAL 0 / MAJOR 0 / MINOR 3 / NOTE 6 |
+| Content verdict | **SIGNATURE-BLOCKED** |
+| Handoff | [comment 6956396249](https://github.com/jermur788/CCF/issues/676#issuecomment-6956396249) |
 
-**What these checks do not establish:** that the content is ecologically correct, that every "CANDIDATE" row is genuinely complete, that the smoothed path and guard geometry are safe, that asset rights are sufficient, that the counts are honestly derived, or that the owner can sign. Those are exactly the checks W2 was assigned and did not perform.
+The parent independently verified the review branch head, parent, one-file diff, byte count and SHA-256; `git diff origin/main...16783336` contains only the review file.
+
+**Provider history (recorded honestly):** two Opus sessions failed at TLS (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`), and a gateway session asked to reconnect OpenCode Console. The successful attempt used the packet-preferred `claudeAgent` Opus 5.5 route after the channel recovered. No review verdict was fabricated while the provider was down.
+
+**Independence disclosure carried by the reviewer.** The target author is OpenAI Sol, a different model family, and this session did not author it. However, the reviewer's own family (Claude Opus 5.5) co-authored the #672 baseline dossier and the #657 roster annex used as evidence inputs. The reviewer disclosed that, regenerated the roster from raw C-B-30 with its own code, recounted the "before" side directly from the #672 matrix, and cross-checked ecology against an archived native witness. The author/reviewer family separation for the #676 target still holds.
 
 ---
 
-## 3. Content outcome reported by W1 (unreviewed)
+## 2. What the reviewer independently reproduced
 
-| Measure | Before (#672 approved baseline) | After (W1, unreviewed) |
+Per its report (not merely the author's claims):
+
+- the three file hashes and strict JSON format;
+- the 175-row roster, regenerated from the raw fixture, digest `dac06a3b7775f884fac9f8df6b95178cbaf9d912b44687082a161eaf0426cca1`;
+- all 19 persisted tree fields against source;
+- **all 36 cells, bit-exact — 360/360 values — using a separate C program with true single-precision arithmetic**;
+- occupancy 175, zero-stem cells 2/7/8;
+- seed and selector provenance;
+- every route, A8 terminal, G1, trunk, spawn and guard margin; the historical 0.1414 m O1 guard intrusion reproduces and the proposed guards remove it;
+- all 347 pinned dependencies;
+- the registry literals against the signed spec;
+- the 88-row recount: fields **0/36/52 → 0/80/8**, cells **0/0/36 → 0/36/0**, no misclassified row, no silent promotion;
+- all 13 owner receipts match the live #672 comment bodies byte for byte; no owner choice reopened; OD-16 still deferred; no crop marks or Fell orders.
+
+---
+
+## 3. Three non-blocking MINOR findings carried forward
+
+The reviewer approved the candidate and stated that **no correction round is required now**. The following must be fixed in the next author revision that closes blockers (which will need a new full review anyway):
+
+1. **F-1 — numeric policy vs native evidence.** The manifest assumes strict per-operation binary32 rounding, but archived native C-B-30 year-0 evidence matches wider intermediate precision; cells 7, 8 and 15 differ by 1 ulp, inside the stated 2e-6 tolerance. The next revision should describe the values as tolerance-bound expected readback and optionally list the 1-ulp alternates.
+2. **F-2 — blocker attribution.** The unresolved shader/script GUIDs come from the tree-visual materials, so rows 10 and 12 should also carry B-W13-RENDER-DEPS. Both rows are already BLOCKED, so counts do not change; the owner-facing blocker map is incomplete. The GUID wording should also distinguish the URP shader GUID from the script GUID.
+3. **F-3 — path curvature under-reported.** The tightest centreline bend is **0.625 m radius at A7** (C1, not C2). No clearance or margin fails, but OD-08 B asked for a smooth natural path, so the curvature profile and location should be shown to the owner, or the tangent rule revised with all margins recomputed.
+
+Six NOTEs (class-rule step column, receipt-ID correction, shared chapter-ID hazard, OD-02 yaw trade-off visibility, key-order/off-Git reproducibility, browse-pressure provenance) are also carried.
+
+**Decision (D-017):** the three frozen files were **not** mutated. They are the exact bytes that were reviewed; changing them for non-blocking fixes would replace the reviewed identity with unreviewed bytes. The minors are recorded here and in the dossier's next-revision list.
+
+---
+
+## 4. Content outcome (independently reviewed)
+
+| Measure | Before (#672 approved baseline) | After (#676, reviewed) |
 | --- | --- | --- |
 | Fields SIGNED / CANDIDATE / BLOCKED | 0 / 36 / 52 | **0 / 80 / 8** |
 | Cells SIGNED / CANDIDATE / BLOCKED | 0 / 0 / 36 | **0 / 36 / 0** |
 | Whole-world digest | none | **none** (`null`; incomplete) |
 | Owner attestation | none | **none** (unfilled page only) |
 
-**Remaining author-declared content blockers:**
+**Remaining content blockers (all real, none silently promoted):**
 
-1. **Row 10 — asset-specific rights/source/licence nomination.** The OD-13 A first-party/D-032 direction is preserved, but an exact four-family Compact source/licence nomination is not established; no licence was invented.
-2. **Row 12 — all-LOD biological size fidelity.** Pinned uniform-height scaling does not enforce independent DBH/crown radius at every LOD; rendered fidelity unverified.
-3. **Rows 30, 44, 73–75 — presentation dependency.** Exact URP shader dependency bytes for two referenced material GUIDs are not present in tracked `Assets`; no Editor/import inspection is authorised. New Compact surface/guard material binding and production-rights nomination remain open.
-4. **Row 83 — whole-world binding.** Cannot be completed while the above remain; no authored Compact scene exists.
+1. **Row 10 — asset-specific first-party rights/source nomination.** OD-13 A is preserved but the exact four-family Compact licence/source record is not established; no licence invented. (Also should carry B-W13 per F-2.)
+2. **Row 12 — all-LOD biological size fidelity.** Uniform-height scaling does not enforce independent DBH/crown radius at every LOD; rendered fidelity unverified. (Also B-W13.)
+3. **Rows 30, 44, 73–75 — presentation dependencies.** Unresolved URP shader/script bytes for referenced materials, and new Compact surface/guard material binding and production-rights nomination.
+4. **Row 83 — whole-world binding.** Cannot complete while the above remain; no authored Compact scene exists.
 
-The author also reports that the 36 cells are computed from pinned source formulas (canopy/light product-of-gaps, flora/competitor targets, browse 0.2, site defaults, empty cohorts/deadwood, no `Reference` profile) with expected readback values, and that all eight remaining blockers are explicitly named rather than silently defaulted. **These claims are unreviewed.**
-
-**Preserved owner decisions:** OD-00 A, OD-01 A, OD-02 A, OD-03 A, OD-04 A, OD-05 A, OD-06 A, OD-07 A, OD-08 B, OD-09 A, OD-10 prose, OD-11 A, OD-12 A, OD-13 A, OD-14 A, OD-15 A, OD-17 A. **OD-16 M-A-SCOPE remains DEFERRED**, with no threshold or competitor-Fell count proposed. Three retained crop trees remain a future player choice with no pre-marks.
+**Preserved owner decisions:** OD-00 A, OD-01 A, OD-02 A, OD-03 A, OD-04 A, OD-05 A, OD-06 A, OD-07 A, OD-08 B, OD-09 A, OD-10 prose, OD-11 A, OD-12 A, OD-13 A, OD-14 A, OD-15 A, OD-17 A. **OD-16 M-A-SCOPE remains DEFERRED**, with no threshold or competitor-Fell count. Three retained crop trees remain a future player choice with no pre-marks.
 
 ---
 
-## 4. What the owner would ultimately attest (still not ready)
+## 5. What remains before any owner signature
 
-The owner is the product owner personally (OD-00 A). No attestation exists and none is proposed for signature now. A future signature page would need, at minimum:
+1. Close the eight blocked rows (rights, LOD fidelity, render bytes/material binding, whole-world binding) in a **new author revision** that also fixes F-1/F-2/F-3.
+2. Produce complete canonical bytes and a whole-world digest (the roster digest is never the world digest).
+3. Obtain a **new independent review** of the new exact bytes.
+4. Obtain the separate **save-owner serialization / CG-TRIG** sign-off — not in this task's authority.
+5. Complete the native witnesses below; then the product owner personally attests exact bytes (OD-00 A).
 
-1. the exact bytes of the whole-world manifest, the 36-cell initialisation and the construction dossier (or their successors) — file digests are available, but the content is incomplete and unreviewed;
-2. resolution of the four blocker groups above and a complete canonical whole-world digest;
-3. an independent nonauthor review verdict on the exact frozen bytes;
-4. the separate save-owner serialization sign-off, which this task cannot supply;
-5. native witnesses listed as NOT RUN below, before any production claim.
+**NOT RUN (only native/engineering evidence could establish):** Unity import/scene construction; compiler/tests; tree reconstruction and census readback; walking, capsule, slope, collision; planting/stock/cash/approval settlement; annual ecology/regeneration/survival; rendered 720p/1080p appearance; performance; save/load, replay, profile refusal and old-world regression; Windows build; Ops deployment or lease.
 
-The candidate correctly refuses to label the roster digest as a world digest and leaves the owner signature block empty. That refusal is itself consistent with the packet; it is not evidence that the rest is correct.
-
----
-
-## 5. Authoring vs native evidence split
-
-**Authoring/static evidence produced:** exact roster bytes and digest; per-tree constructor recipe and persisted-field mapping; terrain/grid/H1/path/G1/guard/player/staging content rules; 36 computed cell values and formulas; dependency inventory; identity/serialisation/refusal semantics; blocker register; static geometry calculations.
-
-**NOT RUN — only native/engineering evidence could establish:** Unity import or scene construction; compiler/tests; tree reconstruction and census readback; walking, capsule, slope or collision; planting/stock/cash/approval settlement; annual ecology, regeneration or survival; rendered 720p/1080p appearance; performance; save/load, replay, profile refusal and old-world regression; Windows build; Ops deployment or lease.
-
-**Historical protection intact:** signed save §4.2, v1–v24, Legacy40, Enlarged80, Rack V2/MFM, frozen Reference Future v1 and every DRAFT Compact spec were not modified.
+**Historical protection intact:** signed save §4.2, v1–v24, Legacy40, Enlarged80, Rack V2/MFM, frozen Reference Future v1 and all DRAFT Compact specs were not modified.
 
 ---
 
-## 6. Resume cursor (exact)
+## 6. Stop statement
 
-When a **distinct-family reviewer provider is reachable**, resume W2 — do not redo W1:
+No production source, C#, Unity scene, asset, `.meta`, save/schema, historical DTO, spec, canonical decision log, live board, Drive mirror, registry, Ops deployment, source integration, main merge, test lane or Windows build was created or changed. No PR was opened. ISO-58 remains **BLOCKED**; #652 deployment remains **HELD**; the three Compact four-file specifications remain **DRAFT**.
 
-1. Branch `review/sen-1-676-world-manifest-independent-20261117-v1` from current main.
-2. Review the frozen commit `8617587ebb7e118183bdd3eec7de5b099c371fdd` and exactly the three files/digests in §1.1.
-3. Use the W2 brief already recorded in the ledger (E-008/E-010/E-011): independent recomputation of roster bytes, all 36 cells, occupancy, smooth path + A8 terminal, G1 margins incl. B2, guard envelopes incl. the former O1 0.141 m intrusion, spawn/controller, asset existence/rights, dependency hashes, 88-row/36-cell recount, owner-decision non-drift, and a separate SIGNATURE-READY / SIGNATURE-BLOCKED verdict.
-4. If bounded findings arise: at most one author correction round on the author lane, then a changed-lines-only recheck.
-5. Update this result and the ledger; do not treat the author's count as approved until then.
-
-**Provider failures to re-check:** `claudeAgent` and `claudeAgent_claude_b_pro` TLS chain (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`); `opencode` gateway session (`Reconnect OpenCode Console to continue`). Do not silently substitute a same-family reviewer.
-
----
-
-## 7. Stop statement
-
-No production source, C#, Unity scene, asset, `.meta`, save/schema, historical DTO, spec, canonical decision log, live board, Drive mirror, registry, Ops deployment, source integration, main merge, test lane or Windows build was created or changed by this task. No PR was opened. ISO-58 remains **BLOCKED**; #652 deployment remains **HELD**; the three Compact four-file specifications remain **DRAFT**.
-
-**Final status: `[BLOCKED — INDEPENDENT REVIEW PROVIDER ACCESS] / HANDED-OFF`.** #676 stays OPEN with this explicit resume cursor; the Manager #675 owns disposition.
+**Final status: HANDED-OFF / COMPLETE.** Review APPROVED; content SIGNATURE-BLOCKED; owner signature absent. #676 is closed and returned to Manager #675.

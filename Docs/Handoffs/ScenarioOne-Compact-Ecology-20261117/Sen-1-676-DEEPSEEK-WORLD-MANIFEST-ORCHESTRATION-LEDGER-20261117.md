@@ -187,6 +187,37 @@ This is a **retry of the blocked lane**, not a new review assignment: the brief,
 
 **D-016.** If this attempt succeeds, append the observed verdict/counts and update the final result; if it fails at the provider layer again, append the exact error, keep the review BLOCKED, and do not alter the W1 bytes or invent a verdict.
 
+## E-015 — W2 review retry succeeded: APPROVED (document quality), SIGNATURE-BLOCKED (content) — 2026-11-17T17:58Z
+
+The retry at E-014 connected. Anthropic Claude Opus 5.5 (`claudeAgent`, effort high) posted its prospective claim ([comment 6955878013](https://github.com/jermur788/CCF/issues/676#issuecomment-6955878013)), reviewed the frozen target and published:
+
+- Branch `review/sen-1-676-world-manifest-independent-20261117-v1`, commit `16783336451d327802e1bbe9ab6fcd1675e8c9c7`, base `12711c99957f6b70b8e0da7890be17251b030f96` (live main had moved through docs/coordination-only commits; `git diff ab091116..12711c99 -- Assets` is empty).
+- Exactly **one** added file: `Sen-1-676-INDEPENDENT-WHOLE-WORLD-CONTENT-REVIEW-20261117.md`, 551 lines, 50,689 bytes, SHA-256 `ace122752286a6a2934e34435cf5ac121796f9bbf491bc7802272d791c072a21`.
+- Parent independently verified the branch head, parent, one-file diff, byte count and SHA-256; `git diff origin/main...16783336` is only that added file.
+- Handoff: [comment 6956396249](https://github.com/jermur788/CCF/issues/676#issuecomment-6956396249).
+
+**Verdict observed in the review:** **APPROVED** for document/evidence quality — CRITICAL 0 / MAJOR 0 / **MINOR 3** / NOTE 6. **Content: SIGNATURE-BLOCKED** — rows 10, 12, 30, 44, 73, 74, 75 and 83 remain BLOCKED, `world_digest` null, owner signature unfilled, native qualification NOT RUN.
+
+**Independently reproduced by the reviewer** (as reported in its report): the three file hashes; strict JSON; the 175-row roster digest; all 19 persisted tree fields against source; all 36 cells bit-exact (360/360 values, including a true binary32 C program); occupancy 175 with zero cells 2/7/8; seed/selector provenance; every route/A8/G1/trunk/spawn/guard margin; the historical 0.1414 m O1 guard intrusion and its removal; registry literals; all 347 dependencies; and the 88-row recount **0/36/52 → 0/80/8**, cells **0/0/36 → 0/36/0**. It found no misclassified row and no silent promotion.
+
+**Independence disclosure carried by the reviewer:** this session did not author the target (OpenAI Sol did), but the reviewer's own model family (Claude Opus 5.5) co-authored the #672 baseline dossier and the #657 roster annex used as evidence inputs. It disclosed this, regenerated the roster from raw C-B-30 with its own code, recounted the "before" side directly from the #672 matrix, and cross-checked ecology against an archived native witness. Its §1 and handoff record the correction. The target's author remains a different family, so the author/reviewer separation holds.
+
+**Three MINOR findings (all non-blocking, no status change):**
+- **F-1** — the manifest's strict per-operation binary32 numeric policy is contradicted by archived native C-B-30 year-0 evidence: three cells (7, 8, 15) differ by 1 ulp under wider intermediate precision, within the stated 2e-6 tolerance.
+- **F-2** — the render-dependency blocker (B-W13) is attached to rows 30/44/73–75 but not to rows 10/12, although the unresolved shader/script GUIDs come from the tree-visual materials; rows 10/12 are already BLOCKED, so no count changes.
+- **F-3** — path curvature is under-reported: the tightest centreline bend is 0.625 m radius at A7 (C1, not C2); no margin fails, but OD-08 B asked for a smooth natural path and the owner should see this explicitly.
+
+**D-017 — no author correction round.** The reviewer's verdict is APPROVED and it states no correction is required. Mutating the three frozen files now would replace the exact reviewed byte identity with new unreviewed bytes, for fixes that cannot close any of the eight blockers and that the next author revision must include anyway. Therefore:
+- the frozen target stays `8617587e` and remains the reviewed candidate;
+- F-1/F-2/F-3 are carried as known non-blocking findings in the final result and must be fixed in the next author revision that closes blockers, which will in any case require a new full review;
+- no count, no signature state and no owner decision changes.
+
+This is a deliberate choice to preserve reviewed-byte identity, not an assertion that the minors are unimportant.
+
+## E-016 — Final handoff completed (2026-11-17T18:00Z)
+
+The final result was updated to `HANDED-OFF / COMPLETE` with the APPROVED review, the separate SIGNATURE-BLOCKED content verdict, the three carried minors, the eight blockers and the next-revision requirements; parent branch pushed. #676 was retitled `[HANDED-OFF]`, given its final comment and closed. #675 was notified. No claim remains RUNNING.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
