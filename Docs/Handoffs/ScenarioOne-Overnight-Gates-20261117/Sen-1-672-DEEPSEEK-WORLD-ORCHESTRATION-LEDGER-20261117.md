@@ -236,3 +236,33 @@ So the dossier's conclusion stands in substance: the failed-shelter envelope **d
 **Failure accounting so far:** OpenAI refusals = 2 (E-003 author, E-008 review attempt #1), both zero-output; Opus = 1 authoring run, completed; Sol review attempt #2 = in progress. No silent retry loop: if attempt #2 is also refused, W2 is recorded `[PAUSED — CAPACITY]` with the resume cursor "dispatch the briefed W2 review to GPT-6.1 Sol after its usage window resets", and the parent result reports the world as independently-reviewed **not** obtained rather than substituting an unauthorised reviewer.
 
 **Next executable action at this cursor:** append E-009 with the reviewer verdict and artifact digest, or with the PAUSED record; then Stage W3 (owner decision) and the consolidated final result.
+
+## E-009 — 2026-11-17T09:58Z — Stage-W2 independent review delivered: NEEDS CHANGES (0/0/1/2)
+
+**Observed completion:** the Sol reviewer on instance `codex` finished and pushed. Orchestrator verification of the artifact (not the reviewer's word):
+
+| Check | Orchestrator observation |
+| --- | --- |
+| Review branch tip | `bd6208f26d43abd963661348a4ff6fad8b361ed1` |
+| Diff scope | `git diff --name-status afd5484f…tip` = exactly one added review file |
+| Review file | `Sen-1-672-INDEPENDENT-WORLD-SIGNATURE-CANDIDATE-REVIEW-20261117.md`, 282 lines, 29,031 bytes, SHA-256 `d7fad7d49104a240f91ae78bb740fcf1db7ab7f3efa9bbc51acdada66e5917f3` — matches the reviewer's report |
+| Verdict | **NEEDS CHANGES** — CRITICAL 0 / MAJOR 0 / MINOR 1 / NOTE 2 |
+| What passed | file identity; exact one-file diff; 31/31 Git-held inputs; 14/14 raw fixture hashes; `sha256sum -c` 9/9; roster byte-equality and digest; H1/buffer/rack-label/totals/occupancy; route/G1 geometry; the failed-shelter calculation; 88-field/36-cell coverage; label arithmetic; signature honesty; owner-register non-selection; immutable save boundary; historical-world protection |
+| What failed | F-01 (MINOR, required): the document's own first-match C1 rule conflicts with eight mixed-evidence rows that carry a missing geometry/footprint/asset/width datum but are classed MD/OC |
+| Optional notes | F-02 evidence-class vs signature wording; F-03 a reviewer-only native-manifest sweep found 61/62 members matching (unrelated `closure-receipt.json` mismatch), with every hash the document publishes still correct |
+
+**Reviewer independence held:** different model family from the author, separate session, no authorship overlap, no subagent, reviewed only the pushed immutable artifact plus primary sources. Its own stated limits: same host and shared store (no independent organisational custody), and it could not verify author execution times or my alternative sampling code (no code supplied).
+
+**Bounded correction dispatched** to the Opus author on the same W1 branch (one round, changed lines only): relabel rows 41/46/47/61/62/73/74/75 as UNS (C1) while preserving their owner-intent and formula evidence, recount to SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52 = 88 and 88 unsupported field+cell rows, keep SIGNED 0 / CANDIDATE 36 / BLOCKED 52 and all 36 cells BLOCKED, plus the two cheap optional precisions. Explicitly forbidden from touching any confirmed hash/number, any OD option, M-A-SCOPE, the crop-tree intent record, spec status or the save boundary. Child thread `t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/thread:delegated-task:command%3Amcp%3A148b334d-d4d9-40b8-9a60-baa82ad5bc04%3Adelegate-task%3Ac800ab41-2e9c-453d-a5d7-1eaf0033be40`.
+
+**Capacity:** Sol on instance `codex` = AVAILABLE (review completed); the other OpenAI instance remains quota-blocked as observed at E-008; Opus AVAILABLE for the correction; DeepSeek AVAILABLE. Quota/reset still UNKNOWN.
+
+## E-010 — 2026-11-17T10:00Z — Second orchestrator self-correction: my E-006 numbers were also defective; the candidate's figure reproduces exactly
+
+The W2 reviewer adjudicated the shelter question against the source transforms and refuted my E-006 alternatives. I re-checked with the correct plan-view parametrisation (the circle's plan projection is `x = c·r·cosθ`, `z = r·sinθ`; my E-006 script had wrongly added `sinφ·s` to the z coordinate and therefore sampled a non-existent larger footprint).
+
+**Result of the corrected check:** with the axial coordinate `u ∈ [−0.6, +0.6]`, `X = siteX + 0.25 − u·sin28° + 0.10·cos28°·cosθ`, `Z = siteZ + 0.10·sinθ`, the minimum route distance at O1 is **0.4586424424 m**, i.e. **0.1413575576 m** intrusion into the 0.6 m half-core — reproducing the candidate and the review to seven decimal places. The tilt-sign invariance is also correct: substituting `u → −u` maps the sign-flipped footprint onto the original, because the ±0.25 m translation is unchanged and the vertical offset drops out of a plan-view model.
+
+**Record corrected a second time:** E-004's flag and E-006's replacement numbers were both wrong. Neither the W1 author nor the W2 reviewer made an error here. The document's number stands as MODEL-DERIVED visual-envelope evidence, and no correction is required or was requested for it. This entry supersedes E-004 and E-006 on that point; the rest of E-004 (roster/occupancy/route/G1 corroboration) was independently confirmed by the reviewer and stands.
+
+**Next executable action at this cursor:** on correction completion, verify the new commit/diff/counts, then dispatch the changed-lines-only re-check to GPT-6.1 Sol; then Stage W3 (owner decision) and the consolidated final result.
