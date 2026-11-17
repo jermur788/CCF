@@ -160,3 +160,13 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Model/config:** Anthropic Claude Opus 5.5 via T3 `claudeAgent` (Pro instance), effort high — still a different model family from the OpenAI author, so independence is preserved. Actual executed identity to be recorded from the child's report.
 - **Capacity:** T3 Claude provider catalog-present and launchable; quota/reset `UNKNOWN`.
 - **Next action:** dispatch; on completion record verdict and revise the final result with a dated addendum rather than silently rewriting the earlier blocked declaration.
+
+### E13 — 2026-11-17T13:17Z — S3 reviewer dispatched on T3 Claude provider (OBSERVED)
+
+- **Child:** S3 reviewer, retry 2, delivered through T3 `delegate_task` in an isolated prepared worktree (not the orchestration worktree). Provider instance `claudeAgent_claude_b_pro` ("Claude B — Pro"), model `claude-opus-5-5`, option `effort=high`.
+- **Launch result:** accepted, `status=running`, `executedModel=null` at launch — so the executed model is still recorded as pending until the child's own report. Delegated task id `node:delegated-task:command%3Amcp%3Ad64329d4-fb7b-4dce-b2e7-a3a96a73198e%3Adelegate-task%3A7f48c32b-4038-4726-b548-9dab820cfea0`; thread `thread:delegated-task:command%3Amcp%3Ad64329d4-fb7b-4dce-b2e7-a3a96a73198e%3Adelegate-task%3A7f48c32b-4038-4726-b548-9dab820cfea0`.
+- **Independence:** Anthropic Claude Opus 5.5 versus the OpenAI GPT-6.1 Sol author; separate model family, separate session, separate checkout, read-only on the frozen author tip `a43fbef3`.
+- **Branch/custody:** reviewer is instructed to fetch, verify `origin/main` = `afd5484f` and the author tip = `a43fbef3`, then create `review/sen-1-673-deepseek-save-ruling-20261117-v1` at `afd5484f`. Its only writable path remains the single new review Markdown. Drift in either SHA is a STOP condition, not something to work around.
+- **Scope issued:** diff/scope; §4.2 field-by-field fidelity; policy B versus signed text and case-(b) reject-before-mutation; chronology/event9/Y*/CT-3; W-A including batch demotion; pairing/atomicity; S1/S2 and M-A-SCOPE deferral; status discipline; matrix completeness/provenance; ≥15 citation spot-checks; verdict limited to contract-document quality with APPROVED/NEEDS CHANGES/REJECTED.
+- **Capacity:** T3 Claude provider accepted the launch; quota/reset `UNKNOWN`; no telemetry source.
+- **Next action:** on completion, record the observed model/commit/verdict and publish a dated addendum to the final result. Do not silently rewrite the earlier `INDEPENDENT REVIEW BLOCKED` declaration — it remains a true record of that run.
