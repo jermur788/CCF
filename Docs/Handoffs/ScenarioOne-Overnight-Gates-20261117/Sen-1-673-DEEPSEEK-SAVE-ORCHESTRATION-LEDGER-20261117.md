@@ -180,3 +180,12 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Findings:** F-01 (MINOR) asymmetry between rejecting policy A as stricter-than-signed while proposing stricter review-edge refusals; F-02 (MINOR) 3+1 species matrix row does not state admit-vs-refuse or provenance; F-03 (MINOR) three missing matrix rows (Completed order without row; year past Y* with no review; assessment without arrival). N-01 frozen-field/cancellation list mislabelled as owner choice; N-02 `completionYear` must be resolution/report year, never `createdYear`; N-03 the pre-first-write registration claim is timestamp-consistent but not Git-verifiable.
 - **Decision:** take the bounded correction path the packet allows — same author lane fixes only the cited lines, then a new independent delta re-check of the changed lines only. No full re-audit, no second author.
 - **Next action:** append E15 after the bounded author fix and E16 after the delta re-check.
+
+### E15 — 2026-11-17T13:52Z — bounded author corrections applied (OBSERVED)
+
+- **Author lane:** same S1 author session and worktree; no second author, no branch switch.
+- **New author tip:** `0cf07062c389a9a4fbcc15c9e4acd8b5fdbc0da6` on `docs/sen-1-673-save-contract-rulings-20261117-v1`.
+- **Orchestrator re-verification:** `git log afd5484f..<tip>` = 2 commits; total diff vs base still `1 file changed, 341 insertions(+)`; **delta vs reviewed tip** `a43fbef3..0cf07062` = `1 file changed, 17 insertions(+), 12 deletions(-)`; file line count 341; sha256 `791646812715407eb928634aaab058faded12f4c25c1e6e93417b9e04d8927d6` (changed from `4cbaa1f9…`, as expected after edits).
+- **Corrections reported by the author:** F-01 claim-vs-bare-state separation with an explicit unsigned signer choice and visible consequences; F-02 3+1 admissible without credit plus row-level rejection; F-03 three new NOT RUN matrix rows; N-01 frozen-field/cancellation relabelled as candidate requirements; N-02 `completionYear` = resolution/report year never `createdYear`; N-03 pre-write ordering qualified as author-reported and not Git-verifiable.
+- **Unchanged:** CANDIDATE/UNSIGNED banner, `CONTRACT SIGNATURE BLOCKED`, M-A-SCOPE deferral, NOT RUN matrix marking, no other file.
+- **Next action:** fresh independent delta re-check of the changed lines only, appended to the existing review artifact; no full re-audit.
