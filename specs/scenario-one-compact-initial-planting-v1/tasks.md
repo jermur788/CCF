@@ -21,8 +21,8 @@ Manager #677 D-A signed the Compact CG-TRIG/save-policy supplement (reviewed com
 
 | Proposed task | Depends on | Acceptance (existing CIP-IDs only; all NOT RUN) |
 | --- | --- | --- |
-| **CP-S6** planting settlement atomicity and row capture | approved parent/child spec, #544, lease | Direct same-resolution order↔juvenile capture, atomic effect cluster, exactly one row and one `WorkResolved`, idempotent reload, never a `Completed` designated order without its row (CIP-014, CIP-015, CIP-019) |
-| **CP-S7** existing-control covering review transaction | CP-S6; parent D84-SC-RV1 | Existing Annual Review acknowledge action writes event9 + `reviewAcknowledgedYear=Y*` atomically for genuine Y\*, one event9/year, idempotent, split state refused (CIP-015–CIP-019, CIP-021) |
+| **CP-S6** planting settlement atomicity and row capture | approved parent/child spec, #544, lease | Direct same-resolution order↔juvenile capture, atomic effect cluster, exactly one row and one `WorkResolved`, idempotent reload, never a `Completed` designated order without its row; **fault-injected settlement** leaves a complete old or complete new state; exact **G1 x/z save→load round-trip** (CIP-014, CIP-015, CIP-019) |
+| **CP-S7** existing-control covering review transaction | CP-S6; parent D84-SC-RV1 | Existing Annual Review acknowledge action writes event9 + `reviewAcknowledgedYear=Y*` atomically for genuine Y\*, one event9 per year per resolution boundary, idempotent, covering split state refused (CIP-015–CIP-019, CIP-021) |
 | **CP-S8** admission honesty and refusal | CP-S7; parent D84-SC-RV2 | Policy B load with no credit; permanent no-credit diagnosis for missing-row and 3+1 Completed groups; two CT-1 deadlock states refuse save/load before mutation with cannot-load messaging and unchanged historical admission (CIP-019, CIP-021, CIP-023, CIP-027, CIP-033) |
 | **CP-S9** service-level Approved freeze and per-tree controls | approved child spec | Approved planting orders frozen in UI and every public service/bulk route; CIP-016 per-tree actor/shelter preserved; confirmed cancel then new order/quote/approval (CIP-015–CIP-018) |
 
