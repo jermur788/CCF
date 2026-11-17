@@ -109,3 +109,29 @@ M-A-SCOPE one-treated-stem sufficiency remains **DEFERRED** (the 08:35Z owner "t
 **Concurrency:** one writer on the child branch; the parent branch and the child branch are disjoint, and the orchestrator writes only its own two files. No two writers on any one branch; no Unity resource involved anywhere.
 
 **Next executable action at this cursor:** append E-003 with the child's observed completion/failure, exact commit and file digest; then register a distinct Stage-W2 Opus 5.5 nonauthor review claim.
+
+## E-003 — 2026-11-17T08:52Z — OpenAI child failed at quota gate; W1 custody transferred to Opus 5.5
+
+**Event class:** capacity exhaustion / provider refusal — **not** a task, schema or tool error. No retry of the same failing dispatch was attempted.
+
+**Observed failure (verbatim provider message, not reconstructed):** the E-002 child returned `failed` with `"Your ChatGPT usage limit was reached. Check ChatGPT Usage settings for your available allowance."` Reported `model=gpt-6.1-sol`, `options=[{reasoningEffort: high}]`, `executedModel=null`, `latestTerminalStatus=failed`. **Reset time and remaining allowance: UNKNOWN** — the runner exposes no reset figure.
+
+**Safe-stop verification before transfer:** child branch `docs/sen-1-672-world-content-signature-20261117-v1` = `afd5484fc11697e6bde64f99d57d22e98f572f1f` (base, unmoved); `git status --porcelain` = 0 lines; no `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/` directory; no commit, no push, no helper artifacts in the repo. The failed writer produced **no partial evidence** and holds no custody. Nothing required preservation or cleanup.
+
+**Ownership transfer (explicit, old writer ceased):** Stage-W1 authoring of the same branch and same single file moves to Anthropic **Claude Opus 5.5, effort `high`**, provider instance `claudeAgent`, T3 Code. Registered on #672 at [comment 6943254376](https://github.com/jermur788/CCF/issues/672#issuecomment-6943254376) before the new writer ran. Rationale: the packet's pair is Sol author + Opus reviewer and permits a **justified reverse** when capacity requires it; an unknown OpenAI reset window should not stall a finite documentation bundle. The reversal is recorded, not silent.
+
+**New child dispatch (observed):** task started `running`; `providerInstanceId=claudeAgent`, `model=claude-opus-5-5`, `options=[{effort: high}]`; child thread `t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/thread:delegated-task:command%3Amcp%3A148b334d-d4d9-40b8-9a60-baa82ad5bc04%3Adelegate-task%3A2d901a64-ebb4-4441-a647-5c5a481328d8`. Same brief, same single path, same bans; the brief additionally states that this author may not review its own work.
+
+**Independence consequence recorded at transfer:** the Stage-W2 independent nonauthor review may **not** be Opus. It must be a different model family — GPT-6.1 Sol as the packet's reviewer. If the OpenAI usage limit is still in force at that point, W2 is marked `[PAUSED — CAPACITY]` with an exact resume cursor; no same-family or orchestrator self-review may substitute. A different session of the same author model is not independence (AgentWorkflow review boundary).
+
+**Failure class and retry accounting:** OpenAI attempt #1 = quota refusal, zero consumption of task scope; Opus attempt #1 = in progress. No silent loop; a second OpenAI attempt will be made at most once at the W2 stage, and only then recorded as a fresh observation.
+
+**Capacity ledger after this event:**
+
+| Pool | State | Reported quota/reset | Source/confidence | Context/tokens | Task/claim | Last check |
+| --- | --- | --- | --- | --- | --- | --- |
+| DeepSeek V4.1 Flash high (orchestrator A) | AVAILABLE | UNKNOWN | observed runner | UNKNOWN | #672 [RUNNING] | 2026-11-17T08:52Z |
+| OpenAI GPT-6.1 Sol | **COOLDOWN — USAGE LIMIT** | **UNKNOWN** (message quoted above; no reset exposed) | observed provider refusal, high confidence for this instant only | UNKNOWN | attempt #1 failed, 0 writes | 2026-11-17T08:52Z |
+| Claude Opus 5.5 high | AVAILABLE (dispatch accepted, running) | UNKNOWN | observed dispatch acceptance | UNKNOWN | W1 author attempt #1 | 2026-11-17T08:52Z |
+
+**Next executable action at this cursor:** on Opus completion append E-004 with exact commit/file digest and verify the one-file diff independently; then register the W2 review claim and attempt the Sol reviewer.
