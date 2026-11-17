@@ -81,6 +81,48 @@ A separate OpenAI `gpt-6.1-sol` child session (provider instance `codex`, reason
 
 **D-007.** If the author's provider fails, or the session produces no claim and no files, record the observed failure as a new entry and retry the same named model/provider once. Do not substitute a same-family author without a logged reversal and a distinct-family independent reviewer; do not self-author.
 
+## E-007 — W1 author claim, frozen deliverable and handoff observed (2026-11-17T16:20Z)
+
+The author posted its prospective claim ([comment 6953585462](https://github.com/jermur788/CCF/issues/676#issuecomment-6953585462)) and published its handoff ([comment 6954344816](https://github.com/jermur788/CCF/issues/676#issuecomment-6954344816)).
+
+**Base change, observed rather than assumed.** Live `origin/main` had advanced from `18d9c60a` to `ab09111681bf1acce3823d6fe3343642a851f3d9` (three coordination commits: #673 evidence closure, #676 start registration/#678 reservation, #674 receipt/re-pin gate). The author correctly took the live base `ab0911168` instead of the stale `18d9c60a`. `git merge-base --is-ancestor ab0911168 origin/main` is true; `git diff afd5484f..ab0911168 -- Assets` is **empty**, so the source citations still resolve.
+
+**Frozen deliverable verified by the parent** (independent of the author's claims):
+
+| Check | Observed |
+| --- | --- |
+| Author branch head | `8617587ebb7e118183bdd3eec7de5b099c371fdd` |
+| Branch commits | exactly one commit: `8617587e docs: author Compact30 world manifest and static initialization candidates for #676` |
+| `git diff --name-status ab0911168 8617587e` | exactly three `A` entries, the three reserved NEW paths |
+| File 1 | `…WHOLE-WORLD-MANIFEST-CANDIDATE….json`, 308,748 bytes, SHA-256 `342e1afc4d39cf44c22e434dac3b7ad56d9902084bf3f61026e89086a561a677` |
+| File 2 | `…36-CELL-INITIALISATION-CANDIDATE….json`, 82,840 bytes, SHA-256 `2441926a0a619b9731166149ca2121f2bb89f4a56a8d8ff827c39e9d77e86123` |
+| File 3 | `…CONSTRUCTION-REPRODUCIBILITY-AND-OWNER-SIGNATURE-CANDIDATE….md`, 88,048 bytes, SHA-256 `f553fff031246311d0000050b2a9ece8a81efd0c54f1006a34e74289fe8a0f26` |
+| JSON parse/encoding | both parse strictly; UTF-8, LF, no BOM; `no NaN` was not yet independently checked by the parent (left to W2) |
+| Self-reported status | `CANDIDATE / NOT_SIGNED / SIGNATURE_BLOCKED`; `world_digest: null`; owner signature block `name/date/exact_bytes_digest/statement` all null |
+| Self-reported counts | fields 0/36/52 → **0/80/8**; cells 0/0/36 → **0/36/0**; 8 remaining blockers B-W02-RIGHTS (row 10), B-W02-SCALE (row 12), B-W13-RENDER-DEPS (rows 30,44,73,74,75), B-W14-WHOLE (row 83) |
+| Self-reported verification | strict JSON/keys, roster digest reproduction, 175 occupancy, 19 persisted tree fields, 36-cell calculations, path/G1/guard geometry, 347 dependency hashes; remote readback matches |
+| Scope | no source, asset, `.meta`, save, spec, canonical doc, board, Ops, Unity, compiler, build, Windows or integration action reported; no PR |
+
+**D-008.** Treat the three files at `8617587e` as the frozen W1 target. Do not accept the author's closure counts, geometry or hashes on trust: W2 must independently recompute them. The parent's own check is a scope/identity check, not an independent content review.
+
+## E-008 — W2 independent reviewer lane launched (2026-11-17T16:40Z)
+
+A separate Anthropic `claude-opus-5-5` child session (provider instance `claudeAgent`, effort high, delegated task `…/d36aac21-39d5-4374-8e52-a754a8aae5cd`) was started in a new isolated worktree, from current `origin/main` (`ab0911168`), with the single writable path:
+
+`Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-676-INDEPENDENT-WHOLE-WORLD-CONTENT-REVIEW-20261117.md`
+
+The brief requires: own claim comment first; verify the frozen bytes and scope; read the binding packet, the #672 dossier and review, the actual owner receipts, the DRAFT specs/ANN/MAN, the immutable save contract and the live source; independently recompute the roster, all 36 canopy/light and flora values, occupancy, the smooth path and A8 terminal, G1 margins including B2, guard envelopes including the former O1 intrusion, spawn/controller values, asset existence and rights, dependency hashes and the 88-row/36-cell recount; then produce APPROVED / NEEDS CHANGES / REJECTED plus a separate SIGNATURE-READY / SIGNATURE-BLOCKED verdict and a bounded correction list.
+
+**D-009.** The reviewer must not correct the candidate and must not sign content or approve a spec/owner option. One author correction round is permitted only if W2 returns bounded findings; the recheck is changed-lines-only.
+
+**Status at this entry:** W2 RUNNING; no review file asserted.
+
+## E-009 — Parent verification of the author's claims (2026-11-17T16:42Z)
+
+The parent additionally confirmed, before W2 started: the author's commit is exactly one commit on top of `ab0911168`; `git diff --name-status` is exactly the three `A` entries; the three remote file bytes hash to the values the author reported; both JSON documents parse and expose the expected top-level sections; `document_status` is `[CANDIDATE, NOT_SIGNED, SIGNATURE_BLOCKED]`; `world_digest` is `null` with an explicit incomplete status; the 36-cell file has 36 cells, occupancy total 175 and zero-stem cells `[2,7,8]`; `owner_signature` is unfilled; and the author's checkout was clean.
+
+These are identity/scope/format checks only. They do **not** establish that the content is correct, complete or signable; that is W2's job.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
