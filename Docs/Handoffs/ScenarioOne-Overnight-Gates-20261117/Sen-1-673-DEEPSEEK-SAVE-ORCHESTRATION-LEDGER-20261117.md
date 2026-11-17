@@ -98,3 +98,31 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **What the child was authorised to do:** read-only inspection of the signed spec, #667 dossier and review, the earlier #673 packet, decision log/milestone and current C# source; author exactly one new candidate ruling Markdown; commit and push its own branch.
 - **What it was forbidden to do:** edit the signed §4.2 spec, DRAFT spec families, source/assets/scenes, saves/Prefs, Ops, coordination or main; add fields to the historical v24 DTO; reopen or decide M-A-SCOPE; claim a signature; run Unity or tests.
 - **Next action:** on child completion, record the observed model/branch/HEAD/commit, then dispatch the S3 reviewer against that exact tip.
+
+### E5 — 2026-11-17T08:58Z — S1 author completed; result independently re-verified by orchestration (OBSERVED)
+
+- **Author-reported identity:** OpenAI GPT-6.1 Sol (`gpt-6.1-sol`), reasoning effort high, T3 Code on physical Linux host `jer-laptop` — self-reported in the document's identity table. The harness launch requested the same model id; the executed identity is taken from the child's own observed `hostname`/`date -u`/`git rev-parse` registration, not from the dispatch text.
+- **Author commit / branch tip:** `a43fbef33589bc2ce2df0e19f557036d8b446c9f` on `docs/sen-1-673-save-contract-rulings-20261117-v1`, pushed to `origin`.
+- **Orchestrator re-verification (commands actually run):** `git fetch origin <branch>`; `git rev-parse origin/<branch>` = `a43fbef3…`; `git log --oneline afd5484f..origin/<branch>` = exactly one commit; `git diff --stat afd5484f..origin/<branch>` = `1 file changed, 336 insertions(+)`; `git show <tip>:<path> | sha256sum` = `4cbaa1f99e56b0ea60f767aad35034543d7ce20b67eca18521a7d4acdadd7e45`; author worktree `git status --short` empty at that HEAD.
+- **Scope conformance observed:** exactly one new Markdown file under `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/`; no spec, source, asset, `.meta`, `Docs/Project`, coordination or save change; no PR.
+- **Content checks made by the orchestrator (read-only, not an independent review):** status banner is `CANDIDATE / UNSIGNED / … CONTRACT SIGNATURE BLOCKED`; signed §4.2 is restated and not amended; admission proposal is **B** with forged/inconsistent evidence still rejecting before mutation; S01–S08 are dispositioned as PROPOSED/BLOCKED/DEFERRED with named decision owners; CT-3 hold, Y* = max completionYear and event9 chronology are specified; W-A/batch-demotion gap and cancellation-as-event are carried; M-A `S1` is presented only as a separately versioned unsigned amendment candidate with eight signer questions; `M-A-SCOPE` remains DEFERRED and the 08:34Z three-crop-tree receipt is not over-read; the expected-behaviour matrix is entirely NOT RUN.
+- **What this is not:** not a signature, not a spec approval, not independent review, not runtime evidence. ISO-58 remains BLOCKED; three Compact spec families remain DRAFT.
+- **Next action:** dispatch the independent non-author reviewer against the exact tip `a43fbef3`.
+
+### E6 — 2026-11-17T08:59Z — S3 independent reviewer claimed and dispatched (OBSERVED dispatch; executed model PENDING child report)
+
+- **Child:** S3 independent non-author reviewer. Claim receipt posted on #673. Branch `review/sen-1-673-deepseek-save-ruling-20261117-v1` from `afd5484f`; worktree `/media/jer/Files/CCF/Orchestration/CCF-673-Save-Review-20261117`. Sole writable path: `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-673-INDEPENDENT-SAVE-OWNER-CONTRACT-RULING-REVIEW-20261117.md`.
+- **Requested model/config:** Anthropic `claude-opus-5-5`, effort high. **Actual executed model: to be recorded from the reviewer's own report.**
+- **Independence:** different model family (Anthropic vs the author's OpenAI), separate session and separate worktree/branch; the reviewer is told it wrote none of the material and holds no signature authority. It reviews the exact tip `a43fbef3` read-only.
+- **Review scope issued:** immutable §4.2 fidelity field by field; strict profile/old-save boundary; admission truth table and B-vs-forged separation; review chronology and CT-3 across all routes; W-A batch-demotion gap; pairing/atomicity honesty; S1 placement under the closed three-root graph; M-A-SCOPE deferral; status/signature discipline; matrix completeness and provenance; spot-check of ≥15 citations; one-file diff scope; verdict limited to contract-document quality.
+- **Capacity at dispatch:** Anthropic pool — catalog-present, launch accepted; reported quota/reset `UNKNOWN`; no telemetry source.
+- **Next action:** record the observed reviewer model/commit/verdict, then publish the orchestrator final result with an explicit signed-or-blocked verdict.
+
+### E7 — 2026-11-17T09:02Z — S3 reviewer launch FAILED: provider authentication (OBSERVED failure)
+
+- **Failure class:** provider/tool authentication, not a task or schema error. The harness returned `invalid x-api-key` for the Anthropic provider instance when launching `claude-opus-5-5` (effort high).
+- **What did not happen:** no reviewer session ran, no review file was created, no branch commit was made, no review worktree write occurred. The review branch remains at `afd5484f`.
+- **Capacity state:** Anthropic direct pool = `LOGIN-UNAVAILABLE` (observed error string `invalid x-api-key`), reported quota/reset `UNKNOWN`; context `UNKNOWN`. This is recorded as observed, not inferred.
+- **Independence rule still binding:** the author was OpenAI GPT-6.1 Sol. A same-family OpenAI reviewer would not be independent; the packet permits reversal only with retained independence and an explicit rationale.
+- **Recovery decision (recorded before retry):** retry the *same model family* through the alternative authorised gateway (`opencode/claude-opus-5-5`) so that the reviewer remains genuinely non-author. If that path also fails, the review gate is recorded `BLOCKED — NO INDEPENDENT REVIEWER AVAILABLE` and no substitute self-review is performed.
+- **Next action:** retry once through the gateway and record the outcome.
