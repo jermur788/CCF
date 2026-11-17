@@ -135,6 +135,22 @@ A replacement W2 session was started at 2026-11-17T16:47Z (delegated task `…/4
 
 **D-011.** If this retry also fails at the provider/API layer before posting a claim, mark W2 `[BLOCKED — PROVIDER ACCESS]` in the final result with the exact error, keep the frozen W1 deliverable and the review file reservation as the resume cursor, and do not self-review in the parent. The packet permits a logged reversal only with a genuinely callable alternate family; it does not permit inventing a review.
 
+## E-011 — W2 second attempt failed identically; Anthropic review re-issued via the working OpenCode gateway (2026-11-17T17:07Z)
+
+The retry on `claudeAgent_claude_b_pro` (`…/446f86f6-ab52-4a40-b01b-c3af14a31d28`) failed at the same API boundary with the same `UNABLE_TO_VERIFY_LEAF_SIGNATURE` TLS error, again before posting a claim or writing anything.
+
+**Observed facts:** two independent Claude provider instances are unreachable from this environment; the failure is at transport/TLS, not quota, model choice or content. No review artifact or claim exists from either attempt. The frozen W1 target `8617587e` is unchanged.
+
+**D-012.** Do not leave the review permanently unattempted while a callable distinct-family reviewer exists. The OpenCode gateway is working (it serves this orchestrator session) and advertises Anthropic Claude Fable 5.2. Re-issue W2 to `opencode/claude-fable-5-2` (variant high) under a **new claim and the same unique review lane**. Rationale recorded:
+- the packet-named Opus 5.5 provider failed twice and is recorded as unavailable;
+- the reviewer remains **Anthropic**, a different model family from the **OpenAI** author, so the mandatory author/reviewer family separation is preserved;
+- the reviewer did not author the target and writes only the one reserved review file;
+- the substitution is disclosed in the review itself and in this ledger; no claim is made that Opus reviewed it.
+
+A W2 session was started at 2026-11-17T17:07Z (delegated task `…/bceb6b20-c94b-4ddd-8d20-62d536b2bab0`). **Status:** RUNNING; no claim or file asserted.
+
+**D-013.** If the gateway review also fails before producing a review, mark W2 `[BLOCKED — PROVIDER ACCESS]`, keep the frozen author deliverable and the reserved review path as the resume cursor, and hand off a coherent blocked result. Do not self-review in the parent and do not describe a requested review as executed.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
