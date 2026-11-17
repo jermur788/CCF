@@ -20,10 +20,11 @@ The author is the S1 AUTHOR child, not the save owner. Proposed rulings below ar
 | Sole writable file | This new Markdown file; no other repository file authorised |
 | Initial status | `git status --short` empty; no unrelated changes observed |
 | Parent / current Manager | DeepSeek orchestrator B, #673 / Overall Manager #671 |
-| Execution claim | [S1 AUTHOR registration](https://github.com/jermur788/CCF/issues/673#issuecomment-6943166378), posted by parent before this file's first write |
+| Execution claim | [S1 AUTHOR registration](https://github.com/jermur788/CCF/issues/673#issuecomment-6943166378); registration before first write is author-reported, not independently verifiable from Git history |
 | Authority held | Documentation authorship only; no save-policy signature, implementation, Unity or integration authority |
 
 The target directory was created before the HEAD/UTC/hostname observations; no other worktree was written.
+The registration receipt and document timestamps are consistent with the reported first-write ordering, but do not independently prove it.
 Live main coordination was fetched read-only through GitHub before writing: its leading #671 rows reserve this exact child output and require individual registration.
 Those board rows still say prospective/not running; the live #673 parent and child receipts record actual execution, not a retrospective board edit by this author.
 AgentWorkflow:255–288 requires pre-write custody and live coordination; :388–391 requires a GitHub-tracked handoff.
@@ -134,6 +135,7 @@ Actor is the player in the selected, validated active Compact world; service gua
 | Covering review acknowledge | In that report's actual review footer press “I've read the annual results” | Latest reportY*, current ecological yearY*, all group resolutions precede acknowledgement; event9.year=Y*, event9.eventId greater than every group WorkResolved.eventId; set `reviewAcknowledgedYear=Y*` in same mutation | Open-only, pre-final-resolution event9, wrong year, direct API/harness credit, replay auto-ack |
 | CT-3 hold | Disable advance with reason “Read the covering Annual Review before advancing” and working open-review action | Four valid final rows and no valid covering acknowledgement hold every annual advance/service route and any future skip route; save/reload preserves report/hold | Ecological tick, work settlement, synthetic/backdated review, silent bypass from load or another screen |
 
+**MODEL-DERIVED year binding:** `completionYear` is the order's resolution/report year at successful completion, never `createdYear` or any designation/approval year (M:157 /1280 /1313–1315 /1902 /1920–1921); Y* and all review-year equalities use that resolution year.
 The displayed labels above are candidate UI copy, not new serialized keys or assertions that those buttons exist.
 Read signal means genuine explicit UI interaction with the correct view/context, not proof that a person cognitively understood text.
 EV:40–70 contains no UI-origin attestation field; loaded integers alone cannot cryptographically prove human reading.
@@ -160,20 +162,20 @@ The proposed success boundary needs implementation review and failure injection;
 
 ### Review-edge rulings proposed for the real signer
 
-- A claimed nonnegative review year without matching report, successful rows and post-resolution event9 refuses before mutation (signed SAVE:167).
-- **UNSIGNED consistency rule:** Completed designated order without its required row refuses; no load-time reconstruction.
-- **UNSIGNED lifecycle rule:** CT-1 true, review−1, but current year already beyondY* refuses as impossible CT-3 chronology; earlier browsing cannot repair it.
-- **UNSIGNED atomicity rule:** matching post-resolution event9 atY* but review−1 is an inconsistent one-sided mutation and refuses, rather than auto-filling.
-- **UNSIGNED chronology rule:** a nonnegative review claim supported only by a later-year or pre-resolution event refuses; no backdating.
+- **Refusal of a claim — signed SAVE:167:** a persisted `reviewAcknowledgedYear >= 0`, or an event9-based claim of teaching acknowledgement, without the matching retained report, four valid rows or post-resolution chronology refuses before mutation. This is not a stricter-than-signed addition.
+- **UNSIGNED stricter consistency rule:** Completed designated order without a planting row refuses; §4.2 itself requires rows for credit, not this bare-state refusal. No load-time reconstruction.
+- **Refusal of a bare state — UNSIGNED stricter lifecycle proposal:** CT-1 true, no acknowledgement at all (`reviewAcknowledgedYear=-1`), current year beyondY*: proposed refusal prevents loading the forest, even though no false claim exists. This is stricter than signed incompleteness, just as policy A would be.
+- **UNSIGNED stricter atomicity proposal:** event9 atY* with review−1, when not offered as a teaching claim, likewise proposes bare-state refusal for a one-sided mutation; mere event presence is not automatically a claim.
+- **Signer alternative (E667:146's admit-incomplete route):** admit either otherwise valid bare state, preserve evidence and CT-3 hold, and offer genuine covering-review acknowledgement at whatever ecological year the player has reached. The forest loads but remains teaching-incomplete; no backdating, auto-fill or automatic credit. A late real interaction cannot satisfy unchanged event9.year=Y*=report-year semantics; any credit-bearing late binding needs a separately authorised revision.
 - A historical acknowledgement unrelated to this group grants nothing. Signed report-year equality is never relaxed.
-- These stricter producer-consistency edges are distinct from the false-arrival/assessment case below and need explicit signer approval.
+- **Signer choice, no author preference:** SAVE:163/167 delegates exact review binding/cases to CG-TRIG, not permission to silently tighten admission. Strict refusal and admit-incomplete have the player-visible consequences above; neither is signed. The matrix shows the strict candidate conditionally, not settled authority.
 
 ## 6. Admission ruling candidate — choose B, not A
 
 **Case (a):** otherwise valid nonempty real group with false arrival and/or assessment.
 **Chosen proposal: B — admit as incomplete, no teaching credit.**
 Reason: SAVE:167 expressly says a false acknowledgement “simply remains incomplete” and does not invalidate legitimate work.
-Policy A would add a stricter exception to immutable text; this author neither selects nor silently introduces that exception.
+Policy A would add a stricter exception to immutable text; this author does not select it for case (a). Stricter proposals are not inherently forbidden, but require explicit signer authority, as do the bare-state choices in §5; none is silently derived from §4.2.
 E667:150–175 analyses both alternatives; this candidate selects B for owner decision, not as a signature.
 
 **Candidate normative wording — UNSIGNED:**
@@ -200,8 +202,8 @@ Keep removed/failed reference incomplete until an explicit new player designatio
 Replacement uses a new Pending order ID/site/stock reservation/quote, then its own approval and normal resolution; group never grows to5.
 No automatic planting, credit transfer, resurrection, silent ID reuse or failure-history deletion; successful members' genuine rows remain intact.
 
-**OWNER CHOICE DL:151 / proposed guards:** Approved type/site/species/stock/method/shelter/outcome/quote are immutable.
-UI and service/batch routes must refuse editing Approved orders; cancellation requires explicit player confirmation, decline changes nothing.
+**OWNER CHOICE DL:151:** Approved-order immutability generally, audited cancellation as removal, then a NEW designation/quote/approval.
+**GAME-CALIBRATION-PROPOSAL / candidate implementation requirements:** freeze Approved type/site/species/stock/method/shelter/outcome/quote across UI and service/batch routes; require explicit cancellation confirmation, with decline changing nothing. D-084 does not enumerate these fields or prescribe that confirmation step.
 Confirmed cancellation removes/audits/releases reservations; the replacement is a genuinely new order, not demotion/reapproval of the old ID.
 Pending per-tree actor/shelter controls remain required, with ordinary optional shelter costs and no forced protection/free work.
 
@@ -223,6 +225,7 @@ No row is a test result. Each row is **NOT RUN**, including save, load, advance,
 | --- | --- | --- | --- |
 | Fresh | Accept partial; save/load exact empty group/rows and false booleans | Ordinary; no T1 | S + C |
 | Arrival only | Accept; retain true arrival/false assessment | Ordinary; assessment offered, no auto-credit | S + C |
+| Assessment true, arrival false, empty group — NOT RUN | Admit otherwise valid impossible-but-harmless partial; preserve booleans, no repair | Ordinary; no T1, offer genuine arrival; new binding requires both true | S:167 false-acknowledgement incompleteness + C presentation; B covers only nonempty groups |
 | Assessed, no group | Accept; retain both true, no invented orders | Ordinary; designation offered | S + C |
 | 1 Pending | Accept valid ID/site/stock; save/load same one | Ordinary; no planting row | S + C |
 | 2 Pending | Accept distinct valid references; retain exact two | Ordinary; no planting row | S + C |
@@ -230,16 +233,18 @@ No row is a test result. Each row is **NOT RUN**, including save, load, advance,
 | 4 Pending,2+2 | Accept final designated composition; retain orders/reservations | Ordinary approval/resolution, no pre-execution credit | S + C |
 | Partly Approved | Accept mixed statuses/history; save/load frozen Approved choices | Ordinary, only Approved resolves; no early award | S + C + W |
 | Some Completed | Accept only matching genuine rows; persist unfinished members | Ordinary until final4; T1 false | S + C |
+| Completed designated order, no planting row — NOT RUN | Conditional strict candidate: refuse validation/Save capture/Load before mutation, no reconstruction | No credit from missing row | C UNSIGNED stricter refusal awaiting signature; S:165–167 requires rows for credit, not bare-state refusal |
 | Failed awaiting replacement | Accept incomplete with failure history/no failed row | Ordinary; offer explicit replacement | S + C |
 | Cancelled with history | Accept removed order with genuine cancellation history | Ordinary; never resurrect/credit cancelled member | S + C |
 | Replacement bound, incomplete | Accept new Pending ID plus retained old history; no transfer | Ordinary approval/resolution, T1 false | S + C + W |
 | Four valid rows, review pending | Accept/save/load same rows/report/review−1 | CT-3 hold and visible open-review route | S + C |
+| CT-1 true, review−1, current year beyondY*, no acknowledgement — NOT RUN | Signer choice: strict C candidate refuses validation/Save capture/Load; alternative admits incomplete as §5 describes | Strict: cannot load; alternative: CT-3 hold, genuine late review offered, no backdating/automatic credit | C UNSIGNED stricter refusal versus E667:146 incomplete alternative; S does not itself refuse this bare state |
 | Review opened, not acknowledged | Accept unchanged review−1; opening alone adds no credit | CT-3 hold survives reload | S + C |
 | Valid first covering acknowledgement | Accept matching reportY*, event9 after all group resolutions, fieldY* | T1 only if both booleans true; hold lifts | S + C |
 | Earlier-year browse | Save/load unchanged genuine evidence; no new review credit | Covering-review hold unchanged | S + C |
-| Mismatched chronology / one-sided review mutation | Refuse validation, Save capture or Load before mutation; no repair | No advance from refused candidate | S for false claim; C for extra consistency edges |
+| Mismatched review claim / one-sided review mutation | Invalid claim refuses validation/Save capture/Load; unclaimed one-sided event9/field state follows conditional strict C refusal or §5 admit-incomplete alternative | No credit/repair; refused file cannot load, admitted bare state stays held | S:167 for invalid claim; C UNSIGNED signer choice for bare state |
 | Nonempty real group, false acknowledgement | B accepts otherwise valid work; preserve false values | No T1; CT-3 if four valid rows/review unread; missing genuine controls offered | S + B + C |
-| Four linked but3+1 species | No valid final teaching group; proposed designation/strict final-group validation refuses; no species repair | Never T1 | S final2+2 + C refusal/control |
+| Four linked but3+1 species | Admit otherwise structurally valid legitimate work; save/load unchanged, no forced species conversion. Refuse instead a row speciesId other than exact sessile-oak/beech, or duplicate/mismatched evidence | C/CT-1 false; no teaching completion; forward designation controls do not create a load refusal | S:165–167 signed2+2 completion predicate + C CT-1; S:165 exact row-species rule and uniqueness/link integrity for rejection |
 | Duplicate group/order-row/juvenile ID | Refuse before mutation; never drop duplicates | No credit/advance from candidate | S |
 | Foreign/historical/fabricated IDs | Refuse; no cross-profile linking despite equal numeric IDs | No credit; prior world/files preserved | S |
 | Later G1 juvenile death/promotion | Accept true execution with retained original identity/history; persist actual fate | Do not revoke genuine execution or revive individual | S death; C promotion continuity, M:1514–1521 /2045–2054 |
