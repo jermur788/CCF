@@ -198,3 +198,13 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Pre-flight:** reviewer must confirm `origin/review/...` is still its own prior commit `afac59e2` and STOP on drift; repository `origin/main` remains `afd5484f`.
 - **Capacity:** T3 Claude provider accepted the launch; quota/reset `UNKNOWN`.
 - **Next action:** record the delta verdict, then publish the final-result addendum and hand back to #671.
+
+### E17 — 2026-11-17T13:28Z — delta re-check APPROVED; review gate closed (OBSERVED)
+
+- **Authoritative clock correction:** `date -u` = `2026-11-17T13:27:34Z` at the time this event was written. The minute stamps on E14 (13:40Z), E15 (13:52Z) and E16 (13:54Z) were orchestrator estimates written ahead of the clock read and are therefore wrong; the Git commit times and the child-reported UTC starts (`13:16:30Z`, `13:25Z`) are authoritative. Nothing else in those events is retracted — the facts they record were each observed. This is the second and last timestamp-hygiene deviation in this ledger; no earlier text is rewritten.
+- **Review delta commit:** `6eea508807a38e2eb978dab784889b16d401cbd5` on `review/sen-1-673-deepseek-save-ruling-20261117-v1`, fast-forward from `afac59e2`; orchestrator re-verified: `afac59e2..6eea5088` = `1 file changed, 27 insertions(+)`; total review branch scope vs `afd5484f` = one added file, 98 lines; review file delta section present.
+- **Delta verdict:** `DELTA APPROVED — CONTRACT DOCUMENT QUALITY ONLY`. All six findings `RESOLVED`: F-01 (claim-vs-bare-state separation with signer choice and player-facing consequences), F-02 (3+1 admitted, no credit; row-level rejection retained), F-03 (three NOT RUN rows at D:228/236/241), N-01 (D-084 attribution narrowed), N-02 (`completionYear` = resolution/report year, spot-checked at M:157/1280/1902/1921), N-03 (registration ordering qualified).
+- **New defects in changed lines:** none blocking; no signature drift, invented key/version, fourth root, historical-DTO field, M-A-SCOPE decision, weakened old-save rule or credit leak. Banner, `CONTRACT SIGNATURE BLOCKED`, M-A-SCOPE deferral and NOT RUN marking unchanged. One residual non-blocking note: S02 at D:110 still uses "explicit review-edge refusal rules", which now reads as conditional signer choices.
+- **Final artifact pins:** author candidate `0cf07062` (341 lines, sha256 `79164681…27d6`); review `6eea5088` (98 lines); both branches based on `afd5484f`.
+- **Substantive outcome unchanged:** `CONTRACT SIGNATURE BLOCKED` — an approved *document* is not a signed contract. ISO-58 blocked, specs DRAFT, no implementation, no Unity.
+- **Next action:** publish the dated addendum to the final result, post the closure receipt and hand back to #671.
