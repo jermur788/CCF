@@ -179,6 +179,14 @@ The parent result document was written at the reserved path, committed and pushe
 
 **D-015.** #676 returns to the Manager as **BLOCKED / HANDED-OFF**, not CLOSED, because the finite delegated work did not complete. No claim remains falsely RUNNING.
 
+## E-014 — Independent review retried at the user's direction (2026-11-17T17:35Z)
+
+The user asked again for the review. A new W2 session was started on the packet-preferred route — Anthropic Claude Opus 5.5, provider instance `claudeAgent`, effort high (task `…/9a37eb3e-5ee5-4d81-bb95-cdf0152bbfcf`) — against the same frozen target `8617587e` and the same sole review path.
+
+This is a **retry of the blocked lane**, not a new review assignment: the brief, frozen bytes, lane and stop conditions are unchanged. **Status:** RUNNING. No claim or review file is asserted.
+
+**D-016.** If this attempt succeeds, append the observed verdict/counts and update the final result; if it fails at the provider layer again, append the exact error, keep the review BLOCKED, and do not alter the W1 bytes or invent a verdict.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
