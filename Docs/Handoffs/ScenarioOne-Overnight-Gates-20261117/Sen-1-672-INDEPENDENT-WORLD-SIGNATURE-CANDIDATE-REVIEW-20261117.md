@@ -280,3 +280,55 @@ Dashboard sync: **NOT RUN / NOT VERIFIED**. The user forbids Ops and permits one
 2. **Optional F-02:** clarify W:588 so completing the authenticated recipe, rather than signing alone, resolves the evidence-class gap. Keep signature separate.
 3. **Optional F-03:** add the short manifest-member integrity limitation near W:109/123, without modifying archived evidence, checksum registers or source inputs.
 4. No correction is required to the reproduced failed-shelter numbers or tilt-sign statement. No new numeric parameter, OD decision, source/spec/roster/save edit, Unity/Ops run or broad repeated audit belongs in this round. Re-check only the changed rule/rows, affected counts and any added qualification, plus diff scope and signature/deferred-decision non-drift.
+
+## Delta re-check after the bounded correction round
+
+**Verdict: APPROVED. Delta severity counts: CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 1. The Stage-W2 documentation/evidence-quality review gate is satisfied.**
+
+This append-only section records the changed-lines-only re-check on 2026-11-17 UTC by the same independent OpenAI `gpt-6.1-sol` reviewer, reasoning effort high. It supersedes the earlier NEEDS CHANGES verdict for the corrected candidate only; the earlier review remains unchanged as history. No subagent was used. `WΔ` below means the corrected target at immutable commit `aab606ca02f3c1099997c140aafe3a4748dfba9e`; it does not change the earlier sections' `W` alias.
+
+### Artifact identity and bounded scope
+
+| Check | Independently observed result |
+| --- | --- |
+| Target branch | `docs/sen-1-672-world-content-signature-20261117-v1`; local ref and fresh `git ls-remote origin` both name `aab606ca02f3c1099997c140aafe3a4748dfba9e` |
+| Correction parent | `3082b7d7c05ea8a810324fc2c8b2b0bc57fecf3b`, verified with `git rev-parse` |
+| Corrected file | Same world-content candidate path recorded in Identity and independence above; independently read with `git show aab606ca:<path>` |
+| Corrected bytes | **810 LF-terminated lines; 81,133 bytes; no CR; SHA-256 `ed0e05a005a682ae31b88d4e9a379c0146d11df84bb1219b3420203e8c35da72`** |
+| Correction diff | `git diff --name-status 3082b7d7 aab606ca`: exactly one `M`, the target Markdown; `--stat`: **1 file changed, 27 insertions(+), 20 deletions(-)** |
+| Whole candidate diff | `git diff --name-status afd5484f aab606ca`: exactly one `A`, the same target Markdown |
+| Review preflight | Assigned checkout/branch at `bd6208f26d43abd963661348a4ff6fad8b361ed1`, clean before this append; no unrelated changes in this lane |
+| Coordination/context | Same locked context as the initial review. Fresh read-only GitHub main board read: blob `afb35644e4628067c9103ed4d7757170eca8b06b`; latest direct user packet expressly reserves this existing review file for the delta. No coordination file was edited. |
+
+### Resolution of the original findings
+
+**F-01 — resolved.** WΔ:66 and WΔ:246 explicitly apply C1 to the whole incomplete requirement while retaining evidence for its supported parts. Rows **41 / 46 / 47 / 61 / 62 / 73 / 74 / 75**, at **WΔ:291 / 296 / 297 / 311 / 312 / 323 / 324 / 325**, now all carry **UNS (C1)**. An independent column comparison against the parent proves that only the class column changed in those eight rows: value, verification, provenance, provenance type, signature and blocker columns are byte-identical. The other 80 matrix rows are wholly unchanged. D-083/D-084 owner intent, the cell formula, Route A anchors and guard/path evidence remain recorded. WΔ:478 distinguishes the OC core/verge rules in rows 77–78 from the incomplete whole requirements in rows 61–62; WΔ:575 similarly reconciles H1 staging. The stated rule and corrected row scopes now agree; the original contradiction is removed.
+
+**Dependent counts — verified from the matrix, not the summaries.** Inline reviewer Python parsed exactly 88 unique rows numbered 1–88, all with nine columns, counted class/status columns, and independently expanded the row-list ranges at WΔ:350:
+
+| Class | Rows | CANDIDATE | BLOCKED | SIGNED |
+| --- | ---: | ---: | ---: | ---: |
+| SV | 21 | 21 | 0 | 0 |
+| MD | 4 | 4 | 0 | 0 |
+| OC | 10 | 10 | 0 | 0 |
+| GCP | 1 | 1 | 0 | 0 |
+| UNS | 52 | 0 | 52 | 0 |
+| Total | 88 | 36 | 52 | 0 |
+
+These results agree with every current summary at WΔ:68, 343–352, 725–730 and 805–806. The old SV21/MD5/OC17/GCP1/UNS44 total is retained at WΔ:68 only as an expressly historical comparison. WΔ:730 correctly explains **52 + 36 = 88** unsupported field-plus-cell rows: **MD −1, OC −7, UNS +8**, exactly the eight already-BLOCKED rows. Its comparison to `W667:342` was checked against that immutable source line, which does record 44 + 36 = 80. The 36 cell rows remain byte-identical with initial ecology UNS and signature BLOCKED; their statuses are **SIGNED 0 / CANDIDATE 0 / BLOCKED 36**. All 88 field signature statuses are unchanged: **SIGNED 0 / CANDIDATE 36 / BLOCKED 52**. No occupancy arithmetic was rerun.
+
+**F-02 — resolved.** WΔ:595 now says a complete authenticated value or pinned recipe supplies the missing datum, while signature remains a separate axis. It expressly rejects both an attestation supplying missing values and an unsigned complete recipe making a row signed. This removes the original class/signature conflation. The new summary's section pointer has the non-blocking error recorded below.
+
+**F-03 — resolved as a limitation, not an archive repair.** WΔ:128 accurately carries the initial review's 62-member sweep result (61 matches / one mismatch), identifies the unrelated `N/closure-receipt.json`, separates the manifest container digest from member integrity, and leaves cause/date unestablished. For this changed qualification only, the reviewer re-read the manifest entry and receipt: the manifest has 62 entries and expects `db414df73114bbbb84a87a3e98e065fe52222256b880a2067a1aeb59e47e3c29`; the 377 current receipt bytes hash to `e715ff7eff8a15a6232745916b836624464ad3de4e8ac437745953f8844f7dc6`. The 61/62 sweep is prior-review evidence, not a repeated sweep in this delta. The receipt is not a roster/geometry input. Published input hashes remain valid as established by the initial review; listing an expected checksum alongside a different current checksum does not invalidate either recorded checksum or the manifest's own digest. No archive/checksum file was written, and no fixture was rehashed.
+
+### Non-drift and changed-line quality
+
+The correction diff was inspected in full. Independent text comparisons confirm that all **49 existing full SHA-256 occurrences** remain unchanged; the only two added full digests are the explicitly labelled F-03 expected/current receipt digests. Entire sections **§2** (roster/BA/volume), **§4** (cell occupancy/ecology table), **§5.4** (route/G1 results), **§5.6** (failed-shelter numbers and tilt-sign statement), **§8** (identity and signed-save boundary) and **§9** (OD-00…OD-17, M-A-SCOPE and the 08:35Z crop-tree receipt) are byte-identical to the parent. This specifically preserves roster `dac06a3b…`, fixture hashes, route **16.6719614516**, P1106 **1.6004984013**, all G1 margins, failed-shelter **0.4586424 / 0.1413576**, and sign invariance. Every line containing DRAFT is unchanged. No owner option or signature status changed; the signed save contract and archived evidence are outside the one-file author diff.
+
+`git diff --check 3082b7d7 aab606ca` passes. The changed matrix rows retain their table structure; the dependent class lists and totals agree. Added §0.3/§0.4 references resolve correctly, and F-03 is in §1.1. No new substantive defect, numeric drift or signature/authority overclaim was found. One new navigation note follows.
+
+**D-N01 — NOTE, non-blocking: wrong F-02 section pointer.** At **WΔ:17**, the new correction-summary row points to “F-02 (class vs signature wording, §8)”. The corrected wording is actually at **WΔ:595, §7.1**, under the §7 heading at WΔ:582; §8 begins at WΔ:628 and concerns identity/content binding. The pointer should read **§7.1**. The actual correction is present and unambiguous, so this does not block the evidence-quality gate or require another bounded author correction round.
+
+### Delta conclusion and remaining gates
+
+**APPROVED for the corrected documentation/evidence candidate at `aab606ca02f3c1099997c140aafe3a4748dfba9e`: F-01 is resolved, both optional F-02/F-03 corrections are accurate, independently re-derived class/status counts agree, and protected evidence, decisions and save boundaries did not drift. The Stage-W2 review gate is satisfied, with CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 1 (the §8 → §7.1 pointer at WΔ:17).** This is not content-owner signing, spec approval, Manager acceptance, integration, Unity qualification or a build release. The world remains SIGNATURE-BLOCKED; W01–W14, OD-00/content attestations, DRAFT-spec, native/save and other recorded gates remain unchanged, and M-A-SCOPE remains deferred. No Unity/Editor/Ops/build, fixture/roster reproduction, occupancy/route/G1/shelter arithmetic or archived script execution was performed in this delta. Dashboard synchronization remains NOT RUN / NOT VERIFIED and belongs to the authorised parent/Manager handoff. Only this reserved review Markdown is appended; earlier review bytes are preserved.
