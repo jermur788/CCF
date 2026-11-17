@@ -199,3 +199,26 @@ So the dossier's conclusion stands in substance: the failed-shelter envelope **d
 **Consequence:** my E-004 flag is withdrawn as stated. The Stage-W2 brief keeps the envelope as a named check with these corrected numbers, so the reviewer can judge the document rather than my earlier error.
 
 **Next executable action at this cursor:** register the Stage-W2 independent nonauthor review claim (distinct branch, distinct one-file output, different model family from the author) and attempt the Sol reviewer.
+
+## E-007 — 2026-11-17T09:27Z — Stage-W2 independent review claimed and dispatched (Sol 6.1 high)
+
+**Review claim registered first** on #672 at [comment 6943788347](https://github.com/jermur788/CCF/issues/672#issuecomment-6943788347): role, reviewer model, independence basis, branch, base, starting HEAD, unique one-file output path, disjoint checkout, reviewed artifact digest and bans.
+
+| Item | Value |
+| --- | --- |
+| Branch | `review/sen-1-672-world-signature-independent-20261117-v1` |
+| Base / starting HEAD | `afd5484fc11697e6bde64f99d57d22e98f572f1f` (verified `origin/main`) |
+| Sole writable path | `Docs/Handoffs/ScenarioOne-Overnight-Gates-20261117/Sen-1-672-INDEPENDENT-WORLD-SIGNATURE-CANDIDATE-REVIEW-20261117.md` |
+| Checkout | `/media/jer/Files/CCF/Orchestration/CCF-672-WorldReview-20261117` (docs-only; no `Library`, no Unity, no lease) |
+| Reviewed artifact | `docs/sen-1-672-world-content-signature-20261117-v1` @ `3082b7d7c05ea8a810324fc2c8b2b0bc57fecf3b`, 803 lines / 77,599 bytes / `07000792d649eabb23e02718ed6257f77de095aeed06844e5ebace5b24ec2103` |
+| Requested worker | `gpt-6.1-sol`, `reasoningEffort=high`, provider `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb` |
+| Dispatch result (observed) | accepted, status `running`; `providerInstanceId=codex_c75d8114…`, `model=gpt-6.1-sol`, `options=[{reasoningEffort: high}]` |
+| Child thread | `t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/thread:delegated-task:command%3Amcp%3A148b334d-d4d9-40b8-9a60-baa82ad5bc04%3Adelegate-task%3Ab77020fd-0630-450d-b8ac-6cee8a53d88b` |
+
+**Capacity correction (observed, supersedes the E-003 state):** the OpenAI pool now **accepted** a dispatch on `codex_c75d8114-7118-4224-8bf2-b9b62637e1fb`. The E-003 usage-limit refusal was real at 08:52Z, but it is no longer in force for this provider instance. Reset time was never exposed, so the recovery is recorded as an observation, not a reconstructed reset. Two live provider instances exist (`codex` and `codex_c75d8114…`); only the latter has been used by this run, and no account/credential manipulation of any kind was performed.
+
+**Independence:** author = Claude Opus 5.5; reviewer = GPT-6.1 Sol. Different model family, separate session, no authorship overlap, reviewer reads only the pushed immutable artifact plus primary sources. The reviewer was told explicitly that the author must not review and that a same-family substitute is not independence.
+
+**Review brief content (recorded):** verify the file's line count, byte size and SHA-256; verify the diff is exactly one added file; re-hash all raw fixtures and `sha256sum -c` the #508 manifest; regenerate the 175-row roster from `C-B-30` and compare bytes to the #657 fence; recompute the H1/buffer/rack-label/totals/occupancy/route/nearest-stem/G1 numbers; judge #669 F-02 resolution and the reproducibility of the class counts; assess the failed-shelter envelope with the orchestrator's corrected numbers (0.4459/0.1541 source sign vs 0.4712/0.1288 reversed) and the document's sign-invariance sentence; audit coverage of 88 fields + 36 cells and the terrain/A7/path/G1/H1/tree-state/presentation/identity groups; confirm zero SIGNED statuses, no chosen OD option, M-A-SCOPE still deferred, crop-tree receipt used as intent only, and no historical-world/save/spec alteration. Verdict vocabulary APPROVED / NEEDS CHANGES / REJECTED, evidence/document completeness only, one bounded correction round.
+
+**Next executable action at this cursor:** on reviewer completion append E-008 with the verdict and exact artifact, then either (a) dispatch one bounded correction to the same author branch if NEEDS CHANGES, or (b) proceed to Stage W3, which — absent a real owner attestation — ends in a consolidated owner-gap register and `WORLD SIGNATURE BLOCKED`, never a fabricated signature.
