@@ -97,3 +97,29 @@ No source mutation, no P0 ancestry merge, no P1 extraction, no build/test, no qu
 **Gates unchanged: G1 (physical custody) and G2 (Manager source permit) still BLOCKED. No child dispatched.**
 
 <!-- END E-009 -->
+
+## E-010 · 2026-11-17T19:14Z · G1 physical custody GRANTED by custodian (reservation only) · physical Ops
+
+The physical Ops custodian issued the missing G1 custody for **child A only**, and Manager #641 published the G2 conditional source-operation permit. Recorded here as a custody event, not as a dispatch.
+
+| Item | Value |
+|---|---|
+| Custodian receipt (GitHub) | [#687 comment 6958203286](https://github.com/jermur788/CCF/issues/687#issuecomment-6958203286) |
+| Machine receipt | `/media/jer/Files/CCF/Operations/CCF-687-P0P1-Integration-20261117/receipts/CCF-MULTI-687-custodian-reservation-20261117.json` |
+| Lane root | `/media/jer/Files/CCF/Operations/CCF-687-P0P1-Integration-20261117` |
+| Isolated store | `…/git/CCF-687-Integration.git` — **0 objects, 0 refs, 0 linked worktrees, no fetch** |
+| Worktree | `…/ccf-687-child-a` — **allocated, not created** |
+| Evidence | `/media/jer/Files/CCF/Verification/CCF-687-P0P1-Integration-20261117` |
+| Branch | `integrate/multi-p0-q-current-main-20261117-v1` — **name reserved only**, absent in canonical (3,671 refs), legacy (287 refs) and origin |
+| Storage | `/dev/sdb4`, **ext4**, UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4`, 51.89 GiB free, same `dev=2068` across lane/store/evidence |
+| Deployed state | board row `CCF-687-P0P1-INTEGRATION` (READY, no owner, HEAD `TBD`, Unity required No) + `lanes.json` lane `MultiP0P1Integ687` (`unity:false`); `packet-lint --board` **PASS (35 live tasks)**; no duplicate lane/branch; no collision across 225 checkouts |
+| Expiry | **2026-11-19T18:00:00Z** |
+| Protection verified | #674 store unchanged and not borrowed (20,094 in-pack); #683 grant unused; #639 worktree still `e302f15b`; canonical/legacy stores read-only; dirty Primary still only its two pre-existing files; Scenario One untouched; `unity-lock` free and **not acquired**; no Unity/dotnet/strace process |
+
+**Gate movement.** A-1 (physical custody) → **GRANTED, conditional on Manager #641 ratifying the exact readback**. A-2 (G2 scope) → **published** by Manager #641, but **not executable**: the permit itself requires ratification, an **immutable M full SHA in a binding #687 comment**, and a distinct **G3 child A claim** naming the writer. A-3 (child claim/writer) → **still unmet**.
+
+Manager notified: [#641 comment 6958210614](https://github.com/jermur788/CCF/issues/641#issuecomment-6958210614).
+
+**No child dispatched; no Git fetch, worktree, source edit, candidate merge, dotnet, strace, Unity, Windows or year execution occurred.** This worker remains the docs-only orchestrator; the custodian role was exercised only for the reservation above. Ledger stays open at E-010 for the Manager ratification / M pin / G3 claim.
+
+<!-- END E-010 -->
