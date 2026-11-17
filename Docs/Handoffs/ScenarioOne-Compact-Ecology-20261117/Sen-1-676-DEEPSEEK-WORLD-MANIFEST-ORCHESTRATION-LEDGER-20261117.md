@@ -73,6 +73,14 @@ Provider capabilities were read with `orchestrator_capabilities` and both packet
 
 **D-006.** The world manifest candidate is authored as a **candidate**: every field carries value, class, provenance, signature state and blocker. A whole-world digest is computed only if every input is complete; otherwise the manifest explicitly reports `world_digest: null` with the exact remaining blockers. The owner's signature block stays empty.
 
+## E-006 — W1 author lane launched (2026-11-17T16:05Z)
+
+A separate OpenAI `gpt-6.1-sol` child session (provider instance `codex`, reasoning effort high, T3-delegated task `node:delegated-task:…:3f654f06-6dca-444e-962c-361f2028b94b`, child thread `…/ac150346-a782-45eb-8cae-4e08fe9bab79`) was started in an isolated worktree with the hardened W1 brief. The brief binds: live `origin/main` base, claim-first ordering, the three exact NEW paths and nothing else, every Round 1/2 owner decision, OD-16 deferral, explicit BLOCKED discipline, no world digest unless every input is complete, no owner signature, and no source/Unity/asset/save/Ops/Windows action. The author must self-verify roster bytes, occupancy, cell formulas, route/G1/guard geometry and its own diff scope before reporting.
+
+**Status at this entry:** RUNNING. No author claim, commit, push or file is asserted to exist yet. W2 remains unstarted and will not start until the author's frozen commit is observed.
+
+**D-007.** If the author's provider fails, or the session produces no claim and no files, record the observed failure as a new entry and retry the same named model/provider once. Do not substitute a same-family author without a logged reversal and a distinct-family independent reviewer; do not self-author.
+
 ---
 
 *Append-only. Later entries are added by the parent orchestrator only after the event is observed.*
