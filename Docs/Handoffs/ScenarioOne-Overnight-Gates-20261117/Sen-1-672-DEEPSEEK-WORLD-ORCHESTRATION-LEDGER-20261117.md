@@ -135,3 +135,31 @@ M-A-SCOPE one-treated-stem sufficiency remains **DEFERRED** (the 08:35Z owner "t
 | Claude Opus 5.5 high | AVAILABLE (dispatch accepted, running) | UNKNOWN | observed dispatch acceptance | UNKNOWN | W1 author attempt #1 | 2026-11-17T08:52Z |
 
 **Next executable action at this cursor:** on Opus completion append E-004 with exact commit/file digest and verify the one-file diff independently; then register the W2 review claim and attempt the Sol reviewer.
+
+## E-004 — 2026-11-17T09:05Z — Orchestrator independent re-derivation of the carried world numbers
+
+While the Opus author works, the orchestrator ran its **own** read-only checks so the child's arithmetic is not the only witness. No repo file was written; the helper ran in `/tmp/opencode/ccf672/` and only read the authenticated fixtures. This is orchestrator corroboration, **not** independent review and **not** a content signature.
+
+**Reproduced exactly (read-only Python over the raw bytes, no archived script executed):**
+
+| Claim | Orchestrator result |
+| --- | --- |
+| H1 omissions inside x∈[−9,3], z∈[−15,−5] | 14 IDs, equal to ledger `/H1/inside` |
+| Retained roster rows | 175 |
+| 175-row roster block bytes / SHA-256 | 9,481 bytes / `dac06a3b7775f884fac9f8df6b95178cbaf9d912b44687082a161eaf0426cca1` — **byte-equal to the #657 annex fence** at `55f79067` |
+| 1 m buffer stems | 8 IDs, equal to ledger `/H1/buffer1m` |
+| Former rack-labelled retained stems | 19 |
+| Retained raw BA / volume | 3.3540142137153026 m² / 20.34134303405881 m³ |
+| 36-cell occupancy | `[4,2,0,3,7,5,6,0,0,1,7,7,8,5,3,2,3,8,7,6,6,4,6,7,8,5,2,3,7,8,9,5,2,4,6,9]`, sum 175 |
+| 8-anchor polyline length | 16.671961451565554 m |
+| Nearest retained stem to route | P1106, 1.6004984012675665 m; trunk-edge margin 0.9194443718028448 m |
+| O1/O2/B1/B2 route distances | 1.057754702189279 / 1.2628381745758872 / 1.2228347021248314 / 1.020975667765573 |
+| G1 core margins / core+verge margins | 0.3578/0.1578, 0.5628/0.3628, 0.5228/0.3228, 0.3210/0.1210 |
+
+**One carried number did NOT reproduce and is flagged, not accepted.** The #667 dossier carries a failed-shelter envelope minimum route distance of 0.4586424 m and an O1 intrusion of 0.1413576 m into the 0.6 m half-core. Applying the actual source pose (`ScenarioProtectionVisuals.cs` — 1.2 m cylinder, r 0.10, `Quaternion.Euler(0,0,28)`, position `+(0.25, −0.1, 0)`, collider destroyed) and sampling both rim circles continuously against the eight-anchor polyline, the orchestrator gets a minimum of ≈0.729 m, i.e. **no** intrusion at O1 (envelope reach toward the route ≈0.33 m). A sign-reversed tilt gives ≈0.19 m, which also is not 0.1414. The dossier's exact sampling model is not stated, so the difference cannot yet be attributed to the model rather than to an arithmetic error.
+
+**Consequence for the stages:** the W1 author must either re-derive that envelope with its sampling model stated explicitly (and the model must match the source pose) or withdraw the 0.1413576 m figure and state the honest planar result; the W2 reviewer gets this as a named check. It cannot enter the signing candidate as a bare carried number. Note that this is a **visual-envelope** question only — the source destroys the shelter collider, so it is not a player-collision claim either way.
+
+**Capacity:** unchanged from E-003 (Sol COOLDOWN/USAGE-LIMIT, reset UNKNOWN; Opus AVAILABLE and authoring; DeepSeek AVAILABLE, quota UNKNOWN). No new provider attempt was made.
+
+**Next executable action at this cursor:** on Opus completion append E-005 with the exact commit, one-file diff and file digest; verify the diff is exactly one added file; then register W2.
