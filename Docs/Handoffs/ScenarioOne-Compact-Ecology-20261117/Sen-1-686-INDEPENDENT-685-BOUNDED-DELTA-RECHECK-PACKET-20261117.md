@@ -17,7 +17,7 @@
 
 ## Precisely check corrected lines
 
-Original→final Markdown operations: four rewritten lines (former **45, 51, 88, 110**) and 16 added lines (final **219–230** section, including blanks). Focus only on these changed lines plus immediate source proof:
+Original→final Markdown operations: four rewritten lines (former **45, 51, 88, 110**; 4 deletions and 4 additions) plus **12 new appended lines** (final **219–230**, including blanks), making **+16/−4** overall. Focus only on these changed lines plus immediate source proof:
 
 1. **M-1**: equal XYZ nested FBX transform normalisation to approximately 1m, Pole 0.125, Benchmark 0.03846154, LODGroup size, separate plantation uniform renderer below 20m and scene-serializable `poleVisualMaxHeightM` (default 12m, not fixed). No false inference that all-LOD H/D/R fidelity is fixed.
 2. **M-2**: source already has primitive trunk/crown; Mature D/100 and 2R, young/sapling fixed heights/multipliers, crown depth tied to R not crown base, Compact-only replacement still proposed but NOT RUN and requires authorisation. Do not claim neutral primitives are implemented or biologically truthful.
