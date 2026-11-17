@@ -126,3 +126,37 @@ Every event below was written by the registered orchestrator session. The Manage
 - **Decision / stop / state:** **RUNNING** — author lane occupied by one writer; review lane remains unclaimed and unused until the author's immutable tip is pushed.
 - **Next executable step and delegated owner:** wait for the author's `[HANDED-OFF]` on #668 (no polling); orchestrator then reads back the exact two-file delta, records it, and publishes the Opus 5.5 review dispatch packet with the author's exact tip.
 - **User action required:** NONE.
+
+### EVENT 4 — 2026-11-17T01:37Z — author handoff read back at its immutable tip; two-file delta verified by the orchestrator
+
+- **Classification:** OBSERVED FACT (Git object ids, computed hashes, diff output) + ORCHESTRATOR CLAIM (adequacy judgement).
+- **Why event is material:** the packet requires the orchestrator to read the author result back from GitHub and prove the exact two-file addition before spending review capacity; no review may be dispatched against an unverified tip.
+- **Previous worker/model/pool:** author `gpt-6.1-sol` on provider `codex`, `reasoningEffort=high` (EVENT 3) — completed.
+- **Selected worker/model/pool/effort:** unchanged at this event; no new worker.
+- **Alternatives considered:** accepting the child's self-reported completion summary without read-back — rejected; the child's claim is not evidence and the packet forbids treating it as such.
+- **Capacity / quota / reset evidence:** the author run completed end-to-end on its first successful launch; no quota error, throttle or reset was observed during it. Actual token usage: **UNKNOWN / NOT EXPOSED**.
+- **Duration/resource data:** dispatch accepted 01:14Z, completion notice received before this event (author self-reported hash-read times cluster at 01:10–01:11Z); a precise run duration is **NOT MEASURED** by the orchestrator.
+- **File ownership, host, branch, starting HEAD, local worktree:** author lane `docs/sen-1-667-compact-world-save-evidence-20261117-v1`; verified tip `d05207782bbb8274dbf73eeb383119aa0854adbe` from base `1e0fba5ffd5a07704eed3e44c34b3a960f61ac60`; one commit `d0520778`.
+- **Child claim/packet/pushed result:** handoff https://github.com/jermur788/CCF/issues/668#issuecomment-6935259821 ; author packet `Sen-1-667-SOL-AUTHOR-DISPATCH-20261117.md` @ `889c558e`.
+- **Prior attempt and outcome influencing routing:** none for this sub-step.
+- **Test/inspection evidence and quality class:** `git fetch`; `git rev-parse origin/docs/sen-1-667-…`; `git log --oneline base..tip` (one commit); `git diff --name-status base..tip` → **exactly two `A` rows, nothing else**; `git diff --stat` → **699 insertions, 0 deletions**; `sha256sum` of both files locally → world `824c503c156741338670730ee3623270e9d658531e2e5ec27cf1145488208f3b` (342 lines), save `791f243b3ff5d826e2df1b6da771c90368c9a8a33be1b4ab515a1892cf959f4f` (357 lines), both **matching the author's reported values exactly**; `wc -l` line counts match. Orchestrator read both documents in full (699/699 lines) and checked: signature/save boundary table, `SIGNATURE-NOT-READY` honesty, both admission alternatives present and undecided, S1 all-unsigned, S2 unsupportability, M-A-SCOPE untouched, A7 alternatives with no decision, 88-row field matrix, 36-cell table, W01–W14 / S01–S08 registers, `NOT RUN` lists, and the 14/8/19 membership figures against EVENT-2/3 relayed facts. The 36-cell occupancy column sums to 175, matching the retained-roster count.
+- **Decision / stop / state:** author deliverable **accepted as review input**, not accepted as evidence quality, not signed, not approved. Review lane now opens.
+- **Next executable step and delegated owner:** dispatch the independent Opus 5.5 reviewer against tip `d0520778`.
+- **User action required:** NONE.
+
+### EVENT 5 — 2026-11-17T01:40Z — review claim, review packet and Opus 5.5 dispatch (independence by model family)
+
+- **Classification:** OBSERVED FACT (tool/GitHub outputs) + ORCHESTRATOR CLAIM (routing rationale).
+- **Why event is material:** the independent nonauthor review is the gate that turns authoring into a reviewed dossier; the reviewer must see an exact immutable tip and must not be the author or its helper.
+- **Previous worker/model/pool:** `gpt-6.1-sol` / `codex` authored both documents (EVENT 4).
+- **Selected worker/model/pool/effort:** Anthropic **`claude-opus-5-5`** on the `claudeAgent` (Claude A) provider instance, separate T3 delegated session. Selected because the packet prefers cross-family independence (Sol authored), Opus 5.5 is an authorised family for this task, and a separate provider instance makes authorship overlap impossible in practice.
+- **Alternatives considered:** (a) a second Sol session — rejected: same-family review is only a fallback the packet requires to be disclosed as a limited independence claim; (b) `claudeAgent_claude_b_pro` (Claude B — Pro) — held as the contingency pool if Claude A fails on quota/auth, and any switch would be logged as a real observed event; (c) DeepSeek self-review — prohibited.
+- **Capacity / quota / reset evidence:** provider instances observed available in EVENT 2; **no quota value exposed: UNKNOWN**. Claude availability is proven only by this dispatch actually starting.
+- **Duration/resource data:** NOT MEASURED at this event.
+- **File ownership, host, branch, starting HEAD, local worktree:** review lane `review/sen-1-667-independent-gate-evidence-20261117-v1`, base `85f2b35deb751d78e9486d4db0f68d8d14b5ea96`, one new review file only; reviewer receives an isolated worktree and must not touch the author branch, specs, `Docs/Project`, code or scenes.
+- **Child claim/packet/pushed result:** review claim [#669](https://github.com/jermur788/CCF/issues/669); review dispatch packet `Sen-1-667-OPUS55-INDEPENDENT-REVIEW-DISPATCH-20261117.md` published on this branch in the same commit as this event, pinned to author tip `d05207782bbb8274dbf73eeb383119aa0854adbe` and to both orchestrator-recomputed file hashes.
+- **Prior attempt and outcome influencing routing:** the author lane's 22 blocker groups and `SIGNATURE-NOT-READY` verdict make the review an evidence-quality check, not a success/fail of an implementation; the review brief therefore asks for severity-classed findings, not a gate PASS.
+- **Test/inspection evidence and quality class:** `gh issue create` output; packet committed to the orchestration branch; author tip and hashes verified in EVENT 4.
+- **Decision / stop / state:** **RUNNING** — review lane occupied by one nonauthor writer; author lane frozen at `d0520778` for the review (no further author edits unless a bounded correction is authorised).
+- **Next executable step and delegated owner:** reviewer completes and pushes; orchestrator reads the verdict back, then either accepts for the final package or routes bounded corrections to the **same** author branch with a changed-lines recheck only.
+- **User action required:** NONE.
