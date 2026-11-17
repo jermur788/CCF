@@ -1,0 +1,19 @@
+# Sen-1 #711 — nonauthor independent review of Manager #700 attestation gate-order corrigendum
+
+**READY / NOT RUNNING — ONE NEW GITHUB REVIEW MARKDOWN ONLY.**
+
+Claim [#711](https://github.com/jermur788/CCF/issues/711). Independent review target [Manager #700 additive corrigendum](https://github.com/jermur788/CCF/blob/docs/sen-1-700-manager-intake-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-700-MANAGER-709-WORLD-ATTESTATION-GATE-ORDER-CORRIGENDUM-20261117.md), written by **OpenAI GPT-6** in browser; reviewer must be **non-OpenAI and not its author**, ideally Claude Opus 5.5 or DeepSeek. Difficulty **MEDIUM**, requires checking frozen authority and safe causal order rather than numeric reanalysis.
+
+Input [#709 independent review](https://github.com/jermur788/CCF/blob/74898b4c507aafd9df07f6a47b37b42b66cc957b/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-709-INDEPENDENT-COMPACT-WORLD-ATTESTATION-REVIEW-RESULT-20261117.md), [#705 original report](https://github.com/jermur788/CCF/blob/8676b4b264fedb4ef25e6ffb3cd7746495dc1cf3/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-705-COMPACT30-WORLD-BLOCKERS-AND-ATTESTATION-EVIDENCE-RESULT-20261117.md), and frozen #676 W §11.1, §11.2, §12 and M `/attestation` plus B-W14-WHOLE row 83, canonical D-083/084/085 OD-16 deferred. Reopen actual frozen files, not just paraphrases.
+
+Review whether proposed **content-attestation** vs **post-signature gameplay/save qualification** split correctly excludes OD-16, but still retains exactly necessary content-only native/asset/scene and rights evidence. Confirm the W §12/B-W14 source-byte paradox is explicitly **owner decision / STOP** and no premature permission has slipped into the proposed pre-attestation lane. Confirm B2 old polyline +0.1209757 vs candidate smooth +0.1029378 difference; supplementary H1 kerb/yard/gate attribution; broader manifest pointers, no signer, no digest, all eight blockers remain BLOCKED. Do not declare the proposed lane authorised or approve a spec, and do not substitute a physics/Unity test.
+
+Before edit register actual worker/model/provider/host or browser, unique separate docs review branch `review/sen-1-711-attestation-gate-order-nonopenai-20261117-v1`, starting Git ref, exclusive result path and live ownership check as [RUNNING] on #711. One new Markdown result only at `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-711-INDEPENDENT-ATTESTATION-GATE-ORDER-REVIEW-RESULT-20261117.md`. Report APPROVED DOCUMENT CORRIGENDUM / NEEDS CHANGES / REJECTED and precise cited findings. Publish readback and mark HANDED-OFF for Manager #700.
+
+No writing existing #676/#705/#709/corrigendum, specs, Decision Log, active board, source, art, Unity, binaries, saves, Ops or Windows. No owner approval inferred. After independent recheck Manager can accept corrected documentary signature sequencing but must separately solicit owner judgement on authoring pre-attestation exact art/scene bytes.
+
+### Paste-ready dispatch
+
+Take Sen-1 #711 as a non-OpenAI independent GitHub documentation reviewer. Read the COMPLETE packet: https://github.com/jermur788/CCF/blob/docs/sen-1-700-manager-intake-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-711-INDEPENDENT-MANAGER-CORRIGENDUM-GATE-ORDER-REVIEW-PACKET-20261117.md . Register actual worker/provider/model, branch, starting ref and only new review file before editing. Review Manager #700's #709 gate-order corrigendum against frozen #676 W §11–12 and #705/#709. Check signature-vs-post-qualification split, deferred OD-16, unresolved B-W14 source-byte paradox, B2 margin and H1/pointer attribution. Publish one GitHub nonauthor verdict. No world signature, pre-attestation source permit, asset, Unity or policy change.
+
+**Owner action now:** dispatch nonauthor review. The separate owner signing-boundary decision comes after review. **Dashboard/Drive:** unverified.
