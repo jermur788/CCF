@@ -15,8 +15,9 @@
 | Frozen source (starting HEAD) | **`1e0fba5ffd5a07704eed3e44c34b3a960f61ac60`**, branch `docs/sen-1-663-660-targeted-author-correction-20261117-v1` — the independently #665-accepted #663 tip |
 | No newer authoritative draft | `main` does not contain the twelve Compact spec files, and `git log --all` shows no later commit touching the eight parent/planting paths. No re-pin or cherry-pick was needed |
 | Destination | `docs/sen-1-684-cgtrig-signed-compact-draft-author-20261117-v1` at `/media/jer/Files/CCF/Worktrees/CCF-684-CompactSpecRecon-20261117` (new isolated docs-only worktree) |
-| Specs commit | **`5f22e8a59507814c14b9b2e1d6afc8a61d3d5181`** |
+| Specs commits | **`5f22e8a59507814c14b9b2e1d6afc8a61d3d5181`** (initial reconciliation) and **`0725f078`** (bounded repair after independent review; full SHA in the #684 comment) |
 | Result commit | This file's commit on the same branch (recorded in the #684 closure comment) |
+| Independent review of this output | Anthropic **Claude Opus 5.5**, review commit **`128ffa2f96104df324bc29e751d225f6d54826e8`** on `review/sen-1-684-compact-draft-cgtrig-independent-20261117-v1`, verdict **NEEDS CHANGES — 0 critical / 2 major / 3 minor / 4 nit**; the bounded repair below addresses every finding and a changed-lines-only recheck follows |
 | Signed policy source | [#677 supplement](https://github.com/jermur788/CCF/blob/bfa01f86310bd013b87ff6686958e8b73315b591/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-677-MANAGER-COMPACT-CGTRIG-AND-SAVE-POLICY-SUPPLEMENT-20261117.md) at reviewed commit **`bfa01f86310bd013b87ff6686958e8b73315b591`**, Git blob **`bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b`** — recomputed locally with `git hash-object` and **matched**; the stale in-file "candidate / not yet reviewed" banner was **not** treated as the authority |
 | Signature authority | [#677 out-of-band exact-byte D-A attestation](https://github.com/jermur788/CCF/blob/docs/sen-1-677-manager-cgtrig-exact-byte-signature-20261117-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-677-MANAGER-CGTRIG-SAVE-POLICY-EXACT-BYTE-D-A-SIGNATURE-20261117.md) — technical policy only, signer not the product owner |
 | Independent review of the policy | [#681 Opus 5.5 review](https://github.com/jermur788/CCF/blob/1e923e54d373ff1f30d6810b85bb2c5d120272bb/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-681-INDEPENDENT-MANAGER-CGTRIG-SAVE-SUPPLEMENT-REVIEW-20261117.md) at `1e923e54`, **DELTA APPROVED — 0 critical / 0 major / 0 minor / 1 note (D-N1)** |
@@ -31,14 +32,14 @@ Eight modified Markdown files, all still DRAFT. Before/after blob IDs:
 
 | Path | Before | After | Δ |
 | --- | --- | --- | --- |
-| `specs/scenario-one-compact-complete-loop-v1/spec.md` | `3342a125` | `f68199e5` | +87 / −2 |
-| `specs/scenario-one-compact-complete-loop-v1/plan.md` | `e4cf9fd8` | `c4059873` | +14 / −1 |
-| `specs/scenario-one-compact-complete-loop-v1/tasks.md` | `706b99a3` | `d6b91642` | +15 / −1 |
-| `specs/scenario-one-compact-complete-loop-v1/checklists/requirements.md` | `4ff8f69a` | `17eb8c8b` | +21 / −0 |
-| `specs/scenario-one-compact-initial-planting-v1/spec.md` | `3658f782` | `5fcb424b` | +19 / −1 |
-| `specs/scenario-one-compact-initial-planting-v1/plan.md` | `6025bc82` | `d1f23510` | +12 / −1 |
-| `specs/scenario-one-compact-initial-planting-v1/tasks.md` | `1e757654` | `2a283f5e` | +14 / −1 |
-| `specs/scenario-one-compact-initial-planting-v1/checklists/requirements.md` | `7c55538d` | `6b849f19` | +17 / −0 |
+| `specs/scenario-one-compact-complete-loop-v1/spec.md` | `3342a125` | `04077712` | +84 / −9 |
+| `specs/scenario-one-compact-complete-loop-v1/plan.md` | `e4cf9fd8` | `1d03e3de` | +14 / −1 |
+| `specs/scenario-one-compact-complete-loop-v1/tasks.md` | `706b99a3` | `011f21fc` | +15 / −1 |
+| `specs/scenario-one-compact-complete-loop-v1/checklists/requirements.md` | `4ff8f69a` | `bcd0d678` | +21 / −0 |
+| `specs/scenario-one-compact-initial-planting-v1/spec.md` | `3658f782` | `720e5e00` | +17 / −3 |
+| `specs/scenario-one-compact-initial-planting-v1/plan.md` | `6025bc82` | `862f1894` | +12 / −1 |
+| `specs/scenario-one-compact-initial-planting-v1/tasks.md` | `1e757654` | `d715c679` | +14 / −1 |
+| `specs/scenario-one-compact-initial-planting-v1/checklists/requirements.md` | `7c55538d` | `649ae957` | +17 / −0 |
 
 `specs/scenario-one-compact-graphics-v1/**` — **zero** changes (`git status` on that directory is empty).
 
@@ -48,16 +49,19 @@ Each file gained a new **`#684`** section (DRAFT banner, signed-policy reading r
 
 | Location | Before | After (signed basis) |
 | --- | --- | --- |
-| Parent `spec.md` D84-T CT-2 | generic event-9/review wording | **T-02:** the existing Annual Review acknowledge control is the only covering acknowledgement; event9 + `reviewAcknowledgedYear=Y*` in one transaction; one event9/year; idempotent; split state refused |
+| Parent `spec.md` D84-T CT-2 | generic event-9/review wording | **T-02:** the existing Annual Review acknowledge control is the only covering acknowledgement; event9 + `reviewAcknowledgedYear=Y*` in one transaction; the existing **one event9 per year per resolution boundary** dedup; idempotent; a **covering** split state refused, and an admitted pre-final-work event9 released by the genuine covering acknowledgement |
 | Parent `spec.md` D84-T CT-3 | hold across advance/skip | **T-03/T-05:** hold covers every annual/skip/service route and survives Save/Load; the two unreleasable CT-1 states are refused, not held |
 | Parent `spec.md` D84-T CT-4 | "Whether admission should instead refuse it … is **not decided here**" | **T-01 Policy B:** admitted as INCOMPLETE / NO TEACHING CREDIT |
-| Parent `spec.md` D84-T CT-7 | 11 negative cases | cases **12–14** added for Policy B, the two refusals and the two admitted-but-unreachable states (descriptions inside existing R-IDs, NOT RUN) |
-| Parent `spec.md` D84-PJ-4 | settlement bullet list | **PJ-4a** atomic effect cluster (T-06), validation before mutation, rollback, no half-commit, no double credit; current source is **not** exception-atomic |
+| Parent `spec.md` D84-T CT-7 | 11 negative cases; refusals citing only §4.2 | cases **12–14** added for Policy B, the two refusals and the two admitted-but-unreachable states; preamble now cites signed #677 T-05 alongside §4.2 (descriptions inside existing R-IDs, NOT RUN) |
+| Parent `spec.md` D84-PJ-1 | "site-match tolerance … not chosen here" | **zero planar placement tolerance** (signed #677; D-085 OD-12 A); coordinates remain unsigned and #676-owned |
+| Parent `spec.md` D84-PJ-4 | settlement bullet list | **PJ-4a** atomic effect cluster (T-06), validation before mutation, rollback, no half-commit, no double credit, **fault-injected settlement evidence** required; current source is **not** exception-atomic |
 | Parent `spec.md` D84-PJ-7 | "A `Completed` order in G without its row also refuses" | **T-05:** admitted as bare incomplete, T1 permanently unreachable, no backfill, no Completed-slot replacement |
 | Parent `spec.md` D84-W-1 / W-3 | UI-level freeze; plain cancel | **T-07:** freeze in UI **and** every public manager/service/bulk setter; decline mutates nothing; cancellation releases only appropriate reservations and is audited |
 | Parent `spec.md` D84-O item 3 | "Signature of the CG-TRIG binding" still open | policy **SIGNED**; source/native binding, ISO-58 and the save-owner §4.2 field confirmation still open |
 | Child `spec.md` C84-3 / C84-5 / C84-7 | pairing, W-A lock, open list | same signed T-02/T-06/T-07 semantics at child level; Policy B admission stated; source-level enforcement remains open |
-| Parent/child `plan.md`, `tasks.md` | "CG-TRIG binding unsigned" gate rows | policy signed; **source/native** implementation and review remain; new proposed tasks inside existing IDs |
+| Child `spec.md` `#684` bullets | — | corrected after review: a passed covering year is a refusal, not loadable no-credit history; rows are per order, so a genuine 3+1 group keeps its verified rows; owner escalation recorded |
+| Parent `tasks.md` D84-CF-1R | "Depends on: #663 handed off" | **Accepted by #665 for document quality only** (controller #640 accepts/rejects), with no repeat recheck |
+| Parent/child `plan.md`, `tasks.md` | "CG-TRIG binding unsigned" gate rows | policy signed; **source/native** implementation and review remain; new proposed tasks inside existing IDs, including fault-injected settlement and the G1 x/z round-trip |
 | Both `checklists/requirements.md` | no #684 reading | new crosswalk tables mapping the signed policy onto existing R-IDs / CIP-IDs; **no checkbox line touched** |
 
 ### 2.2 Comparison against the canonical decisions
@@ -94,8 +98,8 @@ No `- [x]` exists anywhere in either checklist. Nothing in the eight files claim
 D-N1 records that the refusal case (b) qualifies an event9 at Y\* as **"at or after the final `WorkResolved`"**, while two other definitions of the covering acknowledgement omit that qualifier — a difference that matters only for an **edited-file** event9 dated Y\* *before* the final `WorkResolved`. The DRAFT now states:
 
 1. a **false positive review claim** is always refused under original signed §4.2;
-2. the hypothetical pre-final-work event9-at-Y\* case is a **separate negative-test and spec-clarity matter**, not implemented source proof and not an admitted positive claim;
-3. the **"at or after the final `WorkResolved`"** qualifier is used **consistently** (the alignment #681 said a future spec could make);
+2. the hypothetical pre-final-work event9-at-Y\* case is a **separate negative-test and spec-clarity matter**, not implemented source proof and not an admitted positive claim; such a state is **admitted**, CT-3 then holds, and the genuine **covering** acknowledgement after the final row releases it (CT-7 case 7; NOT RUN);
+3. the **"at or after the final `WorkResolved`"** qualifier is used **consistently**, including in CT-2's split-state definition, and "one event9 per year" always means the existing **per-resolution-boundary** dedup (the alignment #681 said a future spec could make);
 4. nothing asserts that #677 silently changed those original signed bits, invents a new wire rule, or reopens the supplement;
 5. if a genuine witness ever shows the difference materially changes admission or the contract, the item is **BLOCKED** and returns to the Manager for a separate signed supplement.
 
@@ -117,7 +121,7 @@ D-N1 records that the refusal case (b) qualifies an event9 at Y\* as **"at or af
 | Failed / cancelled / replacement incomplete | CT-5, D84-PJ-9 | NOT RUN |
 | Later real G1 death or promotion | D84-PJ-7 | NOT RUN |
 | Old historical v1–v24, dual profile, unbound O2 | §684-7, S-03/S-04 text untouched | NOT RUN |
-| Interrupted settlement, Save/Load, backup, replay | §684-1 T-06, D84-PJ-4a/5 | NOT RUN |
+| Interrupted settlement, Save/Load, backup, replay | §684-1 T-06, D84-PJ-4a/5, parent RV1/RV2, child CP-S6 | NOT RUN — includes the required **fault-injected settlement** (complete old or complete new state) and the exact **G1 x/z save→load round-trip** |
 
 **Tier discipline retained.** Tier 1 targeted source/static/calibration, Tier 2 bounded feature qualification, Tier 3 one milestone integrated candidate. These DRAFT edits authorise **no** broad 115+33 suite rerun and add no native evidence.
 
@@ -138,8 +142,26 @@ OD-16 M-A-SCOPE stays **DEFERRED**; the S1 M-A evidence format stays unsigned; t
 5. **Dashboard local health/render and Drive/context mirrors are NOT VERIFIED**; no mirror regeneration was attempted.
 6. **No material product or format conflict was found that requires a Manager BLOCKED return.** The one open wording question (D-N1) is dispositioned as above without policy change.
 
-## 7. Author QA verdict
+## 7. Independent review and bounded repair
 
-**APPROVED — for the author's own DRAFT document-quality QA only.** Not a spec approval, not an independent review, not implementation authority, and not a Unity/save/native result. The eight files are internally consistent with the signed #677 supplement, preserve all 115 + 33 + 66 unchecked items byte-identically, keep graphics read-only, and leave every historical-world and deferred-item protection in place.
+Anthropic **Claude Opus 5.5** (different model family and provider) reviewed this output on `review/sen-1-684-compact-draft-cgtrig-independent-20261117-v1` at commit `128ffa2f`, with its own registration and push, returning **NEEDS CHANGES — 0 critical / 2 major / 3 minor / 4 nit**. It reproduced the signed blob, all 16 pre-repair blob IDs, 115/33/66 preservation, the nine-path inventory and the absence of approval/implementation claims. The repair commit `0725f078` addresses every finding:
 
-**Next required gate:** a separately registered **different-model-family** non-author review on `review/sen-1-684-compact-draft-cgtrig-independent-20261117-v1`, sole new file `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-684-INDEPENDENT-CGTRIG-DRAFT-SPEC-REVIEW-20261117.md`, returning APPROVED / NEEDS CHANGES / REJECTED. Overall Manager #675 alone issues any final spec approval afterwards. DRAFT documentation authorises no Unity or implementation work.
+| Finding | Disposition |
+| --- | --- |
+| **M-1** child text recast a passed covering year as loadable no-credit history | Corrected: that state is the signed T-05 refusal with a cannot-load consequence; the owner-escalation clause is added; "loses a row" is no longer presented as normal producer behaviour, and the producer must prevent both states |
+| **M-2** invented rule barring rows for a `Completed` 3+1 group | Removed: rows are written **per order at its own successful resolution**, so a genuine 3+1 group keeps its verified rows and simply has no T1 |
+| **m-1** D-N1 "used consistently" was untrue; admitted outcome unstated | Corrected: the "at or after the final `WorkResolved`" qualifier is now in CT-2's split-state definition; the dedup is defined once as **per resolution boundary**; the admitted pre-final case's expected outcome and its CT-7 case 7 witness are recorded |
+| **m-2** fault-injected settlement and G1 x/z round-trip missing | Added to PJ-4a, §684-1 T-06, §684-6, parent RV1/RV2 and child CP-S6 (all NOT RUN) |
+| **m-3** PJ-1 still said the site tolerance was undecided | Corrected to the signed **zero planar placement tolerance**, with coordinates still unsigned and #676-owned |
+| **N-1** per-file +/− counts | Recomputed from `git diff --numstat` for the final tree and corrected in §2 |
+| **N-2** undeclared in-place D84-CF-1R edit | Now declared in §2.1; wording changed to "accepted by #665 for document quality only" with #640 as the accepting controller |
+| **N-3** CT-7 preamble cited only §4.2 | Now cites signed #677 T-05 alongside §4.2 |
+| **N-4** overlapping R-ID ranges / missing R-092 | Ranges narrowed to R-051–R-055, R-059, R-062, R-063; R-092 added to the save-refusal row |
+
+No finding required a Manager or owner decision, no requirement ID was added and no checkbox changed. A **changed-lines-only recheck** by a new independent review session is the next gate; until it passes, this output stands as **repaired, not re-accepted**.
+
+## 8. Author QA verdict
+
+**APPROVED — for the author's own DRAFT document-quality QA only, after the bounded repair above.** Not a spec approval, not an independent acceptance, not implementation authority, and not a Unity/save/native result. The eight files are internally consistent with the signed #677 supplement, preserve all 115 + 33 + 66 unchecked items byte-identically, keep graphics read-only, and leave every historical-world and deferred-item protection in place.
+
+**Next required gate:** the changed-lines-only independent recheck on the same reviewer branch, followed by Overall Manager #675's own disposition; only the Manager may issue any final spec approval. DRAFT documentation authorises no Unity or implementation work.
