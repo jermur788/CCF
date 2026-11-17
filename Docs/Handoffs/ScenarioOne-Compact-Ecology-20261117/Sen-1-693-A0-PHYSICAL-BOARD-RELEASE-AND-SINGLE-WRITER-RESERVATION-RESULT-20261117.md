@@ -1,0 +1,39 @@
+# Sen-1 #693 physical board reconciliation result
+
+**Two historical reservations released and verified. A0 source slot BLOCKED / UNASSIGNED.** The installed lane preflight rejects the proposed path as unconfigured. #690 still requires a supported exclusive NonUnity slot, a single source writer and separate Manager source-start approval.
+
+## Authority and fresh readback
+
+The direct user assignment and [Manager #675 packet](https://github.com/jermur788/CCF/blob/docs/sen-1-690-a0-physical-reservation-and-donor-scope-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-693-A0-PHYSICAL-CUSTODY-AND-OPS-BOARD-RECONCILIATION-PACKET-20261117.md) cover physical board maintenance. Actual assigned maintainer was OpenAI Codex gpt-6.2-sol medium, T3 Code, provider instance `codex`, Linux `jer-laptop`, OS user `jer`, and GitHub `jermur788`. Primary working directory was `/media/jer/Files/CCF-Primary`. [#693 RUNNING registration](https://github.com/jermur788/CCF/issues/693#issuecomment-6958946764) was posted and read back while holding the lock, before writing the live board. The authoritative GitHub main was `62fa1cbfa84a31a39e2e7a33eb21b102dacfb9f3` at preflight, under lock and on follow-up. [Pinned coordination record](https://github.com/jermur788/CCF/blob/62fa1cbfa84a31a39e2e7a33eb21b102dacfb9f3/Docs/Project/coordination/active-tasks.md).
+
+- Both Git stores were inspected. Canonical `/media/jer/Files/CCF/Repository.git` had 180 inventory entries including bare root. Legacy `/media/jer/Files/CCF-Legacy/.git` had 45. The proposed A0 branch and checkout were absent in both inventories, and the proposed branch was absent on GitHub. Pinned source refs matched fresh GitHub refs.
+- `feature/scen1-shared-three-profile-save-v2` was clean at `209a08e9f220841aaec81385d4cb7b437fa5089f` in its unique checkout `/media/jer/Files/CCF/Operations/CCF-Scen1-SharedSave-T01-20261115`. #544 is handed off and the broader donor custody stays reserved. #638 and #647 were both closed before the write. [#638 approval](https://github.com/jermur788/CCF/issues/638#issuecomment-6927675533), [#647 approval](https://github.com/jermur788/CCF/issues/647#issuecomment-6930279973).
+- D-073 `55863f1b7719011bba16b3f3ab377e379c0b988a` was clean in both `/media/jer/ZX20/CCF-S1-ResearchCopy-V1-Qual` on the selected integration branch and `/media/jer/Files/CCF/Worktrees/CCF-D073-FR10-Repair` on its distinct feature branch. #412's user Editor slot stayed separate. All three protected checkouts were clean on post-write readback. Primary's pre-existing `AGENTS.md` and `Docs/Operations/StorageArchitecture.md` changes were preserved byte-for-byte.
+- No overlapping active writer was observed in the fresh T3 project worker list or inspected GitHub and Ops records. #443's stale issue title still says RUNNING, while its latest Manager disposition holds integration. Multi #692 now has a physical writer assignment, with its own `MultiP0P1Integ687` lane, branch, isolated store and `Tools/MultiRackSitkaLab/**` scope. It is disjoint from the 15 Assets and 2 fixtures in the A0 ceiling. The Multi row and #674 proof lane were preserved. The physical Unity lock record was absent, and the process check returned zero Unity process names. [#443 hold](https://github.com/jermur788/CCF/issues/443#issuecomment-6897133771), [#692 assignment](https://github.com/jermur788/CCF/issues/692#issuecomment-6958638116).
+
+## Exact physical result
+
+Only deployed `/media/jer/ZX20/CCF-Ops/board/active.md` was changed. At physical lines 8 (#647) and 13 (#638), five cells each changed: State, Owner, Locks, Open gate and Next action. Both now use deployed `DONE-PENDING-LEDGER`, with no active owner or lock. The cells retain the prior owner, reservation, gate and next-action text explicitly as history and link the approved closeouts. Both row IDs, branch cells, starting HEADs, scopes and all other cells were preserved. Every other line is byte-identical, with 35 rows before and after. No A0 row was added. No active #638/#647 source custody was transferred to A0.
+
+| Verification | Result |
+| --- | --- |
+| Board SHA-256 before | `91650d9d6ec7834c768247550c38bfa8cc5229dab5cacd6af7cdf070b1d690f6` |
+| Board SHA-256 after | `be928da093f4db6f71674c63ada48388452214d1f95f7c8062840b825be10f42` |
+| Exact unified diff SHA-256 | `bdaa95685a6649425c4b5c1c05e2982f2cb3e1fe8b865825d2b9bf91a9f5e7af` |
+| `lanes.json` SHA-256, before and after | `d96bf16d95e1a3c34ed2093c6d7bea0ddf603c35a7fd1d80431b8f4747a5a8c5` |
+| `deployment.json` SHA-256, before and after | `8c66b290c247708846cb8b59f83626a10a3fa1d052397a3316dc5f23fc157b18` |
+| Deployed parser and packet-lint | PASS on starting board, proposed bytes, live readback and separate post-release check. Ordered 17 columns, 35 records, no duplicate task ID, lane or branch. |
+| Maintenance lock | Exclusive nonblocking flock on existing `board` directory, inode 1399769, PID 695025, operation ID `1ed7a563973541928cdb0abd238ed64b`. Acquired 19:43:20.385Z on 17 November. An independent descriptor was blocked while held. Release and independent reacquire/release verified at 19:43:24.929Z, and a separate process acquired/released again. |
+
+The exact pre-write board was copied and fsynced to Files before atomic replacement under lock. Live bytes were read back and compared to the verified candidate. The transaction had an exact-byte rollback path for failed validation or trapped interruption. No rollback was required. Full rollback and verification files are under `/media/jer/Files/CCF/Verification/Sen1-693-PhysicalBoard-20261117T194320Z/` (`before-active.md`, `after-active.md`, `physical.diff`, `receipt.txt`). The deployed scripts, manifest, lane config, and existing Unity guard/history hashes were unchanged. The installed provenance manifest identifies baseline `dfe445e54d099a0e20c9c7d5a9e3e6f195968b4e` with recorded live overrides. #652 installation remains held.
+
+## A0 slot blocker
+
+The exact branch and Files path remain prospective:
+
+- `integration/sen-1-d073-shared-save-a0-20261117-v1`
+- `/media/jer/Files/CCF/Worktrees/CCF-Sen1-690-A0-20261117`
+
+The parent is on writable ext4 Files, `/dev/sdb4`, UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4`, with about 52 GiB free. ZX20 identity and storage threshold passed via installed `environment.sh`, with UUID `18D6-896E` on `/dev/sdd2`. Storage capacity is available. The installed resolver requires a lane name or exact path in schema-1 `lanes.json`. Running deployed `lane-status --preflight --lane /media/jer/Files/CCF/Worktrees/CCF-Sen1-690-A0-20261117 --branch integration/sen-1-d073-shared-save-a0-20261117-v1` returned exit **2**, `ERROR: lane is not configured`. Board lint by itself checks schema and duplication and cannot issue this missing slot. The installed config already supports registered durable NonUnity paths. The smallest prospective next step is a separately authorized exact non-Unity `lanes.json` registration and physical preflight for this path, or a Manager-approved configured alternative. No install is required merely to consider registering a supported Files lane. The existing generic NonUnity lane and both Multi lanes had no A0 assignment and were not repurposed.
+
+Once a real slot is verified, Manager #675 must confirm the exclusive writer for the exact [17-file scope](https://github.com/jermur788/CCF/blob/docs/sen-1-690-a0-physical-reservation-and-donor-scope-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-675-MANAGER-690-PREFLIGHT-DONOR-TREE-SCOPE-AND-GPHYS-DISPOSITION-20261117.md) and issue a separate **[APPROVED TO START]**. The actual source worker then registers **[RUNNING]** before source work. No source branch or worktree creation, merge, source tests, Ops installation, Unity, Windows, or save activity occurred. Dashboard and Drive sync were not run.
