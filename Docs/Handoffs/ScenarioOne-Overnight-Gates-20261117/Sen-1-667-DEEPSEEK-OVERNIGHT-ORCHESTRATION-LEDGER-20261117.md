@@ -17,11 +17,11 @@ Keep **HANDED-OFF, REVIEWED, VERIFIED, INTEGRATED and ACCEPTED distinct**. A Git
 
 | Item | Snapshot / provenance | Evidence class |
 | --- | --- | --- |
-| Owner routing request | 2026-11-17: one **overnight continuous** DeepSeek orchestrator, workers either Sol 6.1 or OpenAI 5, continue until task result complete, fill routing decisions into ledger | OBSERVED USER INSTRUCTION |
+| Owner routing request | 2026-11-17: one **overnight continuous** DeepSeek orchestrator, owner corrected worker choices to Sol 6.1 or **Claude Opus 5.5**, continue until task result complete, fill routing decisions into ledger | OBSERVED USER INSTRUCTION |
 | Parent task | [#667](https://github.com/jermur788/CCF/issues/667), parent READY / NOT RUNNING at seed | OBSERVED GITHUB |
 | DeepSeek actual session/model/effort/pool | **UNKNOWN / NOT STARTED BY MANAGER** | UNKNOWN |
 | Sol 6.1 actual availability, pool, effort and quota | **UNKNOWN**, user-authorised choice, not a verified slot | UNKNOWN |
-| GPT-5 family actual model id, availability and quota | **UNKNOWN**, user-authorised choice, not a verified slot | UNKNOWN |
+| Claude Opus 5.5 actual model id, availability and quota | **UNKNOWN**, user-authorised choice, not a verified slot | UNKNOWN |
 | Live board, source, provenance | GitHub main current board and original D-083/D-084, #657/#663/#665 handoffs; require fresh DeepSeek read before every dispatch | OBSERVED MANAGER INSPECTION, historic before worker |
 | Source constraints | Three Compact specs DRAFT/unchecked; 175-roster candidate UNSIGNED; #652 physical Ops installation HELD; historical saves/Reference protected | OBSERVED CANONICAL AND GITHUB DISPOSITIONS |
 | Owner M-A-SCOPE | **DEFERRED / UNDECIDED** after explicit direct owner instruction; do not infer one-tree eligibility | OBSERVED USER INSTRUCTION |
@@ -29,13 +29,15 @@ Keep **HANDED-OFF, REVIEWED, VERIFIED, INTEGRATED and ACCEPTED distinct**. A Git
 | Unity/physical Ops deployment, worktree dirt, save/Prefs isolation | NOT INSPECTED BY THIS MANAGER THIS TURN; NO UNITY EXECUTION AUTHORISED | NOT RUN / UNKNOWN |
 | Dashboard/Drive/project mirrors | NOT VERIFIED | UNKNOWN |
 
+**Manager correction before DeepSeek registration (2026-11-17):** The owner clarified that the second permitted worker is **Claude Opus 5.5**, not the previously transcribed GPT-5. No DeepSeek agent or child has yet started or selected a provider. This is a seed correction, not a runtime routing event.
+
 ## Actual provider capacity table — DeepSeek to append date-stamped readings below, never edit manager seed
 
 | Provider candidate | Candidate role | Actual model/effort | Live quota/account status | Latest direct evidence |
 | --- | --- | --- | --- | --- |
 | DeepSeek | Orchestrator, no production authoring | UNKNOWN | UNKNOWN | No runtime registration |
 | OpenAI GPT-6.1 Sol | Source/evidence drafting or independent nonauthor review | UNKNOWN | UNKNOWN | User authorised, not independently available |
-| OpenAI GPT-5 family | Source/evidence drafting or independent nonauthor review | UNKNOWN | UNKNOWN | User authorised, exact exposed model not assumed |
+| Claude Opus 5.5 | Source/evidence drafting or independent nonauthor review | UNKNOWN | UNKNOWN | User authorised, exact exposed model not assumed |
 
 ## Required appended decision event schema
 
