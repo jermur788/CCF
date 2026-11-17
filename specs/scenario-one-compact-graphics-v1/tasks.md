@@ -2,11 +2,12 @@
 
 - **Spec ID:** SPEC-SEN1-COMPACT-GRAPHICS-V1
 - **Spec status:** **DRAFT — NO IMPLEMENTATION AUTHORITY**
-- **Task list owner:** Scenario One Overall Manager #675 (successor to #424)
-- **Last updated:** 2026-11-17 (#691 DRAFT reconciliation; no task released)
+- **Task list owner:** current Scenario One Overall Manager (presently [#700](https://github.com/jermur788/CCF/issues/700); historical succession #424 → #675 → #700 kept as evidence, not as the current gate)
+- **Formal approval authority:** the **current Overall Manager (presently #700)**, acting only within the latest direct owner decisions and canonical authority, is responsible for formal exact-byte spec approval and future worker assignment. That approval is a document decision only: actual physical/source assignments still require exclusive custody and separate production authority.
+- **Last updated:** 2026-11-17 (#691 DRAFT reconciliation and #702 authority correction; no task released)
 - **All task statuses:** **BLOCKED pending formal approval and indicated decisions**, with no production worker/branch/Unity lease currently assigned by this DRAFT.
 
-These are proposed separate tasks, not dispatches. Every source/Unity/art implementation item (T-02 through T-09) MUST require **`spec.md` status APPROVED by #424 after owner and independent review gates**, a real [RUNNING] GitHub task claim, exclusive allowed files and local worktree, and a machine-wide Unity lease where relevant. `#577` first-party asset report and `#583` geometry calculations are inputs, **not implementation permissions**.
+These are proposed separate tasks, not dispatches. Every source/Unity/art implementation item (T-02 through T-09) MUST require **`spec.md` status APPROVED by the current Scenario One Overall Manager (presently #700) after owner and independent review gates**, a real [RUNNING] GitHub task claim, exclusive allowed files and local worktree, and a machine-wide Unity lease where relevant. `#577` first-party asset report and `#583` geometry calculations are inputs, **not implementation permissions**.
 
 ## #691 — D-085 / owner route A / #688 / #698 task delta (DRAFT)
 
@@ -32,7 +33,7 @@ Every dependency that reads "**GQ-02 failed-guard path envelope accepted**" or "
 - **Goal:** close genuine owner look/D-032 gates and prepare an independently reviewed, unambiguous `SPEC-SEN1-COMPACT-GRAPHICS-V1` for explicit Manager approval.
 - **Scope:** confirm owner ratified world design; *#691:* W is the owner's chosen direction (16 Nov), so request native review of the #688 proposed W palette rather than a W/N2 vote; record H1 stumps/no-stumps, guard/shelter look and dimension/protection meaning, field/boundary and fog/sky, D-032 author/licence/source/byte storage policy, verify all #573 seven majors addressed; fix actual spec-review issues.
 - **Exclusions:** Unity, scene imports, binary commits, new gameplay/planting or broader forestry spec edits.
-- **Owner / routing:** #675 Overall Manager; independent nonauthor docs reviewer from a **different model family than the author** of the edit under review (the #691 author is Anthropic Claude, so its reviewer must be non-Anthropic); D-032 policy owner/project canonical authority.
+- **Owner / routing:** current Overall Manager (presently #700); independent nonauthor docs reviewer from a **different model family than the author** of the edit under review (the original #691 design author is Anthropic Claude, so its broader review must be non-Anthropic; this 17 November authority correction was authored by DeepSeek, so its changed-lines recheck must come from another, non-DeepSeek family); D-032 policy owner/project canonical authority.
 - **Dependencies:** Current signed owner baseline; #577/#583 input; #580/#584 document review; no native work required to draft.
 - **Verification:** four-file trace table, actual decision citations, independent reviewer handoff and explicit status. No false appearance/road engineering claim or full 115+33 suite rerun.
 - **Stop conditions:** owner choice unresolved, canonical conflict, D-032 source/licence scope unapproved; leave DRAFT and label blocked.
@@ -45,7 +46,7 @@ Every dependency that reads "**GQ-02 failed-guard path envelope accepted**" or "
 - **Goal:** obtain authoritative 30m H1/Route A/G1 visual-frame data and an owned native baseline.
 - **Scope:** require **GQ-07 resolved first** (*#691:* owner chose the separate Compact scene without the 2.6 m historical planks; the profile-gated renderer-only exclusion is unselected; the parent source bridge must be approved). Read exact approved world manifest and 14 pre-world omissions/8 H1-buffer survivors, 8 path points, 1.2m *test* core and distinct soft/verge/mask, final four G1 sites and **upright/failed/expired** shelter envelopes. The current failed state crosses O1 by **0.141 m in the proposed 1.2 m core**; record this as a **known source FAIL**, not a possible future issue. Record player camera/LOD/quality and native H1/bend/G1 720p/1080p baseline; world generation belongs to another approved feature.
 - **Exclusions:** new art import, source tree additions/removals, path width approval by this worker, edits to old scenes/materials.
-- **Owner / routing:** dedicated local Unity verifier with actual CCF-Ops lease, selected by #424 after approved world/graphics specs.
+- **Owner / routing:** dedicated local Unity verifier with actual CCF-Ops lease, selected by the current Overall Manager (presently #700) after approved world/graphics specs, with exclusive verifier custody assigned separately.
 - **Dependencies:** **SPEC APPROVED**, **GQ-07 scene/old-plank choice recorded in parent Compact source spec and accepted** (*#691:* choice made by owner; parent bridge approval outstanding), chosen curve/endpoint (GQ-09/GQ-10), **GQ-02 failed-guard path envelope accepted** or candidate explicitly marked BLOCKED for qualification, approved parent/child world/content + signed manifest, safe save/profile gates, clean exclusive native lane.
 - **Verification:** native world/source tree ID census, real mesh/collider distances including 0.10m shelter and adverse spline trial, player walk/turn/stop, authentic G1 normal player path and screenshots, full machine/quality/pose/pack state.
 - **Stop conditions:** conflicting scene ownership, no native compact profile, unsigned world, path G1 margin lost, historical save custody unknown.
@@ -127,16 +128,16 @@ Every dependency that reads "**GQ-02 failed-guard path envelope accepted**" or "
 - **Dependencies:** **SPEC APPROVED**, T-02..T-06 actual owned integrated candidate, T-07 only if chosen; signed manifest/save-safe input and one exact candidate HEAD; no conflicting Unity worker.
 - **Verification:** screenshot/measurements and test logs, baseline/after and negative controls, manual first-person evidence, full result handoff, documented failures, old asset/material hashes.
 - **Stop conditions:** unexpected save/camera/renderer mutation, breached runtime perf threshold after accepted criteria, unresolved negative tests.
-- **Completion state:** Tier2 PASS with independent reviewer and #424 verdict on the exact source candidate only.
+- **Completion state:** Tier2 PASS with independent reviewer and current Overall Manager (presently #700) verdict on the exact source candidate only.
 
 ## T-09 — Owner visual signoff and controlled integration
 
 - **Task ID:** T-09
 - **Status:** BLOCKED
-- **Goal:** owner accepts actual presentation from the real new compact forest, then #424 coordinates merging and full-scenario qualification.
+- **Goal:** owner accepts actual presentation from the real new compact forest, then the current Overall Manager (presently #700) coordinates merging and full-scenario qualification.
 - **Scope:** demonstrate H1/path/G1, two species transplants/shelter, interior light/understorey, later-year view in a safe Editor session; obtain explicit user visual acceptance; protect signed save/profile and historical worlds in integration plan; publish final handoff.
 - **Exclusions:** claiming owner acceptance from local scratch renders or source tests; Windows build without owner personal Compact playtest and **separate explicit Windows permission**.
-- **Owner / routing:** #675 Overall Manager with user, original Unity integrator and independent verifier.
+- **Owner / routing:** current Overall Manager (presently #700) with user, original Unity integrator and independent verifier.
 - **Dependencies:** **SPEC APPROVED**, T-08 reviewed native feature PASS, entire compact parent/child/CG-TRIG/finance/save gates independently qualified where needed.
 - **Verification:** exact user confirmation and recorded evidence, integration verdict APPROVED/NEEDS CHANGES/REJECTED with source and native proof.
 - **Stop conditions:** user look not accepted, source content or compatibility changed, persistent/old save gates not satisfied.

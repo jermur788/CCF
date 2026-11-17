@@ -2,7 +2,7 @@
 
 - **Spec ID:** SPEC-SEN1-COMPACT-GRAPHICS-V1
 - **Spec status:** **DRAFT — NO IMPLEMENTATION AUTHORITY**
-- **Plan owner:** Scenario One Overall Manager #675 (successor to #424), 2026-11-16; #691 reconciliation 2026-11-17 (DRAFT)
+- **Plan owner:** current Scenario One Overall Manager (presently [#700](https://github.com/jermur788/CCF/issues/700); succession #424 → #675 → #700 retained as history), 2026-11-16; #691 reconciliation and #702 authority correction 2026-11-17 (DRAFT)
 - **Authority:** subordinate to `spec.md`, direct user direction, Project Decision Log/Milestone, signed three-profile save contract and active world/planting specs.
 - **Evidence sources:** [#577 Opus first-party inventory and scratch look-dev](https://github.com/jermur788/CCF/blob/docs/sen-1-compact-asset-lookdev-opus55-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-OPUS55-COMPACT-ASSET-PREPRODUCTION-RESULT-20261116.md), [#583 source-only Route A/G1 clearance](https://github.com/jermur788/CCF/blob/docs/sen-1-583-compact-path-g1-clearance-20261116-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-583-ROUTE-A-G1-PATH-CLEARANCE-AND-MANIFEST-BOUNDARY-RESULT-20261116.md), [#573 independent E80 graphics finding list](https://github.com/jermur788/CCF/blob/review/sen-1-ground-graphics-spec-independent-20261116-v1/Docs/Handoffs/ScenarioOne-Graphics/Sen-1-G01-G02-INDEPENDENT-GRAPHICS-SPEC-AND-REFERENCE-REVIEW-20261116.md), [#584 independent compact-doc correction PASS](https://github.com/jermur788/CCF/blob/b2bcb3974650bae429ddd47ccf6bc8c41d560537/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261116/Sen-1-580-INDEPENDENT-CHANGED-LINES-RECHECK-RESULT-20261116.md).
 
@@ -32,7 +32,7 @@ Read with `spec.md` §#691 (R-1…R-11). **Phase 0** architecture is decided: th
 
 ## Proposed technical approach (ONLY after APPROVED spec + owner decisions)
 
-**Phase 0 — scene source bridge and safe source manifest:** *#691:* the owner selected **(A) a separate Compact scene/hierarchy with no E80 planks/track consumers** (D-085 OD-13). (B), the shared-scene profile-gated `Renderer.enabled` exclusion, is unselected historical text. The parent Compact spec must still define the scene source bridge (no-tree corridor, Stand Map, prescription approval, coverage, routing, profile/save) before signing any path manifest. #675 then coordinates the compact world manifest author/integrator to pin actual H1 polygon, Route A eight points/spline, owner-directed 1.2 m walkable core and ≤0.20 m visual-only verge footprints, chosen curve (C0/T1) and endpoint (A8 pending), four G1 species/positions and all current/failed protection envelopes, original 14 omitted and 8 H1 buffer original trees, terrain and world/profile content version. This graphics spec **cannot authorise or generate** that world from old scene objects or Blender preview.
+**Phase 0 — scene source bridge and safe source manifest:** *#691:* the owner selected **(A) a separate Compact scene/hierarchy with no E80 planks/track consumers** (D-085 OD-13). (B), the shared-scene profile-gated `Renderer.enabled` exclusion, is unselected historical text. The parent Compact spec must still define the scene source bridge (no-tree corridor, Stand Map, prescription approval, coverage, routing, profile/save) before signing any path manifest. The current Overall Manager (presently #700) then coordinates the compact world manifest author/integrator to pin actual H1 polygon, Route A eight points/spline, owner-directed 1.2 m walkable core and ≤0.20 m visual-only verge footprints, chosen curve (C0/T1) and endpoint (A8 pending), four G1 species/positions and all current/failed protection envelopes, original 14 omitted and 8 H1 buffer original trees, terrain and world/profile content version. This graphics spec **cannot authorise or generate** that world from old scene objects or Blender preview.
 
 **Phase 1 — native baseline (only with explicit approved gate and shared machine lease):** one physical Unity owner loads exact new Compact state when implemented; captures H1, first bend, interior and G1 before any graphics delta, at 720p and 1080p including HUD, quality tier, LOD, Sun and third-party pack state. For the new not-yet-existing compact scene, baseline creation is separately controlled source/Unity work **not** an exemption to spec approval. Historical E80 40 ms observation is not a baseline.
 
@@ -60,7 +60,7 @@ Read with `spec.md` §#691 (R-1…R-11). **Phase 0** architecture is decided: th
 
 ## Ownership and concurrency
 
-- #675 Overall Manager (successor to #424) is single-writer for live `Docs/Project/coordination/active-tasks.md`, publishes safe specs and integration verdicts. Canonical Decision Log/milestone policy on #585 is separate from this graphics spec and must be resolved before implementation supersedes its current status.
+- The current Overall Manager (presently #700; succession #424 → #675 → #700 is historical) is single-writer for live `Docs/Project/coordination/active-tasks.md`, publishes safe specs and integration verdicts. Formal exact-byte spec approval and future worker assignment sit with that current Manager acting only within the latest direct owner decisions and canonical authority; actual physical/source assignment still requires exclusive custody and separate production authority. Canonical Decision Log/milestone policy on #585 is separate from this graphics spec and must be resolved before implementation supersedes its current status.
 - Native world content/scene writer, asset author, vegetation rendering code writer and save/profile integrator cannot overlap without an approved API. One writable lane per owner. A local worker registers actual model/provider, worktree/branch/HEAD, exact path allowlist and claims before any production edit.
 - Only one physical heavy Unity Editor/asset import under a genuine CCF-Ops machine lease; never infer lock/Editor/scene status from GitHub. Protect all unrelated dirty files. No source workers currently claimed by this draft.
 
@@ -104,6 +104,6 @@ No save schema changes, persistence extra fields, harvest marks or tree relocati
 6. **T-06:** implement real-size transplant and shelter appearance without changing ecology, stocking or protection rules.
 7. **T-07:** optional isolated lighting/boundary trial if accepted; otherwise NOOP.
 8. **T-08:** native compact captures/LOD/perf and historical before/after regression, independent Tier2.
-9. **T-09:** #675 verdict and owner native-look signoff after true review; release asset branch to controlled integration only, not Windows.
+9. **T-09:** current Overall Manager (presently #700) verdict and owner native-look signoff after true review; release asset branch to controlled integration only, not Windows.
 
 No step above has been executed or authorised by this DRAFT.

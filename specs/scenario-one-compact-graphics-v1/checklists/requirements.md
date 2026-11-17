@@ -2,9 +2,9 @@
 
 - **Spec ID:** SPEC-SEN1-COMPACT-GRAPHICS-V1
 - **Spec status:** **DRAFT / ALL UNCHECKED / NOT APPROVED**
-- **Checklist owner:** Scenario One Overall Manager #675 (successor to #424)
+- **Checklist owner:** current Scenario One Overall Manager (presently [#700](https://github.com/jermur788/CCF/issues/700); historical succession #424 → #675 → #700 kept as evidence, not as the current gate)
 - **Implementation under test:** **NONE**. This is a document-only proposed checklist, not native evidence.
-- **Date:** 2026-11-16; #691 reconciliation 2026-11-17 (6 entry texts corrected, IDs/order/count unchanged, all unchecked)
+- **Date:** 2026-11-16; #691 reconciliation and #702 approval-authority correction 2026-11-17 (entry texts only; IDs/order/count unchanged, all unchecked)
 - **Evidence policy:** A checked item requires exact source branch, world/content version, native logs/captures and/or signed owner decision. A passed #577 Blender scratch render, #583 source calculation, #573 E80 source review or #584 document review cannot check a Compact Unity requirement.
 
 ## #691 — D-085 / owner route A / #688 / #698 reading (no new entries; 66 remain unchecked)
@@ -114,10 +114,10 @@ Six entries had stale text corrected in place (FR-04, FR-05, FR-09, FR-16, WF-06
 
 - [ ] **V-01** Review result for this DRAFT authored by independent nonauthor, exact four-file source review, with blockers/majors/minors and response.
 - [ ] **V-02** Owner look choices and D-032 rights/storage decision recorded; open choices not marked accepted by Manager proxy.
-- [ ] **V-03** #424 issues **explicit APPROVED** spec status after review and bound decisions; not merely reviewer PASS.
+- [ ] **V-03** The current Overall Manager (presently #700), acting within latest direct owner decisions and canonical authority, issues **explicit APPROVED** spec status after review and bound decisions; not merely reviewer PASS, and no physical/source assignment implied.
 - [ ] **V-04** Each later source or Unity worker registered claim/worktree/branch/HEAD and exact file allowlist, physical lease where needed; user dirty Primary preserved.
 - [ ] **V-05** Implementation code/art/assets/scene and Unity verification on actual Compact are inspectable and independently reviewed; no history/source overwritten.
-- [ ] **V-06** Exact source delta and Tier2 native result reviewed by #424; no unapproved weakened tests, no unnecessary whole-milestone Tier3 until integration-ready.
+- [ ] **V-06** Exact source delta and Tier2 native result reviewed by the current Overall Manager (presently #700); no unapproved weakened tests, no unnecessary whole-milestone Tier3 until integration-ready.
 - [ ] **V-07** Owner has personally viewed/accepted final presentation in Unity and separately authorised any Windows build **after** Compact personal playtest.
 - [ ] **V-08** Dashboard and Drive mirror publication explicitly verified if claimed; otherwise **NOT VERIFIED**.
 
