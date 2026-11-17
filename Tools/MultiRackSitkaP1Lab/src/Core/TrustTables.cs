@@ -47,21 +47,29 @@ public static class OriginalTrustTable
 
     // Values prepared by the #639 author from the blobs at P0QualifiedCommit (git cat-file), NOT copied from P0's
     // MANIFEST.sha256. Snapshot hashes are recomputed with P0's own CanonicalJson.SnapshotHash by the test suite.
-    // ALL RECORDS ARE PENDING INDEPENDENT REVIEW AND MANAGER ACCEPTANCE: real inspection refuses them until then.
+    // ACCEPTED, IDENTITY ONLY (#662): independent review #661 and Manager #641 verdict, cited per record. Acceptance covers
+    // the file/snapshot identities only, i.e. read-only inspection. Original P0 fixtures never gain annual or work rights from
+    // it (AnnualGate refuses OriginalPolygonExploratoryV1 regardless), and it implies no modelling calibration.
     public static readonly IReadOnlyList<OriginalTrustRecord> Records = new[]
     {
         new OriginalTrustRecord("oracle-quarter-ha", "oracle-quarter-ha.sitkalab.json", 969,
             "b1691934fa4a41cfd63462f4021811e0871742f0e1f23ecea77fe8da40b5cf62",
             "810030c4187c3132cafb22d46ff87c0b8dbfa43bc382a72463c686f8c554152c",
-            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.PendingIndependentReview, null, null),
+            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.Accepted,
+            "https://github.com/jermur788/CCF/blob/review/multi-p1-661-four-record-trust-evidence-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-661-FOUR-RECORD-TRUST-EVIDENCE-INDEPENDENT-REVIEW-RESULT-20261116.md",
+            "https://github.com/jermur788/CCF/blob/docs/multi-p1-641-661-manager-acceptance-and-662-dispatch-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-661-FOUR-RECORD-MANAGER-VERDICT-20261117.md"),
         new OriginalTrustRecord("sitka-flat-demo-v1", "sitka-flat-demo-v1.sitkalab.json", 26675,
             "d0eed68979b2d214555e84a59e80ff6866ccd5e7d1774883e7898fcf8fb4f2ed",
             "b407c725e655dc80ca5fec22f4ad84540136e89928577ad97b3dce31b234f5b1",
-            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.PendingIndependentReview, null, null),
+            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.Accepted,
+            "https://github.com/jermur788/CCF/blob/review/multi-p1-661-four-record-trust-evidence-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-661-FOUR-RECORD-TRUST-EVIDENCE-INDEPENDENT-REVIEW-RESULT-20261116.md",
+            "https://github.com/jermur788/CCF/blob/docs/multi-p1-641-661-manager-acceptance-and-662-dispatch-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-661-FOUR-RECORD-MANAGER-VERDICT-20261117.md"),
         new OriginalTrustRecord("sitka-flat-perf-2000-v1", "sitka-flat-perf-2000-v1.sitkalab.json", 324929,
             "d12db11126de2843ff21538f26feaab09242ccaf6abd04e3f25c8014054790df",
             "e4cebf0206c23977abc4b08857d706bdb1c110aa853b08241997081ccfde8726",
-            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.PendingIndependentReview, null, null),
+            "ccf-sitka-lab", 1, P0QualifiedCommit, ReviewStatus.Accepted,
+            "https://github.com/jermur788/CCF/blob/review/multi-p1-661-four-record-trust-evidence-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-661-FOUR-RECORD-TRUST-EVIDENCE-INDEPENDENT-REVIEW-RESULT-20261116.md",
+            "https://github.com/jermur788/CCF/blob/docs/multi-p1-641-661-manager-acceptance-and-662-dispatch-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-661-FOUR-RECORD-MANAGER-VERDICT-20261117.md"),
     };
 
     public static OriginalTrustRecord? Find(string fixtureId) =>
@@ -83,7 +91,9 @@ public static class OriginalTrustTable
 public static class DerivedCatalog
 {
     // The 30 m manifest's file hash and content hash are filled from the generator output and checked by the test suite.
-    // PENDING INDEPENDENT REVIEW AND MANAGER ACCEPTANCE: no ecological year may run until this record is Accepted.
+    // ACCEPTED, IDENTITY ONLY (#662): independent review #661 and Manager #641 verdict, cited below. Acceptance covers the
+    // manifest identity, not ecological calibration. No ecological year runs: AnnualGate still refuses with
+    // AnnualEngineNotImplemented, and any annual engine needs its own approved spec and task.
     public static readonly IReadOnlyList<DerivedCatalogRecord> Records = new[]
     {
         new DerivedCatalogRecord("p1d-30m-sitka-adult-v1", P1Domain.DerivedP1ThirtyMetreExperimentV1,
@@ -91,7 +101,9 @@ public static class DerivedCatalog
             "bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4",
             "b7dee8a34b4e66b4cc443b533604b5962f5fe4c1d2f28832270a0c2b02ba6627",
             DerivedManifest.GeometryModel, DerivedManifest.AreaHaBits, "experiment30m", "designed",
-            ReviewStatus.PendingIndependentReview, null, null),
+            ReviewStatus.Accepted,
+            "https://github.com/jermur788/CCF/blob/review/multi-p1-661-four-record-trust-evidence-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-661-FOUR-RECORD-TRUST-EVIDENCE-INDEPENDENT-REVIEW-RESULT-20261116.md",
+            "https://github.com/jermur788/CCF/blob/docs/multi-p1-641-661-manager-acceptance-and-662-dispatch-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-661-FOUR-RECORD-MANAGER-VERDICT-20261117.md"),
     };
 
     public static DerivedCatalogRecord? Find(string id) =>

@@ -166,11 +166,16 @@ T.Add("manifest: unknown/missing keys, whitespace and hash defects refused", () 
 });
 
 // ------------------------------------------------------------------ derived catalog loading
-T.Add("derived: pending catalog record refuses normal load; reviewer evidence load is labelled untrusted", () =>
+T.Add("derived: pending catalog record refuses normal load; accepted compiled record loads as TRUSTED", () =>
 {
-    T.Refuses("ManifestNotAccepted", () => FixtureAccess.LoadDerived("p1d-30m-sitka-adult-v1", manifestBytes, TrustUse.RequireAccepted));
-    var load = FixtureAccess.LoadDerived("p1d-30m-sitka-adult-v1", manifestBytes, TrustUse.ReviewEvidenceOnly);
-    T.True(load.TrustLabel.StartsWith("UNTRUSTED-PENDING-REVIEW", StringComparison.Ordinal), "untrusted label");
+    // #662: the compiled record is Accepted (identity only). The pending refusal is kept with a test-local pending copy.
+    var pending = new[] { DerivedCatalog.Find("p1d-30m-sitka-adult-v1")! with
+        { Status = ReviewStatus.PendingIndependentReview, ReviewRef = null, ManagerAcceptanceRef = null } };
+    T.Refuses("ManifestNotAccepted", () => FixtureAccess.LoadDerived("p1d-30m-sitka-adult-v1", manifestBytes, TrustUse.RequireAccepted, pending));
+    var evidence = FixtureAccess.LoadDerived("p1d-30m-sitka-adult-v1", manifestBytes, TrustUse.ReviewEvidenceOnly, pending);
+    T.True(evidence.TrustLabel.StartsWith("UNTRUSTED-PENDING-REVIEW", StringComparison.Ordinal), "pending record still labelled untrusted");
+    var load = FixtureAccess.LoadDerived("p1d-30m-sitka-adult-v1", manifestBytes, TrustUse.RequireAccepted);
+    T.Eq("TRUSTED", load.TrustLabel, "compiled accepted record");
 });
 T.Add("derived: altered bytes, wrong IDs and original IDs refused", () =>
 {
@@ -183,20 +188,35 @@ T.Add("derived: altered bytes, wrong IDs and original IDs refused", () =>
 // ------------------------------------------------------------------ original trust table and read-only inspection
 T.Add("original: trust records match pinned P0 blobs and P0's own snapshot hash (not MANIFEST.sha256)", () =>
 {
+    // #662: exactly the four individually approved records are Accepted, citing the #661 review and the #641 verdict.
+    const string Review661 = "https://github.com/jermur788/CCF/blob/review/multi-p1-661-four-record-trust-evidence-20261116-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-661-FOUR-RECORD-TRUST-EVIDENCE-INDEPENDENT-REVIEW-RESULT-20261116.md";
+    const string Verdict641 = "https://github.com/jermur788/CCF/blob/docs/multi-p1-641-661-manager-acceptance-and-662-dispatch-20261117-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-P1-641-661-FOUR-RECORD-MANAGER-VERDICT-20261117.md";
     foreach (var r in OriginalTrustTable.Records)
     {
         var blob = Fx.Git(repoRoot, $"cat-file blob {OriginalTrustTable.P0QualifiedCommit}:Tools/MultiRackSitkaLab/fixtures/synthetic/{r.FileName}");
         T.Eq(r.FileByteLength, (long)blob.Length, r.FixtureId + " length");
         T.Eq(r.FileSha256, DerivedManifest.Sha256Hex(blob), r.FixtureId + " sha");
         T.Eq(r.P0SnapshotHash, CanonicalJson.SnapshotHash(LabFile.Parse(blob).Snapshot), r.FixtureId + " recomputed snapshot hash");
-        T.Eq(ReviewStatus.PendingIndependentReview, r.Status, r.FixtureId + " status");
+        T.Eq(ReviewStatus.Accepted, r.Status, r.FixtureId + " status");
+        T.Eq(Review661, r.ReviewRef, r.FixtureId + " review ref");
+        T.Eq(Verdict641, r.ManagerAcceptanceRef, r.FixtureId + " manager ref");
     }
+    var derivedRec = DerivedCatalog.Find("p1d-30m-sitka-adult-v1")!;
+    T.Eq(ReviewStatus.Accepted, derivedRec.Status, "derived status");
+    T.Eq(Review661, derivedRec.ReviewRef, "derived review ref");
+    T.Eq(Verdict641, derivedRec.ManagerAcceptanceRef, "derived manager ref");
     T.Eq(OriginalTrustTable.P0QualifiedTree, Encoding.ASCII.GetString(Fx.Git(repoRoot, "rev-parse HEAD:Tools/MultiRackSitkaLab")).Trim(), "P0 tree at HEAD");
 });
-T.Add("original: pending trust refuses real inspection before opening any file", () =>
+T.Add("original: pending trust refuses real inspection before opening any file; accepted record inspects", () =>
 {
-    T.Refuses("OriginalTrustNotAccepted", () => FixtureAccess.InspectOriginal(p0Fixtures, "oracle-quarter-ha", TrustUse.RequireAccepted));
-    T.Refuses("OriginalTrustNotAccepted", () => FixtureAccess.InspectOriginal("/nonexistent-dir", "oracle-quarter-ha", TrustUse.RequireAccepted));
+    // #662: refusal kept with a test-local pending copy of the real record (including refusal before any file is opened).
+    var pendingTable = new[] { OriginalTrustTable.Find("oracle-quarter-ha")! with
+        { Status = ReviewStatus.PendingIndependentReview, ReviewRef = null, ManagerAcceptanceRef = null } };
+    T.Refuses("OriginalTrustNotAccepted", () => FixtureAccess.InspectOriginal(p0Fixtures, "oracle-quarter-ha", TrustUse.RequireAccepted, pendingTable));
+    T.Refuses("OriginalTrustNotAccepted", () => FixtureAccess.InspectOriginal("/nonexistent-dir", "oracle-quarter-ha", TrustUse.RequireAccepted, pendingTable));
+    var accepted = FixtureAccess.InspectOriginal(p0Fixtures, "oracle-quarter-ha", TrustUse.RequireAccepted);
+    T.Eq("TRUSTED", accepted.TrustLabel, "accepted normal inspection");
+    T.True(!accepted.AnnualAdvanceAllowed, "accepted identity grants no annual advance");
 });
 T.Add("original: all three fixtures inspect read-only under reviewer evidence, annual never allowed", () =>
 {
@@ -210,7 +230,7 @@ T.Add("original: all three fixtures inspect read-only under reviewer evidence, a
     {
         T.True(!r.AnnualAdvanceAllowed, "annual not allowed");
         T.Eq(P1Domain.OriginalPolygonExploratoryV1, r.Domain, "domain");
-        T.True(r.TrustLabel.StartsWith("UNTRUSTED-PENDING-REVIEW", StringComparison.Ordinal), "untrusted label");
+        T.Eq("TRUSTED", r.TrustLabel, "accepted identity label (#662)");
     }
 });
 T.Add("original: derived and unknown IDs refused by the original import", () =>
@@ -293,12 +313,15 @@ T.Add("original: canonical, internally valid but non-pristine P0 snapshots refus
 });
 
 // ------------------------------------------------------------------ annual gate: no ecological year can run in this stage
-T.Add("annual: original refused, Unity-square unavailable, pending 30 m manifest refused, mismatched record refused", () =>
+T.Add("annual: original refused, Unity-square unavailable, pending 30 m manifest refused, accepted 30 m has no engine, mismatched record refused", () =>
 {
     var rec = DerivedCatalog.Find("p1d-30m-sitka-adult-v1");
     T.Eq("OriginalAnnualRefused", AnnualGate.Check(P1Domain.OriginalPolygonExploratoryV1, rec).Code, "original");
     T.Eq("DomainUnavailable", AnnualGate.Check(P1Domain.DerivedUnitySquareParityV1, rec).Code, "unity square");
-    T.Eq("ManifestNotAccepted", AnnualGate.Check(P1Domain.DerivedP1ThirtyMetreExperimentV1, rec).Code, "pending 30 m");
+    // #662: pending refusal kept with a test-local pending copy; the compiled (Accepted) record still cannot run a year.
+    var pendingRec = rec! with { Status = ReviewStatus.PendingIndependentReview, ReviewRef = null, ManagerAcceptanceRef = null };
+    T.Eq("ManifestNotAccepted", AnnualGate.Check(P1Domain.DerivedP1ThirtyMetreExperimentV1, pendingRec).Code, "pending 30 m");
+    T.Eq("AnnualEngineNotImplemented", AnnualGate.Check(P1Domain.DerivedP1ThirtyMetreExperimentV1, rec).Code, "compiled accepted 30 m: no engine");
     T.Eq("UnknownDerivedFixture", AnnualGate.Check(P1Domain.DerivedP1ThirtyMetreExperimentV1, null).Code, "no record");
     var accepted = rec! with { Status = ReviewStatus.Accepted, ReviewRef = "x", ManagerAcceptanceRef = "y" };
     T.Eq("AnnualEngineNotImplemented", AnnualGate.Check(P1Domain.DerivedP1ThirtyMetreExperimentV1, accepted).Code, "even accepted: no engine in this stage");
@@ -349,7 +372,11 @@ T.Add("644 M-02: committed fixture reads through ReadDerived; pending status ref
 {
     var load = FixtureAccess.ReadDerived(derivedDir, DerivedId, TrustUse.ReviewEvidenceOnly);
     T.Eq(100, load.Manifest.Trees.Count, "trees");
-    T.Refuses("ManifestNotAccepted", () => FixtureAccess.ReadDerived("/nonexistent-dir", DerivedId, TrustUse.RequireAccepted));
+    // #662: pending refusal before opening kept with a test-local pending catalog; the accepted record reads normally.
+    var pendingCatalog = new[] { DerivedCatalog.Find(DerivedId)! with
+        { Status = ReviewStatus.PendingIndependentReview, ReviewRef = null, ManagerAcceptanceRef = null } };
+    T.Refuses("ManifestNotAccepted", () => FixtureAccess.ReadDerived("/nonexistent-dir", DerivedId, TrustUse.RequireAccepted, pendingCatalog));
+    T.Eq(100, FixtureAccess.ReadDerived(derivedDir, DerivedId, TrustUse.RequireAccepted).Manifest.Trees.Count, "accepted read");
     T.Refuses("NotDerivedFixtureId", () => FixtureAccess.ReadDerived(derivedDir, "oracle-quarter-ha", TrustUse.ReviewEvidenceOnly));
     T.Refuses("UnknownDerivedFixture", () => FixtureAccess.ReadDerived(derivedDir, "p1d-other", TrustUse.ReviewEvidenceOnly));
 });
