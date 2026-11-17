@@ -10,10 +10,23 @@
 
 ## #657 — D-084 child task delta (DRAFT; nothing released)
 
-- **CP-C0** owner-choice portion: **met by D-084** (published). Remaining: independent review, the content-owner signature of the annex candidate, and the CG-TRIG binding.
+- **CP-C0** owner-choice portion: **met by D-084** (published). Remaining: independent review, the content-owner signature of the annex candidate, and the **source/native** CG-TRIG binding (its **policy** is signed as of 17 November 2026 — see "#684" below).
 - **CP-C1** Geometry A: original four sites; Compact failed guard within r ≤ 0.10 m; 1.2 m core; ≤ 0.20 m visual-only verge. The O1 current-source overlap is a known FAIL until measured after implementation. It no longer waits for an owner A/B choice.
 - **CP-S3** adds: Y* covering review acknowledged before the next advance (T1); D84-PJ planting-row capture at successful resolution with load reconciliation and PJ-9 negatives; no teaching-complete display unless parent T1-COMPLETE holds (#663); W-A lock and confirmed cancel/replace for planting orders; per-tree actor/shelter on Pending orders (CIP-016); F-A ordinary settlement from the visible €12,000.
 - **P-01** owner-decision row: D-083/D-084 published. OPEN-C1/C5/C7/C8 decided at intent level; C6/C10 deferred; OPEN-C2 exact content, OPEN-C4 and OPEN-C9 native outcomes still open.
+
+## #684 — Signed CG-TRIG/save-policy task delta for the child (17 November 2026; DRAFT; nothing released)
+
+Manager #677 D-A signed the Compact CG-TRIG/save-policy supplement (reviewed commit `bfa01f86`, blob `bb9327fe`) after independent #681 DELTA APPROVED. These are **proposed** future child tasks inside existing CIP IDs. None is dispatched, claimed or evidenced; all **33** child and **115** parent boxes stay unchecked.
+
+| Proposed task | Depends on | Acceptance (existing CIP-IDs only; all NOT RUN) |
+| --- | --- | --- |
+| **CP-S6** planting settlement atomicity and row capture | approved parent/child spec, #544, lease | Direct same-resolution order↔juvenile capture, atomic effect cluster, exactly one row and one `WorkResolved`, idempotent reload, never a `Completed` designated order without its row (CIP-014, CIP-015, CIP-019) |
+| **CP-S7** existing-control covering review transaction | CP-S6; parent D84-SC-RV1 | Existing Annual Review acknowledge action writes event9 + `reviewAcknowledgedYear=Y*` atomically for genuine Y\*, one event9/year, idempotent, split state refused (CIP-015–CIP-019, CIP-021) |
+| **CP-S8** admission honesty and refusal | CP-S7; parent D84-SC-RV2 | Policy B load with no credit; permanent no-credit diagnosis for missing-row and 3+1 Completed groups; two CT-1 deadlock states refuse save/load before mutation with cannot-load messaging and unchanged historical admission (CIP-019, CIP-021, CIP-023, CIP-027, CIP-033) |
+| **CP-S9** service-level Approved freeze and per-tree controls | approved child spec | Approved planting orders frozen in UI and every public service/bulk route; CIP-016 per-tree actor/shelter preserved; confirmed cancel then new order/quote/approval (CIP-015–CIP-018) |
+
+Every future child implementation needs its own [RUNNING] claim, actual provider, branch/HEAD/worktree, exclusive Linux Unity lease where relevant and a published handoff. A signed policy is not an implemented control.
 
 ## #614 — Separate Linux core implementation from optional visual finishing (DRAFT task candidates)
 

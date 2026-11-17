@@ -15,7 +15,7 @@ Published **D-084** (`main` `a5541b8a`) closes the owner-choice part of the earl
 | --- | --- | --- |
 | G-A owner choices | OPEN-C1/C5/C7/C8 undecided; D-083 pending publication | **Done at intent level:** T1, F-A €12,000, M-A, W-A, C6/C10 deferred; D-083/D-084 published. |
 | G-B authored content | "freeze manifest" with unsigned candidates | #657 annex: byte-verified C-B-30 189 rows, 14/8 identities, **175-row CANDIDATE roster + content SHA-256 (unsigned)**, Geometry A sites/route/guard target. **Next:** independent review → content-owner signature of the exact bytes → world/content key binding. |
-| G-C spec contracts | CG-TRIG/finance/completion/W-A text missing | Parent D84-T (T1-COMPLETE, CT-1…CT-7), D84-PJ (PJ-1…PJ-9), D84-F (FA-1…FA-4), D84-M (MA-1…MA-7 + M-A-SCOPE), D84-MAE (S1/S2 proposal), D84-W (W-1…W-6) drafted; #657 text corrected by #663 after #660 NEEDS CHANGES. **Next:** one independent non-author **changed-lines** recheck of #663; owner/content choice of M-A-SCOPE (undecided); save-owner ruling on D84-MAE S1 vs S2 and confirmation that D84-PJ fits the signed §4.2 row. |
+| G-C spec contracts | CG-TRIG/finance/completion/W-A text missing | Parent D84-T (T1-COMPLETE, CT-1…CT-7), D84-PJ (PJ-1…PJ-9), D84-F (FA-1…FA-4), D84-M (MA-1…MA-7 + M-A-SCOPE), D84-MAE (S1/S2 proposal), D84-W (W-1…W-6) drafted; #657 text corrected by #663 after #660 NEEDS CHANGES. **Policy now SIGNED by #677 D-A (17 Nov 2026)** and reconciled into this DRAFT by #684. **Next:** one independent non-author review of the #684 reconciliation (not a repeat 115/33/66 audit); owner/content choice of M-A-SCOPE (undecided); save-owner ruling on D84-MAE S1 vs S2 and confirmation that D84-PJ fits the signed §4.2 row. |
 | G-D source/Unity | unchanged | Only after Manager APPROVED specs, signed content, #544 save/profile release, #652 Ops lease and a registered Linux lane. Tier-1 → Tier-2 → one Tier-3 → owner personal Editor test → separate Windows permission. |
 
 **Implementation consequences recorded for the future source owner (proposals, not tasks released):**
@@ -29,6 +29,19 @@ Published **D-084** (`main` `a5541b8a`) closes the owner-choice part of the earl
 - (8) T1-COMPLETE is derived from arrival + assessment + CT-1 + CT-2. The Compact UI never shows "teaching complete" from CT-1/CT-2 alone.
 
 No historical Enlarged80/Legacy40 behaviour changes are planned.
+
+## #684 — signed CG-TRIG/save-policy plan delta (17 November 2026; DRAFT)
+
+Manager #677 D-A signed the Compact CG-TRIG/save-policy supplement at reviewed commit `bfa01f86` / blob `bb9327fe` after independent #681 DELTA APPROVED. The parent `spec.md` "#684" section is the operative text; this plan records only what the signature changes for future planning. **No gate is closed, no task is released and no requirement box is checked.**
+
+- **G-C is now part-signed.** CG-TRIG controls, Policy B admission, the two strict deadlock refusals, order↔juvenile atomicity and the W-A service-level freeze are decided **policy**. Source, scene, native, ISO-58 and spec approval remain entirely open.
+- **Additional implementation consequences for the future source owner (proposals only):**
+  - (9) **One existing control, one transaction.** The ordinary Annual Review acknowledge action must commit the year event9 and `reviewAcknowledgedYear=Y*` together after the final group `WorkResolved`; no second button, no second event9, idempotent on repeat, and it must **refuse** a split state rather than fill the field.
+  - (10) **Pre-mutation admission of two inconsistent CT-1 states.** Current year beyond Y\*, or a covering event9 already present at/after the final `WorkResolved`, refuses Save capture and Load before any world/scene/Prefs/file mutation with a cannot-load message. No CT-3 suppression, backdating, extra root or DTO field.
+  - (11) **Admit-and-diagnose, never repair.** A `Completed` group order with no row, and a fully `Completed` 3+1 group, load as truthful history with no T1 and a permanent no-credit diagnosis for that group.
+  - (12) **Service-level guards, not just UI.** The Approved freeze and the CT-3 advance hold must be enforced in public manager/service/bulk routes, because the UI alone cannot prove either.
+- **Evidence tiers unchanged.** These additions are witnesses inside existing IDs: Tier 1 static/source and calibration reasoning, Tier 2 bounded feature qualification once a real lane and lease exist, Tier 3 one milestone candidate. No broad 115+33 rerun is authorised; nothing here is a PASS.
+- **Still open, and not implied by the signature:** M-A-SCOPE/OD-16, the S1 M-A evidence route, the signed world bytes, #544 implementation, #652 Ops, ISO-58, owner playtest and any Windows step.
 
 ## #614 — Revised dependency schedule: core first, art parallel (DRAFT)
 

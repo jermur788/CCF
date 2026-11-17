@@ -12,7 +12,7 @@
 | Proposed task | Depends on | Acceptance (maps to existing R-IDs; no new R-ID) |
 | --- | --- | --- |
 | **D84-CF-1** Independent non-author review of the #657 convergence (12 spec files + manifest + annex) | #657 handed off | APPROVED / NEEDS CHANGES on D-084 fidelity, preserved IDs/unchecked boxes, source facts, roster provenance (R-002, R-078) |
-| **D84-CF-1R** Independent non-author changed-lines recheck of #663 (B-1/M-1/M-2/B-2 corrections only) | #663 handed off; different author from #663 | Verifies T1-COMPLETE, D84-PJ, the §9 M-2 note and D84-MAE against #660 and signed §4.2; not a full 115/33/66 re-audit |
+| **D84-CF-1R** Independent non-author changed-lines recheck of #663 (B-1/M-1/M-2/B-2 corrections only) | **Satisfied by #665 independent document-quality acceptance of the #663 tip `1e0fba5f`**, which is the starting source of this #684 branch; no repeat recheck | Verifies T1-COMPLETE, D84-PJ, the §9 M-2 note and D84-MAE against #660 and signed §4.2; not a full 115/33/66 re-audit |
 | **D84-CF-2** Content-owner signature of exact authored roster/geometry bytes; bind content key | D84-CF-1 | Signed revision of the annex candidate, or a returned amendment; new SHA computed from the signed artifact (R-005–R-007, R-026, R-029) |
 | **D84-CF-3** Owner/content choice of M-A-SCOPE (undecided); save owner rules on D84-MAE route S1 vs S2 and on D84-PJ fitting the signed §4.2 row | D84-CF-1, D84-CF-1R | Recorded decision; signed save-contract revision only if new fields are needed (R-051–R-053, R-062, R-094, R-104) |
 | **D84-SC-T1** Compact arrival/assessment controls, four-order group binding, D84-PJ planting-row capture and load reconciliation, Y* review hold, derived T1-COMPLETE | Approved specs + #544 + lease + CG-TRIG signature | D84-T/CT-7 and PJ-9 witnesses (R-001, R-027, R-028, R-056–R-061, R-093, R-105, R-107) |
@@ -22,6 +22,20 @@
 | **D84-SC-G** Compact failed-guard representation within r ≤ 0.10 m; native 1.2 m core / visual verge measurement | GQ-07 decision + signed content | D84-G witnesses (R-030, R-065, R-070, R-072; graphics FR-04/05/15, AC-02/06) |
 
 C6/C10 tasks (C-03 overlay; replay) are **deferred** until after the owner's personal Editor test. They are not deleted.
+
+## #684 — signed CG-TRIG/save-policy task delta (17 November 2026; DRAFT; nothing released)
+
+Manager #677 D-A signed the CG-TRIG/save-policy supplement (reviewed commit `bfa01f86`, blob `bb9327fe`) after independent #681 DELTA APPROVED. The following are **proposed future tasks inside existing R-IDs**. None is dispatched, claimed or evidenced, and all 115 boxes stay unchecked.
+
+| Proposed task | Depends on | Acceptance (existing R-IDs only; all NOT RUN) |
+| --- | --- | --- |
+| **D84-CF-4** independent non-author review of the #684 reconciliation (these eight parent/planting DRAFT files + one result) | this author result handed off; different model family | APPROVED / NEEDS CHANGES / REJECTED on signed-policy fidelity, preserved 115+33+66 unchecked IDs, D-N1 disposition and old-world preservation; not a repeat 115/33/66 audit (R-002, R-078) |
+| **D84-SC-RV1** one existing Annual Review control writes event9 + `reviewAcknowledgedYear=Y*` atomically, one per year, idempotent, split state refused | approved specs + #544 + lease + CG-TRIG policy signed | T-02 witnesses in R-056/R-058/R-060/R-061; static source reading only until a real lane exists |
+| **D84-SC-RV2** strict pre-mutation Save capture/Load refusal for the two deadlocked CT-1 states, with cannot-load messaging and unchanged checksums | D84-SC-RV1; validated admission design | T-05 witnesses in R-011–R-020, R-085, R-086; genuine v1–v24 admission unchanged |
+| **D84-SC-RV3** Policy B load-and-diagnose for false acknowledgements, missing planting row and 3+1 Completed groups, with permanent no-credit outcome | D84-SC-RV1 | T-01/T-05 witnesses in R-001, R-027, R-057, R-093, R-102, R-107 |
+| **D84-SC-RV4** service-level Approved freeze and CT-3 advance hold on every public manager/service/bulk route | approved specs | T-03/T-07 witnesses in R-032–R-034, R-037, R-038, R-057, R-098 |
+
+Each later task needs its own [RUNNING] claim, actual provider, branch/HEAD/worktree, exclusive Unity lease where relevant and a published handoff. A signed policy is **not** an implemented control, and no Unity/native PASS may be inferred from this DRAFT.
 
 ## #614 — Draft Linux core-first tasks and parallel art (not dispatched)
 
