@@ -1,0 +1,89 @@
+# Sen-1 #673 — DeepSeek SAVE orchestration ledger (ACTUAL RUNTIME)
+
+**Status: RUNNING — orchestrator B registered, children not yet dispatched at the time of this first commit.**
+**Runtime file.** This file is written by the actual DeepSeek orchestrator on its dedicated orchestration branch. The Manager seed below is reproduced verbatim and is never rewritten; every runtime line is appended underneath it. Nothing in this file is a save-policy signature, spec approval, owner acceptance or Unity evidence.
+
+| Runtime identity | Observed value |
+| --- | --- |
+| Parent claim | [#673](https://github.com/jermur788/CCF/issues/673) (Overall Manager [#671](https://github.com/jermur788/CCF/issues/671)) |
+| Orchestrator model / provider | `deepseek-v4.1-flash` (`DeepSeek V4.1 Flash 1017`) via provider `opencode-go`, variant `high` |
+| Host / runner | physical Linux host `jer-laptop` (kernel 7.0.0-42-generic), T3 Code / OpenCode harness, main checkout `/media/jer/Files/CCF-Primary` |
+| Orchestration branch / worktree | `docs/sen-1-673-deepseek-save-orchestration-20261117-v1` / `/media/jer/Files/CCF/Orchestration/CCF-673-DeepSeek-Save-20261117` |
+| Starting HEAD (freshly observed `origin/main`) | `afd5484fc11697e6bde64f99d57d22e98f572f1f` |
+| Orchestrator sole writable paths | this ledger and `Sen-1-673-DEEPSEEK-SAVE-ORCHESTRATOR-FINAL-RESULT-20261117.md` |
+| Local physical Ops/Unity lease | none requested, none used (docs-only workstream) |
+
+---
+
+## BEGIN MANAGER SEED — reproduced verbatim from `docs/sen-1-672-673-dual-deepseek-orchestrators-20261117-v1` (sha256 `a28a6b49de3d19b53f9a6dfea11964df5b5ed11ce8bf3887a5970e192555b89a`)
+
+# Sen-1 #673 — DeepSeek SAVE routing ledger (MANAGER SEED; NO RUNNER EVENTS)
+
+**Status:** NOT STARTED. This is a seeded schema, not evidence that DeepSeek or a child ran. **Created:** 2026-11-17 by OpenAI GPT-6 Manager #671 through GitHub browser. **Parent claim:** https://github.com/jermur788/CCF/issues/673. **Expected orchestrator:** DeepSeek V4.1 Flash high, actual provider/model/host/effort to be recorded at real start. **Permitted child models:** GPT-6.1 Sol High and Claude Opus 5.5 High; real pool capacities **UNKNOWN**. **Owner preference:** finite completion without needless microtasks or repeated tests; preserve source/physical safety and independence.
+
+## Seed policy (manager-supplied, not observed runner state)
+- Scope: S01–S08 as one CG-TRIG/MAE save policy workstream; signed §4.2 immutable, ISO-58 blocked.
+- Protected: M-A-SCOPE explicitly deferred, #652 live Ops HELD, three Compact specs DRAFT, Legacy40/E80/Rack/MFM/Reference v1, historical v1–v24 saves and no Windows build.
+- No active orchestration claim, provider invocation, child, physical lease, context usage or actual remaining capacity observed by this Manager. Initial state for DeepSeek/Sol/Opus: UNKNOWN until actual runner checks. No reset-time claims, no invented telemetry.
+- Objective: independently reviewed honest decision-ready dossier, and actual authorised signer where possible; else exact blocked gate. No unapproved production implementation.
+
+## Runtime capacity table — fill only on actual evidence
+| Pool | State | Reported quota/reset | Source/confidence | Context/tokens | Task/claim | Last check |
+| --- | --- | --- | --- | --- | --- | --- |
+| DeepSeek orchestrator | UNKNOWN | UNKNOWN | none | UNKNOWN | #673 READY | Not started |
+| OpenAI GPT-6.1 Sol | UNKNOWN | UNKNOWN | none | UNKNOWN | no child | Not started |
+| Claude Opus 5.5 | UNKNOWN | UNKNOWN | none | UNKNOWN | no child | Not started |
+
+## Event schema — append at execution time (do not backfill guesses)
+For EACH event: actual UTC time; observed fact vs orchestrator claim vs retrospective inference; parent/child claim; stage and dependency; actual model/provider/config/pool; old vs new provider; available alternatives; reason/rule/previous outcome; capacity state, remaining quota/reset source/confidence/fit, context used/limit if available; switch/interruption cost and exploit/explore; exact branch/starting HEAD/physical custody; evidence/command/result/tests; actual tokens/calls/wall time if observable; failure class; independent verdict and reviewed scope; accepted/rejected/pending; next action/precise resume cursor. Unknown must read UNKNOWN.
+
+## Recovery protocol
+- On normal quota/context interruption, append PAUSED capacity event, complete committed result URLs, exact stopped phase, pending diffs (preserve, never discard), owner lock and resume trigger. Explicitly stop original writer before transferring. New provider/worker must re-register and validate exact starting state, live main board/physical ownership.
+- Switch between Sol and Opus only with safe access, capacity and author/reviewer independence; do not bypass login controls or consume another owner's lock. Where no provider available, status PAUSED awaiting normal capacity; where approval/ownership missing, BLOCKED rather than pretending resumed.
+- When resumed, append actual restarted event and new claim/branch/HEAD. The requirement to continue does not create a running scheduler or background process.
+
+## ACTUAL EXECUTION EVENTS
+
+_None. Future DeepSeek runner appends below this line and never rewrites the Manager seed._
+
+---
+
+## END MANAGER SEED
+
+Append-only runtime events follow. Each event records: actual UTC time; observed fact vs orchestrator claim vs inference; claim/stage/dependency; actual model/provider/config; capacity state with source; exact branch/HEAD; commands/results; failure class; and next action. `UNKNOWN` is used where no source exists; nothing is retrospectively reconstructed.
+
+### E1 — 2026-11-17T08:39:06Z — orchestrator registration (OBSERVED)
+
+- **Claim / stage:** #673 parent claim, stage S0 (launch registration). Dependency: none.
+- **Observed facts:** `date -u` = `2026-11-17T08:39:06Z`; `hostname` = `jer-laptop`; `uname -sr` = `Linux 7.0.0-42-generic`; session model reported by harness = `opencode-go/deepseek-v4.1-flash`, variant `high`; orchestration worktree created with `git worktree add -b docs/sen-1-673-deepseek-save-orchestration-20261117-v1 <path> origin/main`; `git rev-parse origin/main` = `afd5484fc11697e6bde64f99d57d22e98f572f1f` (commit subject `coordination(sen-1): reserve two independent DeepSeek orchestrator ledgers and parent results`, which is the #671 reservation row for this exact workstream).
+- **Orchestrator claim (not observed):** continued session availability; no quota/reset telemetry is published by the runner, so remaining quota is `UNKNOWN`.
+- **Physical custody:** none. No Unity lock, no Ops lease, no save/Prefs, no source worktree touched. Existing user work preserved: `/media/jer/Files/CCF-Primary` still carries its pre-existing modified `AGENTS.md` and `Docs/Operations/StorageArchitecture.md`, which this workstream did not read from for authority and did not modify.
+- **Next action:** read binding sources, append capacity/pre-dispatch events, register `[RUNNING]` on #673, then dispatch the two children.
+
+### E2 — 2026-11-17T08:40:11Z — binding sources read and capacity observation (OBSERVED)
+
+- **Sources actually read (this session, read-only):**
+  - #673 orchestrator packet at `docs/sen-1-672-673-dual-deepseek-orchestrators-20261117-v1` (fetched over HTTPS).
+  - Earlier binding #673 save-owner packet at `docs/sen-1-overall-manager-successor-20261117-v1`.
+  - #667 save/CG-TRIG/M-A dossier at `a94d3d9198161c5ee236a36f0c8d17bff688f4cd` (full text, S01–S08 register).
+  - #667 independent Opus 5.5 review at `9f5712973651d36de39eefe12f1d4c5713510164` (verdict `APPROVED EVIDENCE QUALITY`, 0 critical / 0 major / 2 minor / 3 note).
+  - Signed immutable contract: `200add4e6e5116268b79ef63131ff9b836f14c5d:specs/scenario-independent-save-isolation-v1/spec.md` §4.2 read directly at that commit.
+  - `origin/main:Docs/Project/coordination/active-tasks.md` (live board copy at `afd5484f`), including the #671 row reserving both DeepSeek orchestrator ledgers/results and the prospective #673 child result path.
+  - Live issue #673 including the 08:34Z direct-owner comment (three Compact30 crop trees selected/retained/favoured; one-treated-stem sufficiency and exact competitor Fell minimum still unresolved).
+- **Capacity (observed vs UNKNOWN):**
+
+  | Pool | State | Source / confidence | Task |
+  | --- | --- | --- | --- |
+  | DeepSeek orchestrator (this session) | AVAILABLE | observed running session | #673 orchestration |
+  | OpenAI `gpt-6.1-sol` High | catalog-present, launch not yet attempted | model catalog listing only; quota `UNKNOWN` | prospective S1 author |
+  | Anthropic `claude-opus-5-5` High | catalog-present, launch not yet attempted | model catalog listing only; quota `UNKNOWN` | prospective S3 independent review |
+
+- **Tooling observation (material, recorded before dispatch):** the harness initially exposed T3 cross-provider `delegate_task`; after the session moved to the orchestration worktree that namespace was withdrawn and is no longer callable. The remaining child mechanism is the harness `subagent` tool, whose model field accepts the catalog ids above. This is recorded because the packet requires the *actual* launch mechanism to be observed, not inferred.
+- **Next action:** dispatch S1 author with an explicit model id and record the real returned identity.
+
+### E3 — 2026-11-17T08:41Z — pre-dispatch authority and ownership check (OBSERVED)
+
+- **Ownership:** #671's live board row reserves this orchestration branch for exactly the two orchestrator files, and reserves the prospective S1 child path `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-673-COMPACT30-CGTRIG-AND-MAE-SAVE-OWNER-CONTRACT-RULING-20261117.md` on `docs/sen-1-673-save-contract-rulings-20261117-v1`. `git ls-remote --heads origin 'docs/sen-1-673*'` returned only the packet branch, so the ruling branch does not yet exist: no competing writer.
+- **Signed contract:** §4.2 bytes at `200add4e` are treated as IMMUTABLE. No orchestrator, author or reviewer child is authorised to edit that file, the DRAFT spec families, source, saves, Prefs, Ops or Unity assets.
+- **M-A-SCOPE:** remains owner-DEFERRED. The 08:34Z owner comment adds a three-crop-tree product intent but explicitly leaves one-treated-stem sufficiency and an exact competitor-Fell minimum unresolved; it does not authorise a new S1 field, classifier or threshold, and this workstream does not reopen the question.
+- **Next action:** dispatch.
