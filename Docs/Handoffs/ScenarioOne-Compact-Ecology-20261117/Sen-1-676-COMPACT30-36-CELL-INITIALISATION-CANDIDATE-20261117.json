@@ -1,0 +1,3029 @@
+{
+  "schema_id": "ccf.compact30.initialisation-candidate",
+  "schema_version": 1,
+  "status": "CANDIDATE_NOT_SIGNED",
+  "date": "2026-11-17",
+  "source_snapshot_commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+  "recipe_id": "compact30-source-initialisation-candidate-v1",
+  "units": {
+    "positions": "m",
+    "cover_light_and_site": "dimensionless",
+    "seed_rain": "unnormalised_model_intensity_NOT_stems",
+    "age": "years"
+  },
+  "selectors": {
+    "rngModelVersion": 1,
+    "regenerationModelVersion": 2,
+    "growthModelVersion": 2,
+    "stormModel": 0
+  },
+  "selectors_source": {
+    "rng": "ScenarioOneManager.cs:493 MixedModel=1; SimulationRandom.cs:16",
+    "regeneration": "ScenarioOneManager.cs:497 Competition=2; RegenerationModel.cs:15",
+    "growth": "ScenarioOneManager.cs:503 SpeciesAware=2; SitkaGrowthModel.cs:18",
+    "storm": "ScenarioOneManager.cs:475 StormModel.None=0; StormModel.cs:8"
+  },
+  "simulationSeed": 20260914,
+  "seed_provenance": "Source literal EC:7 / ForestSaveData.cs:13; C-B-30 /seed corroborates provenance only, not measured ecology or signed seed CSV.",
+  "recipe_order": [
+    "This is an authored composition of pinned source routines; no installed Compact constructor/geometry dispatcher exists. Do NOT run legacy generator or Manager.Awake: it selects Enlarged80/racks.",
+    "Select prospective Compact binding, year0, source model selectors 1/2/2/0 and seed20260914, no clock/random ambient state; reject unavailable profile until future authorisation.",
+    "Use exact 175 roster decimals converted to binary32 at source float boundaries, ASCII ID sort. The 14 H1 IDs are absent before any cell/tree-removal event; never spawn then Fell them.",
+    "Use fresh tree state recipe, empty management/inventory/protection/deadwood/cohorts; no historical scene actors or donors.",
+    "Construct 36 fresh cells with CELL defaults and EC:787-807 coordinate centres; RecomputeCanopy and RecomputeSeedRain from the retained trees only.",
+    "Refresh mast unconditionally with EC:777-783 (seed/model/year0), then RecomputeSeedRain. Mast is irrelevant to initial all-zero seed rain because age20<=onset20.",
+    "M:2510-2533 EnsureUnderstoreyGrid after final canopy/seed, US.Initially(year0) then UC.Initialize for model2. Do not initialise flora before omissions or during save capture.",
+    "Read back every expected value below; do not run annual step/growth/establishment. No dormant ScenarioSiteProfiles.Reference application."
+  ],
+  "grid": {
+    "origin_xz_m": [
+      -15,
+      -15
+    ],
+    "cell_size_m": 5,
+    "cells_per_axis": 6,
+    "edge": "half-open [-15,+15); exact +15 returns -1; closed ground collider surface does not create ecology donor cells"
+  },
+  "formulas": {
+    "occupancy": "For -15<=x<15 and -15<=z<15, floor((z+15)/5)*6+floor((x+15)/5); otherwise -1. EC:1963-1973.",
+    "canopy": "EC:822-850,875-885,918: for ASCII-id-sorted living non-stump trees, dx=cx-x,dz=cz-z; distance=sqrt(dx*dx+dz*dz); reach=crown_m*1+2.5; influence=clamp01(clamp01(1-distance/reach)*clamp01(height_m/8)); gap=product(1-influence); canopy=clamp01(1-gap); light=1-canopy.",
+    "flora": "US:27-52: L=clamp01(light), site=clamp01(SiteProductivity), stability=clamp01(SoilStability*EstablishmentSuitability), opening=clamp01(recentOpening/2). mosses=clamp01((.45-L)/.45)*site*(.85-.25*opening); ferns=clamp01((L-.06)/.24)*clamp01((.75-L)/.45)*stability*.75; grasses=clamp01((L-.40)/.40)*(.6+.4*opening)*site; forbs=clamp01((L-.32)/.38)*stability*(.55+.45*opening); shrubs=clamp01((L-.50)/.40)*stability*.7; fungi=clamp01(.35+.35*clamp01(canopy))*(.8+.2*site). lastUpdatedYear=0.",
+    "competitors": "UC:14-16,24-33: site=clamp01(SiteProductivity*SoilStability); T=.8*site*(.1+(1-.1)*clamp01(light)); brambleCover=brackenCover=T*.25. CompetitionCalibration is fresh source defaults (ScenarioOneCompetition.cs:9). No rate is an empirical measurement.",
+    "seed_rain": "EC:1322-1378; TreeSpeciesDefinition.cs:257-264; Species/SitkaSpruce.asset:31-40. Potential=Maturity(age)*clamp01(crown/4)*1*mastMultiplier; sum Potential*exp(-distance/20) within 150m. Maturity(age<=20)=0, full at 30. All 175 are age20: every potential and every seed intensity is exactly 0 regardless of mast. No Oak/Beech donor or external donor exists. EC:1371 writes only positive seedRain, so actual SeedRainBySpecies dictionary remains empty and SeedRainFor(any three species)=0. Model2 creates no legacy empty cohort.",
+    "site": "CELL:47-50,240: SiteProductivity=SoilStability=EstablishmentSuitability=1, RecentOpening=0 at fresh construction; accepted source calibration, NOT soil survey. ForestCellSaveData:255-259 persists recentOpening and establishmentSuitability; site productivity/stability are runtime defaults, not new saved fields.",
+    "browse": "DEF:56-58 + Manager:441-445: pressure .2 (binary32 readback .20000000298023224), no shelters/fences/protected areas; no juveniles/cohorts to assess, exposure not damage history.",
+    "empty_state": "Fresh cells have empty regeneration list (CELL:52); source manager initialises no juvenile/deadwood records (M:620-649); no H1 removal event/RecentOpening is applied."
+  },
+  "numeric_policy": {
+    "arithmetic": "IEEE754 binary32 rounding after every scalar source add/sub/mul/div and sqrt; tree input is canonical ROSTER-rounded data, not unrounded C-B-30",
+    "comparison": "computed expected readback only, NOT observed; native absolute tolerance 0.000002 for canopy/light/flora/competitors proposed; occupancy/ids/zeros/empties exact",
+    "native_bitwise_parity": "NOT VERIFIED: Unity math/compiler/platform must be pinned for bitwise claims",
+    "raw_fixture_canopy_audit_only": "provided separately to expose precision difference; MUST NOT substitute for roster-based expected readback"
+  },
+  "calibration_warning": "All flora/site/browse/competitor responses are inherited game calibration and provisional model shapes, not measured Irish ecology.",
+  "source_dependencies": [
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestTree.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "2e4ada0aa135017817ce9bdb4422f36f24e2cd66",
+      "bytes": 28561,
+      "sha256": "0582c138d70124285e07bfa7a5c54ee76864c9a0cea592a5598bdac59a1f852d",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestTreeSpawner.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "7ed9a4b3498eb06e475ce40e41b4076790a43eb8",
+      "bytes": 9668,
+      "sha256": "7205311459081649c35174e0c157f176765b0ac2ca7aef608a0c2ea1803b14e7",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestTreeVisualBase.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "f89945e67ed605fcc967c768ea5bdbe587fd418b",
+      "bytes": 821,
+      "sha256": "ce6b18f900b19ffcefaf975a1a3d361679844df8376caefb981de310057faa98",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestEcologyController.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "0290a7beab639e48585f97c6af8cf993959b9f37",
+      "bytes": 105786,
+      "sha256": "5db7231f2164eb18bb3a0d38c769758d65803ce23048e7537b3471e94a19a3ea",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestEcologyCell.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "5e82a9a841aaa9a793e06bde54b40bf6eda5913f",
+      "bytes": 10043,
+      "sha256": "d3ab0479056f7e035471edad989075df2f097f9b7bf62e2cbc058a19500cc844",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneUnderstorey.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "128a03ef0fdddc5f105c8dc26d24249844b6b310",
+      "bytes": 3324,
+      "sha256": "fda9fea6b96a4bca5fbae36dab04fb0f36984ddb8a55ec41ee23a370c962b3db",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/UnderstoreyCompetition.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "a2fac34150a2c243d5b059d6dffd7e4d63e98853",
+      "bytes": 10657,
+      "sha256": "1d8c92895ae85f9191cb6de07ac5d30c845c2beef2d59927f8d8c019ef7f03cd",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneCompetition.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "185767517c588493ce124af77cc5591eda42eaac",
+      "bytes": 3995,
+      "sha256": "a714471fb40d94723af671830ec29fb04ec73b2d6f21c3a8a8aecaaf114090d3",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneDefinition.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "b29a5e447cb9d8d594c12c5fe0fb07bbb9adb20a",
+      "bytes": 10713,
+      "sha256": "05417363975cec5fdd284e9cba2983e02a758d2f12e7ab2cb818e627f220b4aa",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "4a7045693d682e20cc2e6e84b3efb98610ea24a5",
+      "bytes": 141289,
+      "sha256": "2e414b02652517664399422b9941313fb03f34dfe800c9dbba7efc87f1575f90",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioOne/ScenarioOneWorkOrder.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "f1a34b44feb7507a9cee0db43bd56cd31013f095",
+      "bytes": 3975,
+      "sha256": "f352a7e75acf284bd345e3fef655aec0618451950d08dfce0b6da3980ea6d560",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioProtectionVisuals.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "a0a81bf84a681d2a4d7143938b7b882b05b5e1d9",
+      "bytes": 6072,
+      "sha256": "c9d1240a67c12b1cb11c06964d20a9322b4b3ad08abbd963e1b22b0e207fd2ec",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestPlayer.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "2dd8b369c21b2abe98b4ad0d08c14421f01958ea",
+      "bytes": 55507,
+      "sha256": "a79b64e56893cb452b596be2cb9501c7319859ba9aef043b6eda5e4375f8858e",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestTreeMarkingManager.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "7bb8c995ba0ec35c4189a75f390bf5c0fecad564",
+      "bytes": 35062,
+      "sha256": "7e61a9274ec4827a52d44715d7045d72f85b854405cb52ef8cd32c6c345e8eec",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestSaveData.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "56065ea164da688327aabe8707e026af9ff1b484",
+      "bytes": 16120,
+      "sha256": "093cbea99aae9844d2cd3b0cda0260a16d5478a4206e0bf6534838eafa3b3d0e",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestSaveController.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "e903dae92d35be68a132f5ce0c5d9930fadf41c3",
+      "bytes": 25924,
+      "sha256": "ac4c4cb64c26ae0fcaaac7bb693f4104dc5faa312755e77e10953079d494d8be",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestStartingStand.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "29af0628958e43fa997b2ec4b49fc8f126071580",
+      "bytes": 23553,
+      "sha256": "bc305a2f92f9ad68ef56699ee49423d12f3650165a17fd6d62fbfba3c7e9190b",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ScenarioSiteProfiles.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "d336bcc27ba8d15a65a9e5786d96b4f343a58d86",
+      "bytes": 2087,
+      "sha256": "78f5ab00e3b759f0228ad096a22fa4b84ac3cfd744dcc04392f0153484f63df8",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/ForestSiteProfile.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "3c73cc9efe66875825bf08adcb779d8d7c27868d",
+      "bytes": 5853,
+      "sha256": "497bef8582424f34267f3a0d9c568b3ddf6640448bf8daed064032b450d5c0ec",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/TreeSpeciesDefinition.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "51faaa0de0d218886935509ff64cb4f40598dd03",
+      "bytes": 20955,
+      "sha256": "0206b64be5c18dee1fc7db8b8a399b92d3d5915be5e31965646ff7dfc784ba48",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/SitkaGrowthModel.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "e4c73402d46bb3b75a9cba2e4622857a913fac92",
+      "bytes": 5940,
+      "sha256": "291601041876d83451259990f82219c6ccd3fb704ba55e6dcb8189f13b446463",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/RegenerationModel.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "11a42d3299b50f3016a0424ebdea1dc4403b8486",
+      "bytes": 3038,
+      "sha256": "997aa5b256a342c51f734dd38216244ab32177159bee8d51c19541b3ea64c34f",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/StormModel.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "cb3ed5be1d26c7d971ee004ce5718737d7365c9f",
+      "bytes": 7877,
+      "sha256": "6f413f4e6089366575463b5fe066284116ce8bd7558b7d4a54cfa67d75ddb0d7",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/SimulationRandom.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "bb83d7f8468002ab13a6aec6caf548e0bf3ad34b",
+      "bytes": 2761,
+      "sha256": "d1b52a604d2593c833e80f4c20bce1ead56f2ad51f19ce12625e4a6bb2ec927b",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/SpeciesConfigurationPolicy.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "c2b2974643f9609e78b2f4db6b4d55591eaee6f6",
+      "bytes": 18769,
+      "sha256": "b55b3f744d6a0c5c501c3decafb8d3f8195c79c1bf7c306d8b180145ee8dbc1c",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/SitkaFoliage.cs",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "cd3d68d55b84a4202cf72a96d8588d34f3213a92",
+      "bytes": 2723,
+      "sha256": "8a46e75b69eed75d72a9a174683e2a8c9e139ff3d2d840605496e339464010c3",
+      "role": "source_recipe_read_only"
+    },
+    {
+      "kind": "git_object",
+      "path": "Assets/ForestPrototype/Species/SitkaSpruce.asset",
+      "commit": "ab09111681bf1acce3823d6fe3343642a851f3d9",
+      "blob": "e638e28ede09afc201d9e01fed938184b7b282f8",
+      "bytes": 1676,
+      "sha256": "a6634c76644e5fec31d728f1edbdd6cd2b23e85281d4dced288980eda6251563",
+      "role": "base_authority_or_configuration_read_only"
+    }
+  ],
+  "occupancy_total": 175,
+  "zero_stem_cells": [
+    2,
+    7,
+    8
+  ],
+  "cells": [
+    {
+      "index": 0,
+      "address": {
+        "x": 0,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        -12.5,
+        -12.5
+      ],
+      "occupancy_count": 4,
+      "tree_ids": [
+        "P0000",
+        "P0001",
+        "P0002",
+        "P0102"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9775397181510925,
+        "light": 0.02246028184890747,
+        "flora": {
+          "mosses": 0.8075750470161438,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6921389102935791
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.09617140144109726,
+        "bracken_target": 0.09617140144109726,
+        "brambleCover": 0.024042850360274315,
+        "brackenCover": 0.024042850360274315,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9775444269180298
+    },
+    {
+      "index": 1,
+      "address": {
+        "x": 1,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        -7.5,
+        -12.5
+      ],
+      "occupancy_count": 2,
+      "tree_ids": [
+        "P0003",
+        "P0103"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.8875046372413635,
+        "light": 0.11249536275863647,
+        "flora": {
+          "mosses": 0.6375088095664978,
+          "ferns": 0.16404801607131958,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6606266498565674
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.16099666059017181,
+        "bracken_target": 0.16099666059017181,
+        "brambleCover": 0.040249165147542953,
+        "brackenCover": 0.040249165147542953,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.8874849081039429
+    },
+    {
+      "index": 2,
+      "address": {
+        "x": 2,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        -2.5,
+        -12.5
+      ],
+      "occupancy_count": 0,
+      "tree_ids": [],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.0,
+        "light": 1.0,
+        "flora": {
+          "mosses": 0.0,
+          "ferns": 0.0,
+          "grasses": 0.6000000238418579,
+          "forbs": 0.550000011920929,
+          "shrubs": 0.699999988079071,
+          "fungi": 0.3499999940395355
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.800000011920929,
+        "bracken_target": 0.800000011920929,
+        "brambleCover": 0.20000000298023224,
+        "brackenCover": 0.20000000298023224,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.0
+    },
+    {
+      "index": 3,
+      "address": {
+        "x": 3,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        2.5,
+        -12.5
+      ],
+      "occupancy_count": 3,
+      "tree_ids": [
+        "P0009",
+        "P0109",
+        "P0209"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9964129328727722,
+        "light": 0.003587067127227783,
+        "flora": {
+          "mosses": 0.8432244062423706,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.698744535446167
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08258268982172012,
+        "bracken_target": 0.08258268982172012,
+        "brambleCover": 0.02064567245543003,
+        "brackenCover": 0.02064567245543003,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9964131116867065
+    },
+    {
+      "index": 4,
+      "address": {
+        "x": 4,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        7.5,
+        -12.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P0010",
+        "P0011",
+        "P0012",
+        "P0110",
+        "P0112",
+        "P0210",
+        "P0211"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.99781733751297,
+        "light": 0.0021826624870300293,
+        "flora": {
+          "mosses": 0.8458771705627441,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6992360353469849
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08157151937484741,
+        "bracken_target": 0.08157151937484741,
+        "brambleCover": 0.020392879843711853,
+        "brackenCover": 0.020392879843711853,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9978183507919312
+    },
+    {
+      "index": 5,
+      "address": {
+        "x": 5,
+        "z": 0
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        -15,
+        -10
+      ],
+      "center_xz_m": [
+        12.5,
+        -12.5
+      ],
+      "occupancy_count": 5,
+      "tree_ids": [
+        "P0013",
+        "P0014",
+        "P0015",
+        "P0113",
+        "P0214"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9952799081802368,
+        "light": 0.004720091819763184,
+        "flora": {
+          "mosses": 0.8410843014717102,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6983479261398315
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08339846879243851,
+        "bracken_target": 0.08339846879243851,
+        "brambleCover": 0.020849617198109627,
+        "brackenCover": 0.020849617198109627,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9952805042266846
+    },
+    {
+      "index": 6,
+      "address": {
+        "x": 0,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        -12.5,
+        -7.5
+      ],
+      "occupancy_count": 6,
+      "tree_ids": [
+        "P0300",
+        "P0301",
+        "P0400",
+        "P0401",
+        "P0402",
+        "P0501"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9990556836128235,
+        "light": 0.0009443163871765137,
+        "flora": {
+          "mosses": 0.8482162952423096,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6996694803237915
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08067991584539413,
+        "bracken_target": 0.08067991584539413,
+        "brambleCover": 0.020169978961348534,
+        "brackenCover": 0.020169978961348534,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9990552067756653
+    },
+    {
+      "index": 7,
+      "address": {
+        "x": 1,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        -7.5,
+        -7.5
+      ],
+      "occupancy_count": 0,
+      "tree_ids": [],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.5317384004592896,
+        "light": 0.46826159954071045,
+        "flora": {
+          "mosses": 0.0,
+          "ferns": 0.4695640206336975,
+          "grasses": 0.10239239782094955,
+          "forbs": 0.2145891785621643,
+          "shrubs": 0.0,
+          "fungi": 0.5361084342002869
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.4171483516693115,
+        "bracken_target": 0.4171483516693115,
+        "brambleCover": 0.10428708791732788,
+        "brackenCover": 0.10428708791732788,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.531781792640686
+    },
+    {
+      "index": 8,
+      "address": {
+        "x": 2,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        -2.5,
+        -7.5
+      ],
+      "occupancy_count": 0,
+      "tree_ids": [],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.398184597492218,
+        "light": 0.601815402507782,
+        "flora": {
+          "mosses": 0.0,
+          "ferns": 0.24697434902191162,
+          "grasses": 0.30272310972213745,
+          "forbs": 0.4078907370567322,
+          "shrubs": 0.17817695438861847,
+          "fungi": 0.4893645942211151
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.5133070945739746,
+        "bracken_target": 0.5133070945739746,
+        "brambleCover": 0.12832677364349365,
+        "brackenCover": 0.12832677364349365,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.3982474207878113
+    },
+    {
+      "index": 9,
+      "address": {
+        "x": 3,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        2.5,
+        -7.5
+      ],
+      "occupancy_count": 1,
+      "tree_ids": [
+        "P0510"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.8780555129051208,
+        "light": 0.12194448709487915,
+        "flora": {
+          "mosses": 0.6196604371070862,
+          "ferns": 0.19357651472091675,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6573194265365601
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.16780002415180206,
+        "bracken_target": 0.16780002415180206,
+        "brambleCover": 0.041950006037950516,
+        "brackenCover": 0.041950006037950516,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.8780412077903748
+    },
+    {
+      "index": 10,
+      "address": {
+        "x": 4,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        7.5,
+        -7.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P0310",
+        "P0311",
+        "P0312",
+        "P0410",
+        "P0411",
+        "P0412",
+        "P0512"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9996060729026794,
+        "light": 0.00039392709732055664,
+        "flora": {
+          "mosses": 0.8492559194564819,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6998621225357056
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08028363436460495,
+        "bracken_target": 0.08028363436460495,
+        "brambleCover": 0.020070908591151237,
+        "brackenCover": 0.020070908591151237,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9996063709259033
+    },
+    {
+      "index": 11,
+      "address": {
+        "x": 5,
+        "z": 1
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        -10,
+        -5
+      ],
+      "center_xz_m": [
+        12.5,
+        -7.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P0313",
+        "P0314",
+        "P0315",
+        "P0413",
+        "P0414",
+        "P0415",
+        "P0514"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998322129249573,
+        "light": 0.0001677870750427246,
+        "flora": {
+          "mosses": 0.8496830463409424,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999412775039673
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08012080937623978,
+        "bracken_target": 0.08012080937623978,
+        "brambleCover": 0.020030202344059944,
+        "brackenCover": 0.020030202344059944,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998322129249573
+    },
+    {
+      "index": 12,
+      "address": {
+        "x": 0,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        -12.5,
+        -2.5
+      ],
+      "occupancy_count": 8,
+      "tree_ids": [
+        "P0500",
+        "P0502",
+        "P0600",
+        "P0601",
+        "P0602",
+        "P0700",
+        "P0701",
+        "P0702"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998506307601929,
+        "light": 0.0001493692398071289,
+        "flora": {
+          "mosses": 0.8497178554534912,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.699947714805603
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08010754734277725,
+        "bracken_target": 0.08010754734277725,
+        "brambleCover": 0.020026886835694313,
+        "brackenCover": 0.020026886835694313,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998507499694824
+    },
+    {
+      "index": 13,
+      "address": {
+        "x": 1,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        -7.5,
+        -2.5
+      ],
+      "occupancy_count": 5,
+      "tree_ids": [
+        "P0504",
+        "P0603",
+        "P0703",
+        "P0704",
+        "P0705"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9888719916343689,
+        "light": 0.011128008365631104,
+        "flora": {
+          "mosses": 0.8289804458618164,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6961051821708679
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08801216632127762,
+        "bracken_target": 0.08801216632127762,
+        "brambleCover": 0.022003041580319405,
+        "brackenCover": 0.022003041580319405,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9888717532157898
+    },
+    {
+      "index": 14,
+      "address": {
+        "x": 2,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        -2.5,
+        -2.5
+      ],
+      "occupancy_count": 3,
+      "tree_ids": [
+        "P0506",
+        "P0706",
+        "P0707"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9698536396026611,
+        "light": 0.030146360397338867,
+        "flora": {
+          "mosses": 0.7930569052696228,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6894487738609314
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.1017053872346878,
+        "bracken_target": 0.1017053872346878,
+        "brambleCover": 0.02542634680867195,
+        "brackenCover": 0.02542634680867195,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9698655009269714
+    },
+    {
+      "index": 15,
+      "address": {
+        "x": 3,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        2.5,
+        -2.5
+      ],
+      "occupancy_count": 2,
+      "tree_ids": [
+        "P0508",
+        "P0710"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.7789261937141418,
+        "light": 0.22107380628585815,
+        "flora": {
+          "mosses": 0.4324161410331726,
+          "ferns": 0.5033556222915649,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6226241588592529
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.23917312920093536,
+        "bracken_target": 0.23917312920093536,
+        "brambleCover": 0.05979328230023384,
+        "brackenCover": 0.05979328230023384,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.7789465188980103
+    },
+    {
+      "index": 16,
+      "address": {
+        "x": 4,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        7.5,
+        -2.5
+      ],
+      "occupancy_count": 3,
+      "tree_ids": [
+        "P0511",
+        "P0711",
+        "P0712"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9882161021232605,
+        "light": 0.011783897876739502,
+        "flora": {
+          "mosses": 0.8277415037155151,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6958756446838379
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08848440647125244,
+        "bracken_target": 0.08848440647125244,
+        "brambleCover": 0.02212110161781311,
+        "brackenCover": 0.02212110161781311,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9882165789604187
+    },
+    {
+      "index": 17,
+      "address": {
+        "x": 5,
+        "z": 2
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        -5,
+        0
+      ],
+      "center_xz_m": [
+        12.5,
+        -2.5
+      ],
+      "occupancy_count": 8,
+      "tree_ids": [
+        "P0513",
+        "P0515",
+        "P0613",
+        "P0614",
+        "P0615",
+        "P0713",
+        "P0714",
+        "P0715"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9996198415756226,
+        "light": 0.0003801584243774414,
+        "flora": {
+          "mosses": 0.8492819666862488,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6998668909072876
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08027371764183044,
+        "bracken_target": 0.08027371764183044,
+        "brambleCover": 0.02006842941045761,
+        "brackenCover": 0.02006842941045761,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9996200203895569
+    },
+    {
+      "index": 18,
+      "address": {
+        "x": 0,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        -12.5,
+        2.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P0800",
+        "P0801",
+        "P0802",
+        "P0900",
+        "P0901",
+        "P0902",
+        "P1001"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9999262690544128,
+        "light": 7.37309455871582e-05,
+        "flora": {
+          "mosses": 0.8498607277870178,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999741792678833
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08005308359861374,
+        "bracken_target": 0.08005308359861374,
+        "brambleCover": 0.020013270899653435,
+        "brackenCover": 0.020013270899653435,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9999262690544128
+    },
+    {
+      "index": 19,
+      "address": {
+        "x": 1,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        -7.5,
+        2.5
+      ],
+      "occupancy_count": 6,
+      "tree_ids": [
+        "P0803",
+        "P0804",
+        "P0903",
+        "P0904",
+        "P0905",
+        "P1003"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9995179176330566,
+        "light": 0.0004820823669433594,
+        "flora": {
+          "mosses": 0.8490894436836243,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6998312473297119
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08034710586071014,
+        "bracken_target": 0.08034710586071014,
+        "brambleCover": 0.020086776465177536,
+        "brackenCover": 0.020086776465177536,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9995179176330566
+    },
+    {
+      "index": 20,
+      "address": {
+        "x": 2,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        -2.5,
+        2.5
+      ],
+      "occupancy_count": 6,
+      "tree_ids": [
+        "P0805",
+        "P0806",
+        "P0807",
+        "P0906",
+        "P0907",
+        "P1005"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9994131922721863,
+        "light": 0.0005868077278137207,
+        "flora": {
+          "mosses": 0.8488916158676147,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6997946500778198
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08042250573635101,
+        "bracken_target": 0.08042250573635101,
+        "brambleCover": 0.020105626434087753,
+        "brackenCover": 0.020105626434087753,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9994127154350281
+    },
+    {
+      "index": 21,
+      "address": {
+        "x": 3,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        2.5,
+        2.5
+      ],
+      "occupancy_count": 4,
+      "tree_ids": [
+        "P0909",
+        "P0910",
+        "P1009",
+        "P1010"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9919658899307251,
+        "light": 0.008034110069274902,
+        "flora": {
+          "mosses": 0.8348245024681091,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6971880197525024
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08578456193208694,
+        "bracken_target": 0.08578456193208694,
+        "brambleCover": 0.021446140483021736,
+        "brackenCover": 0.021446140483021736,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9919663667678833
+    },
+    {
+      "index": 22,
+      "address": {
+        "x": 4,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        7.5,
+        2.5
+      ],
+      "occupancy_count": 6,
+      "tree_ids": [
+        "P0810",
+        "P0811",
+        "P0812",
+        "P0911",
+        "P0912",
+        "P1012"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.999756932258606,
+        "light": 0.00024306774139404297,
+        "flora": {
+          "mosses": 0.8495408892631531,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999149322509766
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.0801750123500824,
+        "bracken_target": 0.0801750123500824,
+        "brambleCover": 0.0200437530875206,
+        "brackenCover": 0.0200437530875206,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.999756932258606
+    },
+    {
+      "index": 23,
+      "address": {
+        "x": 5,
+        "z": 3
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        0,
+        5
+      ],
+      "center_xz_m": [
+        12.5,
+        2.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P0813",
+        "P0814",
+        "P0815",
+        "P0913",
+        "P0914",
+        "P0915",
+        "P1014"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998364448547363,
+        "light": 0.00016355514526367188,
+        "flora": {
+          "mosses": 0.8496910929679871,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999427080154419
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08011776208877563,
+        "bracken_target": 0.08011776208877563,
+        "brambleCover": 0.02002944052219391,
+        "brackenCover": 0.02002944052219391,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998365044593811
+    },
+    {
+      "index": 24,
+      "address": {
+        "x": 0,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        -12.5,
+        7.5
+      ],
+      "occupancy_count": 8,
+      "tree_ids": [
+        "P1000",
+        "P1002",
+        "P1100",
+        "P1101",
+        "P1102",
+        "P1200",
+        "P1201",
+        "P1202"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9999232888221741,
+        "light": 7.671117782592773e-05,
+        "flora": {
+          "mosses": 0.8498551249504089,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999731063842773
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08005522936582565,
+        "bracken_target": 0.08005522936582565,
+        "brambleCover": 0.020013807341456413,
+        "brackenCover": 0.020013807341456413,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9999233484268188
+    },
+    {
+      "index": 25,
+      "address": {
+        "x": 1,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        -7.5,
+        7.5
+      ],
+      "occupancy_count": 5,
+      "tree_ids": [
+        "P1004",
+        "P1103",
+        "P1104",
+        "P1105",
+        "P1203"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9979791641235352,
+        "light": 0.0020208358764648438,
+        "flora": {
+          "mosses": 0.8461828827857971,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6992926597595215
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08145500719547272,
+        "bracken_target": 0.08145500719547272,
+        "brambleCover": 0.02036375179886818,
+        "brackenCover": 0.02036375179886818,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9979795813560486
+    },
+    {
+      "index": 26,
+      "address": {
+        "x": 2,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        -2.5,
+        7.5
+      ],
+      "occupancy_count": 2,
+      "tree_ids": [
+        "P1006",
+        "P1106"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9660782814025879,
+        "light": 0.03392171859741211,
+        "flora": {
+          "mosses": 0.7859256863594055,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6881273984909058
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.1044236421585083,
+        "bracken_target": 0.1044236421585083,
+        "brambleCover": 0.026105910539627075,
+        "brackenCover": 0.026105910539627075,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9660781621932983
+    },
+    {
+      "index": 27,
+      "address": {
+        "x": 3,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        2.5,
+        7.5
+      ],
+      "occupancy_count": 3,
+      "tree_ids": [
+        "P1108",
+        "P1109",
+        "P1209"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9985659718513489,
+        "light": 0.001434028148651123,
+        "flora": {
+          "mosses": 0.8472913503646851,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6994980573654175
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08103250712156296,
+        "bracken_target": 0.08103250712156296,
+        "brambleCover": 0.02025812678039074,
+        "brackenCover": 0.02025812678039074,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9985671639442444
+    },
+    {
+      "index": 28,
+      "address": {
+        "x": 4,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        7.5,
+        7.5
+      ],
+      "occupancy_count": 7,
+      "tree_ids": [
+        "P1011",
+        "P1110",
+        "P1111",
+        "P1112",
+        "P1210",
+        "P1211",
+        "P1212"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9997568726539612,
+        "light": 0.00024312734603881836,
+        "flora": {
+          "mosses": 0.8495408296585083,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999149322509766
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08017505705356598,
+        "bracken_target": 0.08017505705356598,
+        "brambleCover": 0.020043764263391495,
+        "brackenCover": 0.020043764263391495,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9997567534446716
+    },
+    {
+      "index": 29,
+      "address": {
+        "x": 5,
+        "z": 4
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        5,
+        10
+      ],
+      "center_xz_m": [
+        12.5,
+        7.5
+      ],
+      "occupancy_count": 8,
+      "tree_ids": [
+        "P1013",
+        "P1015",
+        "P1113",
+        "P1114",
+        "P1115",
+        "P1213",
+        "P1214",
+        "P1215"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998564720153809,
+        "light": 0.00014352798461914062,
+        "flora": {
+          "mosses": 0.8497289419174194,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999497413635254
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08010334521532059,
+        "bracken_target": 0.08010334521532059,
+        "brambleCover": 0.020025836303830147,
+        "brackenCover": 0.020025836303830147,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998564124107361
+    },
+    {
+      "index": 30,
+      "address": {
+        "x": 0,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        -15,
+        -10,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        -12.5,
+        12.5
+      ],
+      "occupancy_count": 9,
+      "tree_ids": [
+        "P1300",
+        "P1301",
+        "P1302",
+        "P1400",
+        "P1401",
+        "P1402",
+        "P1500",
+        "P1501",
+        "P1502"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998461604118347,
+        "light": 0.0001538395881652832,
+        "flora": {
+          "mosses": 0.8497093915939331,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999461650848389
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08011076599359512,
+        "bracken_target": 0.08011076599359512,
+        "brambleCover": 0.02002769149839878,
+        "brackenCover": 0.02002769149839878,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998461008071899
+    },
+    {
+      "index": 31,
+      "address": {
+        "x": 1,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        -10,
+        -5,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        -7.5,
+        12.5
+      ],
+      "occupancy_count": 5,
+      "tree_ids": [
+        "P1303",
+        "P1403",
+        "P1503",
+        "P1504",
+        "P1505"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.991473376750946,
+        "light": 0.008526623249053955,
+        "flora": {
+          "mosses": 0.8338941335678101,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.697015643119812
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08613917231559753,
+        "bracken_target": 0.08613917231559753,
+        "brambleCover": 0.021534793078899384,
+        "brackenCover": 0.021534793078899384,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9914737939834595
+    },
+    {
+      "index": 32,
+      "address": {
+        "x": 2,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        -5,
+        0,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        -2.5,
+        12.5
+      ],
+      "occupancy_count": 2,
+      "tree_ids": [
+        "P1506",
+        "P1507"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.8722237348556519,
+        "light": 0.12777626514434814,
+        "flora": {
+          "mosses": 0.6086448431015015,
+          "ferns": 0.21180084347724915,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6552783250808716
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.17199890315532684,
+        "bracken_target": 0.17199890315532684,
+        "brambleCover": 0.04299972578883171,
+        "brackenCover": 0.04299972578883171,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.8722096681594849
+    },
+    {
+      "index": 33,
+      "address": {
+        "x": 3,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        2.5,
+        12.5
+      ],
+      "occupancy_count": 4,
+      "tree_ids": [
+        "P1309",
+        "P1310",
+        "P1410",
+        "P1510"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9401839971542358,
+        "light": 0.05981600284576416,
+        "flora": {
+          "mosses": 0.7370142340660095,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6790643930435181
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.12306752055883408,
+        "bracken_target": 0.12306752055883408,
+        "brambleCover": 0.03076688013970852,
+        "brackenCover": 0.03076688013970852,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9401934742927551
+    },
+    {
+      "index": 34,
+      "address": {
+        "x": 4,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        5,
+        10,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        7.5,
+        12.5
+      ],
+      "occupancy_count": 6,
+      "tree_ids": [
+        "P1311",
+        "P1312",
+        "P1411",
+        "P1412",
+        "P1511",
+        "P1512"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9999478459358215,
+        "light": 5.21540641784668e-05,
+        "flora": {
+          "mosses": 0.849901556968689,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999817490577698
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08003755658864975,
+        "bracken_target": 0.08003755658864975,
+        "brambleCover": 0.020009389147162437,
+        "brackenCover": 0.020009389147162437,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9999479055404663
+    },
+    {
+      "index": 35,
+      "address": {
+        "x": 5,
+        "z": 5
+      },
+      "bounds_xz_m": [
+        10,
+        15,
+        10,
+        15
+      ],
+      "center_xz_m": [
+        12.5,
+        12.5
+      ],
+      "occupancy_count": 9,
+      "tree_ids": [
+        "P1313",
+        "P1314",
+        "P1315",
+        "P1413",
+        "P1414",
+        "P1415",
+        "P1513",
+        "P1514",
+        "P1515"
+      ],
+      "signature_status": "CANDIDATE",
+      "value_classes": {
+        "occupancy": "MD",
+        "canopy": "MD",
+        "light": "MD",
+        "flora": "MD",
+        "competitors": "MD",
+        "seed_rain": "MD",
+        "browse": "SV",
+        "site_drivers": "SV",
+        "recentOpening": "SV",
+        "cohorts": "GCP",
+        "deadwood": "GCP"
+      },
+      "expected_readback": {
+        "canopy": 0.9998965859413147,
+        "light": 0.00010341405868530273,
+        "flora": {
+          "mosses": 0.8498046398162842,
+          "ferns": 0.0,
+          "grasses": 0.0,
+          "forbs": 0.0,
+          "shrubs": 0.0,
+          "fungi": 0.6999638080596924
+        },
+        "lastUpdatedYear": 0,
+        "bramble_target": 0.08007445931434631,
+        "bracken_target": 0.08007445931434631,
+        "brambleCover": 0.02001861482858658,
+        "brackenCover": 0.02001861482858658,
+        "regeneration_cohorts": [],
+        "seedRainBySpecies": {},
+        "seedRainFor": {
+          "sitka-spruce": 0,
+          "sessile-oak": 0,
+          "beech": 0
+        },
+        "browse": {
+          "backgroundPressure": 0.20000000298023224,
+          "shelters": [],
+          "protectedAreas": [],
+          "cohortAccess_without_fences": 1
+        },
+        "deadwood": [],
+        "SiteProductivity": 1,
+        "SoilStability": 1,
+        "EstablishmentSuitability": 1,
+        "recentOpening": 0
+      },
+      "raw_fixture_canopy_audit_only": 0.9998965263366699
+    }
+  ],
+  "counts": {
+    "before": {
+      "SIGNED": 0,
+      "CANDIDATE": 0,
+      "BLOCKED": 36
+    },
+    "after": {
+      "SIGNED": 0,
+      "CANDIDATE": 36,
+      "BLOCKED": 0
+    }
+  },
+  "blockers": [],
+  "native_readback_status": "NOT_RUN",
+  "owner_signature": {
+    "name": null,
+    "date": null,
+    "exact_bytes_digest": null,
+    "statement": null
+  }
+}
