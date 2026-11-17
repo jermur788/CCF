@@ -286,3 +286,42 @@ The W2 reviewer adjudicated the shelter question against the source transforms a
 **Attempt accounting:** W1 author attempt #2 (Opus) = completed + one bounded correction, 2 runs; W2 reviewer = 1 refused (instance A), 1 completed (instance B), 1 delta re-check in progress. No loop, no silent substitution.
 
 **Next executable action at this cursor:** on the delta verdict, close W2 and proceed to Stage W3 (owner decision: BLOCKED, no attestation exists) and the consolidated final result with handback to #671.
+
+## E-012 — 2026-11-17T09:33Z — Correction: event header clocks are drafts; observed commit times replace them
+
+The header times typed into E-001…E-011 were the orchestrator's estimate at drafting, not read from a clock at append time, and several overshot. The ledger is append-only, so they are not rewritten. The **authoritative** times are the commit timestamps, observed from Git:
+
+| Event | Commit | Observed commit time (UTC) |
+| --- | --- | --- |
+| E-001 | `a32bbe74` | 2026-11-17T08:41 |
+| E-002 | `2b0b1860` | 08:48 |
+| E-003 | `cd174acc` | 08:57 |
+| E-004 | `c983357f` | 09:00 |
+| E-005 / E-006 | `584b5564` | 09:13 |
+| E-007 | `1467a913` | 09:14 |
+| E-008 | `8e1fc120` | 09:15 |
+| E-009 / E-010 | `78dfc0ea` | 09:29 |
+| E-011 | `3afc8520` | 09:32 |
+| E-012…E-014 | this commit | see its timestamp |
+
+Child artifacts likewise: W1 `3082b7d7` 09:12:12Z, W2 review `bd6208f2` 09:26:35Z, W1 correction `aab606ca` 09:30:58Z, W2 delta `ac332a8d` 09:36:40Z. Total observed orchestration wall clock ≈62 minutes. This entry supersedes the draft header clocks for evidentiary purposes; no content, decision or verdict depends on them.
+
+## E-013 — 2026-11-17T09:37Z — Stage-W2 gate satisfied: APPROVED after one bounded correction
+
+**Observed delta re-check:** reviewer pushed `ac332a8d3b81a3131006e48da95c12d369eec59c`; diff from `bd6208f2` = exactly one modified file, **+52 / −0**, earlier review bytes preserved. Review file now 334 lines / 37,602 bytes / SHA-256 `3fc873faa498dd7c80b5fff4587104d696f145c2009d3ee6c5dff91b47373584` (orchestrator-verified).
+
+**Verdict:** **APPROVED** — CRITICAL 0 / MAJOR 0 / MINOR 0 / NOTE 1. The reviewer independently re-derived the class counts (SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52 = 88), confirmed the eight relabelled rows, confirmed `SIGNED 0 · CANDIDATE 36 · BLOCKED 52` and `52 + 36 = 88`, confirmed §2/§4/§5.4/§5.6/§8/§9 byte-identical to the parent commit (so roster digest, fixtures, route, G1 margins, shelter numbers and tilt-sign statement, OD register, M-A-SCOPE deferral and signed-save boundary all unchanged), and confirmed `git diff --check` passes.
+
+**Residual NOTE (D-N01):** the new correction-summary row at W1 line 17 points F-02 to "§8" when the corrected wording is at §7.1 (line 595). Non-blocking. Deliberately **not** corrected by the orchestrator, so the approved `aab606ca` digest remains exactly the reviewed artifact; recorded in the final result for a future touch.
+
+**Stage accounting:** W2 = 1 refusal (instance A), 1 review (instance B, NEEDS CHANGES), 1 bounded author correction, 1 delta re-check (APPROVED). The gate is satisfied for the **documentation/evidence candidate** only; it is not a content signature, spec approval, Manager acceptance or Unity qualification.
+
+## E-014 — 2026-11-17T09:41Z — Consolidated final result published; handback to #671
+
+`Sen-1-672-DEEPSEEK-WORLD-ORCHESTRATOR-FINAL-RESULT-20261117.md` written and committed on the orchestrator branch with: stage outcomes and exact artifact identities, the evidence that is actually established, the full OD-00…OD-17 owner register, the exact blocking gates, the compliance/safety record, the three known non-blocking defects (D-N01 pointer, F-03 manifest member, dashboard sync NOT VERIFIED), the risk register, the six-attempt capacity/routing table with UNKNOWN quotas and costs, and the exact safe continuation for #671.
+
+**Stage W3.** No authorised content owner exists for this world in this run and no attestation was offered. Per the packet and the parent packet, the orchestrator may not sign, create a phantom signoff from the research dossier, or treat candidate defaults as authored values. W3 therefore ends **BLOCKED — NO OWNER ATTESTATION**, with the consolidated owner-question/gap register as its output.
+
+**Handback actions:** parent claim comment on #672 recording DONE and the result link; pointer comment on #671 handing the bundle to the Overall Manager; child claims closed with their published artifacts; disposable docs checkouts removed. No coordination file was edited.
+
+**Final orchestrator status: `WORLD SIGNATURE BLOCKED`.** Done per the packet's "done" definition: the honest, independently reviewed, decision-ready candidate exists; the signature does not, because authority to sign it does not exist yet.
