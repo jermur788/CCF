@@ -126,3 +126,20 @@ Append-only runtime events follow. Each event records: actual UTC time; observed
 - **Independence rule still binding:** the author was OpenAI GPT-6.1 Sol. A same-family OpenAI reviewer would not be independent; the packet permits reversal only with retained independence and an explicit rationale.
 - **Recovery decision (recorded before retry):** retry the *same model family* through the alternative authorised gateway (`opencode/claude-opus-5-5`) so that the reviewer remains genuinely non-author. If that path also fails, the review gate is recorded `BLOCKED — NO INDEPENDENT REVIEWER AVAILABLE` and no substitute self-review is performed.
 - **Next action:** retry once through the gateway and record the outcome.
+
+### E9 — 2026-11-17T09:23Z — S3 reviewer retry FAILED: gateway not connected (OBSERVED failure; review gate BLOCKED)
+
+- **Failure class:** provider access/authentication again, different path. The harness returned `Reconnect OpenCode Console to continue.` for `opencode/claude-opus-5-5`.
+- **Evidence of no work:** review worktree `/media/jer/Files/CCF/Orchestration/CCF-673-Save-Review-20261117` is clean at `afd5484fc11697e6bde64f99d57d22e98f572f1f`; `git ls-remote --heads origin 'review/sen-1-673*'` returns nothing; the target directory `Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117` does not exist in the review worktree. No review file, branch or commit was produced.
+- **Provider matrix actually observed this run:** direct Anthropic → `invalid x-api-key`; OpenCode gateway → console not connected; OpenAI → available (the author ran); this orchestrator's own pool (DeepSeek) → available. The packet's permitted reviewer pool is Claude Opus 5.5 (or a justified role reversal that still preserves independence). No permitted, genuinely independent reviewer was reachable.
+- **Decision (no substitution):** `INDEPENDENT REVIEW BLOCKED — NO PERMITTED REVIEWER AVAILABLE`. A same-family OpenAI model would violate the packet's independence rule; the orchestrator's own model family is not a permitted child reviewer. Therefore no substitute review is written and no self-review is dressed up as independent review.
+- **Consequence for the bundle:** the author's decision matrix is complete and decision-ready, but it is **unreviewed by an independent non-author**. The overall outcome cannot rise above `CONTRACT SIGNATURE BLOCKED`.
+- **Next action:** publish the final orchestrator result with the blocked review gate and the exact recovery step for Manager #671; hand back.
+
+### E10 — 2026-11-17T09:24Z — final result assembled, published and handed back (OBSERVED)
+
+- **Published:** `Docs/Handoffs/ScenarioOne-Overnight-Gates-20261117/Sen-1-673-DEEPSEEK-SAVE-ORCHESTRATOR-FINAL-RESULT-20261117.md` on the orchestration branch, together with this ledger. Orchestrator writes remain limited to those two files.
+- **Final declaration:** `CONTRACT SIGNATURE BLOCKED` and `INDEPENDENT REVIEW BLOCKED — NO PERMITTED REVIEWER AVAILABLE`; not implemented, not Unity-verified, ISO-58 blocked, three Compact spec families DRAFT, roster UNSIGNED, `M-A-SCOPE` DEFERRED, #652 live Ops HELD.
+- **No premature closure:** the S1 candidate is recorded as decision-ready but unreviewed; no signature, spec approval or implementation status was granted by this orchestration.
+- **Handoff:** result posted to #673 with a short handoff notice to Manager #671; the author claim and this orchestration claim are handed off, not silently closed as accepted.
+- **Resume cursor if work continues later:** restore Anthropic/gateway access → dispatch Opus 5.5 against frozen author tip `a43fbef33589bc2ce2df0e19f557036d8b446c9f` on a fresh review branch → independent verdict → real save-policy signer decision on policy B, CG-TRIG supplement and S03/S04 requirements → separate S1 amendment if authorised.
