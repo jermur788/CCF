@@ -123,3 +123,25 @@ Manager notified: [#641 comment 6958210614](https://github.com/jermur788/CCF/iss
 **No child dispatched; no Git fetch, worktree, source edit, candidate merge, dotnet, strace, Unity, Windows or year execution occurred.** This worker remains the docs-only orchestrator; the custodian role was exercised only for the reservation above. Ledger stays open at E-010 for the Manager ratification / M pin / G3 claim.
 
 <!-- END E-010 -->
+
+## E-011 · 2026-11-17T19:32Z · Manager ratification, immutable M and G3 satisfied; writer assigned (#692)
+
+Manager #641 [ratified the G1 receipt and bound the target on #692](https://github.com/jermur788/CCF/issues/692#issuecomment-6958492568): **M = `5b858031e2cd79be148864a62692653548e8b4af`**, Q `a7f41983…`, P0 tree `f212c8f6…` (52 blobs), separate child claim #692 created with reserved GitHub result path, recommended owner **OpenAI Codex gpt-6.1-sol High**. The physical custodian then assigned that writer on the existing lane.
+
+| Item | Value |
+|---|---|
+| Custodian assignment (GitHub) | [#692 comment 6958638116](https://github.com/jermur788/CCF/issues/692#issuecomment-6958638116) |
+| Machine receipt | `…/receipts/CCF-MULTI-692-custodian-writer-assignment-20261117.json` |
+| Writer (exclusive) | OpenAI Codex GPT-6.1 Sol High — prospective; host unregistered; **NOT RUNNING** |
+| Store | same inode `10902740`, **0 objects / 0 refs / 0 linked worktrees**, `HEAD refs/heads/main`, `core.fsync=all` |
+| Worktree / evidence / branch | `ccf-687-child-a` still **uncreated**; evidence **0 bytes**; branch **name only**, absent in canonical/legacy/origin |
+| Expiry | **2026-11-19T18:00:00Z, unchanged** |
+| Deployed readback | board row updated in place (Owner = exclusive writer, HEAD `TBD`, Unity required No); `lanes.json` purpose annotated; `packet-lint --board` **PASS (35 live tasks)**; no duplicate lane/branch; no collision across 225 checkouts |
+| M re-verified read-only | M exists, equals live `main` at check, **P0 and P1 absent** at M (404), four CCF pins **4/4 PASS** |
+| Protection | #674 store 20,094 in-pack and not borrowed; #683 unused; #639 `e302f15b`; canonical/legacy read-only; Primary still two dirty files; Scenario One untouched; `unity-lock` free and not acquired; no Unity/dotnet/strace |
+
+**Gate movement.** A-1 custody → **GRANTED and ratified**. A-2 Manager scope → **BOUND (M)**. A-3 child claim + writer → **SATISFIED**. Remaining execution gate is the **worker's own `[RUNNING]` on #692 after independent verification of the physical row, M/Q and pins**.
+
+Still not done by this orchestration: no fetch, no worktree, no H2 candidate, no source, no review, no main merge, no security qualification. Default L4 **FAIL 38**; first ecological year **HOLD**.
+
+<!-- END E-011 -->
