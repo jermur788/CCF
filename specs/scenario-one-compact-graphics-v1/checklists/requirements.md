@@ -2,10 +2,26 @@
 
 - **Spec ID:** SPEC-SEN1-COMPACT-GRAPHICS-V1
 - **Spec status:** **DRAFT / ALL UNCHECKED / NOT APPROVED**
-- **Checklist owner:** Scenario One Manager #424
+- **Checklist owner:** Scenario One Overall Manager #675 (successor to #424)
 - **Implementation under test:** **NONE**. This is a document-only proposed checklist, not native evidence.
-- **Date:** 2026-11-16
+- **Date:** 2026-11-16; #691 reconciliation 2026-11-17 (6 entry texts corrected, IDs/order/count unchanged, all unchecked)
 - **Evidence policy:** A checked item requires exact source branch, world/content version, native logs/captures and/or signed owner decision. A passed #577 Blender scratch render, #583 source calculation, #573 E80 source review or #584 document review cannot check a Compact Unity requirement.
+
+## #691 — D-085 / owner route A / #688 / #698 reading (no new entries; 66 remain unchecked)
+
+Six entries had stale text corrected in place (FR-04, FR-05, FR-09, FR-16, WF-06, G573-M2); each keeps its ID, position and unchecked box, and the semantic reason is recorded in the [#691 result](https://github.com/jermur788/CCF/blob/docs/sen-1-691-graphics-fourfile-owner-blueprint-reconciliation-20261117-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-691-COMPACT-GRAPHICS-FOURFILE-OWNER-BLUEPRINT-RECONCILIATION-RESULT-20261117.md). Other entries are read as follows:
+
+| Existing entry | Binding #691 reading |
+| --- | --- |
+| FR-01, FR-02, SA-04, AC-01 | 175-row roster (D-085 OD-15), unmarked start (OD-17), four G1 sites with zero planar displacement (OD-12) are owner directions; #676 is unsigned (0/80/8, digest null). |
+| FR-12, FR-13, AC-07, AC-10 | Owner route A: the four existing detailed Sitka families; rights, all-LOD height/DBH/crown honesty and URP import unproven (#685). #688/#698 kits are **proposed** P0 roles only. No primitive fallback without a new owner decision. |
+| FR-07, AC-03, WF-01 | H1 is a natural no-stump, no-vehicle, no-gate/road/kerb clearing (D-085 OD-05/OD-06). Whether #688's inward 0.50 m soft edge inside a fixed rectangle satisfies "soft, not perfect rectangle" is GQ-08. |
+| FR-15, NEG-02, AC-06 | D-085 OD-11 four-state form-distinguishable guards within r ≤ 0.10 m; #698 centred family (r ≈ 0.0930 m) is a static proposal; look A/B, silhouettes and 4–6 m cue are GQ-11. Current failed O1 0.141 m intrusion stays a known source FAIL. |
+| FR-17 | Neutral daylight and minimal boundary dressing are owner direction (16 Nov); optional sky/fog stays separately scoped. |
+| FR-18, AC-07, V-02 | D-032 OPEN: named author, hashes/provenance, compiled-beta policy, raw-source limits, URP custody/notices, full GUID record, byte budgets (≤20.5 MiB / ≤3.25 MiB requests). |
+| FR-19, FR-20, AC-09 | Tier 2 adds H1 → A8 walk, grayscale, no path collider, texture-mask support, per-stage Sitka LOD fidelity. #652 HELD; nothing run. |
+| SA-02 | D-083, D-084 **and D-085** are published on `main`; still needs its own evidence review before any check. |
+| AC-02, AC-05, NEG-04 | Separate Compact scene selected; the renderer-only alternative is unselected. "Route fix" never means moving a G1 site without an owner-signed manifest amendment. |
 
 ## #657 — D-084 reading of existing graphics entries (no new entries; 66 remain unchecked)
 
@@ -15,7 +31,7 @@
 | FR-06 | Owner selected Geometry A (original four sites kept). FR-06 STOP now applies only to **new** native conflicts, not to the former A/B choice. |
 | FR-15, NEG-02, AC-06 | Compact failed guard = honestly damaged representation within an **r ≤ 0.10 m** full visual/physical/stake footprint, distinguishable beyond colour; the current 28° / +0.25 m pose stays a known source FAIL until the Compact representation is measured natively. Browsing/protection semantics unchanged. |
 | SA-02 | D-083 and D-084 are **published** on `main`; this entry still needs its own evidence review before any check. |
-| FR-09, G573-M2 | **Not decided by D-084** — GQ-07 scene/plank architecture remains open. |
+| FR-09, G573-M2 | **Not decided by D-084** — GQ-07 scene/plank architecture remains open. *(#691: superseded — owner chose the separate Compact scene, D-085 OD-13.)* |
 | FR-18, AC-07 | D-032 remains OPEN. |
 
 ## Functional requirements — all unverified
@@ -23,19 +39,19 @@
 - [ ] **FR-01:** Graphics bind only to signed/authorised Compact world/H1/route/G1/profile version; no independent source-tree placement, lost manifest or extra saved identity. — evidence:
 - [ ] **FR-02:** All-Sitka start, exactly reviewed pre-world H1 historical omissions and untouched buffer survivors are faithfully depicted; original research 189→175 arithmetic is not misreported as actual native count or player harvest. — evidence:
 - [ ] **FR-03:** Only one winding pedestrian route; no rack, rideable forestry extraction road, old five-rack teaching or imaginary timber traffic down path. — evidence:
-- [ ] **FR-04:** 1.2 m physical core is a **source-only candidate** and not yet feasible with the old 2.6 m source planks/failed shelters; at 1.8 m B2 has only +0.021 m upright with no verge, at 2.4 m two G1 centres and four upright guards conflict. Source/scene, guard and Unity path checks required before PASS. — evidence:
-- [ ] **FR-05:** Walking core, ribbon, verge and foliage display mask separate; no unproved 0.20 m permanent edge. Current failed 28°/+0.25 m shelter visual **intrudes 0.141 m into O1 1.2 m core and 0.155 m into O2 with 0.20 m verge**; new guard/path design must remove actual interference before signoff. — evidence:
+- [ ] **FR-04:** Owner-directed 1.2 m physical core + ≤0.20 m visual-only verge per side on a signed curve (C0 or T1 + new 0.190 m cap, owner-pending) to a signed natural northern endpoint (A8 unsigned); old 2.6 m planks excluded by the separate Compact scene; current failed shelter still conflicts; 1.8 m (B2 +0.021 m, no verge) and 2.4 m (two G1 centres, four guards inside) remain rejected comparators. Source/scene, guard and Unity path checks required before PASS. — evidence:
+- [ ] **FR-05:** Walking core, ribbon, verge and foliage display mask documented as separate footprints (analytic regions on one plane only if GQ-08 accepts); verge ≤0.20 m, visual-only, never a collider or ecological edge. Current failed 28°/+0.25 m shelter visual **intrudes 0.141 m into O1 1.2 m core and 0.155 m into O2 with 0.20 m verge**; new guard/path design must remove actual interference before signoff. — evidence:
 - [ ] **FR-06:** Any path-G1 collision/failure returns to approved manifest amendment and source rerun without silently moving 4 G1 points, 14 H1 source tree IDs or old saves. — evidence:
 - [ ] **FR-07:** Actual Compact H1/needle ground/path material with appropriate scale, roughness and grayscale contrast at H1/bend, preserving HUD/forestry mark distinction. — evidence:
 - [ ] **FR-08:** Compact materials are distinct from shared historical Forest Ground/Path and their Editor menu; no unapproved global camera/URP/fog change. — evidence:
-- [ ] **FR-09:** **GQ-07 blocking Compact scene/old-plank decision accepted**: separate Compact hierarchy with no 2.6 m historical planks (preferred DRAFT) **OR** source-reviewed profile-gated `Renderer.enabled` only, with clone creation/version/load/toggle, original source corridor, Stand Map, approval and coverage reconciliation; Compact has no visible or consumed historic plank, old Legacy40/E80 states unchanged. — evidence:
+- [ ] **FR-09:** **Owner-selected separate Compact scene/hierarchy (D-085 OD-13)** with no 2.6 m historical planks or their clones/consumers, and an approved parent source bridge for corridor, Stand Map, approval, coverage, routing and profile/save; the profile-gated `Renderer.enabled` alternative is not used without new owner instruction; Compact has no visible or consumed historic plank, old Legacy40/E80 states unchanged. — evidence:
 - [ ] **FR-10:** Display-only vegetation mask downstream of `VegetationSites` leaves `ScenarioOneClearance`, preview, target IDs/counts and clearance summary unchanged. — evidence:
 - [ ] **FR-11:** Visible + suppressed per cell/per kind = source intended visual instances, including rush anchors and full-cell masks, with per-class footprint radius, deterministic `Jitter` after save/load, and separate Compact verifier preserving historical visible==GrassPatchCount assertions. — evidence:
 - [ ] **FR-12:** Reuse documented tracked first-party Sitka/understorey/deadwood, with missing/partial Ultimate Nature never mandatory and unreviewed ForestFloorV1 not inserted. — evidence:
 - [ ] **FR-13:** H1 surface, Compact-only footpath, Compact-only forest floor, small Oak/Beech transplants and shelter have accepted source/model/texture/LOD scope and costs. — evidence:
 - [ ] **FR-14:** Transplant displays true juvenile source height with species-appropriate non-miniaturised leaf/branch form, without changing actual growth/size or planting mechanics. — evidence:
 - [ ] **FR-15:** Shelter/guard visual accepted and bounded in upright, expired and failed states; current failed O1 overlap corrected without changing `failedYear`, Browse efficacy, growth or stem locations; real juveniles visible. — evidence:
-- [ ] **FR-16:** W/N2 owner look selected **from actual Compact native views** and W's original **0.35 m scratch soft edge tapered near G1** to the illustrative 0.20 m limit before comparison; Blender ratios are not Unity proof or owner selection. — evidence:
+- [ ] **FR-16:** Owner-chosen W direction (16 Nov) accepted as an exact look **from actual Compact native views**, using the proposed #688 palette or an owner-revised one at 1.2 m + ≤0.20 m (not #577's 0.35 m scratch edge); Blender ratios and #688 values are not Unity proof or owner acceptance. — evidence:
 - [ ] **FR-17:** Any optional sky/fog/boundary scope explicitly accepted with technical camera isolation; no false biological seed donor or global leakage. — evidence:
 - [ ] **FR-18:** D-032 approved provenance/distribution/source policy and asset bytes/hashes verified **before** any tracked production binary/import; no unlicensed third party. — evidence:
 - [ ] **FR-19:** Native H1/bend/interior/G1/later view captures at 1280×720 and 1920×1080 with HUD/quality/LOD/pack/world identity pinned; no old E80 capture substitution. — evidence:
@@ -48,7 +64,7 @@
 - [ ] **WF-03 Assessment:** from normal stand/inspection UI, real forestry marks and site information remain legible against visual environment.
 - [ ] **WF-04 Planting:** player receives stock, nominates actual four Pending 2 Oak+2 Beech orders, approves genuine Work Plan, annual completion creates real juveniles in expected world site; no earlier fake G1 trees. This is primarily parent/child source qualification, graphics observes it.
 - [ ] **WF-05 Return/review:** juvenile species/protection/clearance and subsequent annual changes visible without changing ecology or Browse, including saved/reloaded states.
-- [ ] **WF-06 Collection:** any staged small-truck/closed-visitor state has no drivable footpath or inferred safety/road standard; optional if omitted from first view.
+- [ ] **WF-06 Collection:** no parked or permanent vehicle, yard, gate or road in H1 (D-085 OD-06); any occasional collection stage/mode event is separately scoped, implies no drivable footpath or road standard, and is optional if omitted from first view.
 
 ## Source/authority/identity gates
 
@@ -76,7 +92,7 @@
 ## Seven major #573 findings — compact regression trace
 
 - [ ] **G573-M1:** vegetation display mask after site generation, clearance target/preview unchanged (FR-10/11, AC-04).
-- [ ] **G573-M2:** GQ-07 Compact scene excludes historical 2.6m plank/track objects entirely OR source-verified profile-gated `Renderer.enabled` alternative meets clone/version/toggle/load and corridor/Stand Map/approval consumers, with unchanged old states (FR-09, AC-02/05).
+- [ ] **G573-M2:** Owner-selected separate Compact scene (GQ-07 A) excludes historical 2.6m plank/track objects, clones and corridor/Stand Map/approval consumers entirely, with unchanged old states; the renderer-only alternative is unselected (FR-09, AC-02/05).
 - [ ] **G573-M3:** shared Forest Ground/Path materials & editor menu never edited/run; distinct compact materials (FR-08, AC-05).
 - [ ] **G573-M4:** camera Solid Colour/no URP additional data gate; global fog/sky not assumed, shared camera isolation protected (FR-08/17, AC-08).
 - [ ] **G573-M5:** fully masked cells honest; verify rendered+suppressed accounting, deterministic Jitter/reload, rush anchors and Compact-scoped grass verifier while keeping legacy tests unchanged (FR-11, AC-04).
@@ -112,4 +128,4 @@
 - **Implementation correctness:** **NOT VERIFIED**
 - **Player/owner visual acceptance:** **NOT GIVEN**
 - **All checkboxes:** **UNCHECKED**.
-- **Known blockers:** GQ-01..GQ-07 in spec, particularly signed world/path/G1/guard, licence/storage D-032, cross-system display-only mask, new native Compact baseline and independent spec review.
+- **Known blockers:** GQ-01..GQ-12 in spec (GQ-07 architecture decided; parent bridge open), particularly signed world/path/G1/guard, licence/storage D-032, cross-system display-only mask, new native Compact baseline and independent spec review.
