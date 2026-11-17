@@ -141,19 +141,19 @@ Every row has an evidence class. **These are field requirements and gaps, not in
 | tree.orientation / yaw | CB has none; source spawner root uses Quaternion.identity | UNSUPPORTED / NOT IN SOURCE | SP:145–148; ANN:304 | W02; identity rotation is a candidate only |
 | tree.visual scale / defect flags | No per-tree Compact assignment; biology must remain truthful | UNSUPPORTED / NOT IN SOURCE | T:44–64; ANN:304 | W02; do not create biological defects from art |
 | tree.life stage (`stage`) | Engine enum Mature=0 exists; it is not proof of biological maturity at age20 | UNSUPPORTED / NOT IN SOURCE | T:5–10 / 72 / 135–139; SD:191 | W03; candidate fresh-source engine stage |
-| tree.status | Standing/living intended for all 175; no separate saved status field should be invented | GAME-CALIBRATION-PROPOSAL | ANN:65–69; T:81–87; SD:185–212 | W03; encode through actual stage/mortality fields |
+| tree.status | Standing/living intended for all 175; no separate saved status field should be invented | UNSUPPORTED / NOT IN SOURCE | ANN:65–69; T:81–87; SD:185–212 | W03; encode through actual stage/mortality fields |
 | tree.suppression class | No authored suppression category; runtime competition is not a recorded pre-world history | UNSUPPORTED / NOT IN SOURCE | T:102–118; EC:52 / 932; SD:198 | W03; do not infer past suppression from small DBH |
-| tree.harvest / CropTree mark (`markType`) | Propose None=0, no marks inherited from harness crop picks | GAME-CALIBRATION-PROPOSAL | T:18–23; ANN:40 / 67; SD:206 | W03; both marked ID lists must agree |
-| tree.mortality (`biologicallyDead`) | Propose false; no deaths or H1 stumps silently inserted | GAME-CALIBRATION-PROPOSAL | T:32–34 / 81–82; SD:208 | W03 / W05 |
-| tree.mortalityCause | Propose empty string, matching fresh source field default | GAME-CALIBRATION-PROPOSAL | T:33; SD:209 | W03 |
-| tree.mortalityYear | Propose −1, matching fresh source default | GAME-CALIBRATION-PROPOSAL | T:34; SD:210 | W03 |
+| tree.harvest / CropTree mark (`markType`) | Propose None=0, no marks inherited from harness crop picks | UNSUPPORTED / NOT IN SOURCE | T:18–23; ANN:40 / 67; SD:206 | W03; both marked ID lists must agree |
+| tree.mortality (`biologicallyDead`) | Propose false; no deaths or H1 stumps silently inserted | UNSUPPORTED / NOT IN SOURCE | T:32–34 / 81–82; SD:208 | W03 / W05 |
+| tree.mortalityCause | Propose empty string, matching fresh source field default | UNSUPPORTED / NOT IN SOURCE | T:33; SD:209 | W03 |
+| tree.mortalityYear | Propose −1, matching fresh source default | UNSUPPORTED / NOT IN SOURCE | T:34; SD:210 | W03 |
 | tree.stageTimer | Not in CB; source fresh private float default is zero | UNSUPPORTED / NOT IN SOURCE | T:72–75; SD:192; SC:143–145 | W03; candidate zero requires full fresh-state rule |
 | tree.chopProgress | Not in CB; no prior player chops proposed | UNSUPPORTED / NOT IN SOURCE | T:73; SD:193; SC:145 | W03; candidate zero |
-| tree.hasSimulation | Source capture writes true; Compact construction still absent | GAME-CALIBRATION-PROPOSAL | SC:146; SD:195 | W03; do not treat DTO initializer as measured state |
-| tree.equivalentSuppressedYears | Not in CB; candidate zero recorded history at new-world start | GAME-CALIBRATION-PROPOSAL | T:102–118; SD:198 | W03; no claim that real trees were never suppressed |
+| tree.hasSimulation | Source capture writes true; Compact construction still absent | UNSUPPORTED / NOT IN SOURCE | SC:146; SD:195 | W03; do not treat DTO initializer as measured state |
+| tree.equivalentSuppressedYears | Not in CB; candidate zero recorded history at new-world start | UNSUPPORTED / NOT IN SOURCE | T:102–118; SD:198 | W03; no claim that real trees were never suppressed |
 | tree.pruningLifts | No inherited pruning record; candidate fresh unpruned state | UNSUPPORTED / NOT IN SOURCE | SD:203; T:121–128 | W03 |
 | tree.crownBaseHeightM | Must use source initialization rule or explicitly authored value; no invented per-tree heights | UNSUPPORTED / NOT IN SOURCE | SD:204; SC:152–154; T:124–128 | W03 |
-| tree.lastPruningYear | Candidate −1 from existing DTO default; no prior pruning credit | GAME-CALIBRATION-PROPOSAL | SD:205 | W03 |
+| tree.lastPruningYear | Candidate −1 from existing DTO default; no prior pruning credit | UNSUPPORTED / NOT IN SOURCE | SD:205 | W03 |
 | tree.ordering / determinism | Roster ASCII id ascending; UTF-8 LF canonical decimals and final LF | SOURCE-VERIFIED | ANN:71–77; canonical byte check §1 | Construction/restore order must be witnessed; W14 |
 | terrain.height source | No terrain bytes or Compact heightfield authored | UNSUPPORTED / NOT IN SOURCE | ANN:301–303; ST:113–116; PV:85–87 fallback | W01; flat source-plane candidate or separate heightfield |
 | terrain.normal / up vector | No normals in CB; flat-plane up is an explicit candidate | UNSUPPORTED / NOT IN SOURCE | ANN:303; PLAYER:447–451 tests surface normal | W01; never infer slope from x/z |
@@ -339,4 +339,4 @@ No scene, Unity/Editor, Ops deployment or lease, Player build/Windows, productio
 
 **Actually performed:** source/document reads, raw byte hashes and nine-entry checksum verification, canonical GitHub roster byte reproduction, offline membership/occupancy/plane geometry arithmetic, and bounded Git scope/format checks. This is an author handoff for an independent nonauthor reviewer, never a self-approved world.
 
-**Count basis:** field matrix contains 88 field rows, of which 36 are labelled UNSUPPORTED / NOT IN SOURCE. The separate36-cell table adds36 explicitly incomplete ecology rows. Total unsupported table rows under this count = 72; unique world signature blocker groups =14 (W01…W14). The companion adds8 save/decision blocker groups S01…S08; combined dossier blocker-register entries =22, with cross-dependencies explicitly named, not22 independent runtime failures.
+**Count basis:** field matrix contains 88 field rows, of which 44 are labelled UNSUPPORTED / NOT IN SOURCE. The separate36-cell table adds36 explicitly incomplete ecology rows. Total unsupported table rows under this count = 80; unique world signature blocker groups =14 (W01…W14). The companion adds8 save/decision blocker groups S01…S08; combined dossier blocker-register entries =22, with cross-dependencies explicitly named, not22 independent runtime failures.
