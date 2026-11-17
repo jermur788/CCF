@@ -163,3 +163,39 @@ While the Opus author works, the orchestrator ran its **own** read-only checks s
 **Capacity:** unchanged from E-003 (Sol COOLDOWN/USAGE-LIMIT, reset UNKNOWN; Opus AVAILABLE and authoring; DeepSeek AVAILABLE, quota UNKNOWN). No new provider attempt was made.
 
 **Next executable action at this cursor:** on Opus completion append E-005 with the exact commit, one-file diff and file digest; verify the diff is exactly one added file; then register W2.
+
+## E-005 — 2026-11-17T09:20Z — Stage-W1 delivered; orchestrator verification of the delivered artifact
+
+**Observed child completion:** Opus 5.5 high finished and pushed. Orchestrator re-fetched and verified **independently of the child's statement**:
+
+| Check | Orchestrator observation |
+| --- | --- |
+| Branch tip | `3082b7d7c05ea8a810324fc2c8b2b0bc57fecf3b` (`docs/sen-1-672-world-content-signature-20261117-v1`), one commit above base `afd5484f` |
+| Diff scope | `git diff --name-status afd5484f…tip` = exactly one line, `A Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-672-COMPACT30-COMPLETE-WORLD-CONTENT-SIGNATURE-CANDIDATE-AND-OWNER-GATES-20261117.md`. No other path, no deletion, no modification |
+| File | 803 lines, 77,599 bytes, SHA-256 `07000792d649eabb23e02718ed6257f77de095aeed06844e5ebace5b24ec2103` — equals the child's reported digest |
+| Own-path discipline | the claimed path is the Manager-reserved path; the child's helper script is outside the repo as instructed |
+
+**Content spot-checks by the orchestrator (not a review):** banner is CANDIDATE / UNSIGNED / NOT SIGNED / NOT UNITY-VERIFIED; §0.3 states an ordered class rule and resolves #669 F-02 by uniform application, giving SV 21 · MD 5 · OC 17 · GCP 1 · UNS 44 = 88, reproducing the `a94d3d91` recount; §0.4 states that **0 fields and 0 cells are SIGNED**; §9 has OD-00…OD-17 with no option presented as chosen; OD-16 (M-A-SCOPE) is explicitly deferred and not offered; OD-17 records the 08:35Z crop-tree receipt as intent only; §10 requires the owner to clear every BLOCKED row before any signature; §11 lists the NOT-RUN set honestly; DRAFT specs, roster, signed save and historical worlds are untouched.
+
+**Orchestrator arithmetic corroboration:** the child's roster digest, H1/buffer sets, totals, occupancy vector, route length, nearest-stem margin and the four G1 margins all match the orchestrator's own independent re-derivation in E-004 (the roster block reproduces byte-for-byte at 9,481 bytes).
+
+**Capacity at completion:** Opus 5.5 `AVAILABLE` and now released (author custody ended, no further Opus writes to this branch); Sol still `COOLDOWN — USAGE LIMIT`, reset `UNKNOWN`; DeepSeek orchestrator `AVAILABLE`, quota `UNKNOWN`. No new provider call in this event.
+
+## E-006 — 2026-11-17T09:22Z — Orchestrator self-correction of its own E-004 flag
+
+**Correcting my own record, not the child's.** E-004 flagged the carried failed-shelter envelope (0.4586424 m minimum, 0.1413576 m O1 intrusion) as not reproducing, on the basis of an orchestrator model that returned ≈0.729 m. That model was **defective**: it placed the two rim circles at `centre` and `centre + 1.2·axis` instead of at `centre ± 0.6·axis`, shifting the whole tilted cylinder half a length toward its top cap.
+
+**Corrected orchestrator re-derivation** (full lateral surface densely sampled, 241 axial × 720 circumferential positions, against the eight-anchor polyline):
+
+| Tilt applied | Minimum route distance | Intrusion into the 0.6 m half-core |
+| --- | --- | --- |
+| `Euler(0,0,+28)` — the actual source sign (`ScenarioProtectionVisuals.cs`) | ≈0.4459 m | ≈0.1541 m |
+| `Euler(0,0,−28)` — sign reversed | ≈0.4712 m | ≈0.1288 m |
+
+So the dossier's conclusion stands in substance: the failed-shelter envelope **does** intrude into O1's 0.6 m half-core by roughly 0.13–0.15 m. The exact carried digits (0.4586424 / 0.1413576) differ from the corrected orchestrator value by about 0.013 m and were not reproduced from the stated inputs, so they remain **MODEL-DERIVED and unconfirmed** rather than wrong; they must not be promoted to a measured or signed quantity.
+
+**One precision point for the review:** the W1 document states that "the plan footprint does not depend on the rotation's sign convention". Under the corrected model the two signs differ by ≈0.025 m (0.4459 vs 0.4712), so that sentence is not exact. It does not change the intrusion conclusion or any margin table, but W2 should record it.
+
+**Consequence:** my E-004 flag is withdrawn as stated. The Stage-W2 brief keeps the envelope as a named check with these corrected numbers, so the reviewer can judge the document rather than my earlier error.
+
+**Next executable action at this cursor:** register the Stage-W2 independent nonauthor review claim (distinct branch, distinct one-file output, different model family from the author) and attempt the Sol reviewer.
