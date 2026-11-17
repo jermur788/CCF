@@ -325,3 +325,27 @@ Child artifacts likewise: W1 `3082b7d7` 09:12:12Z, W2 review `bd6208f2` 09:26:35
 **Handback actions:** parent claim comment on #672 recording DONE and the result link; pointer comment on #671 handing the bundle to the Overall Manager; child claims closed with their published artifacts; disposable docs checkouts removed. No coordination file was edited.
 
 **Final orchestrator status: `WORLD SIGNATURE BLOCKED`.** Done per the packet's "done" definition: the honest, independently reviewed, decision-ready candidate exists; the signature does not, because authority to sign it does not exist yet.
+
+## E-015 — 2026-11-17T09:56Z — Post-handback: owner decision round 1 opened, answered, and recorded
+
+**Authority:** direct product-owner instruction after the #672 handback, choosing "open bounded owner packet" rather than leaving the register with #671. This is a follow-on documentation action; it does not reopen #672's closed result and does not change any signature status.
+
+**Artifact created:** branch `docs/sen-1-672-owner-decision-round1-20261117-v1` from `afd5484f`; one new file `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261117/Sen-1-672-OWNER-DECISION-PACKET-ROUND1-20261117.md`; commit `3eac42bf` (initial, 121 lines) then `1d60f3a1` (answers recorded, 150 lines, SHA-256 `6fe9e623…`). Exactly one added file versus base; nothing else touched; registered on #672 at [comment 6949146000](https://github.com/jermur788/CCF/issues/672#issuecomment-6949146000) before answers were transcribed.
+
+**Scope of the round:** five decisions only — OD-00 signing authority, OD-01 terrain/hydrology, OD-04 36-cell ecology, OD-13 GQ-07 architecture + D-032 rights, OD-15 roster adoption. OD-02/03/05/06/07/08/09/10/11/12/14/17 deferred to round 2. **OD-16 (M-A-SCOPE) deliberately not asked and still deferred.**
+
+**Observed owner answers (transcribed verbatim, no interpretation):**
+
+| Item | Answer |
+| --- | --- |
+| D1 / OD-00 | A — the product owner personally is the authorised content owner |
+| D2 / OD-01 | A — declared flat plane `y = 0`, no hydrology |
+| D3 / OD-04 | A — pin the installed source initialisation recipe, selectors and seed; grid edge half-open `[−15,+15)`; dormant `Reference` profile not applied |
+| D4 / OD-13 | A — separate Compact scene/hierarchy; adopt the D-032 first-party rights disposition for new Compact-only binaries |
+| D5 / OD-15 | A — adopt roster `dac06a3b7775f884fac9f8df6b95178cbaf9d912b44687082a161eaf0426cca1` verbatim |
+
+**Status effect: choices closed, signatures not created.** The five items are no longer open questions, but no field or cell changed signature status: `SIGNED 0 · CANDIDATE 36 · BLOCKED 52`, 36 cells BLOCKED. Each answer still requires actual authored data (pinned recipe/selectors/seed, scene identity and asset provenance, the owner's formal attestation over exact bytes) before any row can be signed. Recording a direction is not an attestation, and the orchestrator did not write one on the owner's behalf.
+
+**Capacity:** DeepSeek orchestrator AVAILABLE, quota UNKNOWN; no child was launched for this round (owner-facing decision support, not a delegated task). No provider refusal occurred. Elapsed for the round ≈8 minutes.
+
+**Next executable action at this cursor:** round 2 (OD-02/03/05/06/07/08/09/10/11/12/14/17) when the owner asks for it, and the authored-data tasks that D2/D3/D4/D5 now require — none of which is authorised by this packet beyond documentation.
