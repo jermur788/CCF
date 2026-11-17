@@ -1,0 +1,25 @@
+# Sen-1 #702 — Independent non-Anthropic graphics four-file DRAFT review
+
+**Review verdict: NEEDS CHANGES — one major ownership/approval-authority correction, no evidence of production change.** The #691 authored correction is broadly source-aligned, but approval authority must be reconciled before formal specification approval. **This review is document-only, not spec approval, world signature, Unity qualification, or asset production.**
+
+## Actual reviewer / scope
+Reviewer OpenAI ChatGPT GPT-6, connected GitHub browser (not the Anthropic Claude Opus 5.5 #691 author). Registered [#702](https://github.com/jermur788/CCF/issues/702) before result edit; review branch `review/sen-1-702-691-graphics-gpt6-20261117-v1` based directly on the exact #691 candidate `582c7b388f4f17d4a4bc9ba5986a6802936774b3`. No physical host/worktree, Unity/Blender/source/asset/save/Ops access; one new Markdown review only. Original author files remain untouched.
+
+## Evidence checks
+1. GitHub compare against #691 starting parent `d36ce779224e418c400f461c16edd4f37630c5d0`: exactly **four modified graphics DRAFT files plus one new author result**, two commits, no other paths; confirmed by remote compare. Canonical parent/planting and historical saved worlds were not part of the delta.
+2. Directly read all four target documents and author result on the exact candidate. Header status DRAFT in all four; no production permission; T-01 documentation only, T-02 through T-09 held. Checklist carries **66 unchecked**, **zero checked**, same ordered checkbox IDs as starting parent (direct text comparison); FR and AC preserved.
+3. Owner-intent reconciliation is substantively correct: separate Compact scene, genuine natural H1 with no stumps/parking/road/kerb/yard, 1.2m walking core and up to 0.20m visual-only verge, zero relocation of four G1 planting sites, source Sitka four detailed families with unproven rights/LOD, W worn-earth direction distinguished from unapproved exact palette, no silent T1/0.190 cap or A8 signature. Found D-085 and #593/#599 divergence visibly explained by author.
+4. #688 and #698 Stage0 blueprints remain *proposed* material/geometry budgets, not accepted production or native evidence. D-032 provenance/rights open; one-plane analytic region and soft H1 boundary issue GQ-08 open; curve choice GQ-09, endpoint GQ-10, shelter look/juvenile/cue GQ-11 open. The known original failed O1 shelter 0.141m physical intrusion remains an explicit failure, not concealed by static new shelter estimates.
+5. Historic Enlarged80/Legacy40, frozen Reference Future, v1–v24 save contracts and #652 held Ops scope are marked protected. Review did not run independent C#/Unity tests or verify scene/geometry. Author's reported deeper static checks beyond the GitHub text and compare were assessed as author evidence, not independently executed here.
+
+## Findings
+**M-1 — Approval authority stale in operative workflow text (MAJOR, blocking formal APPROVED status):**
+- `specs/scenario-one-compact-graphics-v1/tasks.md`, introductory mandatory implementation gate, says `spec.md status APPROVED by #424`, even though #424 is historical and Overall Manager ownership transferred #675 → [#700](https://github.com/jermur788/CCF/issues/700). The same document T-02 owner/routing still says local Unity verifier selected by #424. `spec.md` open GQ-04 also uses `#424 + owner content sign-off`. This wording could route formal source/graphics release to the wrong owner despite the otherwise correct new transfer. **Required**: replace operative authority with **current Overall Manager (presently #700)** acting under direct product-owner and canonical decision authority, keeping #424/#675 historical attribution where it is historical. Correct references consistently in spec, plan, tasks, checklist as applicable without adding or checking requirements; do not self-approve.
+- This is an administrative/authority blocker, **not** rejection of the substantive D-085/graphics design.
+
+**N-1 — Historical superseded sentences (MINOR, nonblocking to document quality once explicitly superseded):** Older #657 plan/other sections say GQ-07 scene choice still open, but #691 newer sections clearly say D-085 settled the separate scene and label previous text historical. Prefer a concise supersession note when correcting M-1; not a reason for a new full authoring loop.
+
+## Verdict boundaries and next step
+**NEEDS CHANGES** until M-1 is corrected and remotely reviewed. One bounded docs-only correction on existing #691 author lane or Manager-owned clean docs lane, limited to operative authority references; preserve all 66 IDs/unchecked and current open GQ outcomes. A targeted nonauthor recheck of the corrected lines is sufficient; do **not** repeat a full four-file study or any Unity verification.
+
+After M-1 recheck: Manager may accept **document quality** but may not formally mark Graphics V1 APPROVED until owner closes GQ-08/09/10/11, exact palette and D-032 rights/storage/binary policy, and relevant parent/planting source-bridge gates. The latter remain product/authority decisions. No source or graphics production permitted now.
