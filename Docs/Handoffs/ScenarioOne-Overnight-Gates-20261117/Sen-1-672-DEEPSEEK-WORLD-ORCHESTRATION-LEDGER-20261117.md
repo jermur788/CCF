@@ -266,3 +266,23 @@ The W2 reviewer adjudicated the shelter question against the source transforms a
 **Record corrected a second time:** E-004's flag and E-006's replacement numbers were both wrong. Neither the W1 author nor the W2 reviewer made an error here. The document's number stands as MODEL-DERIVED visual-envelope evidence, and no correction is required or was requested for it. This entry supersedes E-004 and E-006 on that point; the rest of E-004 (roster/occupancy/route/G1 corroboration) was independently confirmed by the reviewer and stands.
 
 **Next executable action at this cursor:** on correction completion, verify the new commit/diff/counts, then dispatch the changed-lines-only re-check to GPT-6.1 Sol; then Stage W3 (owner decision) and the consolidated final result.
+
+## E-011 — 2026-11-17T10:18Z — Bounded correction delivered and verified; changed-lines re-check dispatched
+
+**Observed correction completion:** the Opus author pushed one correction commit to the W1 branch. Orchestrator verification (not the author's word):
+
+| Check | Orchestrator observation |
+| --- | --- |
+| New W1 tip | `aab606ca02f3c1099997c140aafe3a4748dfba9e`, parent `3082b7d7…` |
+| `3082b7d7…aab606ca` | exactly one modified file, `+27 / −20` lines |
+| `afd5484f…aab606ca` | still exactly one **added** file (the reserved path); no other path |
+| File | 810 lines, 81,133 bytes, SHA-256 `ed0e05a005a682ae31b88d4e9a379c0146d11df84bb1219b3420203e8c35da72` — matches the author's report |
+| F-01 applied | rows 41, 46, 47, 61, 62, 73, 74, 75 now `UNS (C1)`, with value/provenance cells retaining the D-083/D-084 intent, cell formula, anchors and guard/path evidence |
+| Recount | `SV 21 · MD 4 · OC 10 · GCP 1 · UNS 52 = 88`; unsupported field+cell rows `52 + 36 = 88`, with the +8 explicitly identified as those rows |
+| Non-drift spot-check | `SIGNED 0 · CANDIDATE 36 · BLOCKED 52`; cells `SIGNED 0 · CANDIDATE 0 · BLOCKED 36`; the document states its counts deliberately differ from W667's earlier labels and why |
+
+**Changed-lines re-check dispatched** to GPT-6.1 Sol high (same reviewer model family as W2, still a different family from the author), on the same review branch, with the one already-reserved review file extended by a clearly labelled delta section — no second review file, no full re-audit. Brief: verify the new artifact identity and diff scope, the eight relabelled rows and their preserved evidence, the recount re-derived from the matrix, F-02/F-03 wording, non-drift of every confirmed number/signature status/OD/M-A-SCOPE/crop-tree intent/save boundary, and any new defect in the changed lines. Child thread `t3-thread://v2/ac150346-a782-45eb-8cae-4e08fe9bab79/thread:delegated-task:command%3Amcp%3A148b334d-d4d9-40b8-9a60-baa82ad5bc04%3Adelegate-task%3Aee0ddc0f-2685-431c-829c-ac1f6a823c88`.
+
+**Attempt accounting:** W1 author attempt #2 (Opus) = completed + one bounded correction, 2 runs; W2 reviewer = 1 refused (instance A), 1 completed (instance B), 1 delta re-check in progress. No loop, no silent substitution.
+
+**Next executable action at this cursor:** on the delta verdict, close W2 and proceed to Stage W3 (owner decision: BLOCKED, no attestation exists) and the consolidated final result with handback to #671.
