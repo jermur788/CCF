@@ -40,7 +40,7 @@ The authority, source and oracle work is complete and stronger than the packet a
 
 ## 3. Stage B gate matrix — why no writer was dispatched
 
-| Gate | Required evidence | Actual state (2026-11-18 01:2xZ) | Verdict |
+| Gate | Required evidence | Actual state (2026-11-18 01:26Z) | Verdict |
 |---|---|---|---|
 | **A. Approved current spec** | Manager/owner-approved exact first-year spec with implementation status APPROVED/IMPLEMENTING | Four-file spec owner-approved on `90583811`; F0 packet explicitly includes the one-year annual after manifest acceptance; derived fixture identity accepted (#661/#641). Spec **not merged to main**; Multi D-084 only on a docs branch; #639 still reserved. | **PASS with caveat.** Bounded F0 annual is authorised by the existing approved packet. Manager should record the implementing status and the exact allowlist for the new writer. |
 | **B. Security development policy** | Explicit confirmation that isolated development may proceed while default L4 FAIL38 stays unwaived and release acceptance is not downgraded | Default L4 FAIL38 is accepted as unresolved (#715, #720). #722 is the whole-role qualification and is **OPEN/BLOCKED**; its packet forbids an annual year inside that task. No document says “isolated development is permitted under FAIL38”. Precedent (#703/#710/#720 ran builds/tests while reporting FAIL38) is **not** written policy. | **FAIL — decisive.** Proceeding would be an inferred waiver. |

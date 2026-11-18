@@ -19,5 +19,8 @@
 
 | E-011 | 01:52 | Parent | Posted the Stage A result on #723 and notified Manager #694. Receipts: [#723 result comment](https://github.com/jermur788/CCF/issues/723#issuecomment-6966202770) and [#694 notification](https://github.com/jermur788/CCF/issues/694#issuecomment-6966205883). Manager verdict, start permit, lane assignment and L4 development policy remain outstanding; no implementation was dispatched and none is claimed. |
 
-_Append-only: E-012 and later entries are added only after a real action has completed._
+| E-012 | 01:56 | Parent | Corrected one timestamp placeholder in result §3 (`01:2xZ` → `01:26Z`) and pushed it. No claim, number, gate verdict or file set changed; this ledger is unaffected. |
+
+_Append-only: E-013 and later entries are added only after a real action has completed._
+
 
