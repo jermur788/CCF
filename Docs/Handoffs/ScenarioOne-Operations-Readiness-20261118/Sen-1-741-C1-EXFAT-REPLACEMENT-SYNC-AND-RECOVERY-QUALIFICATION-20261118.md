@@ -1,72 +1,70 @@
-# Sen-1 #741-C1 — exFAT replacement, sync and recovery qualification (v2)
+# Sen-1 #741-C1 — exFAT replacement, sync and recovery qualification (v3)
 
-**STATUS: QUALIFICATION EXECUTED AND PASSED 14/14. SCRATCH ONLY. LIVE OPS UNTOUCHED. NOT AN INSTALL PERMISSION.**
+**STATUS: QUALIFICATION EXECUTED AND PASSED 16/16. SCRATCH ONLY. LIVE OPS UNTOUCHED. NOT AN INSTALL PERMISSION.**
 
-**Date:** 2026-11-18, 14:32–14:34 UTC (v2 run). v1 ran at 14:25Z and is superseded.
+**Run:** `/media/jer/ZX20/CCF-Temp/Sen1-741-ExFATQualV3-20261118T144412Z`, 2026-11-18 **14:44:12–14:44:17 UTC** (exact values taken from the log's own `root`/`started_utc`/`finished_utc` fields, not from memory).
 **Author:** DeepSeek V4.1 Flash 1017 (`opencode-go/deepseek-v4.1-flash`), provider `opencode`, T3 Code / OpenCode, host `jer-laptop`, Linux user `jer`, orchestrator of [#741](https://github.com/jermur788/CCF/issues/741).
-**Independence:** this work is **not** independent of the orchestration — I wrote and ran it. It exists to supply evidence for the independent reviewer's blocking finding, which is why the run is scripted, self-asserting and reproducible, and why the reviewer is asked to assess it. I do not declare the finding closed on my own authority.
+**Independence:** **not** independent — I wrote and ran it. The independent reviewer supplies the verdict; this document supplies reproducible evidence and states its own limits.
 
-## 1. Why this exists
+## 1. History of this evidence (kept visible, not rewritten)
 
-The independent nonauthor review (subtask C) blocked on: *"the future installer still needs exFAT write, sync and recovery qualification"*. Subtask B rehearsed on ext4, but the real target `/media/jer/ZX20/CCF-Ops` is exFAT, where modes are not representable and rename/durability semantics are filesystem-specific. Live Ops may not be written, but the **same device and mount** are available as designated scratch under `/media/jer/ZX20/CCF-Temp`.
+| Revision | Result | Rejected for |
+| --- | --- | --- |
+| v1 (`T142559Z`) | 13/13 PASS | dir sync only a side probe; drift probe never ran the rollback code; no I/O-error path; PASS ignored reader samples; over-broad "scratch-only" claim; no mount snapshot |
+| v2 (`T143503Z`) | 14/14 PASS | a directory-sync `EIO` **after rename still produced PASS**; recovery after publication unqualified; receipt not written with the same primitive; drift probe used a file whose staged bytes equalled baseline; sampler used a separate `stat` and a truncated digest |
+| **v3 (this run)** | **16/16 PASS** | — |
 
-A first run (v1, `Sen-1-741-C1` at commit `98223fd4`) was rejected on re-check for four fair reasons, all fixed here:
+Both earlier logs and scripts remain in the evidence folder. Nothing was deleted, and no earlier claim is presented as having been true.
 
-| v1 defect | v2 correction |
-| --- | --- |
-| changed-directory `sync` was a side probe, not part of the install path | every replace now does `tmp` → file `fsync` → `rename` → **directory `fsync`** → re-hash |
-| the drift probe did not execute the rollback code, it re-stated the comparison inline | one shared `rollback_path()` function is used by failure recovery **and** drift refusal |
-| recovery from an ordinary I/O error was not exercised | an injected `ENOSPC` during the write phase is now tested |
-| the PASS predicate ignored the concurrent-reader observations | PASS now *requires* both complete versions to be observed, no other size/hash pair, no `ENOENT`, ≥4 samples |
-| C1 claimed the script "never opens a path outside its scratch root" | corrected: it reads the replica, the staged tree and the baseline inventory, read-only, and `stat()`s live Ops only to prove device identity |
-| the log carried no contemporaneous mount snapshot | the log records `findmnt` output and the `st_dev` of both the scratch root and live Ops |
+## 2. What v3 adds, mapped to the objections
 
-## 2. Method
+1. **Directory-sync failure after rename is now fatal, not silent.** `replace_file()` returns `dir_sync_ok`; on `False` it raises `PublicationUnproven`. The install must treat that as *published-but-not-durable* and recover.
+2. **Recovery after publication is exercised**: a file is renamed into place, the directory `fsync` is forced to fail with `EIO`, and the tree is then restored byte-exactly from backup.
+3. **The receipt is written and rolled back with the same primitive** as the five code files.
+4. **Drift refusal uses a file that genuinely changes** (`scripts/_ccf.py`: baseline `ab4343ef…` → projected `24a32146…`), so the refusal cannot be satisfied by an unchanged file.
+5. **Reader sampling opens once**, `fstat()`s that descriptor and hashes the full stream with a full 64-hex digest — no separate pathname `stat`, no truncation.
+6. **Mount identity is proven in the log**: `findmnt` output plus `st_dev` of the scratch root and of live Ops.
 
-- Scratch root: `/media/jer/ZX20/CCF-Temp/Sen1-741-ExFATQualV2-20261118T143224Z` (disposable scratch, not durable evidence).
-- **Same filesystem proven, not assumed:** `findmnt` line `/media/jer/ZX20 exfat rw,relatime,uid=1000,gid=1000,fmask=0022,dmask=0022,iocharset=utf8,errors=remount-ro`; `st_dev` of the scratch root **2098** equals `st_dev` of `/media/jer/ZX20/CCF-Ops` **2098**.
-- Base tree: byte-identical copy of B's 50-file replica; verified against the accepted live baseline inventory — **50 expected / 50 present / 0 mismatches**.
-- Projected bytes from B's staged tree: `8fa0c5ad` / `1bd03f15` / `e44e7eb8` / `24a32146` / `3baf029e`.
-- Evidence: `/media/jer/Files/CCF/Verification/Sen1-741-C1-ExFATQual-20261118/v2/` — `exfat-qualification-v2.json` (`4d059654…`), `exfat_qual_v2.py` (`ff4b178c…`), `SHA256SUMS`. The v1 run is retained alongside for audit.
-
-## 3. Results — 14 tests, 14 PASS, 0 FAIL
+## 3. Results — 16 tests, 16 PASS, 0 FAIL
 
 | Test | Result | Observed |
 | --- | --- | --- |
-| `environment.same-device-as-live-ops` | PASS | exfat mount; scratch `st_dev` 2098 = live Ops `st_dev` 2098 |
-| `setup.replica-byte-identical-to-live-baseline` | PASS | 50 / 50, 0 mismatches |
-| `atomic.replace-with-directory-sync` | PASS | 8 MiB → 6 MiB via tmp → fsync → rename → **dir fsync** → re-hash. 18 reader samples: 4 of the complete old version, 14 of the complete new one, **no other size/hash pair**, no `ENOENT`, no tmp residue |
-| `recovery.io-error-during-write-target-unchanged` | PASS | injected `ENOSPC` (errno 28) during write: target bytes **unchanged**, rename never reached. **A `.tmp` is left behind by the failed write** — the installer must delete it and abort |
-| `recovery.io-error-cleanup` | PASS | tmp removed |
-| `recovery.backup-50` | PASS | backup identical to pre-state |
-| `install.injected-failure` | PASS | failure after exactly **3** replacements (`scripts/unity-lock`, `tests/self-test.py`, `roles/unity-operator.md`) |
+| `environment.same-device-as-live-ops` | PASS | `exfat`; scratch `st_dev` **2098** = live Ops `st_dev` **2098** |
+| `setup.replica-byte-identical-to-live-baseline` | PASS | 50 expected / 50 present / 0 mismatches |
+| `atomic.replace-with-directory-sync` | PASS | 8 MiB → 6 MiB; `dir_sync_ok = true`; 18 samples = 4× complete old + 14× complete new, **no other pair**, no `ENOENT` |
+| `sync.dir-sync-eio-detected` | PASS | forced `EIO` after rename → `PublicationUnproven` raised; the file **had** changed (`e44e7eb8…`), so the failure was detected after real publication, not before |
+| `recovery.after-unproven-publication` | PASS | restored to `120f1deb…` (baseline) |
+| `recovery.after-unproven-publication-tree` | PASS | all 50 files back to baseline |
+| `receipt.write-with-same-primitive` | PASS | receipt `ee13a811…`, `dir_sync_ok = true` |
+| `receipt.rollback-exact` | PASS | restored to `8c66b290…` |
+| `install.injected-failure` | PASS | failure after exactly 3 replacements |
 | `install.only-three-changed` | PASS | exactly those 3 paths changed |
-| `recovery.rollback-restores-exactly-three` | PASS | 3 `RESTORED`, 0 refused, via the shared rollback function |
-| `recovery.exact-restoration` | PASS | all 50 files back to pre-state hashes |
-| `recovery.drift-refusal-through-real-function` | PASS | installed bytes then drifted: the **function itself returned `REFUSED`** and left the drifted file untouched |
+| `recovery.rollback-restores-exactly-three` | PASS | 3 `RESTORED` |
+| `recovery.exact-restoration` | PASS | 50 files, 0 differing |
+| `recovery.drift-refusal-changed-file` | PASS | `_ccf.py` installed as `24a32146…`, then drifted → rollback **REFUSED**, drifted file left in place |
 | `cleanup.drift-probe-restored` | PASS | probe restored |
 | `final.50-file-baseline` | PASS | 50 files, 0 differing |
-| `custody.guard-exclusion-mechanism` | PASS | with an exclusive `flock` held on a guard file, a second non-blocking acquirer **failed**; after release it **succeeded** — the same lock primitive the Unity guard uses |
+| `custody.guard-exclusion-mechanism` | PASS | held `flock` blocks a second acquirer; succeeds after release |
 
 ## 4. What this does and does not prove
 
-**Proves, on the real exFAT device and mount options:** the exact install primitive publishes atomically (a concurrent reader never observes a partial or missing file); a directory `fsync` after `rename` is accepted here; a failed write never reaches `rename` and leaves a `.tmp` that must be cleaned; a mid-install failure after three files is recoverable to byte-exact pre-state; the rollback function refuses a drifted path instead of overwriting it; and the guard-flock primitive genuinely excludes a second holder.
+**Proves on the real exFAT device and mount:** atomic publication to a concurrent reader; directory `fsync` accepted; a post-rename directory-sync failure is detectable and recoverable to byte-exact pre-state; a failed write never reaches `rename` (and leaves a `.tmp` that must be deleted); compare-before-write rollback restores exactly and refuses drift through the same code path; the receipt obeys the same primitive; the guard lock genuinely excludes a second holder.
 
-**Does not prove:** behaviour under real power loss or kernel crash (no block-layer fault injection); the live directory's own cluster history or free space; the live board flock or the live Unity lease (never touched); Git/worktree behaviour; performance under real load. Directory `fsync` succeeding here must not be assumed on a different kernel or mount.
+**Does not prove:** real power loss or kernel crash (no block-layer fault injection, and doing so safely is impossible without jeopardising the live tree); the live directory's cluster history or free space; the live board flock or live Unity lease; Git/worktree behaviour; real concurrent load. Directory `fsync` succeeding here must not be assumed on another kernel or mount.
 
-**Consequences for the installer, now evidence-based:**
-1. Keep the primitive: same-directory `tmp` → file `fsync` → `rename` → directory `fsync` → immediate re-hash.
-2. On any write error, delete the `.tmp` and abort; never rename a partially written file.
-3. Rollback only when current bytes equal the expected new hash; otherwise refuse that path and stop.
-4. Hold an exclusive `flock` on `state/unity/guard` for the whole install-and-recovery window — this is enforced exclusion, not a check, because a second holder cannot acquire it.
-5. Modes are not representable on exFAT (`chmod` is a no-op): the receipt must record bytes and owner.
+**Accepted residual risk, stated as such:** power loss or kernel crash during the deploy window is a **residual risk carried as a deploy-window condition**, not a pre-deploy gate — an off-volume verified backup must exist before the first write, and after any interruption the filesystem and installed hashes must be reconciled under renewed custody before anything continues. This is the reviewer's own framing and I am not waiving it: it is recorded in the dossier as a mandatory condition.
 
 ## 5. Live Ops state around these runs
 
-Read-only observations at 14:16Z, 14:28Z and 14:34Z: 50/50 installed files OK against the baseline inventory, `board/active.md` `2b99552c…`, `lanes.json` `c17903dd…`, `deployment.json` `8c66b290…`, no `state/unity/lock.json`, no `/proc/locks` entry for device `08:32`, no Unity process, and no file in live Ops modified since 12:52:39Z. The only access to live Ops from this work was `stat()`/`findmnt`/hash reads.
+Read-only observations at 14:16Z, 14:28Z, 14:34Z and 14:45Z: 50/50 installed files OK against the baseline inventory, `board/active.md` `2b99552c…`, `lanes.json` `c17903dd…`, `deployment.json` `8c66b290…`, no `state/unity/lock.json`, no `/proc/locks` entry for device `08:32`, no Unity process, and no file in live Ops modified since 12:52:39Z. The only access to live Ops was `stat()`, `findmnt` and hash reads.
 
-## 6. Status
+## 6. Evidence
 
-- The reviewer's blocking finding is addressed **with executed evidence**; the reviewer's own assessment is the next step and is the only thing that can close it.
+`/media/jer/Files/CCF/Verification/Sen1-741-C1-ExFATQual-20261118/v3/`
+`exfat-qualification-v3.json` (`d00735dd3ab56cc307efb48db51f3d0d75345396ba550d09119ff5b1628f7de6`), `exfat_qual_v3.py` (`486e4b7ca137ae231ca3a8bd77313a5bcff48ba45fad93dfadd1a2c9b3556fe3`), `SHA256SUMS`. v1 and v2 retained in sibling folders.
+
+## 7. Status
+
+- Evidence supplied for the reviewer's blocking finding and its named gap; only the reviewer can close it.
 - **No installation, no board reservation, no Unity, no game source, no Windows, no main merge.**
 - The owner's **NO LIVE INSTALL** order remains operative.
