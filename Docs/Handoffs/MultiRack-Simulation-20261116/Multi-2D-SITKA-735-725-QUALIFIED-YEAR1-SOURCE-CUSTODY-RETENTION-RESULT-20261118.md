@@ -38,6 +38,8 @@ Nonblocking exclusive `flock -x -n /media/jer/ZX20/CCF-Ops/board` held across tr
 - Original #732 worker 48, resumed worker 90, custody 31, amend-1 29 and #734 release 148 checksummed entries all passed. #734 archived 83 files passed separately, preserving raw network-stop cache bytes, P0 reference DLL and offline NuGet configuration. Original manifests and raw evidence unchanged.
 - Primary user-dirty hashes verified: `AGENTS.md` = `1bf4286b3485de018759a5b9b8e19d74beb6385844b56315f22f71b7819897fd`; `Docs/Operations/StorageArchitecture.md` = `6bebe49511f310c0f97b000f2f5a6c8db6890bb77fd312b9ec47c900a5a22`. Three pre-existing untracked operations documents preserved.
 
+Post-write source verification under a newly acquired exclusive board flock passed: all 5,944 tracked #725 files byte-equal HEAD, clean worktree, exact qualified P0 pin tree, frozen fixture SHA-256 `bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4`, unchanged post-transaction board/lanes and zero conflicts. The exact five-path delta leaves all four CCF source pins unchanged from repaired R.
+
 ## Receipts and limits
 
 Durable evidence `/media/jer/Files/CCF/Verification/CCF-735-SourceRetention-20261118/`: transaction script/log; original/candidate/after board and lanes; source refs and HEAD/tree receipts; evidence checksum logs; additive retention receipt; post-verification receipt; result and SHA256SUMS. No build/test/runtime/Unity/Windows command ran. No source push, merge, code/fixture change, broad L4 qualification or waiver.
