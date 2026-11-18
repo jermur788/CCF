@@ -1,6 +1,6 @@
 # Multi — Offline Static Year-0 Viewer V1: Bounded Future Tasks
 
-- **Status: DRAFT ONLY — NO TASK BELOW IS DISPATCHED, CLAIMED, PERMITTED OR RUNNING**
+- **Status: APPROVED SPECIFICATION / FUTURE TASKS UNDISPATCHED; NO SOURCE WRITER, PHYSICAL LEASE OR G2 PERMIT**
 - **Date:** 18 November 2026
 - **Spec:** [spec.md](spec.md); **plan:** [plan.md](plan.md); **requirements:** [checklists/requirements.md](checklists/requirements.md)
 - **Authoring claim:** [#749](https://github.com/jermur788/CCF/issues/749); **sole dedicated Manager:** [#730](https://github.com/jermur788/CCF/issues/730)
@@ -8,7 +8,7 @@
 
 ## 1. Release order and non-overlap
 
-**Gate 0:** Manager quality review, product-owner choice of trusted **offline package/platform**, approved four-file specification, and separately permitted future implementation/safety scope. No DRAFT spec permits source work.
+**Gate 0 product/spec passed:** owner chose H0-A non-public embedded-fixture offline HTML/Canvas in current desktop browsers; Manager formally approved the four-file scoped specification ([receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md)). **Source NOT started:** G1 physical lane, exact platform/package trust checks and a new G2 isolated non-release implementation/security decision still must be granted before source work.
 
 **Gate 1:** Manager/native custodian names new isolated physical lane, clean inspected branch/head, exact file allowlists, task claims and single-writer ownership, approved trusted fixture delivery and security/protected P0 preflight. No use of protected #710/#725 custody without separately lawful permission. The first viewer does not need those original native stores.
 
@@ -22,7 +22,7 @@
 
 | Task | Difficulty, reason and proposed sole owner | Must be satisfied first | Deliverable, proof and STOP |
 | --- | --- | --- | --- |
-| **H0-T00 — Product/contract closure** | **Medium–High; Manager #730 + product owner**, delivery/security/ABI choices | Full four-file review and owner decisions | Record chosen H0-A/H0-B/other offline platform and security boundary, exact trusted fixture package/catalog/manifest, approved read schema/bit envelope and explicit **spec approval**; resolve any material cross-lane conflict. **STOP:** owner delivery OPEN or G3 Host proposed without prior security decision |
+| **H0-T00 — Approved H0-A product / remaining contract + source gate closure** | **Medium–High; Manager #730 + product owner**, delivery/security/ABI choices | Full four-file review and owner decisions | Owner choice **H0-A already recorded**; still pin exact trusted fixture package/catalog/manifest, actual browser support/security boundary, Core codec/read schema, physical writer and new G2 isolated permit; material contract changes return for targeted spec review. **STOP:** changed delivery without new owner decision, new public production-code publication without separate consent, or G3 Host proposed without prior security decision |
 | **H0-T01 — New source admission and protected preflight** | **High; native custodian/Manager**, source custody and single writer | T00; new source claim, source branch/worktree, fresh main/head and live physical Ops/ownership evidence | Verified allowed new worktree/file set, approved provenance route for frozen derived fixture, before hashes for P0/protected baseline, scoped source writer registration. **STOP:** missing claim/lock/permission, dirty overlap or any proposed protected #725/#710 import |
 | **H0-T02 — Exact trusted fixture admission** | **High; ONE Core contract writer**, untrusted data refusal | T01 + approved package choice and narrowly permitted G2 | Read immutable vetted **32,567-byte** fixture (SHA-256 bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4) under chosen offline package; check independent expected digest, schema, full 100 IDs, units, domain, seed/models and transform; refuse malformed/altered/foreign bytes **before activation**. **STOP:** arbitrary browser JSON or source mismatch |
 | **H0-T03 — One Core numeric/frame codec** | **High; SAME Core writer as T02**, exact f32/geometry risk | T02 | Decode/validate f32 DBH cm, H m, radius m and area bits; signed integer mm → signed int64 subtraction → binary64 divide → one f32 cast to centred X/Z; assert forward f32 bits match source unityX/unityZ. One implementation of codec, no UI arithmetic for source truth; typed refusals for NaN/Infinity/bad hex or wrong transform. **STOP:** change fixture bits or demand nonlossless reverse f32-to-mm equality |
@@ -73,7 +73,7 @@ Future C may someday consume A selection, but F2 eligibility semantics and local
 
 The following must not appear as H0 work items, “small extras” or hidden implementation dependencies: Year1 toggle or any source report export from #725; B year2+ and M-1 fix; C selection→marks/draft/approval; D H0 two-frame history/H2 save; natural or managed death/fell, Work Orders, canopy/light/soil/health forecasting, scenario migration, original P0 polygon-to-square conversion, Unity Scene verification, Windows, standalone Host/socket, file upload, network fetch, an annual CLI run, source main merge, public distribution or L4 waiver. They require their own approved specs/gates and file ownership when undertaken.
 
-**STOP / return to #730** if: product owner H0 package/platform OPEN; unavailable exact trusted source; missing source claim or physical Ops permit; changed/unknown fixture digest or schema; competing Core/A shell writers; wrong source bit representation; any construction of Year1/annual or imaginary metric; browser launch only possible by adding an unapproved server; authorization for protected #710/#725 read missing; new protected dirty overlap; attempted main/release G4 under L4 FAIL38. Preserve user dirty work and unrelated source; no automatic cleanup, worktree expiration or forced lease takeover.
+**STOP / return to #730** if: selected H0-A materially changes, trusted package/browser requirements cannot be verified, or public source publication is attempted without owner consent; unavailable exact trusted source; missing source claim or physical Ops permit; changed/unknown fixture digest or schema; competing Core/A shell writers; wrong source bit representation; any construction of Year1/annual or imaginary metric; browser launch only possible by adding an unapproved server; authorization for protected #710/#725 read missing; new protected dirty overlap; attempted main/release G4 under L4 FAIL38. Preserve user dirty work and unrelated source; no automatic cleanup, worktree expiration or forced lease takeover.
 
 ## 6. Authoring closure, independent of future tasks
 
