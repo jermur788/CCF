@@ -1,6 +1,6 @@
 # Sen-1 #731 — Compact30 Tier S exact W §12 owner grant (selected geometry; pending signature)
 
-**STATUS: PREPARED / OWNER GEOMETRY CHOICES RECORDED / UNSIGNED — NOT OPERATIVE.**
+**STATUS: PREPARED / OWNER GQ-10 PROVISIONAL A8 ACCEPTED / ZX20 WORKTREE SELECTED / UNSIGNED — NOT OPERATIVE.**
 **2026-11-18, Scenario One Overall Manager Chas (OpenAI GPT-6, ChatGPT/GitHub-only).**
 **No production source, local tool, physical Ops installation/lease, Unity Editor or Windows authority is conferred by this document.**
 
@@ -112,3 +112,16 @@ The existing `Assets/ForestPrototype/Editor.meta` and all other assets are READ-
 **Remaining owner choices that materially block the signature:** (1) proposed A8 coordinates/tangent provisional acceptance or precise replacement; (2) explicit #652 approved controlled deployment versus actually permitted safe alternative; (3) named human supervisor and exact future UTC expiry for Tier S custody. New scene author identity/rights/dependency receipts, physical source lane and nonauthor review then complete via the actual prospective worker/custodian. Do not invent approvals or set an automatic deadline.
 
 **Manager next action:** obtain those owner decisions, publish a **new exact fully filled version** for personal owner signature and focused independent review. Do not alter frozen #676 nor tick specs before approval. Only after signed grant, focused review and real physical custody may a separate source-start packet be considered. GitHub report readback required. Dashboard/Drive sync status: **UNVERIFIED**, no claim of regeneration or published dashboard ingestion.
+
+## 7. Owner follow-up — 2026-11-18 11:42 UTC (latest direct instructions)
+
+**GQ-10 resolved PROVISIONALLY.** Owner explicitly agreed with the proposed northern endpoint in §1: A8 **(−2.10 m, +13.50 m)** and its candidate terminal **dx/dz +0.221818181818182**. This is not final world-byte attestation. Retain original C0 route, 0.095 m deviation, 0.625 m local bend visual risk; native comparison may require correction, recomputed margins, new content candidate and independent re-review before whole-world signature. No silent route or planting-site change.
+
+**Worktree location resolved.** Owner explicitly requires the distinct Compact30 scene source worktree to reside on the **ZX20 SSD**. Prospective worktree is `/media/jer/ZX20/CCF-Sen1-718-Compact30-Content-20261117`, separate branch `feature/sen-1-718-compact30-scene-content-v1`, own Unity Library. This is a proposed exact target, not a created worktree or lease. Do not place it on the internal disk or reuse #690 or Multi ownership.
+
+**Physical gate interpretation.** Owner said the proposed physical access route is "fine" provided the worktree is on ZX20. Treat this as approval of the **intended controlled route and location**, NOT as a verified #652 installer deployment, live physical reservation or unconditional waiver of existing Ops preflight safeguards. Any #652 live installer operation still needs the named actor/approved exact deployment procedure and its original prerequisite controls, and the final full W §12 signature must identify the operative route unambiguously. Do not mark #652 installed or use the generic "fine" as a source-start permit.
+
+**Supervisor / expiry explanation delivered.** Supervisor is the human accountable for explicit extension/release if permissions lapse. Expiry is the per-worker source/physical custody authorisation cutoff, **not** a feature deadline and **not** an automatic Editor/process shutdown. A worker must stop new operations after expiry until lawful renewal; the custodian checks process/lease state before reassigning. The current physical Ops mechanism uses **manually supervised advisory expiry**; do not claim enforcement by a timer. Proposed supervisor remains the owner (not yet expressly confirmed), **future UTC expiry still UNSET**. Do not inherit #690's deadline.
+
+**Remaining authorisation STOP:** named supervisor + future UTC expiry and clearly operative physical route, final owner signature of exact completed grant, focused independent nonauthor review, registered worker/session/worktree/physical lane with current unmodified READY preflight and single Unity lock, and separate Manager source-start. Nothing has been staged, installed, imported, built or launched by this decision receipt.
+
