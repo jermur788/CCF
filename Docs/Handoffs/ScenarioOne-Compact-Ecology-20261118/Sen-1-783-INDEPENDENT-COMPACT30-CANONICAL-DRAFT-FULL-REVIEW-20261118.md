@@ -407,3 +407,106 @@ The target dropped these parent blocks present at `fcfd43c3`: the requirements "
 ## 9. Boundary
 
 This review approves **draft document quality only**. Its four MINOR findings are bounded wording/classification fixes that a single same-author correction could make, with a changed-lines recheck, if Manager #731 asks for one. None blocks Manager consideration. It is not a spec approval, canonical promotion, main merge, implementation or source permit, world/save signature, or a pass of any criterion. All 224 criteria remain unchecked. I edited no `specs/**` file, no author branch, no other handoff and no other worktree; this file is my only write.
+
+---
+
+## 10. Delta recheck of the #782 post-review correction — 2026-11-18
+
+**Reviewer:** Claude Opus 5.5 (Claude Code in T3 Code). Same independent nonauthor reviewer of record as §1–§9. The author is OpenAI gpt-6.1-sol (Codex). No subagents. Claim: [#783 comment 6993758493](https://github.com/jermur788/CCF/issues/783#issuecomment-6993758493), read back before writing.
+
+**Targets:** previously reviewed `e823f356a0f65d3d6cd94a1006924aa5938a2ea6` → new candidate **`8dda056becf59c3f54688e3d3f5b56737bb8fa74`** (parent = content commit `9f2ca014306df5ae58ec2995a608196769ed836d`; `8dda056` changes only the result document). Base `fcfd43c31b60f92277470aef9c490e92fa59cf3b`. The remote ref was confirmed with `git ls-remote`.
+
+**Delta scope:** only the lines changed in `e823f356..8dda056`. I checked them against the full tree wherever consistency matters (counts, §11, §H, CL, #677). This is not a second full review. The §3–§9 findings and verdict above stay as written, for `e823f356`.
+
+### 10.1 Commands actually run (real output)
+
+```text
+$ git status --short --branch        # my worktree before writing
+## review/sen-1-783-canonical-draft-full-review-20261118-v1...origin/review/...   (clean, HEAD 20806c4d)
+$ git ls-remote origin | grep 8dda056
+8dda056becf59c3f54688e3d3f5b56737bb8fa74  refs/heads/docs/sen-1-782-compact30-canonical-draft-stage-20261118-v1
+$ git log --oneline e823f356..8dda056
+8dda056b docs: record Sen-1 #782 post-#783 correction and evidence
+9f2ca014 docs: correct bounded Compact30 draft findings after #783
+$ git diff --stat e823f356..8dda056
+ ...-STAGING-AND-SOURCE-RECONCILIATION-RESULT-20261118.md | 77 ++++++++++++++++++++--
+ .../checklists/requirements.md                     | 16 +++--
+ .../scenario-one-compact-complete-loop-v1/plan.md  |  4 +-
+ .../scenario-one-compact-complete-loop-v1/spec.md  |  8 ++-
+ .../plan.md (initial-planting)                     |  4 +-
+ .../spec.md (initial-planting)                     |  2 +-
+ .../tasks.md (initial-planting)                    |  4 +-
+ 7 files changed, 93 insertions(+), 22 deletions(-)
+$ git diff --check e823f356..8dda056 ; echo $?
+0
+$ git merge-base --is-ancestor 8dda056 origin/main ; echo $?
+1            (not on main)
+$ git diff --name-only 9f2ca014..8dda056
+Docs/Handoffs/.../Sen-1-782-CANONICAL-DRAFT-STAGING-AND-SOURCE-RECONCILIATION-RESULT-20261118.md
+$ git diff --stat fcfd43c3 8dda056 -- specs/scenario-independent-save-isolation-v1 Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117 Assets
+<empty>      (signed §4.2, #677 and Assets untouched)
+$ git hash-object <(git show bfa01f86:…/Sen-1-677-MANAGER-COMPACT-CGTRIG-AND-SAVE-POLICY-SUPPLEMENT-20261117.md)
+bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b      (unchanged from §2)
+$ git cat-file -e d0369249…:Docs/Handoffs/…/Sen-1-731-PLAYER-TEST-READINESS-PARALLEL-LANES-20261118.md && echo PINNED_OK
+PINNED_OK
+$ git rev-parse d0369249:<that path> ; git rev-parse origin/docs/sen-1-731-chas-manager-intake-20261118-v1:<that path>
+e40f2fce35b4db67ab7a36abc5341d2bdf43c469
+e40f2fce35b4db67ab7a36abc5341d2bdf43c469
+$ python3 -I .v783d.py        # temporary verifier in this worktree, reads git objects only; deleted after the run
+spec files 8 unchecked total 224 checked total 0
+R   base 115 tgt 115 identical+ordered True
+CIP base 33  tgt 33  identical+ordered True
+CL defs 76 seq True
+max CL ref 077               → the only hit is result :425 "CL-077+ references: 0" (prose, not a reference)
+CL changed vs e823f356: ['075']
+rows 148 ordered True Counter({'retained unchanged': 69, 'retained with design provenance updated': 63,
+                               'process item for Manager to close': 13, 'deferred by D-084 C6 or C10 (stays unchecked)': 3})
+deferred ['R-067', 'R-068', 'R-114']
+result rows 148 identical to parent §H True
+class changes vs e823f356 [('R-097', 'deferred by D-084 C6 or C10 (stays unchecked)', 'retained with design provenance updated')]
+other row text changes []
+$ (GitHub-slug check of the two parent spec fragments used by changed lines)
+11-current-decision-register-and-inherited-open-c-reconciliation True
+c-crop-tree-requirement-semantics--manager-choice-a-remaining-owner-questions-open True
+```
+
+I also ran targeted `git grep` checks at `8dda056`: totals strings, `R-097`, `proposed/paused D-083`, `workload`, `Linux-only`, `art-scratch`. I also grepped base `fcfd43c3` spec `:28`/`:48`/`:60` and decision-log D-085 at `a69b3e2e`, to trace the source of every restored sentence. `git status --porcelain` was empty after I deleted the verifier.
+
+### 10.2 Per-finding verdicts
+
+| Item | Verdict | Evidence |
+| --- | --- | --- |
+| **m-1** stale status | **FIXED** | Parent `requirements.md:155` (was `:153`), planting `spec.md:131`, planting `plan.md:90-91` and planting `tasks.md:22`/`:58` now state the main `a69b3e2e` position: D-083 **CONFIRMED … CANONICAL SCOPE ONLY; GAMEPLAY SPECS DRAFT**, D-084/D-085 intent and signed #677 policy, C1/C4/C7/C8 settled, C5 split (OD-16/M-A-SCOPE and S1 still open), C6/C10 deferred. This matches parent §11 rows `spec.md:104-113`. The historical R-004/R-115/CIP-023 checkbox lines that still say "proposed/paused D-083" are frozen criteria, correctly left verbatim. No R/CIP line changed (verifier). The author **replaced** the stale prose instead of prefixing it. §3 m-1 allowed this, and the old text survives at `fcfd43c3`/`e823f356`. See DN-1 for one side effect. |
+| **m-2** R-097 class | **FIXED** | R-097 row `requirements.md:380` now has R-039's class. The notes at `:132` and `:278` say C6 controls only the optional overlay half and that CL-050 keeps the accounting duty (no waiver). §11 C6 row `spec.md:110`, the requirements preamble `:13` and tasks C-03 `:50` still say "overlay half of R-097 stays deferred". That is consistent. Totals are **69/63/3/13** in parent `requirements.md:433`, parent `plan.md:83`, result `:49`, result `:70` (navigation copy) and result `:435`, and the 148-row result copy equals parent §H. The deferred class is now exactly R-067/R-068/R-114. R-097 is the **only** class change, and no other row text changed. The old 69/62/4/13 appears only in result §6 (`:285`, `:346`, `:351`), which `:255` explicitly labels as historical `e823f356` output. That is honest, not a stale current claim. |
+| **m-3** evidence class | **FIXED** | Parent `requirements.md:9`, `spec.md:73` and `spec.md:125`, plus result `:53`, now cite **signed #677 §1 Policy B ("wrong types", unknown keys)**. I checked the section: the Policy B paragraph is #677 line 36, under `## 1. Manager disposition register` (line 22). The rule is unchanged: REFUSES BEFORE MUTATION, live/Prefs/primary/tmp/bak unchanged, and CL-073/074 are byte-identical. #677 bytes are unchanged (`bb9327fe…`). |
+| **m-4** restored duties | **FIXED** | (a) `spec.md:139` restores the WORLD-1 duty: no repurposing of the Legacy40/Enlarged80 identities, and no switching of the global `StandGeometryPolicy.NewGameModel` default for every scene. It matches base `spec.md:60` and adds no new criterion. (b) `spec.md:31` restores deterministic tree-ID-bound first-party Sitka (D-085 OD-02 wording), no visible stumps (OD-05), open/minimally furnished H1 with no permanently parked vehicles or equipment (OD-06), and neutral daylight, restrained edge context and worn-earth pedestrian path (base `spec.md:48`). All of these are inherited. None is a new product decision, threshold, key or gate. The sentence explicitly says it does not sign content or prove qualification. See DN-2 for citation precision. |
+| Note: CL-075 status | **FIXED** | CL-075 is the only CL changed versus `e823f356` (verifier). The diff touches only the trailing status quotation, which now equals the full string at `requirements.md:7`. Its behavioural wording is unchanged. |
+| Note: Linux provenance | **FIXED** | `requirements.md:113` restores the base `requirements.md:20` sentence. The added Linux-only / narrow Windows art-scratch clause is inherited from base `spec.md:28` and is still present at planting `spec.md:30`. Nothing is invented. |
+| Note: "CL-001…070" claim | **FIXED** | Result `:62` now says all 76 were identical at `e823f356` and that only CL-075 changes now. My verifier agrees. The unchanged requirements custody line `:7` ("CL-001…CL-070 are verbatim … CL-071…076 are its additive") is accurate provenance, not the understatement. |
+| Note: pinned plan link | **FIXED** | Parent `plan.md:5` now pins `d0369249…`. That commit contains the plan file, with the same blob `e40f2fce…` as the branch tip, so the pin is faithful. |
+
+### 10.3 No regression / scope checks
+
+- Seven paths, +93/−22, exactly as briefed. `--check` is clean. No `Assets/**`, signed §4.2/#677, frozen #617/#774 or main change.
+- 115 R + 33 CIP lines are byte-identical to `fcfd43c3` and in order. There are 76 sequential unique CL definitions and no CL-077+ reference. 148 ordered single-class rows. **0 checked / 224 unchecked.**
+- No new requirement, threshold, saved key/field, gate or product decision. The two new spec paragraphs restore inherited text.
+- Result §9 is honest. It says the author does not extend my verdict, gives the delta-recheck and Manager #731 gates, and marks compiler/Unity/runtime/playtest NOT RUN. Nothing is self-approved. Its link counts (37/29/20) are author-reported. I re-checked only the links and fragments on changed lines.
+
+### 10.4 New findings from the delta
+
+**Blocker 0 / Major 0 / Minor 0.** Two notes:
+
+- **DN-1 (NOTE) — "human navigation workload" residual wording disappeared.** The replaced prose in planting `plan.md:91` (old item 4), planting `spec.md:131` and planting `tasks.md:58` was the last place that named "human navigation workload" and "boundary entry/off-road staging safety" as residual OPEN-C2 items. The count of `workload` across the eight spec files went from 3 at `e823f356` to 0 at `8dda056`. Substantively this is covered by D-083's settled 30 m/pedestrian/staged-collection scope, D-085 OD-07/OD-08/OD-10, the §11 OPEN-C2 residual "actual route/capsule/guard … unsigned/unverified" (`spec.md:105`), and the unchanged CIP-023 checkbox (vehicle/parking/loading). So no criterion is lost. Manager #731 may want "walking workload" named once in the §11 C2 residual. No correction round is needed.
+- **DN-2 (NOTE) — citation precision in the restored world/visual sentence.** `spec.md:31` labels its provenance "(#617; D-085 OD-02/05/06)". Neutral daylight, restrained edge context and worn-earth path come from the #617 owner direction (base `spec.md:48`), not from D-085. "Carry into the #764 world manifest" places a duty on #764. It does not authorise this spec to write the manifest, so it does not conflict with `spec.md:28`. Wording only.
+
+Minor and unchanged: planting tasks P-01's owner cell now reads "current Overall Manager" instead of "#425". This is not material.
+
+### 10.5 Not checked in this delta
+
+I did not re-review the unchanged text beyond the consistency greps above, and I did not re-run the full 79-link check. I did not reproduce the author's inline verifier or the #782 handoff comment SHAs, or check GitHub rendering. I made no Unity/compiler/runtime/save/render/playtest claim. **NOT RUN:** all of those.
+
+### 10.6 Delta verdict
+
+**APPROVED — for draft document quality only.** m-1, m-2, m-3, m-4 and the four factual notes are all FIXED. The correction introduced no blocker, major or minor issue, only notes DN-1 and DN-2. Overall severity after this delta: 0 blocker / 0 major / 0 minor open. The §3 notes N-3, N-4, N-5 and N-7 and the cosmetic parts of N-8 remain as recorded, plus DN-1 and DN-2.
+
+**Boundary (unchanged):** this is not a spec approval, canonical promotion, main merge, implementation or source permit, Unity/world/save/content signature, or a pass of any criterion. All 224 criteria remain unchecked. Separate Manager #731 disposition is still required. My only write is this appended section of this one file.
