@@ -1,0 +1,55 @@
+# Sen-1 #763 — Compact30 complete-loop specifications and owner decisions: browser-only result
+
+**2026-11-18. Result status: DOCS DRAFT DELIVERED FOR INDEPENDENT REVIEW; NONAUTHOR REVIEW NOT RUN; NOT APPROVED / NOT IMPLEMENTED / NO NATIVE QUALIFICATION.**
+
+## 1. Worker, authority and actual scope
+
+- **Claim:** [Sen-1 #763](https://github.com/jermur788/CCF/issues/763), [RUNNING browser-worker registration before edits](https://github.com/jermur788/CCF/issues/763#issuecomment-6988019761).
+- **Actual worker:** OpenAI GPT-6, ChatGPT Game Dev browser/GitHub harness; GitHub connector uses authenticated account jermur788. Thinking-effort setting and ChatGPT session identifier not exposed, so neither is invented.
+- **Dedicated branch:** [docs/sen-1-763-compact30-loop-specs-20261118-v1](https://github.com/jermur788/CCF/tree/docs/sen-1-763-compact30-loop-specs-20261118-v1), new from freshly inspected main at worker registration. **No native/local worktree, physical Ops/Unity lease or source edits.**
+- **Governing packet read in full:** [Sen-1 #731 parallel first-test Manager plan](https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-731-PLAYER-TEST-READINESS-PARALLEL-LANES-20261118.md). #731 retains sole active-tasks.md and canonical approval management.
+- **Scope:** new staged Markdown-only draft under this claim's own handoff directory. No modifications to the eight existing #617 DRAFT files or canonical specs/** because no separate file writer lock for them was granted. This staged copy can be promoted to canonical four-file specs by Manager only under fresh exclusive authority after independent review and owner choices.
+- **Review truth:** The *same author* read sources and performed a limited author self-audit. **No genuinely independent different-model/session reviewer was available or executed inside this chat.** The necessary independent review is explicitly PENDING with a complete paste-ready review packet; earlier #616/#681/#676 independent reviews cover other artifacts and cannot be relabelled as a review of these new #763 documents.
+
+## 2. Exact deliverables on the dedicated GitHub branch
+
+| Deliverable | Direct link | Content / state |
+| --- | --- | --- |
+| Consolidated complete-loop **DRAFT spec** | [spec.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/spec.md) | Source-aware accepted vs unsigned 30m world; C0–C8 genuine player workflow, 2+2 planting/T1, Crop Tree choices, W-A/finance, annual ecology/history/S1-D, D-077, M-A and signed save compatibility |
+| **DRAFT plan** | [plan.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/plan.md) | Approval/owner gates then E1 scene + #690 save, API locks, F1 first-work package, F2 annual/adaptation/completion, Tier1/2/3 qualification and separate owner Editor test |
+| **DRAFT tasks** | [tasks.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/tasks.md) | Eight bounded roles; new implementation F1/F2 held, no source or Unity grant; distinguish existing #764/#765/#690/#718/#754 |
+| **Unchecked requirements** | [checklists/requirements.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/checklists/requirements.md) | CL-001…CL-070 additional positive/negative acceptance; original parent 115 R and child 33 CIP all inherited **unchecked**, NOT erased, rebaseline, or marked passed |
+| **One owner decision register** | [owner-decisions.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/owner-decisions.md) | Settled owner decisions vs independently signed #677 technical save vs open OD16, owner world byte signature, S1 completion record, source/QA/physical gates |
+| Author source audit (**NOT independent**) | [author-audit.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/author-audit.md) | Source list, evidence classification, assumptions and specific issues for different reviewer |
+| Mandatory future **independent review packet** | [independent-review-packet.md](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/independent-review-packet.md) | Complete nonauthor review instructions/paste line, required all-file/148+70 crosswalk, signed save checks, severity verdict and strict no code/Unity rule |
+
+**Binding original source:** [#617 parent/planting four-file DRAFTs](https://github.com/jermur788/CCF/tree/docs/sen-1-617-616-draft-approval-readiness-20261116-v1/specs), current canonical [Decision Log](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md)/[Milestone](https://github.com/jermur788/CCF/blob/main/Docs/Project/current-milestone.md), original signed shared [save policy](https://github.com/jermur788/CCF/blob/200add4e6e5116268b79ef63131ff9b836f14c5d/specs/scenario-independent-save-isolation-v1/spec.md), out-of-band [#677 exact technical signature](https://github.com/jermur788/CCF/blob/docs/sen-1-677-manager-cgtrig-exact-byte-signature-20261117-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-677-MANAGER-CGTRIG-SAVE-POLICY-EXACT-BYTE-D-A-SIGNATURE-20261117.md), historical approved S1-C/S1-D specs and independently STATIC-reviewed, but unsigned [#676 world](https://github.com/jermur788/CCF/issues/676).
+
+## 3. Resolved vs genuinely outstanding
+
+**Already settled (preserved):** D-083 new Compact30, 0.09ha/no internal racks/pre-existing H1 and pedestrian-only footpath, initial all Sitka; first G1 2 sessile Oak+2 Beech at designated authored sites; player selects and retains three promising Crop Trees (not three Fell jobs); D-084 T1 H1/assessment/four real planting orders/Annual Review acknowledgement, F-A **€12,000 finite cash**, W-A immutable Approved/cancel-and-new, M-A substantive later Approved→Completed stand action + reviewed consequence + later adaptive choice/review; C6/C10 deferred. D-085 exact world design intent, D-090 provisional path choices and D-091 no automatic worker expiry. D-059/060 three-species full demo and S1-C/S1-D remain required.
+
+**Technical save policy signed but UNIMPLEMENTED:** #677 genuine 2+2 order→juvenile matching and Y*; existing Annual Review event9+Compact field one atomic action; CT-3 all-route hold; Policy B honest incomplete load vs strict falsified/deadlock refusal; W-A Approved frozen across all routes. Original shared three-profile isolation §4.2 is immutable and historical saves protected.
+
+**Still open, blocking formal gameplay approval:**
+1. **OD-16 M-A-SCOPE:** exact spatial/evidence threshold for *substantive* later treatment, with no invented numeric minimum, token Fell or three-cycle requirement. The owner deferred it. Manager #731 must route one decision-ready policy question to the owner or approve a fully precise nonnumeric criterion only within authorised product authority.
+2. **M-A full completion persistence S1**: new separately signed versioned technical record/amendment if existing persisted evidence cannot prove success. #677 teaching tuple does **not** sign this.
+3. **World/content personal attestation:** #676 remains signed0/candidate80/blocked8, digest null; #764 handles exact content/route/Tier S signature-readiness. Static roster/36 cells aren't authored/rendered qualified world.
+4. **Independent DRAFT review and Manager final approval**: 5 substantive new files, 70 CL and 148 inherited criteria require distinct nonauthor review; staged Docs/Handoffs text alone is not an APPROVED canonical spec.
+5. **Real native source/physical gates**: #652 live installation NO-INSTALL until owner risk decision and true physical receipt; #718 signed W§12/physical Linux Unity scene gate; #690 separate source custody and new actual save router; #765 acceptance; native F1/F2 writer/API safety and Tier2/3; exact owner personal Editor test and later separate Windows consent.
+
+## 4. Evidence and verification truth
+
+- **Directly inspected through GitHub:** full Manager #731 plan; current Decision Log and Milestone; all eight original #617 parent/planting draft files; original 115/33 unchecked requirement lines; prior #576 world/trigger/finance files; original save and #677 signed policy/review issue; #676 static-reviewed world/remaining blocks; approved older S1-C/S1-D specs; #763/731/live coordination state (read-only).
+- **Produced:** seven new Markdown draft/support files and this one exact Manager-named result on a *separate* GitHub docs branch. No signed world, spec status promotion, production code, main merge or board change.
+- **Review:** author self-audit only; **independent nonauthor review = NOT RUN**, with executable separate review packet linked above. No false verdict of independent APPROVED.
+- **Native tests/render:** **NOT RUN**. Unity scene, player path/visibility/collisions, profile activation, successful event9, yearly ecology, source fee behavior, M-A persistent completion, history, save/load and full integration **unverified**.
+- **Dashboard / Drive mirror sync:** NOT VERIFIED; only a future authorised canonical context change would trigger full permanent mirror regeneration. No new Windows Player build authorised.
+
+## 5. Next Manager action and task disposition
+
+**Next:** Manager #731 should freeze/read the exact #763 result branch, dispatch the [separate nonauthor review packet](https://github.com/jermur788/CCF/blob/docs/sen-1-763-compact30-loop-specs-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-763-DRAFT-PACKAGE/independent-review-packet.md) to a distinct capable provider/session in its own docs-only lane, resolve any findings and the single OD16 substantive gameplay issue, arrange any separate S1 save signature if needed, then grant a disjoint canonical specs writer lock and approve a final four-file spec before the queued F1/F2 production work. Keep #764 world/route and #765 QA documentary lanes independent, #690 save separate and #754 Ops correction unduplicated.
+
+**Worker disposition:** [HANDED-OFF — DRAFT AUTHORING COMPLETE / INDEPENDENT REVIEW OUTSTANDING] for #763; do **not** close as fully accepted, self-approve, merge, or declare ready for implementation until independent and Manager gates pass. No user action is required merely to read this draft. Later owner choices/signatures must be requested through Manager #731.
+
+**No implementation start, integration approval, gameplay verification, owner acceptance or dashboard sync is asserted by this result.**
