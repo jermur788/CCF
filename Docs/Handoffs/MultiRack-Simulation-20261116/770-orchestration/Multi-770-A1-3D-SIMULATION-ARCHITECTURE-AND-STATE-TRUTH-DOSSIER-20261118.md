@@ -6,6 +6,17 @@
 
 The corrected packet authorises this architecture dossier, not a 3D application, a live simulator connection, a source lane, or a game feature. The recommended next product candidate is one immutable Year0 scene with inspection only. That recommendation is an owner decision input; it grants no implementation rights. [M1] [M2]
 
+### Revision r1 — post-review correction
+
+Amends published A1 commit `c8f430356ec2550424b23a1f34e9fb7f0609e628` after reading the [complete independent Q review at `52b010d754ec12e39998e08a8f53c944e43277d6`](https://github.com/jermur788/CCF/blob/52b010d754ec12e39998e08a8f53c944e43277d6/Docs/Handoffs/MultiRack-Simulation-20261116/770-orchestration/Multi-770-Q-INDEPENDENT-3D-ARCHITECTURE-AND-BOUNDARY-REVIEW-20261118.md) and the complete pinned M4/M5 documents. Corrections are documentary; no fixture or runtime evidence was obtained.
+
+- **Q-04 — ADDRESSED:** §§4.1/4.3/4.4 now name the source `unityX`/`unityZ` f32 envelopes, their forward-transform bit oracle and the absence of established Unity frame/scene semantics; any 3D mapping must cite the transform ID.
+- **Q-07 — ADDRESSED:** M2–M5 links now use commit pins, including M5's pre-adoption `7af3add1d23453a92925a404d7dad5899ab0ff7d` text.
+- **Q-11 — ADDRESSED:** §§3.4/8.5 now treat H0-A's one-decoder rule as scope-limited precedent and divergence risk; the three static read-arrangement options remain open, alongside the separately scoped live-API option.
+- **Q-13 — ADDRESSED:** §13 states explicitly that Phase A contains **NO verified per-tree geometry** and every **W-xx check is NOT RUN**.
+
+No finding is disputed. Other findings are outside this amendment's assigned lane; Q-06's geometry/scale choice remains an owner decision. This revision is not self-approval, Manager acceptance or authority to continue 3D product/spec/source work.
+
 ## 1. Handoff identity, authority and evidence vocabulary
 
 | Item | Record |
@@ -132,7 +143,7 @@ This matters even for a single-frame prototype: asynchronous rendering, delayed 
 | Reference property actually inspected | Proposed 3D consequence | Boundary |
 | --- | --- | --- |
 | Genesis-only immutable observation [M4] [M5] | Begin with one immutable Year0 scene | No Year1 toggle inherited |
-| One Core numeric codec [M5] | Keep one separately authorised numeric admission/conversion authority | No decoder fork inside the renderer |
+| H0-A has one Core numeric codec and no second decoder in its Viewer [M4] [M5] | Choose the separately authorised 3D read arrangement explicitly from §8.5 | Scope-limited H0-A precedent; decoder divergence is a risk to qualify, not a 3D prohibition |
 | Typed availability, full observation key [M5] | Preserve meaning and selection binding | Do not rename absent values to zero |
 | 2D renderer draws from integer local coordinates, showing centred bits separately [M5] | Make 3D source/transform choice explicit in its own spec | 2D drawing arithmetic is not automatically the 3D placement rule |
 | No annual/mark/save functions [M4] [M5] | Keep inspection capability separate from commands | No hidden “later” action surfaces |
@@ -152,6 +163,7 @@ No separate 2D orchestration files were inspected, duplicated or edited for this
 | Row/ID roster | 100 source-order IDs `P30-001` through `P30-100` [M5] | DOCUMENT-REPORTED; no rows opened | Independently check complete set/order/uniqueness against admitted bytes |
 | Source status | Literal `live`, projected as `Live`, not health [M4] [M5] | DOCUMENT-REPORTED | Check exact source token and mapping |
 | Source location fields | Integer `xMm`, `yMm`; `yMm` is horizontal local north, not height [M5] | DOCUMENT-REPORTED | Check units, coordinate range and basis for every row |
+| Source forward-coordinate fields | The documented 12-key row also includes `unityX`, `unityZ` as f32 envelopes; forward-transform bit comparison uses them as the `TransformBitMismatch` oracle (§4.3) [M5] | DOCUMENT-REPORTED; not checked against bytes here | Validate against `p1-square30-corner-to-centred-xz-v1`; field names establish no Unity frame, handedness, up-axis, pivot or Unity-scene meaning |
 | Reference domain | Side 30000 mm; square corners documented; elevation 0 [M5] | DOCUMENT-REPORTED | Verify exact admitted geometry metadata; do not infer geography |
 | Numeric representations | Raw integer dimensions and binary32 envelopes for converted values [M5] | DOCUMENT-REPORTED | Check envelope type, bit pattern, finiteness and allowed conversion |
 | Crown dimension | Source exposes `crownRadiusM`, explicitly radius [M5] | DOCUMENT-REPORTED | Preserve value/bits and identify the simplifying crown model |
@@ -185,13 +197,15 @@ This is a requirements inventory, not a proposed executable schema or a source-d
 
 ### 4.3 Coordinate and extent derivation: requirements, not invented positions
 
-The inspected 2D reference names transform `p1-square30-corner-to-centred-xz-v1`: centred X is the binary32 rounding of `(xMm − 15000) / 1000`; centred Z uses the same rule with source `yMm`. It explicitly requires forward bit comparison and does not require reverse float-to-mm equality. It defines local east/north axes as synthetic, not geographic. [M5]
+The inspected 2D reference names transform `p1-square30-corner-to-centred-xz-v1`: centred X is `fround((xMm − 15000) / 1000.0)`; centred Z is `fround((yMm − 15000) / 1000.0)`, with binary64 division followed by one binary32 rounding. The source row's `unityX` and `unityZ` are f32 envelopes (`k: f32`, eight-hex-digit `b` bit pattern). M5 reports that all 200 envelopes agree bit-for-bit with those forward results; the adopted contract compares forward-result bits against these envelopes as the `TransformBitMismatch` oracle and projects the verified values as `centredX`/`centredZ`. It does not require reverse float-to-mm equality. These are DOCUMENT-REPORTED statements, not A1 byte checks. It defines local east/north axes as synthetic, not geographic. [M5]
+
+The field names `unityX` and `unityZ` do **not** establish a Unity coordinate frame, handedness, up-axis, pivot or Unity-scene meaning. Any 3D mapping must cite transform ID `p1-square30-corner-to-centred-xz-v1`, not infer a mapping from the field names; a separately approved mapping must identify its relationship to that source transform. No Unity parity or unrelated-scene correspondence follows. [M3] [M5]
 
 Propose that a 3D specification choose one of these explicit mappings rather than letting an engine choose by convention:
 
 | Mapping option | Consequence | Evidence needed |
 | --- | --- | --- |
-| Use the documented centred binary32 X/Z as the 3D stem base | Preserves the reference's forward-converted positions; easiest to audit against those bits | Authorised source and codec, exact forward-rule reproduction, axis/pivot proof |
+| Use the documented centred binary32 X/Z as the 3D stem base | Preserves the reference's forward-converted positions; easiest to audit against those bits | Authorised source and codec, explicit `p1-square30-corner-to-centred-xz-v1` citation, forward-bit comparison to `unityX`/`unityZ`, and separate axis/pivot proof |
 | Use source integer millimetres converted by a separately approved 3D policy | Makes integer spatial provenance primary; may differ at renderer precision boundaries | New mapping identity, rounding policy and expected-value criteria |
 | Geographically place, jitter or terrain-fit stems | Changes experiment meaning or adds unsupported information | Separate product/source/spec approval; excluded from the recommended first slice |
 
@@ -210,6 +224,8 @@ Proposed later admission must preserve three different identities:
 1. **Input identity:** exact admitted bytes, length, reviewed expected digest, source class and provenance.
 2. **Observation identity:** model/RNG/algorithm version, seeds, geometry transform, year/stage and committed observation identity supplied by the approved read boundary.
 3. **Display identity:** mapping version, asset/material choices, runtime/toolchain, renderer settings and emitted package identity.
+
+For coordinate provenance, input identity covers the source integers and `unityX`/`unityZ` envelopes; observation identity records transform `p1-square30-corner-to-centred-xz-v1` and its forward-bit validation; display identity records the separately approved 3D basis/axis/pivot mapping. The field names cannot substitute for those identities or establish engine coordinates. None of these per-tree checks was performed in Phase A. [M5]
 
 The generator seed does not prove which bytes were used. A simulation seed does not prove a result if algorithms, call order or model versions differ. A screenshot proves neither input identity nor numeric reproducibility. Keep all three identities visible in a future evidence receipt.
 
@@ -483,7 +499,7 @@ These are qualitative design judgements under the proposed Year0-only slice, not
 
 ### 8.5 Share, adapt or duplicate the numeric read boundary?
 
-This decision is separate from graphics technology. The current approved contract is restricted to 2D H0-A; a choice to reuse ideas does not grant code/source/package rights. [M4] [M2]
+This decision is separate from graphics technology. The current approved contract is restricted to 2D H0-A; a choice to reuse ideas does not grant code/source/package rights. Its one-Core/no-second-Viewer-decoder rule is a scope-limited H0-A precedent, not a prohibition on a separately approved 3D decoder. Duplication introduces divergence and qualification risks; sharing introduces coupling and custody risks. The three static options below are the reference framing, and share-versus-duplicate remains an owner/spec decision. The live option remains a separate scope. [M4] [M5] [M2]
 
 | Option for a later spec | Potential benefit | Material risk/cost | Required authority/evidence |
 | --- | --- | --- | --- |
@@ -492,7 +508,7 @@ This decision is separate from graphics technology. The current approved contrac
 | Implement another decoder | Runtime independence | Divergent numeric/availability/trust behaviour and duplicated maintenance | Explicit owner/spec choice and meaningful cross-decoder qualification; no silent fork |
 | Connect to a live simulator | Could support later dynamic features | Introduces command/state/network/process and security questions far beyond a static view | Separate accepted live API/product/security scope; excluded from the proposed first slice |
 
-**Recommendation for owner consideration:** preserve one authoritative numeric/read definition and keep the 3D adapter narrow. Which reuse/projection arrangement is lawful and maintainable remains UNKNOWN until actual source rights, runtime and formal spec are settled. This is not a decision to consume `CcfYear0Core` from 3D.
+**Recommendation for owner consideration:** preserve one authoritative numeric/read definition and keep the 3D adapter narrow under whichever arrangement is chosen. Whether reuse, a separately qualified projection or a separately qualified decoder is lawful and maintainable remains UNKNOWN until actual source rights, runtime and formal spec are settled. This neither selects sharing nor rejects duplication, and is not a decision to consume `CcfYear0Core` from 3D.
 
 ## 9. Containment, reproducibility and performance evidence boundaries
 
@@ -656,6 +672,8 @@ The following choices are deliberately open. They are a short decision agenda, n
 
 ## 13. Unknowns and deliberate verification limits
 
+**Phase A contains NO verified per-tree geometry of any kind. Every W-xx check (W-01–W-10) is NOT RUN.** Document-reported schema, transform and geometry requirements are not verified coordinates, meshes or source-to-scene correspondence.
+
 ### 13.1 Outstanding evidence register
 
 | Unknown / not independently verified | Consequence | Appropriate later resolver |
@@ -670,7 +688,7 @@ The following choices are deliberately open. They are a short decision agenda, n
 | Real accessibility/assistive-technology behaviour | No conformance claim | A2/spec plus actual representative independent checks |
 | Effective writer/runtime containment | No global protected-file or no-effect claim | Actor-specific permit and independent scoped observation |
 | Licence/package/asset rights | No new dependency/asset reuse permission | Owner and exact licence/provenance review |
-| Independent Q verdict and Manager disposition | Dossier is a proposal ready for review | Separate authorised reviewer and Manager #730 |
+| Manager disposition of r1 following the cited independent Q review | Corrections are author-reported; no acceptance or self-approval | Manager #730 and any separately assigned nonauthor recheck |
 | Formal 3D spec, G1/G2, integration/release | No implementation or deployment authority | Owner/Manager and physical custodians through explicit gates |
 | Dashboard/Drive synchronization | Publication of this file proves neither | Designated manager/publisher; not this sole-file worker |
 
@@ -695,10 +713,10 @@ Reference links throughout resolve to the actual inspected documents below. Mult
 | Ref | Actual source | Use and evidence limit |
 | --- | --- | --- |
 | M1 | [Manager #730 binding Phase A adoption, issue #770 comment 6988856214](https://github.com/jermur788/CCF/issues/770#issuecomment-6988856214) | Read actual comment via GitHub. Docs-only authority, superseded routing, no source/runtime/physical permission. |
-| M2 | [Corrected Multi #770 orchestration packet](https://github.com/jermur788/CCF/blob/docs/multi-730-770-corrected-tg-fork-3d-sim-trial-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-770-DEEPSEEK-TG-FORK-MULTI-3D-SIMULATOR-REAL-WORK-ORCHESTRATION-PACKET-20261118.md) | Read complete text via exact supplied URL. Supplies synthetic experiment, year/draft status, lane boundaries and later gate requirements. Underlying protected sources not inspected. |
-| M3 | [#750 H0-A owner choice and four-file approval receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md) | Read complete receipt. Approved static 2D scope and integrity/publication boundaries; not a 3D grant or runtime proof. |
-| M4 | [#758 Manager contract adoption and owner local-only JS security receipt](https://github.com/jermur788/CCF/blob/docs/multi-730-758-owner-js-security-approval-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-730-H0-A-758-CONTRACT-VERDICT-AND-OWNER-LOCAL-ONLY-JS-SECURITY-APPROVAL-20261118.md) | Read complete receipt. Adopts v1.0.0 for H0-A and records limited security permission; no inherited 3D rights, global byte proof or L4 waiver. |
-| M5 | [Complete corrected #758 reference contract text](https://github.com/jermur788/CCF/blob/docs/multi-758-h0a-contract-revision-result-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-758-H0-A-TARGETED-CONTRACT-CORRECTIONS-DRAFT-RESULT-20261118.md) | Retrieved complete document; inspected provenance/geometry/codec and read-shape/availability/selection sections, with focused reread of §§2.5–2.8. Historical DRAFT header is qualified by later M4 adoption. Reported values are not new fixture measurements. |
+| M2 | [Corrected Multi #770 orchestration packet](https://github.com/jermur788/CCF/blob/894129616802daf7b647d48734c03adf2c700ae6/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-770-DEEPSEEK-TG-FORK-MULTI-3D-SIMULATOR-REAL-WORK-ORCHESTRATION-PACKET-20261118.md) | Pinned at `894129616802daf7b647d48734c03adf2c700ae6`; complete text reread at this pin for r1. Supplies synthetic experiment, year/draft status, lane boundaries and later gate requirements. Underlying protected sources not inspected. |
+| M3 | [#750 H0-A owner choice and four-file approval receipt](https://github.com/jermur788/CCF/blob/a9579188d1e527f4e94d476c0e02e4285bab0035/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md) | Pinned at `a9579188d1e527f4e94d476c0e02e4285bab0035`; complete receipt reread at this pin for r1. Approved static 2D scope and integrity/publication boundaries; not a 3D grant or runtime proof. |
+| M4 | [#758 Manager contract adoption and owner local-only JS security receipt](https://github.com/jermur788/CCF/blob/a7e9228b8429e6b51c1fcb493e02af0a4148452a/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-730-H0-A-758-CONTRACT-VERDICT-AND-OWNER-LOCAL-ONLY-JS-SECURITY-APPROVAL-20261118.md) | Pinned at `a7e9228b8429e6b51c1fcb493e02af0a4148452a` (18:32:00Z); complete receipt reread at this pin for r1. Adopts v1.0.0 for H0-A and records limited security permission; no inherited 3D rights, global byte proof or L4 waiver. |
+| M5 | [Complete corrected #758 reference contract text](https://github.com/jermur788/CCF/blob/7af3add1d23453a92925a404d7dad5899ab0ff7d/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-758-H0-A-TARGETED-CONTRACT-CORRECTIONS-DRAFT-RESULT-20261118.md) | Pinned at `7af3add1d23453a92925a404d7dad5899ab0ff7d` (18:26:36Z), before M4's 18:32:00Z adoption; complete text reread at this pin for r1. Its historical DRAFT header is qualified by that adoption as `ccf.h0a.core-read` v1.0.0 for H0-A. Reported values are not new fixture measurements. |
 | M6 | [Actual A1 RUNNING claim](https://github.com/jermur788/CCF/issues/770#issuecomment-6989053274) | Created once before the first dossier edit; records real worker, base, branch, sole path and docs-only boundary. |
 
 ### 14.2 Canonical project context consulted
@@ -727,10 +745,10 @@ Reference links throughout resolve to the actual inspected documents below. Mult
 No issue/source linked inside these documents is treated as independently inspected merely because it appears in a citation chain. In particular, Year1 and draft follow-on status are attributed to M2; their underlying physical material was not opened.
 
 [M1]: https://github.com/jermur788/CCF/issues/770#issuecomment-6988856214
-[M2]: https://github.com/jermur788/CCF/blob/docs/multi-730-770-corrected-tg-fork-3d-sim-trial-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-770-DEEPSEEK-TG-FORK-MULTI-3D-SIMULATOR-REAL-WORK-ORCHESTRATION-PACKET-20261118.md
-[M3]: https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md
-[M4]: https://github.com/jermur788/CCF/blob/docs/multi-730-758-owner-js-security-approval-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-730-H0-A-758-CONTRACT-VERDICT-AND-OWNER-LOCAL-ONLY-JS-SECURITY-APPROVAL-20261118.md
-[M5]: https://github.com/jermur788/CCF/blob/docs/multi-758-h0a-contract-revision-result-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-758-H0-A-TARGETED-CONTRACT-CORRECTIONS-DRAFT-RESULT-20261118.md
+[M2]: https://github.com/jermur788/CCF/blob/894129616802daf7b647d48734c03adf2c700ae6/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-770-DEEPSEEK-TG-FORK-MULTI-3D-SIMULATOR-REAL-WORK-ORCHESTRATION-PACKET-20261118.md
+[M3]: https://github.com/jermur788/CCF/blob/a9579188d1e527f4e94d476c0e02e4285bab0035/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md
+[M4]: https://github.com/jermur788/CCF/blob/a7e9228b8429e6b51c1fcb493e02af0a4148452a/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-730-H0-A-758-CONTRACT-VERDICT-AND-OWNER-LOCAL-ONLY-JS-SECURITY-APPROVAL-20261118.md
+[M5]: https://github.com/jermur788/CCF/blob/7af3add1d23453a92925a404d7dad5899ab0ff7d/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-758-H0-A-TARGETED-CONTRACT-CORRECTIONS-DRAFT-RESULT-20261118.md
 [C1]: https://github.com/jermur788/CCF/blob/ff03290a5ef9c53472618aba32591e5822c663e1/Docs/Project/AgentWorkflow.md
 [C2]: https://github.com/jermur788/CCF/blob/ff03290a5ef9c53472618aba32591e5822c663e1/Docs/Project/game-brief.md
 [C3]: https://github.com/jermur788/CCF/blob/ff03290a5ef9c53472618aba32591e5822c663e1/Docs/Project/unity-project-overview.md
