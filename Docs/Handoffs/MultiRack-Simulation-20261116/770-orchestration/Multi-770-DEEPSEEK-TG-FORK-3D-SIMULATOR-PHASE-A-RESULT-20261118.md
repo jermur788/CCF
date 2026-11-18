@@ -131,7 +131,7 @@ No 3D application, scene, renderer or runtime exists. Nothing was built, rendere
 
 ## 13. Evidence and continuity
 
-- Routing ledger (append-only portable fallback, `store: portable-fallback`, `runtime: unavailable`, `canonical_persistence: false`): `/tmp/opencode/770-orchestration/routing-ledger.jsonl`, 27 records covering pre-dispatch readiness, write-ahead attempts, receipts, reconciliation, correction continuations and the delta re-check.
+- Routing ledger (append-only portable fallback, `store: portable-fallback`, `runtime: unavailable`, `canonical_persistence: false`): `/tmp/opencode/770-orchestration/routing-ledger.jsonl`, 28 records covering pre-dispatch readiness, write-ahead attempts, receipts, reconciliation, correction continuations, the delta re-check and this publication (ledger sha256 prefix `b8b2b954`).
 - Independently verified dossier hashes at reviewed pins: A1 r1 `922aa105…`, A2 r1 `aecb2ce7…`, Q r1 `bf5372f7…`.
 - Child claims: [A1](https://github.com/jermur788/CCF/issues/770#issuecomment-6989053274) · [A2](https://github.com/jermur788/CCF/issues/770#issuecomment-6989030661) · [Q](https://github.com/jermur788/CCF/issues/770#issuecomment-6989377832).
 
