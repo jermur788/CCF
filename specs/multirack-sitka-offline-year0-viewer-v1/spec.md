@@ -1,0 +1,158 @@
+# Multi — Offline Static Year-0 Sitka Woodland Viewer V1
+
+- **Spec ID:** MULTI-SITKA-OFFLINE-YEAR0-VIEWER-V1
+- **Status:** **DRAFT — NOT APPROVED / NOT IMPLEMENTED / NOT TESTED**
+- **Created:** 18 November 2026
+- **Authoring claim:** [Multi #749](https://github.com/jermur788/CCF/issues/749); **review/owner:** [dedicated Manager #730](https://github.com/jermur788/CCF/issues/730)
+- **Class:** SPEC REQUIRED, four-file proposal only; all requirements and proposed wire types are pending product/spec approval
+- **Authority:** latest owner instruction, then main Decision Log, Current Milestone, Game Brief; when and only when APPROVED, this spec may become subordinate task-level authority. An approved older P1 source spec does **not** approve this viewer.
+- **Relationship:** first narrow static inspection slice only of the standalone Multi Sitka P1 laboratory, **not** Scenario One Compact30, the 3D game, an Irish forest or a new P0/40/80 simulation domain.
+
+## 1. Purpose and player/user outcome
+
+Open a trustworthy, fully offline, **single static Year-0 Genesis** overhead view of the protected **synthetic derived 30 × 30 m / 100-tree Sitka fixture**. Inspect any original ordinal tree ID, original position, stem dimensions and crown **radius** at declared metre scale; pan, zoom and Fit; understand source and absence of annual diagnostics. It must not advance time or alter biological state. The first visible result is a faithful initial forest, not a two-year timeline.
+
+**Read-only screen disclosure, always visible including captured evidence:**
+
+> Synthetic Sitka engineering experiment · 30 m × 30 m · Year 0 (Genesis)  
+> Synthetic inputs — NOT an Irish field forecast — NOT Unity numerical or geometry parity.  
+> No annual evaluation, work, browsing, regeneration, storm, roads or racks in this fixture.
+
+Never represent biological status “living” as a measured health score. The 170 mm label is a work/action note, **not** an inclusion filter or permission for marking.
+
+## 2. Authority and evidence crosswalk
+
+1. [Binding #749 packet](https://github.com/jermur788/CCF/blob/docs/multi-730-749-h0-four-file-draft-packet-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-749-OFFLINE-YEAR0-VIEWER-FOUR-FILE-SPEC-DRAFT-PACKET-20261118.md); [Manager-approved documentary #748 F1–F5 corrections](https://github.com/jermur788/CCF/blob/docs/multi-748-f1-f5-consolidation-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-748-F1-F5-CONSOLIDATED-INTERFACE-CORRECTION-DRAFT-RESULT-20261118.md); [independent #747 findings](https://github.com/jermur788/CCF/blob/0e43f64d2a14028b75b50d1bd2578f5e28626a84/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-747-INDEPENDENT-FIVE-LANE-TECHNICAL-SPEC-REVIEW-RESULT-20261118.md). “Approved documentary quality” is **not** approval of these product requirements or a public ABI.
+2. Pinned proposal inputs: [A viewer #736](https://github.com/jermur788/CCF/blob/docs/multi-736-a-spec-draft-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-736-READONLY-2D-WOODLAND-VIEWER-SPEC-DRAFT-RESULT-20261118.md), [B future engine #737](https://github.com/jermur788/CCF/blob/docs/multi-737-b-spec-draft-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-737-MULTIYEAR-ANNUAL-ENGINE-SPEC-DRAFT-RESULT-20261118.md), [C future marks #738](https://github.com/jermur788/CCF/blob/docs/multi-738-c-spec-draft-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-738-TREE-MARKING-INTERACTION-SPEC-DRAFT-RESULT-20261118.md), [D history/save #739](https://github.com/jermur788/CCF/blob/docs/multi-739-d-spec-draft-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-739-HISTORY-AND-PERSISTENCE-DESIGN-SPEC-DRAFT-RESULT-20261118.md), [E shared read/custody #740](https://github.com/jermur788/CCF/blob/docs/multi-740-e-spec-draft-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-740-SHARED-SNAPSHOT-AND-INTEGRATION-READINESS-SPEC-DRAFT-RESULT-20261118.md). Only A plus minimal corrected E/F1/F3 concerns enter this first slice.
+3. [Earlier owner-approved P1 four-file technical spec](https://github.com/jermur788/CCF/blob/docs/multi-p1-637-owner-approved-four-file-20261116-v1/specs/multirack-sitka-p1-adult-rules-comparator-v1/spec.md) and [dated 16 Nov owner approval](https://github.com/jermur788/CCF/blob/90583811c4fb88508a4bf05c14365732e24a21ac/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-Sitka-P1-OWNER-FOUR-FILE-APPROVAL-AND-639-F0-LOCAL-IMPLEMENTATION-PACKET-20261116.md) govern their own separately approved source scope; **main D-082** sets synthetic/experimental/non-Irish-forecast honesty and original-P0 safeguards. **Main D-084 is Scenario One Compact30.** The older Multi decision carrying the same label is an unmerged historical collision; Manager/owner must allocate an unused canonical Multi ID before promotion, **not** this author.
+4. [#725 local exact Year1 implementation](https://github.com/jermur788/CCF/blob/6e51dcb6c86eab78b99b4b05e08c2c44e0ffdfa9/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-725-EXACT-R-ADULT-SITKA-YEAR1-IMPLEMENTATION-RESULT-20261118.md), [#729 review](https://github.com/jermur788/CCF/blob/8310a38086425a5b223315c8f83181dd77eee1eb/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-729-INDEPENDENT-EXACT-R-YEAR1-FIVE-FILE-SOURCE-AND-NUMERICAL-REVIEW-20261118.md) and [#732 focused offline qualification](https://github.com/jermur788/CCF/blob/88e82cd0cc3e60dcc777720332200a88231d4b8e/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-732-EXACT-R-YEAR1-FOCUSED-INDEPENDENT-NATIVE-QUALIFICATION-RESULT-20261118.md) are **reused evidence**, not code/public read-model, save or release. #729 M-1 living-target **and neighbour** exclusion is mandatory **before Year2**, not a blocker for static Genesis. Existing Year1 CLI stdout digest is for those specific 45,980 bytes only: **not** a digest of this read-model, future H0 bundle, save or UI package.
+5. The [published frozen derived fixture](https://github.com/jermur788/CCF/blob/feature/multi-p1-639-f0-30m-foundation-20261116-v1/Tools/MultiRackSitkaP1Lab/fixtures/derived/p1d-30m-sitka-adult-v1.sitkap1fx.json) is an accepted synthetic engineering artefact with published fixture SHA-256 **bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4** and documented byte length **32,567**; this draft does not publish a new copy or grant remote/native #725 custody.
+
+**Evidence classes:** fixture fields and #725/#729/#732 results are source/reviewer receipts at their stated engineering scope; UI/hit-test/offline packaging and candidate read ABI are **design proposals**; zoom bounds/tolerances are **UX calibration**; no measured Irish forestry or Unity parity is claimed.
+
+## 3. Included versus explicitly excluded
+
+**Included:** exactly one admitted, immutable **Genesis** observation from the frozen derived fixture; all 100 source IDs and living statuses; typed source X/Y millimetres, declared X/Z float transform, f32 DBH/height/crown, per-tree inspector, 30m square, Fit/pan/zoom/scale, full keyboard ID index and accessible source/availability labels; strictly no mutation routes.
+
+**Excluded (not dependencies of this first viewer):** Year1 toggle; D H0 second Year1 frame, PostGrowth/AfterMortality, history replay or event tip; B Year2+; C batch marking, proposed removals, eligibility action service or any selection→mark binding; natural/managed Fell, plans/Work Orders/approval/execution/economics; persistence H2, file write/save/load, session history, Host/network/loopback, Unity and Windows, new original P0 polygon or 40/80 world import, main merge, external distribution/demo and full security release. Future feature scopes must be approved and staffed independently, not treated as acceptance criteria of this one-frame viewer.
+
+## 4. Proposed minimal trusted observation contract (F1 + F3)
+
+**This is an approval candidate, not an existing #725 API.** One future **Core-owned** adapter/codec writer constructs a **detached immutable** full-roster read projection from **pre-vetted exact trusted fixture bytes**; renderer A never directly owns trust admission, numeric decoding semantics or ecology. Static display does not call the annual engine. There is one observation, no active simulation session.
+
+### 4.1 Trust and identity envelope — required for Genesis
+
+| Field / type | Initial required value or rule |
+| --- | --- |
+| readSchemaId + version | New read-only static schema V1, exact recognised identifiers; unknown required property, version or enum fails closed; **not** the original fixture schema, #725 report or P1 save |
+| sourceKind / admission | **TrustedFixtureOnly** (single vetted fixed source, not browser-submitted data); strict catalog/byte count/hash/format/schema validation at the selected secure package boundary; browser self-hash alone is not authentication of a substituted package |
+| domain / fixture | DerivedP1ThirtyMetreExperimentV1 / p1d-30m-sitka-adult-v1; format ccf-sitka-p1-derived-fixture, derivedSchemaVersion 1, catalogVersion p1-f0-derived-catalog-v1, sourceClass Synthetic |
+| exact source digest | SHA-256 bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4; trusted independently pinned expected bytes/digest, not a caller's self-declared hash |
+| fixture/bundle identity | **One** immutable observation/bundle token scoped to the vetted fixture digest, domain, generation policy, seed/model/numeric/geometry policy, state year and stage. For this fixed initial package there is **no fabricated live generation or commit counter**. No Year1 report digest or persisted event/state tip exists in this first slice |
+| experiment semantics | Exact synthetic fixture algorithm/policy: p1-f0-adult-sitka-30m-v1; seed integer 20261116, growthModelVersion 2 and rngModelVersion 1 as *source provenance*, **not** evidence an annual call occurred |
+| geometry | P1DerivedSquare30m, sideMm 30000, 900 m² nominal, southwest-origin XY-mm with +X east, +Y north; exact transform ID p1-square30-corner-to-centred-xz-v1; source area f32 bits **3db851ec** ha |
+| observation time | sourceStage = **Genesis**; stateEcologicalYear = integer 0; annual target year, committed annual revision, death audit, event tip and save/session identity **not applicable / unavailable**, never invented zero as if measured |
+| complete roster | exactly 100 unique case-sensitive ordinal tree IDs P30-001…P30-100, no missing/duplicate/renamed ID; source record order retained for identity verification; any visual sort is separate |
+| row required fields | original xMm/yMm integer, ageYears integer, explicit living status, Sitka/MatureEquivalent/Reference, dbhCm/heightM/crownRadiusM source **f32 bits**, derived X/Z source f32 bits; all valid with exact source units |
+| auxiliary availability | each optional field has explicit **PresentSourced / PresentComputed / NotEvaluated / Unavailable** state with typed reason and, when present, source provenance; cannot silently use null/zero/blank to stand for unknown |
+
+**Observation key F3 proposal:** an opaque immutable key supplied by the trusted adapter and **compared as a full key, not a short per-view counter**. Its binding resolves read-schema/version; domain/fixture/catalog/source SHA and trusted packaged bundle; source class; geometry/coordinate and numeric policies; seed and model/RNG versions; fixed fixture-only lineage; state year=0; stage=Genesis; and the static publication identity. A's selection notification carries exactly (ordinal tree ID, **this full observation key**); stale/mismatched keys are ignored. No claim that SHA alone provides adversarial authenticity. No live generation, Year1, command/work revision, event tip or durable save is fabricated. A future ReportOnly H0 must bind a **separately qualified** same report bundle and report-byte digest, model/seed/geometry/stage/year, and reject cross-lineage comparisons; it cannot reuse this fixture-only key to pretend a second report was accepted.
+
+### 4.2 F1 typed source numbers and availability — no invented annual metrics
+
+| Field | Fixed type/unit at source | Genesis policy |
+| --- | --- | --- |
+| treeId, domain, source/transform identifiers | exact ordinal UTF-8 strings / versioned discriminants | Required sourced; never array offset, screen sprite key or plain “30m” |
+| xMm, yMm | signed integer millimetres; x,y in [0,30000) | Required sourced; local XY not GPS or Unity scene |
+| X, Z source metres | f32 bits obtained by int64 (xMm−15000),(yMm−15000), binary64 division by 1000, **one final f32 cast** | Required sourced/verified against fixture unityX/unityZ bits. Do not reverse-round-trip and require exact mm from f32. For display, XY m = raw mm / 1000; centred X/Z +15 only under this transform ID |
+| dbhCm, heightM, crownRadiusM | **f32 bits**, DBH cm, H and radius m | Required sourced; finite, sensible positive values; preserve bits for provenance, round only when displaying |
+| ageYears, count, neighbourCount (if evaluated) | integers | Age sourced as 30 for all rows; neighbour count **NotEvaluated(StaticGenesisNoAnnualEvaluation)** |
+| areaHa | **f32 bits** 3db851ec, hectares | Required sourced. Nominal 900 m² is not a substitute f64 divisor for any later biological reduction |
+| CI (Hegyi) | **f32** dimensionless | **NotEvaluated(StaticGenesisNoAnnualEvaluation)**, never a numeric zero |
+| stemsPerHa | **f32**, stems/ha when computed by qualified source | **Unavailable(StageAggregateNotSupplied)** absent accepted Genesis aggregate; do not recompute from rows in viewer |
+| BA/ha, Dq, RD | **f64**, m²/ha, cm, dimensionless | **Unavailable(StageAggregateNotSupplied)** absent accepted Genesis aggregate; no invented stand aggregate |
+| pressure, hazard, vulnerability, RNG roll | pressure/hazard f64; RNG numerator exact integer if actually evaluated | **NotEvaluated(StaticGenesisNoAnnualEvaluation)**; no counterfactual roll or mortality |
+| tree living count / roster count | integer inventory from vetted fixture | 100 registered, 100 living; this **inventory projection** can be sourced/count-validated, without claiming BA/Dq/RD evaluated |
+| health score, ground/soil/geography, work, saved event tip | no justified numeric type for health; outside fixture | **Unavailable(NotRecordedInTrustedSource)** or **NotEvaluated(NotPartOfThisStage)** only if source can establish nonexecution; never “healthy” inferred from status |
+
+Candidate exact-bit representation (not shipped ABI): typed envelopes with kind f32 + eight lowercase hexadecimal bit digits, or f64 + sixteen digits. Integer source millimetres must stay integers. A single reviewed future codec controls decoding, endianness and output; no display text feeds source, and never map numeric NaN/Infinity or fake zero into success.
+
+**F1 availability categories:** PresentSourced(value,sourceRef) = actual typed admitted source field; PresentComputed(value,sourceRef,calculationStage) = qualified stage computation (including *true* computed zero); NotEvaluated(typed reason) = known phase not run; Unavailable(typed reason,sourceContext) = not supplied/unsupported/unadmitted. Proposed closed reason vocabulary: StaticGenesisNoAnnualEvaluation; NotLivingAtEvaluation; ConditionalRollNotDrawn; NotPartOfThisStage; NotRecordedInTrustedSource; StageAggregateNotSupplied; SourceImportUnqualified; FeatureNotImplemented; PolicyUndecided. Unknown reason, no reason, an optional field with multiple states, or a required source field hidden behind Unavailable **refuses the complete observation**. Stage/type/year mismatch refuses. These future-stage reason names do **not** admit Year1 into the first build.
+
+**Stage scope:** The only accepted observation stage here is **Genesis** (state Year 0). Annual **Before**, **PostGrowth**, **AfterMortality**, targetYear and source-audit stages are **unsupported by this static schema** until a separate approved qualified-source import. An unknown stage is a refusal, not a request to compute it. Complete Genesis roster plus a stage-matched *inventory count projection with explicitly unavailable annual aggregates* is valid; do not demand missing BA or CI to open Year 0.
+
+### 4.3 Trust refusal and failure atomicity
+
+Admission MUST independently verify trusted package selection/provenance at the chosen offline boundary plus exact 32,567-byte source, SHA-256, schema/version, domain, catalog/fixture ID, source class, 30m geometry/area bits, declared transform, seed/model/RNG/algorithm policy and **every registered row**. Verify case-exact ID uniqueness/completeness, in-domain coordinates, finite f32 decoded fields and all raw mm vs source f32 consistency; reject altered same-length data, missing row, duplicate ID, unknown JSON keys/version/enum, wrong tag/domain, corrupted hex, invalid radius, incompatible transform, missing root trust or unapproved source path. No “best effort” parsing or extra 99-tree display.
+
+On refusal: **no observation activation**, no partial list/render, no implicit alternate fixture, no annual call and no source changes; if a prior valid view exists retain it and show a bounded non-sensitive refusal. Strict parsing must not trust a self-reported hash or browse to fetch a replacement. No free-form file upload, remote URL, arbitrary JSON paste, shell script, implicit file:// fetch or loopback development Host is approved by this DRAFT.
+
+## 5. Lane A renderer, inspector and accessibility contract
+
+The renderer consumes only validated **detached immutable** Genesis rows and an F3 key; never references a mutable annual source, calls any write/advance API or derives forest-wide biological statistics from drawn shapes.
+
+1. **Geometry:** a 30m square with neutral ground, visible outline, local +X east right / +Y north up (synthetic local axes, **not** geographical north); plot coordinates use xMm/1000, yMm/1000. From centred X/Z only under exact approved transform, add 15m for the display local XY. CSS y is inverted for screen-up; CSS x increases right. Uniform finite CSS pixels-per-metre scale; fixed declared metre scale bar (e.g. labelled 5m) recalculated on every zoom.
+2. **Crowns:** draw translucent circular **radii** equal to decoded source crownRadiusM × CSS px/m, not diameter or constant symbolic glyph size. Full overlap preserved; source ID order deterministic for crown and centre drawing; centres above crowns; selected highlight last. Crown area is **not** canopy cover, light, habitat or BA. Radius 3m at 20 CSS px/m means **60 CSS px centre-to-edge**.
+3. **Camera:** Fit shows entire 30m boundary with margin and honest treatment of crown overhang; pan empty/background only, mouse/touch zoom around focus plus explicit keyboard-accessible controls, reset Fit, numerical clamps; adapt resize and device pixel ratio without treating physical pixels as CSS pixels in hit testing. Zoom bounds and drag threshold require later UX calibration.
+4. **Selection:** hit-test **stem centres**, not crown discs; nearest squared CSS distance within input-appropriate radius, ties by **ordinal case-sensitive treeId**. When overlapping centres are ambiguous, present a chooser/ordered ID inventory, never silently make a larger crown win. Persistent selected-ID/high-contrast halo; selection is inspection only. No “mark selected” action in this first feature.
+5. **Complete access:** searchable or list-browsable **all 100 IDs**, sorted ordinal; Previous/Next by stable ID, keyboard Tab/Enter/Space/Escape, visible focus, screen-reader announcement of selection/year. No pointer-only ID access; at narrow **360 CSS px** inspector stacks or collapses without hiding any fields, legend, source warning or controls. Verify 1280×720 and 1920×1080 plus 200% text zoom; no fixed 100 colliding labels expected on canvas.
+6. **Inspector:** tree ID; Year0/Genesis and source provenance; living status **not health**; species/life class; local XY metre coordinates with units, raw mm optionally; integer age (30); DBH cm, height m, crown **radius** m from source f32; action-threshold annotation only where safely sourced; CI “Not evaluated in static Year 0”; health score “Unavailable”; stand count 100/100; stand RD/Dq/BA/Nha “Unavailable — not in static source.” Always display synthetic/nonforecast/not-Unity disclaimers near map/inspector.
+7. **Visual semantics:** distinguish living, below-action note, selection and keyboard focus using glyph/outlines/text independent of colour; no invented dead-tree Year0 glyph, tree health gradient, Fell marker, rack, road or terrain. Contrast and assistive technology require later real rendered inspection.
+8. **Selection notification:** A alone owns view hit-test/primary selection, emitting **(selectedTreeId, full immutable F3 observation key)** solely as a read-only notification. No callback or camera action changes biological state, current year, input bytes, work, saved history or RNG. Future C must use the key, not short recycled revision; it cannot co-own A source shell/hit-testing.
+
+Example source-backed manual anchors for later visual checks: P30-001 Year0 at local (1.069, 1.908)m, age 30, DBH 32.9cm, H 23.07m, crown radius approx 3.4534m; P30-053 at (7.710,17.002)m, age 30, DBH 13.1cm and crown radius approx 1.9417m, below the 170mm action note **yet always inspectable**. These are fixture readings, not Irish forest measurements.
+
+## 6. Offline package and trust choice — **OWNER OPEN / STOP BEFORE SOURCE**
+
+Two feasible **genuinely offline, no-Host** options require product-owner + Manager selection and precise secure packaging assessment. Neither is selected as implementation authority by this DRAFT.
+
+| Candidate | Actual delivery pattern | Security/operational constraints |
+| --- | --- | --- |
+| **H0-A — recommended smallest, provisional** | One **self-contained offline static document** with exact approved fixture bytes already embedded during an independently reviewed packaging step; in-browser Canvas/accessible DOM inspector. No fetch call, external script/font/CDN, runtime install, file chooser or directory access. | Distribution/version/content manifest and fixture digest tied to an independently vetted package; verify exact source bytes **before** constructing the projection; ensure no substitution by modified packaged scripts. Local browser capability/CSP and whether document is opened as a local file must be validated: do **not** assume arbitrary file:// fetching or same-origin APIs. No network permission or standalone public release implied. |
+| **H0-B — alternative** | An **offline same-process desktop viewer/webview bundle** with the single frozen fixture as an internal read-only resource, independent of any Host socket/service. UI draws A's renderer and inspector from a Core-owned read projection. | Larger packaging/dependency/OS trust surface and additional security review; no filesystem picker, automatic updates, external URL or write privilege by default. Requires separately accepted runtime/provider/package inventory and user platform choice; no assumed Unity dependency. |
+
+**Decision record required before approval:** choose A or B (or explicitly replace both), supported platform/browsers, exact package distribution and non-public/public rights, how separately vetted fixture bytes/catalog/reader are bound and versioned, whether local file origin/CSP constraints require an alternative, allowed dependencies, trust-failure messaging, explicit no-network/write verification. If owner chooses Host, file upload, loopback or other exposed transport instead, **STOP**: new G3 security-scope contract and approval before coding; do not quietly stretch H0.
+
+A SHA check of data packaged with modifiable code is an **integrity check against the independently pinned expected digest**, not a tamper-proof signature or a trust guarantee for an attacker who can rewrite both code and data. Packaging and distribution must be reviewed as a unit.
+
+## 7. Future ownership, gates, non-goals and stops
+
+**Single-writer source boundary after future approval:** one designated future **Core adapter + trusted admission + bit/coordinate codec** writer owns full key and typed projection; one **A renderer/inspector/UI-shell** writer owns Canvas/HTML map, camera, stem hit test and ID navigation. Exactly **one** shared UI shell/file owner. No separate C/E implementation writer may mutate A's shell or produce duplicate pixel/codec functions. B remains sole biological engine writer for a different future task; C owns future marks only, D future history/save only; no such writer is deployed for H0. Real source paths, package/assembly technology, physical POSIX worktree/CCF-Ops reservation, native source admit/import and actual model/provider **UNASSIGNED**. Any overlapping paths require Manager arbitration and explicit revised allowlists **before editing**.
+
+**Gate register:** G0 = documentary four-file review, owner H0 host/package decision and explicit spec acceptance; G1 = lawful future trusted source/fixture admission, single writer, fresh current main/branch and actual physical Ops allowlist/lease if applicable; G2 = separately authorised isolated local **non-release** implementation with unchanged protected P0 L0–L3+, narrow tests and honest default L4 **FAIL38 UNWAIVED**, no new unresolved safety hit. #694 authorised **only historical Year1** and does not authorise this UI. G3 = **before coding** any Host/network/persistence/security-sensitive file surface, a separate owner security-scope decision. G4 = canonical main merge, distribution, public/external use **blocked by default L4 FAIL38** until distinct owner-authorised remediation/policy plus independent security qualification; documentation approval is not L4 waiver. Neither #725's qualified local source nor #710 repaired original is accessible or modifiable from this draft. Custody retained to **27 Nov 2026 18:00 UTC** (#725) and **23 Nov 2026 18:00 UTC** (#710), respectively, **no auto-purge**.
+
+**STOP on:** unresolved package/host choice; no approved spec/physical file writer; unauthorized imported #725/#710 or original P0 data; any unknown fixture/hash/domain/geometry/model; requirement to perform an annual call, Year1 fabrication, source edits or new Save/Host; partial roster accepted; split numeric authority; source/key revision reused; dual owner on a shell or codec; policy asks to bypass L4; platform/browser limitations that make actual chosen offline scheme unsafe; attempted canonical/public exposure without separate qualification. Escalate to #730; never silently replace the data/source, choose a Host, or downgrade tests.
+
+## 8. Proposed acceptance criteria (all NOT RUN)
+
+| AC | Required future demonstration / artifact | Owner of evidence |
+| --- | --- | --- |
+| H0-AC01 | Pin exact accepted 32,567-byte fixture/digest, domain/catalog/models/seed; refuse altered same-length and wrong source | Core future writer / independent reviewer |
+| H0-AC02 | Complete 100 unique ordinal IDs, 100 living age 30; 12 sub-170mm remain selectable | Core + A |
+| H0-AC03 | X/Y-mm→centred X/Z f32 forward **bit** equality; no original/40/80 relabel, no reverse-f32→mm demand | Core |
+| H0-AC04 | Preserve f32 DBH/H/crown/area, typed f64 only if legitimately sourced; refuse NaN/Infinity/corrupt hex | Core |
+| H0-AC05 | Genesis only; CI, neighbours, hazards truly NotEvaluated, missing stand metrics Unavailable, real typed zero distinct | Core + A |
+| H0-AC06 | One full immutable F3 key delivered with selection; stale, different fixture/model/lineage/seed/year/stage refused | Core + A |
+| H0-AC07 | Map 30m square, correct source axes, scale bar; 3m radius at 20 px/m=60 CSS px | A |
+| H0-AC08 | Deterministic crown/centre draw, nearest-centre/tie hit-test, overlapping ID chooser, camera/zoom/DPR stable | A |
+| H0-AC09 | Search/Prev/Next/keyboard reaches every ID, persistent inspector, explicit unavailable health/metrics | A |
+| H0-AC10 | 360 CSS px, 1280×720, 1920×1080, 200% zoom, contrast, screen-reader/focus + real captured rendering | A + nonauthor manual reviewer |
+| H0-AC11 | Selection, zoom, pan, resize, inspect call **zero** annual, work, save, Host/network or source mutation routes | Core + A |
+| H0-AC12 | Duplicate/missing/unknown ID, invalid stage/version/transform/area/model/digest rejects all and retains last good view | Core + A |
+| H0-AC13 | Reviewed selected offline package requires no implicit file:// fetch, arbitrary upload, shell, socket, dependency auto-network or saved state | Packaging reviewer |
+| H0-AC14 | One source writer owns adapter/codec; one A owns renderer/inspector/shell; exact owned file sets and Ops rights separately assigned | Manager / physical custodian |
+| H0-AC15 | Prominent synthetic/nonforecast/non-Unity provenance on screen and evidence, no fake Year1/health/road/rack/Fell | A + Manager |
+| H0-AC16 | Independent scoped evidence covers input negatives and genuine visual/manual usability; no default full-suite/Unity/Windows claim or L4 waiver | Independent reviewer |
+| H0-AC17 | G0/G1/G2/G3/G4 distinctions preserved; no source/main/release before independent approvals; dashboard/Drive sync honestly reported | Manager |
+
+Each AC is an unperformed future check, **not** a specification-author PASS. Full unchecked verification mapping, evidence types and stop rules appear in checklists/requirements.md.
+
+## 9. Open decisions for Manager / owner
+
+- **OPEN-H0-1 (BLOCKS SPEC PRODUCT APPROVAL):** choose offline H0-A embedded self-contained document versus H0-B same-process installed bundle, platform/delivery/publication policy, exact trust/validation boundary and whether package dependency inventory is acceptable. **Recommended H0-A only as the smallest proposal**, not an adopted product choice.
+- **OPEN-H0-2 (BLOCKS SOURCE DISPATCH):** pin final read-schema names and bit/availability encoding with one future Core codec owner; approve review-grade fixture package identity/integrity, including refusal policy. This draft specifies semantics, not an executable ABI.
+- **OPEN-H0-3 (BLOCKS SOURCE DISPATCH):** physical source worktree/CCF-Ops/reservation, unique source files/assembly/owner and lawful fixture import/read, distinct from #725/#710. None granted now.
+- **OPEN-H0-4 (CANONICAL PROMOTION):** Manager and owner issue a unique canonical Multi decision identifier/crosswalk without changing main Scenario One D-084.
+- **OPEN-H0-5 (FUTURE ONLY):** separate Year1 source-derived vetted ReportOnly bundle and accurate H0 second-frame/history extension; C proposal/eligibility F2, B M-1/empty/dead semantics, D H2 archive, Host/security and release policy. **Do not hold first Year0 view hostage to these out-of-scope tasks.**
+
+**Status remains DRAFT.** The owner and Manager must explicitly accept the host/package choice and this four-file feature spec, followed by a new source/security/physical task packet before implementation.
