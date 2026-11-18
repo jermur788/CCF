@@ -1,0 +1,23 @@
+== sha256 of raw inputs
+f9ca1d1977427ad78f882a58b09088a4f2b7346578b845dca4b40e67fe07975c  /media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/measurements/design_candidate.json
+822959038ffd2f4a0379e1b6c77bfff465ede76ec3141b675ab3035c42a5cbf0  /media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2110Z/measurements/trees.json
+67a24ac0f1288949f0dbfa149ae5538ed25faef465f403f9c1cd32ffc8aa15a2  /media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/measurements/mfm_candidate.json
+2e23ca24d7f5c52dac4c498440c7ec27c3db722b242b6e8bf59f065a71a4a8b3  /media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2110Z/measurements/mfm.json
+
+== R1: R1/R2 corridor RECTANGLES do not overlap (gap) but centreline distance < 2.4 m editor rule
+rectangle-rectangle min distance (R1,R2) = 0.214214 m (positive => NOT overlapping)
+junction-to-junction distance R1-R2     = 2.000000 m
+centreline segment distance R1-R2       = 1.414214 m  (< 2.4 => editor OverlapClearanceM refuses)
+
+== R2: 45-degree single-family arithmetic from the raw spine
+spine z-extent = 77.489182 m
+64/sin45 = 90.50967 m ; asin(64/extent) = 55.68205 deg ; extent*sin45/4 = 13.69828 m (max equal gap, 5 racks at 45 deg)
+racks fitting at 45 deg for gap g: floor(extent*sin45/g)+1 -> g=16: 4 ; g=13.7: 4 ; g=2.4: 23
+
+== R3: stand ground, corridor union and nearest-rack reach on 0.5 m lattice (3+2 reference), from raw racks only
+corridor union = 524.25 m2 ; non-corridor = 5875.75 m2
+nearest-rack ground beyond 9/12/20 m = 2246.00 / 1718.25 / 830.00 m2
+
+== R4: stems in rack corridors and legacy-baseline stems per area vs recorded C# run
+living stems = 1344 ; stems with centre inside any of the five reference corridors = 103 (published #251: 103)
+recorded C# baseline: covered 12/14, sourceStems 75, sum of area stems = 1120

@@ -1,0 +1,8328 @@
+{
+ "V1_rederived_vs_published": {
+  "corridor_union_m2": 524.25,
+  "double_claim_m2": 1575.0,
+  "lateral_max_owner_dist_m": 69.16951555074574,
+  "lateral_owned_m2": 5461.25,
+  "lateral_remainder_m2": 414.5,
+  "nearest_beyond_12_m2": 1718.25,
+  "nearest_beyond_20_m2": 830.0,
+  "nearest_beyond_9_m2": 2246.0,
+  "nearest_max_owner_dist_m": 41.179188091469285,
+  "non_corridor_m2": 5875.75
+ },
+ "V2_legacy_port_vs_cs_run": {
+  "all_area_stems_match": true,
+  "cs_covered": 12,
+  "cs_nonsource": 14,
+  "port_covered_no_cap": [
+   14,
+   14
+  ],
+  "port_unit_states_cap_inf_not_run": "see policy tables; port covered-ceiling at cap 20 differs by design",
+  "rows": [
+   [
+    "R1C",
+    53,
+    53
+   ],
+   [
+    "R1H",
+    72,
+    72
+   ],
+   [
+    "R1L",
+    61,
+    61
+   ],
+   [
+    "R2C",
+    65,
+    65
+   ],
+   [
+    "R2H",
+    98,
+    98
+   ],
+   [
+    "R2L",
+    92,
+    92
+   ],
+   [
+    "R3C",
+    0,
+    0
+   ],
+   [
+    "R3H",
+    96,
+    96
+   ],
+   [
+    "R3L",
+    86,
+    86
+   ],
+   [
+    "R4C",
+    77,
+    77
+   ],
+   [
+    "R4H",
+    96,
+    96
+   ],
+   [
+    "R4L",
+    100,
+    100
+   ],
+   [
+    "R5C",
+    68,
+    68
+   ],
+   [
+    "R5H",
+    79,
+    79
+   ],
+   [
+    "R5L",
+    77,
+    77
+   ]
+  ],
+  "sample_stems_cs": 75,
+  "sample_stems_port": 75
+ },
+ "V2_treatable": {
+  "port_treatable_stems_no_cap": 1120
+ },
+ "c_construction": {
+  "C-H(45)": {
+   "chords": 5,
+   "entrances_on_headland": 5,
+   "gap_m": 12.633252147247767,
+   "min_centreline_dist_m": 12.633252147247765,
+   "perp_gaps": [
+    12.633252147247763,
+    12.633252147247767,
+    12.63325214724776,
+    12.633252147247774
+   ],
+   "racks": [
+    {
+     "entrance_z": -37.5,
+     "k": 0,
+     "len": 103.09616869699865
+    },
+    {
+     "entrance_z": -19.633883476483184,
+     "k": 1,
+     "len": 80.79951288348659
+    },
+    {
+     "entrance_z": -1.7677669529663689,
+     "k": 2,
+     "len": 55.53300858899106
+    },
+    {
+     "entrance_z": 16.098349570550447,
+     "k": 3,
+     "len": 30.26650429449553
+    },
+    {
+     "entrance_z": 33.96446609406726,
+     "k": 4,
+     "len": 5.0
+    }
+   ]
+  },
+  "C-J(45)": {
+   "chords": 5,
+   "entrances_on_headland": 0,
+   "gap_m": null,
+   "min_centreline_dist_m": 1.414213562373095,
+   "perp_gaps": [
+    1.4142135623730994,
+    8.974162732016321,
+    7.4663838234398705,
+    18.08653346024579
+   ],
+   "racks": [
+    {
+     "id": "R1",
+     "len": 56.478267991510926,
+     "side": "E"
+    },
+    {
+     "id": "R2",
+     "len": 22.3445742854949,
+     "side": "W"
+    },
+    {
+     "id": "R3",
+     "len": 47.94183976444792,
+     "side": "W"
+    },
+    {
+     "id": "R4",
+     "len": 47.164022305142716,
+     "side": "E"
+    },
+    {
+     "id": "R5",
+     "len": 46.2238091272975,
+     "side": "W"
+    }
+   ]
+  },
+  "C-S(45)": {
+   "chords": 5,
+   "entrances_on_headland": 3,
+   "gap_m": 13.747542877365102,
+   "min_centreline_dist_m": 13.7475428773651,
+   "racks": [
+    {
+     "entrance": [
+      0.05301523208618164,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      -0.05301523208617809
+     ],
+     "k": 0,
+     "len": 52.95803372876243,
+     "offset": 26.553991724609848
+    },
+    {
+     "entrance": [
+      -19.388946354389187,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      19.388946354389198
+     ],
+     "k": 1,
+     "len": 80.45311948349263,
+     "offset": 12.806448847244745
+    },
+    {
+     "entrance": [
+      -35.4,
+      -34.06909205913544
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      36.16909205913543,
+      37.5
+     ],
+     "k": 2,
+     "len": 101.21398063675792,
+     "offset": -0.9410940301203574
+    },
+    {
+     "entrance": [
+      -35.4,
+      -14.62713047266007
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      16.727130472660065,
+      37.5
+     ],
+     "k": 3,
+     "len": 73.71889488202771,
+     "offset": -14.688636907485456
+    },
+    {
+     "entrance": [
+      -35.4,
+      4.814831113815304
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      -2.7148311138153076,
+      37.5
+     ],
+     "k": 4,
+     "len": 46.2238091272975,
+     "offset": -28.436179784850562
+    }
+   ]
+  },
+  "C-S(55.68)": {
+   "chords": 5,
+   "entrances_on_headland": 3,
+   "gap_m": 16.03888732804963,
+   "min_centreline_dist_m": 16.038887328049626,
+   "racks": [
+    {
+     "entrance": [
+      1.2101026337444765,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      -12.726143816881965
+     ],
+     "k": 0,
+     "len": 43.93973829047205,
+     "offset": 31.653580880598327
+    },
+    {
+     "entrance": [
+      -27.23700331761372,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      6.693710269566402
+     ],
+     "k": 1,
+     "len": 78.38343974294003,
+     "offset": 15.614693552548697
+    },
+    {
+     "entrance": [
+      -35.4,
+      -23.65274105736572
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      37.5,
+      26.11356435601477
+     ],
+     "k": 2,
+     "len": 88.26718050610808,
+     "offset": -0.42419377550093174
+    },
+    {
+     "entrance": [
+      -35.4,
+      -4.232886970917351
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      25.732274837542896,
+      37.5
+     ],
+     "k": 3,
+     "len": 74.01884139690544,
+     "offset": -16.463081103550564
+    },
+    {
+     "entrance": [
+      -35.4,
+      15.186967115531013
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      -2.7148311138153005,
+      37.5
+     ],
+     "k": 4,
+     "len": 39.57513994443748,
+     "offset": -32.50196843160019
+    }
+   ]
+  },
+  "C-S(60)": {
+   "chords": 5,
+   "entrances_on_headland": 3,
+   "gap_m": 16.811733031801346,
+   "min_centreline_dist_m": 16.811733031801346,
+   "racks": [
+    {
+     "entrance": [
+      1.8752225729296637,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      -16.93202516266043
+     ],
+     "k": 0,
+     "len": 41.135949674679125,
+     "offset": 33.41356392838128
+    },
+    {
+     "entrance": [
+      -31.74824349067302,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      2.4804920202488283
+     ],
+     "k": 1,
+     "len": 79.96098404049764,
+     "offset": 16.601830896579933
+    },
+    {
+     "entrance": [
+      -35.4,
+      -20.195825420765637
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      37.5,
+      21.89300920315809
+     ],
+     "k": 2,
+     "len": 84.17766924784743,
+     "offset": -0.20990213522141232
+    },
+    {
+     "entrance": [
+      -35.4,
+      -0.7833082378563763
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      30.90863494978737,
+      37.5
+     ],
+     "k": 3,
+     "len": 76.56661647571273,
+     "offset": -17.021635167022758
+    },
+    {
+     "entrance": [
+      -35.4,
+      18.629208945052888
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      -2.7148311138153165,
+      37.5
+     ],
+     "k": 4,
+     "len": 37.74158210989422,
+     "offset": -33.833368198824104
+    }
+   ]
+  },
+  "C-S(70)": {
+   "chords": 5,
+   "entrances_on_headland": 4,
+   "gap_m": 18.227830261978653,
+   "min_centreline_dist_m": 18.22783026197865,
+   "racks": [
+    {
+     "entrance": [
+      4.402803728684264,
+      -37.5
+     ],
+     "entrance_on_headland": false,
+     "far": [
+      37.5,
+      -25.45360571957473
+     ],
+     "k": 0,
+     "len": 35.22130060320685,
+     "offset": 36.744320841790945
+    },
+    {
+     "entrance": [
+      -35.4,
+      -32.589383992319426
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      37.5,
+      -6.055953914313262
+     ],
+     "k": 1,
+     "len": 77.57855961349401,
+     "offset": 18.51649057981229
+    },
+    {
+     "entrance": [
+      -35.4,
+      -13.19173218705796
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      37.5,
+      13.341697890948202
+     ],
+     "k": 2,
+     "len": 77.57855961349401,
+     "offset": 0.28866031783363866
+    },
+    {
+     "entrance": [
+      -35.4,
+      6.205919618203508
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      37.5,
+      32.73934969620967
+     ],
+     "k": 3,
+     "len": 77.57855961349401,
+     "offset": -17.939169944145014
+    },
+    {
+     "entrance": [
+      -35.4,
+      25.60357142346497
+     ],
+     "entrance_on_headland": true,
+     "far": [
+      -2.7148311138153236,
+      37.5
+     ],
+     "k": 4,
+     "len": 34.782830218299004,
+     "offset": -36.16700020612367
+    }
+   ]
+  }
+ },
+ "feasibility_45deg": {
+  "max_equal_gap_at_45deg_m": 13.698281430091328,
+  "max_parallel_racks_at_45deg_gap_12": 5,
+  "max_parallel_racks_at_45deg_gap_13.7": 4,
+  "max_parallel_racks_at_45deg_gap_16": 4,
+  "max_parallel_racks_at_45deg_gap_2.4": 23,
+  "max_parallel_racks_at_45deg_gap_20": 3,
+  "max_parallel_racks_at_45deg_gap_8": 7,
+  "min_theta_deg_for_gap_2.4": 7.11655883881614,
+  "spine_length_needed_45deg_gap16_m": 90.50966799187809,
+  "spine_z_extent_m": 77.48918151855469,
+  "theta_floor_deg_gap16": 55.68205365491503
+ },
+ "lattice_check_0.25m": {
+  "corridor_union_m2_0.5m": 524.25,
+  "corridor_union_m2_A": 525.0625
+ },
+ "layouts": {
+  "A: 3+2 herringbone 45deg (reference candidate), two families": {
+   "anchor": [
+    -5.51283,
+    4.885281
+   ],
+   "anchor_along": 12.0,
+   "anchor_unclamped_along": 4.647425,
+   "disputed": {
+    "double_claim_m2": 1575.0,
+    "double_claim_owner_split_m2": {
+     "lateral:grp0": 729.25,
+     "lateral:grp1": 845.75,
+     "nearest:grp0": 1020.5,
+     "nearest:grp1": 554.5
+    },
+    "lateral_vs_nearest_disagree_or_remainder_m2": 2726.25,
+    "stems_owner_differs_lateral_vs_nearest": 575
+   },
+   "groups": [
+    [
+     1,
+     4
+    ],
+    [
+     5,
+     3,
+     2
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 2216.25,
+      "remainder_m2": 414.5,
+      "uncovered_share": 0.4477300770114453,
+      "within_m2": 3245.0,
+      "within_share": 0.5522699229885547
+     },
+     "cap15": {
+      "beyond_owner_m2": 1984.0,
+      "remainder_m2": 414.5,
+      "uncovered_share": 0.40820320810109345,
+      "within_m2": 3477.25,
+      "within_share": 0.5917967918989065
+     },
+     "cap20": {
+      "beyond_owner_m2": 1715.25,
+      "remainder_m2": 414.5,
+      "uncovered_share": 0.3624643662511169,
+      "within_m2": 3746.0,
+      "within_share": 0.6375356337488831
+     },
+     "cap9": {
+      "beyond_owner_m2": 2466.25,
+      "remainder_m2": 414.5,
+      "uncovered_share": 0.49027783687188875,
+      "within_m2": 2995.0,
+      "within_share": 0.5097221631281112
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 524.25,
+     "max_owner_dist_m": 69.16951555074574,
+     "non_corridor_m2": 5875.75,
+     "owned_m2": 5461.25,
+     "remainder_m2": 414.5
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 2299.5,
+      "area_covered_share_ceiling": 0.4467434066734664,
+      "area_treatable_m2": 5147.25,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 476,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 85,
+       "sample": 68,
+       "unit_covered_ceiling": 535,
+       "unit_differs": 31,
+       "unit_source_manual": 0,
+       "unit_too_few": 46
+      },
+      "stems_covered_ceiling": 535,
+      "stems_covered_share_ceiling": 0.4560954816709292,
+      "stems_manual_or_notcovered": 638,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        31,
+        174.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        75,
+        327.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        21,
+        86.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        199.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        57,
+        227.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        32,
+        148.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        110,
+        444.0
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        19,
+        81.0
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        6,
+        22.0
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        110,
+        478.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        40,
+        159.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        70,
+        315.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 8,
+      "units_covered_share_ceiling": 0.5714285714285714,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 2539.25,
+      "area_covered_share_ceiling": 0.4933216766234397,
+      "area_treatable_m2": 5147.25,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 429,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 85,
+       "sample": 68,
+       "unit_covered_ceiling": 595,
+       "unit_differs": 31,
+       "unit_source_manual": 0,
+       "unit_too_few": 33
+      },
+      "stems_covered_ceiling": 595,
+      "stems_covered_share_ceiling": 0.5072463768115942,
+      "stems_manual_or_notcovered": 578,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        31,
+        174.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        76,
+        332.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        31,
+        132.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        199.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        59,
+        236.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        45,
+        200.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        110,
+        444.0
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        20,
+        97.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        13,
+        50.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        110,
+        478.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        52,
+        197.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        71,
+        319.5
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 2714.25,
+      "area_covered_share_ceiling": 0.5273204138132013,
+      "area_treatable_m2": 5147.25,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 377,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 85,
+       "sample": 68,
+       "unit_covered_ceiling": 633,
+       "unit_differs": 31,
+       "unit_source_manual": 0,
+       "unit_too_few": 47
+      },
+      "stems_covered_ceiling": 633,
+      "stems_covered_share_ceiling": 0.5396419437340153,
+      "stems_manual_or_notcovered": 540,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        31,
+        174.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        76,
+        332.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        49,
+        208.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        199.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        59,
+        238.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        62,
+        287.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        110,
+        444.0
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        27,
+        157.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        16,
+        60.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        110,
+        478.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        4,
+        18.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        55,
+        207.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        71,
+        319.5
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 1951.25,
+      "area_covered_share_ceiling": 0.379085919665841,
+      "area_treatable_m2": 5147.25,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 523,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 85,
+       "sample": 68,
+       "unit_covered_ceiling": 452,
+       "unit_differs": 31,
+       "unit_source_manual": 0,
+       "unit_too_few": 82
+      },
+      "stems_covered_ceiling": 452,
+      "stems_covered_share_ceiling": 0.3853367433930094,
+      "stems_manual_or_notcovered": 721,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        31,
+        174.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        70,
+        312.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        11,
+        47.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        199.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        53,
+        216.5
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        22,
+        105.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        110,
+        444.0
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        18,
+        78.75
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        6,
+        22.0
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        110,
+        478.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        25,
+        97.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        68,
+        301.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 6,
+      "units_covered_share_ceiling": 0.42857142857142855,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 1718.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.29243075352082715,
+      "within_m2": 4157.5,
+      "within_share": 0.7075692464791729
+     },
+     "cap15": {
+      "beyond_owner_m2": 1343.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.22856656597030167,
+      "within_m2": 4532.75,
+      "within_share": 0.7714334340296983
+     },
+     "cap20": {
+      "beyond_owner_m2": 830.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.14125856273667192,
+      "within_m2": 5045.75,
+      "within_share": 0.8587414372633281
+     },
+     "cap9": {
+      "beyond_owner_m2": 2246.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.38224907458622304,
+      "within_m2": 3629.75,
+      "within_share": 0.617750925413777
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 524.25,
+     "max_owner_dist_m": 41.179188091469285,
+     "non_corridor_m2": 5875.75,
+     "owned_m2": 5875.75,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 2976.25,
+      "area_covered_share_ceiling": 0.585818324968015,
+      "area_treatable_m2": 5080.5,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 365,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 68,
+       "unit_covered_ceiling": 696,
+       "unit_differs": 73,
+       "unit_source_manual": 1,
+       "unit_too_few": 38
+      },
+      "stems_covered_ceiling": 696,
+      "stems_covered_share_ceiling": 0.5933503836317136,
+      "stems_manual_or_notcovered": 477,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        73,
+        381.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        120,
+        526.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        41,
+        161.75
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        88,
+        416.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        60,
+        245.5
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        17,
+        94.25
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        3.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        115,
+        471.25
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        9,
+        45.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        12,
+        36.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        164,
+        691.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        30,
+        125.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        78,
+        338.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 8,
+      "units_covered_share_ceiling": 0.5714285714285714,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 3696.75,
+      "area_covered_share_ceiling": 0.7276350752878654,
+      "area_treatable_m2": 5080.5,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 284,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 68,
+       "unit_covered_ceiling": 848,
+       "unit_differs": 0,
+       "unit_source_manual": 1,
+       "unit_too_few": 40
+      },
+      "stems_covered_ceiling": 848,
+      "stems_covered_share_ceiling": 0.7229326513213982,
+      "stems_manual_or_notcovered": 325,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        87,
+        449.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        132,
+        573.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        60,
+        248.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        105,
+        479.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        64,
+        257.5
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        19,
+        98.25
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        3.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        115,
+        471.25
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        9,
+        45.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        12,
+        36.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        171,
+        725.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        31,
+        134.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        83,
+        357.5
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4155.5,
+      "area_covered_share_ceiling": 0.8179313059738215,
+      "area_treatable_m2": 5080.5,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 176,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 68,
+       "unit_covered_ceiling": 952,
+       "unit_differs": 0,
+       "unit_source_manual": 1,
+       "unit_too_few": 44
+      },
+      "stems_covered_ceiling": 952,
+      "stems_covered_share_ceiling": 0.8115942028985508,
+      "stems_manual_or_notcovered": 221,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        118,
+        577.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        148,
+        639.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        89,
+        390.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        123,
+        566.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        68,
+        271.0
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        23,
+        106.0
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        3.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        115,
+        471.25
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        9,
+        45.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        12,
+        36.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        174,
+        736.75
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        32,
+        135.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        85,
+        367.75
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 2392.75,
+      "area_covered_share_ceiling": 0.47096742446609585,
+      "area_treatable_m2": 5080.5,
+      "source": {
+       "density_per_ha": 2411.3475177304963,
+       "mean_dbh_cm": 15.362022946862613,
+       "net_area_m2": 282.0,
+       "stems": 68
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 480,
+       "corridor": 103,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 68,
+       "unit_covered_ceiling": 553,
+       "unit_differs": 57,
+       "unit_source_manual": 0,
+       "unit_too_few": 83
+      },
+      "stems_covered_ceiling": 553,
+      "stems_covered_share_ceiling": 0.47144075021312876,
+      "stems_manual_or_notcovered": 620,
+      "treatable_stems": 1173,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/Differs",
+        57,
+        305.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        103,
+        454.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        24,
+        93.75
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        69,
+        340.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        54,
+        221.0
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        14,
+        80.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        111,
+        452.75
+       ],
+       "R3L": [
+        "NotCovered/TooFewStems",
+        9,
+        45.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        11,
+        33.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        148,
+        623.25
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        25,
+        97.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        68,
+        301.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 6,
+      "units_covered_share_ceiling": 0.42857142857142855,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 56.478,
+    "2": 46.618,
+    "3": 54.267,
+    "4": 47.164,
+    "5": 15.061
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-H 45 deg: headland-entrance parallel family (max spread, legal entrances)": {
+   "anchor": [
+    -16.816117,
+    16.816117
+   ],
+   "anchor_along": 26.28158,
+   "anchor_unclamped_along": 26.28158,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 2466.0,
+    "stems_owner_differs_lateral_vs_nearest": 519
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 8.75,
+      "remainder_m2": 2364.75,
+      "uncovered_share": 0.41285440946251517,
+      "within_m2": 3375.5,
+      "within_share": 0.5871455905374848
+     },
+     "cap15": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 2364.75,
+      "uncovered_share": 0.4113324056357628,
+      "within_m2": 3384.25,
+      "within_share": 0.5886675943642372
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 2364.75,
+      "uncovered_share": 0.4113324056357628,
+      "within_m2": 3384.25,
+      "within_share": 0.5886675943642372
+     },
+     "cap9": {
+      "beyond_owner_m2": 61.75,
+      "remainder_m2": 2364.75,
+      "uncovered_share": 0.42207340407027305,
+      "within_m2": 3322.5,
+      "within_share": 0.577926595929727
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 651.0,
+     "max_owner_dist_m": 13.91203127337102,
+     "non_corridor_m2": 5749.0,
+     "owned_m2": 3384.25,
+     "remainder_m2": 2364.75
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 2492.0,
+      "area_covered_share_ceiling": 0.4959944270289098,
+      "area_treatable_m2": 5024.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 3,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 495,
+       "sample": 84,
+       "unit_covered_ceiling": 600,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 43
+      },
+      "stems_covered_ceiling": 600,
+      "stems_covered_share_ceiling": 0.5258545135845749,
+      "stems_manual_or_notcovered": 541,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        51,
+        200.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        105,
+        428.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        83,
+        361.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        82,
+        361.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        76,
+        315.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        178.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        40,
+        158.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        22,
+        90.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        20,
+        66.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        33,
+        139.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        1,
+        2.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 10,
+      "units_covered_share_ceiling": 0.7142857142857143,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 2496.75,
+      "area_covered_share_ceiling": 0.49693984176742795,
+      "area_treatable_m2": 5024.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 495,
+       "sample": 84,
+       "unit_covered_ceiling": 601,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 45
+      },
+      "stems_covered_ceiling": 601,
+      "stems_covered_share_ceiling": 0.5267309377738826,
+      "stems_manual_or_notcovered": 540,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        51,
+        200.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        105,
+        428.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        83,
+        361.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        82,
+        361.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        317.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        180.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        40,
+        158.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        22,
+        90.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        21,
+        67.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        33,
+        139.5
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        1,
+        2.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        1,
+        2.25
+       ]
+      },
+      "units_covered_ceiling": 10,
+      "units_covered_share_ceiling": 0.7142857142857143,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 2496.75,
+      "area_covered_share_ceiling": 0.49693984176742795,
+      "area_treatable_m2": 5024.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 495,
+       "sample": 84,
+       "unit_covered_ceiling": 601,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 45
+      },
+      "stems_covered_ceiling": 601,
+      "stems_covered_share_ceiling": 0.5267309377738826,
+      "stems_manual_or_notcovered": 540,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        51,
+        200.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        105,
+        428.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        83,
+        361.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        82,
+        361.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        317.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        180.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        40,
+        158.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        22,
+        90.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        21,
+        67.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        33,
+        139.5
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        1,
+        2.25
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        1,
+        2.25
+       ]
+      },
+      "units_covered_ceiling": 10,
+      "units_covered_share_ceiling": 0.7142857142857143,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 2457.75,
+      "area_covered_share_ceiling": 0.48917748917748916,
+      "area_treatable_m2": 5024.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 14,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 495,
+       "sample": 84,
+       "unit_covered_ceiling": 592,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 40
+      },
+      "stems_covered_ceiling": 592,
+      "stems_covered_share_ceiling": 0.5188431200701139,
+      "stems_manual_or_notcovered": 549,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        51,
+        200.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        105,
+        428.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        83,
+        361.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        82,
+        357.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        74,
+        307.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        50,
+        219.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        45,
+        169.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        40,
+        158.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        21,
+        87.75
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        19,
+        57.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        30,
+        128.75
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 10,
+      "units_covered_share_ceiling": 0.7142857142857143,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 1845.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.320968864150287,
+      "within_m2": 3903.75,
+      "within_share": 0.679031135849713
+     },
+     "cap15": {
+      "beyond_owner_m2": 1610.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.28009218994607754,
+      "within_m2": 4138.75,
+      "within_share": 0.7199078100539225
+     },
+     "cap20": {
+      "beyond_owner_m2": 1237.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.21525482692642195,
+      "within_m2": 4511.5,
+      "within_share": 0.784745173073578
+     },
+     "cap9": {
+      "beyond_owner_m2": 2134.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.37119499043311877,
+      "within_m2": 3615.0,
+      "within_share": 0.6288050095668812
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 651.0,
+     "max_owner_dist_m": 54.730064863838784,
+     "non_corridor_m2": 5749.0,
+     "owned_m2": 5749.0,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 2848.5,
+      "area_covered_share_ceiling": 0.5823664707385637,
+      "area_treatable_m2": 4891.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 394,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 84,
+       "unit_covered_ceiling": 681,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 66
+      },
+      "stems_covered_ceiling": 681,
+      "stems_covered_share_ceiling": 0.5968448729184925,
+      "stems_manual_or_notcovered": 460,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        77,
+        314.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        149,
+        629.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        117,
+        520.75
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        83,
+        360.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        318.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        180.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        48,
+        176.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        21,
+        85.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        19,
+        59.0
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        26,
+        123.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 3060.25,
+      "area_covered_share_ceiling": 0.6256580628673651,
+      "area_treatable_m2": 4891.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 348,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 84,
+       "unit_covered_ceiling": 727,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 66
+      },
+      "stems_covered_ceiling": 727,
+      "stems_covered_share_ceiling": 0.6371603856266433,
+      "stems_manual_or_notcovered": 414,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        91,
+        381.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        170,
+        713.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        128,
+        581.5
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        83,
+        360.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        318.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        180.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        48,
+        176.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        21,
+        85.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        19,
+        59.0
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        26,
+        123.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 3408.0,
+      "area_covered_share_ceiling": 0.6967544083823154,
+      "area_treatable_m2": 4891.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 274,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 84,
+       "unit_covered_ceiling": 801,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 66
+      },
+      "stems_covered_ceiling": 801,
+      "stems_covered_share_ceiling": 0.7020157756354075,
+      "stems_manual_or_notcovered": 340,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        107,
+        499.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        202,
+        840.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        154,
+        684.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        83,
+        360.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        318.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        180.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        48,
+        176.75
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        21,
+        85.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        19,
+        59.0
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        26,
+        123.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 2591.25,
+      "area_covered_share_ceiling": 0.529772553028367,
+      "area_treatable_m2": 4891.25,
+      "source": {
+       "density_per_ha": 2279.5115332428763,
+       "mean_dbh_cm": 14.784099045253935,
+       "net_area_m2": 368.5,
+       "stems": 84
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 449,
+       "corridor": 119,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 84,
+       "unit_covered_ceiling": 626,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 66
+      },
+      "stems_covered_ceiling": 626,
+      "stems_covered_share_ceiling": 0.5486415425065732,
+      "stems_manual_or_notcovered": 515,
+      "treatable_stems": 1141,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        62,
+        241.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        129,
+        525.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        98,
+        444.5
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        32,
+        126.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        83,
+        360.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        77,
+        316.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        51,
+        222.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        47,
+        178.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        176.0
+       ],
+       "R4H": [
+        "NotCovered/TooFewStems",
+        21,
+        85.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        19,
+        58.5
+       ],
+       "R5C": [
+        "NotCovered/TooFewStems",
+        26,
+        122.5
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ]
+      },
+      "units_covered_ceiling": 9,
+      "units_covered_share_ceiling": 0.6428571428571429,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 103.096,
+    "2": 80.8,
+    "3": 55.533,
+    "4": 30.267,
+    "5": 5.0
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1303,
+    "nearest": 856
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-J 45 deg: reference junctions+sides kept, ONE parallel family (least invented)": {
+   "anchor": [
+    -5.51283,
+    -12.085281
+   ],
+   "anchor_along": 12.0,
+   "anchor_unclamped_along": -0.443744,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 3751.75,
+    "stems_owner_differs_lateral_vs_nearest": 770
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 1295.5,
+      "remainder_m2": 2360.0,
+      "uncovered_share": 0.621261046906866,
+      "within_m2": 2228.5,
+      "within_share": 0.37873895309313393
+     },
+     "cap15": {
+      "beyond_owner_m2": 1148.25,
+      "remainder_m2": 2360.0,
+      "uncovered_share": 0.5962355540448674,
+      "within_m2": 2375.75,
+      "within_share": 0.40376444595513256
+     },
+     "cap20": {
+      "beyond_owner_m2": 953.5,
+      "remainder_m2": 2360.0,
+      "uncovered_share": 0.563137321549966,
+      "within_m2": 2570.5,
+      "within_share": 0.436862678450034
+     },
+     "cap9": {
+      "beyond_owner_m2": 1474.5,
+      "remainder_m2": 2360.0,
+      "uncovered_share": 0.6516825288919103,
+      "within_m2": 2049.5,
+      "within_share": 0.34831747110808975
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 516.0,
+     "max_owner_dist_m": 64.24231569572794,
+     "non_corridor_m2": 5884.0,
+     "owned_m2": 3524.0,
+     "remainder_m2": 2360.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 131.5,
+      "area_covered_share_ceiling": 0.0252266078365546,
+      "area_treatable_m2": 5212.75,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 263,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 502,
+       "sample": 61,
+       "unit_covered_ceiling": 30,
+       "unit_differs": 339,
+       "unit_source_manual": 0,
+       "unit_too_few": 48
+      },
+      "stems_covered_ceiling": 30,
+      "stems_covered_share_ceiling": 0.025380710659898477,
+      "stems_manual_or_notcovered": 1152,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/TooFewStems",
+        0,
+        0.75
+       ],
+       "R1H": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        0,
+        3.5
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        14,
+        66.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        21,
+        82.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        30,
+        131.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        11,
+        51.75
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        109,
+        462.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        83,
+        356.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        112,
+        456.75
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        35,
+        122.5
+       ]
+      },
+      "units_covered_ceiling": 1,
+      "units_covered_share_ceiling": 0.07142857142857142,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 131.5,
+      "area_covered_share_ceiling": 0.0252266078365546,
+      "area_treatable_m2": 5212.75,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 234,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 502,
+       "sample": 61,
+       "unit_covered_ceiling": 30,
+       "unit_differs": 355,
+       "unit_source_manual": 0,
+       "unit_too_few": 61
+      },
+      "stems_covered_ceiling": 30,
+      "stems_covered_share_ceiling": 0.025380710659898477,
+      "stems_manual_or_notcovered": 1152,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/TooFewStems",
+        0,
+        0.75
+       ],
+       "R1H": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        1,
+        8.0
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        0,
+        4.75
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        14,
+        66.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        27,
+        107.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        30,
+        131.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        18,
+        76.25
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        109,
+        462.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        83,
+        356.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        124,
+        509.0
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        39,
+        131.75
+       ]
+      },
+      "units_covered_ceiling": 1,
+      "units_covered_share_ceiling": 0.07142857142857142,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 131.5,
+      "area_covered_share_ceiling": 0.0252266078365546,
+      "area_treatable_m2": 5212.75,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 196,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 502,
+       "sample": 61,
+       "unit_covered_ceiling": 30,
+       "unit_differs": 403,
+       "unit_source_manual": 0,
+       "unit_too_few": 51
+      },
+      "stems_covered_ceiling": 30,
+      "stems_covered_share_ceiling": 0.025380710659898477,
+      "stems_manual_or_notcovered": 1152,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/TooFewStems",
+        0,
+        0.75
+       ],
+       "R1H": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        3,
+        13.25
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        0,
+        5.25
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        5,
+        16.5
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        14,
+        66.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "NotCovered/Differs",
+        37,
+        149.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        30,
+        131.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        28,
+        115.5
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        109,
+        462.0
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        83,
+        356.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        134,
+        562.5
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        40,
+        135.75
+       ]
+      },
+      "units_covered_ceiling": 1,
+      "units_covered_share_ceiling": 0.07142857142857142,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 131.5,
+      "area_covered_share_ceiling": 0.0252266078365546,
+      "area_treatable_m2": 5212.75,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 293,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 502,
+       "sample": 61,
+       "unit_covered_ceiling": 30,
+       "unit_differs": 322,
+       "unit_source_manual": 0,
+       "unit_too_few": 35
+      },
+      "stems_covered_ceiling": 30,
+      "stems_covered_share_ceiling": 0.025380710659898477,
+      "stems_manual_or_notcovered": 1152,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/TooFewStems",
+        0,
+        0.75
+       ],
+       "R1H": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        0,
+        1.75
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        0,
+        2.5
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "NotCovered/TooFewStems",
+        14,
+        66.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        15,
+        58.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        30,
+        131.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        5,
+        24.0
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        109,
+        461.25
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        83,
+        356.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        97,
+        389.75
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        33,
+        108.25
+       ]
+      },
+      "units_covered_ceiling": 1,
+      "units_covered_share_ceiling": 0.07142857142857142,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 1658.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.28182358939496943,
+      "within_m2": 4225.75,
+      "within_share": 0.7181764106050306
+     },
+     "cap15": {
+      "beyond_owner_m2": 1180.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.20058633582596874,
+      "within_m2": 4703.75,
+      "within_share": 0.7994136641740313
+     },
+     "cap20": {
+      "beyond_owner_m2": 705.75,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.11994391570360297,
+      "within_m2": 5178.25,
+      "within_share": 0.880056084296397
+     },
+     "cap9": {
+      "beyond_owner_m2": 2400.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.4079707681849082,
+      "within_m2": 3483.5,
+      "within_share": 0.5920292318150918
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 516.0,
+     "max_owner_dist_m": 41.179188091469285,
+     "non_corridor_m2": 5884.0,
+     "owned_m2": 5884.0,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 1611.75,
+      "area_covered_share_ceiling": 0.3181975223335472,
+      "area_treatable_m2": 5065.25,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 371,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 61,
+       "unit_covered_ceiling": 356,
+       "unit_differs": 430,
+       "unit_source_manual": 8,
+       "unit_too_few": 17
+      },
+      "stems_covered_ceiling": 356,
+      "stems_covered_share_ceiling": 0.3011844331641286,
+      "stems_manual_or_notcovered": 826,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        45,
+        235.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        167,
+        730.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        1,
+        5.0
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        37,
+        169.25
+       ],
+       "R3C": [
+        "SourceManual",
+        8,
+        49.75
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        7,
+        40.5
+       ],
+       "R3L": [
+        "NotCovered/Differs",
+        77,
+        313.0
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        9,
+        40.5
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        187,
+        779.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        107,
+        477.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        124,
+        522.25
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        42,
+        153.25
+       ]
+      },
+      "units_covered_ceiling": 4,
+      "units_covered_share_ceiling": 0.2857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 1838.75,
+      "area_covered_share_ceiling": 0.3630126844676966,
+      "area_treatable_m2": 5065.25,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 263,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 61,
+       "unit_covered_ceiling": 409,
+       "unit_differs": 481,
+       "unit_source_manual": 12,
+       "unit_too_few": 17
+      },
+      "stems_covered_ceiling": 409,
+      "stems_covered_share_ceiling": 0.3460236886632826,
+      "stems_manual_or_notcovered": 773,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        60,
+        304.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        186,
+        811.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.25
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        1,
+        5.25
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        39,
+        179.5
+       ],
+       "R3C": [
+        "SourceManual",
+        12,
+        61.25
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        7,
+        40.5
+       ],
+       "R3L": [
+        "NotCovered/Differs",
+        88,
+        345.75
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        9,
+        41.25
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        194,
+        813.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        124,
+        543.5
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        151,
+        631.25
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        48,
+        178.5
+       ]
+      },
+      "units_covered_ceiling": 4,
+      "units_covered_share_ceiling": 0.2857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 612.0,
+      "area_covered_share_ceiling": 0.12082325650264054,
+      "area_treatable_m2": 5065.25,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 152,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 61,
+       "unit_covered_ceiling": 126,
+       "unit_differs": 875,
+       "unit_source_manual": 12,
+       "unit_too_few": 17
+      },
+      "stems_covered_ceiling": 126,
+      "stems_covered_share_ceiling": 0.1065989847715736,
+      "stems_manual_or_notcovered": 1056,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        86,
+        428.0
+       ],
+       "R1H": [
+        "NotCovered/Differs",
+        219,
+        941.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        0,
+        1.75
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        1,
+        5.25
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        40,
+        184.0
+       ],
+       "R3C": [
+        "SourceManual",
+        12,
+        61.25
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        7,
+        40.5
+       ],
+       "R3L": [
+        "NotCovered/Differs",
+        89,
+        351.25
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        9,
+        41.25
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        197,
+        824.75
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        144,
+        610.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        177,
+        736.5
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        49,
+        183.0
+       ]
+      },
+      "units_covered_ceiling": 2,
+      "units_covered_share_ceiling": 0.14285714285714285,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 777.75,
+      "area_covered_share_ceiling": 0.15354622180543903,
+      "area_treatable_m2": 5065.25,
+      "source": {
+       "density_per_ha": 1933.4389857369254,
+       "mean_dbh_cm": 16.268288987581847,
+       "net_area_m2": 315.5,
+       "stems": 61
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 520,
+       "corridor": 101,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 61,
+       "unit_covered_ceiling": 178,
+       "unit_differs": 444,
+       "unit_source_manual": 0,
+       "unit_too_few": 40
+      },
+      "stems_covered_ceiling": 178,
+      "stems_covered_share_ceiling": 0.1505922165820643,
+      "stems_manual_or_notcovered": 1004,
+      "treatable_stems": 1182,
+      "unit_states": {
+       "R1C": [
+        "NotCovered/TooFewStems",
+        27,
+        161.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        142,
+        620.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2C": [
+        "NotCovered/TooFewStems",
+        1,
+        2.5
+       ],
+       "R2H": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        36,
+        157.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "NotCovered/TooFewStems",
+        7,
+        40.5
+       ],
+       "R3L": [
+        "NotCovered/Differs",
+        60,
+        251.5
+       ],
+       "R4C": [
+        "NotCovered/TooFewStems",
+        5,
+        24.0
+       ],
+       "R4H": [
+        "NotCovered/Differs",
+        171,
+        712.5
+       ],
+       "R4L": [
+        "NotCovered/TooFewStems",
+        0,
+        0.0
+       ],
+       "R5C": [
+        "NotCovered/Differs",
+        83,
+        356.0
+       ],
+       "R5H": [
+        "NotCovered/Differs",
+        97,
+        389.75
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        33,
+        108.25
+       ]
+      },
+      "units_covered_ceiling": 2,
+      "units_covered_share_ceiling": 0.14285714285714285,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 56.478,
+    "2": 22.345,
+    "3": 47.942,
+    "4": 47.164,
+    "5": 46.224
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1090,
+    "nearest": 786
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-S 45 deg: spine-crossing parallel family (max spread)": {
+   "anchor": [
+    -0.665454,
+    0.665454
+   ],
+   "anchor_along": 49.122066,
+   "anchor_unclamped_along": 49.122066,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 1088.5,
+    "stems_owner_differs_lateral_vs_nearest": 231
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 9.0,
+      "remainder_m2": 993.75,
+      "uncovered_share": 0.18015630614444844,
+      "within_m2": 4563.25,
+      "within_share": 0.8198436938555516
+     },
+     "cap15": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 993.75,
+      "uncovered_share": 0.17853934602946464,
+      "within_m2": 4572.25,
+      "within_share": 0.8214606539705354
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 993.75,
+      "uncovered_share": 0.17853934602946464,
+      "within_m2": 4572.25,
+      "within_share": 0.8214606539705354
+     },
+     "cap9": {
+      "beyond_owner_m2": 66.5,
+      "remainder_m2": 993.75,
+      "uncovered_share": 0.19048688465684516,
+      "within_m2": 4505.75,
+      "within_share": 0.8095131153431548
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 834.0,
+     "max_owner_dist_m": 14.722159293396707,
+     "non_corridor_m2": 5566.0,
+     "owned_m2": 4572.25,
+     "remainder_m2": 993.75
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 3872.5,
+      "area_covered_share_ceiling": 0.7943182400902518,
+      "area_treatable_m2": 4875.25,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 1,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 215,
+       "sample": 65,
+       "unit_covered_ceiling": 873,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 873,
+      "stems_covered_share_ceiling": 0.8016528925619835,
+      "stems_manual_or_notcovered": 216,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        55,
+        268.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        56,
+        215.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        38,
+        185.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        371.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        300.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        106,
+        466.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        90,
+        402.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        346.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        75,
+        297.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        60,
+        276.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        44,
+        199.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        39,
+        147.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 3881.5,
+      "area_covered_share_ceiling": 0.7961642992667043,
+      "area_treatable_m2": 4875.25,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 215,
+       "sample": 65,
+       "unit_covered_ceiling": 874,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 874,
+      "stems_covered_share_ceiling": 0.8025711662075299,
+      "stems_manual_or_notcovered": 215,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        55,
+        268.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        56,
+        215.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        38,
+        185.5
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        371.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        300.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        106,
+        466.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        90,
+        402.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        346.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        76,
+        301.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        60,
+        276.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        44,
+        199.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        39,
+        151.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 3881.5,
+      "area_covered_share_ceiling": 0.7961642992667043,
+      "area_treatable_m2": 4875.25,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 215,
+       "sample": 65,
+       "unit_covered_ceiling": 874,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 874,
+      "stems_covered_share_ceiling": 0.8025711662075299,
+      "stems_manual_or_notcovered": 215,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        55,
+        268.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        56,
+        215.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        38,
+        185.5
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        371.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        300.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        106,
+        466.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        90,
+        402.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        346.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        76,
+        301.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        60,
+        276.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        44,
+        199.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        39,
+        151.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 3821.25,
+      "area_covered_share_ceiling": 0.7838059586687862,
+      "area_treatable_m2": 4875.25,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 12,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 215,
+       "sample": 65,
+       "unit_covered_ceiling": 862,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 862,
+      "stems_covered_share_ceiling": 0.7915518824609734,
+      "stems_manual_or_notcovered": 227,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        55,
+        268.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        55,
+        209.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        38,
+        180.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        79,
+        365.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        60,
+        294.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        106,
+        466.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        90,
+        402.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        80,
+        341.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        73,
+        288.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        60,
+        276.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        43,
+        193.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        35,
+        137.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 577.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.1037549407114624,
+      "within_m2": 4988.5,
+      "within_share": 0.8962450592885376
+     },
+     "cap15": {
+      "beyond_owner_m2": 401.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.07213438735177868,
+      "within_m2": 5164.5,
+      "within_share": 0.9278656126482213
+     },
+     "cap20": {
+      "beyond_owner_m2": 170.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.03063241106719372,
+      "within_m2": 5395.5,
+      "within_share": 0.9693675889328063
+     },
+     "cap9": {
+      "beyond_owner_m2": 822.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.1477272727272727,
+      "within_m2": 4743.75,
+      "within_share": 0.8522727272727273
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 834.0,
+     "max_owner_dist_m": 29.66099737972068,
+     "non_corridor_m2": 5566.0,
+     "owned_m2": 5566.0,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4275.25,
+      "area_covered_share_ceiling": 0.8903524756599157,
+      "area_treatable_m2": 4801.75,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 127,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 65,
+       "unit_covered_ceiling": 962,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 962,
+      "stems_covered_share_ceiling": 0.8833792470156107,
+      "stems_manual_or_notcovered": 127,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        82,
+        393.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        62,
+        251.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        48,
+        222.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        81,
+        370.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        299.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        109,
+        484.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        95,
+        423.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        349.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        75,
+        303.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        88,
+        393.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        50,
+        225.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        42,
+        160.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4439.25,
+      "area_covered_share_ceiling": 0.9245066902691726,
+      "area_treatable_m2": 4801.75,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 80,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 65,
+       "unit_covered_ceiling": 1009,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1009,
+      "stems_covered_share_ceiling": 0.9265381083562901,
+      "stems_manual_or_notcovered": 80,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        100,
+        460.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        66,
+        264.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        53,
+        235.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        81,
+        370.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        299.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        109,
+        484.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        95,
+        423.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        349.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        75,
+        303.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        102,
+        448.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        53,
+        233.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        45,
+        168.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4649.25,
+      "area_covered_share_ceiling": 0.9682407455615141,
+      "area_treatable_m2": 4801.75,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 36,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 65,
+       "unit_covered_ceiling": 1053,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1053,
+      "stems_covered_share_ceiling": 0.9669421487603306,
+      "stems_manual_or_notcovered": 36,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        125,
+        574.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        67,
+        269.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        53,
+        240.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        81,
+        370.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        299.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        109,
+        484.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        95,
+        423.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        349.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        75,
+        303.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        120,
+        531.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        53,
+        234.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        45,
+        169.75
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 4044.0,
+      "area_covered_share_ceiling": 0.8421929504868017,
+      "area_treatable_m2": 4801.75,
+      "source": {
+       "density_per_ha": 2342.3423423423424,
+       "mean_dbh_cm": 14.293319584773137,
+       "net_area_m2": 277.5,
+       "stems": 65
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 180,
+       "corridor": 190,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 65,
+       "unit_covered_ceiling": 909,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 909,
+      "stems_covered_share_ceiling": 0.8347107438016529,
+      "stems_manual_or_notcovered": 180,
+      "treatable_stems": 1089,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        67,
+        318.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        56,
+        227.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        44,
+        197.5
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        41,
+        198.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        81,
+        370.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        61,
+        299.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        109,
+        484.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        94,
+        421.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        47,
+        198.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        81,
+        349.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        75,
+        300.25
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        326.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        45,
+        206.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        36,
+        145.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 52.958,
+    "2": 80.453,
+    "3": 101.214,
+    "4": 73.719,
+    "5": 46.224
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1224,
+    "nearest": 935
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-S 55.68 deg: spine-crossing parallel family (max spread)": {
+   "anchor": [
+    -0.239167,
+    0.350342
+   ],
+   "anchor_along": 42.57267,
+   "anchor_unclamped_along": 42.57267,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 607.75,
+    "stems_owner_differs_lateral_vs_nearest": 128
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 40.25,
+      "remainder_m2": 515.25,
+      "uncovered_share": 0.09880825329064391,
+      "within_m2": 5066.5,
+      "within_share": 0.9011917467093561
+     },
+     "cap15": {
+      "beyond_owner_m2": 6.5,
+      "remainder_m2": 515.25,
+      "uncovered_share": 0.09280505158306651,
+      "within_m2": 5100.25,
+      "within_share": 0.9071949484169335
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 515.25,
+      "uncovered_share": 0.0916488794023479,
+      "within_m2": 5106.75,
+      "within_share": 0.9083511205976521
+     },
+     "cap9": {
+      "beyond_owner_m2": 154.25,
+      "remainder_m2": 515.25,
+      "uncovered_share": 0.11908573461401639,
+      "within_m2": 4952.5,
+      "within_share": 0.8809142653859836
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 778.0,
+     "max_owner_dist_m": 17.60916880020437,
+     "non_corridor_m2": 5622.0,
+     "owned_m2": 5106.75,
+     "remainder_m2": 515.25
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4028.75,
+      "area_covered_share_ceiling": 0.8290888511601585,
+      "area_treatable_m2": 4859.25,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 10,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 109,
+       "sample": 70,
+       "unit_covered_ceiling": 940,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 940,
+      "stems_covered_share_ceiling": 0.8514492753623188,
+      "stems_manual_or_notcovered": 164,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        75,
+        327.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        53,
+        209.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        33,
+        141.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        85,
+        386.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        508.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        98,
+        427.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        108,
+        472.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        301.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        76,
+        327.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        34,
+        153.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        41,
+        151.75
+       ]
+      },
+      "units_covered_ceiling": 13,
+      "units_covered_share_ceiling": 0.9285714285714286,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4062.5,
+      "area_covered_share_ceiling": 0.8360343674435355,
+      "area_treatable_m2": 4859.25,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 2,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 109,
+       "sample": 70,
+       "unit_covered_ceiling": 948,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 948,
+      "stems_covered_share_ceiling": 0.8586956521739131,
+      "stems_manual_or_notcovered": 156,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        75,
+        327.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        53,
+        209.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        34,
+        150.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        86,
+        390.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        508.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        99,
+        428.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        111,
+        481.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        70,
+        303.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        76,
+        327.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        35,
+        162.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        41,
+        153.25
+       ]
+      },
+      "units_covered_ceiling": 13,
+      "units_covered_share_ceiling": 0.9285714285714286,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4069.0,
+      "area_covered_share_ceiling": 0.8373720224314452,
+      "area_treatable_m2": 4859.25,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 109,
+       "sample": 70,
+       "unit_covered_ceiling": 950,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 950,
+      "stems_covered_share_ceiling": 0.8605072463768116,
+      "stems_manual_or_notcovered": 154,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        75,
+        327.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        53,
+        209.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        35,
+        153.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        86,
+        390.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        508.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        99,
+        428.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        111,
+        481.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        70,
+        303.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        76,
+        327.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        36,
+        165.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        41,
+        153.25
+       ]
+      },
+      "units_covered_ceiling": 13,
+      "units_covered_share_ceiling": 0.9285714285714286,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 3802.75,
+      "area_covered_share_ceiling": 0.782579616195915,
+      "area_treatable_m2": 4859.25,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 38,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 109,
+       "sample": 70,
+       "unit_covered_ceiling": 884,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 28
+      },
+      "stems_covered_ceiling": 884,
+      "stems_covered_share_ceiling": 0.8007246376811594,
+      "stems_manual_or_notcovered": 220,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        75,
+        327.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        50,
+        205.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        28,
+        125.0
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        78,
+        353.5
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        81,
+        375.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        117,
+        503.75
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        95,
+        418.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        105,
+        456.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        68,
+        293.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        76,
+        327.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        31,
+        137.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        39,
+        142.75
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 295.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.05247242974030597,
+      "within_m2": 5327.0,
+      "within_share": 0.947527570259694
+     },
+     "cap15": {
+      "beyond_owner_m2": 156.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.02774813233724649,
+      "within_m2": 5466.0,
+      "within_share": 0.9722518676627535
+     },
+     "cap20": {
+      "beyond_owner_m2": 26.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0047136250444681504,
+      "within_m2": 5595.5,
+      "within_share": 0.9952863749555318
+     },
+     "cap9": {
+      "beyond_owner_m2": 566.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.10067591604411241,
+      "within_m2": 5056.0,
+      "within_share": 0.8993240839558876
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 778.0,
+     "max_owner_dist_m": 23.58762669195416,
+     "non_corridor_m2": 5622.0,
+     "owned_m2": 5622.0,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4274.75,
+      "area_covered_share_ceiling": 0.8873378308251167,
+      "area_treatable_m2": 4817.5,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 61,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 70,
+       "unit_covered_ceiling": 998,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 998,
+      "stems_covered_share_ceiling": 0.9039855072463768,
+      "stems_manual_or_notcovered": 106,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        95,
+        414.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        60,
+        236.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        30,
+        130.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        90,
+        411.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        123,
+        522.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        100,
+        433.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        110,
+        490.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        302.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        95,
+        408.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        33,
+        142.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        44,
+        161.5
+       ]
+      },
+      "units_covered_ceiling": 13,
+      "units_covered_share_ceiling": 0.9285714285714286,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4230.5,
+      "area_covered_share_ceiling": 0.8781525687597301,
+      "area_treatable_m2": 4817.5,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 33,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 70,
+       "unit_covered_ceiling": 978,
+       "unit_differs": 93,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 978,
+      "stems_covered_share_ceiling": 0.8858695652173914,
+      "stems_manual_or_notcovered": 126,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        105,
+        464.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        62,
+        252.75
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        30,
+        130.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        416.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        124,
+        525.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        100,
+        434.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        111,
+        492.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        302.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        103,
+        448.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        33,
+        142.25
+       ],
+       "R5L": [
+        "NotCovered/Differs",
+        48,
+        172.25
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4516.0,
+      "area_covered_share_ceiling": 0.9374156720290607,
+      "area_treatable_m2": 4817.5,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 7,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 70,
+       "unit_covered_ceiling": 1052,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1052,
+      "stems_covered_share_ceiling": 0.9528985507246377,
+      "stems_manual_or_notcovered": 52,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        116,
+        519.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        67,
+        267.25
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        30,
+        130.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        358.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        416.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        124,
+        525.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        100,
+        434.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        111,
+        492.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        302.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        112,
+        481.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        33,
+        142.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        49,
+        183.75
+       ]
+      },
+      "units_covered_ceiling": 13,
+      "units_covered_share_ceiling": 0.9285714285714286,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 3899.0,
+      "area_covered_share_ceiling": 0.8093409444732745,
+      "area_treatable_m2": 4817.5,
+      "source": {
+       "density_per_ha": 2321.7247097844115,
+       "mean_dbh_cm": 14.740341336386544,
+       "net_area_m2": 301.5,
+       "stems": 70
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 126,
+       "corridor": 170,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 70,
+       "unit_covered_ceiling": 905,
+       "unit_differs": 45,
+       "unit_source_manual": 0,
+       "unit_too_few": 28
+      },
+      "stems_covered_ceiling": 905,
+      "stems_covered_share_ceiling": 0.8197463768115942,
+      "stems_manual_or_notcovered": 199,
+      "treatable_stems": 1104,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        80,
+        350.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        52,
+        212.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        28,
+        124.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        45,
+        275.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        80,
+        357.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        85,
+        387.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        510.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        96,
+        422.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        69,
+        262.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        106,
+        467.25
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        68,
+        296.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        81,
+        350.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        31,
+        136.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        39,
+        147.0
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 43.94,
+    "2": 78.383,
+    "3": 88.267,
+    "4": 74.019,
+    "5": 39.575
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1238,
+    "nearest": 1015
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-S 60 deg: spine-crossing parallel family (max spread)": {
+   "anchor": [
+    -0.104951,
+    0.181781
+   ],
+   "anchor_along": 40.755212,
+   "anchor_unclamped_along": 40.755212,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 469.25,
+    "stems_owner_differs_lateral_vs_nearest": 96
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 52.25,
+      "remainder_m2": 367.25,
+      "uncovered_share": 0.07448839170772847,
+      "within_m2": 5212.25,
+      "within_share": 0.9255116082922715
+     },
+     "cap15": {
+      "beyond_owner_m2": 22.25,
+      "remainder_m2": 367.25,
+      "uncovered_share": 0.06916145070360014,
+      "within_m2": 5242.25,
+      "within_share": 0.9308385492963999
+     },
+     "cap20": {
+      "beyond_owner_m2": 1.0,
+      "remainder_m2": 367.25,
+      "uncovered_share": 0.06538820082567587,
+      "within_m2": 5263.5,
+      "within_share": 0.9346117991743241
+     },
+     "cap9": {
+      "beyond_owner_m2": 142.5,
+      "remainder_m2": 367.25,
+      "uncovered_share": 0.09051360589514801,
+      "within_m2": 5122.0,
+      "within_share": 0.909486394104852
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 768.25,
+     "max_owner_dist_m": 20.747585550682455,
+     "non_corridor_m2": 5631.75,
+     "owned_m2": 5264.5,
+     "remainder_m2": 367.25
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4024.25,
+      "area_covered_share_ceiling": 0.8291866275176428,
+      "area_treatable_m2": 4853.25,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 11,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 77,
+       "sample": 71,
+       "unit_covered_ceiling": 949,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 25
+      },
+      "stems_covered_ceiling": 949,
+      "stems_covered_share_ceiling": 0.8526504941599281,
+      "stems_manual_or_notcovered": 164,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        77,
+        340.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        55,
+        221.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        25,
+        109.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        88,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        407.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        501.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        104,
+        439.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        118,
+        524.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        71,
+        308.25
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        75,
+        338.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        32,
+        130.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        46,
+        168.5
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4040.75,
+      "area_covered_share_ceiling": 0.8325864111677742,
+      "area_treatable_m2": 4853.25,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 5,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 77,
+       "sample": 71,
+       "unit_covered_ceiling": 953,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 27
+      },
+      "stems_covered_ceiling": 953,
+      "stems_covered_share_ceiling": 0.8562443845462714,
+      "stems_manual_or_notcovered": 160,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        77,
+        340.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        55,
+        221.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        27,
+        123.0
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        88,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        407.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        501.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        105,
+        440.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        118,
+        524.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        72,
+        309.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        75,
+        338.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        34,
+        144.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        46,
+        169.5
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4051.25,
+      "area_covered_share_ceiling": 0.8347499098542214,
+      "area_treatable_m2": 4853.25,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 77,
+       "sample": 71,
+       "unit_covered_ceiling": 956,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 29
+      },
+      "stems_covered_ceiling": 956,
+      "stems_covered_share_ceiling": 0.8589398023360287,
+      "stems_manual_or_notcovered": 157,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        77,
+        340.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        55,
+        221.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        29,
+        133.75
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        88,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        407.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        501.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        105,
+        440.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        118,
+        524.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        72,
+        309.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        75,
+        338.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        37,
+        154.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        46,
+        169.5
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 3851.75,
+      "area_covered_share_ceiling": 0.7936434348117241,
+      "area_treatable_m2": 4853.25,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 31,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 77,
+       "sample": 71,
+       "unit_covered_ceiling": 906,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 48
+      },
+      "stems_covered_ceiling": 906,
+      "stems_covered_share_ceiling": 0.8140161725067385,
+      "stems_manual_or_notcovered": 207,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        77,
+        340.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        54,
+        217.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        20,
+        89.0
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        88,
+        356.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        406.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        117,
+        497.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        430.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        117,
+        521.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        299.75
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        75,
+        338.25
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        28,
+        110.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        43,
+        160.0
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 190.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.03382607537621518,
+      "within_m2": 5441.25,
+      "within_share": 0.9661739246237848
+     },
+     "cap15": {
+      "beyond_owner_m2": 83.75,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.014871043636525028,
+      "within_m2": 5548.0,
+      "within_share": 0.985128956363475
+     },
+     "cap20": {
+      "beyond_owner_m2": 2.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0004439117503440837,
+      "within_m2": 5629.25,
+      "within_share": 0.9995560882496559
+     },
+     "cap9": {
+      "beyond_owner_m2": 444.25,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.07888311803613446,
+      "within_m2": 5187.5,
+      "within_share": 0.9211168819638655
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 768.25,
+     "max_owner_dist_m": 20.88594587205016,
+     "non_corridor_m2": 5631.75,
+     "owned_m2": 5631.75,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4250.5,
+      "area_covered_share_ceiling": 0.8815264167574014,
+      "area_treatable_m2": 4821.75,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 40,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 71,
+       "unit_covered_ceiling": 1000,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 22
+      },
+      "stems_covered_ceiling": 1000,
+      "stems_covered_share_ceiling": 0.8984725965858041,
+      "stems_manual_or_notcovered": 113,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        91,
+        399.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        59,
+        250.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        22,
+        99.75
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        89,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        100,
+        446.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        502.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        105,
+        439.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        126,
+        560.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        72,
+        309.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        88,
+        394.75
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        30,
+        121.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        50,
+        182.5
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4346.5,
+      "area_covered_share_ceiling": 0.901436200549593,
+      "area_treatable_m2": 4821.75,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 19,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 71,
+       "unit_covered_ceiling": 1021,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 22
+      },
+      "stems_covered_ceiling": 1021,
+      "stems_covered_share_ceiling": 0.917340521114106,
+      "stems_manual_or_notcovered": 92,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        98,
+        431.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        65,
+        271.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        22,
+        100.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        89,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        100,
+        446.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        502.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        105,
+        439.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        126,
+        561.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        72,
+        309.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        94,
+        424.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        30,
+        121.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        52,
+        193.25
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4419.0,
+      "area_covered_share_ceiling": 0.9164722351843211,
+      "area_treatable_m2": 4821.75,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 1,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 71,
+       "unit_covered_ceiling": 1039,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 22
+      },
+      "stems_covered_ceiling": 1039,
+      "stems_covered_share_ceiling": 0.9335130278526504,
+      "stems_manual_or_notcovered": 74,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        103,
+        451.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        70,
+        295.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        22,
+        100.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        89,
+        361.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        100,
+        446.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        502.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        105,
+        439.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        126,
+        561.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        72,
+        309.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        97,
+        436.25
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        30,
+        121.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        57,
+        210.75
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 3911.75,
+      "area_covered_share_ceiling": 0.8112718411365168,
+      "area_treatable_m2": 4821.75,
+      "source": {
+       "density_per_ha": 2303.3252230332523,
+       "mean_dbh_cm": 14.96325504947716,
+       "net_area_m2": 308.25,
+       "stems": 71
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 93,
+       "corridor": 160,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 71,
+       "unit_covered_ceiling": 922,
+       "unit_differs": 51,
+       "unit_source_manual": 0,
+       "unit_too_few": 47
+      },
+      "stems_covered_ceiling": 922,
+      "stems_covered_share_ceiling": 0.8283917340521114,
+      "stems_manual_or_notcovered": 191,
+      "treatable_stems": 1113,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        81,
+        351.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        55,
+        223.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        20,
+        88.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        51,
+        300.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        89,
+        359.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        94,
+        416.25
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        117,
+        499.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        103,
+        432.5
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        72,
+        283.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        120,
+        531.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        69,
+        302.25
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        78,
+        349.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        27,
+        109.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        44,
+        163.25
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 41.136,
+    "2": 79.961,
+    "3": 84.178,
+    "4": 76.567,
+    "5": 37.742
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1227,
+    "nearest": 1054
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "C-S 70 deg: spine-crossing parallel family (max spread)": {
+   "anchor": [
+    0.098728,
+    -0.271252
+   ],
+   "anchor_along": 37.776957,
+   "anchor_unclamped_along": 37.776957,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 292.0,
+    "stems_owner_differs_lateral_vs_nearest": 68
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 173.75,
+      "remainder_m2": 101.5,
+      "uncovered_share": 0.048512888301388,
+      "within_m2": 5398.5,
+      "within_share": 0.951487111698612
+     },
+     "cap15": {
+      "beyond_owner_m2": 127.25,
+      "remainder_m2": 101.5,
+      "uncovered_share": 0.040317250495703894,
+      "within_m2": 5445.0,
+      "within_share": 0.9596827495042961
+     },
+     "cap20": {
+      "beyond_owner_m2": 67.25,
+      "remainder_m2": 101.5,
+      "uncovered_share": 0.029742233972240628,
+      "within_m2": 5505.0,
+      "within_share": 0.9702577660277594
+     },
+     "cap9": {
+      "beyond_owner_m2": 341.5,
+      "remainder_m2": 101.5,
+      "uncovered_share": 0.07807887199823749,
+      "within_m2": 5230.75,
+      "within_share": 0.9219211280017625
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 726.25,
+     "max_owner_dist_m": 32.730232069815465,
+     "non_corridor_m2": 5673.75,
+     "owned_m2": 5572.25,
+     "remainder_m2": 101.5
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4143.0,
+      "area_covered_share_ceiling": 0.8504567381709945,
+      "area_treatable_m2": 4871.5,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 38,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 22,
+       "sample": 76,
+       "unit_covered_ceiling": 973,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 28
+      },
+      "stems_covered_ceiling": 973,
+      "stems_covered_share_ceiling": 0.8656583629893239,
+      "stems_manual_or_notcovered": 151,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        69,
+        306.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        64,
+        278.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        8,
+        38.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        92,
+        384.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        99,
+        458.75
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        133,
+        578.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        337.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        315.5
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        20,
+        83.75
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        60,
+        233.0
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4143.0,
+      "area_covered_share_ceiling": 0.8504567381709945,
+      "area_treatable_m2": 4871.5,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 28,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 22,
+       "sample": 76,
+       "unit_covered_ceiling": 973,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 38
+      },
+      "stems_covered_ceiling": 973,
+      "stems_covered_share_ceiling": 0.8656583629893239,
+      "stems_manual_or_notcovered": 151,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        69,
+        306.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        64,
+        278.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        15,
+        61.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        92,
+        384.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        99,
+        458.75
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        133,
+        578.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        337.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        315.5
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        23,
+        107.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        60,
+        233.0
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4280.0,
+      "area_covered_share_ceiling": 0.8785794929693113,
+      "area_treatable_m2": 4871.5,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 16,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 22,
+       "sample": 76,
+       "unit_covered_ceiling": 1003,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 20
+      },
+      "stems_covered_ceiling": 1003,
+      "stems_covered_share_ceiling": 0.8923487544483986,
+      "stems_manual_or_notcovered": 121,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        69,
+        306.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        64,
+        278.25
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        20,
+        91.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        92,
+        384.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        99,
+        458.75
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        119,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.25
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        133,
+        578.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        337.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        315.5
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        30,
+        137.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        60,
+        233.0
+       ]
+      },
+      "units_covered_ceiling": 12,
+      "units_covered_share_ceiling": 0.8571428571428571,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 4057.5,
+      "area_covered_share_ceiling": 0.8329056758698553,
+      "area_treatable_m2": 4871.5,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 71,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 22,
+       "sample": 76,
+       "unit_covered_ceiling": 954,
+       "unit_differs": 61,
+       "unit_source_manual": 0,
+       "unit_too_few": 16
+      },
+      "stems_covered_ceiling": 954,
+      "stems_covered_share_ceiling": 0.8487544483985765,
+      "stems_manual_or_notcovered": 170,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        68,
+        303.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        62,
+        272.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        2,
+        13.0
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        61,
+        321.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        90,
+        374.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        98,
+        451.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        115,
+        477.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        100,
+        430.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        83,
+        317.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        133,
+        571.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        76,
+        325.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        312.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        14,
+        53.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        57,
+        221.75
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 87.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.015421899096717318,
+      "within_m2": 5586.25,
+      "within_share": 0.9845781009032827
+     },
+     "cap15": {
+      "beyond_owner_m2": 0.75,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.00013218770654332967,
+      "within_m2": 5673.0,
+      "within_share": 0.9998678122934567
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5673.75,
+      "within_share": 1.0
+     },
+     "cap9": {
+      "beyond_owner_m2": 443.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.07807887199823749,
+      "within_m2": 5230.75,
+      "within_share": 0.9219211280017625
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 726.25,
+     "max_owner_dist_m": 15.159574555676622,
+     "non_corridor_m2": 5673.75,
+     "owned_m2": 5673.75,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4333.75,
+      "area_covered_share_ceiling": 0.8915346636494549,
+      "area_treatable_m2": 4861.0,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 18,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 76,
+       "unit_covered_ceiling": 1020,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 23
+      },
+      "stems_covered_ceiling": 1020,
+      "stems_covered_share_ceiling": 0.9074733096085409,
+      "stems_manual_or_notcovered": 104,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        70,
+        307.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        310.75
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        5,
+        33.25
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        91,
+        384.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        116,
+        522.75
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        149,
+        642.25
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        338.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        319.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        18,
+        76.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        67,
+        257.25
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4403.0,
+      "area_covered_share_ceiling": 0.9057807035589385,
+      "area_treatable_m2": 4861.0,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 76,
+       "unit_covered_ceiling": 1035,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 26
+      },
+      "stems_covered_ceiling": 1035,
+      "stems_covered_share_ceiling": 0.9208185053380783,
+      "stems_manual_or_notcovered": 89,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        70,
+        307.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        75,
+        320.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        7,
+        41.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        91,
+        384.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        120,
+        545.5
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        155,
+        665.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        338.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        319.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        19,
+        84.25
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        69,
+        270.75
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4403.5,
+      "area_covered_share_ceiling": 0.9058835630528698,
+      "area_treatable_m2": 4861.0,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 76,
+       "unit_covered_ceiling": 1035,
+       "unit_differs": 62,
+       "unit_source_manual": 1,
+       "unit_too_few": 26
+      },
+      "stems_covered_ceiling": 1035,
+      "stems_covered_share_ceiling": 0.9208185053380783,
+      "stems_manual_or_notcovered": 89,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        70,
+        307.5
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        75,
+        320.5
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        7,
+        41.5
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        62,
+        326.75
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        91,
+        384.25
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        120,
+        545.75
+       ],
+       "R3C": [
+        "SourceManual",
+        1,
+        4.75
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        118,
+        488.25
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        102,
+        442.25
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        85,
+        321.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        155,
+        665.75
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        78,
+        338.0
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        319.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        19,
+        84.5
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        69,
+        270.75
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 4057.5,
+      "area_covered_share_ceiling": 0.8347047932524172,
+      "area_treatable_m2": 4861.0,
+      "source": {
+       "density_per_ha": 2388.0597014925374,
+       "mean_dbh_cm": 15.261442711478786,
+       "net_area_m2": 318.25,
+       "stems": 76
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 93,
+       "corridor": 144,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 76,
+       "unit_covered_ceiling": 954,
+       "unit_differs": 61,
+       "unit_source_manual": 0,
+       "unit_too_few": 16
+      },
+      "stems_covered_ceiling": 954,
+      "stems_covered_share_ceiling": 0.8487544483985765,
+      "stems_manual_or_notcovered": 170,
+      "treatable_stems": 1124,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        68,
+        303.25
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        62,
+        272.0
+       ],
+       "R1L": [
+        "NotCovered/TooFewStems",
+        2,
+        13.0
+       ],
+       "R2C": [
+        "NotCovered/Differs",
+        61,
+        321.25
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        90,
+        374.75
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        98,
+        451.5
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        115,
+        477.5
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        100,
+        430.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        83,
+        317.75
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        133,
+        571.5
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        76,
+        325.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        72,
+        312.0
+       ],
+       "R5H": [
+        "NotCovered/TooFewStems",
+        14,
+        53.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        57,
+        221.75
+       ]
+      },
+      "units_covered_ceiling": 11,
+      "units_covered_share_ceiling": 0.7857142857142857,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 35.221,
+    "2": 77.579,
+    "3": 77.579,
+    "4": 77.579,
+    "5": 34.783
+   },
+   "stems_label_differs_vs_A": {
+    "lateral": 1197,
+    "nearest": 1107
+   },
+   "teach_rack": 3,
+   "valid": true
+  },
+  "LEGACY_PARALLEL_E-W (suggested layout, headland entrances)": {
+   "anchor": [
+    0.0,
+    0.238235
+   ],
+   "anchor_along": 35.400002,
+   "anchor_unclamped_along": 35.400002,
+   "disputed": {
+    "double_claim_m2": 0.0,
+    "double_claim_owner_split_m2": {},
+    "lateral_vs_nearest_disagree_or_remainder_m2": 0.0,
+    "stems_owner_differs_lateral_vs_nearest": 0
+   },
+   "groups": [
+    [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   ],
+   "lateral": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap15": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap9": {
+      "beyond_owner_m2": 169.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.031065292096219888,
+      "within_m2": 5286.75,
+      "within_share": 0.9689347079037801
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 943.75,
+     "max_owner_dist_m": 10.432521705348734,
+     "non_corridor_m2": 5456.25,
+     "owned_m2": 5456.25,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 4498.25,
+      "area_covered_share_ceiling": 0.9689805589961764,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 52,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1068,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1068,
+      "stems_covered_share_ceiling": 0.9535714285714286,
+      "stems_manual_or_notcovered": 52,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        208.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        308.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        60,
+        229.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        61,
+        291.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        92,
+        420.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        84,
+        380.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        344.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        70,
+        270.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        92,
+        406.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        93,
+        367.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        64,
+        276.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        73,
+        322.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        72,
+        296.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "nearest": {
+    "geometry": {
+     "cap12": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap15": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap20": {
+      "beyond_owner_m2": 0.0,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.0,
+      "within_m2": 5456.25,
+      "within_share": 1.0
+     },
+     "cap9": {
+      "beyond_owner_m2": 169.5,
+      "remainder_m2": 0.0,
+      "uncovered_share": 0.031065292096219888,
+      "within_m2": 5286.75,
+      "within_share": 0.9689347079037801
+     },
+     "cells_total_m2": 6400.0,
+     "corridor_union_m2": 943.75,
+     "max_owner_dist_m": 10.432521705348734,
+     "non_corridor_m2": 5456.25,
+     "owned_m2": 5456.25,
+     "remainder_m2": 0.0
+    },
+    "policy": {
+     "cap12": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap15": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap20": {
+      "area_covered_ceiling_m2": 4642.25,
+      "area_covered_share_ceiling": 1.0,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 0,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1120,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1120,
+      "stems_covered_share_ceiling": 1.0,
+      "stems_manual_or_notcovered": 0,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        215.0
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        322.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        61,
+        231.25
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        65,
+        302.0
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        98,
+        434.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        92,
+        394.75
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        345.0
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        77,
+        282.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        96,
+        420.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        100,
+        382.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        68,
+        288.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        79,
+        336.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        77,
+        311.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     },
+     "cap9": {
+      "area_covered_ceiling_m2": 4498.25,
+      "area_covered_share_ceiling": 0.9689805589961764,
+      "area_treatable_m2": 4642.25,
+      "source": {
+       "density_per_ha": 2396.1661341853032,
+       "mean_dbh_cm": 15.404493242899576,
+       "net_area_m2": 313.0,
+       "stems": 75
+      },
+      "stem_categories": {
+       "beyond_reach_manual": 52,
+       "corridor": 149,
+       "masked": 0,
+       "remainder_manual": 0,
+       "sample": 75,
+       "unit_covered_ceiling": 1068,
+       "unit_differs": 0,
+       "unit_source_manual": 0,
+       "unit_too_few": 0
+      },
+      "stems_covered_ceiling": 1068,
+      "stems_covered_share_ceiling": 0.9535714285714286,
+      "stems_manual_or_notcovered": 52,
+      "treatable_stems": 1120,
+      "unit_states": {
+       "R1C": [
+        "CoveredCeiling",
+        53,
+        208.75
+       ],
+       "R1H": [
+        "CoveredCeiling",
+        72,
+        308.0
+       ],
+       "R1L": [
+        "CoveredCeiling",
+        60,
+        229.0
+       ],
+       "R2C": [
+        "CoveredCeiling",
+        61,
+        291.5
+       ],
+       "R2H": [
+        "CoveredCeiling",
+        92,
+        420.0
+       ],
+       "R2L": [
+        "CoveredCeiling",
+        84,
+        380.0
+       ],
+       "R3C": [
+        "SourceManual",
+        0,
+        0.0
+       ],
+       "R3H": [
+        "CoveredCeiling",
+        96,
+        378.0
+       ],
+       "R3L": [
+        "CoveredCeiling",
+        86,
+        344.75
+       ],
+       "R4C": [
+        "CoveredCeiling",
+        70,
+        270.5
+       ],
+       "R4H": [
+        "CoveredCeiling",
+        92,
+        406.0
+       ],
+       "R4L": [
+        "CoveredCeiling",
+        93,
+        367.5
+       ],
+       "R5C": [
+        "CoveredCeiling",
+        64,
+        276.0
+       ],
+       "R5H": [
+        "CoveredCeiling",
+        73,
+        322.0
+       ],
+       "R5L": [
+        "CoveredCeiling",
+        72,
+        296.25
+       ]
+      },
+      "units_covered_ceiling": 14,
+      "units_covered_share_ceiling": 1.0,
+      "units_non_source": 14,
+      "units_total": 15
+     }
+    }
+   },
+   "rack_lengths": {
+    "1": 75.4,
+    "2": 75.4,
+    "3": 75.4,
+    "4": 75.4,
+    "5": 75.4
+   },
+   "teach_rack": 3,
+   "valid": true
+  }
+ },
+ "legacy_derive_on_reference": {
+  "problem": "Racks 4 and 5 cross or overlap across the common normal",
+  "valid": false
+ },
+ "meta": {
+  "constants": {
+   "CAPS": [
+    20.0,
+    15.0,
+    12.0,
+    9.0
+   ],
+   "CELL": 0.5,
+   "DBH_TOL": 0.15,
+   "DENS_TOL": 0.2,
+   "EDITOR_CLEARANCE": 2.4,
+   "GAP_ASSUMED": 16.0,
+   "HALF": 40.0,
+   "MIN_STEMS": 30,
+   "SEG_HALF": 12.0,
+   "TEACH_HALF_LEN": 12.0,
+   "TEACH_HALF_W": 9.0,
+   "WIN": [
+    -35.4,
+    37.5,
+    -37.5,
+    37.5
+   ]
+  },
+  "raw_sha256": {
+   "/media/jer/Files/CCF/Verification/ScenarioOneAccessSpineMeasure-20261103T2110Z/measurements/trees.json": "822959038ffd2f4a0379e1b6c77bfff465ede76ec3141b675ab3035c42a5cbf0",
+   "/media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/measurements/design_candidate.json": "f9ca1d1977427ad78f882a58b09088a4f2b7346578b845dca4b40e67fe07975c",
+   "/media/jer/Files/CCF/Verification/ScenarioOneFiveRackReference-20261103T2210Z/measurements/mfm_candidate.json": "67a24ac0f1288949f0dbfa149ae5538ed25faef465f403f9c1cd32ffc8aa15a2"
+  },
+  "script": "mfm_a_vs_c_offline.py"
+ }
+}
