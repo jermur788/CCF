@@ -62,7 +62,7 @@ Any later change to a provisional choice **re-authors the affected bytes** befor
 ### Decision 5 — Authoring method
 
 - ◻ **Manual only** (recommended first): no new script; slower and ID-riskier.
-- ◻ **One named disposable tool**: `Tools/Verification/Sen1Compact30SceneAuthoring/`, exact path/tool/meta/run/remove receipt, input-read-only, no auto-start, no save/scene-embedded assets; hard STOP on any other tracked write.
+- ◻ **One named disposable tool**: `Tools/Verification/Sen1Compact30SceneAuthoring/Compact30SceneAuthoring.cs` + `.meta` only, input-read-only, no auto-start, no save/scene-embedded assets, receipt outside the repo, run/remove with zero residue; hard STOP on any other tracked write.
 
 ### Decision 6 — Physical and native permission
 

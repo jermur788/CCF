@@ -376,15 +376,15 @@ Proposed editable masters (outside Unity Assets): `JuvenilesProtection.blend`, `
 
 Rows 73/74/75 cannot be closed by the five-file scene. Proposed, exact and optional:
 
-- `Tools/Verification/Sen1Compact30GuardWitness/` — one disposable Editor tool + its exact paths, copy/run/remove with zero residue under `Assets/ForestPrototype/`;
-- an ephemeral preview scene path **stated in the grant**, not referenced by `ScenarioOneCompact30.unity` or the placement JSON;
+- `Tools/Verification/Sen1Compact30GuardWitness/Compact30GuardWitness.cs` + `.meta` — one disposable Editor tool, copy/run/remove with zero residue under `Assets/ForestPrototype/`;
+- `Tools/Verification/Sen1Compact30GuardWitness/ScenarioOneCompact30GuardWitness.unity` + `.meta` — ephemeral preview scene, deleted with its `.meta` after the receipt; never referenced by `ScenarioOneCompact30.unity` or the placement JSON;
 - no auto-start, no build-settings entry, no save/profile writes, no runtime materials/meshes embedded in the delivered scene.
 
 If the owner does not grant this lane, rows 73/74/75 stay open and no guard state can be called native-proven.
 
 ### 6.5 Authoring/readback tool (proposed, not authorised)
 
-Proposed only if manual placement is rejected: `Tools/Verification/Sen1Compact30SceneAuthoring/` containing one `.cs` + `.meta` and a receipt, run once against the pinned placement JSON, then removed with its generated `.meta`. It must be read-only on the JSON, deterministic, no `UnityEngine.Random`, no auto-start, no save/profile/registry access, no scene-embedded asset creation, and it must emit a before/after tracked-file diff. This path is **disjoint** from #690's `Tools/Verification/ScenarioReferenceVerification.cs` and `Tools/Verification/StandGeometry/StandGeometryVerification.cs`.
+Proposed only if manual placement is rejected: `Tools/Verification/Sen1Compact30SceneAuthoring/Compact30SceneAuthoring.cs` + `.meta` (the only new files; the receipt is written outside the repo under Files), run once against the pinned placement JSON, then removed with its generated `.meta`. It must be read-only on the JSON, deterministic, no `UnityEngine.Random`, no auto-start, no save/profile/registry access, no scene-embedded asset creation, and it must emit a before/after tracked-file diff. This path is **disjoint** from #690's `Tools/Verification/ScenarioReferenceVerification.cs` and `Tools/Verification/StandGeometry/StandGeometryVerification.cs`.
 
 ### 6.6 Non-overlap with #690 and historical worlds
 
