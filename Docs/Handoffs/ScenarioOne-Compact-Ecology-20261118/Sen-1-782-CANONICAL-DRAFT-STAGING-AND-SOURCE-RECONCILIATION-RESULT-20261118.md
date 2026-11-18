@@ -46,11 +46,11 @@ Signed policy, confirmed owner scope, previously independently static-reviewed d
 
 | Note | Consolidation treatment / limit |
 | --- | --- |
-| N-1 R-097 mixed class | Exactly **one deferred class** for the optional C6 overlay half. Parent §H and adjacent R-097 note explicitly align overlay treatment with R-039; both non-overlay Work Plan status/units/denominator/quote-vs-settled duties remain via CL-050. Counts unchanged. No deferral waiver |
+| N-1 R-097 mixed class | **Correction after #783 m-2:** earlier “one deferred class / counts unchanged” claim was inconsistent. R-097 now matches R-039: retained with design provenance updated; C6 controls optional-overlay deferral, CL-050 retains accounting. Current totals 69/63/3/13 |
 | N-2 R-049 stale 25/30m approval wording | Preserve unchanged checkbox text/ID; place an adjacent explicit D-083 provenance correction and name it in the retained-unchanged §H row. Confirmed 30m scope does not invent exterior trees/seed donors or waive the finite-edge duty |
 | N-3 CL-014 history duty | Preserve CL-014 text exactly; local parent §11 C resolves the old “owner-decisions §C” reference: M-4 guidance A settled, timing/past credit/reselection OPEN; current marks are not an immutable history |
 | N-4 exact S1-D status | Use the full repaired-by-#145/pending-#158/no-T-04-release status; M-5 Compact wording remains provisional/reviewable |
-| N-5 ill-typed | Explicitly classify as derived raw/typed structural interpretation, not a new signed key/amendment; no Policy-B defaulting or backfill |
+| N-5 ill-typed | **Correction after #783 m-3:** earlier “derived interpretation” classification was wrong. Ill-typed/unknown-key refusal is signed #677 §1 Policy B (“wrong types”, unknown keys); same refusal before mutation, no new key/amendment |
 | N-6 one-year availability | State signed CT-3/mandatory review precedence for both advance modes; unreachable-T1 optional skip loss is distinct from ordinary-year eligibility under existing guards |
 
 ## 4. Where the 224 tracked criteria live
@@ -59,7 +59,7 @@ Signed policy, confirmed owner scope, previously independently static-reviewed d
 | --- | --- | --- |
 | R-001…R-115 | [Parent requirements](../../../specs/scenario-one-compact-complete-loop-v1/checklists/requirements.md), original lines in original order | 115 verbatim, unchecked |
 | CIP-001…CIP-033 | [Subordinate planting requirements](../../../specs/scenario-one-compact-initial-planting-v1/checklists/requirements.md), untouched acceptance lines | 33 verbatim, unchecked |
-| CL-001…CL-076 overlay | Parent requirements **Reviewed #774 CL staging overlay**; sections A–G + additive six criteria | 76 unique sequential unchecked definitions, **only in parent**, no gaps/duplicates/out-of-range reference; CL-001…070 text byte-identical to #774 |
+| CL-001…CL-076 overlay | Parent requirements **Reviewed #774 CL staging overlay**; sections A–G + additive six criteria | 76 unique sequential unchecked definitions, **only in parent**, no gaps/duplicates/out-of-range reference; **Correction after #783 N-6:** all 76 texts were byte-identical to #774 at frozen `e823f356`, not merely CL-001…070; this correction changes only CL-075’s status quotation |
 | Per-ID dispositions / navigation crosswalk | Parent requirements **§H**, after the navigation-only family crosswalk | 148 distinct ordered rows: 115 R then 33 CIP, one class/item/duty/additive CL column each |
 | Total / checks | 115 +33 +76 | **224 tracked criteria / 0 checked**; mapping rows, planning tasks and this result are not extra acceptance definitions |
 
@@ -67,7 +67,7 @@ CL-001…010 authority/world; CL-011…018 player assessment/trees; CL-019…030
 
 ### Per-item R/CIP reconciliation snapshot — documentary dispositions, not extra checkboxes
 
-This is the exact 148-row snapshot of parent §H for reviewer navigation. Each original duty/negative remains unless a named accepted decision changes its design provenance; process items require Manager closure, not author waiver. Counts: **69 retained unchanged /62 retained with design provenance updated /4 deferred by D-084 C6 or C10 /13 Manager process**. Deferred IDs: R-067, R-068, overlay half of R-097, R-114. See the unchanged original checkbox for the complete duty.
+**Correction after #783 m-2:** this 148-row navigation copy now includes the corrected R-097 class; the original snapshot remains at frozen `e823f356`. Each original duty/negative remains unless a named accepted decision changes its design provenance; process items require Manager closure, not author waiver. Counts: **69 retained unchanged /63 retained with design provenance updated /3 deferred by D-084 C6 or C10 /13 Manager process**. Deferred-class IDs: R-067, R-068, R-114; R-097’s optional overlay half remains C6-deferred within its updated-provenance class. See the unchanged original checkbox for the complete duty.
 
 | Inherited ID | One disposition class | Controlling row/item | Duty / precise disposition | Additive CL IDs |
 | --- | --- | --- | --- | --- |
@@ -167,7 +167,7 @@ This is the exact 148-row snapshot of parent §H for reviewer navigation. Each o
 | R-094 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Semantic later treatment/adaptive review accepted; precise scope deferred | CL-053, CL-054, CL-055, CL-057 |
 | R-095 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Native classifier negatives retained; no chosen multi-tree threshold | CL-055, CL-056 |
 | R-096 | retained with design provenance updated | D-077 | Succeeded FellTree navigation advice is not substantive credit; two oracles | CL-029, CL-051, CL-052, CL-056 |
-| R-097 | deferred by D-084 C6 or C10 (stays unchecked) | D-084 C6; R-039 retained accounting duty | Overlay half alone deferred; as with R-039, non-overlay Work Plan status/units/denominator duty still required through CL-050; deferral is not a waiver | CL-050, CL-067 |
+| R-097 | retained with design provenance updated | D-084 C6 controls optional overlay deferral; same mixed-duty treatment as R-039 | Overlay half alone deferred; non-overlay Work Plan status/units/denominator/expected-versus-settled duty remains required through CL-050; no accounting waiver | CL-050, CL-067 |
 | R-098 | retained with design provenance updated | D-084 W-A; #677 T-07 | Approved editing refused; audited cancel/new Pending/requote/reapprove | CL-025, CL-026, CL-028, CL-076 |
 | R-099 | retained unchanged | Original parent R-099 | Historical one-rack and source-screen research never earns no-rack PASS | CL-005, CL-009, CL-066 |
 | R-100 | process item for Manager to close | AgentWorkflow review gate; #771 | Manager closes historical review reconciliation and current changed-lines review separately | CL-068 |
@@ -250,7 +250,9 @@ Content-only `git diff --stat fcfd43c31b60f92277470aef9c490e92fa59cf3b..1399355f
  8 files changed, 533 insertions(+), 521 deletions(-)
 ```
 
-## 6. Static verification actually run
+## 6. Historical staging verification actually run — frozen e823f356 only
+
+**Correction after #783:** the captured output and original verifier below are historical staging evidence, including the then-current 69/62/4/13 classes and the underreported CL-001…070 comparison. Current correction evidence is recorded in §9: 69/63/3/13; all 76 were preserved at the frozen target, with only the requested CL-075 status quotation changed now. These historical commands/results are not silently rewritten or claimed as current.
 
 All commands used the assigned worktree cwd. Initial HEAD/base and branch checks passed with empty status. No unrelated changes existed in this worktree. Content-commit checks below were run before adding this result; final result/branch checks are repeated before push/handoff. Final result HEAD/remote readback are recorded on the issue, because this document cannot embed its own eventual SHA.
 
@@ -389,3 +391,66 @@ print('Compiler / Unity / runtime / save-load / rendering / playtest / Tier1-3 g
 The first attempt to write this new result failed with `FileNotFoundError` because its exact parent directory is absent at frozen #617. No result bytes were written by that attempt. Created only `Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/` for this explicitly authorised new file, then wrote the result and reran the verifier successfully with this report included. This was a resolved publication-path preparation failure, not a missing allowlisted existing spec or an expanded file scope.
 
 After result creation, `python3 /tmp/ccf782_verify.py` again produced the same successful count/identity/scope/link output above, including the result in its 0-checked and 224-tracked count. `git diff --check` produced no output; `git status --porcelain` showed only the new result directory as untracked before staging. Exact result-file staged checks and final clean HEAD/remote verification are published in the #782 handoff comment. No compiler/Unity/runtime/playtest test was run.
+
+
+## 9. Correction after #783 review
+
+**HANDOFF — DRAFT / NOT APPROVED / NOT AN IMPLEMENTATION PERMIT.** One bounded correction round by the same OpenAI gpt-6.1-sol author via T3 Code/Codex, same worktree and branch, no subagents. Frozen review target: **e823f356a0f65d3d6cd94a1006924aa5938a2ea6**. Independent #783 review commit **20806c4dce566bbaff91b3a452271e1b06f716b4** returned APPROVED **for draft document quality only**, 0 blocker / 0 major / 4 minor / 8 notes. This author does not extend that verdict to the correction.
+
+Claim posted before edits and read back: [#782 correction claim 6993010616](https://github.com/jermur788/CCF/issues/782#issuecomment-6993010616). Initial branch/HEAD matched the assigned lane and frozen target; initial `git status --porcelain` was empty. No unrelated changes existed. No new file, other worktree, Primary access, reviewer-file write, #783 branch write, source/Assets change, main merge or branch/worktree creation occurred.
+
+**New content commit:** `9f2ca014306df5ae58ec2995a608196769ed836d` (six existing spec Markdown files). This result update is the separate final publication commit; its own final HEAD SHA and remote readback SHA are recorded together in the #782 HANDOFF comment, since a commit cannot embed its own SHA. Earlier erroneous claims are visibly corrected in §3/§4; §6's original output/verifier remains explicitly historical, never presented as current.
+
+| Finding | Exact bounded correction / disposition |
+| --- | --- |
+| m-1 stale status | Corrected parent requirements decision paragraph, planting spec incomplete-choices paragraph, planting plan items 3–4 and tasks CP-C0/P-01. Each identifies historical #617 provenance as superseded by main `a69b3e2e` / parent §11: D-083 CONFIRMED canonical scope only; D-084/D-085 intent and signed #677 policy settled; both specs remain DRAFT. OD-16/S1/world/native/save activation gates stay open. No original R/CIP text edited. |
+| m-2 R-097 class | Changed its single class to **retained with design provenance updated**, exactly matching R-039. **D-084 C6 controls optional-overlay deferral**; non-overlay Work Plan status/units/denominator/expected-versus-settled duty remains required through CL-050. Updated both adjacent notes, parent counts, plan totals and this result's navigation copy/current totals. Earlier “one deferred class / counts unchanged” claim visibly corrected. |
+| m-3 signed evidence | Parent requirements and both spec passages now classify ill-typed/unknown-key refusal as **signed #677 §1 Policy B (“wrong types”, unknown keys)**. Result N-5 visibly corrects its earlier derived-interpretation claim. Refusal before mutation is unchanged; signed contract bytes untouched. |
+| m-4 inherited duties | Parent §12 restores the prohibition on repurposing old identities or switching global `StandGeometryPolicy.NewGameModel` for every scene; Compact requires its own profile-bound geometry dispatch. Parent §3 restores deterministic tree-ID-bound first-party Sitka, no visible H1 stumps, neutral daylight, restrained edge, worn-earth pedestrian path and open/minimally furnished H1 with no permanently parked vehicles/equipment. Present inherited duties, no new criterion or product choice. |
+| factual note: CL-075 | Expanded only its quoted S1-D status to the requested full string, including repair by #145 and no T-04P/T-04 release until #158 approves. Its behavioral wording and unchecked state remain. |
+| factual note: Linux provenance | Restored the parent checklist sentence that Linux Editor host authority comes from the 16 November owner direction, not R-079's original wording; Linux-only production/Editor boundary and narrow Windows art-scratch exception retained. |
+| factual note: all 76 CL | Corrected §4's underreported “CL-001…070 identical” claim visibly: all **76** were byte-identical to #774 at frozen e823f356. This correction retains all 76; **75 remain byte-identical**, with CL-075's requested status quote the sole text difference. |
+| factual note: pinned plan link | Replaced the moving branch in parent plan line 5 with observed commit **d0369249b64d2a044c9f4cd8ed017ab2c93a1006**; `git ls-tree` verified that exact plan exists there (blob `e40f2fce35b4db67ab7a36abc5341d2bdf43c469`). The suggested decisions pin `792f9544` does not contain that plan, so it was not substituted incorrectly. |
+
+### Verification actually run for this correction
+
+Inline Python verifier executed via stdin (no new verification file). It compared full ordered criterion lines with Git snapshots, checked all current IDs/checkboxes, crosswalk uniqueness/classes/provenance/CL columns and exact result-copy equality, scope/untracked state, relative Markdown links and fragments, and same-repository blob/tree links against available local Git objects. Actual successful output before this section was appended:
+
+```text
+Checked boxes across 8 spec files + result: 0
+R: 115 criterion lines byte-identical to fcfd43c3, ordered, unique, unchecked
+CIP: 33 criterion lines byte-identical to fcfd43c3, ordered, unique, unchecked
+CL: 76 sequential unique unchecked definitions; all 76 identical to #774 at frozen e823f356
+Current CL: 75 byte-identical to #774; CL-075 differs only by the requested full S1-D status quote
+CL-077+ references: 0; duplicate criterion IDs: 0
+Disposition rows: 148 unique, ordered, single-class; result copy matches parent exactly
+Classes: 69 unchanged / 63 updated provenance / 3 deferred / 13 Manager process = 148
+Criteria: 115 R + 33 CIP + 76 CL = 224 unchecked
+Scope: 7 changed allowlisted paths; 0 untracked; no non-allowlisted paths
+Internal Markdown links: 37 relative + 29 same-repository blob/tree links resolve; 20 fragments resolve
+Same-repository links checked against local Git objects; external issues/web transport/rendering: NOT RUN
+Compiler / Unity / runtime / save-load / rendering / performance / playtest / Tier1-3: NOT RUN
+```
+
+All **115 R + 33 CIP + 76 CL = 224** criteria stay unchecked; **148** inherited disposition rows. Current class totals are **69 unchanged / 63 updated provenance / 3 deferred / 13 Manager process**, replacing the historical **69/62/4/13** snapshot. No requirement reduced, waived, removed or renumbered. The original mixed R-097 checkbox remains byte-identical; its optional overlay half stays deferred despite the corrected single row class.
+
+Actual content-commit diff against frozen review target:
+
+```text
+$ git diff --stat e823f356..9f2ca014
+ .../checklists/requirements.md                           | 16 +++++++++-------
+ specs/scenario-one-compact-complete-loop-v1/plan.md      |  4 ++--
+ specs/scenario-one-compact-complete-loop-v1/spec.md      |  8 ++++++--
+ specs/scenario-one-compact-initial-planting-v1/plan.md   |  4 ++--
+ specs/scenario-one-compact-initial-planting-v1/spec.md   |  2 +-
+ specs/scenario-one-compact-initial-planting-v1/tasks.md  |  4 ++--
+ 6 files changed, 22 insertions(+), 16 deletions(-)
+$ git diff --check e823f356
+<empty; exit 0>
+$ git rev-parse bfa01f86:Docs/Handoffs/ScenarioOne-Save-Orchestration-20261117/Sen-1-677-MANAGER-COMPACT-CGTRIG-AND-SAVE-POLICY-SUPPLEMENT-20261117.md
+bb9327fe6c9b1ae1f7d5888e385dc9edc3ad072b
+```
+
+The full seven-path correction (including this result), final allowlist/status, whitespace and inline verifier are rerun before push/handoff; final clean status, final `git diff --stat e823f356..HEAD`, commit SHA and remote SHA are recorded in #782's HANDOFF. No final status or push is inferred from an earlier command.
+
+**Remaining gates / limitations:** bounded #783 **delta recheck** of this correction and separate **Manager #731 disposition** remain required. No requested fix needed a product decision or was left uncorrected; unresolved product/signature/schema items remain with their existing owners. Compiler, Unity, runtime/gameplay, save/load, scene rendering, performance, E1/E2, Tier1/2/3, owner personal playtest and Windows build **NOT RUN**. External issue/web transport and rendered GitHub Markdown **NOT RUN**. Dashboard/Drive/publisher synchronization **NOT VERIFIED**; no allowlist permission to write those records. HANDOFF only, no self-approval or implementation release.
