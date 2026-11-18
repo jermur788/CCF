@@ -1,3 +1,87 @@
+# Sen-1 #652 — cumulative source readiness result
+
+## Current D-091 source continuation — 2026-11-18
+
+**SOURCE READY FOR REVIEW. NOT DEPLOYED. NATIVE UNITY NOT RUN.** Previous source approvals below cover older bytes only. Different-model-family nonauthor review of this new delta is separately in progress; no source self-approval, integration or deployment approval is claimed.
+
+### Identity, authority and fresh admission
+
+Actual author: OpenAI/Codex **gpt-6.1-sol medium**, native T3 Code, host **jer-laptop**, same session **9bcdfde6-699b-41f7-befb-acc9a7551f09**. Source worktree `/media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116`; branch `ops/sen-1-652-unity-lease-readiness-20261116-v1`; starting local/remote HEAD `a9f56d6385d49ac51e35f303de00d77d1e586195`. It was clean including ignored/untracked files. Original `343ae9909b223b105f962a39058df1e9a544323a` is an ancestor; the canonical store has exactly this branch checkout and the legacy store has none. Prior author explicitly handed off. Current all-project active T3 registry showed no competing CCF source writer. Source context in this historical lane is `9f06398c068cbaed5b307229241c3640c5646d6d`; current owner/Manager D-091 and storage instructions take precedence over obsolete source context wording.
+
+Binding authorities read in full: [original same-workstream packet](https://github.com/jermur788/CCF/blob/docs/sen-1-652-end-to-end-ops-readiness-packet-20261116-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261116/Sen-1-652-END-TO-END-UNITY-OPS-READINESS-AND-CONTROLLED-DEPLOYMENT-PACKET-20261116.md), [D-091 amendment](https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-731-MANAGER-733-REVIEW-AND-652-NO-EXPIRY-OPS-SOURCE-CONTINUATION-20261118.md) (blob `886bea5dd8a0cc2ddc4d518608a414d9280a1ac7`), and [actor-specific admission approval](https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-731-652-D091-SOURCE-ADMISSION-APPROVAL-AFTER-BOARD-REFRESH-20261118.md) (blob `fc29ffd2d54062d2e5b87ebbbbcf3cc82c2fe04d`). Current main coordination and #652 comments were refreshed; no revocation/reassignment found.
+
+Physical existing `CCF-652-OPS-READINESS` row now names this actual session, path, exact base, bounded new feature and explicit-release/no-expiry custody. Fresh board SHA-256 `d98c31560c7dc19047bb78bd0995045bd4a242adac491b3dab42bd9359fad272` matched the separate custodian's [one-row receipt](https://github.com/jermur788/CCF/issues/652#issuecomment-6978468601). Original installed `packet-lint /media/jer/ZX20/CCF-Ops/board/active.md --board`: **PASS42 / exit0**. The source author made no physical board edit or maintenance-lock change. `Lane None` has no configured lane for original `lane-status --preflight`; per admission §3.3, exact source/store/board/custody checks are used here. **No lane READY is fabricated and #690's preflight is not substituted.** Original `lane-status --storage-only --json`: PASS/exit0, real `/dev/sdd2` matching persistent ZX20 pin, 53,086,126,080 free bytes vs 16,106,127,360 threshold. Files source is ext4 UUID `2283b135-bf37-42d6-921f-2fb861d0a8d4` on `/dev/sdb4`, ~41.8GB free at admission. Raw production lock absent. No production lock CLI invoked.
+
+Actual [RUNNING registration](https://github.com/jermur788/CCF/issues/652#issuecomment-6978622210) preceded every source edit and source test. The earlier BLOCKED state was correctly retained until the custodian refresh and Manager approval.
+
+### Pinned change and semantics
+
+[Source commit **4d03f5b5b15cdb8aa4f7ff6ca23688bb6c83fd78**](https://github.com/jermur788/CCF/commit/4d03f5b5b15cdb8aa4f7ff6ca23688bb6c83fd78), pushed to the existing branch. Exactly four source files changed against the starting revision, plus this existing cumulative report at publication:
+
+- `CCF-Ops/scripts/unity-lock`: explicit mutually exclusive `--no-expiry` / legacy `--eta`. No mode is an error. Null creation writes `eta:null` and boolean `no_expiry:true`; missing ETA, unmarked null, nonboolean marker and marker/timestamp disagreement are malformed and remain blocking. Legacy records without the new key retain their timestamp shape and are read without migration. `eta_overdue` is false for indefinite mode and advisory for old timestamps; no elapsed-time release/reclaim/kill exists.
+- Same script: normal matching owner/task/lock-id release additionally refuses any detected live Unity Editor or any still-existing recorded PID (including reused PID). PID boot/start identity inspection remains. Unknown PID still requires manual operator verification. Force-release semantics and approval/audit requirements are unchanged.
+- `CCF-Ops/tests/self-test.py`: add 92 meaningful checks while retaining all prior 141 checks. Tests corrupt only isolated fixture JSON, simulate Editor detection without launching any Editor, let their own Python fixture process exit naturally, and race actual CLI subprocesses under the real isolated guard.
+- `CCF-Ops/README.md` and `CCF-Ops/roles/unity-operator.md`: direct mode/release procedure, actual worker identity, manual verification, no stale reclaim and rollback incompatibility warning. No broader storage-role cleanup was performed.
+
+`_ccf.py`, `lane-status`, `packet-lint`, lanes/config, environment and deployment manifest unchanged. No game/serialized Unity files, assets, packages, saves, old worlds or other worker paths changed. Existing source `deployment.json` is historical provenance and was deliberately not restamped as a deployed or independently accepted D-091 candidate.
+
+Trade-off: explicit mode marker distinguishes legitimate null from an accidentally truncated estimate; old readers cannot consume the new record. No live JSON migration is performed. A still-existing recorded operator PID now conservatively blocks normal release even if it is not an Editor; finish that process, or obtain the pre-existing explicit Manager force-release ruling after investigation. This prevents a matching ID from transferring custody while recorded execution remains live.
+
+### Qualification actually run
+
+At exact committed source bytes above:
+
+| Gate | Result |
+|---|---|
+| `python3 -B CCF-Ops/tests/self-test.py` from the Files worktree | **233 PASS, exit0** |
+| `python3 -B <owned ZX20 source copy>/CCF-Ops/tests/self-test.py` | **233 PASS, exit0**, all source files SHA-256 identical before and after |
+| Focused storage identity campaign using inspected `_ccf` helpers | **10 PASS, exit0**; real mounted positive, explicitly mocked wrong mount source/target/fstype/missing+wrong UUID, missing+duplicate visible UUID, unique UUID positive, capacity inflation refusal |
+| Python AST parse, `git diff --check`, source scope | PASS |
+| Full live copied Ops inventory bytes+mode comparison | **50/50 identical**, before vs after qualification |
+
+Original storage/device/UUID/fstype/root/sibling/symlink/default-reader/NonUnity/foreign-store/dual-store/owner/force/concurrency/pilot tests all reached. New tests include null acquire/status/second-block/matching release and complete prior-record history; required mode and mutual exclusion; invalid/elapsed estimates; dirty/branch/HEAD/dual-store/real low-space refusal; all required-key omissions, unmarked/inconsistent/corrupt mode and metadata; wrong owner/task/lock ID; old timestamp format and overdue held state; actual live recorded process release refusal; simulated Editor release refusal with unchanged history; PID start/boot mismatch and naturally exited PID without reclaim; and a second six-process acquisition race for no-expiry.
+
+Files full result identifies source HEAD `4d03f5b5…`. The copy has no Git metadata, so its existing self-test reports historical manifest source HEAD `dfe445e…`; **that field does not identify the new copied source**. Exact copy identity is instead recorded by `source-copy-manifest.json` (all copied file hashes tied to `4d03f5b5…`) and checked before/after. No provenance file was edited to manufacture a newer stamp.
+
+Durable evidence: `/media/jer/Files/CCF/Verification/ScenarioOne652Readiness-20261116/D091-20261118-9bcdfde6`. Full logs, result JSON, pilot receipts, source diff and hash manifests retained there. Both author-owned `foundation-test-9_7ur954` / `foundation-test-an44l36g` fixture trees and the byte-identical source copy were removed after preserving results/pilot evidence; no inactive test Git caches archived. The self-test's own unique Files fixture/symlinks were removed in its existing finally block. Shared cache directories and other workers' scratch were not removed.
+
+Candidate hashes:
+
+| Path | SHA-256 |
+|---|---|
+| CCF-Ops/scripts/unity-lock | 8fa0c5ada367f109c9437b05bd37b42c7ce78472d6f630634df8745fcb220ac8 |
+| CCF-Ops/tests/self-test.py | 1bd03f1520e21db6f6bd00b963e09437267ebf4604ad6772c8e5fffffa9e6e50 |
+| CCF-Ops/README.md | a1911b01ece918d4eb52bfde230fe197e34f839a8c41d79f67555d9a560598e4 |
+| CCF-Ops/roles/unity-operator.md | e44e7eb89d33a82d4e3dc5987572565e394d12a60ec82733d3dfd4bb103206db |
+
+Evidence hashes:
+
+| File under evidence root | SHA-256 |
+|---|---|
+| files-full-1.log | b9c5950772541d778d9dd9e0c1fdf77770fdbdb7b5bab3abe81e82c8bdc3648d |
+| zx20-full-1.log | f013f0da5d5e8edefdd7ca1b11409d092e5841d73b5514d5ffb7ca3c3bb20f35 |
+| focused-identity.log | 99863e2eceed30da1d0fade2fd71a40b3266f1bf819cf51ba4299265e8e9d3d4 |
+| live-before.json | 055a9689a66519ff778ead3e7bf664984af2ac0860e2f29cd880125f886ace62 |
+| live-after.json | 055a9689a66519ff778ead3e7bf664984af2ac0860e2f29cd880125f886ace62 |
+| source-copy-manifest.json | 6dbd01b6ed397feb7da2357244f018c5aac998b0bfcdb67bfe2f0b2430745a54 |
+| source.diff | 7d09fe9c41edd6dd8d7e8e465cbb36e70ff066e58cfb0012669f7b33e6a7d9f0 |
+
+The live inventory includes physical board/lanes, all deployed scripts/docs/config, guard and history; all 50 bytes+mode entries match. This is content/mode evidence, not a global forensic claim about access times. Initial Primary unrelated modifications (AGENTS.md, StorageArchitecture.md and the two pre-existing Ops handoff documents) were preserved. No native Unity/Player/Windows test, production acquire/status/release, deployment, backup/rollback rehearsal or new installed-provenance PASS is claimed in this D-091 round. Earlier installer rehearsals below remain historical.
+
+### Separate review and handoff
+
+Fresh independent nonauthor review assigned through T3 to **Anthropic Claude Sonnet 5.5 high**, a new reviewer session distinct from author and physical custodian. Review target is exact `4d03f5b5…` vs `a9f56d63…`, read-only source and separate owned evidence only; reviewer registers and publishes its own source-only verdict on #652. Task ID `node:delegated-task:command%3Amcp%3A3714ac9a-b5de-45d4-bd5a-23be713506c2%3Adelegate-task%3Asen1-652-d091-independent-review-4d03f5b5`. **Verdict pending at this publication.** Previous older-source approval is not applied to this delta.
+
+Worker assessment: SOURCE READY FOR REVIEW; no self-acceptance. Source changes are committed and remote-published; this report-only followup does not change tested source. Custody is retained pending documented safe handoff/Manager disposition, not a timer. Physical board remains custodian-owned and has not been reconciled by the source author. `HANDED-OFF`/`RELEASED` are receipt/ledger wording, not new table states.
+
+Remaining gates: new nonauthor changed-lines APPROVED; Manager acceptance of source result; a distinct exact physical installer permit and reviewed current provenance/backup/readback/rollback plan before any deployment; only later separate Unity/content-start grants. Never copy source board/lanes/ledger/state onto live. Null-record rollback cannot use an old reader while indefinite ownership is active: first verify process exit and explicit safe release, or obtain independently reviewed compatible fallback. No #690/Multi lease rewrite or transfer.
+
+**DASHBOARD SYNC: NOT AVAILABLE / NOT VERIFIED. Published dashboard reflection: NOT VERIFIED.** This author cannot edit the physical board or canonical Manager coordination; authorised Manager/custodian ingestion and dashboard readback remain follow-up. No Drive mirror refresh claimed. No live Ops installation or Unity execution is authorised by these results.
+
+---
+
+## Historical cumulative record — 2026-11-16 (older source only)
+
 # #652 cumulative Option A result — SOURCE APPROVED; NOT DEPLOYED
 
 **Current outcome:** approved, qualified source candidate returned to Overall Manager #640 for a **separate deployment decision**. Latest direct user instruction prohibits live installation and supersedes the original packet's conditional install phase. No new task, issue or implementation lane. Earlier policy blockers/results below are retained as historical evidence and are superseded only where the owner Option A amendment applies.
