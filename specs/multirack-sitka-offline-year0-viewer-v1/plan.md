@@ -1,6 +1,6 @@
 # Multi — Offline Static Year-0 Viewer V1: Phased Plan
 
-- **Status: DRAFT / NOT APPROVED / NO EXECUTION AUTHORITY**
+- **Status: APPROVED H0-A SPECIFICATION / NOT IMPLEMENTED / NO G1-G2 SOURCE EXECUTION AUTHORITY**
 - **Spec:** [spec.md](spec.md); **requirements:** [checklists/requirements.md](checklists/requirements.md); **tasks:** [tasks.md](tasks.md)
 - **Authoring claim:** [Multi #749](https://github.com/jermur788/CCF/issues/749); **Manager:** [#730](https://github.com/jermur788/CCF/issues/730)
 - **Date:** 18 November 2026; **scope classification:** SPEC REQUIRED
@@ -18,18 +18,18 @@ The plan decomposes only into a **single future Core adapter/codec writer** and 
 
 **G0.1 Four-file review and product decision:** #730 reviews exactly this new four-file draft against [#748 targeted F1–F5 consolidation](https://github.com/jermur788/CCF/blob/docs/multi-748-f1-f5-consolidation-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-748-F1-F5-CONSOLIDATED-INTERFACE-CORRECTION-DRAFT-RESULT-20261118.md), not another unrestricted five-lane research cycle. Return APPROVED / NEEDS CHANGES / REJECTED on document quality, separately obtain explicit user/owner product acceptance when ready. Until then every checkbox in the requirements file stays unchecked.
 
-**G0.2 Explicit OPEN-H0-1 delivery choice (BLOCKS PRODUCT APPROVAL):** decide one genuinely offline implementation pattern, including platform, package integrity, dependency policy, trusted source bytes and user delivery:
+**G0.2 OWNER H0-A CHOICE RESOLVED (18 NOV 2026):** the owner selected H0-A self-contained fixture-embedded HTML/Canvas for **non-public local evaluation** in **current desktop browsers** ([receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md)). Actual trusted package manifest/dependency/CSP checks and browser runtime evidence remain required before G2, not further product-option choice:
 
-- **H0-A (provisionally recommended):** reviewed self-contained HTML/Canvas/accessible DOM document with **fixture embedded at packaging time**; **no fetch, picker, development server, shell, file:// fetched resource, external CDN/font/script, installed service or writeback**. Local browser handling/CSP and launch compatibility must be actually established, not assumed.
-- **H0-B:** standalone same-process local desktop/webview with **vetted frozen fixture as internal read-only resource**, no socket, network, account, file picker or saved state. Larger runtime/dependency/platform risk and package verification; not inherently security-cleared.
+- **H0-A (selected for this first feature):** reviewed self-contained HTML/Canvas/accessible DOM document with **fixture embedded at packaging time**; **no fetch, picker, development server, shell, file:// fetched resource, external CDN/font/script, installed service or writeback**. Local browser handling/CSP and launch compatibility must be actually established, not assumed.
+- **H0-B (not selected):** standalone same-process local desktop/webview with **vetted frozen fixture as internal read-only resource**, no socket, network, account, file picker or saved state. Larger runtime/dependency/platform risk and package verification; not inherently security-cleared.
 
-The owner/Manager may reject both and specify a third, but **a choice involving a Host, loopback, upload or security-sensitive file/network transport stops at G3 and requires separate security-scope approval before coding**. A provisional recommendation is not accepted product intent. Establish whether non-public local evaluation or later distribution is sought; G4 still applies.
+The owner explicitly chose non-public H0-A; changing to H0-B or a third approach requires a **new owner scope decision**. A Host/loopback/upload/security-sensitive transport still stops for G3 security scope **before coding**. The owner has not authorised public source code or application distribution; G4 remains blocked.
 
 **G0.3 Shared read contract:** approve the relevant parts of this static contract: unique catalog/byte+digest trust binding, one complete immutable Genesis roster, exact numeric kinds and source mm→X/Z transform, optional-value provenance F1, one full F3 observation key, A selection notification. Read schema names, hex wire shape, error classes and actual runtime are **proposal**, not existing executable API. No eligibility work rule F2 is necessary for inspection; do not accidentally approve C marking by adopting a read envelope.
 
 **G0.4 Canonical naming decision:** #730/owner resolve the historical Multi product-decision label colliding with **main D-084 Scenario One Compact30**. Assign a unique unused Multi ID and crosswalk under authorised canonical work **separately**; #749 does not edit main or invent the replacement ID. Current main D-082 and the dated P1 owner approval are distinguishable sources meanwhile.
 
-**G0 exit evidence:** explicit chosen package/platform and trust policy, approved specification status by authorised party, reviewed Core/A boundary, permitted future source dispatch class; **no code yet**. If any unresolved product/security decision materially changes this scope, amend/review the DRAFT instead of proceeding by default.
+**G0 product/spec disposition:** Owner selected H0-A and Manager formally approved the four-file static viewer specification in the [receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md). **Not a G1/G2 start:** independently reviewed fixed fixture package/codec, actual tested desktop-browser environment, exact Core/A file ownership, live physical Ops, local-source G2 risk grant and no-new-public-code policy remain mandatory before coding. If any unresolved product/security decision materially changes this scope, amend/review the DRAFT instead of proceeding by default.
 
 ## 3. Source and physical entry — G1
 
@@ -90,7 +90,7 @@ Any refusal must be explicit and leave prior valid view intact if present. Negat
 
 | Risk/decision | Owner and proposed mitigation | Status |
 | --- | --- | --- |
-| Offline host/package delivery and exact browser/platform | **Product owner + Manager** choose H0-A embedded HTML (provisional recommendation), H0-B offline bundled runtime or reject both; independent package feasibility | **OPEN — blocks approval** |
+| Offline host/package delivery and exact browser/platform | **Owner chose H0-A** for non-public local evaluation on current desktop browsers; compatibility, fixture manifest, package trust/dependencies require source/verification review | **OWNER CHOICE CLOSED; G1/G2 PACKAGING EVIDENCE OPEN** |
 | Trusted source/package binding and one bit codec | **Manager + Core contract reviewer**, exact admitted bytes and expected hash trusted out-of-band, no arbitrary file API | **OPEN — before code** |
 | Unpublished physical source rights / overlapping files | **Manager + actual native custodian**, new source-only claim/worktree/Ops allowlist/lease | **UNGRANTED** |
 | Unknown or altered fixture, source numeric drift | **Core future writer** strict refusal, never update the frozen digest to pass | **NOT RUN** |
