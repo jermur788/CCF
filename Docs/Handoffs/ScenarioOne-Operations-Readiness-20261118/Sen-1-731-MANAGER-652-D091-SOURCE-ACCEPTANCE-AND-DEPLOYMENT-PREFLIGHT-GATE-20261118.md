@@ -1,0 +1,62 @@
+# Sen-1 #731 — Manager acceptance of reviewed #652 D-091 source and next installer preflight
+
+**VERDICT: APPROVED — EXACT D-091 SOURCE CANDIDATE, NOT LIVE DEPLOYMENT.**
+**Next permitted action: READ-ONLY PHYSICAL INSTALLER ADMISSION + PLAN, not installation, change of live Ops, Unity or game source.**
+**Date:** 2026-11-18, Scenario One Overall Manager Chas, OpenAI GPT-6, GitHub browser.
+
+## 1. Evidence reviewed / limits
+
+Inspected complete [cumulative #652 source and independent review handoff](https://github.com/jermur788/CCF/blob/4c7acc051e262c3fe301049b51ee7fc48a9f99a2/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261116/Sen-1-652-END-TO-END-UNITY-OPS-READINESS-RESULT-20261116.md) and independently published [Claude Sonnet 5.5 review](https://github.com/jermur788/CCF/issues/652#issuecomment-6979064889) with its [actual reviewer registration](https://github.com/jermur788/CCF/issues/652#issuecomment-6978790004). The distinct reviewer did not author these source files nor perform the physical #652 board correction. This is review of the **exact source** pinned below, not acceptance of the later documentation commit.
+
+**Source candidate:** `4d03f5b5b15cdb8aa4f7ff6ca23688bb6c83fd78` on existing `ops/sen-1-652-unity-lease-readiness-20261116-v1`, against `a9f56d6385d49ac51e35f303de00d77d1e586195`. Exactly four modified source files:
+- `CCF-Ops/scripts/unity-lock`: SHA-256 `8fa0c5ada367f109c9437b05bd37b42c7ce78472d6f630634df8745fcb220ac8`
+- `CCF-Ops/tests/self-test.py`: `1bd03f1520e21db6f6bd00b963e09437267ebf4604ad6772c8e5fffffa9e6e50`
+- `CCF-Ops/README.md`: `a1911b01ece918d4eb52bfde230fe197e34f839a8c41d79f67555d9a560598e4`
+- `CCF-Ops/roles/unity-operator.md`: `e44e7eb89d33a82d4e3dc5987572565e394d12a60ec82733d3dfd4bb103206db`
+
+D-091 no-expiry acquisition is **explicit** `--no-expiry`, mutually exclusive with legacy `--eta`. New legitimate `eta:null` must carry `no_expiry:true`; legacy ISO timestamps remain valid, overdue remains advisory and never reclaims. Missing or inconsistent fields fail closed. Original PID/boot/start identity, single physical Unity guard, ownership matching and no automatic stale reclaim remain. Normal release now also refuses a live Unity Editor or any existing recorded PID; the original audited manager-approved force path is unchanged. Installer must **document the actual Editor PID, never a long-lived shell PID**.
+
+**Author tests:** original complete suite **233/233 PASS, exit0** in Files and hash-identical ZX20 source copy, 10 focused storage identity PASS, AST and git diff checks PASS. Historical full live 50/50 unchanged inventory was true only at the initial qualification snapshot.
+
+**Independent nonauthor:** Claude Sonnet 5.5 High reviewer did **two full 233/233 PASS / exit0** runs, direct parser test 27/27 match, old-reader fail-closed, storage negatives and 25 mutants (18 caught, seven equivalent/masked or identifying three nonblocking suite gaps). [Verdict](https://github.com/jermur788/CCF/issues/652#issuecomment-6979064889) **APPROVED SOURCE ONLY: zero blocking, zero major, four minor**. M-1 unclaimed active Editor acquisition test, M-2 CLI mode flag handling for `status`/`release`, M-3 non-string ETA suite gap, M-4 release PID operability are not runtime approval. Avoid reopening frozen source merely for optional suite polish; installer must check real caller compatibility and operator instructions. Any substantive runtime edit requires new candidate exact hashes and independent delta review.
+
+**Manager verdict: APPROVED for reviewed source fidelity and source-only acceptance**. Not reproduced by this browser Manager, not live installed. Source can remain frozen for deployment planning, no further source writer automatically authorised. Old source branch/report publication does not certify installed bytes/provenance, source release or Unity.
+
+## 2. Reported live drift — mandatory reconciliation before deployment
+
+The reviewer and author observed an **external** board/lane update at ~12:41 UTC:
+- `/media/jer/ZX20/CCF-Ops/board/active.md` earlier `d98c31560c7dc19047bb78bd0995045bd4a242adac491b3dab42bd9359fad272`, later `ae80e1908956a228ac77cc29858585361a2ecaffa70dd0337992bdb733d43cda`.
+- `/media/jer/ZX20/CCF-Ops/lanes.json` earlier `b16bfcad2fbb0be09c8d44fa0acdc87841d458e784c8befee2668a3650eacd61`, later `51850d741cd05e7125f093b8357c6bb74ee2ed9c424fcdad087ad2344125e9c4`.
+
+Author reports original lint PASS42 and same #652 writer/scope in newer board, but old prospective row wording/HEAD needs custodial reconciliation; only board and lanes differed in observed 50-file inventory. **The cause, separate actor's authority, exact lane delta and current physical state are NOT independently established by this browser Manager.** Do not rewrite, restore or automatically roll back these changes. They may reflect another legitimate owner/manager. Any conflicting source/installer/Unity reservation is STOP. The sole physical board custodian must demonstrate current lawful state and provenance **before any installer registration or write**. Keep #690 and Multi #730 physical ownership distinct.
+
+## 3. READ-ONLY next phase — installer preflight and irreversible risk review
+
+This is a continuation of the **same #652 outcome-based workstream**, not a new Ops source issue or a live-deploy permit. Use a **separate actually authorised physical Ops installer/custodian** from the source author and reviewer. A past board custodian session may perform read-only preflight, but cannot act as independent reviewer of source it has touched or declare itself deployment-approved. New installer model/provider/session/host must be registered at #652 with observed physical custody; **preflight inspection itself must be read-only** and should STOP if write effects cannot be excluded. Best suited experienced Linux Ops custodian, T3 Code or actual owner delegate; difficulty **High** because live guard/lease and rollback correctness matter.
+
+Exact physical targets to inspect, not mutate: copied `/media/jer/ZX20/CCF-Ops` deployment and `deployment.json`, scripts, README, roles, current `board/active.md`, `lanes.json`, Unity `state/unity/lock.json`, guard/history, genuine `/proc` Unity processes, two Git stores and the currently admitted source checkout. Revalidate ZX20 device/UUID/fstype/mount/capacity, Files root and source hashes/cleanliness; do not assume prior storage PASS persists.
+
+Produce an exact **per-file deployment projection** (new/source byte hash, old/live byte hash, mode, owner, ownership and copying step) for the four reviewed D-091 files PLUS only genuinely required **earlier already-approved Option A source updates not yet live**. The existing #652 candidate had cumulative **10 source semantic/config files** and **five-file scratch installer rehearsals**; do not assume all ten should overwrite live, or blindly copy the source `deployment.json`, `lanes.json`, board, state or guard. The correct old-to-new manifest must represent selected files + retained installed-only overrides, account for source-only provenance versioning, and have a separately verified post-install receipt; no false past deployment timestamp.
+
+Check relevant production callers of `unity-lock status` and `release` for `--eta`/mode flags (the new parser rejects them); document what will need to change, seek explicit source re-review if a code change outside current four files is unavoidable. Check actual editor launch wrapper supplies **Editor PID** and does not bind a persistent shell PID; include a safe normal-release check and reviewed force-release escalation policy. Confirm that the old reader **rejects the new null-lock shape**; a rollback with an active null-mode owner is therefore unsafe. Explicit deployment/rollback rule: preserve actual lock ownership, never restore older scripts that cannot read a held null record; safely release only after real process check or obtain separately reviewed compatible fallback. An unrelated live Ops change or existing Unity process is STOP, not a reason to force lock or run Editor.
+
+Inspect legacy #652 scratch rehearsal evidence only as **historical** (partial failure after three of five, bytes/modes restoration, 50-file backup) and compare to new four-file D-091 candidate. No physical live copy, board edit, live validation that writes state, source rebase, tests with unknown side effects, Unity process, cache creation or path cleanup in this read-only phase.
+
+**Required GitHub output under SAME #652:** `Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-652-D091-LIVE-DEPLOYMENT-PREFLIGHT-AND-CANDIDATE-PROJECTION-RESULT-20261118.md` on own docs branch `docs/sen-1-652-d091-live-deploy-preflight-20261118-v1` (not yet existing). Register actual custodian on #652 before physical inspection. Report current complete inventory and exact board/lane drift attribution/ownership, source and installed byte provenance, per-file planned copy and backup/restore, tested-only vs untested-only evidence, live Unity state and a precise **GO / NEEDS CHANGES / BLOCKED for future deployment** conclusion. Save evidence only in an actually independently authorised disjoint Files CCF verification folder; do not edit other custodian receipts. **Do not create a new source worker or a new #652 issue**.
+
+## 4. Post-preflight deployment gate (NOT GRANTED)
+
+Manager must inspect resulting physical preflight, actual exclusive installer/board ownership and source reviewer evidence; require independent technical review of any **new** installer projection or changed production semantics where material, physical lock and original validator, actual storage/source invariants, recovery baseline, safe rollback and unoccupied machine-wide Unity state. Only then ask/record exact owner release of prior **NO LIVE INSTALL** instruction and issue distinct **[APPROVED TO DEPLOY OPS — EXACT CANDIDATE/INSTALLER]**. Owner's general "get Unity ready" and "that's fine if on ZX20" are *not* explicit permission to overwrite the previously held copied installation. This packet does not grant physical deployment.
+
+After separately admitted deployment, verify actual installed hashes/provenance, legacy and null-mode non-Unity scratch lifecycle, original board lint and preflight READY, unchanged board/lanes/state, and exact reviewed rollback compatibility. No Unity Editor unless #718 W §12 Tier S separately personally signed and independently reviewed, actual ZX20 Compact scene lane/preflight/sole machine-wide lock and an actor-specific Manager source-start packet. No Windows before personal Editor playtest and explicit later owner authorisation.
+
+## 5. Status and next dispatch
+
+- #652: **SOURCE APPROVED/REVIEWED; LIVE INSTALL HELD**. Approved source writer's changes remain unchanged. Historical #652 board text may need a *separately authorised custodian-only one-row status correction* after actual drift reconciliation; the read-only preflight worker must NOT mutate it.
+- #718: **SCENE/UNITY HELD**. No game source, assets, existing scenes, saves, integrations or Windows.
+- #690: read-only report last saw source BLOCKED, not assumed running. #730 Multi separately managed.
+- No time cutoff is imposed on any agent/worktree. Exclusive ownership ends on explicit release or genuine safety/authority stop only.
+- Dashboard/Drive context sync **UNVERIFIED**, no assertion of published ingestion.
+
+**One paste-ready physical-preflight dispatch:**
+> Take existing Sen-1 #652 as an ACTUAL separate physical Ops installer preflight custodian, READ-ONLY, NOT its source writer or independent reviewer. Follow the COMPLETE Manager packet: https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-731-MANAGER-652-D091-SOURCE-ACCEPTANCE-AND-DEPLOYMENT-PREFLIGHT-GATE-20261118.md. Register actual identity/session/host and prove current custody before inspecting live ZX20 copied Ops. Reconcile 12:41 board/lanes drift and current owners without changing them; derive exact four-file D-091 and existing Option A installation projection/installed-only provenance; inspect real callers, Editor PID, lock/rollback compatibility, single Unity owner, unchanged storage/security checks. Publish the specified GitHub result with physical evidence. NO live Ops/board/lane/state/code write, Unity launch, source edit, game change or Windows. Stop if unproven custody or any required mutation.
