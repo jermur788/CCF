@@ -1,15 +1,15 @@
 # Multi — Offline Static Year-0 Viewer V1: Requirements and Evidence Checklist
 
-- **Status: DRAFT / NOT APPROVED / NOT IMPLEMENTED / NOT VERIFIED**
+- **Status: APPROVED H0-A FOUR-FILE SPECIFICATION / NOT IMPLEMENTED / NOT VERIFIED / SOURCE G1-G2 UNGRANTED**
 - **Date:** 18 November 2026
 - **Spec:** [../spec.md](../spec.md) · **plan:** [../plan.md](../plan.md) · **tasks:** [../tasks.md](../tasks.md)
 - **Authoring claim:** [Multi #749](https://github.com/jermur788/CCF/issues/749) · **Manager:** [#730](https://github.com/jermur788/CCF/issues/730)
-- **All boxes deliberately UNCHECKED.** These are acceptance predicates and future evidence requests, not assertions that executable tests, rendered checks or security qualification occurred. A future worker must record the exact package/branch/fixture version and reviewer for each checked item.
+- **Only R002 is checked because a specific owner+Manager specification-approval receipt exists.** All implementation, rendering, security, package and physical evidence predicates remain unchecked and NOT RUN. A source worker must record the exact candidate/branch/fixture/reviewer for any later item. A future worker must record the exact package/branch/fixture version and reviewer for each checked item.
 
 ## A. G0 product approval, scope and design custody
 
-- [ ] **H0-R001 / AC17 — Product owner selects offline package/platform.** H0-A self-contained embedded fixture document is only a **provisional smallest recommendation**; H0-B same-process offline webview/desktop is the alternative. Exact platform, delivery, dependency inventory and non-public/public exposure decision recorded; neither implicitly introduces a Host, file upload, network or storage.
-- [ ] **H0-R002 / AC17 — Spec approved explicitly.** Four-file DRAFT reviewed by Manager #730 against accepted product intent, main D-082 and the documentary #748 F1/F3 corrections; approval actor and decision recorded, no self-promotion.
+- [ ] **H0-R001 / AC17 — Owner choice recorded; remaining technical packaging evidence pending.** H0-A self-contained embedded-fixture HTML/Canvas was expressly selected for non-public local inspection in current desktop browsers ([receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md)); target browser versions, package/manifest, trusted source root, dependency inventory and no-network/no-write qualification remain **NOT VERIFIED**. No Host, file upload, network or storage.
+- [x] **H0-R002 / AC17 — Scoped specification approved explicitly.** Manager reviewed all four files against owner intent/main D-082/#748 and owner selected H0-A; documented in [approval receipt](https://github.com/jermur788/CCF/blob/docs/multi-750-h0-a-owner-approved-four-file-spec-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-750-OWNER-H0-A-CHOICE-AND-FOUR-FILE-SPEC-APPROVAL-RECEIPT-20261118.md). **This tick verifies the authorisation record ONLY, not implementation, runtime tests, fixture packaging or G1/G2.**
 - [ ] **H0-R003 / AC17 — Historical canonical collision resolved before promotion.** Main D-084 remains Scenario One Compact30; separately approved Multi P1 decision receives an owner-authorised unused canonical identifier/crosswalk. Do not rename it in this draft.
 - [ ] **H0-R004 / AC17 — Exact first-slice scope.** Only immutable static Year0 Genesis viewer is allowed; no Year1 switch, B year2+, C marking, D H0 second frame or H2 save, Work Orders, Fell, annual, Host, network, Unity/Windows, main merge or public external demo.
 - [ ] **H0-R005 / AC14 — Future owners appointed before source.** One Core adapter/codec writer and one A renderer/inspector writer with **one shared UI shell** and no split hit tests or duplicate source float decoders; actual file sets/branch/worktree/physical permissions named separately.
@@ -108,7 +108,7 @@
 
 ## H. STOP conditions and future defect routing
 
-- [ ] **H0-STOP01 — STOP on owner/open decisions.** H0 packaging/host/transport, platform, package trust/root, read schema or model/source baseline materially unsettled; return to #730, do not choose implicitly.
+- [ ] **H0-STOP01 — STOP on changes to approved owner choice or missing technical grants.** H0-A non-public offline platform is selected; absent package trust/root, validated current desktop browser runtime, read schema/codec/source baseline or physical G1/G2 grants still requires #730 disposition. Do not swap to a server or public-source branch implicitly.
 - [ ] **H0-STOP02 — STOP on wrong source or partial observation.** Altered fixture bytes, false provenance, missing tree, nonfinite bit, unknown version, different domain or incompatible transform; do not “heal” by fabricating a new forest.
 - [ ] **H0-STOP03 — STOP on unauthorized original access.** Any need to read/write local #710/#725 stores without separately granted custody; preserve retention and no-auto-purge.
 - [ ] **H0-STOP04 — STOP on scope growth.** Year1, later mortality, C marking, work/felling, D persistent history, file chooser/upload or Host requested through H0 implementation rather than its own approved packet/G3.
@@ -119,7 +119,7 @@ The STOP boxes represent protocol obligations rather than passable feature tests
 
 ## I. #749 documentation completion check (separate from feature verification)
 
-**Do not check any R001–R065 merely because this documentation was published.** #749 docs-task closure requires:
+**Only R002 was checked by Manager based on the later formal owner/Manager approval receipt; do not check other requirements merely because this documentation was published.** Historical #749 docs-task closure required:
 
 - [ ] **DOC-01** Read complete [#749 packet](https://github.com/jermur788/CCF/blob/docs/multi-730-749-h0-four-file-draft-packet-20261118-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-2D-SITKA-749-OFFLINE-YEAR0-VIEWER-FOUR-FILE-SPEC-DRAFT-PACKET-20261118.md), full #748, #747 and pinned A/B/C/D/E sources, verified live coordination read-only and registered actual source-head/branch/model as RUNNING before edits.
 - [ ] **DOC-02** Exactly four **new** DRAFT spec files and exactly one new result Markdown published, without any other file.
