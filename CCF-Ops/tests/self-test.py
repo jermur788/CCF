@@ -11,6 +11,8 @@ import shutil
 from pathlib import Path
 import subprocess
 import tempfile
+import runpy
+from unittest.mock import patch
 
 OPS=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(OPS/'scripts'))
@@ -293,6 +295,106 @@ try:
     lock(*acquire,code=2)
     lock('release',*base,'--force','--owner','test-inspector','--reason','isolated malformed fixture','--manager-approval','user-packet:isolated-force-test')
     check(json.loads((state/'history.jsonl').read_text().splitlines()[-1])['previous']['raw']=='{broken fixture metadata','force release preserves malformed raw state')
+
+    # D-091: an explicit mode, not an absent timestamp or distant estimate.
+    indefinite=[v for v in acquire]
+    eta_index=indefinite.index('--eta'); del indefinite[eta_index:eta_index+2]
+    indefinite.append('--no-expiry')
+    without_mode=indefinite[:-1]
+    def rejected_acquire(args,cause,label):
+        before={p.name:p.read_bytes() for p in state.iterdir() if p.is_file()}
+        result=subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*args],capture_output=True,text=True)
+        after={p.name:p.read_bytes() for p in state.iterdir() if p.is_file()}
+        check(result.returncode==2 and cause in result.stderr and before==after,label)
+    rejected_acquire(without_mode,'requires --no-expiry or --eta','acquire cannot silently default to indefinite custody')
+    rejected_acquire([*indefinite,'--eta',eta],'not allowed with argument','ETA and no-expiry are mutually exclusive')
+    for invalid in ['null','',datetime.now(timezone.utc).isoformat(),'2020-01-01T00:00:00+00:00','2099-01-01T00:00:00']:
+        rejected_acquire([*without_mode,'--eta',invalid],'isoformat' if invalid in ['null',''] else 'future ISO','invalid or elapsed legacy estimate rejected: '+repr(invalid))
+    rejected_acquire([*indefinite,'--branch','wrong-branch'],'branch/HEAD mismatch','no-expiry preserves exact branch gate')
+    rejected_acquire([*indefinite,'--head','0'*40],'branch/HEAD mismatch','no-expiry preserves exact HEAD gate')
+    (clean/'fixture.txt').write_text('temporarily dirty for D-091 negative\n')
+    try:
+        rejected_acquire(indefinite,'lane is dirty','no-expiry preserves clean-worktree gate')
+    finally:
+        (clean/'fixture.txt').write_text('clean\n')
+    run(['git','-C',second,'checkout','test/clean']); config.write_text(json.dumps(dual))
+    try:
+        rejected_acquire(indefinite,'another writable checkout','no-expiry preserves two-store branch conflict gate')
+    finally:
+        run(['git','-C',second,'checkout','test/seed']); config.write_text(json.dumps(cfg))
+    low_cfg=json.loads(json.dumps(cfg));low_cfg['storage']['minimum_free_bytes']=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize+1024**3
+    config.write_text(json.dumps(low_cfg))
+    try:
+        rejected_acquire(indefinite,'LOW SPACE','no-expiry cannot bypass real capacity gate')
+    finally:
+        config.write_text(json.dumps(cfg))
+    held=json.loads(lock(*indefinite)); valid=held['metadata']
+    check(held['status']=='held' and valid['eta'] is None and valid['no_expiry'] is True and not held['eta_overdue'],'explicit no-expiry acquire persists marked null without overdue')
+    check(json.loads(lock('status',*base,'--json'))['metadata']==valid,'no-expiry status reads exact custody after acquiring CLI exits')
+    rejected_acquire(indefinite,'lock exists','second no-expiry acquisition cannot replace owner')
+    rejected_acquire(acquire,'lock exists','legacy acquisition cannot replace no-expiry owner')
+    release=['release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',valid['lock_id']]
+    for field,bad_value in [('--owner','wrong'),('--task-id','wrong'),('--lock-id','wrong')]:
+        rejected_acquire([*release,field,bad_value],'matching --owner --task-id --lock-id','no-expiry release refuses wrong '+field)
+    # No Unity process is launched: simulate detection inside the actual guarded
+    # release function, retaining all real isolated config/record/history paths.
+    operator=runpy.run_path(str(OPS/'scripts/unity-lock'))
+    release_main=operator['main']; before=(state/'lock.json').read_bytes(); history_before=(state/'history.jsonl').read_bytes()
+    with patch.dict(release_main.__globals__,editors=lambda:[12345]), patch.object(sys,'argv',['unity-lock',*release]):
+        try:
+            release_main()
+            raise AssertionError('release accepted a simulated live Editor')
+        except ValueError as error:
+            check('Editor still running' in str(error) and (state/'lock.json').read_bytes()==before and (state/'history.jsonl').read_bytes()==history_before,'normal release refuses simulated live Editor without mutating custody/history')
+    # Mutations here are deliberately corrupt *isolated fixture* records, not
+    # migrations. Every malformed row must remain blocking and unmodified.
+    corrupt=[]
+    for field in valid:
+        if field=='no_expiry': continue
+        item=dict(valid);del item[field];corrupt.append(('missing '+field,item))
+    for label,updates in [('unmarked null',{'no_expiry':False}),('invalid mode marker',{'no_expiry':'true'}),('null mode plus timestamp',{'eta':eta}),('invalid timestamp',{'eta':'garbage','no_expiry':False}),('naive timestamp',{'eta':'2026-01-01T00:00:00','no_expiry':False}),('wrong owner type',{'owner':42}),('wrong PID type',{'pid':True}),('wrong process identity',{'pid':1,'process_identity':{}})]:
+        corrupt.append((label,dict(valid,**updates)))
+    unmarked=dict(valid);del unmarked['no_expiry'];corrupt.append(('null without mode marker',unmarked))
+    for label,item in corrupt:
+        (state/'lock.json').write_text(json.dumps(item))
+        check(json.loads(lock('status',*base,'--json'))['status']=='malformed','malformed no-expiry metadata: '+label)
+        rejected_acquire(indefinite,'lock exists','malformed custody never reclaimed: '+label)
+        rejected_acquire(release,'malformed record','malformed custody cannot normally release: '+label)
+    (state/'lock.json').write_text(json.dumps(valid))
+    lock(*release)
+    event_row=json.loads((state/'history.jsonl').read_text().splitlines()[-1])
+    check(not (state/'lock.json').exists() and event_row['event']=='release' and event_row['previous']==valid,'no-expiry matching release audits complete prior metadata')
+    # Legacy on-disk records have no mode marker. An overdue ETA remains held.
+    held=json.loads(lock(*acquire));legacy=held['metadata']
+    check('no_expiry' not in legacy and legacy['eta']==eta,'legacy acquisition preserves timestamp record shape')
+    legacy['eta']='2000-01-01T00:00:00+00:00';(state/'lock.json').write_text(json.dumps(legacy))
+    overdue=json.loads(lock('status',*base,'--json'))
+    check(overdue['status']=='held' and overdue['eta_overdue'] is True,'legacy overdue custody remains held and advisory')
+    rejected_acquire(indefinite,'lock exists','no-expiry does not reclaim legacy overdue custody')
+    lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',legacy['lock_id'])
+    # The recorded PID may be a live operator: it cannot release until safe exit.
+    proc=subprocess.Popen([sys.executable,'-B','-c','import sys; sys.stdin.read()'],stdin=subprocess.PIPE)
+    try:
+        held=json.loads(lock(*indefinite,'--pid',str(proc.pid)));identity=held['metadata']
+        release=['release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',identity['lock_id']]
+        rejected_acquire(release,'recorded PID still exists','normal release refuses actual live recorded process')
+        identity['process_identity']['start_ticks']='0';(state/'lock.json').write_text(json.dumps(identity))
+        reused=json.loads(lock('status',*base,'--json'))
+        check(reused['status']=='stale' and 'reused' in reused['inspection'],'PID reuse/start-ticks mismatch reported as stale')
+        rejected_acquire(indefinite,'lock exists','PID reuse cannot silently reclaim no-expiry custody')
+        rejected_acquire(release,'recorded PID still exists','PID reuse cannot bypass normal release safety')
+        identity['process_identity']['boot_id']='00000000-0000-0000-0000-000000000000';(state/'lock.json').write_text(json.dumps(identity))
+        check(json.loads(lock('status',*base,'--json'))['status']=='stale','boot identity mismatch remains stale evidence')
+    finally:
+        proc.stdin.close();proc.wait(timeout=5)
+    check(json.loads(lock('status',*base,'--json'))['status']=='stale','exited no-expiry recorded PID remains stale until explicit release')
+    rejected_acquire(indefinite,'lock exists','exited PID cannot silently reclaim no-expiry custody')
+    lock(*release)
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        attempts=list(pool.map(lambda _:subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*indefinite],capture_output=True,text=True),range(6)))
+    check(sum(p.returncode==0 for p in attempts)==1 and sum(p.returncode==2 for p in attempts)==5,'no-expiry concurrent processes: exactly one guarded winner')
+    held=json.loads(lock('status',*base,'--json'))
+    lock('release',*base,'--owner','test-owner','--task-id','TEST','--lock-id',held['metadata']['lock_id'])
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         attempts=list(pool.map(lambda _:subprocess.run([sys.executable,'-B',str(OPS/'scripts/unity-lock'),*acquire],capture_output=True,text=True),range(6)))
