@@ -2,7 +2,7 @@
 
 **DRAFT — NOT APPROVED; NO IMPLEMENTATION AUTHORITY / NOT AN IMPLEMENTATION PERMIT.** Branch-only #782 staging, NOT main. Consolidation A is Manager-resolved; independent #783 full-package review and separate Manager #731 disposition remain required.
 
-**DRAFT PLANNING ONLY — NOT RELEASED.** Derived from [spec.md](./spec.md), the complete [#731 Manager parallel plan](https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-731-PLAYER-TEST-READINESS-PARALLEL-LANES-20261118.md), D-083–D-091 and signed save policy. No task here is a source/Unity/physical deployment authorisation.
+**DRAFT PLANNING ONLY — NOT RELEASED.** Derived from [spec.md](./spec.md), the complete [#731 Manager parallel plan](https://github.com/jermur788/CCF/blob/d0369249b64d2a044c9f4cd8ed017ab2c93a1006/Docs/Handoffs/ScenarioOne-Compact-Ecology-20261118/Sen-1-731-PLAYER-TEST-READINESS-PARALLEL-LANES-20261118.md), D-083–D-091 and signed save policy. No task here is a source/Unity/physical deployment authorisation.
 
 ## P0. Documentary closure, ownership and independent gate
 
@@ -80,4 +80,4 @@ Preserve initial 0.6m stage honesty, truthful neutral stand-ins for personal pla
 
 Keep once-only annual species ecology, real costs/quotes, current-tree BA/volume/status/denominator audit independent of deferred C6 overlay, S1-C L1/L2/L3/L4 truth and missing-data honesty. Include a bounded enabled-manager mortality→record→fallen visual/save witness where relevant; #490's disabled manager zero is not proof of normal-play absence. No repeat generic driveway or 40-year study. Review field reach, stage/species identity, 720p/1080p legibility/occlusion/grayscale and hardware/frame/memory measures; no invented performance threshold.
 
-**Verification phase for this document only:** ordered stable R/CIP lines, 76 sequential CL, 148 ordered single-class rows (69/62/4/13), 224 tracked criteria, 0 checked; allowlist and whitespace checks; independent full-package review before promotion. This author's static audit is not that independent review. Compiler/Unity/native/save/runtime/render/playtest and Tier1/2/3 gameplay tests: **NOT RUN**.
+**Verification phase for this document only:** ordered stable R/CIP lines, 76 sequential CL, 148 ordered single-class rows (69/63/3/13), 224 tracked criteria, 0 checked; allowlist and whitespace checks; independent full-package review before promotion. This author's static audit is not that independent review. Compiler/Unity/native/save/runtime/render/playtest and Tier1/2/3 gameplay tests: **NOT RUN**.
