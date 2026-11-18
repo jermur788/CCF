@@ -37,10 +37,10 @@ The following **complete GitHub documents** were inspected for this result; thei
 
 **Four DRAFT specifications (new, no originals modified):**
 
-1. [spec.md](../../specs/multirack-sitka-offline-year0-viewer-v1/spec.md) — goals/limits, F1/F3 trusted immutable Genesis schema, exact source precision/coordinate transformation, A renderer/inspector, owner-OPEN offline package choice, security gates and H0-AC01…H0-AC17.
-2. [plan.md](../../specs/multirack-sitka-offline-year0-viewer-v1/plan.md) — G0 owner/spec decision; G1 fresh physical/source grant; G2 separated Core/A local non-release phases and focused rendered evidence; G3 Host/save pre-code scope and G4 release blocking; single writer/rollback.
-3. [tasks.md](../../specs/multirack-sitka-offline-year0-viewer-v1/tasks.md) — H0-T00…H0-T11 **future packets, NOT DISPATCHED**; dependencies/difficulty/owners/stop rules and minimal A/Core handoff.
-4. [checklists/requirements.md](../../specs/multirack-sitka-offline-year0-viewer-v1/checklists/requirements.md) — H0-R001…R065 acceptance evidence, safety stops, specific source/visual/keyboard/side-effect negatives; all **unchecked**.
+1. [spec.md](https://github.com/jermur788/CCF/blob/docs/multi-749-h0-four-file-spec-draft-20261118-v1/specs/multirack-sitka-offline-year0-viewer-v1/spec.md) — goals/limits, F1/F3 trusted immutable Genesis schema, exact source precision/coordinate transformation, A renderer/inspector, owner-OPEN offline package choice, security gates and H0-AC01…H0-AC17.
+2. [plan.md](https://github.com/jermur788/CCF/blob/docs/multi-749-h0-four-file-spec-draft-20261118-v1/specs/multirack-sitka-offline-year0-viewer-v1/plan.md) — G0 owner/spec decision; G1 fresh physical/source grant; G2 separated Core/A local non-release phases and focused rendered evidence; G3 Host/save pre-code scope and G4 release blocking; single writer/rollback.
+3. [tasks.md](https://github.com/jermur788/CCF/blob/docs/multi-749-h0-four-file-spec-draft-20261118-v1/specs/multirack-sitka-offline-year0-viewer-v1/tasks.md) — H0-T00…H0-T11 **future packets, NOT DISPATCHED**; dependencies/difficulty/owners/stop rules and minimal A/Core handoff.
+4. [checklists/requirements.md](https://github.com/jermur788/CCF/blob/docs/multi-749-h0-four-file-spec-draft-20261118-v1/specs/multirack-sitka-offline-year0-viewer-v1/checklists/requirements.md) — H0-R001…R065 acceptance evidence, safety stops, specific source/visual/keyboard/side-effect negatives; all **unchecked**.
 5. [this exact result](Multi-2D-SITKA-749-OFFLINE-YEAR0-FOUR-FILE-DRAFT-RESULT-20261118.md) — GitHub durable handoff to #730, not software acceptance.
 
 **Authoritative complete GitHub branch file paths:**
