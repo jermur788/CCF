@@ -21,6 +21,9 @@
 
 | E-012 | 01:56 | Parent | Corrected one timestamp placeholder in result §3 (`01:2xZ` → `01:26Z`) and pushed it. No claim, number, gate verdict or file set changed; this ledger is unaffected. |
 
-_Append-only: E-013 and later entries are added only after a real action has completed._
+| E-013 | 01:59 | Parent | Posted the final docs receipt on #723 after the correction: branch head `9fb3358ae55b8c143e029617f5eaffe424299384`, two permitted files only, no source/fixture/spec/P0/P1/Ops/Unity change, Stage B still not dispatched. [#723 final receipt](https://github.com/jermur788/CCF/issues/723#issuecomment-6966260762). No further orchestration action is taken tonight; the next action is the owner/Manager authorisation in result §7. |
+
+_Append-only: E-014 and later entries are added only after a real action has completed._
+
 
 
