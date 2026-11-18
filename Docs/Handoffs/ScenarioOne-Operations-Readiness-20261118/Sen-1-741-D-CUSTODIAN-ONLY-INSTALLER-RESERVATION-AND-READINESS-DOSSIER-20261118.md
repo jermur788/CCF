@@ -69,8 +69,10 @@ Exactly **five file replacements plus one receipt write**. Anything else is out 
 | 2 | `tests/self-test.py` | `1bd03f1520e21db6f6bd00b963e09437267ebf4604ad6772c8e5fffffa9e6e50` | `2a12a19d848ae789a1404c7ebd5285457e061b0a7142b91de95ed0b79cdeeaf3` | reviewed D-091 233-check suite |
 | 3 | `roles/unity-operator.md` | `e44e7eb89d33a82d4e3dc5987572565e394d12a60ec82733d3dfd4bb103206db` | `120f1deb006aa56a9d4b9643917f855548b5da80432a7166442ecc6163eee815` | reviewed D-091 |
 | 4 | `scripts/_ccf.py` | `24a321466e6dae61ba950c4cbc4f918e12f7d6be8a6af628341c5aa8efe0b435` | `ab4343efc7d1b82c5a4aca747d0e09c614779cfd9aa406a0dd681d204f5de001` | approved Option A origin, required by the D-091 suite |
-| 5 | `README.md` | **pending subtask A + B** (proposed merged installed bytes; must not be the reviewed source README `a1911b01…`) | `249be391e172e9d80f7d3d3419af961850b84c40fb2f15ba7b1d0469649eb517` | deployment-only merged document |
-| 6 | `deployment.json` | **pending subtask B** (prospective receipt, `TEST_FIXTURE_ONLY` until a real install) | `8c66b290c247708846cb8b59f83626a10a3fa1d052397a3316dc5f23fc157b18` | receipt, **not** a source-code copy; previous receipt kept as `deployment.json.bak-<UTC>` |
+| 5 | `README.md` | `3baf029ef6da792c3129ce5e0e91b3097d69ee7c881f389ad0bb9a377de41123` | `249be391e172e9d80f7d3d3419af961850b84c40fb2f15ba7b1d0469649eb517` | deployment-only merged document (subtask A v2 + orchestrator repair R-1), **not** the reviewed source README `a1911b01…` |
+| 6 | `deployment.json` | `ee13a811304c4cbfced23c4969b2a94d970d22fc5d424b72fa24dd2a943ad216` | `8c66b290c247708846cb8b59f83626a10a3fa1d052397a3316dc5f23fc157b18` | prospective receipt (`TEST_FIXTURE_ONLY`, `NOT_DEPLOYED`, `deployed_at: null`), **not** a source-code copy; previous receipt kept as `deployment.json.bak-<UTC>` |
+
+The README and receipt bytes above are **proposed**, produced and rehearsed in isolated scratch under subtask B. They are not installed and are not installed provenance.
 
 **Explicitly NOT mutated (must be byte-identical before and after):** `environment.sh` (`3775cba7…`), `AGENTS.md` (`d1ce3ad7…`), `lanes.json` (`c17903dd…`), `board/active.md` (`2b99552c…`), all `ledger/*`, all `state/*` including `state/unity/{guard,history.jsonl}` and any `lock.json`, `scripts/lane-status`, `scripts/packet-lint`, and the remaining installed files.
 
@@ -130,18 +132,28 @@ A custodian must repeat, at reservation time, not reuse from here: ZX20 identity
 7. **Null-lock rollback prohibition:** before restoring the old `unity-lock`, read `state/unity/lock.json`. Absent → safe. Legacy ISO record → safe (old reader reads it; preserve the record unchanged). `eta:null` + `no_expiry:true` → **DO NOT restore the old script**: the old reader reports it malformed, so acquire would be refused and normal release impossible. Instead keep the candidate script, verify Editor and recorded PID have exited, and have the owner release normally. Never delete or migrate a held lock record to make a rollback pass.
 8. Publish a physical installed-provenance receipt; do not claim installed PASS from source PASS.
 
+### 8.1 Rehearsed facts and hazards the installer must carry
+
+The five-file plus receipt projection was rehearsed by subtask B entirely in isolated scratch (evidence `/media/jer/Files/CCF/Verification/Sen1-741-B-StageRehearsal-20261118/`). Facts that change installer behaviour, all independently relevant:
+
+- **`unity-lock` defaults to the live state directory.** Its default `state/unity` path is hard-coded to `/media/jer/ZX20/CCF-Ops/state/unity`. Running *any staged clone* of the tool without `--test-state-dir` therefore acts on **live** ownership state. Rehearsals and audits must pass an explicit test state dir; the installer must never point a staged copy at live by accident.
+- **The check count is data-dependent.** The suite runs one check per ledger file, so the installed tree reported **234** passes where the accepted source tree reported **233** — the live ledger has one entry the source tree lacks and the other 233 labels match. Treat "233" as the source-qualification figure, not a fixed installed contract; a future count differs legitimately as the ledger grows. Do not "fix" the difference.
+- **exFAT was not rehearsed.** The replica lived on ext4. Atomic `tmp` → fsync → rename semantics on the live exFAT mount are therefore **unproven for this projection**, and the deploy-day sequence must re-verify each replace and each rollback on the real filesystem while exclusivity is held.
+- **Old tooling refuses non-ZX20 paths.** The installed (old) `_ccf` will not operate on an ext4 replica, so old-tool board lint and an old-tool legacy-lock release could not be exercised there. The old reader was still shown to read a legacy record. At deploy time the installed tools operate on their real paths, so this limits rehearsal fidelity, not the live contract.
+- **Two inherited documentation debt items ship with this projection** and are accepted deliberately rather than silently: `roles/unity-operator.md` still names retired `ZX20/CCF-Verification` / `ZX20/CCF-Builds` directories, and the merged README still says the self-test "creates fixtures only under ZX20/CCF-Temp" although it also writes Files verification fixtures. Both are pre-existing, present in the reviewed source and/or the live baseline, and correcting either would change an approved hash and require new qualification. Record them; do not "fix" them inside the install window.
+
 ## 9. What this dossier does NOT claim
 
 - Not that an installer owns the board, the board row, a lease or a lane.
 - Not that the staged projection is reviewed: subtasks A–C were **in progress / not started** when this was written.
 - Not that the owner has released **NO LIVE INSTALL**, and not that any Manager deploy permit exists.
-- Not that the merged README or prospective receipt bytes exist yet (their hashes are deliberately blank in §4).
+- Not that the merged README and prospective receipt are approved: B rehearsed them in scratch and C's independent review was still in progress when this line was written. Treat their presence in §4 as proposed bytes, not as a reviewed install candidate.
 - Not that ZX20/Files capacity or the board will be identical at deploy time — they must be re-observed.
 - Not any Unity, game-source, save, Multi #730, #690 or Windows status.
 - Dashboard / Drive synchronisation: **NOT VERIFIED**.
 
 ## 10. Next safe actions
 
-1. Let #741-A produce the merged README bytes, then #741-B stage/rehearse the exact five-plus-receipt projection, then #741-C review it independently.
-2. Only then hand this §7 packet to the authorised physical custodian, with the staged byte hashes filled in.
-3. Owner decides on releasing NO-INSTALL; Manager #731 issues the deploy permit bound to a named installer.
+1. ~~A merged README → B staging/rehearsal → C review~~ **Done to the point of review:** A produced the merged README (v2 after orchestrator repair R-1), B staged and rehearsed the exact five-plus-receipt projection in scratch with all eleven procedures passing, and C's independent nonauthor review is the outstanding step.
+2. After C's verdict and any bounded correction: hand this §7 packet to the authorised physical custodian with the now-known staged hashes filled in (`README.md` `3baf029e…`, prospective `deployment.json` `ee13a811…`).
+3. Owner decides on releasing NO-INSTALL; Manager #731 issues the deploy permit bound to a named installer. Only then does §8 run, on the real exFAT mount, re-observed from scratch.
