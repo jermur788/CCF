@@ -1,14 +1,18 @@
 # Sen-1 #741 — DeepSeek one-cycle Ops deployment readiness and Compact30 Unity-start dossier: consolidated result
 
-**STATUS: (pending final independent verdict — see §1)**
+**STATUS: READY FOR OWNER-SIGNED LIVE INSTALL DECISION — one explicitly owner-decided residual risk. Not an install approval; see §1.**
 
-**Date:** 2026-11-18, 13:30–15:00 UTC.
+**Date:** 2026-11-18, 13:30–15:10 UTC.
 **Parent:** [#731](https://github.com/jermur788/CCF/issues/731) Chas GPT-6. **Orchestration claim:** [#741](https://github.com/jermur788/CCF/issues/741). **Existing source claim:** [#652](https://github.com/jermur788/CCF/issues/652). **Scene claim:** [#718](https://github.com/jermur788/CCF/issues/718), still HELD.
 **Orchestrator:** DeepSeek V4.1 Flash 1017, model ID `opencode-go/deepseek-v4.1-flash` (variant `high`), provider instance `opencode`, harness T3 Code / OpenCode, app thread `600eadef-7bd2-4a40-b08c-079ae4f00fd9`, host `jer-laptop`, Linux user `jer` uid 1000, dispatched directly by USER jermur788.
 
 ## 1. Status
 
-*(Filled by the final independent verdict — see §6. Nothing below is conditional on it except this line.)*
+**READY FOR OWNER-SIGNED LIVE INSTALL DECISION — with one explicitly owner-decided residual risk.**
+
+That is a statement about *decision readiness*, not an approval. Staging, the merged installed README, the prospective receipt, the isolated rehearsal, the exFAT qualification and two independent review chains are complete. The independent reviewer's **final** verdict (delta re-check #5, on the v5 bytes) was `STILL-BLOCKING-WITH-NAMED-GAP`. Two of its named items were closable and are **fixed and verified** in the final v6 harness — a pre-state read error bypassing recovery, and a diagnostic re-read error stopping it — together with the signal class it named (`KeyboardInterrupt` during readback). v6 was **not** re-reviewed. The remaining class — **SIGKILL, kernel panic and power loss** — cannot be closed by any in-process procedure, and no further harness iteration can close it; it is therefore presented to the owner as a residual-risk decision, with the mitigations the dossier mandates (verified off-volume backup before the first write; full hash reconciliation under renewed custody after any interruption).
+
+Nothing here authorises an install. The owner's **NO LIVE INSTALL** order, the custodian's reservation and the Manager's deploy permit are all still required, and nothing in this package creates any of them.
 
 ## 2. What this orchestration did and did not do
 
@@ -38,14 +42,14 @@ All on one orchestration docs branch `docs/sen-1-741-deepseek-ops-and-compact-re
 | Artefact | Commit | SHA-256 |
 | --- | --- | --- |
 | Orchestration registration and progress ([#741](https://github.com/jermur788/CCF/issues/741)) | — | — |
-| **[D] Custodian-only installer reservation and readiness dossier** | `871fe242` | `53207ad2f6adda484735a5e0a5e025f9a403ac67130a5cefb78bb42f301e90ec` |
-| **[C1] exFAT replacement/sync/recovery qualification (v3)** | `871fe242` | `5939d1bdbb30caf2858a69aaa09262109600907a4f0db7be546612765de2c631` |
+| **[D] Custodian-only installer reservation and readiness dossier** (final) | `02ebba23` | `8a74083bf3912752f059ce405b6564da8fa06fa23d028ef2237bf37709f0f7eb` |
+| **[C1] exFAT replacement/sync/recovery qualification (v6, final harness)** | `02ebba23` | `23e1eb369a6617222642655b51e5a177f16b295304aee2a6475ba502d49fc173` |
 | **[A] merged installed README** (author's v1) | `e25edd7a` | prop. `ccfbf11f…`, bytes `bde3c6cf…` |
 | **[A2] merged README v2 with orchestrator repair R-1** | `052ae112` | bytes `3baf029ef6da792c3129ce5e0e91b3097d69ee7c881f389ad0bb9a377de41123` |
 | [A] trace matrix + merge decisions | `e25edd7a` | `13ba95da…`, `9b6f9d43…` |
 | **[B] five-file staging, receipt and rollback rehearsal** | `4397c7f2` | `a7462f9f…`; receipt `ee13a811304c4cbfced23c4969b2a94d970d22fc5d424b72fa24dd2a943ad216` |
 | **[C] independent review of the staged projection** | `ec537ea6` | (review) |
-| [C] delta re-checks 1–3 | `91ef45ae`, `e7a90b96`, *final* | (review) |
+| [C] delta re-checks 1–5 | `91ef45ae`, `e7a90b96`, `d780d1ea`, `c10eac9b`, `94e5c203` | (review) |
 | **[E] Compact30 Tier S seven-path W §12 instrument** (unsigned) | `a68e905a` | `7ad646936bf9b4fe296caefbb71c92763d160ed67d2a9392919cf234ec47d297` |
 | [E-review] NEEDS CHANGES; [E-delta] | `b79b6919`, `c6fdeac2` | (review) |
 
@@ -82,7 +86,7 @@ Never copied: the stale source `deployment.json` `be9fbcd0…`.
 | Backup + atomic replace + failure after 3 + rollback | **PASS** — 3 restored, 0 refused, all 50 files byte-exact, board/lanes/state/ledger untouched |
 | Negatives: drift, board lock, guard lock | **PASS** — drifted path refused; held board lock blocked install and rollback; held guard blocked `status` |
 | Null-lock rollback prohibition | **PASS** — with a held synthetic `no_expiry` record, rollback withheld (no writes); after explicit release, restored; legacy record preserved byte-identically |
-| **exFAT primitive qualification (real device, C1 v3)** | **16/16 PASS** — same `st_dev` as live Ops; atomic publication to a concurrent reader; post-rename directory-sync `EIO` detected via `PublicationUnproven`; recovery to byte-exact pre-state; receipt written and rolled back with the same primitive; `ENOSPC` never reaches rename; drift refusal on a genuinely changed file; guard flock excludes a second holder |
+| **exFAT primitive qualification (real device, C1 v6)** | **21/21 PASS** — same `st_dev` as live Ops; atomic publication to a concurrent reader; post-rename dir-sync, dir-*open*, readback and `KeyboardInterrupt` failures all booked and recovered 6/6 to byte-exact pre-state; pre-state read error fails closed without bypassing recovery; diagnostic re-read failure does not stop recovery; restore failure reported and survived; receipt written and rolled back with the same primitive; drift refused; guard flock excludes a second holder |
 
 ## 7. Review chain and verdicts
 
@@ -95,7 +99,11 @@ Never copied: the stale source `deployment.json` `be9fbcd0…`.
 | Staged projection | GPT-6.2 Sol | **NEEDS CHANGES** — one blocking finding (exFAT) |
 | exFAT delta 1 | GPT-6.2 Sol | **STILL-BLOCKING** (dir sync, real rollback path, I/O error, PASS predicate) |
 | exFAT delta 2 | GPT-6.2 Sol | **STILL-BLOCKING-WITH-NAMED-GAP** (post-rename sync failure, publication recovery) |
-| exFAT delta 3 | GPT-6.2 Sol | *(final verdict — §1)* |
+| exFAT delta 3 | GPT-6.2 Sol | **STILL-BLOCKING** (dir-sync EIO passed; batch booking; receipt primitive) |
+| exFAT delta 4 | GPT-6.2 Sol | **STILL-BLOCKING** (post-rename readback/dir-open escape; restore failure stops recovery) |
+| exFAT delta 5 | GPT-6.2 Sol | **STILL-BLOCKING-WITH-NAMED-GAP** — `KeyboardInterrupt` during readback; pre-state read error bypasses recovery; diagnostic re-read can stop it |
+| v6 harness, orchestrator | — | **21/21 PASS**, not re-reviewed; closes the three named items above |
+| Remaining class | — | **SIGKILL / power loss: unclosable in-process, presented to the owner as residual risk** |
 
 ## 8. Findings resolved internally, without bouncing to Manager
 
@@ -110,10 +118,11 @@ Never copied: the stale source `deployment.json` `be9fbcd0…`.
 1. **Power loss / kernel crash** during the deploy window cannot be exercised without jeopardising the live tree. Carried as a **deploy-window condition**: verified off-volume backup first; after any interruption, reconcile filesystem and installed hashes under renewed custody before continuing.
 2. **exFAT `chmod` is a no-op** — receipts must record bytes and owner, never modes.
 3. **A failed write leaves a `.tmp`** — the installer must delete it and abort; never rename a partial file.
-4. **`unity-lock` defaults to the live state directory** — any staged copy must pass `--test-state-dir`; only the installer runs it against live.
-5. **Two inherited documentation debts ship with this projection**: `roles/unity-operator.md` still names retired `ZX20/CCF-Verification` / `ZX20/CCF-Builds`; the merged README still says the self-test "creates fixtures only under ZX20/CCF-Temp". Both pre-exist in the reviewed source and/or live baseline; correcting either changes an approved hash and needs new qualification, so they are recorded, not silently fixed.
-6. **Old tooling refuses non-ZX20 paths**, so old-tool board lint and an old-tool legacy-lock release were not exercised on the ext4/replica; the old reader was shown to read a legacy record, and the live tools operate on their real paths.
-7. **Check counts are data-dependent** — "233" is a source-qualification figure, not an installed contract.
+4. **Uncatchable interruption.** SIGKILL, kernel panic and power loss defeat any in-process recovery. Mitigation is procedural and mandatory: verified off-volume backup before the first write, and full hash reconciliation under renewed custody after any interruption before resuming. This is the one item the independent reviewer left open.
+5. **`unity-lock` defaults to the live state directory** — any staged copy must pass `--test-state-dir`; only the installer runs it against live.
+6. **Two inherited documentation debts ship with this projection**: `roles/unity-operator.md` still names retired `ZX20/CCF-Verification` / `ZX20/CCF-Builds`; the merged README still says the self-test "creates fixtures only under ZX20/CCF-Temp". Both pre-exist in the reviewed source and/or live baseline; correcting either changes an approved hash and needs new qualification, so they are recorded, not silently fixed.
+7. **Old tooling refuses non-ZX20 paths**, so old-tool board lint and an old-tool legacy-lock release were not exercised on the ext4/replica; the old reader was shown to read a legacy record, and the live tools operate on their real paths.
+8. **Check counts are data-dependent** — "233" is a source-qualification figure, not an installed contract.
 
 ## 10. Physical custody and the board's own defects
 
