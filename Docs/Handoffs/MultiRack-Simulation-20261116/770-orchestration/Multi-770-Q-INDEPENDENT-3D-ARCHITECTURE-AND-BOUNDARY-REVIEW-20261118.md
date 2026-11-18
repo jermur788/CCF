@@ -2,6 +2,8 @@
 
 **18 November 2026 · Phase A, GitHub docs only · lane Q · independent nonauthor review. This is NOT an implementation approval and qualifies nothing.**
 
+> **Later amendment, 18 November 2026 (delta re-check r1):** same reviewer, bounded re-check of Q-01..Q-16 against A1 r1 `25c0eb42` and A2 r1 `2c7533e1`. Outcome: **DELTA RE-CHECK - ALL PRIOR BLOCKING AND MAJOR FINDINGS ADDRESSED**. Details are in §8. The original review text in §§1–7 below is preserved unchanged, and its verdict describes r0 only.
+
 ## 1. Review identity and exact reviewed commits
 
 | Item | Record |
@@ -131,3 +133,84 @@ I add no new decisions. Where A1 and A2 conflict, I note it.
 16. **Custody, storage and publication.** A fresh physical lane, actor-specific G1/G2, non-public handling, and a separate decision on publication (A1 item 7; A2 cites R-PKT Phase B). *Consistent.*
 
 **Must be settled before any G1/G2 request:** the Q-01 correction to A2, and Manager disposition of A1, A2 and this review; items 1, 2, 3, 4, 5 and 16; and then a formal owner-approved four-file Multi 3D spec, as R-PKT requires. Items 6–15 can be settled inside that spec. This review recommends no particular answer to any of them.
+
+## 8. Delta re-check r1 - finding disposition
+
+**Later amendment, 18 November 2026.** Same reviewer as §1: Claude Opus 5.5, independent nonauthor. This is a bounded re-check of my own 16 findings. It is not a new review cycle. I did not widen scope, and I raise no new decisions.
+
+### 8.1 Exact targets and branch integrity
+
+| Item | A1 r1 | A2 r1 |
+| --- | --- | --- |
+| Author | GPT-6.1 Sol | Claude Sonnet 5.5 |
+| Revised commit | `25c0eb427f9535a0d70749c27a6b6a65800fa0a8` (19:47:17Z) | `2c7533e192a171bfb123e40d80ef9235e6e1bb91` (19:50:09Z) |
+| Parent | `c8f430356ec2550424b23a1f34e9fb7f0609e628`, the commit reviewed in §1 | `b34d1995d60edba2335727aec38ce05a16795c65`, the commit reviewed in §1 |
+| `git diff --name-status ff03290a <rev>` | one line: `A` the A1 dossier path | one line: `A` the A2 dossier path |
+| `git diff --stat ff03290a <rev>` | 1 file changed, 761 insertions | 1 file changed, 490 insertions |
+| `git diff --stat <parent> <rev>` | same single file, +32 / −14 | same single file, +205 / −92 |
+| Force-push or rewrite? | **No.** `git merge-base --is-ancestor c8f43035 25c0eb42` succeeds. The remote-tracking reflog shows `c8f43035` (19:32:07Z) and then `25c0eb42` (19:47:23Z). `git ls-remote` shows the remote tip is `25c0eb42`. | **No.** `git merge-base --is-ancestor b34d1995 2c7533e1` succeeds. The reflog shows `b34d1995` and then `2c7533e1`. `git ls-remote` shows the remote tip is `2c7533e1`. |
+
+Each branch gained exactly one commit on top of the commit I reviewed. Each still adds exactly one file against `ff03290a` and touches nothing else.
+
+**How I checked.** I read both revised files in full at the commits above, and I read both r0→r1 diffs. I checked every new factual statement against the same public documents as §1.1. These were R-758C at `7af3add1` (§§1.3, 2.2–2.7), R-758A at `a7e9228b` and R-750 at `a9579188`. I also confirmed that A1's new M2–M5 pins exist and contain the cited files. A revision banner's own claim of "ADDRESSED" was **not** taken as evidence. Each disposition below cites the substantive text.
+
+### 8.2 Disposition of Q-01 … Q-16
+
+| ID | Sev | Disposition | Evidence in the revised commit |
+| --- | --- | --- | --- |
+| Q-01 | BLOCKER | **ADDRESSED** | A2 §0 now says the r0 prohibition claim "was wrong". F-12..F-19 add, as [V] document-stated: IDs `P30-001`…`P30-100` in source order (F-13); integer `xMm`/`yMm` in `[0, 30000)`, the polygon, elevation 0 and the transform ID (F-15); `heightMm`/`heightM`, and `crownRadiusM` as a radius under `potential-crown-at-ci0-linear-f32-v1`, "a **potential** crown, not a measured crown" (F-16); `generatorSeed` 6390001 and `simulationSeed` 20261116, which the contract "says explicitly … are distinct" (F-17); 32,567 B and `bcaaa5c3…57c4`, with "I did not read or rehash any fixture bytes" (F-18). §1.2 and D-4 now say "The adopted contract carries height and crown radius … The question is not whether data exists". D-15 now says "no read grant is needed to know them … A grant is needed only to read the **bytes**". I checked all of these against R-758C, and they match. |
+| Q-02 | MAJOR | **ADDRESSED** | The §6.2 banner template no longer contains `status`. It says "static Genesis Year0 fixture · source pin …", and the text adds: "**The banner does not carry `status`**". The provenance panel has no status row. §2.2 shows status per tree as "Life status: Live (source token; not health)". T-18 now expects "the banner contains **no** `status` or 'live' token". |
+| Q-03 | MAJOR | **ADDRESSED** | (a) §2.2 says: "**The viewer computes nothing biology-adjacent.** In particular it never compares `dbhMm` with the 170 mm threshold". The <170 row is now `belowActionNote`, labelled `PresentComputed` "(computed by the read boundary, **not** by the viewer)". T-19 adds a contradiction double to show that the viewer does not compare. (b) The base vocabulary is now the contract's four states plus Unsupported / Blocked / Refused, with PRESENTATION on top. `NotEvaluated` and `Unavailable` are separate rows, and §6.3 says they are "Kept **distinct**". The r0 SOURCE / DERIVED / NOT PROVIDED labels are "withdrawn". |
+| Q-04 | MAJOR | **ADDRESSED** (A1 and A2) | A1 adds a new §4.1 row, "Source forward-coordinate fields". Its new §4.3 text says the names `unityX`/`unityZ` "do **not** establish a Unity coordinate frame, handedness, up-axis, pivot or Unity-scene meaning. Any 3D mapping must cite transform ID `p1-square30-corner-to-centred-xz-v1`". §4.4 adds a coordinate-provenance paragraph covering all three identities. A2 adds a new §1.2 row: "**Not used as a 3D coordinate by default** … The 'unity' in the field name is a label only". D-15 adds "must not use the field name". A1's formula (`fround((xMm − 15000) / 1000.0)`, binary64 division, one f32 rounding, `k: f32` with an 8-hex `b`) matches R-758C §2.3 and §1.3. |
+| Q-05 | MAJOR | **ADDRESSED** | §3 and §7.1 are now labelled "browser-candidate". A new §7.0 adds N-01..N-08, the runtime-neutral outcomes: identity, count, pointer-free operation, refusal, no persistent write, no network, graphics unavailable and accessible route. Each comes with an "Observation requirement (method open)". D-8 adds: "**This decision must not follow from test convenience.**" The §5 Unity row now refers to the §7.0 outcomes. Remaining gap (not blocking): §7.0 says that T-19, T-08–T-10, T-04 and T-24 "need their own neutral wording at spec stage". That is outside what Q-05 required. |
+| Q-06 | MAJOR (shared) | **ADDRESSED** on the author side. The choice itself **remains an owner decision**. | A2 §1.2.1 withdraws the false premise ("r0 framed this … That was a false premise"). It presents G-1, G-2 and G-3 with honesty trade-offs, and says "**This dossier does not choose one**". The exaggeration becomes "a **disclosed, named, versioned display-mapping field** … part of the scene manifest digest". A2 also notes that A1's W-06 would have to accept it explicitly. A1 is unchanged on geometry, and its r1 banner keeps "Q-06's geometry/scale choice remains an owner decision". Q-06 asked W-06 to change only *if* an exaggeration is adopted, so no A1 edit is due now. Owner items 5 and 6 in §7 stay open. |
+| Q-07 | MINOR | **ADDRESSED** | A1 §14.1 now pins M2 `89412961…`, M3 `a9579188…`, M4 `a7e9228b…` and M5 `7af3add1…`, with "before M4's 18:32:00Z adoption". The reference-style link definitions at the end of the file are updated too. I confirmed that all four commits exist and contain the cited file paths. No `blob/docs/` branch URL remains in A1. |
+| Q-08 | MINOR | **ADDRESSED** | T-17 now reads: "The **production pin is unchanged**. No alternate production trust seam is added … An **authorised harness** supplies *viewer doubles*". Byte-level negatives "stay in the Core's **own separate test suite**". It adds (g), an incompatible version, and (h), an unsupported year, which picks up the §5 matrix note that A1's "refuse unsupported year" should be added. |
+| Q-09 | MINOR | **ADDRESSED** | §1.3 Persistence now says: "**3D proposal** that follows the H0-A precedent … The H0-A rule does not bind 3D". §2.3 adds a Basis note: "The H0-A constraints are 2D product decisions and do not transfer to 3D in either direction". The rows read "Precedent: H0-A … 3D proposal". §4.3 says "not an inherited 2D rule". |
+| Q-10 | MINOR | **ADDRESSED** | The §6.3 Year1 row and D-3 now read: "Historical Year1 - locally qualified numeric continuation; 3D display not yet qualified". |
+| Q-11 | MINOR | **ADDRESSED** (A1 and A2) | A1 §3.4 now says: "Scope-limited H0-A precedent; decoder divergence is a risk to qualify, not a 3D prohibition". §8.5 adds: "not a prohibition on a separately approved 3D decoder … share-versus-duplicate remains an owner/spec decision". The recommendation adds "This neither selects sharing nor rejects duplication". A2 §8 says "**Precedent and risk, not a prohibition.**" D-11 now lists options (a)–(d) and repeats the precedent wording. The word "breach" is gone. |
+| Q-12 | MINOR | **ADDRESSED** | A new A2 §6.1a sets out three identities. The fixture trust root is "the only input identity", named once. The observation identity is `ObservationKeyV1`, and its listed components match R-758C §2.7. The package/code integrity root is a "separate **future** item … held **externally**". The text adds: "'Core hash' must not be used for the fixture pin". The scene-manifest digest is "not an input identity". |
+| Q-13 | OBS | **ADDRESSED** (no action was required) | A new opening paragraph in A1 §13 says: "Phase A contains NO verified per-tree geometry of any kind. Every W-xx check (W-01–W-10) is NOT RUN." |
+| Q-14 | OBS | **NOT IN LANE** | This item was addressed to the owner or Manager. A2 left §5 unchanged and says so. If the Canvas-2D option is pursued, the Manager or owner still needs to check that it does not overlap #769. |
+| Q-15 | OBS | **ADDRESSED** | A2 §0 redefines [V] as "**Document-stated:** … It does **not** mean I checked fixture bytes, ran code or confirmed any data value". The r0 wording "verified fixture" in F-3 now reads "(the receipt calls it verified; I did not verify it)". That matches R-750 line 10. |
+| Q-16 | OBS | **MOOT** | No action was required. A1's context-snapshot line is unchanged, and no Scenario One material was added. |
+
+Totals: BLOCKER 1/1 addressed. MAJOR 5/5 addressed on the author side (Q-06's choice belongs to the owner). MINOR 6/6 addressed. OBS: three addressed or moot, one not in lane.
+
+### 8.3 Regression check
+
+**Material regression: NO, in either file.** I checked for each item below.
+
+| Check | A1 r1 | A2 r1 |
+| --- | --- | --- |
+| New false statement | No | No |
+| New unsupported claim or invented value | No. Every new value matches R-758C. | No. Every new value in F-12..F-19, §6.1a and §6.2 matches R-758C, including `sourceIndex`, `MatureEquivalent`, `CoordinateOutOfDomain`, the 12/1 rows at 170 mm and the 0.1 m floor. |
+| New execution, build, test or render claim | No. It says "no fixture or runtime evidence was obtained". | No. It says "Nothing was built, run, rendered or tested". |
+| Technology, scope or fidelity decision silently closed | No. §8.5 "neither selects sharing nor rejects duplication". | No. §1.2.1 "does not choose one". D-8 is kept open. |
+| #769 duplication or edit | No | No. #769 appears only as an exclusion, and in §8 "does not … depend on #769". |
+| Scenario One material | No | No. It appears only in the existing exclusion list. |
+| Code, HTML, JS or CSS block | No. There are zero fenced blocks. | No. There are zero fenced blocks. Element names such as `<table>` appear only as prose, as in r0. |
+| Scope widening beyond the findings | No | No. The additions are limited to correcting the findings. §7.0 is the vector set that Q-05 required. |
+
+**Non-material wording notes.** These are optional to fix and need no further author pass.
+- **A2 F-7** attributes the gloss "a life-status token, not health or dataset status" to [C4] alone. R-758A says only `status="live"`. The "not health" wording is in R-758C, which A2's F-14 cites correctly.
+- **A2 §2.2** says that "Q's review attributes the last three classes to A1 and the contract's refusal handling". §4 Q-03 attributed them to A1 only.
+- **A1 §4.3** says that "M5 reports that all 200 envelopes agree bit-for-bit". M5 §1.3 calls that agreement an "informational codec check … not H0-AC03 evidence". A1 does label it DOCUMENT-REPORTED, but it leaves out the "informational, not acceptance evidence" qualifier.
+- **A2 [C1] and [C3]** still link mutable branch URLs and give the pin in text. This is unchanged from r0. It was outside Q-07, which was A1-only.
+
+### 8.4 Delta verdict
+
+**DELTA RE-CHECK - ALL PRIOR BLOCKING AND MAJOR FINDINGS ADDRESSED**
+
+No finding is PARTIALLY or NOT ADDRESSED, so no further author pass is needed for Q-01..Q-16. These items remain outstanding, and none is an author defect:
+- owner decisions 5 and 6 in §7 (geometry fidelity and scale policy, from Q-06), and all the other §7 owner decisions;
+- the Q-14 check of #769 non-overlap, if the Canvas-2D option is pursued;
+- neutral wording at spec stage for the outcomes listed in A2 §7.0 as only partly covered.
+
+### 8.5 What remains true regardless
+
+- Nothing was executed. I ran no source, build, browser, Unity, Windows or test. I used only `git` and GitHub documentation reads.
+- I read no fixture, P0, #687, #710, #725 or other protected source, and no #769 file. Every value is document-stated, not byte-verified.
+- No runtime was validated, and no 3D design has been shown to be implementable, performant, accessible or contained.
+- This is **not** an implementation approval. It does not qualify A1, A2, a 3D spec, a runtime, a lane or G1/G2, and it waives no L4 FAIL38. I do not approve my own work.
+- Disposition of A1 r1, A2 r1 and this re-check belongs to **Manager #730**.
