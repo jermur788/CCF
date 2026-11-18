@@ -1,0 +1,54 @@
+# Sen-1 #731 / #652 — Physical board custodian-only D-091 source-admission refresh
+
+**Status: AUTHORISED PROSPECTIVE ONE-ROW CUSTODY REFRESH ONLY, NOT EXECUTED. #652 SOURCE BLOCKED until receipt; live Ops installation and Unity remain HELD.**
+**18 November 2026. Manager:** Chas, Overall Scenario One Manager #731, OpenAI GPT-6/GitHub browser. This is a direct corrective continuation under the existing #652 outcome-based Ops task, NOT a second Ops source writer or new production claim.
+
+## 1. Blocker and basis
+
+[Actual #652 12:17 UTC writer BLOCKED registration](https://github.com/jermur788/CCF/issues/652#issuecomment-6978301260), inspected by Manager. Replacement source writer **OpenAI/Codex gpt-6.1-sol medium, native T3 Code, session 9bcdfde6-699b-41f7-befb-acc9a7551f09 on jer-laptop** registered an existing physically clean isolated source worktree at `/media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116`, branch `ops/sen-1-652-unity-lease-readiness-20261116-v1`, local HEAD matching origin at the verified registration. Predecessor explicitly handed off; no new source writes/tests. These are the worker's dated physical findings, not fresh Manager machine observation.
+
+Existing physical 17-column board row `CCF-652-OPS-READINESS` still describes the original #640 source author and initial base, `READY / RESERVED ONLY / NOT RUNNING`, with an old source ceiling. It does not name the new actor/session, current source state, D-091 `--no-expiry` feature or optional role-guide path. It cannot be used as a valid source-start certificate. The Manager's [#733 audit approval and #652 amendment](https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-731-MANAGER-733-REVIEW-AND-652-NO-EXPIRY-OPS-SOURCE-CONTINUATION-20261118.md) prohibited the SOURCE IMPLEMENTER from editing the live physical board; this packet resolves that actor boundary, not the source writer's absence of authority.
+
+[Original #652 conditional operations packet](https://github.com/jermur788/CCF/blob/docs/sen-1-652-end-to-end-ops-readiness-packet-20261116-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261116/Sen-1-652-END-TO-END-UNITY-OPS-READINESS-AND-CONTROLLED-DEPLOYMENT-PACKET-20261116.md) already established one-row physical reservation/amendment protocol under the exclusive board lock, original validator PASS, recovery bytes and exact readback. No second task/claim and no second source writer are needed to resolve an ordinary admission correction. User D-091 prohibits elapsed-time expiry but not a properly verified assignment register.
+
+## 2. Separate physical custodian assignment — exclusively registration, NOT source implementation
+
+**Difficulty: MEDIUM.** Best-suited worker: a currently authorised actual Linux CCF-Ops **board custodian** on jer-laptop, a separate session/person from the source author (same task #652 but custodial-only action). Could be the owner acting as physical custodian or a distinct operator with independently proven board authority. Do **not** presume that the new source worker can reclassify itself as the custodian under this packet. If there is no actual current authorised physical custodian, STOP and return the missing actor/authority to Manager; no fabricated self-approval.
+
+**Exact physical object permitted:** ONLY the EXISTING `CCF-652-OPS-READINESS` 17-column row in `/media/jer/ZX20/CCF-Ops/board/active.md`, with an exact delta preserving every unrelated physical row and all table columns. No new row, no `lanes.json` write, no source shell/installer/source script, no Unity lock/state/history change, no CCF-Primary, #690, Multi/2D or project file. The custodian's immutable recovery copy and receipt must be in a separately authorised Files CCF custodian evidence folder; do not alter existing other task receipts.
+
+**Row content required (fit current installed original 17-column schema; don't introduce unsupported states/columns):**
+- Sole **prospective** actual #652 source writer's provider/model/session/hostname and source-only role, exactly as registered in issue comment above, with unambiguous reference to [#652](https://github.com/jermur788/CCF/issues/652).
+- Existing real clean Files CCF Ops source worktree, branch, observed starting source state and no other source writer; newest pinned source HEAD at actual refresh (if changed unexpectedly, STOP).
+- The approved D-091 **source-only** no-expiry change ceiling `CCF-Ops/scripts/unity-lock`, `CCF-Ops/tests/self-test.py`, and `CCF-Ops/README.md`; optional `CCF-Ops/roles/unity-operator.md` ONLY if the original existing role guide is actually needed and physically separately listed; focus fixture path solely if genuinely necessary and already approved in #652. Existing older #652 file scope remains as documented for distinct previously approved defects; no unbounded glob.
+- The source task is prospective `READY / RESERVED ONLY / NOT RUNNING` **until** the author personally re-registers RUNNING with a renewed actual readback and original preflight. Do not falsely report source RUNNING merely by recording the actor.
+- Ownership **ends on explicit safe task handoff/release, not by arbitrary UTC expiry**; do not add fabricated future ETA to physical board. The actual installed Unity lock still has its old required ETA until a separately reviewed/deployed source patch.
+- Explicit **NO LIVE OPS INSTALL, NO UNITY, NO GAME SOURCE, NO OTHER LANE CHANGES**.
+
+## 3. Exact guarded mutation protocol
+
+1. Custodian refreshes authoritative main coordination, #652 scope, the [actual worker BLOCKED comment](https://github.com/jermur788/CCF/issues/652#issuecomment-6978301260), current original physical board/lanes config, other owner claims, live Ops install and source writer/process state. Prove actual operator board authority and no concurrent board writer or conflicting physical Ops source custodian. Confirm source writer still BLOCKED/NOT RUNNING.
+2. Acquire **real nonblocking exclusive flock** on the board-directory common guard. If unavailable, STOP with conflict receipt; do not wait indefinitely or kill the guard holder.
+3. Snapshot **full before bytes, owner/mode and SHA-256**, preserve a genuinely recoverable separate copy, verify source `/media/jer/ZX20/CCF-Ops/board/active.md` is still the exact file tested. Work on a copy, preserve the 17-column schema and modify precisely ONE existing task row with approved actor/branch/current start scope; no row append or lane change.
+4. Run the existing **UNMODIFIED** `scripts/packet-lint <candidate-board> --board` with safe environment against candidate bytes (do not alter scripts or tests); require exit0. Under same flock, compare exact original before content/hash before atomic replace. If anything changed, STOP without overwriting. Atomically replace ONLY physical `board/active.md`, preserving necessary ownership/modes.
+5. Read back row and **full post-diff (exactly one row), original packet-lint exit0, all unrelated rows identical, lanes.json/deployed scripts/state/history hashes unchanged**, lock occupancy and receipt. Ensure the row references D-091 source allowance and explicitly does not authorise installation. Retain safe recoverable before copy.
+6. Release only its own board-directory flock. Publish one durable GitHub custodian result on an isolated docs branch, update #652 with permalink and **specific receipt hashes**; mention no source started. Only THEN Manager assesses the receipt and can post a source-admission verdict. Worker must refresh actual physical state again before changing source; old conditional source permit is not automatically active because a row was updated.
+7. If interrupted or lint fails, restore only if exact guarded compare confirms no intervening board change and the custodian is sole owner; otherwise STOP, preserve evidence and request Manager disposition. Never revert another custodian's concurrent work, weaken validator or change another row to force PASS.
+
+**Proposed durable handoff result:** `Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-652-BOARD-CUSTODIAN-D091-ONE-ROW-ADMISSION-REFRESH-RESULT-20261118.md` on an isolated docs branch `docs/sen-1-652-d091-board-custody-refresh-20261118-v1`, created only after actual worker registration. Must include real custodian identity and original source status, before/after board hashes, exact one-row diff, authoritative board-lock owner, unchanged lanes/scripts/state hashes, validator command/exit/result, and explicit disposition of the source writer's STOP. The result URL is future/NOT YET PUBLISHED.
+
+## 4. What remains held
+
+- The **source worker is BLOCKED**: do not run tests, mutate source, stage tools or assume new physical rights until actual custodial receipt and separately issued Manager source-admission decision. The existing author session can remain assigned prospectively, without an arbitrary time limit.
+- **#652 live deployment is STILL HELD** by earlier no-install decision and independent reviewed-deploy requirements. This one-row registration is NOT an Ops software installation or a grant to rewrite any Unity record.
+- **#718 Unity/Compact30 scene authoring STILL HELD**; source and physical readiness plus W §12 personally signed exception, focused nonauthor review, actual ZX20 scene lane/Unity lock and actor-specific source-start remain outstanding.
+- #690 source and Multi #730 physical leases and processes untouched; old advisory free-text dates are not silently reconciled by a board update to #652.
+- No Windows build. Dashboard/Drive sync unverified.
+
+## 5. Dispatch to a separate authorised physical custodian
+
+**Required user action:** Run this with a **separate authorised native physical board custodian**, not the blocked #652 code-author. Nothing is required of the source author until the receipt is published and Manager reviews it.
+
+**Exact paste-ready dispatch:**
+
+> Act as the separate authorised physical CCF-Ops board custodian for existing Sen-1 #652, **NOT its source writer**. Read the complete Manager packet: https://github.com/jermur788/CCF/blob/docs/sen-1-731-chas-manager-intake-20261118-v1/Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-731-652-BOARD-CUSTODIAN-ONLY-D091-SOURCE-ADMISSION-REFRESH-20261118.md. Register YOUR actual operator/model/session/host and prove board-write authority before touching the live board. Under the real exclusive board flock, safely refresh ONLY the existing CCF-652-OPS-READINESS row to identify the already BLOCKED source author and its D-091 source-only scope, with before-byte recovery, original packet-lint PASS, exact one-row diff and unchanged lanes/scripts/other rows. Publish the exact GitHub result and receipt. Do not edit source, install live Ops, touch Unity, #690, Multi or CCF-Primary. If custodial authority/conflict cannot be proven, STOP and report it.
