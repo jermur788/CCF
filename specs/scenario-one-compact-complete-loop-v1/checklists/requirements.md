@@ -1,47 +1,18 @@
-# Compact Complete Loop — 115 Unchecked Requirements and Negative-Test Matrix (No Rack / G1 2+2)
+# Compact30 Complete Loop — Inherited Requirements and Reviewed CL Overlay
 
-> **16 November 2026 — RATIFIED BASELINE / UNSIGNED CONTENT / DRAFT SPEC.** The product owner accepted the complete **30 × 30 m (900 m², 0.09 ha), initially all-Sitka, NO INTERNAL RACK** compact Scenario One as the next personal Editor-test and first external closed-beta target, with **approximately 12 × 10 m pre-existing southern H1 entrance/parking/collection clearing**, 14 source-screened *world-at-start omissions*, winding **pedestrian-only** path and **one first planting group of 2 sessile Oak + 2 European Beech**. An occasional small truck is staged only when cars/visitors are absent. These design choices are no longer Manager-only proposals. **The exact signed new-world identity, source tree roster, 4 final positions, post-H1 light/fitness, controls, finance/completion, native Unity and save/Reference evidence remain UNVERIFIED/OPEN.** The 189 Sitka are the original research input, *175 is a conditional model derivation*, not a finished scene count. No Year-1 felling/order/revenue may be created for the 14 historical omissions. No automatic broadleaf natural recruits by Year40, guaranteed planted survival, second planting group, rack lesson, mandatory three-cycle quota, or arbitrary felling threshold. The signed [three-profile save contract](https://github.com/jermur788/CCF/blob/200add4e6e5116268b79ef63131ff9b836f14c5d/specs/scenario-independent-save-isolation-v1/spec.md) and [external signature](https://github.com/jermur788/CCF/blob/docs/scen1-manager-save-v2-immutable-approval-20261115-v1/Docs/Handoffs/ScenarioOne-Save-Orchestration-20261115/scen1-MANAGER-SHARED-SAVE-V2-IMMUTABLE-SPEC-SIGNATURE-20261115.md) approve **persistence policy only**, not a playable Compact profile; ISO-58/CG-TRIG is BLOCKED. Historic Enlarged80 five racks, Rack V2/MFM, Legacy40, v1–v24 saves, and frozen Reference Future v1 retain their original behaviour. **D-083 is a proposed, unused-on-main compact exception** pending independent canonical review and #425 publication; existing **D-082 is solely the Sitka growth experiment**. No implementation, Unity, asset, save, Windows build or APPROVED status is authorised by this documentation.
+**DRAFT — NOT APPROVED; NO IMPLEMENTATION AUTHORITY / NOT AN IMPLEMENTATION PERMIT. All criteria unchecked.** Branch-only #782 staging from frozen #617, not main. The parent owns the CL overlay; [planting](../../scenario-one-compact-initial-planting-v1/spec.md) is SUBORDINATE DRAFT and keeps CIP-001…CIP-033 in its own checklist. Graphics is separate and untouched. **115 R +33 CIP +76 CL =224 tracked criteria, 0 checked.** No criterion is satisfied by documentary consolidation.
 
-> **Source trace:** #516 no-rack parent original reviewed DRAFT copied into this unified #576 branch, keeping original requirements IDs and checkboxes; exact source provenance recorded in #576 result. Pending independent [#579](https://github.com/jermur788/CCF/issues/579) review. For C1–C10 see the G-04 contracts and manifest in the same handoff directory; these remain proposals, not substituted accepted rules.
+**Current provenance:** D-083 is a confirmed direct owner product baseline / canonical scope only; D-084/D-085 settle intent, signed §4.2/#677 settle technical policy. Exact world, digest, G1 coordinates, W §12 and save activation remain unsigned/unverified. [Parent §11](../spec.md#11-current-decision-register-and-inherited-open-c-reconciliation) reconciles every stale OPEN-C status below; original requirement wording is preserved for traceability, never read as reopening settled choices.
 
+**Overlay custody:** CL-001…CL-070 are verbatim from #774 `d34fa89a`; CL-071…076 are its additive unchecked criteria. Their references to the frozen “owner-decisions §C” now resolve through parent §11 C: M-4 non-gating guidance A is selected, timing/past-selection credit/reselection remain OPEN. CL-014 cannot introduce a new gate. CL-068's historical #763 review duty now requires independent **#783 full-package review of this canonical candidate**, followed by separate Manager #731 disposition; #775 changed-lines documentary review alone does not satisfy it. CL-075 uses Manager M-5 Compact advisory wording, subject to review. S1-D historical status: **APPROVED PRODUCT INTENT; D-066 implementation contract repaired by #145 and pending Manager review #158; no T-04P/T-04 production release until #158 approves.** No historical T-04 grant transfers to Compact.
 
-**Status: DRAFT — ALL 115 ITEMS UNCHECKED / UNVERIFIED.** #516 is browser-only owner-scope/spec reconciliation against #515, #508 and #513; no Unity, new save, production code or native path/planting/old-world test executed. Older #460 one-rack scratch and #490 post-rack annual research remain **historical**, not evidence of the new no-rack world. A checkbox requires exact authorised production and cited verification evidence; it is never checked by writing/reviewing a DRAFT.
+**Signed precedence / #775 notes:** #677 CT-3 holds **all** further annual advance when CT-1 true/CT-2 false; ordinary one-year choice remains under those mandatory guards (N-6). “Ill-typed” refusal is a **derived raw/typed structural interpretation**, not a new signed wire literal (N-5). No recovery rule resolves D-N1 here. Death/re-mark/felling removes current CropTree evidence, reassessment guidance only (N-3/M-4); no persistent selection history is inferred. Full S1-D status above supplies N-4's omitted repair/release history.
 
-## #614 — Evidence overlay: complete Linux gameplay before final art (DRAFT; no new R IDs)
+## Original #617 parent criteria — exact lines preserved, all UNCHECKED
 
-**Core physical scene/first personal playtest:** Existing unchecked R-005…007, R-026…030, R-065…066, R-070…072 and R-075 still require signed H1/14 historical omissions/8 buffers, Route A, *actual* Sitka/tree/Stand Map IDs, four G1 positions, real capsule/guard collider/walk and 720p/1080p legibility. **O1 0.141 m path-core guard overlap remains a FAIL**, O2 0.155 m verge and B2 margin remain warnings until native proof/FR-06 owner-signed amendment. A neutral primitive stand-in may depict a correct physical state, **not suppress a collider** to pass.
+Original IDs, wording, unchecked state and order are retained below. Where dated decision provenance is stale, §H and parent §11 update that provenance only; **all other inherited duties and positive/negative witnesses remain**. Native/compile/runtime/playtest evidence is NOT RUN. R-067/R-068/R-097 overlay half/R-114 remain deferred and unchecked; Manager process items are not waivers.
 
-**True teaching and forestry:** R-040…064, R-093…098, R-102 and R-105…113 require four genuine owner-stock 2 Oak+2 Beech Pending orders, approved Work Plan, quote and annual settlement, first-year/long-year browsing and recruitment, comparable true Sitka/Oak/Beech, meaningful later interventions and no-work, S1-C/S1-D history/review, and owner-decided OPEN-C5 cash/completion. Do not award intervention credit for H1 omissions/initial planting/guards/token Fell; do not invent funding, natural broadleaf donors or a mandatory three-cycle quota.
-
-**Shared scene-independent admission:** R-011…025, R-080, R-083…092, R-101 protect actual #544 one registry for three profiles, New/Continue/Restart **pre-scene** foreign/future/backup refusal, no boot-dependent `ForestSaveController.CanLoad`, genuine old v1–v24/frozen Reference. Preserve ISO-07/08/42/44/48/54/55 + ISO-15 identity; ISO-58 is **BLOCKED teaching/CG-TRIG**. **R-035/036** retain existing *non-Enlarged80* rack eligibility refusal, not a Compact-only prescription bypass.
-
-**Asset/quality mapping — #606 n-1 clarified:** R-070/071 are stage/state-accurate render requirements; **R-073 explicitly remains provenance/licence/LOD/import checks** and **R-074 explicitly remains measured hardware/performance evidence**. Existing stage-appropriate tracked first-party Sitka Plantation02, understory/deadwood and 2 m Oak/Beech can be reused only after real source/version/rights inspection. For initial 0.6 m Oak/Beech, a labelled simple placeholder is safer than a 0.3× shrunken 2 m model; this is *not* a Unity render pass. Final art pack, #605 v2 and #611 look are **not blockers for beginning core code after CF-00 authority and explicit spec approval**. Personal playtest does require readable honest graphics/physics; external beta later requires suitable visual quality/licence/performance. Do not alter protected `Forest Ground.mat`, `Forest Path.mat`, 52 E80 planks/tracks, old worlds or import unlicensed `ForestFloorV1`/partial Ultimate Nature. D-032 is open.
-
-**Test and user gate:** R-076/077 require registered exclusive Linux worktree/HEAD/Unity lease, Tier-1 FAST for bounded source, Tier-2 FEATURE for native walk/plant/save proof and one Tier-3 milestone candidate (not full suite per art item). R-079 requires the owner's personal exact-candidate Editor playtest before a separately authorised Windows build; **the Linux Editor host requirement comes from the 16 November owner direction, not from R-079's original wording**. R-081 precludes asserting acceptance from source/aesthetic screenshot alone; R-082 dashboard/Drive receipt remain unverified.
-
-**Preservation:** all original 115 `- [ ] R-001…R-115` checkbox lines below remain byte-for-byte unchanged, all **NOT RUN**. This overlay adds no checks, no acceptance and no DRAFT→APPROVED transition.
-
-## #600 — Source-to-requirement witness guide (commentary only; zero new IDs/checks)
-
-### #604 correction — existing-ID acceptance crosswalk only; all original R boxes stay unchecked
-
-**Startup/scene witnesses (map to existing R-012…R-024 and R-080…R-092 as appropriate):** Verify proposed neutral index-0 title generates **no forestry world**; boot-only profile-picker UI does **not** require gameplay-bound `ForestPlayer`/save/UI; gameplay-dependent `StandaloneSessionMenu.Open()` is suppressed until after scene selection; one persistent after-scene-load host; profile-bound New/Continue/**Restart directly into selected profile with no title**/F5/F9/F10, separate optional Return-to-Title, no active-buildIndex fallback, both current save-path call sites use one registry, and scene destination is **not** an identity field. Test wrong profile, scene/content, future Compact schema and primary/tmp/bak refusal **before mutation**, with criteria **ISO-07/08/42/44/48/54/55 + ISO-15**. **ISO-58 is BLOCKED CG-TRIG teaching, not save identity.**
-
-**World/loop witnesses (existing R IDs, no new checked line):** `ForestStartingStand.Awake()` old headland/approach must not leak; verify geometry-keyed rack/Map/guidance suppression, new geometry objective scaling and revised completion rules, all four planting orders' **batch** guard/executor toggle limitations, €20 stock + up to €20 guard materials + **€30 contractor labour** (or 40 owner minutes). Separate formal startup acceptance IDs require later approved spec revision; this note is not a test PASS.
-
-These are **inspection and future qualification mappings**, not PASS results. Keep the original **115 R-001…R-115 lines byte-for-byte in meaning and all unchecked**.
-
-| Existing IDs | Exact extra witness/negative required for the owner-chosen separate scene |
-| --- | --- |
-| **R-005–007, R-026–030, R-065–072** | Versioned Compact30 scene/hierarchy, no old E80 2.6 m `Dirt Path*`/20 H1 planks; 30m 189 original Sitka source, **14 proposed preworld omissions**, **eight retained H1 buffer stems**, all eight Route A points, G1 2 Oak+2 Beech, true Stand Map source, no rack glyphs; failed O1 **0.141m core** and O2 **0.155m verge** guard remain failure until approved FR-06 reviewed manifest change and real native witness. |
-| **R-012–024, R-080–092** | `EditorBuildSettings.asset` build only ForestTest today; `StandaloneSessionMenu` persistent `AfterSceneLoad` menu and `Restart()` currently active buildIndex. Profile→scene+slot preflight/refusal BEFORE scene, prefs, disk, live mutation for New/Continue/Restart/F5/F9/F10/LoadData, ISO-07/08/42/44/48/54/55 + ISO-15 identity evidence; ISO-58 CG-TRIG BLOCKED; wrong/unknown/future Compact IDs, foreign temp/backup; genuine v1–v24 legacy, E80/Rack V2/MFM and frozen Reference v1 unchanged. |
-| **R-032–044, R-051–064, R-093–098** | No-rack direct manual marks + real Work Plan; `PrescriptionApproval` currently requires Rack V2 confirmed and MUST NOT fabricate a rack; four authentic owned-stock G1 orders, optional guards, real settled work, latest Annual Review read/acknowledgement and separate OPEN-C1/C5/C7 decisions; distinguish €12,000 starting gameplay cash/€2,500 commissioned harvest minimum, €20 stock and optional €20 shelter materials from actual affordable work. |
-| **R-035–036, R-069, R-080, R-095–096** | No new Rack V2/MFM proposals/coverage or old headland work fake credits in Compact; historical five-rack tests intact; H1 omissions, initial planting, guards, pruning, no-work and lone token Fell do **not** automatically prove repeated substantive CCF treatment. |
-| **R-001–004, R-075–080, R-100–115** | Document owner acceptance *only* for separate scene/W look/path-safe guard/H1/no fresh stumps/neutral daylight and G1 2+2 count. Scene content, three-profile save, risk, financing/teaching/completion, licence, source and Unity verification remain gated by nonauthor review and source owners; no Windows build pending owner playtest/authorisation. |
-
-**Read-only source audit anchor:** `ProjectSettings/EditorBuildSettings.asset`, `StandaloneSessionMenu.cs` + `.Startup.cs`, `ForestStartingStand.cs`, `StandGeometryModel.cs`, `UI/Map/StandMapSource.cs`, `ScenarioOneManager.PrescriptionApproval.cs`, `ForestSaveController.cs`, `ForestSaveData.cs`. Checklists are not a substitute for the actual compiler/Editor/collision/save evidence.
-
-## A. Ownership, approvals and candidate feasibility
+## Inherited A. Ownership, approvals and candidate feasibility
 - [ ] R-001 Product owner/Manager selects OPEN-C1 **first-use orientation and teaching-complete pathway** for a pre-existing H1-style entrance, winding **pedestrian-only** path, no internal rack and first real G1 planting. The former map-draw-rack P versus preauthorised-rack A choices are superseded for **new compact only**; do not silently decide arrival/assessment UI or reuse old five-rack teaching IDs.
 - [ ] R-002 Independent nonauthor reviewer **identifies** blockers and returns DRAFT-quality verdict; ONLY product owner/Manager/save owner resolves decisions and Manager explicitly promotes status after gates.
 - [ ] R-003 #424 actual Objective 1 source/#443 owner handoff inspected at pinned head; one writer and machine/Unity lease rechecked before production; no local source verification inferred from #458.
@@ -53,7 +24,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-009 No simulated coefficient or Irish empirical number silently imported from transfer or research suggestion.
 - [ ] R-010 Following any **separately authorised canonical authority change**, source/manifest and one-context-SHA permanent Drive mirrors verified/read back; not the final release/dashboard check in R-082. #458 performs no sync.
 
-## B. Save identity and no-mutation policy
+## Inherited B. Save identity and no-mutation policy
 - [ ] R-011 New compact identity explicitly stored and validated: world/scenario/geometry/content/version are independently approved, known-ID dispatch never silently maps to Legacy40/Enlarged80.
 - [ ] R-012 Compact primary/temporary/backup files disjoint from original `forest-save.json`/`.tmp`/`.bak` and O2 slots, including failed load/recovery/roundtrip; exact original bytes unchanged.
 - [ ] R-013 Selected compact/legacy/O2 profile governs New/Continue/F9/F10/direct LoadData/reference preview and backup preflight **before scene, live, PlayerPrefs, disk or ID mutation**; profile-specific CanLoad and click-time revalidation agree.
@@ -70,7 +41,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-024 Old five-rack plans/entrance tree IDs/teaching objective history/MFM prescription/work event IDs persist and remain readable.
 - [ ] R-025 Old v24 one-way historical first-guided review latch remains authentic/false when missing; compact cannot import latch as own teaching or completion signal.
 
-## C. Pre-existing entrance, pedestrian path and genuine first planting
+## Inherited C. Pre-existing entrance, pedestrian path and genuine first planting
 - [ ] R-026 New compact profile has a **pre-existing** H1-style entrance/visitor clearing and winding **people-only** route shown consistently in world and Stand Map; **no internal extraction rack**. #508 H1 12×10m and path are provisional source-screened, not approved geometry, built road or native player walkability. Visitor parking and occasional timber collection are **separate staged modes**, with yard clear of cars/walkers for pickup; no certified haulage or public-road loading/reverse-driving portrayed.
 - [ ] R-027 Approved OPEN-C1 first-use arrival/path/orientation workflow and OPEN-C7 durable **assessment/G1 planting/review teaching-complete** signal are independently verified before optional skip; no obsolete P/A rack construction, spray-first, historical stage7/v24 latch, PlayerPrefs key reuse or ghost rack completion.
 - [ ] R-028 Player assessment and **G1 exact-position planting markers** do not fell on designation, manufacture an entry road or instantly create a juvenile. Four authentic Pending Work Plan orders, not rack entrance spray, are the early teaching action; invalid duplicate/stock/cell/live-stem positions are rejected.
@@ -83,7 +54,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-035 No new compact rack/rack corridor/orange entrance marks, phantom 2–5 racks, source-rack→target proposals, MFM halo/automatic selection or three-tree teaching-credit shortcut; old Enlarged80 five-rack Rack V2, its entrance-tree marking and MFM tests remain unchanged on historic saves.
 - [ ] R-036 **Original pinned old-world MFM tests** for five-rack teaching/coverage/prescription/proposals continue unchanged; retain all checks without claiming unfinished MFM-08/09/10 already passed.
 
-## D. Work Plan, forestry biology and economy
+## Inherited D. Work Plan, forestry biology and economy
 - [ ] R-037 Draft/selected vs Pending/Approved vs Completed/Failed/Cancelled all distinguishable in UI, map, history and saves.
 - [ ] R-038 Marking/map preview alone generates no felling, payment, loss of canopy, ecological tick, event or Year-change.
 - [ ] R-039 Any NEW/UNVERIFIED current-tree **BA (m²)**, selected biological volume **(m³)**, residual retained BA, same-year canopy geometry and declared management-area units are sourced/qualified before display. `SelectedOpeningRemovalSet` is an owner-chosen **one status source** draft OR Pending OR Approved OR explicit selector (no union or MFM proposals). **Pre-existing entrance/footpath footprints**, not rack corridor, must be excluded consistently from eligible standing area where approved; no duplicated entry exclusions, no fake timber machine access or growth forecast. One selected and one retained-tree status negative required.
@@ -97,9 +68,11 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-047 Understorey bramble/bracken, browsing/protection and regeneration interactions are authoritative, with honest non-causal habitat-only representations.
 - [ ] R-048 Deadwood, retained habitat, removal outcomes and mortality records are state-driven and observable; graphics never invent ecology.
 - [ ] R-049 Candidate edge/competition/crown/seed influence classified honestly for a **small genuinely bounded woodland with potentially open fields/roads outside**; existing finite CI is correct if no neighbours exist, not automatically a boundary bug. #484's hypothetical surrounding Sitka changes some sampled edge indices only under the *unapproved* bigger-forest premise. No fabricated exterior trees, 25/30m approval or untested external hedgerow broadleaf seed donors.
+
+**#782 / #775 N-2 provenance correction for unchanged R-049:** its historical “25/30m approval” phrase must not deny the now-confirmed **30m D-083 product baseline**. No fabricated exterior trees or untested hedgerow broadleaf seed donors remains the unchanged duty; no exterior donor mechanism, old-world change or new site approval is inferred. The checkbox wording and ID remain verbatim for custody.
 - [ ] R-050 Annual model performs real authoritative year-by-year state update in existing order with persistable snapshots, no compact “light” engine.
 
-## E. Cycles, review, time and completion
+## Inherited E. Cycles, review, time and completion
 - [ ] R-051 Owner-approved D-074/OPEN-C5 new compact substantive intervention classifier requires bounded area, meaningful multiple actual retention/release judgements, real linked succeeded work and later observation. **Pre-existing H1 tree omissions** are not player work; **first four G1 planting/protection**, maintenance, pruning, isolated token Fell and no-work do not automatically qualify. No rack or rack-only alternative in new compact; old-world two-cycle credit unchanged.
 - [ ] R-052 Three substantive cycles are **Manager DRAFT test interpretation**, require owner ratification before becoming completion rule; if accepted, real distinct episodes and at least one later evidenced treatment adjustment, no count from two old successful work years.
 - [ ] R-053 Approved D-074 spacing/observation policy (MD-02/MD-03) applied to real resolution years and observed/reassessed stand; no unapproved 3-year hard minimum, and quiet-year records never become fabricated field visits.
@@ -115,7 +88,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-063 Completion once, correctly persisted, history browseable and continued management/observation supported when legitimate.
 - [ ] R-064 Old-world completion and educational achievements unchanged; no retroactive false failure or retroactive compact credit.
 
-## F. Spatial presentation, visuals and performance
+## Inherited F. Spatial presentation, visuals and performance
 - [ ] R-065 Full Stand Map and minimap show actual **pre-existing H1-style entrance**, winding **pedestrian-only** path, G1 four individual tree planting positions, current standing tree IDs/crowns/marks, player focus, boundary and statuses; **no internal compact rack** or old five-rack cues, while historical worlds still display their authentic Rack V2.
 - [ ] R-066 Existing/current tree condition, draft marks, Pending/Approved and historical completed work have explicit legends, shapes and readable text independent of colour.
 - [ ] R-067 Optional read-only current-crown geometry overlay computes from exactly **owner-approved OPEN-C6 SelectedOpeningRemovalSet** = draft marks OR Pending OR Approved OR explicit single-status selector, no union or completed Fell/MFM proposal, fixed year/seed deterministic clipping.
@@ -128,7 +101,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-074 Target GPU/hardware/render conditions and draw calls, memory and frame-time measured; numerical budget adopted by owner AFTER evidence, no invented threshold in DRAFT.
 - [ ] R-075 Fixed-seed before, conditional-preview and after actual annual work rendered 3D/map comparisons agree and are archived.
 
-## G. Integrated signoff and release safety
+## Inherited G. Integrated signoff and release safety
 - [ ] R-076 Only approved source lanes, registered claims and serialized machine-wide Unity ownership used; no user-protected saves/Editor interrupted.
 - [ ] R-077 Tier-1 targeted tests, focused Tier-2 feature qualification and one pinned-candidate Tier-3 integrated qualification all produce durable logs and GitHub handoffs.
 - [ ] R-078 Independent nonauthor source/rendered/data review signs exact candidate; Manager returns formal APPROVED / NEEDS CHANGES / REJECTED.
@@ -137,7 +110,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-081 No acceptance asserted from only static audit, mock preview, research inventory, screenshots without source state or compilation without runtime.
 - [ ] R-082 **Final** project status/dashboard publication and audit ingestion verified against receipts where used, distinct from **R-010** canonical context/Drive mirror sync; never assert sync without read-back.
 
-## H. Mandatory cross-cutting negatives and authority decisions (additional IDs, all UNCHECKED)
+## Inherited H. Mandatory cross-cutting negatives and authority decisions (additional IDs, all UNCHECKED)
 - [ ] R-083 #436 SI-02/03/05 and FR-02/06 reconciled by **ONE** APPROVED save/router owner; either compact added as third profile to #436 or #436 formally delegates O1; no simultaneous A-01 implementations.
 - [ ] R-084 Legacy future-schema **best-effort** remains as shipped without independent save-owner approval; compact newer/unknown version fails closed only under its newly accepted profile.
 - [ ] R-085 Every public/private load route including direct `LoadData`, Continue, F9/F10, New/Load and Reference preview invokes preflight BEFORE first geometry/ecology/tree/financial/order/Prefs/allocator mutation.
@@ -153,6 +126,8 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-095 Native classifier negative examples: historical old-world rack clearance, new-world **pre-existing H1 omissions**, initial four G1 planting/shelter/protection, pruning, isolated token Fell and no-work do **not** automatically qualify as substantive forestry intervention. Actual linked repeated multi-tree treatment may qualify only under owner-approved evidence/area/spacing policy. Preserve old-world classification untouched.
 - [ ] R-096 D-077 FellTree **navigation advice** may use a real succeeded FellTree year in either profile (historical rack FellTree **in old worlds only**) without giving substantive-management credit. **No Year1 FellTree** arises merely from new pre-existing H1 omission; preserve two distinct direct-vs-UI acknowledged annual parity oracles.
 - [ ] R-097 Work Plan selected-tree BA/volume and optional current-crown illustration may use common **owner-selected `SelectedOpeningRemovalSet` only IF APPROVED** under OPEN-C5/C6, otherwise separate named input; one status (draft/Pending/Approved/selector) never union or completed work/MFM proposal. Label expected vs settled outcomes, property/net-management-area denominator and **pre-existing entrance/footpath exclusions**. No unproven retained BA, future ecology, road/vehicle-access forecast or already-shipped UI claim.
+
+**#782 / #775 N-1 mixed duty:** R-097 has one deferred class for its optional C6 overlay half. Exactly as for R-039, its **non-overlay Work Plan status/units/denominator/expected-versus-settled duty still applies via CL-050**. Deferral is not an accounting waiver; R-039 retains updated-provenance class for that duty. All original negatives and both unchecked lines remain.
 - [ ] R-098 Approved-order edits follow explicit **OPEN-C8** withdraw/requote/reapprove or safe block policy; unchanged work history, no surprise execution from spray.
 - [ ] R-099 [#460](https://github.com/jermur788/CCF/issues/460) measured two independently generated historical temporary **one-rack** 20/30m Unity research candidates (**102 native checks reported PASS**) and Year1/5/9 cash traces; separate 420 economy assertions also passed. **DO NOT** promote them to no-rack/H1 G1 2+2 gameplay, user measured walking or compatible new save. #508 authentic original-data 30m screen (189 pre-layout Sitka, H1 14 overlaps, path 0 new stems, G1 Year0 light 0.221) is source-equivalent offline proof only; #513 is browser evidence only. Authentic post-H1/Year2 and field proof still gated by approved spec. No checkbox is earned by these research results.
 - [ ] R-100 Earlier #458/#459/#498/#499 DRAFT quality reviews and #460 research remain historical; #508 source screening, #513 independent browser guidance and [#515 Manager verdict](https://github.com/jermur788/CCF/issues/515) have been reconciled in the **#516 four-file parent DRAFT** with one new handoff. A **new single independent nonauthor #516 DELTA review** must accept changed scope and evidence classification (not 115 native tests) before #425/owner/save decisions and any formal APPROVED spec. #515 child DRAFT stays unchanged.
@@ -161,7 +136,7 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 - [ ] R-103 Legacy MFM tests at exact pinned candidate retained, without falsely claiming not-yet-finished MFM-08/09/10 qualification.
 - [ ] R-104 Every item worded "clear", "playable", "educational", "credible", "appropriate" or "meaningful" either has a defined measurable evidence set and approved criterion or is explicitly routed to named **user playtest judgement**, not a guess.
 
-## I. Owner-approved Option A planting-led broadleaf transformation and #490 long-horizon evidence — new DRAFT checks
+## Inherited I. Owner-approved Option A planting-led broadleaf transformation and #490 long-horizon evidence — new DRAFT checks
 
 - [ ] R-105 Owner-accepted Option A broadleaf establishment in complete first-demo Scenario One uses player-led **early Oak AND Beech planting** and later authentic care/management, not mandatory natural broadleaf seedling recruitment by elapsed Year40. Owner on 16 Nov **RATIFIED exactly G1 2 sessile Oak +2 Beech COUNT** as a small first lesson with **four genuine nursery-stock Pending→approved→executed** orders, protection/unsheltered alternatives where legitimate, and traceable annual outcomes. No eight-tree quota, automatic second planting or invented Irish survival coefficient; D-059 modelling parity and D-060 full-loop still apply.
 - [ ] R-106 **No naturally established Oak/Beech seedling by elapsed Year40 is required for success**, and no objective, tooltip, tutorial, scoring, achievement or comparison claims it is guaranteed. The source may produce natural recruits if real donors become mature and conditions allow; a user-presented external hedgerow must never secretly create unsupported Oak/Beech donors.
@@ -177,21 +152,280 @@ These are **inspection and future qualification mappings**, not PASS results. Ke
 
 **Owner/Manager decision update:** OPEN-C3 all-Sitka composition is resolved by owner. Latest owner simplifies **pre-existing entrance / winding people-only path / no rack / staged small pickup**, and **16 Nov owner ratified** first G1 **2 Oak +2 Beech count**; Manager #515's proposed coordinates/year remain reversible; this is not a certified road design, final saved profile or survived planting. OPEN-C1 still requires first-use/teaching UX and OPEN-C9 requires real site/year/stock/light evidence. All other OPEN-C and proposed D-083 Compact-first-beta exception (review #579; obsolete #471 paused) are still unapproved; 115 boxes remain unchecked.
 
-**Coverage policy:** all 115 boxes (R-001–R-115) remain unchecked in the DRAFT, including new R-105–R-115. A source-backed research run **does not tick product requirements**; original R-001–R-082 and earlier R-083–R-104 retained. Reviewer maps each to exact evidence/negative witness; if an item becomes inapplicable, revise the approved spec and capture a Manager decision rather than deleting it for a green report.
 
+## Reviewed #774 CL staging overlay — CL-001…CL-076, all UNCHECKED
 
-## 16 November 2026 — #576 cross-spec decision and verification register (DRAFT)
+## A. Exact authority, identity and world (CL-001…CL-010)
 
-| Gate | Accepted direction / current disposition | Required independent or native proof |
+- [ ] **CL-001** Accepted Compact baseline is exactly distinct 30×30m, no internal racks, new first personal Linux Editor test and invited beta; D-059/D-060 full-loop/parity apply. Old E80/Legacy40/reference unchanged. Negative: new Compact incorrectly starts historical rack lesson.
+- [ ] **CL-002** Real, owner-personally-signed versioned whole-world manifest/digest binds 175 candidate tree identities, source constructor/36-cell initialisation, seed, H1/path/Guards/G1, scene, assets/spawn, profile and budgets; no field invented. Negative: unsigned or mismatched digest does not activate Compact.
+- [ ] **CL-003** All 14 H1 source omissions are pre-world layout and generate zero FellTree, Year1 harvest, fees, sale, completed work, stand-treatment or teaching credit; eight outer-buffer stems retained. Negative: H1 removal causes income or objective credit.
+- [ ] **CL-004** D-085 all-Sitka unmarked start; zero pre-authored Oak/Beech/juveniles/seed donors/three CropTree marks. Negative: highlighted or preselected marks give assessment credit.
+- [ ] **CL-005** Flat y=0 continuous 30m plane, no authored hydrology, 36 real initial ecology cells half-open edges, no dormant Reference site profile; 175 roster/ID/world content native qualified after static #676 review. Negative: off-world cells, source-geometry fallback or 189 unmodified claim.
+- [ ] **CL-006** Native E1 walk: H1 start facing path; natural pedestrian core ~1.2m plus ≤0.20m visual verge, whole path reaches near north, ordinary player free roaming, 3.5m interaction and 8m mark reach; 720p/1080p collision and actual G1 views. Negative: verge depicted drivable or guard blocks route.
+- [ ] **CL-007** Four authored G1 exact zero-tolerance site coordinates pass real canopy/cell/standing trunk/path/H1/guard/protection/visibility native checks; #508 pre-H1 0.221 light alone gives no site/survival PASS. Negative: nearest-position rescue, path overlap and missing site refusal.
+- [ ] **CL-008** First-party image/material/URP/script/render rights, exact W§12 / Tier S signed content and ZX20/Unity gates are satisfied before scene production. Negative: D-088 five-file publication permission expanded to H/J/temporary tool or gameplay code.
+- [ ] **CL-009** E1 is classified strictly environment-only, not E2 playable game qualification or signature of final world; current #676 eight blocked rows and null digest are not called PASS.
+- [ ] **CL-010** The separately reviewed historical E80 Rack V2 / MFM/Stand Map, Legacy40/v1–24 saves and frozen Reference Future v1 behavior and anchors are not modified, regraded or migrated by Compact.
+
+## B. Player-led entry, stand assessment and trees (CL-011…CL-018)
+
+- [ ] **CL-011** H1 explicit arrival acknowledgement occurs only after real active Compact H1/world presentation and player action; mere spawn, location, menu-dismissal, Continue, skipped intro or global prefs do not auto-credit.
+- [ ] **CL-012** Real current-world/year inspect panel opened/read and explicit assessment acknowledgement after arrival; historical report, stale profile/year or bare method call does not count; source hook audited.
+- [ ] **CL-013** D-085 OD-17 calls for the player personally to choose and retain three distinct promising living Sitka Crop Trees, with original None/Fell/CropTree exclusive marks, no generated or highlighted marks and no minimum-three-Fell reinterpretation; Proper per-tree inspection/feedback. Timing, historical evidence and any progression effect remain blocked on “Crop-tree requirement semantics” in owner-decisions §C; this criterion does not invent a gate.
+- [ ] **CL-014** Crop-tree semantics must be explicitly settled through owner-decisions §C before implementation. No new key or T1 conjunct is authorised. Death removes living-retained evidence, a None/Fell re-mark removes the current CropTree mark, and felling removes standing-retained evidence. Past-selection credit/reselection duty stay OPEN; current persisted marks must not be misrepresented as immutable choice history.
+- [ ] **CL-015** Real player can inspect actual individual Sitka and Oak/Beech at correct biological/visual stages; field view, Stand Map, inspect status and current history agree, including 3d/2d legibility independent of colour.
+- [ ] **CL-016** All first lesson work remains real Pending Work Plan until explicit approval; marking a crop or a planting site never immediately fells, grows, bills, creates a mature plant or executes rack work.
+- [ ] **CL-017** No no-rack new-world MFM prescription, sample, proposal, orange entrance mark, external off-map donor or new small-truck route along footpath; negative legacy history contamination check.
+- [ ] **CL-018** Player can undo/correct permitted draft marks/orders without fake cash/biological events or loss of prior genuine history.
+
+## C. G1 stock and four true Work Plan orders (CL-019…CL-030)
+
+- [ ] **CL-019** Exactly four player-created designated G1 orders: 2 sessile Oak +2 European Beech; each has positive distinct ordinary work ID, the exact stored x/z from the future owner-signed world manifest (currently unsigned), each site’s fixed matching species (D-084 Geometry A; #677 §2), owned reserved nursery stock and eligibility. Negative wrong count/species/fifth/third same species/foreign ID.
+- [ ] **CL-020** Four positions are unique, bounded, within real ecology cells and clear of living stem ≥0.7m exclusion, duplicate order/juvenile, protected entrance/path/guard and incompatible tree; no out-of-area free placement.
+- [ ] **CL-021** CIP-016 per-tree **actor/method and optional shelter/protection** are genuinely individually editable choices before approval, with plausible source cost and no auto-protection/guaranteed survival; a bulk setter may not weaken them.
+- [ ] **CL-022** Player purchase, reservation, pending placement, order approval and actual stock debit have one legitimate ledger provenance each; insufficient inventory, actor ineligibility or insufficient cash fail without phantom order/juvenile.
+- [ ] **CL-023** Work Plan quotes actual selectable owner/contractor method, money/material/expected time and statuses before commitment; estimates and settled results visibly different; initial €12,000 game-calibrated cash displayed with provenance.
+- [ ] **CL-024** All orders remain Pending before explicit player review/approval; before-approval change triggers appropriate re-quote and retains correct ID/audit.
+- [ ] **CL-025** Approved work fields cannot mutate directly by spray, individual UI, service, batch material/actor setter, menu import or save load. Negative: previous source hidden Approved→Pending demotion rejected.
+- [ ] **CL-026** To change Approved work, explicit user-confirmed audited cancellation removes it from active execution; replacement requires fresh new Pending order, new quote and explicit approval. Old Completed work is never undone.
+- [ ] **CL-027** One annual resolution settles each Approved outcome at most once and captures actual order→juvenile ID/species/year atomically on Completed; failures/cancellations/no advance create no positive teaching planting row.
+- [ ] **CL-028** Work-order statuses Pending/Approved/Completed/Failed and actual cost/stock/time changes survive Compact save/load without duplicate/reversed charges or overwritten unrelated jobs. Cancellation deletes the order and persists an audited OrderCancelled event shown in history as WorkItemStatus.Cancelled. It is not a work-order status; no new Cancelled value is introduced (#677 §3).
+- [ ] **CL-029** Real original P0004… historical H1 omissions, site designer and selected/retained standing trees never get a synthesized WorkResolved or timber sale.
+- [ ] **CL-030** Optional valid other work may coexist with G1, but does not substitute for nominated G1 quartet or force automatic teaching complete.
+
+## D. Signed #677 CG-TRIG / annual review chronology (CL-031…CL-040)
+
+- [ ] **CL-031** Use signed §4.2 exact three-root save/profile shape and Compact teaching fields. No invented boolean, schema key, independent event type or global prefs proxy. Genuine H1 and assessment booleans remain source-validated.
+- [ ] **CL-032** Actual per-order success rows are exact linked eligible 2+2 Completed orders, one-to-one juvenile species/ID, completionYear=real resolve/report year, not createdYear, and zero duplicate/foreign credit.
+- [ ] **CL-033** Y*=max completionYear for final valid 2+2; existing authentic report Y* shows outcomes after resolution, opens readably, and the existing annual-review acknowledgement (event9, once/year) writes event9 and compact review field Y* atomically. No second event9 button.
+- [ ] **CL-034** CT-3 hold blocks every UI, service, F-key, optional skip and post-load advance after final true CT-1 but before true CT-2. Player can read/ack the covering report to release hold. Negative: unread report/phantom automatic ack.
+- [ ] **CL-035** Repeat covering ack idempotent and opening/dismissal alone never credits; other year ordinary event9, historical S1-C browsing and a report with incomplete quartet do not write Compact teaching field.
+- [ ] **CL-036** Signed Policy B: otherwise valid real Completed orders with mandatory arrival/assessment keys **PRESENT and `false`** are admitted as INCOMPLETE with exact bits retained. No teaching credit or load-time backfill. Missing mandatory, ill-typed or unknown signed-type keys refuse before mutation (CL-073/074).
+- [ ] **CL-037** Real Completed designated order missing a positive teaching row and honest Completed 3+1 group are admitted incomplete, potentially permanently no T1; They are not retroactively repaired/accepted as 2+2 or used to bypass CT3. Policy-B saves that can never reach T1 also permanently lose D-077 skip; ordinary one-year advance is unaffected by that loss, subject to other ordinary guards.
+- [ ] **CL-038** Forged/mismatched claimed planting rows, species/order/juvenile/year, structurally invalid IDs and other positive claims **REFUSE BEFORE MUTATION** rather than auto-clean. Negative: live state/Prefs/primary/tmp/bak hashes unchanged on refusal.
+- [ ] **CL-039** Both #677 CT3 deadlock cases **REFUSE**: CT1 true with review field −1 and year>Y*, or its event9 already consumed at Y* without atomic field, with actionable user error and no backdating/forced load. If legitimate play reaches either state, **STOP and escalate to the owner**. Open #677 D-N1 concerns the inconsistent “at/after final WorkResolved” qualifier on the pre-final-work event9 split state; preserve it for the bounded fidelity review without expanding signed policy.
+- [ ] **CL-040** Save/reopen each lifecycle point—arrival, assessment, 1–3 Pending, Approved pre-resolve, 1–3 Completed, final Completed unread, acknowledged—and confirm no duplicated event, order, seed/year credit or foreign history.
+
+## E. Forestry years, money, history and care (CL-041…CL-052)
+
+- [ ] **CL-041** Every genuine annual advancement performs real growth/crown/light, seed/cohort/juvenile, competition, understorey bramble/bracken, browse/protection, mortality/deadwood, work/economy, snapshot and review in authoritative current source order; one tick/year.
+- [ ] **CL-042** Real separately identified Oak, Beech and Sitka model depth and form/merchantability/quality/cost present to accepted evidence tier; no borrowed Sitka maximum density, invented broadleaf Irish coefficient or artificial mature 3D crown.
+- [ ] **CL-043** Real G1 planted individual ID and species remain inspectable through loss/survival/protection/growth; no guarantee juvenile survives, reaches maturity, or natural Oak/Beech establishes by Year40.
+- [ ] **CL-044** €12,000 is finite with no automatic grant, fabricated fee waiver, pre-H1 harvest payment, guaranteed profit or free owner labour; actual Work Plan fee/minimum and optional shelter/material charges use real code/quote/settlement labels, not illustrative €70 as fixed Irish price.
+- [ ] **CL-045** Genuine failed/declined/unaﬀordable/no-work, cancel and incomplete plan paths have correct zero or justified actual money/time events; annual outcome provenance distinguishes projections vs results.
+- [ ] **CL-046** S1-C prior-year/year-by-year and intervention history read-only without world mutation, correct order vs harvest-year grouping, L1 recorded/L2 observed/L3 derived/L4 authored classifications and missing-data honesty.
+- [ ] **CL-047** S1-D re-entry can compare previously executed site/tree decisions with later proposed decisions; no existing marks overwritten, persistent historic IDs remain truthful after same-world save/reload.
+- [ ] **CL-048** No-work is a legitimate player-chosen year/inspection state, not a fabricated Completed treatment or false ecology guarantee; histories show what truly happened.
+- [ ] **CL-049** Annual review must identify real source-driven financial, ecology and year-change results including failures and stage-specific visuals; display at 1280×720 and 1920×1080; no noncausal visuals presented as measured biodiversity.
+- [ ] **CL-050** Work Plan comparison shows expected/settled costs, legal eligibility and accurate selected standing BA/volume/denominator only where current source permits; no double-counting of H1/excluded land or merged drafts/Pending/Approved selection statuses.
+- [ ] **CL-051** D-077 normal year remains available under ordinary guards and review-year skip only after signed Compact T1, zero Pending/Approved, no unread review/modal/reference; 4-year suggestion, five real annual ticks max and stop event list, all calibration-labelled. Run **one tick per frame, cancellable only between ticks**. Ordinary advance remains subject to the mandatory review/CT-3 guards.
+- [ ] **CL-052** Distinct direct no-ack N-step state/hash oracle and UI clicked acknowledgements *semantic* parity oracle; no future-year fake acknowledgment, skipped storm, unrecorded annual history, auto-work or artificial management-cycle interval.
+
+## F. Substantive forestry and future completion (CL-053…CL-061)
+
+- [ ] **CL-053** A true **later** spatially traceable assessed retention/release/stand treatment after initial G1, with linked actual Approved→Completed work and settled costs, can be examined in a real later year's annual review.
+- [ ] **CL-054** The player subsequently re-inspects current changed forest/three species and chooses meaningful adaptive **act-or-no-work**, with honest subsequent review; do not fabricate explanation/cause or compel treatment absent conditions.
+- [ ] **CL-055** After owner-approved OD-16 classifier, evidence record proves actual distinct site/assessed standing tree identities, local consequence and threshold; no unnamed “meaningful” one-tree shortcut. Until then **completion remains blocked**, not pre-credited.
+- [ ] **CL-056** Initial four G1 plantings, any shelter, pruning, H1 pre-world omission, rack work in other worlds, isolated token Fell, no-work or a promise/proposal alone do NOT automatically count as later substantive intervention.
+- [ ] **CL-057** No automatic requirement for 3+ separate substantial interventions, 3 fell trees, fixed 3-year separation, two later G1 groups, profit, surviving four juveniles, natural broadleaf regeneration or perfect-answer grading unless **new direct owner approval**.
+- [ ] **CL-058** Completion shows once with specific truthful evidence and derivation/provenance, not only “time reached” or old-world two-cycle/v24/rack latch; it is persisted only under an approved separately signed Compact S1 completion data contract.
+- [ ] **CL-059** Missing S1 schema or owner threshold cannot be filled by invented keys, a third profile root, old DTO mutation or weak in-memory flag. Mandatory stop and new technical save signature/review if durable witness cannot be represented safely.
+- [ ] **CL-060** Completion, save/reopen, continued observation/management and no duplicate reward/history all reviewed at the same exact candidate; old-world completion remains unchanged.
+- [ ] **CL-061** User personal playable Editor test judges physical judgement/teaching and enough meaningful adaptive management, with failures correctly labelled; source tests alone cannot establish educational quality.
+
+## G. Regression, verification and signoff (CL-062…CL-070)
+
+- [ ] **CL-062** Historic Legacy40, Enlarged80/five-rack/MFM, frozen Reference Future v1 (world/schedule/identity) and real v1–v24 saved fixtures retain original semantics; no new Compact rack fields or old-world auto-upgrade.
+- [ ] **CL-063** Wrong Compact/legacy/O2 profile or forged ID, invalid geometry/version/duplicate or foreign backup fails before scene/Prefs/world/primary/tmp/bak mutation. Historical true same-profile backward admission stays governed by signed save §4.2.
+- [ ] **CL-064** Compact primary, tmp and bak isolated; explicit same-slot backup recovery independently validated; no cross-slot promotion or hidden legacy save overwrite.
+- [ ] **CL-065** Original model0/pure-Sitka numeric and frozen reference anchors validated exact, no test weakening/rebaseline to force green.
+- [ ] **CL-066** E1 independent signature/render/collision/status checked separately from E2 gameplay; #764/#718 native source and #765 QA evidence crosswalk, not copied unexamined.
+- [ ] **CL-067** Original R-001…R-115 and CIP-001…CIP-033 and relevant 66 graphics requirements remain tracked/unpassed until true witnesses, and each CL requirement maps to an exact source/fixture.
+- [ ] **CL-068** Separate nonauthor **independent review of this new #763 DRAFT** and Manager approval; only APPROVED scoped specs release implementation. An author self-audit or earlier #616/#681/#676 review does not count as review of #763.
+- [ ] **CL-069** Tier1 focused, Tier2 feature and Tier3 one integrated candidate evidence, Unity 720p/1080p and exact legitimate ownership/lease registered; no fake PASS, no Windows build until personal exact-candidate Editor playtest and separate owner permission.
+- [ ] **CL-070** Actual manager handoff, no branch/main/board/source-overlap, dashboard ingestion/Drive mirrors verified or explicitly NOT VERIFIED; no release based on issue counts.
+
+## Additive #774 criteria (CL-071…CL-076; all UNCHECKED)
+
+- [ ] **CL-071** Positive forward G1 designation: with BOTH arrivalAcknowledged and assessmentAcknowledged true and ordinary stock/site/species/eligibility checks satisfied, a genuine player designation creates a distinct Pending order, its legitimate reservation and group binding (#677 §§2/4).
+- [ ] **CL-072** Negative forward G1 designation: test each acknowledgement false independently and both false. Refuse while either is false. No order, reservation or group ID is created. Policy-B incomplete-load admission cannot bypass this gate (#677 §§2/4).
+- [ ] **CL-073** Missing mandatory arrival/assessment key or an ill-typed acknowledgement key REFUSES BEFORE MUTATION on raw and typed admission paths. Paired negative: live, Prefs, primary, tmp and bak state remain unchanged. A present false key is the distinct admitted-incomplete case in CL-036.
+- [ ] **CL-074** Any other missing mandatory key, ill-typed signed-type key or unknown signed-type key REFUSES BEFORE MUTATION under the signed closed graph. Live, Prefs, primary, tmp and bak remain unchanged. No defaulting or Policy-B repair creates admissibility (#677 §4 strict structural mismatch).
+- [ ] **CL-075** Manager implementation wording for Compact S1-D: signed T1 true enters later-cycle previous/current/proposed comparison and advice, including same-world re-entry after load. A subsequent real annual advance plus current-stand reassessment refreshes advisory reasons and invites an act-or-no-work decision. D-074 coaching presents several years of development/monitoring between major interventions, not consecutive-year major work as exemplary/sufficient. No fixed waiting/work gate, completion credit, rack latch, v24 teaching latch or new saved latch. Ordinary management remains available under existing guards. Confirm wording through Manager review; escalate if product intent changes. S1-D status is **APPROVED PRODUCT INTENT; D-066 implementation contract pending Manager review #158**.
+- [ ] **CL-076** A Failed or cancelled designated member may be replaced in that slot only by a **NEW distinct Pending order** through genuine player designation and ordinary checks. Preserve history/successful rows. Group never exceeds **4 active IDs**. Negatives: refuse replacement of a Completed slot, reuse of an old ID and a fifth active ID. No automatic replacement or erased history (#677 §3).
+
+## Source crosswalk and authority precedence
+
+| This group | Inherited original families | Additional controlling sources |
 | --- | --- | --- |
-| OPEN-C1 / C7 (CG-TRIG) | Arrival→stand assessment→four player-designated owned-stock Pending G1 orders→Work Plan approval→normal annual Completed PlantJuvenile records→first covering review opened **and acknowledged** is a **PROPOSED interaction contract only**. | Exact control/event signal, cancellation/replacement, save/reload, failed/no-advance/skip cases, Owner/#424/teaching approval; signed ISO-58 remains BLOCKED. |
-| OPEN-C2 | **OWNER RATIFIED BASELINE**: 30×30m; H1 ≈12×10m south arrival; 14 potential historical omissions; Route A winding pedestrian path; **NO internal rack**. | Exact H1 polygon, approved source-generation omission identity, signed manifest/hashed new world, physical 3D/path/colliders, no phantom rack and post-H1 source/Unity checks. |
-| OPEN-C3 | **RESOLVED**: only Sitka at world start; no preauthored Oak/Beech. | Confirm world manifest/scene; no invented external donor or promise of natural broadleaf recruitment by Year40. |
-| OPEN-C4 | Three-profile save **policy SIGNED** out of band at immutable reviewed four-file commit; historic slot and new compact reserved identity disjoint. | Bind authored compact world to content version, validate raw/typed pre-mutation admission, all ISO-01…63 genuine native witnesses and historical corpus; no profile activation in this DRAFT. |
-| OPEN-C5 | Owner accepts non-profit training-site framing, **not** a funding scheme or substantive later-work threshold; €12,000 initial cash and €2,500 contractor harvest minimum are existing gameplay calibration. | Choose source-faithful financing and reviewable non-token later intervention/completion predicate; native cash/feasibility and Work Plan evidence; no mandatory 3 cycles or harvest quota. |
-| OPEN-C6 | Recommend **defer opening-removal overlay** for first compact beta; Manager default only. | Owner/Manager decision if later included; source status and 3D geometry witness. |
-| OPEN-C8 | Recommend **visibly refuse editing Approved orders** until an authorised withdraw/requote/reapprove flow exists; Manager default, not source proof. | Work Plan owner decision and exact failed-edit tests. |
-| OPEN-C9 | **OWNER RATIFIED COUNT**: first one G1 group, 2 sessile Oak + 2 European Beech. | Four original #508 coordinates are *candidates only*; actual post-H1 cell light, owned stock, location, native growth/protection/review proof pending. |
-| OPEN-C10 | Recommend **defer paired guided/replay**; ordinary historical/Annual Review is still required. | Separate owner choice/spec if added; no extra profile slots inferred. |
+| A CL-001…010 | R-004…026, R-065…081, R-099…102, CIP-001…013, CIP-023…033 | D-083/D-085/D-086…D-090, #676 reviewed STATIC world, #764 E1 |
+| B CL-011…018 | R-001, R-027…038, R-087…098, R-102…115, CIP-014…016 | D-084 T1; D-085 OD-17, #677 signed |
+| C CL-019…030 | R-028, R-031…042, R-095…107, CIP-007…020 | D-084 W-A/F-A, #677 T-06/T-07, G1 signed world pending |
+| D CL-031…040 | R-011…025, R-056…059, R-087…093, CIP-015…020 | signed §4.2 and exact signed #677 (supersedes earlier #576 trigger) |
+| E CL-041…052 | R-039…061, R-066…075, R-108…113, CIP-017…022 | D-059/D-060/D-062/D-074/D-077; S1-C/S1-D |
+| F CL-053…061 | R-051…064, R-093…098, R-104…115, CIP-021…026 | D-084 M-A, D-085 OD-16 deferred, no S1 signature |
+| G CL-062…070 | R-010…025, R-076…103, CIP-023…033 | signed save V2, D-091, #690/#765, Windows/owner gate |
 
-**Requirement preservation:** All original `R-001…R-115` acceptance criteria and unchecked boxes are carried forward; the ratification changes their **design provenance**, not their PASS status. Sections below retain dated research and superseded historical proposals for audit, but the 16 Nov owner ratification and signed save-policy limits govern any conflicting *future* instruction. Do not implement from this DRAFT.
+**The family crosswalk is navigation only; §H is the complete per-ID disposition, including R-002 and R-003. Neither table proves satisfaction or replaces the originals.** Future reviewer must independently inspect the original 148 criteria, check that no original was lost through presumed supersession, and flag any conflict with canonical accepted policy. All results are **NOT RUN** here.
+
+## H. Per-ID disposition of the 148 inherited requirements
+
+**DRAFT DISPOSITION ONLY — ALL 115 R + 33 CIP ORIGINAL BOXES REMAIN UNCHECKED.** Read each original here or in the [subordinate planting checklist](../../scenario-one-compact-initial-planting-v1/checklists/requirements.md), verified verbatim against **fcfd43c31b60f92277470aef9c490e92fa59cf3b**. “Original parent/child” below means that exact baseline row, not mutable branch text. Each row has exactly one disposition class. Updated-provenance rows name the controlling D-0xx row or signed #677 item; all other original duties and negative witnesses remain. No table row is a PASS or a new acceptance ID.
+
+**Mixed row R-097 — #775 N-1 correction:** its single class remains **deferred by D-084 C6 or C10 (stays unchecked)** for its overlay half. In explicit consistency with R-039, C6 defers only the optional overlay in each row; **both non-overlay Work Plan status/units/denominator duties remain required through CL-050**. R-039 retains the updated-provenance class for that retained accounting duty. Neither classification is a waiver. “Process item for Manager to close” assigns closure authority, not authority to waive remaining source/native/player evidence.
+
+The CL column lists additive/clarifying criteria, not substitute acceptance proof. CL-067 explicitly tracks deferred items; it does not reactivate them. Manager M-4 selects non-gating CropTree guidance/evidence as recorded in [parent §11 C](../spec.md#c-crop-tree-requirement-semantics--manager-choice-a-remaining-owner-questions-open); timing, past-selection credit and reselection duty remain OPEN. OD-16, S1 persistence and world signature remain unsigned. Consolidation A is resolved by M-3, not left as an A/B choice.
+
+| Inherited ID | One disposition class | Controlling row/item | Duty / precise disposition | Additive CL IDs |
+| --- | --- | --- | --- | --- |
+| R-001 | retained with design provenance updated | D-084 T1; #677 T-02 / §2 | First-use arrival/assessment and G1 teaching pathway now selected | CL-011, CL-012, CL-031, CL-071, CL-072 |
+| R-002 | process item for Manager to close | AgentWorkflow independent-review gate; #771 | Nonauthor review and Manager promotion are distinct; Manager closes review process | CL-068 |
+| R-003 | process item for Manager to close | AgentWorkflow pre-write checks; D-091 | Inspect actual Objective 1/source handoff and refresh sole writer/Unity custody before production | CL-068, CL-069, CL-070 |
+| R-004 | process item for Manager to close | D-083; D-084 | Canonical scope reconciliation is Manager-owned; no old-world repeal | CL-001, CL-010, CL-068 |
+| R-005 | retained with design provenance updated | D-083; D-085 OD-05/09/14 | Historical one-rack scratch is not signed no-rack feasibility or world identity | CL-002, CL-005, CL-006, CL-007 |
+| R-006 | retained with design provenance updated | D-085 OD-15 | 175 roster adopted at roster-only digest dac06a3b; native route/world still unsigned | CL-002, CL-003, CL-005, CL-006 |
+| R-007 | retained with design provenance updated | D-083; D-084 Geometry A; D-085 OD-09/12 | Count/placement choices distinguished from unsigned exact world and viability | CL-002, CL-007, CL-019 |
+| R-008 | retained with design provenance updated | D-084 F-A/M-A; D-085 OD-16 | Finite funding selected; no mandatory three cycles; scope threshold still deferred | CL-044, CL-053, CL-055, CL-057 |
+| R-009 | retained unchanged | Original parent R-009 | Evidence classification; no invented ecological coefficient | CL-042 |
+| R-010 | process item for Manager to close | AgentWorkflow Git/Drive synchronization | Manager verifies canonical context mirrors after separately authorised authority change | CL-070 |
+| R-011 | retained with design provenance updated | #677 §0/§2 preserving signed §4.2 | Independent Compact identity and geometry dispatch remain gated | CL-002, CL-031, CL-063 |
+| R-012 | retained unchanged | Original parent R-012 | Disjoint Compact/legacy/O2 primary and sidecars, unchanged old bytes | CL-064 |
+| R-013 | retained unchanged | Original parent R-013 | All profile and backup entry routes preflight before mutation | CL-063 |
+| R-014 | retained unchanged | Original parent R-014 | Wrong-world legacy to Compact refusal without mutation | CL-063 |
+| R-015 | retained with design provenance updated | #677 §0/§3 preserving signed foreign-ID guards | Explicit-foreign preflight precedes genuine legacy best-effort; no new historical strictness | CL-038, CL-063 |
+| R-016 | retained unchanged | Original parent R-016 | O2 identity/inventory/history isolation in both directions | CL-063, CL-064 |
+| R-017 | retained unchanged | Original parent R-017 | Invalid/duplicate/cross-profile graph refusal; old rack graph preserved | CL-038, CL-063, CL-074 |
+| R-018 | retained with design provenance updated | #677 §0/§4 strict structural mismatch | Missing/wrong identity refuses; strict new Compact versus authentic legacy policy | CL-038, CL-063, CL-074 |
+| R-019 | retained unchanged | Original parent R-019 | Same-profile roundtrip without duplicate world/economy/IDs | CL-028, CL-040 |
+| R-020 | retained unchanged | Original parent R-020 | Explicit validated same-slot backup only; failure/stale tmp unchanged | CL-064 |
+| R-021 | retained unchanged | Original parent R-021 | Real historical v1–v24 fixture provenance and replay | CL-062 |
+| R-022 | retained unchanged | Original parent R-022 | Exact protected old-world/reference identities, no rebaseline | CL-062, CL-065 |
+| R-023 | retained unchanged | Original parent R-023 | Pure-Sitka/model0 numeric and identity anchors unchanged | CL-065 |
+| R-024 | retained unchanged | Original parent R-024 | Historical five-rack/MFM/order/event IDs stay readable | CL-010, CL-062 |
+| R-025 | retained unchanged | Original parent R-025 | Old v24 latch authentic/default false, never Compact evidence | CL-010, CL-058, CL-062 |
+| R-026 | retained with design provenance updated | D-083; D-085 OD-05/06/08; D-090 | Pre-existing H1/path and staged collection; scene and manoeuvre not certified | CL-002, CL-006 |
+| R-027 | retained with design provenance updated | D-084 T1; #677 T-02/T-03 | Arrival/assessment/G1/review before Compact optional skip | CL-011, CL-012, CL-033, CL-051, CL-071, CL-072 |
+| R-028 | retained with design provenance updated | #677 §2 designated planting group | Four real Pending designations; no immediate juvenile or payment | CL-016, CL-019, CL-020, CL-071, CL-072 |
+| R-029 | retained with design provenance updated | D-083; D-085 OD-05 | Fourteen exact pre-world H1 omissions earn no work, timber or credit | CL-003, CL-029 |
+| R-030 | retained with design provenance updated | D-085 OD-07/08/09; D-090 | Native free-roaming pedestrian/G1 access, not historical tour evidence | CL-006, CL-007, CL-015 |
+| R-031 | retained unchanged | Original parent R-031 | None/Fell/CropTree exclusivity, no fourth invented mark or automatic crop choice | CL-004, CL-013, CL-014 |
+| R-032 | retained unchanged | Original parent R-032 | Permitted undo/repaint preserves identities and eligibility | CL-018, CL-024 |
+| R-033 | retained unchanged | Original parent R-033 | Draft to Pending audit and appropriate cancel/requote | CL-018, CL-024 |
+| R-034 | retained with design provenance updated | D-084 W-A; #677 T-07/§3 | Approved immutable; audited removal, fresh Pending quote/approval | CL-025, CL-026, CL-028, CL-076 |
+| R-035 | retained unchanged | Original parent R-035 | No Compact rack/MFM shortcut; old-world rack rules intact | CL-010, CL-017, CL-062 |
+| R-036 | retained unchanged | Original parent R-036 | Pinned historical MFM tests, no unearned MFM-08/09/10 PASS | CL-010, CL-062 |
+| R-037 | retained with design provenance updated | #677 T-07/§3 | Pending/Approved/Completed/Failed order statuses; cancellation is event/history | CL-023, CL-028 |
+| R-038 | retained unchanged | Original parent R-038 | Marks/previews cause no biology/cash/event/year mutation | CL-016, CL-018 |
+| R-039 | retained with design provenance updated | D-084 C6 deferral and M-A intent | Work Plan units/status/denominator duty retained; optional overlay not required | CL-050 |
+| R-040 | retained with design provenance updated | D-084 F-A/T1; #677 T-06 | Four owned/reserved stock orders and honest quoted/settled costs | CL-019, CL-021, CL-022, CL-023, CL-027, CL-044 |
+| R-041 | retained unchanged | Original parent R-041 | Once-per-year actual work/economy/wood settlement | CL-027, CL-041, CL-045 |
+| R-042 | retained with design provenance updated | D-084 F-A/M-A | Old scratch economy is research; real finite Compact feasibility required | CL-044, CL-045, CL-053 |
+| R-043 | retained unchanged | Original parent R-043 | Observable living Sitka competition/growth/mortality/timber | CL-041, CL-042 |
+| R-044 | retained unchanged | Original parent R-044 | Oak adult/juvenile/site/browse/merchantability evidence | CL-042, CL-043 |
+| R-045 | retained unchanged | Original parent R-045 | Beech adult/juvenile/site/browse/merchantability evidence | CL-042, CL-043 |
+| R-046 | retained unchanged | Original parent R-046 | Real annual cohorts/seed/juveniles; no instant maturity | CL-041, CL-043 |
+| R-047 | retained unchanged | Original parent R-047 | Real understorey/browse/protection; honest habitat-only visuals | CL-041, CL-043, CL-049 |
+| R-048 | retained unchanged | Original parent R-048 | State-driven mortality/deadwood/habitat presentation | CL-041, CL-049 |
+| R-049 | retained unchanged | Original parent R-049; D-083 provenance correction (#775 N-2) | Bounded woodland edge evidence; no fabricated exterior trees/donors. Historical “25/30m approval” does not negate confirmed D-083 30m scope; checkbox duty unchanged | CL-017, CL-042 |
+| R-050 | retained unchanged | Original parent R-050 | Existing authoritative annual sequence and snapshots | CL-041 |
+| R-051 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Substantive spatial work/review classifier still owner-deferred; exclusions preserved | CL-053, CL-055, CL-056 |
+| R-052 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Three-cycle draft is not selected; no numeric threshold inferred | CL-055, CL-057 |
+| R-053 | retained with design provenance updated | D-074; D-084 M-A | Several years development/monitoring coaching; no unapproved hard interval | CL-051, CL-054, CL-057, CL-075 |
+| R-054 | retained unchanged | Original parent R-054 | Legitimate care/later work/no-work without automatic substantive credit | CL-048, CL-054, CL-056 |
+| R-055 | retained unchanged | Original parent R-055 | S1-C L1/L2/L3/L4 provenance and missing-data honesty | CL-046 |
+| R-056 | retained with design provenance updated | #677 T-02/§2 | Genuine covering review read and atomic event9/field, no backdating | CL-033, CL-035 |
+| R-057 | retained with design provenance updated | D-084 T1; #677 T-03 | Skip after signed Compact teaching only; existing blockers | CL-034, CL-051 |
+| R-058 | retained unchanged | Original parent R-058 | Ordinary yearly ecology/finance/objectives/snapshots for every tick | CL-041, CL-051, CL-052 |
+| R-059 | retained with design provenance updated | D-077 | Navigation-only FellTree anchor, 4-year/5-tick calibration, no H1 credit | CL-029, CL-051, CL-052 |
+| R-060 | retained with design provenance updated | D-077 | Stop events, one tick per frame and between-tick cancellation; no auto-work/ack | CL-051, CL-052 |
+| R-061 | retained unchanged | Original parent R-061 | Separate direct-no-ack hash and UI-ack semantic parity oracles | CL-052 |
+| R-062 | retained with design provenance updated | D-084 M-A; #677 T-08 | Compact durable completion policy unsigned; no old-world surrogate | CL-055, CL-058, CL-059 |
+| R-063 | retained with design provenance updated | #677 T-08 | Once-only persistence/re-entry needs separate signed S1 amendment | CL-058, CL-059, CL-060 |
+| R-064 | retained unchanged | Original parent R-064 | Old-world completion unchanged, no retroactive grading | CL-010, CL-060, CL-062 |
+| R-065 | retained with design provenance updated | D-083; D-085 OD-05/08/09; D-090 | Real H1/path/G1/current tree Stand Map, no rack | CL-006, CL-007, CL-015, CL-017 |
+| R-066 | retained unchanged | Original parent R-066 | Legends/shapes/text distinguish current and historical states | CL-015, CL-023, CL-049 |
+| R-067 | deferred by D-084 C6 or C10 (stays unchecked) | D-084 C6 | Optional current-crown opening overlay deferred, stays unchecked | CL-067 |
+| R-068 | deferred by D-084 C6 or C10 (stays unchecked) | D-084 C6 | Optional overlay recomputation/status labelling deferred, stays unchecked | CL-067 |
+| R-069 | retained unchanged | Original parent R-069 | No false Compact MFM/rack map symbols; authentic old worlds | CL-010, CL-017 |
+| R-070 | retained unchanged | Original parent R-070 | State/stage/species-accurate native tree geometry | CL-015, CL-042, CL-043 |
+| R-071 | retained unchanged | Original parent R-071 | Model-bound ground/understorey/deadwood/lighting/sound | CL-041, CL-049 |
+| R-072 | retained with design provenance updated | D-085 OD-07/08/09/11; D-090 | Native 720p/1080p path/G1/mark/plan/review clarity and owner judgement | CL-006, CL-007, CL-049, CL-061, CL-069 |
+| R-073 | retained unchanged | Original parent R-073 | Protected asset IDs, provenance/licence/import/LOD/collision | CL-008, CL-069 |
+| R-074 | retained unchanged | Original parent R-074 | Measured target hardware/performance; no invented numerical budget | CL-069 |
+| R-075 | retained unchanged | Original parent R-075 | Archive fixed-seed before/conditional/actual 3D-map comparisons where in scope | CL-049, CL-066, CL-069 |
+| R-076 | retained with design provenance updated | D-091 | Registered sole source and Unity ownership; explicit safe release, no expiry | CL-069, CL-070 |
+| R-077 | retained unchanged | Original parent R-077 | Tier1/Tier2 and one exact integrated Tier3 evidence | CL-069 |
+| R-078 | process item for Manager to close | AgentWorkflow review/integration gates | Nonauthor exact-candidate review then Manager verdict | CL-068, CL-069 |
+| R-079 | process item for Manager to close | D-083 Windows gate; AgentWorkflow release | Manager records personal exact Compact Editor test and separate Windows permission | CL-061, CL-069 |
+| R-080 | retained with design provenance updated | #677 §0/§3 preserving signed isolation | One save owner; old O1/O2 paths, old data and ownership untouched | CL-010, CL-062, CL-063, CL-064 |
+| R-081 | retained unchanged | Original parent R-081 | No acceptance from static/compile/screenshot alone | CL-009, CL-066, CL-069 |
+| R-082 | process item for Manager to close | AgentWorkflow dashboard synchronization | Manager verifies final dashboard/audit receipt; otherwise report unverified | CL-070 |
+| R-083 | retained with design provenance updated | #677 §0/§3 preserving signed three-profile registry | One approved save/router owner; no duplicate A-01 implementation | CL-031, CL-063, CL-068 |
+| R-084 | retained with design provenance updated | #677 §0 historical-policy preservation | Strict Compact future schema, genuine historical best-effort unchanged | CL-063, CL-074 |
+| R-085 | retained unchanged | Original parent R-085 | Every load/reference/New route preflights before mutation | CL-063 |
+| R-086 | retained unchanged | Original parent R-086 | Valid geometry does not rescue missing/foreign ID; unchanged checksums | CL-038, CL-063 |
+| R-087 | retained unchanged | Original parent R-087 | Old learning/help namespaces and rack IDs unchanged | CL-010, CL-062 |
+| R-088 | retained unchanged | Original parent R-088 | No legacy latch/preferences initialise Compact teaching or progress | CL-011, CL-031, CL-058, CL-062 |
+| R-089 | retained with design provenance updated | #677 §0/§2 preserving signed §4.2 and SI-09 | Signed disjoint preferences; teaching from ccfCompactTeaching, no backfill | CL-031, CL-036, CL-063 |
+| R-090 | retained with design provenance updated | D-083; #677 §0 preserving geometry reservation | Compact cannot fall back to old dimensions/cells/objectives/maps | CL-005, CL-063 |
+| R-091 | retained with design provenance updated | #677 §0/§2 preserving signed §4.2 | Three disjoint roots with ccfCompactTeaching selected; old DTO/hash unchanged | CL-031, CL-062, CL-065 |
+| R-092 | retained unchanged | Original parent R-092 | Independently valid same-slot backup only, no silent cross-copy | CL-064 |
+| R-093 | retained with design provenance updated | D-084 T1; #677 T-02/T-03 | Selected arrival/assessment/G1/review proof; no old latch/Prefs | CL-011, CL-012, CL-033, CL-051, CL-071, CL-072 |
+| R-094 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Semantic later treatment/adaptive review accepted; precise scope deferred | CL-053, CL-054, CL-055, CL-057 |
+| R-095 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Native classifier negatives retained; no chosen multi-tree threshold | CL-055, CL-056 |
+| R-096 | retained with design provenance updated | D-077 | Succeeded FellTree navigation advice is not substantive credit; two oracles | CL-029, CL-051, CL-052, CL-056 |
+| R-097 | deferred by D-084 C6 or C10 (stays unchecked) | D-084 C6; R-039 retained accounting duty | Overlay half alone deferred; as with R-039, non-overlay Work Plan status/units/denominator duty still required through CL-050; deferral is not a waiver | CL-050, CL-067 |
+| R-098 | retained with design provenance updated | D-084 W-A; #677 T-07 | Approved editing refused; audited cancel/new Pending/requote/reapprove | CL-025, CL-026, CL-028, CL-076 |
+| R-099 | retained unchanged | Original parent R-099 | Historical one-rack and source-screen research never earns no-rack PASS | CL-005, CL-009, CL-066 |
+| R-100 | process item for Manager to close | AgentWorkflow review gate; #771 | Manager closes historical review reconciliation and current changed-lines review separately | CL-068 |
+| R-101 | retained unchanged | Original parent R-101 | Authentic old fixtures, not Compact-generated substitutes | CL-062 |
+| R-102 | retained with design provenance updated | D-083; D-085 OD-17 | All-Sitka/unmarked start; no donors or precredited plants, true 2+2 | CL-004, CL-019 |
+| R-103 | retained unchanged | Original parent R-103 | Historical pinned MFM regressions; no false unfinished qualification | CL-010, CL-062 |
+| R-104 | retained unchanged | Original parent R-104 | Explicit measurable evidence or named personal-playtest judgement | CL-055, CL-061, CL-066, CL-069 |
+| R-105 | retained with design provenance updated | D-083; D-084 T1; #677 T-06 | Early real Oak/Beech 2+2 owned-stock work, no later planting quota | CL-019, CL-021, CL-027, CL-043, CL-057 |
+| R-106 | retained unchanged | Original parent R-106 | No guaranteed natural Oak/Beech recruitment by Year40 | CL-043, CL-057 |
+| R-107 | retained with design provenance updated | D-084 Geometry A/T1; D-085 OD-09/12; #677 §2 | One G1 fixed-species quartet; exact future signed sites, native fitness still needed | CL-007, CL-019, CL-020, CL-071, CL-072 |
+| R-108 | retained unchanged | Original parent R-108 | Authentic species/individual annual survival/loss and no-work evidence | CL-041, CL-043, CL-048, CL-049 |
+| R-109 | retained unchanged | Original parent R-109 | #490 long-run evidence remains source/research-specific, not Compact PASS | CL-009, CL-043, CL-066 |
+| R-110 | retained unchanged | Original parent R-110 | Biological versus interaction-stage/visual maturity, field witness or explicit fail | CL-015, CL-042, CL-043 |
+| R-111 | retained unchanged | Original parent R-111 | Enabled-manager once-only mortality/deadwood source/runtime/persistence witness | CL-041, CL-049 |
+| R-112 | retained unchanged | Original parent R-112 | Real understorey/browse/light outputs, no invented causal explanation | CL-041, CL-043, CL-049 |
+| R-113 | retained with design provenance updated | D-074; D-084 M-A; D-085 OD-16 | Later annual reassessment/care/treatment/no-work and honest finance, no quotas | CL-043, CL-044, CL-053, CL-054, CL-055, CL-057, CL-075 |
+| R-114 | deferred by D-084 C6 or C10 (stays unchecked) | D-084 C10 | Guided/replay comparison deferred, stays unchecked; ordinary history still required | CL-046, CL-067 |
+| R-115 | process item for Manager to close | D-083; D-084; D-085 | Manager closes canonical provenance update without implying spec/world/runtime approval | CL-001, CL-010, CL-067, CL-068 |
+| CIP-001 | retained with design provenance updated | D-083; D-085 OD-17 | All-Sitka unmarked start and player-led broadleaves, no recruit/later-planting quota | CL-004, CL-019, CL-043, CL-057 |
+| CIP-002 | retained with design provenance updated | D-083; D-085 OD-14 | 30m distinct owner-ratified intent; exact world still unsigned | CL-001, CL-002, CL-010 |
+| CIP-003 | retained with design provenance updated | D-085 OD-05/15 | 189 input minus exact 14 omissions; adopted 175 roster, not unmodified scene | CL-002, CL-003, CL-005 |
+| CIP-004 | retained with design provenance updated | D-083; D-085 OD-05/06 | No rack or 19-stem Year1 work; pre-existing H1/staged collection, no certification | CL-003, CL-006, CL-017 |
+| CIP-005 | retained with design provenance updated | D-085 OD-08/09; D-090 | Natural pedestrian path and viewpoints to four G1 sites, native not research PASS | CL-006, CL-007 |
+| CIP-006 | retained with design provenance updated | D-085 OD-05/15 | Source inventory/omission/buffer ledger and data gate; no invented clearance | CL-002, CL-003, CL-005 |
+| CIP-007 | retained with design provenance updated | D-084 Geometry A; D-085 OD-09/12 | Four designated fixed-species exact sites; world/native light/fitness unsigned | CL-007, CL-019, CL-020 |
+| CIP-008 | retained unchanged | Original child CIP-008 | One G1 first lesson, no compulsory G2; extra sites require scope/evidence | CL-019, CL-057 |
+| CIP-009 | retained unchanged | Original child CIP-009 | Unique bounded ecology sites; duplicate open order/marker rejected | CL-019, CL-020 |
+| CIP-010 | retained unchanged | Original child CIP-010 | Living-stem/exclusion negatives are admission, not survival proof | CL-007, CL-020, CL-043 |
+| CIP-011 | retained unchanged | Original child CIP-011 | Sapling spacing preference is provisional, not Irish rule | CL-007, CL-020 |
+| CIP-012 | retained unchanged | Original child CIP-012 | Measured canopy/light/browse/ground or honest unmeasured label | CL-007, CL-043, CL-049 |
+| CIP-013 | retained with design provenance updated | D-085 OD-08/09; D-090 | Actual 3D viewpoints for four designated sites, no historical rack witness | CL-006, CL-007, CL-015 |
+| CIP-014 | retained unchanged | Original child CIP-014 | Nursery species/ownership/reservation before designation; negatives | CL-019, CL-022 |
+| CIP-015 | retained with design provenance updated | D-084 T1; #677 T-06/§2 | Four Pending orders, actual approval/resolution/history; forward ack gate | CL-019, CL-027, CL-032, CL-071, CL-072 |
+| CIP-016 | retained unchanged | Original child CIP-016 | Individual per-tree actor/protection editable before approval, no batch-only waiver | CL-021, CL-025 |
+| CIP-017 | retained unchanged | Original child CIP-017 | Source illustrative stock/material/labour quotes versus actuals/market rates | CL-023, CL-044, CL-045 |
+| CIP-018 | retained with design provenance updated | D-084 F-A | Finite cash/owner time/contractor fees, quote versus actual, no fee invention | CL-023, CL-044, CL-045 |
+| CIP-019 | retained with design provenance updated | #677 T-06/§3 | Exact created juvenile identity/species/year with current fate and history | CL-027, CL-032, CL-043 |
+| CIP-020 | retained unchanged | Original child CIP-020 | Honest survival/growth/loss/cause review, no forced promotion/donors | CL-043, CL-049 |
+| CIP-021 | retained with design provenance updated | D-084 M-A; D-085 OD-16 | Later forestry and adaptive no-work semantics; threshold still deferred | CL-053, CL-054, CL-055, CL-056, CL-057 |
+| CIP-022 | retained unchanged | Original child CIP-022 | Enabled-manager death/deadwood witness, no inference from disabled fixture | CL-041, CL-049 |
+| CIP-023 | process item for Manager to close | D-083; D-084; AgentWorkflow authority | Manager reconciles obsolete paused D-083/options; source/identity/world gates remain | CL-001, CL-002, CL-063, CL-068 |
+| CIP-024 | process item for Manager to close | D-085 OD-15; AgentWorkflow evidence gate | Manager incorporates #508 at static tier and adopted roster; native light/route/vehicle evidence not waived | CL-003, CL-005, CL-006, CL-007, CL-066 |
+| CIP-025 | process item for Manager to close | AgentWorkflow independent-review gate; #771 | Manager closes DRAFT review and changed-lines recheck, no self-approval | CL-068 |
+| CIP-026 | process item for Manager to close | D-083 personal-test/Windows gate | Owner judges real four-plant/full-loop experience; separate build permission | CL-061, CL-069 |
+| CIP-027 | retained with design provenance updated | D-083; D-085 OD-01/05 | Pre-existing flat H1 and real approach/omissions, no fabricated road/hydrology | CL-002, CL-003, CL-005, CL-006 |
+| CIP-028 | retained unchanged | Original child CIP-028 | Separate parking/closed-yard collection modes; no road loading/certification | CL-006 |
+| CIP-029 | retained unchanged | Original child CIP-029 | Small staged truck concept, no detailed procedure claimed or forced engineering study | CL-006 |
+| CIP-030 | retained with design provenance updated | D-085 OD-08/09; D-090 | Walkable pedestrian path and four-site views, never truck path | CL-006, CL-007 |
+| CIP-031 | retained with design provenance updated | D-085 OD-05/15 | Exact pre-world omission provenance and changed light, no Year1 work/revenue | CL-002, CL-003, CL-005, CL-029 |
+| CIP-032 | retained with design provenance updated | D-083; D-085 OD-05/06/09 | Simple H1/staged pickup/G1 count with unsigned exact content; no G2 compulsion | CL-002, CL-006, CL-007, CL-019 |
+| CIP-033 | retained with design provenance updated | D-084 T1/M-A/F-A; #677 §2 | Coherent arrival/walk/plant/later loop and truthful optional collection settlement | CL-011, CL-012, CL-019, CL-027, CL-044, CL-053, CL-054 |
+
+**Disposition counts:** retained with design provenance updated: **62**; process item for Manager to close: **13**; retained unchanged: **69**; deferred by D-084 C6 or C10 (stays unchecked): **4**; total **148**. All original R/CIP checkbox lines remain verbatim in their original parent/subordinate checklists; only surrounding provenance is reconciled. All 148 inherited boxes and all **76** overlay boxes remain unchecked.
