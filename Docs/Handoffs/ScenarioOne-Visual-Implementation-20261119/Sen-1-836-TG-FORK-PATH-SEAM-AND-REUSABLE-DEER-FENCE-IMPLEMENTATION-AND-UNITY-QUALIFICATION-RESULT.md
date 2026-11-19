@@ -51,7 +51,7 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 | Prefab-instance roster vs base | 433 base instances → 517; **the only changed sources are the three new fence prefabs** (+39 panels, +39 posts, +6 strainers). Every pre-existing prefab instance count is unchanged. |
 | Colliders | 5 before, 5 after — identical set. No collider was added to the path, clearing or fence. |
 | G1 clearance, 1.2 m core | O1 +1.574 m, O2 +1.567 m, B1 +3.292 m, B2 +2.796 m to the core edge; subtracting the 0.55 m footprint ring still leaves **+0.82 m worst case**, i.e. better than #813's +0.767 m because the core narrowed from 1.6 m to 1.2 m. |
-| Renders | 56 PNGs: 7 viewpoints × 2 resolutions × before/after, same camera poses, plus a southern-entrance pair after the opening fix. |
+| Renders | 30 PNGs: 7 viewpoints × 2 resolutions × before/after at identical camera poses (14 before, 14 after), plus a 2-resolution southern-entrance pair after the opening fix. |
 | Runtime performance | **NOT TESTED** (no frame-time measurement). Proxy: ≈19 k added triangles and 92 added renderers in a 30 × 30 m scene; the netting panels are 420 triangles each and do not cast shadows. |
 
 ### Render evidence
