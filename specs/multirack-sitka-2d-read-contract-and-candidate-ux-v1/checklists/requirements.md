@@ -87,7 +87,7 @@ Each numbered test requires positive **and** negative control and a named future
 ## 5. Actual qualification receipts and final verdict required later
 
 - [ ] **Q-01 independent **nonauthor** documentary review of all four #800 files** with exact branch, clause matrix and named P0 issues. The #800 author cannot self-approve; correction/readback is a separate gated follow-up if needed.
-- [ ] **Q-02 actual product/Manager G0** stating whether a new standalone candidate-only 2D interaction and offline read transport are accepted; exact four-file candidate status APPPROVED only after proper decision and review. Until then DRAFT.
+- [ ] **Q-02 actual product/Manager G0** stating whether a new standalone candidate-only 2D interaction and offline read transport are accepted; exact four-file candidate status APPROVED only after proper decision and review. Until then DRAFT.
 - [ ] **Q-03 single Core read-adapter author/physical/source grants** with source field map and negative test inputs; no source writer/fixture/native permission inherited from docs.
 - [ ] **Q-04 source/fixture/Year0 package and old CLI protected hashes** verified under independent authorised custody, no waiver, no hidden baseline changes.
 - [ ] **Q-05 new read/UX/H0 offline source tests** with actual positive/negative f32/f64 and stage/identity/callback evidence, not only screenshots or reported old Year1 anchors.
