@@ -21,7 +21,7 @@ This record is the G0 output required by the #815 packet. It is not an acceptanc
 | #782 parent DRAFT `specs/scenario-one-compact-complete-loop-v1` | Read on `docs/sen-1-782-compact30-canonical-draft-stage-20261118-v1` @ `8dda056b`. **DRAFT / NOT APPROVED**; 148 inherited requirements unchecked. |
 | #782 subordinate `specs/scenario-one-compact-initial-planting-v1` | Read on the same branch. **DRAFT**; CIP-001…CIP-033 unchecked. |
 | Signed #677 supplement | Read on `docs/sen-1-677-manager-compact-save-policy-supplement-20261117-v1`. Signed technical policy; no new wire key; existing Annual Review acknowledgement is the one covering control. |
-| #813 E1 scene lineage | Read on `sen-1/813-compact30-e1-scene-20261119-v1` @ `be60c174`. The scene is a **visual shell only**: 30×30 m ground/collider, H1, C0 path, `Trees` with exactly 175 `P####_…` Sitka prefab instances at the #676 roster coordinates, and a player/camera/CharacterController. It contains **no** `ScenarioOneManager`, `ForestEcologyController`, `ForestTreeSpawner`, `ForestSaveController` or `ForestTree` component. |
+| #813 E1 scene lineage | Read on `sen-1/813-compact30-e1-visual-layout-fix-20261119-v1` @ `be60c174`. The scene is a **visual shell only**: 30×30 m ground/collider, H1, C0 path, `Trees` with exactly 175 `P####_…` Sitka prefab instances at the #676 roster coordinates, and a player/camera/CharacterController. It contains **no** `ScenarioOneManager`, `ForestEcologyController`, `ForestTreeSpawner`, `ForestSaveController` or `ForestTree` component. **The scene is not on `main` or on this feature branch; the E2 native gate must open the #813 scene lineage and apply this source candidate, or wait for the owner-released corrected scene.** |
 | #813 placement JSON | `ScenarioOneCompact30Placement.json` **still fails strict JSON parsing** (`Expecting ',' delimiter` at line 132, the missing comma between `correction_20261119` and `player`). The malformed bytes were **not** edited, copied as a whole document or used as authority. Only the owner-observed `correction_20261119.old_to_new` values were read as explicitly provisional E1 test data, as the packet permits. The E1 scene's four `G1_*` marker transforms were independently read and are exactly the same corrected positions: O1 (0.65, −2.65), O2 (0.20, −1.10), B1 (−1.20, −2.45), B2 (−0.45, −4.30). |
 | #690 shared save source | Read only. No file in the 17-file allowlist was edited. |
 
@@ -66,6 +66,8 @@ This record is the G0 output required by the #815 packet. It is not an acceptanc
 | UI shell (HUD, inspection, Work Plan, review, map) | `ScenarioOneUiRoot` runtime construction | shared source | Existing UI qualification evidence |
 | Species definitions/economy calibration | `ScenarioOne.asset`, `Species/*.asset` | shared data | Existing Scenario One calibration anchors |
 
+**Regression-witness caveat:** the right-hand column names suites/oracles that exist in the repository. **None of those old-world suites was run in this task** because no lawful Unity Editor lease was available. The only executed regression evidence is the source-level Unity-6000 compile plus the new Compact checks. Do not read this column as a PASS.
+
 ### ADAPT for Compact (all implemented in this task)
 
 | Adaptation | Where | Why |
@@ -83,7 +85,7 @@ This record is the G0 output required by the #815 packet. It is not an acceptanc
 | Covering review binding | `ScenarioOneManager.AnnualReviewAcknowledged` event + `Compact30Session.OnAnnualReviewAcknowledged`; `ScenarioOneUiRoot.NeedsAnnualReview` includes `CoveringReviewPending` | The existing single Annual Review control is the covering control; no second button or event. |
 | CT-3 all-route annual hold | `ScenarioOneManager.AdvanceYearBlocker` checked in `AdvanceYear` and `CanAdvanceYearNow` | Blocks normal and UI advance once final 2+2 is true and the covering review is unacknowledged. |
 | No historical two-cycle Compact completion | `ScenarioOneManager.SuppressHistoricalCompletion` | The old two-cycle checker must never award Compact credit. |
-| No five-rack teaching leakage | Compact bypass in `TutorialHint`, `RackPlanProblem`, `RackApprovalProblem`, intro, O panel, Work Plan planting focus, Annual Review objectives card | Compact must remain free of rack-first prompts, objective quotas and MFM. |
+| No five-rack teaching leakage | Compact bypass in `TutorialHint`, `RackPlanProblem`, `RackApprovalProblem`, intro, O panel, HUD objective widget, Objectives buttons (HUD/map/review/work plan), Work Plan planting focus, Annual Review objectives card, Stand Map access summary, and no `RackTool`/J-K rack decision in Compact | Compact must remain free of rack-first prompts, objective quotas and MFM. **Static/source review only; runtime not verified.** |
 | No free G/F/U bypass | `ForestPlayer` ignores G planting, F harvest, U uproot and 1/2 planting slots when `Compact30Session.IsActive` | Commitment must go through the Work Plan; no free felling/planting. |
 | Felling visual on authored trees | `Compact30Session.OnAuthoredTreeFelled` hides the authored visual and adds a stump | The authored prefab has no `ForestTree` trunk/canopy proxies. |
 | New candidate data fixtures | `Compact30Roster.json`, `Compact30Sites.json` + species/definition Resource copies | The runtime needs loadable data. The roster digest is verified at load; the sites are labelled provisional. |
@@ -109,7 +111,7 @@ Extraction racks and Rack V2 planning/entrance geometry; orange first-rack marks
 
 ### Spec and source permission
 
-The #782 parent/child specs are **DRAFT** and were not promoted. The direct owner instruction in #815 outranks the draft and explicitly authorises this implementation. A bounded **orchestrator-recorded IMPLEMENTING subset** for A–C plus advisory D is recorded in `Sen-1-815-ORCHESTRATOR-SPEC-SUBSET-AND-SOURCE-GRANT-RECORD-20261119.md`. It is not a Manager #731 signature, not a durable spec approval, not a world signature and not a save-policy amendment. All inherited requirement checkboxes remain untouched.
+The #782 parent/child specs are **DRAFT** and were not promoted. The direct owner instruction in #815 outranks the draft and explicitly authorises this implementation. A bounded **orchestrator-recorded IMPLEMENTING subset** for A–C plus advisory D is recorded in `Sen-1-815-ORCHESTRATOR-SPEC-SUBSET-AND-SOURCE-GRANT-RECORD-20261119.md`. It is not a Manager #731 signature, not a durable spec approval, not a world signature and not a save-policy amendment. **Manager #731 ratification or rejection of that subset and the file grants is still an open gate; the internal review correctly treats it as a major process blocker.** All inherited requirement checkboxes remain untouched.
 
 ### Unity custody
 
