@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 960" role="img" aria-labelledby="artTitle artDesc">
+<title id="artTitle">Sessile Oak versus European Beech: two genuine 0.60 metre nursery-transplant concepts</title>
+<desc id="artDesc">Two same-height narrow juvenile tree silhouettes with accurate outline cues, twig and bud callouts, separate monochrome miniatures, and a schematic walking-distance comparison. Artwork is original, illustrative rather than botanically scaled photography.</desc>
+<defs>
+  <path id="oakLeaf" d="M0,-28 C-9,-28 -8,-20 -13,-18 C-24,-18 -27,-9 -18,-5 C-27,3 -24,12 -15,13 C-18,23 -9,25 -3,21 L0,29 L3,21 C12,25 18,23 15,13 C24,12 27,3 18,-5 C27,-9 24,-18 13,-18 C8,-20 9,-28 0,-28 Z" fill="#668c50" stroke="#31553c" stroke-width="1.6"/>
+  <path id="beechLeaf" d="M0,-33 C-11,-27 -18,-18 -19,-8 Q-21,0 -18,9 Q-14,21 0,31 Q14,21 18,9 Q21,0 19,-8 Q18,-18 11,-27 Z" fill="#80a46a" stroke="#345c46" stroke-width="1.6"/>
+  <path id="monoOakLeaf" d="M0,-28 C-9,-28 -8,-20 -13,-18 C-24,-18 -27,-9 -18,-5 C-27,3 -24,12 -15,13 C-18,23 -9,25 -3,21 L0,29 L3,21 C12,25 18,23 15,13 C24,12 27,3 18,-5 C27,-9 24,-18 13,-18 C8,-20 9,-28 0,-28 Z" fill="#38443e"/>
+  <path id="monoBeechLeaf" d="M0,-33 C-11,-27 -18,-18 -19,-8 Q-21,0 -18,9 Q-14,21 0,31 Q14,21 18,9 Q21,0 19,-8 Q18,-18 11,-27 Z" fill="#38443e"/>
+</defs>
+<rect width="1440" height="960" fill="#f4f3ef"/>
+<text x="52" y="57" font-family="Arial,sans-serif" font-size="34" font-weight="bold" fill="#233a35">G1 plant stock | equal 0.60 m height, different biology</text>
+<text x="54" y="88" font-family="Arial,sans-serif" font-size="18" fill="#4b615b">Source-informed shape study • not a 3D production asset • 60 cm is game stock height, not nursery age</text>
+<rect x="46" y="112" width="652" height="600" rx="20" fill="#ffffff" stroke="#cbd6ce" stroke-width="2"/>
+<rect x="742" y="112" width="652" height="600" rx="20" fill="#ffffff" stroke="#cbd6ce" stroke-width="2"/>
+<text x="82" y="159" font-family="Arial,sans-serif" font-size="27" font-weight="bold" fill="#243e35">SESSILE OAK</text>
+<text x="82" y="188" font-family="Arial,sans-serif" font-size="19" font-style="italic" fill="#52665a">Quercus petraea • irregular, sparse laterals</text>
+<text x="780" y="159" font-family="Arial,sans-serif" font-size="27" font-weight="bold" fill="#243e35">EUROPEAN BEECH</text>
+<text x="780" y="188" font-family="Arial,sans-serif" font-size="19" font-style="italic" fill="#52665a">Fagus sylvatica • fine sprays, pointed buds</text>
+<!-- equal ground and height markers, both tree leaders at y=287, ground y=647 -->
+<path d="M70 650 H674 M766 650 H1370" stroke="#92745a" stroke-width="3"/>
+<path d="M114 290 V647 M109 290 H122 M109 647 H122" stroke="#557d79" stroke-width="2"/>
+<path d="M808 290 V647 M803 290 H816 M803 647 H816" stroke="#557d79" stroke-width="2"/>
+<text x="85" y="277" font-size="16" font-family="Arial,sans-serif" fill="#35615d">0.60 m</text>
+<text x="778" y="277" font-size="16" font-family="Arial,sans-serif" fill="#35615d">0.60 m</text>
+<!-- Oak leader is slender and uninterrupted; laterals carry leaves at attached nodes -->
+<g id="oak-plant">
+<path d="M378 650 Q380 556 374 482 Q372 398 371 291" stroke="#675443" stroke-width="8" stroke-linecap="round" fill="none"/>
+<path d="M374 498 Q335 484 308 446 L279 428 M376 455 Q416 453 447 421 L468 405 M372 414 Q339 405 319 377 M371 371 Q392 361 412 339 M376 543 Q416 534 444 519" stroke="#675443" stroke-width="4.7" stroke-linecap="round" fill="none"/>
+<path d="M373 297 L367 288 L372 275 L379 288 Z M369 303 L361 295 L367 288 L375 299 Z" fill="#96714e" stroke="#5c4636" stroke-width="1.5"/>
+<use href="#oakLeaf" transform="translate(273 422) rotate(-60) scale(.82)"/>
+<use href="#oakLeaf" transform="translate(302 449) rotate(22) scale(.75)"/>
+<use href="#oakLeaf" transform="translate(317 371) rotate(-45) scale(.82)"/>
+<use href="#oakLeaf" transform="translate(343 401) rotate(32) scale(.57)"/>
+<use href="#oakLeaf" transform="translate(418 339) rotate(58) scale(.73)"/>
+<use href="#oakLeaf" transform="translate(451 417) rotate(64) scale(.86)"/>
+<use href="#oakLeaf" transform="translate(473 398) rotate(25) scale(.60)"/>
+<use href="#oakLeaf" transform="translate(448 515) rotate(80) scale(.72)"/>
+<use href="#oakLeaf" transform="translate(368 320) rotate(-17) scale(.60)"/>
+<use href="#oakLeaf" transform="translate(386 351) rotate(34) scale(.55)"/>
+</g>
+<!-- Beech leader slightly zigzag, branch sprays; every oval leaf tied to node -->
+<g id="beech-plant">
+<path d="M1060 650 Q1057 585 1059 526 L1054 469 L1061 407 L1058 351 L1062 291" stroke="#71625d" stroke-width="6" stroke-linecap="round" fill="none"/>
+<path d="M1057 527 Q1005 510 969 481 M1056 469 Q1112 451 1158 416 M1060 411 Q1011 391 992 360 M1058 359 Q1092 347 1121 325 M1058 576 Q1102 566 1121 544" stroke="#71625d" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+<path d="M1062 293 L1059 271 L1065 281 L1065 298 Z M1121 325 L1125 309 L1128 322 L1123 330 Z M971 480 L963 466 L968 481 Z" fill="#aa7857" stroke="#674b43" stroke-width="1.5"/>
+<use href="#beechLeaf" transform="translate(969 477) rotate(-61) scale(.84)"/>
+<use href="#beechLeaf" transform="translate(1001 508) rotate(-105) scale(.67)"/>
+<use href="#beechLeaf" transform="translate(995 355) rotate(-40) scale(.77)"/>
+<use href="#beechLeaf" transform="translate(1022 391) rotate(41) scale(.61)"/>
+<use href="#beechLeaf" transform="translate(1126 323) rotate(43) scale(.67)"/>
+<use href="#beechLeaf" transform="translate(1155 419) rotate(72) scale(.85)"/>
+<use href="#beechLeaf" transform="translate(1112 457) rotate(138) scale(.63)"/>
+<use href="#beechLeaf" transform="translate(1123 543) rotate(75) scale(.64)"/>
+<use href="#beechLeaf" transform="translate(1063 338) rotate(-13) scale(.62)"/>
+<use href="#beechLeaf" transform="translate(1045 429) rotate(-72) scale(.52)"/>
+</g>
+<!-- collar markers -->
+<circle cx="378" cy="649" r="7" fill="none" stroke="#a36d42" stroke-width="2.5"/>
+<circle cx="1060" cy="649" r="7" fill="none" stroke="#a36d42" stroke-width="2.5"/>
+<g font-family="Arial,sans-serif" font-size="17" fill="#314a42">
+<path d="M314 377 L219 338 L143 338" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="140" y="330">Rounded lobes</text>
+<path d="M367 288 L479 252 L625 252" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="478" y="244">Short bud cluster</text>
+<path d="M377 499 L486 563 L624 563" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="485" y="555">Attached lateral</text>
+<path d="M378 649 L461 683 L620 683" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="462" y="678">Root collar at soil</text>
+<path d="M1063 280 L1156 248 L1322 248" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="1156" y="240">Narrow, pointed bud</text>
+<path d="M1157 420 L1230 382 L1346 382" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="1224" y="374">Oval leaf, wavy rim</text>
+<path d="M1057 575 L1165 593 L1338 593" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="1158" y="586">Fine twig spray</text>
+<path d="M1060 649 L1160 681 L1344 681" fill="none" stroke="#6c8179" stroke-width="1.6"/>
+<text x="1152" y="675">Root collar at soil</text>
+</g>
+<!-- Monochrome tiny silhouette study -->
+<rect x="47" y="733" width="654" height="175" rx="15" fill="#e6ebe6" stroke="#c6d0c8"/>
+<rect x="742" y="733" width="651" height="175" rx="15" fill="#e6ebe6" stroke="#c6d0c8"/>
+<text x="78" y="765" font-size="20" font-family="Arial,sans-serif" font-weight="bold" fill="#263e37">GRAYSCALE • silhouette only</text>
+<text x="774" y="765" font-size="20" font-family="Arial,sans-serif" font-weight="bold" fill="#263e37">GRAYSCALE • silhouette only</text>
+<path d="M143 875 L143 797 M143 829 L116 816 M143 820 L165 804 M143 847 L173 840" fill="none" stroke="#37443f" stroke-width="4" stroke-linecap="round"/>
+<use href="#monoOakLeaf" transform="translate(113 811) scale(.43)"/>
+<use href="#monoOakLeaf" transform="translate(166 802) scale(.43)"/>
+<use href="#monoOakLeaf" transform="translate(174 838) scale(.38)"/>
+<path d="M835 875 L835 797 M835 829 L807 818 M835 813 L860 805 M835 844 L861 842" fill="none" stroke="#37443f" stroke-width="3" stroke-linecap="round"/>
+<use href="#monoBeechLeaf" transform="translate(806 814) scale(.40)"/>
+<use href="#monoBeechLeaf" transform="translate(863 802) scale(.40)"/>
+<use href="#monoBeechLeaf" transform="translate(862 839) scale(.40)"/>
+<text x="218" y="815" font-family="Arial,sans-serif" font-size="18" fill="#34483f">Lobes + broad, uneven foliage</text>
+<text x="218" y="841" font-family="Arial,sans-serif" font-size="17" fill="#51665b">Do not make a miniature oak crown</text>
+<text x="907" y="815" font-family="Arial,sans-serif" font-size="18" fill="#34483f">Ellipses + thin pointed bud tips</text>
+<text x="907" y="841" font-family="Arial,sans-serif" font-size="17" fill="#51665b">Avoid a generic round leaf canopy</text>
+<text x="78" y="893" font-family="Arial,sans-serif" font-size="14" fill="#66736b">2 / 3 / 4 / 6 m viewing: increasingly inspect-label dependent, not measured screen pixels</text>
+<text x="772" y="893" font-family="Arial,sans-serif" font-size="14" fill="#66736b">Leafless / young stock may be ambiguous: inspect labels remain authoritative</text>
+<text x="54" y="943" font-size="15" font-family="Arial,sans-serif" fill="#5a655e">Morphology sources: UCC Tree Explorers (beech); Woodland Trust (sessile oak); Oxford Plants 400 (beech). Roots shown at planted collar only.</text>
+</svg>
