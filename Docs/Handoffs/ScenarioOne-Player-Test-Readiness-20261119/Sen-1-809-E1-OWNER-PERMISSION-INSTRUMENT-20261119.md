@@ -82,3 +82,14 @@ Owner: ____________________  UTC: ____________________
 5. Publish the scene branch, the result Markdown with the three checks, and a 5–10 minute owner walk checklist.
 
 **Verdict target:** `E1 EDITOR PREVIEW BUILT — SMOKE PASS — READY FOR OWNER PERSONAL TEST`, or `E1 PARTIAL / BLOCKED` with the exact real missing gate.
+
+## 8. Addendum — focused nonauthor check and exact-path clarification (2026-11-19)
+
+**Focused nonauthor check:** IN SCOPE, no blocking overreach. A separate read-only child session verified the six points in §2–§4 against D-086–D-091 and the #809 packet. No general design or QA review was performed, and no second reviewer programme was created.
+
+**Non-blocking clarifications recorded rather than silently changing the signed text:**
+
+1. **D-089 exact path allowance:** this signed instrument *is* the separately defined file allowance D-089 required. The two temporary paths are exactly `Assets/ForestPrototype/Editor/Compact30E1SceneBuilder.cs` and its Unity-generated `.meta`.
+2. **Five-file authority:** the five permanent paths come from **D-088**; D-090 supplies the content direction and ZX20 worktree location. Only those five permanent files may be committed or pushed from the scene branch.
+3. **Actor-specific start:** the #809 packet plus this signed instrument and the #809/#718 custody record constitute the actor-specific content start for this session. No broader Manager approval is inferred.
+4. **Licence route:** the native Editor could not see the Flatpak Unity Hub entitlement. Unity was launched with **process-scoped** `XDG_DATA_HOME`/`XDG_CONFIG_HOME` pointing at the already-installed Hub's own licence store. No credential was copied, moved or written globally, and no global HOME was changed.
