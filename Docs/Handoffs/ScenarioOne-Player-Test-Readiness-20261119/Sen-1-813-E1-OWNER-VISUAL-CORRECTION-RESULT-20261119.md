@@ -106,16 +106,18 @@ The markers moved with the coordinates — the underlying `G1` positions themsel
 
 All four `TextMesh` `PENDING` objects were **deleted** (`remaining_scene_textmesh = 0`). They are not rotated, darkened or scaled.
 
-Each site now carries three small, ground-anchored, **collider-free** survey items:
+Each site now carries small, ground-anchored, **collider-free** survey items:
 
-- a **0.56 m timber stake** at the centre;
-- a **cap** giving the species by colour — **ochre = sessile oak, sage = European beech**;
-- a **0.55 m radius footprint ring** on the ground, which also makes the clearance claim visible while walking.
+- a **0.56 m timber stake** at the centre with a small **species cap** — **ochre = sessile oak, sage = European beech**;
+- **four 0.6 m corner pegs** with small flat caps at the reserved footprint corners, using a bright survey-orange material so the footprint is visible while walking;
+- a **flat 0.55 m radius footprint disc** on the ground, tinted by species (ochre disc for oak, muted green for beech).
 
 Nothing stands on the walking surface, nothing can snag the `CharacterController`, and there is no 3D text anywhere in the forest. The sites read as *proposed future planting positions*, not planted juveniles.
 
 **Before:** ![labels before](Sen-1-813-EVIDENCE/sen-813-before-g1-labels.jpg)
 **After:** ![stakes after](Sen-1-813-EVIDENCE/sen-813-after-g1-stakes.jpg)
+
+**Reading the before frame honestly:** the four `PENDING` TextMeshes are **not visible** in this before image — they were single-sided and faced away from this camera, which is why the owner saw them from other angles. The removal is therefore evidenced by the committed scene itself: base `4` `TextMesh` components → candidate `0`, and no `PENDING` string anywhere in the scene. The before/after pair shows the same viewpoint, but not a readable picture of the old words.
 
 ---
 
