@@ -47,12 +47,12 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 | Check | Result |
 |---|---|
 | Import + compile after the authoring tool was removed | **PASS**, 0 `error CS` (only pre-existing CS0618 warnings in unrelated files) |
-| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; final fence: **38 posts, 39 × 3 m panels + 4 × 1.5 m panels, 6 strainers, 8 braces, 0 braces outside the enclosure**, path ribbon bounds z −4.78 … 13.57, no panel inside the opening |
+| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; final fence: **38 posts, 39 × 3 m panels + 4 × 1.5 m panels, 6 strainers, 8 braces, 0 braces outside the enclosure**, path ribbon bounds z −4.78 … 13.59, no panel inside the opening |
 | Prefab-instance roster vs base | 433 base instances → 520; **the only changed sources are the four new fence prefabs** (+39 three-metre panels, +4 one-and-a-half-metre panels, +38 posts, +6 strainers). Every pre-existing prefab instance count is unchanged. |
 | Colliders | 5 scene collider components before and after (Ground + four containment), plus the Player's CharacterController — identical set. None added to the path, clearing or fence. |
 | G1 clearance, 1.2 m core | O1 +1.574 m, O2 +1.567 m, B1 +3.292 m, B2 +2.796 m to the core edge; subtracting the 0.55 m footprint ring still leaves **+0.82 m worst case**, i.e. better than #813's +0.767 m because the core narrowed from 1.6 m to 1.2 m. |
 | Renders | 36 PNGs: 14 before (7 viewpoints) and 22 after (11 viewpoints), each at 1280×720 and 1920×1080. The before set is the pristine base at `0709d05a`; the after set was rendered from the committed scene and `captures/COMMIT.txt` records its hash. |
-| Runtime performance | **NOT TESTED** (no frame-time measurement). Proxy: ≈19 k added triangles and 92 added renderers in a 30 × 30 m scene; the netting panels are 420 triangles each and do not cast shadows. |
+| Runtime performance | **NOT TESTED** (no frame-time measurement). Proxy: ≈19 k added triangles and 97 added renderers (87 fence prefab instances + 8 braces + the ribbon + the clearing) in a 30 × 30 m scene; the 3 m netting panels are 456 triangles and the 1.5 m panels 336, and no panel casts shadows. |
 
 ### Render evidence
 
@@ -97,7 +97,7 @@ A fresh-context, non-author reviewer was given the candidate, the scene diff and
 | 7 | Evidence set stale relative to the commit. | **Fixed.** All after-views were re-captured on the final candidate, with the same camera poses and resolutions as the before set. |
 | 8 | Clearing still reads as a flat pale patch. | **Partially addressed.** Base colour darkened to 0.74/0.70/0.62. The boundary is still a crisp mesh edge; feathering it needs an alpha-blended material, which was not attempted in this run. |
 
-A second focused re-review of `091bb04b` found one **blocking regression introduced by that repair**: dropping the north extension also dropped the final spline point, so the ribbon ended at z 10.75 instead of the accepted A8 terminus at z 13.50. That is fixed in the final candidate: the ribbon now ends at the last anchor and its bounds reach z 13.57. The same review confirmed the corner gaps, the 0.800 m verge cap, the 45 % tips and the scope were all correct, and asked for a dedicated 1.5 m panel rather than a 0.5-scaled 3 m panel — now authored.
+A second focused re-review of `091bb04b` found one **blocking regression introduced by that repair**: dropping the north extension also dropped the final spline point, so the ribbon ended at z 10.75 instead of the accepted A8 terminus at z 13.50. That is fixed in the final candidate: the ribbon now ends at the last anchor and its bounds reach z 13.59. The same review confirmed the corner gaps, the 0.800 m verge cap, the 45 % tips and the scope were all correct, and asked for a dedicated 1.5 m panel rather than a 0.5-scaled 3 m panel — now authored.
 
 ### Third review: cross-provider (Claude Opus 5.5), owner-requested
 
@@ -112,7 +112,10 @@ A second focused re-review of `091bb04b` found one **blocking regression introdu
 | NON-BLOCKING — path too pale with a kerb-like verge. | Core multiplier reduced to 1.08/1.02/0.90 and verge to 0.86/0.82/0.74. |
 | NON-BLOCKING — README and result-document numbers stale. | Corrected against the final assets. |
 | NON-BLOCKING — renders not tied to a commit. | The final after-captures are taken from the committed candidate; `captures/COMMIT.txt` records its hash. |
-| NON-BLOCKING — one undisclosed scene change (URP light-data component added to the Sun on save). | Disclosed here: it is a default component Unity adds when the scene is saved; no light value changed. |
+| NON-BLOCKING — one undisclosed scene change (URP light-data component added to the Sun on save). | Disclosed: it is a default component Unity adds when the scene is saved; no light value changed. |
+| NON-BLOCKING — saving the scene re-serialised 11 embedded E1 stake/cap/ring materials (an explicit `RenderType: Opaque` tag, a disabled motion-vector pass, one colour rounded at float precision). | Disclosed: no visible value changed; the materials are scene-embedded and Unity rewrites them on save. |
+
+**Accepted cosmetic residuals** (recorded, not blocking): the post and strainer meshes are open cylinders with no top cap, so a camera directly above can see inside; `07_h1_junction_close` is largely screened by canopy, so `02_h1_seam` is the useful join evidence; the outer verge edge at A7 is slightly angular where the cross-section narrows most.
 
 A structural correction was also made before the first review returned: the first fence placement left a netting panel overlapping the southern opening and planted its strainers inside that panel (`6299e711`, opening later realigned to the 1.5 m panel grid).
 
