@@ -535,6 +535,7 @@ public sealed class Compact30Session : MonoBehaviour
     private void OnGUI()
     {
         if (manager == null) return;
+        if (manager.ModalOpen || manager.AnyPanelOpen) return;
         EnsureStyles();
         if (dataProblem.Length > 0)
         {
@@ -660,8 +661,9 @@ public sealed class Compact30Session : MonoBehaviour
 
     private float Line(Rect panel, float y, string text)
     {
-        GUI.Label(new Rect(panel.x + 12, y, panel.width - 24, 40), text, bodyStyle);
-        return y + 19;
+        float height = text.IndexOf('\n') >= 0 ? 34f : 19f;
+        GUI.Label(new Rect(panel.x + 12, y, panel.width - 24, height), text, bodyStyle);
+        return y + height;
     }
 
     private void EnsureStyles()
