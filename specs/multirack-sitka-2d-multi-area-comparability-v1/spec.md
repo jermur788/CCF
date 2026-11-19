@@ -1,0 +1,55 @@
+# Multi 2D — Source-defensible sample treatment across multiple comparable management areas (V1)
+
+- **Spec ID:** MULTI-828-G1-CROSS-AREA-COMPARABILITY-V1.
+- **Status:** **DRAFT — G1 SOURCE COMPARATOR / FIXTURE NOT VERIFIED; NOT APPROVED FOR CODING**.
+- **Date / owner:** 19 November 2026; dedicated Multi Manager [#730](https://github.com/jermur788/CCF/issues/730). Initial DRAFT under [#828](https://github.com/jermur788/CCF/issues/828), not an implementation or acceptance result.
+- **Product authority:** [owner #819 purpose clarification](https://github.com/jermur788/CCF/issues/819#issuecomment-7015429935), latest one-undivided-area G0, and [#730 Stage 5 APPROVED DESIGN](https://github.com/jermur788/CCF/blob/docs/multi-730-stage5-approved-design-gates-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-730-MANAGER-STAGE5-FORMAL-SPEC-DESIGN-APPROVAL-AND-NEXT-GATES-20261119.md). This spec is a **separate NEAR-TERM milestone**, **not** part of the first 30m/100-Sitka no-rack Stage5 implementation.
+- **Evidence boundary:** the actual numeric comparator predicate, independently evidenced site attributes, source-side area identity, calibration thresholds and safe larger fixture are **OPEN / MUST BE MEASURED OR SOURCED**. This draft contains *requirements and negative safety rules*, **not** claims that any real tree or area is already comparable. Do not promote analogy from Irish/UK control/sample marking into an unsupported quantitative forestry standard.
+
+## 1. Goal and deliberately separate worlds
+
+The player demonstrates treatment choices on a **representative sample management area** and receives source-explained conservative *proposals* for per-tree treatment in **multiple other genuinely comparable areas**. The player reviews and can reject/override each proposal, deliberately submits accepted orders to ordinary PendingWork, approves **one Work Plan**, explicitly **Executes** the actual atomic Fell under proven G2 source authority, advances the real ecological year and compares subsequent **per-area actual outcomes**. That sequence—not a one-area manual click loop—is Multi's primary interactive goal.
+
+For this milestone to demonstrate **multiple** comparable destination areas, the independent larger fixture must eventually contain **one valid sample area, at least two genuinely source-validated comparable target areas**, and **at least one clearly mismatched or evidence-unknown control area**. These are **design/qualification coverage requirements, not a claim such a fixture exists today**. If source evidence cannot support two targets, do not label partial fixture success as full Multi acceptance.
+
+**Separate fixtures:** preserve exact source case-sensitive IDs and immutable Year0–10 no-work outputs for the original 30 × 30 m, 100-Sitka single-area experiment. A larger, independently named and versioned source/fixture with its own IDs/area mapping is required. No fabricated subdivision of the original P1 area, no grafting Scenario One Unity/Compact30 or historical Enlarged80 five-rack geometry. An **area** is a separately provenance-backed management scope, *not* automatically a painted extraction rack.
+
+## 2. Open factual/source gates — no invented comparator
+
+- **G1-A / source availability:** inspect the **actual accepted engine data**, current committed source and evidence for tree XY, source-year age, basal area, local competition/neighbours, stocking, height/diameter, species, current live roster, site attributes *only if actually present*, and stable management-area identity. Each attribute needs exact provenance, units, precision, missingness and source line/fixture witness. An attribute absent from source is not guessed or synthesized as real.
+- **G1-B / matching policy:** independent forestry/source assessor must accept an explainable, conservative matching predicate and treatment-transfer logic. Distinguish **COMPARABLE**, **DIFFERENT**, **UNKNOWN**. Different/unknown cannot be proposed automatically; uncalibrated same species/age/site appearance is NOT proof of similarity. Threshold values remain **UNSET** until accepted source evidence plus calibration/holdout tests. No universal CCF comparison number invented.
+- **G1-C / new larger fixture:** independently verify each distinct scope, source identity, actual tree IDs, area characteristics, committed year and comparator test labels. Include sample, at least two supported comparable targets and one DIFFERENT/UNKNOWN control. If impossible with admitted source, report **BLOCKED / SPEC REVISION REQUIRED**, not generate pseudo-comparable areas. No protected original rebaseline.
+- **G2 / real work:** separate [#827 technical audit](https://github.com/jermur788/CCF/issues/827) must prove Stage5 legal whole-batch authoritative once-only Fell/event, rollback, year ordering, distinct actual Fell cause and real Year+1 ecology. Multi-area atomicity/area grouping must be qualified against the **actual** shared source transaction. UI view and candidate state do not prove G2.
+- **G3/G4:** Stage7 persistence/save/Host, cross-process recovery, and new economic simulation are out of scope. Unknown costs are **UNAVAILABLE**, never 0/free.
+
+## 3. Player workflow
+
+1. **Inspect distinct areas.** Display actual current source year/experiment, each source-backed management scope, per-tree exact current live IDs and measurable evidence. Missing features and UNKNOWN scope labelled clearly. No treatment automatically assigned to an area by opening it.
+2. **Player sample.** The player selects representative exact live trees *within one chosen source area*, marking manual proposed retain/release decisions and reasons. Sample is a demonstration, never an executable Fell action.
+3. **Source-based G1 proposal.** If independently admitted predicate exists, compute matching/exclusion on actual current target scopes, then create **itemised per-tree hypothetical proposals** for COMPARABLE target areas only; display source-sample scope, target scope, matched features, excluded/unknown coverage, evidence/version/confidence qualification and refusal explanation. Never assert all trees in comparable areas should be treated.
+4. **Player judgement.** Permit per-area and per-tree accept/reject/manual override. A proposed treatment does not create PendingWork until **separate prescription review and approval**. Without G1, show **DISABLED / Manual / NotCovered** and allow ordinary manual selections in each area; no inference from adjacency, rack shape, species or age alone.
+5. **Ordinary work commitment.** Manual Add to Work Plan creates fully revalidated PendingWork directly; accepted G1 proposals need separately approved prescription before joining PendingWork. Work Plan shows every exact tree ID, source-area, target-area, current year/revision and real execution availability. Only an **explicit whole-batch Work Plan approval** is commitment, followed by a **separate Execute** under verified G2. A draft, suggestion, pending order, or prescription alone cannot Fell. If cross-area atomic whole batch is not source-supported, **STOP and return for a new exact transaction design**; never silently partially apply target areas.
+6. **Real consequences.** Authoritative executed work yields actual per-tree Fell-cause/roster and counts/BA by source area, then genuine next-year ecological competition/growth/background mortality on actual survivors. Distinguish Year y work from Year y+1 changes, not hypothetical preview, count relabel or fabricated ecology. Where no work executed, there must be no inferred Fell.
+7. **Repeat or no-work year.** Player can work on a different sample area next cycle; revalidate all source/area features and decisions against the newly committed year. Old proposals expire rather than silently reapply. Stage5's manager-approved pending/approved-but-unexecuted year-advance policy (warn + consent + stale-cancel at zero Fell; no consent = no change) applies unchanged pending any later explicit product revision.
+
+## 4. Conceptual contracts — NOT a source ABI or persistent format
+
+| Contract | Required conceptual fields / guard |
+|---|---|
+| `ManagementScope` | Immutable source-linked scope ID in a versioned independent fixture; actual area/roster, source year/digest and per-area measurements; physical geometry only if separately accepted |
+| `SampleRecord` | source area ID, source exact tree IDs/current live year/revision, explicit player treatment/reasons, observed source feature set and evidence |
+| `ComparatorAudit` | predicate/version, source feature names/units/missingness, accepted evidence/calibration, per-scope COMPARABLE/DIFFERENT/UNKNOWN, inclusion/exclusion and provenance |
+| `ProposalRecord` | sample source scope -> target scope, target exact live ID and proposed action, per-tree rationale/evidence, comparator status, player accept/reject, source binding; hypothetical |
+| `WorkPlanOrder` | exact source current tree ID, one source-area ID, manual or separately approved prescription origin, current source/year/revision; never direct Fell |
+| `ExecutedWorkEvent` | one G2-accepted real authoritative transaction result, per-ID actual Fell cause and before/after actual roster/BA/count by area, event/source year/replay identity; no invented durability |
+| `AnnualAreaReview` | true following-year per-area observed state; actual execution distinguished from proposal/derived comparison; session-only history in this milestone |
+
+## 5. Acceptance boundaries and STOP
+
+- **G1 fail closed:** absent feature, unsupported threshold, unknown calibration, missing area identity, source mismatch, stale ID/revision or wrong source-year -> no auto-treatment proposal, **Manual/NotCovered** with explanation.
+- **Human approval:** hypothetical proposal cannot write biology; accepted proposal needs separate prescription approval to enter PendingWork, then whole approved Work Plan, then separate G2 Execute. Cross-area all-or-none requirement must match proven source atomicity, not UI assertions.
+- **Actual effects only:** no automatic mass-felling, no fabricated per-area ecology/financial outputs or resurrection; preserve no-work oracle on protected original and no editing immutable executed events. No save/reload authority in this V1.
+- **Ownership and implementation:** this DRAFT grants **no production code, source fixture mutation, .NET/Unity/physical Ops, main merge or tests marked PASS**. Need source-backed G1 assessor/predicate and independent larger fixture qualification, Manager formal approval, G2 evidence, actual actor-specific source/physical lease, focused native/source/UX positive and negative qualification.
+- **Open design choices awaiting evidence:** actual area representation/feature availability, matching calibration/predicate, source-based comparable cases, feasible cross-area atomic transaction and per-area annual output; return narrow decisions rather than inventing values.
+
+**DRAFT VERDICT:** meaningful spec outline prepared, **NOT APPROVED**, **G1 unknown and G2 unproved**. Source qualification of this *actual* model is required before implementation authorisation.
