@@ -32,6 +32,16 @@ With project access: inspect first, make only authorised changes, preserve unrel
 
 Small playable improvements; simplest maintainable solution for the milestone; no speculative infrastructure. Preserve reasonable future multiplayer/growth/testing options without building unnecessary systems.
 
+**Priority.** Default to the owner's current player-visible feature or source-verifiable simulation outcome. Each substantive task identifies its smallest real demonstration. Tooling, Ops, security hardening, process documents, audits and broad test expansion are not feature progress. Start separate non-feature work only when the owner chooses it or as the smallest authorised fix for a specific defect blocking the current task; fix only what unblocks that action. Before proposing a diversion, state what it unblocks, the approximate effort or UNKNOWN, and the consequence of deferral.
+
+**Blockers.** Stop the affected action, identify its exact blocker and responsible authority, and continue other independently authorised, non-conflicting work. Do not repeatedly investigate a characterised blocker without new evidence. Never bypass or self-grant source/file ownership, physical or Unity locks, approved specs, protected saves/references, required review or release gates. Lack of evidence for an acceptance claim limits that claim; it does not automatically stop unrelated safe work.
+
+**Reuse.** Inspect and extend existing functioning code before creating a parallel implementation; name reused and compile-linked paths in the ordinary task scope, without a separate reuse report. New code needs a reason, such as incompatible model semantics/units, protected reference behaviour, engine/UI coupling or a deliberate independent oracle. Reuse never grants write, compilation, source-scope or integration permission by itself; preserve existing explicit rights and provenance requirements.
+
+**Purpose.** Ask the owner before a materially ambiguous requirement drives a large spec or implementation. Supersede obsolete assumptions when clarified. Report intermediate tooling, documents and one-area prototypes as interim work, not completed gameplay or multi-area treatment extrapolation.
+
+**Long-term architecture.** The 2D and 3D presentations are intended eventually to use one underlying forestry simulation engine. Share proven contracts and kernels as separately authorised; this intent alone does not authorise an immediate engine rewrite or unversioned changes to protected models.
+
 Separate ecology rules/data from graphics, controls or networking when beneficial. Explain dependencies/assets/packages before adding them and consider compatibility, maintenance, licensing, contributor access and simpler alternatives. Match actual Unity, pipeline and packages.
 
 ## Ecology and simulation
