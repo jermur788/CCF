@@ -1,0 +1,54 @@
+# Multi #812 — Stage 5 intervention design: align with original five-rack Scenario One
+
+**19 November 2026 — OWNER DIRECTION ACCEPTED / SPEC REQUIRED / NO SOURCE CODING AUTHORISED.**
+
+## Owner decision and scope
+
+The owner directs the standalone synthetic Sitka **2D simulator's Stage 5 actual forestry intervention workflow** to align with the **original five-parallel-rack Enlarged80 Scenario One** decisions and management philosophy, rather than inventing a different forestry approval flow. This is a request to reuse the **decision architecture and safety gates**, not a decision to transplant a five-rack 80 m world, first-person paint interaction, Unity scene, or saves into the separate 30 m × 30 m synthetic 100-tree lab. The current Compact30 no-rack beta is a *different* Scenario One target and must not silently override these historical five-rack decisions.
+
+## Direct canonical source examined
+
+Source is current [main Decision Log](https://github.com/jermur788/CCF/blob/main/Docs/Project/decision-log.md), not a historical chat summary:
+- **D-064 Rack V2:** five racks planned/confirmed on the enlarged stand map; confirmation creates/reconciles **pending** removal orders, it does **not** approve or execute felling. 3D orange entrance-tree marking before `rack.approve`; then execution and `rack.result`. Geometry edit/cancel semantics protect already executed work. Historical Legacy40/Reference Future compatibility preserved.
+- **D-065 Multi-Scale Forestry Management V1:** actual judgement in a qualified sample → transparent reviewed prescription → optional extension to **comparable current conditions** → pending ordinary work orders with provenance → **Work Plan approval as the commitment gate** → executed work. Candidate proposals are **never Fell marks**. Crop Tree candidates outside sample require individual player confirmation/3D judgement, no bulk auto-confirm; player-authored decisions override suggestions. Treatment must not be extrapolated indiscriminately; original treatment Sitka adults only.
+- **D-071 five-rack topology:** original five headland-entry parallel racks, not northern feeder/spine/herringbone. This stays historical Enlarged80 authority; not a command to create racks in this 30 m standalone lab.
+- **D-076 repeated management:** subsequent cycles can demonstrate judgement in a representative sample and review optional prescribed treatment in comparable areas, with separate prescriptions/manual approach for materially different areas; source sample, treatment and executed results are retained year by year. D-076 extension needs its own production spec, and the first teaching sample specifics remain historical Enlarged80 facts, **not** automatic 2D constraints.
+- Existing Multi P1 future-work boundary in [#805 specification](https://github.com/jermur788/CCF/blob/docs/multi-805-committed-frame-admission-matrix-20261119-v1/specs/multirack-sitka-2d-read-contract-and-candidate-ux-v1/spec.md): Draft→Proposed→Approved→PendingWork→Executed was previously endorsed as intent, but current local `REMOVE_CANDIDATE` annotations are **not** that workflow, not a red Fell mark, and cannot be executed by renaming. One separate current-source approval/execution boundary is mandatory.
+
+**Important evidence discipline:** These are accepted **Scenario One product decisions** and historical implementation targets. They do **not** prove the original Enlarged80 live Unity feature is fully qualified, nor that comparable-rack management is mathematically valid in the 100-tree synthetic 2D forest. Cite the right source, and label every 2D adaptation as game-design proposal pending approval.
+
+## Required 2D Stage 5 correspondence (normative design direction)
+
+| Original five-rack principle | 2D Multi Stage 5 design target | Do not silently copy |
+|---|---|---|
+| Assess stand, inspect, mark sample trees with player judgement | Use actual live-tree/diameter/competition context and explicit player-selected local candidates from approved Stage 4 as proposal inputs | The 3D orange spray or literal entrance-rack lesson |
+| Confirm rack geometry creates only pending orders | Any separately accepted 2D spatial plan/management unit confirmation may create/reconcile **pending** orders, not execute them; decide whether 2D needs management units at all | Five racks/16–20 m spacing/headland geometry or false persisted rack identity |
+| Demonstrate treatment in qualified area | Make a player-authored, source-traceable representative sample and explain what rule is being proposed | Fixed 24 m rack-three teaching footprint and three Crop Trees, without compatible real geometry |
+| Extend only to similar conditions and inspect candidates | Proposals for other **proved comparable areas** only, transparent treatment source and exclusions; explicit player review, manual management always available | Blind stand-wide automation, fabricated site conditions or operator discretionary felling |
+| Proposals are not Fell marks | Keep `REMOVE_CANDIDATE` / suggested treatment / plan approval / pending work / executed Fell distinct states with separate authority | Reclassify candidate as executed tree death or apply biology while previewing |
+| Work Plan approves actual commitment | Explicit current-state/whole-batch revalidation and player approval, then transactionally execute **once** with durable provenance for real removals | Auto-thin on Year Advance, auto-approve, direct UI mutation or omitted plan gate |
+| Repeat after review | Next annual step uses actual post-work living neighbours/density and retains who/when/why; subsequent management cycle is revisable | Reusing a stale candidate, applying a Year0 fixed prescription unchanged later, claiming #789 no-work Q proves intervention Q |
+
+**Key unresolved product choice for the new spec:** Should the 30×30 m stand have **no rack planning at all** and use explicitly designated 2D management/sample zones, or should rack planning exist at a different scale? Historical D-064 does not settle this for Multi. Propose a reasoned V1 default, labelled adaptation, and seek explicit owner decision before coding any new rack/spatial planning. Do not treat a literal five-rack layout as already approved.
+
+## One executable docs-only Stage 5 specification assignment
+
+**Claim:** [#812](https://github.com/jermur788/CCF/issues/812), READY, not started. **Difficulty HIGH**, because multiple accepted workflows need safe adaptation and source-specific actuation rules. **Provider:** separate browser/GitHub GPT-6 or Claude source-aware specification orchestrator, not the ongoing native #811 implementation session. **Lane:** fresh docs-only branch from observed main, single writer for new `specs/multirack-sitka-2d-intervention-workflow-v1/` four-file scope. No physical worktree needed for this documentation task; register claim [RUNNING] with observed branch and initial main and sole file paths before writing.
+
+Produce one complete **DRAFT** four-file spec with:
+1. `spec.md`: explicit crosswalk to canonical D-064/065/071/076 and prior Multi future Work Plan, player workflow states, spatial/sample V1 options, real-current-source eligibility, proposal vs marked vs approved work, transactional execution/no double execution, stale and failed-year safety, history and annual effects, no-work, protected original/Unity boundaries; separate accepted rule vs new 2D product proposal.
+2. `plan.md`: dependencies after #811 read-only and Stage 4 local markings; source audit, G0 owner spatial-choice decision, exclusive implementation writer and physical/compile grants, scoped nonauthor source and UX qualification, integration boundary and rollback.
+3. `tasks.md`: meaningful implementation packets for Stage 5, boundaries between interface, plan approval, execution engine and history, reviewer/owner/claim requirements, what may parallelise Stage 4.
+4. `checklists/requirements.md`: numbered, all-unchecked positive and negative acceptance: proposal not Fell, sample/comparability only when supported, Work Plan approval, zero source mutation before commit, exactly-once Fell with audit/history, wrong-year/stale/refusal, zero remaining survivor and repeat-year effects, no auto-fell on time skip, original hashes, no Host/save/Unity/main, accessibility and test matrix. **Do not check tests not run.**
+
+Create exactly one additional **GitHub Markdown handoff** documenting source references, author and compare/readback (separate from the four spec files), and return for an independent nonauthor review + Manager product G0 decision. Do not edit main Decision Log, historical D-064/D-065 specs or #805 draft; a later controlled canonical decision update may follow approval.
+
+**Do not author implementation now.** Stage 4 is product-approved but depends on the #811 committed read frame, and Stage 5 must not be dispatched to code until its new 2D spec and any rack/zone product choice have been explicitly accepted. The current [#811 one-shot historical viewer](https://github.com/jermur788/CCF/blob/docs/multi-730-811-one-shot-history-viewer-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-730-811-ONE-SHOT-DESKTOP-READ-ONLY-HISTORY-VIEWER-IMPLEMENT-REVIEW-QUALIFY-20261119.md) is separate and is not blocked by this docs work. No native T3, Unity, .NET, physical Ops, protected local source or CCF-HP, public/main integration, Host/save/Windows game build or L4 waiver.
+
+## Finish and authority
+
+Report **DRAFT COMPLETE / NEEDS SOURCE REVIEW**, not implementation-ready. Post task result to #812 and #730, mark [HANDED-OFF]. Manager will review and arrange bounded independent nonauthor document review/owner choice, then issue exact accepted Stage 5 code packet after Stage 4. No user action needed for the present design direction itself; one specific spatial-plan choice may need owner acceptance later. Dashboard/Drive sync NOT VERIFIED.
+
+**Copy-paste dispatch:**
+
+> Prepare Multi #812 Stage 5 as a full four-file DRAFT, aligning its actual forestry intervention workflow with historical five-rack Enlarged80 Scenario One decisions D-064, D-065, D-071 and D-076 — *not* new Compact30. Full handoff: [LINK TO THIS FILE]. Read current main Decision Log exact entries and accepted #805 local candidate boundary, distinguish genuine owner rules from 30×30 m synthetic-lab adaptations, preserve sample judgement, comparable-condition suggestions, proposal ≠ Fell, Work Plan approval before exactly-once execution, repeated annual work history, and no automatic thinning. Identify whether management zones or any rack planning belong in 2D as an explicit owner choice; do not assume literal five racks or 3D spray. Register #812 RUNNING on own docs branch, author spec.md, plan.md, tasks.md, requirements.md all DRAFT/unchecked, verify diff and readback, publish one GitHub handoff to #730. No code/Unity/local work or main merge.
