@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using SitkaP1.Core;
 
@@ -180,6 +181,148 @@ internal static class WorkContractTests
             T.Eq(100, approved.Frame.Stand.LivingCount, "approved batch cancelled with zero Fell");
         });
 
+        T.Add("work: legacy no-work advance preserves all ten existing yearly digest literals", () =>
+        {
+            // Reuse the unchanged oracle without widening the two-file patch to expose its private field.
+            var digests = (string[])typeof(ContinuationTests)
+                .GetField("Digests", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+            T.Eq(10, digests.Length, "ten existing golden digests");
+            var engine = Open();
+            T.Eq(0, engine.Snapshot.State.EcologicalYear, "start at year 0");
+            for (int year = 1; year <= digests.Length; year++)
+            {
+                var report = engine.Advance(year - 1, year - 1);
+                var bytes = JsonSerializer.SerializeToUtf8Bytes(new { Snapshot = engine.Snapshot, Report = report });
+                T.Eq(digests[year - 1], DerivedManifest.Sha256Hex(bytes), "unchanged legacy yearly digest");
+                T.Eq(year, engine.Frame.EcologicalYear, "legacy next year");
+                T.Eq(year, engine.Frame.AnnualRevision, "legacy annual revision");
+                T.Eq(0, engine.Frame.WorkRevision, "no Fell revision");
+                T.True(!engine.HasUnexecutedWork, "no unexecuted work");
+                T.Eq(0, engine.Frame.Events.Count, "no work events");
+            }
+        });
+
+        T.Add("work: legacy advance after a real Fell refuses without changing any session state", () =>
+        {
+            var engine = Open();
+            var source = engine.CurrentToken;
+            string treeId = engine.Frame.Trees.First(t => t.IsLiving).TreeId;
+            engine.AddPendingFell(treeId, "legacy work-revision regression");
+            var plan = engine.ApprovePlan("plan-legacy-fence");
+            var executed = engine.Execute(plan, "exec-legacy-fence");
+            T.True(!executed.Replayed, "real Fell executed");
+            T.True(!engine.Frame.Trees.Single(t => t.TreeId == treeId).IsLiving, "selected exact ID was felled");
+            T.Eq(source.EcologicalYear, engine.Frame.EcologicalYear, "Fell keeps the ecological year");
+            T.Eq(source.AnnualRevision, engine.Frame.AnnualRevision, "Fell keeps the annual revision");
+            T.Eq(1, engine.Frame.WorkRevision, "Fell changes the work revision");
+            T.Eq(99, engine.Frame.Stand.LivingCount, "one real Fell");
+            T.Eq(1, engine.Frame.Events.Count, "one committed event");
+            T.Eq(1, ReadRoot(engine).Executed.Count, "one executed key");
+            T.True(!engine.HasUnexecutedWork, "executed work is no longer pending or approved");
+
+            RefusesWithoutMutation("ContinuationWorkRevisionRequired", engine,
+                () => engine.Advance(source.EcologicalYear, source.AnnualRevision));
+            bool callbackReached = false;
+            RefusesWithoutMutation("ContinuationWorkRevisionRequired", engine,
+                () => engine.Advance(source.EcologicalYear, source.AnnualRevision, () => callbackReached = true));
+            T.True(!callbackReached, "refusal never reaches the annual fault seam");
+
+            var beforeReplay = ReadRoot(engine);
+            var replay = engine.Execute(plan, "exec-legacy-fence");
+            T.True(replay.Replayed, "refusal preserves same-key replay");
+            T.Eq(executed.Event, replay.Event, "replay returns the original event");
+            T.True(ReferenceEquals(beforeReplay, ReadRoot(engine)), "replay publishes nothing");
+        });
+
+        T.Add("work: explicit work-revision advance rejects stale, rolls back faults and accepts fresh after Fell", () =>
+        {
+            var engine = Open();
+            var source = engine.CurrentToken;
+            string treeId = engine.Frame.Trees.First(t => t.IsLiving).TreeId;
+            engine.AddPendingFell(treeId, "explicit work-revision regression");
+            var plan = engine.ApprovePlan("plan-explicit-fence");
+            var executed = engine.Execute(plan, "exec-explicit-fence");
+            var fresh = engine.CurrentToken;
+            T.Eq(0, source.WorkRevision, "pre-Fell work revision");
+            T.Eq(1, fresh.WorkRevision, "post-Fell work revision");
+
+            bool callbackReached = false;
+            RefusesWithoutMutation("ContinuationWorkRevisionMismatch", engine,
+                () => engine.Advance(source.EcologicalYear, source.AnnualRevision, source.WorkRevision,
+                    consentToCancelWork: false, beforeCommit: () => callbackReached = true));
+            T.True(!callbackReached, "stale refusal precedes the annual fault seam");
+            RefusesWithoutMutation("InjectedFailure", engine,
+                () => engine.Advance(fresh.EcologicalYear, fresh.AnnualRevision, fresh.WorkRevision,
+                    consentToCancelWork: false, beforeCommit: () => throw new P1Refusal("InjectedFailure", "probe")));
+
+            var report = engine.Advance(fresh.EcologicalYear, fresh.AnnualRevision, fresh.WorkRevision,
+                consentToCancelWork: false);
+            T.Eq(fresh.EcologicalYear, report.YearBefore, "starts in the actual Fell year");
+            T.Eq(fresh.EcologicalYear + 1, report.YearAfter, "true following year");
+            T.Eq(99, report.Before.LivingCount, "biology starts from the real survivors");
+            T.Eq(report.YearAfter, engine.Frame.EcologicalYear, "following year committed");
+            T.Eq(fresh.AnnualRevision + 1, engine.Frame.AnnualRevision, "annual revision advances once");
+            T.Eq(fresh.WorkRevision, engine.Frame.WorkRevision, "annual step preserves work revision");
+            T.Eq(1, engine.Frame.Events.Count, "annual step preserves the Fell event");
+            T.True(!engine.Frame.Trees.Single(t => t.TreeId == treeId).IsLiving, "Fell stays committed");
+            RefusesWithoutMutation("ContinuationWorkRevisionRequired", engine,
+                () => engine.Advance(engine.Frame.EcologicalYear, engine.Frame.AnnualRevision));
+
+            var beforeReplay = ReadRoot(engine);
+            var replay = engine.Execute(plan, "exec-explicit-fence");
+            T.True(replay.Replayed, "same-key replay survives refusal, fault and the next year");
+            T.Eq(executed.Event, replay.Event, "recorded event retained");
+            T.True(ReferenceEquals(beforeReplay, ReadRoot(engine)), "replay remains a no-op");
+        });
+
+        T.Add("work: pending and approved advance retain consent precedence before and after Fell", () =>
+        {
+            foreach (bool afterFell in new[] { false, true })
+            foreach (bool approve in new[] { false, true })
+            {
+                var engine = Open();
+                if (afterFell)
+                {
+                    string firstId = engine.Frame.Trees.First(t => t.IsLiving).TreeId;
+                    engine.AddPendingFell(firstId, "establish a post-Fell work revision");
+                    engine.Execute(engine.ApprovePlan("plan-before-consent"), "exec-before-consent");
+                }
+                var source = engine.CurrentToken;
+                string treeId = engine.Frame.Trees.First(t => t.IsLiving).TreeId;
+                engine.AddPendingFell(treeId, "unexecuted at the year boundary");
+                var plan = approve ? engine.ApprovePlan("plan-consent") : null;
+                RefusesWithoutMutation("WorkPendingConsentRequired", engine,
+                    () => engine.Advance(source.EcologicalYear, source.AnnualRevision));
+                RefusesWithoutMutation("WorkPendingConsentRequired", engine,
+                    () => engine.Advance(source.EcologicalYear, source.AnnualRevision, source.WorkRevision,
+                        consentToCancelWork: false));
+                int wrongWorkRevision = afterFell ? 0 : 1;
+                RefusesWithoutMutation("ContinuationWorkRevisionMismatch", engine,
+                    () => engine.Advance(source.EcologicalYear, source.AnnualRevision, wrongWorkRevision,
+                        consentToCancelWork: true));
+                RefusesWithoutMutation("InjectedFailure", engine,
+                    () => engine.Advance(source.EcologicalYear, source.AnnualRevision, source.WorkRevision,
+                        consentToCancelWork: true, beforeCommit: () => throw new P1Refusal("InjectedFailure", "probe")));
+
+                var before = ReadRoot(engine);
+                int fellCount = engine.Frame.Trees.Count(t => t.Death?.Cause == FellCause.Harvest);
+                var report = engine.Advance(source.EcologicalYear, source.AnnualRevision, source.WorkRevision,
+                    consentToCancelWork: true);
+                var after = ReadRoot(engine);
+                T.Eq(source.EcologicalYear + 1, report.YearAfter, "consent advances one real year");
+                T.Eq(report.YearAfter, engine.Frame.EcologicalYear, "consent commits the next year");
+                T.Eq(source.AnnualRevision + 1, engine.Frame.AnnualRevision, "consent advances annual revision");
+                T.Eq(source.WorkRevision, after.WorkRevision, "cancellation changes no work revision");
+                T.Eq(before.Events.Count, after.Events.Count, "cancellation creates no work event");
+                T.Eq(before.Executed.Count, after.Executed.Count, "cancellation creates no execution key");
+                T.Eq(fellCount, engine.Frame.Trees.Count(t => t.Death?.Cause == FellCause.Harvest), "zero additional Fell");
+                T.Eq(0, after.Pending.Count, "pending orders stale-cancelled");
+                T.True(after.ApprovedUnexecuted is null && !engine.HasUnexecutedWork, "approval stale-cancelled");
+                if (plan is not null)
+                    RefusesWithoutMutation("WorkPlanNotApproved", engine, () => engine.Execute(plan, "cancelled-plan"));
+            }
+        });
+
         T.Add("work: year y Fell is followed by genuine year y+1 ecology on the 99 real survivors", () =>
         {
             var engine = Open();
@@ -262,5 +405,30 @@ internal static class WorkContractTests
             }), 20261116, 0.09f);
             T.Refuses("ContinuationNoLivingStems", () => none.Advance(0, 0));
         });
+    }
+
+    // Test-only inspection covers pending, approval and executed keys without adding a production access seam.
+    private static WorkRoot ReadRoot(AnnualContinuation engine) => (WorkRoot)typeof(AnnualContinuation)
+        .GetField("root", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(engine)!;
+
+    private static void RefusesWithoutMutation(string code, AnnualContinuation engine, Action action)
+    {
+        var before = ReadRoot(engine);
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(before);
+        T.Refuses(code, action);
+        var after = ReadRoot(engine);
+        T.True(ReferenceEquals(before, after), "refusal keeps the exact immutable session root");
+        T.True(bytes.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(after)), "all session bytes unchanged");
+        T.True(ReferenceEquals(before.Snapshot, after.Snapshot), "roster snapshot unchanged");
+        T.Eq(before.Snapshot.State.Trees.Count, after.Snapshot.State.Trees.Count, "roster count unchanged");
+        T.Eq(before.Snapshot.State.EcologicalYear, after.Snapshot.State.EcologicalYear, "ecological year unchanged");
+        T.Eq(before.Snapshot.Revision, after.Snapshot.Revision, "annual revision unchanged");
+        T.Eq(before.WorkRevision, after.WorkRevision, "work revision unchanged");
+        T.Eq(before.Events.Count, after.Events.Count, "event count unchanged");
+        T.Eq(before.Executed.Count, after.Executed.Count, "executed-key count unchanged");
+        T.Eq(before.Pending.Count, after.Pending.Count, "pending count unchanged");
+        T.True(ReferenceEquals(before.ApprovedUnexecuted, after.ApprovedUnexecuted), "approval unchanged");
+        T.Eq(before.ApprovedUnexecuted?.Orders.Count ?? 0, after.ApprovedUnexecuted?.Orders.Count ?? 0,
+            "approved order count unchanged");
     }
 }

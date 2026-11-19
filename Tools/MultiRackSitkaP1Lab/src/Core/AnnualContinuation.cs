@@ -237,7 +237,10 @@ internal sealed class AnnualContinuation
             if (root.Pending.Count > 0 || root.ApprovedUnexecuted is not null)
                 throw new P1Refusal("WorkPendingConsentRequired",
                     "pending or approved-but-unexecuted work must be cancelled with explicit consent before the year advances");
-            return AdvanceLocked(expectedYear, expectedRevision, root.WorkRevision, beforeCommit);
+            if (root.WorkRevision != 0)
+                throw new P1Refusal("ContinuationWorkRevisionRequired",
+                    "after a Fell, advancing the year requires an explicit expected work revision; use the work-revision overload");
+            return AdvanceLocked(expectedYear, expectedRevision, 0, beforeCommit);
         }
     }
 
