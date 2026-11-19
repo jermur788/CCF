@@ -45,6 +45,17 @@ public sealed class Compact30Session : MonoBehaviour
     public static string RefusalReason { get; private set; } = "";
     public static bool IsActive => active || Refused;
 
+    // Statics survive a play session when domain reload is disabled. Reset them before the first
+    // scene so a refusal or an old instance can never leak into a fresh play.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Instance = null;
+        active = false;
+        Refused = false;
+        RefusalReason = "";
+    }
+
     // A refused Compact scene must not fall back to the five-rack world or leave free player
     // planting/felling enabled on a treeless shell. This flag disables those routes and a small
     // notice draws the reason; no management component is created.
