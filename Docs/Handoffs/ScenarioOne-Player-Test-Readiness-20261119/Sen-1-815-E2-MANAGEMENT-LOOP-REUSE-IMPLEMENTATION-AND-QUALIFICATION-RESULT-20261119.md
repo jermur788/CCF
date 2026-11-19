@@ -122,6 +122,17 @@ All remaining blockers collapse to one immediate gate:
 
 **GATE E2-NATIVE — under a lawful exclusive machine-wide Unity lease, open `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity`, copy `Tools/Verification/Sen1CompactE2Reuse/Sen1CompactE2ReuseVerification.cs` into `Assets/ForestPrototype/`, run it, capture `COMPACT30_E2_VERIFY_PASS`/`FAIL` and representative screenshots, remove the copied file and its generated `.meta`, then hand the exact candidate to the owner for the personal E2 walk.**
 
+The scene is **not** on the feature branch (it is the #813-owned scene lineage). A lawful test overlay without editing the scene or committing its malformed JSON is:
+
+```bash
+git -C /media/jer/Files/CCF-Primary worktree add /media/jer/Videos/CCF-815-E2-Native be60c174
+git -C /media/jer/Videos/CCF-815-E2-Core-20261119 diff 159f0ff8..b452e1a9 \
+  | git -C /media/jer/Videos/CCF-815-E2-Native apply
+# then open the Compact scene with the E2 overlay and run the disposable harness
+```
+
+This overlay is for testing only. It does not make the #813 malformed placement JSON authoritative and does not sign the world. If the owner's corrected scene is published first, use that instead.
+
 After that, these are separate predicates, not part of the same gate:
 
 1. #690 signed Compact save/profile/CT-3 persistence.

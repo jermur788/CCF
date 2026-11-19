@@ -6,7 +6,7 @@
 **Base:** `origin/main` `159f0ff8b075e275045ddd1ab0925cb447364b77`.
 **Branch:** `feature/sen-1-815-compact30-e2-loop-reuse-20261119-v1`.
 **Worktree:** `/media/jer/Videos/CCF-815-E2-Core-20261119`.
-**Candidate HEAD reviewed at time of writing:** `01b58a3bff9e204b54a731a080c7102fa3bcb1ea` (a later review-delta commit may follow; the parent result records the final SHA).
+**Candidate HEAD:** `b452e1a93fb7a2c05abf10b4af57eb0c17e31d37` (the post-review repair commit; the parent result records the final SHA).
 
 ## What changed
 
@@ -57,6 +57,24 @@ Starting the `ScenarioOneCompact30` scene now adds the existing management syste
 8. T1 is complete; inspect real history, plan later work, or press **N** for a documented no-work year.
 
 No Ops investigation was reopened. No Unity Editor was started.
+
+## Independent-review repairs applied at `b452e1a9`
+
+The first Claude Opus review (`83eb87a`) found 0 critical / 6 major / 8 minor. The following were fixed before the delta recheck:
+
+- **M-1 rack leakage:** `RackTool` is no longer created in Compact; the J/K rack inspection decision is gated; HUD objective widget, Objectives buttons on HUD/map/review/work plan, Stand Map access rack summary and the rack prompt/hotbar are gated.
+- **M-2 quote freeze:** the approved-quote freeze is now Compact-only. Old worlds re-quote exactly as before. Compact fails a changed approved quote before charging instead of displaying one price and charging another.
+- **M-3 refusal:** roster, sites, species readiness and all 175 authored trees are validated before any management component exists. Failure sets `Compact30Session.IsActive`, disables free plant/fell/uproot, and draws a refusal notice; no fallback to a live non-Compact world. A missing authored tree now refuses instead of spawning a placeholder.
+- **M-6:** both bulk planting setters refuse entirely in Compact.
+- **m-1:** group reconciliation runs inside the advance blocker and review hook, so two advances in one frame cannot slip past CT-3.
+- **m-2:** free exact planting is refused at the manager service boundary.
+- **m-3:** a felled authored tree keeps its identity object as a stump; renderers/colliders are disabled and a stump is added. The map/history can still refer to the stem.
+- **m-4:** ecology is created and activated on its own object before the manager, so the 80 m boundary cannot be added and left behind.
+- **m-5:** approved cancellation requires a second confirming click.
+- **m-6:** the G0 record now names the actual #813 branch and states that the scene is not on this feature branch.
+- **m-8:** runtime species readiness is checked before registration.
+
+The residual M-4 process gate (Manager #731 ratification of the self-recorded scope and file grants) and M-5 residual evidence gaps (no Unity run, no old-world suites, no Failed-order replacement test, no save/load) remain open. A mutation witness was added: disabling the path-clearance refusal makes the offline gate fail exactly `site on the path refused`.
 
 ## Verification actually run
 
