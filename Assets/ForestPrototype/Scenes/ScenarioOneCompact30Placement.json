@@ -127,7 +127,7 @@
   ],
   "cell_note": "B1 and B2 moved from cell 15 to the adjacent cell 14. This is a provisional E1 layout delta only; it does not amend the frozen #676 production planting manifest.",
   "cell_geometry": "Compact30 uses 6 x 6 cells of 5 m; index = (floor((z+15)/5) * 6) + floor((x+15)/5). Cell 15 = x[0,5), z[-5,0)."
- }
+ },
 
  "player": {
   "position_m": [
