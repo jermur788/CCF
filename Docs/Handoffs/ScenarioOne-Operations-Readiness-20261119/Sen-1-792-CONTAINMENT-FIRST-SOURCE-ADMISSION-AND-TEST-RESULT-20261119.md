@@ -1,6 +1,6 @@
 # #792 containment-first source admission and synthetic evidence
 
-Status: READ-ONLY ADMISSION COMPLETE / G1 SOURCE NOT AUTHORISED / G2 HELD.
+Status: READ-ONLY ADMISSION COMPLETE / G1 SOURCE NOT AUTHORISED / G2 HELD. Proposed G1 source base: `4c7acc051e262c3fe301049b51ee7fc48a9f99a2` (distinct from the A0 document branch base below).
 
 Actor: OpenAI gpt-6.1-sol, provider codex, native T3/Codex author child of DeepSeek #794 parent; thread ID unavailable. Host jer-laptop. Claim: https://github.com/jermur788/CCF/issues/792#issuecomment-7003602473 . This is A0 analysis and test scaffolding, not a source candidate or deployed PASS.
 
@@ -60,6 +60,17 @@ Deployment observed hashes match the supplied _ccf/unity-lock/self-test/deployme
 ## B1–B2: state resolution and exceptional paths
 
 DEFAULT derives from imported ROOT, independently of config storage. Each copy's sibling lanes.json is accepted without alternate-config restrictions. config_read verifies storage but does not choose the lock universe. A copied script therefore still addresses deployed state unless explicitly isolated. The unmodified deployed module was loaded with runpy (not executed as __main__); printed DEFAULT was `/media/jer/ZX20/CCF-Ops/state/unity`.
+
+Current reachable-copy inventory (parent/independent QA verified; no lock command was run to re-test these):
+
+| Source checkout | Unmodified config admission | Default lock target |
+|---|---|---|
+| `/media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116` | Passes its sibling config check | `/media/jer/ZX20/CCF-Ops/state/unity` |
+| `/media/jer/Files/CCF/Operations/CCF-OpsLeaseFix-20261115` | Passes its sibling config check | `/media/jer/ZX20/CCF-Ops/state/unity` |
+
+Stop-gap until containment is deployed: never run `unity-lock` from either copy, **not even status**, without an explicitly isolated `--test-state-dir`. Never source either copy's `environment.sh`: sourcing has no `--test-state-dir` isolation interface, so that prohibition has no flag-based exception. The current packet additionally prohibits any live/default-state lock command. These are operational restrictions, not an implemented fix.
+
+Threat model: containment prevents accidental cross-copy execution. Any process running as uid jer can bypass a local identity check. “Installed identity” means installed LOCATION plus backing device, not a file hash: a byte-identical copy would pass a hash-only test. Hashes remain provenance evidence, not caller authentication.
 
 on_storage resolves symlinks and checks containment and st_dev against ROOT; it does not bind executable provenance to deployment. Projecting ROOT projects the entire state universe. No environment variable overrides ROOT or DEFAULT; PATH affects external command lookup, which is used explicitly by the synthetic scaffolding. Alternate config requires both test-state-dir and a config under ROOT/CCF-Temp. Test state must resolve under ROOT/CCF-Temp. Existing-state status enters guarded(), mkdir and open('a+'): guard creation is a write. Status on absent state returns without creating it.
 
@@ -153,7 +164,7 @@ on_durable_ccf resolves paths and compares prefix only. Repository, non-Unity la
 - `scripts/_ccf.py:162`: `board = on_project_storage(path.resolve().parent / cfg['board'], root)`
 ## B5: stale device inventory
 
-`_ccf.py:52` is protective commentary explaining unstable kernel names, not a pin. WorkflowFoundationVerification.md's /dev/sda2 claim is historical evidence, not current authority. Historical Docs references and embedded patches must retain provenance rather than be globally replaced. The exhaustive literal inventory follows. Installed live helper's stale default is distinct from admitted source's repaired by-id default. Current by-id -> /dev/sdc2 and UUID 18D6-896E must not be weakened.
+`_ccf.py:52` is protective commentary explaining unstable kernel names, not a pin. WorkflowFoundationVerification.md's /dev/sda2 claim is historical evidence, not current authority. Historical Docs references and embedded patches must retain provenance rather than be globally replaced. The admitted-source and historical-Docs literal inventory follows; deployed tests are separately identified below. Installed live helper's stale default is distinct from admitted source's repaired by-id default. The stale `/dev/sda2` test literals are in DEPLOYED `/media/jer/ZX20/CCF-Ops/tests/self-test.py:70`, `:78`, `:79`, and `:110`, not admitted `tests/self-test.py`. These deployed files are outside G1 source-edit authority. A1d is documentation/receipt hygiene only; no source fixture repair is proposed for a literal absent from the source. Current by-id -> /dev/sdc2 and UUID 18D6-896E must not be weakened.
 
 ```text
 /media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116/CCF-Ops/scripts/_ccf.py:52:    Kernel names such as /dev/sda2 can change between boots, so the config
@@ -260,43 +271,50 @@ Caller inventory (README, roles, lane-status and deployment):
 
 Run command: `TMPDIR=/media/jer/Videos/CCF-794-Scratch/author/tmp python3 -B /media/jer/Videos/CCF-794-Scratch/author/harness.py`.
 
-Final run: **22 PASS / 0 FAIL**, including setup command exit assertions and six extra state assertions; this is not 22 independent production tests. The command ledger records exact argv, exits, stdout, stderr and per-file state hashes before/after. Initial scaffold attempts failed on board containment before obtaining a lock; these were corrected by using an absolute synthetic board path. They are harness development failures, not omitted production results.
+Final run: **22 scripted assertions whose expected exit codes and state predicates were checked; 0 failed assertions**, including setup command exit assertions and six extra state assertions. These are not 22 independent production tests. The command ledger records exact argv, exits, stdout, stderr and per-file state hashes before/after. Initial scaffold attempts failed on board containment before obtaining a lock; these were corrected by using an absolute synthetic board path. They are harness development failures, not omitted production results.
 
-Two copied Ops trees live at author/copy-one and author/elsewhere/copy-two. The only source modifications in each are ROOT and FILES_ROOT assignments, shown in constants diffs. lanes.json and board are synthetic data. A tiny local Git fixture is under synthetic-root/lane. No clone/package/network/Unity operation was used.
+Two Ops copies with only the ROOT/FILES_ROOT source constants substituted (diff shown) live at author/copy-one and author/elsewhere/copy-two. The only source modifications in each are ROOT and FILES_ROOT assignments, shown in constants diffs. lanes.json and board are synthetic data. A tiny local Git fixture is under synthetic-root/lane. No clone/package/network/Unity operation was used.
 
 **Scaffolding limitation:** because a normal scratch directory is not a mountpoint, an external PATH findmnt wrapper projects only reported mount TARGET to the synthetic ROOT. It retains real Videos source device, UUID and fstype. This is deliberate test scaffolding, NOT a source candidate or physical mount qualification. lsblk/device comparisons remain real. Only copied source executes lock commands; no test-state-dir was needed. The harness proves code-path behavior under this projection.
 
-Observed: default state of both copies is synthetic-root/CCF-Ops/state/unity; existing-state status creates guard; ETA acquire succeeds; second acquire fails 2; fabricated force approval succeeds 0 and is audited verbatim; no-expiry acquire persists null ETA plus true marker; foreign ordinary release succeeds 0 using readable metadata; placeholder approval fails 2; fabricated cleanup succeeds 0. Prefix admission succeeds on Videos while real Files has a different st_dev. Ordinary acquire/release/no-expiry/force lifecycle is therefore exercised. Production suite: NOT RUN. Physical unmount/substitution: NOT TESTED.
+Observed: default state of both copies is synthetic-root/CCF-Ops/state/unity; existing-state status creates guard; ETA acquire succeeds; second acquire fails 2; fabricated force approval succeeds 0 and is audited verbatim; no-expiry acquire persists null ETA plus true marker; foreign ordinary release succeeds 0 using readable metadata; placeholder approval fails 2; fabricated cleanup succeeds 0. Different-device prefix admission succeeds on Videos while real Files has a different st_dev; this is not a physical unmount test. Ordinary acquire/release/no-expiry/force lifecycle is therefore exercised. Production suite: NOT RUN. Physical unmount/substitution: NOT TESTED.
 
 Live listing and history SHA256 before and after are byte-identical. Source-copy diffs and logs are retained in scratch; compact durable receipt contains harness, commands, results, constants diffs and live snapshots.
 
 ## Future G1 candidate: exact proposed scope, not permission
 
-Proposed sole source actor: OpenAI gpt-6.1-sol / codex, subject to Manager appointment. Proposed branch `ops/sen-1-792-containment-first-g1-20261119-v1`; proposed worktree `/media/jer/Videos/CCF-792-G1-Source` (NOT created; physical lane/storage admission required).
+Single proposed grant text — REQUEST ONLY, not an ownership or permission fact:
 
-Ordered minimal per-file allowlist proposal:
+- Branch: `ops/sen-1-794-containment-first-20261119-v1`; worktree: `/media/jer/Videos/CCF-794-Source`; base: `4c7acc051e262c3fe301049b51ee7fc48a9f99a2`. Neither worktree creation nor source work is authorised here. Earlier alternative #792 source branch/worktree names are superseded.
+- Sole-writer slot requested: #792 author / OpenAI, provider `codex`, model `gpt-6.1-sol`, requested effort `high`, current #792 A0 author session (session ID not exposed in this runtime; Manager must bind its actual session ID in the grant before start). REQUEST custody transfer from #652 session `9bcdfde6` to this one slot, contingent on explicit #652 custodian/Manager approval and lease. No transfer has occurred by this document. No second writer is proposed.
+- The A1 phase names below are the sole phase vocabulary requested; parent grant text must use the same names. A1d is not a source-edit phase.
 
-| Order | File/function | Intended change and reason |
+Ordered minimal per-file allowlist REQUEST (existing board coverage for earlier defects does not grant this scope):
+
+| Order | Exact file/function | Intended change and grant condition |
 |---|---|---|
-| A1a | CCF-Ops/scripts/unity-lock: main, guarded; CCF-Ops/scripts/_ccf.py: new focused admission helper | Before config/guard writes, bind production writer to approved installed executable/config identity; non-deployed callers fail closed unless explicitly isolated. Preserve test-only scratch containment. |
-| A1b | CCF-Ops/scripts/unity-lock: release/force path, event | Select authenticated approval protocol below; bind cancellation to exact lock ID, reject replay and retain audit. Do not treat readable metadata as caller authentication. |
-| A1c | CCF-Ops/scripts/_ccf.py: on_durable_ccf/config_read | Verify Files mountpoint, UUID, ext4, device and uniqueness before admitting Files paths; preserve symlink resolution and ZX20 pins. |
-| A1d | CCF-Ops/tests/self-test.py: fixture storage observations and containment/approval cases | Use observed persistent identity; add negative matrix; no blanket historical text replacement. |
-| A1e | CCF-Ops/README.md; CCF-Ops/roles/execution-manager.md; CCF-Ops/roles/unity-operator.md | Explain chosen authority and safe isolated testing. Role paths verified against source inventory. |
+| A1a containment | `CCF-Ops/scripts/unity-lock`: main, guarded; `CCF-Ops/scripts/_ccf.py`: focused admission helper | Before any guard/state write, admit installed LOCATION plus backing device, or explicitly isolated scratch. `_ccf.py` is an **AMENDMENT Manager must grant**; prior board coverage concerns distinct earlier defects. |
+| A1b force/cancel | `CCF-Ops/scripts/unity-lock`: release/force, event; `CCF-Ops/tests/self-test.py`: corresponding isolated assertions | Fail closed on `--force` until Q-M2 is decided; then implement only the explicitly approved mechanism and exact-lock cancellation tests. Ordinary readable identifiers are not authentication. |
+| A1c Files identity | `CCF-Ops/scripts/_ccf.py`: on_durable_ccf/config_read; `CCF-Ops/scripts/lane-status`: Files inventory admission; `CCF-Ops/tests/self-test.py`: isolated identity negatives | Verify Files mountpoint/device/UUID/ext4/uniqueness without weakening ZX20 pins. `_ccf.py` and `lane-status` are **AMENDMENTS Manager must grant**; earlier board entries do not authorise this defect scope. |
+| A1e docs | `CCF-Ops/README.md`; `CCF-Ops/roles/unity-operator.md`; `Docs/Handoffs/ScenarioOne-Operations-Readiness-20261119/Sen-1-792-CONTAINMENT-FIRST-SOURCE-ADMISSION-AND-TEST-RESULT-20261119.md` | Explain containment, safe tests and authority; this is the **one result document path**, an **AMENDMENT Manager must grant** for future G1 results. |
 
-No lanes.json, deployment.json, board, ledger or installed script edit is granted by this proposal. Deployment provenance updates would require a separately explicit allowlist.
+A1d stale fixture: documentation/receipt hygiene only, represented in A1e's allowed documentation; removed from the source edit list. Deployed test literals at lines 70, 78, 79 and 110 are not G1-editable; admitted source has no such test literal to repair.
+
+Explicit exclusions: `CCF-Ops/tests/fixtures/**` and `CCF-Ops/roles/execution-manager.md` are not in the edit allowlist (their hashes/references above remain inspection evidence). No lanes.json, deployment.json, board, ledger or installed-script edit is granted. No second result path is proposed. All listed source work still requires explicit grant; this request does not expand the physical board ceiling by itself.
 
 Negative matrix: reject copied executable default mutation; foreign config; config/state symlink escapes; sibling prefixes; non-scratch test override; Files on root; wrong Files device/UUID/fstype/duplicate UUID; Files Unity lane; malformed metadata; wrong release identifiers; fabricated/expired/replayed/wrong-lock approval; dirty/wrong branch/wrong HEAD/unregistered/foreign-store/branch-conflict lane; live Editor/PID normal release; automatic expiry/reclaim. Retain all existing storage capacity/read-only gates.
 
 ## A2 proposed verification with expected exits
 
-Run only after G1 grants exact candidate and an isolated physical fixture. For each command capture before/after state hashes and cause-specific stderr. `python3 -B <candidate>/scripts/unity-lock status` from non-deployed copy: 2 and no writes. Repeat acquire/release/force from foreign copies: 2. Valid isolated `--test-state-dir <ROOT>/CCF-Temp/<owned>/state` status/acquire/normal release: 0. Missing mode, conflicting ETA/no-expiry, invalid lane/HEAD/branch/dirty/store/duplicate branch: 2. Fabricated/missing/replayed approval and live-PID normal release: 2, unchanged custody/history. Valid authenticated exact-lock cancellation: 0 with audit; replay: 2. Files physical mount substitutions: config admission 2 before guard. Correct Files inventory: 0; Files Unity: 2. Existing suite fully isolated: expected 0; enumerate checks from actual receipt, never infer PASS from compilation. Production default status must not be used as an innocuous write-free test.
+Run only after G1 grants exact candidate and an isolated physical fixture. For each command capture before/after state hashes and cause-specific stderr. `python3 -B <candidate>/scripts/unity-lock status` from non-deployed copy: 2 and no writes. Repeat acquire/release/force from foreign copies: 2. Valid isolated `--test-state-dir <ROOT>/CCF-Temp/<owned>/state` status/acquire/normal release: 0. Missing mode, conflicting ETA/no-expiry, invalid lane/HEAD/branch/dirty/store/duplicate branch: 2. Fabricated/missing/replayed approval and live-PID normal release: 2, unchanged custody/history. While Q-M2 is OPEN, every `--force` attempt must refuse with exit 2 and unchanged custody/history. Only after an owner-approved mechanism and separate implementation authority exist: valid authenticated exact-lock cancellation 0 with audit; replay 2. Files physical mount substitutions: config admission 2 before guard. Correct Files inventory: 0; Files Unity: 2. Existing suite fully isolated: expected 0; enumerate checks from actual receipt, never infer PASS from compilation. Production default status must not be used as an innocuous write-free test.
 
 ## G1 missing items / Q-M2 decision
 
 Missing: physical board reservation; #652 custodian and Manager explicit APPROVED TO START SOURCE; exact file/function allowlist grant; named bounded lease; accepted approval protocol. G2 remains held pending candidate review, physical identity negatives, independent validation and authorised deployment. Current live lanes hash discrepancy also needs reconciliation.
 
-Q-M2 options: (1) Manager-owned signed one-use approval artifact binding lock ID, action, actor, expiry and nonce; (2) privileged local broker with OS identity and access-controlled approval queue; (3) externally verified Manager approval reference fetched and bound to exact lock ID, with consumed-ID audit. Recommend (1) for offline, reviewable operation, conditional on key custody and replay-store design approval. Same-uid writable scripts cannot provide a strong hostile-user boundary merely by checking their own path or chmod; containment protects accidental cross-copy execution. Do not implement a cryptographic or privileged framework before the authority model is accepted.
+Q-M2 is an **OPEN owner decision**. Withdraw any prior recommendation of a GitHub approval comment plus signature, and the earlier recommendation of option (1). All repository actors post as the same GitHub account `jermur788`; a GitHub comment's author identity cannot distinguish or authenticate the Manager. A signature would require a separately established, independently held Manager key; it cannot inherit authority from that shared account.
+
+Options for owner consideration, with no author recommendation: (1) an independently keyed Manager-signed, one-use approval artifact bound to exact lock ID/action/actor/expiry/nonce, with key custody and replay storage explicitly decided; (2) a privileged local broker with distinct OS identity and an access-controlled approval queue; (3) owner-directed physical/manual cancellation under a separately approved operational protocol, with automated force disabled. Until the owner decides and authorises a mechanism, the future candidate's `--force` **must refuse**. This is a required future behavior, not a claim about today's deployed script. Same-uid jer processes can bypass local checks; this package addresses accidental cross-copy execution, not hostile same-user enforcement.
 
 DIAGNOSED: cross-copy default mutation, approval-as-text, readable identifier release, guard write, Files prefix-only admission. NOT TESTED: full production suite, physical mount substitution, adversarial OS-user isolation, deployed candidate, Unity. BLOCKED: all G1 permission items and Q-M2 decision above. No fix, integration or deployment acceptance is claimed.
 
