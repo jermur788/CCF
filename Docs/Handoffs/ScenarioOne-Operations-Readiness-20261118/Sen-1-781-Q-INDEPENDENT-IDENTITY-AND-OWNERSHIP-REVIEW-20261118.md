@@ -244,3 +244,91 @@ I found nothing else in the parent draft that states or implies an installed fix
 Only this file: `Docs/Handoffs/ScenarioOne-Operations-Readiness-20261118/Sen-1-781-Q-INDEPENDENT-IDENTITY-AND-OWNERSHIP-REVIEW-20261118.md`, in one commit on `review/sen-1-781-q-ops-admission-20261118-v1`. Dashboard and Drive mirrors: NOT VERIFIED.
 
 VERDICT: NEEDS CHANGES - for diagnostic and recovery design only
+
+---
+
+## 9. Delta recheck
+
+**Scope:** the one explicit delta recheck promised in §6. It covers A1-1, A1-2, A1-3, A2-1 and the parent's P-1 to P-15, plus the parent's new §4.5–4.7 and its independence statement. Sections 1–8 above are unchanged and remain the record of the first review. Like them, this section is G0 only and grants nothing.
+
+**Reviewer continuity:** same role, same model (`claude-opus-5-5`), host `jer-laptop`, same checkout and branch. This recheck ran in a **new harness session** (scratchpad UUID `f81085fc-5fbb-4703-8372-d97e519a1b4b`, not used), not the session that wrote §1–8. I carry nothing from that session except this committed document, and I re-derived every finding from it. That is the "recorded Q reroute with the same model" that §6 allows. I still authored none of A1, A2 or the parent document. The provider instance is as assigned by the parent; I cannot observe it from inside my runtime.
+
+### 9.1 Placement gate (run first, PASS)
+
+```text
+realpath .                      -> /media/jer/Files/CCF/Operations/CCF-781-Q-Review-20261118
+findmnt -T . -o TARGET,SOURCE,FSTYPE -n -> /media/jer/Files /dev/sdb4 ext4
+git rev-parse --abbrev-ref HEAD -> review/sen-1-781-q-ops-admission-20261118-v1
+git status --porcelain --branch -> ## review/sen-1-781-q-ops-admission-20261118-v1...origin/review/sen-1-781-q-ops-admission-20261118-v1   (clean)
+git log --oneline -1            -> 1f89f10f review(781): Q independent identity and ownership review
+```
+
+### 9.2 Pins verified (2026-11-19 ~01:37–01:40Z, read-only)
+
+| Document | Checkout (all `/media/jer/Files /dev/sdb4 ext4`) | Branch, HEAD = remote-tracking ref, clean | Parent commit; diff scope | Lines | sha256 (recomputed) | Matches brief pin |
+|---|---|---|---|---|---|---|
+| A1 | `…/CCF-781-A1-PhysicalIdentity-20261118` | `docs/sen-1-781-a1-physical-identity-20261118-v1` @ `a7e985eea9eabd5dd45fc6b624ac8d53b757f765` | `2b14d860`; 1 file (its own document), +27/−5 | 1,681 | `d2869a5aaf08125b9f5c0ce49a2f2d73cb767d193f60970b6dc87eddfa3f7130` | YES |
+| A2 | `…/CCF-781-A2-Coordination-20261118` | `docs/sen-1-781-a2-coordination-20261118-v1` @ `21035b27c28af8445ee3efcad2026d8c8fcada1a` | `2b08d661`; 1 file (its own document), +3/−1 | 421 | `adbb6bb6ff8f9f08567e3c8f9c04101dfd95441d103facaebd464e2b66c9aab7` | YES |
+| Parent | `…/CCF-781-Parent-20261118` | `docs/sen-1-781-parent-ops-recovery-20261118-v1` @ `c342107a0ef0753f4ae74e9cb356bcd991c71f8b` | `a69b3e2e` (= base `origin/main`); 1 file (its own document) added, +327 | 327 | `3fb075a83fa565265622a4fb4d832ef99a6769fcdd22aa1d26413fa49c5e1790` | YES |
+| Q (this document, before this section) | this checkout | `1f89f10f` | — | 246 | `01dd3b9986ea75516875c37a6352f88456ec5c28b802a871018aa9b4d3be9542` | matches the pin that A1, A2 and the parent cite for me |
+
+All three commits are recorded with Git author and committer `jermur788`, so Git cannot distinguish the author session from whoever pushed it. I therefore **accept without verifying** the parent's statement (parent §5, line 192; §7.3) that A1's correction session committed `a7e985ee` and the parent only pushed it unchanged. The A1 diff is consistent with that statement: it is confined to A1's file, and its wording is in A1's own register style.
+
+### 9.3 Author corrections
+
+| Item | Result | Evidence |
+|---|---|---|
+| **A1-1** (Q-H1) | **PASS** | New subsection "Finding — non-deployed copies share live Unity state (Q-H1)" (A1 lines ~101–107) makes Q-H1 a first-class finding. It says that **R's current failure is PROTECTIVE**, that correcting R's pin is forbidden until the guard exists, and that "A tracked checkout must not become a second live registry". It frames the hazard as static design reading, "not evidence of past misuse". The non-deployed-copy negative witness appears verbatim in **C1, C2, C5 and C6**. C1's custodial text adds "no tracked copy may become a second live registry". A1's refinement (R's retired repository paths are *later* checks, not the cause of the observed failure) is more precise than my §4 wording, and I accept it. |
+| **A1-2** (Q-M1) | **PASS** | The Q-M1 residual is stated, with the negative witness ("Files unmounted, `/media/jer/Files/CCF` present on root, or wrong Files UUID/fstype must refuse …") in the residual section and in C1. It adds "The observed Files identity is not currently an enforced guard." Line 91 is corrected in place, not hidden: A "narrows lane admission … but also WIDENS board admission … it is not uniformly stricter". The one-sentence ZX20 limit (a mistake guard, not anti-clone; checked once per command) is present. The remaining "stricter explicit path boundaries" at A1 line 638 is inside a quoted historical receipt JSON. It is not A1's own claim, so I do not require a change. |
+| **A1-3** (Q-M2) | **PASS** | C2's negative-witness cell now has the "Explicit decision item: `--force while a Unity Editor or live recorded PID exists` must be decided and independently qualified against D-091; free-text approval is not verifiable authority". C2's correction text now calls it "a no-expiry acquisition-mode candidate; whole-route D-091 compliance is not established". The Q-M2 residual also records "not a regression from D". |
+| **A2-1** (Q-L4) | **PASS** | Appendix C now reads "updates no refs but may still add objects to the shared object store, so it is not strictly read-only". The diff (+3/−1) touches only Appendix C and adds a correction record stating it changes no conclusion. I confirmed no other line of A2 changed, so no conclusion was altered. |
+
+### 9.4 Parent corrections (P-1 to P-15)
+
+| Item | Result | Evidence (parent line numbers at `c342107a`) |
+|---|---|---|
+| P-1 "relabelled twice" | **PASS** | §4.1 heading (l.74): "kernel device name has changed; no UUID or label change was found". l.82 lists `/dev/sdd2` as "reported by #778, not independently re-verified". "Relabelled" no longer appears. |
+| P-2 guard "correct" | **PASS** | l.84: the guard "avoids that specific failure …"; "does **not** pin the Files mount … does not stop a non-deployed copy …". It no longer calls the guard uniformly correct. |
+| P-3 §4.2 heading | **PASS** | l.86: "storage-only check passes; the lock readback is a snapshot from a write-capable command". |
+| P-4 unmodified status run | **PASS** | l.89 discloses it as a write-capable run, cites A1's controlled wrapper readback and my guard/history observation as "*consistent with* … not a before/after proof", and ends "does not present the lock readback as a clean read-only PASS". |
+| P-5 "full lane-status completes" | **PASS** | l.90: "completion is parent-attested and unverified". A1's 55 s timeout is cited. 25 is attributed to the `lanes.json` count verified by A1 and Q. l.188 keeps "A1 explicitly declined to claim: completed full inventory". |
+| P-6 stale pin is protective | **PASS** | l.100. |
+| P-7 "4-lane proposal" | **PASS** | l.111: "stale 4-lane fixture (absent NonUnity path, no U3/Q10), not a registry". |
+| P-8 receipt qualifier | **PASS** | l.114: lane edits are outside the hash "by design"; `ed642a52…` still matches. |
+| P-9 §9.1 clean bill | **PASS** | l.275–287: the heading is limited to `--storage-only`, followed by a seven-item residual list (Q-H1, Q-M1, Q-M2, C5, C6, stale source/docs, stale coordination). |
+| P-10 "did not alter any byte" | **PASS** | l.179: "consistent with no byte change but is not a before/after proof … disclosed as a deviation". The old sentence is gone. |
+| P-11 §6 attribution | **PASS** | l.213: "attributes to its own `head` truncation (parent-attested, no retained transcript)". |
+| P-12 G1-d "D-091 candidate" | **PASS** | l.298: "No-expiry acquisition-mode candidate … D-091 compliance of the whole custody route is NOT established". |
+| P-13 typo and count | **FAIL (LOW)** | The typo is fixed: l.59 now has `a42eaadc` (a valid commit), and `a42aeadc` remains invalid and no longer appears. **The count is not fixed:** l.57 still states as fact "25 T3 per-task checkouts exist under `/home/jer/.t3/worktrees/`", while l.59 withdraws "25" in favour of my 23. The paragraph now contradicts itself. At 01:39:05Z I again count 23 directories under `/home/jer/.t3/worktrees/CCF-Primary` (`ls`, no git). |
+| P-14 independence | **PASS** | l.36: "A2 and Q therefore share the provider instance `claudeAgent_claude_b_pro` and the Anthropic model family". It rests independence on session, model and non-authorship, "not … a different provider instance", and supersedes the claim comment. The same statement appears in §7.2 Q-M3. This is accurate. |
+| P-15 G1-a | **PASS** | l.295 puts "Live-state containment first". It states "no tracked copy may become a second live registry", requires a negative witness for R, A and a CCF-Temp copy, and forbids correcting R's pin until the guard exists. *Note, not blocking:* the retained phrase "current lane list supplied by the physical custodian" for the tracked `lanes.json` must be read under that constraint, as a fixture behind the guard, never as a registry. A future touch should say so. |
+
+### 9.5 Parent §4.5–4.7, §7 and independence
+
+- **§4.5 (Q-H1): PASS, with one wording note.** The section represents the hazard, R's protective failure, A's apparent `config_read` pass "on static reading", the required guard and the interim operating rule as "a recommendation only". It does not claim that live misuse occurred. *Note:* "Every copy … **writes** the same fixed live state directory" (l.120) should read "targets". A copy writes only when acquire, release, force or status is actually run from it. §4.5 also lacks A1's explicit sentence "not evidence of past misuse". Neither point changes a conclusion.
+- **§4.6 (Q-M1): FAIL (LOW), wording.** l.137 says that under the **deployed** check "Files lanes, the bare repository **and the Files-side board** are admitted on … a path prefix". D constrains the board to ZX20 (A1 l.91; my Q-M1). Only A admits a Files-hosted board, which l.139 then says correctly. §9.1 item 2 (l.282) repeats the same conflation. The fix is to remove "and the Files-side board" from the deployed-check sentences, or to scope it to the #652 source.
+- **§4.7 (Q-M2): FAIL (LOW), overstatement in the opposite direction.** The heading reads "The projected force-release path **is not D-091 compliant**". Q-M2 said compliance is **not established**: the tool cannot verify the free-text approval. D-091 permits forced clearing for owner-directed cancellation or a genuine safety stop, so the path is not non-compliant per se. The body text (l.143) is accurate. The section also omits that D's deployed force gate is the same, so this is not a regression. The fix is to retitle the section "… D-091 compliance is not established (Q-M2)" and add "not a regression from the deployed copy".
+- **§7.2: FAIL (LOW), misattribution to Q.** l.240 lists under "Q also confirmed, explicitly" that "the parent's '20' was its own truncation". I did not confirm that. My §3.2 and §4 say the cause is "plausible and unverified" and that only the parent attests it. l.91 also states it as plain fact, while l.90 and l.213 correctly say "parent-attested". The fix is to move it out of the "Q confirmed" list and phrase it as "parent-attested; Q found it plausible and unverified".
+- **§7.3:** the A1 and A2 dispositions match the verified pins and diffs.
+
+### 9.6 Residual items blocking closure
+
+None of these is HIGH or MEDIUM. Every HIGH and MEDIUM finding from the first review (Q-H1, Q-H2, Q-M1, Q-M2, Q-M3) is now correctly addressed in A1, A2 and the parent. The four remaining items are sentence-level factual errors in the **parent** document only. The parent's role in this cycle was the accuracy of the consolidated record, and Q-H2 was about exactly that kind of claim, so I do not waive them:
+
+1. **R-1 (P-13):** delete or timestamp the "25 … exist" sentence at l.57 so that it agrees with l.59.
+2. **R-2 (§7.2 l.240, and l.91):** stop attributing the "20 = `head` truncation" explanation to Q. Mark it parent-attested.
+3. **R-3 (§4.7 heading):** "not D-091 compliant" → "D-091 compliance not established". Add "not a regression from deployed".
+4. **R-4 (§4.6 l.137, §9.1 item 2):** the deployed check does not admit a Files-side board. Scope that phrase to the #652 source.
+
+The two notes (§4.5 "writes" → "targets"; G1-a "current lane list" read under the no-second-registry constraint) are recommended and non-blocking.
+
+**A1 and A2 need no further change.** Their corrections are complete and their scope is clean. The residuals are mechanical. My recommendation for closing them: after the parent edits only those lines, a nonauthor checks a line-diff against `c342107a`, confirming that only R-1 to R-4 changed. A fresh full review is not needed. Manager #731 decides who performs that check.
+
+### 9.7 What I did not do, and side effects disclosed
+
+- I ran no `lane-status` and no `unity-lock` in any form. I ran no `git fetch`, `git worktree` command, checkout, reset, stash or clean. I made no edit to A1, A2, the parent document, installed Ops, `lanes.json`, the board, `deployment.json`, `state/`, coordination files, source or Unity. I wrote nothing in `/media/jer/Files/CCF-Primary`. I posted no GitHub comment, took no G1/G2 action and forced no lock.
+- Read-only commands only: `realpath`, `findmnt`, `git rev-parse`/`log`/`status`/`diff`/`cat-file` in the four `/media/jer/Files/CCF/Operations/CCF-781-*` checkouts, `sha256sum`, `wc`, `grep`, `cat`, `ls` of `/home/jer/.t3/worktrees/CCF-Primary`, `date`.
+- **Side effect disclosed:** the Claude Code harness automatically saved two oversized command outputs (the text of my own Q document and the parent document) as tool-result files under `/home/jer/.claude_ccf2/projects/…/tool-results/`, which is on the root filesystem. I did not choose this. They are harness transcript artefacts and contain only text already committed to Git. I did not use the scratchpad, `/tmp` or `/dev/shm`.
+- §8's "one commit" now becomes two: this section is added in a second commit on the same branch, touching only this file.
+
+DELTA VERDICT: NEEDS CHANGES - for diagnostic and recovery design only
