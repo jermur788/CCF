@@ -1,0 +1,49 @@
+# Multi-G2 — Exact published source-visible Manager review
+
+**19 November 2026 | Manager #730 (GPT-6, GitHub connector/browser only) | source review, not native rerun or integration**
+
+## Verdict
+
+**APPROVED AS SCOPED — the original `8741a32843b739b0587e4c6f3a3ee7fc890ea7f6` G2 engine source is genuine and source-visible; independent native Tier-2 PASS evidence is accepted for that *exact unchanged* candidate. NEEDS CHANGES before new player-UI code is wired or source is considered integrated.** The one required pre-UI technical correction is **A-1**, a work-revision staleness bypass in the legacy annual-advance entrypoint. This is not a declaration of completed gameplay, accepted full Stage5 checklist, main integration, runtime/Unity qualification, or retrospective permission.
+
+### Direct source and provenance inspected
+
+- [Published exact review branch](https://github.com/jermur788/CCF/tree/review/multi-841-g2-qualified-engine-8741a328-20261119-v1) remote branch HEAD **verified** `8741a32843b739b0587e4c6f3a3ee7fc890ea7f6`, and [commit](https://github.com/jermur788/CCF/commit/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6) was fetched directly from GitHub. Comparison `be9b40c5f5de45059f3356c5972434da9bef8ae2...8741a328` gives **one commit / five exact changed paths / zero Assets, fixtures or P0 changes**. Note the historical anchor diverges from today's main; do **not** interpret a whole-branch main comparison as a five-file main-ready diff.
+- [`WorkContract.cs`](https://github.com/jermur788/CCF/blob/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6/Tools/MultiRackSitkaP1Lab/src/Core/WorkContract.cs), blob `79cf27e56d5a289cc6b1598761d88562f8dea9e1`: source/model/year/annual/work-revision token, one-area `MS-P30-UNDIVIDED-30M-V1`, per-ID order and reason, approved `WorkPlan`, separate typed Fell/WorkEvent and `CommittedFrame`. `WorkRules.Summarize` computes living-stand statistics; `RequireNonEmptyStand` refuses all-live Fell. No invented economics/persistence.
+- [`AnnualContinuation.cs`](https://github.com/jermur788/CCF/blob/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6/Tools/MultiRackSitkaP1Lab/src/Core/AnnualContinuation.cs), blob `63c41542e875581c7ae75b41746b05e3960d7b54`: source-visible single `WorkRoot` snapshot plus work revision/events/executed-key map/pending/approval; methods lock a session; selection/approval have no biology; `Execute` checks actual exact live IDs, D-093 full-stand refusal, produces Fell-marked annual trees and typed event, then one `root = new WorkRoot(...)` publication after a test-only fault hook. Same-process replay returns stored result, mismatched source/orders key refuses. Real next-year `AdvanceLocked` calls original `AnnualRules.Calculate(previous.State,...)` over the updated survivor roster and preserves event/work revision.
+- [`AnnualEngine.cs`](https://github.com/jermur788/CCF/blob/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6/Tools/MultiRackSitkaP1Lab/src/Core/AnnualEngine.cs), blob `625a3b44a9b1e8c9276ff5b0ee8c7b57c10f8738`: exact trust-admitted fixture/model identity passed to the internal continuation; historical `AnnualTree`, `AnnualState`, `AnnualDeath`, `AnnualReport` shapes not altered. The independent unchanged `AnnualRules.cs` remains the sole biological step.
+- [`WorkContractTests.cs`](https://github.com/jermur788/CCF/blob/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6/Tools/MultiRackSitkaP1Lab/tests/Core.Tests/WorkContractTests.cs), blob `6082a38ecfe2a2b8f6d7c537e48a6a16c7bc6033`, covers 100 exact IDs, approval not Fell, case-stale, 170mm informational, atomic last-live refusal, injected rollback/replay, year+1 survivor ecology, stale consent and cycles; [`Program.cs`](https://github.com/jermur788/CCF/blob/8741a32843b739b0587e4c6f3a3ee7fc890ea7f6/Tools/MultiRackSitkaP1Lab/tests/Core.Tests/Program.cs) adds only suite registration.
+- [Independent #841 Tier-2 result](https://github.com/jermur788/CCF/blob/docs/multi-841-internal-g2-one-parent-result-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/841-orchestration/Multi-841-INTERNAL-G2-ACTUAL-FELL-WORKPLAN-YEAR1PLUS-IMPLEMENTATION-AND-INDEPENDENT-Q-RESULT-20261119.md) reports separate nonauthor Claude Opus 5.5 clean build and 62/62 tests, 17 additional probes / 2,113 checks / zero failure, original ten digests preserved. **This Manager did not invoke .NET or re-run those tests.** [Publication receipt](https://github.com/jermur788/CCF/blob/docs/multi-730-841-source-publication-receipt-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/841-orchestration/Multi-730-841-EXACT-QUALIFIED-SOURCE-PUBLICATION-RECEIPT-20261119.md) is corroborated directly by GitHub branch and source readback.
+
+### A-1 — confirmed source-level flaw requiring a bounded patch
+
+In `AnnualContinuation.cs`, legacy `Advance(int expectedYear, int expectedRevision, Action? beforeCommit = null)` calls:
+
+```csharp
+return AdvanceLocked(expectedYear, expectedRevision, root.WorkRevision, beforeCommit);
+```
+
+Thus a caller holding only a *pre-Fell* year and annual revision may call this legacy method after a legitimate Fell: ecological year and annual revision remain unchanged but the newly changed work revision is silently supplied by the engine itself. The four-argument `Advance(..., int expectedWorkRevision, bool consentToCancelWork,...)` **does** fence the caller's work revision. This violates the intended source/current-work identity fence for future UI/secondary callers; the error cannot be dismissed merely because no Host exists yet.
+
+**Required future minimal repair** (separate PACKET ONLY, single actual native source writer, no edit to frozen candidate): ensure legacy entrypoint **fails closed after any work-revision change**, or replace it through a separately approved caller-safe contract that can actually detect a stale expected work revision. Preserve ordinary no-work legacy annual progression, explicitly test stale-year/same-year-different-work-revision refusal after Fell, and test consent stale-cancellation and fresh four-argument path still work. New exact commit, unchanged oracles, build plus full relevant 62 tests and independent different-actor **delta** qualification before any actual player interface is connected. No broad engine rewrite or second full generic source audit.
+
+### Other confirmed limits and review comments
+
+- **A-2:** `Execute` identical-key replay compares source token and order sequence, but **not `plan.PlanId`**. This is an event/provenance identity ambiguity for different plan IDs, even though no second Fell is performed. Keep as bounded advisory and tighten before multi-plan provenance/Host, or earlier if user-visible PlanId uniqueness depends on it. Do not claim the current replay key covers PlanId.
+- **A-3:** internal optional `beforePublish` callback executes while holding a re-entrant C# lock and before root publication. A callback re-entering `Execute` could compromise the assumed single pending transaction; this is test-only/internal today, not an exposed production interface. Do not expose it to player/Host code; guard/review if its reach changes.
+- **A-4:** `AddPendingFell` reports `UnknownTreeId` for dead/unknown/wrong-case; the UI should distinguish the already-felled status from typo, without inferring hidden states.
+- **No automatic multi-area comparability** is implemented. #842/#843 showed G1 scientific evidence is insufficient; G1 DISABLED/Manual/NotCovered and #828 DRAFT. No save, persisted exactly-once, player-facing UI, economics or Unity verification.
+
+### Cross-manager permission reconciled
+
+The publication receipt still says source-owner V-01 unanswered, but that sentence was overtaken by the [later, independently inspected Scenario One Manager #844 APPROVE IN PRINCIPLE decision](https://github.com/jermur788/CCF/issues/844#issuecomment-7024491671). **Prospective unchanged read/compile-only reuse** of two pinned `Assets/ForestPrototype` blobs is now approved by that source owner, with no identified conflicting write claim. No further same-blob request is necessary. The product-owner half remains worker-reported in #841; the decision is **not** retroactive, and old V-01/V-02 variance, L4 FAIL38, #804 main PARK are unwaived. The #841 source branch was for inspection only, not an automatic merge grant.
+
+### Manager acceptance and next authorised action
+
+1. Accept #841's original unchanged local engine source as **IMPLEMENTED, source-visible and independently Tier-2 qualified at its reported scope**; retain `8741a328` as immutable review baseline. **Technical source ABI is accepted as a limited in-memory one-area G2 engine baseline with A-1 limitation**, not a release-ready player interface.
+2. **NEEDS CHANGES** before new player-facing/secondary caller wiring or main integration: A-1 minimal repair with a new candidate + independent delta review, appropriate actual native writer custody and verification.
+3. Parallel [Multi player Work Plan UX preflight](https://github.com/jermur788/CCF/issues/845) is only READY/docs-only; can use the now published exact API and this review to remove earlier `UNKNOWN` placeholders. Do not infer it already ran or claim source code added.
+4. When A-1 passes and source ownership/physical custody are checked, the next genuine player demonstration is exact live-tree inspect → reasoned PendingWork → separate approval (no Fell) → Execute → real next year, under the approved Stage5 design and a newly scoped spec/packet. No duplicate simulation engine.
+5. No Unity, Windows, ZX20 external drive, main merge, #804 override, or new tests run by this browser Manager. Code in this branch is historical divergent code, not yet a clean main integration candidate.
+
+**Verdict notation:** **APPROVED** scoped published G2 engine baseline and existing independent Q; **NEEDS CHANGES** for caller safety/release readiness; **NOT INTEGRATED / NOT VERIFIED** as gameplay. Source publication closure does not equal feature acceptance.
