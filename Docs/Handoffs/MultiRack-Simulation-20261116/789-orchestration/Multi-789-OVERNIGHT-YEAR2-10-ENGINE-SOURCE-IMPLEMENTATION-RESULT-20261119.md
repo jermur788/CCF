@@ -52,6 +52,8 @@ This is the same admission blocker the previous Stage A parent returned at 00:35
 
 Videos is technically suitable as the future sole-writer lane. Suitability is **not** a reservation, and this parent deliberately wrote nothing there.
 
+**Post-check observation (01:28 UTC):** a headless Blender render (`blender -b … JuvenilesProtection.blend --python source/render_kit.py …`, PID 31527, ~367 % CPU) started and now holds the machine-wide heavy slot. It is unrelated user/asset work and was neither touched nor relied on. Had any lawful source work existed, the one-heavy-worker rule would have deferred it behind this render, not run alongside it.
+
 ## Canonical state observed
 
 - `origin/main` = `a69b3e2e90829505c792d95f5a3eba3e7d8d8132` (fetched 2026-11-19 ~01:22 UTC).
