@@ -1,0 +1,442 @@
+MIRROR — DO NOT EDIT
+
+Source: Docs/Project/unity-project-overview.md
+Context: 852304d8a668d6ee2b04547aaec751be6b462c53
+Snapshot timestamp: 2026-11-19T19:11:24Z
+
+# Unity Project Overview
+
+## Purpose and baseline
+
+Verified technical/implementation facts and local checking guidance, not design plans. Inspected repository/Unity state outranks planning for implementation questions.
+
+Revision 5 baseline supplied by the Overall Manager:
+
+- Snapshot date: 2026-10-02.
+- Repository: `https://github.com/jermur788/CCF.git`.
+- Branch: `main`.
+- Exact implementation baseline: `0fc92ca989c0df7109e2507b2aab5712f0cf6077`.
+- Inspect live worktree status before writes. Mutable branch positions may differ from this historical snapshot.
+
+At the supplied baseline, forestry/survival branches matched main. The separately recorded frozen chain ahead of main is:
+
+| Branch | Tip | Ahead | Summary |
+|---|---|---:|---|
+| save-hardening-and-growth-cache | 3b71e4b | 1 | Save/load hardening and growth readout |
+| rng-versioning | 8aede39 | 2 | Opt-in model 1; legacy model 0 preserved |
+| batch-recompute | 457c897 | 3 | Batched rebuilds/shared Hegyi forecast term |
+| edge-bias-diagnostic | a31ec62 | 4 | Edge diagnostic |
+
+These changes are not in the pinned baseline. Their integration/acceptance must not be inferred from a branch label. The migration packet freezes these exact commits; it authorises no stack modification or merge. Verify other worktrees live rather than treating this baseline as their current state.
+
+Later state (verified 2026-10-02): all four stack commits are ancestors of `main` (via merge `8ae7a25`), and the combined ecology package is integrated on top — see **Integrated ecology package** below.
+
+## Engine and environment
+
+| Detail | Baseline value |
+|---|---|
+| Editor | Unity 6000.6.0f1 |
+| Pipeline | URP 17.6.0 |
+| Input System | 1.20.0 |
+| Test Framework | 1.8.0 |
+| AI Navigation | 2.0.14 |
+| Unity MCP | com.kitwright.unity.mcp from GitHub |
+| Serialization | Force Text |
+| Metadata | Visible Meta Files |
+| Development environment | Linux; VS Code |
+| Player controller | Assets/ForestPrototype/ForestPlayer.cs |
+
+The MCP dependency is an unpinned Git URL in `Packages/manifest.json`; the lock records `585ada203ff25b1fbea23821e159afa4a930d481`. There is no `.gitattributes` at baseline, so neither Git LFS nor a Unity YAML merge driver is configured.
+
+## Project-context migration
+
+At main baseline `0fc92ca…`, `Docs/Project/`, root AGENTS/CLAUDE and `Tools/ProjectContext/` did not exist; root `AI_Instructions` existed and was stale. Decision Log/Milestone define the accepted migration target, not an already-integrated baseline fact.
+
+The migration was implemented on `task/project-context-migration` (tip `42db4e9`, based on the baseline SHA). It changes documentation/agent entry points and the stdlib Python generator only.
+
+Later state (verified 2026-10-08): `42db4e9` is an ancestor of `main`, so the migrated context, entry points and generator are integrated. The generator has been run from clean context commits on `main` (outputs in ignored `Build/ProjectContext/`). After StormModel1 integration, all 15 permanent Drive mirror/composite files were refreshed and read back byte-for-byte at context `58d6b0b483198abcf0208713d9a759f89d90e318`; Game Dev instructions were saved/reopened against that composite and seven stamped canonical/manifest attachments were refreshed. The separate worker-worktree Unity smoke gates remain open; see Current Milestone.
+
+## Shared VS Code settings
+
+`.vscode/settings.json` is tracked shared configuration: exclusions/associations, nesting and default `CCF.slnx`, without worktree-specific paths. Keep it unchanged; use VS Code user settings or an external `.code-workspace` for local differences.
+
+## Scenes and code
+
+- `Assets/Scenes/ForestTest.unity`: reference forest/scenario scene.
+- `Assets/Scenes/MixedSpeciesTest.unity`.
+- `Assets/Scenes/ForestryAssetReview.unity`: walkable art/LOD review.
+- `Assets/Scenes/SampleScene.unity`: exists, not the reference scene.
+
+Most code is in `Assets/ForestPrototype/`:
+
+| Area | Implementation |
+|---|---|
+| Individuals | ForestTree: ID/species/state, exclusive marks, pruning history |
+| Ecology | ForestEcologyController: competition, canopy/light, growth, crowns, regeneration, seeds/establishment/promotion, diagnostics |
+| Juvenile rules | JuvenileEcologyRules: shared juvenile survival/growth/promotion path for natural cohorts and exact planted juveniles |
+| Mortality | ForestTree.ApplyMortality(cause, year): explicit biological death, separate from Fell() |
+| Natural regeneration | Species-keyed, origin/history-aware cell cohorts |
+| Exact planting | Scenario One individual juveniles until promotion |
+| Management | ScenarioOneManager: work, economy/history, nursery/planting, treatment patches, retained timber, reference and Work Plan |
+| Save/load | ForestSaveController / ForestSaveData |
+| Understorey | Scenario One Regeneration Model 2 stores independent bramble/bracken cover and applies shared juvenile-survival loss; other habitat cover remains non-causal |
+| Habitat/audio | Derived from ecology/understorey/deadwood/juveniles |
+| Art | Editor material/LOD/prefab/review-scene tooling |
+
+## Save and interactions
+
+Baseline `ForestSaveData.CurrentVersion = 13`. The ecology package raised it to 14 (biological-mortality cause/year). Current integrated schema: `ForestSaveData.CurrentVersion = 20` (v20 adds the explicit `standGeometryModel`; see the Enlarged80 section); new Scenario One games use RNG model 1, regeneration model 2, growth model 1, storm model 0 and stand geometry Enlarged80. StormModel1 exists but is dormant by default. The schema includes the Model2 competitor fields and the D-050 storm fields; the historical Scenario 1 v15 execution/protection/economy fields remain. Definition: `scenario-one-v13`, display `Scenario One — Sitka Plantation to Continuous-Cover Forest`, execution `ManagementOnly`. Saves up to v19 and any save without `standGeometryModel` restore as Legacy40; atomic save hardening is in place.
+
+V13 includes two-type marks, exact juveniles, clearance patches, retained construction timber, management/economy/history, understorey, deadwood, work orders and pruning history.
+
+Marks are None/Fell/CropTree, exclusive. Trees store lifts/crown base/last year; Scenario One batches eligible Crop Tree pruning. Purchased Oak/Beech planting has ground-selected positions, markers, contractor orders, persistent individuals and promotion. Legacy cell/cohort planting remains for historical compatibility.
+
+Felling outcomes: SellAndExtract, RetainAsFallenDeadwood, KeepForUse. Construction timber is tracked separately.
+
+## Annual sequence
+
+1. Competition.
+2. Canopy/light.
+3. Adult growth.
+4. Crown relaxation.
+5. Canopy/light refresh.
+6. Regeneration growth.
+7. Mast.
+8. Seed rain.
+9. Establishment.
+10. Promotion.
+11. Establishment suitability.
+12. Opening decay.
+13. Diagnostics.
+
+At the Revision 5 baseline, browsing and researched three-group causal Understorey v1 were not authoritative systems. Browsing & Protection v1 is now integrated (see **Integrated Scenario 1**). Current Scenario One Regeneration Model 2 has independent bramble/bracken competitor state that causes juvenile survival loss. Other habitat cover remains non-causal; graminoids, concealment and richer botanical differences remain unimplemented.
+
+## Reference Future v1
+
+Historical reference, intentionally frozen after the v13 overhaul:
+
+| Field | Value |
+|---|---|
+| Schedule | reference-future-v1 |
+| Definition / save | scenario-one-v12 / v12 |
+| Seed | 20260914 |
+| Start | 336 Sitka; 2,100 stems/ha |
+| Historical canonical lifecycle (pre-calibration) | 7E39B70A14959FAD — superseded for current ecology |
+| Initial full world | A564039D9B7CE31D |
+| Schedule hash | 56C8B99FA1E8DDD1 |
+| Year 20 | F7DF7DAB53B6FD32 |
+| Year 50 | D5E75D6D21D631AC |
+| Year 100 | 7AD177B3CC2F73C7 |
+
+Contract (D-042, `Docs/ReferenceFutureContract.md`): immutable archive; integrity checked on the original embedded JSON, never by reserialising through current save classes; frozen milestones load/preview under current code; Year-50 historical save continues deterministically under the current ecology and save version (v12 → v14 at the ecology integration, v12 → v15 since Scenario 1). Exact historical biology replay is not required; continuation divergence is diagnostic only. A new model gets a new reference version, not an edit to v1.
+
+Schedule: `Assets/ForestPrototype/ScenarioOne/Resources/ScenarioOneReferenceScheduleV1.json`. Existing scenario/reference/art documentation is in `Assets/ForestPrototype/Docs/`, including `ScenarioOneReferenceFutureV1.md`; other verification/design documents are in root Docs.
+
+## Integrated ecology package
+
+Integrated on `main` 2026-10-02 by cherry-picking `1319c2c`, `2632de6` and `6dc6daf` onto context commit `cd239d7`, with no conflicts. The resulting gameplay integration head is `b1e6c51`. Its code tree is identical to `6dc6daf`; only main's newer canonical-context docs differ.
+
+- **Shared juvenile ecology:** `JuvenileEcologyRules` is the single biological path for natural cohorts and exact planted juveniles. Legacy planted cohorts remain compatible, exact planted identity/position/provenance is kept, and promotion is deterministic.
+- **Mortality foundation:** `ForestTree.ApplyMortality(cause, year)` sets `biologicallyDead` with cause and year. It is idempotent, excludes the tree from living systems, persists in save v14 and restores without mortality/harvest events. Ecological death is separate from `Fell()` and yields no timber or cash. At this historical v14 integration there was no automatic adult mortality or storm model, and no assumed deadwood disposition. Later D-048 adds adult density mortality and D-050 adds dormant StormModel 1; new games remain storm model 0.
+- **C8 growth/competition (Sitka):** Hegyi cutoff 8 m (`ForestEcologyController.HegyiCutoffMeters`; global), Sitka Ci50 5, Sitka potential DBH growth 1.2 cm/yr. The competition equation is unchanged. At this 2026-10-02 integration Beech/Oak still carried their initial Ci50 3 and 0.4 cm/yr; that is history and is **not current**. The current accepted adult calibration is Oak Pd 0.8 cm/yr, Ph 0.65 m/yr, Dmax 120 cm, Hmax 42.5 m, Ci50 5 and Beech Pd 0.9 cm/yr, Ph 0.75 m/yr, Dmax 120 cm, Hmax 42.5 m, Ci50 6.5, all `GAMEPLAY CALIBRATION` (not empirical Irish broadleaf growth constants); see *Current Oak/Beech adult model* at the end of this document.
+- **k10a10 light:** canopy shade reach = 1.0 × crown radius + half a 5 m cell (2.5 m) (`CanopyShadeReachPerCrownRadius`, shared by the marking forecast). Opacity is an implicit 1.0 and the light equation is unchanged.
+- **Calibrated canonical lifecycle (RNG model 0, 80 years):** `BFC55473C1506067`. The calibration measurement hash is `D48A19525E69DD8A`.
+
+**RNG model policy (D-046, main `4eab590`, verified 2026-10-05).** New games use model 1; loads keep the saved model; an absent field and Reference Future v1 mean model 0. `CCF_RNG_MODEL=0` makes the completion gate replay the legacy model. The anchors below were recorded under legacy regeneration (model 0); since D-047 they are reproduced with `regenerationModel = 0`, and JSON-based ones in the v15 layout.
+
+| Anchor | RNG model 0 (compatibility) | RNG model 1 + legacy regeneration |
+|---|---|---|
+| Neutral lifecycle | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion gate | `568922E1A6D73CDD` | `00479F18970F9926` (completed Year 25, min cash 589770 cents) |
+| Reference Future v1 Year 100 / continuation | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` | n/a (v1 is model 0) |
+| Policy save/load continuation (Year 20) | `CDC4DE8F8EF471E5` | `872094413305A082` |
+
+Post-merge gates PASS on main: completion ×2 per model, interaction, browsing, planting, save hardening, RNG model, economy integration (120 assertions), Reference, RngModelPolicyVerification. Lag-1 survival-roll correlation is 0.6748 under model 0 and −0.0041 under model 1.
+
+**Regeneration Model 1 (D-047, main `4670e73`, verified 2026-10-06).** Save v16 field `regenerationModel`: new games used1 before D-049 (current new games2); v1–v15, a missing field and Reference Future v1 0. Implementation: `RegenerationModel.cs` (constants, `RepresentationThreshold` = 0.01, annual account), `ForestEcologyCell` (bands, accumulator, `AdmitDensity`), `ForestEcologyController` (model-1 establishment, `AdmitRecruitment`, `NormalizeBands`, oldest-band promotion, `LastRegenerationAccount`), `ForestSaveValidation` (band keys: 4 represented + 1 accumulator per species + origin). Model 0 arithmetic is unchanged. `ScenarioReferenceArchive.LegacyV15WorldHash` re-hashes model-0 worlds in the v15 layout, because the v16 field changes JSON world hashes even for identical biology. `CCF_REGEN_MODEL=0` replays legacy regeneration in the completion gate.
+
+| Historical v16 anchor | RNG 1 + regen 1 | Legacy (RNG 0 + regen 0) | RNG 1 + regen 0 |
+|---|---|---|---|
+| Neutral lifecycle | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion gate | `6F84AF319D301F87` (Year 25, min cash 589773) | `568922E1A6D73CDD` (v15 layout) | `00479F18970F9926` (v15 layout) |
+| Reference Future v1 Year 100 / continuation | n/a (v1 is model 0) | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` (v15 layout; v16 layout `C5EF2C4CC3443208`) | n/a |
+
+Verified at `4670e73` (isolated batch processes):
+- `RegenerationModelVerification`: 35/35 twice, with identical 100-year funnels. Exact recruited trees for unthinned / 20 % / 60 % removal are 20/33/75 at year 25, 30/49/94 at year 50 and 32/51/96 at year 100.
+- The legacy regeneration ledger (100 years, three treatments) is byte-identical to before (SHA-256 `71d61b94…`).
+- Completion (×2 model 1, plus RNG 0 / regen 0 and RNG 1 / regen 0), interaction, canonical lifecycle, juvenile foundation, Reference, RNG and RNG policy, browsing, save hardening, planting, CCF Beech/Oak/Oak-player/planting, pruning, deadwood, progress, economy (120) and viability (64), Stage 1 work economy, timber yield, batch recompute, ecology calibration and the integration harness: PASS.
+- ClearanceVerification, MenuTutorialVerification and ScenarioOneRemovalVerification fail identically on pre-merge `402a2b4` in batch mode. Reclassified in D-048 as harness issues (stale contracts / interactive-input requirements), not production failures.
+- Under model 1, MixedSpeciesTest beech recruitment accumulates below threshold (accepted 0.0342, one crossing). It produces no trees, because of ledgered shade loss with zero structural extinction.
+
+**Growth model 1 (D-048, main `2cfbabc`, verified 2026-10-07).**
+- **Save:** v17 field `growthModel`: new Scenario One games 1; v1–16, a missing field and Reference Future v1 0.
+- **Implementation:** `SitkaGrowthModel.cs` (Class III curve: b0 34.362 from the 20.4 m age-30 anchor, b2 0.042, b3 1.563; Comeau 2010 RD; [C] mortality parameters); `ForestEcologyController` (Sitka relative-height step and `ApplyAdultDensityMortality`, batched, step 4b); `ScenarioOneManager.OnTreeBiologicalDeath` (one fallen-deadwood record per death); `ScenarioReferenceArchive.LegacyV16WorldHash` (v16 layout).
+- **Unchanged:** DBH, Hegyi, regeneration, browsing and economy.
+- **Replay switch:** `CCF_GROWTH_MODEL=0` replays legacy growth in the completion gate.
+
+| Historical v17 anchor | RNG 1, regen 1, growth 1 | RNG 1, regen 1, growth 0 | Legacy (0/0/0) | RNG 1, regen 0, growth 0 |
+|---|---|---|---|---|
+| Neutral lifecycle | `7E57B9DAEF5BF4D0` | `962846D2F517B293` | `BFC55473C1506067` | `2A0B8C32AC0DE113` |
+| Scenario One lifecycle (browse 0.2) | `35E2BF1C2F55C2DE` | `FBB8F470D85FF815` | `3485B6630C9EA448` | `506E8AF6D8514C6C` |
+| Completion | `D7C4DDD36B53FCCE` (Year 25; min cash 613,975) | `6F84AF319D301F87` (v16 layout) | `568922E1A6D73CDD` (v15 layout) | `00479F18970F9926` (v15 layout) |
+| Reference Future v1 Y100 / continuation | n/a | n/a | `7AD177B3CC2F73C7` / `9CDF21A541C5968D` (v15 layout) | n/a |
+
+Verified at `2cfbabc` (isolated batch processes unless stated):
+- **New-model verification:** `SitkaGrowthModelVerification` 20/20; `RegenerationModelVerification` 35/35 with funnels byte-identical; growth-model-1 100-year runs identical to the source branch; the legacy regeneration ledger is byte-identical.
+- **Completion and lifecycle:** completion under four model stacks; interaction; canonical lifecycle; juvenile foundation; Reference; RNG and RNG policy.
+- **Gameplay and economy:** browsing; save hardening; planting; pruning; deadwood; progress; CCF Oak / Oak player / Beech / planting; batch recompute; Stage 1 work economy (420); timber yield (3,007); economy (120) and viability (64); ecology calibration; integration harness. All PASS.
+- **Red gates:** Removal fails with its stale harness and passes with the corrected harness (`60674f1`). Clearance and MenuTutorial pass in an interactive Editor with the corrected harnesses.
+
+Verified on integrated `main` at `b1e6c51` (Unity 6000.6.0f1, batchmode, each gate in its own process with an isolated `XDG_CONFIG_HOME`):
+
+| Gate | Result |
+|---|---|
+| Import/compile | 0 compiler errors |
+| EcologyCalibrationAdoptionVerification | PASS. Hash D48A19525E69DD8A. Interior/whole 0.3566/0.3877. Q/moderate/heavy 1.171/1.558/1.739 (interior 1.844). Edge 1.130. Light at Y5/Y10: control 0.029/0.043, Q 0.045/0.061, moderate 0.148/0.163, heavy 0.254/0.257 |
+| JuvenileMortalityFoundationVerification | PASS. Shared juvenile rules (30 combinations), promotion persistence and tree mortality all pass |
+| Canonical lifecycle, two separate processes | BFC55473C1506067 both times. The integration harness also reproduced it in A/B runs |
+| Save hardening / RNG model / batch recompute | PASS |
+| Scenario One interaction / habitat presentation | PASS. Year-0 grass: 4 patches in 3 supported cells; dark-cell negative control detected |
+| Reference Future v1 | Archive integrity, archive negative control, preview Y0/20/50/100, current continuation (v12 → v14, deterministic) and contract all PASS. Year 100 = 7AD177B3CC2F73C7 |
+| CCFIntegrationVerificationTemp, Beech, Oak, Oak player planting, planting | PASS |
+
+The frozen archive and schedule blobs are byte-identical to the pre-integration main. A rendered ForestTest Year-0 smoke used an offscreen batch-mode render with Ultimate Nature present locally. The stand rendered normally, and grass appeared only at the bright clearing/road edge. This was not an interactive play session.
+
+## Integrated Scenario 1
+
+Fast-forwarded into `main` on 2026-10-04 from `integration/scenario-one-complete` at `dc975e4` (pre-merge main `bb314a4`). Detailed records: `Docs/BrowsingProtectionV1.md`, `Docs/Scenario1EcologyCompletion.md`, `Docs/Scenario1EconomyIntegration.md`, `Docs/Stage1WorkEconomyFoundation.md`, `Docs/TimberAssortmentYieldV1.md`, `Docs/SitkaPlantation02Integration.md`, `Docs/Scenario1StartingStandAssetFix.md`, `Docs/Scenario1CompactBrashFix.md`.
+
+- **Browsing & Protection v1:** shared juvenile browsing response for natural cohorts and exact planted juveniles. Scenario One background browse pressure defaults to 0.2 (`ScenarioOneDefinition.backgroundBrowsePressure`; the asset does not override it). Neutral pressure 0 keeps the calibrated lifecycle `BFC55473C1506067`; the Scenario One lifecycle at 0.2 is `3485B6630C9EA448`.
+- **Shelters:** tree shelters are coupled to exact planting and share its executor. A live shelter uses `installedYear` = resolution year and `effectiveYears` = 8. v15 restore clears protection, then restores saved shelters, then saved protected areas. `BrowseProtectionGeometry` builds fence-area records only; there is no fencing gameplay.
+- **Work and economy:** `WorkEconomy` settlement, contractor or landowner-simulated execution per order (harvest is contractor-only), owner minutes, and `TimberYield` assortment allocation with sell / KeepForUse / retained deadwood outcomes. Economy continuation hash `023F4B627B758284`.
+- **Save v15 bounded fields:** order executionMethod/installShelter/harvestJobId; scenario shelters/protectedAreas/ownerMinutesUsedThisYear; report minimum adjustment, owner minutes, retained volume and per-product sold volume/revenue; event executionMethod/ownerMinutes. No browse pressure, browse history or form damage is persisted.
+- **Regeneration diagnosis and review:** aimed-ground diagnosis line, shelter visuals and annual review ecology lines.
+- **Completion verification:** `Tools/Verification/ScenarioOneCompletionVerification.cs`, completion hash `568922E1A6D73CDD`.
+- **Presentation:** Plantation Sitka 02 forms for trees under 20 m (pole/first-thinning), with legacy Sitka families retired from the active stand. Moss uses `Ground_Moss_Shoots_03` cushions, and `Forest Ground.mat` uses the textured soil/needle-litter material. Felling brash is a compact grounded 1.9–2.4 m patch beside the stump [D].
+
+Integration regression (on `integration/scenario-one-complete`, Unity 6000.6.0f1, isolated-config batch processes): 27/27 gates PASS, after one fixture-version fix (`6ab31ce`).
+
+Post-merge verification on `main` at `dc975e4` (2026-10-04):
+
+| Gate | Result |
+|---|---|
+| Import/compile | 0 compiler errors |
+| ScenarioOneCompletionVerification | PASS, `568922E1A6D73CDD` |
+| Canonical lifecycle | `BFC55473C1506067`; Scenario One pressure 0.2 `3485B6630C9EA448` |
+| BrowsingProtectionVerification | PASS (with shelter visuals, review lines, regeneration diagnosis and fence geometry) |
+| Reference Future v1 | Contract PASS; Year 100 `7AD177B3CC2F73C7`; continuation v12 → v15 `9CDF21A541C5968D` |
+| Scenario One interaction | PASS, including compact felling residue |
+| Habitat presentation | PASS; legacy Sitka 0, one active display per tree at Years 0/20/50/100 |
+
+The user's interactive Scenario 1 smoke (2026-10-04) passed, including the starting-stand and compact-brash presentation corrections. No performance problem was reported. Final presentation acceptance passed and was fast-forwarded into `main` at `ec938b0`. That merge brought in the track/clearing soil texture (`Forest Path.mat`), HUD readability fixes, the disposable review harness `Tools/Verification/ScenarioOnePresentationReview.cs` (run via `run_final_presentation.py`) and the record `Docs/Scenario1FinalPresentationAcceptance.md`. Post-merge gates are unchanged (14/14 PASS, all anchors). Astra ForestFloorV1 was reviewed and not adopted.
+
+## Art and storage
+
+Baseline committed presentation includes pruning families, refined Sitka benchmark, brash, logs/stumps/floor detail, bramble/bracken/fern/grass, other habitat, Oak/Beech juveniles, bent/cavity cosmetic variants, grass/rush and walkable LOD specimens. Ring-barked and some defect assets remain without matching causal spawning. D-050 now supplies causal windthrow state and fallen/root presentation under dormant StormModel 1; storms remain off by default. Crown/root visual quality and activation acceptance remain follow-ups.
+
+Presentation must not invent ecology. Large binaries are ordinary Git objects; no new LFS/storage dependency or history rewrite is authorised.
+
+## Verification
+
+Disposable harnesses are under `Tools/Verification/`. Read `Docs/SuppressionHistory.md` and inspect each harness for side effects.
+
+Documented integration procedure:
+
+1. Use an idle/disposable worktree.
+2. Copy `Tools/Verification/CCFIntegrationVerificationTemp.cs` into `Assets/ForestPrototype/`.
+3. Run:
+
+```text
+<UNITY> -batchmode -nographics -projectPath <checkout> -executeMethod CCFIntegrationVerificationTemp.Begin -logFile <log>
+```
+
+4. Remove the copy and generated `.meta`.
+
+This auto-start harness can touch `forest-save.json` and normally backs it up/restores it; assess that risk before running. Never leave it in a playable build. Compare hashes only under the verified Editor/configuration conditions.
+
+Other documented entry points include `CCFBeechVerification.Begin`, `CCFOakVerification.Begin`, `CCFOakPlayerPlantingVerification.Begin`, `CCFPlantingVerification.Begin`, ScenarioOne Planting/Pruning/Removal/Deadwood/Progress verification `.Begin` methods and `ScenarioReferenceVerification.Begin`.
+
+Minimum worker smoke: identify path/branch/HEAD/status; check shared settings; own Library; open Unity 6000.6.0f1 and ForestTest; check compile/console; run selected appropriate harness; remove script/meta; exit without unrelated serialized saves; account for final Git changes.
+
+The migration generator uses Python 3.10+ standard library, not Unity. Run `python3 Tools/ProjectContext/generate_project_instructions.py` only after committing clean sources. Outputs are ignored in Build/ProjectContext.
+
+## Local worktrees
+
+The final integration/OpenAI/Claude worker layout and their independent Unity smoke gates are not established by this document. Target separate writable integration, OpenAI and Claude worktrees; preserve existing names if renaming would risk work. Check current paths/branches with `git worktree list` and record verified setup results through a separate assigned task.
+
+Observed 2026-10-04 (`git worktree list`): `/home/jer/CCF-main` is the integration/main worktree (now on `main`). `/home/jer/CCF` (`feature/forestry-ecology`) holds uncommitted user ecology/art work that must be preserved. Task worktrees `/home/jer/CCF-claude`, `/home/jer/CCF-openai`, `/home/jer/CCF-opencode-economy`, `/home/jer/CCF-context-sync`, `/home/jer/CCF-project-context-migration` and `/home/jer/CCF-review-ecology` remain on their task branches.
+
+## Revision 5 provenance
+
+Source pack: Drive folder `1fUyti4nHlbKKwjWnvWsVvSbvFN-4mhm0` (Claude Review Pack — Refreshed Drafts); review request identifies Revision 5 and D-035–D-040 acceptance. Native Google Docs were read through authenticated read-only Drive access, not changed.
+
+| Repository destination | Source Google document ID |
+|---|---|
+| Docs/Project/game-brief.md | 1Rkvo9nUrU99g8wz1XU2CSibo-WWZpoPK8u_DSKVOS9w |
+| Docs/Project/decision-log.md | 1nODkvCnHD-89NziaRY4qreaba61yYn6JqvdwpyYLZ04 |
+| Docs/Project/current-milestone.md | 10ksKpEkmMllHTZq9aCRwGTurv4S0TG9SjXBlCFcNgik |
+| Docs/Project/unity-project-overview.md | 1WSjjXXGgA7f9Pyppo2PQdJ2pjXXW5xbqHzMh2cm7c1o |
+| Docs/Project/AgentWorkflow.md | 1vh_C5dKZ6FAlucRV4K_KvMRp5vvjWwrRJ6LMBw7jMR0 |
+| Docs/Project/research-index.md | 12pyVVmHpAcdyuxQsOEXQVkO2qFO6borwsRsrN61FpTE |
+| Docs/Project/instructions/shared-project-instructions.md | 1t03jEuGVJxfYAXPAilLkgJWI_7a_RuzWBuASIfE-PIw |
+| Docs/Project/instructions/chatgpt-role.md | 11_myY8N1taegsf-M8tQSXiZ2rjFzpCkop5w33TSf7AI |
+| Docs/Project/instructions/claude-role.md | 1VH8V-t9xqDg02yv5c_Ui65BrfhbQCf_Ok3PwNoN64WU |
+| Docs/Project/coordination/active-tasks.md | 1AUdhc-HnKTkWo5sbkwPOTtLGEIkhkgSShofv8x0Konk |
+| AGENTS.md | 1QKEsZKCPblDEZUOWHTaSMYAV2f9jmWpGKboJd3EaKqo |
+| CLAUDE.md | 1G-RaRphkDLoWSG_sXosgAuLy4K3OAbRzdxsV955oLlg |
+| Tools/ProjectContext/generate_project_instructions.py | 1Q_Htq4yJ3xgfphDdCdYYz26VMccjoFOV850TMI-Cs_U |
+
+Migration normalises text layout/encoding, ports useful legacy rules, records the task scope/baseline, and makes the supplied generator executable with clear error handling. It does not advance gameplay design or incorporate the frozen stack.
+
+## Regeneration Model 2 — accepted Scenario One v1 (D-049, 2026-10-08)
+
+Source `902903f`; implementation/evidence `49b01d8fc90ea0779ebfdc61a5a421af718da1d6`. Integrated and verified in `/media/jer/ZX20/CCF-integration-model2`, preserving dirty local main. Exact final revision and reproduction are in `Docs/Verification/RegenerationModel2Integration/IntegrationHandoff.md`.
+
+- Save18 adds exactly cell brambleCover/brackenCover and local-patch brambleCover/brackenCover/competitionUpdatedYear. Independent finite0..1 fractions may overlap; no habitat/mesh inference. Complete indexed grids, explicit JSON fields, finite bounds, deterministic patch keys, stand-contained centers and nonfuture timestamps are validated before loading. Immediate-reset saves capture their complete initial grid. No sixth persistent ecology state.
+- New Scenario One is RNG1/regeneration2/growth1. Existing v17 model1 is unchanged; legacy/missing-field policies and Reference0 remain unchanged.
+- Shared Sitka/Oak/Beech hazard `.35 × exposure × height vulnerability`, exposure=max(two covers), full below .3m, linear to zero at1.5m. Site/target/initial/recovery profile is exactly D-049; these are [C]/[I]/[D] choices, not empirical Irish constants. Target is restricted to Scenario One; site-diverse content needs renewed driver calibration.
+- Annual work/canopy changes precede competitor recovery and survival. Vegetation, light and browse losses remain separate runtime accounts. Height growth, seed/request/capacity/promotion rules and prices are unchanged. Natural abundance remains relative occupancy. Exact juveniles use an independent id-keyed vegetation domain.
+- Latest patch/year then stable geometry key wins independently of list order; weighted natural exposure counts overlaps once. Completed saved whole-cell work masks older local overrides only inside that cell. Clearance retains juvenile-removal semantics, zeros applicable competitors, then allows recovery.
+- Existing bramble/bracken art reads the new state; other habitat stays non-causal. Beech biological .6m renders at approximately .6m with matching planted semantics. Art recognition/human clearance playtests remain open.
+- The learning panel uses the approved concise clearance explanation for model2, and preserves no-competition teaching for model0/1. Its display refreshes after saved-model changes without changing forest or lesson progress.
+- Preserved model2 start/year1/completion: `FA855239CDDA32D8`, `02334804F65C0234`, `702766DECE591E21`. Historical model1 completion v17 layout `D7C4DDD36B53FCCE`; canonical and immutable Reference anchors retained.
+
+The original39 paid century simulations and measured storage/timing are preserved as reviewed source evidence; the clean integration reproduces critical checks, complete regression, state and performance, plus actual rendered model-aware pedagogy. See the integration handoff for exact results and limits; no clearance profit or universal treatment schedule is claimed.
+
+## Integrated dormant StormModel 1 (2026-10-08, D-050)
+
+Manager-approved source `857150b2f20afa52d7b36be88a835f07a4ee5a51` is integrated as the complete fast-forward from main `1fbefd8a40c69dd90abb83f2149e24b546a184cf` in `/media/jer/ZX20/CCF-integration-model2`, branch `integration/storms-windthrow`. Gameplay production bytes remain identical to the approved source. Exact publication/canonical/context revisions and reproduced verification are in `Docs/Verification/StormsWindthrowIntegration/IntegrationHandoff.md`.
+
+- Save 19; new Scenario One RNG 1/regeneration 2/growth 1/storm 0. Missing/historical saves and Reference Future v1 stay storms-off; no event history exists under StormModel 0.
+- Frozen StormModel 1 profile: annual .02; severity .02/.06/.18; equal weights; ReducedProposal; BoundedRational; neutral site/external edge. All are [C] gameplay calibration. The historical `ComparisonDefault` method name does not authorize silent recalibration under the same version.
+- Exactly root stormModel and event year/severity/directionDegrees/cropTreesLost are added. Death/deadwood/work records remain authoritative; no duplicate victims, fall bearings, thinning history, salvage history or calibration profile is persisted.
+- One uprooted/fallen outcome removes live stock, records cause/year, creates one deadwood record, updates existing recentOpening and batches canopy/seed rebuilds. Changed light/understorey feeds ordinary Model2 survival/recruitment.
+- Leave deadwood is default. Individual X-selection permits partial Sell/Keep through existing grouped harvest settlement and minimum; work multiplier 1.00, prices unchanged. Save/load and zero-volume extraction avoid duplicate salvage or material/crown resurrection.
+- Existing qualitative Stable/Watch/Exposed causal feedback, storms-off explanation, fallen-stem prompt, Work Plan salvage, Annual Review and walking/map waypoint remain. No exact player-facing hazard percentages or new lesson objectives.
+- Original root/log assets and a bounded rotated-crown prototype remain. 20 crowns within 35 m; existing LODs. This is not final art or performance acceptance.
+- Compatibility: v18 start FA855239CDDA32D8; altered-site fixture year1 02334804F65C0234; completion 702766DECE591E21. The original altered-site fixture leaves SiteProductivity0; independent clean year1 is 8333BAA4126E8A09. Legacy Model1 v17 completion D7C4DDD36B53FCCE and Reference 7AD177B3CC2F73C7 / 9CDF21A541C5968D remain unchanged. Full modern hashes include schema19.
+
+Current Editor-only performance is sufficient for dormant integration, not default activation or a Player-FPS claim. Before activation require standalone Player, developed/century and combined deadwood/windthrow profiling, plus acceptable crown/root behaviour. Bespoke art, optimisation, final activation decision, full lessons, surrounding directional exposure and snapped/snags remain separate scope. Future material Model1 recalibration needs a new storm version or approved persisted-profile architecture.
+
+## Integrated P3 Work Plan overview (2026-10-09)
+
+P3 is integrated on main at `0ab73994153d55d08adbd65f928926e6e9165f7c`, directly after P2 at `869ee92a983a1af5fc470392eccc7557fbe45def`. The Work Plan includes MONEY and WHAT YOU ARE LEAVING: prospective cash/headroom, standing-tree/basal-area/volume before and after, retained crop/seed trees, spatial removal descriptions, P2 competition reuse, Model2 clearance explanations and deadwood estimates. Existing salvage controls, authoritative quotes and economy values are retained. Save19 and the rng1/regen2/growth1/storm0 new-game stack are unchanged.
+
+Source and focused verification tooling are in `Docs/Research/ScenarioOneCompletion/` and `Tools/Verification/ScenarioOneCompletion/P3/`. The historical Help/Escape failure is Manager-classified as a non-reproducible historical transient, not an established harness fault or production bug. S1-A Teaching Readiness was subsequently integrated and verified on main at `c01de2dbc89e760c49a9812a80dbed19632c185e`, preserving the two approved commits by fast-forward from `2c0f7cdbde7bb2ce982fda7a6963be48e01278aa`. Unity compile/import had zero errors; Teaching Copy, two independent MenuTutorial runs, Clearance, Removal, P2/P3 focused gates and the full 24/24 current regression passed, with all required compatibility anchors unchanged. Earlier varying MenuTutorial failures, including a baseline failure, remain in the verification evidence; the final independent passes used unchanged fixtures without the diagnostic frame cap. Stage A readiness after S1-B is recorded in the next section. Future multi-scenario infrastructure remains unimplemented. Uncommitted local material changes are not part of this committed project state.
+
+## Integrated S1-B standalone-build readiness and hidden construction frames (2026-10-10, D-055/D-056)
+
+Approved S1-B source `4359e500c6b312ebcf957397b4fe53205f3f1ca4` (seven commits) was integrated as a fast-forward of main `4a68d528bb9d01036de9d4df1739b7de2c8c6002`. A separate commit, `fac782072f23e28518e8840c621112fe4074db45`, then hid the unavailable construction frames (D-055). Verified in the clean worktree `/home/jer/CCF-s1a` with its own Library on Unity 6000.6.0f1. Evidence and exact results: `Docs/Verification/S1BIntegration/`.
+
+- **Standalone session menu.** `StandaloneSessionMenu` bootstraps only in non-Editor players, so Editor gates are unaffected. F10 pauses time and controls and hides the forest UI; the menu shows the exact build ID and offers a fresh Scenario One, continue, save and load with explicit unsaved-progress/overwrite confirmations, and a normal quit without autosave. Reference preview cannot be saved through it. `ScenarioOneManager.Update` yields while `StandaloneSessionMenu.IsOpen`. Save 19 and the new-game stack rng1/regen2/growth1/storm0 are unchanged.
+- **Build tooling.** `Tools/Build/S1B/` builds Windows x86-64/Mono from clean committed source, stamps the build ID and full SHA, opts private builds out of Unity Engine Diagnostics and checks the five service flags are false, excludes generated test metadata, package test assemblies and DontShip backups, and writes a SHA-256 manifest. The first candidate, B06 (`CCF-S1-20261009-B06-b3ba9b8`, archive SHA-256 `c7d4da9d5316c3bb419b39f16e84827bc1a41ab07c75ade01316d063a1d22188`), is **historical evidence only**: it predates the hidden-frame correction and the stand-expansion direction and must not be sent to external testers. No pilot candidate exists. Its Wine API smoke passed, but Wine rendered no readable UI text (LegacyRuntime font-face errors); the effect on native Windows is unknown.
+- **Hidden construction frames (D-055).** Before the change ForestTest showed eight frame sets: seven `ForestBuildable` sites 4–8 m from the player start plus the Plank Rack's static foundation marker. Each of the seven offered a live `[E] Build X (N Wood)` action that spent carried, stored or retained timber, and a real `TryBuild` with enough carried wood constructed the Workbench. After the change: 0 frame renderers, 0 solid site colliders, 0 build prompts at any site, and `TryBuild` does nothing; exactly 35 active renderers were removed (all under "Unbuilt Site") and none added; the 336 trees are unchanged. `ForestBuildable.constructionAvailable` defaults off; structures already built in older saves still appear. The Plank Rack uses two single-line scene edits (`m_IsActive`, `m_Enabled`). `ScenarioOneInteractionVerification` asserts the default-off behaviour and then enables the flag by reflection so the latent mechanic (exact retained-timber debit) stays tested. `ForestSceneBuilder` (Editor) still authors the frames; re-running it would restore them. The hidden sites still reserve their footprint from starting-stand placement and the automatic planting search, which is unchanged behaviour.
+- **Verified at `fac782072f23`:** compile/import 0 errors; SessionMenuVerification; Teaching Copy batch ×2 and rendered (read-only hash `EBE7A228F630AE41`); MenuTutorial ×2, Clearance, Removal; P2 batch ×2 `F58FB0B1A421D28B`; P3 batch ×2 and interactive `F7C2FC966816BBAD`; full 24-gate regression 24/24 with Model2 completion `702766DECE591E21`, Reference Y100 `7AD177B3CC2F73C7`, continuation `9CDF21A541C5968D` and every exercised 16-digit anchor unchanged against the committed modern baseline.
+- **Open gate — P2 interactive rendered layout.** `CropTreeCompetitorVerification --interactive` fails with "a world label is drawn under a panel at 1280": competitor tag 1 lands on the top edge of the competitors panel at 1280×720. It fails identically at S1-A's integrated `c01de2d`, the approved S1-B tip `4359e50` and `fac7820`, with the screenshots pixel-identical across all three and with or without the Ultimate Nature pack, so it is not attributable to S1-B or D-055; the same code passed for the S1-B worker on 2026-10-09. The cause is not identified and the gate is not claimed passed.
+- **Not verified / not implemented:** native Windows technical smoke (readable text and build ID, real input, walking, save/load, first-cycle usability, performance and stability); a pilot Windows candidate. (The ≥ 80 × 80 m stand, D-056, was integrated afterwards; see the next section.) Stage A is **not ready**.
+
+## Integrated Enlarged80 stand (2026-10-10, D-056)
+
+Approved source `a309f99e0f2c6a770044604bbf88ee2e2471a5b5` (three commits: Phase-1 audit `9f49e2e`, 80A geometry/save foundation `b024633`, 80B Enlarged80 `a309f99`) was integrated as a pure fast-forward of main `11c3596072a0422d5426291e370129d209c56342` and verified in the clean worktree `/home/jer/CCF-integration-80m` (branch `integration/scenario-one-80m`, its own Library) on Unity 6000.6.0f1. Evidence: `Docs/Verification/StandExpansion/` (implementation, calibration table, rendered review) and `Docs/Verification/Scenario80mIntegration/` (post-integration results).
+
+- **Geometry model and save v20.** `StandGeometryModel`: `Legacy40 = 0` (40 × 40 m, 5 m cells, 8 × 8 = 64 cells) and `Enlarged80 = 1` (80 × 80 m, 16 × 16 = 256 cells). `ForestSaveData.CurrentVersion = 20` adds an explicit `standGeometryModel` to every v20 save; saves up to v19 or without the field are Legacy40. On load the geometry is decided and the save is validated against that geometry's own cell count before any world mutation, then `ForestEcologyController.ApplyStandGeometry` is the first mutation and cell-indexed state is restored afterwards; unknown or malformed geometry is rejected first. Not every Scenario One record that carries a cell index has a pre-mutation range check (recorded follow-up).
+- **Authority.** The production geometry is the new-game policy (`StandGeometryPolicy`, Enlarged80) or the save's persisted `standGeometryModel`. `CCF_STAND_GEOMETRY` is an Editor-only verification override: compiled out of players, never serialized, not production authority.
+- **Enlarged80 world.** 80 × 80 m, 0.64 ha, 256 cells, 1,344 living trees (336 retained legacy `Pxxxx` trees with unchanged IDs and exact positions, plus 1,008 outer `PO{row:D2}{col:D2}` trees) at ≈ 2,100 stems/ha, age 20. Tree-edge shares 0–5 / 5–10 / > 10 m = 27 / 17 / 56 % (64 % more than 8 m from the boundary; Legacy40: 46 / 32 / 21 %, 33 %). The retained core's neighbourhood-sensitive starting DBH is evaluated against the full enlarged occupancy: 181 deep-interior trees keep their DBH exactly and 20 former edge-ring trees lose the artificial edge bonus. 61 preserved legacy clamp-line trees (the Legacy40 lattice is 2.0 m, clamped to ±19.4 m) leave a bounded denser, higher-Hegyi band just inside the former ±20 m edge; this is accepted and the trees are not moved. Construction frames stay hidden (D-055).
+- **Runtime boundary geometry.** `StandWorldBoundary`, added at runtime by `ForestEcologyController`, follows `StandGeometryApplied`: it scales the ground and moves the four boundary ridges to ±40 m, extends the camera far plane, and keeps ground texture density with a per-renderer `MaterialPropertyBlock`. It restores the authored transforms exactly for Legacy40. The scene file and the shared materials are unchanged; in the Editor's Scene view outside Play mode the ground still shows the 40 m authored state. `ForestStartingStand.Generate()` keeps the Legacy40 path untouched and adds `GenerateEnlarged80`.
+- **Reference Future.** Reference Future v1 remains the immutable Legacy40 archive. `ScenarioReferenceArchive.Matches` requires live Legacy40 geometry, so in Enlarged80 `ReferenceArchiveAvailable` is false and the Century Review falls back to the aspirational design targets (the then-current copy still said "frozen Reference Future"; corrected by D-057 below). A Reference preview from an Enlarged80 game captures the player world, applies Legacy40 and the archive, and on exit restores the exact Enlarged80 world, the player's position, look and camera, and the Stand Map waypoint.
+- **Anchors.** Hash identities are explicit: the current v20 hash (`CurrentWorldHash`) never strips the geometry field and is geometry-aware; the Legacy40 compatibility hash (`LegacyCompatibleWorldHash`) is the historical layout for Legacy40 only. Historical Legacy40 anchors are unchanged: Legacy40 starting world `EBE7A228F630AE41`, P2 `F58FB0B1A421D28B`, P3 `F7C2FC966816BBAD`, Model2 `702766DECE591E21`, Reference Y100 `7AD177B3CC2F73C7`, Reference continuation `9CDF21A541C5968D`. Enlarged80 has separately labelled current anchors: start `04A78188A6F8E6F9` and year 3 `081DB58CE3034648`; they are valid only for this generator and configuration.
+- **Verified at `a309f99`.** Compile/import 0 errors; `StandGeometryVerification` (10 check groups) and `Enlarged80Verification` (12 check groups) PASS, with the anchors above exact; a Reference-preview round trip from Enlarged80 restoring the player pose and waypoint; SessionMenuVerification in Enlarged80 and under the explicit Legacy40 override; Teaching Copy ×3, MenuTutorial ×2, Clearance, Removal; P2 batch ×2 and interactive, P3 batch ×2 and interactive (all hashes exact); the full 24-gate regression under the explicit Editor-only Legacy40 path, 24/24; a rendered review confirming the 256-cell Stand Map at 1280 × 720 and 1920 × 1080 and the waypoint mapping. The P2 interactive gate passed on its first run in this fresh integration worktree; it is bimodal (it failed with the known signature at the beginning and end of the 80 m task worktree) and the open-gate note above is not closed.
+- **Editor performance (not a Player or native-Windows measurement; GTX 980M, i5-6300HQ).** Legacy40 → Enlarged80: canopy recompute about 11 → 185–217 ms, annual ecology step about 0.12 → 0.9–1.1 s, full manager advance about 0.2 → 1.5–1.7 s, rendered frame median about 24 → 40 ms, new-game generation about 0.4 → 1.8 s. No optimisation was done.
+- **Not changed by the stand expansion.** Economy and objective values (the pre-calibration area-sensitive thresholds are tabulated in `Docs/Verification/StandExpansion/Enlarged80Calibration.md`), the light model, tree stocking, construction policy, Reference Future v1, definition version `scenario-one-v13`.
+- **Subsequent calibration/copy work:** completed under D-057 below. Malformed cell-index save hardening is now integrated and verified at `12cc8ef0659f54055088047c2c6727d874bdffd8` (below). **Still not verified / not implemented:** standalone Player performance profiling; native Windows technical smoke; a pilot Windows candidate. Stage A is **not ready**.
+
+## Integrated Enlarged80 area-sensitive calibration (2026-10-10, D-057)
+
+Approved source `23f84f9ac0d4a02d385869d3985e11a24cc5a23f` was integrated by fast-forward from `f4535caf606bca46f35f02408920408d6b9f20d3`, preserving all three commits, and post-integration verified in `/home/jer/CCF-integration-e80-calibration`, branch `integration/enlarged80-area-calibration`, with its own fresh Library on Unity 6000.6.0f1. The production implementation is `fa9f66dfed1b7f8a24295f379e2bb9e302e84a66`; the final source commit adds verification evidence. No calibration implementation was changed during integration. Source evidence: `Docs/Verification/Enlarged80Calibration/`; post-integration evidence is retained in `/media/jer/Files/CCF-integration-e80-calibration-local-output/Build/` and the integration handoff.
+
+| Effective target | Legacy40 | Enlarged80 |
+|---|---|---|
+| Retained original trees | 60 | 240 |
+| Regeneration cells | 3 | 12 |
+| Fallen deadwood m³ | 0.02 | 0.08 |
+| Century original trees | 120 | 480 |
+| Century broadleaf presence per planted species | 10 | 40 |
+| Century regeneration cells | 12 | 48 |
+| Century fallen deadwood m³ | 0.5 | 2.0 |
+
+- **Calibration boundary.** Extensive targets are deliberately 4× for 4× property area: gameplay continuity calibration, not empirical forestry thresholds. The serialized ScenarioOne.asset remains byte-identical as the Legacy40 baseline. Geometry-aware effective-target accessors reject unknown geometry; a future geometry requires a fresh calibration decision.
+- **Unscaled.** Completion canopy 0.35, aspirational canopy 0.65, Year 25 completion horizon, Year 100 century review, starting cash €12,000, annual commissioned-harvest minimum €2,500, owner capacity 2,400 minutes/year and all unit labour/material/stock/timber values remain unchanged. Save v20, scenario-one-v13, geometry/stocking and immutable Legacy40 Reference Future v1 remain unchanged.
+- **Restored Century Review.** Pre-calibration Enlarged80 aspirational reviews refresh target values and achieved flags on restore without rewriting measured values/history, outcome or management comparisons. Legacy40 and genuine frozen-reference cached reviews are unchanged. Objectives and Annual Review share effective targets. Enlarged80 Century Review says “Scenario One aspirational design targets”, “not a forecast, optimum or prescription” and labels rows “target”; genuine Legacy40 Reference review retains frozen Reference Future and “reference”.
+- **Solvent feasibility witness.** Completed in Year 25; minimum cash €11,451.16; three intervention years; 462 trees felled; eight Oak and eight Beech planted. At Year 30: 793 original-species trees, 232 regeneration cells, about 58.73983 m³ deadwood, mean canopy about 0.8837839. Owner time reported 24 minutes total. One-tree harvest still loses money under the same €2,500 minimum; the larger first job spreads that fixed minimum over more stems. This is one feasibility witness, not an optimum, prescription or forestry threshold validation.
+- **Post-integration gates.** Calibration, viability, StandGeometry, Enlarged80, Teaching Copy, MenuTutorial, Clearance, Removal and Interaction PASS; P2 and P3 batch ×2 and interactive PASS (no inherited P2 failure allowance needed in this checkout); full explicit Editor-only Legacy40 regression 24/24 PASS. Rendered calibration review PASS at 1280×720 and 1920×1080. Zero C# compilation errors and zero unexpected importer errors. Across the 55 audited logs, the known Editor Search exception occurred 39 times, each with the identical recorded base/candidate signature.
+- **Unchanged anchors.** Enlarged80 start `04A78188A6F8E6F9`, year 3 `081DB58CE3034648`; P2 `F58FB0B1A421D28B`, P3 `F7C2FC966816BBAD`, Model2 `702766DECE591E21`, Reference Y100 `7AD177B3CC2F73C7`, continuation `9CDF21A541C5968D`; every exercised historical compatibility hash retained. No scene/prefab/material/settings/package/meta/archive change; user save/backup and unrelated work preserved.
+
+Minimal startup/title screen is now integrated and Editor-verified under D-058 below. Stage A remains **NOT READY**. Malformed cell-index save hardening is now integrated and verified (below). Remaining pre-pilot gates begin with standalone Player performance/build profiling, a new Windows pilot candidate, Sonnet 5.5 xhigh combined pre-pilot review, native Windows technical smoke, genuine blocker fixes and the beginner pilot. No standalone/native-Windows execution or performance claim is made by these Linux Editor gates. S1-C/S1-D remain later full-loop work, not Stage-A prerequisites.
+
+## Integrated minimal startup/title screen (2026-10-11, D-058)
+
+Approved source `b99ba6993b6b7cfb9fc3b8de6c4eda88abd8a348` was integrated as a pure fast-forward from `e8c73f25e6d93db818abdc6c794887f8f7c5ba43`, preserving all eight commits. Post-integration checks ran on Unity 6000.6.0f1 in `/media/jer/Files/CCF-integration-startup`, branch `integration/scenario-one-startup-screen`, with its own fresh Library and isolated save/config paths. Implementation bytes were unchanged. Source evidence: `Docs/Verification/StartupScreen/`; bounded integration logs/audits: `Build/StartupIntegration/` in that checkout and the integration handoff.
+
+- **Startup/session behaviour.** Player startup has a title layer before forest control: CCF / Scenario One / Sitka Plantation to Continuous-Cover Forest, private-test build identity and Start New Scenario / Continue / Controls / Help / Quit. The existing StandaloneSessionMenu owns it; F10 retains the fuller in-game session menu. Start New confirms an existing save and preserves disk bytes. Continue is available only for an accepted existing save and revalidates when clicked. CanLoad is read-only and shares pre-mutation loader validation. Editor Play Mode enters directly by default; `CCF_STARTUP_SCREEN=1` opts into the title in the Editor only.
+- **Bounded post-integration verification.** Compile/import: zero C# errors and no new importer exception (only the exact accepted Editor Search signature). Startup batch, startup bootstrap, SaveHardeningVerification, StandGeometryVerification, established SessionMenuVerification and AreaCalibrationVerification PASS. Disposable Assets harnesses/meta removed; approved tracked bytes restored exactly after attributed Unity workspace-settings normalization; no scene/prefab/material/settings/package or unrelated drift; original user saves preserved.
+- **Accepted source qualification.** Full explicit Legacy40 regression 24/24 PASS; rendered title checks at 1280×720 and 1920×1080; no-save/valid-save/invalid-save and Legacy40 Continue; read-only CanLoad; Start New preserving the disk save; one-host/one-overlay restart; actual Linux Editor mouse and keyboard checks PASS. The byte-identical complete source suite was not repeated during integration. Synthetic graphical InputSystem delivery remains explicitly UNVERIFIED; callbacks do not establish it. Source real-input launcher exited 143 after functional PASS and normal Unity shutdown; cleanup was performed after confirming exit.
+- **Compatibility boundary.** Save v20, definition scenario-one-v13, geometry, stocking, calibration, model identities and frozen Reference Future unchanged. Accepted source anchors remain Enlarged80 start `04A78188A6F8E6F9` / year 3 `081DB58CE3034648`, P2 `F58FB0B1A421D28B`, P3 `F7C2FC966816BBAD`, Model2 `702766DECE591E21`, Reference Y100 `7AD177B3CC2F73C7` and compatibility continuation `9CDF21A541C5968D`. The natural-scene diagnostic hash is not a replacement anchor.
+- **Release boundary.** Actual built-Player and native-Windows startup/input/save behaviour remain UNVERIFIED; no Player/native-Windows performance claim follows from Editor checks. No Windows candidate was built. Stage A **NOT READY**. Malformed cell-index save hardening is now integrated and verified (below). Next: standalone Player performance/build profiling → new Windows pilot candidate → Sonnet 5.5 xhigh combined pre-pilot review → native Windows technical smoke → fix genuine blockers → beginner Stage-A pilot. S1-C/S1-D remain outside Stage-A first-cycle prerequisites.
+
+
+## Integrated malformed cell-index save hardening (2026-10-12)
+
+Approved source `12cc8ef0659f54055088047c2c6727d874bdffd8` was integrated and published unchanged on main by pure fast-forward from `5d57208a411404b65b5d9a0d4f2a6e88c4086400`, preserving all four reviewed commits. Bounded integration ran on Unity 6000.6.0f1 in `/media/jer/Files/CCF-integration-save-hardening`, branch `integration/save-cell-index-hardening`, with its own fresh Library and isolated saves/config. Evidence: `Docs/Verification/SaveCellIndexHardeningIntegration/IntegrationHandoff.md`; audited field semantics: `Docs/Verification/SaveCellIndexHardening/FieldAudit.md`.
+
+- **Saved-geometry authority.** Persisted ecology and nested Scenario One cell-index records are checked against `StandGeometryModel.ForSave(data)` before the first live-world mutation. Legacy40 accepts cells 0..63; Enlarged80 accepts 0..255, independently of the current live grid or caller-supplied count. CanLoad and LoadData use the same pre-mutation rejection path; malformed data is refused without world or disk mutation. Treatment-patch centre checks remain on the existing shared saved-geometry path.
+- **Field semantics preserved.** Required indices reject negative/out-of-range values. Optional fields retain their field-specific −1 sentinel; `PlantedJuvenileSaveData.cellIndex = -1` remains valid. Planting/removal work orders require a real cell; tree-based orders may retain −1. Ecology records remain a unique sparse collection. Supplied understorey indices remain unique and in range, with the existing Model2 complete/ordered-grid contract retained. Legitimately shared cells in juveniles, deadwood, management history and distinct work orders remain valid; historical partial collections retain their actual semantics.
+- **Bounded integration verification.** Fresh compile/import PASS with zero compile/import errors. SaveCellIndexHardeningVerification PASS once: **131 cases, 78 rejected, 53 accepted**, including valid/historical sentinels, both geometries, CanLoad/LoadData/Load parity, exact no-mutation/disk checks and startup Continue refusal. SaveHardeningVerification, StandGeometryVerification (10 checks), startup batch Continue/CanLoad and AreaCalibrationVerification PASS. Emitted comparison hashes agree with the qualified source; StandGeometry emitted `EBE7A228F630AE41`. The exact known shared-settings regeneration was restored to HEAD after every gate; no material, source, fixture or unrelated drift remained, and original saves were preserved.
+- **Qualification boundary.** Source qualification was PASS ×2 at 131 cases/run plus full Legacy40 regression 24/24 and all seven frozen anchors exact. These are retained source results, not claims that integration reran the full suite or re-emitted all seven anchors. The pure identity fast-forward and green bounded checks required no full-regression repeat. Startup batch mode did not repeat rendered/physical-input checks; synthetic InputSystem graphical delivery remains unverified.
+- **Unchanged scope and release boundary.** `ForestSaveData.CurrentVersion` remains 20; definition remains `scenario-one-v13`; Reference Future v1 remains immutable Legacy40. No schema, scenario-definition, calibration, fixture, gameplay, geometry or stocking change occurred. The accepted retained former-edge-band residual remains. The external demo is **NOT READY**. Per D-060 the first external demo is the complete Scenario One, so the remaining pre-demo gates are: species-parity P0 (D-059/D-061/D-062) → S1-C → S1-D → scenario completion → integrated full Scenario One qualification → fresh post-parity/full-loop Windows candidate → independent review and native Windows technical smoke → beginner external testing. B06 remains historical and must not be sent; B07 is an internal technical baseline and is not the eventual external-demo candidate. Built-Player performance and native Windows text/input/performance remain unqualified. See **Species-parity audit facts and pre-demo scope** below for the supersession of earlier Stage-A wording.
+
+## Species-parity audit facts and pre-demo scope (D-059–D-062, 2026-10-12)
+
+The Oak/Beech/Sitka species-parity audit inspected production code at `c1564b857972ee18917e8a461c457533a54cc3f1`. It changed no production code. The following are **inspected implementation facts at that commit**, each tied to the code that establishes it. They are dated history: the three-species lineage has since been integrated on `main` (Rack V2 core integration `f23549b`), and the current Oak/Beech adult-model state is recorded in *Current Oak/Beech adult model* at the end of this document (the density route itself is owned by PARITY-03 and is not restated here):
+
+- **Adult Sitka height growth is species-gated.** `ForestEcologyController.cs:1014` applies `SitkaGrowthModel.NextHeight` only when `UsesSiteClassGrowth && SameSpeciesId(treeSpecies, SitkaGrowthModel.SpeciesId)`, where `SitkaGrowthModel.SpeciesId` is `"sitka-spruce"` (`SitkaGrowthModel.cs:24`). Other species keep the legacy height law at `ForestEcologyController.cs:1010–1011`.
+- **Adult density / self-thinning is not species-gated.** `ForestEcologyController.ApplyAdultDensityMortality` (`:1040`) collects `living` as every `FindTrees()` entry with `tree.IsLiving` (`:1044–1046`) with no species filter, then calls `StandRelativeDensity(living, …)` (`:1050`).
+- **The British Sitka relative-density calculation currently receives all living species.** `StandRelativeDensity` (`:1122–1133`) sums `Diameter²` over the whole living list, divides by `trees.Count` for `Dq` and by `StandAreaHectares` for `N/ha`, and returns `SitkaGrowthModel.RelativeDensity(stemsPerHectare, quadraticMeanDbhCm)` — the Comeau et al. (2010) British Sitka maximum size-density relationship implemented in `SitkaGrowthModel.cs`. Density pressure (`:1051`), the suppression-weighted hazard (`:1051–1070`) and the `RD ≤ 1.0` boundary enforced by killing the most suppressed survivors (`:1078–1104`) are all derived from that single stand-wide figure.
+- **Oak and Beech therefore currently inherit the Sitka density / self-thinning treatment.** Consequence of the two facts above: a broadleaf of similar size is counted as occupying the same growing space as Sitka, is thinned by the Sitka `[C/D]` hazard calibration (onset RD 0.6, strength 0.08, suppression exponent 4), and is subject to the British Sitka RD 1.0 boundary. This is recorded here as an inspected limitation, not as accepted behaviour. D-059 requires that Oak and Beech must not silently inherit materially inappropriate Sitka-specific assumptions.
+- **Oak and Beech dedicated verification is pinned to Legacy growth and does not currently qualify Growth Model 1.** `Tools/Verification/CCFOakVerification.cs:361` and `Tools/Verification/CCFBeechVerification.cs:25` both set `ecology.GrowthModelVersion = GrowthModel.Legacy`. No Oak or Beech test therefore exercises `ApplyAdultDensityMortality`, and no mixed-stand density test exists. This is why the limitation above is not currently caught by verification.
+- **Pure-Sitka behaviour must remain exact during the replacement architecture.** When composition is 100 % Sitka, `StandRelativeDensity` already computes the intended calibrated Sitka figure and must continue to produce identical results. D-061 makes this an acceptance criterion: 100 % Sitka composition routes through the existing exact calibrated Sitka density implementation, existing Sitka arithmetic is unchanged, and Sitka anchors are not silently re-baselined.
+
+**Scope these facts create (D-059, D-061, D-062).** Species-parity P0 is pre-demo work and is not started at this commit: species-aware density / self-thinning using ordinal species-aware growing-space-demand classes (D-061) with no DEC, no DMC and no mixture-productivity bonus; Oak and Beech adult parameter parity with labelled transfer/ordinal evidence; species-specific regeneration, juvenile and browse traits; species-specific canopy, light and site traits; an Oak/Beech timber assortment and economic layer that does not simply reuse Sitka assortment boundaries or prices (D-062); player-facing inspection and teaching parity; and integrated multi-species verification. Comparable depth does not mean equal empirical precision: evidence quality may differ between species where labelled honestly, and no pseudo-empirical coefficients are to be manufactured.
+
+**Supersession note.** Earlier integration records in this document state that "S1-C/S1-D are not Stage-A prerequisites" and describe a beginner Stage-A first-cycle pilot as the next external step. Those statements are **superseded by D-060**. The first external demo is the complete Scenario One; S1-C and S1-D are pre-demo requirements. The historical wording above is retained unchanged as the record of what each integration reported at its own time.
+
+## Current Oak/Beech adult model (PARITY-04 documentation alignment, 2026-10-27)
+
+Source-level (static) facts about the production tree now on `main`, established read-only by the PARITY-04 preflight (`Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-04-Preflight/HANDOFF.md`; candidate `e1515e165eb40b40b5200992398984d69e0e8e8e`, production tree identical to `c6342f7` and byte-identical on `main`) and re-read on `0a313fa`. **This is documentation alignment, not Unity qualification:** final `ADULT SPECIES PARITY REQUALIFIED` waits on PARITY-03 Unity qualification and a later focused PARITY-04 Unity run of the strengthened `BroadleafAdultGrowthVerification`.
+
+| Species | Pd cm/yr | Ph m/yr | Dmax cm | Hmax m | Ci50 | Growing-space class |
+|---|---:|---:|---:|---:|---:|---|
+| Oak (`SessileOak.asset`) | 0.8 | 0.65 | 120 | 42.5 | 5 | High (weight 2.0) |
+| Beech (`BeechSpecies.asset`) | 0.9 | 0.75 | 120 | 42.5 | 6.5 | Intermediate (weight 1.5) |
+| Sitka (`SitkaSpruce.asset`, protected comparator) | 1.2 | 0.45 | 120 | 35 | 5 | Reference (weight 1.0) |
+
+- **Evidence class.** Every Oak/Beech value above is `GAMEPLAY CALIBRATION` (asset tag `[C]`): the search-grid centre of the pre-registered Oak/Beech calibration (candidates Oak-122 / Beech-122, `Docs/Verification/Calibration/OakBeechProductionCalibrationV1Handoff.md`), not a fitted or measured Irish broadleaf growth constant. The class weights are `GAMEPLAY CALIBRATION`; the class ordering is `ORDINAL REPRESENTATION`, and Oak > Beech is a weak, provisional ordering, not empirical precision (PARITY-02 U-01). The class is read only by the growth-model-2 density route.
+- **Adult growth law** (`ForestEcologyController.GrowAdults`). DBH growth = `Pd × site × clamp01(1 − DBH/Dmax) × 1/(1 + CI/Ci50)`; height growth = `Ph × site × clamp01(1 − H/Hmax)` with no competition term. Oak and Beech use this shared legacy asymptotic law; Sitka's Class III age/site height envelope applies only to `sitka-spruce`. `site` is `cell.SiteProductivity`, which is 1.0 in production (never assigned outside verification harnesses).
+- **Site response is neutral and dormant.** The species×site seam is exactly 1.0 for every species and site and is referenced by no production file. Scenario One's site is a versioned compatibility reference, not a soil survey or an "optimal" site. The qualitative drought/waterlogging directions recorded for Beech are ordinal data with no numerical effect: no species-specific drought or waterlogging penalty is modelled in P0.
+- **Canopy/light is shared.** `RecomputeCanopy` has no species term, and there is no transmissivity, deciduous or leaf-off model. Species differ only through crown geometry (`PotentialCrownRadiusM`: Oak linear `0.10 + 0.1045·DBH`, Beech `ln CPA = 0.05 + 1.01·ln DBH`), crown relaxation (Oak 0.12, Beech 0.15, Sitka 0.15 per year) and `Ci50` in the crown target.
+- **Competition neighbourhood.** One shared 8 m Hegyi cutoff (`HegyiCutoffMeters`), a Sitka-calibrated gameplay calibration with no broadleaf-specific radius evidence. Rack-owned `ScenarioOneRackBay.FutureTreeSpacingM` is defined as the same constant.
+- **`Ci50` roles.** Species `Ci50` sets the DBH growth response, the crown target and the suppression diagnostics. Under growth model 2's mixed/species-aware density route, victim selection is species-neutral (one common half-saturation 5 and exponent 4) and does not use species `Ci50`; models 0/1 keep their protected legacy behaviour and a model-2 pure-Sitka stand keeps the exact Sitka route (Manager decision M-4).
+- **Accepted Beech height-band miss.** From a promoted 3.5 m stem (age about 10) the shared law gives Oak 21.45 / 28.18 / 32.76 m and Beech 23.37 / 30.24 / 34.65 m at ages 50 / 75 / 100 (arithmetic derivation from the production recurrence, not simulation output). Against the provisional `[C]` bands used in calibration, Oak sits inside 20–25 m (age 50) and 30–35 m (age 100), while Beech is 1.63 m below 25–30 m and 0.35 m below 35–40 m. This follows arithmetically from the accepted constants and is an **accepted provisional calibration limitation** (PARITY-02 U-11), not an empirical failure or an implementation defect. It is not to be retuned or "fixed" with a new height model without a new evidence/calibration packet. The strengthened `BroadleafAdultGrowthVerification` prints these heights as diagnostics only, never as pass/fail targets.
+- **Dated history stays dated.** `Docs/EcologyCalibrationAdoption.md` records the 2026-10-02 C8 adoption (Beech/Oak then kept Ci50 3 and 0.4 cm/yr) and is not current implementation truth.
+
+## Current early-life and browse model (PARITY-05 documentation alignment, 2026-10-28)
+
+Source-level (static) facts about the production tree on `main`, established read-only by the PARITY-05 preflight (`Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05-Preflight/MANAGER-REVIEW.md`) and re-read on `86bd5c7`. **This is documentation alignment, not Unity qualification:** no value, formula, asset, save field or anchor changed, and final `EARLY-LIFE SPECIES PARITY REQUALIFIED` waits on a separate focused Unity qualification. Patch details: `Docs/Handoffs/S1-ThreeSpeciesParity-P0-Implementation-05/HANDOFF.md`.
+
+- **Oak** keeps distinct juvenile establishment and survival curves (`useDistinctJuvenileLightResponses: 1`), initial height 0.18 m and a 20% promotion-light floor.
+- **Beech** has no distinct curve: it uses the combined legacy establishment/survival response (survival exactly 1.0 at or above light-response 0.15, 0.8 below), labelled `FALLBACK-CONSERVATIVE`. No Beech-specific curve was invented. **Sitka** uses the same combined response and remains the protected lifecycle comparator; its behaviour and anchors are unchanged.
+- **Shared juvenile calibration (`GAMEPLAY CALIBRATION`)** is identical for all three species: 0.35 m/year full-light height growth, 3.5 m promotion height, 0.5 density per establishment, 1.5 density cap. Species differences enter only through seed dispersal/maturity/mast/saturation, juvenile light response, initial height and Oak's promotion-light floor. No annual establishment-rate or establishment-survival scalar exists.
+- **Planting stock** (age 3 years, 0.6 m, density 1) is one shared **broadleaf stock abstraction v1**, not a Beech measurement. The Inspector header and tooltips on `ForestEcologyController` still say "Planting (Beech v1)"; that stale production comment is a recorded follow-up, not changed here.
+- **Browsing.** `browsePalatability`: Sitka 0.15, Beech 0.5, Oak 1.0; ordering Oak > Beech > Sitka is `TRANSFER`, the numbers are gameplay-calibrated. Protection is binary access (intact fence or effective shelter 0, breached/outside 1) and protected outcomes equal the browse-free baseline. Scenario One's `0.2` is background browse pressure, **not** a protection multiplier. Packet-only early-life rates (`0.014/0.62/0.93` etc.), browse multipliers `1.0/1.8/2.2` and a `0.2` protected multiplier are not adopted and do not exist in the model.
+- **Open follow-up (PARITY-08, not fixed here):** loading a save that names an unknown species falls back to the default species or skips the record instead of rejecting before world mutation.
