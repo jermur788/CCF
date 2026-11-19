@@ -188,8 +188,8 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
 
         // The fourth site is designated and resolved in a later real year.
         session.TryDesignate(3);
-        Check(manager.WorkOrders.Count == 1 && manager.WorkOrders[0].status == ScenarioWorkStatus.Pending,
-            "fourth site is Pending in year 1");
+        Check(manager.WorkOrders.Count == 4 && manager.WorkOrders.Count(o => o.status == ScenarioWorkStatus.Pending) == 1,
+            "fourth site is Pending in year 1 while the three earlier orders remain Completed");
         Check(manager.ApprovePendingWork(), "fourth order approved");
         Check(manager.AdvanceYear(), "year 2 annual advance succeeds");
         yield return null;
