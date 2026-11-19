@@ -1,88 +1,85 @@
-# Multi Stage 5 — Requirements and independent acceptance checklist
+# Multi Stage 5 — Requirements and independent acceptance checklist (corrected DRAFT)
 
-- **Spec:** [MULTI-812-STAGE5-2D-INTERVENTIONS-V1](../spec.md)
-- **Status:** **DRAFT — ALL UNCHECKED; FEATURE NOT IMPLEMENTED/NOT TESTED BY #812**
-- **Prepared:** 2026-11-19, GPT-6 GitHub-only docs author #812
-- **Future implementation under test:** NONE; branch/candidate/worktree/engine not assigned
-- **Evidence owner:** future nonauthor qualifier after spec approval; Manager #730 disposition
-- **Rules:** a checkbox may be checked only with actual inspected source/test evidence and explicit candidate. Positive/negative observations are separate. A stated intention is not evidence.
+- **Spec:** [MULTI-812-STAGE5-2D-INTERVENTIONS-V1](../spec.md), corrected by #817 under [latest owner one-undivided-area instruction](https://github.com/jermur788/CCF/blob/docs/multi-730-817-owner-one-area-clarification-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-730-817-OWNER-CLARIFICATION-ONE-UNDIVIDED-AREA-NO-RACK-GEOMETRY-20261119.md).
+- **Status:** **DRAFT — exactly 26 R and 24 X; ALL 50 UNCHECKED, NOT RUN / NOT VERIFIED; NO FEATURE IMPLEMENTED BY #817**.
+- **Evidence owner:** future nonauthor qualification on exact accepted source candidate, separate Manager #730 review. Each checkbox requires real source/tree-year test evidence, expected/observed delta and linked logs/fixtures/branch/physical grants.
+- **Gates:** G0 **RESOLVED** one undivided original 30 m/100-Sitka management area, **NO rack geometry/Confirm/corridor/clearance**; G1 comparator **OPEN/optional and fail-closed**; G2 atomic real Fell/current-year event and genuine next-year biology **OPEN/mandatory**; G3 save/resume **Stage7 deferred**; G4 new economics **deferred**, unsupported fields **UNAVAILABLE**. No implementing/approving by checkbox alone.
 
-## R. Requirements (each NOT RUN / NOT VERIFIED)
+## R. Requirements — each unchecked / future evidence only
 
-- [ ] **R-01 — authority G0:** nonauthor confirms D-064/065/071/076 crosswalk; owner explicitly accepts selected 2D no-rack or zone option; no literal five-rack/3D spray copied as Multi authority.
-- [ ] **R-02 — separate worlds:** synthetic 30×30 m 100-Sitka lab kept distinct from D-083 Compact30, Unity Enlarged80/Legacy40 and Reference Future v1.
-- [ ] **R-03 — closed input and provenance:** only exact canonical original 100-ID fixture and verified current committed Genesis/AfterMortality are eligible; true ID case, positions, model, lineage and word precision preserved.
-- [ ] **R-04 — diagnostics read-only:** Before/PostGrowth cannot activate candidate plan or supply current tree for Fell; no stage-tab year mint/rebase and no invalid aborted diagnostic parent.
-- [ ] **R-05 — inspect/sample:** explicit player-authored local sample with current live tree choices and retained/competitor rationale; manual tree-by-tree path available.
-- [ ] **R-06 — qualified sample:** unqualified sample or missing current neighbourhood data is identified and cannot justify transfer.
-- [ ] **R-07 — comparability only:** source-verified G1 predicate determines target-tree/area matching; material current-condition differences/unknown fields yield Manual/NotCovered; same Sitka + same age is insufficient.
-- [ ] **R-08 — transparent proposal:** each suggested target has source year/sample/ID, matches/exclusions/rationale, evidence/provenance and inspectable actual current source.
-- [ ] **R-09 — individual judgement:** player can reject/override; no out-of-sample quality claim or bulk CropTree auto-confirm; manual work precedes proposed suggestions.
-- [ ] **R-10 — no authorisation by candidate:** #805 REMOVE_CANDIDATE remains local/reversible and is neither a red Fell mark, authoritative plan, PendingWork, engine command nor history event.
-- [ ] **R-11 — review and prescription approval:** explicit review and prescription approval; only source-bound **pending** orders created/reconciled, no biological changes.
-- [ ] **R-12 — Work Plan commitment:** separate explicit Work Plan approval of one whole batch; performer/cost unavailable if unsupported; no approval from time advance/view/mark.
-- [ ] **R-13 — validation at all gates:** atomic source/ID/life/year/revision/digest/duplicate/current-status/approval revalidation at prescription, Work Plan approval and execution; old callbacks refused.
-- [ ] **R-14 — single authoritative executor:** engine alone commits real Fell/death cause, resulting count/BA and any real financial state; UI preview never mutates biological source.
-- [ ] **R-15 — exactly once:** unique immutable approved execution key; first success one actual Fell per selected live ID, retry same key no-op, separate conflicting key refused; no double charge/history.
-- [ ] **R-16 — transaction atomicity:** all-or-nothing work result including history; rejected/partial/exception paths preserve every tree and source summary; no silent partial work.
-- [ ] **R-17 — edit/reopen safety:** explicit cancellation/reapproval for pending or approved-but-unexecuted work; executed events/trees cannot be erased or resurrected by editing geometry/group.
-- [ ] **R-18 — no-work and annual:** real no-work remains valid; year advance never auto-marks/auto-thins/auto-approves; next annual run uses actual committed survivors, not proposal.
-- [ ] **R-19 — history and provenance:** multiple cycles retain source sample, current matched target areas, proposed/manual/approved/actual result and per-year actions; read-only past and honest no-work.
-- [ ] **R-20 — ecology integrity:** Fell distinguished from biological mortality, no resurrection or fake Dq/height on zero-live; original no-work ecology precision and RNG remain identical.
-- [ ] **R-21 — economic honesty:** no invented prices, charges or timber classifications; unsupported field labelled UNAVAILABLE; no second charge on retry.
-- [ ] **R-22 — accessibility:** complete keyboard and screen reader work-plan confirmation; 360px/200% zoom, touch, focus, error announcement, colour-independent marks/status.
-- [ ] **R-23 — persistence boundary:** session/engine-year history not claimed cross-process; G3 standalone H2 Host/save/load/atomic journal requires separate accepted spec if requested.
-- [ ] **R-24 — protected scope:** no original package/fixture/#784 HTML/hash mutation; no #789 protected oracle weakening; no #805 edits; no Unity/Host/save/physical Ops/main/Windows rights from #812.
-- [ ] **R-25 — implementation gates:** nonauthor source review and G0–G2 resolved; actual approved spec, source branch/claim, physical Ops lease and independent qualification before any release.
-- [ ] **R-26 — visible failure semantics:** no silently dropped work, invented comparator, default successful approval, false year, or partial view; explicit reason and safe no-op/refusal.
+- [ ] **R-01 — latest owner G0:** current original synthetic stand is exactly **one undivided management area**, not “one functional rack”; no physical rack planning/entry/corridor/Confirm/clearance/rack edit lock. Later multi-area/racks separately specified. #816 old rack findings superseded only on this subject.
+- [ ] **R-02 — separate worlds:** original 30 × 30 m closed 100-Sitka Multi stand is not 175-tree Compact30 Unity, historical five-rack Enlarged80, Legacy40 or frozen Reference Future v1.
+- [ ] **R-03 — closed input:** exact original 100 case-sensitive IDs, fixture/hash, true current source/experiment/model/revision, f32/f64 rules and committed Genesis/AfterMortality live rows bound to every decision and order.
+- [ ] **R-04 — no diagnostics as authority:** Before/PostGrowth or aborted/uncommitted report cannot become editable current year or create work; no source-tab rebase or invented current identity.
+- [ ] **R-05 — manual per-ID selection:** player selects inspectable live trees and retain/release/competitor rationale, with optional local representative sample; **one management area does not mean select all 100**.
+- [ ] **R-06 — sample evidence:** local sample uses actual same-source neighbourhood and explicit chosen IDs; missing features/unqualified one-click example cannot become a transfer policy; manual path remains open.
+- [ ] **R-07 — optional G1 comparator:** only independently source-proved actual current feature set, accepted predicate and calibration support comparable-target proposals; otherwise **DISABLED / Manual/NotCovered**, not inferred from Sitka, age or one area.
+- [ ] **R-08 — proposal traceability:** suggestions (when G1 approved) show current year/sample/target exact ID, match/exclusion/unknown evidence and provenance; unknown/different trees cannot be auto-included.
+- [ ] **R-09 — player judgement:** individual accept/reject/manual override, no out-of-sample “quality” assertion or automatic bulk CropTree confirmation; manual source-backed route never depends on G1.
+- [ ] **R-10 — candidate not Fell:** #805 REMOVE_CANDIDATE stays reversible preview; no candidate/proposal/sample auto-becomes red Fell, PendingWork, approval, death or executed event.
+- [ ] **R-11 — ordinary pending orders:** explicit manual “Add to Work Plan” creates source-bound PendingWork; optional reviewed prescription approval reconciles only pending proposed orders. Both use **one ordinary plan** with zero biological effect.
+- [ ] **R-12 — separate commitment/execution:** distinct explicit Work Plan whole-batch approval is the **sole commitment gate**; distinct Execute after source revalidation. Opening UI, a tree click, prescription or time advance never commits.
+- [ ] **R-13 — whole-batch revalidation:** at relevant proposal/pending/approval/execution boundaries, exact current year/fixture/source ID/revision/live status/digest checked; missing/stale/wrong-case/dead/duplicate/conflicting IDs refuse all work.
+- [ ] **R-14 — authoritative Fell:** G2-proven one engine writer owns actual per-tree legal Fell (separate from natural mortality), post-work roster/count/BA and actual source-year result; UI deletion/preview cannot stand in.
+- [ ] **R-15 — same-process exactly once:** immutable source-year/batch-revision/execution identity; one successful true Fell per selected valid live ID; identical-key replay is already-executed no-op; changed payload or second key against dead ID refuses.
+- [ ] **R-16 — transaction atomicity:** entire batch plus result/history commits together or is refused with zero partial biological, event or financial changes; injected mid-transaction failure is not a partial success.
+- [ ] **R-17 — edits without rack state:** changing pending orders or approved-but-unexecuted batch requires clear warning, consent, cancellation/review/reapproval; actual executed tree and history cannot be unfelled/edited.
+- [ ] **R-18 — no-work and ecology:** zero-work/advance does not auto-thin/mark/approve; real post-Fell survivors feed the **next genuine committed ecological year** with competition/growth/background mortality, not an old preview.
+- [ ] **R-19 — immutable session history:** exact source-year/area, sample/manual/proposal/pending/approved/executed distinctions, actual Fell causes, read-only prior years and genuine repeats; no process-restart durability assertion.
+- [ ] **R-20 — biological integrity:** true player Fell distinct from natural mortality; zero-live handling/no resurrection/no fake DBH/Dq/height; original no-work RNG/precision oracle unchanged.
+- [ ] **R-21 — G4 economics honesty:** no new Stage 5 prices/charges/settlement/budget/affordability logic; any absent amount shown **UNAVAILABLE**, never free/zero; replay has no manufactured money effect.
+- [ ] **R-22 — accessible workflow:** keyboard, screen reader and touch selection, pending/approved/executed statuses, warning/consent/errors and no color-only meaning; 360 px and 200% zoom.
+- [ ] **R-23 — G3 persistence Stage7:** source-year/session-local result only in Stage 5; no Host/H2, save/load, localStorage as authority, cross-process exactly-once or crash replay promise; later approved Stage7 spec required.
+- [ ] **R-24 — protected scope:** no original package/fixture/#784 or #789 no-work rewrites, no #805 file edit, no Scenario One Unity/Host/save/physical Ops/main/Windows rights from this DRAFT.
+- [ ] **R-25 — implementation gates:** focused nonauthor #817 delta review, formal Manager #730 APPROVED spec, independent G2 proof, approved future packet, exact source ownership/physical Ops lease and independent qualification before work/release; G1 separately required only if extension enabled.
+- [ ] **R-26 — explicit refusals:** stale, invalid, duplicate, missing source, unsupported executor or consent failure gives exact user-readable reason and true zero mutation, not silently skipped trees, invented comparability or false success.
 
-## X. Positive and negative test cases — ALL FUTURE / NOT RUN
+## X. Positive and negative tests — all unchecked / future only
 
-Each X case requires real candidate, independent owner, exact input fixture, expected vs observed source delta and a pointer to logs/screenshots. For all positive cases first prove no effects *until* the approved authoritative actuation.
+Each X case must record its own **positive and negative** fixture/source, independently observed tree-level and year-level delta, owner, exact candidate, and logs. Pre-commit samples, proposals and pending states must always have **zero Fell**.
 
-- [ ] **X-01 original positive:** exact existing 100 case-sensitive IDs, original fixture/digest/HTML unchanged, accepted Genesis current. **Negative:** 99/101, duplicate/wrong-case ID, tampered digest or mixed fixture ⇒ whole frame refused, no map-based work.
-- [ ] **X-02 current-source positive:** valid source-verified committed AfterMortality year eligible, exact f32 current values. **Negative:** Before, PostGrowth, uncommitted or aborted report, false revision and rounded-value eligibility ⇒ no editable/approval base.
-- [ ] **X-03 sample positive:** explicit local source sample with several live tree judgements, named retain/release rationale and manual fallback. **Negative:** one accidental click or arbitrary single selected tree automatically interpreted as representative; no sample without current-source features.
-- [ ] **X-04 comparator positive:** truly source-supported similar neighbourhood selected with itemised matching evidence. **Negative:** all Sitka/equal age alone, absent local density, different competition, missing terrain/wind class or out-of-domain zone ⇒ NO transfer, Manual/NotCovered.
-- [ ] **X-05 decision precedence positive:** player rejects a proposed ID or manually selects valid alternative; action reflected and reproducible. **Negative:** rejected proposal silently re-added, CropTree quality automatically granted, bulk confirm without item inspection.
-- [ ] **X-06 candidate-only positive:** #805 local REMOVE_CANDIDATE works and Undo/Discard clears with exactly zero engine delta. **Negative:** direct candidate → Fell, changed living count/BA, financial charge or executed history without approvals.
-- [ ] **X-07 prescription positive:** reviewed proposal approval creates exactly one pending order per eligible exact ID and retains provenance. **Negative:** no review, stale source, duplicate ID or invalid recipient ⇒ zero pending work/zero engine delta.
-- [ ] **X-08 two approvals positive:** explicit approved prescription still PendingWork until distinct Work Plan review and approval. **Negative:** auto-approve by opening Work Plan, display action, time skip, click or imported batch ⇒ refusal/no mutation.
-- [ ] **X-09 execution positive:** approved whole batch uses one engine transaction; exact Fell IDs removed once, actual source counts and optional valid cost match. **Negative:** missing signature, wrong year, malformed batch, unknown/dead ID or extra duplicate ⇒ whole batch refused, original source byte/word state unchanged.
-- [ ] **X-10 stale/rebase positive:** revising plan against new committed year requires re-review/reapproval. **Negative:** accepted new source while old callback fires, previous year IDs/eligibility copied, diagnostic tab rebases automatically ⇒ no execution.
-- [ ] **X-11 idempotency positive:** replay same successful execution key returns already-applied result with no new event/charge. **Negative:** second distinct key to fell already executed IDs, replay with changed content under same key ⇒ refusal, zero delta.
-- [ ] **X-12 mid-batch fault positive:** whole-batch transaction success commits all source+history once. **Negative:** injected failure after first intended removal, inability to write history, interrupted operation ⇒ no partial Fell, no count/BA mismatch; do not claim crash-durable retry without G3.
-- [ ] **X-13 cancellation positive:** pending changes reconcile only with required explicit consent and reconfirmation. **Negative:** cancelling executed job restores tree, or changing zone invalidates unrelated executed year ⇒ impossible/refused.
-- [ ] **X-14 no-work positive:** explicit no-work and one ordinary annual advance matches accepted baseline with zero Fell/proposal event. **Negative:** automatic thinning due to time skip/preview/new cycle ⇒ zero autonomous harvest.
-- [ ] **X-15 after-Fell annual positive:** after actual chosen Fell, next genuine year uses reduced survivor roster, competition and biomass correctly recomputed by existing source. **Negative:** old preview used as year input, Year1 rerun relabelled Year2, two annual steps per click ⇒ refusal.
-- [ ] **X-16 repeat-year positive:** two or more distinct treatment cycles with different source sample/year and intervening no-work years preserve separate immutable outcomes. **Negative:** stale old prescription repeated automatically, old review editing current tree, history money manufactured.
-- [ ] **X-17 zero-survivor positive:** if legal, final Fell yields stable zero live and frozen dead archive/undefined Dq/height states. **Negative:** next-year resurrection, divide-by-zero, phantom work. If zero-live Fell not legal, explicit product-decision refusal witnessed.
-- [ ] **X-18 death semantics positive:** authored Fell history and biological mortality remain distinguishable. **Negative:** planned removal treated as dead or biological casualty charged as executed Fell.
-- [ ] **X-19 economy positive:** real sourced cost/revenue where supported; otherwise explicit UNAVAILABLE with zero fabricated accounting. **Negative:** hard-coded Irish timber prices or double cost from retry.
-- [ ] **X-20 accessibility positive:** fully reachable and announced tree chooser, sample/proposal/Work Plan, failures at 360px and 200% zoom, mouse/touch/keyboards. **Negative:** color-only red/blue, invisible focus, unannounced refusal or inaccessible consent.
-- [ ] **X-21 provenance/failure positive:** current source, sample, reviewed prescription, work approval, execution ID and annual review displayed honestly. **Negative:** missing source fields silently filled, partial 99-row view, historical event minted by aborted transaction.
-- [ ] **X-22 protected original positive:** exact original package, independent no-work engine outputs, frozen #784 HTML, #805 code/doc surfaces unchanged after Stage 5. **Negative:** intentional original fixture bit flip or no-work expectation change must fail test rather than update baseline.
-- [ ] **X-23 scope positive:** no Host/save/Unity/Reference/Legacy40/main integration changes in authorised Stage 5 feature candidate. **Negative:** any hidden persistence/new profile or Unity runtime dependency without separate authority ⇒ block.
-- [ ] **X-24 gates positive:** independent source/document review, owner G0 decision, approved spec, exclusive worktree and physical Ops permit and independent end-to-end qualification each evidenced. **Negative:** missing link or unsupported approval claimed ⇒ no implementation/release acceptance.
+- [ ] **X-01 original source:** valid 100 exact original IDs and unchanged fixture/digest/HTML; **negative** 99/101, duplicate/wrong-case ID, mixed/tampered fixture ⇒ entire source/refusal, no work.
+- [ ] **X-02 committed current:** admitted Genesis/AfterMortality with correct current f32/f64/live state; **negative** Before/PostGrowth/aborted/stale false revision/rounded-value eligibility ⇒ no edit/approval.
+- [ ] **X-03 G0 one-area UI:** display one undivided whole-stand management area with individual selectable trees; **negative** physical rack, entrance/corridor/service, Confirm, rack clearing/edit controls or one-click automatic all-tree Fell ⇒ absent/refused.
+- [ ] **X-04 per-ID manual judgement:** explicitly choose multiple genuinely live original source IDs with individual retain/release reasons; **negative** missing/dead/wrong-case/duplicate/unselected ID or whole-area implicit selection ⇒ no order.
+- [ ] **X-05 local sample and G1 fallback:** evidence-backed local player sample remains within undivided management area; **negative** unqualified sample or same Sitka/age/area assumed homogeneous ⇒ automatic transfer DISABLED/Manual/NotCovered, manual selection still works.
+- [ ] **X-06 #805 boundary:** local REMOVE_CANDIDATE and Undo/Discard change zero source biology; **negative** direct candidate/proposal → authoritative Fell/charge/event or stale candidate import ⇒ refused.
+- [ ] **X-07 optional G1 proposals:** if independent predicate approved, a truly matching current target receives itemised proposal; otherwise manual-only mode explicitly shown. **Negative** different competition, missing feature or site/wind guess ⇒ no extension or quality claim. Test remains NOT RUN if G1 absent, not a fabricated PASS.
+- [ ] **X-08 manual pending work:** intentional reviewed manual selection becomes one current source-bound ordinary PendingWork per valid exact ID; **negative** unreviewed/stale/duplicate/conflicting manual orders ⇒ zero new pending/zero Fell.
+- [ ] **X-09 prescription pending only:** optional G1 proposal after individual review and separate prescription approval enters same pending list; **negative** recommendation shown/approved without separate review, or invalid ID ⇒ no Fell and no unsupported pending.
+- [ ] **X-10 one consolidated Work Plan:** manual plus any approved proposed orders reconcile with source/ID/provenance; **negative** duplicates across channels, hidden rack-clearing second route, conflicting orders or automatic blanket stand treatment ⇒ refuse/reconcile before approval.
+- [ ] **X-11 distinct approval:** explicit Work Plan whole-batch approval creates immutable approved revision without killing a tree; **negative** display/open/mark/prescription approval/time-skip/old callback “approved” without player action ⇒ no execution.
+- [ ] **X-12 authoritative Execute:** separate action against valid WorkPlanApproved current batch genuinely Fells exact live IDs once and records same-year source result; **negative** no approval, unsupported G2 executor, wrong source/year, dead/unknown/duplicate ID ⇒ whole-batch refusal with zero source delta.
+- [ ] **X-13 mid-batch atomic fault:** proven single writer commits roster/count/BA and exact one event together; **negative** injected second-ID failure or history write fault ⇒ zero partial Fell, no event, no faked rollback success.
+- [ ] **X-14 idempotent same process:** successful same-key repeat reads already-executed result with no extra Fell/event/charge; **negative** changed payload at same key or new key targeting executed/dead IDs ⇒ refusal/zero delta. No restart test asserted.
+- [ ] **X-15 edit/consent:** pending order edits/cancel and approved-but-unexecuted changes visibly warn, require consent and new approval; **negative** silent mutation, cancelled approval still executing, executed tree resurrected or history rewritten ⇒ blocked.
+- [ ] **X-16 genuine following year:** after Year y *actual* Fell, one true subsequent Year y+1 committed step reads reduced survivor roster and recomputes competition/growth/mortality; **negative** report relabel, old preview, two year steps per click or extra phantom Fell ⇒ fail.
+- [ ] **X-17 no-work oracle:** explicit no-work and ordinary year advance retain original Year0–10 source outputs/RNG without Fell events; **negative** auto-thin on skip, proposal from same area automatically applied, updated baseline masking drift ⇒ fail.
+- [ ] **X-18 repeated cycle/history:** two distinct management source years with fresh manual/sample choices, optional intervening no-work, previous result read-only; **negative** replay prior plan, edit historical Fell or fabricated year/event ⇒ blocked.
+- [ ] **X-19 mortality/zero-live:** true Fell death cause distinct from biological mortality and correct BA/count; **negative** planned candidate treated as dead, biological dead charged as work, phantom live at zero or divided-by-zero fake metrics ⇒ fail/refuse source-policy gap.
+- [ ] **X-20 economics honesty:** any proven actual financial input labelled accurately, otherwise explicit UNAVAILABLE for cost/revenue/budget/settlement; **negative** zero/free substitute, Irish timber price, fake affordability refusal or repeat charge ⇒ fail.
+- [ ] **X-21 accessibility:** tree chooser, manual sample, proposal (when supported), pending Work Plan, approval warning/Execute, errors reachable and announced at 360px/200% via keyboard, touch, screen reader; **negative** red-only authority, focus trap/unannounced refused state ⇒ fail.
+- [ ] **X-22 protected source:** original fixture/hash, frozen #784 HTML, #805 boundaries and #789 untouched oracle compared with real exact lineage; **negative** intentional bit flip or deliberate oracle weakening must fail, not be rebaselined.
+- [ ] **X-23 scope/persistence:** session-only year history, no new source-unrelated money, physical rack/Confirm/save/Host/Unity/Reference/Legacy/main changes; **negative** any hidden persistence/cross-process guarantee or rack geometry subsystem ⇒ BLOCK.
+- [ ] **X-24 gates/provenance:** nonauthor draft and source review, owner G0, formal approved spec, G2 seam, exclusive actual source + physical Ops grant, independent integrated UX/engine qualification evidenced; **negative** missing grant/claimed pass without observable source ⇒ no implementation/release acceptance.
 
-## Independent evidence assignments (future)
+## Independent evidence allocation (future, NOT RUN)
 
-| Matrix group | Primary future owner | Non-author witness | Current result |
+| Cases | Source/implementation owner (future) | Required nonauthor witness | Current status |
 |---|---|---|---|
-| X-01–02, X-22 | original/read-contract custodian | independent #805/#784 reviewer | NOT RUN |
-| X-03–06, X-20 | Stage 5 UI/sample writer | independent accessible-browser reviewer | NOT RUN |
-| X-04–05, X-21 | comparator/prescription writer | forestry/source reviewer | NOT RUN |
-| X-07–10, X-13 | plan writer | independent work-contract reviewer | NOT RUN |
-| X-09–12, X-17–19 | single authoritative engine writer | independent offline engine qualifier | NOT RUN |
-| X-14–16, X-23–24 | integrator under #730 | separate nonauthor integrated qualifier | NOT RUN |
+| X-01–02, X-22 | original/read-contract custodian | independent #784/#805 source reviewer | NOT RUN |
+| X-03–06, X-21 | Stage 5 manual/sample UX owner | independent browser accessibility reviewer | NOT RUN |
+| X-05, X-07, X-09 | optional G1 comparator/prescription owner | forestry/source reviewer; G1 optional | NOT RUN |
+| X-08–11, X-15 | PendingWork/Work Plan state owner | independent work contract reviewer | NOT RUN |
+| X-12–14, X-19–20 | G2 single authoritative engine owner | independent offline atomicity qualifier | NOT RUN |
+| X-16–18, X-23–24 | integrated annual/history owner under #730 | separate integrated nonauthor qualifier | NOT RUN |
 
-## Checklist verdict
+## Checklist documentary verdict
 
-- **Spec review:** NOT RUN / NEEDS INDEPENDENT NONAUTHOR REVIEW
-- **Owner G0:** OPEN
-- **Implementation correctness:** NOT RUN
-- **Spec conformance:** NOT RUN
-- **Engine/runtime/browser:** NOT RUN
-- **Main integration:** NOT AUTHORISED
-- **Dashboard/Drive:** NOT VERIFIED
-- **Next:** author #812 GitHub handoff → independent document reviewer → owner/Manager decisions and approval; no source dispatch from DRAFT.
+- **#817 four-file correction:** documentation only; independent focused delta review **PENDING**.
+- **Owner G0:** **RESOLVED — one undivided area; no physical rack**.
+- **G1:** OPEN/optional; **G2:** OPEN/mandatory; **G3:** DECIDED Stage7; **G4:** DECIDED deferred.
+- **Implementation correctness, functional conformance, real source Fell/annual, browser accessibility and runtime tests:** **NOT RUN**.
+- **Approved spec, integration, source/Unity/physical operations/main merge:** **NOT AUTHORISED** by #817.
+- **Dashboard/Drive:** **NOT VERIFIED**.
+- **Next:** verify exact four-file diff and full readback; publish one #817 result → independent nonauthor focused delta review → #730 formal spec decision → auditable G2 and future physically authorised implementation only after approvals.
