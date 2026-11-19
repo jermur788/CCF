@@ -102,7 +102,7 @@ No proposed session-local key proves crash-durable semantics, Host authority, st
 - **AC-07** no duplicate/contradictory/stale/dead/case-mismatched source IDs pass the whole-batch validator; refusal changes zero biological or history state.
 - **AC-08** one real source-authoritative atomic Fell/current-year event, identical same-process replay no-op, different-key/payload replay refused, natural mortality distinct.
 - **AC-09** after actual Fell, next *genuine* year recomputes ecology from real survivors; unchanged no-work Year0–10 and zero-live policies witnessed independently.
-- **AC-10** approved-but-unexecuted edits and pending/approved-unexecuted year advance warn and require consent/reapproval or stale-cancellation as applicable under the proposed DRAFT policy; executed trees/history immutable, session-local review is read-only, no save durability claim.
+- **AC-10** approved-but-unexecuted edits and pending/approved-unexecuted year advance warn and require consent/reapproval or stale-cancellation as applicable under the approved Stage 5 policy; executed trees/history immutable, session-local review is read-only, no save durability claim.
 - **AC-11** all source/browser/accessibility, positive and negative tests independently witnessed against a fixed candidate; no L4 waiver, engine or fixture rewrite.
 - **AC-12** independent #821 review and corrected #823 documents, #730 formal design approval, G1 only if source-proved and enabled, mandatory G2 source/atomicity proof, actual exclusive source ownership/physical permits and independent feature qualification **before** any implementation, integration or acceptance claim.
 
