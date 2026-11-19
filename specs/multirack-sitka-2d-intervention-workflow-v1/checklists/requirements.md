@@ -85,3 +85,19 @@ Each X case must record its own **positive and negative** fixture/source, indepe
 - **Approved spec, integration, source/Unity/physical operations/main merge:** **NOT AUTHORISED** by #823.
 - **Dashboard/Drive:** **NOT VERIFIED**.
 - **Next:** design APPROVED by Manager #730 with owner-directed #825 review deferral. Independently verify mandatory G2 current-source atomic Fell/event/year seam and launch separate near-term G1 multi-area fixture/comparability/spec feasibility. No source work without actual source/physical authority and subsequent independent tests. Checklist remains all unchecked.
+
+
+---
+
+## G2 source-contract acceptance interpretation after #827/#837 (PROPOSED / NOT A TEST RESULT)
+
+The approved Stage5 checklist remains **26 R + 24 X, all unchecked**. This appendix clarifies *how existing cases must eventually be tested* under the proposed [spec.md §8](../spec.md), rather than adding more checkboxes or marking any PASS:
+
+- **R-03 / X-01 / X-02 / X-17:** retain the exact original fixture, 100 case-sensitive IDs, no-work `{Snapshot, Report}` JSON shapes and all ten recorded digests. Positive evidence requires re-running the original no-work vector and year=revision invariant; **negative** adding a serialised work member changes digest ⇒ FAIL, not rebaseline.
+- **R-14 / R-16 / X-12 / X-13:** a true completed Fell must publish tree-state, separate typed Fell cause, one work event and the new session work revision in **one atomic committed root**, with fault injection before publication. A separately mutated counter or event appended after biology is a torn transaction and FAIL.
+- **R-15 / X-14:** same-process identical-key/payload duplicate returns the prior result without a second source/event/revision change; conflicting payload or another key targeting already-felled tree refuses with exact zero mutation. No restart guarantee.
+- **R-18 / R-20 / X-16 / X-19:** Fell in year y does not increment annual year/revision; next year y+1 reads actually surviving IDs and recomputes existing competition/growth/natural mortality. Zero-live-after-Fell policy remains owner-open, not assumed equal to annual zero-live refusal.
+- **R-05 / R-13 / X-04 / X-12:** the fixture's 170 mm field is **not already a legal Fell threshold**. Owner choice must be recorded before exact eligibility tests can be set. No arbitrary Irish forestry numerical rule may be inferred.
+- **R-24 / R-25 / X-22 / X-24:** V-01 is a prospective scoped **read/compile input permission**, V-02 requires independent full-mirror qualification; L4 FAIL38 is unwaived and #804 main integration blocked. Technical source facts do not establish a lease or integration acceptance.
+
+**Gate:** no source work from this proposed annex until the owner's two decisions, exact Manager approval of the revised source contract, current board/custody grants and independently approved source qualification lane. No additional acceptance checkboxes were created by this documentary alignment.
