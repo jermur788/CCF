@@ -32,8 +32,9 @@ URP Lit with no third-party photography, scans or store assets.
 ## Dimensions and intent
 
 - Path: **1.2 m walkable core** (`-0.6 … +0.6`) plus a **0.14–0.20 m visual-only verge** each side
-  (the outer boundary wobbles inward only, so it never exceeds the 0.20 m cap). The ribbon tapers to
-  45 % width at both tips and stops at the A8 anchor; there is **no collider** on the ribbon, so
+  (the outer boundary wobbles inward only, so it never exceeds the 0.20 m cap). At the tight A7 bend the
+  whole cross-section narrows to 86 % so the ribbon cannot fold; the ribbon tapers to 45 % width at
+  both tips and ends at the A8 anchor; there is **no collider** on the ribbon, so
   movement still uses the existing Ground collider and walkability is unchanged.
 - Clearing: nominal 12 × 10 m organic boundary with a directional lobe that reaches the C0 path mouth,
   so there is no bare wedge between clearing and path. Actual mesh bounds are **14.58 × 11.11 m**
