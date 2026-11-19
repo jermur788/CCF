@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 1030" role="img" aria-labelledby="artTitle artDesc"><title id="artTitle">Compact G1 shelter: effective, expired, failed, absent and static path clearance</title><desc id="artDesc">Four upright labelled shell states with different top-edge silhouettes, stake heights and revealed tree growth, plus a true-scale dimensions note, schematic top-down envelope, and matte-versus-translucent comparison. These are game visual states, not real-world deer protection claims.</desc>
+<rect width="1520" height="1030" fill="#f4f3ef"/>
+<text x="54" y="56" font-family="Arial,sans-serif" font-size="34" fill="#223c35" font-weight="bold">Four shelter states | one upright 24-panel slotted kit</text>
+<text x="54" y="86" font-family="Arial,sans-serif" font-size="18" fill="#52645b" font-weight="normal">Schematic elevation • 0.60 m planted juvenile • existing browse state drives appearance, not the SVG</text>
+<rect x="36" y="115" width="333" height="590" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="57" y="158" font-family="Arial,sans-serif" font-size="25" fill="#284a3d" font-weight="bold">EFFECTIVE</text>
+<text x="57" y="187" font-family="Arial,sans-serif" font-size="16" fill="#58675b" font-weight="normal">full-height top</text>
+<line x1="56" y1="640" x2="346" y2="640" stroke="#8c765c" stroke-width="3"/>
+<path d="M200 640 L198 475 M199 565 l-29 -35 M198 528 l22 -27 M198 497 l-13 -9" fill="none" stroke="#554a38" stroke-width="4" stroke-linecap="round"/>
+<g transform="translate(172 531) rotate(-35)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(222 503) rotate(45)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(188 491) rotate(-22)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<path d="M194 475 L198 462 L202 475" fill="#886846" stroke="#564932" stroke-width="1.3"/>
+<rect x="270" y="296.25" width="11" height="343.75" rx="1" fill="#9c7857" stroke="#6a503b" stroke-width="1.5"/>
+<path d="M162.33 638 L162.33 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M166.23 638 L166.23 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.66"/>
+<path d="M172.42 638 L172.42 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M180.50 638 L180.50 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.66"/>
+<path d="M189.91 638 L189.91 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M210.09 638 L210.09 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M219.50 638 L219.50 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.66"/>
+<path d="M227.58 638 L227.58 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M233.77 638 L233.77 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.66"/>
+<path d="M237.67 638 L237.67 310.00" stroke="#9dae88" stroke-width="3.2" opacity="0.66"/>
+<path d="M159 640 V310 Q200 303 241 310 V640" fill="none" stroke="#4d614c" stroke-width="4"/>
+<rect x="155" y="619" width="90" height="8" rx="2" fill="#5e6f54" opacity=".75"/>
+<text x="58" y="672" font-family="Arial,sans-serif" font-size="16" fill="#30483e" font-weight="bold">tube 1.20 m | stake 1.25 m</text>
+<rect x="406" y="115" width="333" height="590" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="427" y="158" font-family="Arial,sans-serif" font-size="25" fill="#284a3d" font-weight="bold">EXPIRED</text>
+<text x="427" y="187" font-family="Arial,sans-serif" font-size="16" fill="#58675b" font-weight="normal">alternating high / low rim</text>
+<line x1="426" y1="640" x2="716" y2="640" stroke="#8c765c" stroke-width="3"/>
+<path d="M570 640 L568 475 M569 565 l-29 -35 M568 528 l22 -27 M568 497 l-13 -9" fill="none" stroke="#554a38" stroke-width="4" stroke-linecap="round"/>
+<g transform="translate(542 531) rotate(-35)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(592 503) rotate(45)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(558 491) rotate(-22)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<path d="M564 475 L568 462 L572 475" fill="#886846" stroke="#564932" stroke-width="1.3"/>
+<rect x="640" y="296.25" width="11" height="343.75" rx="1" fill="#9c7857" stroke="#6a503b" stroke-width="1.5"/>
+<path d="M532.33 638 L532.33 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M536.23 638 L536.23 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M542.42 638 L542.42 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M550.50 638 L550.50 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M559.91 638 L559.91 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M580.09 638 L580.09 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M589.50 638 L589.50 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M597.58 638 L597.58 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M603.77 638 L603.77 310.00" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M607.67 638 L607.67 406.25" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M529 640 V310 H542 V406.25 H555 V310 H568 V406.25 H581 V310 H594 V406.25 H611 V640" fill="none" stroke="#4d614c" stroke-width="4"/>
+<rect x="525" y="619" width="90" height="8" rx="2" fill="#5e6f54" opacity=".75"/>
+<text x="428" y="672" font-family="Arial,sans-serif" font-size="16" fill="#30483e" font-weight="bold">tube 0.85 / 1.20 m | stake 1.25 m</text>
+<rect x="776" y="115" width="333" height="590" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="797" y="158" font-family="Arial,sans-serif" font-size="25" fill="#284a3d" font-weight="bold">FAILED</text>
+<text x="797" y="187" font-family="Arial,sans-serif" font-size="16" fill="#58675b" font-weight="normal">short jagged shell</text>
+<line x1="796" y1="640" x2="1086" y2="640" stroke="#8c765c" stroke-width="3"/>
+<path d="M940 640 L938 475 M939 565 l-29 -35 M938 528 l22 -27 M938 497 l-13 -9" fill="none" stroke="#554a38" stroke-width="4" stroke-linecap="round"/>
+<g transform="translate(912 531) rotate(-35)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(962 503) rotate(45)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(928 491) rotate(-22)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<path d="M934 475 L938 462 L942 475" fill="#886846" stroke="#564932" stroke-width="1.3"/>
+<rect x="1010" y="516.25" width="11" height="123.75" rx="1" fill="#9c7857" stroke="#6a503b" stroke-width="1.5"/>
+<path d="M1010 520.25 l5 -12 l5 13" fill="#cfad88" stroke="#6c533e" stroke-width="1"/>
+<path d="M902.33 638 L902.33 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M906.23 638 L906.23 543.75" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M912.42 638 L912.42 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M920.50 638 L920.50 543.75" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M929.91 638 L929.91 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M950.09 638 L950.09 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M959.50 638 L959.50 543.75" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M967.58 638 L967.58 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M973.77 638 L973.77 543.75" stroke="#7b8d66" stroke-width="3.2" opacity="0.82"/>
+<path d="M977.67 638 L977.67 563.00" stroke="#9dae88" stroke-width="3.2" opacity="0.82"/>
+<path d="M899 640 V543.75 L912 563 L925 543.75 L938 563 L951 543.75 L964 563 L981 543.75 V640" fill="none" stroke="#4d614c" stroke-width="4"/>
+<rect x="895" y="619" width="90" height="8" rx="2" fill="#5e6f54" opacity=".75"/>
+<text x="798" y="672" font-family="Arial,sans-serif" font-size="16" fill="#30483e" font-weight="bold">panels 0.28–0.35 m | stake 0.43–0.45 m</text>
+<rect x="1146" y="115" width="333" height="590" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="1167" y="158" font-family="Arial,sans-serif" font-size="25" fill="#284a3d" font-weight="bold">ABSENT</text>
+<text x="1167" y="187" font-family="Arial,sans-serif" font-size="16" fill="#58675b" font-weight="normal">no tube, no stake</text>
+<line x1="1166" y1="640" x2="1456" y2="640" stroke="#8c765c" stroke-width="3"/>
+<path d="M1310 640 L1308 475 M1309 565 l-29 -35 M1308 528 l22 -27 M1308 497 l-13 -9" fill="none" stroke="#554a38" stroke-width="4" stroke-linecap="round"/>
+<g transform="translate(1282 531) rotate(-35)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(1332 503) rotate(45)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<g transform="translate(1298 491) rotate(-22)"><path d="M0 0 C-10 -11 -16 -20 0 -32 C18 -17 8 -8 0 0 Z" fill="#6f9166" stroke="#426b4b" stroke-width="1.5"/></g>
+<path d="M1304 475 L1308 462 L1312 475" fill="#886846" stroke="#564932" stroke-width="1.3"/>
+<text x="1168" y="672" font-family="Arial,sans-serif" font-size="16" fill="#30483e" font-weight="bold">zero guard footprint</text>
+<rect x="40" y="731" width="696" height="259" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="64" y="770" font-family="Arial,sans-serif" font-size="21" fill="#26483e" font-weight="bold">BLUEPRINT PLAN RADIUS — NOT A UNITY MEASUREMENT</text>
+<circle cx="169" cy="867" r="80" fill="#e1ece3" stroke="#5b7461" stroke-width="2" stroke-dasharray="7 6"/>
+<circle cx="169" cy="867" r="52" fill="none" stroke="#577c5d" stroke-width="7"/>
+<circle cx="169" cy="867" r="50" fill="none" stroke="#a8b99e" stroke-width="2"/>
+<line x1="215.36" y1="879.42" x2="221.16" y2="880.98" stroke="#344d3f" stroke-width="3"/>
+<line x1="210.57" y1="891.00" x2="215.77" y2="894.00" stroke="#344d3f" stroke-width="3"/>
+<line x1="202.94" y1="900.94" x2="207.18" y2="905.18" stroke="#344d3f" stroke-width="3"/>
+<line x1="193.00" y1="908.57" x2="196.00" y2="913.77" stroke="#344d3f" stroke-width="3"/>
+<line x1="181.42" y1="913.36" x2="182.98" y2="919.16" stroke="#344d3f" stroke-width="3"/>
+<line x1="156.58" y1="913.36" x2="155.02" y2="919.16" stroke="#344d3f" stroke-width="3"/>
+<line x1="145.00" y1="908.57" x2="142.00" y2="913.77" stroke="#344d3f" stroke-width="3"/>
+<line x1="135.06" y1="900.94" x2="130.82" y2="905.18" stroke="#344d3f" stroke-width="3"/>
+<line x1="127.43" y1="891.00" x2="122.23" y2="894.00" stroke="#344d3f" stroke-width="3"/>
+<line x1="122.64" y1="879.42" x2="116.84" y2="880.98" stroke="#344d3f" stroke-width="3"/>
+<line x1="122.64" y1="854.58" x2="116.84" y2="853.02" stroke="#344d3f" stroke-width="3"/>
+<line x1="127.43" y1="843.00" x2="122.23" y2="840.00" stroke="#344d3f" stroke-width="3"/>
+<line x1="135.06" y1="833.06" x2="130.82" y2="828.82" stroke="#344d3f" stroke-width="3"/>
+<line x1="145.00" y1="825.43" x2="142.00" y2="820.23" stroke="#344d3f" stroke-width="3"/>
+<line x1="156.58" y1="820.64" x2="155.02" y2="814.84" stroke="#344d3f" stroke-width="3"/>
+<line x1="181.42" y1="820.64" x2="182.98" y2="814.84" stroke="#344d3f" stroke-width="3"/>
+<line x1="193.00" y1="825.43" x2="196.00" y2="820.23" stroke="#344d3f" stroke-width="3"/>
+<line x1="202.94" y1="833.06" x2="207.18" y2="828.82" stroke="#344d3f" stroke-width="3"/>
+<line x1="210.57" y1="843.00" x2="215.77" y2="840.00" stroke="#344d3f" stroke-width="3"/>
+<line x1="215.36" y1="854.58" x2="221.16" y2="853.02" stroke="#344d3f" stroke-width="3"/>
+<rect x="229" y="858" width="15" height="15" fill="#ad8762" stroke="#725942" stroke-width="1"/>
+<path d="M169 867 H250" stroke="#435e5a" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text x="275" y="819" font-family="Arial,sans-serif" font-size="18" fill="#29433c" font-weight="normal">24 radial positions: 4 full-height slots</text>
+<text x="275" y="849" font-family="Arial,sans-serif" font-size="18" fill="#29433c" font-weight="normal">outer / inner radii 0.065 / 0.0625 m</text>
+<text x="275" y="879" font-family="Arial,sans-serif" font-size="18" fill="#29433c" font-weight="normal">stake +0.0825 m, 0.02 × 0.02 m</text>
+<text x="275" y="909" font-family="Arial,sans-serif" font-size="18" fill="#2e5645" font-weight="bold">farthest corner r = 0.0930389703 m</text>
+<text x="275" y="941" font-family="Arial,sans-serif" font-size="18" fill="#2e5645" font-weight="bold">allowlist envelope r ≤ 0.10 m</text>
+<rect x="760" y="731" width="724" height="259" rx="16" fill="#fff" stroke="#c8d4cb" stroke-width="2"/>
+<text x="784" y="770" font-family="Arial,sans-serif" font-size="21" fill="#26483e" font-weight="bold">PATH / APPEARANCE — REVIEW CONDITIONS</text>
+<path d="M810 954 Q831 858 866 811" stroke="#e2d4b7" stroke-width="86" fill="none"/>
+<path d="M810 954 Q831 858 866 811" stroke="#a09c8e" stroke-width="3" stroke-dasharray="7 7" fill="none"/>
+<circle cx="951" cy="871" r="25" fill="#b2c1a2" stroke="#526b56" stroke-width="2"/>
+<path d="M929 861 L940 851 M968 883 l12 12" stroke="#536b52" stroke-width="4"/>
+<text x="992" y="816" font-family="Arial,sans-serif" font-size="20" fill="#2d483d" font-weight="bold">A: matte olive slotted</text>
+<text x="992" y="841" font-family="Arial,sans-serif" font-size="16" fill="#29433c" font-weight="normal">robust silhouette, foliage may hide</text>
+<text x="992" y="875" font-family="Arial,sans-serif" font-size="20" fill="#2d483d" font-weight="bold">B: translucent tube (proposal)</text>
+<text x="992" y="900" font-family="Arial,sans-serif" font-size="16" fill="#29433c" font-weight="normal">more foliage, alpha/sorting risks</text>
+<text x="992" y="930" font-family="Arial,sans-serif" font-size="17" fill="#2b5649" font-weight="bold">B2 +0.102937820 m minimum</text>
+<text x="992" y="954" font-family="Arial,sans-serif" font-size="15" fill="#5e7167" font-weight="normal">STATIC guard / verge margin only</text>
+<text x="50" y="1015" font-family="Arial,sans-serif" font-size="16" fill="#5a625b" font-weight="normal">Aged/failed patterns are visual states, not measured field deterioration; 1.20 m tube is not assumed deer-proof for red/sika/fallow deer.</text>
+</svg>
