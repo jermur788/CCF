@@ -86,32 +86,49 @@
   {
    "id": "O1",
    "species": "sessile-oak",
-   "x_m": 1.17,
-   "z_m": -0.47,
+   "x_m": 0.65,
+   "z_m": -2.65,
    "cell": 15
   },
   {
    "id": "O2",
    "species": "sessile-oak",
-   "x_m": 1.57,
-   "z_m": -2.73,
+   "x_m": 0.2,
+   "z_m": -1.1,
    "cell": 15
   },
   {
    "id": "B1",
    "species": "beech",
-   "x_m": 3.43,
-   "z_m": -0.07,
-   "cell": 15
+   "x_m": -1.2,
+   "z_m": -2.45,
+   "cell": 14
   },
   {
    "id": "B2",
    "species": "beech",
-   "x_m": 3.83,
-   "z_m": -2.33,
-   "cell": 15
+   "x_m": -0.45,
+   "z_m": -4.3,
+   "cell": 14
   }
  ],
+ "correction_20261119": {
+  "claim": "Sen-1 #813",
+  "reason": "The four provisional G1 sites sat inside the rendered C0 walking envelope. Owner-observed on the first personal E1 walk and confirmed by measurement: every site failed full-footprint clearance even against a 0.8 m path half-width and a 0.5 m footprint.",
+  "path_envelope_m": 0.8,
+  "path_envelope_basis": "1.2 m core + 0.2 m verge per side; rendered C0 segment width is 1.6 m",
+  "assumed_shelter_footprint_radius_m": 0.6,
+  "method": "Centre-to-polyline distance from the C0 anchor chain; clearance = distance - 0.8 - 0.6.",
+  "old_to_new": [
+   {"id": "O1", "old_x_m": 1.17, "old_z_m": -0.47, "old_cell": 15, "old_clearance_m": -0.342, "new_x_m": 0.65, "new_z_m": -2.65, "new_cell": 15, "new_clearance_m": 0.774},
+   {"id": "O2", "old_x_m": 1.57, "old_z_m": -2.73, "old_cell": 15, "old_clearance_m": -0.137, "new_x_m": 0.2, "new_z_m": -1.1, "new_cell": 15, "new_clearance_m": 0.767},
+   {"id": "B1", "old_x_m": 3.43, "old_z_m": -0.07, "old_cell": 15, "old_clearance_m": -0.177, "new_x_m": -1.2, "new_z_m": -2.45, "new_cell": 14, "new_clearance_m": 2.492},
+   {"id": "B2", "old_x_m": 3.83, "old_z_m": -2.33, "old_cell": 15, "old_clearance_m": -0.379, "new_x_m": -0.45, "new_z_m": -4.3, "new_cell": 14, "new_clearance_m": 1.996}
+  ],
+  "cell_note": "B1 and B2 moved from cell 15 to the adjacent cell 14. This is a provisional E1 layout delta only; it does not amend the frozen #676 production planting manifest.",
+  "cell_geometry": "Compact30 uses 6 x 6 cells of 5 m; index = (floor((z+15)/5) * 6) + floor((x+15)/5). Cell 15 = x[0,5), z[-5,0)."
+ }
+
  "player": {
   "position_m": [
    2.0,
