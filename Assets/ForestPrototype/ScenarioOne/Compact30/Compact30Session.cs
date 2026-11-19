@@ -41,6 +41,7 @@ public sealed class Compact30Session : MonoBehaviour
 {
     public static Compact30Session Instance { get; private set; }
     private static bool active;
+    private static Compact30RefusalNotice refusalNotice;
     public static bool Refused { get; private set; }
     public static string RefusalReason { get; private set; } = "";
     public static bool IsActive => active || Refused;
@@ -52,6 +53,7 @@ public sealed class Compact30Session : MonoBehaviour
     {
         Instance = null;
         active = false;
+        refusalNotice = null;
         Refused = false;
         RefusalReason = "";
     }
@@ -64,10 +66,10 @@ public sealed class Compact30Session : MonoBehaviour
         Refused = true;
         active = false;
         RefusalReason = string.IsNullOrEmpty(reason) ? "Compact30 content was refused." : reason;
-        if (UnityEngine.Object.FindFirstObjectByType<Compact30RefusalNotice>() == null)
+        if (refusalNotice == null)
         {
             var notice = new GameObject("Compact30 Refusal");
-            notice.AddComponent<Compact30RefusalNotice>();
+            refusalNotice = notice.AddComponent<Compact30RefusalNotice>();
         }
         Debug.LogError("COMPACT30 REFUSED: " + RefusalReason);
     }
@@ -78,8 +80,8 @@ public sealed class Compact30Session : MonoBehaviour
     {
         Refused = false;
         RefusalReason = "";
-        Compact30RefusalNotice notice = UnityEngine.Object.FindFirstObjectByType<Compact30RefusalNotice>();
-        if (notice != null) UnityEngine.Object.Destroy(notice.gameObject);
+        if (refusalNotice != null) UnityEngine.Object.Destroy(refusalNotice.gameObject);
+        refusalNotice = null;
     }
 
     private ScenarioOneManager manager;

@@ -212,8 +212,9 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
             "each current order links to a real juvenile");
         Check(manager.PlantedJuveniles.Count == 4 && manager.PlantedJuveniles.All(j => !string.IsNullOrEmpty(j.juvenileId)),
             "four real planted juveniles exist");
-        Check(GameObject.Find("Compact30 juvenile " + manager.PlantedJuveniles[0].juvenileId) != null,
-            "planted juvenile has a visible neutral representation");
+        foreach (PlantedJuvenile juvenile in manager.PlantedJuveniles.Where(j => j.alive && string.IsNullOrEmpty(j.promotedTreeId)))
+            Check(GameObject.Find("Compact30 juvenile " + juvenile.juvenileId) != null,
+                "live planted juvenile " + juvenile.juvenileId + " has a visible neutral representation");
         Check(!session.TeachingComplete, "T1 is not complete before the covering review");
 
         Check(!manager.AdvanceYear(), "CT-3 still blocks the next annual advance");
