@@ -1,83 +1,84 @@
-# Multi Stage 5 — Bounded task decomposition (DRAFT)
+# Multi Stage 5 — Bounded task decomposition (corrected DRAFT)
 
-- **Parent spec:** [spec.md](spec.md), **Status DRAFT — NOT IMPLEMENTATION AUTHORISATION**
-- **Parent issue:** [#730](https://github.com/jermur788/CCF/issues/730); spec author [#812](https://github.com/jermur788/CCF/issues/812)
-- **All tasks below:** FUTURE / UNCLAIMED / NOT RUN; each production task requires an own GitHub claim, Manager approval, source allowlist, live ownership preflight and actual physical grant where applicable.
-- **Global exclusions:** no Unity/Compact30, no Host or save/H2, no #784 original edit, no #805 candidate promotion by renaming, no #789 no-work oracle rewrite, no L4 waiver, no main merge from #812.
+- **Parent:** [spec.md](spec.md), **DRAFT / NO IMPLEMENTATION AUTHORISATION**; Manager [#730](https://github.com/jermur788/CCF/issues/730).
+- **Corrections:** #812 original; #816 nonauthor NEEDS CHANGES; #817 latest-owner-aligned four-file correction.
+- **Latest owner G0:** the original 30 × 30 m / 100-Sitka synthetic 2D stand is **ONE UNDIVIDED MANAGEMENT AREA, not one extraction rack**. No rack layout, entry, corridor, Confirm, rack clearing or rack geometry state. Future larger stand with multiple management areas and possible physical racks requires a separate specification.
+- **All source tasks T-02–T-08:** FUTURE / UNCLAIMED / NOT RUN. Every source, UX or qualification task requires approved exact spec, issue [RUNNING] with actual provider/model/branch/worktree/HEAD, file allowlist, coordination/physical Ops grant and independent review proportionate to impact. No permission from this DRAFT to write source, .NET, Unity, Host/save, original, main or physical Ops. L4 FAIL38 UNWAIVED.
+- **Gates:** **G0 owner RESOLVED**; **G1 comparator OPEN/optional**, **G2 true atomic source Fell/annual proof OPEN/mandatory**, **G3 saves DECIDED Stage 7**, **G4 new economics DECIDED deferred**.
 
-## T-00 — Independent nonauthor four-file source/authority review
+## T-00 — Independent nonauthor Stage 5 document review
 
-- **Difficulty:** High — historical Enlarged80 and separate 2D Multi can be conflated.
-- **Best provider:** independent GPT-6/Claude browser reviewer **not the #812 author**.
-- **Scope:** read main decisions D-064/D-065/D-071/D-076, #805 corrected spec, complete four files and the #812 handoff; review authority labels, sample fidelity, exact two-approval work gate, zero-work, transaction/crash claims, unused coefficients and all negative tests. NO edits in review lane.
-- **Output:** durable Markdown APPROVED / NEEDS CHANGES / REJECTED *document* verdict, issue review link and explicit owner spatial G0 question. If needs changes, bounded separate #812 docs correction with exact reviewed deltas.
-- **Gate:** first, before product/spec approval. This check itself does not qualify source.
+- **Status:** #816 completed **NEEDS CHANGES** relative to the then-assumed literal one-rack policy. Owner's newer direct clarification supersedes only physical-rack-specific findings; its G1/G2, transaction/history and honesty cautions remain important.
+- **Done for #816:** GitHub four-file read plus ranked review; **no** current Multi source implementation/qualification performed.
+- **Required follow-on:** a **different author** checks exact #817 correction delta for one undivided area, correct workflow gates and 26 R/24 X unchecked, then returns a concise GitHub Markdown APPROVED / NEEDS CHANGES / REJECTED to #730. Do not rerun a general whole-project review.
 
-## T-01 — Owner G0 spatial/default and G1–G4 product dispositions
+## T-01 — Owner boundary correction, formal review and spec status
 
-- **Difficulty:** Medium/High — selects what, if anything, is spatially authored in the 2D lab.
-- **Best provider:** #730 Manager browser, with owner decision.
-- **Scope:** present recommended **no-rack, selected 2D neighbourhood + individual targets**, alternative named zones or defer extension; collect explicit owner acceptance and comparator threshold evidence decision. Decide what the no-work/annual/fell source must support and whether cross-process work history is a new separate feature.
-- **Output:** accepted authority update through controlled Manager action *after* decision, revised spec to APPROVED only if all blocking questions resolved; link record. Do not mis-state historical five racks as Multi approval.
-- **Gate:** no Stage 5 source code before G0, approved spec and read-contract preconditions.
+- **Difficulty:** Medium/High — superseded physical-rack policy risks corrupting four interdependent docs.
+- **Present assigned task:** [#817](https://github.com/jermur788/CCF/issues/817), one GPT-6 browser/GitHub-only writer, isolated branch derived from #812. Correct exactly the four Stage 5 docs and publish one result; no source files, live coordination edits, main changes or physical Ops grants.
+- **Decision:** **G0 RESOLVED**, one undivided area, no rack mechanism; **G3** save/resume Stage7, **G4** new economics deferred. Keep G1 technical comparator optional/fail-closed and G2 source execution/annual mandatory.
+- **Output:** four complete consistent DRAFT files, all requirements/tests unchecked, exact compare and re-read, one result to #730; followed by nonauthor delta review and **Manager formal spec decision**. Neither #817 nor the prior owner clarification unilaterally changes DRAFT to APPROVED.
+- **Gate:** code waits for independently reviewed correction and formal Manager approval.
 
-## T-02 — Current-source and exact write-seam audit
+## T-02 — Actual source/current-year and G2 engine write-seam audit
 
-- **Difficulty:** High — read frame and f32/f64 source proof do not imply write-capable engine.
-- **Best provider:** independent source-aware browser reviewer where public code suffices; escalate to named native Code worker **only after grant** for unavailable details.
-- **Scope:** inspect accepted #789 no-work source, #811 actual read adapter, Stage 4 local candidate implementation, exact tree row/IDs/current year, source revision/commit status and per-tree competition; map absent fields. Find authoritative Fell and work-history transaction seam, or declare gap. Prove no-work original remains unchanged.
-- **Output:** GitHub file/line audit with explicit available/missing types and proposed nonauthor-reviewed cross-system seam; no new code under this packet.
-- **Dependencies:** #811/Stage 4 actual pushed evidence (not just future packet); independent reviews; live ownership.
+- **Difficulty:** High — an accepted read adapter and no-work growth engine do not prove a legal transactional Fell writer.
+- **Best provider:** one source-aware independent GitHub browser reviewer if full code and review evidence are public; a named local Code reviewer only if genuinely necessary and separately permitted.
+- **Scope:** inspect exact #789 source/no-work Year0–10 baseline, #811 read adapter, #805 and Stage 4 accepted implementation/qualification; identify one committed current Genesis/AfterMortality tree set, 100 original IDs, f32/f64 semantics, per-tree live/XY/current competitor availability. Distinguish observed, derived, absent and untrusted fields.
+- **Mandatory G2 proof:** legal Fell cause versus natural mortality, exact engine owner/atomic full-batch write + source count/BA/dead archive + event commit/rollback, unique same-process execution identity, approval/stale refusal, zero-live handling, where work lands in current-year sequence and how real Year+1 ecology consumes survivors. If missing, **STOP**, publish precise gap; do not let UI fake result or weaken no-work oracle.
+- **Output:** source file/line evidence and separate reviewed interface proposal; no implementation or physical access from this audit. G1 independent comparator proof can be a separate optional subpacket.
 
-## T-03 — Accessible Stage 5 sample/manual decision presentation
+## T-03 — Inspect, manually select and demonstrate local sample
 
-- **Difficulty:** Medium — multi-input UX while protecting Stage 4 authorship.
-- **Best provider:** one browser/UI implementation worker with exact source/branch and review grants; if native needed, assign local Code.
-- **Files:** future UI-owned files *to be allocated after T-02*, never #805 by assumption.
-- **Scope:** inspect-only initial frame, separate explicit sample tree selection, per-ID manual decisions, source provenance and accessible ordered list; read-only diagnostics and failures. Only transient draft state; no Fell/cash mutation.
-- **Checks:** positive sample selection, invalid sample, 99/mixed source refusal, old callback and stage-tab staleness; 360px/200%/keyboard/screen reader. Independent reviewer after.
-- **Gate:** accepted Stage 4 A/C interfaces; G0 resolved.
+- **Difficulty:** Medium — accessible exact-ID player decisions while respecting prior Stage 4 candidate boundary.
+- **Best provider:** one UI owner assigned after #805/Stage 4 acceptance, reviewed by an independent browser-accessibility examiner.
+- **Scope:** show the **single undivided whole-stand area**, committed year/source, current individual live/dead IDs and available features. Player selects valid live IDs manually and optionally a representative *local set* of source IDs with retain/competitor rationale. This local set is not a separate management polygon/rack. Manual per-ID selection remains available if sample is unqualified.
+- **Excluded:** rack editor/entrance/Confirm/clearance, automatic bulk selection, changing source tree roster or treating all trees just because there is one area.
+- **Checks:** valid manual/sample, zero pre-work biology, stale callback, no source or 99/mixed original refusal, explicit sample qualification, accessible ID/status, 360px/200%/keyboard/touch/screen reader, all result sources labelled.
+- **Dependencies:** accepted Stage 4 read/candidate contract, T-02 actual API and formal approved Stage 5 spec.
 
-## T-04 — Conservative comparability and proposal review
+## T-04 — OPTIONAL G1 source-audited comparison and proposals
 
-- **Difficulty:** High — unwarranted extrapolation would misteach forestry.
-- **Best provider:** source-aware model/UX engineer with forestry independent reviewer; same single owner for comparator code.
-- **Scope:** only accepted actual current features; deterministic rule and clearly labelled calibration **after G1**; expose per-target match/manual/not-covered reasons and sample identity. No site/wind/rack assumptions. Full manual fallback and individual confirmation.
-- **Checks:** matching versus different competition, missing metrics, manual override, duplicate/old-dead target, no mass outside-sample CropTree confirmations. Zero source mutation.
-- **Stop:** if G1 evidence absent, keep extension disabled; report this explicitly, not an automatic stand-wide shortcut.
+- **Difficulty:** High — transfer over one synthetically uniform-looking management area can be misleading.
+- **Best provider:** source-aware comparator/UI author and independent forestry/source reviewer **only if G1 is proved**.
+- **Scope if approved:** declare source feature set, current neighbourhood/competition/size predicate and explicit calibration limitations. Build source-bound per-target possible proposals with match/exclude/unknown reasons, manual overrides, fresh source binding and no out-of-sample CropTree quality attribution. Never equate same Sitka species/age/area with comparable conditions.
+- **If G1 absent:** extension UI **DISABLED** with Manual/NotCovered labels; T-03 manual current live-ID choices and T-05/06/07 workflow continue normally without dispatching comparator implementation.
+- **Checks:** true match only from independently supported features, different conditions and missing data fail closed, player override, candidate-only zero biology. No invented terrain/wind/rack service.
 
-## T-05 — Prescription approval, PendingWork, Work Plan commitment
+## T-05 — Ordinary work orders, optional prescription, Work Plan gate
 
-- **Difficulty:** High — authority and state transition correctness.
-- **Best provider:** one trusted source/contract implementer; independent different author for review.
-- **Scope:** one plan revision with exact tree identities, provenance, source identity/year, explicit prescription review and approval, only pending orders, separately approved Work Plan batch, cancellation/reconciliation, warning on already-approved-but-unexecuted change; no direct felling.
-- **Checks:** proposals never Fell, stale/current-state validation at every state boundary, no old callbacks, no approval on time advance, conflicting manual versus proposed choices, zero partial orders, and immutable executed history.
-- **Dependencies:** #805 source-contract resolved, T-02 audit, G0/G1/G2.
+- **Difficulty:** High — distinct approval states and no unauthorized work.
+- **Best provider:** one exclusive source/contract writer, then an independent plan-state reviewer; exact file ownership allocated after audit.
+- **Scope:** intentional manual “Add to Work Plan” produces source-linked ordinary **PendingWork** without mandatory prescription. G1-enabled recommendations, if any, become orders only after separate explicit **prescription review/approval**, never directly from proposals. Deduplicate/conflict-refuse all source tree IDs; one consolidated work list with manual/prescription provenance and honest UNAVAILABLE economics. Work Plan has its own explicit whole-batch approval and separate later Execute. Approved-but-unexecuted change requires warning, consent, cancel/re-review and approval anew. Executed history locked.
+- **Checks:** pending != approved != executed; candidate-only and time advance never commit; stale/dead/case-shift/duplicate old callbacks refused; no source mutation from draft/prescription; explicit no-work available. Do not add rack-clearing orders or separate approval route.
+- **Dependencies:** T-02 current source and reviewed G2 interface, T-03; T-04 only if G1 is independently approved.
 
-## T-06 — Single authoritative exactly-once Fell execution
+## T-06 — One authoritative atomic exactly-once Fell transaction (G2)
 
-- **Difficulty:** High — atomicity, idempotence, biological and economic side effects.
-- **Best provider:** native/local Code worker with exclusive actual tree engine ownership, physically authorised lane, then independent engine reviewer/qualifier.
-- **Scope:** one atomic source-bound commit of WorkPlanApproved batch → Fell actual live trees → counts/actual costs if source available → one executed historical result; unique key duplicate replay returns no-op. No direct UI roster edits. Preserve existing biological mortality versus explicit Fell distinction and no-work oracle.
-- **Checks:** approval missing, stale/wrong year, duplicate ID, race/retry, terminal zero survivors, batch mid-failure, re-execution from separate key, exact no double charges, crash boundary explicitly limited to proven guarantee.
-- **Dependencies:** T-05 stable interface, G2 audited actual source seam, full GitHub+physical Ops source allocation. **No claim of cross-process exactly-once absent G3.**
+- **Difficulty:** High — true source mutation, death-cause semantics, coupled event and rollback.
+- **Best provider:** single native/source Code engine owner with exact approved branch/worktree/physical Ops lease; independent source + atomicity qualifier not the implementer.
+- **Scope:** one approved source-year Work Plan revision, validate **whole** exact-ID batch against committed current tree rows and live status. One authoritative transaction updates real Fell state/dead archive, source count/BA, session-local exact-year event and real work outcome; success commits together or refusal changes nothing. Same-process identical key replay returns already applied/no-op; changed payload/same key or second key targeting dead IDs refuses. Natural background deaths remain separate.
+- **Checks:** missing approval, wrong year, stale frame, duplicate/conflict, unknown/dead ID, injected mid-batch/event-write failure, source read-only state, replay, zero-live terminal policy. No fake money. No claim of save/restart/cross-process exactly-once; G3 intentionally Stage7.
+- **Dependencies:** G2 independently **PROVED** in T-02 and spec approved; T-05 stable interface; exact live GitHub and physical Ops source permission. If G2 cannot be proven, stop rather than implement visual deletion.
 
-## T-07 — Annual ecology integration and repeated-work history
+## T-07 — Real annual ecology/repeated history and no-work
 
-- **Difficulty:** High — real annual sequencing and read-only history require source alignment.
-- **Best provider:** same engine owner for biological integration; separate read/history UI owner if interfaces settled; independent nonauthor integrated qualifier.
-- **Scope:** actual post-Fell survivors feed exactly one next annual step; optional no-work; repeated yearly choice/sample proposals; immutable source-year treatment/result readout and previous-versus-proposed; honest economy unavailable when not supported. No retroactive fake years, no auto-thin on skip.
-- **Checks:** Year0 plan and Year1/Year2 real committed results, nonadjacent management years, no-work, source/dead archive, old sample revalidation, zero live terminal, annual count/BA exact.
-- **Dependencies:** T-06 accepted exact transaction and no-work parity.
+- **Difficulty:** High — must feed actual changed survivor roster to actual new year.
+- **Best provider:** engine owner for biological sequence, optional separate read-only history UI owner after interface stabilises; independent integrated qualifier.
+- **Scope:** Year y after approved Fell remains distinct from true Year y+1 growth/competition/biological mortality source. Source-year-linked, immutable, **session-only** history of manual/sample, proposals, prescription/pending, Work Plan, actual Fell/death cause, source before/after and genuine year result; previous-versus-proposed view read-only. Next cycle requires fresh current-source inspection/choices; no auto-thin or relabelled old frames. Accept no-work years and zero-live terminal policy.
+- **Checks:** actual Year0→Year1→Year2, real current competition after removal, no-work oracle Year0–10 unchanged, intervening no-work, stale previous plan never rerun, failed execution no invented history, source ecology/per-ID status accurately reported. Missing costs UNAVAILABLE and saves not claimed.
+- **Dependencies:** T-06 accepted exact transaction, source biological annual proof, independent G2 review.
 
-## T-08 — Independent end-to-end qualification, integration and owner review
+## T-08 — Independent full Stage 5 feature qualification and Manager verdict
 
-- **Difficulty:** High — safety gate, not a superficial happy-path smoke.
-- **Best provider:** independent source/UX reviewer plus actual authorised offline qualifier; Manager #730 handles integration verdict.
-- **Scope:** run all checklist acceptance X positive and negative cases; inspect original package/frozen HTML exact hashes, no-work #789 baseline and read-adapter source provenance; accessibility; 1+ actual interventions over multiple years, unchanged biology before commitment, real work result and exactly-once. Capture logs/screenshots/source and failing tests; do not weaken any oracle.
-- **Output:** GitHub Markdown qualification handoff, exact candidate and branch/worktree, pass/fail/blocked matrix, independent verdict; Manager **APPROVED / NEEDS CHANGES / REJECTED** integration and separate owner user test. Do not call DRAFT approved just because tests pass.
-- **Dependencies:** all preceding acceptance and physical grants; main/Host/save/Unity/Windows remain separate approvals.
+- **Difficulty:** High — must independently witness real source mutation and no-work preservation.
+- **Best provider:** nonauthor source/UX reviewer plus actually authorised offline/browser tester; #730 owns integration decision.
+- **Scope:** every [R-01–R-26 / X-01–X-24](checklists/requirements.md) with actual candidate, fixture input, expected vs observed delta, negatives, source/line/log/screenshot witnesses and unresolved status. Prove one-area/no-rack UI, manual-only without G1, optional G1 transfer only if approved, distinct approvals and Fell, real following year and read-only same-process history. Preserve frozen #784, #805, original source, #789 protected biology, L4 FAIL38 and appropriate no-Unity/no-Host boundaries.
+- **Output:** one substantive GitHub Markdown handoff with source evidence, exact branch/HEAD/worktree/physical grant, passes/failures, independent verdict; Manager separately decides **APPROVED / NEEDS CHANGES / REJECTED** for feature/integration. No acceptance from green documentation or unchecked checklist.
+- **Dependencies:** all applicable prior gates, approved spec, exclusive physical/source ownership, independent reviewers; additional main, save, Unity or Windows authority remains separate.
 
-## Dispatch controls for all future source packets
+## Future dispatch control and out-of-scope expansion
 
-Every dispatched source task must include exact purpose, difficulty/reason, selected model/provider, actual lane/branch/worktree and current HEAD, source file allowlist and exclusions, claim issue [RUNNING] with model/physical board/lease, required prior approved spec and review links, exact target handoff path, tests, owner, rollback and one copy/paste dispatch line. No packet here is independently executable while the spec is DRAFT. Parallel documentary review is allowed during #811; source writes may not race #811/Stage 4 or another current owner.
+Each future packet names purpose, difficulty/reason, best-suited model, exclusive file set, exact lane/branch/worktree/HEAD, claim status, granted GitHub/physical Ops actor lease, approved spec/review links, positive/negative checks, one durable target handoff and one paste-ready dispatch line. Do not overlap active #811/#789/Stage4 owners. If G2 cannot be proved, return a blocked source-contract question to #730.
+
+**Multi-area and any actual extraction-rack geometry are separate LATER work, not T-03/T-04/T-05 first-pass tasks.** No Stage 5 task can silently introduce a rack subsystem, Host/save, economics, Source/Unity change under this DRAFT, main merge or Windows build.
