@@ -54,7 +54,7 @@ Scratch for GitHub comment bodies was written to `/dev/shm` (tmpfs, not the root
 
 The first A1 dispatch used T3's `isolation: "worktree"`, which prepared its checkout at `/home/jer/.t3/worktrees/CCF-Primary/t3-fc2f7127-…`. `findmnt -T .` there reported `/dev/sda2 ext4 … d393b49a-…`, i.e. **the root filesystem**. A1 stopped at its own storage gate and wrote nothing; the second A2 attempt was cancelled for the same reason before it did any work.
 
-This is a systemic finding, not a one-off: 25 T3 per-task checkouts exist under `/home/jer/.t3/worktrees/` on this host (2026-11-12 → 2026-11-19), all on root. Any CCF delegated work that accepts the harness default silently breaks the owner's no-root placement rule.
+This is a systemic finding, not a one-off: T3 per-task checkouts accumulate under `/home/jer/.t3/worktrees/` on this host, all on root. Q counted **23** there at 01:29Z; the parent's earlier "25" was not timestamped and is withdrawn. Any CCF delegated work that accepts the harness default silently breaks the owner's no-root placement rule.
 
 Remediation performed here: the three checkouts created by these dispatches were verified clean at `a42eaadc` with no commits and no user content, then removed with `git worktree remove` (root free space 31 GB → 33 GB); the packet's own candidate worktrees were prepared on Files at the required base and the lanes were re-dispatched behind a mandatory placement gate. No other T3 checkout was touched. Q independently counted 23 checkouts under `/home/jer/.t3/worktrees/CCF-Primary` at 01:29Z; the parent's earlier "25" was not timestamped and is withdrawn in favour of Q's timestamped count.
 
@@ -87,7 +87,7 @@ Consequence: the historical pin `/dev/sda2` now names **the operating system dis
 
 - `python3 /media/jer/ZX20/CCF-Ops/scripts/lane-status --storage-only` → `READY / PASS | device=/dev/sdc2 rw=True | free=367830237184 bytes (342.57 GiB) threshold=16106127360 bytes (15.00 GiB)`, exit 0. This is a genuine, reproducible result and A1 independently reproduced it.
 - `unity-lock status` reported `free` with no Unity Editor PIDs. **Disclosure:** the parent ran the *unmodified* command once. That command is not strictly read-only — with the state directory present it enters `guarded()`, which calls `mkdir(exist_ok=True)` and opens the guard with `a+`. A1 therefore refused to run it unmodified and used a documented write-denying in-memory wrapper; its controlled readback agrees (`status: free`, no Editor PIDs). Q additionally observed the guard file still at 0 bytes with mtime 2026-10-16 and `history.jsonl` unchanged since 2026-11-15, which is *consistent with* no change but is not a before/after proof for the parent's run. The parent does not present the lock readback as a clean read-only PASS.
-- The parent also ran one **full** `lane-status` and viewed it through `head`. No complete transcript, exit code or elapsed time was retained, so **completion is parent-attested and unverified**. A1's bounded run timed out at 55 s without a report and was not repeated. The lane count **25** is the `lanes.json` entry count, verified by A1 and by Q — not by the parent's truncated output. An earlier parent note of "20 lanes" was a truncation artefact of that `head`.
+- The parent also ran one **full** `lane-status` and viewed it through `head`. No complete transcript, exit code or elapsed time was retained, so **completion is parent-attested and unverified**. A1's bounded run timed out at 55 s without a report and was not repeated. The lane count **25** is the `lanes.json` entry count, verified by A1 and by Q — not by the parent's truncated output. The parent **claims** its earlier "20 lanes" was a truncation artefact of that `head`; Q did not confirm that and treated it as plausible and unverified, so it is recorded here as the parent's own claim only.
 
 **Therefore the #778 "ZX20 mount identity mismatch" does not reproduce against the deployed copy as of A1's controlled readback.** It does reproduce against the repository copy — see 4.3.
 
@@ -134,15 +134,15 @@ This is why Q rejected the parent's original G1-a framing. "Fix the stale pin" i
 
 ### 4.6 The identity guard pins ZX20 only (Q-M1)
 
-The deployed identity check protects ZX20. **It does not pin the Files mount.** Files lanes, the bare repository and the Files-side board are admitted on the strength of a path prefix under `/media/jer/Files/CCF`. If `/media/jer/Files` were ever unmounted while a real directory `/media/jer/Files/CCF` existed on the root filesystem, that root-backed directory would be accepted.
+The deployed identity check protects ZX20. **It does not pin the Files mount.** Files-backed lanes and the bare repository are admitted on the strength of a resolved path prefix under `/media/jer/Files/CCF`; the deployed board is not — it is still constrained to ZX20. If `/media/jer/Files` were ever unmounted while a real directory `/media/jer/Files/CCF` existed on the root filesystem, that root-backed directory would be accepted for those Files-admitted paths.
 
-The approved #652 source narrows lane admission but **widens board admission** to the Files CCF tree, so it does not close this gap. The ZX20 checks are best described as a mistake guard — they stop a wrong device, a duplicate UUID, a renumbered kernel name and a remount — not as an anti-clone or anti-masquerade proof, and they are evaluated once per command.
+The approved #652 source narrows lane admission but **widens board admission too**, to the Files CCF tree, so it does not close this gap and adds a second admission surface. The ZX20 checks are best described as a mistake guard — they stop a wrong device, a duplicate UUID, a renumbered kernel name and a remount — not as an anti-clone or anti-masquerade proof, and they are evaluated once per command.
 
-### 4.7 The projected force-release path is not D-091 compliant (Q-M2)
+### 4.7 D-091 compliance of the projected force path is not established (Q-M2)
 
 In the projected no-expiry `unity-lock`, `--force` requires only `--owner`, `--reason` and a free-text `--manager-approval`, and it **skips the Editor and recorded-PID checks**. The tool cannot verify that the approval text refers to any real authorisation. Calling that projection a "D-091 candidate" overstates it: the no-expiry acquisition mode is closer to D-091, but the force path still allows an occupied lock to be cleared on unverifiable text.
 
-This must be an explicit decision item for the #652 source owner, not something the parent design may assume away.
+This is **not a regression introduced by the projection**: the deployed `unity-lock` carries the same free-text force gate. What the projection adds is no-expiry acquisition, while leaving the force path as it is. The question is therefore an explicit decision item for the #652 source owner, not something the parent design may assume away.
 
 ### 4.8 Preserved user work in the primary anchor
 
@@ -237,7 +237,7 @@ Q also confirmed, explicitly:
 
 - A1's write-blocking wrapper and its 55 s timeout are **honestly labelled limitations**, not overclaims.
 - A2's limitations are honestly stated, including its disclosed read-only `git worktree list`.
-- A1's and A2's counts do not conflict: `lanes.json` has 25 entries; the board has 44 rows, of which 25 are November rows and 19 are October rows. The coincidence of two 25s is not a contradiction, and the parent's "20" was its own truncation.
+- A1's and A2's counts do not conflict: `lanes.json` has 25 entries; the board has 44 rows, of which 25 are November rows and 19 are October rows. The coincidence of two 25s is not a contradiction. The parent **further claims** its own "20" came from `head` truncation; Q recorded that as plausible and unverified, so it is the parent's claim, not a Q finding.
 - No proposed step would release occupied Unity custody, take #690/#718/Multi custody, or add expiry/reclaim.
 
 ### 7.3 Corrections requested and their disposition
@@ -250,7 +250,18 @@ Q also confirmed, explicitly:
 
 ### 7.4 Delta recheck
 
-**Status:** one bounded delta recheck by the **same Q reviewer** is required against the new pinned hashes before this result can be handed to Manager #731. It covers the A1 and A2 corrections and the parent's P-1 to P-15. This section will be updated with its verdict; until then the consolidated result is **not** review-closed.
+**Reviewer:** same Q reviewer, new session, `claude-opus-5-5`, `claudeAgent_claude_b_pro`, nonauthor. **Branch:** `review/sen-1-781-q-ops-admission-20261118-v1` at `cc53729d`; document sha256 `0226b2c41ccce198fc20f7d659cedfb32aaf95299968432c493655e9f8943508` (334 lines; the commit appends `## 9. Delta recheck` and changes nothing earlier).
+
+**Delta verdict: NEEDS CHANGES — diagnostic and recovery design only.** A1-1, A1-2, A1-3 and A2-1 all **PASS**, and parent corrections P-1 to P-12, P-14 and P-15 **PASS**. Four parent-only LOW wording items remained, none HIGH or MEDIUM:
+
+| ID | Issue | Disposition |
+|---|---|---|
+| R-1 | §3.1 still stated "25 checkouts" while withdrawing that number two sentences later | Fixed: the unstamped count is removed and Q's timestamped 23 at 01:29Z is the only figure |
+| R-2 | §7.2 and §4.2 treated the "20 lanes from `head` truncation" explanation as Q-confirmed | Fixed: recorded as the parent's own claim; Q's plausible-but-unverified treatment is stated |
+| R-3 | §4.7 heading said "not D-091 compliant" rather than compliance "not established", and omitted that the deployed copy has the same force gate | Fixed: heading and body corrected; explicitly not a regression introduced by the projection |
+| R-4 | §4.6 and §9.1 said the *deployed* check admits a Files-side board | Fixed: the deployed board is ZX20-only; only the #652 source widens board admission |
+
+Q stated that a fresh full review is not needed and recommended only that **someone who wrote none of the documents** compare the changed lines against `c342107a` to confirm nothing else moved. That narrow nonauthor diff check is the final closure step. Q also disclosed two caveats: the harness wrote two text-only tool-result files under `/home/jer/.claude_ccf2/…` on the root filesystem (not its choice, content already committed), and Git attributes all three commits to `jermur788`, so it could not independently verify that the A1 correction session authored `a7e985ee`; it accepted the parent's statement without verification, and the parent repeats it here as a statement rather than an independently proven fact.
 
 ## 8. Truthful permission state after G0
 
@@ -279,7 +290,7 @@ The deployed storage check already passes for ZX20. No correction exists to make
 That is a statement about one check, not a clean bill of health. The residual risks that remain are:
 
 1. **Q-H1 (HIGH)** — any non-deployed copy of the scripts can act on the live Unity lock state using its own stale registry, and the repository copy's stale pin is currently what prevents that.
-2. **Q-M1 (MEDIUM)** — the Files mount identity is not pinned; Files lanes, the repository and the Files-side board are admitted on a path prefix alone.
+2. **Q-M1 (MEDIUM)** — the Files mount identity is not pinned; Files lanes and the repository are admitted on a path prefix alone, and the #652 source additionally admits a Files-side board.
 3. **Q-M2 (MEDIUM)** — the projected no-expiry `unity-lock` retains a free-text `--force` that skips Editor and PID checks.
 4. **A1 C5** — `unity-lock status` is write-capable by design (`mkdir`, guard `a+`), so a status read is not a strict no-write operation.
 5. **A1 C6** — full `lane-status` performs per-lane recursive `du` and can exceed a minute.
