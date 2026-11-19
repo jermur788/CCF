@@ -104,6 +104,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public bool TryDesignateExactPlanting(string itemId, Vector3 groundPosition, WorkExecutionMethod method, bool installShelter)
     {
+        if (Compact30Session.IsActive && !CompactSiteDesignationAuthorized)
+        {
+            feedback = "Compact30 planting must use one of the four fixed G1 sites.";
+            return false;
+        }
         if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown execution method."; return false; }
         if (!CanManage()) return false;
         ScenarioShopEntry offer = definition?.FindShopEntry(itemId);
@@ -320,6 +325,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public Func<bool> AdvanceYearBlocker { get; set; }
     public bool ApprovedWorkOrdersImmutable { get; set; }
     public bool SuppressHistoricalCompletion { get; set; }
+    // Compact30 sets this only for the one call that its fixed-site validator has authorised. Any
+    // other exact-planting call in a Compact session is refused before mutation.
+    public bool CompactSiteDesignationAuthorized { get; set; }
 
     private bool HasApprovedPlantingOrders => workOrders.Any(order => order != null
         && order.IsOpen && order.status == ScenarioWorkStatus.Approved

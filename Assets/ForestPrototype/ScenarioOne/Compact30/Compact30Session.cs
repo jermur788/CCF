@@ -221,8 +221,16 @@ public sealed class Compact30Session : MonoBehaviour
         {
             if (existing.status == ScenarioWorkStatus.Completed && !existing.cancelled)
             { Say(site.id + " is already completed and cannot be replaced."); return; }
-            if (IsOpen(existing))
-            { Say(site.id + " already has " + existing.status + " work. Cancel it in the Work Plan before designating a replacement."); return; }
+            if (existing.status == ScenarioWorkStatus.Approved && !existing.cancelled)
+            { Say(site.id + " has Approved work. Cancel it in the Work Plan, then designate a replacement."); return; }
+            if (existing.status == ScenarioWorkStatus.Pending && !existing.cancelled)
+            {
+                // A Pending choice may be corrected before approval. Remove it and create a fresh
+                // Pending order with the current method/shelter and a fresh quote and id.
+                if (!manager.RemovePendingOrder(existing.workOrderId))
+                { Say("The existing Pending order could not be removed; no replacement was created."); return; }
+                existing.superseded = true;
+            }
         }
         int sameSpecies = group.Count(g => !g.cancelled && !g.superseded && g.speciesId == site.species
             && (IsOpen(g) || (g.status == ScenarioWorkStatus.Completed && g.juvenileId.Length > 0)));
@@ -249,7 +257,17 @@ public sealed class Compact30Session : MonoBehaviour
         { Say(reason); return; }
 
         var position = new Vector3(site.x_m, 0f, site.z_m);
-        if (!manager.TryDesignateExactPlanting(site.stock_item, position, planningMethod, planningShelter))
+        bool designated;
+        manager.CompactSiteDesignationAuthorized = true;
+        try
+        {
+            designated = manager.TryDesignateExactPlanting(site.stock_item, position, planningMethod, planningShelter);
+        }
+        finally
+        {
+            manager.CompactSiteDesignationAuthorized = false;
+        }
+        if (!designated)
         { Say(manager.Feedback); return; }
 
         ScenarioOneWorkOrder order = manager.WorkOrders
@@ -336,6 +354,7 @@ public sealed class Compact30Session : MonoBehaviour
         if (stumpMaterial == null)
         {
             Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (shader == null) return;
             stumpMaterial = new Material(shader) { name = "Compact30 stump", color = new Color(0.38f, 0.28f, 0.18f) };
         }
         GameObject stump = GameObject.CreatePrimitive(PrimitiveType.Cylinder);

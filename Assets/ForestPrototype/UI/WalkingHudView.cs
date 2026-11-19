@@ -47,7 +47,8 @@ public sealed class WalkingHudView
         RightColumn = UiKit.Box("hud-right");
         RightColumn.name = "hud-right-column";
         ObjectiveWidget = new ActiveObjectiveHudWidget(() => ui.ShowObjectives());
-        RightColumn.Add(ObjectiveWidget.Root);
+        if (Compact30Session.IsActive) ObjectiveWidget.Root.style.display = DisplayStyle.None;
+        else RightColumn.Add(ObjectiveWidget.Root);
         VisualElement status = statusPanel = UiKit.Box("panel", "hud-status");
         statusTitle = UiKit.Add(status, "", "heading");
         VisualElement cashRow = UiKit.Row(status, "spread");
@@ -60,7 +61,7 @@ public sealed class WalkingHudView
         Button objectivesButton = UiKit.Button("Objectives [O]", () => ui.ShowObjectives());
         Button helpButton = UiKit.Button("Help [F1]", () => ui.ShowCurrentHelp());
         menuButtons.Add(mapButton);
-        menuButtons.Add(objectivesButton);
+        if (!Compact30Session.IsActive) menuButtons.Add(objectivesButton);
         menuButtons.Add(helpButton);
         RightColumn.Add(status);
         Root.Add(RightColumn);
@@ -250,7 +251,8 @@ public sealed class WalkingHudView
         // One prompt: the player's action line, refined by the mark prompt.
         string action = player != null && locked ? player.InteractionPromptText() : "";
         // During the opening rack stage the prompt points at racks; selective marking is introduced once the racks are open.
-        bool rackStage = ui.Learning.TeachingRacks;
+        // Compact30 has no rack stage: its prompt is always the ordinary inspection/marking line.
+        bool rackStage = !Compact30Session.IsActive && ui.Learning.TeachingRacks;
         RackTool rackTool = ui.RackTool;
         bool racking = rackTool != null && rackTool.Active;
         if (racking)
@@ -271,7 +273,7 @@ public sealed class WalkingHudView
         message.text = note;
         messageBox.style.display = string.IsNullOrEmpty(note) ? DisplayStyle.None : DisplayStyle.Flex;
 
-        string bar = player != null ? player.PlantingHotbarText() : "";
+        string bar = Compact30Session.IsActive ? "" : player != null ? player.PlantingHotbarText() : "";
         hotbar.text = bar;
         hotbarBox.style.display = string.IsNullOrEmpty(bar) ? DisplayStyle.None : DisplayStyle.Flex;
         promptBox.style.display = string.IsNullOrEmpty(action) && string.IsNullOrEmpty(bar) ? DisplayStyle.None : DisplayStyle.Flex;
@@ -331,7 +333,7 @@ public sealed class WalkingHudView
             rackTimber.style.display = rackMoney.style.display = DisplayStyle.Flex;
         }
         string notes = "";
-        if (ui.Learning.TeachingRacks && ui.RackLayout != null)
+        if (!Compact30Session.IsActive && ui.Learning.TeachingRacks && ui.RackLayout != null)
             notes = p != null ? ui.RackLayout.PreviewFeedback(p)
                 : ui.RackLayout.HasProgress ? ui.Learning.CurrentInstruction : "";
         if (p != null && p.Selection != null)

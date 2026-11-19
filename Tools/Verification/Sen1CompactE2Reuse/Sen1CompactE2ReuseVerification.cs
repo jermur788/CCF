@@ -131,13 +131,20 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
         Check(manager.TryPurchaseStock("beech-sapling", 2), "bought two European beech saplings");
         Check(manager.GetStockQuantity("sessile-oak-sapling") == 2 && manager.GetStockQuantity("beech-sapling") == 2, "stock is owned");
 
+        int beforeFree = manager.WorkOrders.Count;
+        Check(!manager.TryDesignateExactPlanting("sessile-oak-sapling", new Vector3(5f, 0f, 5f),
+            WorkExecutionMethod.Contractor, false), "free exact planting refused in Compact");
+        Check(manager.WorkOrders.Count == beforeFree, "free exact planting created no order");
+
         for (int i = 0; i < 4; i++) session.TryDesignate(i);
         Check(manager.WorkOrders.Count == 4, "four distinct Pending G1 orders");
         Check(manager.WorkOrders.All(o => o.status == ScenarioWorkStatus.Pending && o.type == ScenarioWorkType.PlantJuvenile && o.exactPosition),
             "all four are exact Pending PlantJuvenile orders");
         Check(manager.PlantedJuveniles.Count == 0, "no juvenile exists before resolution");
+        int firstOrderId = manager.WorkOrders.OrderBy(o => o.workOrderId).First().workOrderId;
         session.TryDesignate(0);
-        Check(manager.WorkOrders.Count == 4, "duplicate designation refused");
+        Check(manager.WorkOrders.Count == 4, "pending re-designation does not grow the four-slot group");
+        Check(!manager.WorkOrders.Any(o => o.workOrderId == firstOrderId), "pending re-designation creates a fresh order id");
 
         Check(manager.ApprovePendingWork(), "Work Plan approval succeeds");
         Check(manager.WorkOrders.All(o => o.status == ScenarioWorkStatus.Approved), "all four are Approved");

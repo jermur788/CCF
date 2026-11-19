@@ -106,6 +106,7 @@ public static class Compact30Bootstrap
     private static Material CreateBarkMaterial()
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+        if (shader == null) return null;
         var material = new Material(shader) { name = "Compact30 placeholder bark" };
         material.color = new Color(0.28f, 0.22f, 0.16f);
         return material;

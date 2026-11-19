@@ -42,7 +42,10 @@ public sealed class WorkPlanView
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
         right.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
-        right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
+        // The Compact30 adapter owns a separate four-site teaching surface. The historical
+        // objectives panel is five-rack content and must not be reachable from Compact.
+        if (!Compact30Session.IsActive)
+            right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         right.Add(UiKit.Button("Back to forest", () => ui.CloseAll()));
         header.Add(right);
         modal.Add(header);

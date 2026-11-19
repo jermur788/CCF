@@ -52,7 +52,8 @@ public sealed class AnnualReviewView
         buttons.Add(earlierYear);
         buttons.Add(laterYear);
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.AnnualReview)));
-        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
+        if (!Compact30Session.IsActive)
+            buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Open Work Plan", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Walk the forest [Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);
@@ -88,7 +89,7 @@ public sealed class AnnualReviewView
     public void Refresh(bool force)
     {
         ScenarioOneManager m = ui.Manager;
-        bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
+        bool teachingReview = !Compact30Session.IsActive && ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
         // The root calls this every frame while the review is open. HistoryYears rebuilds every completed year, so it is
         // only read once the cheap change key says something changed.
         if (!force && ChangeKey(m, teachingReview) == shownKey)
