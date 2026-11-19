@@ -15,15 +15,17 @@ URP Lit with no third-party photography, scans or store assets.
 | `Textures/Sen1_FenceTimber_512.png` | Treated round-timber grain, 512² |
 | `Materials/Sen1_PathCore.mat` | URP Lit, path core. Base colour multiplier 1.35/1.27/1.07 |
 | `Materials/Sen1_PathVerge.mat` | URP Lit, visual-only verge. 0.95/0.90/0.80 |
-| `Materials/Sen1_ClearingEarth.mat` | URP Lit, H1 clearing. 0.86/0.81/0.71 |
+| `Materials/Sen1_ClearingEarth.mat` | URP Lit, H1 clearing. 0.74/0.70/0.62 |
 | `Materials/Sen1_FenceTimber.mat` | URP Lit, posts/strainers/braces |
-| `Materials/Sen1_FenceWire.mat` | URP Lit, metallic 0.55, galvanised netting |
+| `Materials/Sen1_FenceWire.mat` | URP Lit, 0.46/0.48/0.50, metallic 0.30, smoothness 0.25, galvanised netting |
 | `Meshes/Sen1_PathRibbon.asset` | Continuous ribbon: 5 columns, 3 submeshes (core, left verge, right verge) |
 | `Meshes/Sen1_H1Clearing.asset` | Organic 12 × 10 m clearing fan mesh |
 | `Meshes/Sen1_FencePanel_3m.asset` | 3.0 m × 1.9 m netting panel, wires as thin boxes |
+| `Meshes/Sen1_FencePanel_1_5m.asset` | 1.5 m × 1.9 m netting panel for the corner bays, same gauge |
 | `Meshes/Sen1_FencePost.asset` | 2.10 m octagonal post, 90 mm, 8 sides |
 | `Meshes/Sen1_FenceStrainer.asset` | 2.30 m octagonal strainer, 130 mm |
 | `Prefabs/PF_Sen1_DeerFencePanel_3m.prefab` | Panel prefab, pivot bottom-centre |
+| `Prefabs/PF_Sen1_DeerFencePanel_1_5m.prefab` | Half panel prefab, used once per edge |
 | `Prefabs/PF_Sen1_DeerFencePost.prefab` | Post prefab, pivot at the buried base |
 | `Prefabs/PF_Sen1_DeerFenceStrainer.prefab` | Strainer prefab, pivot at the buried base |
 
@@ -37,8 +39,8 @@ URP Lit with no third-party photography, scans or store assets.
   so there is no bare wedge between clearing and path. Actual mesh bounds are **14.58 × 11.11 m**
   because of the lobe and the boundary wobble. No collider.
 - Fence: 1.9 m above ground, posts every 3.0 m, strainers at corners and both sides of the southern
-  opening, diagonal braces at each corner. Each 31.5 m edge takes ten 3 m panels plus a scaled half
-  panel in the residual 1.5 m, so there is no gap at any corner. **No colliders anywhere** — this is
+  opening, diagonal braces at each corner. Each 31.5 m edge takes ten 3 m panels plus one dedicated
+  1.5 m panel in the residual bay, so there is no gap at any corner and the wire gauge never changes. **No colliders anywhere** — this is
   presentation only.
 - Southern opening between **x = -3.75 and x = -0.75** at z = -15.75 (exactly one panel bay, with
   strainers replacing the ordinary posts at both edges) keeps the H1 arrival walkable. There is no
@@ -54,7 +56,7 @@ practice, and the Management note's 6–8 m rhythm remains an untested alternati
 - Meshes are metre-scale and unparented: instantiate a panel between two posts 3.0 m apart, rotate the
   panel about Y to the edge direction, and pitch it about X to follow a slope. Posts and strainers
   bury 0.20 m, so place the pivot at `groundY - 0.20`. When an edge length is not a multiple of 3 m,
-  add a final panel and scale its local X by `residual / 3`; that is how the corners are closed here.
+  add the 1.5 m panel prefab in the residual bay rather than scaling a 3 m panel; that is how the corners are closed here.
 - Materials are shared assets; tint per scenario by instancing the material rather than editing it.
 - The kit assumes flat ground in Compact30. On sloping ground, shorten or split panels rather than
   stretching them, so the wire gauge stays constant.

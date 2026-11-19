@@ -37,7 +37,7 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 |---|---|
 | Footpath | One continuous mesh `C0_FootpathRibbon`: **1.2 m core + 0.20 m verge each side**. Catmull–Rom through the nine accepted C0 anchors, 26 samples/segment, 208 segments, 1,045 vertices, 1,664 triangles, 3 submeshes (core, left verge, right verge). UV `u` = arc length / 2 m so the texture flows along the route instead of restarting; the outer verge boundary wobbles ±75 mm so there is no straight edge; both ends taper to zero width over 1.4 m so there is no cap line. No collider; shadow casting off, receiving on. |
 | H1 clearing | `H1_WornEarth_12x10` replaced by an organic 12 × 10 m fan mesh (513 vertices, 896 triangles) with four octaves of boundary wobble **and a directional lobe that reaches the C0 mouth at (2.99, −4.75)**. The path therefore overlaps the clearing, removing the bare wedge. No collider. |
-| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 420 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, **ten 3 m panels plus a scaled 1.5 m half-panel on every edge so no corner is left open**, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, exactly one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
+| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 420 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, **ten 3 m panels plus a dedicated 1.5 m panel on every edge so no corner is left open**, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, exactly one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
 | Art | 4 original procedural 512² textures (path soil, verge litter, clearing earth, timber), 5 URP Lit materials, 5 mesh assets, 3 prefabs, 1 README. **1.07 MiB** of new assets; no third-party content. |
 
 **Nothing else moved.** `git diff 0709d05a..HEAD` touches exactly two paths: `ScenarioOneCompact30.unity` and `Assets/ForestPrototype/Art/Sen1PathFence/**` (41 files). The scene diff is +6,627 / −20,263 lines.
@@ -47,7 +47,7 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 | Check | Result |
 |---|---|
 | Import + compile after the authoring tool was removed | **PASS**, 0 `error CS` (only pre-existing CS0618 warnings in unrelated files) |
-| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; final fence: **38 posts, 43 panels (39 full + 4 half), 6 strainers, 8 braces**, no panel inside the opening |
+| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; final fence: **38 posts, 39 × 3 m panels + 4 × 1.5 m panels, 6 strainers, 8 braces**, path ribbon bounds z −4.78 … 13.57, no panel inside the opening |
 | Prefab-instance roster vs base | 433 base instances → 517; **the only changed sources are the three new fence prefabs** (+39 panels, +39 posts, +6 strainers). Every pre-existing prefab instance count is unchanged. |
 | Colliders | 5 before, 5 after — identical set. No collider was added to the path, clearing or fence. |
 | G1 clearance, 1.2 m core | O1 +1.574 m, O2 +1.567 m, B1 +3.292 m, B2 +2.796 m to the core edge; subtracting the 0.55 m footprint ring still leaves **+0.82 m worst case**, i.e. better than #813's +0.767 m because the core narrowed from 1.6 m to 1.2 m. |
@@ -86,16 +86,18 @@ A fresh-context, non-author reviewer was given the candidate, the scene diff and
 
 | # | Finding | Resolution |
 |---|---|---|
-| 1 | **BLOCKING — four 1.5 m corner gaps.** Ten 3 m panels cover 30 m of a 31.5 m edge, so every corner was open. | **Fixed.** Each edge now adds a half-panel scaled to the residual 1.5 m. Verified in the scene: 43 panel instances, 11 per edge (10 on the south, where the opening removes one bay), with the four 0.5-scaled fillers at the corners. |
+| 1 | **BLOCKING — four 1.5 m corner gaps.** Ten 3 m panels cover 30 m of a 31.5 m edge, so every corner was open. | **Fixed.** Each edge now adds a dedicated 1.5 m panel in the residual bay. Verified: 39 three-metre panels + 4 one-and-a-half-metre panels, 11 bays per edge (10 on the south, where the opening removes one), continuous on all four edges. |
 | 2 | Verge exceeded 0.20 m (outer columns reached ±0.875 m). | **Fixed.** The boundary wobble now runs inward only. Re-decoded the rebuilt mesh: maximum outer offset **exactly 0.800 m**; core width 1.20 m through the body, 0.54 m at the tapered tips. |
-| 3 | The ribbon pinched to coincident vertices at both ends (zero-area rows, needle visible). | **Fixed.** Minimum width is now 45 % of full, and the A8 end stops at the last anchor instead of running to the fence. |
+| 3 | The ribbon pinched to coincident vertices at both ends (zero-area rows, needle visible). | **Fixed.** Minimum width is now 45 % of full. |
 | 4 | README dimensions wrong (opening, object name). | **Fixed.** Opening is documented as −3.75 … −0.75, the clearing's real bounds (14.58 × 11.11 m) are stated, and the half-panel rule is documented for reuse. |
 | 5 | Netting read as bright chain-link with no top wire. | **Improved.** Wire dulled (0.46/0.48/0.50, metallic 0.30, smoothness 0.25), mesh is 100 mm over the lower 1.2 m and opens to 200 mm above, and the top wire is now 35 mm. |
 | 6 | Panels cast no shadow while posts do. | **Accepted and documented.** Enabling panel shadows reproduced the full-scene shadow defect seen during authoring; woven netting is largely transparent to light, so panels stay non-casting. |
 | 7 | Evidence set stale relative to the commit. | **Fixed.** All after-views were re-captured on the final candidate, with the same camera poses and resolutions as the before set. |
 | 8 | Clearing still reads as a flat pale patch. | **Partially addressed.** Base colour darkened to 0.74/0.70/0.62. The boundary is still a crisp mesh edge; feathering it needs an alpha-blended material, which was not attempted in this run. |
 
-A structural correction was also made before the review returned: the first fence placement left a netting panel overlapping the southern opening and planted its strainers inside that panel (`6299e711`).
+A second focused re-review of `091bb04b` found one **blocking regression introduced by that repair**: dropping the north extension also dropped the final spline point, so the ribbon ended at z 10.75 instead of the accepted A8 terminus at z 13.50. That is fixed in the final candidate: the ribbon now ends at the last anchor and its bounds reach z 13.57. The same review confirmed the corner gaps, the 0.800 m verge cap, the 45 % tips and the scope were all correct, and asked for a dedicated 1.5 m panel rather than a 0.5-scaled 3 m panel — now authored.
+
+A structural correction was also made before the first review returned: the first fence placement left a netting panel overlapping the southern opening and planted its strainers inside that panel (`6299e711`).
 
 ## 7. Honest limits
 
@@ -118,4 +120,4 @@ XDG_CONFIG_HOME="$HOME/.var/app/com.unity.UnityHub/config" \
 /media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity -projectPath "$PWD"
 ```
 
-Open `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity`, confirm `git log -1 --oneline` reads `6299e711`, press Play, and judge the three original complaints. Nothing is merged into any integration branch and no Windows build was produced.
+Open `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity`, confirm `git log -1 --oneline` reads the final candidate commit, press Play, and judge the three original complaints. Nothing is merged into any integration branch and no Windows build was produced.
