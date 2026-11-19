@@ -1,6 +1,6 @@
-# Sen-1 — 3D Simulator Overall Development Manager: prioritized playable roadmap
+# Sen-1 — Scenario One-only development manager: prioritized playable roadmap
 
-**Date:** 19 November 2026. **Status:** strategic assessment and coordination recommendation. **Owner's latest scope correction:** This chat manages the **3D CCF simulator** (Scenario One and the future eight-scenario 3D forestry programme), **not** the standalone Multi 2D simulator. Multi has a separate dedicated manager. This document does not transfer #731's current operational/source/Unity custody, #425's registered cross-programme canonical authority, or any physical ownership by implication. A documented operational handover is still needed before those live responsibilities change.
+**Date:** 19 November 2026. **Status:** owner-corrected Scenario One-only management assessment. **Latest binding owner clarification (17:10 UTC):** this chat's entire remit is **Scenario One only**—the current Compact30 3D player experience and the historical Enlarged80 five-rack implementation, their shared systems, saved-world compatibility, Unity qualification and completion. **No Multi 2D, no wider 3D/eight-scenario development programme, and no overall CCF portfolio management.** Earlier wording in this document and prior #425/#731 notices proposing an overall 3D simulator manager or eight-scenario programme is **SUPERSEDED**. This assignment alone does not automatically transfer existing #731 operational/source/Unity custody, #425 programme custody or any physical lane; reconcile only if explicitly authorised.
 
 **Authority read:** live main Decision Log, Current Milestone, Game Brief, active-tasks coordination; #425 Overall Development Manager, #731 Scenario One Manager, #730 Multi Manager; incoming #819 handoff, #813, #815, #820, #690, #676, #796 and historical five-rack restrictions. [Newest #820 executed-result evidence](https://github.com/jermur788/CCF/blob/docs/sen-1-820-e2-native-parent-20261119-v1/Docs/Handoffs/ScenarioOne-Player-Test-Readiness-20261119/Sen-1-820-E2-NATIVE-SCENE-COMPOSITION-GAMEPLAY-AND-REGRESSION-QUALIFICATION-RESULT-20261119.md) supersedes the incoming handoff's then-READY #820 status.
 
@@ -49,10 +49,9 @@ Make **Compact30 Scenario One** a complete, coherent, repeatable and personally 
 - Run integrated full-candidate native qualification only when this is a plausible milestone candidate; avoid Tier 3 on every microscopic change. Produce one exact build/test handoff and have the owner personally test in Editor.
 - Resolve only owner-observed usability or quality blockers before asking for a separately authorised Windows build and external invited closed beta.
 
-### P2 — future eight-scenario 3D forestry programme (design next, implement after Scenario One playability)
-Preserve accepted independent-scenario learning progression: **Inherited Sitka Plantation → Working Mixed Forest → New Farm Woodland → Neglected Broadleaf Wood → Exposed Upland Forest → Atlantic Oakwood → Wet Woodland and River Valley → Complete Irish Forest Estate**.
+### Future work boundary
 
-After Scenario One works, create a thin scenario definition/data boundary for separate stands, objective/curriculum rules, species/site data, starting budgets and content packs. Reuse the proven authoritative work/annual/history/save framework without pretending different stands share a physical property, inventory or economy. Select **Working Mixed Forest** as the next practical 3D scenario candidate, subject to owner sequencing changes. Add one new ecological/management teaching problem at a time and verify actual player decisions. Stage 2 broader simulated land management, Stage 3 optional manual solo, and Stage 4 cooperative world are later; do not start multiplayer or speculative common-world architecture now.
+This chat does **not** manage future forestry scenarios, the eight-scenario roadmap or broader simulator architecture. Only changes needed to complete, verify and preserve Scenario One are within scope. Any later reuse outside Scenario One is for a separately appointed manager to decide.
 
 ## Reuse discipline
 
@@ -60,7 +59,7 @@ After Scenario One works, create a thin scenario definition/data boundary for se
 
 **Preserve but do not transfer into Compact:** the historical Enlarged80 five-rack map/entrance-marking objective, rack removal work, MFM sample coverage, geometry labels, and old saved world IDs. Their source may still be a **regression oracle** and a later scenario feature donor.
 
-**External Multi 2D:** another manager owns that code, tests, roadmap and extrapolation milestone. Receive only a verified treatment-comparability/coverage contract or test pattern later, assess relevance to a **future 3D multi-area scenario or historical E80 MFM**, and require a separately authorised Unity/physics/biology translation. No 2D code integration, fixture coupling or authority transfer is requested here.
+**Out of scope:** all standalone Multi 2D management, planning, audit, review, coordination and source work, and all other scenario development. No work is assigned or tracked by this chat in those areas.
 
 ## Decisions genuinely requiring the owner's input
 
@@ -68,10 +67,10 @@ After Scenario One works, create a thin scenario definition/data boundary for se
 2. **Exact Compact world signature** after final layout/assets/G1 are authoritative; only the owner can attest to final bytes.
 3. **OD-16/M-A completion policy** if the concise recommended predicate is not already sufficiently accepted by D-084; select what counts as meaningful later work and durable completion, not an arbitrary three-Fell count.
 4. **Windows build permission** separately, and only after personal Editor test.
-5. **Operational management handover:** owner's designation of this chat as 3D manager is accepted for strategic direction immediately; **#731's existing live management custody, #425's portfolio authority, and physical/source/Unity writers do not move automatically**. Record explicit scope and safe transition before changing those registrations. Do not ask the owner to re-decide the already-accepted Compact no-rack design, 2+2 species choice, €12k funds or full-loop demo boundary.
+5. **Scenario One operational management handover:** owner's designation of this chat as Scenario One manager is accepted for strategic direction immediately; **#731's existing live management custody, #425's portfolio authority, and physical/source/Unity writers do not move automatically**. Record explicit scope and safe transition before changing those registrations. Do not ask the owner to re-decide the already-accepted Compact no-rack design, 2+2 species choice, €12k funds or full-loop demo boundary.
 
 Everything else above is primarily technical qualification/implementation, not a product-owner question.
 
 ## Reporting and coordination
 
-Report in one compact status after a substantial result: changed, PASS/FAIL/NOT RUN, implication, one next action, owner action or none, and Dashboard/Drive verified or not. **No new source/task claims, merges, Ops edits or Windows work were undertaken in this roadmap.** Keep #731 as current operational Scenario One single writer pending handover and #425 informed of 3D focus. Dashboard/Drive mirror synchronization: **NOT VERIFIED**.
+Report in one compact status after a substantial result: changed, PASS/FAIL/NOT RUN, implication, one next action, owner action or none, and Dashboard/Drive verified or not. **No new source/task claims, merges, Ops edits or Windows work were undertaken in this roadmap.** Keep #731 as current operational Scenario One single writer pending handover; only Scenario One work is in scope. Dashboard/Drive mirror synchronization: **NOT VERIFIED**.
