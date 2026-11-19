@@ -1,0 +1,72 @@
+{
+ "schema": "ccf-compact30-e2-site-fixture-v1",
+ "status": "E2_CANDIDATE_FIXTURE_E1_PROVISIONAL_NOT_SIGNED_PRODUCTION_GEOMETRY",
+ "source": "#813 E1 placement correction_20261119 old_to_new block, read from the published E1 scene lineage; the containing JSON still has one missing comma and is not used as a whole document.",
+ "sites": [
+  {
+   "id": "O1",
+   "species": "sessile-oak",
+   "stock_item": "sessile-oak-sapling",
+   "x_m": 0.65,
+   "z_m": -2.65,
+   "cell": 15,
+   "clearance_m": 0.774,
+   "label": "O1 - sessile oak"
+  },
+  {
+   "id": "O2",
+   "species": "sessile-oak",
+   "stock_item": "sessile-oak-sapling",
+   "x_m": 0.2,
+   "z_m": -1.1,
+   "cell": 15,
+   "clearance_m": 0.767,
+   "label": "O2 - sessile oak"
+  },
+  {
+   "id": "B1",
+   "species": "beech",
+   "stock_item": "beech-sapling",
+   "x_m": -1.2,
+   "z_m": -2.45,
+   "cell": 14,
+   "clearance_m": 2.492,
+   "label": "B1 - European beech"
+  },
+  {
+   "id": "B2",
+   "species": "beech",
+   "stock_item": "beech-sapling",
+   "x_m": -0.45,
+   "z_m": -4.3,
+   "cell": 14,
+   "clearance_m": 1.996,
+   "label": "B2 - European beech"
+  }
+ ],
+ "path": {
+  "anchors": [
+   {"x_m": 2.99, "z_m": -4.75},
+   {"x_m": 2.8, "z_m": -2.25},
+   {"x_m": 2.06, "z_m": 0.25},
+   {"x_m": 0.9, "z_m": 2.75},
+   {"x_m": -0.43, "z_m": 5.25},
+   {"x_m": -1.68, "z_m": 7.75},
+   {"x_m": -2.59, "z_m": 10.25},
+   {"x_m": -2.71, "z_m": 10.75},
+   {"x_m": -2.1, "z_m": 13.5}
+  ],
+  "half_width_m": 0.8,
+  "verge_each_side_m": 0.2
+ },
+ "H1": {
+  "rect_x_min": -9.0,
+  "rect_x_max": 3.0,
+  "rect_z_min": -15.0,
+  "rect_z_max": -5.0
+ },
+ "clearance_rule": "distance_to_path_polyline_m - 0.8 path envelope - 0.6 shelter footprint; must be >= 0",
+ "shelter_footprint_radius_m": 0.6,
+ "stem_clearance_m": 0.7,
+ "site_separation_m": 0.5
+}

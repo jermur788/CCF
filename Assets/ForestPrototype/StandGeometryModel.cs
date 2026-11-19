@@ -10,10 +10,14 @@ using UnityEngine;
 //   0 = Legacy40    the historical 40 x 40 m property, 5 m cells, 8 x 8 = 64 cells. Every save
 //                   written before v20, a missing field and Reference Future v1 (permanently).
 //   1 = Enlarged80  80 x 80 m, 5 m cells, 16 x 16 = 256 cells.
+//   2 = Compact30   the separate 30 x 30 m Compact first-demo property, 5 m cells, 6 x 6 = 36
+//                   cells. It is selected by the Compact runtime binding, never by the global
+//                   new-game policy, so old worlds keep their accepted geometry.
 public static class StandGeometryModel
 {
     public const int Legacy40 = 0;
     public const int Enlarged80 = 1;
+    public const int Compact30 = 2;
     public const int Latest = Enlarged80;
 
     public const float CellSizeMeters = 5f;
@@ -31,7 +35,12 @@ public static class StandGeometryModel
 
     public static bool IsKnown(int model) => model == Legacy40 || model == Enlarged80;
 
-    public static float StandSizeMeters(int model) => model == Enlarged80 ? 80f : 40f;
+    // Compact30 is a valid runtime/ecology geometry but deliberately NOT an admitted save geometry
+    // while the #690 save integration is held. Save validation keeps using IsKnown and therefore
+    // refuses a Compact save rather than silently widening historical admission.
+    public static bool IsRuntimeGeometry(int model) => IsKnown(model) || model == Compact30;
+
+    public static float StandSizeMeters(int model) => model == Enlarged80 ? 80f : model == Compact30 ? 30f : 40f;
 
     public static int CellsPerAxis(int model) => Mathf.Max(1, Mathf.CeilToInt(StandSizeMeters(model) / CellSizeMeters));
 
@@ -59,7 +68,10 @@ public static class StandGeometryModel
     // and a missing field, is Legacy40. No automatic migration (same convention as growthModel).
     public static int ForSave(ForestSaveData data) => data != null && data.version >= 20 ? data.standGeometryModel : Legacy40;
 
-    public static string Label(int model) => model == Legacy40 ? "Legacy40" : model == Enlarged80 ? "Enlarged80" : "unknown(" + model + ")";
+    public static string Label(int model) => model == Legacy40 ? "Legacy40"
+        : model == Enlarged80 ? "Enlarged80"
+        : model == Compact30 ? "Compact30"
+        : "unknown(" + model + ")";
 }
 
 // Which geometry a NEW Scenario One game starts in. Production authority is exactly: this new-game

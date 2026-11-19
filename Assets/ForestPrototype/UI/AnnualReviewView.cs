@@ -654,6 +654,40 @@ public sealed class AnnualReviewView
         return box;
     }
 
+    private void BuildCompactTeaching(ScenarioOneManager m)
+    {
+        Compact30Session session = Compact30Session.Instance;
+        VisualElement card = UiKit.Box("card");
+        UiKit.Add(card, "COMPACT30 — FIRST MANAGEMENT LOOP", "heading");
+        if (session == null)
+        {
+            UiKit.Add(card, "The Compact30 session is not bound in this scene.", "muted");
+            scroll.Add(card);
+            return;
+        }
+        AddTagged(card, HistoryProvenance.Current, "Arrival acknowledged: " + (session.ArrivalAcknowledged ? "yes" : "no"));
+        AddTagged(card, HistoryProvenance.Current, "Current stand assessment acknowledged: " + (session.AssessmentAcknowledged ? "yes" : "no"));
+        foreach (Compact30GroupOrder record in session.Group)
+        {
+            if (record.superseded) continue;
+            string juvenile = record.juvenileId.Length > 0 ? " → " + record.juvenileId : "";
+            AddTagged(card, HistoryProvenance.Recorded,
+                record.siteId + " · " + ScenarioOneUiFacts.SpeciesName(record.speciesId)
+                + " · order #" + record.workOrderId + " · " + record.status + juvenile
+                + (record.resolvedYear > 0 ? " · year " + record.resolvedYear : ""));
+        }
+        int covering = session.CoveringYear;
+        AddTagged(card, HistoryProvenance.Recorded, "Covering planting year: " + (covering > 0 ? covering.ToString() : "not complete"));
+        AddTagged(card, HistoryProvenance.Recorded, "Covering Annual Review acknowledged: "
+            + (session.ReviewAcknowledgedYear == covering && covering > 0 ? "yes" : "no"));
+        UiKit.Add(card, session.TeachingComplete
+            ? "T1 teaching complete. Continue to inspect the changed forest and decide later work or a documented no-work year."
+            : session.Hint, "muted");
+        UiKit.Add(card, "Full Compact completion is not awarded: the owner M-A/OD-16 policy and durable completion storage are not signed. "
+            + "The historical five-rack two-cycle completion is deliberately not used as Compact credit.", "muted");
+        scroll.Add(card);
+    }
+
     private static string ObjectiveName(ScenarioOneManager m, string objectiveId)
     {
         ScenarioObjectiveResult match = m.Objectives.FirstOrDefault(o => o.objectiveId == objectiveId);
@@ -662,6 +696,11 @@ public sealed class AnnualReviewView
 
     private void BuildObjectives(ScenarioOneManager m, bool historical = false)
     {
+        if (Compact30Session.IsActive)
+        {
+            BuildCompactTeaching(m);
+            return;
+        }
         var objectives = m.Objectives;
         VisualElement card = UiKit.Box("card");
         UiKit.Add(card, $"OBJECTIVES {objectives.Count(o => o.achieved)} OF {objectives.Count}" + (historical ? " (current state)" : ""), "heading");

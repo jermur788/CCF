@@ -1,0 +1,1787 @@
+{
+ "schema": "ccf-compact30-e2-candidate-roster-v1",
+ "status": "E2_CANDIDATE_FIXTURE_NOT_SIGNED_PRODUCTION_WORLD",
+ "source": "#676 Compact30 whole-world manifest candidate (commit 8617587e)",
+ "roster_sha256": "dac06a3b7775f884fac9f8df6b95178cbaf9d912b44687082a161eaf0426cca1",
+ "serialization": {
+  "header": "ccf-compact30-authored-roster-candidate;v=0-UNSIGNED;fields=id,species,x_m,z_m,age_y,dbh_cm,height_m,crown_m;order=id-ascending;lf",
+  "encoding": "UTF-8 LF no BOM one final LF",
+  "row_order": "ASCII id ascending",
+  "columns": [
+   "id",
+   "species",
+   "x_m",
+   "z_m",
+   "age_y",
+   "dbh_cm",
+   "height_m",
+   "crown_m"
+  ],
+  "fixed_decimal_places": {
+   "x_m": 3,
+   "z_m": 3,
+   "dbh_cm": 2,
+   "height_m": 2,
+   "crown_m": 3
+  },
+  "age_y": "integer",
+  "separator": ",",
+  "quoting": "none",
+  "bytes": 9481,
+  "lines": 176,
+  "json_number_note": "JSON decimals are numeric; reproduce CSV padding with fixed formats above. Do not tidy precision or change numerical values."
+ },
+ "count": 175,
+ "rows": [
+  {
+   "id": "P0000",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 22.21,
+   "height_m": 15.9,
+   "crown_m": 2.637
+  },
+  {
+   "id": "P0001",
+   "species": "sitka-spruce",
+   "x_m": -13.27,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 20.08,
+   "height_m": 14.06,
+   "crown_m": 2.475
+  },
+  {
+   "id": "P0002",
+   "species": "sitka-spruce",
+   "x_m": -10.751,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 14.94,
+   "height_m": 11.21,
+   "crown_m": 2.082
+  },
+  {
+   "id": "P0003",
+   "species": "sitka-spruce",
+   "x_m": -9.136,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 12.42,
+   "height_m": 9.13,
+   "crown_m": 1.89
+  },
+  {
+   "id": "P0009",
+   "species": "sitka-spruce",
+   "x_m": 3.266,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 18.65,
+   "height_m": 13.67,
+   "crown_m": 2.366
+  },
+  {
+   "id": "P0010",
+   "species": "sitka-spruce",
+   "x_m": 5.146,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 14.06,
+   "height_m": 10.43,
+   "crown_m": 2.015
+  },
+  {
+   "id": "P0011",
+   "species": "sitka-spruce",
+   "x_m": 6.628,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 11.95,
+   "height_m": 9.64,
+   "crown_m": 1.854
+  },
+  {
+   "id": "P0012",
+   "species": "sitka-spruce",
+   "x_m": 9.012,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 11.14,
+   "height_m": 8.8,
+   "crown_m": 1.792
+  },
+  {
+   "id": "P0013",
+   "species": "sitka-spruce",
+   "x_m": 11.397,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 13.86,
+   "height_m": 11.0,
+   "crown_m": 2.0
+  },
+  {
+   "id": "P0014",
+   "species": "sitka-spruce",
+   "x_m": 13.415,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 18.69,
+   "height_m": 13.66,
+   "crown_m": 2.368
+  },
+  {
+   "id": "P0015",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -14.4,
+   "age_y": 20,
+   "dbh_cm": 21.44,
+   "height_m": 15.88,
+   "crown_m": 2.578
+  },
+  {
+   "id": "P0102",
+   "species": "sitka-spruce",
+   "x_m": -10.599,
+   "z_m": -13.288,
+   "age_y": 20,
+   "dbh_cm": 16.88,
+   "height_m": 12.16,
+   "crown_m": 2.23
+  },
+  {
+   "id": "P0103",
+   "species": "sitka-spruce",
+   "x_m": -9.118,
+   "z_m": -12.818,
+   "age_y": 20,
+   "dbh_cm": 15.84,
+   "height_m": 12.03,
+   "crown_m": 2.151
+  },
+  {
+   "id": "P0109",
+   "species": "sitka-spruce",
+   "x_m": 3.115,
+   "z_m": -12.621,
+   "age_y": 20,
+   "dbh_cm": 17.95,
+   "height_m": 13.02,
+   "crown_m": 2.312
+  },
+  {
+   "id": "P0110",
+   "species": "sitka-spruce",
+   "x_m": 5.235,
+   "z_m": -12.705,
+   "age_y": 20,
+   "dbh_cm": 14.69,
+   "height_m": 10.94,
+   "crown_m": 2.063
+  },
+  {
+   "id": "P0112",
+   "species": "sitka-spruce",
+   "x_m": 9.101,
+   "z_m": -12.666,
+   "age_y": 20,
+   "dbh_cm": 13.55,
+   "height_m": 10.41,
+   "crown_m": 1.976
+  },
+  {
+   "id": "P0113",
+   "species": "sitka-spruce",
+   "x_m": 10.716,
+   "z_m": -13.139,
+   "age_y": 20,
+   "dbh_cm": 13.83,
+   "height_m": 10.07,
+   "crown_m": 1.997
+  },
+  {
+   "id": "P0209",
+   "species": "sitka-spruce",
+   "x_m": 3.231,
+   "z_m": -11.397,
+   "age_y": 20,
+   "dbh_cm": 15.91,
+   "height_m": 12.01,
+   "crown_m": 2.156
+  },
+  {
+   "id": "P0210",
+   "species": "sitka-spruce",
+   "x_m": 5.111,
+   "z_m": -11.309,
+   "age_y": 20,
+   "dbh_cm": 15.18,
+   "height_m": 11.02,
+   "crown_m": 2.1
+  },
+  {
+   "id": "P0211",
+   "species": "sitka-spruce",
+   "x_m": 6.592,
+   "z_m": -10.839,
+   "age_y": 20,
+   "dbh_cm": 16.07,
+   "height_m": 12.09,
+   "crown_m": 2.168
+  },
+  {
+   "id": "P0214",
+   "species": "sitka-spruce",
+   "x_m": 12.843,
+   "z_m": -11.231,
+   "age_y": 20,
+   "dbh_cm": 14.87,
+   "height_m": 11.68,
+   "crown_m": 2.077
+  },
+  {
+   "id": "P0300",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -8.917,
+   "age_y": 20,
+   "dbh_cm": 12.88,
+   "height_m": 10.51,
+   "crown_m": 1.925
+  },
+  {
+   "id": "P0301",
+   "species": "sitka-spruce",
+   "x_m": -13.288,
+   "z_m": -9.348,
+   "age_y": 20,
+   "dbh_cm": 13.91,
+   "height_m": 10.46,
+   "crown_m": 2.004
+  },
+  {
+   "id": "P0310",
+   "species": "sitka-spruce",
+   "x_m": 5.199,
+   "z_m": -9.277,
+   "age_y": 20,
+   "dbh_cm": 16.15,
+   "height_m": 11.89,
+   "crown_m": 2.175
+  },
+  {
+   "id": "P0311",
+   "species": "sitka-spruce",
+   "x_m": 6.815,
+   "z_m": -8.843,
+   "age_y": 20,
+   "dbh_cm": 18.53,
+   "height_m": 14.06,
+   "crown_m": 2.356
+  },
+  {
+   "id": "P0312",
+   "species": "sitka-spruce",
+   "x_m": 9.334,
+   "z_m": -9.316,
+   "age_y": 20,
+   "dbh_cm": 18.46,
+   "height_m": 13.15,
+   "crown_m": 2.351
+  },
+  {
+   "id": "P0313",
+   "species": "sitka-spruce",
+   "x_m": 10.949,
+   "z_m": -8.885,
+   "age_y": 20,
+   "dbh_cm": 17.09,
+   "height_m": 12.99,
+   "crown_m": 2.246
+  },
+  {
+   "id": "P0314",
+   "species": "sitka-spruce",
+   "x_m": 12.564,
+   "z_m": -9.355,
+   "age_y": 20,
+   "dbh_cm": 14.45,
+   "height_m": 11.2,
+   "crown_m": 2.045
+  },
+  {
+   "id": "P0315",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -8.924,
+   "age_y": 20,
+   "dbh_cm": 11.78,
+   "height_m": 9.03,
+   "crown_m": 1.841
+  },
+  {
+   "id": "P0400",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -6.755,
+   "age_y": 20,
+   "dbh_cm": 10.65,
+   "height_m": 8.07,
+   "crown_m": 1.755
+  },
+  {
+   "id": "P0401",
+   "species": "sitka-spruce",
+   "x_m": -12.889,
+   "z_m": -7.224,
+   "age_y": 20,
+   "dbh_cm": 11.99,
+   "height_m": 9.59,
+   "crown_m": 1.857
+  },
+  {
+   "id": "P0402",
+   "species": "sitka-spruce",
+   "x_m": -11.274,
+   "z_m": -6.794,
+   "age_y": 20,
+   "dbh_cm": 14.96,
+   "height_m": 11.77,
+   "crown_m": 2.084
+  },
+  {
+   "id": "P0410",
+   "species": "sitka-spruce",
+   "x_m": 5.076,
+   "z_m": -7.111,
+   "age_y": 20,
+   "dbh_cm": 16.14,
+   "height_m": 11.51,
+   "crown_m": 2.174
+  },
+  {
+   "id": "P0411",
+   "species": "sitka-spruce",
+   "x_m": 6.557,
+   "z_m": -6.638,
+   "age_y": 20,
+   "dbh_cm": 18.82,
+   "height_m": 13.69,
+   "crown_m": 2.379
+  },
+  {
+   "id": "P0412",
+   "species": "sitka-spruce",
+   "x_m": 8.942,
+   "z_m": -7.072,
+   "age_y": 20,
+   "dbh_cm": 19.97,
+   "height_m": 14.07,
+   "crown_m": 2.466
+  },
+  {
+   "id": "P0413",
+   "species": "sitka-spruce",
+   "x_m": 11.326,
+   "z_m": -6.599,
+   "age_y": 20,
+   "dbh_cm": 16.61,
+   "height_m": 12.5,
+   "crown_m": 2.21
+  },
+  {
+   "id": "P0414",
+   "species": "sitka-spruce",
+   "x_m": 12.808,
+   "z_m": -7.034,
+   "age_y": 20,
+   "dbh_cm": 13.53,
+   "height_m": 10.74,
+   "crown_m": 1.974
+  },
+  {
+   "id": "P0415",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -6.561,
+   "age_y": 20,
+   "dbh_cm": 10.74,
+   "height_m": 8.32,
+   "crown_m": 1.761
+  },
+  {
+   "id": "P0500",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -4.903,
+   "age_y": 20,
+   "dbh_cm": 10.88,
+   "height_m": 8.72,
+   "crown_m": 1.773
+  },
+  {
+   "id": "P0501",
+   "species": "sitka-spruce",
+   "x_m": -12.871,
+   "z_m": -5.334,
+   "age_y": 20,
+   "dbh_cm": 11.63,
+   "height_m": 9.69,
+   "crown_m": 1.829
+  },
+  {
+   "id": "P0502",
+   "species": "sitka-spruce",
+   "x_m": -11.122,
+   "z_m": -4.942,
+   "age_y": 20,
+   "dbh_cm": 14.57,
+   "height_m": 10.82,
+   "crown_m": 2.054
+  },
+  {
+   "id": "P0504",
+   "species": "sitka-spruce",
+   "x_m": -6.621,
+   "z_m": -4.825,
+   "age_y": 20,
+   "dbh_cm": 19.15,
+   "height_m": 14.2,
+   "crown_m": 2.404
+  },
+  {
+   "id": "P0506",
+   "species": "sitka-spruce",
+   "x_m": -3.39,
+   "z_m": -4.864,
+   "age_y": 20,
+   "dbh_cm": 15.48,
+   "height_m": 11.75,
+   "crown_m": 2.123
+  },
+  {
+   "id": "P0508",
+   "species": "sitka-spruce",
+   "x_m": 1.111,
+   "z_m": -4.744,
+   "age_y": 20,
+   "dbh_cm": 12.53,
+   "height_m": 9.25,
+   "crown_m": 1.898
+  },
+  {
+   "id": "P0510",
+   "species": "sitka-spruce",
+   "x_m": 4.712,
+   "z_m": -5.263,
+   "age_y": 20,
+   "dbh_cm": 16.47,
+   "height_m": 12.14,
+   "crown_m": 2.199
+  },
+  {
+   "id": "P0511",
+   "species": "sitka-spruce",
+   "x_m": 7.231,
+   "z_m": -4.832,
+   "age_y": 20,
+   "dbh_cm": 19.78,
+   "height_m": 13.68,
+   "crown_m": 2.452
+  },
+  {
+   "id": "P0512",
+   "species": "sitka-spruce",
+   "x_m": 8.578,
+   "z_m": -5.224,
+   "age_y": 20,
+   "dbh_cm": 20.53,
+   "height_m": 14.83,
+   "crown_m": 2.509
+  },
+  {
+   "id": "P0513",
+   "species": "sitka-spruce",
+   "x_m": 11.097,
+   "z_m": -4.79,
+   "age_y": 20,
+   "dbh_cm": 17.76,
+   "height_m": 12.61,
+   "crown_m": 2.298
+  },
+  {
+   "id": "P0514",
+   "species": "sitka-spruce",
+   "x_m": 12.981,
+   "z_m": -5.341,
+   "age_y": 20,
+   "dbh_cm": 14.49,
+   "height_m": 11.27,
+   "crown_m": 2.048
+  },
+  {
+   "id": "P0515",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -4.91,
+   "age_y": 20,
+   "dbh_cm": 12.69,
+   "height_m": 9.64,
+   "crown_m": 1.91
+  },
+  {
+   "id": "P0600",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -3.15,
+   "age_y": 20,
+   "dbh_cm": 13.59,
+   "height_m": 10.54,
+   "crown_m": 1.979
+  },
+  {
+   "id": "P0601",
+   "species": "sitka-spruce",
+   "x_m": -13.263,
+   "z_m": -2.719,
+   "age_y": 20,
+   "dbh_cm": 14.48,
+   "height_m": 10.58,
+   "crown_m": 2.047
+  },
+  {
+   "id": "P0602",
+   "species": "sitka-spruce",
+   "x_m": -11.012,
+   "z_m": -3.111,
+   "age_y": 20,
+   "dbh_cm": 15.2,
+   "height_m": 11.72,
+   "crown_m": 2.102
+  },
+  {
+   "id": "P0603",
+   "species": "sitka-spruce",
+   "x_m": -9.397,
+   "z_m": -2.681,
+   "age_y": 20,
+   "dbh_cm": 15.87,
+   "height_m": 11.62,
+   "crown_m": 2.153
+  },
+  {
+   "id": "P0613",
+   "species": "sitka-spruce",
+   "x_m": 10.769,
+   "z_m": -3.263,
+   "age_y": 20,
+   "dbh_cm": 16.78,
+   "height_m": 12.3,
+   "crown_m": 2.223
+  },
+  {
+   "id": "P0614",
+   "species": "sitka-spruce",
+   "x_m": 13.422,
+   "z_m": -2.871,
+   "age_y": 20,
+   "dbh_cm": 15.05,
+   "height_m": 11.25,
+   "crown_m": 2.091
+  },
+  {
+   "id": "P0615",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -3.302,
+   "age_y": 20,
+   "dbh_cm": 14.09,
+   "height_m": 11.16,
+   "crown_m": 2.017
+  },
+  {
+   "id": "P0700",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": -0.716,
+   "age_y": 20,
+   "dbh_cm": 18.24,
+   "height_m": 13.78,
+   "crown_m": 2.334
+  },
+  {
+   "id": "P0701",
+   "species": "sitka-spruce",
+   "x_m": -12.794,
+   "z_m": -1.15,
+   "age_y": 20,
+   "dbh_cm": 17.09,
+   "height_m": 12.37,
+   "crown_m": 2.246
+  },
+  {
+   "id": "P0702",
+   "species": "sitka-spruce",
+   "x_m": -11.312,
+   "z_m": -0.677,
+   "age_y": 20,
+   "dbh_cm": 16.35,
+   "height_m": 11.58,
+   "crown_m": 2.19
+  },
+  {
+   "id": "P0703",
+   "species": "sitka-spruce",
+   "x_m": -8.928,
+   "z_m": -1.111,
+   "age_y": 20,
+   "dbh_cm": 14.65,
+   "height_m": 11.04,
+   "crown_m": 2.06
+  },
+  {
+   "id": "P0704",
+   "species": "sitka-spruce",
+   "x_m": -7.446,
+   "z_m": -0.638,
+   "age_y": 20,
+   "dbh_cm": 13.49,
+   "height_m": 9.98,
+   "crown_m": 1.971
+  },
+  {
+   "id": "P0705",
+   "species": "sitka-spruce",
+   "x_m": -5.062,
+   "z_m": -1.069,
+   "age_y": 20,
+   "dbh_cm": 14.66,
+   "height_m": 11.23,
+   "crown_m": 2.061
+  },
+  {
+   "id": "P0706",
+   "species": "sitka-spruce",
+   "x_m": -2.677,
+   "z_m": -0.599,
+   "age_y": 20,
+   "dbh_cm": 16.42,
+   "height_m": 11.98,
+   "crown_m": 2.195
+  },
+  {
+   "id": "P0707",
+   "species": "sitka-spruce",
+   "x_m": -1.196,
+   "z_m": -1.03,
+   "age_y": 20,
+   "dbh_cm": 17.25,
+   "height_m": 13.01,
+   "crown_m": 2.259
+  },
+  {
+   "id": "P0710",
+   "species": "sitka-spruce",
+   "x_m": 4.79,
+   "z_m": -1.076,
+   "age_y": 20,
+   "dbh_cm": 15.28,
+   "height_m": 11.75,
+   "crown_m": 2.108
+  },
+  {
+   "id": "P0711",
+   "species": "sitka-spruce",
+   "x_m": 7.309,
+   "z_m": -0.645,
+   "age_y": 20,
+   "dbh_cm": 13.25,
+   "height_m": 9.98,
+   "crown_m": 1.953
+  },
+  {
+   "id": "P0712",
+   "species": "sitka-spruce",
+   "x_m": 8.924,
+   "z_m": -1.118,
+   "age_y": 20,
+   "dbh_cm": 13.86,
+   "height_m": 10.69,
+   "crown_m": 1.999
+  },
+  {
+   "id": "P0713",
+   "species": "sitka-spruce",
+   "x_m": 11.443,
+   "z_m": -0.684,
+   "age_y": 20,
+   "dbh_cm": 14.83,
+   "height_m": 10.78,
+   "crown_m": 2.074
+  },
+  {
+   "id": "P0714",
+   "species": "sitka-spruce",
+   "x_m": 13.425,
+   "z_m": -0.998,
+   "age_y": 20,
+   "dbh_cm": 16.49,
+   "height_m": 12.14,
+   "crown_m": 2.2
+  },
+  {
+   "id": "P0715",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": -0.568,
+   "age_y": 20,
+   "dbh_cm": 17.61,
+   "height_m": 12.32,
+   "crown_m": 2.286
+  },
+  {
+   "id": "P0800",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 0.861,
+   "age_y": 20,
+   "dbh_cm": 19.44,
+   "height_m": 13.61,
+   "crown_m": 2.426
+  },
+  {
+   "id": "P0801",
+   "species": "sitka-spruce",
+   "x_m": -12.846,
+   "z_m": 1.295,
+   "age_y": 20,
+   "dbh_cm": 18.58,
+   "height_m": 13.77,
+   "crown_m": 2.36
+  },
+  {
+   "id": "P0802",
+   "species": "sitka-spruce",
+   "x_m": -11.231,
+   "z_m": 0.822,
+   "age_y": 20,
+   "dbh_cm": 15.79,
+   "height_m": 12.38,
+   "crown_m": 2.147
+  },
+  {
+   "id": "P0803",
+   "species": "sitka-spruce",
+   "x_m": -8.712,
+   "z_m": 1.256,
+   "age_y": 20,
+   "dbh_cm": 11.47,
+   "height_m": 9.19,
+   "crown_m": 1.817
+  },
+  {
+   "id": "P0804",
+   "species": "sitka-spruce",
+   "x_m": -7.097,
+   "z_m": 0.783,
+   "age_y": 20,
+   "dbh_cm": 10.72,
+   "height_m": 9.05,
+   "crown_m": 1.76
+  },
+  {
+   "id": "P0805",
+   "species": "sitka-spruce",
+   "x_m": -4.578,
+   "z_m": 1.214,
+   "age_y": 20,
+   "dbh_cm": 12.47,
+   "height_m": 9.63,
+   "crown_m": 1.894
+  },
+  {
+   "id": "P0806",
+   "species": "sitka-spruce",
+   "x_m": -2.963,
+   "z_m": 0.744,
+   "age_y": 20,
+   "dbh_cm": 15.41,
+   "height_m": 11.78,
+   "crown_m": 2.118
+  },
+  {
+   "id": "P0807",
+   "species": "sitka-spruce",
+   "x_m": -1.348,
+   "z_m": 1.175,
+   "age_y": 20,
+   "dbh_cm": 18.24,
+   "height_m": 13.02,
+   "crown_m": 2.334
+  },
+  {
+   "id": "P0810",
+   "species": "sitka-spruce",
+   "x_m": 5.118,
+   "z_m": 1.408,
+   "age_y": 20,
+   "dbh_cm": 13.93,
+   "height_m": 10.24,
+   "crown_m": 2.005
+  },
+  {
+   "id": "P0811",
+   "species": "sitka-spruce",
+   "x_m": 6.599,
+   "z_m": 0.977,
+   "age_y": 20,
+   "dbh_cm": 11.73,
+   "height_m": 9.39,
+   "crown_m": 1.837
+  },
+  {
+   "id": "P0812",
+   "species": "sitka-spruce",
+   "x_m": 8.984,
+   "z_m": 1.446,
+   "age_y": 20,
+   "dbh_cm": 10.45,
+   "height_m": 8.26,
+   "crown_m": 1.739
+  },
+  {
+   "id": "P0813",
+   "species": "sitka-spruce",
+   "x_m": 11.369,
+   "z_m": 1.016,
+   "age_y": 20,
+   "dbh_cm": 13.7,
+   "height_m": 10.79,
+   "crown_m": 1.988
+  },
+  {
+   "id": "P0814",
+   "species": "sitka-spruce",
+   "x_m": 13.386,
+   "z_m": 1.33,
+   "age_y": 20,
+   "dbh_cm": 17.45,
+   "height_m": 12.78,
+   "crown_m": 2.274
+  },
+  {
+   "id": "P0815",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 0.896,
+   "age_y": 20,
+   "dbh_cm": 18.65,
+   "height_m": 14.03,
+   "crown_m": 2.365
+  },
+  {
+   "id": "P0900",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 2.624,
+   "age_y": 20,
+   "dbh_cm": 20.3,
+   "height_m": 14.95,
+   "crown_m": 2.491
+  },
+  {
+   "id": "P0901",
+   "species": "sitka-spruce",
+   "x_m": -12.716,
+   "z_m": 3.097,
+   "age_y": 20,
+   "dbh_cm": 18.68,
+   "height_m": 13.26,
+   "crown_m": 2.368
+  },
+  {
+   "id": "P0902",
+   "species": "sitka-spruce",
+   "x_m": -10.966,
+   "z_m": 2.585,
+   "age_y": 20,
+   "dbh_cm": 15.36,
+   "height_m": 11.71,
+   "crown_m": 2.114
+  },
+  {
+   "id": "P0903",
+   "species": "sitka-spruce",
+   "x_m": -8.582,
+   "z_m": 3.058,
+   "age_y": 20,
+   "dbh_cm": 10.89,
+   "height_m": 8.25,
+   "crown_m": 1.773
+  },
+  {
+   "id": "P0904",
+   "species": "sitka-spruce",
+   "x_m": -6.832,
+   "z_m": 3.45,
+   "age_y": 20,
+   "dbh_cm": 9.94,
+   "height_m": 8.17,
+   "crown_m": 1.7
+  },
+  {
+   "id": "P0905",
+   "species": "sitka-spruce",
+   "x_m": -5.351,
+   "z_m": 3.019,
+   "age_y": 20,
+   "dbh_cm": 10.93,
+   "height_m": 9.29,
+   "crown_m": 1.776
+  },
+  {
+   "id": "P0906",
+   "species": "sitka-spruce",
+   "x_m": -2.698,
+   "z_m": 3.411,
+   "age_y": 20,
+   "dbh_cm": 16.02,
+   "height_m": 11.76,
+   "crown_m": 2.165
+  },
+  {
+   "id": "P0907",
+   "species": "sitka-spruce",
+   "x_m": -1.217,
+   "z_m": 2.977,
+   "age_y": 20,
+   "dbh_cm": 18.79,
+   "height_m": 13.99,
+   "crown_m": 2.376
+  },
+  {
+   "id": "P0909",
+   "species": "sitka-spruce",
+   "x_m": 2.917,
+   "z_m": 2.938,
+   "age_y": 20,
+   "dbh_cm": 18.27,
+   "height_m": 13.49,
+   "crown_m": 2.337
+  },
+  {
+   "id": "P0910",
+   "species": "sitka-spruce",
+   "x_m": 4.755,
+   "z_m": 3.256,
+   "age_y": 20,
+   "dbh_cm": 14.4,
+   "height_m": 11.25,
+   "crown_m": 2.041
+  },
+  {
+   "id": "P0911",
+   "species": "sitka-spruce",
+   "x_m": 7.274,
+   "z_m": 2.783,
+   "age_y": 20,
+   "dbh_cm": 10.17,
+   "height_m": 8.12,
+   "crown_m": 1.718
+  },
+  {
+   "id": "P0912",
+   "species": "sitka-spruce",
+   "x_m": 8.621,
+   "z_m": 3.295,
+   "age_y": 20,
+   "dbh_cm": 9.82,
+   "height_m": 8.59,
+   "crown_m": 1.691
+  },
+  {
+   "id": "P0913",
+   "species": "sitka-spruce",
+   "x_m": 11.139,
+   "z_m": 2.822,
+   "age_y": 20,
+   "dbh_cm": 12.82,
+   "height_m": 9.94,
+   "crown_m": 1.92
+  },
+  {
+   "id": "P0914",
+   "species": "sitka-spruce",
+   "x_m": 13.39,
+   "z_m": 3.334,
+   "age_y": 20,
+   "dbh_cm": 17.49,
+   "height_m": 12.81,
+   "crown_m": 2.277
+  },
+  {
+   "id": "P0915",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 2.864,
+   "age_y": 20,
+   "dbh_cm": 19.19,
+   "height_m": 13.35,
+   "crown_m": 2.407
+  },
+  {
+   "id": "P1000",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 5.196,
+   "age_y": 20,
+   "dbh_cm": 18.81,
+   "height_m": 14.17,
+   "crown_m": 2.377
+  },
+  {
+   "id": "P1001",
+   "species": "sitka-spruce",
+   "x_m": -13.005,
+   "z_m": 4.765,
+   "age_y": 20,
+   "dbh_cm": 18.44,
+   "height_m": 13.25,
+   "crown_m": 2.35
+  },
+  {
+   "id": "P1002",
+   "species": "sitka-spruce",
+   "x_m": -10.621,
+   "z_m": 5.235,
+   "age_y": 20,
+   "dbh_cm": 15.0,
+   "height_m": 10.78,
+   "crown_m": 2.087
+  },
+  {
+   "id": "P1003",
+   "species": "sitka-spruce",
+   "x_m": -9.139,
+   "z_m": 4.804,
+   "age_y": 20,
+   "dbh_cm": 12.74,
+   "height_m": 9.89,
+   "crown_m": 1.914
+  },
+  {
+   "id": "P1004",
+   "species": "sitka-spruce",
+   "x_m": -7.122,
+   "z_m": 5.118,
+   "age_y": 20,
+   "dbh_cm": 11.68,
+   "height_m": 8.9,
+   "crown_m": 1.833
+  },
+  {
+   "id": "P1005",
+   "species": "sitka-spruce",
+   "x_m": -4.737,
+   "z_m": 4.684,
+   "age_y": 20,
+   "dbh_cm": 12.81,
+   "height_m": 10.11,
+   "crown_m": 1.919
+  },
+  {
+   "id": "P1006",
+   "species": "sitka-spruce",
+   "x_m": -3.256,
+   "z_m": 5.157,
+   "age_y": 20,
+   "dbh_cm": 15.14,
+   "height_m": 11.23,
+   "crown_m": 2.098
+  },
+  {
+   "id": "P1009",
+   "species": "sitka-spruce",
+   "x_m": 3.362,
+   "z_m": 4.924,
+   "age_y": 20,
+   "dbh_cm": 16.96,
+   "height_m": 12.82,
+   "crown_m": 2.236
+  },
+  {
+   "id": "P1010",
+   "species": "sitka-spruce",
+   "x_m": 4.578,
+   "z_m": 4.836,
+   "age_y": 20,
+   "dbh_cm": 14.78,
+   "height_m": 11.63,
+   "crown_m": 2.07
+  },
+  {
+   "id": "P1011",
+   "species": "sitka-spruce",
+   "x_m": 7.097,
+   "z_m": 5.27,
+   "age_y": 20,
+   "dbh_cm": 11.94,
+   "height_m": 9.36,
+   "crown_m": 1.853
+  },
+  {
+   "id": "P1012",
+   "species": "sitka-spruce",
+   "x_m": 8.712,
+   "z_m": 4.797,
+   "age_y": 20,
+   "dbh_cm": 11.0,
+   "height_m": 9.1,
+   "crown_m": 1.781
+  },
+  {
+   "id": "P1013",
+   "species": "sitka-spruce",
+   "x_m": 11.231,
+   "z_m": 5.228,
+   "age_y": 20,
+   "dbh_cm": 13.67,
+   "height_m": 10.25,
+   "crown_m": 1.985
+  },
+  {
+   "id": "P1014",
+   "species": "sitka-spruce",
+   "x_m": 12.846,
+   "z_m": 4.758,
+   "age_y": 20,
+   "dbh_cm": 16.02,
+   "height_m": 12.04,
+   "crown_m": 2.165
+  },
+  {
+   "id": "P1015",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 5.189,
+   "age_y": 20,
+   "dbh_cm": 17.7,
+   "height_m": 12.57,
+   "crown_m": 2.293
+  },
+  {
+   "id": "P1100",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 6.762,
+   "age_y": 20,
+   "dbh_cm": 17.26,
+   "height_m": 13.0,
+   "crown_m": 2.259
+  },
+  {
+   "id": "P1101",
+   "species": "sitka-spruce",
+   "x_m": -12.571,
+   "z_m": 7.192,
+   "age_y": 20,
+   "dbh_cm": 15.0,
+   "height_m": 11.09,
+   "crown_m": 2.087
+  },
+  {
+   "id": "P1102",
+   "species": "sitka-spruce",
+   "x_m": -11.224,
+   "z_m": 6.801,
+   "age_y": 20,
+   "dbh_cm": 16.31,
+   "height_m": 12.59,
+   "crown_m": 2.187
+  },
+  {
+   "id": "P1103",
+   "species": "sitka-spruce",
+   "x_m": -8.705,
+   "z_m": 7.235,
+   "age_y": 20,
+   "dbh_cm": 15.93,
+   "height_m": 11.85,
+   "crown_m": 2.158
+  },
+  {
+   "id": "P1104",
+   "species": "sitka-spruce",
+   "x_m": -6.822,
+   "z_m": 6.684,
+   "age_y": 20,
+   "dbh_cm": 14.89,
+   "height_m": 10.69,
+   "crown_m": 2.079
+  },
+  {
+   "id": "P1105",
+   "species": "sitka-spruce",
+   "x_m": -5.206,
+   "z_m": 7.115,
+   "age_y": 20,
+   "dbh_cm": 15.77,
+   "height_m": 11.92,
+   "crown_m": 2.145
+  },
+  {
+   "id": "P1106",
+   "species": "sitka-spruce",
+   "x_m": -2.956,
+   "z_m": 6.723,
+   "age_y": 20,
+   "dbh_cm": 16.21,
+   "height_m": 11.69,
+   "crown_m": 2.179
+  },
+  {
+   "id": "P1108",
+   "species": "sitka-spruce",
+   "x_m": 1.446,
+   "z_m": 6.603,
+   "age_y": 20,
+   "dbh_cm": 17.63,
+   "height_m": 12.74,
+   "crown_m": 2.287
+  },
+  {
+   "id": "P1109",
+   "species": "sitka-spruce",
+   "x_m": 3.062,
+   "z_m": 7.037,
+   "age_y": 20,
+   "dbh_cm": 15.19,
+   "height_m": 11.92,
+   "crown_m": 2.101
+  },
+  {
+   "id": "P1110",
+   "species": "sitka-spruce",
+   "x_m": 5.394,
+   "z_m": 7.309,
+   "age_y": 20,
+   "dbh_cm": 14.8,
+   "height_m": 10.92,
+   "crown_m": 2.071
+  },
+  {
+   "id": "P1111",
+   "species": "sitka-spruce",
+   "x_m": 6.875,
+   "z_m": 6.875,
+   "age_y": 20,
+   "dbh_cm": 14.09,
+   "height_m": 10.99,
+   "crown_m": 2.018
+  },
+  {
+   "id": "P1112",
+   "species": "sitka-spruce",
+   "x_m": 8.624,
+   "z_m": 7.27,
+   "age_y": 20,
+   "dbh_cm": 14.65,
+   "height_m": 10.65,
+   "crown_m": 2.06
+  },
+  {
+   "id": "P1113",
+   "species": "sitka-spruce",
+   "x_m": 11.009,
+   "z_m": 6.836,
+   "age_y": 20,
+   "dbh_cm": 14.42,
+   "height_m": 11.02,
+   "crown_m": 2.043
+  },
+  {
+   "id": "P1114",
+   "species": "sitka-spruce",
+   "x_m": 13.125,
+   "z_m": 7.386,
+   "age_y": 20,
+   "dbh_cm": 14.9,
+   "height_m": 11.34,
+   "crown_m": 2.079
+  },
+  {
+   "id": "P1115",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 6.956,
+   "age_y": 20,
+   "dbh_cm": 15.49,
+   "height_m": 11.02,
+   "crown_m": 2.124
+  },
+  {
+   "id": "P1200",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 9.185,
+   "age_y": 20,
+   "dbh_cm": 12.24,
+   "height_m": 10.05,
+   "crown_m": 1.876
+  },
+  {
+   "id": "P1201",
+   "species": "sitka-spruce",
+   "x_m": -13.422,
+   "z_m": 8.751,
+   "age_y": 20,
+   "dbh_cm": 13.16,
+   "height_m": 9.93,
+   "crown_m": 1.947
+  },
+  {
+   "id": "P1202",
+   "species": "sitka-spruce",
+   "x_m": -10.769,
+   "z_m": 9.143,
+   "age_y": 20,
+   "dbh_cm": 15.26,
+   "height_m": 11.74,
+   "crown_m": 2.106
+  },
+  {
+   "id": "P1203",
+   "species": "sitka-spruce",
+   "x_m": -9.288,
+   "z_m": 8.712,
+   "age_y": 20,
+   "dbh_cm": 16.48,
+   "height_m": 11.81,
+   "crown_m": 2.2
+  },
+  {
+   "id": "P1209",
+   "species": "sitka-spruce",
+   "x_m": 2.945,
+   "z_m": 8.91,
+   "age_y": 20,
+   "dbh_cm": 13.59,
+   "height_m": 10.68,
+   "crown_m": 1.979
+  },
+  {
+   "id": "P1210",
+   "species": "sitka-spruce",
+   "x_m": 5.065,
+   "z_m": 8.822,
+   "age_y": 20,
+   "dbh_cm": 15.62,
+   "height_m": 11.5,
+   "crown_m": 2.134
+  },
+  {
+   "id": "P1211",
+   "species": "sitka-spruce",
+   "x_m": 6.681,
+   "z_m": 9.256,
+   "age_y": 20,
+   "dbh_cm": 17.45,
+   "height_m": 13.32,
+   "crown_m": 2.274
+  },
+  {
+   "id": "P1212",
+   "species": "sitka-spruce",
+   "x_m": 8.931,
+   "z_m": 8.864,
+   "age_y": 20,
+   "dbh_cm": 17.43,
+   "height_m": 12.8,
+   "crown_m": 2.272
+  },
+  {
+   "id": "P1213",
+   "species": "sitka-spruce",
+   "x_m": 11.45,
+   "z_m": 9.295,
+   "age_y": 20,
+   "dbh_cm": 15.94,
+   "height_m": 11.36,
+   "crown_m": 2.158
+  },
+  {
+   "id": "P1214",
+   "species": "sitka-spruce",
+   "x_m": 12.797,
+   "z_m": 8.903,
+   "age_y": 20,
+   "dbh_cm": 14.45,
+   "height_m": 11.13,
+   "crown_m": 2.044
+  },
+  {
+   "id": "P1215",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 9.334,
+   "age_y": 20,
+   "dbh_cm": 12.6,
+   "height_m": 9.47,
+   "crown_m": 1.904
+  },
+  {
+   "id": "P1300",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 11.334,
+   "age_y": 20,
+   "dbh_cm": 10.95,
+   "height_m": 9.04,
+   "crown_m": 1.777
+  },
+  {
+   "id": "P1301",
+   "species": "sitka-spruce",
+   "x_m": -13.439,
+   "z_m": 10.861,
+   "age_y": 20,
+   "dbh_cm": 11.8,
+   "height_m": 9.06,
+   "crown_m": 1.843
+  },
+  {
+   "id": "P1302",
+   "species": "sitka-spruce",
+   "x_m": -10.921,
+   "z_m": 11.295,
+   "age_y": 20,
+   "dbh_cm": 15.84,
+   "height_m": 11.9,
+   "crown_m": 2.151
+  },
+  {
+   "id": "P1303",
+   "species": "sitka-spruce",
+   "x_m": -9.305,
+   "z_m": 10.822,
+   "age_y": 20,
+   "dbh_cm": 18.83,
+   "height_m": 13.24,
+   "crown_m": 2.379
+  },
+  {
+   "id": "P1309",
+   "species": "sitka-spruce",
+   "x_m": 3.097,
+   "z_m": 10.705,
+   "age_y": 20,
+   "dbh_cm": 13.55,
+   "height_m": 10.86,
+   "crown_m": 1.976
+  },
+  {
+   "id": "P1310",
+   "species": "sitka-spruce",
+   "x_m": 4.977,
+   "z_m": 10.79,
+   "age_y": 20,
+   "dbh_cm": 15.94,
+   "height_m": 12.18,
+   "crown_m": 2.158
+  },
+  {
+   "id": "P1311",
+   "species": "sitka-spruce",
+   "x_m": 7.362,
+   "z_m": 11.263,
+   "age_y": 20,
+   "dbh_cm": 19.65,
+   "height_m": 13.79,
+   "crown_m": 2.442
+  },
+  {
+   "id": "P1312",
+   "species": "sitka-spruce",
+   "x_m": 8.843,
+   "z_m": 10.829,
+   "age_y": 20,
+   "dbh_cm": 19.65,
+   "height_m": 14.66,
+   "crown_m": 2.442
+  },
+  {
+   "id": "P1313",
+   "species": "sitka-spruce",
+   "x_m": 11.228,
+   "z_m": 11.302,
+   "age_y": 20,
+   "dbh_cm": 16.85,
+   "height_m": 12.23,
+   "crown_m": 2.228
+  },
+  {
+   "id": "P1314",
+   "species": "sitka-spruce",
+   "x_m": 13.245,
+   "z_m": 10.712,
+   "age_y": 20,
+   "dbh_cm": 12.93,
+   "height_m": 9.96,
+   "crown_m": 1.929
+  },
+  {
+   "id": "P1315",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 11.182,
+   "age_y": 20,
+   "dbh_cm": 10.97,
+   "height_m": 9.25,
+   "crown_m": 1.779
+  },
+  {
+   "id": "P1400",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 12.811,
+   "age_y": 20,
+   "dbh_cm": 10.89,
+   "height_m": 9.16,
+   "crown_m": 1.773
+  },
+  {
+   "id": "P1401",
+   "species": "sitka-spruce",
+   "x_m": -12.963,
+   "z_m": 13.284,
+   "age_y": 20,
+   "dbh_cm": 12.24,
+   "height_m": 9.31,
+   "crown_m": 1.876
+  },
+  {
+   "id": "P1402",
+   "species": "sitka-spruce",
+   "x_m": -10.578,
+   "z_m": 12.85,
+   "age_y": 20,
+   "dbh_cm": 16.54,
+   "height_m": 12.84,
+   "crown_m": 2.204
+  },
+  {
+   "id": "P1403",
+   "species": "sitka-spruce",
+   "x_m": -9.097,
+   "z_m": 13.323,
+   "age_y": 20,
+   "dbh_cm": 19.19,
+   "height_m": 13.8,
+   "crown_m": 2.407
+  },
+  {
+   "id": "P1410",
+   "species": "sitka-spruce",
+   "x_m": 4.621,
+   "z_m": 13.355,
+   "age_y": 20,
+   "dbh_cm": 15.88,
+   "height_m": 12.22,
+   "crown_m": 2.154
+  },
+  {
+   "id": "P1411",
+   "species": "sitka-spruce",
+   "x_m": 7.139,
+   "z_m": 12.882,
+   "age_y": 20,
+   "dbh_cm": 20.17,
+   "height_m": 14.36,
+   "crown_m": 2.482
+  },
+  {
+   "id": "P1412",
+   "species": "sitka-spruce",
+   "x_m": 8.755,
+   "z_m": 13.316,
+   "age_y": 20,
+   "dbh_cm": 20.46,
+   "height_m": 14.88,
+   "crown_m": 2.504
+  },
+  {
+   "id": "P1413",
+   "species": "sitka-spruce",
+   "x_m": 11.274,
+   "z_m": 12.843,
+   "age_y": 20,
+   "dbh_cm": 17.47,
+   "height_m": 12.51,
+   "crown_m": 2.275
+  },
+  {
+   "id": "P1414",
+   "species": "sitka-spruce",
+   "x_m": 13.256,
+   "z_m": 13.432,
+   "age_y": 20,
+   "dbh_cm": 13.55,
+   "height_m": 9.93,
+   "crown_m": 1.976
+  },
+  {
+   "id": "P1415",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 12.963,
+   "age_y": 20,
+   "dbh_cm": 11.61,
+   "height_m": 9.41,
+   "crown_m": 1.828
+  },
+  {
+   "id": "P1500",
+   "species": "sitka-spruce",
+   "x_m": -14.4,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 12.79,
+   "height_m": 10.14,
+   "crown_m": 1.918
+  },
+  {
+   "id": "P1501",
+   "species": "sitka-spruce",
+   "x_m": -12.981,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 12.17,
+   "height_m": 9.24,
+   "crown_m": 1.871
+  },
+  {
+   "id": "P1502",
+   "species": "sitka-spruce",
+   "x_m": -10.73,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 15.32,
+   "height_m": 11.89,
+   "crown_m": 2.111
+  },
+  {
+   "id": "P1503",
+   "species": "sitka-spruce",
+   "x_m": -9.115,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 17.69,
+   "height_m": 12.84,
+   "crown_m": 2.292
+  },
+  {
+   "id": "P1504",
+   "species": "sitka-spruce",
+   "x_m": -6.864,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 20.6,
+   "height_m": 14.62,
+   "crown_m": 2.514
+  },
+  {
+   "id": "P1505",
+   "species": "sitka-spruce",
+   "x_m": -5.249,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 19.65,
+   "height_m": 14.73,
+   "crown_m": 2.442
+  },
+  {
+   "id": "P1506",
+   "species": "sitka-spruce",
+   "x_m": -2.998,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 16.41,
+   "height_m": 12.21,
+   "crown_m": 2.195
+  },
+  {
+   "id": "P1507",
+   "species": "sitka-spruce",
+   "x_m": -1.383,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 15.59,
+   "height_m": 11.18,
+   "crown_m": 2.132
+  },
+  {
+   "id": "P1510",
+   "species": "sitka-spruce",
+   "x_m": 4.984,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 17.55,
+   "height_m": 13.13,
+   "crown_m": 2.281
+  },
+  {
+   "id": "P1511",
+   "species": "sitka-spruce",
+   "x_m": 7.369,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 18.87,
+   "height_m": 13.26,
+   "crown_m": 2.382
+  },
+  {
+   "id": "P1512",
+   "species": "sitka-spruce",
+   "x_m": 9.118,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 18.98,
+   "height_m": 13.84,
+   "crown_m": 2.391
+  },
+  {
+   "id": "P1513",
+   "species": "sitka-spruce",
+   "x_m": 10.599,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 17.6,
+   "height_m": 13.5,
+   "crown_m": 2.285
+  },
+  {
+   "id": "P1514",
+   "species": "sitka-spruce",
+   "x_m": 13.252,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 13.54,
+   "height_m": 10.29,
+   "crown_m": 1.975
+  },
+  {
+   "id": "P1515",
+   "species": "sitka-spruce",
+   "x_m": 14.4,
+   "z_m": 14.4,
+   "age_y": 20,
+   "dbh_cm": 13.62,
+   "height_m": 10.85,
+   "crown_m": 1.981
+  }
+ ]
+}

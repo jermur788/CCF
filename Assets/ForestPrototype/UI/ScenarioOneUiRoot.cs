@@ -45,7 +45,10 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     private Label previewBanner;
     private MenuHelpView help;
     public MenuHelpView Help => help;
-    public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;
+    public bool NeedsAnnualReview => manager != null
+        && ((manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen)
+            || (Compact30Session.IsActive && Compact30Session.Instance != null
+                && Compact30Session.Instance.CoveringReviewPending));
 
     private UiScreen screen = UiScreen.None;
     private bool workPlanWasOpen;
@@ -138,7 +141,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(previewBanner);
         help = new MenuHelpView(this);
         root.Add(help.Root);
-        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
+        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && !Compact30Session.IsActive && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
             help.ShowScenarioIntroduction();
     }
 
@@ -343,7 +346,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         // Delete / Backspace remove the selected rack while the map is planning racks (RACK-V2-05).
         if (screen == UiScreen.Map)
             map.HandleKeys(keyboard);
-        if (keyboard.oKey.wasPressedThisFrame)
+        if (keyboard.oKey.wasPressedThisFrame && !Compact30Session.IsActive)
         {
             if (manager.WorkPlanOpen) manager.OpenWorkPlan(false);
             SetScreen(screen == UiScreen.Objectives ? UiScreen.None : UiScreen.Objectives);
@@ -444,11 +447,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     }
 
     // A UI learning gate only: simulation/reference harness APIs remain unchanged.
-    public string RackPlanProblem => learning.RackPlanProblem();
+    public string RackPlanProblem => Compact30Session.IsActive ? "" : learning.RackPlanProblem();
     // S1-D T-03: the same footprint rule once the teaching sample is complete. A note only; ApproveWorkPlan/AdvanceFromWorkPlan ignore it.
-    public string RackPlanAdvisory => learning.RackPlanAdvisory();
+    public string RackPlanAdvisory => Compact30Session.IsActive ? "" : learning.RackPlanAdvisory();
     // D-064: V2 rack work is approved only after its entrances are marked. Approval only; advancing a year is not gated by it.
-    public string RackApprovalProblem => learning.RackMarkingProblem();
+    public string RackApprovalProblem => Compact30Session.IsActive ? "" : learning.RackMarkingProblem();
 
     public bool ApproveWorkPlan()
     {

@@ -91,7 +91,7 @@ public sealed partial class ForestEcologyController : MonoBehaviour
 
     public void ApplyStandGeometry(int model)
     {
-        if (!StandGeometryModel.IsKnown(model))
+        if (!StandGeometryModel.IsRuntimeGeometry(model))
             throw new System.ArgumentOutOfRangeException(nameof(model), $"unknown stand geometry model {model}");
         bool changed = model != standGeometryModelVersion;
         standGeometryModelVersion = model;
@@ -191,7 +191,9 @@ public sealed partial class ForestEcologyController : MonoBehaviour
         browsing.BackgroundPressure = backgroundBrowsePressure;
         // The physical property (ground, boundary ridges, camera range) follows the ecology geometry. Added at
         // runtime, like other scenario components, so the scene file stays the authored Legacy40 baseline.
-        if (GetComponent<StandWorldBoundary>() == null)
+        // Compact30 is a separate authored 30 x 30 m scene: it has its own ground, path and bounds and must not be
+        // scaled by the Legacy40/Enlarged80 boundary helper.
+        if (standGeometryModelVersion != StandGeometryModel.Compact30 && GetComponent<StandWorldBoundary>() == null)
             gameObject.AddComponent<StandWorldBoundary>();
         RebuildGrid();
     }
