@@ -1,9 +1,9 @@
-# Multi Stage 5 — Bounded task decomposition (corrected DRAFT)
+# Multi Stage 5 — Bounded task decomposition (DESIGN APPROVED; SOURCE GATED)
 
-- **Parent:** [spec.md](spec.md), **DRAFT / NO IMPLEMENTATION AUTHORISATION**; Manager [#730](https://github.com/jermur788/CCF/issues/730).
+- **Parent:** [spec.md](spec.md), **APPROVED DESIGN ONLY, NOT IMPLEMENTED**; dedicated Multi Manager [#730](https://github.com/jermur788/CCF/issues/730). Mandatory G2 audit, actor-specific source/physical lease and independent feature qualification remain gates.
 - **Corrections:** #812 original; #816 nonauthor NEEDS CHANGES; #817 latest G0-aligned correction; #821 nonauthor NEEDS CHANGES (one major/five minor); #823 one owner-authorised four-file DRAFT wording repair.
 - **Latest owner G0:** the original 30 × 30 m / 100-Sitka synthetic 2D stand is **ONE UNDIVIDED MANAGEMENT AREA, not one extraction rack**. No rack layout, entry, corridor, Confirm, rack clearing or rack geometry state. Owner [#819](https://github.com/jermur788/CCF/issues/819#issuecomment-7015429935) establishes representative sample → **multiple genuinely comparable areas** as Multi's primary purpose. A **near-term separate source/fixture/coverage/specification** stream is mandatory for that objective, while physical racks would need distinct later approval; the one-area Stage 5 slice is only the foundation.
-- **All source tasks T-02–T-08:** FUTURE / UNCLAIMED / NOT RUN. Every source, UX or qualification task requires approved exact spec, issue [RUNNING] with actual provider/model/branch/worktree/HEAD, file allowlist, coordination/physical Ops grant and independent review proportionate to impact. No permission from this DRAFT to write source, .NET, Unity, Host/save, original, main or physical Ops. L4 FAIL38 UNWAIVED.
+- **All source tasks T-02–T-08:** T-02 read-only G2 source audit is next; source implementation tasks T-03–T-08 remain FUTURE / NOT RUN / NOT AUTHORISED. A separately approved exact source packet, actual model/provider/branch/worktree/HEAD claim, exclusive file ownership, verified real physical Ops grant and proportional independent verification are required before source mutation. Design approval does not grant native/.NET, Unity, Host/save, original, main or physical Ops. L4 FAIL38 UNWAIVED.
 - **Gates:** **G0 owner RESOLVED**; **G1 comparator OPEN/optional inside Stage 5; near-term source-evidence obligation for Multi-area follow-on**, **G2 true atomic source Fell/annual proof OPEN/mandatory**, **G3 saves DECIDED Stage 7**, **G4 new economics DECIDED deferred**.
 
 ## T-00 — Independent nonauthor Stage 5 document review
@@ -11,14 +11,14 @@
 - **Status:** #816 completed **NEEDS CHANGES** relative to the then-assumed literal one-rack policy. Owner's newer direct clarification supersedes only physical-rack-specific findings; its G1/G2, transaction/history and honesty cautions remain important.
 - **Done for #816:** GitHub four-file read plus ranked review; **no** current Multi source implementation/qualification performed.
 - **#821 completed:** independent nonauthor full #817 review returned **NEEDS CHANGES document quality** (M-1 owner multi-area purpose, m-1…m-5 workflow/validation/N-A/scope, n-1/n-2 optional clarity); no source test or spec approval.
-- **Required follow-on after #823:** a different nonauthor checks **only the corrected #823 lines** against #821, all 26 R/24 X unchecked, one-area/no-rack boundary and near-term separate G1 obligation, then hands a document-quality verdict to #730. No general whole-project repeat.
+- **Review chain complete for design:** #821 independently identified document deficiencies; #823 author addressed them; dedicated Manager #730 performed direct correction/diff inspection and approved this exact design. Extra #825 recheck was superseded unstarted by direct owner instruction. Do NOT make another documentation review a dependency of source G2 research.
 
 ## T-01 — Owner boundary correction, formal review and spec status
 
 - **Difficulty:** Medium/High — superseded physical-rack policy risks corrupting four interdependent docs.
-- **Present documentation-only correction:** [#823](https://github.com/jermur788/CCF/issues/823), product-owner-authorised GPT-6 browser/GitHub sole four-spec writer, isolated branch derived from exact #817 corrected DRAFT; publish one new result. #730 keeps formal spec management and review ownership; no source, coordination, main or physical Ops edits.
+- **Documentation decision:** #823 owner-authorised four-file DRAFT correction was completed and handed off. Dedicated #730 Manager formally approved the corrected design after #821 independent review and explicitly decided year-advance consent/stale-cancel and G1-disabled N/A evidence disposition. This does not authorise source/physical work or certify gameplay.
 - **Decision:** **G0 RESOLVED**, one undivided area, no rack mechanism; **G3** save/resume Stage7, **G4** new economics deferred. Keep G1 optional/fail-closed **within this one-area Stage 5**, a **separate near-term G1 multi-area proof/spec priority** for Multi's real objective, and G2 source execution/annual mandatory for Stage 5.
-- **Output:** four complete consistent DRAFT files, all requirements/tests unchecked, exact compare and re-read, one result to #730; followed by nonauthor delta review and **Manager formal spec decision**. Neither #823 nor the owner writer grant unilaterally changes DRAFT to APPROVED.
+- **Output:** four corrected consistent **APPROVED DESIGN** files, all 26 R and 24 X unchecked, exact compare and GitHub readback, Manager formal verdict. #825 closed unstarted; no further doc-only review. Proceed to T-02 read-only G2 source contract and separate near-term multi-area G1 feasibility/spec, then dispatch eligible implementation only after exact source and Ops gates.
 - **Gate:** code waits for independently reviewed correction and formal Manager approval.
 
 ## T-02 — Actual source/current-year and G2 engine write-seam audit
