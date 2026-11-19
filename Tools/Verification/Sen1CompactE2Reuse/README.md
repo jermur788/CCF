@@ -59,14 +59,16 @@ it does not cover runtime/scene behaviour.
 It checks: Compact session/geometry/36 cells; 175 distinct roster trees and no implicit marks; no
 rack tool/plan; old geometry sizes and admissions; no save controller; three real Crop Trees without
 progress credit; arrival refused outside H1; assessment refused until opened; free exact placement
-refused; four fixed Pending orders; a Pending cancellation and replacement; three-year-1 plantings
+refused; four fixed Pending orders; an in-session Pending correction (old order removed, fresh id);
+bulk-setter refusal with only Pending work; three-year-1 plantings
 then a later-year fourth planting; approval and bulk-setter refusal; linked juveniles and visible
-neutral representations; Y* = the later resolution year; non-covering review without credit; CT-3 on
-two advance calls in the same frame; completed-site replacement refusal; covering review release;
+neutral representations; Y* = the later resolution year; non-covering review without credit; CT-3 on a
+completing advance followed by a second advance in the same frame; completed-site replacement refusal; covering review release;
 no historical two-cycle completion; and a deliberate no-work year after T1.
 
-It still does not cover a Failed-order replacement, old-world runtime suites, save/load, rendered
-composition, performance or player feel.
+Final candidate for this gate: `ac634757` (source branch). The harness still does not cover a
+Failed-order replacement, old-world runtime suites, save/load, rendered composition, performance or
+player feel.
 
 ## How to run the Unity gate later (disposable workflow)
 
