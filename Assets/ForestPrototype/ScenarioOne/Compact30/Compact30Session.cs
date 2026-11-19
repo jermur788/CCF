@@ -261,6 +261,8 @@ public sealed class Compact30Session : MonoBehaviour
         ReconcileGroup();
         if (!arrivalAcknowledged || !assessmentAcknowledged)
         { Say("Both the H1 arrival and the current stand assessment must be acknowledged first."); return; }
+        if (!manager.CanEditWorkPlan)
+        { Say("The scenario is not accepting new work in this year."); return; }
         Compact30SiteRow site = sites.sites[index];
         Compact30GroupOrder existing = CurrentSiteRecord(site.id);
         bool replacingPending = false;
