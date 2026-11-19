@@ -41,6 +41,33 @@ the current Operations tree and the recorded lane configuration is stale; #815 f
 investigation and forbids using a known unsafe lock. No Editor was started and no other owner's
 process was touched.
 
+## Mutation witness (proves the negative checks are live)
+
+A scratch copy of `Compact30SiteRules.cs` had the path-clearance refusal disabled
+(`if (false && clearance < 0f)`). The same 36-check run then failed exactly the intended witness:
+
+```
+FAIL site on the path refused
+checks=36 failures=1
+```
+
+The unmutated source passes 36/36. This is a real negative-mutation demonstration for the site rules;
+it does not cover runtime/scene behaviour.
+
+## What the disposable Editor harness covers
+
+It checks: Compact session/geometry/36 cells; 175 distinct roster trees and no implicit marks; no
+rack tool/plan; old geometry sizes and admissions; no save controller; three real Crop Trees without
+progress credit; arrival refused outside H1; assessment refused until opened; free exact placement
+refused; four fixed Pending orders; a Pending cancellation and replacement; three-year-1 plantings
+then a later-year fourth planting; approval and bulk-setter refusal; linked juveniles and visible
+neutral representations; Y* = the later resolution year; non-covering review without credit; CT-3 on
+two advance calls in the same frame; completed-site replacement refusal; covering review release;
+no historical two-cycle completion; and a deliberate no-work year after T1.
+
+It still does not cover a Failed-order replacement, old-world runtime suites, save/load, rendered
+composition, performance or player feel.
+
 ## How to run the Unity gate later (disposable workflow)
 
 1. Copy `Sen1CompactE2ReuseVerification.cs` into `Assets/ForestPrototype/`.

@@ -19,6 +19,7 @@ public sealed class WorkPlanView
     private readonly VisualElement advanceWarning;
     private readonly Label advanceHeadline, advanceDetail;
     private bool confirmingAdvance;
+    private int confirmCancelId = -1;
     private int purchaseQuantity = 5;
     // Extraction racks whose trees are listed one by one (a rack is one line until opened).
     private readonly HashSet<int> expandedRacks = new HashSet<int>();
@@ -611,7 +612,25 @@ public sealed class WorkPlanView
         if (order.status == ScenarioWorkStatus.Pending)
             row.Add(UiKit.Button("Remove", () => { m.RemovePendingOrder(order.workOrderId); Refresh(true); }));
         else if (order.status == ScenarioWorkStatus.Approved)
-            row.Add(UiKit.Button("Cancel approval", () => { m.CancelApprovedOrder(order.workOrderId); Refresh(true); }));
+        {
+            // Cancelling approved work is a deliberate, confirmed action. First click asks; second
+            // click performs the audited cancellation and removes the active order.
+            bool confirming = confirmCancelId == order.workOrderId;
+            row.Add(UiKit.Button(confirming ? "Confirm cancel #" + order.workOrderId : "Cancel approval",
+                () =>
+                {
+                    if (!confirming)
+                    {
+                        confirmCancelId = order.workOrderId;
+                        Refresh(true);
+                        return;
+                    }
+                    confirmCancelId = -1;
+                    m.CancelApprovedOrder(order.workOrderId);
+                    Refresh(true);
+                },
+                true, confirming ? new[] { "btn-danger" } : new string[0]));
+        }
     }
 
     private static void Problem(VisualElement card, ScenarioOneWorkOrder order)

@@ -813,9 +813,12 @@ public sealed class StandMapView
         {
             UiKit.Add(side, "Access and position", "heading");
             UiKit.Add(side, LayerNote(eco, model), "map-note");
-            UiKit.Add(side, ui.Learning.Summary, "body");
-            if (ui.RackLayout != null && ui.RackLayout.Total > 0)
-                UiKit.Add(side, $"Access racks: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned or open.", "muted");
+            if (!Compact30Session.IsActive)
+            {
+                UiKit.Add(side, ui.Learning.Summary, "body");
+                if (ui.RackLayout != null && ui.RackLayout.Total > 0)
+                    UiKit.Add(side, $"Access racks: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned or open.", "muted");
+            }
             UiKit.Add(side, "Selected destination: " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "body");
             var details = new Foldout { text = "Site details · light and young trees", value = false, name = "map-site-details" };
             side.Add(details);

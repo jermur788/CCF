@@ -153,6 +153,12 @@ public sealed class ForestTreeSpawner : MonoBehaviour
             {
                 if (candidate == null || candidate == defaultSpecies)
                     continue;
+                if (!candidate.IsSimulationReady)
+                {
+                    Debug.LogError("Compact30 runtime species '" + candidate.SpeciesId
+                        + "' is not simulation-ready and will not be registered.", this);
+                    continue;
+                }
                 sets.Add(new ForestSpeciesVisualSet { species = candidate });
             }
         }

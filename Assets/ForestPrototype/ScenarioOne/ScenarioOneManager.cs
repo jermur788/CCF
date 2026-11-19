@@ -898,6 +898,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public void SetPlantingExecution(WorkExecutionMethod method)
     {
         if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown executor."; return; }
+        if (Compact30Session.IsActive)
+        {
+            feedback = "Compact30 sets the planting method per G1 site (F2). The bulk setter is unavailable.";
+            return;
+        }
         if (ApprovedWorkOrdersImmutable && HasApprovedPlantingOrders)
         {
             feedback = "Approved planting work is frozen. Cancel an approved order and designate fresh work to change it.";
@@ -911,6 +916,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void SetPlantingShelters(bool install)
     {
+        if (Compact30Session.IsActive)
+        {
+            feedback = "Compact30 sets shelters per G1 site (F3). The bulk setter is unavailable.";
+            return;
+        }
         if (ApprovedWorkOrdersImmutable && HasApprovedPlantingOrders)
         {
             feedback = "Approved planting work is frozen. Cancel an approved order and designate fresh work to change it.";
@@ -1908,6 +1918,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return;
         }
         var work = GetPlantingQuote(order, OwnerMinutesPerYear - ownerMinutesUsedThisYear);
+        if (ApprovedWorkOrdersImmutable && order.status == ScenarioWorkStatus.Approved
+            && (work.CostCents != order.estimatedCostCents || work.PersonMinutes != order.estimatedMinutes))
+        {
+            Fail(order, report, "The approved planting quote changed; cancel and approve a fresh order.");
+            return;
+        }
         if (GetStockQuantity(order.stockItemId) < order.requiredStockQuantity || !work.Eligible)
         {
             Fail(order, report, string.IsNullOrEmpty(work.Problem) ? "Insufficient planting stock." : work.Problem);
@@ -2301,8 +2317,9 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 else
                 {
                     var quote = GetPlantingQuote(order, OwnerMinutesPerYear - reservedOwnerMinutes);
-                    // An approved order's quote is frozen (W-A). Only pending work may be re-quoted.
-                    if (order.status != ScenarioWorkStatus.Approved)
+                    // An approved order's quote is frozen in Compact (W-A). Other worlds keep their
+                    // historical re-quote behaviour.
+                    if (!(ApprovedWorkOrdersImmutable && order.status == ScenarioWorkStatus.Approved))
                     {
                         order.estimatedCostCents = quote.CostCents;
                         order.estimatedMinutes = quote.PersonMinutes;

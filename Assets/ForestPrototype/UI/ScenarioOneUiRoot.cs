@@ -108,10 +108,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         mapSource = new StandMapSource(this);
         if (manager != null)
         {
-            rackTool = (player != null ? player.gameObject : gameObject).AddComponent<RackTool>();
-            rackTool.Initialise(this, manager, ecology);
-            plannedMarkers = gameObject.AddComponent<PlannedFellMarkers>();
-            manager.RackConfirmed += OnRackConfirmed;
+            // Compact30 has no rack tools: adding RackTool would let B create rack felling orders.
+            if (!Compact30Session.IsActive)
+            {
+                rackTool = (player != null ? player.gameObject : gameObject).AddComponent<RackTool>();
+                rackTool.Initialise(this, manager, ecology);
+                plannedMarkers = gameObject.AddComponent<PlannedFellMarkers>();
+                manager.RackConfirmed += OnRackConfirmed;
+            }
         }
         learning = new LearningObjectivesView(this);
         hud = new WalkingHudView(this);
@@ -208,9 +212,12 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             indicator.Update(player.InspectedTree);
             if (!help.IsOpen)
             {
-                learning.ObserveRackInspection(player.InspectedTree);
-                if (keys != null && keys.jKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, false);
-                if (keys != null && keys.kKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, true);
+                if (!Compact30Session.IsActive)
+                {
+                    learning.ObserveRackInspection(player.InspectedTree);
+                    if (keys != null && keys.jKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, false);
+                    if (keys != null && keys.kKey.wasPressedThisFrame) learning.DecideRackInspection(player.InspectedTree, true);
+                }
             }
         }
         else

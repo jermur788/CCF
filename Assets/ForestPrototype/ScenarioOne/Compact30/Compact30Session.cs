@@ -40,7 +40,26 @@ public sealed class Compact30GroupOrder
 public sealed class Compact30Session : MonoBehaviour
 {
     public static Compact30Session Instance { get; private set; }
-    public static bool IsActive { get; private set; }
+    private static bool active;
+    public static bool Refused { get; private set; }
+    public static string RefusalReason { get; private set; } = "";
+    public static bool IsActive => active || Refused;
+
+    // A refused Compact scene must not fall back to the five-rack world or leave free player
+    // planting/felling enabled on a treeless shell. This flag disables those routes and a small
+    // notice draws the reason; no management component is created.
+    public static void Refuse(string reason)
+    {
+        Refused = true;
+        active = false;
+        RefusalReason = string.IsNullOrEmpty(reason) ? "Compact30 content was refused." : reason;
+        if (UnityEngine.Object.FindFirstObjectByType<Compact30RefusalNotice>() == null)
+        {
+            var notice = new GameObject("Compact30 Refusal");
+            notice.AddComponent<Compact30RefusalNotice>();
+        }
+        Debug.LogError("COMPACT30 REFUSED: " + RefusalReason);
+    }
 
     private ScenarioOneManager manager;
     private ForestEcologyController ecology;
@@ -80,7 +99,7 @@ public sealed class Compact30Session : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        IsActive = true;
+        active = true;
         manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
         ecology = GetComponent<ForestEcologyController>() ?? FindFirstObjectByType<ForestEcologyController>();
         player = FindFirstObjectByType<ForestPlayer>();
@@ -105,7 +124,7 @@ public sealed class Compact30Session : MonoBehaviour
                 manager.AdvanceYearBlocker = null;
         }
         if (Instance == this) Instance = null;
-        IsActive = false;
+        active = false;
     }
 
     private void LoadData()
@@ -217,6 +236,7 @@ public sealed class Compact30Session : MonoBehaviour
     public void TryDesignate(int index)
     {
         if (sites == null || index < 0 || index >= sites.sites.Count) return;
+        ReconcileGroup();
         if (!arrivalAcknowledged || !assessmentAcknowledged)
         { Say("Both the H1 arrival and the current stand assessment must be acknowledged first."); return; }
         Compact30SiteRow site = sites.sites[index];
@@ -326,6 +346,7 @@ public sealed class Compact30Session : MonoBehaviour
 
     private void OnAnnualReviewAcknowledged()
     {
+        ReconcileGroup();
         if (!GroupIsComplete()) return;
         int covering = CoveringYear;
         if (manager.CurrentEcologicalYear != covering)
@@ -341,6 +362,7 @@ public sealed class Compact30Session : MonoBehaviour
 
     private bool CanAdvanceYear()
     {
+        ReconcileGroup();
         if (!GroupIsComplete()) return true;
         return reviewAcknowledgedYear == CoveringYear;
     }
@@ -423,11 +445,14 @@ public sealed class Compact30Session : MonoBehaviour
     {
         if (tree == null || tree.GetComponent<Compact30AuthoredTree>() == null) return;
         Vector3 position = tree.transform.position;
-        tree.gameObject.SetActive(false);
-        CreateStump(position);
+        // Keep the identity object alive as a stump so map, inspection and history can still refer
+        // to the stem. Hide its renderers and interaction colliders instead of deactivating it.
+        foreach (Renderer renderer in tree.GetComponentsInChildren<Renderer>()) renderer.enabled = false;
+        foreach (Collider collider in tree.GetComponentsInChildren<Collider>()) collider.enabled = false;
+        CreateStump(position, tree.TreeId);
     }
 
-    private void CreateStump(Vector3 position)
+    private void CreateStump(Vector3 position, string treeId)
     {
         if (stumpMaterial == null)
         {
@@ -436,7 +461,7 @@ public sealed class Compact30Session : MonoBehaviour
             stumpMaterial = new Material(shader) { name = "Compact30 stump", color = new Color(0.38f, 0.28f, 0.18f) };
         }
         GameObject stump = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        stump.name = "Compact30 stump";
+        stump.name = "Compact30 stump " + treeId;
         Collider collider = stump.GetComponent<Collider>();
         if (collider != null) Destroy(collider);
         stump.transform.position = new Vector3(position.x, 0.175f, position.z);
@@ -491,7 +516,14 @@ public sealed class Compact30Session : MonoBehaviour
     // The existing Annual Review acknowledge button is the one covering-review control. In Compact
     // this is true from the moment the final 2+2 completes until that exact year is acknowledged,
     // so the button is present and the Work Plan advance button is held.
-    public bool CoveringReviewPending => GroupIsComplete() && reviewAcknowledgedYear != CoveringYear;
+    public bool CoveringReviewPending
+    {
+        get
+        {
+            ReconcileGroup();
+            return GroupIsComplete() && reviewAcknowledgedYear != CoveringYear;
+        }
+    }
 
     private int Year => manager != null ? manager.CurrentEcologicalYear : 0;
 
@@ -683,5 +715,27 @@ public sealed class Compact30Session : MonoBehaviour
         texture.SetPixel(0, 0, color);
         texture.Apply();
         return texture;
+    }
+}
+
+// Drawn only when the Compact candidate content is refused before any management component is
+// created. It keeps the scene honest: no five-rack UI, no free planting/felling, no silent fallback.
+public sealed class Compact30RefusalNotice : MonoBehaviour
+{
+    private GUIStyle style;
+
+    private void OnGUI()
+    {
+        if (style == null)
+        {
+            style = new GUIStyle(GUI.skin.box) { fontSize = 14, wordWrap = true, alignment = TextAnchor.UpperLeft };
+            style.normal.textColor = Color.white;
+        }
+        var box = new Rect(20, 20, Mathf.Min(760f, Screen.width - 40f), 150f);
+        GUI.Box(box, GUIContent.none);
+        GUI.Label(new Rect(box.x + 14, box.y + 12, box.width - 28, box.height - 24),
+            "COMPACT30 REFUSED\n" + Compact30Session.RefusalReason
+            + "\n\nNo management systems were started. No save, scene or production coordinate was changed.",
+            style);
     }
 }
