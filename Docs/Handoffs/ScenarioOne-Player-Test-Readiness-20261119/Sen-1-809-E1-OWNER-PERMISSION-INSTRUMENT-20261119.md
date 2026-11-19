@@ -1,6 +1,6 @@
 # Sen-1 #809 — Single narrow owner permission for the first Compact30 E1 Editor preview
 
-**Status: UNSIGNED / NOT OPERATIVE.** This is the smallest single permission needed to turn the already owner-directed Compact30 Tier S direction (D-086–D-090) into one runnable Linux Unity Editor preview. It grants nothing until the owner actually replies with the approval line in §6. No editor, scene byte, source or Unity lease exists under this instrument yet.
+**Status: SIGNED BY OWNER — OPERATIVE FOR E1 ONLY.** Owner `jermur788` approved the instrument as written on 19 November 2026 (recorded in the native session at `2026-11-19T10:51Z`), selecting *"I approve it as written"*. This is the smallest single permission needed to turn the already owner-directed Compact30 Tier S direction (D-086–D-090) into one runnable Linux Unity Editor preview. It authorises E1 preview authoring and the supervised Unity run only; it is not a production-world signature, not E2 and not a Windows build.
 
 Parent claim: [#809](https://github.com/jermur788/CCF/issues/809). Scene/content lane: [#718](https://github.com/jermur788/CCF/issues/718). Date: 19 November 2026.
 
