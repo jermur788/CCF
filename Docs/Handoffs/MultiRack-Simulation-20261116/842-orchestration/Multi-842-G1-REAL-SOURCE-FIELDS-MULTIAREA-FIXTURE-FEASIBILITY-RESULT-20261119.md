@@ -10,13 +10,13 @@
 |---|---|
 | Actor | Claude Opus 5.5 (`claude-opus-5-5`, Anthropic), Claude Code harness in T3 Code |
 | Host | Desktop `DESKTOP-DL1BQI7`, Windows 11 host reading WSL2 Ubuntu. The source sits on `/dev/sdd`, the WSL2 virtual disk on the internal drive. No laptop, ZX20, external Files volume or mount was used. |
-| Live main at registration and at write | `4a06f1981041b7307ae8225fc0b5aca969f3f20b` |
+| Live main | `4a06f1981041b7307ae8225fc0b5aca969f3f20b` at registration; moved to `8a5d96390f8eae07d7da0680d1623aefaffe5578` by write time, and the result branch is based on that commit. The source candidate is local and unaffected by main. |
 | Read-only source | `/home/jer/CCF-Dev/Multi-20261119/y2engine`, branch `feature/multi-789-year2-10-engine-20261119-v1`, HEAD `6f9d2e990201bc47e361c3562be9390ed221baf6`. `git --no-optional-locks status --porcelain` was empty. Same candidate as #837 and the #841 registration. |
 | Other read-only inputs | P0 lab at GitHub commit `a7f41983c2f2f233b8fe999d1a5b10e72bdd2866` (`git show` object reads in the CCF-HP clone, no checkout). #814 marking candidate `_814/marking` HEAD `e8e1d376…` (read only). #828 spec and checklist, and the #827 result (GitHub reads). |
 | Fixture identity re-observed | `fixtures/derived/p1d-30m-sitka-adult-v1.sitkap1fx.json`: SHA-256 `bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4`, 32,567 bytes. Matches the catalog record `TrustTables.cs:99-102`. |
 | Method | File reads, `grep`, read-only `git rev-parse/ls-files/ls-tree/show/cat-file` with `--no-optional-locks`, `sha256sum`, and one isolated Python (`-I`) pass over the fixture JSON to get distributions. **No build, test, .NET, Unity, checkout, fetch into the source, fixture authoring or source edit.** |
 | #841 protection | #841 writes only to `g2-fell-writer` and its qualification lane, which are separate physical paths. Neither was read. `y2engine` has no write reservation. |
-| Writes | This one Markdown on `review/multi-842-g1-real-field-and-fixture-feasibility-20261119-v1`, created from main `4a06f198`, plus #842 and #730 comments. |
+| Writes | This one Markdown on `review/multi-842-g1-real-field-and-fixture-feasibility-20261119-v1`, created from main `8a5d9639`, plus #842 and #730 comments. |
 
 Paths below are relative to `y2engine/Tools/MultiRackSitkaP1Lab/` unless stated otherwise. `P0:` means `Tools/MultiRackSitkaLab/src/Core/` at `a7f41983`.
 
