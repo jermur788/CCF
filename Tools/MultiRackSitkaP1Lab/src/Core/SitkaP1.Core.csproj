@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>SitkaP1.Core</AssemblyName>
+    <RootNamespace>SitkaP1.Core</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <!-- Expected SHA-256 of the P0 Core binary built by build/build-p0-core-ref.sh from the #589 qualified tree f212c8f6. -->
+    <P0CoreExpectedSha256>9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3</P0CoreExpectedSha256>
+    <P0CorePath>$(P1Root).p0ref/SitkaLab.Core.dll</P0CorePath>
+  </PropertyGroup>
+
+  <!--
+    P0 is referenced as a pre-built BINARY (never a ProjectReference), so no P1 restore/build/test writes bin/ or obj/
+    under Tools/MultiRackSitkaLab. Only P0's public API is used: LabFile.Parse and CanonicalJson.SnapshotHash.
+  -->
+  <ItemGroup>
+    <Reference Include="SitkaLab.Core">
+      <HintPath>$(P0CorePath)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Scenario One pure adult-Sitka maths and integer RNG, compiled UNCHANGED from the CCF source (read-only link; these two
+    files use only System). Unity-coupled code (ForestEcologyController, TreeSpeciesDefinition, ForestTree) is NOT linked.
+  -->
+  <ItemGroup>
+    <Compile Include="$(CcfRepoRoot)Assets/ForestPrototype/SitkaGrowthModel.cs" Link="CcfSource/SitkaGrowthModel.cs" />
+    <Compile Include="$(CcfRepoRoot)Assets/ForestPrototype/SimulationRandom.cs" Link="CcfSource/SimulationRandom.cs" />
+  </ItemGroup>
+
+  <Target Name="VerifyP0CoreReference" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(P0CorePath)')" Text="P0 Core reference missing. Run Tools/MultiRackSitkaP1Lab/build/build-p0-core-ref.sh first." />
+    <GetFileHash Files="$(P0CorePath)" Algorithm="SHA256" HashEncoding="hex">
+      <Output TaskParameter="Hash" PropertyName="P0CoreActualSha256" />
+    </GetFileHash>
+    <Error Condition="'$(P0CoreActualSha256.ToLowerInvariant())' != '$(P0CoreExpectedSha256)'" Text="P0 Core reference hash $(P0CoreActualSha256) does not match the expected $(P0CoreExpectedSha256). Rebuild it with build/build-p0-core-ref.sh; do not edit P0." />
+  </Target>
+</Project>

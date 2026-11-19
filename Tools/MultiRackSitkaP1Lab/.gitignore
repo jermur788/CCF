@@ -1,0 +1,15 @@
+# The repository root ignores Unity-generated *.sln / *.csproj. These are hand-written P1 lab project files and MUST be tracked.
+!*.sln
+!*.csproj
+
+# P1-owned local data root (future saves; never committed). Never P0's .lab-data/.
+.p1-data/
+# Isolated P0 Core binary reference, rebuilt from the pinned P0 tree by build/build-p0-core-ref.sh (never committed).
+.p0ref/
+# Build output (P1 only)
+bin/
+obj/
+TestResults/
+# Local evidence scratch (durable evidence lives off-repo under /media/jer/Files/CCF/Verification)
+evidence/*
+!evidence/README.md

@@ -1,0 +1,93 @@
+using System.Text.Json;
+using SitkaP1.Core;
+
+// P1-F0 commands read fixtures through no-follow, catalog-length-bounded access. Annual reports go to stdout.
+// Exit codes: 0 ok, 2 refused (code printed), 64 usage.
+return Cli.Run(args);
+
+static class Cli
+{
+    public static int Run(string[] args)
+    {
+        try
+        {
+            switch (args.FirstOrDefault())
+            {
+                // #643 B-01: no caller-supplied output path exists. The bytes go to standard output only, and only when it is a
+                // pipe or terminal; P1 itself never creates, truncates or replaces a file.
+                case "generate-manifest" when args.Length == 2 && args[1] == "--stdout":
+                {
+                    var bytes = ManifestGenerator.Generate().FileBytes();
+                    NoFollowRead.RequireStreamDescriptor(1);
+                    using (var stdout = Console.OpenStandardOutput()) stdout.Write(bytes);
+                    Console.Error.WriteLine($"streamed {bytes.Length} bytes sha256={DerivedManifest.Sha256Hex(bytes)}");
+                    return 0;
+                }
+                // Read-only comparison of the generator output with the committed fixture (no-follow, catalog-length read).
+                case "generate-manifest" when args.Length == 3 && args[1] == "--check":
+                {
+                    var generated = ManifestGenerator.Generate().FileBytes();
+                    var load = FixtureAccess.ReadDerived(args[2], ManifestGenerator.FixtureId, TrustUse.ReviewEvidenceOnly);
+                    if (!generated.AsSpan().SequenceEqual(load.Manifest.FileBytes()))
+                        throw new P1Refusal("GeneratorMismatch", "generator output differs from the committed fixture");
+                    Console.WriteLine($"generator output identical to committed fixture ({generated.Length} bytes, sha256={DerivedManifest.Sha256Hex(generated)})");
+                    return 0;
+                }
+                // #643 M-02: the caller names a DIRECTORY; the file name and exact length come from the compiled catalog.
+                case "verify-derived" when args.Length == 3:
+                {
+                    var load = FixtureAccess.ReadDerived(args[2], args[1], TrustUse.ReviewEvidenceOnly);
+                    var m = load.Manifest;
+                    Console.WriteLine(P1Disclosure.Derived30);
+                    Console.WriteLine($"domain={P1DomainWire.Name(load.Record.Domain)} id={m.DerivedFixtureId} trust={load.TrustLabel}");
+                    Console.WriteLine($"trees={m.Trees.Count} belowActionThreshold={m.Trees.Count(t => t.DbhMm < m.ActionEligibleDbhThresholdMm)} contentHash={m.ContentHash}");
+                    Console.WriteLine($"derivedCatalogDigest={DerivedCatalog.Digest()}");
+                    return 0;
+                }
+                case "inspect-original" when args.Length is 3 or 4:
+                {
+                    var use = args.Length == 4 && args[3] == "--review-evidence" ? TrustUse.ReviewEvidenceOnly : TrustUse.RequireAccepted;
+                    var r = FixtureAccess.InspectOriginal(args[1], args[2], use);
+                    Console.WriteLine(r.Disclosure);
+                    Console.WriteLine(r.ToString());
+                    Console.WriteLine($"originalTrustTableDigest={OriginalTrustTable.Digest()}");
+                    return 0;
+                }
+                case "annual" when args.Length is 3 or 4:
+                {
+                    var domain = P1DomainWire.Parse(args[1]);
+                    if (args.Length == 3)
+                    {
+                        // Preserve the original domain/catalog refusals even without a fixture directory.
+                        AnnualEngine.RequireAnnualDomain(domain, args[2]);
+                        Console.Error.WriteLine("usage: sitkap1 annual <domain> <id> <derivedFixtureDir>");
+                        return 64;
+                    }
+                    var engine = AnnualEngine.Open(domain, args[2], args[3]);
+                    var report = engine.Advance();
+                    Console.WriteLine(JsonSerializer.Serialize(new
+                    {
+                        Disclosure = "SYNTHETIC SOURCE-DERIVED MODEL. " + P1Disclosure.Derived30,
+                        Domain = P1DomainWire.Name(domain),
+                        FixtureId = args[2],
+                        Algorithm = DerivedManifest.P1AlgorithmVersion,
+                        GrowthModel = DerivedManifest.GrowthModelVersion,
+                        RngModel = DerivedManifest.RngModelVersion,
+                        engine.SimulationSeed,
+                        AreaHaBits = F32.Hex(DerivedManifest.AreaHaBits),
+                        Report = report,
+                    }));
+                    return 0;
+                }
+                default:
+                    Console.Error.WriteLine("usage: sitkap1 generate-manifest --stdout | generate-manifest --check <derivedFixtureDir> | verify-derived <id> <derivedFixtureDir> | inspect-original <p0FixtureDir> <id> [--review-evidence] | annual <domain> <id> <derivedFixtureDir>");
+                    return 64;
+            }
+        }
+        catch (P1Refusal e)
+        {
+            Console.Error.WriteLine($"REFUSED {e.Code}: {e.Message}");
+            return 2;
+        }
+    }
+}

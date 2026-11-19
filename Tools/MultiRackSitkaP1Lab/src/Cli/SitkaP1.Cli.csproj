@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>sitkap1</AssemblyName>
+    <RootNamespace>SitkaP1.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/SitkaP1.Core.csproj" />
+  </ItemGroup>
+</Project>
