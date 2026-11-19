@@ -4,7 +4,7 @@
 
 ## Verdict
 
-**`E1 VISUAL/LAYOUT CORRECTION BUILT — M1/M2/M3 PASS — READY FOR SECOND OWNER WALK`**
+**`E1 VISUAL/LAYOUT CORRECTION BUILT — M1/M2/M3 PASS (HISTORICAL, NOT RE-RUN) — JSON INTEGRITY REPAIRED — READY FOR SECOND OWNER WALK`**
 
 This is a corrected **local provisional E1 preview**, not the signed production world, not E2 and not a Windows build. The owner still walks it and accepts or reports what remains. **No acceptance is claimed here** — `OWNER E1 ACCEPTED` is reserved to the owner.
 
@@ -13,12 +13,13 @@ This is a corrected **local provisional E1 preview**, not the signed production 
 | Item | Value |
 |---|---|
 | Scene branch | `sen-1/813-compact30-e1-visual-layout-fix-20261119-v1` |
-| HEAD | `be60c174f8609107447c6cbf4dd223da8d7b8cdf` |
+| HEAD (correction v2) | `0709d05a79756d3b72ccbd0452bd0252a75c3804` |
+| Original #813 candidate | `be60c174f8609107447c6cbf4dd223da8d7b8cdf` (parent of the JSON repair) |
 | Base (unmodified #809 tip) | `36e32aa952f4fe41ca666fca578bad83b5a4bee4` |
 | Worktree | `/media/jer/ZX20/CCF-Sen1-813-E1-VisualFix-20261119` |
 | Scene | `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity` |
 | Scene SHA-256 | `5e948e68fad41a0e9669bf0d18efe73aab2e8d2dd2148b2ab2824f4915c17806` |
-| Placement JSON SHA-256 | `aeaf2302a23ad11c3077d9dae3071f5b6af672e9b5cedfb26f8c2860763e942f` |
+| Placement JSON SHA-256 | `dc9d72a87f62fba81e420ac6f0cc5fb21f22f59c36ee29ef9522274dba36cd7c` (v2; v1 was `aeaf2302…`) |
 | Unity | `6000.6.0f1` (Linux, Vulkan) |
 
 Branch: https://github.com/jermur788/CCF/tree/sen-1/813-compact30-e1-visual-layout-fix-20261119-v1/Assets/ForestPrototype/Scenes
@@ -153,9 +154,48 @@ The walk crosses H1, the path corridor and past the relocated G1 sites, so the n
 - Deployed `/media/jer/ZX20/CCF-Ops/scripts/unity-lock` untouched (`mtime` 15 Oct).
 - Historical Legacy40 / Enlarged80 / Reference Future v1 and every other lane untouched. The seven pre-existing dirty files in `/media/jer/Files/CCF-Primary` were not touched.
 
+## Correction — placement JSON integrity (19 November 2026)
+
+**Defect found by Manager readback, not by the author.** The placement JSON committed at `be60c174` was **not valid JSON**: the closing `}` of the `correction_20261119` object (line 131) had no trailing comma before `"player"`. A strict parser failed at position 3723 with `Expected ',' or '}' after property value`.
+
+**Fix — one comma, no data change, in the already-permitted placement file:**
+
+| | |
+|---|---|
+| New candidate commit | `0709d05a79756d3b72ccbd0452bd0252a75c3804` (parent `be60c174`, itself parented on unmodified #809 tip `36e32aa9`) |
+| File changed | `Assets/ForestPrototype/Scenes/ScenarioOneCompact30Placement.json` **only** |
+| Diff | `1 insertion(+), 1 deletion(-)` — no coordinate, cell, roster, label or scene change |
+| Placement JSON SHA-256 | `dc9d72a87f62fba81e420ac6f0cc5fb21f22f59c36ee29ef9522274dba36cd7c` |
+| Scene blob | **unchanged** — SHA-256 still `5e948e68…`, so every #813 scene change and its M2 walk evidence still describe exactly this candidate |
+
+**Reproduction against the pushed branch:**
+
+```bash
+git fetch origin sen-1/813-compact30-e1-visual-layout-fix-20261119-v1
+git show origin/sen-1/813-compact30-e1-visual-layout-fix-20261119-v1:Assets/ForestPrototype/Scenes/ScenarioOneCompact30Placement.json \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['trees']), d['G1'])"
+```
+
+Observed: strict parse **succeeds**, `175` trees, and exactly four G1 sites — `O1 (0.65, −2.65) cell 15`, `O2 (0.20, −1.10) cell 15`, `B1 (−1.20, −2.45) cell 14`, `B2 (−0.45, −4.30) cell 14`.
+
+**Runtime effect: none expected, and none claimed.** `git grep` finds **no reference** to `ScenarioOneCompact30Placement.json` from scene or gameplay code; the scene carries its own prefab instances and marker transforms. The file is a placement record for documentation and review, so this repair fixes artifact validity, not play behaviour.
+
+**What was and was not re-run.** The M1/M2/M3 results above are the original author's observations at `be60c174`, recorded before this repair. They are **not re-run** and are not presented as re-verified by this correction. Because the scene blob is byte-identical and the JSON is not read at runtime, those observations still describe the same scene. This correction session ran **no Unity Editor, no Play mode and no save interaction**.
+
+**Independent source checks performed for this correction (static, no Unity):**
+
+- 175 Sitka prefab instances under `Trees`, with a modification multiset **identical** to the #809 base scene; the 226 exterior instances and 32 brash clusters are separately parented under `E1_Outside_VisualOnly` children, not the stand.
+- `TextMesh` component count: base `4` → candidate **`0`**.
+- Marker transforms match the JSON exactly: O1 `(0.65, 0, −2.65)`, O2 `(0.20, 0, −1.10)`, B1 `(−1.20, 0, −2.45)`, B2 `(−0.45, 0, −4.30)`.
+- Colliders: base and candidate both hold only the playable `Ground` and four `Containment` spheres — the exterior shell contributes **none**.
+- Clearances independently recomputed from the published C0 anchor chain: O1 **+0.774 m**, O2 **+0.767 m**, B1 **+2.492 m**, B2 **+1.996 m** (0.8 m path half-width + 0.6 m footprint). Minimum site separation 1.614 m; nearest real Sitka 1.398 m.
+- Scene-local lighting values confirmed in the committed YAML: ambient intensity 1.50 with the recorded colours, sun 1.75 with shadow strength 0.72, exponential-squared fog density 0.0125.
+
+These are static checks of the committed artifact. They support, but do not replace, the owner's own walk.
+
 ## Known artefacts and limits (stated, not hidden)
 
-1. **The GUI Play captures contain a translucent grey band across the middle of the Game view.** It appears identically before and after, is absent from a direct camera render, and is an **Editor-side overlay artefact**, not scene content — most likely the same GUI/QuickSearch overlay area that emitted the pre-existing `ArgumentOutOfRangeException` recorded in #809. It does not exist in the scene and will not follow the owner into a build. The clean comparison images in this document are direct camera renders and contain no UI.
+1. **The GUI Play captures contain a translucent grey band across the middle of the Game view.** It appears identically before and after, is absent from a direct camera render, and is an **Editor-side overlay artefact**, not scene content — most likely the same GUI/QuickSearch overlay area that emitted the pre-existing `ArgumentOutOfRangeException` recorded in #809. It does not exist in the scene and is **likely** Editor-only — **not expected** in a player build, but that was **not build-tested**, so treat it as likely rather than verified. The clean comparison images in this document are direct camera renders and contain no UI.
 2. A pre-existing Editor-only `UnityEditor.Search.SearchDatabase` exception still appears on GUI startup. It is not caused by this scene and is not waived as a scene pass.
 3. The horizon at ~60–80 m is hazy and the sky is visible low between distant trunks. That is a normal woodland-edge read and is far from the previous hard platform edge, but it is a simplification, not a solved distance landscape.
 4. The exterior shell is **scenery only**. It exists to make the property look embedded in a landscape. Nothing outside ±15 m is simulated and nothing there is walkable.
@@ -165,12 +205,13 @@ The walk crosses H1, the path corridor and past the relocated G1 sites, so the n
 
 ```bash
 cd /media/jer/ZX20/CCF-Sen1-813-E1-VisualFix-20261119
+git pull --ff-only origin sen-1/813-compact30-e1-visual-layout-fix-20261119-v1   # v2: JSON delimiter repair only, scene untouched
 XDG_DATA_HOME="$HOME/.var/app/com.unity.UnityHub/data" \
 XDG_CONFIG_HOME="$HOME/.var/app/com.unity.UnityHub/config" \
 /media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity -projectPath "$PWD"
 ```
 
-Then open `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity` and press **Play**.
+Then open `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity` and press **Play**. Current branch tip must read `0709d05a` (`git log -1 --oneline`).
 
 Unity Hub must be signed in and hold an active Editor entitlement. No other Unity Editor should be open at the same time.
 
