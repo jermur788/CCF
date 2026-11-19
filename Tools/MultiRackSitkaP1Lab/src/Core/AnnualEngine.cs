@@ -29,6 +29,7 @@ public sealed class AnnualEngine
 {
     private readonly object sync = new();
     private readonly float areaHa;
+    private readonly WorkSourceIdentity identity;
     private AnnualState state;
 
     private AnnualEngine(DerivedLoad load)
@@ -36,6 +37,11 @@ public sealed class AnnualEngine
         var manifest = load.Manifest;
         SimulationSeed = checked((int)manifest.SimulationSeed);
         areaHa = F32.FromBits(load.Record.AreaHaBits);
+        // The exact admitted source identity a Work Plan binds to (fixture file bytes and canonical content).
+        identity = new WorkSourceIdentity(P1DomainWire.Name(P1Domain.DerivedP1ThirtyMetreExperimentV1),
+            manifest.DerivedFixtureId, load.Record.FileSha256, manifest.ContentHash,
+            DerivedManifest.RngModelVersion, DerivedManifest.GrowthModelVersion, DerivedManifest.P1AlgorithmVersion,
+            manifest.ActionEligibleDbhThresholdMm);
         var trees = manifest.Trees.Select(tree => new AnnualTree(tree.TreeId,
             F32.FromBits(tree.UnityXBits), F32.FromBits(tree.UnityZBits), checked((int)tree.AgeYears),
             F32.FromBits(tree.DbhCmBits), F32.FromBits(tree.HeightMBits), F32.FromBits(tree.CrownRadiusMBits)));
@@ -66,7 +72,7 @@ public sealed class AnnualEngine
     // Private experiment seam: no CLI route or public continuation contract.
     internal AnnualContinuation ContinueInMemory()
     {
-        lock (sync) return new AnnualContinuation(state, SimulationSeed, areaHa);
+        lock (sync) return new AnnualContinuation(state, SimulationSeed, areaHa, identity);
     }
 
     public AnnualReport Advance() => Advance(beforeCommit: null);
