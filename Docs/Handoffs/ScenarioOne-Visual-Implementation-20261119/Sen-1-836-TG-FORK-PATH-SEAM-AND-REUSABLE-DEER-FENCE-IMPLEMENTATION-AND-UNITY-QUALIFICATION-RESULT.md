@@ -12,7 +12,7 @@
 | Skill | installed `orchestrate-work` (`/home/jer/.agents/skills/orchestrate-work`, sha256 `07831c7c…`), invoked and followed; portable routing ledger because the host exposes no Runtime ledger |
 | Branch | `sen-1/836-path-seam-deer-fence-20261119-v1` |
 | Base | `0709d05a79756d3b72ccbd0452bd0252a75c3804` (accepted #813 E1 scene) |
-| Candidate | `44e99e1c` (head of branch; earlier commits are the review-fix chain) |
+| Candidate | `HEAD` of the branch (earlier commits are the review-fix chain) |
 | Worktree | `/media/jer/ZX20/CCF-Sen1-836-PathFence-20261119`, own cold `Library`, registered lane `Sen1-836-PathFence` |
 | Unity lease | `8a5eb9ee2b284164a5239da618d080de`, acquired through `/media/jer/ZX20/CCF-Ops/scripts/unity-lock`, one serial Editor operator |
 | Writer exclusivity | single writer for the scene and the new art folder; #813's own worktree and its three uncommitted files untouched |
@@ -35,10 +35,10 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 
 | Area | Change |
 |---|---|
-| Footpath | One continuous mesh `C0_FootpathRibbon`: **1.2 m core + 0.20 m verge each side**. Catmull–Rom through the nine accepted C0 anchors, arc-length resampled at 0.08 m, 246 rings, 1,230 vertices, 1,960 triangles, 3 submeshes (core, left verge, right verge). The cross-section narrows to 86 % at the tight A7 bend so the ribbon cannot fold, then tapers to 45 % at both tips. UV `u` = arc length / 2 m so the texture flows along the route instead of restarting; the outer verge boundary wobbles ±75 mm so there is no straight edge; both tips taper to 45 % width over 1.4 m so there is no needle and no cap line. No collider; shadow casting off, receiving on. |
+| Footpath | One continuous mesh `C0_FootpathRibbon`: **1.2 m core + 0.20 m verge each side**. centripetal Catmull–Rom (α = 0.5) through the nine accepted C0 anchors, arc-length resampled at 0.08 m, 245 rings, 1,225 vertices, 1,952 triangles, 3 submeshes (core, left verge, right verge). The cross-section narrows to 88 % at the tight A7 bend, then tapers to 45 % at both tips. UV `u` = arc length / 2 m so the texture flows along the route instead of restarting; the outer verge boundary wobbles ±75 mm so there is no straight edge; both tips taper to 45 % width over 1.4 m so there is no needle and no cap line. No collider; shadow casting off, receiving on. |
 | H1 clearing | `H1_WornEarth_12x10` replaced by an organic 12 × 10 m fan mesh (513 vertices, 896 triangles) with four octaves of boundary wobble **and a directional lobe that reaches the C0 mouth at (2.99, −4.75)**. The path therefore overlaps the clearing, removing the bare wedge. No collider. |
-| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 420 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, **ten 3 m panels plus a dedicated 1.5 m panel on every edge so no corner is left open**, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, exactly one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
-| Art | 4 original procedural 512² textures (path soil, verge litter, clearing earth, timber), 5 URP Lit materials, 5 mesh assets, 3 prefabs, 1 README. **1.07 MiB** of new assets; no third-party content. |
+| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 456 triangles) and `PF_Sen1_DeerFencePanel_1_5m` (336 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, **ten 3 m panels plus a dedicated 1.5 m panel on every edge so no corner is left open**, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, exactly one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
+| Art | 4 original procedural 512² textures (path soil, verge litter, clearing earth, timber), 5 URP Lit materials, 6 mesh assets, 4 prefabs, 1 README. **1.07 MiB** of new assets; no third-party content. |
 
 **Nothing else moved.** `git diff 0709d05a..HEAD` touches the scene, `Assets/ForestPrototype/Art/Sen1PathFence/**` and this document; no ProjectSettings, package, save or script file changed. The scene diff is the entire visual change.
 
@@ -51,7 +51,7 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 | Prefab-instance roster vs base | 433 base instances → 520; **the only changed sources are the four new fence prefabs** (+39 three-metre panels, +4 one-and-a-half-metre panels, +38 posts, +6 strainers). Every pre-existing prefab instance count is unchanged. |
 | Colliders | 5 scene collider components before and after (Ground + four containment), plus the Player's CharacterController — identical set. None added to the path, clearing or fence. |
 | G1 clearance, 1.2 m core | O1 +1.574 m, O2 +1.567 m, B1 +3.292 m, B2 +2.796 m to the core edge; subtracting the 0.55 m footprint ring still leaves **+0.82 m worst case**, i.e. better than #813's +0.767 m because the core narrowed from 1.6 m to 1.2 m. |
-| Renders | 32 PNGs: 7 viewpoints before, 9 viewpoints after (adds the south entrance and a loose corner view), each at 1280×720 and 1920×1080. The before set is the pristine base at `0709d05a` with the same camera poses. |
+| Renders | 36 PNGs: 14 before (7 viewpoints) and 22 after (11 viewpoints), each at 1280×720 and 1920×1080. The before set is the pristine base at `0709d05a`; the after set was rendered from the committed scene and `captures/COMMIT.txt` records its hash. |
 | Runtime performance | **NOT TESTED** (no frame-time measurement). Proxy: ≈19 k added triangles and 92 added renderers in a 30 × 30 m scene; the netting panels are 420 triangles each and do not cast shadows. |
 
 ### Render evidence
@@ -65,6 +65,7 @@ Root: `/media/jer/Files/CCF/Verification/Sen1-836-PathFence-20261119/captures/{b
 - `08_south_open_entrance` — the H1 arrival opening: two strainers, one clear bay, no netting across it.
 - `09_fence_corner_loose` — corner closure.
 - `10_a7_bend` — the tight A7 bend after resampling.
+- `11_fence_corner_outside` — the north-east corner seen from outside the enclosure.
 - `05_overhead`, `06_path_north` — plan view and the northern half of the route.
 
 The before/after pairs are the actual argument, not this document: the before `07` shows the rectangular slab edge with a bare strip; the after `07` shows the clearing lobe meeting the tapered path with no gap. The before `03` shows no fence at the corner at all; the after `03` shows posts, netting, tension wire and brace.
@@ -83,7 +84,7 @@ A fresh-context, non-author reviewer was given the candidate, the scene diff and
 
 ### Reviewer verdict and the corrections it produced
 
-**Verdict on `bccffe650`: NEEDS CHANGES.** The reviewer independently decoded the mesh vertex data and the serialized scene rather than trusting this document, and found:
+**Verdict on `bcffe650`: NEEDS CHANGES.** The reviewer independently decoded the mesh vertex data and the serialized scene rather than trusting this document, and found:
 
 | # | Finding | Resolution |
 |---|---|---|
@@ -104,7 +105,7 @@ A second focused re-review of `091bb04b` found one **blocking regression introdu
 
 | Finding | Resolution |
 |---|---|
-| **BLOCKING — the ribbon folded at the tight A7 bend.** Uneven anchor spacing gave the old Catmull–Rom parameterisation rings advancing 2–9 mm while turning ~115°, so 15 quads folded back on themselves. | **Fixed.** The centreline is now resampled by arc length at 0.08 m and the cross-section is clamped by local curvature (a 0.86 scale at the bend), so no quad reverses. The build reports `fold_guard_flags=0`; the new plan render `diagnose/plan_a7.png` shows a continuous ribbon. |
+| **BLOCKING — the ribbon folded at the tight A7 bend.** Uniform Catmull–Rom on unevenly spaced anchors produced a cusp: the local radius reached 0.063 m while the half-width stayed 0.688 m (ratio 10.8), giving 9 inverted triangles and 19 crossing ring pairs. | **Fixed at the cause.** The curve is now **centripetal** Catmull–Rom (α = 0.5), which cannot cusp, and the cross-section is clamped by the maximum local curvature in a window. The build now reports `inverted_triangles=0`, `cross_section_flips=0`, `min_radius=0.754 m`, `worst_halfwidth_over_radius=0.95`. |
 | **BLOCKING — the last spline segment was not sampled**, so `070cf563` reached A8 as one straight 2.8 m quad from a 0.54 m tip. | **Fixed.** The final anchor is used as a duplicated control point, so the A7→A8 segment is sampled like every other. |
 | **BLOCKING — four of the eight corner braces stood outside the enclosure.** The second brace of each corner continued backwards along the current edge instead of following the previous one. | **Fixed.** Each corner brace now uses the incoming edge direction. Verified: `braces_outside=0`. |
 | NON-BLOCKING — corner panels stretched (0.5-scaled 3 m panel). | Fixed earlier with a dedicated 1.5 m panel. |

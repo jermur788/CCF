@@ -13,8 +13,8 @@ URP Lit with no third-party photography, scans or store assets.
 | `Textures/Sen1_PathVerge_512.png` | Darker needle-litter verge, 512² |
 | `Textures/Sen1_H1Clearing_512.png` | Trampled clearing earth, 512² |
 | `Textures/Sen1_FenceTimber_512.png` | Treated round-timber grain, 512² |
-| `Materials/Sen1_PathCore.mat` | URP Lit, path core. Base colour multiplier 1.35/1.27/1.07 |
-| `Materials/Sen1_PathVerge.mat` | URP Lit, visual-only verge. 0.95/0.90/0.80 |
+| `Materials/Sen1_PathCore.mat` | URP Lit, path core. Base colour multiplier 1.08/1.02/0.90 |
+| `Materials/Sen1_PathVerge.mat` | URP Lit, visual-only verge. 0.86/0.82/0.74 |
 | `Materials/Sen1_ClearingEarth.mat` | URP Lit, H1 clearing. 0.74/0.70/0.62 |
 | `Materials/Sen1_FenceTimber.mat` | URP Lit, posts/strainers/braces |
 | `Materials/Sen1_FenceWire.mat` | URP Lit, 0.46/0.48/0.50, metallic 0.30, smoothness 0.25, galvanised netting |
@@ -59,6 +59,9 @@ practice, and the Management note's 6–8 m rhythm remains an untested alternati
   bury 0.20 m, so place the pivot at `groundY - 0.20`. When an edge length is not a multiple of 3 m,
   add the 1.5 m panel prefab in the residual bay rather than scaling a 3 m panel; that is how the corners are closed here.
 - Materials are shared assets; tint per scenario by instancing the material rather than editing it.
+- Both panel prefabs are authored with shadow casting **on**; the Compact30 scene turns it **off** on
+  every panel instance. Keep it off. Enabling it in this scene produced a full-scene shadow defect,
+  and woven netting is largely transparent to light anyway.
 - The kit assumes flat ground in Compact30. On sloping ground, shorten or split panels rather than
   stretching them, so the wire gauge stays constant.
 
