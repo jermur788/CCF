@@ -1,0 +1,39 @@
+# Multi #730 — Manager #795 independent cross-lane review verdict and one next four-file read-contract planning task
+
+**19 November 2026. REVIEW DELIVERABLE APPROVED; COMBINED A/C/D/E CONTRACT NEEDS CHANGES. #789 biological engine work CONTINUES INDEPENDENTLY.**
+
+## Evidence and verdict
+
+Manager read the **complete** [#795 independent GPT-6 GitHub-only review](https://github.com/jermur788/CCF/blob/review/multi-795-gpt6-browser-contract-20261119-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-795-INDEPENDENT-2D-CROSS-LANE-CONTRACT-UX-AND-HISTORY-TECHNICAL-REVIEW-20261119.md) and its actual [RUNNING/HANDED-OFF claim](https://github.com/jermur788/CCF/issues/795). Review is ~61.7k characters, published as one documentation-only file on a distinct branch; actual original review is GitHub evidence, not a model independently re-running local UI/engine code.
+
+**Manager verdict: APPROVED as the completed independent documentary/technical review**. The review's **NEEDS CHANGES finding for the proposed A/C/D/E combined contract is accepted**. No blanket source or product approval follows. Twelve ranked conflicts, twenty specified-but-NOT-RUN acceptance cases, status/source provenance and an actionable minimum reconciliation are useful and technically scoped.
+
+The three **P0 cross-lane contradictions** requiring a separate new approved specification:
+1. Old E #740 empty stand/dead age/cause policy conflicts with later accepted #789 D-1 (zero-living terminal, next advance refuses without mutation) and D-2 (frozen postgrowth age and geometry at death). Use approved D-1/D-2; no re-asking owner.
+2. Actual #784 Core/Viewer is **immutable Genesis-only** with exact full F3 key/private pin and fixed package. A generic dynamic snapshot/marking/history API **cannot be silently injected**; propose a new separately versioned read adapter and consumer interface without editing that frozen viewer candidate.
+3. No accepted complete shared detached read snapshot, f32/f64 bit codec, domain/year/stage/generation/revision identity, source XY-mm to centred XZ-f32 coordinate/refusal grammar or assigned sole Core adapter writer. A future full-source read interface is a new product spec, not old Year1 CLI stdout SHA or #784 HTML admission.
+
+Other important findings: A owns primary inspect/hit-test, C proposed local checklist/candidate marks must remain **not Fell marks**, no work-plan commitment or forest mutation; stale drafts freeze rather than rebase; H0 is Genesis + actual single Year1 end-of-year report, H1 only committed multi-year state, H2 save/load/Host separately gated and D-082 conditional plan staleness stays binding. E's historical Multi D-084 aliases main Scenario One D-084 and cannot be automatically canonicalised. #784 independent browser/accessibility gaps are still honest limitations. #789 M-1 T-02/T-19/T-20 is the biological source gate and remains with #789.
+
+**Status correction vs review's 08:xx evidence cutoff:** after #795's last refresh, #797 was **APPROVED/CLOSED**: pinned P0 DLL/sha/provenance was already transferred and SHA-verified into #789's Files lane, and ZX20 capacity verified. #789 one-shot implementation+qualification+non-destructive archive-to-ZX20 handoff is now separately dispatched. Do not reopen obsolete P0 holder approval or require #795's new shared UX contract to block the already G0-approved #789 private no-intervention engine source work.
+
+**Passed:** documentation inspection, independent architecture review quality, identified actionable P0 interfaces, 20 test definitions. **NOT done:** actual read adapter, UI marking, history UI, save/Host, any #795 native tests, public ABI, Unity, integration/release, L4 fix. #784 is bounded local qualified; #725 Year1 remains local qualified; #789 engine not yet reported implemented.
+
+## One next browser task — consolidated four-file DRAFT, not executable
+
+**Purpose:** Author **one** spec-driven product/technical DRAFT unifying read-only adapter, Year0/verified Year1 H0 display and local candidate-only UX; reconcile #795 P0-1…P0-3 and preserve all accepted rules. Avoid a second sprawling generic technical review or extra engine B task.
+
+**Difficulty HIGH**, because of exact numeric/source/bit/identity and trust, data stages, selection and read-only policy. Best actor: **GPT-6 browser/GitHub** for one documentation author, with separate independent nonauthor reviewer after draft. No native source, T3, physical Ops, Unity, external build or laptop memory load. Claim to be created only when dispatched under a single writer; do not reuse #795 as a new source author or change its submitted review.
+
+**Proposed new four-file namespace:** specs/multirack-sitka-2d-read-contract-and-candidate-ux-v1/{spec.md,plan.md,tasks.md,checklists/requirements.md}, status **DRAFT** until explicit product and Manager approval. Author branch and review branch independent; original A/C/D/E draft files untouched. The draft may propose:
+- A new versioned immutable read frame, exact source admission/trust and provenance, stable full tree IDs, domain/fixture/model/generation/year/stage/revision, all-row validation, detached data and typed refusal, source bit-preserving f32/f64 values, original XYmm→centred XZ-f32 transform; one future named writer for Core read adapter separate from existing #784 Genesis-only security Core.
+- Actual Year0 viewer contract remains frozen/unchanged; independent Year1 source-qualified H0 adapter is new. Dynamic Year2+ display only if #789 actual implementation/Q later proves committed frames; no synthetic extrapolation.
+- A remains primary hit-test/inspector; first C batch is an accessible exact-ID checklist independent from A map modifier events. Local REMOVE_CANDIDATE proposals, grouped undo/discard, stale-read-only freeze/eligibility based on actual source bits; selected ≠ proposed ≠ approved Work Plan ≠ executed Fell. No work execution, mark effects, money, recruitment or persistence.
+- D H0 = Genesis plus one actual Year1 AfterMortality record, within-year PostGrowth tagged correctly; H1 optional actual source committed years, H2 durable save replay/Host OUT OF SCOPE.
+- Source/security rules: no public ABI/save/Host, no shadow source parse or synthetic forecast, no L4 waiver; proposed X-01…X-20 tests clearly scoped by already verified vs future new Q.
+
+**Deliverable:** exactly the four DRAFT files, one consolidated decision/assumption table, review-ready acceptance test matrix, single physical/API writer map, evidence references and a short single independent-review handoff. Full source hashes and old #784/#725/approved #789 gate identities stay separate. No implementation dispatch without separate owner G0 for this new UX/read spec; source physical grants still distinct.
+
+**Manager next action:** #795 may close as reviewer task completed. Future read-contract DRAFT is a separate, schedulable browser workstream; it must not delay ongoing #789 biological engine source and ZX20 transfer. Do not create user-facing requirement to respond to every minor draft UX option. Dashboard/Drive sync NOT VERIFIED.
+
+**Plain-English dispatch:** Draft one four-file Multi 2D immutable read-contract and local candidate-only UX specification based on #795's accepted cross-lane NEEDS CHANGES review; reconcile old E policy to approved #789 D-1/D-2, keep #784 Genesis-only package frozen, define a separate complete snapshot/codec/identity/trust owner, H0 genuine Year0–Year1 history, accessible candidate-only checklist and stale behaviour. No actual marking/work, live Host/save, source editing or public API. Publish complete DRAFT spec and arrange one independent nonauthor document review. Do not interfere with #789 Year2–10 engine coding/qualification or ZX20 transport, #770 Scenario One, Unity, Windows, GPT-6.2 or L4 FAIL38.
