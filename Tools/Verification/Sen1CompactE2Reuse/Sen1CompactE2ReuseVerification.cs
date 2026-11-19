@@ -163,6 +163,8 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
         Check(session.Group.All(g => g.status == ScenarioWorkStatus.Completed && g.juvenileId.Length > 0), "each order links to a real juvenile");
         Check(manager.PlantedJuveniles.Count == 4 && manager.PlantedJuveniles.All(j => !string.IsNullOrEmpty(j.juvenileId)),
             "four real planted juveniles exist");
+        Check(GameObject.Find("Compact30 juvenile " + manager.PlantedJuveniles[0].juvenileId) != null,
+            "planted juvenile has a visible neutral representation");
         Check(!session.TeachingComplete, "T1 is not complete before the covering review");
 
         Check(!manager.AdvanceYear(), "CT-3 blocks the next annual advance");

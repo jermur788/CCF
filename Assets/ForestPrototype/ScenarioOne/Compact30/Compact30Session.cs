@@ -65,6 +65,9 @@ public sealed class Compact30Session : MonoBehaviour
     private string message = "";
     private float messageUntil;
     private Material stumpMaterial;
+    private Material oakJuvenileMaterial;
+    private Material beechJuvenileMaterial;
+    private readonly Dictionary<string, GameObject> juvenileVisuals = new Dictionary<string, GameObject>();
     private GUIStyle panelStyle, titleStyle, bodyStyle;
 
     public bool ArrivalAcknowledged => arrivalAcknowledged;
@@ -142,6 +145,7 @@ public sealed class Compact30Session : MonoBehaviour
     {
         if (manager == null || dataProblem.Length > 0) return;
         ReconcileGroup();
+        UpdateJuvenileVisuals();
         if (manager.AnyPanelOpen || manager.ModalOpen) return;
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null) return;
@@ -339,6 +343,80 @@ public sealed class Compact30Session : MonoBehaviour
     {
         if (!GroupIsComplete()) return true;
         return reviewAcknowledgedYear == CoveringYear;
+    }
+
+    private void UpdateJuvenileVisuals()
+    {
+        if (manager == null) return;
+        foreach (PlantedJuvenile juvenile in manager.PlantedJuveniles)
+        {
+            if (juvenile == null || string.IsNullOrEmpty(juvenile.juvenileId)) continue;
+            bool visible = juvenile.alive && string.IsNullOrEmpty(juvenile.promotedTreeId);
+            if (!visible)
+            {
+                if (juvenileVisuals.TryGetValue(juvenile.juvenileId, out GameObject hidden) && hidden != null)
+                    hidden.SetActive(false);
+                continue;
+            }
+            if (!juvenileVisuals.TryGetValue(juvenile.juvenileId, out GameObject visual) || visual == null)
+            {
+                visual = CreateJuvenileVisual(juvenile);
+                juvenileVisuals[juvenile.juvenileId] = visual;
+            }
+            visual.SetActive(true);
+            visual.transform.position = new Vector3(juvenile.position.x, 0f, juvenile.position.z);
+            float height = Mathf.Max(0.2f, juvenile.heightMeters);
+            Transform trunk = visual.transform.Find("Trunk");
+            if (trunk != null)
+            {
+                trunk.localScale = new Vector3(0.035f, height * 0.5f, 0.035f);
+                trunk.localPosition = new Vector3(0f, height * 0.5f, 0f);
+            }
+            Transform canopy = visual.transform.Find("Canopy");
+            if (canopy != null)
+            {
+                canopy.localScale = Vector3.one * Mathf.Max(0.18f, height * 0.38f);
+                canopy.localPosition = new Vector3(0f, height, 0f);
+            }
+        }
+    }
+
+    private GameObject CreateJuvenileVisual(PlantedJuvenile juvenile)
+    {
+        var root = new GameObject("Compact30 juvenile " + juvenile.juvenileId);
+        Material material = JuvenileMaterial(juvenile.speciesId);
+        GameObject trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        trunk.name = "Trunk";
+        Collider trunkCollider = trunk.GetComponent<Collider>();
+        if (trunkCollider != null) Destroy(trunkCollider);
+        trunk.transform.SetParent(root.transform, false);
+        trunk.GetComponent<Renderer>().sharedMaterial = material;
+        GameObject canopy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        canopy.name = "Canopy";
+        Collider canopyCollider = canopy.GetComponent<Collider>();
+        if (canopyCollider != null) Destroy(canopyCollider);
+        canopy.transform.SetParent(root.transform, false);
+        canopy.GetComponent<Renderer>().sharedMaterial = material;
+        return root;
+    }
+
+    private Material JuvenileMaterial(string speciesId)
+    {
+        Material existing = speciesId == "sessile-oak" ? oakJuvenileMaterial
+            : speciesId == "beech" ? beechJuvenileMaterial : null;
+        if (existing != null) return existing;
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+        if (shader == null) return null;
+        var material = new Material(shader)
+        {
+            name = "Compact30 juvenile " + speciesId,
+            color = speciesId == "sessile-oak" ? new Color(0.36f, 0.52f, 0.22f)
+                : speciesId == "beech" ? new Color(0.28f, 0.42f, 0.20f)
+                : new Color(0.30f, 0.46f, 0.24f)
+        };
+        if (speciesId == "sessile-oak") oakJuvenileMaterial = material;
+        else if (speciesId == "beech") beechJuvenileMaterial = material;
+        return material;
     }
 
     private void OnAuthoredTreeFelled(ForestTree tree)
