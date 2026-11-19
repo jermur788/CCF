@@ -104,6 +104,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public bool TryDesignateExactPlanting(string itemId, Vector3 groundPosition, WorkExecutionMethod method, bool installShelter)
     {
+        if (Compact30Session.IsActive && !CompactSiteDesignationAuthorized)
+        {
+            feedback = "Compact30 planting must use one of the four fixed G1 sites.";
+            return false;
+        }
         if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown execution method."; return false; }
         if (!CanManage()) return false;
         ScenarioShopEntry offer = definition?.FindShopEntry(itemId);
@@ -312,6 +317,22 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public bool WorkPlanOpen => workPlanOpen;
     public bool ReferencePreviewActive => referencePreviewActive;
 
+    // ----- Compact30 binding hooks -------------------------------------------------------------
+    // Set only by the Compact runtime adapter. They are not persisted: Compact teaching state has no
+    // signed save representation yet (#690 owns that source), so the Compact session is explicitly
+    // in-memory until a released save integration exists.
+    public event Action AnnualReviewAcknowledged;
+    public Func<bool> AdvanceYearBlocker { get; set; }
+    public bool ApprovedWorkOrdersImmutable { get; set; }
+    public bool SuppressHistoricalCompletion { get; set; }
+    // Compact30 sets this only for the one call that its fixed-site validator has authorised. Any
+    // other exact-planting call in a Compact session is refused before mutation.
+    public bool CompactSiteDesignationAuthorized { get; set; }
+
+    private bool HasApprovedPlantingOrders => workOrders.Any(order => order != null
+        && order.IsOpen && order.status == ScenarioWorkStatus.Approved
+        && order.type == ScenarioWorkType.PlantJuvenile);
+
     // ----- Read-only presentation access for the Scenario One UI screens -----
     // The UI reads authoritative state and calls the public actions above; it
     // owns no copy of cash, orders, marks, ecology or reports.
@@ -327,7 +348,8 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
         {
             WorkPlanTotals totals = CalculateTotals();
             return outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear
-                && (totals.approvedCount == 0 || totals.approvedCostCents <= cashCents);
+                && (totals.approvedCount == 0 || totals.approvedCostCents <= cashCents)
+                && (AdvanceYearBlocker == null || AdvanceYearBlocker());
         }
     }
     public bool CanEditWorkPlan => outcome != ScenarioOneOutcome.Failed && CurrentYear < ReviewYear;
@@ -398,6 +420,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 year = CurrentYear,
                 eventType = ScenarioManagementEventType.AnnualReviewAcknowledged
             });
+        AnnualReviewAcknowledged?.Invoke();
     }
 
     // Work Plan plus the other full-screen panels (map, annual review). While any
@@ -875,6 +898,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     public void SetPlantingExecution(WorkExecutionMethod method)
     {
         if (!Enum.IsDefined(typeof(WorkExecutionMethod), method)) { feedback = "Unknown executor."; return; }
+        if (Compact30Session.IsActive)
+        {
+            feedback = "Compact30 sets the planting method per G1 site (F2). The bulk setter is unavailable.";
+            return;
+        }
+        if (ApprovedWorkOrdersImmutable && HasApprovedPlantingOrders)
+        {
+            feedback = "Approved planting work is frozen. Cancel an approved order and designate fresh work to change it.";
+            return;
+        }
         planningPlantingMethod = method;
         foreach (var order in workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile))
             if (order.executionMethod != method) { order.executionMethod = method; order.status = ScenarioWorkStatus.Pending; }
@@ -883,6 +916,16 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public void SetPlantingShelters(bool install)
     {
+        if (Compact30Session.IsActive)
+        {
+            feedback = "Compact30 sets shelters per G1 site (F3). The bulk setter is unavailable.";
+            return;
+        }
+        if (ApprovedWorkOrdersImmutable && HasApprovedPlantingOrders)
+        {
+            feedback = "Approved planting work is frozen. Cancel an approved order and designate fresh work to change it.";
+            return;
+        }
         planningInstallShelter = install;
         foreach (var order in workOrders.Where(order => order.IsOpen && order.type == ScenarioWorkType.PlantJuvenile && order.exactPosition))
             if (order.installShelter != install) { order.installShelter = install; order.status = ScenarioWorkStatus.Pending; }
@@ -1252,6 +1295,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
 
     public bool AdvanceYear()
     {
+        if (AdvanceYearBlocker != null && !AdvanceYearBlocker())
+        {
+            feedback = "Annual advance is held until the covering Annual Review is acknowledged.";
+            return false;
+        }
         if (ecology == null)
             ecology = UnityEngine.Object.FindFirstObjectByType<ForestEcologyController>();
         if (ecology == null)
@@ -1870,6 +1918,12 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
             return;
         }
         var work = GetPlantingQuote(order, OwnerMinutesPerYear - ownerMinutesUsedThisYear);
+        if (ApprovedWorkOrdersImmutable && order.status == ScenarioWorkStatus.Approved
+            && (work.CostCents != order.estimatedCostCents || work.PersonMinutes != order.estimatedMinutes))
+        {
+            Fail(order, report, "The approved planting quote changed; cancel and approve a fresh order.");
+            return;
+        }
         if (GetStockQuantity(order.stockItemId) < order.requiredStockQuantity || !work.Eligible)
         {
             Fail(order, report, string.IsNullOrEmpty(work.Problem) ? "Insufficient planting stock." : work.Problem);
@@ -2263,7 +2317,13 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 else
                 {
                     var quote = GetPlantingQuote(order, OwnerMinutesPerYear - reservedOwnerMinutes);
-                    order.estimatedCostCents = quote.CostCents; order.estimatedMinutes = quote.PersonMinutes;
+                    // An approved order's quote is frozen in Compact (W-A). Other worlds keep their
+                    // historical re-quote behaviour.
+                    if (!(ApprovedWorkOrdersImmutable && order.status == ScenarioWorkStatus.Approved))
+                    {
+                        order.estimatedCostCents = quote.CostCents;
+                        order.estimatedMinutes = quote.PersonMinutes;
+                    }
                     if (!quote.Eligible) order.validationMessage = quote.Problem;
                     else reservedOwnerMinutes += quote.OwnerMinutes;
                 }
@@ -2364,6 +2424,11 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
     {
         get
         {
+            // Compact30 has its own no-rack teaching sequence; the five-rack learning summary must not
+            // leak into its Work Plan or Annual Review.
+            if (Compact30Session.IsActive)
+                return Compact30Session.Instance != null ? Compact30Session.Instance.Hint
+                    : "Compact30: complete arrival, assessment, four G1 plantings and the covering review.";
             if (annualReports.Count > 0 && !annualReviewSeen)
                 return "Read WORK DONE, MONEY and FOREST in Annual Review, then acknowledge the results to continue.";
             ScenarioOneUiRoot teaching = GetComponent<ScenarioOneUiRoot>();
@@ -2395,6 +2460,7 @@ public sealed partial class ScenarioOneManager : MonoBehaviour
                 snapshot, managementEvents, OriginalSpeciesId, workOrders, ecology.StandGeometryModelVersion);
             RecordObjectiveAchievements(objectives, snapshot.year);
             if (objectives.Count > 0 && objectives.All(result => result.achieved)
+                && !SuppressHistoricalCompletion
                 && ScenarioOneCompletionRules.HasReviewedTwoCycleSequence(managementEvents, workOrders))
                 SetOutcome(ScenarioOneOutcome.Completed, snapshot.year,
                     $"Scenario complete in year {snapshot.year}. Continue to the Century Review.");

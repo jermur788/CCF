@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e93dcd74dab344ca8e141803bf373960, type: 3}
+  m_Name: ScenarioOne
+  m_EditorClassIdentifier: Assembly-CSharp::ScenarioOneDefinition
+  scenarioId: scenario-one
+  definitionVersion: scenario-one-v13
+  displayName: "Scenario One \u2014 Sitka Plantation to Continuous-Cover Forest"
+  executionMode: 0
+  startingCashCents: 1200000
+  contractorHourlyRateCents: 4500
+  fellingBaseMinutes: 12
+  fellingMinutesPerCubicMetre: 10
+  sitkaTimberValueCentsPerCubicMetre: 7200
+  broadleafTimberValueCentsPerCubicMetre: 6500
+  minimumHarvestJobCents: 250000
+  ownerMinutesPerYear: 2400
+  treeShelterMaterialCents: 500
+  shopEntries:
+  - itemId: beech-sapling
+    speciesId: beech
+    displayName: European beech sapling
+    unitPriceCents: 450
+    plantingMinutes: 10
+  - itemId: sessile-oak-sapling
+    speciesId: sessile-oak
+    displayName: Sessile oak sapling
+    unitPriceCents: 550
+    plantingMinutes: 10
+  removalBaseMinutes: 6
+  removalMinutesPerCohortDensity: 3
+  understoreyColonisationRate: 0.3
+  understoreyLossRate: 0.45
+  defaultFellingOutcome: 0
+  deadwoodHabitatWeight: 1
+  understoreyHabitatWeight: 1
+  canopyDiversityHabitatWeight: 1
+  pruningLiftTargetHeightsM:
+  - 2.5
+  - 5
+  - 6.5
+  pruningBaseMinutes: 8
+  pruningMinutesPerMetre: 2
+  minimumCompletionYear: 25
+  centuryReviewYear: 100
+  minimumRetainedOriginalTrees: 60
+  minimumMeanCanopy: 0.35
+  minimumRegenerationCells: 3
+  minimumDeadwoodVolumeM3: 0.02
+  referenceOriginalTrees: 120
+  referenceBroadleafPresence: 10
+  referenceRegenerationCells: 12
+  referenceDeadwoodVolumeM3: 0.5
+  referenceMeanCanopy: 0.65

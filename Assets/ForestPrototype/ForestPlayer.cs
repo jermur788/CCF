@@ -258,12 +258,13 @@ public sealed class ForestPlayer : MonoBehaviour
         // The spray marker owns its click; inspecting must not also run on a successful/invalid spray.
         if (ForestTreeMarkingManager.Instance != null && ForestTreeMarkingManager.Instance.RackSprayEquipped)
             interactPressed = false;
-        bool harvestPressed = keyboard != null && keyboard.fKey.wasPressedThisFrame;
-        bool plantPressed = keyboard != null && keyboard.gKey.wasPressedThisFrame;
-        bool plantingSlot1Pressed = keyboard != null && keyboard.digit1Key.wasPressedThisFrame;
-        bool plantingSlot2Pressed = keyboard != null && keyboard.digit2Key.wasPressedThisFrame;
-        bool uprootHeld = keyboard != null && keyboard.uKey.isPressed;
-        bool cycleRegenerationPressed = keyboard != null && keyboard.rKey.wasPressedThisFrame;
+        bool compactAuthoritativeWorkPlan = Compact30Session.IsActive;
+        bool harvestPressed = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.fKey.wasPressedThisFrame;
+        bool plantPressed = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.gKey.wasPressedThisFrame;
+        bool plantingSlot1Pressed = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.digit1Key.wasPressedThisFrame;
+        bool plantingSlot2Pressed = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.digit2Key.wasPressedThisFrame;
+        bool uprootHeld = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.uKey.isPressed;
+        bool cycleRegenerationPressed = !compactAuthoritativeWorkPlan && keyboard != null && keyboard.rKey.wasPressedThisFrame;
 
         if (messageTimer > 0f)
         {

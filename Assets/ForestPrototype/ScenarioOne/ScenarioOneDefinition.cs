@@ -114,7 +114,7 @@ public sealed class ScenarioOneDefinition : ScriptableObject
     // scale with property area; economy, canopy means and review years do not.
     private static int TargetAreaFactor(int geometry)
     {
-        if (!StandGeometryModel.IsKnown(geometry))
+        if (!StandGeometryModel.IsRuntimeGeometry(geometry))
             throw new ArgumentOutOfRangeException(nameof(geometry), geometry, "Unknown target calibration geometry");
         float size = StandGeometryModel.StandSizeMeters(geometry);
         float baseline = StandGeometryModel.StandSizeMeters(StandGeometryModel.Legacy40);

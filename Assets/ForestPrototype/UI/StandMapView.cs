@@ -88,7 +88,8 @@ public sealed class StandMapView
         UiKit.Add(header, "Stand map", "title");
         VisualElement buttons = UiKit.Box("row");
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
-        buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
+        if (!Compact30Session.IsActive)
+            buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Work Plan", () => ui.ShowWorkPlan()));
         buttons.Add(UiKit.Button("Back to forest [M / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         header.Add(buttons);
@@ -812,9 +813,12 @@ public sealed class StandMapView
         {
             UiKit.Add(side, "Access and position", "heading");
             UiKit.Add(side, LayerNote(eco, model), "map-note");
-            UiKit.Add(side, ui.Learning.Summary, "body");
-            if (ui.RackLayout != null && ui.RackLayout.Total > 0)
-                UiKit.Add(side, $"Access racks: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned or open.", "muted");
+            if (!Compact30Session.IsActive)
+            {
+                UiKit.Add(side, ui.Learning.Summary, "body");
+                if (ui.RackLayout != null && ui.RackLayout.Total > 0)
+                    UiKit.Add(side, $"Access racks: {ui.RackLayout.Done} of {ui.RackLayout.Total} planned or open.", "muted");
+            }
             UiKit.Add(side, "Selected destination: " + UiKit.CellLabel(selectedCell, eco.CellsPerAxis), "body");
             var details = new Foldout { text = "Site details · light and young trees", value = false, name = "map-site-details" };
             side.Add(details);

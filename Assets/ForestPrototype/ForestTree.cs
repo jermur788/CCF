@@ -50,6 +50,10 @@ public sealed class ForestTree : MonoBehaviour
     [SerializeField, Min(3f)] private float poleVisualMaxHeightM = 12f;
     [SerializeField] private GameObject poleVisualPrefab;
     [SerializeField] private bool visualOverrideActive;
+    // Compact30 attaches the simulation identity to an already-authored scene tree. The authored
+    // prefab instance keeps its own renderers, so the adapter does not pass trunk/canopy proxies and
+    // must not reshape or reject them. Saved as false everywhere else.
+    [SerializeField] private bool visuallessAuthored;
     // Which prefab the baked PolishedVisual child was built from. Recorded so
     // a prefab swap (visual variety) replaces the old baked mesh instead of
     // reusing it. Stump visuals never vary, so they need no marker.
@@ -281,13 +285,16 @@ public sealed class ForestTree : MonoBehaviour
 
     private void Awake()
     {
-        if (trunk == null)
-            trunk = transform.Find("Trunk");
-        if (canopy == null)
-            canopy = transform.Find("Canopy");
+        if (!visuallessAuthored)
+        {
+            if (trunk == null)
+                trunk = transform.Find("Trunk");
+            if (canopy == null)
+                canopy = transform.Find("Canopy");
 
-        if (trunk == null)
-            Debug.LogError("ForestTree requires a trunk child.", this);
+            if (trunk == null)
+                Debug.LogError("ForestTree requires a trunk child.", this);
+        }
 
         if (biologicallyDead)
         {
@@ -295,7 +302,7 @@ public sealed class ForestTree : MonoBehaviour
             return;
         }
 
-        if (stage == ForestTreeStage.Mature)
+        if (stage == ForestTreeStage.Mature && !visuallessAuthored)
             ApplyMatureShape();
     }
 
@@ -654,6 +661,20 @@ public sealed class ForestTree : MonoBehaviour
         treeId = id;
         trunk = trunkTransform;
         canopy = canopyTransform;
+        species = speciesDefinition;
+        SetSimulationState(age, height, dbhCm, crownRadius);
+    }
+
+    // Compact30 bind: keep the authored prefab-instance renderers exactly as the E1 scene made
+    // them, while making this object the authoritative living tree. No trunk/canopy proxies are
+    // searched, no shape is applied, and a later felling is visualised by the Compact adapter.
+    public void InitializeAuthoredVisual(string id, TreeSpeciesDefinition speciesDefinition,
+        int age, float height, float dbhCm, float crownRadius)
+    {
+        visuallessAuthored = true;
+        treeId = id;
+        trunk = null;
+        canopy = null;
         species = speciesDefinition;
         SetSimulationState(age, height, dbhCm, crownRadius);
     }

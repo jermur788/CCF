@@ -128,6 +128,43 @@ public sealed class ForestTreeSpawner : MonoBehaviour
         return (hash & 1u) == 0u ? first : second;
     }
 
+    // Compact30 builds its simulation world at runtime because the E1 scene is an authored visual
+    // scene with no scenario components. This sets only the factory inputs the world needs; the
+    // authored-polish prefabs remain the normal Editor wiring for the historical scene.
+    public void ConfigureForRuntime(TreeSpeciesDefinition defaultSpecies, Material bark, GameObject canopyTemplate,
+        Transform forestParent, IReadOnlyList<TreeSpeciesDefinition> additionalSpecies)
+    {
+        this.defaultSpecies = defaultSpecies;
+        barkMaterial = bark;
+        canopyPrefab = canopyTemplate;
+        this.forestParent = forestParent;
+        visualPrefab = null;
+        visualPrefabAlternative = null;
+        stumpPrefab = null;
+        poleVisualPrefab = null;
+        defaultMaturePruningBases = null;
+        defaultPolePruningBases = null;
+        useRecentStandVariants = false;
+        usePlantationVisuals = false;
+        var sets = new List<ForestSpeciesVisualSet>();
+        if (additionalSpecies != null)
+        {
+            foreach (TreeSpeciesDefinition candidate in additionalSpecies)
+            {
+                if (candidate == null || candidate == defaultSpecies)
+                    continue;
+                if (!candidate.IsSimulationReady)
+                {
+                    Debug.LogError("Compact30 runtime species '" + candidate.SpeciesId
+                        + "' is not simulation-ready and will not be registered.", this);
+                    continue;
+                }
+                sets.Add(new ForestSpeciesVisualSet { species = candidate });
+            }
+        }
+        speciesVisualSets = sets.ToArray();
+    }
+
     public ForestTree Spawn(string treeId, Vector3 groundPosition, int ageYears, float dbhCm, float heightMeters, float crownRadiusMeters)
     {
         return Spawn(treeId, defaultSpecies, groundPosition, ageYears, dbhCm, heightMeters, crownRadiusMeters);

@@ -19,6 +19,7 @@ public sealed class WorkPlanView
     private readonly VisualElement advanceWarning;
     private readonly Label advanceHeadline, advanceDetail;
     private bool confirmingAdvance;
+    private int confirmCancelId = -1;
     private int purchaseQuantity = 5;
     // Extraction racks whose trees are listed one by one (a rack is one line until opened).
     private readonly HashSet<int> expandedRacks = new HashSet<int>();
@@ -42,7 +43,10 @@ public sealed class WorkPlanView
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
         right.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
-        right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
+        // The Compact30 adapter owns a separate four-site teaching surface. The historical
+        // objectives panel is five-rack content and must not be reachable from Compact.
+        if (!Compact30Session.IsActive)
+            right.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         right.Add(UiKit.Button("Back to forest", () => ui.CloseAll()));
         header.Add(right);
         modal.Add(header);
@@ -430,6 +434,9 @@ public sealed class WorkPlanView
     public static bool PlantingOffered(ScenarioOneUiRoot ui)
     {
         ScenarioOneManager m = ui.Manager;
+        // Compact30 has no rack-first lesson: the nursery and planting must be available from the
+        // first Work Plan so the player can source the two Oak and two Beech.
+        if (Compact30Session.IsActive) return true;
         return ScenarioOneWorkPlanFocus.PlantingOpen(ui.Learning.CurrentTopicIndex,
             m.WorkOrders.Any(o => o.type == ScenarioWorkType.PlantJuvenile) || m.Inventory.Any(e => e.quantity > 0));
     }
@@ -444,22 +451,37 @@ public sealed class WorkPlanView
         string species = plant.Count == 0 ? "no planting spots marked"
             : string.Join(", ", plant.GroupBy(o => o.speciesId).Select(g => $"{g.Count()} {ScenarioOneUiFacts.SpeciesName(g.Key)}"));
         int sheltered = plant.Count(o => o.installShelter);
-        VisualElement card = Card($"Planting · {species}", plant.Count > 0 ? $"{sheltered} with tree shelters · stock is consumed when planted" : "Press G while walking to mark planting spots.");
+        VisualElement card = Card($"Planting · {species}", plant.Count > 0
+            ? $"{sheltered} with tree shelters · stock is consumed when planted"
+            : Compact30Session.IsActive
+                ? "Designate the four fixed G1 sites from the Compact panel, then approve them here."
+                : "Press G while walking to mark planting spots.");
 
-        VisualElement who = UiKit.Row(card, "row-wrap");
-        UiKit.Add(who, "Who plants?", "body", "gap");
-        foreach ((WorkExecutionMethod method, string label) in new[] { (WorkExecutionMethod.Contractor, "Contractor"), (WorkExecutionMethod.LandownerSimulated, "Me (landowner)") })
+        if (Compact30Session.IsActive)
         {
-            Button b = UiKit.Button(label, () => { m.SetPlantingExecution(method); Refresh(true); }, m.CanEditWorkPlan);
-            if (m.PlanningPlantingMethod == method) b.AddToClassList("btn-selected");
-            who.Add(b);
+            // Compact30 requires a per-tree actor and shelter choice (CIP-016). The bulk setters below
+            // would overwrite every open order, so they are not offered here; the Compact panel sets
+            // each site's choice at designation and F2/F3 change the next designation.
+            UiKit.Add(card, "Compact30: choose who plants and whether to shelter each G1 site in the Compact panel "
+                + "(F2 method, F3 shelter), then press 1-4 to designate. Approved work is frozen; cancel and re-designate to change it.", "muted");
         }
-        Button shelter = UiKit.Button(m.PlanningInstallShelter ? "Shelters: ON" : "Shelters: OFF",
-            () => { m.SetPlantingShelters(!m.PlanningInstallShelter); Refresh(true); }, m.CanEditWorkPlan);
-        if (m.PlanningInstallShelter) shelter.AddToClassList("btn-selected");
-        who.Add(shelter);
-        UiKit.Add(card, $"Tree shelter: {UiKit.Money(m.Definition.TreeShelterMaterialCents)} each (material, same executor as planting). "
-            + "Choices apply to new planting spots and open planting orders; changed approved work needs approval again.", "muted");
+        else
+        {
+            VisualElement who = UiKit.Row(card, "row-wrap");
+            UiKit.Add(who, "Who plants?", "body", "gap");
+            foreach ((WorkExecutionMethod method, string label) in new[] { (WorkExecutionMethod.Contractor, "Contractor"), (WorkExecutionMethod.LandownerSimulated, "Me (landowner)") })
+            {
+                Button b = UiKit.Button(label, () => { m.SetPlantingExecution(method); Refresh(true); }, m.CanEditWorkPlan);
+                if (m.PlanningPlantingMethod == method) b.AddToClassList("btn-selected");
+                who.Add(b);
+            }
+            Button shelter = UiKit.Button(m.PlanningInstallShelter ? "Shelters: ON" : "Shelters: OFF",
+                () => { m.SetPlantingShelters(!m.PlanningInstallShelter); Refresh(true); }, m.CanEditWorkPlan);
+            if (m.PlanningInstallShelter) shelter.AddToClassList("btn-selected");
+            who.Add(shelter);
+            UiKit.Add(card, $"Tree shelter: {UiKit.Money(m.Definition.TreeShelterMaterialCents)} each (material, same executor as planting). "
+                + "Choices apply to new planting spots and open planting orders; changed approved work needs approval again.", "muted");
+        }
 
         long cost = 0; int minutes = 0, ownerMinutes = 0;
         foreach (ScenarioOneWorkOrder order in plant.Where(o => string.IsNullOrEmpty(o.validationMessage)))
@@ -492,7 +514,8 @@ public sealed class WorkPlanView
 
     private void BuildPruning(ScenarioOneManager m)
     {
-        if (!ScenarioOneWorkPlanFocus.PruningOpen(ui.Learning.CurrentTopicIndex, m.WorkOrders.Any(o => o.type == ScenarioWorkType.PruneTree)))
+        if (!Compact30Session.IsActive
+            && !ScenarioOneWorkPlanFocus.PruningOpen(ui.Learning.CurrentTopicIndex, m.WorkOrders.Any(o => o.type == ScenarioWorkType.PruneTree)))
         { LockedCard("Pruning"); return; }
         List<ScenarioOneWorkOrder> prune = m.WorkOrders.Where(o => o.IsOpen && o.type == ScenarioWorkType.PruneTree)
             .OrderBy(o => o.workOrderId).ToList();
@@ -584,12 +607,38 @@ public sealed class WorkPlanView
             row.Add(UiKit.Button("Visit year " + year, () => m.TryBeginReferencePreview(year)));
     }
 
+    // Closing the Work Plan must not leave an armed cancellation for the next visit.
+    public void ResetConfirmCancel() => confirmCancelId = -1;
+
     private void AddRemove(ScenarioOneManager m, VisualElement row, ScenarioOneWorkOrder order)
     {
         if (order.status == ScenarioWorkStatus.Pending)
             row.Add(UiKit.Button("Remove", () => { m.RemovePendingOrder(order.workOrderId); Refresh(true); }));
         else if (order.status == ScenarioWorkStatus.Approved)
-            row.Add(UiKit.Button("Cancel approval", () => { m.CancelApprovedOrder(order.workOrderId); Refresh(true); }));
+        {
+            if (!Compact30Session.IsActive)
+            {
+                row.Add(UiKit.Button("Cancel approval", () => { m.CancelApprovedOrder(order.workOrderId); Refresh(true); }));
+                return;
+            }
+            // Compact30: cancelling approved work is a deliberate, confirmed action. First click
+            // asks; second performs the audited cancellation. Other worlds keep their one-click
+            // historical behaviour.
+            bool confirming = confirmCancelId == order.workOrderId;
+            row.Add(UiKit.Button(confirming ? "Confirm cancel #" + order.workOrderId : "Cancel approval",
+                () =>
+                {
+                    if (!confirming)
+                    {
+                        confirmCancelId = order.workOrderId;
+                        Refresh(true);
+                        return;
+                    }
+                    confirmCancelId = -1;
+                    m.CancelApprovedOrder(order.workOrderId);
+                    Refresh(true);
+                }));
+        }
     }
 
     private static void Problem(VisualElement card, ScenarioOneWorkOrder order)
