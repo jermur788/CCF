@@ -154,18 +154,29 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
             "all four are exact Pending PlantJuvenile orders");
         Check(manager.PlantedJuveniles.Count == 0, "no juvenile exists before resolution");
 
-        // Pending correction: remove the B2 order, replace it with a fresh Pending order, then remove
-        // the replacement so year 1 carries only three plantings. This exercises the audited
-        // cancellation/replacement route without inventing a Completed slot.
+        // In-session Pending correction: designating the same site again must remove the old Pending
+        // order and create a fresh one without leaving the site empty.
         int b2Order = manager.WorkOrders.First(o => Mathf.Abs(o.worldPosition.x - (-0.45f)) < 0.0001f
             && Mathf.Abs(o.worldPosition.z - (-4.3f)) < 0.0001f).workOrderId;
-        Check(manager.RemovePendingOrder(b2Order), "pending site order removed with an audited cancellation");
-        Check(manager.WorkOrders.Count == 3, "removed Pending order left the active group");
         session.TryDesignate(3);
-        Check(manager.WorkOrders.Count == 4, "replacement Pending order fills the cancelled site slot");
+        Check(manager.WorkOrders.Count == 4 && manager.WorkOrders.Count(o => o.IsOpen) == 4,
+            "in-session Pending correction keeps the four-slot group intact");
+        Check(!manager.WorkOrders.Any(o => o.workOrderId == b2Order),
+            "in-session Pending correction removes the old order and creates a fresh id");
         int replacement = manager.WorkOrders.OrderByDescending(o => o.workOrderId).First().workOrderId;
+        Check(manager.WorkOrders.First(o => o.workOrderId == replacement).status == ScenarioWorkStatus.Pending,
+            "the corrected B2 order is Pending");
         Check(manager.RemovePendingOrder(replacement), "replacement Pending order removed for the multi-year test");
         Check(manager.WorkOrders.Count == 3, "three plantings remain for year 1");
+
+        // Bulk setters must refuse in Compact even when only Pending work exists.
+        WorkExecutionMethod pendingMethod = manager.PlanningPlantingMethod;
+        bool pendingShelter = manager.PlanningInstallShelter;
+        manager.SetPlantingExecution(pendingMethod == WorkExecutionMethod.Contractor
+            ? WorkExecutionMethod.LandownerSimulated : WorkExecutionMethod.Contractor);
+        manager.SetPlantingShelters(!pendingShelter);
+        Check(manager.PlanningPlantingMethod == pendingMethod && manager.PlanningInstallShelter == pendingShelter,
+            "bulk setters refused with only Pending work");
 
         Check(manager.ApprovePendingWork(), "Work Plan approval succeeds");
         Check(manager.WorkOrders.All(o => o.status == ScenarioWorkStatus.Approved), "three orders are Approved");
@@ -192,6 +203,7 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
             "fourth site is Pending in year 1 while the three earlier orders remain Completed");
         Check(manager.ApprovePendingWork(), "fourth order approved");
         Check(manager.AdvanceYear(), "year 2 annual advance succeeds");
+        Check(!manager.AdvanceYear(), "CT-3 blocks a second advance in the same frame");
         yield return null;
         Check(manager.CurrentEcologicalYear == 2, "ecological year is 2");
         Check(session.GroupIsComplete(), "four successful linked 2 Oak + 2 Beech rows after the later year");
@@ -204,9 +216,8 @@ public sealed class Sen1CompactE2ReuseRunner : MonoBehaviour
             "planted juvenile has a visible neutral representation");
         Check(!session.TeachingComplete, "T1 is not complete before the covering review");
 
-        Check(!manager.AdvanceYear(), "CT-3 blocks the next annual advance");
-        Check(!manager.AdvanceYear(), "CT-3 blocks a second advance in the same frame");
-        Check(manager.CurrentEcologicalYear == 2, "blocked advances did not change the year");
+        Check(!manager.AdvanceYear(), "CT-3 still blocks the next annual advance");
+        Check(manager.CurrentEcologicalYear == 2, "blocked advance did not change the year");
 
         int groupCountBefore = session.Group.Count;
         session.TryDesignate(0);

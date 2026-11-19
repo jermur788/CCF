@@ -11,6 +11,18 @@ public sealed partial class MenuHelpView
     public const string PreferencePrefix = "CCF.MenuHelp.v1.";
     public const string MoreDetailLabel = "More detail";
     public const string LessDetailLabel = "Less detail";
+    private const string CompactHelpText =
+        "Compact30 controls\n\n"
+        + "W A S D walk · Shift run · Space jump · Mouse look · Esc frees the mouse\n"
+        + "E or left-click inspect a tree · V more card detail\n"
+        + "X mark a tree for felling · C mark a living Sitka as a Crop Tree (three are guidance, not a gate)\n"
+        + "M Stand Map · Tab Work Plan · F1 Help\n"
+        + "Y acknowledge arrival in H1 or the opened stand assessment · J open/close the current stand assessment\n"
+        + "F2 contractor / own work · F3 shelters on/off · 1-4 designate the four fixed G1 sites\n"
+        + "N record a deliberate no-work year after T1\n\n"
+        + "Compact30 has no extraction racks, no MFM sample and no save/load in this E2 candidate. "
+        + "Approved work is frozen; cancel it in the Work Plan and designate fresh work to change it. "
+        + "All planting commitment goes through the Work Plan.";
     private readonly ScenarioOneUiRoot ui;
     private readonly Label title, body;
     private readonly ScrollView scroll;
@@ -118,6 +130,16 @@ public sealed partial class MenuHelpView
     // One place that decides what the window shows. The toggle exists only for first-use screens that have a short text.
     private void Render(Menu menu, string summary)
     {
+        if (Compact30Session.IsActive)
+        {
+            // The five-rack help text mentions racks (B), free planting/uprooting, learning objectives
+            // and save/load. None of those exist in Compact30, so show one honest control card.
+            title.text = "Compact30 controls";
+            body.text = CompactHelpText;
+            more.style.display = DisplayStyle.None;
+            scroll.scrollOffset = Vector2.zero;
+            return;
+        }
         bool hasBrief = Summary(menu) != null && (summary != null || ShowingDetail);
         title.text = summary != null ? SummaryTitle(menu) : Title(menu);
         string text = summary ?? Explanation(menu);

@@ -607,14 +607,23 @@ public sealed class WorkPlanView
             row.Add(UiKit.Button("Visit year " + year, () => m.TryBeginReferencePreview(year)));
     }
 
+    // Closing the Work Plan must not leave an armed cancellation for the next visit.
+    public void ResetConfirmCancel() => confirmCancelId = -1;
+
     private void AddRemove(ScenarioOneManager m, VisualElement row, ScenarioOneWorkOrder order)
     {
         if (order.status == ScenarioWorkStatus.Pending)
             row.Add(UiKit.Button("Remove", () => { m.RemovePendingOrder(order.workOrderId); Refresh(true); }));
         else if (order.status == ScenarioWorkStatus.Approved)
         {
-            // Cancelling approved work is a deliberate, confirmed action. First click asks; second
-            // click performs the audited cancellation and removes the active order.
+            if (!Compact30Session.IsActive)
+            {
+                row.Add(UiKit.Button("Cancel approval", () => { m.CancelApprovedOrder(order.workOrderId); Refresh(true); }));
+                return;
+            }
+            // Compact30: cancelling approved work is a deliberate, confirmed action. First click
+            // asks; second performs the audited cancellation. Other worlds keep their one-click
+            // historical behaviour.
             bool confirming = confirmCancelId == order.workOrderId;
             row.Add(UiKit.Button(confirming ? "Confirm cancel #" + order.workOrderId : "Cancel approval",
                 () =>
@@ -628,8 +637,7 @@ public sealed class WorkPlanView
                     confirmCancelId = -1;
                     m.CancelApprovedOrder(order.workOrderId);
                     Refresh(true);
-                },
-                true, confirming ? new[] { "btn-danger" } : new string[0]));
+                }));
         }
     }
 

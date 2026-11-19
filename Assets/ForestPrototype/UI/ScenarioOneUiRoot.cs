@@ -226,6 +226,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             hud.SetPromptMaxWidth(900f);
         }
         workPlan.Root.style.display = planOpen ? DisplayStyle.Flex : DisplayStyle.None;
+        if (!planOpen) workPlan.ResetConfirmCancel();
         review.Root.style.display = !preview && screen == UiScreen.Review ? DisplayStyle.Flex : DisplayStyle.None;
         map.Root.style.display = !preview && screen == UiScreen.Map ? DisplayStyle.Flex : DisplayStyle.None;
         learning.Root.style.display = !preview && screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;

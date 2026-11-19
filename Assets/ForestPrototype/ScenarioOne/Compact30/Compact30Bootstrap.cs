@@ -35,8 +35,16 @@ public static class Compact30Bootstrap
 
     private static void TryBind(Scene scene)
     {
-        if (!scene.IsValid() || scene.name != SceneName) return;
-        if (Compact30Session.Refused || UnityEngine.Object.FindFirstObjectByType<Compact30Session>() != null) return;
+        if (!scene.IsValid()) return;
+        if (scene.name != SceneName)
+        {
+            // Leaving a refused Compact scene must not strand an old-world scene with Compact's
+            // free-action lock.
+            Compact30Session.ClearRefusal();
+            return;
+        }
+        if (Compact30Session.Refused) Compact30Session.ClearRefusal();
+        if (UnityEngine.Object.FindFirstObjectByType<Compact30Session>() != null) return;
 
         GameObject world = GameObject.Find("Compact30World");
         if (world == null)
@@ -158,7 +166,13 @@ public static class Compact30Bootstrap
         {
             int underscore = child.name.IndexOf('_');
             string id = underscore > 0 ? child.name.Substring(0, underscore) : child.name;
-            if (wanted.Contains(id)) authored[id] = child;
+            if (!wanted.Contains(id)) continue;
+            if (authored.ContainsKey(id))
+            {
+                problem = "The authored scene has more than one object for roster tree " + id + ".";
+                return false;
+            }
+            authored[id] = child;
         }
         foreach (Compact30TreeRow row in roster.rows)
         {

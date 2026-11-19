@@ -72,6 +72,16 @@ public sealed class Compact30Session : MonoBehaviour
         Debug.LogError("COMPACT30 REFUSED: " + RefusalReason);
     }
 
+    // A scene reload in the same play session must be re-validated rather than inheriting an old
+    // refusal, and a non-Compact scene must never inherit Compact's free-action lock.
+    public static void ClearRefusal()
+    {
+        Refused = false;
+        RefusalReason = "";
+        Compact30RefusalNotice notice = UnityEngine.Object.FindFirstObjectByType<Compact30RefusalNotice>();
+        if (notice != null) UnityEngine.Object.Destroy(notice.gameObject);
+    }
+
     private ScenarioOneManager manager;
     private ForestEcologyController ecology;
     private ForestPlayer player;
@@ -111,8 +121,9 @@ public sealed class Compact30Session : MonoBehaviour
     {
         Instance = this;
         active = true;
-        manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
-        ecology = GetComponent<ForestEcologyController>() ?? FindFirstObjectByType<ForestEcologyController>();
+        manager = GetComponent<ScenarioOneManager>();
+        if (manager == null) manager = FindFirstObjectByType<ScenarioOneManager>();
+        ecology = FindFirstObjectByType<ForestEcologyController>();
         player = FindFirstObjectByType<ForestPlayer>();
         LoadData();
         if (manager != null)
@@ -252,27 +263,26 @@ public sealed class Compact30Session : MonoBehaviour
         { Say("Both the H1 arrival and the current stand assessment must be acknowledged first."); return; }
         Compact30SiteRow site = sites.sites[index];
         Compact30GroupOrder existing = CurrentSiteRecord(site.id);
+        bool replacingPending = false;
         if (existing != null)
         {
             if (existing.status == ScenarioWorkStatus.Completed && !existing.cancelled)
             { Say(site.id + " is already completed and cannot be replaced."); return; }
             if (existing.status == ScenarioWorkStatus.Approved && !existing.cancelled)
             { Say(site.id + " has Approved work. Cancel it in the Work Plan, then designate a replacement."); return; }
-            if (existing.status == ScenarioWorkStatus.Pending && !existing.cancelled)
-            {
-                // A Pending choice may be corrected before approval. Remove it and create a fresh
-                // Pending order with the current method/shelter and a fresh quote and id.
-                if (!manager.RemovePendingOrder(existing.workOrderId))
-                { Say("The existing Pending order could not be removed; no replacement was created."); return; }
-                existing.superseded = true;
-            }
+            replacingPending = existing.status == ScenarioWorkStatus.Pending && !existing.cancelled;
         }
-        int sameSpecies = group.Count(g => !g.cancelled && !g.superseded && g.speciesId == site.species
+
+        // Validate everything first, excluding the Pending record that is about to be replaced. The
+        // old order is removed only after every check has passed, so a refused replacement leaves the
+        // site's existing Pending work intact.
+        int sameSpecies = group.Count(g => g != existing && !g.cancelled && !g.superseded && g.speciesId == site.species
             && (IsOpen(g) || (g.status == ScenarioWorkStatus.Completed && g.juvenileId.Length > 0)));
         if (sameSpecies >= 2)
         { Say("The G1 group already holds two " + site.species + " sites."); return; }
 
-        int available = manager.GetStockQuantity(site.stock_item) - manager.GetReservedStockQuantity(site.stock_item);
+        int available = manager.GetStockQuantity(site.stock_item) - manager.GetReservedStockQuantity(site.stock_item)
+            + (replacingPending ? 1 : 0);
         if (available <= 0)
         { Say("No unreserved " + site.stock_item + " stock. Buy planting stock in the Work Plan."); return; }
 
@@ -282,7 +292,7 @@ public sealed class Compact30Session : MonoBehaviour
                 stems.Add(new Compact30Point(tree.transform.position.x, tree.transform.position.z));
         var occupied = new List<Compact30Point>();
         foreach (Compact30GroupOrder record in group)
-            if (!record.cancelled && !record.superseded && IsOpen(record))
+            if (record != existing && !record.cancelled && !record.superseded && IsOpen(record))
                 occupied.Add(new Compact30Point(Site(record.siteId).x_m, Site(record.siteId).z_m));
         foreach (PlantedJuvenile juvenile in manager.PlantedJuveniles)
             if (juvenile != null && juvenile.alive)
@@ -290,6 +300,13 @@ public sealed class Compact30Session : MonoBehaviour
 
         if (!Compact30Rules.ValidateSite(site, sites, stems, occupied, out string reason))
         { Say(reason); return; }
+
+        if (replacingPending)
+        {
+            if (!manager.RemovePendingOrder(existing.workOrderId))
+            { Say("The existing Pending order could not be removed; no replacement was created."); return; }
+            existing.superseded = true;
+        }
 
         var position = new Vector3(site.x_m, 0f, site.z_m);
         bool designated;
@@ -303,7 +320,10 @@ public sealed class Compact30Session : MonoBehaviour
             manager.CompactSiteDesignationAuthorized = false;
         }
         if (!designated)
-        { Say(manager.Feedback); return; }
+        {
+            Say(manager.Feedback + (replacingPending ? " The previous Pending order was removed; designate again." : ""));
+            return;
+        }
 
         ScenarioOneWorkOrder order = manager.WorkOrders
             .Where(o => o != null && o.type == ScenarioWorkType.PlantJuvenile && o.IsOpen
