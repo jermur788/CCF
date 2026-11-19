@@ -12,7 +12,7 @@
 | Skill | installed `orchestrate-work` (`/home/jer/.agents/skills/orchestrate-work`, sha256 `07831c7c…`), invoked and followed; portable routing ledger because the host exposes no Runtime ledger |
 | Branch | `sen-1/836-path-seam-deer-fence-20261119-v1` |
 | Base | `0709d05a79756d3b72ccbd0452bd0252a75c3804` (accepted #813 E1 scene) |
-| Candidate | `8765db07` (change) + `bccffe650` (README meta) + `6299e711` (opening alignment) |
+| Candidate | `8765db07` (change) + `bccffe650` (README meta) + `6299e711` (opening alignment) + the review-fix commit that follows this document |
 | Worktree | `/media/jer/ZX20/CCF-Sen1-836-PathFence-20261119`, own cold `Library`, registered lane `Sen1-836-PathFence` |
 | Unity lease | `8a5eb9ee2b284164a5239da618d080de`, acquired through `/media/jer/ZX20/CCF-Ops/scripts/unity-lock`, one serial Editor operator |
 | Writer exclusivity | single writer for the scene and the new art folder; #813's own worktree and its three uncommitted files untouched |
@@ -37,7 +37,7 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 |---|---|
 | Footpath | One continuous mesh `C0_FootpathRibbon`: **1.2 m core + 0.20 m verge each side**. Catmull–Rom through the nine accepted C0 anchors, 26 samples/segment, 208 segments, 1,045 vertices, 1,664 triangles, 3 submeshes (core, left verge, right verge). UV `u` = arc length / 2 m so the texture flows along the route instead of restarting; the outer verge boundary wobbles ±75 mm so there is no straight edge; both ends taper to zero width over 1.4 m so there is no cap line. No collider; shadow casting off, receiving on. |
 | H1 clearing | `H1_WornEarth_12x10` replaced by an organic 12 × 10 m fan mesh (513 vertices, 896 triangles) with four octaves of boundary wobble **and a directional lobe that reaches the C0 mouth at (2.99, −4.75)**. The path therefore overlaps the clearing, removing the bare wedge. No collider. |
-| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 420 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
+| Deer fence | First-party modular kit, 1.9 m above ground: `PF_Sen1_DeerFencePost` (2.10 m, ⌀90 mm octagon), `PF_Sen1_DeerFenceStrainer` (2.30 m, ⌀130 mm), `PF_Sen1_DeerFencePanel_3m` (3.0 × 1.9 m netting built as thin boxes: 150 mm grid, two heavier tension wires, 420 triangles), plus eight corner braces. Placed on **all four edges at ±15.75 m**, posts every 3.0 m, **ten 3 m panels plus a scaled 1.5 m half-panel on every edge so no corner is left open**, strainers at corners and at both sides of the **southern H1 opening (x −3.75 … −0.75, exactly one full panel bay)**. No gate, because the current world has no authorised gated access point. No colliders. |
 | Art | 4 original procedural 512² textures (path soil, verge litter, clearing earth, timber), 5 URP Lit materials, 5 mesh assets, 3 prefabs, 1 README. **1.07 MiB** of new assets; no third-party content. |
 
 **Nothing else moved.** `git diff 0709d05a..HEAD` touches exactly two paths: `ScenarioOneCompact30.unity` and `Assets/ForestPrototype/Art/Sen1PathFence/**` (41 files). The scene diff is +6,627 / −20,263 lines.
@@ -47,11 +47,11 @@ Diagnosed read-only at G0 from the base scene, not guessed from the screenshot:
 | Check | Result |
 |---|---|
 | Import + compile after the authoring tool was removed | **PASS**, 0 `error CS` (only pre-existing CS0618 warnings in unrelated files) |
-| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; after the opening correction: **38 posts, 39 panels, 6 strainers, 8 braces**, no panel inside the opening |
+| Structural verify (in-Editor) | `sitka=175 shell_children=5 textmesh=0 path_ribbon=True clearing=True legacy_slabs=0 g1_o1=True g1_b2=True`; final fence: **38 posts, 43 panels (39 full + 4 half), 6 strainers, 8 braces**, no panel inside the opening |
 | Prefab-instance roster vs base | 433 base instances → 517; **the only changed sources are the three new fence prefabs** (+39 panels, +39 posts, +6 strainers). Every pre-existing prefab instance count is unchanged. |
 | Colliders | 5 before, 5 after — identical set. No collider was added to the path, clearing or fence. |
 | G1 clearance, 1.2 m core | O1 +1.574 m, O2 +1.567 m, B1 +3.292 m, B2 +2.796 m to the core edge; subtracting the 0.55 m footprint ring still leaves **+0.82 m worst case**, i.e. better than #813's +0.767 m because the core narrowed from 1.6 m to 1.2 m. |
-| Renders | 30 PNGs: 7 viewpoints × 2 resolutions × before/after at identical camera poses (14 before, 14 after), plus a 2-resolution southern-entrance pair after the opening fix. |
+| Renders | 32 PNGs: 7 viewpoints before, 9 viewpoints after (adds the south entrance and a loose corner view), each at 1280×720 and 1920×1080. The before set is the pristine base at `0709d05a` with the same camera poses. |
 | Runtime performance | **NOT TESTED** (no frame-time measurement). Proxy: ≈19 k added triangles and 92 added renderers in a 30 × 30 m scene; the netting panels are 420 triangles each and do not cast shadows. |
 
 ### Render evidence
@@ -63,6 +63,7 @@ Root: `/media/jer/Files/CCF/Verification/Sen1-836-PathFence-20261119/captures/{b
 - `07_h1_junction_close` — top-down close-up of the join.
 - `03_fence_corner`, `04_fence_east` — perimeter readability and construction.
 - `08_south_open_entrance` — the H1 arrival opening: two strainers, one clear bay, no netting across it.
+- `09_fence_corner_loose` — corner closure after the half-panel fix.
 - `05_overhead`, `06_path_north` — plan view and the northern half of the route.
 
 The before/after pairs are the actual argument, not this document: the before `07` shows the rectangular slab edge with a bare strip; the after `07` shows the clearing lobe meeting the tapered path with no gap. The before `03` shows no fence at the corner at all; the after `03` shows posts, netting, tension wire and brace.
@@ -79,11 +80,22 @@ The before/after pairs are the actual argument, not this document: the before `0
 
 A fresh-context, non-author reviewer was given the candidate, the scene diff and both evidence folders, with instructions to check the roster diff, collider set, dimensions, URP shader use and whether A/B/C are genuinely fixed.
 
-### Bounded correction found during this run
+### Reviewer verdict and the corrections it produced
 
-The first placement left a 3 m netting panel overlapping the southern opening and planted its strainers inside that panel. This was found by a structural check of the opening, not by the reviewer, and fixed in `6299e711`: the opening now occupies exactly one panel bay (x −3.75 … −0.75), with strainers replacing the ordinary posts at both edges. The correction changes only fence instance positions; the path, clearing and materials are untouched.
+**Verdict on `bccffe650`: NEEDS CHANGES.** The reviewer independently decoded the mesh vertex data and the serialized scene rather than trusting this document, and found:
 
-**Reviewer verdict: PENDING — recorded on #836 when it returns.**
+| # | Finding | Resolution |
+|---|---|---|
+| 1 | **BLOCKING — four 1.5 m corner gaps.** Ten 3 m panels cover 30 m of a 31.5 m edge, so every corner was open. | **Fixed.** Each edge now adds a half-panel scaled to the residual 1.5 m. Verified in the scene: 43 panel instances, 11 per edge (10 on the south, where the opening removes one bay), with the four 0.5-scaled fillers at the corners. |
+| 2 | Verge exceeded 0.20 m (outer columns reached ±0.875 m). | **Fixed.** The boundary wobble now runs inward only. Re-decoded the rebuilt mesh: maximum outer offset **exactly 0.800 m**; core width 1.20 m through the body, 0.54 m at the tapered tips. |
+| 3 | The ribbon pinched to coincident vertices at both ends (zero-area rows, needle visible). | **Fixed.** Minimum width is now 45 % of full, and the A8 end stops at the last anchor instead of running to the fence. |
+| 4 | README dimensions wrong (opening, object name). | **Fixed.** Opening is documented as −3.75 … −0.75, the clearing's real bounds (14.58 × 11.11 m) are stated, and the half-panel rule is documented for reuse. |
+| 5 | Netting read as bright chain-link with no top wire. | **Improved.** Wire dulled (0.46/0.48/0.50, metallic 0.30, smoothness 0.25), mesh is 100 mm over the lower 1.2 m and opens to 200 mm above, and the top wire is now 35 mm. |
+| 6 | Panels cast no shadow while posts do. | **Accepted and documented.** Enabling panel shadows reproduced the full-scene shadow defect seen during authoring; woven netting is largely transparent to light, so panels stay non-casting. |
+| 7 | Evidence set stale relative to the commit. | **Fixed.** All after-views were re-captured on the final candidate, with the same camera poses and resolutions as the before set. |
+| 8 | Clearing still reads as a flat pale patch. | **Partially addressed.** Base colour darkened to 0.74/0.70/0.62. The boundary is still a crisp mesh edge; feathering it needs an alpha-blended material, which was not attempted in this run. |
+
+A structural correction was also made before the review returned: the first fence placement left a netting panel overlapping the southern opening and planted its strainers inside that panel (`6299e711`).
 
 ## 7. Honest limits
 

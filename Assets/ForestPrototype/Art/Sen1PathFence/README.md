@@ -29,15 +29,20 @@ URP Lit with no third-party photography, scans or store assets.
 
 ## Dimensions and intent
 
-- Path: **1.2 m walkable core** (`-0.6 … +0.6`) plus **0.20 m visual-only verge** each side, so the
-  visible ribbon is 1.6 m wide. There is **no collider** on the ribbon; movement still uses the
-  existing Ground collider, so walkability is unchanged.
-- Clearing: 12 × 10 m organic boundary with a directional lobe that reaches the C0 path mouth, so
-  there is no bare wedge between clearing and path. No collider.
+- Path: **1.2 m walkable core** (`-0.6 … +0.6`) plus a **0.14–0.20 m visual-only verge** each side
+  (the outer boundary wobbles inward only, so it never exceeds the 0.20 m cap). The ribbon tapers to
+  45 % width at both tips and stops at the A8 anchor; there is **no collider** on the ribbon, so
+  movement still uses the existing Ground collider and walkability is unchanged.
+- Clearing: nominal 12 × 10 m organic boundary with a directional lobe that reaches the C0 path mouth,
+  so there is no bare wedge between clearing and path. Actual mesh bounds are **14.58 × 11.11 m**
+  because of the lobe and the boundary wobble. No collider.
 - Fence: 1.9 m above ground, posts every 3.0 m, strainers at corners and both sides of the southern
-  opening, diagonal braces at each corner. **No colliders anywhere** — this is presentation only.
-- Southern opening between x = -3.3 and x = 0.3 at z = -15.75 keeps the H1 arrival walkable. There is
-  no gate; the design brief allows a gate only where an authorised access point requires one, and no
+  opening, diagonal braces at each corner. Each 31.5 m edge takes ten 3 m panels plus a scaled half
+  panel in the residual 1.5 m, so there is no gap at any corner. **No colliders anywhere** — this is
+  presentation only.
+- Southern opening between **x = -3.75 and x = -0.75** at z = -15.75 (exactly one panel bay, with
+  strainers replacing the ordinary posts at both edges) keeps the H1 arrival walkable. There is no
+  gate; the design brief allows a gate only where an authorised access point requires one, and no
   such point exists in the current world.
 
 The 3.0 m post rhythm is a **game-art calibration**, chosen so every 3 m panel has a support at each
@@ -48,7 +53,8 @@ practice, and the Management note's 6–8 m rhythm remains an untested alternati
 
 - Meshes are metre-scale and unparented: instantiate a panel between two posts 3.0 m apart, rotate the
   panel about Y to the edge direction, and pitch it about X to follow a slope. Posts and strainers
-  bury 0.20 m, so place the pivot at `groundY - 0.20`.
+  bury 0.20 m, so place the pivot at `groundY - 0.20`. When an edge length is not a multiple of 3 m,
+  add a final panel and scale its local X by `residual / 3`; that is how the corners are closed here.
 - Materials are shared assets; tint per scenario by instancing the material rather than editing it.
 - The kit assumes flat ground in Compact30. On sloping ground, shorten or split panels rather than
   stretching them, so the wire gauge stays constant.
