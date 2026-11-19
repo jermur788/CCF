@@ -162,18 +162,9 @@ If Git/Drive differ, Git wins; regenerate. Attached/project copies do not automa
 
 ### Dashboard synchronization
 
-After any substantial task, integration, review, user-test result or project-status change:
+Dashboard synchronization is a **Manager-batched activity at project-status or milestone updates**, not a closure condition for individual worker tasks or handoffs. The Overall Manager or assigned publisher updates the authoritative coordination/status record, runs or allows ingestion where available, and verifies the GitHub audit snapshot and published dashboard at the batch checkpoint. Workers do not report routine dashboard status at every handoff.
 
-1. update the authoritative local project/coordination record;
-2. allow/run the dashboard ingestion/update mechanism where that mechanism is in use;
-3. confirm any automatic GitHub dashboard audit snapshot advances;
-4. confirm the published dashboard state actually reflects the new project status.
-
-A substantial task is not fully closed until this synchronization is verified.
-
-If the dashboard or publisher is unavailable, the task may hand off, but the synchronization failure must be explicitly recorded as an outstanding operational issue.
-
-Never manually edit generated dashboard-state files.
+If unavailable, the Manager records one outstanding synchronization issue and retries at a later batch; this does not invalidate or hold a technically complete task. Never manually edit generated dashboard-state files. Canonical context-source changes still require the separate Git/Drive mirror, generated composite and platform-attachment refresh under the context publication policy above.
 
 ## Verification cost policy
 
@@ -481,4 +472,4 @@ Independent review is not automatically required after every handoff. Follow the
 6. When no decision, blocking conflict or mandatory review gate prevents continuation, perform Manager-owned GitHub follow-up directly and issue the next implied bounded worker task. Otherwise resolve the gate or return the genuine decision to the user.
 7. Use one authorised integrator for approved work requiring local integration and run required integrated gates, including spec-conformance verification for `SPEC REQUIRED` work.
 8. Update canonical Git context when needed. After the context-source commit, regenerate mirrors/composites and refresh attachments; if the Manager cannot run that local publication tooling, assign a bounded context-publication worker and do not present stale mirrors as current.
-9. Confirm dashboard synchronization for every substantial task and project-status change: update the authoritative coordination record, run or allow ingestion, verify any automatic GitHub audit snapshot advances, and verify the published dashboard reflects the new state. If the dashboard or publisher is unavailable, record the synchronization failure as an outstanding operational issue.
+9. At status or milestone updates, batch dashboard synchronization through the Manager or assigned publisher; verify published state and record any unavailable service once as an outstanding operational issue. Individual task closure does not wait for dashboard synchronization.
