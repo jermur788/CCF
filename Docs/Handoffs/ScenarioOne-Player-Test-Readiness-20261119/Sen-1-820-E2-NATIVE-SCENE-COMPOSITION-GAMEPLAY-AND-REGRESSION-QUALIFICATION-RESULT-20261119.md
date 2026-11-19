@@ -1,7 +1,7 @@
 # Sen-1 #820 — Compact30 E2 native scene composition and gameplay qualification: RESULT
 
 **19 November 2026. Verdict: `PARTIAL — NATIVE QUALIFICATION HELD`.**
-**One native T3 Code / OpenCode orchestration parent. Source composition and Tier 1 qualified. Tier 2 (real Unity Editor/GUI gameplay) NOT RUN because no lawful exclusive machine-wide Unity lease route exists on this host. No gameplay pass is claimed.**
+**One native T3 Code / OpenCode orchestration parent. Source composition and Tier 1 qualified. The custody gate passed under explicit owner authorisation with a bounded, properly released lease. Tier 2 (real Unity Editor/GUI gameplay) was then blocked by Unity licensing — the Hub is signed out and the Personal entitlement is stale — so no gameplay pass is claimed.**
 
 This is the single result handoff required by the #820 binding packet. GitHub is the handoff of record. Dashboard/Drive: **NOT VERIFIED**.
 
@@ -15,7 +15,8 @@ This is the single result handoff required by the #820 binding packet. GitHub is
 | Built a new, distinctly owned test-only worktree and composed E1 scene + E2 37-path delta there | Edit the E1 scene or placement JSON |
 | Ran strict JSON/scene/G1/roster integrity checks and the binary apply-check | Change `Assets/ForestPrototype/Scenes/ScenarioOneCompact30*` bytes |
 | Ran the offline 36-check site/roster suite plus a live negative control | Inherit #815 PASS from a different head |
-| Compiled all runtime sources and the disposable harness against Unity 6000.6.0f1 assemblies | Start Unity, edit the deployed lock, register a lane, or mutate the Ops board |
+| Compiled all runtime sources and the disposable harness against Unity 6000.6.0f1 assemblies | Install or patch the deployed `unity-lock` script |
+| Registered one additive Unity lane, acquired and normally released lease `c5fc24d6…`, and attempted a real Editor start | Leave the Editor running, force-release, or leave the harness copy behind |
 | Verified old-world scenes, frozen Reference Future v1 and non-delta paths byte-unchanged | Produce a Compact save/profile, M-A/OD-16 completion, Windows build or main merge |
 
 A single source-authority note: this parent made **no production source edits**. The only file it authored is this result document. No changed-lines reviewer was therefore required or created, per packet §2.
@@ -179,52 +180,67 @@ Evidence: `/media/jer/Files/CCF/Verification/Sen1-820-E2-Native-20261119/04-tier
 
 ---
 
-## 4. G2 — machine-wide Unity exclusive custody: **HELD**
+## 4. G2 — machine-wide Unity exclusive custody: **PASS (owner-authorised bounded lease)**
 
-This is the gating finding of the run. The blocker is **not** a busy machine and **not** an unreadable lock. It is that the **installed lock tool cannot record the custody mode this project's own policy requires**, and the fix is a different, blocked task.
+### 4.1 First position, and why it changed
 
-### 4.1 What is true right now (non-mutating evidence)
-
-| Observation | Value |
-|---|---|
-| Live lock record | **absent** — `state/unity/` has only the permanent `guard` inode and `history.jsonl`; no `lock.json` |
-| `unity-lock status --json` (deployed tool, read-only) | `{"status":"free","metadata":null,"unity_editor_pids":[]}`, exit 0 |
-| Running Unity **Editor** processes | **none** (only Unity Hub and `Unity.Licensing.Client`) |
-| `/media/jer/ZX20` free space | 325 GiB, well above the 15 GiB lock threshold |
-
-So the machine is genuinely idle and a lease would in principle be obtainable. That is exactly why the distinction below matters.
-
-### 4.2 Why the available tool cannot be used lawfully
+On first inspection no lease was taken. The machine was idle — `unity-lock status` `free`, zero Editor PIDs, 325 GiB free — but the **installed** tool could not record the custody this project requires:
 
 | Fact | Value |
 |---|---|
-| Deployed tool | `/media/jer/ZX20/CCF-Ops/scripts/unity-lock` |
-| Deployed sha256 | `54cf0a95561d0a8c…20f048e5` |
-| `deployment.json` recorded hash | `54cf0a95561d0a8c…20f048e5` — **match** (source head `dfe445e5`, deployed 2026-10-15) |
-| `no_expiry` support in deployed tool | **0 occurrences** — `acquire` requires a mandatory future `--eta` |
-| D-091-capable candidate | `/media/jer/Files/CCF/Operations/CCF-OpsReadiness-652-20261116/CCF-Ops/scripts/unity-lock`, sha256 `8fa0c5ad…b220ac8`, 6 `no_expiry` occurrences |
-| Is that candidate deployed? | **No** — hashes differ from the live path |
+| Deployed tool | `/media/jer/ZX20/CCF-Ops/scripts/unity-lock`, sha256 `54cf0a95561d0a8c…20f048e5` |
+| `deployment.json` recorded hash | same hash — match (source head `dfe445e5`, deployed 2026-10-15) |
+| `no_expiry` support in deployed tool | **0 occurrences**; `acquire` mandates a future `--eta` |
+| D-091-capable candidate | `CCF-OpsReadiness-652-20261116/CCF-Ops/scripts/unity-lock`, sha256 `8fa0c5ad…b220ac8`, 6 `no_expiry` occurrences — **not deployed** |
+| Board row `CCF-652-OPS-READINESS` | source-only ceiling; "NO LIVE OPS INSTALL"; task itself BLOCKED / NOT RUNNING |
 
-The physical board row `CCF-652-OPS-READINESS` states this explicitly: the D-091 no-expiry work is a **source-only** ceiling, "installed `unity-lock` still requires its old ETA until a separately reviewed and deployed patch", with **NO LIVE OPS INSTALL**, and that task itself is **BLOCKED / NOT RUNNING**.
+Acquiring on that basis would have meant either an arbitrary ETA against D-091 or a live Ops install the packet excludes. The packet explicitly permits the HELD outcome in that case, so the run stopped before Unity.
 
-Consequently an acquire on this host has only two possible shapes, and both are outside authority:
+### 4.2 Owner authorisation resolved the custody gate
 
-1. **Legacy `--eta` custody.** Mints an arbitrary deadline for a qualification whose owner policy (D-091) is explicitly no-arbitrary-expiry. The #820 packet says not to invent or automatically expire no-expiry custody and not to manufacture a far-future timestamp.
-2. **Install the no-expiry patch / register a new lane.** That is live Ops deployment, which the #820 packet excludes ("do not reopen Ops repair") and the board assigns to blocked #652.
+The owner then stated: *"unity is free I authorize you to continue."* That is the authority the packet was waiting on, and it converts the tool limitation from a blocker into a **disclosed, bounded** choice: a legacy-ETA lease taken knowingly, with an honest near-term ETA rather than a manufactured far-future timestamp, and a normal identity-matched release.
 
-The #820 packet anticipates exactly this outcome: *"If no safe route exists, STOP BEFORE UNITY, report physical blocker; do not invoke unsafe copied `unity-lock status`, `--force`, environment script or manipulate another Editor/board/lock."*
+### 4.3 Lease actually acquired and released
 
-**Action taken:** none on Ops. No `lanes.json` edit, no script replacement, no `--force`, no `--eta` acquire, no board write, no Editor launch, no other owner's process touched.
+| Event | Value |
+|---|---|
+| Lane registration | `Sen1-820-E2Native` → `/media/jer/ZX20/CCF-Sen1-820-E2-Native-20261119`, `unity: true`, additive (27 lanes), `lanes.json` backed up to `lanes.json.bak-sen820-20261119T170900Z` |
+| Storage preflight | `READY / PASS`, `/dev/sdc2`, rw, 322.82 GiB free vs 15 GiB floor |
+| Acquire | **succeeded** — lock_id `c5fc24d68c60415784280c901ba64877` |
+| Bound identity | task `sen-1-820-compact30-e2-native-qualification`, branch `test/sen-1-820-…-v1`, HEAD `8cb22de0…`, ETA `2026-11-19T23:09:20Z` (ETC +6 h, not far-future) |
+| Release | **normal**, matching owner/task/lock-id; `forced: false`; `unity_editor_pids: []` |
+| Final state | lock **free**, no Editor process, worktree clean |
 
-### 4.3 What would unblock it
+No `--force`, no patch install, no `no_expiry` spoofing, no board mutation beyond the one additive lane row.
 
-One prerequisite, listed as the single next executable blocker in §8.
+### 4.4 Tier 2 was then blocked by a different gate: Unity licensing
+
+Under the lease, Unity 6000.6.0f1 was launched twice — once `-batchmode -executeMethod`, once GUI — and **both failed before any project import**:
+
+```
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Module] Error: 'com.unity.editor.headless' was not found.
+No valid Unity Editor license found. Please activate your license.
+```
+
+| Fact | Value |
+|---|---|
+| Licence cache | `/home/jer/.config/unity3d/Unity/licenses/UnityEntitlementLicense.xml` — **Unity Personal**, Issued 2026-09-15, last `UpdateDate` 2026-10-15 (**35 days stale**) |
+| Unity Hub account store | `/home/jer/.config/unityhub/accounts.db` — **0 accounts, 0 active_account** rows |
+| Network to licence service | reachable — `license.unity3d.com` HTTP 200 |
+| Batch exit code | 198 |
+
+So the machine, the SDK and the network are all fine; the Hub is simply **not signed in**, so the licensing client has no access token and cannot refresh the expired Personal entitlement. Unity Personal activation requires an interactive Hub sign-in with the owner's account. That is a credentials-only action and was not attempted.
+
+Project-side effect: none. The Editor never reached asset import, so no scene was opened and no gameplay code ran. The disposable harness copy was removed and the worktree returned to `8cb22de0` with no untracked `Assets/` content.
+
+Evidence: `06-tier2-licence-blocker.txt`, `unity/harness-run.log`, `unity/gui-licence-test.log`.
 
 ---
 
 ## 5. Tier 2 — real Unity Editor + player-complete loop: **NOT RUN**
 
-No Editor was started, so every Tier 2 assertion is **NOT RUN**, not PASS and not FAIL:
+The Editor was started and immediately refused to licence, so no scene was imported or played. Every Tier 2 assertion is therefore **NOT RUN**, not PASS and not FAIL:
 
 | Packet item | Status |
 |---|---|
@@ -244,7 +260,7 @@ No Editor was started, so every Tier 2 assertion is **NOT RUN**, not PASS and no
 
 No screenshots exist for this task. No event IDs, no player-flow trace, no OBS-trace, no performance numbers. **Nothing in §5 is evidenced, and none of it is claimed.**
 
-Because no harness was copied into `Assets/`, no temporary script, `.meta` or `forest-save.json` mutation was created, so no cleanup was required. The composition worktree is clean and its `Library/` does not exist (no import ever occurred).
+The disposable harness **was** copied into `Assets/ForestPrototype/` in the leased worktree for the attempt, and was **removed again together with any generated `.meta`**. `git status` on the composition worktree is clean apart from tracked history; no temporary script remains and no `forest-save.json` was touched.
 
 ---
 
@@ -278,15 +294,16 @@ The code itself keeps this honest: `StandGeometryModel.IsKnown` still refuses Co
 
 - Source composition of the **final corrected #813 scene + final #815 E2 delta**: **PASS**, exact hashes, no collisions, no collateral change.
 - Tier 1 source qualification: **PASS 7/7**.
-- Tier 2 native gameplay qualification: **NOT RUN** — no lawful exclusive machine-wide Unity lease route.
-- Owner-playtest readiness: **NOT YET**. The candidate is technically coherent and compiles, but a user walking E2 today would still be testing an unimported, unplayed scene on an unqualified build. That is not readiness.
+- G2 exclusive custodian custody: **PASS** — owner-authorised bounded lease acquired and released in good order.
+- Tier 2 native gameplay qualification: **NOT RUN** — the Unity Editor could not licence.
+- Owner-playtest readiness: **NOT YET**. A user walking E2 today would still be testing a scene that has never been imported or played by this task. That is not readiness.
 
 **One next executable blocker (single, ordered):**
 
-> Deploy the reviewed D-091 no-expiry `unity-lock` to `/media/jer/ZX20/CCF-Ops` through the #652 deployment gate (and register the #820 lane), so that a lawful exclusive Editor lease can be acquired without inventing an ETA. Then re-run #820 Tier 2 unchanged against:
+> Sign in to the Unity Hub on `jer-laptop` with the owner's Unity account and re-activate the Unity Personal licence (Hub → Settings → Licenses → activate). The Hub account store is empty and the cached entitlement is 35 days stale, so the Editor refuses to start for any project. Then re-acquire the lease and re-run #820 Tier 2 unchanged against:
 > `test/sen-1-820-compact30-e2-native-qualification-20261119-v1` @ `8cb22de0`.
 
-No other blocker is recorded. Storage, SDK version, source inputs, module imports and hash integrity are all already satisfied.
+Nothing else is blocking. Storage, SDK version, lane registration, lock/release procedure, source inputs, module imports and hash integrity are all already satisfied and evidenced.
 
 ---
 
@@ -310,7 +327,7 @@ No other blocker is recorded. Storage, SDK version, source inputs, module import
 ```
 SEN1_COMPACT30_E2_NATIVE_820
 g0_source_preflight:              PASS
-g0_unity_lease:                   HELD  (no lawful no-expiry custody route)
+g0_unity_lease:                   PASS  (owner-authorised; lane registered; lock free at end)
 source_composition:               PASS  (0709d05a + 37-path 159f0ff8..397fff9f -> 8cb22de0)
 e1_scene_corrected_input:         PASS  (175 authored / 226 cosmetic / 4 G1, 1-comma fix)
 apply_check_collisions:           0
@@ -321,8 +338,8 @@ tier1_unity6000_assembly_compile: PASS  (192 sources, 0 errors, 0 warnings)
 tier1_harness_editor_compile:     PASS  (0 errors, 0 warnings)
 tier1_cloud_typecheck_prod:       PASS  (6 baseline, 0 new)
 tier1_old_world_bytes:            PASS  (scenes + frozen Reference Future unchanged)
-g2_unity_physical_lock:           HELD
-tier2_editor_import:              NOT RUN
+g2_unity_physical_lock:           PASS  (lock c5fc24d6..., released normally)
+tier2_editor_import:              NOT RUN  (blocked: Unity Personal licence stale, Hub signed out)
 tier2_gui_gameplay:               NOT RUN
 tier2_old_world_regression:       NOT RUN
 harness_run:                      NOT RUN
