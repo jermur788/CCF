@@ -132,3 +132,94 @@ This review covers **83eb87a / 052905a9 only**. I exported HEAD with `git archiv
 **PARTIAL.**
 
 **Next gate:** Manager #731 ratifies or rejects the self-recorded A–C+D subset and the 10 shared-file grants (M-4). If ratified, the author fixes M-1, M-2, M-3, M-5 (harness negatives) and M-6 on a new frozen HEAD that includes or supersedes `b1554578`, for this reviewer's delta recheck. Only after that does the lawful-lease Unity Tier-2 run make sense.
+
+---
+
+## Parent response to round 1 (author record, not a reviewer verdict)
+
+The author accepted the round-1 findings and produced `b452e1a9` for a separate delta recheck:
+
+| Round-1 item | Author response |
+|---|---|
+| M-1 rack leakage | `RackTool` is not created in Compact; J/K rack decision, HUD objective widget/button, Objectives buttons on HUD/map/review/work plan, Stand Map rack summary and rack prompt/hotbar are gated. |
+| M-2 ungated quote freeze / charge mismatch | Freeze is now `ApprovedWorkOrdersImmutable` + Approved only; old worlds re-quote. `ResolvePlanting` fails a changed Compact approved quote before charging. |
+| M-3 refusal falls back to a live world | Roster, sites, species readiness and all 175 authored trees are validated before any component exists; refusal sets `IsActive`, disables free G/F/U and draws a notice. Missing authored tree refuses instead of spawning. |
+| M-4 Manager gate | **Not resolved by the author.** Escalated to Manager #731; the self-recorded subset is not a signature. |
+| M-5 evidence gaps | Added a mutation witness; expanded the disposable Editor gate with outside-H1 arrival, no rack tool, Pending cancellation/replacement, a later-year fourth planting, double CT-3, completed-site refusal and no-work. Old-world suites, save/load and Failed-order replacement remain NOT RUN. |
+| M-6 bulk setters edit Pending | Both setters refuse entirely in Compact. |
+| m-1 same-frame CT-3 | Group reconciliation now runs inside the advance blocker and review hook. |
+| m-2 service-level free placement | Compact site authorization guard added to `TryDesignateExactPlanting`. |
+| m-3 stump identity | Felled authored tree keeps its object; renderers/colliders are disabled and an identified stump is added. |
+| m-4 Awake order | Ecology is created and activated on its own object before the manager. |
+| m-5 cancellation confirmation | Approved cancellation now needs a second confirming click. |
+| m-6 E1 branch/recall | G0 record corrected to the actual branch and states the scene is not on the feature branch. |
+| m-7 no-rack felling economy | **Not resolved.** Still NOT VERIFIED; marked as a residual limitation. |
+| m-8 runtime species readiness | Checked before registration. |
+
+---
+
+## Round 2 — delta recheck of `b452e1a9` (Claude Opus 5.5, nonauthor)
+
+**Verdict: NEEDS CHANGES.** 0 critical / 4 major / 4 minor / 5 notes. **Status: PARTIAL.**
+
+Reproduced: offline rules 36/36; mutation witness (disabled path-clearance refusal → `FAIL site on the path refused`, 1 failure); CloudTypeCheck `TYPECHECK_CLEAN` (6 baseline, 0 new). Not reproduced: the Unity 6000.6 assembly compile, Unity import, gameplay, rendering, save/load.
+
+| Item | Delta verdict |
+|---|---|
+| M-1 rack leakage | PARTIALLY FIXED: actions/tools/widgets/buttons/summary gated; `RackTool` absent so B cannot create racks. Residual: F1 help text still contained five-rack/free-planting/save text (m-a). |
+| M-2 quote freeze | FIXED (static): Compact-only freeze; changed approved quote fails before stock/cash moves. |
+| M-3 refusal | FIXED (static): validate-before-create, refusal disables free actions, missing authored tree refuses. |
+| M-4 Manager #731 | NOT FIXED (process). |
+| M-5 evidence | PARTIALLY FIXED: mutation witness real; no Unity/old-world/Failed-order/save evidence. |
+| M-6 bulk setters | FIXED: refuse unconditionally in Compact. |
+| m-1 reconciliation | FIXED (static). |
+| m-2 free placement | FIXED. |
+| m-3 stump identity | FIXED (static). |
+| m-4 Awake order | FIXED. |
+| m-5 cancel confirmation | FIXED, with new m-c. |
+| m-6 G0 recall | FIXED (docs). |
+| m-8 species readiness | FIXED. |
+
+**New round-2 findings:**
+
+- **H-1 (Major):** the harness asserted one `WorkOrders` entry after year 1, but completed orders remain; the rest of the harness was unreachable. Fixed at `58cabe6e` (one Pending + three Completed, full count 4).
+- **N-1 (Major):** the static refusal flag never reset; with domain reload disabled, a refused Compact run could lock free actions in later old-world scenes. `4d38baff` added the SubsystemRegistration reset; the in-session reload/non-Compact clear was added at `ac634757`.
+- **m-a (Minor):** F1 help still showed racks (B), G/U, O objectives and F5/F9 save/load. Compact help card added at `ac634757`.
+- **m-b (Minor):** Pending replacement removed the old order before later checks. Now all checks run first, the old record is excluded from counts/reservation, and it is removed only after validation (`ac634757`).
+- **m-c (Minor):** cancellation confirmation was ungated, persisted across close, and used an unstyled class. Now Compact-only, reset on close, no class (`ac634757`).
+- **m-d (Minor):** three harness checks could pass without the fix they targeted. Now pending-only bulk refusal, the in-session correction branch, and same-frame CT-3 are tested (`ac634757`).
+- **n1/n2:** explicit manager/ecology lookup and duplicate authored-id refusal (`ac634757`).
+
+**Parent response:** H-1, N-1, m-a, m-b, m-c, m-d, n1 and n2 were fixed in `ac634757`. A narrow third recheck was dispatched for those changes. The Manager #731 process gate remains separate and unresolved.
+
+
+---
+
+## Round 3 — narrow recheck of `ac634757` (Claude Opus 5.5, nonauthor)
+
+**Verdict: APPROVED (static review only).** 0 critical / 0 major / 0 minor / 6 notes. **Candidate status: BUILT (static only).**
+
+Reproduced: offline rules 36/36; CloudTypeCheck prod clean (6 baseline, 0 new). Tools mode is blind on 32 declaration errors already present at `b452e1a9`, so the harness method bodies were not compile-checked offline. Unity Editor, gameplay, rendering and save/load: NOT VERIFIED.
+
+| Item | Result |
+|---|---|
+| H-1 harness flow | FIXED — year-1 fourth-order assertion is reachable and the rest of the flow traces correctly. |
+| N-1 refusal reset | FIXED — SubsystemRegistration reset, non-Compact clear, Compact reload revalidation. |
+| m-a Compact help | FIXED — one Compact controls card; no B/G/U/O/F5/F9 rack/free/save text. |
+| m-b Pending replacement | FIXED — checks before removal, old record excluded, `+1` reservation arithmetic correct. |
+| m-c cancellation | FIXED — Compact-only two-click, reset on close, no unstyled class. |
+| m-d harness sensitivity | FIXED — pending-only bulk refusal, in-session correction and same-frame CT-3 are discriminating. |
+| n1/n2 | FIXED — explicit lookup; duplicate authored ids refused. |
+
+**Notes (non-blocking):**
+
+1. A `CanEditWorkPlan` precheck before removing a Pending replacement; the worktree had this uncommitted during the review.
+2. A same-frame refusal-notice edge case; keep a static notice reference.
+3. The Compact help override replaces every screen's help (UX cost, not a leak).
+4. The startup/pause menu control rows still list B/G; only matters if that menu exists in Compact.
+5. Additive non-Compact scene load would clear a refusal while the refused scene is still loaded.
+6. No harness test for a refused replacement preserving the old order; the `PlantedJuveniles[0]` visual check could fail if that juvenile died.
+
+**Post-approval closure (author):** note 1 was committed as `a16746d1`; notes 2 and 6 were committed as `397fff9f` (static notice reference; per-live-juvenile visual checks). These are defensive changes to the already-approved paths, compile-checked with the Unity 6000 and UnityEditor harness builds and the CloudTypeCheck prod pass. They were **not** re-reviewed by a fourth delegate. The approved verdict applies to `ac634757`.
+
+**Manager #731 remains a separate process gate and is not satisfied by this review.**

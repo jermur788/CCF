@@ -6,7 +6,7 @@
 **Base:** `origin/main` `159f0ff8b075e275045ddd1ab0925cb447364b77`.
 **Branch:** `feature/sen-1-815-compact30-e2-loop-reuse-20261119-v1`.
 **Worktree:** `/media/jer/Videos/CCF-815-E2-Core-20261119`.
-**Candidate HEAD:** `b452e1a93fb7a2c05abf10b4af57eb0c17e31d37` (the post-review repair commit; the parent result records the final SHA).
+**Candidate HEAD:** `397fff9f1261550baec934cc52af38b256d4d049` (final post-approval note closure). The independent static review approved `ac634757`; see the review record.
 
 ## What changed
 
