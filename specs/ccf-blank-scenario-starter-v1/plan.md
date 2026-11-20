@@ -1,0 +1,61 @@
+# CCF blank scenario starter v1 — implementation plan
+
+**Status:** **DRAFT / NOT APPROVED — planning only; NO G1 execution authority.** 20 November 2026 · [spec.md](spec.md) · [#856](https://github.com/jermur788/CCF/issues/856). All phases below are **future**, except G0 browser source/spec publication. No local Unity, compile, scene or save run has been performed.
+
+## 1. Outcome and critical path
+
+Demonstrate a *real empty Editor-only 3D starter* (30 × 30 m default) and copy-only scenario assets to a 45 × 60 m preview while referencing the original five-rack shared Unity code. **Acceptance is truthful empty UI, walkable ground, historical save isolation and unchanged old five-rack use**; not playable forestry. Avoid new broad scenario registry, persistence work or engine extraction.
+
+`G0 DRAFT spec → independent nonauthor review → #425 G4/owner material approval and #844 source custody → one source/scene implementer → targeted Unity qualification + negative save witnesses → independent source/evidence review → #844 integration decision → owner optional authoring preview`
+
+No G1 work may start from a DRAFT even if G0 readbacks pass.
+
+## 2. Evidence / feasibility decisions before source editing
+
+1. **Fresh locks:** compare real `main`, context commit and live `Docs/Project/coordination/active-tasks.md`; inspect #844 current #820 gameplay, #836 visuals, any #838 source, owner/lease board and actual physical Unity. Do not transplant side-branch files, overwrite dirty work or infer free source custody from an issue.
+2. **Exact provenance:** source inspect actual primary scene hierarchy (player, ground, manager, ecology, spawner, UI, menu), serialized references and resource GUIDs; inspect complete transitive compile-linked files and all constructors/touch sites of `ScenarioOneUiRoot`, map view/raster/transform, management controllers and startup/save methods. List path/blob/owner/read/compile/write separately; no implied grants.
+3. **Choose one minimal preview seam:** proposed default is **nonoperational authoring preview without active ecology/manager**. Because `ScenarioOneUiRoot.Update` returns early when manager is null, an approved minimal read-only rendering path is necessary. A manager present only to satisfy code must not be initialized, make Year 0 cash appear, generate tasks, expose invalid actions, auto-advance, or write save; prove it genuinely inert or escalate to #425.
+4. **Map rectangle decision:** current `StandMapModel.SizeM`/`StandMapTransform` and `StandGeometryModel` are square; for 45 × 60 scene-only test, request exact G4-approved *preview-bounds projection* change/isolated rendering guard as needed. Do not mutate legacy ecological geometry, saved grid or maps for historical worlds. Correct rectangular-world rendering is a required proof, not silently waived.
+5. **Start/menu and save boundary:** Editor opens the scene directly. Existing `StandaloneSessionMenu` global bootstrap and `StandaloneSessionMenu.Startup` require investigation; avoid changing ProjectSettings. If startup/display reaches historic `CanLoad`, old slot must be gated before file probe, not just disabled after availability lookup. F5/F9 and public Save/Load callers must refuse before capture/disk reads. Decide exact single fence ownership with historical #543/#544 save work before edits. No new slot.
+6. **Content:** reuse fixed labels and existing UI Toolkit styling; show developer-only intro/objective/guidance placeholders as text-only authoring data. Do not connect browser JSON or create runtime resolver; future content approval distinct.
+7. **World startup:** confirm no hidden default spawner, save rehydration, reference-archive startup, rack creation, player F-key actions or time-lapse can mutate empty preview. Bind ground and player for walking only; controls that require real trees/work are unavailable.
+
+## 3. Bounded implementation slices (once formally authorised)
+
+| Phase | Primary writer / provisional narrow scope | Result and early check | Stop/hold |
+|---|---|---|---|
+| **G1-A source seam** | *One* #844-selected Unity C# worker for granted exact shared UI/map/menu/save files plus transitive compile-linked dependencies; no different concurrent Compact writer there | Minimal preview entry, fixed four UI headings, intentional empty states; source/unit FAST plus Editor screenshot. Save refuse before read/write. | Source files conflict with #844 or #543/#544, square map change affects original, hidden scene hook, any historical save read. |
+| **G1-B starter asset composition** | Same worker or separately granted scene/config-only worker, serialized Unity operations always one at a time | Brand-new Editor-only scene on flat ground with collider/spawn and original components referenced by GUID; 30 × 30 and true empty map. No existing scene/build list edit. | New art/D-032 approval needed, accidental duplicate script/prefab state, unknown default roster. |
+| **G1-C copy proof** | Same scene/config owner; no source modifications for the copied preview | Duplicate scenario-owned assets; set 45 × 60, show map rectangle, preserve 30 × 30 original and shared script GUIDs; no extra profile. | Requires per-scenario C# clone, spawns fake ecology, or changes old stored grid. |
+| **G2 targeted qualification** | Independent from doc author if implementation reviewer mandated; exact native Unity 6000.6.0f1 candidate | Tests AC-01…AC-10, negatives first, historical positive and screenshot/hashes; safe released physical lease after normal exit | Any failed old-world save/reference/determinism or unproven negative file access, compilation-only claim. |
+| **G4/G5 integration** | #844 owns 3D integration and #425/owner guard product decisions | Review exact source diff, one approved shared-seam owner, new scene visibly works and old game still loads; only then consider integration/owner preview | Draft spec, missing signed scope, divergent #820/#836 misconstrued as one candidate. |
+
+Slice A may deliver a deliberately tiny **preview** early for source-risk discovery, but **does not** count as finished until the true copy test and old-save/historical regressions. Do not introduce a generic scenario framework merely to render four headings.
+
+## 4. Candidate source scope register — discovery, NOT permission
+
+Pinned GitHub main source reading:
+- UI composition: [`ScenarioOneUiRoot.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/ScenarioOneUiRoot.cs); [`WorkPlanView.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/WorkPlanView.cs); [`AnnualReviewView.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/AnnualReviewView.cs); [`LearningObjectivesView.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/LearningObjectivesView.cs); `WalkingHudView`, `TreeInspectionView` and map view renderer (discover actual paths).
+- Read-only map model: [`StandMapSource.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/Map/StandMapSource.cs), [`StandMapModel.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/Map/StandMapModel.cs), [`StandMapTransform.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/Map/StandMapTransform.cs).
+- Menu and save: [`StandaloneSessionMenu.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/StandaloneSessionMenu.cs), [`StandaloneSessionMenu.Startup.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/UI/StandaloneSessionMenu.Startup.cs), [`ForestSaveController.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/ForestSaveController.cs), save data/validation; coordinate #543/#544.
+- Actual authority: [`ScenarioOneManager.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/ScenarioOne/ScenarioOneManager.cs) plus partials; [`ForestEcologyController.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/ForestEcologyController.cs); [`StandGeometryModel.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/StandGeometryModel.cs); [`ForestPlayer.cs`](https://github.com/jermur788/CCF/blob/7758e17c882fad01970d2f2fb8c09586bbcab5c1/Assets/ForestPrototype/ForestPlayer.cs).
+- New scene/config/optional text asset and corresponding Unity `.meta`: **exact paths not yet granted**, deliberately not named as existing files.
+- Protected: `Assets/Scenes/ForestTest.unity`, old shared script IDs, `ProjectSettings/EditorBuildSettings.asset`, `Packages/`, all old save data/frozen references; **no write** absent distinct named approval.
+
+**Alternative custody A (preferred if #844 active):** #844 owns all shared UI/map/save source, template scene worker only disjoint new scene/config, serialize Unity. **Alternative custody B:** #844 explicitly delegates entire exact shared file set to one G1 worker and freezes overlap until handoff. Never split concurrent ownership of one method/file, and never treat a read or compiler dependency as a grant.
+
+## 5. Native test stages and artefacts
+
+**FAST Tier 1, real first preview:** import, C# compile, open 30 × 30 starter, basic walk/Look, UI headings, null/scene guards, no auto-generated trees. Capture exact candidate revision, screenshot, console and scene hierarchy. These checks do not establish save safety.
+
+**FEATURE QUALIFICATION Tier 2, exact native candidate:** exercise matrix [requirements.md](checklists/requirements.md) with (a) empty no-rack positive UI, (b) keyboard/menu/save **negative** including no historic-file reads, writes or temp/backup changes, (c) 45 × 60 scenario-only asset copy and correct map bounds, (d) unchanged five-rack positive + Legacy40/Reference Future subset and source-protected determinism. Compare byte hashes and file access observations before/after, not merely a UI-disabled visual. No Windows build or full release suite.
+
+**INTEGRATION qualification:** after any source branch reconciliation, repeat affected tests on the **exact integrated candidate**, not a disjoint #820 game or #836 art branch. Record what was not run and owner GUI status. All native results in one durable GitHub Markdown handoff; raw logs/screens externally referenced with provenance.
+
+## 6. Gates and fallback
+
+- **G0 completed** only when five Markdown files on sole branch are read back and exact diff is five ADDED Markdown; output remains DRAFT.
+- **Nonauthor review:** independent design-quality verdict for four-file DRAFT, targeted feedback against source, rectangles, start/Continue, no-manager rendering, old-world regression and scope.
+- **Owner/G4:** only material disagreements; owner already approved template-first and separate saves. #425 and #844 choose narrow source/scene mechanism and writer; formal spec approval needed before code, even with document quality pass.
+- **G1 start:** register real provider/model, exact base/branch/worktree/lanes and full write+compile-linked allowlist with #844 and live coordination, check physical lock/source conflicts, and honor AGENTS/AgentWorkflow and D-091/092.
+- **Stop only blocked action:** if no small honest preview path exists or historical save can be touched, retain other permitted documentation/scene inspection and raise exact design dependency; do not evade by fake data, reimplementing player UI or inventing save profiles.
