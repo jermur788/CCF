@@ -1,6 +1,6 @@
 # MULTI-2D-COMPETITION-UNITY-UI-FIRSTPASS-V1 — delivery tasks
 
-**Status: DRAFT IMPLEMENTATION TASKS / NOT RUNNING.** Owner-directed 18:30 UTC. Parent [#881](https://github.com/jermur788/CCF/issues/881). One bounded sole source writer once exact approval/lease/allowlist are recorded; independently separate reviewer later. All tasks are first-pass only; not all Unity parity.
+**Status: MANAGER-APPROVED TASK SEQUENCE / NOT RUNNING.** Owner-directed 18:30 UTC. Parent [#881](https://github.com/jermur788/CCF/issues/881). One bounded sole source writer once exact approval/lease/allowlist are recorded; independently separate reviewer later. All tasks are first-pass only; not all Unity parity.
 
 | ID | Work | Minimal evidence | Hold condition |
 |---|---|---|---|
