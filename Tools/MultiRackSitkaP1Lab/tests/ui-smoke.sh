@@ -572,6 +572,108 @@ expect "D03 Year 2: Execute under its own minted key (not blocked by E00)" "$cod
 check "D04 Year 2 Fell of [$t3_live] in year 2; two work events; work revision 2" \
   test "$(js d3 '[[f["treeId"] for f in r["execution"]["event"]["fells"]], r["execution"]["event"]["ecologicalYear"], len(r["view"]["frame"]["events"]), r["view"]["frame"]["workRevision"]]')" == "[[\"$t3_live\"], 2, 2, 2]"
 
+# ---- #882 additive, read-only competition endpoint checks; no existing guard changed ---------------------------------
+cat > "$scratch/competition-check.py" << 'COMPETITION'
+import copy, json, math, struct, sys, urllib.request, urllib.error
+base = sys.argv[1]
+origin = base.split('/s/')[0]
+def send(path='api/competition', body=None, method='POST', headers=None, raw=None, target=None):
+    h = {'Origin': origin, 'Content-Type': 'application/json'}
+    h.update(headers or {})
+    data = raw if raw is not None else json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request((target or base) + path, data=data, method=method, headers=h)
+    try: r = urllib.request.urlopen(req)
+    except urllib.error.HTTPError as e: r = e
+    content = r.read()
+    return r.status, json.loads(content) if content else None
+_, payload = send('api/view', method='GET')
+v = payload['view']
+target = next(t for t in v['frame']['trees'] if t['isLiving'])
+mark_fence = {k: v[k] for k in ('sessionId','source','planStateRevision')}
+code, marked = send('api/crop/mark', {'fence':mark_fence,'treeId':target['treeId']})
+assert code == 200 and target['treeId'] in marked['view']['cropTreeIds']
+v = marked['view']
+fence = {k: v[k] for k in ('sessionId','source','planStateRevision')}
+target = next(t for t in v['frame']['trees'] if t['isLiving'])
+body = {'fence': fence, 'treeId': target['treeId']}
+count = 0
+def check(ok, title):
+    global count
+    count += 1
+    print(('PASS' if ok else 'FAIL') + ' K%02d ' % count + title, flush=True)
+    if not ok: raise AssertionError(title)
+def status(b, code, title, **kw): check(send(body=b, **kw)[0] == code, title)
+code, r = send(body=body)
+d = r['competition']
+check(code == 200 and r['view'] == v and d['targetTreeId'] == target['treeId'], 'one fenced view and exact target')
+f32 = lambda x: struct.unpack('f', struct.pack('f', x))[0]
+total = 0.0
+for n in d['neighbours']: total = f32(total + n['contribution'])
+check(abs(total-d['currentTotal']) < 2e-6, 'all contributions sum to current CI in annual order')
+check(d['topFive'] == sorted(d['neighbours'], key=lambda n:(-n['contribution'],n['treeId']))[:5], 'strongest five and ordinal tie order')
+check(all(n['distanceM'] <= 8 and n['treeId'] != target['treeId'] for n in d['neighbours']), 'only other living neighbours within inclusive 8 m cutoff')
+check(send('api/view', method='GET')[1]['view'] == v, 'read changed no session/source/plan/roster/history')
+b = copy.deepcopy(body); b['fence']['source']['workRevision'] += 1
+status(b,409,'full source fence stale gives 409')
+b = copy.deepcopy(body); b['fence']['planStateRevision'] += 1
+status(b,409,'plan-state fence stale gives 409')
+b = copy.deepcopy(body); b['fence']['sessionId'] = 'other-session'
+status(b,409,'foreign session gives 409')
+b = dict(body,treeId='unknown'); status(b,409,'unknown exact ID gives 409')
+b = dict(body,treeId=next(t['treeId'] for t in v['frame']['trees'] if not t['isLiving']))
+status(b,409,'felled target refused with 409')
+status({'treeId':target['treeId']},400,'missing fence refused')
+status({'fence':fence},400,'missing tree ID refused')
+status(dict(body,extra=1),400,'unknown JSON member refused')
+status(body,400,'duplicate JSON member refused',raw=json.dumps(body).replace('"treeId":','"treeId":"duplicate","treeId":').encode())
+b = copy.deepcopy(body); del b['fence']['source']['ecologicalYear']
+status(b,400,'missing numeric source field refused rather than defaulting to zero')
+b = copy.deepcopy(body); b['fence']['source']['workRevision'] = '0'
+status(b,400,'string in numeric source field refused')
+status(body,403,'competition foreign Origin refused',headers={'Origin':'http://example.invalid'})
+status(body,403,'competition wrong Host refused',headers={'Host':'localhost:'+origin.rsplit(':',1)[1]})
+status(body,404,'competition wrong capability refused',target=origin+'/s/'+'0'*64+'/')
+status(None,405,'competition wrong method refused',method='GET')
+status(body,415,'competition wrong Content-Type refused',headers={'Content-Type':'text/plain'})
+status(body,413,'competition oversized body refused',raw=b' '*17000)
+status(dict(body,crop=True),400,'client cannot supply fabricated crop state')
+roster = {t['treeId']:t for t in v['frame']['trees']}
+for n in d['neighbours']:
+    t = roster[n['treeId']]
+    dx=f32(target['xm']-t['xm']); dz=f32(target['zm']-t['zm'])
+    dist=f32(math.sqrt(f32(f32(dx*dx)+f32(dz*dz))))
+    term=f32(f32(t['dbhCm']/max(1,target['dbhCm']))/max(.5,dist))
+    assert t['isLiving'] and abs(term-n['contribution'])<1e-6 and abs(dist-n['distanceM'])<1e-6
+check(True,'each neighbour term independently agrees with f32 Hegyi arithmetic')
+check(d['cutoffM']==8 and all(math.isfinite(n['sharePercent']) for n in d['neighbours']), 'finite shares and honest 8 m model cutoff')
+check(target['treeId'] in v['cropTreeIds'] and any(i['treeId']==target['treeId'] and i['isCrop'] for i in r['scene']), 'Crop truth present in both view and map')
+status({'fence':mark_fence,'treeId':target['treeId']},409,'crop mark bumps fence; stale unmark refused',path='api/crop/unmark')
+code, clear = send('api/crop/unmark', {'fence':fence,'treeId':target['treeId']})
+check(code == 200 and target['treeId'] not in clear['view']['cropTreeIds'] and clear['view']['planStateRevision']==v['planStateRevision']+1, 'unmark commits exactly one plan-state bump')
+cf = lambda v:{k:v[k] for k in ('sessionId','source','planStateRevision')}
+status({'fence':cf(clear['view']),'treeId':target['treeId']},409,'competition requires genuine retained Crop designation')
+code, pending = send('api/pending/add', {'fence':cf(clear['view']),'treeId':target['treeId'],'reason':'crop conflict guard'})
+assert code == 200
+status({'fence':cf(pending['view']),'treeId':target['treeId']},409,'pending Fell cannot become Crop',path='api/crop/mark')
+code, approved = send('api/plan/approve', {'fence':cf(pending['view'])}); assert code==200
+status({'fence':cf(approved['view']),'treeId':target['treeId']},409,'approved Fell cannot become Crop',path='api/crop/mark')
+check(send('api/view',method='GET')[1]['view']==approved['view'], 'crop refusal never mutates frozen approved plan')
+code, cancelled = send('api/plan/cancel', {'fence':cf(approved['view'])}); assert code==200
+code, marked2 = send('api/crop/mark', {'fence':cf(cancelled['view']),'treeId':target['treeId']})
+check(code==200 and target['treeId'] in marked2['view']['cropTreeIds'], 'explicit cancellation then Crop designation allowed')
+status({'fence':cf(marked2['view']),'treeId':target['treeId'],'reason':'must unmark first'},409,'retained Crop refuses pending Fell',path='api/pending/add')
+check(send('api/view',method='GET')[1]['view']==marked2['view'], 'Crop mark survives fresh view/refresh read')
+status({'fence':cf(marked2['view']),'treeId':target['treeId']},403,'Crop mark guarded by Origin',path='api/crop/mark',headers={'Origin':'http://example.invalid'})
+code, cleared2 = send('api/crop/unmark', {'fence':cf(marked2['view']),'treeId':target['treeId']})
+check(code==200 and not cleared2['view']['cropTreeIds'], 'witness leaves no Crop/work state for original page guards')
+
+COMPETITION
+competition_rc=0
+python3 "$scratch/competition-check.py" "$url" > "$scratch/competition.out" 2> "$scratch/competition.err" || competition_rc=$?
+cat "$scratch/competition.out" | tee -a "$log"
+check "K99 additive competition and crop witness completed without stderr" bash -c 'test "$1" == 0 && test ! -s "$2"' _ "$competition_rc" "$scratch/competition.err"
+if [[ $competition_rc != 0 ]]; then fail=1; cat "$scratch/competition.err" | tee -a "$log"; fi
+
 # ---- the page's own script (J checks; Tier-2 D1 and D2) ---------------------------------------------------------------------
 # node runs app.js exactly as this process serves it (G11b: byte-identical to the committed file) inside a small standard-
 # DOM stand-in built from the served index.html. Every request the page makes goes through a recording fetch to this real

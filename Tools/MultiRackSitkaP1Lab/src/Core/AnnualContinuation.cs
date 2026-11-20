@@ -21,7 +21,10 @@ internal sealed record WorkRoot(
     WorkPlan? ApprovedUnexecuted,
     IReadOnlyList<WorkOrder> Pending,
     int PlanStateRevision,
-    IReadOnlyList<AnnualYearRecord> AnnualHistory);
+    IReadOnlyList<AnnualYearRecord> AnnualHistory)
+{
+    internal IReadOnlyList<string> CropTreeIds { get; init; } = Array.Empty<string>();
+}
 
 /// <summary>
 /// In-memory, no-durability Stage 5 session: genuine annual biology plus the G2 manual Work Plan → approved batch →
@@ -94,6 +97,8 @@ internal sealed class AnnualContinuation
                     "an approved batch is awaiting execution; cancel it before editing");
             if (root.Pending.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)))
                 throw new P1Refusal("WorkDuplicateTreeId", "the tree ID is already in the pending batch");
+            if (root.CropTreeIds.Contains(treeId, StringComparer.Ordinal))
+                throw new P1Refusal("CropTreeRetained", "unmark this retained Crop Tree before proposing it for Fell");
             var tree = FindLiving(treeId);
             if (tree is null) throw new P1Refusal("UnknownTreeId", "no live tree has that exact case-sensitive ID");
 
@@ -233,7 +238,8 @@ internal sealed class AnnualContinuation
             };
             // Q-2: a published execution clears the approval, so the plan-state revision moves by exactly one.
             root = new WorkRoot(snapshot, workRevision, Array.AsReadOnly(root.Events.Append(committed).ToArray()),
-                executedMap, null, Array.Empty<WorkOrder>(), checked(root.PlanStateRevision + 1), root.AnnualHistory);
+                executedMap, null, Array.Empty<WorkOrder>(), checked(root.PlanStateRevision + 1), root.AnnualHistory)
+            { CropTreeIds = root.CropTreeIds };
 
             return new WorkExecutionResult(executionKey, year, workRevision, committed, Replayed: false);
         }
@@ -293,14 +299,17 @@ internal sealed class AnnualContinuation
         var history = Array.AsReadOnly(root.AnnualHistory.Append(yearRecord).ToArray());
         // Test-only fault seam: all calculations completed, neither fence nor state published yet.
         beforeCommit?.Invoke();
-        // Only a consented cancellation changes the plan state; a no-work year leaves the plan-state revision as it was.
-        root = cancelWork
-            ? root with
-            {
-                Snapshot = next, ApprovedUnexecuted = null, Pending = Array.Empty<WorkOrder>(),
-                PlanStateRevision = checked(root.PlanStateRevision + 1), AnnualHistory = history,
-            }
-            : root with { Snapshot = next, AnnualHistory = history };
+        // Crop marks are session/plan state only. Reconcile deaths in the SAME root publish as the annual result.
+        var livingIds = next.State.Trees.Where(tree => tree.IsLiving).Select(tree => tree.TreeId).ToHashSet(StringComparer.Ordinal);
+        var crops = Array.AsReadOnly(root.CropTreeIds.Where(livingIds.Contains).ToArray());
+        bool lostCrop = crops.Count != root.CropTreeIds.Count;
+        root = root with
+        {
+            Snapshot = next, AnnualHistory = history, CropTreeIds = crops,
+            ApprovedUnexecuted = cancelWork ? null : root.ApprovedUnexecuted,
+            Pending = cancelWork ? Array.Empty<WorkOrder>() : root.Pending,
+            PlanStateRevision = checked(root.PlanStateRevision + (cancelWork || lostCrop ? 1 : 0)),
+        };
         return report;
     }
 
@@ -338,6 +347,45 @@ internal sealed class AnnualContinuation
     internal PlayerSessionView ReadPlayerView()
     {
         lock (sync) return ViewOf(root);
+    }
+
+    internal PlayerCommandResult MarkCrop(PlayerFence fence, string treeId)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            if (FindLiving(treeId) is null)
+                throw new P1Refusal("UnknownTreeId", "only a living exact tree ID can be retained as Crop");
+            if (root.Pending.Any(order => order.TreeId == treeId) ||
+                (root.ApprovedUnexecuted?.Orders.Any(order => order.TreeId == treeId) ?? false))
+                throw new P1Refusal("CropAlreadyPlannedForFell", "remove the pending Fell or cancel its approved plan first");
+            if (root.CropTreeIds.Contains(treeId, StringComparer.Ordinal))
+                throw new P1Refusal("CropAlreadyMarked", "this tree is already retained as Crop");
+            root = root with
+            {
+                CropTreeIds = Array.AsReadOnly(root.CropTreeIds.Append(treeId).Order(StringComparer.Ordinal).ToArray()),
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithCurrentView(null, null);
+        }
+    }
+
+    internal PlayerCommandResult UnmarkCrop(PlayerFence fence, string treeId)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            if (FindLiving(treeId) is null)
+                throw new P1Refusal("UnknownTreeId", "only a living exact tree ID can have a Crop mark removed");
+            if (!root.CropTreeIds.Contains(treeId, StringComparer.Ordinal))
+                throw new P1Refusal("CropNotMarked", "this tree has no retained Crop mark");
+            root = root with
+            {
+                CropTreeIds = Array.AsReadOnly(root.CropTreeIds.Where(id => id != treeId).ToArray()),
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithCurrentView(null, null);
+        }
     }
 
     internal PlayerCommandResult AddPending(PlayerFence fence, string treeId, string reason)
@@ -481,7 +529,8 @@ internal sealed class AnnualContinuation
             Array.AsReadOnly(plan.Orders.ToArray()));
         return new PlayerSessionView(sessionId, current.PlanStateRevision, Token(current), FrameOf(current),
             Array.AsReadOnly(current.Pending.ToArray()), approved, Array.AsReadOnly(current.AnnualHistory.ToArray()),
-            new PlayerMapExtent(MapMinM, MapMinM, MapSideM, areaHa));
+            new PlayerMapExtent(MapMinM, MapMinM, MapSideM, areaHa))
+        { CropTreeIds = Array.AsReadOnly(current.CropTreeIds.ToArray()) };
     }
 
     // The same construction as Frame, from an explicit root (Frame itself is left unchanged; PS-17 compares the two).

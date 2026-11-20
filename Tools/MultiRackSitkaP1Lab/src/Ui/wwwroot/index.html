@@ -45,10 +45,11 @@
   <section class="panel map-panel" aria-labelledby="map-heading">
     <div class="map-head">
       <h2 id="map-heading" tabindex="-1">Forest map</h2>
-      <p class="hint">North up · 5 m grid from the south-west corner · click a crown to select that exact tree</p>
+      <p class="hint">North up · 5 m grid · select a crown or exact ID</p>
     </div>
     <div class="map-body">
       <!-- The map scrolls inside this pane, never the page. tabindex -1 keeps the pane itself out of the Tab order (A-2). -->
+      <div class="map-viewport">
       <div id="map-pane" class="map-pane" tabindex="-1">
       <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
         <title id="map-title">Stand map of the 30 by 30 metre management area, north up</title>
@@ -88,30 +89,32 @@
         <g id="furniture" class="overlay"></g>
       </svg>
       </div>
-      <div class="map-aside">
-        <div class="map-tools" role="group" aria-label="Map pan and zoom">
-          <div class="dpad" role="group" aria-label="Pan the map">
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀</span></button>
-            <span class="d-c" aria-hidden="true">N</span>
-            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">▶</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">▼</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-          </div>
-          <div class="zoom-row" role="group" aria-label="Zoom">
+          <div class="zoom-row map-zoom" role="group" aria-label="Zoom">
             <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">+</span></button>
             <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
             <button type="button" id="zoom-fit" class="icon fit" aria-label="Fit whole area" title="Fit whole area">Fit</button>
           </div>
+      </div>
+      <div class="map-aside">
+        <div class="map-tools" role="group" aria-label="Pan controls">
+          <div class="dpad" role="group" aria-label="Pan the map">
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲ N</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀ W</span></button>
+            <span class="d-c" aria-hidden="true">Pan</span>
+            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">E ▶</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">S ▼</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+          </div>
+
         </div>
         <p id="map-scale" class="hint scale-note" aria-live="polite"></p>
-        <div class="legend-box">
-          <h3 id="legend-heading">Legend</h3>
+        <details class="legend-box">
+          <summary id="legend-heading">Legend · status cues</summary>
           <div id="legend" class="legend"></div>
-        </div>
+        </details>
         <div id="overlap" class="overlap" hidden>
           <h3 id="overlap-heading" tabindex="-1"></h3>
           <ul id="overlap-list" class="list"></ul>
@@ -129,6 +132,23 @@
     </nav>
 
     <div id="pane-plan" class="pane">
+      <section class="panel" aria-labelledby="plan-heading">
+        <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
+        <h3>Pending orders <span class="step-note">(not felled)</span></h3>
+        <p id="pending-empty" class="note">No pending orders.</p>
+        <ul id="pending-list" class="list orders"></ul>
+        <p><button type="button" id="approve" hidden></button></p>
+        <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
+        <p id="approved-empty" class="note">No approved plan.</p>
+        <div id="approved-box" hidden>
+          <dl id="approved-facts" class="pairs"></dl>
+          <p class="actions">
+            <button type="button" id="cancel-approved"></button>
+            <button type="button" id="execute" class="danger"></button>
+          </p>
+          <ul id="approved-list" class="list orders"></ul>
+        </div>
+      </section>
       <section class="panel" aria-labelledby="inspector-heading">
         <h2 id="inspector-heading" tabindex="-1">Selected tree</h2>
         <div id="inspector-empty">
@@ -137,19 +157,23 @@
         <div id="inspector-body" hidden>
           <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong> <span id="insp-chip" class="chip"></span></p>
           <dl id="insp-facts" class="pairs insp-facts"></dl>
+          <p class="actions"><button type="button" id="crop-button"></button></p>
+          <p id="crop-note" class="note small-note"></p>
+          <section id="competition-panel" aria-labelledby="competition-heading">
+            <h3 id="competition-heading">Competition inspection</h3>
+            <p class="note small-note">Retain a Crop Tree, inspect competitors, then propose a neighbour for Fell. A diagnostic, not felling advice.</p>
+            <div id="competition-content" aria-live="polite"></div>
+          </section>
           <form id="add-form" class="add-form" novalidate hidden>
             <p class="field">
               <label for="reason-choice">Reason for felling (required; recorded with the order)</label>
               <select id="reason-choice" aria-describedby="reason-help">
                 <option value="">Choose a reason…</option>
-                <option value="Release competition around a retained tree">Release competition around a retained tree</option>
-                <option value="Poor form or stem quality">Poor form or stem quality</option>
-                <option value="Damaged, unhealthy or declining tree">Damaged, unhealthy or declining tree</option>
-                <option value="Create a light gap for regeneration">Create a light gap for regeneration</option>
+                <option id="reason-release" value="Release competition around a retained tree" disabled>Competition release — inspect a Crop Tree first</option>
                 <option value="other">Other — specify reason</option>
               </select>
             </p>
-            <p id="reason-help" class="note small-note">Your stated intention; the model does not check it.</p>
+            <p id="reason-help" class="note small-note">Operator intent, not a diagnosis. Light, seed and regeneration: NOT MODELLED.</p>
             <p id="reason-other-wrap" class="field" hidden>
               <label for="reason">Your reason (required for Other)</label>
               <textarea id="reason" rows="2" maxlength="2000"></textarea>
@@ -168,23 +192,7 @@
         </p>
       </section>
 
-      <section class="panel" aria-labelledby="plan-heading">
-        <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
-        <h3>Pending orders <span class="step-note">(not felled)</span></h3>
-        <p id="pending-empty" class="note">No pending orders.</p>
-        <ul id="pending-list" class="list orders"></ul>
-        <p><button type="button" id="approve" hidden></button></p>
-        <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
-        <p id="approved-empty" class="note">No approved plan.</p>
-        <div id="approved-box" hidden>
-          <dl id="approved-facts" class="pairs"></dl>
-          <ul id="approved-list" class="list orders"></ul>
-          <p class="actions">
-            <button type="button" id="cancel-approved"></button>
-            <button type="button" id="execute" class="danger"></button>
-          </p>
-        </div>
-      </section>
+
 
       <section class="panel" aria-labelledby="year-heading">
         <h2 id="year-heading" tabindex="-1">Result and year</h2>
@@ -242,6 +250,7 @@
         <h2 id="details-heading">Details and technical provenance</h2>
         <p class="note">Every value below is read from the local session process. Long values expand to their full text.</p>
         <dl id="facts" class="facts"></dl>
+        <p class="note">Light, seed and regeneration: NOT MODELLED. Competition is a diagnostic, not a growth forecast or advice to fell.</p>
       </section>
     </div>
   </div>

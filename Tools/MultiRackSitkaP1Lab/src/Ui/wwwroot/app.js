@@ -53,6 +53,10 @@
     lock: null,
     lockCount: 0, // goes up each time the lock is set, so only a read that began after the latest lock can lift it
     mapScale: null, // map zoom in CSS px per metre; null fits the whole area to the pane's width
+    competition: null, // server report, never a browser calculation
+    competitionTargetId: null,
+    competitionTag: null,
+    competitionRequest: 0,
     mapScaleChosen: false, // until the player chooses a zoom, the default follows the viewport
   };
 
@@ -104,7 +108,7 @@
 
   function statusText(item) {
     const template = label(STATUS_LABEL[item.status]);
-    return template ? fill(template, { y: item.deathYear }) : String(item.status);
+    return item.isCrop ? label('CropRetained') : template ? fill(template, { y: item.deathYear }) : String(item.status);
   }
 
   // The status words without their year, for the legend and the filter.
@@ -154,6 +158,9 @@
   // Shows a newly received view. A selection is kept only if its exact ID is in the new view (spec §5 S-8).
   function applyPayload(payload, keepOverlap) {
     state.view = payload.view;
+    if (state.competitionTargetId && !state.view.cropTreeIds.includes(state.competitionTargetId)) clearCompetition();
+    const refreshDiagnostic = state.competitionTargetId !== null && state.competitionTag !== competitionTag();
+    if (refreshDiagnostic) state.competition = null;
     state.scene = payload.scene;
     if (payload.labels) state.labels = payload.labels;
     if (!keepOverlap) state.overlap = null;
@@ -166,6 +173,7 @@
     const confirmation = state.confirmation;
     if (confirmation && !byId('execute-dialog').open) state.confirmation = null;
     else if (confirmation && !confirmationStillShown(confirmation, state.view)) withdrawConfirmation(confirmation);
+    if (refreshDiagnostic && !state.lock) refreshCompetition();
   }
 
   // Runs one fenced command. Nothing on the page changes until the server answers; then the answer is drawn as it is.
@@ -282,7 +290,7 @@
   // send it, so no request but a read can leave the page.
 
   const COMMAND_IDS = ['add-button', 'insp-remove', 'approve', 'cancel-approved', 'execute', 'execute-confirm', 'advance',
-    'consent-advance'];
+    'consent-advance', 'crop-button'];
 
   function lockCommands(title, detail) {
     state.lock = { title, detail };
@@ -363,10 +371,11 @@
     const dialog = byId('execute-dialog');
     if (dialog.open) dialog.close();
     lockCommands('Confirmation withdrawn — the approved plan changed',
-      'The Execute confirmation showed plan ' + confirmation.planId + ' (' +
+      'The Execute confirmation showed the approved trees (' +
       confirmation.orders.map((order) => order.treeId).join(', ') + '). The view that has just arrived no longer shows ' +
       'that plan with that fence, so the confirmation was closed and nothing was sent. Review the plan now shown, then ' +
       'choose Re-read; after a successful re-read you can choose Execute again.');
+    byId('alert').append(technicalPlan(confirmation.planId, confirmation.executionKey));
   }
 
   function keepFocusOr(id) {
@@ -386,6 +395,7 @@
     renderMap(items);
     renderOverlap();
     renderInspector(items);
+    renderCompetition();
     renderPlan();
     renderTable(items);
     renderResultAndHistory();
@@ -452,7 +462,10 @@
     const shadows = [];
     const ordered = state.scene.slice().sort((a, b) => a.paintOrder - b.paintOrder);
     for (const item of ordered) {
-      const group = svg('g', { class: 'tree s-' + item.status, 'data-tree-id': item.treeId });
+      const focusIds = state.competition && !state.lock ? [state.competition.targetTreeId,
+        ...state.competition.topFive.map(n => n.treeId)] : null;
+      const dimmed = focusIds && !focusIds.includes(item.treeId);
+      const group = svg('g', { class: 'tree s-' + item.status + (dimmed ? ' dimmed' : ''), 'data-tree-id': item.treeId });
       // The disc stays the group's first child and the only part that takes the pointer.
       group.append(svg('circle', { class: 'crown', cx: item.u, cy: item.v, r: item.radiusM }));
       group.append(...crownDecoration(item));
@@ -461,6 +474,10 @@
         shadows.push(svg('circle', { class: 'crown-shadow', cx: item.u + 0.3, cy: item.v + 0.35, r: item.radiusM }));
       }
       // Status marks sit in an overlay that ignores the pointer, so a mark never changes which crown is hit.
+      if (item.isCrop) {
+        marks.push(svg('circle', { class: 'crop-ring', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }));
+        marks.push(...statusBadge(item, 'C'));
+      }
       if (item.status === 'PendingFell') {
         marks.push(svg('circle', { class: 'ring-pending', cx: item.u, cy: item.v, r: item.radiusM + 0.25 }));
         marks.push(...statusBadge(item, 'P'));
@@ -479,6 +496,16 @@
     }
     byId('shadows').replaceChildren(...shadows);
     byId('crowns').replaceChildren(...crowns);
+    if (state.competition && !state.lock) {
+      state.competition.topFive.forEach((entry, rank) => {
+        const item = items.get(entry.treeId);
+        if (!item) return;
+        marks.push(svg('circle', { class: 'competitor-ring', cx: item.u, cy: item.v, r: item.radiusM + 0.35 }));
+        marks.push(svg('text', { class: 'competitor-rank', x: item.u, y: item.v }, rank + 1));
+      });
+      const target = items.get(state.competition.targetTreeId);
+      if (target) marks.push(svg('circle', { class: 'inspection-ring', cx: target.u, cy: target.v, r: target.radiusM + 0.6 }));
+    }
     byId('marks').replaceChildren(...marks);
 
     const chosen = state.selectedId === null ? null : items.get(state.selectedId);
@@ -504,15 +531,22 @@
       return [svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.62 }),
         svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.3 })];
     }
-    // Eight needle spokes from the leader, as a spruce crown looks from above.
+    // Pointed conifer whorls follow the Unity raster's branch-tip/valley principle. All points stay inside
+    // the original radius; the faint disc remains the honest selectable crown footprint, with the same paint order.
+    const tips = 9;
+    const points = [];
     let d = '';
-    for (let k = 0; k < 8; k++) {
-      const angle = (k * Math.PI) / 4 + 0.2;
-      d += 'M ' + (u + Math.cos(angle) * r * 0.18) + ' ' + (v + Math.sin(angle) * r * 0.18) +
-        ' L ' + (u + Math.cos(angle) * r * 0.82) + ' ' + (v + Math.sin(angle) * r * 0.82) + ' ';
+    for (let k = 0; k < tips * 2; k++) {
+      const angle = k * Math.PI / tips - Math.PI / 2;
+      const reach = r * (k % 2 === 0 ? 0.98 : 0.66);
+      points.push((u + Math.cos(angle) * reach) + ',' + (v + Math.sin(angle) * reach));
+      if (k % 2 === 0) d += 'M ' + u + ' ' + v + ' L ' +
+        (u + Math.cos(angle) * reach) + ' ' + (v + Math.sin(angle) * reach) + ' ';
     }
-    const parts = [svg('path', { class: 'spokes deco', d: d.trim() })];
-    if (item.status !== 'NaturalDead') parts.push(svg('circle', { class: 'tip deco', cx: u, cy: v, r: Math.min(0.22, r * 0.14) }));
+    const parts = item.status === 'NaturalDead' ? [] :
+      [svg('polygon', { class: 'conifer-whorl deco', points: points.join(' ') })];
+    parts.push(svg('path', { class: 'spokes deco', d }));
+    if (item.status !== 'NaturalDead') parts.push(svg('circle', { class: 'tip deco', cx: u, cy: v, r: Math.min(0.18, r * 0.1) }));
     return parts;
   }
 
@@ -521,7 +555,7 @@
     const angle = -Math.PI / 4;
     const cx = item.u + Math.cos(angle) * (item.radiusM + 0.25);
     const cy = item.v + Math.sin(angle) * (item.radiusM + 0.25);
-    const kind = letter === 'P' ? 'pending' : 'approved';
+    const kind = letter === 'P' ? 'pending' : letter === 'C' ? 'crop' : 'approved';
     return [svg('circle', { class: 'glyph-bg glyph-' + kind, cx, cy, r: 0.42 }),
       svg('text', { class: 'glyph-text ' + letter.toLowerCase(), x: cx, y: cy }, letter)];
   }
@@ -546,6 +580,10 @@
     if (kind === 'Felled') {
       box.append(crown(kind, 0.55), svg('path', { class: 'stump-x', d: 'M -0.35 -0.35 L 0.35 0.35 M -0.35 0.35 L 0.35 -0.35' }));
     }
+    if (kind === 'Crop') {
+      box.append(crown('Living', 0.8), svg('circle', { class: 'crop-ring', cx: 0, cy: 0, r: 1.15 }),
+        ...statusBadge({ u: 0, v: 0, radiusM: 0.75 }, 'C'));
+    }
     if (kind === 'Selected') {
       box.append(crown('Living', 0.8), svg('circle', { class: 'select-halo', cx: 0, cy: 0, r: 1.2 }),
         svg('circle', { class: 'select-ring', cx: 0, cy: 0, r: 1.2 }));
@@ -562,13 +600,15 @@
     for (const item of state.scene) tally.set(item.status, (tally.get(item.status) || 0) + 1);
     const count = (status) => el('span', { class: 'count' }, ' (' + (tally.get(status) || 0) + ' on map)');
     const species = el('ul', null,
-      el('li', null, swatch('Living'), el('span', null, 'Sitka spruce', el('span', { class: 'count' }, ' (' + state.scene.length + ' trees)'))));
+      el('li', null, swatch('Living'), el('span', null, 'Sitka spruce', el('span', { class: 'count' }, ' (' + state.scene.length + ' tree records)'))));
     const managed = STATUS_ORDER.filter((status) => status !== 'NaturalDead' || tally.has(status))
       .map((status) => el('li', null, swatch(status), el('span', null, statusName(status) + ' — ' + STATUS_CUE[status], count(status))));
     const marksList = [];
     if (state.selectedId !== null && items.has(state.selectedId)) {
       marksList.push(el('li', null, swatch('Selected'), 'Selected tree — thick white ring'));
     }
+    if (state.view.cropTreeIds.length) marksList.push(el('li', null, swatch('Crop'),
+      'Retained Crop Tree — blue ring + C (' + state.view.cropTreeIds.length + ')'));
     marksList.push(el('li', null, swatch('Boundary'), 'Management area boundary — dashed line'));
     byId('legend').replaceChildren(
       el('h4', null, 'Tree species'), species,
@@ -674,28 +714,30 @@
   // Half a pane per press. North is up the map, so it scrolls towards V = 0.
   function panMap(east, south) {
     const pane = byId('map-pane');
-    pane.scrollLeft += east * pane.clientWidth / 2;
-    pane.scrollTop += south * pane.clientHeight / 2;
+    if (state.mapScale === null) return;
+    pane.scrollLeft = Math.max(0, Math.min(pane.scrollWidth - pane.clientWidth, pane.scrollLeft + east * pane.clientWidth / 2));
+    pane.scrollTop = Math.max(0, Math.min(pane.scrollHeight - pane.clientHeight, pane.scrollTop + south * pane.clientHeight / 2));
+    renderMapScale();
   }
 
   // A visible, truthful statement of the current target size. It is pixel geometry only: the smallest drawn disc's
   // diameter at this scale.
   function renderMapScale() {
-    const note = byId('map-scale');
-    const scale = state.mapScale;
-    let text;
-    if (scale === null) {
-      text = 'Whole area. Trees are drawn at their true size, so at this scale some crowns and stumps are smaller than ' +
-        '44 × 44 px: zoom in, or use the tree table.';
-    } else {
-      const smallest = state.scene.reduce((least, item) => Math.min(least, item.radiusM), Infinity);
-      const across = Number.isFinite(smallest) ? 2 * smallest * scale : null;
-      text = 'Scale ' + scale + ' px per metre' + (across === null ? '' : ': the smallest drawn crown or stump is ' +
-        fixed(across, 1) + ' px across' + (across >= 44 ? ' (at least 44 px)' : ', below 44 px; zoom in, or use the tree table')) +
-        '. Pan with the buttons, or scroll or drag the map.';
-    }
-    // Only a change is written, so the polite live region does not repeat itself on every redraw.
-    if (note.textContent !== text) note.textContent = text;
+    const pane = byId('map-pane');
+    const fit = state.mapScale === null;
+    byId('pan-north').disabled = fit || pane.scrollTop <= 0;
+    byId('pan-south').disabled = fit || pane.scrollTop >= pane.scrollHeight - pane.clientHeight - 1;
+    byId('pan-west').disabled = fit || pane.scrollLeft <= 0;
+    byId('pan-east').disabled = fit || pane.scrollLeft >= pane.scrollWidth - pane.clientWidth - 1;
+    byId('zoom-in').disabled = state.mapScale === SCALES[SCALES.length - 1];
+    byId('zoom-out').disabled = fit;
+    const smallest = state.scene.reduce((least, item) => Math.min(least, item.radiusM), Infinity);
+    const across = 2 * smallest * state.mapScale;
+    const text = fit ? 'Whole 30 m area · pan disabled at Fit. Zoom for small crowns, or use Trees.' :
+      state.mapScale + ' px/m · smallest crown/stump ' + fixed(across, 1) + ' px across' +
+      (across >= 44 ? ' (at least 44 px)' : '; zoom or use Trees for a 44 px target') +
+      '. Cardinal buttons pan the viewport; edges are clamped.';
+    if (byId('map-scale').textContent !== text) byId('map-scale').textContent = text;
   }
 
   // Overlapping crowns at the last clicked point (spec §5 S-4, S-5), topmost first, each with its exact ID.
@@ -772,7 +814,15 @@
 
     byId('insp-threshold').textContent = label('ThresholdInformational');
     byId('insp-threshold').hidden = !tree.isLiving;
-    byId('add-form').hidden = item.status !== 'Living';
+    byId('add-form').hidden = item.status !== 'Living' || item.isCrop;
+    const crop = byId('crop-button');
+    crop.textContent = label(item.isCrop ? 'UnmarkCrop' : 'MarkCrop');
+    crop.hidden = !tree.isLiving;
+    byId('crop-note').textContent = item.isCrop ? label('CropFellRefused') :
+      item.status === 'PendingFell' || item.status === 'ApprovedFell' ?
+        'Remove the pending Fell or cancel its approved plan before designating Crop.' :
+        tree.isLiving ? 'Crop is a retained tree designation for this session; it changes no annual biology.' :
+          'Dead trees cannot retain a Crop designation.';
     byId('add-button').textContent = label('AddToWorkPlan');
     renderReasonPicker();
     byId('insp-remove-wrap').hidden = item.status !== 'PendingFell';
@@ -806,10 +856,8 @@
       return;
     }
     byId('approved-facts').replaceChildren(
-      pair('PlanId', el('code', null, plan.planId)),
-      pair('Execution key', el('code', null, plan.executionKey)),
-      pair('Approved against', 'ecological year ' + plan.source.ecologicalYear + ', annual revision ' + plan.source.annualRevision +
-        ', work revision ' + plan.source.workRevision),
+      pair('Status', 'Approved — still standing'),
+      pair('Ecological year', plan.source.ecologicalYear),
       pair('Orders', plan.orders.length));
     byId('approved-list').replaceChildren(...plan.orders.map((order) => el('li', null,
       el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason))));
@@ -879,8 +927,6 @@
         ? pair('Work revision', seen.workRevisionBefore + ' → ' + seen.workRevisionAfter)
         : pair('Work revision after this event', event.workRevision);
       receipt.push(el('dl', { class: 'pairs' },
-        pair('Execution key', el('code', null, event.executionKey)),
-        pair('PlanId', el('code', null, event.planId)),
         pair('Ecological year', event.ecologicalYear),
         revision,
         pair('Living trees', event.before.livingCount + ' → ' + event.after.livingCount),
@@ -913,14 +959,13 @@
     }
     if (events.length > 0) {
       history.push(table('Executed work events',
-        ['Year', 'Work revision', 'Felled (cause; recorded reason)', 'Living trees', 'Basal area (m²/ha)', 'PlanId'],
+        ['Year', 'Work revision', 'Felled (cause; recorded reason)', 'Living trees', 'Basal area (m²/ha)'],
         events.map((event) => [
           String(event.ecologicalYear),
           String(event.workRevision),
           event.fells.map((fell) => fell.treeId + ' (' + fell.cause + '; ' + fell.reason + ')').join('; '),
           event.before.livingCount + ' → ' + event.after.livingCount,
           fixed(event.before.basalAreaM2PerHa, 2) + ' → ' + fixed(event.after.basalAreaM2PerHa, 2),
-          event.planId,
         ])));
     }
     byId('history').replaceChildren(...history);
@@ -951,6 +996,105 @@
     }
   }
 
+  function technicalPlan(planId, executionKey) {
+    return el('details', { class: 'technical-plan' }, el('summary', null, 'Technical provenance'),
+      el('p', null, 'PlanId ', el('code', null, planId)),
+      el('p', null, 'Execution key ', el('code', null, executionKey)));
+  }
+
+  function competitionTag() {
+    return JSON.stringify([currentFence(), state.competitionTargetId]);
+  }
+
+  function clearCompetition() {
+    state.competitionTargetId = null;
+    state.competition = null;
+    state.competitionTag = null;
+    state.competitionRequest += 1;
+  }
+
+  function releaseReason() {
+    const report = state.competition;
+    return report && state.view.cropTreeIds.includes(report.targetTreeId) && !report.targetPlannedForFell && report.topFive.some(n => n.treeId === state.selectedId)
+      ? 'Competition release for retained Crop Tree ' + report.targetTreeId + ' (operator intent)' : '';
+  }
+
+  async function refreshCompetition() {
+    if (!state.view || !state.competitionTargetId || state.lock) return;
+    const tag = competitionTag();
+    const request = ++state.competitionRequest;
+    state.competition = null;
+    renderAll();
+    byId('competition-content').replaceChildren(el('p', null, 'Reading competition…'));
+    const outcome = await call('api/competition', { fence: currentFence(), treeId: state.competitionTargetId });
+    // A late response from an older selection/view can never paint numbers on a newer tree or fence.
+    if (request !== state.competitionRequest || tag !== competitionTag() || state.lock) return;
+    if (outcome.kind === 'ok') {
+      state.competition = outcome.payload.competition;
+      state.competitionTag = tag;
+      renderAll();
+    } else {
+      clearCompetition();
+      if (outcome.kind === 'refused') applyPayload(outcome.payload, false);
+      renderAll();
+      byId('competition-content').append(el('p', { class: 'note' },
+        'Diagnostic unavailable or view changed. Re-read, then inspect again.'));
+    }
+  }
+
+  function renderCompetition() {
+    const box = byId('competition-content');
+    const living = state.view.frame.trees.find(t => t.treeId === state.selectedId && t.isLiving);
+    const report = state.lock ? null : state.competition;
+    const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', disabled: !living || !state.view.cropTreeIds.includes(state.selectedId) || Boolean(state.lock) },
+      'Inspect selected Crop Tree competitors');
+    const parts = [inspect];
+    if (report) {
+      parts.push(el('p', { class: 'small-note' }, 'Retained Crop Tree ' + report.targetTreeId + ' · ' + report.neighbours.length +
+        ' living neighbours within ' + report.cutoffM + ' m. Strength describes contribution share, not tree health.'));
+      parts.push(el('p', { class: 'competition-totals' }, 'Hegyi now ' + fixed(report.currentTotal, 4) +
+        (report.targetPlannedForFell ? ' · Target is planned for Fell: no retained-tree release estimate.' :
+          ' → ' + fixed(report.hypotheticalTotal, 4) + ' if pending/approved neighbours are removed.')));
+      parts.push(el('ol', { class: 'competitors' }, ...report.topFive.map((n, i) => {
+        const focused = state.selectedId === n.treeId;
+        return el('li', { class: focused ? 'focused' : '' },
+          el('button', { type: 'button', 'data-competitor': n.treeId, 'aria-pressed': String(focused) }, (i + 1) + ' · ' + n.treeId),
+          el('span', null, fixed(n.dbhCm, 2) + ' cm DBH · ' + fixed(n.distanceM, 2) + ' m · CI ' + fixed(n.contribution, 4)),
+          el('span', null, fixed(n.sharePercent, 1) + '% · ' + n.strength +
+            (n.plannedRemoval === 'None' ? '' : ' · ' + n.plannedRemoval + ' Fell')));
+      })));
+      if (report.topFive.length === 0) parts.push(el('p', null, 'No living competitors inside the 8 m cutoff.'));
+      parts.push(el('p', { class: 'small-note' }, 'Other neighbours: ' + report.remainingCount + ' · combined ' +
+        fixed(report.remainingSharePercent, 1) + '%. Diagnostic only; not advice to fell or a growth forecast.'));
+      if (state.selectedId !== report.targetTreeId) parts.push(el('button', { type: 'button', 'data-competitor': report.targetTreeId },
+        'Return to target ' + report.targetTreeId));
+    }
+    box.replaceChildren(...parts);
+    const option = byId('reason-release');
+    option.disabled = releaseReason() === '';
+    option.textContent = option.disabled ? 'Competition release — select a listed Crop competitor first' :
+      'Competition release for ' + report.targetTreeId + ' (intent)';
+  }
+
+  function onCompetitionClick(event) {
+    if (state.lock) return;
+    const inspect = event.target.closest('[data-inspect-competition]');
+    if (inspect) {
+      state.competitionTargetId = state.selectedId;
+      refreshCompetition();
+      return;
+    }
+    const button = event.target.closest('[data-competitor]');
+    if (button && state.competition) {
+      state.selectedId = button.getAttribute('data-competitor');
+      resetReasonPicker();
+      renderAll();
+      const point = selectedPoint();
+      if (point) centreMapOn(point);
+      announce('Selected ' + state.selectedId + '; competition target remains ' + state.competition.targetTreeId + '.');
+    }
+  }
+
   // ---- the reason picker (spec R-04) ---------------------------------------------------------------------------------------
   //
   // A predefined choice is sent as its exact label. "Other" needs the player's own text, trimmed. The placeholder sends
@@ -958,6 +1102,7 @@
 
   function reasonToSend() {
     const choice = byId('reason-choice').value;
+    if (choice === 'Release competition around a retained tree') return releaseReason();
     if (choice !== '' && choice !== REASON_OTHER) return choice;
     return byId('reason').value.trim();
   }
@@ -1001,11 +1146,14 @@
   function chooseTree(treeId, fromTable) {
     if (!state.view || !state.view.frame.trees.some((tree) => tree.treeId === treeId)) return;
     state.selectedId = treeId;
+    clearCompetition();
+    resetReasonPicker();
     if (fromTable) state.overlap = null;
     // The selected tree and its actions live in the Plan pane.
     showPane('plan');
     renderAll();
     announce('Selected tree ' + treeId + '.');
+    if (state.view.cropTreeIds.includes(treeId)) { state.competitionTargetId = treeId; refreshCompetition(); }
     if (fromTable) {
       // A zoomed map shows only part of the area, so it scrolls to the tree chosen in the table.
       const point = selectedPoint();
@@ -1031,6 +1179,8 @@
     if (outcome.kind === 'ok') {
       clearAlert();
       const candidates = outcome.payload.candidates;
+      clearCompetition();
+      resetReasonPicker();
       let message;
       if (candidates.length === 0) {
         state.selectedId = null;
@@ -1049,6 +1199,7 @@
           (candidates.length > 1 ? ' ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.' : '');
       }
       applyPayload(outcome.payload, true);
+      if (state.view.cropTreeIds.includes(state.selectedId)) { state.competitionTargetId = state.selectedId; refreshCompetition(); }
       announce(message);
     } else if (outcome.kind === 'refused') {
       // A stale fence: redraw from the fresh view and select nothing (S-3).
@@ -1121,8 +1272,8 @@
 
   function onApprove() {
     run('api/plan/approve', { fence: currentFence() }, label('ApproveWholePlan'),
-      (payload) => announce('Done: ' + label('ApproveWholePlan') + '. PlanId ' + payload.view.approved.planId +
-        '. Living trees ' + payload.view.frame.stand.livingCount + '.'),
+      (payload) => announce('Done: ' + label('ApproveWholePlan') + '. Approved trees: ' +
+        payload.view.approved.orders.map((order) => order.treeId).join(', ') + '. Living trees ' + payload.view.frame.stand.livingCount + '.'),
       { focusAfter: 'plan-heading' });
   }
 
@@ -1158,7 +1309,8 @@
     byId('execute-title').textContent = label('ExecuteApprovedPlan');
     byId('execute-text').textContent =
       fill(label(n === 1 ? 'ExecuteConfirmationOneTree' : 'ExecuteConfirmation'), { n, y: confirmation.year }) + '.';
-    byId('execute-plan').replaceChildren('PlanId ', el('code', null, confirmation.planId));
+    byId('execute-plan').replaceChildren('Confirm felling the named trees below. ',
+      technicalPlan(confirmation.planId, confirmation.executionKey));
     byId('execute-ids').replaceChildren(...confirmation.orders.map((order) => el('li', null,
       el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason))));
     // A pre-warning only (D-093): the engine refuses such a batch as a whole, whatever this page shows.
@@ -1167,7 +1319,7 @@
     const warning = byId('execute-warning');
     warning.textContent = label('AllLiveBatchRefused');
     warning.hidden = !(living.length > 0 && living.every((treeId) => chosen.has(treeId)));
-    byId('execute-confirm').textContent = label('ExecuteApprovedPlan');
+    byId('execute-confirm').textContent = 'Confirm felling';
     // Focus starts on Back, so a repeated click or key press can never confirm by accident (spec §8 A-5).
     openDialog(byId('execute-dialog'), byId('execute-back'));
   }
@@ -1186,7 +1338,7 @@
       };
       renderResultAndHistory(); // the receipt was drawn with the view, before these revisions were known
       if (execution.replayed) {
-        announce(label('AlreadyExecuted') + '. Execution key ' + execution.executionKey + '.');
+        announce(label('AlreadyExecuted') + '.');
         return;
       }
       announce('Done: ' + label('ExecuteApprovedPlan') + '. Felled ' + event.fells.map((fell) => fell.treeId).join(', ') +
@@ -1301,8 +1453,21 @@
   // ---- start ----------------------------------------------------------------------------------------------------------
 
   function wire() {
+    byId('crop-button').addEventListener('click', () => {
+      const id = state.selectedId;
+      if (!id || !state.view) return;
+      const marked = state.view.cropTreeIds.includes(id);
+      run(marked ? 'api/crop/unmark' : 'api/crop/mark', { fence: currentFence(), treeId: id },
+        label(marked ? 'UnmarkCrop' : 'MarkCrop'), () => {
+          if (marked) { clearCompetition(); renderAll(); }
+          else { state.competitionTargetId = id; refreshCompetition(); }
+          announce((marked ? 'Removed Crop designation: ' : 'Retained Crop Tree: ') + id + '.');
+        });
+    });
     byId('reread').addEventListener('click', () => reread(true));
     byId('map').addEventListener('click', onMapClick);
+    byId('map-pane').addEventListener('scroll', renderMapScale);
+    byId('competition-content').addEventListener('click', onCompetitionClick);
     byId('overlap-list').addEventListener('click', (event) => {
       const button = event.target.closest('[data-pick]');
       if (button) chooseTree(button.getAttribute('data-pick'), false);
@@ -1360,6 +1525,7 @@
     window.addEventListener('resize', () => {
       const wanted = defaultMapScale();
       if (!state.mapScaleChosen && wanted !== state.mapScale) setMapScale(wanted, paneCentre());
+      renderMapScale();
     });
   }
 

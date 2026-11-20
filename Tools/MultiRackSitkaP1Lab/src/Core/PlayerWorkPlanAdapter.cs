@@ -24,6 +24,14 @@ public sealed class PlayerWorkPlanAdapter
     public PlayerCommandResult AddPending(PlayerFence fence, string treeId, string reason) =>
         Refusable(() => continuation.AddPending(fence, treeId, reason));
 
+    // Deliberately internal to the existing friend UI assembly: preserve the frozen public §6 facade while the
+    // narrowly authorised crop increment uses the exact same fenced/refusal path. No unfenced entry or state here.
+    internal PlayerCommandResult MarkCrop(PlayerFence fence, string treeId) =>
+        Refusable(() => continuation.MarkCrop(fence, treeId));
+
+    internal PlayerCommandResult UnmarkCrop(PlayerFence fence, string treeId) =>
+        Refusable(() => continuation.UnmarkCrop(fence, treeId));
+
     public PlayerCommandResult RemovePending(PlayerFence fence, string treeId) =>
         Refusable(() => continuation.RemovePending(fence, treeId));
 

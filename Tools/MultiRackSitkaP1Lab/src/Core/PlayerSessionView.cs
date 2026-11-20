@@ -33,7 +33,11 @@ public sealed record PlayerMapExtent(double MinXM, double MinZM, double SideM, f
 /// </summary>
 public sealed record PlayerSessionView(string SessionId, int PlanStateRevision, WorkSourceToken Source,
     CommittedFrame Frame, IReadOnlyList<WorkOrder> Pending, PlayerApprovedPlan? Approved,
-    IReadOnlyList<AnnualYearRecord> AnnualHistory, PlayerMapExtent Extent);
+    IReadOnlyList<AnnualYearRecord> AnnualHistory, PlayerMapExtent Extent)
+{
+    /// <summary>Living retained Crop Trees in this session only; an owned read-only copy from the same committed root.</summary>
+    public IReadOnlyList<string> CropTreeIds { get; init; } = Array.Empty<string>();
+}
 
 /// <summary>
 /// The outcome of one player command. When <see cref="RefusalCode"/> is set, nothing changed and <see cref="View"/> is a
@@ -89,4 +93,14 @@ public static class PlayerLabels
     public const string StatusApprovedFell = "Approved Fell (A)";
     public const string StatusFelled = "Felled Y{y}";
     public const string StatusNaturalDead = "Dead (natural) Y{y}";
+}
+
+// Kept outside the frozen PlayerLabels contract; available only to this lab's UI.
+internal static class CropLabels
+{
+    public const string MarkCrop = "Retain as Crop Tree";
+    public const string UnmarkCrop = "Remove Crop designation";
+    public const string CropRetained = "Retained Crop Tree (C)";
+    public const string CropDeath = "Crop designation cleared because this tree died during the ecological year";
+    public const string CropFellRefused = "Remove Crop designation before proposing this tree for Fell";
 }

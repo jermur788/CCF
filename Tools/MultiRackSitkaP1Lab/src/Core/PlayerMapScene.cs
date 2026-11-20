@@ -16,7 +16,10 @@ public enum PlayerMapStatus
 /// scene, and a higher value is drawn on top. Display geometry only, never an ecological value or an authority.
 /// </summary>
 public sealed record PlayerMapItem(string TreeId, int PaintOrder, double U, double V, double RadiusM, float HeightM,
-    float DbhCm, PlayerMapStatus Status, int? DeathYear, string? DeathCause);
+    float DbhCm, PlayerMapStatus Status, int? DeathYear, string? DeathCause)
+{
+    public bool IsCrop { get; init; }
+}
 
 /// <summary>
 /// Pure, colour-free map geometry for one <see cref="PlayerSessionView"/> (spec §4.3–4.4, §5): true positions and crown
@@ -52,7 +55,8 @@ public static class PlayerMapScene
             double radius = status == PlayerMapStatus.Felled ? StumpRadiusM : tree.CrownRadiusM;
             items.Add(new PlayerMapItem(tree.TreeId, items.Count, (double)tree.XM - extent.MinXM,
                 northEdgeZ - (double)tree.ZM, radius, tree.HeightM, tree.DbhCm, status,
-                tree.Death?.EcologicalYear, tree.Death?.Cause));
+                tree.Death?.EcologicalYear, tree.Death?.Cause)
+            { IsCrop = tree.IsLiving && view.CropTreeIds.Contains(tree.TreeId, StringComparer.Ordinal) });
         }
         return items.AsReadOnly();
     }

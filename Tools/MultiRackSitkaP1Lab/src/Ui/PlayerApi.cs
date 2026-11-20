@@ -38,6 +38,7 @@ internal sealed class PlayerApi
     // Every fixed player-facing string, read from Core's PlayerLabels, so the page invents no label of its own (spec §7.2).
     private static readonly IReadOnlyDictionary<string, string> Labels = typeof(PlayerLabels)
         .GetFields(BindingFlags.Public | BindingFlags.Static)
+        .Concat(typeof(CropLabels).GetFields(BindingFlags.Public | BindingFlags.Static))
         .Where(field => field.IsLiteral && field.FieldType == typeof(string))
         .ToDictionary(field => field.Name, field => (string)field.GetRawConstantValue()!, StringComparer.Ordinal);
 
@@ -78,6 +79,11 @@ internal sealed class PlayerApi
             ["app.js"] = new("GET", context => WriteAssetAsync(context, PageJs, "text/javascript; charset=utf-8")),
             ["api/view"] = new("GET", ReadViewAsync),
             ["api/hit"] = new("POST", HitTestAsync),
+            ["api/competition"] = new("POST", ReadCompetitionAsync),
+            ["api/crop/mark"] = new("POST", context => CommandAsync<TreeRequest>(context,
+                request => player.MarkCrop(request.Fence!, request.TreeId ?? ""))),
+            ["api/crop/unmark"] = new("POST", context => CommandAsync<TreeRequest>(context,
+                request => player.UnmarkCrop(request.Fence!, request.TreeId ?? ""))),
             ["api/pending/add"] = new("POST", context => CommandAsync<AddRequest>(context,
                 request => player.AddPending(request.Fence!, request.TreeId ?? "", request.Reason ?? ""))),
             ["api/pending/remove"] = new("POST", context => CommandAsync<TreeRequest>(context,
@@ -182,6 +188,47 @@ internal sealed class PlayerApi
         return WriteJsonAsync(context, StatusCodes.Status200OK, new ViewPayload(view, PlayerMapScene.Build(view), Labels));
     }
 
+    // One atomic read, one fence comparison and one pure calculation on that same immutable view.
+    private async Task ReadCompetitionAsync(HttpContext context)
+    {
+        var request = await ReadRequestAsync<TreeRequest>(context, rejectDuplicateMembers: true);
+        if (request is null) return;
+        if (request.Fence is not { Source: not null } fence || string.IsNullOrWhiteSpace(fence.SessionId) ||
+            request.TreeId is not { Length: > 0 and <= 64 } treeId || treeId.Any(ch => char.IsWhiteSpace(ch) || char.IsControl(ch)) ||
+            fence.PlanStateRevision < 0 ||
+            fence.Source.Domain is null || fence.Source.FixtureId is null || fence.Source.FixtureFileSha256 is null ||
+            fence.Source.FixtureContentHash is null || fence.Source.ManagementScopeId is null ||
+            fence.Source.P1AlgorithmVersion is null)
+        {
+            await WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                "competition needs a complete fence and an exact tree ID of 1–64 non-whitespace characters");
+            return;
+        }
+        var view = player.Read();
+        PlayerCompetitionReport? report = null;
+        Notice? refusal = fence.SessionId != view.SessionId
+            ? new Notice("PlayerSessionMismatch", "this request does not belong to this player session")
+            : fence.Source != view.Source
+                ? new Notice("PlayerSourceStale", "the source changed; re-read the current view")
+                : fence.PlanStateRevision != view.PlanStateRevision
+                    ? new Notice("PlayerPlanStateStale", "the Work Plan changed; re-read the current view") : null;
+        if (refusal is null)
+        {
+            try
+            {
+                report = PlayerCompetitionDiagnostics.Measure(view, treeId);
+                if (!view.CropTreeIds.Contains(treeId, StringComparer.Ordinal))
+                {
+                    report = null;
+                    refusal = new Notice("CompetitionCropRequired", "designate a retained Crop Tree before inspecting its competitors");
+                }
+            }
+            catch (P1Refusal reason) { refusal = new Notice(reason.Code, reason.Message); }
+        }
+        await WriteJsonAsync(context, StatusOf(refusal?.Code),
+            new CompetitionPayload(view, PlayerMapScene.Build(view), report, refusal));
+    }
+
     private async Task HitTestAsync(HttpContext context)
     {
         var request = await ReadRequestAsync<HitRequest>(context);
@@ -217,7 +264,7 @@ internal sealed class PlayerApi
     private static Notice? NoticeOf(string? code, string? message) => code is null ? null : new Notice(code, message ?? "");
 
     // Returns null after answering the request itself, when a guard refuses it (415, 413 or 400).
-    private static async Task<T?> ReadRequestAsync<T>(HttpContext context) where T : class
+    private static async Task<T?> ReadRequestAsync<T>(HttpContext context, bool rejectDuplicateMembers = false) where T : class
     {
         if (!IsJsonContentType(context.Request.ContentType))
         {
@@ -238,6 +285,12 @@ internal sealed class PlayerApi
         string problem = "the body must be one JSON object";
         try
         {
+            if (rejectDuplicateMembers)
+            {
+                using var document = JsonDocument.Parse(body);
+                RequireUniqueMembers(document.RootElement);
+                RequireCompetitionShape(document.RootElement);
+            }
             request = JsonSerializer.Deserialize<T>(body, RequestJson);
         }
         catch (JsonException parse)
@@ -247,6 +300,36 @@ internal sealed class PlayerApi
         if (request is null)
             await WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest", problem + "; nothing changed");
         return request;
+    }
+
+    private static void RequireCompetitionShape(JsonElement root)
+    {
+        static JsonElement Member(JsonElement value, string name) => value.ValueKind == JsonValueKind.Object &&
+            value.TryGetProperty(name, out var member) ? member : throw new JsonException("missing member: " + name);
+        _ = Member(root, "treeId");
+        var fence = Member(root, "fence");
+        _ = Member(fence, "sessionId");
+        _ = Member(fence, "planStateRevision");
+        var source = Member(fence, "source");
+        foreach (var name in new[] { "domain", "fixtureId", "fixtureFileSha256", "fixtureContentHash",
+                     "managementScopeId", "ecologicalYear", "annualRevision", "workRevision", "rngModelVersion",
+                     "growthModelVersion", "p1AlgorithmVersion", "actionEligibleDbhThresholdMm" })
+            _ = Member(source, name);
+    }
+
+    private static void RequireUniqueMembers(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var property in element.EnumerateObject())
+            {
+                if (!names.Add(property.Name)) throw new JsonException("duplicate JSON member");
+                RequireUniqueMembers(property.Value);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+            foreach (var value in element.EnumerateArray()) RequireUniqueMembers(value);
     }
 
     private static bool IsJsonContentType(string? contentType) =>
@@ -346,6 +429,9 @@ internal sealed class PlayerApi
 
     private sealed record ViewPayload(PlayerSessionView View, IReadOnlyList<PlayerMapItem> Scene,
         IReadOnlyDictionary<string, string> Labels);
+
+    private sealed record CompetitionPayload(PlayerSessionView View, IReadOnlyList<PlayerMapItem> Scene,
+        PlayerCompetitionReport? Competition, Notice? Refusal);
 
     private sealed record HitPayload(PlayerSessionView View, IReadOnlyList<PlayerMapItem> Scene,
         IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal);
