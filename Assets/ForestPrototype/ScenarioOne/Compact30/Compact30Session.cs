@@ -498,7 +498,14 @@ public sealed class Compact30Session : MonoBehaviour
         GameObject stump = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         stump.name = "Compact30 stump " + treeId;
         Collider collider = stump.GetComponent<Collider>();
-        if (collider != null) Destroy(collider);
+        if (collider != null)
+        {
+            collider.enabled = false;
+            Destroy(collider);
+        }
+        // The primitive's capsule rounds off the wood. Use its actual cylinder mesh so only
+        // the visible low stump remains solid after the living trunk collider is disabled.
+        stump.AddComponent<MeshCollider>().sharedMesh = stump.GetComponent<MeshFilter>().sharedMesh;
         stump.transform.position = new Vector3(position.x, 0.175f, position.z);
         stump.transform.localScale = new Vector3(0.3f, 0.175f, 0.3f);
         stump.GetComponent<Renderer>().sharedMaterial = stumpMaterial;

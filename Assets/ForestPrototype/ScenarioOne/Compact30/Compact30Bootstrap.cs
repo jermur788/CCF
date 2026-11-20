@@ -216,8 +216,16 @@ public static class Compact30Bootstrap
             target.gameObject.SetActive(false);
             ForestTree tree = target.gameObject.AddComponent<ForestTree>();
             tree.InitializeAuthoredVisual(row.id, sitka, row.age_y, row.height_m, row.dbh_cm, row.crown_m);
-            var capsule = target.gameObject.AddComponent<CapsuleCollider>();
-            capsule.radius = 0.25f;
+            // Authored roots scale the art, but DBH and height are already in world units.
+            // Give physics a unit-scale child so the art cannot multiply the trunk dimensions.
+            var trunk = new GameObject("Trunk collision");
+            trunk.layer = target.gameObject.layer;
+            trunk.transform.SetParent(target, false);
+            Vector3 scale = target.lossyScale;
+            trunk.transform.localScale = new Vector3(1f / Mathf.Abs(scale.x),
+                1f / Mathf.Abs(scale.y), 1f / Mathf.Abs(scale.z));
+            var capsule = trunk.AddComponent<CapsuleCollider>();
+            capsule.radius = row.dbh_cm / 200f;
             capsule.height = Mathf.Max(1.2f, row.height_m);
             capsule.center = new Vector3(0f, capsule.height * 0.5f, 0f);
             target.gameObject.AddComponent<Compact30AuthoredTree>();
