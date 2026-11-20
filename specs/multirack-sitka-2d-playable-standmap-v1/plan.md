@@ -1,14 +1,20 @@
 # Multi — Playable 2D Stand Map: implementation and qualification plan (DRAFT)
 
-- **Spec:** [spec.md](spec.md), **DRAFT**. This plan implements that spec and creates no product requirement of its own.
-- **Gate:** nothing in Phases II–V starts until **owner G5** (spec §3) and **#730 acceptance** (spec §0.3, §6) are recorded on GitHub. Phase I (docs and environment proof) is complete in this commit.
+- **Spec:** [spec.md](spec.md), **DRAFT, corrected (C-1…C-5)**. This plan implements that spec and creates no product requirement of its own.
+- **Gate status:**
+  - Owner G5: **UI-A SELECTED**.
+  - #730: Q-1…Q-6 **accepted within spec §0.4**, conditional on reading back this correction commit.
+  - Physical/source admission (spec §10, C-2): **NOT GRANTED**.
+  - Nothing in Phases II–V, including any candidate build, starts until the readback and the admission are both recorded on GitHub.
+  - Phase I (docs and environment proof) is complete in `786a8637`; this commit is its forward-only correction.
 - **Writer:** one exclusive writer (Claude Opus 5.5) for every path in [tasks.md](tasks.md). Optional Sonnet 5.5 help only on a disjoint, explicitly assigned path, never the Core files. The independent reviewer (GPT-6.1 Sol) never writes the candidate.
 
 ## P0. Preconditions (re-checked at each phase start)
 
 1. Live `Docs/Project/coordination/active-tasks.md` and the #730 thread show this task's claim, writer and reviewer, and no overlapping writer on `Tools/MultiRackSitkaP1Lab/src/Core/AnnualContinuation.cs` (#846 released).
 2. The branch `feat/multi-standmap-playable2d-20261120-v1` descends from `4bb80973`. No rebase, cherry-pick to main or force-push.
-3. The G5 decision and #730 acceptance are recorded, with any requested changes applied to spec.md first (new commit; earlier commits never rewritten).
+3. G5 (UI-A) is recorded. The #730 readback of this correction commit is recorded. Any further requested changes are applied to spec.md first, in a new commit; earlier commits are never rewritten.
+4. **C-2:** the physical/source admission of spec §10 is recorded. The product decision "G0 RESOLVED (no rack)" is **not** this admission. It covers the custodian or Ops machine and process check with a reservation, #846's release, and exclusive #849 ownership of the 15 paths. A clean worktree is not evidence of custody. Without it: no source write and no candidate build; report the blocker.
 
 ## P1. Environment and evidence discipline (from the Phase I findings)
 
@@ -19,7 +25,8 @@
   - commit with an explicit author identity (`-c user.name=… -c user.email=…`), because the lane's configured identity is the non-author DeepSeek parent;
   - never run `git worktree prune` (WSL lists this worktree as `prunable`).
 - **Fast iteration (not evidence):** build and test in the lane from WSL with `GIT_DIR=/home/jer/Development/CCF-HP/.git/worktrees/feat-multi-standmap-pla-b40873fbd04c0a28`. Expect exactly one environment-caused failure: the `CcfSourcePins` working-tree SHA check, caused by CRLF. Any other failure is real.
-- **Tier-1 evidence lane:** after each push, run `make-pristine-clone.sh` (Phase I scripts, recorded in the Phase I note) against the **pushed commit SHA** in a fresh WSL-native LF sparse clone under `~/.ccf-orch/standmap-p1-opus/`. Copy `.p0ref` from a pinned copy and verify that the DLL SHA equals the csproj pin, the `.sha256` record and `provenance.txt`. **P0 is never rebuilt.** Then build and test there. Only clone results count as Tier-1.
+- **Tier-1 evidence lane:** after each push, run `make-pristine-clone.sh` (Phase I scripts, recorded in the Phase I note) against the **pushed commit SHA** in a fresh WSL-native LF sparse clone under `~/.ccf-orch/standmap-p1-opus/`. Copy `.p0ref` from an authorised read-only pinned copy and verify that the DLL SHA equals the csproj pin, the `.sha256` record and `provenance.txt`, and record which copy was used (spec §3.5). **P0 is never rebuilt** (C-1); `build/build-p0-core-ref.sh` is never run. If no copy matches, STOP. Then build and test there. Only clone results count as Tier-1.
+- **C-3 evidence labels:** the Phase I clone result (66/66, ten digests at `4bb80973`) is **worker-reported, base-only**. Candidate evidence starts at the first pushed source SHA. Lane results are never reported as PASS. A lane failure is either explained as environmental and re-run in the clone, or reported as a FAIL.
 - **SDK:** `~/.dotnet/dotnet` 8.0.134 (satisfies `global.json` 8.0.133 latestPatch). Set `TMPDIR` outside every repository.
 
 ## P2. Phase II — same-lock player session facade (Core only)
@@ -67,9 +74,9 @@
 | MS-05 | status mapping for pending/approved/felled/natural dead |
 | MS-06 | an adapter hit-test with a stale fence is refused after Execute |
 
-## P3. Phase III — playable UI (after G5)
+## P3. Phase III — playable UI (UI-A, owner G5)
 
-**If UI-A:**
+**UI-A (selected), within the Q-1 boundary of spec §0.4:**
 
 1. `src/Ui/SitkaP1.Ui.csproj`: Exe; `FrameworkReference Microsoft.AspNetCore.App`; Core project reference; `wwwroot/**` embedded. First check `dotnet restore` works **offline**, using only the installed 8.0.34 pack.
 2. `src/Ui/Program.cs`: argument parsing (fixture directory only), capability generation, Kestrel loopback port 0, printing the URL, Ctrl+C shutdown.
@@ -82,7 +89,7 @@
    - after the run, `git status` is clean and `~/.aspnet` was not created.
 6. `README.md` (lab): add a "Playable 2D Stand Map (Stage 5 slice)" section with the launch path and its honesty boundaries, and update the stale "Host / UI … Not implemented" row.
 
-**If UI-B:** the same `src/Ui` folder holds `SitkaP1.Ui.csproj` (no FrameworkReference), `Gtk.cs` (interop), `Program.cs` and `MainWindow.cs`. No `wwwroot` and no `ui-smoke.sh`; a manual operation script replaces them. The path list is re-issued to #730 before writing.
+**UI-B (not selected; record only):** the same `src/Ui` folder would have held `SitkaP1.Ui.csproj` (no FrameworkReference), `Gtk.cs` (interop), `Program.cs` and `MainWindow.cs`. No `wwwroot` and no `ui-smoke.sh`; a manual operation script replaces them. The path list is re-issued to #730 before writing.
 
 **Human-operable evidence (author Tier-1, UI-A):** launch from WSL and operate from a Windows browser at the printed URL (T3 preview browser and/or Microsoft Edge). Capture real screenshots or recordings with provenance (exact SHA, time, viewport) at 1280×800, at 360 CSS px width and at 200 % zoom, covering:
 
@@ -98,7 +105,7 @@ Also run a keyboard-only traversal of the same flow. Screen reader: NVDA, if the
 
 ## P4. Phase IV — qualification
 
-- **Author Tier-1** (pushed SHA, pristine clone):
+- **Author Tier-1** (exact pushed candidate SHA, fresh WSL-native LF clone, P0 copied and verified four ways; C-3):
   - clean build with 0 warnings and 0 errors;
   - 66 base tests unchanged plus the new tests;
   - ten digests identical;

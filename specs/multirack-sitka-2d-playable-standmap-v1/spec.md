@@ -1,7 +1,7 @@
 # Multi — Playable standalone 2D Stand Map and player session facade (V1)
 
 - **Spec ID:** MULTI-STANDMAP-PLAYABLE-2D-V1
-- **Status:** **DRAFT — architecture delta awaiting (1) owner G5 frontend-runtime decision and (2) Multi Manager #730 acceptance. NO PRODUCTION SOURCE WRITE IS AUTHORISED BY THIS FILE.**
+- **Status:** **DRAFT, corrected (C-1…C-5)**. Owner G5: **UI-A SELECTED** ([#849](https://github.com/jermur788/CCF/issues/849#issuecomment-7027590721), [#730](https://github.com/jermur788/CCF/issues/730#issuecomment-7027589979)). Manager #730: **accepted in substance with corrections** ([verdict](https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Manager-Design-Verdict-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-Manager-Architecture-and-Stage5-Delta-Verdict-20261120.md), [#849 comment](https://github.com/jermur788/CCF/issues/849#issuecomment-7027807823)), on Phase I commit `786a8637`. This file becomes the implementation authority only after #730 reads back this correction commit. **NO PRODUCTION SOURCE WRITE IS AUTHORISED BY THIS FILE.** Source writes and builds of the candidate also wait for the separate physical/source admission gate in §10.
 - **Date:** 20 November 2026
 - **Author:** Claude Opus 5.5, primary implementer/integrator for task *Multi-StandMap-Playable-2D* (model identity is worker-reported; see the Phase I note §0). Independent reviewer reserved: GPT-6.1 Sol (non-author).
 - **Phase I evidence:** [`Docs/Handoffs/MultiRack-Simulation-20261116/Multi-StandMap-Playable-2D-PhaseI-Architecture-Proof-20261120.md`](../../Docs/Handoffs/MultiRack-Simulation-20261116/Multi-StandMap-Playable-2D-PhaseI-Architecture-Proof-20261120.md) (same commit as this file).
@@ -19,7 +19,21 @@
 | Manager review of that contract | `docs/Multi-Player-Adapter-Manager-Contract-Verdict-20261119-v1` @ `f9e77874` | "APPROVED as contract direction; HELD production code" |
 | Stand Map reuse assessment | `docs/Multi-StandMap-Reuse-Assessment-20261120-v1` @ `ec044b4d` | Reuse conventions; do not reuse `StandMapSource`/Unity UI |
 
-Order of precedence follows `Docs/Project/AgentWorkflow.md` §Spec authority. Where this delta must qualify an approved statement, it says so in §0.3 and that qualification is **not effective until #730 accepts it**.
+| Manager #730 Phase I verdict | `docs/Multi-849-PhaseI-Manager-Design-Verdict-20261120-v1`, `Multi-849-PhaseI-Manager-Architecture-and-Stage5-Delta-Verdict-20261120.md` | Option B accepted; UI-A accepted; Q-1…Q-6 accepted narrowly (§0.4); corrections C-1…C-5 required; production held |
+
+Order of precedence follows `Docs/Project/AgentWorkflow.md` §Spec authority. Where this delta qualifies an approved statement, it says so in §0.3. Each qualification is effective **only within the boundary #730 set in §0.4**.
+
+### Correction record (forward-only; earlier commit `786a8637` is not rewritten)
+
+| Id | Manager requirement | Where it is applied |
+|---|---|---|
+| C-1 | Remove the P0 rebuild step from the user launch path. Frozen P0 is copied from an authorised pinned reference and verified four ways, or the launch STOPS | §3.5; plan P1 |
+| C-2 | The product G0 "no rack" decision does not resolve physical, source or compile custody, or live task ownership | §0.2, §10; plan P0; tasks status, PM-T00, PM-T01; checklist PM-R01, PM-R02, new PM-R15 |
+| C-3 | The Phase I 66/66 and digest results are worker-reported and base-only. Candidate Tier-1 runs later, on the exact pushed source SHA, in a fresh WSL-native LF clone. A failing Windows/CRLF checkout result is never waived as PASS | §9 AC-PM-01; plan P1, P4; checklist PM-X01 |
+| C-4 | State the exact size of the UI-A source allowlist: **15 paths** | tasks.md path list; §10. (The `786a8637` text gave no count; the count is now explicit) |
+| C-5 | No new data authority. Exact ID as drawn, clicked and listed. Same-lock fences on every root-mutating entry point. Engine-minted PlanId and ExecutionKey with PlanId-checked replay. D-093 and the G1/economy status preserved | §2, §6.3, §7.2 |
+
+Owner G5 (UI-A) and the Manager's Q-1…Q-6 boundaries are recorded here as decisions, not as a source grant. No checklist box changes.
 
 ## 0. Relationship to the approved Stage 5 design
 
@@ -37,6 +51,7 @@ The approved Stage 5 design covers the one-area manual Work Plan loop but leaves
 
 - Gameplay: one undivided 30 × 30 m, 100-Sitka management area; manual per-ID Fell; PendingWork → explicit whole-plan approval (zero Fell) → separate Execute (one atomic typed Fell event) → genuine Year+1 from survivors; warn/consent/stale-cancel on advance with unexecuted work; D-093 (170 mm informational; all-live batch refused).
 - Gates: G0 RESOLVED (no rack), G1 **DISABLED — Manual/NotCovered**, G3 no save/persistence, G4 no economics (**UNAVAILABLE**, never €0).
+- **C-2 — two different "G0"s.** "G0 RESOLVED (no rack)" above is the **product rack-layout decision only**. It says nothing about who may write or build the code. The parent's G0 admission covers physical machine and worktree reservation, exclusive source and compile custody of the exact file set, live `active-tasks.md` ownership, and #846's release of `AnnualContinuation.cs`. That admission is **UNVERIFIED / HELD** (§10). A clean worktree, an absent `[RUNNING]` row or an owner instruction does not stand in for it.
 - Protected: the 100 original `TreeId`s; the ten no-work Year0–10 digests; `ContinuationSnapshot` and `AnnualReport` shapes; `AnnualRules.cs`; fixtures; goldens; `.p0ref`/P0; `Tools/MultiRackSitkaLab/**`; `Assets/**`; Scenario One sources.
 - The approved 26 R + 24 X checklist remains the gameplay acceptance authority. This delta's own checklist covers only the new architecture and points back to R/X ids.
 
@@ -50,6 +65,17 @@ The approved Stage 5 design covers the one-area manual Work Plan loop but leaves
 | Q-4 | UX preflight S0: "a 2D map is an optional coordinate-backed companion to a searchable semantic table" | The map becomes the **primary visual surface** (owner handoff). The table stays the **authoritative keyboard and screen-reader path** for ID precision | Owner asked for a map-first UI; accessibility authority unchanged |
 | Q-5 | Stage 5 spec §8 G2-5 "one immutable, bounded public current-source view" (PROPOSED) | Realised as public `PlayerSessionView` plus `PlayerWorkPlanAdapter` in `SitkaP1.Core` (§6). This **adds public ABI to the qualified Core assembly** | A G4-class protected shared-source change; needs #730 |
 | Q-6 | FR-12 "previous-versus-current-versus-proposed" history | Session-local history = existing `WorkEvent` ledger + per-tree `AnnualDeath` + new immutable `AnnualYearRecord` per committed year. No "proposed" column, because G1 is disabled | Minimal truthful history without invented proposals |
+
+### 0.4 Manager #730 disposition of Q-1…Q-6 (binding boundary; recorded, not self-granted)
+
+| Id | Disposition | Boundary that applies to every later phase |
+|---|---|---|
+| Q-1 | **ACCEPT** with owner G5 UI-A | The exception covers **only** the in-process, single-session `SitkaP1.Ui` loopback presentation listener: `127.0.0.1`, an ephemeral port other than 5187, a capability URL, Host/Origin/type/size guards, no CORS and no LAN listener. **It is an HTTP server.** No document may say the blanket no-server rule was already met. Persistence Host, H2, storage, server-authoritative or cross-session saves, remote clients, background services, privileged ports and economy all stay forbidden. The Stage 5 no-Host rule is narrowed for this one presentation process, not withdrawn for future scenarios |
+| Q-2 | **ACCEPT** | `PlanStateRevision` goes up by exactly 1 when an approved execution publishes and the approval clears. It does not change on replay, refusal or fault. WorkRevision +1, year and annual revision unchanged on Fell. Source/plan/session fences and ABA tests stay |
+| Q-3 | **ACCEPT for the first playable slice only** | Manual exact-ID selection is the feature. The optional sample is **deferred**, not removed. Stage 5 R-06 and X-05 are **not PASS** from this slice. G1 stays DISABLED/Manual/NotCovered; #828 stays a separate DRAFT |
+| Q-4 | **ACCEPT** | The map is the primary visual. The tree table is the keyboard and screen-reader selection path, backed by the source. Nothing creates a second ecological authority. Exact ID and stale hit-tests must match frame and token; pixel selection is never authority |
+| Q-5 | **ACCEPT only within the isolated #849 source candidate** | Additive `PlayerSessionView` / `PlayerWorkPlanAdapter` / `PlayerMapScene` facade around the existing immutable `WorkRoot` and single `sync`, with no exposed unsafe mutation seam. **Not** G4 permission to merge into main, to change Scenario One or shared source, to change `WorkContract.cs` or existing public shapes, or to adopt the ABI in Unity. Tier-2 reviews the actual compiled exported API. Any protected or API change beyond the exact path list: STOP that change and return for a new G4 decision |
+| Q-6 | **ACCEPT for the one-area, G1-disabled slice** | Keep real `WorkEvent`, `AnnualDeath` and source-linked annual before/after. No fabricated "proposed" column; show `UNAVAILABLE / NOT COVERED` where useful. Stage 5's future previous/current/proposed intent stays and is not cancelled. No save, resume or durable-audit claim |
 
 ## 1. Scope
 
@@ -74,21 +100,25 @@ SitkaP1.Ui process (new, G5)  ── JSON ──  browser page: SVG map + tree t
 
 The UI never mutates engine state directly, never deletes a tree visually ahead of a committed result, keeps no copy of "felled" trees, counters, RNG or clocks, and derives every displayed actual value from the latest `PlayerSessionView`. A local click selection is a UI-only draft, distinct from engine-side PendingWork.
 
-## 3. Frontend technology, packaging and launch path — **OWNER G5 REQUIRED**
+**C-5 — no new data authority.** The page and the map scene compute only pixel and coordinate transforms (§4.3). They never compute forestry statistics such as counts, basal area, Dq, deaths or growth. Those come only from the engine view and its `WorkEvent`/`AnnualReport` results. The page sends exact IDs and the displayed fence; it never sends a plan object, PlanId of its own choice or derived value.
+
+## 3. Frontend technology, packaging and launch path — **OWNER G5: UI-A SELECTED**
+
+The owner chose UI-A on 20 November 2026 (links in the Status line). §3.3 and §3.4 are kept as the record of what was weighed. The Q-1 boundary in §0.4 applies to everything in §3.2, §3.5 and §3.6.
 
 ### 3.1 Constraints that decide the choice
 
 The UI must offer clickable rendering and keyboard control (no output-only console map, no mock), testing at a 360 CSS-px equivalent viewport and 200 % scale, a keyboard-only path and screen-reader support. It must also respect: .NET 8 (SDK 8.0.134 present), no new NuGet packages, no Windows build, no Unity, no persistence, and dispatch §5 "no Host/server/network architecture". Everything available that satisfies the accessibility requirements needs either a local channel (network) or a native GUI binding, so this is a genuine runtime decision. It is not self-granted here.
 
-### 3.2 UI-A — RECOMMENDED: single-session loopback browser UI process
+### 3.2 UI-A — SELECTED (owner G5): single-session loopback browser UI process
 
 - **Project:** new `src/Ui/SitkaP1.Ui.csproj` (assembly `sitkap1-ui`, `net8.0` Exe). It references `../Core/SitkaP1.Core.csproj` and `FrameworkReference Microsoft.AspNetCore.App`, using the shared framework **already installed** (`~/.dotnet/shared/Microsoft.AspNetCore.App/8.0.34`, targeting pack `packs/Microsoft.AspNetCore.App.Ref/8.0.34`). It needs **no NuGet download**. The sibling P0 lab used the same framework for its owner-qualified loopback UI.
 - **Server:** `WebApplication.CreateSlimBuilder` and Kestrel `Listen(IPAddress.Loopback, 0)`. The OS assigns an ephemeral port, never 5187 and never privileged, and the process prints it. No HTTPS, cookies, antiforgery, authentication or data-protection features are used, so no key ring is created.
 - **Assets:** `index.html`, `app.css` and `app.js` are compiled into the assembly as embedded resources and served from memory. The UI makes **no file-system read or write** at runtime apart from the existing trusted fixture read in Core, and complies with the existing `644 B-01` banned-file-API scan of `src/**/*.cs`.
 - **Session:** one `PlayerWorkPlanAdapter` per process. Process exit ends the session; nothing is saved.
-- **Fallback inside UI-A (same envelope):** BCL `System.Net.HttpListener` instead of Kestrel, if the owner prefers zero additional shared framework.
+- **Fallback inside UI-A (same envelope):** BCL `System.Net.HttpListener` instead of Kestrel, if the owner prefers zero additional shared framework. Switching to it would be reported in the phase handoff before use; the path list does not change.
 
-### 3.3 UI-B — ALTERNATIVE: native GTK 3 window, no network
+### 3.3 UI-B — NOT SELECTED (record only): native GTK 3 window, no network
 
 `src/Ui` would call the system `libgtk-3.so.0` through hand-written `DllImport` (present in this WSL; shown through WSLg, `DISPLAY=:0`). The map would be drawn with cairo in a `GtkDrawingArea`, with GTK widgets for the table, inspector and Work Plan. No socket and no NuGet. The costs:
 
@@ -111,18 +141,33 @@ The UI must offer clickable rendering and keyboard control (no output-only conso
 
 ### 3.5 Real user launch path (UI-A)
 
+**Step 1 — frozen P0 reference (C-1).** The build needs `.p0ref/SitkaLab.Core.dll`, which is ignored by Git. **It is never rebuilt**, so `build/build-p0-core-ref.sh` is not part of this launch path. Copy it from an authorised, already-qualified, read-only pinned copy and verify a **four-way match** before building. If no copy matches all four, **STOP** and report a blocker. Do not rebuild P0 and do not write any new P0 source or reference. The four values that must be equal:
+
+1. the copied DLL's actual SHA-256;
+2. the `P0CoreExpectedSha256` pin in `src/Core/SitkaP1.Core.csproj` (`9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`);
+3. the source copy's `.p0ref/SitkaLab.Core.dll.sha256` record;
+4. the hash in the source copy's `.p0ref/provenance.txt`.
+
+Also record the source copy's path in the run notes, so the copy used is known.
+
 ```bash
-# Ubuntu (WSL2), from the repository root
+# Ubuntu (WSL2), from the repository root; dotnet = ~/.dotnet/dotnet (SDK 8.0.134, satisfies global.json 8.0.133 latestPatch)
 cd Tools/MultiRackSitkaP1Lab
-build/build-p0-core-ref.sh            # only if .p0ref/ is absent; or copy a pinned copy and verify its SHA (see plan.md)
-dotnet build src/Ui/SitkaP1.Ui.csproj
-dotnet src/Ui/bin/Debug/net8.0/sitkap1-ui.dll fixtures/derived
+PIN=9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3
+SRC=<authorised pinned .p0ref directory>          # read-only source; recorded in the run notes
+mkdir -p .p0ref && cp "$SRC/SitkaLab.Core.dll" "$SRC/SitkaLab.Core.dll.sha256" "$SRC/provenance.txt" .p0ref/
+sha256sum .p0ref/SitkaLab.Core.dll                # must print $PIN; also compare the .sha256 record and provenance.txt
+#   any mismatch or missing file: STOP — never run build/build-p0-core-ref.sh
+~/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj
+~/.dotnet/dotnet src/Ui/bin/Debug/net8.0/sitkap1-ui.dll fixtures/derived
 #   prints:  Open http://127.0.0.1:<port>/s/<capability>/   — Ctrl+C ends the session; nothing is saved
 ```
 
+The lab README written in PM-T08 carries the same steps. A small checked helper script is not on the 15-path list, so it is not added.
+
 Open the printed URL in Microsoft Edge on Windows. WSL2 NAT localhost forwarding was re-verified for a dynamic high port on 20 November 2026. Use the printed `127.0.0.1` address exactly; other host names are refused (§3.6).
 
-### 3.6 Security envelope for UI-A (part of the G5 request)
+### 3.6 Security envelope for UI-A (binding under Q-1, §0.4)
 
 1. Bind `127.0.0.1` only. A test proves every listening socket for the process is `0100007F` in `/proc/net/tcp`.
 2. Per-launch 256-bit random capability in the URL path (`/s/<capability>/…`), from `RandomNumberGenerator`. A request without it gets 404 and no body.
@@ -231,6 +276,8 @@ New internal `AnnualContinuation.ReadPlayerView()` takes `sync` once and builds 
 
 These increments live inside the existing mutation methods (`AddPendingFell`, `RemovePendingFell`, `ApprovePlan`, `CancelApprovedPlan`, `Execute`, `AdvanceLocked`), at their single `root = …` publish. A legacy unfenced call therefore also invalidates fenced callers. Validation order and refusal codes of those methods are unchanged.
 
+**C-5 — every root-mutating entry point.** Phase II starts by listing every `root = …` publish in `AnnualContinuation.cs`, including both `Advance` overloads, and puts the list in its handoff. Each publish must either apply the table above or be shown to leave the plan state unchanged. Any publish that cannot be covered without changing an excluded file is a STOP. The session ID, full token and `PlanStateRevision` are read and checked under the same `sync` as the mutation they guard.
+
 ### 6.4 Fenced commands (internal on `AnnualContinuation`; mirrored publicly by the adapter)
 
 Every command takes `sync` once, checks the fence **before** any mutation, performs the transition, then builds the resulting view **under the same lock**:
@@ -287,6 +334,8 @@ The `beforePublish` and `beforeCommit` test seams; the legacy 3-argument `Advanc
 
 All labels come from `PlayerLabels` or the view, never invented client-side. Money is never displayed as a number. No rack, corridor, entrance, marking, proposal, sample or "equivalent area" control or text appears anywhere.
 
+C-5 applies here too: the map, table, inspector and alternatives list all show the same exact `TreeId` for the same tree, from the same view. The topmost-first overlap order is the §4.4 paint order (S-3, S-5). D-093 (all-live batch refused; 170 mm informational only), "Comparison extension: DISABLED — Manual/NotCovered" and "Costs, revenue, budget: UNAVAILABLE" stay as written.
+
 ## 8. Accessibility (testable requirements)
 
 - **A-1:** Every action in §7 can be reached and operated by keyboard in logical order, with visible focus and Enter/Space activation. Escape closes dialogs. There are no focus traps.
@@ -299,7 +348,7 @@ All labels come from `PlayerLabels` or the view, never invented client-side. Mon
 
 ## 9. Acceptance criteria for this delta (all NOT RUN)
 
-- **AC-PM-01** The base 66 tests pass unchanged and the ten no-work digests are character-identical on the candidate. Fixture, goldens, `.p0ref` pin, `AnnualRules.cs`, `WorkContract.cs`, `AnnualEngine.cs`, CLI, `.sln` and both csproj files are unchanged.
+- **AC-PM-01** The base 66 tests pass unchanged and the ten no-work digests are character-identical on the candidate. Fixture, goldens, `.p0ref` pin, `AnnualRules.cs`, `WorkContract.cs`, `AnnualEngine.cs`, CLI, `.sln` and both csproj files are unchanged. **Evidence rule (C-3):** this counts only from the exact pushed candidate source SHA, run in a fresh WSL-native LF clone with the P0 reference copied and verified four ways (§3.5). The Phase I result (66/66, ten digests, clone of `4bb80973`) is **worker-reported and base-only**; it is not candidate evidence. A failure in the Windows/CRLF editing checkout is never waived as a PASS. It is either explained as environmental and re-run in the clone, or reported as a FAIL.
 - **AC-PM-02** The view is atomic: under concurrent Execute and Advance, every observed view satisfies `Frame.WorkRevision == Source.WorkRevision`, `Frame.EcologicalYear == Source.EcologicalYear`, events and felled trees agree, and pending/approved belong to the same root.
 - **AC-PM-03** The plan-state rules in §6.3 hold exactly, including Add/Remove ABA staleness and Execute increment.
 - **AC-PM-04** All six commands refuse wrong-session, stale-source and stale-plan-state fences with zero mutation of the full view.
@@ -315,7 +364,15 @@ All labels come from `PlayerLabels` or the view, never invented client-side. Mon
 
 ## 10. Gates and stop conditions
 
-- **G5 (owner):** UI-A versus UI-B (§3). **No `src/Ui/**` file is written before this decision.**
-- **#730 Manager acceptance** of this delta (including Q-1…Q-6 and the §6 ABI) **before any production write**, including the Core facade.
+- **G5 (owner): DONE — UI-A selected** (§3). UI-B rows are not used.
+- **#730 Manager:** Q-1…Q-6 accepted within the §0.4 boundaries; Option B accepted. This delta becomes the implementation authority only after **#730 reads back this correction commit**.
+- **Physical/source admission (C-2): NOT GRANTED, HELD.** Before any production write **or any candidate build** in a lane that might conflict, all of these must be recorded:
+  1. a physical custodian or Ops check of the machine, processes and build contention, with a valid reservation;
+  2. #846's release of `AnnualContinuation.cs` custody;
+  3. #849's exclusive source ownership of the exact **15-path** file set (tasks.md), registered under live coordination rules;
+  4. a refreshed live `active-tasks.md`.
+
+  GitHub alone cannot prove exclusive machine custody. If this cannot be established, production stays held and the specific blocker is reported.
 - **No new Scenario One grant is requested.** Option B needs none. If the owner nevertheless wants A, the request must name all eight files and blobs (Phase I note §4.3), and items 2–5 of §4.1 must be resolved first.
 - **STOP** if implementation would need changes to `WorkContract.cs`, `AnnualEngine.cs`, CLI, `.sln`, csproj files other than the new UI project, `AnnualRules.cs`, fixtures, goldens or P0. Stop also if any digest or base test would change, or if a G1, economy, persistence or rack element is requested.
+- **STOP that one change** if a build shows a need for any path, dependency, link or csproj change beyond the 15-path list. Ask for a narrow amendment and continue only the allowed work. Never rebuild P0 (C-1).

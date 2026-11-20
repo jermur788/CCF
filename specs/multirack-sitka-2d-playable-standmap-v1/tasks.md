@@ -1,12 +1,20 @@
 # Multi — Playable 2D Stand Map: bounded tasks and exact writable paths (DRAFT)
 
 - **Parent:** [spec.md](spec.md) (DRAFT) · [plan.md](plan.md).
-- **Status:** PM-T00 (Phase I) **DONE in this commit**. PM-T01…PM-T08 are **NOT STARTED and NOT AUTHORISED** until owner G5 and #730 acceptance.
+- **Status:**
+  - PM-T00 (Phase I) is **DONE** in `786a8637`. PM-T00a (the #730 correction C-1…C-5) is **DONE** in this commit.
+  - Owner G5: **UI-A SELECTED**. #730: Q-1…Q-6 **accepted within spec §0.4**, pending readback of this commit.
+  - PM-T01…PM-T08 are **NOT STARTED and NOT AUTHORISED** until that readback and the separate **physical/source admission** (spec §10, C-2) are recorded. The product decision "G0 no rack" is not that admission.
 - **Base blobs** at `4bb809732fb691f15630e1fbc5ea20dca6dbbe2f` are listed so a reviewer can diff exactly.
 
-## Exact writable production path list (proposed for #730 admission)
+## Exact writable production path list — **15 paths** (UI-A; C-4)
 
-All paths are relative to `Tools/MultiRackSitkaP1Lab/`. "New" means the path does not exist at the base. Nothing outside this list is written, apart from GitHub handoff Markdown under `Docs/Handoffs/MultiRack-Simulation-20261116/` and corrections to this spec folder.
+All paths are relative to `Tools/MultiRackSitkaP1Lab/`. "New" means the path does not exist at the base.
+
+- **Counts:** 3 existing files modified (rows 1, 7, 15) and 12 new files (rows 2–6 and 8–14), **15 in total**.
+- **Docs are separate:** this is the source allowlist. The "five new Markdown files" refers only to the Phase I docs commit. Approving this list as architecture is **not** a source grant; exclusive ownership is registered separately (spec §10).
+- **Nothing else is written,** apart from GitHub handoff Markdown under `Docs/Handoffs/MultiRack-Simulation-20261116/` and corrections to this spec folder.
+- **If more is needed:** a further path, dependency, link or csproj change needs a narrow #730 amendment before it is touched.
 
 | # | Path | Kind | Base blob | Task | Why it is needed |
 |---|---|---|---|---|---|
@@ -26,7 +34,7 @@ All paths are relative to `Tools/MultiRackSitkaP1Lab/`. "New" means the path doe
 | 14 | `tests/ui-smoke.sh` | new | — | PM-T07 | UI process guard and flow witness (bash + curl) |
 | 15 | `README.md` | **modify** | `e3b312b2cfd48081298e43dcbb5c3c4400d6ec50` | PM-T08 | Real launch path and honesty boundaries; replaces the stale "Host / UI … Not implemented" row |
 
-Rows 8–14 assume **UI-A**. If the owner chooses **UI-B**, rows 10–14 are replaced by `src/Ui/Gtk.cs` and `src/Ui/MainWindow.cs` plus a manual operation note, and the list is re-submitted to #730 before writing.
+Rows 8–14 are the **UI-A** rows. The owner selected UI-A, so the UI-B variant (`src/Ui/Gtk.cs`, `src/Ui/MainWindow.cs`) is not used.
 
 ### Explicitly NOT written (and why no change is needed)
 
@@ -47,12 +55,16 @@ Rows 8–14 assume **UI-A**. If the owner chooses **UI-B**, rows 10–14 are rep
 
 ### PM-T00 — Phase I architecture proof and spec delta — **DONE (docs only)**
 
-Phase I note, this four-file delta and the environment proof. No production source.
+Phase I note, this four-file delta and the environment proof (`786a8637`). No production source. The 66/66 base result is worker-reported and base-only (C-3).
+
+### PM-T00a — #730 forward-only docs correction — **DONE (docs only, this commit)**
+
+Applies C-1…C-5 from the #730 Phase I verdict to the four files, plus a status addendum in the Phase I note. No checklist box changed; no source.
 
 ### PM-T01 — Same-lock session root extension (`AnnualContinuation.cs`)
 
-- **Gate:** #730 acceptance of spec §6 and Q-2, Q-5, Q-6.
-- **Do:** spec §6.2–6.5. Fenced internal commands call the legacy methods reentrantly inside one `sync`.
+- **Gate:** #730 readback of the PM-T00a commit (spec §6 and Q-2, Q-5, Q-6 within §0.4) **and** the physical/source admission of spec §10 (C-2): a custodian or Ops reservation, #846 released, exclusive #849 ownership of the 15 paths, and a refreshed `active-tasks.md`.
+- **Do:** spec §6.2–6.5. Fenced internal commands call the legacy methods reentrantly inside one `sync`. First list every `root = …` publish point, including both `Advance` overloads (spec §6.3, C-5).
 - **Checks:** base 66 unchanged plus PS-01…PS-17; ten digests identical.
 
 ### PM-T02 — Public view DTOs and adapter (`PlayerSessionView.cs`, `PlayerWorkPlanAdapter.cs`)
@@ -73,9 +85,9 @@ Phase I note, this four-file delta and the environment proof. No production sour
 - **Do:** plan P2 step 5.
 - **Exit:** push, then a Tier-1 clone run of the pushed SHA.
 
-### PM-T05 — UI process (G5 option; UI-A shown)
+### PM-T05 — UI process (UI-A, owner G5 selected)
 
-- **Gate:** **owner G5** plus PM-T04 Tier-1 green.
+- **Gate:** PM-T04 Tier-1 green on the pushed SHA (C-3). G5 is already recorded. The Q-1 boundary of spec §0.4 applies.
 - **Do:** spec §3.2, §3.6; plan P3 steps 1–3.
 - **Checks:** offline restore; build with 0 warnings; the `644 B-01` scan still passes.
 

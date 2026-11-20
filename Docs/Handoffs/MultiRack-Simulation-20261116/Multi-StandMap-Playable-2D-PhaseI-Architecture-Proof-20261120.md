@@ -6,6 +6,15 @@
 
 Companion spec delta (same commit): [`specs/multirack-sitka-2d-playable-standmap-v1/`](../../../specs/multirack-sitka-2d-playable-standmap-v1/spec.md) (spec, plan, tasks, checklist).
 
+> **Post-review status addendum (forward-only, added in the correction commit after `786a8637`).** The text below this box is unchanged from `786a8637`. Where it conflicts with this box, this box and the corrected spec win.
+>
+> - **Owner G5:** **UI-A SELECTED** ([#849](https://github.com/jermur788/CCF/issues/849#issuecomment-7027590721)). §5 and §11 below describe the decision as it stood before this.
+> - **Manager #730:** [verdict](https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Manager-Design-Verdict-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-Manager-Architecture-and-Stage5-Delta-Verdict-20261120.md) and [#849 comment](https://github.com/jermur788/CCF/issues/849#issuecomment-7027807823). It accepted Phase I as a design and environment-preflight handoff, accepted Option B and UI-A, and accepted Q-1…Q-6 narrowly (spec §0.4). It required corrections C-1…C-5, which are now applied to the four spec files (spec "Correction record").
+> - **C-3, evidence labels:** the §9 results (66/66, ten identical digests, 0 warnings / 0 errors on the clone of `4bb80973`) are **worker-reported and base-only**. They have not been independently run, and they are not candidate qualification. The lane results (64/66 and 65/66) are environmental and the lane is not a qualification lane.
+> - **C-1, P0:** P0 was copied and verified, never rebuilt (§9.1). In the corrected launch path (spec §3.5), `build/build-p0-core-ref.sh` appears only as something never to run. The path is a four-way check of the copy, or STOP.
+> - **C-4, path list:** the §8 path list is the **15-path** UI-A source allowlist.
+> - **C-2, still held:** production source is **NOT AUTHORISED**. The physical/source admission (spec §10) is not granted. The product decision "G0 no rack" is not that admission.
+
 ## 0. Identity and provenance
 
 - Author model identity is **worker-reported** (Claude Opus 5.5 via T3 Code); Git metadata does not prove it (A-1 finding F-1).
