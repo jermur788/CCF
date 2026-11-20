@@ -80,7 +80,11 @@ Observed directly at `cbcb3850` (read-only inspection; not a Unity run, not a so
 | 2026-11-20 ~09:36 | O0 | deepseek-v4.1-flash → claudeAgent/claude-sonnet-5-5 | Dispatched bounded spec correction `d857-02-a1` (F-01…F-05) | `docs/ccf-856-blank-starter-review-corrections-20261120-v1` | DONE @ `c4d75f8e` |
 | 2026-11-20 ~09:45 | O0 | openai/gpt-6.1-terra | Delta re-review `d857-03-a1` | `c95319d7` | NEEDS CHANGES (D-01…D-03) |
 | 2026-11-20 ~10:05 | O0 | openai/gpt-6.2-sol | Second bounded correction `d857-04-a3` (two failed launches on `anthropic` and `opencode` recorded first) | `23da9850` | DONE, verified |
-| 2026-11-20 ~10:20 | O1/O2 | deepseek-v4.1-flash → openai/gpt-6.2-sol | Dispatched implementation `d857-05-a1` on the registered ZX20 lane | `feat/ccf-857-blank-starter-20261120-v1` from `cbcb3850` | RUNNING |
+| 2026-11-20 ~10:20 | O1/O2 | deepseek-v4.1-flash → openai/gpt-6.2-sol | Dispatched implementation `d857-05-a1` on the registered ZX20 lane | `feat/ccf-857-blank-starter-20261120-v1` from `cbcb3850` | BLOCKED on `ForestPlayer.cs` allowlist |
+| 2026-11-20 ~10:35 | O1 | jermur788 (owner-delegated G4) | One-file allowlist amendment: `ForestPlayer.cs`, narrow legacy-IMGUI suppression in preview only | verified in source by the orchestrator | GRANTED (`d857-06`) |
+| 2026-11-20 ~11:30 | O2/O3 | openai/gpt-6.2-sol | Implemented + native qualified on `6000.6.0f1` | `c5e0547a` (tested source `fac8a909`), 26 files | IMPLEMENTED, NOT REVIEWED |
+| 2026-11-20 ~11:40 | O3 | deepseek-v4.1-flash | Reconciled the candidate: protected files re-hashed OK, fence read directly, host save state re-measured | evidence + source | RECONCILED |
+| 2026-11-20 ~11:45 | O4 | deepseek-v4.1-flash → openai/gpt-6.1-terra | Dispatched independent candidate review | `review/ccf-857-blank-starter-candidate-20261120-v1` | RUNNING |
 | — | O0 | — | Delta re-review of the corrected blob | — | **PENDING** |
 | — | O0 | — | Owner G5 / #425 G4 acceptance | — | **NOT GRANTED** |
 | — | O1 | — | Source/asset grant, lane, board, lease | — | **NOT CLAIMED** |
