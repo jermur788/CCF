@@ -19,7 +19,7 @@
 | User | `jer` |
 | Files mount | `/dev/sdb4` → `/media/jer/Files`, ext4, `rw,relatime` |
 | Files UUID | `2283b135-bf37-42d6-921f-2fb861d0a8d4` — **matches the packet** |
-| Capacity at start | 498,654,666,752 total; 450,298,675,200 used; **22,950,465,536 free (96 %)** |
+| Capacity at start / end | 498,654,666,752 total; 450,298,675,200 used; **22,950,465,536 free (96 %)** at 22:37Z → 22,950,322,176 free at 22:52Z (Δ 143,360 B, not from this inspection) |
 | Realpath / symlink | All seven `realpath` results equal the literal path; `islink = False` |
 | Nested mount | None: every path resolves to device `sdb4`, Files UUID above |
 | Shared Git dir | `/media/jer/Files/CCF/Repository.git` for all seven; `.git` is a **file**, not an independent clone |
@@ -110,7 +110,7 @@ Ranked by evidence strength; all seven are equal on current evidence, so the ran
 | 6 | `/media/jer/Files/CCF/Operations/CCF-Overnight-RackHandle-20261104` | 1,232,502,784 | Zero variance |
 | 7 | `/media/jer/Files/CCF/Operations/CCF-Overnight-UIQualification-20261104` | 1,233,047,552 | Branch tip +6; reconstruct by SHA |
 
-**Total if and only if later approved: 8,624,160,768 B (8.62 GB decimal).** This is a possible recovery figure, not freed space. Files free space was 22.95 GB at preflight start and is unchanged by this inspection.
+**Total if and only if later approved: 8,624,160,768 B (8.62 GB decimal).** This is a possible recovery figure, not freed space. Files free space was 22,950,465,536 B at 22:37Z and 22,950,322,176 B at 22:52Z — a 143,360 B difference attributable to concurrent filesystem activity. This inspection wrote nothing to Files.
 
 **Next gate:** the owner approves or rejects **each exact path**. Only then may #425 route one native writer to run a fresh final preflight and, for approved paths only, non-forced `git worktree remove <exact path>`. That execution is a separate packet; it is not granted here.
 
