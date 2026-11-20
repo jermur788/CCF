@@ -168,6 +168,8 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
     {
         Check(Application.unityVersion == "6000.6.0f1", "Editor version");
         Check(Application.persistentDataPath == SavePath, "Unity resolves the exact strace witness directory: " + Application.persistentDataPath);
+        Check(PlayerPrefs.HasKey(LearningObjectivesView.PreferencePrefix + "rack.create"),
+            "existing rack lesson preference present as the isolation witness (read only)");
         yield return WaitForMenu();
         var menu = FindFirstObjectByType<StandaloneSessionMenu>();
         var ui = FindFirstObjectByType<ScenarioOneUiRoot>();

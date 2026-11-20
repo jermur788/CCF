@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Run from the registered, leased implementation lane. See handoff for the verified
 # Flatpak instance and receipts. The harness is copied in only for the run.
-mode=${1:?compile, blank or historical}
+mode=${1:?compile, blank, historical or reference}
 instance=${2:?Flatpak instance}
 out=$(realpath "${3:?existing evidence directory}")
 test -d "$out"
@@ -17,6 +17,15 @@ base=(flatpak enter "$instance" /usr/bin/env PATH=/usr/bin:/bin HOME=/home/jer
 if [[ $mode == compile ]]; then
     exec "${base[@]}" XDG_CONFIG_HOME="$hub/config" "$editor" -batchmode -nographics -quit \
         -projectPath "$PWD" -logFile "$out/candidate-pinned-compile.log"
+fi
+if [[ $mode == reference ]]; then
+    staged=Assets/ForestPrototype/ScenarioReferenceVerification.cs
+    if [[ -e $staged || -e $staged.meta ]]; then exit 2; fi
+    cp -- Tools/Verification/ScenarioReferenceVerification.cs "$staged"
+    trap 'rm -f -- "$staged" "$staged.meta"' EXIT
+    "${base[@]}" XDG_CONFIG_HOME="$out/reference-config" "$editor" -batchmode -nographics -quit \
+        -projectPath "$PWD" -executeMethod ScenarioReferenceVerification.ReportFrozen -logFile "$out/reference-console.log"
+    exit
 fi
 if [[ $mode != blank && $mode != historical ]]; then exit 2; fi
 
