@@ -22,15 +22,14 @@ When understanding changes, update the appropriate canonical Git source when aut
 
 ## Cost-aware task routing
 
-Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
+Use the least costly capable route that the routing restrictions permit, considering actual tools, context, availability and verification needs. The shared instructions' Model routing and AgentWorkflow's Cost-aware task routing own the model defaults and the coordination-only restriction; do not restate them in a packet as availability claims. Use these routing labels in Manager packets and recommendations:
 
-- **FREE HERE:** planning, clarification, interpretation, coordination, GitHub-native repository inspection, live-lock management, canonical documentation/spec maintenance, durable handoff publication and small reviewable text/source edits that the current chat can complete safely without local Unity/build verification.
+- **FREE HERE:** planning, clarification, interpretation, coordination, GitHub-native repository inspection, live-lock management and, where the acting route is permitted to implement, canonical documentation/spec maintenance, durable handoff publication and small reviewable text/source edits that the current chat can complete safely without local Unity/build verification.
 - **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
-- **SOL/CODEX:** repository/Unity implementation, local worktree changes, tooling, integration, debugging or verification requiring compiler/Editor/runtime access.
-- **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
-- **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
+- **IMPLEMENT — ROUTINE / COMPLEX:** repository/Unity implementation, local worktree changes, tooling, integration, debugging or verification requiring compiler/Editor/runtime access, routed by the policy.
+- **INDEPENDENT REVIEW:** substantive review by a route independent of the author, routed by the policy.
 
-Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
+The direct GitHub-native edits described above apply only when the acting route is permitted to implement.
 
 ## Durable handoffs
 
