@@ -1,0 +1,24 @@
+# #863 Manager verification and verdict — #869 Blind A (ChatGPT)
+
+**Date:** 20 November 2026 UTC. **Verdict:** **APPROVED AS AN ISOLATED UI PROTOTYPE DELIVERY ONLY**. Not independent runtime/visual qualification, not a real forestry engine, not owner acceptance, and not an authorised replacement for #849.
+
+## Exact GitHub evidence
+
+- Original assignment [#869](https://github.com/jermur788/CCF/issues/869) and real actor's [RUNNING registration](https://github.com/jermur788/CCF/issues/869#issuecomment-7040641204): OpenAI ChatGPT GPT-6 GitHub/browser author with sole new files under `Tools/UiExperiments/BlindA/` and one result markdown. Claim predates source writes; manager cannot independently prove thought-history/absence of old visual exposure.
+- [Author source and test handoff](https://github.com/jermur788/CCF/blob/34a3f931b040fed2ad8b84b7e80de1406e418868/Docs/Handoffs/MultiRack-Simulation-20261116/869-orchestration/Multi-869-BLIND-A-RESULT-20261120.md); blob `2ec85fe7ed9ece9930fbd940740ae0f4404b1c32`. Full source branch HEAD **`34a3f931b040fed2ad8b84b7e80de1406e418868`**; starting main `2e9fd8cb63a69adfbd76ced054c46e1a84b9412e`. Live GitHub compare shows **ahead 5, behind 0, exactly five ADDED files**, no modifications, deletions or shared code: `Tools/UiExperiments/BlindA/README.md`, `app.js`, `index.html`, `style.css`, plus the result Markdown. Nothing is merged.
+- Manager fetched and inspected all four standalone source files at the exact final commit. Their Git blob SHA values matched those independently recorded in the author handoff: `index.html c7f76ca6…`; `style.css 9024aea5…`; `app.js 404d7ff2…`; `README.md 45b32232…`. The source contains a north-up 100-Sitka synthetic map using canvas, exact ID search/tree roster, navigation controls, dropdown reason with custom option, pending→approve→execute, mock Year+1 and history, explicit mock-prototype disclosure, external-file-free HTML/CSS/JS. Manager has **not run actual browser input, measured real responsive layout or rendered final screenshots**.
+- Author reports V8 syntax parse PASS and 14/14 **stubbed DOM** functional logic checks, which do not test real browsers, pointer events, CSS rendering, screen readers or owner usability. These are AUTHOR-REPORTED, not reproduced independently.
+
+## Scope judgment and comparison gate
+
+Both independent assignments now have completed deliveries:
+- **Blind A #869:** [source files](https://github.com/jermur788/CCF/tree/experiment/multi-869-blind-chatgpt-ui-v1/Tools/UiExperiments/BlindA), [result](https://github.com/jermur788/CCF/blob/experiment/multi-869-blind-chatgpt-ui-v1/Docs/Handoffs/MultiRack-Simulation-20261116/869-orchestration/Multi-869-BLIND-A-RESULT-20261120.md), final `34a3f931…`.
+- **Blind B #870:** [source files](https://github.com/jermur788/CCF/tree/experiment/multi-870-blind-claude-ui-v1/Tools/UiExperiments/BlindB), [Manager's prior approved prototype-delivery verdict](https://github.com/jermur788/CCF/blob/docs/multi-863-870-blind-b-manager-delivery-verdict-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/870-orchestration/Multi-863-870-BLIND-B-MANAGER-PROTOTYPE-DELIVERY-VERDICT-20261120.md), final `e1d07a7d…`.
+
+**Interesting independent convergence:** both source projects are named `Canopy Ledger` and use survey/ledger metaphors, despite distinct UI implementations. That cannot establish shared context or its absence. Do not infer one is the winner from source alone.
+
+**Next smallest meaningful demonstration:** one independent local/browser comparison with actual trusted mouse and keyboard in an appropriate browser, identical first-run scripts and at least **1280×720**, **1920×1080**, **200% browser zoom** and a narrow viewport; inspect screenshots and main workflow. For each record time to find tree, reason dropdown, plan stage, distinct Execute, Year+1, layout overflow, visual clarity and accessibility red flags. Provide both designs to owner for personal review. **No code rewrites, merged prototypes, fake ecology imported into #849**, or broad infrastructure/test detours. Real engine still untouched.
+
+**#868 production gate:** owner selects one or combined features, then approves an actual four-file `spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`; only after that a separately authorised worker integrates purely chosen UI ideas with #849's server-authoritative fenced C# interface, independently reviewed. Owner has already approved **reason dropdown + Other/custom** and retaining per-tree recorded reasons; exact categories not yet approved. #851 empirical G1 stays NO-GO.
+
+**Status:** #869 HANDOFF RECEIVED → source PROTOTYPE IMPLEMENTED, manager DELIVERY REVIEWED, owner comparison PENDING. Actual trusted browser/input/visual rendering NOT VERIFIED. No source integration, physical lease or acceptance. This manager-only verdict branch begins at `main@f1f2dd8d58296c25f9c7226cef90c83a7fb052c1`; one new Markdown only.
