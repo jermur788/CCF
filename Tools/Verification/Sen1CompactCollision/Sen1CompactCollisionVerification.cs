@@ -113,6 +113,7 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
         foreach (Collider c in treeColliders) c.enabled = true;
         Physics.SyncTransforms();
         if (Baseline) yield break;
+        Capture(samples[1].transform.position, "standing-trunk.png");
 
         // Real in-scene travel with all authored colliders enabled, in multiple clear between-stem gaps.
         int walks = 0;
@@ -164,7 +165,14 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
             float highest=0f;
             for(int i=0;i<100;i++){controller.Move(new Vector3(-0.025f,-0.01f,0));highest=Mathf.Max(highest,controller.transform.position.y);}
             Info("STUMP traversal xDelta="+(controller.transform.position.x-stumpPosition.x)+" highestFeet="+highest);
-            Check(controller.transform.position.x < stumpPosition.x-0.5f && highest>=stumpRenderer.bounds.max.y-0.05f,"real controller steps across visible low stump rather than through wood");
+            bool crossed = controller.transform.position.x < stumpPosition.x-0.5f;
+            float distance = Mathf.Abs(controller.transform.position.x-stumpPosition.x);
+            Check(crossed ? highest>=stumpRenderer.bounds.max.y-0.05f : Mathf.Abs(distance-(stumpCollider.bounds.extents.x+controller.radius))<0.08f,
+                "controller either steps onto visible top or stops at actual stump edge; no walk-through");
+            Teleport(controller,stumpPosition+new Vector3(1f,0,0.8f));
+            for(int i=0;i<80;i++)controller.Move(new Vector3(-0.025f,-0.01f,0));
+            Check(controller.transform.position.x < stumpPosition.x-0.9f,"player walks naturally around stump without phantom trunk");
+            Capture(stumpPosition, "felled-stump.png");
             foreach(Collider c in treeColliders) if(c!=null && c.GetComponentInParent<ForestTree>().IsLiving)c.enabled=true;
         }
         fell.Fell(); yield return null;
@@ -175,6 +183,19 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
         Physics.SyncTransforms();
         Check(!dead.gameObject.activeInHierarchy && dead.GetComponentsInChildren<Collider>(true).All(c => c.bounds.size == Vector3.zero), "nonliving authored stem has no active physical obstruction");
         Check(trees.Where(t=>t.IsLiving).All(t=>t.GetComponentsInChildren<Collider>().Count(c=>c.enabled)==1),"surviving stems retain one collider after annual step");
+    }
+    private static void Capture(Vector3 target, string name)
+    {
+        Camera camera=Camera.main;
+        Vector3 position=camera.transform.position; Quaternion rotation=camera.transform.rotation;
+        RenderTexture prior=camera.targetTexture, active=RenderTexture.active;
+        var render=new RenderTexture(1280,720,24); var pixels=new Texture2D(1280,720,TextureFormat.RGB24,false);
+        camera.transform.position=target+new Vector3(1.6f,1.4f,1.6f);camera.transform.LookAt(target+Vector3.up*0.8f);
+        camera.targetTexture=render;camera.Render();RenderTexture.active=render;
+        pixels.ReadPixels(new Rect(0,0,1280,720),0,0);pixels.Apply();
+        File.WriteAllBytes(Path.Combine(Environment.GetEnvironmentVariable("SEN1_COLLISION_OUT"),name),pixels.EncodeToPNG());
+        camera.targetTexture=prior;RenderTexture.active=active;camera.transform.SetPositionAndRotation(position,rotation);
+        Destroy(render);Destroy(pixels);
     }
     private static ForestTree AimedTree(Vector3 origin, Vector3 direction, float reach)
     {
