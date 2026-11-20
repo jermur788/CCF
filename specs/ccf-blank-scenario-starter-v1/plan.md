@@ -1,6 +1,6 @@
 # CCF blank scenario starter v1 — implementation plan
 
-**Status:** **DRAFT / NOT APPROVED — planning only; NO G1 execution authority.** 20 November 2026 · [spec.md](spec.md) · [#856](https://github.com/jermur788/CCF/issues/856). All phases below are **future**, except G0 browser source/spec publication. No local Unity, compile, scene or save run has been performed.
+**Status:** **DRAFT / NOT APPROVED / NO IMPLEMENTATION AUTHORITY**. 20 November 2026 · [spec.md](spec.md) · [#856](https://github.com/jermur788/CCF/issues/856). All phases below are **future**, except G0 browser source/spec publication. No local Unity, compile, scene or save run has been performed.
 
 ## 1. Outcome and critical path
 
@@ -18,7 +18,7 @@ No G1 work may start from a DRAFT even if G0 readbacks pass.
 4. **Map rectangle decision:** current `StandMapModel.SizeM`/`StandMapTransform` and `StandGeometryModel` are square; for 45 × 60 scene-only test, request exact G4-approved *preview-bounds projection* change/isolated rendering guard as needed. Do not mutate legacy ecological geometry, saved grid or maps for historical worlds. Correct rectangular-world rendering is a required proof, not silently waived.
 5. **Start/menu and save boundary:** Editor opens the scene directly. Existing `StandaloneSessionMenu` global bootstrap and `StandaloneSessionMenu.Startup` require investigation; avoid changing ProjectSettings. If startup/display reaches historic `CanLoad`, old slot must be gated before file probe, not just disabled after availability lookup. F5/F9 and public Save/Load callers must refuse before capture/disk reads. Decide exact single fence ownership with historical #543/#544 save work before edits. No new slot.
 6. **Content:** reuse fixed labels and existing UI Toolkit styling; show developer-only intro/objective/guidance placeholders as text-only authoring data, each visibly marked unfilled (DEV ONLY) alongside the authoring-preview indicator when empty. Do not connect browser JSON or create a runtime resolver, validator, schema, catalogue or second editor; production copy validation/publication belongs to the existing CCF Text Editor [#473](https://github.com/jermur788/CCF/issues/473) and its separate DRAFT contract.
-6a. **Footprint input:** the chosen configuration path accepts only positive finite X/Z and rejects zero, negative and non-finite values visibly (no silent clamp); spawn inside the boundary and measured dimensions (proposed ±0.05 m tolerance) are asserted for both 30 × 30 and 45 × 60 m.
+6a. **Footprint input:** the chosen configuration path accepts only positive finite X/Z. **Proposed G1 test/design choices pending the relevant G4/owner decision and pinning in the G1 packet:** reject zero, negative and non-finite values visibly rather than clamping (no ground or spawn built); for both 30 × 30 and 45 × 60 m, assert spawn clearance inside the boundary of at least the controller radius and measure dimensions within ±0.05 m.
 7. **World startup:** confirm no hidden default spawner, save rehydration, reference-archive startup, rack creation, player F-key actions or time-lapse can mutate empty preview. Bind ground and player for walking only; controls that require real trees/work are unavailable.
 
 ## 3. Bounded implementation slices (once formally authorised)
