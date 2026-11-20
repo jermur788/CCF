@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Canopy Ledger — Blind B prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#tree-search">Skip to tree search</a>
+
+  <div class="mock-banner" role="note" aria-label="Prototype warning">
+    <strong>PROTOTYPE — NOT THE REAL FORESTRY ENGINE.</strong>
+    <span>Every number here is mock demo data for interface evaluation only.</span>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="4" fill="currentColor"/>
+      </svg>
+      <div>
+        <h1>Canopy Ledger</h1>
+        <p class="sub">Sitka stand · 30 × 30 m · north up</p>
+      </div>
+    </div>
+
+    <dl class="tally" aria-label="Stand summary (mock values)">
+      <div><dt>Year</dt><dd id="stat-year">1</dd></div>
+      <div><dt>Standing</dt><dd id="stat-standing">100</dd></div>
+      <div><dt>Felled</dt><dd id="stat-felled">0</dd></div>
+      <div><dt>Basal area <span class="mock-tag">mock</span></dt><dd id="stat-ba">–</dd></div>
+    </dl>
+
+    <button id="btn-year" class="btn btn-quiet" type="button" aria-describedby="year-hint">
+      <span aria-hidden="true">⟳</span> Year +1
+    </button>
+    <span id="year-hint" class="visually-hidden">Advances the mock calendar one year and applies fake growth.</span>
+  </header>
+
+  <main class="workspace">
+
+    <section class="map-wrap" aria-label="Stand map">
+      <svg id="map" class="map" role="application" tabindex="0"
+           aria-roledescription="interactive stand map"
+           aria-label="Stand map. Arrow keys move between trees, Shift plus arrows pan, plus and minus zoom, F fits, Enter focuses the felling order form."
+           aria-describedby="map-focus-readout">
+        <defs>
+          <pattern id="ground" width="2" height="2" patternUnits="userSpaceOnUse">
+            <rect width="2" height="2" class="ground-fill"/>
+            <circle cx="0.5" cy="0.6" r="0.06" class="ground-fleck"/>
+            <circle cx="1.5" cy="1.4" r="0.05" class="ground-fleck"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="30" height="30" fill="url(#ground)" class="stand-bounds"/>
+        <g id="grid" aria-hidden="true"></g>
+        <g id="trees"></g>
+      </svg>
+      <div class="map-overlay north" aria-hidden="true">
+        <svg viewBox="0 0 24 32"><path d="M12 2l7 18-7-5-7 5z"/></svg><span>N</span>
+      </div>
+      <div class="map-overlay legend" aria-label="Map legend">
+        <ul>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" class="lg-crown"/></svg>Standing</li>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6" class="lg-crown"/><circle cx="10" cy="10" r="8.5" class="lg-pending"/></svg>Pending order ⚑</li>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6" class="lg-crown"/><circle cx="10" cy="10" r="8.5" class="lg-approved"/></svg>Approved ✓</li>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6" class="lg-stump"/><circle cx="10" cy="10" r="3.5" class="lg-stump-ring"/></svg>Stump ✕</li>
+        </ul>
+      </div>
+      <!-- Map tools: compact compass pad, zoom pair, fit -->
+      <nav class="toolrail map-tools" aria-label="Map view controls">
+        <div class="compass" role="group" aria-label="Pan map">
+          <button class="pad pad-n" type="button" data-pan="n" aria-label="Pan north" title="Pan north (Shift+↑)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>
+          </button>
+          <button class="pad pad-w" type="button" data-pan="w" aria-label="Pan west" title="Pan west (Shift+←)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l9-7v14z"/></svg>
+          </button>
+          <button class="pad pad-fit" type="button" id="btn-fit" aria-label="Fit whole stand" title="Fit whole stand (F)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+          </button>
+          <button class="pad pad-e" type="button" data-pan="e" aria-label="Pan east" title="Pan east (Shift+→)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12l-9 7V5z"/></svg>
+          </button>
+          <button class="pad pad-s" type="button" data-pan="s" aria-label="Pan south" title="Pan south (Shift+↓)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l-7-9h14z"/></svg>
+          </button>
+        </div>
+        <div class="zoom-pair" role="group" aria-label="Zoom">
+          <button class="pad" type="button" id="btn-zoom-in" aria-label="Zoom in" title="Zoom in (+)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+          </button>
+          <output id="zoom-readout" class="zoom-readout" aria-live="polite" aria-label="Zoom level">1.0×</output>
+          <button class="pad" type="button" id="btn-zoom-out" aria-label="Zoom out" title="Zoom out (−)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14v2H5z"/></svg>
+          </button>
+        </div>
+      </nav>
+      <p id="map-focus-readout" class="map-overlay readout" aria-live="polite"></p>
+    </section>
+
+    <aside class="dossier" aria-label="Tree and work plan">
+      <section class="card find" aria-labelledby="find-h">
+        <h2 id="find-h" class="visually-hidden">Find a tree by exact ID</h2>
+        <form id="find-form" class="find-row" autocomplete="off">
+          <label for="tree-search">Tree ID</label>
+          <input id="tree-search" name="q" type="text" inputmode="numeric" placeholder="e.g. T042 or 42"
+                 aria-describedby="find-msg" spellcheck="false">
+          <button class="btn" type="submit">Go</button>
+        </form>
+        <p id="find-msg" class="field-msg" aria-live="polite"></p>
+      </section>
+
+      <section class="card tree-card" id="tree-card" aria-labelledby="tree-h" aria-live="polite">
+        <h2 id="tree-h">No tree selected</h2>
+        <p class="hint" id="tree-empty-hint">Click a crown on the map, use the arrow keys on the map, or type an exact ID above.</p>
+        <dl class="facts" id="tree-facts" hidden>
+          <div><dt>Status</dt><dd id="f-status"></dd></div>
+          <div><dt>DBH <span class="mock-tag">mock</span></dt><dd id="f-dbh"></dd></div>
+          <div><dt>Height <span class="mock-tag">mock</span></dt><dd id="f-height"></dd></div>
+          <div><dt>Position</dt><dd id="f-pos"></dd></div>
+        </dl>
+
+        <form id="order-form" class="order-form" novalidate hidden>
+          <fieldset>
+            <legend>Felling order</legend>
+            <label for="reason">Reason <span class="req" aria-hidden="true">*</span></label>
+            <select id="reason" required aria-describedby="reason-msg">
+              <option value="">Choose a reason…</option>
+            </select>
+            <div id="custom-wrap" hidden>
+              <label for="reason-custom">Describe the reason <span class="req" aria-hidden="true">*</span></label>
+              <input id="reason-custom" type="text" maxlength="120" aria-describedby="reason-msg">
+            </div>
+            <p id="reason-msg" class="field-msg" aria-live="assertive"></p>
+            <button id="btn-add" class="btn btn-primary" type="submit">
+              <span aria-hidden="true">⚑</span> Add to Work Plan
+            </button>
+          </fieldset>
+        </form>
+        <p id="order-note" class="hint" hidden></p>
+      </section>
+
+      <section class="card tabs-card">
+        <div class="tablist" role="tablist" aria-label="Plan, history and tree list">
+          <button role="tab" id="tab-plan" aria-controls="panel-plan" aria-selected="true">Work Plan <span class="count" id="plan-count">0</span></button>
+          <button role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1">History</button>
+          <button role="tab" id="tab-list" aria-controls="panel-list" aria-selected="false" tabindex="-1">All trees</button>
+        </div>
+
+        <div role="tabpanel" id="panel-plan" aria-labelledby="tab-plan" class="tabpanel">
+          <div class="plan-head">
+            <span class="plan-id" id="plan-id">Plan P-001</span>
+            <span class="stage" id="plan-stage">Draft</span>
+          </div>
+          <ol class="stepper" aria-label="Plan stages">
+            <li data-step="draft">1 Draft</li>
+            <li data-step="approved">2 Approved</li>
+            <li data-step="executed">3 Executed</li>
+          </ol>
+          <ul class="orders" id="orders"></ul>
+          <p class="hint" id="orders-empty">No orders yet. Select a tree and give a reason.</p>
+          <div class="plan-actions">
+            <button id="btn-approve" class="btn" type="button" aria-describedby="approve-hint">
+              <span aria-hidden="true">✓</span> Approve plan
+            </button>
+            <button id="btn-execute" class="btn btn-danger" type="button" aria-describedby="execute-hint">
+              <span aria-hidden="true">✕</span> Execute…
+            </button>
+          </div>
+          <p class="micro" id="approve-hint">Approve locks the list. It fells nothing.</p>
+          <p class="micro" id="execute-hint">Execute is a separate, confirmed step that fells the approved trees.</p>
+        </div>
+
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" class="tabpanel" hidden>
+          <ol class="history" id="history" reversed></ol>
+        </div>
+
+        <div role="tabpanel" id="panel-list" aria-labelledby="tab-list" class="tabpanel" hidden>
+          <label class="visually-hidden" for="list-filter">Filter list by ID or status</label>
+          <input id="list-filter" type="search" placeholder="Filter: 07, pending, stump…">
+          <table class="tree-table">
+            <caption class="visually-hidden">All 100 trees (mock measurements)</caption>
+            <thead><tr><th scope="col">ID</th><th scope="col">Status</th><th scope="col">DBH cm</th><th scope="col">Ht m</th></tr></thead>
+            <tbody id="tree-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="confirm-dialog" aria-labelledby="confirm-h" aria-describedby="confirm-body">
+    <h2 id="confirm-h">Execute felling?</h2>
+    <p id="confirm-body"></p>
+    <label class="check"><input type="checkbox" id="confirm-check"> I understand these trees will become stumps (mock).</label>
+    <div class="dialog-actions">
+      <button class="btn" id="confirm-cancel" type="button">Cancel</button>
+      <button class="btn btn-danger" id="confirm-go" type="button" disabled>Fell trees</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
