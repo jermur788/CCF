@@ -145,7 +145,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(previewBanner);
         help = new MenuHelpView(this);
         root.Add(help.Root);
-        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && !Compact30Session.IsActive && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
+        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
             help.ShowScenarioIntroduction();
     }
 
