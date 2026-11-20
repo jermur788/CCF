@@ -5,9 +5,10 @@
 #   - the only listening socket is 127.0.0.1 (/proc/net/tcp 0100007F) on an ephemeral port other than 5187;
 #   - the guards: 404 without the capability, 403 for a wrong Host or Origin, 405, 415, 413 and 400; the page, style and
 #     script it serves are byte-identical to the committed src/Ui/wwwroot files;
-#   - the A-4 page layout, read statically from the served stylesheet and page (L checks): one column at 360 CSS px and at
-#     960 CSS px (200 % zoom of a 1920 px window), no media query that touches the page layout, and no core action that
-#     needs horizontal scrolling at either width;
+#   - the A-4 page layout, read statically from the served stylesheet and page (L checks): one column at 360, 640 and
+#     960 CSS px (960 is 200 % zoom of a 1920 px window), no core action that needs horizontal scrolling at those widths,
+#     and (#874, Manager #863 grant) exactly one media query, (min-width: 1024px), that may touch the page layout: it
+#     applies at none of 360, 640 or 960 CSS px and gives the two-column desktop page at 1280 CSS px;
 #   - one full Work Plan cycle through the JSON API: refusals, Add, a stale-fence refusal, hit-tests (candidates exactly
 #     as an oracle computed from the scene at the most-overlapped point, none on bare ground inside the square, 400
 #     without a point), Approve at zero Fell, Execute (one typed Fell in the same year), replay, key conflict, Advance
@@ -267,12 +268,67 @@ if what == "columns":
     ok = templates and all(tracks(v) == 1 for s, v in templates) and displays and all(v == "grid" for v in displays) and not banned and not placement
     sys.exit(0 if ok else 1)
 
-if what == "independent":
+# #874 (Manager #863 grant): the one media query allowed to touch the page layout, and the widths where it must not apply.
+DESKTOP_QUERY = "(min-width: 1024px)"
+STACKED_WIDTHS = (360.0, 640.0, 960.0)
+class Tree(HTMLParser):  # the served page's static elements, each marked if it is or contains main or a page part
+    VOID = {"meta", "link", "input", "br", "img", "hr", "source", "col", "area", "base", "wbr", "track", "embed", "param"}
+    MAJOR = {"layout", "side", "panel", "map-panel", "trees-panel", "history-panel", "pane"}
+    def __init__(self): super().__init__(); self.stack, self.all = [], []
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs); node = {"tag": tag, "classes": set((a.get("class") or "").split()), "id": a.get("id"), "major": False}
+        node["major"] = tag == "main" or bool(node["classes"] & self.MAJOR)
+        if node["major"]:
+            for parent in self.stack: parent["major"] = True
+        self.all.append(node)
+        if tag not in self.VOID: self.stack.append(node)
+    def handle_endtag(self, tag):
+        while self.stack and self.stack[-1]["tag"] != tag: self.stack.pop()
+        if self.stack: self.stack.pop()
+
+def page_layout_selector(selector, tree):
+    # A selector touches the page layout if it names main or a page part (the #849 rule), or if its last compound can
+    # match a static element that is, or contains, main or a page part (html, body, a renamed wrapper, *, ...), so a
+    # second breakpoint cannot hide behind a new class name.
+    compound = last_compound(selector)
+    if PAGE_GRID(selector) or any(names(compound, w) for w in MAIN_PARTS): return True
+    bare = re.sub(r"::?[\w-]+(\([^)]*\))?|\[[^\]]*\]", "", compound)  # pseudo-classes and attribute tests ignored
+    return any(n["major"] and matches(bare or "*", n["tag"], n["classes"], n["id"]) for n in tree.all)
+
+if what == "breakpoints":
+    tree = Tree(); tree.feed(open(page_path, encoding="utf-8").read())
     queries = sorted({q for q, sels, d in rules if q is not None})
-    touching = [(q, s) for q, sels, d in rules if q is not None for s in sels
-                if PAGE_GRID(s) or any(names(last_compound(s), w) for w in MAIN_PARTS)]
-    print(f"media queries in app.css: {queries}; rules in a media query that touch the page layout: {touching}")
-    sys.exit(0 if not touching else 1)
+    touching = [(q, s) for q, sels, d in rules if q is not None for s in sels if page_layout_selector(s, tree)]
+    other = sorted({q for q, s in touching if re.sub(r"\s+", " ", q) != DESKTOP_QUERY})
+    applies = {}
+    for width in STACKED_WIDTHS:  # media_applies reads the module-level width
+        applies[f"{width:g}"] = media_applies(DESKTOP_QUERY)
+    print(f"media queries in app.css: {queries}; rules in a media query that touch the page layout: {touching}; "
+          f"page-layout queries other than {DESKTOP_QUERY}: {other}; {DESKTOP_QUERY} applies at {applies}")
+    sys.exit(0 if touching and not other and not any(applies.values()) else 1)
+
+if what == "desktop":
+    grid = [(q, s, v) for q, sels, d in applied for s in sels if PAGE_GRID(s) for n, v in d if n == "grid-template-columns"]
+    displays = [v for q, sels, d in applied for s in sels if PAGE_GRID(s) for n, v in d if n == "display"]
+    tabs = [v for q, sels, d in applied for s in sels if last_compound(s) == ".view-tabs" for n, v in d if n == "display"]
+    class Order(HTMLParser):
+        def __init__(self): super().__init__(); self.depth, self.main_depth, self.children = 0, None, []
+        def handle_starttag(self, tag, attrs):
+            if tag in Tree.VOID: return
+            self.depth += 1
+            if tag == "main": self.main_depth = self.depth
+            elif self.main_depth is not None and self.depth == self.main_depth + 1:
+                a = dict(attrs); self.children.append(((a.get("class") or "").split(), a.get("id")))
+        def handle_endtag(self, tag):
+            if tag in Tree.VOID: return
+            if self.main_depth == self.depth and tag == "main": self.main_depth = None
+            self.depth -= 1
+    order = Order(); order.feed(open(page_path, encoding="utf-8").read())
+    print(f"at {width:g} CSS px: page grid {grid}, display {displays}, view buttons display {tabs}, children of main {order.children}")
+    ok = (grid and tracks(grid[-1][2]) == 2 and grid[-1][0] is not None and re.sub(r"\s+", " ", grid[-1][0]) == DESKTOP_QUERY
+          and displays and displays[-1] == "grid" and tabs[-1:] == ["flex"] and len(order.children) == 2
+          and "map-panel" in order.children[0][0] and order.children[1][1] == "side")
+    sys.exit(0 if ok else 1)
 
 if what == "reach":
     CORE = ["reread", "zoom-out", "zoom-in", "zoom-fit", "pan-north", "pan-south", "pan-west", "pan-east", "reason", "add-button",
@@ -322,9 +378,12 @@ PY
 }
 check "L01 at 360 CSS px the page grid is exactly one column (one track, display grid, no column placement or multi-column property)" layout columns 360
 check "L02 at 960 CSS px (200 % zoom of a 1920 px window) the page grid is exactly one column" layout columns 960
-check "L03 no @media rule touches the page layout (main, .layout, .side, panels), so no width or zoom level gives two columns" layout independent 0
+check "L03 the only @media query touching the page layout (main, .layout, .side, panels, or any element containing them) is exactly (min-width: 1024px), and it applies at none of 360, 640 or 960 CSS px" layout breakpoints 0
 check "L04 at 360 CSS px no core action needs horizontal scrolling: none is inside a sideways scroller, Select is the table's first column, action groups wrap, no fixed width over 288 px" layout reach 360
 check "L05 at 960 CSS px no core action needs horizontal scrolling (same conditions as L04)" layout reach 960
+check "L06 at 640 CSS px (200 % zoom of a 1280 px window) the page grid is exactly one column" layout columns 640
+check "L07 at 640 CSS px no core action needs horizontal scrolling (same conditions as L04)" layout reach 640
+check "L08 at 1280 CSS px (min-width: 1024px) gives the approved desktop page: two grid tracks, the map panel then the side panel, view buttons shown" layout desktop 1280
 code="$(req g-xorigin GET "/s/$cap/api/view" -H "Origin: http://attacker.example")"; expect "G12 GET naming a foreign Origin: 403" "$code" 403
 code="$(req g-method GET "/s/$cap/api/plan/approve")"
 check "G13 GET on a POST endpoint: 405, Allow: POST (got $code)" test "$code" == 405 -a "$(header g-method allow)" == POST
