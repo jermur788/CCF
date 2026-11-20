@@ -24,7 +24,10 @@ def main():
         sys.exit("STOP: could not make mount propagation private: " + os.strerror(ctypes.get_errno()))
     if libc.mount(os.fsencode(shadow), os.fsencode(TARGET), None, bind, None) != 0:
         sys.exit("STOP: private bind failed: " + os.strerror(ctypes.get_errno()))
-    if not os.path.samefile(shadow, TARGET) or not os.path.samefile(shadow / "forest-save.json", TARGET / "forest-save.json"):
+    slots = ("forest-save.json", "forest-save.json.tmp", "forest-save.json.bak")
+    if not os.path.samefile(shadow, TARGET) or any(
+        not os.path.samefile(shadow / name, TARGET / name) for name in slots
+    ):
         sys.exit("STOP: the Unity-visible directory is not the staged witness copy.")
     print("CCF857 private mount witness: " + str(shadow) + " visible as " + str(TARGET), flush=True)
     os.execv(command[0], command)

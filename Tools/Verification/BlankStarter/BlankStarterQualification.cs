@@ -179,6 +179,8 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             $"direct Editor entry into the unlisted blank scene (reported build index {scene.buildIndex})");
         Check(ui != null && ui.BlankPreview != null && saves != null, "scene binds the shared UI and the guarded save controller");
         Check(!menu.ContinueAvailable && menu.ContinueNote == BlankStarterPreview.SaveRefusal, "startup RefreshContinueState refuses visibly");
+        Button continueButton = MenuRoot(menu).Query<Button>().ToList().Single(button => button.text == "Continue");
+        Check(!continueButton.enabledInHierarchy, "startup Continue button disabled; handler tested directly below");
         menu.ContinueSavedForest();
         Check(menu.StartupScreenActive && StandaloneSessionMenu.IsOpen && !menu.ContinueAvailable, "direct startup Continue refuses");
         Check(!saves.CanLoad(out string reason) && reason == BlankStarterPreview.SaveRefusal, "direct CanLoad refuses");
@@ -262,11 +264,15 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             Check(StandaloneSessionMenu.IsOpen && !saves.enabled && Text(MenuRoot(menu), BlankStarterPreview.SaveRefusal), "F10 builds existing session menu with visible refusal");
             RejectVisibleActions(MenuRoot(menu), "save current", "load", "fresh", "tutorial", "restart");
             yield return Screenshot("07-blank-F10");
+            SetField(saves, "message", "");
             yield return KeyPress(keyboard, Key.F5);
             yield return KeyPress(keyboard, Key.F9);
+            Check((string)GetField(saves, "message") == "", "F5/F9 are inactive while the F10 menu is open");
             menu.SaveAndClose();
+            Check(StandaloneSessionMenu.IsOpen, "direct menu SaveAndClose refuses without closing the session");
             menu.Restart();
-            Check(StandaloneSessionMenu.IsOpen && SceneManager.GetActiveScene().name == "BlankStarter", "menu SaveAndClose and Restart preserve open session");
+            Check(StandaloneSessionMenu.IsOpen && SceneManager.GetActiveScene().name == "BlankStarter", "direct menu Restart refuses without switching scene");
+            Check(!saves.CanLoad(out reason) && reason == BlankStarterPreview.SaveRefusal, "direct CanLoad refuses with F10 menu open");
             saves.Save();
             Check((string)GetField(saves, "message") == BlankStarterPreview.SaveRefusal, "direct public Save refuses");
             SetField(saves, "message", "");
@@ -274,8 +280,12 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             Check((string)GetField(saves, "message") == BlankStarterPreview.SaveRefusal, "direct public Load refuses");
             yield return KeyPress(keyboard, Key.F10);
             Check(!StandaloneSessionMenu.IsOpen && saves.enabled, "F10 resumes same in-memory preview");
+            SetField(saves, "message", "");
             yield return KeyPress(keyboard, Key.F5);
+            Check((string)GetField(saves, "message") == BlankStarterPreview.SaveRefusal, "F5 after resuming refused");
+            SetField(saves, "message", "");
             yield return KeyPress(keyboard, Key.F9);
+            Check((string)GetField(saves, "message") == BlankStarterPreview.SaveRefusal, "F9 after resuming refused");
             CheckWorld(ui, 30, 30);
         }
         finally
