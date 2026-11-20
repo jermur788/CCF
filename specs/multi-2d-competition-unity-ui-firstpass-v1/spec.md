@@ -1,6 +1,6 @@
 # MULTI-2D-COMPETITION-UNITY-UI-FIRSTPASS-V1 — product specification
 
-**Status: OWNER DIRECTION CONFIRMED 2026-11-20 18:30; SPEC FOR MANAGER APPROVAL / PRODUCTION SOURCE NOT YET GRANTED.** Manager #863, owner G5 instruction. Related #879 (remove technical codes), #880 (Unity palette/canopy/controls/reasons), #881 (3D/2D information parity). This first-pass is one useful forestry decision loop, not a claim of complete Unity parity.
+**Status: MANAGER-APPROVED FIRST-PASS SPEC under owner’s 2026-11-20 18:30 implementation direction and earlier express #863 approval delegation; source/physical work NOT RUNNING.** Manager #863, owner G5 instruction. Related #879 (remove technical codes), #880 (Unity palette/canopy/controls/reasons), #881 (3D/2D information parity). This first-pass is one useful forestry decision loop, not a claim of complete Unity parity.
 
 ## Goal and source of truth
 
@@ -40,7 +40,7 @@ Source provenance links: [Unity Hegyi calculation](https://github.com/jermur788/
 
 **Minimal genuinely playable pass:** select retained Sitka, see correctly ranked competitors and map highlights, propose removing a neighbouring tree with an evidence-grounded user reason, observe diagnostic now vs if removed, approve at zero Fell, execute once, see true stump/count/competition recalculated, Year+1 genuinely updates. Controls and palette/canopy/Plan are also judged at 1280×720 and real 200% zoom, no overscroll/control overlap. Independent reviewer verifies exact source candidate, model parity to *its own* `AnnualRules` formula, no changes to annual transition/digests, positive/negative stale/overlap and guarded operations. Owner G2 acceptance separate.
 
-**Status and authorities:** owner approved this **direction** 18:30; actual four-file specification and exact compile-linked source file grants must be Manager/owner gate-registered before local writes. A G4 main/shared contract approval is required if implementation needs changing upstream Unity or shared inter-project C# source, save/persistence, public API durability, or legacy protected contracts. Read-only new DTO/API on this isolated 2D experiment may be proposed for narrowly approved source worker after exact preflight. Do not self-grant ownership.
+**Status and authorities:** owner approved the feature direction at 18:30, and #863 approves this four-file first-pass scope. Exact compile-linked source file grants and local locks still require an individual task packet/admission before edits. A G4 main/shared contract approval is required if implementation needs changing upstream Unity or shared inter-project C# source, save/persistence, public API durability, or legacy protected contracts. Read-only new DTO/API on this isolated 2D experiment may be proposed for narrowly approved source worker after exact preflight. Do not self-grant ownership.
 
 ## Explicitly deferred feature parity
 
