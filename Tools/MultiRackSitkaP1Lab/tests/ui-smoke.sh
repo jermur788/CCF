@@ -9,7 +9,7 @@
 #     as an oracle computed from the scene at the most-overlapped point, none on bare ground inside the square, 400
 #     without a point), Approve at zero Fell, Execute (one typed Fell in the same year), replay, key conflict, Advance
 #     refused with the old fence and then committed with a fresh fence, the consent refusal and consented cancellation,
-#     and a further decision in Year+2;
+#     and a further decision in Year+2 that also uses Remove and Cancel approved plan (and their refusals);
 #   - SIGINT (Ctrl+C) ends the process cleanly; no file appears in the lab tree or in ~/.aspnet; P0 is untouched.
 # curl talks only to 127.0.0.1. python3 (standard-library json only) reads the JSON answers.
 #
@@ -323,11 +323,28 @@ expect "C04 Advance with consent to cancel the unexecuted work" "$code" 200
 check "C05 consent: Year 2, nothing pending, still one work event (zero Fell), $t2 not felled, plan-state 5, record marks the cancellation" \
   test "$(js c2 "[r['view']['frame']['ecologicalYear'], len(r['view']['pending']), len(r['view']['frame']['events']), [t['death'] for t in r['view']['frame']['trees'] if t['treeId'] == '$t2' and t['death'] and t['death']['cause'] == 'fell'], r['view']['planStateRevision'], r['view']['annualHistory'][-1]['cancelledUnexecutedWork']]")" == "[2, 0, 1, [], 5, true]"
 
-# A further decision in Year 2 with fresh fences (the loop continues after a year).
+# A further decision in Year 2 with fresh fences (the loop continues after a year), using Remove and Cancel on the way.
 t3_live="$(js c2 "[t['treeId'] for t in r['view']['frame']['trees'] if t['death'] is None][2]")"
+t4_live="$(js c2 "[t['treeId'] for t in r['view']['frame']['trees'] if t['death'] is None][3]")"
 code="$(post d1 "/s/$cap/api/pending/add" "{\"fence\":$(fence c2),\"treeId\":\"$t3_live\",\"reason\":\"ui-smoke: Year 2 decision\"}")"
 expect "D01 Year 2: Add $t3_live" "$code" 200
-code="$(post d2 "/s/$cap/api/plan/approve" "{\"fence\":$(fence d1)}")"; expect "D02 Year 2: Approve" "$code" 200
+code="$(post d1b "/s/$cap/api/pending/add" "{\"fence\":$(fence d1),\"treeId\":\"$t4_live\",\"reason\":\"ui-smoke: to be removed\"}")"
+expect "D01b Year 2: Add $t4_live" "$code" 200
+code="$(post d1c "/s/$cap/api/pending/remove" "{\"fence\":$(fence d1b),\"treeId\":\"$t4_live\"}")"
+expect "D01c Year 2: Remove $t4_live" "$code" 200
+check "D01d Remove: pending back to [$t3_live], plan-state 8 (5, then add, add, remove), work 1, still one event (no Fell)" \
+  test "$(js d1c '[[o["treeId"] for o in r["view"]["pending"]], r["view"]["planStateRevision"], r["view"]["frame"]["workRevision"], len(r["view"]["frame"]["events"])]')" == "[[\"$t3_live\"], 8, 1, 1]"
+code="$(post d1e "/s/$cap/api/pending/remove" "{\"fence\":$(fence d1c),\"treeId\":\"$t4_live\"}")"
+refusal "D01e Remove of an ID that is no longer pending" d1e UnknownWorkOrder
+code="$(post d2a "/s/$cap/api/plan/approve" "{\"fence\":$(fence d1c)}")"; expect "D02a Year 2: Approve" "$code" 200
+code="$(post d2b "/s/$cap/api/plan/cancel" "{\"fence\":$(fence d2a)}")"; expect "D02b Year 2: Cancel the approved plan" "$code" 200
+check "D02c Cancel: no approved plan, its orders not returned to pending, plan-state 10, work 1, still one event (no Fell)" \
+  test "$(js d2b '[r["view"]["approved"], len(r["view"]["pending"]), r["view"]["planStateRevision"], r["view"]["frame"]["workRevision"], len(r["view"]["frame"]["events"])]')" == "[null, 0, 10, 1, 1]"
+code="$(post d2d "/s/$cap/api/plan/execute" "{\"fence\":$(fence d2b),\"planId\":\"$(js d2a 'r["view"]["approved"]["planId"]')\",\"executionKey\":\"$(js d2a 'r["view"]["approved"]["executionKey"]')\"}")"
+refusal "D02d Execute of the cancelled plan" d2d WorkPlanNotApproved
+code="$(post d2e "/s/$cap/api/pending/add" "{\"fence\":$(fence d2b),\"treeId\":\"$t3_live\",\"reason\":\"ui-smoke: Year 2 decision, re-added\"}")"
+expect "D02e Year 2: re-add $t3_live" "$code" 200
+code="$(post d2 "/s/$cap/api/plan/approve" "{\"fence\":$(fence d2e)}")"; expect "D02 Year 2: Approve" "$code" 200
 code="$(post d3 "/s/$cap/api/plan/execute" "{\"fence\":$(fence d2),\"planId\":\"$(js d2 'r["view"]["approved"]["planId"]')\",\"executionKey\":\"$(js d2 'r["view"]["approved"]["executionKey"]')\"}")"
 expect "D03 Year 2: Execute" "$code" 200
 check "D04 Year 2 Fell of [$t3_live] in year 2; two work events; work revision 2" \

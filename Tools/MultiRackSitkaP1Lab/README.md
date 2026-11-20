@@ -84,8 +84,9 @@ is printed), 3 the listener check failed, 64 usage.
    unexecuted work and advance one year*. The history lists every committed year and every work event.
 
 Every value on the page comes from the engine's latest view. The page computes no forestry statistic and keeps no state of
-its own. If a request fails in transit, the page shows *Outcome unconfirmed — re-read current state* rather than guessing.
-An Execute retry reuses the same execution key, so it can never fell twice.
+its own. If a request fails in transit, the page shows *Outcome unconfirmed — re-read current state* rather than guessing,
+and offers only a re-read. If the plan is still approved after the re-read, Execute echoes the same engine-minted execution
+key, so it can never fell twice.
 
 ### Honesty boundaries
 

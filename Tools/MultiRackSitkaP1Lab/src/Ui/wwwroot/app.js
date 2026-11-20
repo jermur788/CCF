@@ -32,7 +32,6 @@
     selectedId: null, // the UI-only draft selection: one exact TreeId, never an authority
     overlap: null, // { candidates, ambiguous } from the latest map hit-test; any newer view clears it
     busy: false,
-    lastExecute: null, // the exact Execute request last sent, kept only to retry it with the same key
     // The last answered Execute: its key, the work revision of the fence sent and the revision the server recorded.
     // Used only to label the receipt of that same execution key as "w → w+1".
     lastExecution: null,
@@ -170,7 +169,7 @@
     } else if (outcome.kind === 'guard') {
       showGuardRefusal(what, outcome.status, outcome.error);
     } else {
-      showUnconfirmed(what, options.retry || null);
+      showUnconfirmed(what);
     }
   }
 
@@ -241,13 +240,13 @@
     ]);
   }
 
-  // After a transport failure or a fault the outcome is unknown: the page claims neither success nor refusal.
-  function showUnconfirmed(what, retryButton) {
+  // After a transport failure or a fault the outcome is unknown: the page claims neither success nor refusal, and its
+  // only offer is a re-read of the current state (spec §7.1 item 7).
+  function showUnconfirmed(what) {
     showAlert([
       el('p', { class: 'alert-title' }, label('OutcomeUnconfirmed') || 'No answer from the local session process'),
       el('p', null, what + ': no confirmed result was received. Do not assume that it happened, or that it did not.'),
       rereadButton(),
-      retryButton,
     ]);
   }
 
@@ -774,19 +773,9 @@
     openDialog(byId('execute-dialog'), byId('execute-back'));
   }
 
-  function retryExecuteButton() {
-    const button = el('button', { type: 'button', class: 'danger' }, 'Retry Execute with the same execution key');
-    button.addEventListener('click', () => {
-      clearAlert();
-      sendExecute();
-    });
-    return button;
-  }
-
-  // The same request is resent on a retry, so an execution that did commit is answered as a replay, not a second Fell.
-  function sendExecute() {
-    const request = state.lastExecute;
-    if (!request) return;
+  // After an unconfirmed outcome the page offers only a re-read. That shows either the receipt (it did commit) or the
+  // plan still approved (it did not), and Execute then echoes the same engine-minted key, so it can never fell twice.
+  function sendExecute(request) {
     run('api/plan/execute', request, label('ExecuteApprovedPlan'), (payload) => {
       const execution = payload.execution;
       const event = execution.event;
@@ -805,7 +794,7 @@
         ' in ecological year ' + event.ecologicalYear + '. Work revision ' + request.fence.source.workRevision + ' → ' +
         execution.workRevision + '. Living trees ' + event.before.livingCount + ' → ' + event.after.livingCount +
         '; basal area ' + fixed(event.before.basalAreaM2PerHa, 2) + ' → ' + fixed(event.after.basalAreaM2PerHa, 2) + ' m²/ha.');
-    }, { focusAfter: 'receipt-heading', retry: retryExecuteButton() });
+    }, { focusAfter: 'receipt-heading' });
   }
 
   function onExecuteConfirmed() {
@@ -814,8 +803,7 @@
     byId('execute-dialog').close();
     if (!plan) return;
     // The engine minted the PlanId and the key; the page only echoes them with the fence it displayed.
-    state.lastExecute = { fence: currentFence(), planId: plan.planId, executionKey: plan.executionKey };
-    sendExecute();
+    sendExecute({ fence: currentFence(), planId: plan.planId, executionKey: plan.executionKey });
   }
 
   function sendAdvance(consent) {
