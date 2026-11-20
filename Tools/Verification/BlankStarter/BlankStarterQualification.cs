@@ -58,7 +58,6 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
 {
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
     private const string Banner = "Development preview — unsaved";
-    private const string SavePath = "/home/jer/.config/unity3d/DefaultCompany/CCF";
     private readonly List<string> runtimeErrors = new List<string>();
     private string output;
     private int passed;
@@ -167,14 +166,18 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
     private IEnumerator Blank()
     {
         Check(Application.unityVersion == "6000.6.0f1", "Editor version");
-        Check(Application.persistentDataPath == SavePath, "Unity resolves the exact strace witness directory: " + Application.persistentDataPath);
+        Check(Application.persistentDataPath == Environment.GetEnvironmentVariable("CCF_857_WITNESS_PATH"),
+            "Unity resolves the configured witness directory: " + Application.persistentDataPath);
         Check(PlayerPrefs.HasKey(LearningObjectivesView.PreferencePrefix + "rack.create"),
             "existing rack lesson preference present as the isolation witness (read only)");
         yield return WaitForMenu();
         var menu = FindFirstObjectByType<StandaloneSessionMenu>();
         var ui = FindFirstObjectByType<ScenarioOneUiRoot>();
         var saves = FindFirstObjectByType<ForestSaveController>();
-        Check(ui != null && saves != null && ui.BlankPreview != null && SceneManager.GetActiveScene().buildIndex == -1, "blank scene via direct Editor entry");
+        Scene scene = SceneManager.GetActiveScene();
+        Check(scene.path == "Assets/Scenes/BlankStarter.unity" && !EditorBuildSettings.scenes.Any(entry => entry.path == scene.path),
+            $"direct Editor entry into the unlisted blank scene (reported build index {scene.buildIndex})");
+        Check(ui != null && ui.BlankPreview != null && saves != null, "scene binds the shared UI and the guarded save controller");
         Check(!menu.ContinueAvailable && menu.ContinueNote == BlankStarterPreview.SaveRefusal, "startup RefreshContinueState refuses visibly");
         menu.ContinueSavedForest();
         Check(menu.StartupScreenActive && StandaloneSessionMenu.IsOpen && !menu.ContinueAvailable, "direct startup Continue refuses");
