@@ -1,10 +1,13 @@
-// #849 playable 2D Stand Map page (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §4, §5, §7, §8).
+// #849 playable 2D Stand Map page (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §4, §5, §7, §8), with the #868 selected layout
+// (spec MULTI-STANDMAP-2D-SELECTED-UI-V1 R-01 to R-07).
 //
 // The server's view is the only authority. This page draws, lists and inspects only what the latest view says, sends
 // exact tree IDs with the fence of the view it displayed, and itself converts nothing but screen pixels into map metres.
-// It computes no forestry statistic (counts, basal area, Dq, deaths, growth), keeps no copy of felled trees, counters,
-// clocks or randomness, uses no web storage, and loads nothing from another origin. Every text node is set with
-// textContent, never parsed as HTML.
+// It computes no forestry statistic (basal area, Dq, deaths, growth); the only numbers it derives are tallies of the
+// server's own map statuses for the legend. It keeps no copy of felled trees, counters, clocks or randomness, uses no web
+// storage, and loads nothing from another origin. Every text node is set with textContent, never parsed as HTML. The
+// richer canopy drawing (shadows, needle spokes, stump rings) is decoration on the server's own discs: it adds no tree,
+// position or species, and it ignores the pointer.
 'use strict';
 
 (function () {
@@ -18,12 +21,18 @@
     NaturalDead: 'StatusNaturalDead',
   };
   const STATUS_CUE = {
-    Living: 'crown disc',
-    PendingFell: 'crown with a dashed ring',
-    ApprovedFell: 'crown with a solid double ring',
-    Felled: 'stump marker with a cross; the canopy gap is open',
+    Living: 'green crown, standing',
+    PendingFell: 'dashed yellow ring and a P badge; proposed only, still standing',
+    ApprovedFell: 'solid double orange ring and an A badge; approved, still standing',
+    Felled: 'small stump with a cross; the canopy gap is open',
     NaturalDead: 'hatched grey crown with a dashed outline',
   };
+  // Manager #863 approved these labels for #868 (spec R-04). Each is the player's stated intention, sent as the exact
+  // reason text through the existing Add route; the page never infers or diagnoses anything from it.
+  const REASON_OTHER = 'other';
+  // Must match the desktop @media rule at the end of app.css.
+  const DESKTOP_QUERY = '(min-width: 1024px)';
+  const PANES = ['plan', 'trees', 'history', 'details'];
 
   const state = {
     view: null, // the latest PlayerSessionView from the server
@@ -75,8 +84,8 @@
     return node;
   }
 
-  function pair(term, value) {
-    return el('div', null, el('dt', null, term), el('dd', null, value));
+  function pair(term, value, className) {
+    return el('div', className ? { class: className } : null, el('dt', null, term), el('dd', null, value));
   }
 
   function label(name) {
@@ -380,6 +389,7 @@
     renderPlan();
     renderTable(items);
     renderResultAndHistory();
+    renderPaneButtons();
     renderCommandGate();
     renderMapScale();
     // Re-created buttons get their focus back by a stable key (an exact tree ID), so a redraw is not a focus reset.
@@ -405,6 +415,15 @@
     document.title = 'Stand Map — ' + label('Title');
     byId('page-title').textContent = label('Title');
     byId('disclosure').textContent = label('Disclosure');
+    // The compact rail: the few values the player needs on every screen. The full list is in Details.
+    const planState = view.approved !== null ? 'approved plan, ' + view.approved.orders.length + ' to execute'
+      : view.pending.length > 0 ? view.pending.length + ' pending' : 'empty';
+    byId('rail').replaceChildren(
+      pair('Ecological year', frame.ecologicalYear),
+      pair('Living trees', stand.livingCount),
+      pair('Basal area', fixed(stand.basalAreaM2PerHa, 2) + ' m²/ha'),
+      pair('Stems per ha', fixed(stand.stemsPerHa, 1)),
+      pair('Work Plan', planState));
     byId('facts').replaceChildren(
       pair('Domain', source.domain),
       pair('Fixture', source.fixtureId),
@@ -430,17 +449,25 @@
     const view = state.view;
     const crowns = [];
     const marks = [];
+    const shadows = [];
     const ordered = state.scene.slice().sort((a, b) => a.paintOrder - b.paintOrder);
     for (const item of ordered) {
       const group = svg('g', { class: 'tree s-' + item.status, 'data-tree-id': item.treeId });
+      // The disc stays the group's first child and the only part that takes the pointer.
       group.append(svg('circle', { class: 'crown', cx: item.u, cy: item.v, r: item.radiusM }));
+      group.append(...crownDecoration(item));
       crowns.push(group);
+      if (item.status !== 'Felled') {
+        shadows.push(svg('circle', { class: 'crown-shadow', cx: item.u + 0.3, cy: item.v + 0.35, r: item.radiusM }));
+      }
       // Status marks sit in an overlay that ignores the pointer, so a mark never changes which crown is hit.
       if (item.status === 'PendingFell') {
         marks.push(svg('circle', { class: 'ring-pending', cx: item.u, cy: item.v, r: item.radiusM + 0.25 }));
+        marks.push(...statusBadge(item, 'P'));
       } else if (item.status === 'ApprovedFell') {
         marks.push(svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }));
         marks.push(svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.5 }));
+        marks.push(...statusBadge(item, 'A'));
       } else if (item.status === 'Felled') {
         const d = 0.24;
         marks.push(svg('path', {
@@ -450,6 +477,7 @@
         }));
       }
     }
+    byId('shadows').replaceChildren(...shadows);
     byId('crowns').replaceChildren(...crowns);
     byId('marks').replaceChildren(...marks);
 
@@ -467,18 +495,53 @@
     renderLegend(items);
   }
 
+  // Decoration drawn inside a tree's own group, so a crown painted above it also covers its decoration. Every part has
+  // the "deco" class, which ignores the pointer. It is derived only from the item's own centre, radius and status.
+  function crownDecoration(item) {
+    const { u, v } = item;
+    const r = item.radiusM;
+    if (item.status === 'Felled') {
+      return [svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.62 }),
+        svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.3 })];
+    }
+    // Eight needle spokes from the leader, as a spruce crown looks from above.
+    let d = '';
+    for (let k = 0; k < 8; k++) {
+      const angle = (k * Math.PI) / 4 + 0.2;
+      d += 'M ' + (u + Math.cos(angle) * r * 0.18) + ' ' + (v + Math.sin(angle) * r * 0.18) +
+        ' L ' + (u + Math.cos(angle) * r * 0.82) + ' ' + (v + Math.sin(angle) * r * 0.82) + ' ';
+    }
+    const parts = [svg('path', { class: 'spokes deco', d: d.trim() })];
+    if (item.status !== 'NaturalDead') parts.push(svg('circle', { class: 'tip deco', cx: u, cy: v, r: Math.min(0.22, r * 0.14) }));
+    return parts;
+  }
+
+  // A small lettered badge at the north-east edge of a crown: P (pending, proposed only) or A (approved, still standing).
+  function statusBadge(item, letter) {
+    const angle = -Math.PI / 4;
+    const cx = item.u + Math.cos(angle) * (item.radiusM + 0.25);
+    const cy = item.v + Math.sin(angle) * (item.radiusM + 0.25);
+    const kind = letter === 'P' ? 'pending' : 'approved';
+    return [svg('circle', { class: 'glyph-bg glyph-' + kind, cx, cy, r: 0.42 }),
+      svg('text', { class: 'glyph-text ' + letter.toLowerCase(), x: cx, y: cy }, letter)];
+  }
+
   function swatch(kind) {
     const box = svg('svg', { class: 'swatch', viewBox: '-1.6 -1.6 3.2 3.2', 'aria-hidden': 'true', focusable: 'false' });
     const crown = (status, r) => {
       const group = svg('g', { class: 'tree s-' + status });
       group.append(svg('circle', { class: 'crown', cx: 0, cy: 0, r }));
+      group.append(...crownDecoration({ u: 0, v: 0, radiusM: r, status }));
       return group;
     };
     if (kind === 'Living' || kind === 'NaturalDead') box.append(crown(kind, 1.1));
-    if (kind === 'PendingFell') box.append(crown(kind, 0.9), svg('circle', { class: 'ring-pending', cx: 0, cy: 0, r: 1.25 }));
+    if (kind === 'PendingFell') {
+      box.append(crown(kind, 0.85), svg('circle', { class: 'ring-pending', cx: 0, cy: 0, r: 1.15 }),
+        ...statusBadge({ u: 0, v: 0, radiusM: 0.75 }, 'P'));
+    }
     if (kind === 'ApprovedFell') {
-      box.append(crown(kind, 0.75), svg('circle', { class: 'ring-approved', cx: 0, cy: 0, r: 1.0 }),
-        svg('circle', { class: 'ring-approved', cx: 0, cy: 0, r: 1.35 }));
+      box.append(crown(kind, 0.7), svg('circle', { class: 'ring-approved', cx: 0, cy: 0, r: 0.95 }),
+        svg('circle', { class: 'ring-approved', cx: 0, cy: 0, r: 1.25 }), ...statusBadge({ u: 0, v: 0, radiusM: 0.75 }, 'A'));
     }
     if (kind === 'Felled') {
       box.append(crown(kind, 0.55), svg('path', { class: 'stump-x', d: 'M -0.35 -0.35 L 0.35 0.35 M -0.35 0.35 L 0.35 -0.35' }));
@@ -491,16 +554,28 @@
     return box;
   }
 
-  // The legend names only what is drawn now (spec §4.2).
+  // Two independent legend dimensions (spec R-06): the tree species, and the management / felling state. Counts are
+  // tallies of the server's own map statuses. Natural deaths appear only when the view has one. Fell is the only
+  // management operation in this model, so no other operation type is listed.
   function renderLegend(items) {
-    const present = new Set(state.scene.map((item) => item.status));
-    const entries = STATUS_ORDER.filter((status) => present.has(status))
-      .map((status) => el('li', null, swatch(status), statusName(status) + ' — ' + STATUS_CUE[status]));
+    const tally = new Map();
+    for (const item of state.scene) tally.set(item.status, (tally.get(item.status) || 0) + 1);
+    const count = (status) => el('span', { class: 'count' }, ' (' + (tally.get(status) || 0) + ' on map)');
+    const species = el('ul', null,
+      el('li', null, swatch('Living'), el('span', null, 'Sitka spruce', el('span', { class: 'count' }, ' (' + state.scene.length + ' trees)'))));
+    const managed = STATUS_ORDER.filter((status) => status !== 'NaturalDead' || tally.has(status))
+      .map((status) => el('li', null, swatch(status), el('span', null, statusName(status) + ' — ' + STATUS_CUE[status], count(status))));
+    const marksList = [];
     if (state.selectedId !== null && items.has(state.selectedId)) {
-      entries.push(el('li', null, swatch('Selected'), 'Selected — thick white ring'));
+      marksList.push(el('li', null, swatch('Selected'), 'Selected tree — thick white ring'));
     }
-    entries.push(el('li', null, swatch('Boundary'), 'Management area boundary — dashed line'));
-    byId('legend').replaceChildren(...entries);
+    marksList.push(el('li', null, swatch('Boundary'), 'Management area boundary — dashed line'));
+    byId('legend').replaceChildren(
+      el('h4', null, 'Tree species'), species,
+      el('p', { class: 'scope' }, 'Sitka spruce is the only species in this synthetic fixture.'),
+      el('h4', null, 'Management / felling state'), el('ul', null, ...managed),
+      el('p', { class: 'scope' }, 'Fell is the only management operation in this model.'),
+      el('h4', null, 'Map marks'), el('ul', null, ...marksList));
   }
 
   // Grid lines go under the crowns; their labels, the north arrow and the scale bar go above them.
@@ -535,10 +610,11 @@
   const SCALES = [null, 32, TARGET_SCALE, 96]; // null fits the whole area to the pane's width
   const AREA_CENTRE = { u: 15, v: 15 };
 
-  // The page is always one column (app.css). The map opens at TARGET_SCALE below 900 CSS px (360 px, or 200 % zoom of a
-  // window up to 1,799 px wide) and at a device pixel ratio of 2 or more (200 % zoom of a wider window on a standard
-  // display). A wide window at ordinary zoom opens on the whole area.
+  // At desktop width (app.css) the map has its own screen-high pane and opens on the whole area. In the stacked column it
+  // opens at TARGET_SCALE below 900 CSS px (360 px, or 200 % zoom of a window up to 1,799 px wide) and at a device pixel
+  // ratio of 2 or more (200 % zoom of a wider window on a standard display), as before #868.
   function defaultMapScale() {
+    if (window.matchMedia(DESKTOP_QUERY).matches) return null;
     return window.matchMedia('(min-width: 900px)').matches && window.devicePixelRatio < 2 ? null : TARGET_SCALE;
   }
 
@@ -670,28 +746,35 @@
     if (!tree || !item) return;
 
     byId('insp-id').textContent = tree.treeId;
+    const chip = byId('insp-chip');
+    chip.textContent = statusText(item);
+    chip.setAttribute('class', 'chip s-' + item.status);
     const facts = [
-      pair('Status', statusText(item)),
-      // The server's camelCase JSON names AnnualTree.XM and ZM "xm" and "zm".
-      pair('Position', 'X ' + fixed(tree.xm, 3) + ' m (east), Z ' + fixed(tree.zm, 3) + ' m (north), from the centre of the area'),
-      pair('Map position', fixed(item.u, 3) + ' m east of the west edge, ' + fixed(item.v, 3) + ' m south of the north edge'),
-      pair('Age', tree.ageYears + ' years'),
+      pair('Species', 'Sitka spruce'),
       pair('DBH', fixed(tree.dbhCm, 2) + ' cm'),
       pair('Height', fixed(tree.heightM, 2) + ' m'),
       pair('Crown radius', fixed(tree.crownRadiusM, 3) + ' m'),
+      pair('Age', tree.ageYears + ' years'),
+      // The server's camelCase JSON names AnnualTree.XM and ZM "xm" and "zm". Shown on request, to keep the actions close.
+      pair('Position', el('details', { class: 'expand' },
+        el('summary', null, 'X ' + fixed(tree.xm, 2) + ' m, Z ' + fixed(tree.zm, 2) + ' m'),
+        el('span', { class: 'full' }, 'X ' + fixed(tree.xm, 3) + ' m (east), Z ' + fixed(tree.zm, 3) +
+          ' m (north), from the centre of the area. On the map: ' + fixed(item.u, 3) + ' m east of the west edge, ' +
+          fixed(item.v, 3) + ' m south of the north edge.')), 'wide'),
     ];
     if (tree.death) {
       facts.push(pair('Death year', tree.death.ecologicalYear));
       facts.push(pair('Cause', tree.death.cause + ' (' + tree.death.mechanism + ')'));
     }
     const reason = recordedReason(tree.treeId);
-    if (reason !== null) facts.push(pair('Recorded reason', reason));
+    if (reason !== null) facts.push(pair('Recorded reason', reason, 'wide'));
     byId('insp-facts').replaceChildren(...facts);
 
     byId('insp-threshold').textContent = label('ThresholdInformational');
     byId('insp-threshold').hidden = !tree.isLiving;
     byId('add-form').hidden = item.status !== 'Living';
     byId('add-button').textContent = label('AddToWorkPlan');
+    renderReasonPicker();
     byId('insp-remove-wrap').hidden = item.status !== 'PendingFell';
     byId('insp-remove').textContent = label('RemoveFromWorkPlan');
     byId('insp-approved-note').hidden = item.status !== 'ApprovedFell';
@@ -703,7 +786,7 @@
     const pending = view.pending;
     byId('pending-empty').hidden = pending.length > 0;
     byId('pending-list').replaceChildren(...pending.map((order) => el('li', null,
-      el('span', { class: 'mono' }, order.treeId), ' — ' + order.reason + ' ',
+      el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason), ' ',
       el('button', {
         type: 'button', class: 'small', 'data-remove': order.treeId, 'data-focus-key': 'remove:' + order.treeId,
         'aria-label': label('RemoveFromWorkPlan') + ': ' + order.treeId,
@@ -729,7 +812,7 @@
         ', work revision ' + plan.source.workRevision),
       pair('Orders', plan.orders.length));
     byId('approved-list').replaceChildren(...plan.orders.map((order) => el('li', null,
-      el('span', { class: 'mono' }, order.treeId), ' — ' + order.reason)));
+      el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason))));
     byId('cancel-approved').textContent = label('CancelApprovedPlan');
     byId('execute').textContent = label('ExecuteApprovedPlan');
   }
@@ -804,8 +887,9 @@
         pair('Basal area', fixed(event.before.basalAreaM2PerHa, 2) + ' → ' + fixed(event.after.basalAreaM2PerHa, 2) + ' m²/ha'),
         pair('Stems per ha', fixed(event.before.stemsPerHa, 1) + ' → ' + fixed(event.after.stemsPerHa, 1))));
       receipt.push(el('h4', null, 'Felled in this event'));
-      receipt.push(el('ul', { class: 'list' }, ...event.fells.map((fell) => el('li', null,
-        el('span', { class: 'mono' }, fell.treeId), ' — ' + fell.cause + ' (' + fell.mechanism + ') — ' + fell.reason))));
+      receipt.push(el('ul', { class: 'list orders' }, ...event.fells.map((fell) => el('li', null,
+        el('span', { class: 'mono' }, fell.treeId), ' — ' + fell.cause + ' (' + fell.mechanism + ')',
+        el('span', { class: 'order-reason' }, 'Reason: ' + fell.reason)))));
     }
     byId('receipt').replaceChildren(...receipt);
     byId('advance').textContent = label('AdvanceYear');
@@ -829,11 +913,11 @@
     }
     if (events.length > 0) {
       history.push(table('Executed work events',
-        ['Year', 'Work revision', 'Felled', 'Living trees', 'Basal area (m²/ha)', 'PlanId'],
+        ['Year', 'Work revision', 'Felled (cause; recorded reason)', 'Living trees', 'Basal area (m²/ha)', 'PlanId'],
         events.map((event) => [
           String(event.ecologicalYear),
           String(event.workRevision),
-          event.fells.map((fell) => fell.treeId + ' (' + fell.cause + ')').join('; '),
+          event.fells.map((fell) => fell.treeId + ' (' + fell.cause + '; ' + fell.reason + ')').join('; '),
           event.before.livingCount + ' → ' + event.after.livingCount,
           fixed(event.before.basalAreaM2PerHa, 2) + ' → ' + fixed(event.after.basalAreaM2PerHa, 2),
           event.planId,
@@ -842,12 +926,84 @@
     byId('history').replaceChildren(...history);
   }
 
+  // ---- side panel views (desktop only; the stacked column shows every pane) -----------------------------------------------
+
+  function renderPaneButtons() {
+    const view = state.view;
+    const text = {
+      plan: 'Plan',
+      trees: 'Trees (' + view.frame.trees.length + ')',
+      history: 'History (' + (view.annualHistory.length + view.frame.events.length) + ')',
+      details: 'Details',
+    };
+    for (const button of byId('side').querySelectorAll('[data-pane-button]')) {
+      const name = button.getAttribute('data-pane-button');
+      if (button.textContent !== text[name]) button.textContent = text[name];
+    }
+  }
+
+  // Shows one side pane at desktop width. In the stacked column CSS ignores the choice and every pane stays shown.
+  function showPane(name) {
+    if (!PANES.includes(name)) return;
+    byId('side').setAttribute('data-pane', name);
+    for (const button of byId('side').querySelectorAll('[data-pane-button]')) {
+      button.setAttribute('aria-pressed', String(button.getAttribute('data-pane-button') === name));
+    }
+  }
+
+  // ---- the reason picker (spec R-04) ---------------------------------------------------------------------------------------
+  //
+  // A predefined choice is sent as its exact label. "Other" needs the player's own text, trimmed. The placeholder sends
+  // nothing: the Other text box is hidden and emptied whenever Other is not chosen, so it cannot carry a hidden reason.
+
+  function reasonToSend() {
+    const choice = byId('reason-choice').value;
+    if (choice !== '' && choice !== REASON_OTHER) return choice;
+    return byId('reason').value.trim();
+  }
+
+  function renderReasonPicker() {
+    const other = byId('reason-choice').value === REASON_OTHER;
+    byId('reason-other-wrap').hidden = !other;
+    const text = reasonToSend();
+    const preview = byId('reason-preview');
+    const message = text === '' ? '' : 'Will be recorded as: “' + text + '”';
+    if (preview.textContent !== message) preview.textContent = message;
+    // A "reason missing" message is withdrawn as soon as a usable reason is there.
+    if (text !== '') showReasonError(null);
+  }
+
+  // The missing-reason message sits under the field, so the layout above the Work Plan does not move.
+  function showReasonError(message) {
+    const box = byId('reason-error');
+    box.hidden = message === null;
+    box.textContent = message === null ? '' : message;
+    for (const id of ['reason-choice', 'reason']) {
+      if (message === null) byId(id).removeAttribute('aria-invalid');
+    }
+    if (message !== null) reasonField().setAttribute('aria-invalid', 'true');
+  }
+
+  function onReasonChoice() {
+    if (byId('reason-choice').value !== REASON_OTHER) byId('reason').value = '';
+    renderReasonPicker();
+  }
+
+  function resetReasonPicker() {
+    byId('reason-choice').value = '';
+    byId('reason').value = '';
+    renderReasonPicker();
+    showReasonError(null);
+  }
+
   // ---- selection --------------------------------------------------------------------------------------------------------
 
   function chooseTree(treeId, fromTable) {
     if (!state.view || !state.view.frame.trees.some((tree) => tree.treeId === treeId)) return;
     state.selectedId = treeId;
     if (fromTable) state.overlap = null;
+    // The selected tree and its actions live in the Plan pane.
+    showPane('plan');
     renderAll();
     announce('Selected tree ' + treeId + '.');
     if (fromTable) {
@@ -888,6 +1044,7 @@
       } else {
         state.selectedId = candidates[0].treeId;
         state.overlap = candidates.length > 1 ? { candidates, ambiguous: false } : null;
+        showPane('plan');
         message = 'Selected tree ' + state.selectedId + '.' +
           (candidates.length > 1 ? ' ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.' : '');
       }
@@ -909,32 +1066,49 @@
     }
   }
 
-  function onSearchKey(event) {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    const typed = byId('tree-search').value;
-    if (state.view && state.view.frame.trees.some((tree) => tree.treeId === typed)) {
-      clearAlert();
-      chooseTree(typed, true);
-    } else {
-      showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
-        el('p', null, 'No tree in the current view has the exact case-sensitive ID "' + typed + '".')], byId('tree-search'));
-    }
+  // Enter in an exact-ID box selects only an exact, case-sensitive match; anything else changes nothing.
+  function exactIdKey(inputId) {
+    return (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const typed = byId(inputId).value;
+      if (state.view && state.view.frame.trees.some((tree) => tree.treeId === typed)) {
+        clearAlert();
+        chooseTree(typed, true);
+      } else {
+        showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
+          el('p', null, 'No tree in the current view has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
+      }
+    };
   }
 
   // ---- commands -------------------------------------------------------------------------------------------------------
 
+  // The field the player must fix when no usable reason was given: the Other text box, or the reason list.
+  function reasonField() {
+    return byId('reason-choice').value === REASON_OTHER ? byId('reason') : byId('reason-choice');
+  }
+
   function onAdd(event) {
     event.preventDefault();
     const treeId = state.selectedId;
-    if (treeId === null) return;
-    run('api/pending/add', { fence: currentFence(), treeId, reason: byId('reason').value }, 'Add ' + treeId + ' to the Work Plan',
+    if (treeId === null || refusedByLock('Add ' + treeId + ' to the Work Plan')) return;
+    const reason = reasonToSend();
+    // Checked here so the player is told at once; the engine still refuses a blank reason itself (WorkReasonRequired).
+    if (reason === '') {
+      const other = byId('reason-choice').value === REASON_OTHER;
+      showReasonError('Not sent: ' + (other ? 'write your reason in the Other box; it cannot be blank.'
+        : 'choose a reason for this tree first.') + ' ' + label('NothingChanged') + '.');
+      reasonField().focus();
+      return;
+    }
+    run('api/pending/add', { fence: currentFence(), treeId, reason }, 'Add ' + treeId + ' to the Work Plan',
       (payload) => {
-        byId('reason').value = '';
-        announce('Done: ' + label('AddToWorkPlan') + ' (' + treeId + '). Plan-state revision ' + payload.view.planStateRevision +
-          '; living trees ' + payload.view.frame.stand.livingCount + '.');
+        resetReasonPicker();
+        announce('Done: ' + label('AddToWorkPlan') + ' (' + treeId + ', reason: ' + reason + '). Plan-state revision ' +
+          payload.view.planStateRevision + '; living trees ' + payload.view.frame.stand.livingCount + '.');
       },
-      { failingField: (code) => (code === 'WorkReasonRequired' ? byId('reason') : null), focusAfter: 'plan-heading' });
+      { failingField: (code) => (code === 'WorkReasonRequired' ? reasonField() : null), focusAfter: 'plan-heading' });
   }
 
   function removePending(treeId) {
@@ -986,7 +1160,7 @@
       fill(label(n === 1 ? 'ExecuteConfirmationOneTree' : 'ExecuteConfirmation'), { n, y: confirmation.year }) + '.';
     byId('execute-plan').replaceChildren('PlanId ', el('code', null, confirmation.planId));
     byId('execute-ids').replaceChildren(...confirmation.orders.map((order) => el('li', null,
-      el('span', { class: 'mono' }, order.treeId), ' — ' + order.reason)));
+      el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason))));
     // A pre-warning only (D-093): the engine refuses such a batch as a whole, whatever this page shows.
     const living = view.frame.trees.filter((tree) => tree.isLiving).map((tree) => tree.treeId);
     const chosen = new Set(confirmation.orders.map((order) => order.treeId));
@@ -1138,9 +1312,18 @@
       if (button) chooseTree(button.getAttribute('data-select'), true);
     });
     byId('tree-search').addEventListener('input', renderAll);
-    byId('tree-search').addEventListener('keydown', onSearchKey);
+    byId('tree-search').addEventListener('keydown', exactIdKey('tree-search'));
+    byId('quick-id').addEventListener('keydown', exactIdKey('quick-id'));
     byId('status-filter').addEventListener('change', renderAll);
+    byId('reason-choice').addEventListener('change', onReasonChoice);
+    byId('reason').addEventListener('input', renderReasonPicker);
     byId('add-form').addEventListener('submit', onAdd);
+    byId('side').querySelector('.view-tabs').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-pane-button]');
+      if (button) showPane(button.getAttribute('data-pane-button'));
+    });
+    // The skip link's target is in the Trees pane, so that pane is shown first.
+    byId('skip-trees').addEventListener('click', () => showPane('trees'));
     byId('insp-remove').addEventListener('click', () => removePending(state.selectedId));
     byId('pending-list').addEventListener('click', (event) => {
       const button = event.target.closest('[data-remove]');

@@ -10,15 +10,30 @@
 <script src="app.js" defer></script>
 </head>
 <body>
-<!-- #849 playable 2D Stand Map (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §7). Every value is filled in by app.js from the server view. -->
-<a class="skip-link" href="#trees-heading">Skip to the tree table</a>
+<!-- #849 playable 2D Stand Map, #868 selected desktop layout (spec MULTI-STANDMAP-2D-SELECTED-UI-V1). Every value is
+     filled in by app.js from the server view. Below 1024 CSS px (narrow windows and 200 % zoom) everything is one stacked
+     column; at 1024 CSS px and wider the map and the side panel share one screen. -->
+<a class="skip-link" id="skip-trees" href="#trees-heading">Skip to the tree table</a>
 
 <header class="status-bar" aria-labelledby="page-title">
-  <h1 id="page-title">Stand Map</h1>
-  <p id="disclosure" class="disclosure"></p>
-  <dl id="facts" class="facts"></dl>
-  <ul id="flags" class="flags"></ul>
-  <p><button type="button" id="reread">Re-read current state</button></p>
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 2 L17 9 H14.5 L19 15 H15.5 L20 21 H4 L8.5 15 H5 L9.5 9 H7 Z"></path>
+    </svg>
+    <div class="brand-text">
+      <h1 id="page-title">Stand Map</h1>
+      <p class="subtitle">Stand Map · one 30 × 30 m area · north up</p>
+    </div>
+  </div>
+  <dl id="rail" class="rail"></dl>
+  <p class="rail-actions">
+    <button type="button" id="advance" class="primary"></button>
+    <button type="button" id="reread" aria-label="Re-read current state" title="Re-read current state">Re-read</button>
+  </p>
+  <div class="disclosure-strip">
+    <p id="disclosure" class="disclosure"></p>
+    <ul id="flags" class="flags"></ul>
+  </div>
 </header>
 
 <div class="messages">
@@ -28,135 +43,215 @@
 
 <main class="layout">
   <section class="panel map-panel" aria-labelledby="map-heading">
-    <h2 id="map-heading" tabindex="-1">Map</h2>
-    <p class="hint">North up, grid every 5 m from the south-west corner. Click or tap a crown to select that exact tree.
-      The tree table is the keyboard and screen-reader path.</p>
-    <div class="map-tools" role="group" aria-label="Map zoom and pan">
-      <button type="button" id="zoom-out">Zoom out</button>
-      <button type="button" id="zoom-in">Zoom in</button>
-      <button type="button" id="zoom-fit">Whole area</button>
-      <button type="button" id="pan-north">Pan north</button>
-      <button type="button" id="pan-south">Pan south</button>
-      <button type="button" id="pan-west">Pan west</button>
-      <button type="button" id="pan-east">Pan east</button>
+    <div class="map-head">
+      <h2 id="map-heading" tabindex="-1">Forest map</h2>
+      <p class="hint">North up · 5 m grid from the south-west corner · click a crown to select that exact tree</p>
     </div>
-    <p id="map-scale" class="hint" aria-live="polite"></p>
-    <!-- The map scrolls inside this pane, never the page. tabindex -1 keeps the pane itself out of the Tab order (A-2). -->
-    <div id="map-pane" class="map-pane" tabindex="-1">
-    <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
-      <title id="map-title">Stand map of the 30 by 30 metre management area, north up</title>
-      <desc id="map-desc">Loading the current view.</desc>
-      <defs>
-        <pattern id="hatch" patternUnits="userSpaceOnUse" width="0.5" height="0.5" patternTransform="rotate(45)">
-          <rect class="hatch-ground" width="0.5" height="0.5"></rect>
-          <line class="hatch-line" x1="0.12" y1="0" x2="0.12" y2="0.5"></line>
-        </pattern>
-      </defs>
-      <g id="grid" class="overlay"></g>
-      <rect class="boundary" x="0" y="0" width="30" height="30"></rect>
-      <g id="crowns"></g>
-      <g id="marks" class="overlay"></g>
-      <g id="selection" class="overlay"></g>
-      <g id="furniture" class="overlay"></g>
-    </svg>
-    </div>
-    <h3>Legend</h3>
-    <ul id="legend" class="legend"></ul>
-    <div id="overlap" class="overlap" hidden>
-      <h3 id="overlap-heading" tabindex="-1"></h3>
-      <ul id="overlap-list" class="list"></ul>
+    <div class="map-body">
+      <!-- The map scrolls inside this pane, never the page. tabindex -1 keeps the pane itself out of the Tab order (A-2). -->
+      <div id="map-pane" class="map-pane" tabindex="-1">
+      <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
+        <title id="map-title">Stand map of the 30 by 30 metre management area, north up</title>
+        <desc id="map-desc">Loading the current view.</desc>
+        <defs>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width="0.5" height="0.5" patternTransform="rotate(45)">
+            <rect class="hatch-ground" width="0.5" height="0.5"></rect>
+            <line class="hatch-line" x1="0.12" y1="0" x2="0.12" y2="0.5"></line>
+          </pattern>
+          <!-- Decorative forest-floor texture: it has no position meaning and ignores the pointer. -->
+          <pattern id="floor" patternUnits="userSpaceOnUse" width="2.4" height="2.4">
+            <rect class="floor-base" width="2.4" height="2.4"></rect>
+            <circle class="floor-fleck" cx="0.4" cy="0.6" r="0.09"></circle>
+            <circle class="floor-fleck" cx="1.7" cy="0.3" r="0.07"></circle>
+            <circle class="floor-fleck" cx="1.1" cy="1.5" r="0.1"></circle>
+            <circle class="floor-fleck" cx="2.1" cy="2.0" r="0.08"></circle>
+            <circle class="floor-fleck" cx="0.3" cy="2.1" r="0.06"></circle>
+            <path class="floor-needle" d="M 0.9 0.9 l 0.35 0.12 M 1.9 1.1 l -0.2 0.3 M 0.5 1.4 l 0.28 -0.18"></path>
+          </pattern>
+          <radialGradient id="crown-fill" cx="0.42" cy="0.38" r="0.7">
+            <stop class="crown-stop-hi" offset="0"></stop>
+            <stop class="crown-stop-mid" offset="0.55"></stop>
+            <stop class="crown-stop-lo" offset="1"></stop>
+          </radialGradient>
+          <radialGradient id="stump-fill" cx="0.5" cy="0.5" r="0.6">
+            <stop class="stump-stop-hi" offset="0"></stop>
+            <stop class="stump-stop-lo" offset="1"></stop>
+          </radialGradient>
+        </defs>
+        <rect class="ground" x="0" y="0" width="30" height="30"></rect>
+        <g id="grid" class="overlay"></g>
+        <g id="shadows" class="overlay"></g>
+        <rect class="boundary" x="0" y="0" width="30" height="30"></rect>
+        <g id="crowns"></g>
+        <g id="marks" class="overlay"></g>
+        <g id="selection" class="overlay"></g>
+        <g id="furniture" class="overlay"></g>
+      </svg>
+      </div>
+      <div class="map-aside">
+        <div class="map-tools" role="group" aria-label="Map pan and zoom">
+          <div class="dpad" role="group" aria-label="Pan the map">
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀</span></button>
+            <span class="d-c" aria-hidden="true">N</span>
+            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">▶</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">▼</span></button>
+            <span class="d-gap" aria-hidden="true"></span>
+          </div>
+          <div class="zoom-row" role="group" aria-label="Zoom">
+            <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">+</span></button>
+            <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
+            <button type="button" id="zoom-fit" class="icon fit" aria-label="Fit whole area" title="Fit whole area">Fit</button>
+          </div>
+        </div>
+        <p id="map-scale" class="hint scale-note" aria-live="polite"></p>
+        <div class="legend-box">
+          <h3 id="legend-heading">Legend</h3>
+          <div id="legend" class="legend"></div>
+        </div>
+        <div id="overlap" class="overlap" hidden>
+          <h3 id="overlap-heading" tabindex="-1"></h3>
+          <ul id="overlap-list" class="list"></ul>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div class="side">
-    <section class="panel" aria-labelledby="inspector-heading">
-      <h2 id="inspector-heading" tabindex="-1">Inspector</h2>
-      <p id="inspector-empty">No tree selected. Click a crown on the map, or choose Select in the tree table.</p>
-      <div id="inspector-body" hidden>
-        <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong></p>
-        <dl id="insp-facts" class="pairs"></dl>
-        <p id="insp-threshold" class="note"></p>
-        <form id="add-form" novalidate hidden>
-          <label for="reason">Reason for this tree (required; recorded with the order)</label>
-          <textarea id="reason" rows="3" maxlength="2000"></textarea>
-          <p><button type="submit" id="add-button"></button></p>
-        </form>
-        <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
-        <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
-      </div>
-    </section>
+  <div id="side" class="side" data-pane="plan">
+    <nav class="view-tabs" aria-label="Side panel views">
+      <button type="button" class="view-tab" data-pane-button="plan" aria-controls="pane-plan" aria-pressed="true">Plan</button>
+      <button type="button" class="view-tab" data-pane-button="trees" aria-controls="pane-trees" aria-pressed="false">Trees</button>
+      <button type="button" class="view-tab" data-pane-button="history" aria-controls="pane-history" aria-pressed="false">History</button>
+      <button type="button" class="view-tab" data-pane-button="details" aria-controls="pane-details" aria-pressed="false">Details</button>
+    </nav>
 
-    <section class="panel" aria-labelledby="plan-heading">
-      <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
-      <h3>Pending orders</h3>
-      <p id="pending-empty">No pending orders.</p>
-      <ul id="pending-list" class="list"></ul>
-      <p><button type="button" id="approve" hidden></button></p>
-      <h3>Approved plan</h3>
-      <p id="approved-empty">No approved plan.</p>
-      <div id="approved-box" hidden>
-        <dl id="approved-facts" class="pairs"></dl>
-        <ul id="approved-list" class="list"></ul>
-        <p class="actions">
-          <button type="button" id="cancel-approved"></button>
-          <button type="button" id="execute" class="danger"></button>
+    <div id="pane-plan" class="pane">
+      <section class="panel" aria-labelledby="inspector-heading">
+        <h2 id="inspector-heading" tabindex="-1">Selected tree</h2>
+        <div id="inspector-empty">
+          <p>No tree selected. Click a crown on the map, or type an exact tree ID.</p>
+        </div>
+        <div id="inspector-body" hidden>
+          <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong> <span id="insp-chip" class="chip"></span></p>
+          <dl id="insp-facts" class="pairs insp-facts"></dl>
+          <form id="add-form" class="add-form" novalidate hidden>
+            <p class="field">
+              <label for="reason-choice">Reason for felling (required; recorded with the order)</label>
+              <select id="reason-choice" aria-describedby="reason-help">
+                <option value="">Choose a reason…</option>
+                <option value="Release competition around a retained tree">Release competition around a retained tree</option>
+                <option value="Poor form or stem quality">Poor form or stem quality</option>
+                <option value="Damaged, unhealthy or declining tree">Damaged, unhealthy or declining tree</option>
+                <option value="Create a light gap for regeneration">Create a light gap for regeneration</option>
+                <option value="other">Other — specify reason</option>
+              </select>
+            </p>
+            <p id="reason-help" class="note small-note">Your stated intention; the model does not check it.</p>
+            <p id="reason-other-wrap" class="field" hidden>
+              <label for="reason">Your reason (required for Other)</label>
+              <textarea id="reason" rows="2" maxlength="2000"></textarea>
+            </p>
+            <p id="reason-error" class="field-error" role="alert" hidden></p>
+            <p id="reason-preview" class="note small-note" aria-live="polite"></p>
+            <p><button type="submit" id="add-button" class="primary"></button></p>
+          </form>
+          <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
+          <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
+          <p id="insp-threshold" class="note small-note"></p>
+        </div>
+        <p class="field quick-id">
+          <label for="quick-id">Select by exact tree ID (case-sensitive; press Enter)</label>
+          <input id="quick-id" type="search" autocomplete="off" autocapitalize="off" spellcheck="false">
         </p>
-      </div>
-    </section>
+      </section>
 
-    <section class="panel" aria-labelledby="year-heading">
-      <h2 id="year-heading" tabindex="-1">Result and year</h2>
-      <h3 id="receipt-heading" tabindex="-1">Latest executed work</h3>
-      <div id="receipt"></div>
-      <p><button type="button" id="advance"></button></p>
-    </section>
+      <section class="panel" aria-labelledby="plan-heading">
+        <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
+        <h3>Pending orders <span class="step-note">(not felled)</span></h3>
+        <p id="pending-empty" class="note">No pending orders.</p>
+        <ul id="pending-list" class="list orders"></ul>
+        <p><button type="button" id="approve" hidden></button></p>
+        <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
+        <p id="approved-empty" class="note">No approved plan.</p>
+        <div id="approved-box" hidden>
+          <dl id="approved-facts" class="pairs"></dl>
+          <ul id="approved-list" class="list orders"></ul>
+          <p class="actions">
+            <button type="button" id="cancel-approved"></button>
+            <button type="button" id="execute" class="danger"></button>
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="year-heading">
+        <h2 id="year-heading" tabindex="-1">Result and year</h2>
+        <h3 id="receipt-heading" tabindex="-1">Latest executed work</h3>
+        <div id="receipt"></div>
+        <p class="note">Use “Advance one ecological year” at the top of the page to run the next year of the model.</p>
+      </section>
+    </div>
+
+    <div id="pane-trees" class="pane">
+      <section class="panel trees-panel" aria-labelledby="trees-heading">
+        <h2 id="trees-heading" tabindex="-1">Trees</h2>
+        <div class="filters">
+          <p class="field">
+            <label for="tree-search">Exact tree ID (case-sensitive; Enter selects an exact match)</label>
+            <input id="tree-search" type="search" autocomplete="off" autocapitalize="off" spellcheck="false">
+          </p>
+          <p class="field">
+            <label for="status-filter">Status</label>
+            <select id="status-filter"></select>
+          </p>
+        </div>
+        <p id="rows-shown" class="hint"></p>
+        <div class="table-wrap" role="region" aria-labelledby="trees-heading" tabindex="0">
+          <table id="tree-table">
+            <caption>Every tree in the current view, in fixture order, with its exact ID</caption>
+            <thead>
+              <tr>
+                <th scope="col">Select</th>
+                <th scope="col">Tree ID</th>
+                <th scope="col">Status</th>
+                <th scope="col">DBH (cm)</th>
+                <th scope="col">Height (m)</th>
+                <th scope="col">Crown radius (m)</th>
+                <th scope="col">X (m)</th>
+                <th scope="col">Z (m)</th>
+              </tr>
+            </thead>
+            <tbody id="tree-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="pane-history" class="pane">
+      <section class="panel history-panel" aria-labelledby="history-heading">
+        <h2 id="history-heading">History: actual before and actual after</h2>
+        <p id="proposed-note" class="note"></p>
+        <div id="history"></div>
+      </section>
+    </div>
+
+    <div id="pane-details" class="pane">
+      <section class="panel details-panel" aria-labelledby="details-heading">
+        <h2 id="details-heading">Details and technical provenance</h2>
+        <p class="note">Every value below is read from the local session process. Long values expand to their full text.</p>
+        <dl id="facts" class="facts"></dl>
+      </section>
+    </div>
   </div>
-
-  <section class="panel trees-panel" aria-labelledby="trees-heading">
-    <h2 id="trees-heading" tabindex="-1">Trees</h2>
-    <div class="filters">
-      <p class="field">
-        <label for="tree-search">Exact tree ID (case-sensitive; Enter selects an exact match)</label>
-        <input id="tree-search" type="search" autocomplete="off" autocapitalize="off" spellcheck="false">
-      </p>
-      <p class="field">
-        <label for="status-filter">Status</label>
-        <select id="status-filter"></select>
-      </p>
-    </div>
-    <p id="rows-shown" class="hint"></p>
-    <div class="table-wrap" role="region" aria-labelledby="trees-heading" tabindex="0">
-      <table id="tree-table">
-        <caption>Every tree in the current view, in fixture order, with its exact ID</caption>
-        <thead>
-          <tr>
-            <th scope="col">Select</th>
-            <th scope="col">Tree ID</th>
-            <th scope="col">Status</th>
-            <th scope="col">DBH (cm)</th>
-            <th scope="col">Height (m)</th>
-            <th scope="col">Crown radius (m)</th>
-            <th scope="col">X (m)</th>
-            <th scope="col">Z (m)</th>
-          </tr>
-        </thead>
-        <tbody id="tree-rows"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel history-panel" aria-labelledby="history-heading">
-    <h2 id="history-heading">History: actual before and actual after</h2>
-    <p id="proposed-note" class="note"></p>
-    <div id="history"></div>
-  </section>
 </main>
 
 <dialog id="execute-dialog" aria-labelledby="execute-title" aria-describedby="execute-text">
   <h2 id="execute-title"></h2>
   <p id="execute-text"></p>
   <p id="execute-plan" class="note"></p>
-  <ul id="execute-ids" class="list"></ul>
+  <ul id="execute-ids" class="list orders"></ul>
   <p id="execute-warning" class="warning" hidden></p>
   <p class="actions">
     <button type="button" id="execute-back">Back</button>
