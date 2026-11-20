@@ -69,7 +69,7 @@ measured acceptance numbers are recorded in the task's handoff and asset report.
 - Materials are shared assets. Instance a material per scenario and tint there
   rather than editing these, or Enlarged80 and Reference Future will change.
 - The material pair is tuned for this scene's sun and ambient. A different site
-  lighting rig needs the `_BaseColor` and `_OcclusionStrength` re-checked against
+  lighting rig needs the `_BaseColor` and `_BumpScale` re-checked against
   a render, not just reused.
 - The moss/twig meshes are metre-scale world-space meshes, not prefabs. Reuse the
   textures and materials, and rebuild the scatter for a different stand footprint.
