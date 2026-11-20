@@ -38,6 +38,11 @@ def record(path, value):
 
 def main():
     output = Path(sys.argv[1]).resolve(strict=True)
+    if sys.argv[2:] == ["--snapshot"]:
+        record(output / "host-directory-snapshot.json", snapshot())
+        return 0
+    if os.environ.get("CCF857_LIVE_CUSTODY_APPROVED") != "byte-exact-backup-and-isolation":
+        sys.exit("STOP: do not repeat the original host launch. Use run-native.sh exact-shadow.")
     if sys.argv[2] != "--" or len(sys.argv) < 4:
         sys.exit("Usage: save_witness.py EVIDENCE_DIR -- <Flatpak strace + Unity command>")
     if LIVE.exists() or LIVE.is_symlink():

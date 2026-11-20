@@ -322,13 +322,24 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             "all preview layers empty: racks trees juveniles shelters paths landmarks mini-guidance ecology grid and waypoint");
         var transform = model.TransformFor(StandMapView.MapSidePx);
         VisualElement boundary = ui.Map.Root.Q("blank-map-boundary");
-        float projectedWidth = boundary.resolvedStyle.width / transform.PixelsPerMetre;
-        float projectedDepth = boundary.resolvedStyle.height / transform.PixelsPerMetre;
-        float xInset = (StandMapView.MapSidePx - boundary.resolvedStyle.width) * 0.5f;
-        float zInset = (StandMapView.MapSidePx - boundary.resolvedStyle.height) * 0.5f;
+        // Measure the actual boundary element's geometry in logical panel units. UI Toolkit
+        // rounds the resolved layout to display pixels; check that separately at raster precision.
+        float logicalWidth = boundary.style.width.value.value, logicalHeight = boundary.style.height.value.value;
+        float projectedWidth = logicalWidth / transform.PixelsPerMetre;
+        float projectedDepth = logicalHeight / transform.PixelsPerMetre;
+        float xInset = (StandMapView.MapSidePx - logicalWidth) * 0.5f;
+        float zInset = (StandMapView.MapSidePx - logicalHeight) * 0.5f;
         Check(Mathf.Abs(projectedWidth - width) <= 0.05f && Mathf.Abs(projectedDepth - depth) <= 0.05f
-            && Mathf.Abs(xInset - boundary.resolvedStyle.left) <= 0.1f && Mathf.Abs(zInset - boundary.resolvedStyle.top) <= 0.1f,
-            $"render bounds {projectedWidth:F3}×{projectedDepth:F3} m, inset {xInset:F2},{zInset:F2}, {transform.PixelsPerMetre:F3} px/m");
+            && Mathf.Abs(xInset - boundary.style.left.value.value) <= 0.1f && Mathf.Abs(zInset - boundary.style.top.value.value) <= 0.1f,
+            $"layout bounds {projectedWidth:F3}×{projectedDepth:F3} m, inset {xInset:F2},{zInset:F2}, {transform.PixelsPerMetre:F3} panel units/m");
+        Vector2 a = RuntimePanelUtils.ScreenToPanel(boundary.panel, Vector2.zero);
+        Vector2 b = RuntimePanelUtils.ScreenToPanel(boundary.panel, new Vector2(1f, 1f));
+        float rounding = Mathf.Max(Mathf.Abs(b.x - a.x), Mathf.Abs(b.y - a.y)) + 0.01f;
+        Check(Mathf.Abs(boundary.resolvedStyle.width - logicalWidth) <= rounding
+            && Mathf.Abs(boundary.resolvedStyle.height - logicalHeight) <= rounding
+            && Mathf.Abs(boundary.resolvedStyle.left - xInset) <= rounding
+            && Mathf.Abs(boundary.resolvedStyle.top - zInset) <= rounding,
+            $"rendered layout within one physical pixel: {boundary.resolvedStyle.width:F3}×{boundary.resolvedStyle.height:F3} panel units");
         RejectVisibleActions(ui.Map.Root, "rack", "light", "regeneration", "treatment", "clearing");
     }
 
