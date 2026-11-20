@@ -10,7 +10,8 @@ internal sealed record ExecutedWork(WorkSourceToken Source, IReadOnlyList<WorkOr
 /// <summary>
 /// One immutable session commit root. Roster, annual revision, work revision, event ledger, executed-key map and any
 /// unexecuted work are published by a single reference assignment, so a reader can never observe a Fell roster without
-/// its event, or an event without its work revision.
+/// its event, or an event without its work revision. The player plan-state revision and the per-year annual history
+/// (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §6.3) travel in the same assignment; neither is part of any snapshot, report or digest.
 /// </summary>
 internal sealed record WorkRoot(
     ContinuationSnapshot Snapshot,
@@ -18,7 +19,9 @@ internal sealed record WorkRoot(
     IReadOnlyList<WorkEvent> Events,
     IReadOnlyDictionary<string, ExecutedWork> Executed,
     WorkPlan? ApprovedUnexecuted,
-    IReadOnlyList<WorkOrder> Pending);
+    IReadOnlyList<WorkOrder> Pending,
+    int PlanStateRevision,
+    IReadOnlyList<AnnualYearRecord> AnnualHistory);
 
 /// <summary>
 /// In-memory, no-durability Stage 5 session: genuine annual biology plus the G2 manual Work Plan → approved batch →
@@ -43,7 +46,8 @@ internal sealed class AnnualContinuation
         // Own the collection so an external mutable list cannot change a committed snapshot.
         var snapshot = new ContinuationSnapshot(initial with { Trees = Array.AsReadOnly(initial.Trees.ToArray()) }, 0);
         root = new WorkRoot(snapshot, 0, Array.Empty<WorkEvent>(),
-            new Dictionary<string, ExecutedWork>(StringComparer.Ordinal), null, Array.Empty<WorkOrder>());
+            new Dictionary<string, ExecutedWork>(StringComparer.Ordinal), null, Array.Empty<WorkOrder>(),
+            0, Array.Empty<AnnualYearRecord>());
     }
 
     internal ContinuationSnapshot Snapshot
@@ -94,7 +98,7 @@ internal sealed class AnnualContinuation
             if (tree is null) throw new P1Refusal("UnknownTreeId", "no live tree has that exact case-sensitive ID");
 
             var pending = root.Pending.Append(new WorkOrder(treeId, WorkAction.Fell, reason)).ToArray();
-            root = root with { Pending = Array.AsReadOnly(pending) };
+            root = root with { Pending = Array.AsReadOnly(pending), PlanStateRevision = checked(root.PlanStateRevision + 1) };
         }
     }
 
@@ -108,7 +112,7 @@ internal sealed class AnnualContinuation
             var pending = root.Pending.Where(order => !string.Equals(order.TreeId, treeId, StringComparison.Ordinal)).ToArray();
             if (pending.Length == root.Pending.Count)
                 throw new P1Refusal("UnknownWorkOrder", "the tree ID is not in the pending batch");
-            root = root with { Pending = Array.AsReadOnly(pending) };
+            root = root with { Pending = Array.AsReadOnly(pending), PlanStateRevision = checked(root.PlanStateRevision + 1) };
         }
     }
 
@@ -128,7 +132,11 @@ internal sealed class AnnualContinuation
                 throw new P1Refusal("WorkEmptyPlan", "there is no pending work to approve");
 
             var plan = new WorkPlan(planId, Token(root), Array.AsReadOnly(root.Pending.ToArray()));
-            root = root with { ApprovedUnexecuted = plan, Pending = Array.Empty<WorkOrder>() };
+            root = root with
+            {
+                ApprovedUnexecuted = plan, Pending = Array.Empty<WorkOrder>(),
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
             return plan;
         }
     }
@@ -140,7 +148,7 @@ internal sealed class AnnualContinuation
         {
             if (root.ApprovedUnexecuted is null)
                 throw new P1Refusal("WorkPlanNotApproved", "there is no approved batch to cancel");
-            root = root with { ApprovedUnexecuted = null };
+            root = root with { ApprovedUnexecuted = null, PlanStateRevision = checked(root.PlanStateRevision + 1) };
         }
     }
 
@@ -223,8 +231,9 @@ internal sealed class AnnualContinuation
             {
                 [executionKey] = new ExecutedWork(plan.Source, Array.AsReadOnly(plan.Orders.ToArray()), committed),
             };
+            // Q-2: a published execution clears the approval, so the plan-state revision moves by exactly one.
             root = new WorkRoot(snapshot, workRevision, Array.AsReadOnly(root.Events.Append(committed).ToArray()),
-                executedMap, null, Array.Empty<WorkOrder>());
+                executedMap, null, Array.Empty<WorkOrder>(), checked(root.PlanStateRevision + 1), root.AnnualHistory);
 
             return new WorkExecutionResult(executionKey, year, workRevision, committed, Replayed: false);
         }
@@ -278,11 +287,20 @@ internal sealed class AnnualContinuation
         var report = AnnualRules.Calculate(previous.State, simulationSeed, areaHa);
         var next = new ContinuationSnapshot(new AnnualState(report.YearAfter,
             Array.AsReadOnly(report.Trees.Select(row => row.After).ToArray())), revision);
+        // Source-linked history of this committed year (spec §0.4 Q-6): the report's own before/after and natural deaths.
+        var yearRecord = new AnnualYearRecord(report.YearBefore, report.YearAfter, revision, root.WorkRevision,
+            report.Before, report.After, Array.AsReadOnly(report.Deaths.ToArray()), cancelWork);
+        var history = Array.AsReadOnly(root.AnnualHistory.Append(yearRecord).ToArray());
         // Test-only fault seam: all calculations completed, neither fence nor state published yet.
         beforeCommit?.Invoke();
+        // Only a consented cancellation changes the plan state; a no-work year leaves the plan-state revision as it was.
         root = cancelWork
-            ? root with { Snapshot = next, ApprovedUnexecuted = null, Pending = Array.Empty<WorkOrder>() }
-            : root with { Snapshot = next };
+            ? root with
+            {
+                Snapshot = next, ApprovedUnexecuted = null, Pending = Array.Empty<WorkOrder>(),
+                PlanStateRevision = checked(root.PlanStateRevision + 1), AnnualHistory = history,
+            }
+            : root with { Snapshot = next, AnnualHistory = history };
         return report;
     }
 
@@ -299,4 +317,170 @@ internal sealed class AnnualContinuation
                 return tree;
         return null;
     }
+
+    // ------------------------------------------------------------------------------------------------------------------
+    // Player session facade (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §6). Each read and command below takes `sync` exactly
+    // once, so the fence it checks, the transition it performs and the view it returns all come from one root. The fenced
+    // commands call the legacy methods above (the lock is reentrant); apart from the fence they add only the §6.5 rules.
+    // ------------------------------------------------------------------------------------------------------------------
+
+    // One random identity per in-memory session. It is never written into a snapshot, report or digest.
+    private readonly string sessionId =
+        Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+
+    // Fixture rule p1-square30-corner-to-centred-xz-v1 places every tree in [-15, 15) m on both axes (spec §4.3).
+    private const double MapMinM = -DerivedManifest.CentreMm / 1000.0;
+    private const double MapSideM = DerivedManifest.SideMm / 1000.0;
+
+    internal string SessionId => sessionId;
+
+    /// <summary>The whole player view, built from ONE root reference under ONE lock acquisition (spec §6.2).</summary>
+    internal PlayerSessionView ReadPlayerView()
+    {
+        lock (sync) return ViewOf(root);
+    }
+
+    internal PlayerCommandResult AddPending(PlayerFence fence, string treeId, string reason)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            AddPendingFell(treeId, reason);
+            return WithCurrentView(null, null);
+        }
+    }
+
+    internal PlayerCommandResult RemovePending(PlayerFence fence, string treeId)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            RemovePendingFell(treeId);
+            return WithCurrentView(null, null);
+        }
+    }
+
+    /// <summary>Approve the whole pending batch under an engine-minted PlanId; a caller cannot choose one. Zero Fell.</summary>
+    internal PlayerCommandResult Approve(PlayerFence fence)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            // n is the plan-state revision this approval publishes, so the PlanId is unique within the session.
+            ApprovePlan(FormattableString.Invariant($"{sessionId}:plan:{checked(root.PlanStateRevision + 1)}"));
+            return WithCurrentView(null, null);
+        }
+    }
+
+    /// <summary>Withdraw the approved batch. Its orders are not returned to pending; the player re-adds them.</summary>
+    internal PlayerCommandResult CancelApproved(PlayerFence fence)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            CancelApprovedPlan();
+            return WithCurrentView(null, null);
+        }
+    }
+
+    /// <summary>
+    /// Execute the engine's own approved plan (spec §6.5); the caller names it by PlanId and never passes a plan object.
+    /// <paramref name="beforePublish"/> is the legacy test-only fault seam, which the public adapter never supplies.
+    /// </summary>
+    internal PlayerCommandResult Execute(PlayerFence fence, string planId, string executionKey, Action? beforePublish = null)
+    {
+        lock (sync)
+        {
+            RequireSession(fence);
+            if (string.IsNullOrWhiteSpace(executionKey))
+                throw new P1Refusal("WorkExecutionKeyRequired", "an execution key is required");
+            // A-2 replay rule: answered before the staleness fence on purpose, so a genuine retry after an unconfirmed
+            // success receives its receipt instead of a second Fell, but only for the same plan, original source and session.
+            if (root.Executed.TryGetValue(executionKey, out var executed))
+            {
+                if (string.Equals(executed.Event.PlanId, planId, StringComparison.Ordinal) && executed.Source == fence.Source)
+                    return WithCurrentView(new WorkExecutionResult(executionKey, executed.Event.EcologicalYear,
+                        executed.Event.WorkRevision, executed.Event, Replayed: true), null);
+                throw new P1Refusal("WorkExecutionKeyConflict",
+                    "this execution key was already used for a different plan or source");
+            }
+            RequireFence(fence);
+            var approved = root.ApprovedUnexecuted;
+            if (approved is null || !string.Equals(approved.PlanId, planId, StringComparison.Ordinal))
+                throw new P1Refusal("WorkPlanNotApproved", "only the currently approved plan can execute");
+            return WithCurrentView(Execute(approved, executionKey, beforePublish), null);
+        }
+    }
+
+    /// <summary>
+    /// One genuine ecological year through the legacy explicit-work-revision overload, fed the fence token's clocks.
+    /// The legacy three-argument advance is not reachable from here. <paramref name="beforeCommit"/> is test-only.
+    /// </summary>
+    internal PlayerCommandResult Advance(PlayerFence fence, bool consentToCancelWork, Action? beforeCommit = null)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var source = fence.Source;
+            var report = Advance(source.EcologicalYear, source.AnnualRevision, source.WorkRevision,
+                consentToCancelWork, beforeCommit);
+            return WithCurrentView(null, report);
+        }
+    }
+
+    /// <summary>Read-only exact-identity hit-test on the CURRENT view; a stale fence is refused (spec §5 S-3).</summary>
+    internal PlayerHitTestResult HitTest(PlayerFence fence, double u, double v)
+    {
+        PlayerSessionView view;
+        lock (sync)
+        {
+            RequireFence(fence);
+            view = ViewOf(root);
+        }
+        // The scene is pure geometry over this immutable view, so it needs no lock.
+        return new PlayerHitTestResult(view, PlayerMapScene.HitTest(PlayerMapScene.Build(view), u, v), null, null);
+    }
+
+    // Caller holds sync. Fence order (spec §6.4): session, then the full source token, then the plan-state revision.
+    private void RequireFence(PlayerFence fence)
+    {
+        RequireSession(fence);
+        if (fence.Source != Token(root))
+            throw new P1Refusal("PlayerSourceStale",
+                "the source, year or a revision changed since this view was read; nothing changed, re-read the current view");
+        if (fence.PlanStateRevision != root.PlanStateRevision)
+            throw new P1Refusal("PlayerPlanStateStale",
+                "the Work Plan changed since this view was read; nothing changed, re-read the current view");
+    }
+
+    private void RequireSession(PlayerFence fence)
+    {
+        // A missing fence cannot name this session, so it is refused exactly like another session's fence.
+        if (fence is null || !string.Equals(fence.SessionId, sessionId, StringComparison.Ordinal))
+            throw new P1Refusal("PlayerSessionMismatch", "this request does not belong to the current player session");
+    }
+
+    // Caller holds sync.
+    private PlayerCommandResult WithCurrentView(WorkExecutionResult? execution, AnnualReport? annual) =>
+        new(ViewOf(root), execution, annual, null, null);
+
+    // Caller holds sync and passes the single root it read. Every exposed collection is a fresh read-only copy.
+    private PlayerSessionView ViewOf(WorkRoot current)
+    {
+        var plan = current.ApprovedUnexecuted;
+        var approved = plan is null ? null : new PlayerApprovedPlan(plan.PlanId, plan.PlanId + ":execute", plan.Source,
+            Array.AsReadOnly(plan.Orders.ToArray()));
+        return new PlayerSessionView(sessionId, current.PlanStateRevision, Token(current), FrameOf(current),
+            Array.AsReadOnly(current.Pending.ToArray()), approved, Array.AsReadOnly(current.AnnualHistory.ToArray()),
+            new PlayerMapExtent(MapMinM, MapMinM, MapSideM, areaHa));
+    }
+
+    // The same construction as Frame, from an explicit root (Frame itself is left unchanged; PS-17 compares the two).
+    private CommittedFrame FrameOf(WorkRoot current) =>
+        new(ManagementScope.WholeUndividedThirtyMetres, identity.Domain, identity.FixtureId,
+            identity.FixtureFileSha256, identity.FixtureContentHash,
+            current.Snapshot.State.EcologicalYear, current.Snapshot.Revision, current.WorkRevision,
+            Array.AsReadOnly(current.Snapshot.State.Trees.ToArray()),
+            WorkRules.Summarize(current.Snapshot.State.Trees, areaHa),
+            Array.AsReadOnly(current.Events.ToArray()));
 }
