@@ -140,3 +140,16 @@ Files:
 - **Owner G5: frontend runtime.** UI-A = single-session loopback-only Kestrel process + embedded page (recommended; ASP.NET Core shared framework already installed, real Windows-browser accessibility testing); UI-B = native GTK 3 window over WSLg (no network, but unverified Windows screen-reader support and no per-tree accessible objects). The implementer correctly refused to self-grant either.
 
 **Still true:** nothing is IMPLEMENTED, REVIEWED, INTEGRATED, VERIFIED or ACCEPTED. No production path was written; the proposed writable list (12 paths, two of them justified modifications to `AnnualContinuation.cs` and a one-line test registration) has not been granted.
+---
+
+## 9. Owner G5 decision recorded (parent, administrative)
+
+**20 November 2026 — owner selected UI-A:** one single-session, loopback-only presentation process (`127.0.0.1`, ephemeral port, capability path + Host/Origin guards) serving an embedded HTML/CSS/JS page that calls the in-process adapter. UI-B (native GTK 3 over WSLg) is not selected.
+
+This resolves the **owner** half of the frontend boundary only. It does **not**:
+
+- amend the approved Stage 5 spec — qualification **Q-1** still needs #730 acceptance;
+- grant any source right, writable path, or G4-class ABI approval (Q-5 remains open);
+- authorise any production write. `src/Ui/**` remains a proposal, unwritten.
+
+Production therefore stays HELD on #730 acceptance of the delta and Q-1…Q-6, plus the physical-lane confirmation in §2.6.
