@@ -117,8 +117,9 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
 
         // Real in-scene travel with all authored colliders enabled, in multiple clear between-stem gaps.
         int walks = 0;
-        foreach (ForestTree tree in samples)
+        foreach (ForestTree tree in trees.OrderBy(t => t.transform.position.sqrMagnitude))
         {
+            if (walks == 5) break;
             Vector3 from = tree.transform.position + new Vector3(-1f,0,0.8f);
             Vector3 to = from + Vector3.right * 2f;
             // Only use lanes demonstrably clear for the body radius, including scenery.
@@ -135,7 +136,7 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
         for (int i=0;i<3;i++) { marking.ToggleCropTree(trees[i]); marking.ToggleCropTree(trees[i]); marking.ToggleCropTree(trees[i]); }
         yield return null;
         Check(manager.CropTreeCount == 3, "C toggle/unmark/remark leaves three Crop Trees");
-        ForestTree fell = trees[10]; marking.ToggleMark(fell); yield return null;
+        ForestTree fell = trees.OrderBy(t => (t.transform.position-new Vector3(0f,0f,5f)).sqrMagnitude).First(); marking.ToggleMark(fell); yield return null;
         Check(fell.IsMarkedForFell, "X designates separate Fell tree");
         marking.ToggleMark(fell); marking.ToggleMark(fell);
         Check(fell.IsMarkedForFell,"X unmark/remark still works");
@@ -186,7 +187,9 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
     }
     private static void Capture(Vector3 target, string name)
     {
-        Camera camera=Camera.main;
+        Camera source=Camera.main;
+        GameObject captureObject=new GameObject("#886 temporary capture camera");
+        Camera camera=captureObject.AddComponent<Camera>();camera.CopyFrom(source);camera.useOcclusionCulling=false;
         Vector3 position=camera.transform.position; Quaternion rotation=camera.transform.rotation;
         RenderTexture prior=camera.targetTexture, active=RenderTexture.active;
         var render=new RenderTexture(1280,720,24); var pixels=new Texture2D(1280,720,TextureFormat.RGB24,false);
@@ -195,7 +198,7 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
         pixels.ReadPixels(new Rect(0,0,1280,720),0,0);pixels.Apply();
         File.WriteAllBytes(Path.Combine(Environment.GetEnvironmentVariable("SEN1_COLLISION_OUT"),name),pixels.EncodeToPNG());
         camera.targetTexture=prior;RenderTexture.active=active;camera.transform.SetPositionAndRotation(position,rotation);
-        Destroy(render);Destroy(pixels);
+        Destroy(render);Destroy(pixels);Destroy(captureObject);
     }
     private static ForestTree AimedTree(Vector3 origin, Vector3 direction, float reach)
     {
