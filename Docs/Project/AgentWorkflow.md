@@ -6,7 +6,7 @@ Single owner of source authority/conflicts, spec-driven task classification/life
 
 Root AGENTS.md owns repository/Unity/C# technical safety. Do not duplicate it except for specifically multi-agent coordination rules.
 
-No model family permanently owns code, Unity, Blender, art, testing, tooling or research. Assign by capability, tools, context, availability and demonstrated quality.
+No model family permanently owns code, Unity, Blender, art, testing, tooling or research. Assign by capability, tools, context, availability and demonstrated quality, within the routing restrictions and preferences in Cost-aware task routing.
 
 ## Authority
 
@@ -213,15 +213,35 @@ Chats without repository tools may plan/research/review only. Claude Desktop MCP
 
 ## Cost-aware task routing
 
-Use the least costly capable route for the task, considering actual tools, context, availability and verification needs. Use these routing labels in Manager packets and recommendations:
+Read the user's, Development Profile's, packet's and task's routing restrictions before assigning anyone; this section is the project default beneath them. Within what is permitted, use the least costly route that is actually capable and available, considering tools, context and verification needs. Preferences below are not claims that a model or tool is available, so verify the provider, model, tools and capacity before dispatch. They create no permanent ownership.
 
-- **FREE HERE:** planning, clarification, interpretation, coordination, GitHub-native repository inspection, live-lock management, canonical documentation/spec maintenance, handoff publication, and small reviewable text/source edits the current chat can safely complete without local Unity/build verification.
+Coordination, implementation and independent substantive review are separate roles, and coordinating never authorizes doing either of the others. Coordination means planning, routing, monitoring, live-lock and other coordination records, and read-only evidence inspection.
+
+| Work | Preferred route |
+|---|---|
+| Coordination, planning, routing, monitoring, read-only evidence inspection | DeepSeek V4.1 Flash, or the Manager chat |
+| Routine or simple implementation | Sonnet 5.5 |
+| Complex engineering, architecture, Unity, specialist assets | Opus 5.5 |
+| Substantive independent review | GPT-6.1 Sol; a suitably independent Opus 5.5 route where Sol is unavailable or unsuitable |
+
+**DeepSeek V4.1 Flash is coordination-only.** It never writes or changes code, tests, assets, implementation documentation or fixes, and never gives a substantive independent review, even for a trivial change and even when it is the model the session or parent runs on.
+
+**Select the route explicitly.** An inherited or host-default model is never permission to implement or review. A route outside the table is an alternative: use it only with a recorded justification that it is permitted, verifiably capable and available, for example because the preferred route is unavailable. If no permitted, capable route exists, the affected task is BLOCKED and returned to the Manager or user; the coordinator and DeepSeek V4.1 Flash are never the fallback, and unaffected work continues.
+
+**Reviewers** are chosen by the capability the review needs and by independence from the author (see Roles), never the author's own thread or a coordination-only route.
+
+**Record identity.** Where observable, record the requested, selected, resolved and executed model separately. An unobserved identity stays UNKNOWN and is never copied from the requested route. A mismatch, or an UNKNOWN executed identity, does not satisfy a routing restriction or reviewer independence until observed evidence or the Manager/user accepts it.
+
+The direct-edit allowances elsewhere in this document (FREE HERE, GitHub-native Manager edits, Manager follow-up) apply only when the acting route is permitted to implement. A generic orchestration skill reads these restrictions first and never substitutes its own defaults.
+
+Routing labels for Manager packets and recommendations:
+
+- **FREE HERE:** planning, clarification, interpretation, coordination, GitHub-native repository inspection, live-lock management and, where the acting route is permitted to implement, canonical documentation/spec maintenance, handoff publication and small reviewable text/source edits the current chat can safely complete without local Unity/build verification.
 - **DEEP RESEARCH:** substantial evidence collection and synthesis; keep research recommendations distinct from accepted mechanics.
-- **SOL/CODEX:** repository/Unity implementation, local worktree changes, tooling, integration, debugging or verification requiring compiler/Editor/runtime access.
-- **REGULAR CLAUDE VALUE:** suitable independent review/reasoning; default direction is Sonnet 5.5 xhigh.
-- **CLAUDE CLOUD VALUE:** substantial repository/implementation work; default preference is Ultra Code where it is capable.
+- **IMPLEMENT — ROUTINE / COMPLEX:** repository/Unity implementation, local worktree changes, tooling, integration, debugging or verification requiring compiler/Editor/runtime access, routed by the table above.
+- **INDEPENDENT REVIEW:** substantive review by a route independent of the author, routed by the table above.
 
-Reserve Opus for unusually large, difficult or high-stakes tasks where additional capability materially justifies the cost. These are routing preferences, not claims that a model or tool is available. Verify actual capability before dispatch. Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
+Worker-cost policy belongs in workflow/role instructions, not the gameplay Decision Log.
 
 ## Multi-agent safety
 
@@ -252,7 +272,7 @@ For GitHub-native Manager writes, inspect the authoritative branch/path and curr
 ## Roles
 
 - **Primary:** implements bounded authorised scope; for SPEC REQUIRED work, works from the approved spec, plan and assigned task and reports spec deviations; reports readiness for review, not its own integration approval.
-- **Reviewer:** checks against accepted specification/context/evidence and the review gates below; for SPEC REQUIRED work, checks spec conformance as well as implementation correctness; independent of the implementing thread for the reviewed change; no competing implementation unless requested. Prefer an independent reviewer for high-risk simulation/save/reference work. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task.
+- **Reviewer:** checks against accepted specification/context/evidence and the review gates below; for SPEC REQUIRED work, checks spec conformance as well as implementation correctness; independent of the implementing thread for the reviewed change and routed under Cost-aware task routing; no competing implementation unless requested. Prefer an independent reviewer for high-risk simulation/save/reference work. A provider-native helper or child of the implementing worker does not count as an independent reviewer for that parent task.
 - **Integrator:** deliberately integrates approved work and runs post-integration gates; for SPEC REQUIRED work, confirms the spec is approved and conformance was reported; only one active integrator per integration worktree.
 - **Self-integration:** only with explicit Manager permission for small reversible low-risk tasks. Not default for save migrations, determinism/reference, large serialized changes, major refactors or dependencies.
 
@@ -457,6 +477,8 @@ After receiving a worker handoff, the Overall Manager must immediately triage it
 If the handoff is sufficiently clear, no user decision is required, no blocking conflict or mandatory review gate exists, and the next step is already implied by the accepted roadmap or task sequence, issue the next required bounded task packet or handoff in the same response. Do not wait for the user to ask for a handoff.
 
 Use direct GitHub access first for Manager-owned follow-up that is purely repository administration, live-lock maintenance, canonical text/spec changes or handoff publication. Do not spend an implementation worker merely to perform those tasks when the Manager can safely complete them.
+
+A coordination skill's handoff ends that invocation. Continuing already-authorized work is a separate Manager invocation, not an extension of the ended one.
 
 Return to the user for a decision only when the next step requires a genuine product/design choice, material scope change, unresolved conflict, unsafe integration choice, or materially ambiguous direction.
 
