@@ -16,6 +16,9 @@ All under `Docs/Handoffs/Research-ProjectSources-20261120/883-Evidence-Coverage-
 | `05-UNRESOLVED-EVIDENCE.md` | U-1…U-9 open items with owners |
 | `06-WHAT-CHANGED.md` | This file |
 | `07-REVIEW-PACKET.md` | Independent review brief |
+| `08-PROPOSED-COMPOSITE-Forest-Science-Methods-and-Human-Judgement.md` | Actual proposed composite draft (Stage C content) |
+| `09-PROPOSED-860-ADDENDUM-P2-CHANGE.md` | Exact before/after text for the addendum promotion |
+| `10-CORRECTIVE-HANDOFF-20261120.md` | Manager-intake repair record and final inventory |
 
 ## 2. Files changed
 
@@ -37,14 +40,16 @@ any Unity/C#/scene/save file, any Project attachment, and any Drive object.
 
 ## 4. Corrections carried forward (not applied to any composite)
 
-- **V-4:** P4 Table 1 is group-shifted in the 24-page extraction. Corrected mapping recorded in
-  `03-PRIMARY-VERIFICATION-LOG.md`; must be applied before any P4 parameter is reused.
-- **V-11:** the #860 addendum's P2 figure is correct and should lose its "not verified" label.
+- **V-4 — WITHDRAWN.** The first version claimed the 24-page extraction's P4 Table 1 was group-shifted. It is not;
+  the rendered extraction and article tables agree. The claim was a plain-text extraction artefact. `P4-04` is
+  reclassified to `MATERIAL GAP`. See `03-PRIMARY-VERIFICATION-LOG.md`.
+- **V-11:** the #860 addendum's P2 figure is correct and should lose its "not verified" label; exact replacement
+  text in `09-PROPOSED-860-ADDENDUM-P2-CHANGE.md`.
 
 ## 5. What a reader should *not* conclude from this packet
 
 - That the four composites are wrong. They are outside this audit's remit and were not re-audited.
-- That 43 material gaps mean 43 new mechanics. They mean 43 pieces of retrievable evidence, most of which argue
+- That 44 material gaps mean 44 new mechanics. They mean 44 pieces of retrievable evidence, most of which argue
   against adding mechanics.
 - That the six papers are now project-approved. They are not; `SUPPORTING RESEARCH — NOT DECISION AUTHORITY`
   still governs.

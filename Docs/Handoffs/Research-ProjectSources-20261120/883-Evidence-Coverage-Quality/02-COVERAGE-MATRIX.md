@@ -49,16 +49,22 @@ Coverage strength is recorded separately (`NONE` / `ADJACENT` / `PARTIAL` / `DIR
 
 ## 4. Result summary
 
-| Paper | Rows | MATERIAL GAP | CROSS-REF | COVERED | DISPUTED |
-|---|---|---|---|---|---|
-| P1 Individual-based management | 11 | 7 | 4 | 0 | 0 |
-| P2 Marking agreement | 9 | 5 | 2 | 0 | 2 |
-| P3 Structural indices | 8 | 8 | 0 | 0 | 0 |
-| P4 CanopyShotNoise | 7 | 5 | 1 | 0 | 1 |
-| P5 Bayesian dynamics | 14 | 11 | 3 | 0 | 0 |
-| P6 Regeneration taxonomy | 11 | 6 | 3 | 2 | 0 |
-| Other sources | 7 | 1 | 0 | 4 | 1 |
-| **Total** | **67** | **43** | **13** | **6** | **4** |
+| Paper | Rows | MATERIAL GAP | CROSS-REF | COVERED | DISPUTED | OUT OF SCOPE |
+|---|---|---|---|---|---|---|
+| P1 Individual-based management | 11 | 7 | 4 | 0 | 0 | 0 |
+| P2 Marking agreement | 9 | 5 | 2 | 0 | 2 | 0 |
+| P3 Structural indices | 8 | 8 | 0 | 0 | 0 | 0 |
+| P4 CanopyShotNoise | 7 | 6 | 1 | 0 | 0 | 0 |
+| P5 Bayesian dynamics | 14 | 11 | 3 | 0 | 0 | 0 |
+| P6 Regeneration taxonomy | 11 | 6 | 3 | 2 | 0 | 0 |
+| Other sources | 7 | 1 | 0 | 4 | 1 | 1 |
+| **Total** | **67** | **44** | **13** | **6** | **3** | **1** |
+
+Row arithmetic: 44 + 13 + 6 + 3 + 1 = 67.
+
+P4-04 was reclassified from `DISPUTED` to `MATERIAL GAP` after the V-4 retraction (`03-PRIMARY-VERIFICATION-LOG.md`):
+the extraction's parameter grouping was correct, so there is nothing disputed to resolve — the table is simply
+absent from the composites and needs incorporating.
 
 Reading that table honestly: the six-paper set is **not** largely covered. The composites are built from a
 different evidence family — Irish ecology, Irish browsing, Irish/GROWFOR growth and density, Irish practice and

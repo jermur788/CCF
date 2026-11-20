@@ -24,20 +24,23 @@ Give a verdict on each dimension separately. A single overall "looks fine" is no
 | # | Dimension | The question |
 |---|---|---|
 | i | **Source traceability** | Can every figure in the matrix be followed back to an original page in the 111-page volume? Are any citations invented, off-by-one, or attributed to the wrong paper? |
-| ii | **Scientific quantities** | Are the reported numbers, units, sample sizes and geographies correct? Is V-4's correction right? Is V-9 honestly labelled? |
-| iii | **Coverage completeness** | Are the 43 `MATERIAL GAP` verdicts defensible, or does the token-sweep method miss existing coverage? Are the 13 `CROSS-REFERENCED` calls under- or over-stated? |
-| iv | **Practical suitability** | Is the proposed single new composite a sane project attachment, or does it duplicate/compete with the existing four? Is it usable at retrieval time? |
+| ii | **Scientific quantities** | Are the reported numbers, units, sample sizes and geographies correct? Is the P4 Table 1 grouping in `08-…` right, and is the V-4 retraction itself sound? Is V-9 honestly labelled? |
+| iii | **Coverage completeness** | Are the 44 `MATERIAL GAP` verdicts defensible, or does the token-sweep method miss existing coverage? Are the 13 `CROSS-REFERENCED` calls under- or over-stated? |
+| iv | **Practical suitability** | Is the proposed composite (`08-…`) a usable, non-duplicative Project attachment? Is `09-…` a safe, narrow addendum edit? |
 
 ## 3. Required sampling (minimum, not maximum)
 
 1. **Re-derive two matrix rows from scratch** — one `MATERIAL GAP` (suggest P3-01 or P5-09) and one
    `CROSS-REFERENCED` (suggest P1-01 or P2-09). Try to prove the producer wrong.
-2. **Open the original page for every `DISPUTED` row** (P2-01, P2-04, P4-04, O-04) and for V-4 and V-11.
-3. **Re-run one concept sweep** with your own vocabulary against all four composites — the producer's token lists
+2. **Open the original page for every `DISPUTED` row** (P2-01, P2-04, O-04), and for V-11.
+3. **Render — do not text-extract — P4 Table 1** in both the compendium (p. 66) and the extraction (p. 12) and
+   confirm the grouping used in `08-…`. Text-layer verification alone is not acceptable evidence for tables.
+4. **Re-run one concept sweep** with your own vocabulary against all four composites — the producer's token lists
    are published in `02-COVERAGE-MATRIX.md` §2 for exactly this test.
-4. **Check every number in `03-PRIMARY-VERIFICATION-LOG.md`** that is marked CONFIRMED against the rendered page,
-   not the text layer, if you have PDF access.
-5. **Read `04-PROPOSED-INCORPORATION.md` §3** and confirm nothing there quietly authorises a mechanic.
+5. **Check every number in `03-PRIMARY-VERIFICATION-LOG.md`** that is marked CONFIRMED against the rendered page,
+   not the text layer.
+6. **Read `04-PROPOSED-INCORPORATION.md` §3** and confirm nothing there quietly authorises a mechanic, and that
+   `08-…` repeats no claim the extraction does not make.
 
 You need not read all six papers end to end. Nothing in the packet depends on a full re-read.
 
@@ -48,8 +51,9 @@ You need not read all six papers end to end. Nothing in the packet depends on a 
   changes.
 - **P3-08 and P6-11 as gaps.** Negative/limitation claims were scored as gaps. Is that inflation?
 - **P5-09 as a gap.** It supports the status quo; the packet calls it high-value. Is that reasoning sound?
-- **The V-4 correction.** If the producer misread which rows belong to which parameter, the correction is itself
-  an error and must be withdrawn.
+- **The V-4 retraction.** The producer first claimed the extraction's Table 1 was wrong, then withdrew it after the
+  Manager rendered both pages. Is the retraction correct, and is the grouping in `08-…` faithful to the article?
+  If the producer is wrong again in the other direction, that is a blocking finding.
 - **Scope discipline.** Did anything in the packet stray into mechanics, decisions, attachment changes or
   canonical claims?
 

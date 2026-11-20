@@ -22,14 +22,15 @@ Short answer, evidenced in `02-COVERAGE-MATRIX.md`:
 2. The "five academic papers" referred to in #860 are **five of the same six** (P1, P3, P4, P5, P6). There is no
    separate unassessed source set to chase. `perrin2011` and `davies2008` are **already covered** in the
    Ecology and Growth composites. `Rating experiments in forestry.pdf` (P2) is the sixth paper and is on disk.
-3. Two genuine evidence defects were found and are logged, not silently fixed:
+3. One genuine evidence defect was found and is logged, not silently fixed:
    - **Version skew:** the *Project attachment copy* of the Growth composite is a **stale pre-V1B version**
      (33,058 B) while the Git/Drive canonical is 35,555 B and carries the 23 October V1B update. Three of the
      four composites have **no Git counterpart at all**. Details in `01-SOURCE-AND-VERSION-INVENTORY.md`.
-   - **Extraction mis-grouping:** the 24-page extraction's P4 parameter table is **shifted by one group**
-     relative to the original Table 1. `a`/`b` are total-height parameters (not mortality), `c0`/`c1`/`d` are
-     mortality-threshold parameters (not recruitment), `B`/`f` are birth intensity/rate (not crown movement).
-     Verified against the original paper pages; see `03-PRIMARY-VERIFICATION-LOG.md` item V-4.
+
+   A claim made in the **first version** of this packet is **withdrawn**: that the 24-page extraction's P4 Table 1
+   was shifted by one group. It is not. The extraction's rendered table is correctly grouped and matches the
+   rendered article table; the apparent shift was produced by plain-text PDF extraction interleaving table columns.
+   See `03-PRIMARY-VERIFICATION-LOG.md` V-4 for the retraction and the lesson.
 4. The #860 addendum's one P2 figure ("slight-to-fair agreement, 36 experiments, 12 sites", explicitly marked
    *not verified against the paper*) is now **primary-verified** and can be promoted from secondhand to cited.
 
@@ -44,6 +45,9 @@ Short answer, evidenced in `02-COVERAGE-MATRIX.md`:
 | `05-UNRESOLVED-EVIDENCE.md` | Open conflicts, unverified secondhand material, and what would close each item |
 | `06-WHAT-CHANGED.md` | Change log against the four composites and the #860 addendum |
 | `07-REVIEW-PACKET.md` | Brief for the independent non-author reviewer (Stage D) |
+| `08-PROPOSED-COMPOSITE-…-Human-Judgement.md` | **The actual proposed composite draft** — Stage C content, ~7 retrieval-ready sections |
+| `09-PROPOSED-860-ADDENDUM-P2-CHANGE.md` | Exact before/after text for the one addendum promotion |
+| `10-CORRECTIVE-HANDOFF-20261120.md` | What the Manager intake changed, with exact commit and inventory |
 
 ## Honest limits of this pass
 

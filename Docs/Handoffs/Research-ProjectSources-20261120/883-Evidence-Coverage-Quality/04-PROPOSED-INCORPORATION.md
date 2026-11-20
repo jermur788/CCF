@@ -16,7 +16,7 @@ Reasons:
    existing four would either duplicate adjacent material or distort the composites' own structure.
 2. Rewriting four composites means four new attachment versions and four new risk surfaces for a body of evidence
    that has a single coherent home.
-3. 43 of 67 audited rows are material gaps, but they cluster into six topics. One composite, six sections, mirrors
+3. 44 of 67 audited rows are material gaps, but they cluster into six topics. One composite, six sections, mirrors
    the existing extraction and keeps page traceability intact.
 4. It preserves the existing `SUPPORTING RESEARCH — NOT DECISION AUTHORITY` status without touching the files that
    currently carry it.
@@ -30,14 +30,17 @@ Reasons:
 | 1. Individual-tree management and frame trees | P1 framework, 0-3 competitor rule, 5-10 yr assessment horizon, objective-specific retention, density examples, h/d realisation space | Practice §3 (individual-tree judgement); Growth §5/§7 (h/d, growth) |
 | 2. Tree-marking agreement and training | P2 36 experiments/12 sites, kappa categories, results, B ratio, "agreement is not ecological quality", training-design implications | research-index D-065 (delegation boundaries) |
 | 3. Structural indices for read-only measurement | P3 M_i, T_ij, R, W_i, H', S, g(r), mark correlation; edge bias; randomness-is-not-biodiversity | none — genuinely new |
-| 4. Crown geometry and plasticity (research model) | P4 scope, Swiss data, fitting method, **corrected Table 1**, scenario settings, superorganism result and its limits | Growth §8 (Tabbush/Davies crown models — different evidence) |
+| 4. Crown geometry and plasticity (research model) | P4 scope, Swiss data, fitting method, **Table 1 in the article's own grouping**, scenario settings, superorganism result and its limits | Growth §8 (Tabbush/Davies crown models — different evidence) |
 | 5. Spatial growth and forecast uncertainty | P5 design, observed counts, RBA field, ingrowth/growth/mortality structure, uncertainty results, Hegyi-vs-relascope finding, limits | Growth §1/§2 (existing density architecture); Growth §4 (site) |
 | 6. Regeneration-method taxonomy | P6 shelter/edge/open, four basic systems, selection vs two-storeyed, felling purposes, variants vs combinations, gap examples | Ecology §2/§3 (light, seed supply); Practice §1/§3 (staged interventions, enrichment) |
-| 7. What this evidence does not authorise | The extraction's own exclusions, plus V-4's warning, plus the "no Irish coefficient" limits | Growth §9 (GROWFOR boundary pattern) |
+| 7. What this evidence does not authorise | The extraction's own exclusions, plus the rendered-table caution, plus the "no Irish coefficient" limits | Growth §9 (GROWFOR boundary pattern) |
 
-Content basis: the existing 24-page extraction, **with defect V-4 corrected** and with every figure carrying its
-original PDF page. The composite is a condensation of that extraction, not a new literature review — it must not
-claim anything the extraction does not.
+**The draft now exists:** `08-PROPOSED-COMPOSITE-Forest-Science-Methods-and-Human-Judgement.md`. It is a proposal
+only — not canonical, not reviewed, not attached.
+
+Content basis: the existing 24-page extraction, with every figure carrying its original PDF page. The composite is
+a condensation of that extraction, not a new literature review — it must not claim anything the extraction does
+not. Table and parameter values were re-read in the extraction's own grouping after the V-4 retraction.
 
 ### 2.1 Proposed amendment to the #860 addendum
 
@@ -83,7 +86,8 @@ touching that addendum's other unresolved items.
 
 1. A reader can find any P1–P6 figure in the composite and jump to the original page in the 111-page volume.
 2. No statement in the composite is more confident than the extraction's own evidence class.
-3. V-4 is corrected, and the corrected table states which parameters were fitted and which were freely chosen.
+3. Table 1 appears in the article's own grouping, states which parameters were fitted and which were freely chosen,
+   and carries a note that the earlier "shifted table" claim was withdrawn so the error cannot propagate.
 4. The four existing composites are unchanged, so no previously reviewed material is disturbed.
 5. Deleting the new composite would lose retrieval convenience but no unique evidence — the originals and the
    24-page extraction still hold everything.

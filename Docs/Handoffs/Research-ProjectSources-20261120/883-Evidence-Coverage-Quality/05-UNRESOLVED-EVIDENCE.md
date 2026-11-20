@@ -13,11 +13,14 @@ here; creating Git counterparts is a publication act.*
 Attachment 33,058 B / `12ddc2b1…` vs canonical 35,555 B / `2704b0aa…` (identical in Git and Drive). The attachment
 lacks the V1B 23 October 2026 update. **Owner: #425.** *Not repaired here.*
 
-## U-3 — Extraction defect V-4 needs a rendered-page confirmation
+## U-3 — CLOSED: the V-4 "extraction defect" was a false positive
 
-The P4 Table 1 group shift is established from the text layer and is unambiguous in the row descriptions, but a
-rendered-page look is the proper close-out. **Owner: producer or reviewer.** Until closed, no P4 parameter may be
-transcribed from the 24-page extraction.
+The claim that the 24-page extraction's P4 Table 1 was group-shifted has been **withdrawn**. Manager intake
+rendered compendium page 66 and extraction page 12; both are correctly grouped and agree with each other and with
+the article's own row descriptions. The apparent shift was plain-text extraction interleaving table columns. No
+correction to the source extraction is needed or permitted. `P4-04` is now `MATERIAL GAP` rather than `DISPUTED`.
+**Owner: none — closed.** Residual note: this host has no PDF renderer, so the retraction rests on the Manager's
+rendered inspection plus the article's row descriptions; a reviewer with rendering tools can confirm in one minute.
 
 ## U-4 — #860 nine-report conflicts remain open (untouched by this packet)
 

@@ -5,9 +5,13 @@
 (the 111-page companion, text-extracted to `work-text\083.txt`) and compared verbatim. **Not** re-read
 end-to-end — only the consequential or contested items below.
 
-**Method limit, stated plainly:** verification used extracted text, not page images. Text extraction preserves
-numbers reliably but **destroys table row/column alignment** — and that is precisely how defect V-4 arose. A
-reviewer wanting to close V-4 properly should look at the rendered page, not only the text.
+**Method limit, stated plainly:** verification used extracted text, not page images. That method is adequate for
+counts embedded in running prose (sample sizes, plot counts, observation totals) and **inadequate for table or
+parameter claims**. It produced exactly one false positive in the first version of this packet — the V-4 claim —
+which the Manager overturned by inspecting the rendered pages. Table and parameter claims must therefore be
+verified against a rendered page. This host has no PDF renderer (no poppler, mutool, Ghostscript or PyMuPDF), so
+the V-4 retraction rests on the Manager's direct rendered-page inspection plus the article's own row descriptions,
+not on a local render.
 
 ## Results
 
@@ -16,7 +20,7 @@ reviewer wanting to close V-4 properly should look at the rendered page, not onl
 | V-1 | P4 data: 5,591 records, 17 plots, 5 sites, 4-9 remeasurements, ~7 yr | "The 5591 spatial tree records (crown radii, total tree heights and tree coordinates) were collected in a total of 17 plots at each of the five sites at Aarburg, Concise, Embrach, Zofingen and Zollikon … 4-9 re-measurements at variable survey intervals with an average of 7 years." | **CONFIRMED** |
 | V-2 | P5 growth data: 17,153 observations, 5,206 trees, 2 mm/yr, IQR 0.7-2.9 | "In total, the data available to modeling included 17153 growth observations (change in stem diameter between two consecutive measurements) from 5206 trees, with an absolute mean annual stem diameter growth rate of 2 mm and an interquartile range of 0.7 to 2.9 mm." | **CONFIRMED** |
 | V-3 | P4 Table 1: k 1.1287, q -0.0387, kernel 0.2478/1.6060/0.0747, standardising 96.3815 | "k … 1.1287"; "q … -0.0387"; "Shot-noise parameter scaling kernel strength … 0.2478"; "… kernel range … 1.6060"; "… kernel range … 0.0747"; "Parameter used in standardizing the interaction function … 96.3815" | **CONFIRMED** |
-| V-4 | P4 Table 1 grouping: "Mortality a = 0.5697, b = 9.1091"; "Recruitment c0 = 1.0200, c1 = 0.0200, d = 0.0060"; "Crown movement B = 0.0390, f = 0.0900" | Original row descriptions: "a Total tree height estimation parameter (Equation 8) … 9.1091 b"; "c0 Mortality threshold parameter (Equation 10) 1.0200"; "c1 Mortality threshold parameter (Equation 10) 0.0200"; "d Mortality threshold parameter 0.0060"; "B Annual birth intensity 0.0390"; "f Birth rate per square metre crown projection area 0.0900"; "R … shift its current location to a new one within a radius of R m. 0.4000"; "S … must be larger than S (Equation 12). 1.3000" | **EXTRACTION ERROR — groups shifted by one.** `a`/`b` are total-height parameters (Eq. 8), not mortality. `c0`/`c1`/`d` are mortality-threshold parameters (Eq. 10), not recruitment. `B`/`f` are annual birth intensity and birth rate per m² crown (recruitment), not crown movement. `R` and `S` are correctly described (max annual crown-centre shift; superorganism ratio threshold). Any reuse of the extraction's P4 parameter table must be corrected first. |
+| V-4 | ~~P4 Table 1 grouping: extraction shifted by one group~~ | Rendered compendium page 66 (journal p. 6847) and rendered extraction p. 12 both group: **Height relationship** a = 0.5697, b = 9.1091 (Eq. 8); **Mortality** c0 = 1.0200, c1 = 0.0200, d = 0.0060 (Eq. 10); **Recruitment** B = 0.0390, f = 0.0900; **Crown movement** R = 0.4000 m; **Superorganism switch** S = 1.3000. The article's own row descriptions say the same. | **CLAIM WITHDRAWN — false positive.** The extraction is correctly grouped; only the plain-text layer was interleaved. P4-04 reclassified from DISPUTED to MATERIAL GAP. |
 | V-5 | P2 Table 2: Ae Sitka 1,336 trees/ha, 41.9 m²/ha, dg 20.1 cm, h100 21.1 m | "Ae Sitka spruce 1336 41.9 20.1 21.1" | **CONFIRMED** |
 | V-6 | P2: 36 experiments at 12 sites | "we analysed data from twelve sites including 36 experiments in Britain using different agreement indices" | **CONFIRMED** |
 | V-7 | P1: 26 frame-tree selection experiments | "asked to select … frame trees in 26 experiments carried out throughout Great Britain" | **CONFIRMED** |
@@ -25,18 +29,28 @@ reviewer wanting to close V-4 properly should look at the rendered page, not onl
 | V-10 | P5: 3,360 trees reaching 1.3 m; ~49 trees/ha/year | "a total of 3360 trees reaching or surpassing" (continuation not captured); ~49/ha/yr not independently recomputed | **PARTIALLY VERIFIED** |
 | V-11 | #860 addendum: P2 agreement is "slight-to-fair, 36 experiments, 12 sites" and "not verified against the paper" | P2 reports poor-to-fair (crown thinning), fair-to-moderate (low thinning), overall mostly slight-to-fair, 4/36 poor, none substantial; 36 experiments, 12 sites | **PROMOTABLE:** the addendum's secondhand figure is correct and can be cited with P2 page refs (pp. 11, 16-17) |
 
-## Why V-4 matters more than its size suggests
+## Retraction: V-4 was a false positive, and why that matters
 
-The extraction is otherwise careful and repeatedly warns against transferring coefficients. But its P4 table is
-the one place where a reader is invited to pick up numbers, and it is wrong in a way that *looks* right: the value
-count is correct, the order is correct, and the labels are shifted by one group. Anyone transcribing "mortality
-a, b" or "recruitment c0, c1, d" into an offline experiment would use the wrong quantities — height-estimation
-coefficients for mortality, mortality thresholds for recruitment.
+The first version of this packet claimed the 24-page extraction's P4 Table 1 was shifted by one group and told
+readers to correct it before reuse. **That was wrong.** Manager intake rendered compendium page 66 and extraction
+page 12 and found both correctly grouped and mutually consistent, matching the article's own row descriptions:
+`a`/`b` belong to the total-height relationship (Eq. 8), `c0`/`c1`/`d` to mortality thresholds (Eq. 10), `B`/`f` to
+recruitment, `R` to crown movement and `S` to the superorganism rule.
 
-Recommended correction for any future composite that carries P4: reproduce Table 1 **from the rendered page**,
-label each value with its equation number, and state that only k, q and the three kernel parameters were fitted
-to the Swiss data; the article says the remaining parameters were "freely determined" to produce viable
-simulations.
+The error was methodological, not arithmetic. Visiting the table in a plain-text extract on the **source** side
+showed row descriptions interleaved with values; the same interleaving in the **extraction's** text layer made the
+labels look displaced by one. Comparing two corrupted renderings produced a confident, wrong conclusion.
+
+Three consequences are now built into this packet:
+
+1. `P4-04` is reclassified from `DISPUTED` to `MATERIAL GAP` — the table is simply absent from the composites.
+2. No table or parameter claim may be verified from a text layer. Prose counts are still acceptable (V-1, V-2,
+   V-5–V-8 remain sound).
+3. The proposed composite (`08-…`) reproduces Table 1 in the article's own grouping and carries an explicit note
+   that it supersedes the earlier error, so the mistake cannot propagate into a Project attachment.
+
+The general lesson is worth keeping beyond this task: a defect claim about a source is as fallible as the source,
+and a text-extraction artefact will happily impersonate a real error in either direction.
 
 ## Items deliberately not verified
 
