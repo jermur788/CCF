@@ -59,3 +59,21 @@ If owner wants a *real sculpted walkable root-mound prototype in the same first 
 ## Owner supplied physical asset location — 2026-11-20 21:50 UTC
 
 Owner confirms that the downloaded Fab/Quixel source files are on the **ZX20 hard drive**, within a folder named **`new assets`**. This supersedes the earlier 'unknown download location' caveat. Native worker should inspect the mounted ZX20 volume and find that named folder; plausible mount-root from prior Scenario One source work is `/media/jer/ZX20/`, so `/media/jer/ZX20/new assets` is a **candidate path only, NOT verified spelling/casing/existence**. Use read-only local listing/find if necessary, avoid scanning unrelated private volumes, never rename/move/delete ZIPs. Verify the source asset's internal **WG** identifier and reject **VM** even if display name matches. If actual path cannot be located, then ask owner for absolute path rather than asking again where the downloads were saved. No proprietary binaries should be publicly committed before licence/storage D-032 clearance.
+
+
+## BINDING OWNER TEST-EFFORT LIMIT — 2026-11-20 21:51 UTC
+
+Owner explicitly wants **minimum testing**, not a broad qualification exercise. This is the latest instruction and supersedes earlier #891 requirements for many viewpoints, extensive profiling, and second-scene reuse proof. Keep the experiment small and owner-visible.
+
+**Required minimum only:**
+1. Legitimate G0 live task ownership, local ZX20 `new assets` inspection, **WG not VM identity**, permissible source/asset binary rights, and physical exclusive Unity lock if launching Editor — safety/rights gates are not optional tests.
+2. Single isolated 30×30 Compact30 candidate: replace ground *appearance only* with one WG 2K/4K URP material; preserve original material/scene and reversible rollback. No physical height or terrain rewrite.
+3. Actual Unity import/compile smoke (no newly introduced errors) and **one short Play Mode check**: ground visible, not obviously pink/missing/shiny or drastically mis-scaled; character still moves and existing path/H1 remain distinguishable. If the material touches picking/selection, do **one** relevant C/X interaction check, otherwise do not run a full gameplay loop.
+4. **One before and one after image at the same camera and lighting**, plus simple source identity/asset map/branch/HEAD notes. No exhaustive LOD/overdraw profiling, all-tree sweeps, Year 1/2 progression, T2/T3 battery or independent review before owner sees it.
+5. Publish concise GitHub Markdown result and exact editor worktree/launch steps, mark **AUTHOR SMOKE PASSED / READY FOR OWNER VISUAL TEST / NOT INDEPENDENTLY REVIEWED / NOT MERGED**. Stop. Owner assesses whether WG looks worthwhile.
+
+**Deferred unless a specific failure appears:** second disposable scene reuse verification, broader camera matrix, detailed performance captures, extended gameplay regression, imported-asset benchmark tournament. Reusability still matters: make one new reusable material asset and document how it can be assigned elsewhere; proving this in a second scene is *not* a first-trial gate. If a concrete bug appears, perform only the minimum additional check needed to diagnose it.
+
+**The physical D-091 lock, no source-overlap checks, D-032 storage/licensing permission and protect existing #886 collision work are prerequisites, not excess testing.** They must not be skipped. If those block work, report and stop without launching broad verification.
+
+**Short amended dispatch:** Opus 5.5: read this exact GitHub handoff, inspect ZX20 `new assets`, use **WG Mossy Forest Floor only** (never VM), make one reversible visual-only WG material change on an isolated **actual 30×30 Compact30** candidate. Do the minimum native checks: compile/import smoke, short movement/path glance, one paired before/after capture, and only one C/X interaction if affected. No second-scene reuse run, detailed profiling, Year1/2 or independent review before owner visually tests. Ensure legal lease and asset-rights preflight; publish exact candidate and stop.
