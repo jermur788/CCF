@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    #849 UI-A (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §3.2): the single-session, loopback-only presentation process of the
+    playable 2D Stand Map. It uses the ASP.NET Core shared framework that is installed with the .NET 8 SDK
+    (Microsoft.AspNetCore.App and its targeting pack under ~/.dotnet), so restore downloads no package.
+
+    Build it by this explicit project path. It is deliberately NOT in MultiRackSitkaP1Lab.sln, so the qualified solution
+    build graph (Core, CLI, Core tests) is unchanged.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>sitkap1-ui</AssemblyName>
+    <RootNamespace>SitkaP1.Ui</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../Core/SitkaP1.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    The page is compiled into the assembly and served from memory, so the running process reads no page file from disk
+    and nothing is copied to the output folder. PlayerApi.cs names these three resources exactly.
+  -->
+  <ItemGroup>
+    <None Remove="wwwroot/**" />
+    <EmbeddedResource Include="wwwroot/index.html" LogicalName="SitkaP1.Ui.wwwroot.index.html" />
+    <EmbeddedResource Include="wwwroot/app.css" LogicalName="SitkaP1.Ui.wwwroot.app.css" />
+    <EmbeddedResource Include="wwwroot/app.js" LogicalName="SitkaP1.Ui.wwwroot.app.js" />
+  </ItemGroup>
+</Project>

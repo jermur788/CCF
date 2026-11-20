@@ -14,7 +14,104 @@ Standalone sibling of the P0 lab (`Tools/MultiRackSitkaLab`, which this tool nev
 | Compiled original-P0 trust table (3 fixtures) and read-only, no-follow, descriptor-checked inspection | Implemented. **Records pending review**: normal inspection refuses them |
 | Annual gate | Refuses every domain. **No annual engine exists in this stage** |
 | Reuse of Scenario One `SimulationRandom.cs` and `SitkaGrowthModel.cs` | Linked unchanged (read-only), function-level probes only |
-| Host / UI, saves, `.p1-data/` root, work plans, felling, replay | **Not implemented** (UNAVAILABLE) |
+| Manual Work Plan: pending, approve (0 Fell), execute (one typed Fell), replay, real Year+1 with consent for unexecuted work | Implemented in the in-memory session (G2/A-1 engine); reachable through the #849 player facade and UI |
+| Player session facade in Core: `PlayerSessionView`, `PlayerWorkPlanAdapter`, `PlayerMapScene` (one-lock view, fenced commands, engine-minted PlanId and key) | Implemented (#849 PM-T01–T04). Author Tier-1 only: **not independently reviewed, not integrated** |
+| Playable 2D Stand Map: the loopback UI process `src/Ui` and its page (see below) | Implemented (#849 PM-T05–T07). One in-memory session per process on `127.0.0.1` behind a capability URL. **It is an HTTP server**, allowed only as this single presentation process (spec `multirack-sitka-2d-playable-standmap-v1` §0.4 Q-1). Author Tier-1 only: **not independently reviewed, not integrated, not user accepted** |
+| Saves, load or resume, `.p1-data/` root, persistence Host, H2, several users, remote clients | **Not implemented** (UNAVAILABLE). Ending the process ends the session |
+| Comparison extension (G1), proposals, representative samples | **DISABLED — Manual/NotCovered** |
+| Costs, revenue, budget | **UNAVAILABLE (not €0)** |
+| Racks, corridors, Scenario One map code, Unity | Not used. The map is a small local SVG layer (spec §4, decision B) |
+
+The rows above the Work Plan row describe the F0 foundation stage as first written; #849 did not re-verify them.
+
+## Playable 2D Stand Map (Stage 5 slice, #849)
+
+Specification: `specs/multirack-sitka-2d-playable-standmap-v1/` (UI-A). One player and one in-memory session on one
+undivided 30 × 30 m management area of 100 synthetic Sitka. Select exact trees on a north-up map or in the tree table,
+add them to a Work Plan with a written reason, approve the whole plan (no tree is felled), execute it (one typed Fell
+event, or nothing), then advance one real ecological year from the survivors.
+
+### Launch (Ubuntu on WSL2, from the repository root)
+
+The build needs the frozen P0 reference `.p0ref/SitkaLab.Core.dll`, which Git ignores. **On this path it is never
+rebuilt** (spec §3.5, correction C-1). Copy it from an authorised, already-qualified, read-only pinned copy, and check that
+four values are equal before building. If any value differs or a file is missing, STOP. Do not run
+`build/build-p0-core-ref.sh`.
+
+```bash
+cd Tools/MultiRackSitkaP1Lab
+PIN=9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3   # 1. P0CoreExpectedSha256 in src/Core/SitkaP1.Core.csproj
+SRC=<authorised pinned .p0ref directory>                                # read-only; record this path in your run notes
+mkdir -p .p0ref && cp "$SRC/SitkaLab.Core.dll" "$SRC/SitkaLab.Core.dll.sha256" "$SRC/provenance.txt" .p0ref/
+sha256sum .p0ref/SitkaLab.Core.dll                  # 2. the DLL itself: must print $PIN
+cut -d' ' -f1 .p0ref/SitkaLab.Core.dll.sha256       # 3. the .sha256 record: must print $PIN
+grep '^dllSha256=' .p0ref/provenance.txt            # 4. provenance.txt: must show $PIN
+#   any mismatch or missing file: STOP
+~/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj
+~/.dotnet/dotnet src/Ui/bin/Debug/net8.0/sitkap1-ui.dll fixtures/derived
+```
+
+The process prints:
+
+```text
+Synthetic 30 m Sitka experiment. Session only — nothing is saved.
+Open http://127.0.0.1:<port>/s/<capability>/
+Ctrl+C ends the session; nothing is saved.
+```
+
+Open the printed address exactly, for example in Microsoft Edge on Windows (WSL2 localhost forwarding lets a Windows
+browser reach it). The operating system picks the port at each launch, and it is never 5187. Any other host name,
+including `localhost`, is refused with 403, and an address without the capability gets an empty 404. Press **Ctrl+C** in
+the terminal to end the session. Nothing is saved: the next launch starts again at Year 0.
+
+The UI project is deliberately **not** in `MultiRackSitkaP1Lab.sln`, so build it by its project path as shown. Set
+`TMPDIR` outside the repository, as for the other builds. Exit codes: 0 after Ctrl+C, 2 the fixture was refused (the code
+is printed), 3 the listener check failed, 64 usage.
+
+### Using it
+
+1. **Select a tree.** Click or tap a crown on the map, press *Select* in the tree table (the keyboard and screen-reader
+   path), or type an exact, case-sensitive ID in the search box and press Enter. Where crowns overlap, the topmost is
+   selected and the others are listed beside the map. Clicking bare ground selects nothing.
+2. **Inspector.** It shows the exact ID, status, position, age, DBH, height and crown radius, and for a dead tree its death
+   year and cause. Write a reason and choose *Add to Work Plan — no tree is felled*.
+3. **Work Plan.** Remove pending orders, or choose *Approve whole Work Plan — 0 trees felled*. The engine mints the PlanId
+   and the execution key. *Cancel approved plan* withdraws the plan; its orders do not return to pending.
+4. **Execute approved plan.** A confirmation names the trees and the year. The receipt shows the felled IDs with cause
+   `fell (manual-work-plan)`, the work revision w → w+1, and the living count and basal area before and after. The map
+   shows a stump where the crown was. A batch that would leave no living tree is refused as a whole (D-093).
+5. **Advance one ecological year.** If work is still unexecuted, choose *Keep orders — stay in Year y* or *Cancel
+   unexecuted work and advance one year*. The history lists every committed year and every work event.
+
+Every value on the page comes from the engine's latest view. The page computes no forestry statistic and keeps no state of
+its own. If a request fails in transit, the page shows *Outcome unconfirmed — re-read current state* rather than guessing.
+An Execute retry reuses the same execution key, so it can never fell twice.
+
+### Honesty boundaries
+
+- **It is an HTTP server.** It is allowed only as this single, in-memory, loopback presentation process (spec §0.4 Q-1):
+  `127.0.0.1` only, an ephemeral port other than 5187, a 256-bit capability in the URL path, exact Host and Origin checks,
+  JSON-only POST bodies of at most 16 KiB, no CORS, no outbound network and no file written. The Stage 5 no-Host rule is
+  narrowed for this one process, not withdrawn.
+- Session only: no save, load or resume, no persistence Host, no H2, no several users and no remote clients.
+- Comparison extension (G1), proposals and representative samples: **DISABLED — Manual/NotCovered**. Manual exact-ID
+  selection is the whole feature, so Stage 5 R-06 and X-05 are not met by this slice.
+- Costs, revenue, budget: **UNAVAILABLE (not €0)**.
+- A synthetic closed adult Sitka experiment: not an Irish field forecast, and not Unity numerical or geometry parity.
+- No racks, corridors, entrances or marking, and no Scenario One or Unity code. The map is a small local SVG layer.
+- Author checks only: **not independently reviewed, not integrated, not user accepted**.
+
+### Test the UI process
+
+```bash
+~/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj
+TMPDIR=<directory outside the repository> tests/ui-smoke.sh [<evidence directory outside the repository>]
+```
+
+`tests/ui-smoke.sh` uses bash, curl and the python3 standard library. It starts the built UI against a scratch copy of the
+fixture, with hostile URL environment variables set. It checks that the process listens only on 127.0.0.1, exercises
+every guard and one full Work Plan cycle through the JSON API, stops the process with SIGINT, and checks that nothing was
+written to the lab tree or `~/.aspnet`. Exit 0 means every check passed.
 
 ## Build and test (Linux x64, .NET SDK 8.0.133)
 

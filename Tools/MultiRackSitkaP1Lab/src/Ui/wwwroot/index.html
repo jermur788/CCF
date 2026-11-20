@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<title>Stand Map</title>
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<!-- #849 playable 2D Stand Map (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §7). Every value is filled in by app.js from the server view. -->
+<a class="skip-link" href="#trees-heading">Skip to the tree table</a>
+
+<header class="status-bar" aria-labelledby="page-title">
+  <h1 id="page-title">Stand Map</h1>
+  <p id="disclosure" class="disclosure"></p>
+  <dl id="facts" class="facts"></dl>
+  <ul id="flags" class="flags"></ul>
+  <p><button type="button" id="reread">Re-read current state</button></p>
+</header>
+
+<div class="messages">
+  <div id="alert" class="alert" role="alert" tabindex="-1"></div>
+  <div id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></div>
+</div>
+
+<main class="layout">
+  <section class="panel map-panel" aria-labelledby="map-heading">
+    <h2 id="map-heading" tabindex="-1">Map</h2>
+    <p class="hint">North up, grid every 5 m from the south-west corner. Click or tap a crown to select that exact tree.
+      The tree table is the keyboard and screen-reader path.</p>
+    <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
+      <title id="map-title">Stand map of the 30 by 30 metre management area, north up</title>
+      <desc id="map-desc">Loading the current view.</desc>
+      <defs>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="0.5" height="0.5" patternTransform="rotate(45)">
+          <rect class="hatch-ground" width="0.5" height="0.5"></rect>
+          <line class="hatch-line" x1="0.12" y1="0" x2="0.12" y2="0.5"></line>
+        </pattern>
+      </defs>
+      <g id="grid" class="overlay"></g>
+      <rect class="boundary" x="0" y="0" width="30" height="30"></rect>
+      <g id="crowns"></g>
+      <g id="marks" class="overlay"></g>
+      <g id="selection" class="overlay"></g>
+      <g id="furniture" class="overlay"></g>
+    </svg>
+    <h3>Legend</h3>
+    <ul id="legend" class="legend"></ul>
+    <div id="overlap" class="overlap" hidden>
+      <h3 id="overlap-heading" tabindex="-1"></h3>
+      <ul id="overlap-list" class="list"></ul>
+    </div>
+  </section>
+
+  <div class="side">
+    <section class="panel" aria-labelledby="inspector-heading">
+      <h2 id="inspector-heading" tabindex="-1">Inspector</h2>
+      <p id="inspector-empty">No tree selected. Click a crown on the map, or choose Select in the tree table.</p>
+      <div id="inspector-body" hidden>
+        <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong></p>
+        <dl id="insp-facts" class="pairs"></dl>
+        <p id="insp-threshold" class="note"></p>
+        <form id="add-form" novalidate hidden>
+          <label for="reason">Reason for this tree (required; recorded with the order)</label>
+          <textarea id="reason" rows="3" maxlength="2000"></textarea>
+          <p><button type="submit" id="add-button"></button></p>
+        </form>
+        <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
+        <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="plan-heading">
+      <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
+      <h3>Pending orders</h3>
+      <p id="pending-empty">No pending orders.</p>
+      <ul id="pending-list" class="list"></ul>
+      <p><button type="button" id="approve" hidden></button></p>
+      <h3>Approved plan</h3>
+      <p id="approved-empty">No approved plan.</p>
+      <div id="approved-box" hidden>
+        <dl id="approved-facts" class="pairs"></dl>
+        <ul id="approved-list" class="list"></ul>
+        <p class="actions">
+          <button type="button" id="cancel-approved"></button>
+          <button type="button" id="execute" class="danger"></button>
+        </p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="year-heading">
+      <h2 id="year-heading" tabindex="-1">Result and year</h2>
+      <h3 id="receipt-heading" tabindex="-1">Latest executed work</h3>
+      <div id="receipt"></div>
+      <p><button type="button" id="advance"></button></p>
+    </section>
+  </div>
+
+  <section class="panel trees-panel" aria-labelledby="trees-heading">
+    <h2 id="trees-heading" tabindex="-1">Trees</h2>
+    <div class="filters">
+      <p class="field">
+        <label for="tree-search">Exact tree ID (case-sensitive; Enter selects an exact match)</label>
+        <input id="tree-search" type="search" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </p>
+      <p class="field">
+        <label for="status-filter">Status</label>
+        <select id="status-filter"></select>
+      </p>
+    </div>
+    <p id="rows-shown" class="hint"></p>
+    <div class="table-wrap" role="region" aria-labelledby="trees-heading" tabindex="0">
+      <table id="tree-table">
+        <caption>Every tree in the current view, in fixture order, with its exact ID</caption>
+        <thead>
+          <tr>
+            <th scope="col">Select</th>
+            <th scope="col">Tree ID</th>
+            <th scope="col">Status</th>
+            <th scope="col">DBH (cm)</th>
+            <th scope="col">Height (m)</th>
+            <th scope="col">Crown radius (m)</th>
+            <th scope="col">X (m)</th>
+            <th scope="col">Z (m)</th>
+          </tr>
+        </thead>
+        <tbody id="tree-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel history-panel" aria-labelledby="history-heading">
+    <h2 id="history-heading">History: actual before and actual after</h2>
+    <p id="proposed-note" class="note"></p>
+    <div id="history"></div>
+  </section>
+</main>
+
+<dialog id="execute-dialog" aria-labelledby="execute-title" aria-describedby="execute-text">
+  <h2 id="execute-title"></h2>
+  <p id="execute-text"></p>
+  <ul id="execute-ids" class="list"></ul>
+  <p id="execute-warning" class="warning" hidden></p>
+  <p class="actions">
+    <button type="button" id="execute-back">Back</button>
+    <button type="button" id="execute-confirm" class="danger"></button>
+  </p>
+</dialog>
+
+<dialog id="consent-dialog" aria-labelledby="consent-title" aria-describedby="consent-text">
+  <h2 id="consent-title"></h2>
+  <p id="consent-text"></p>
+  <p class="actions">
+    <button type="button" id="consent-keep"></button>
+    <button type="button" id="consent-advance" class="danger"></button>
+  </p>
+</dialog>
+
+<noscript><p class="noscript">This page needs JavaScript to talk to the local session process.</p></noscript>
+</body>
+</html>
