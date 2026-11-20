@@ -23,7 +23,7 @@ scans or store assets are used.
 | `Materials/Sen1_FloorMoss.mat` | URP Lit for the moss cushion mesh |
 | `Materials/Sen1_FloorMarginMoss.mat` | URP Lit for the 46 perimeter low-cover mounds |
 | `Materials/Sen1_FloorTwig.mat` | URP Lit flat colour for the twig mesh |
-| `Meshes/Sen1_FloorMossPatches.asset` | 44 low moss cushions (17 at trunk feet), one mesh, one draw call |
+| `Meshes/Sen1_FloorMossPatches.asset` | 44 low moss cushions (22 at trunk feet), one mesh, one draw call |
 | `Meshes/Sen1_FloorTwigs.asset` | 44 fine twigs, one mesh, one draw call |
 
 ## How it is used
