@@ -138,6 +138,12 @@ public sealed class Sen1MarkerScaleRunner : MonoBehaviour
             Check(sitka[i].IsMarkedForFell, sitka[i].TreeId + " is marked for felling");
         }
         Check(CountMarkVisuals() == 5, "exactly 5 mark visuals for 5 marks (" + CountMarkVisuals() + ")");
+        if (Environment.GetEnvironmentVariable("SEN1_MARKER_CAPTURE") == "1")
+        {
+            Capture(sitka[0], 9f, 1.7f, 4f, "crop-close");
+            Capture(sitka[0], 30f, 12f, 6f, "crop-wide");
+            Capture(sitka[3], 9f, 1.7f, 4f, "fell-close");
+        }
 
         // Repeated unmark / re-mark keeps one visual and the right state.
         for (int round = 0; round < 3; round++)
@@ -244,6 +250,38 @@ public sealed class Sen1MarkerScaleRunner : MonoBehaviour
             bandT != null ? F(band.size.x) : "", type == TreeMarkType.CropTree ? F(expectBandWidth) : "",
             F(top - ground), F(diamond.center.y - top), colliders.ToString()
         }));
+    }
+
+    // Optional evidence image: a temporary camera placed `distance` m from the tree on the side facing
+    // the stand centre's opposite (open edge), eye height `eye`, looking at `lookHeight` on the trunk.
+    private void Capture(ForestTree tree, float distance, float eye, float lookHeight, string name)
+    {
+        string outDir = Environment.GetEnvironmentVariable("SEN1_MARKER_OUT");
+        if (string.IsNullOrEmpty(outDir)) return;
+        Vector3 centre = Vector3.zero;
+        ForestTree[] all = UnityEngine.Object.FindObjectsByType<ForestTree>(FindObjectsSortMode.None);
+        foreach (ForestTree t in all) centre += t.transform.position;
+        centre /= Mathf.Max(1, all.Length);
+        Vector3 outward = tree.transform.position - centre; outward.y = 0f;
+        if (outward.sqrMagnitude < 0.01f) outward = Vector3.back;
+        Vector3 basePos = tree.transform.position;
+        var go = new GameObject("Sen1 #876 capture camera");
+        Camera cam = go.AddComponent<Camera>();
+        cam.fieldOfView = 60f; cam.nearClipPlane = 0.1f; cam.farClipPlane = 600f;
+        go.transform.position = basePos + outward.normalized * distance + Vector3.up * eye;
+        go.transform.LookAt(basePos + Vector3.up * lookHeight);
+        var rt = new RenderTexture(1280, 720, 24);
+        cam.targetTexture = rt;
+        cam.Render();
+        RenderTexture.active = rt;
+        var tex = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);
+        tex.Apply();
+        File.WriteAllBytes(Path.Combine(outDir, name + ".png"), tex.EncodeToPNG());
+        RenderTexture.active = null;
+        cam.targetTexture = null;
+        Destroy(rt); Destroy(tex); Destroy(go);
+        log.Add("INFO captured " + name + " for " + tree.TreeId);
     }
 
     private static string F(float value) => value.ToString("F3", System.Globalization.CultureInfo.InvariantCulture);
