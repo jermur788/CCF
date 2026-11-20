@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142c2d">
+  <meta name="description" content="Independent, offline forestry planning interface concept; all trees and outcomes are synthetic mock data.">
+  <title>Canopy Ledger — Blind A forestry prototype</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#treeSearch">Skip to accessible tree selection</a>
+  <header class="masthead">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div><p class="eyebrow">FIELD STUDY / 01</p><h1>Canopy Ledger</h1></div>
+    </div>
+    <div class="masthead-center"><span class="signal" aria-hidden="true"></span> 30 × 30 m · north-up · 100 synthetic Sitka trees</div>
+    <div class="masthead-right"><strong>PROTOTYPE — NOT THE REAL FORESTRY ENGINE</strong><small>Offline mock responses · no save · no real ecology</small></div>
+  </header>
+
+  <main class="workspace">
+    <aside class="roster panel" aria-labelledby="rosterHeading">
+      <div class="panel-heading">
+        <p class="eyebrow">01 / SURVEY</p>
+        <h2 id="rosterHeading">Find a tree</h2>
+        <p class="subtle">Select by map, exact ID or keyboard-accessible list.</p>
+      </div>
+      <form id="findForm" class="find-form">
+        <label for="treeSearch">Tree ID (S001–S100)</label>
+        <div class="inline-field">
+          <input id="treeSearch" name="treeSearch" autocomplete="off" spellcheck="false" placeholder="e.g. S045" aria-describedby="searchHelp">
+          <button type="submit" class="solid-button">Find</button>
+        </div>
+        <p id="searchHelp" class="hint">Enter an exact ID; the list filters as you type. Press / to focus search.</p>
+      </form>
+      <div class="roster-title"><h3>Tree register</h3><span id="matchCount">100 shown</span></div>
+      <div id="treeList" class="tree-list" role="group" aria-label="Select an individual tree from the register"></div>
+      <div class="roster-foot">
+        <h3>Map key</h3>
+        <div class="legend-grid">
+          <span><i class="legend-icon stand" aria-hidden="true">▲</i> Standing</span>
+          <span><i class="legend-icon pending" aria-hidden="true">!</i> Pending</span>
+          <span><i class="legend-icon approved" aria-hidden="true">✓</i> Approved</span>
+          <span><i class="legend-icon felled" aria-hidden="true">◎</i> Stump</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="map-panel panel" aria-labelledby="mapHeading">
+      <div class="map-heading">
+        <div><p class="eyebrow">02 / STAND PLAN</p><h2 id="mapHeading">North block <span class="label-mini">MOCK SITE</span></h2></div>
+        <div class="view-state"><span id="zoomReadout">100% view</span><span>30 m square</span></div>
+      </div>
+      <div class="map-frame" id="mapFrame">
+        <canvas id="forestMap" role="img" aria-label="Illustrative, north-up map of 100 synthetic trees. Select individual trees with mouse or touch; use the adjacent exact-ID register for keyboard and screen reader access."></canvas>
+        <div class="map-stamp"><b>N</b><span aria-hidden="true">↑</span><small>GRID NORTH</small></div>
+        <div class="map-label">SYNTHETIC INVENTORY · NOT SURVEY DATA</div>
+      </div>
+      <div class="map-toolbar" aria-label="Map navigation controls">
+        <div class="nav-pad" role="group" aria-label="Pan map">
+          <button id="panNorth" title="Pan north" aria-label="Pan north"><span aria-hidden="true">↑</span></button>
+          <div><button id="panWest" title="Pan west" aria-label="Pan west"><span aria-hidden="true">←</span></button><button id="panSouth" title="Pan south" aria-label="Pan south"><span aria-hidden="true">↓</span></button><button id="panEast" title="Pan east" aria-label="Pan east"><span aria-hidden="true">→</span></button></div>
+        </div>
+        <div class="zoom-pad" role="group" aria-label="Map zoom and fit">
+          <button id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
+          <button id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+          <button id="fitMap" class="fit-button">Fit</button>
+        </div>
+        <p class="toolbar-note">Drag map to pan · mouse wheel to zoom · arrow keys on focused map to pan</p>
+      </div>
+      <div class="map-status"><div><span class="small-label">LIVE / MOCK</span><strong id="standingCount">100</strong><span>standing</span></div><div><span class="small-label">FELLED / MOCK</span><strong id="felledCount">0</strong><span>stumps</span></div><div><span class="small-label">PLAN / MOCK</span><strong id="plannedCount">0</strong><span>orders</span></div></div>
+    </section>
+
+    <aside class="ledger panel" aria-labelledby="ledgerHeading">
+      <div class="panel-heading ledger-heading">
+        <p class="eyebrow">03 / MANAGEMENT</p>
+        <h2 id="ledgerHeading">Work ledger</h2>
+        <p class="subtle">Draft a tree order, approve it, then deliberately execute it.</p>
+      </div>
+      <section class="selected-card" aria-labelledby="selectedHeading">
+        <div class="selected-top"><div><span class="overline" id="selectedHeading">SELECTED TREE</span><h3 id="selectedId">S045</h3></div><span id="selectedStatus" class="status-pill">Standing</span></div>
+        <dl class="tree-stats"><div><dt>Species</dt><dd>Sitka spruce</dd></div><div><dt>DBH <abbr title="Diameter at breast height">ⓘ</abbr></dt><dd id="selectedDbh">—</dd></div><div><dt>Height</dt><dd id="selectedHeight">—</dd></div><div><dt>Grid</dt><dd id="selectedGrid">—</dd></div></dl>
+        <p class="microcopy">Illustrative measurements; not engine inventory.</p>
+      </section>
+
+      <section class="reason-card" aria-labelledby="reasonHeading">
+        <h3 id="reasonHeading">Record felling reason</h3>
+        <label for="reasonSelect">Predefined reason <span class="required">(required)</span></label>
+        <select id="reasonSelect">
+          <option value="">Choose a reason…</option>
+          <option value="Competitor release">Competitor release</option>
+          <option value="Stem quality">Poor stem quality</option>
+          <option value="Tree health">Tree health or damage</option>
+          <option value="Regeneration light">Regeneration light gap</option>
+          <option value="Other">Other / custom</option>
+        </select>
+        <div id="customWrap" hidden>
+          <label for="reasonCustom">Other reason (required)</label>
+          <textarea id="reasonCustom" rows="2" maxlength="140" placeholder="Explain the decision in your own words"></textarea>
+        </div>
+        <button id="addOrder" class="action-button">Add selected tree to plan <span aria-hidden="true">+</span></button>
+        <p class="microcopy">Reasons attach to each tree order, not the whole plan.</p>
+      </section>
+
+      <section class="plan-card" aria-labelledby="planHeading">
+        <div class="plan-title"><div><h3 id="planHeading">Pending Work Plan</h3><span id="planState" class="plan-state">DRAFT</span></div><span id="orderCount" class="order-count">0 orders</span></div>
+        <ul id="orderList" class="order-list" aria-label="Recorded tree removal orders"><li class="empty">No tree orders yet.</li></ul>
+        <div class="plan-actions">
+          <button id="approvePlan" class="approve-button">1 · Approve (0 felled)</button>
+          <button id="executePlan" class="execute-button" disabled>2 · Execute approved work</button>
+          <button id="revisePlan" class="quiet-button" hidden>Withdraw approval to revise</button>
+        </div>
+      </section>
+      <section class="chronicle" aria-labelledby="historyHeading">
+        <div class="chronicle-header"><div><p class="eyebrow">04 / TIME</p><h3 id="historyHeading">Field history</h3></div><span class="year-label">YEAR <strong id="yearValue">1</strong></span></div>
+        <div class="time-actions"><button id="advanceYear" class="year-button">Year +1 <span aria-hidden="true">→</span></button><button id="resetDemo" class="reset-button">Reset demo</button></div>
+        <ol id="historyList" class="history-list" aria-label="Mock operation history"></ol>
+      </section>
+      <p id="feedback" class="feedback" role="status" aria-live="polite">Select a tree and choose a reason to start.</p>
+    </aside>
+  </main>
+  <footer class="footer-note">INDEPENDENT BLIND CONCEPT A <span aria-hidden="true">•</span> deterministic illustration, no remote requests or real forestry calculations <span aria-hidden="true">•</span> refreshing clears this session</footer>
+</body>
+</html>
