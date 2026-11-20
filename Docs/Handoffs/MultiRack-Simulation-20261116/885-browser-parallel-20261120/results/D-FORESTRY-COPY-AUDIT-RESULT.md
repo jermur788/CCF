@@ -79,7 +79,7 @@ For non-Crop Fell: **“Describe why you want to propose this tree for removal (
 
 **Proposed after:** Pending heading **“Proposed felling — not yet approved or carried out”**. Summary **“{n} tree(s) proposed for felling in ecological year {year}. Review each tree ID and your recorded reason.”** Approval control **“Approve these felling orders”**, explanation **“Approval fixes this batch for review and later execution; no tree is felled on approval.”** Approval success **“Work Plan approved for {n} tree(s) in Year {year}. Trees remain standing until you confirm execution.”** Cancel **“Cancel approved plan — no trees felled. These orders will not return to the pending list.”** (Match actual #874 cancellation semantics unless Sol's source lawfully changes them.) Keep the exact machine PlanId/executionKey/fence unchanged in API and frozen dialog snapshot, but move codes out of normal reading order into guarded technical provenance if needed.
 
-**Basis/class:** PlayerWorkPlanAdapter.cs 23–41 and PlayerLabels.cs 69–80 **source contracts**; #879 owner feedback **binding**. **Gate:** source-equivalent approval/Cancel, stale 409, no fabricated friendly surrogate ID, clear focus and accessible announcement.
+**Basis/class:** PlayerWorkPlanAdapter.cs 23–41 and PlayerSessionView.cs 69–80 **source contracts**; #879 owner feedback **binding**. **Gate:** source-equivalent approval/Cancel, stale 409, no fabricated friendly surrogate ID, clear focus and accessible announcement.
 
 ### D6 — Confirm felling vs receipt and duplicate attempt
 
