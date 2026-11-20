@@ -114,3 +114,29 @@ Observed while Phase I was running, and confirmed by direct inspection:
 - The T3-prepared implementer worktree is a Windows-path checkout and therefore carries the hazard; the implementer has been verifying against a pristine LF clone instead. That is acceptable as a **baseline proof**, but the production lane for Phase II/III must be LF-clean (fresh WSL clone, or `core.autocrlf=false` set before checkout), and the pin check is the arbiter — never a hand-edited hash.
 - Related caution already sent to the implementer: several hundred `Assets/ForestPrototype/Art/**` files show as modified in **every** checkout on this host without any edit (checkout/filter artifact). Therefore `git add -A`/`commit -a` is forbidden in this task; only explicit paths may be staged, and `Assets/**` must not appear in any commit.
 - The WSL side also reports the Windows-created worktree as `prunable`; `git worktree prune` must not be run, because it would delete that admin directory.
+---
+
+## 8. Phase I result recorded (parent, administrative)
+
+**Implementer:** Claude Opus 5.5. **Result commit:** `786a86372f87738fdc8d5f93aaab922d3f78a2f3` on `feat/multi-standmap-playable2d-20261120-v1`, one docs-only commit, **5 files / 918 lines**, **zero production source**.
+
+Files:
+- `Docs/Handoffs/MultiRack-Simulation-20261116/Multi-StandMap-Playable-2D-PhaseI-Architecture-Proof-20261120.md`
+- `specs/multirack-sitka-2d-playable-standmap-v1/{spec.md,plan.md,tasks.md,checklists/requirements.md}`
+
+**Map-path decision: Option B** — minimal local, presentation-compatible layer inside `Tools/MultiRackSitkaP1Lab`. Reasons recorded by the implementer, all specific and checkable against `main` `7758e17c`:
+
+1. the V-01 grant covers only `SitkaGrowthModel.cs` + `SimulationRandom.cs`; the closure is **8 files / 2,030 lines** and needs a new Scenario One grant the implementer cannot self-issue;
+2. the closure carries the **forbidden rack domain** (`RackPoint` lives in `RackGeometry.cs` with the full rack-planning model), so linking it would compile rack planning into the Multi assembly;
+3. `MapTree` has **no `TreeId`**, so exact selection would need Scenario One edits or the fragile derived/nearest identity the packet forbids;
+4. the work-state vocabulary (`MapTreeMark{None,Fell,Crop}`, rack-worded legend) cannot express pending ≠ approved ≠ executed;
+5. the canopy raster yields pixels with no per-tree identity or assistive-technology object.
+
+**Environment proof:** in a pristine LF clone the base builds with **0 warnings, 0 errors, 66/66 tests passing and all ten no-work digests matching**. The Windows-path editing lane fails 3 tests for environmental reasons only (2 WSL-git resolution, 1 CRLF byte difference), so **Tier-1 must run on the pushed SHA in a WSL-native LF clone** — consistent with §7 above.
+
+**Two gates now open and not self-grantable by the parent:**
+
+- **#730 Manager acceptance** of the spec delta and its six explicit qualifications Q-1…Q-6 (Q-5 is a G4-class new public ABI; Q-1 would narrowly qualify the "no Host/server/network" prohibition for a loopback presentation process).
+- **Owner G5: frontend runtime.** UI-A = single-session loopback-only Kestrel process + embedded page (recommended; ASP.NET Core shared framework already installed, real Windows-browser accessibility testing); UI-B = native GTK 3 window over WSLg (no network, but unverified Windows screen-reader support and no per-tree accessible objects). The implementer correctly refused to self-grant either.
+
+**Still true:** nothing is IMPLEMENTED, REVIEWED, INTEGRATED, VERIFIED or ACCEPTED. No production path was written; the proposed writable list (12 paths, two of them justified modifications to `AnnualContinuation.cs` and a one-line test registration) has not been granted.
