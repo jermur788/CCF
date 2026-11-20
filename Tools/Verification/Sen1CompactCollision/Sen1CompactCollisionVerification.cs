@@ -104,10 +104,9 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
                 tree.TreeId + " CharacterController stops at trunk plus body radius");
             // Aim at breast height: both interaction reaches should select this exact stem.
             Vector3 eye = center + new Vector3(2f, 1.3f, 0f);
-            RaycastHit hit;
-            Check(Physics.Raycast(eye, Vector3.left, out hit, 3.5f) && hit.collider.GetComponentInParent<ForestTree>() == tree,
+            Check(AimedTree(eye, Vector3.left, 3.5f) == tree,
                 tree.TreeId + " 3.5m inspection ray resolves same stem");
-            Check(Physics.Raycast(center + new Vector3(7f,1.3f,0f), Vector3.left, out hit, 8f) && hit.collider.GetComponentInParent<ForestTree>() == tree,
+            Check(AimedTree(center + new Vector3(7f,1.3f,0f), Vector3.left, 8f) == tree,
                 tree.TreeId + " 8m marking ray resolves same stem");
             cap.enabled = false;
         }
@@ -171,10 +170,17 @@ public sealed class Sen1CompactCollisionRunner : MonoBehaviour
         fell.Fell(); yield return null;
         Check(UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Count(t=>t.name=="Compact30 stump "+fell.TreeId)==1,"repeat Fell creates no duplicate stump");
         Check(!Physics.Raycast(stumpPosition+new Vector3(0,1.3f,0),Vector3.right,0.1f),"no old trunk collider at breast height after Fell");
-        var fake=new GameObject("missing nonliving stem");fake.transform.position=new Vector3(60,0,60);
-        Check(fake.GetComponentsInChildren<Collider>().Length==0,"missing/nonliving fabricated object gains no collider");
-        Destroy(fake);
+        ForestTree dead = trees[20];
+        Check(dead.ApplyMortality("#886 disposable negative witness", 1), "real biological nonliving transition accepted");
+        Physics.SyncTransforms();
+        Check(!dead.gameObject.activeInHierarchy && dead.GetComponentsInChildren<Collider>(true).All(c => c.bounds.size == Vector3.zero), "nonliving authored stem has no active physical obstruction");
         Check(trees.Where(t=>t.IsLiving).All(t=>t.GetComponentsInChildren<Collider>().Count(c=>c.enabled)==1),"surviving stems retain one collider after annual step");
+    }
+    private static ForestTree AimedTree(Vector3 origin, Vector3 direction, float reach)
+    {
+        // Match production's self-collider exclusion before taking the nearest hit.
+        var hits = Physics.RaycastAll(origin, direction, reach).Where(h => h.collider.GetComponentInParent<ForestPlayer>() == null).OrderBy(h => h.distance).ToArray();
+        return hits.Length == 0 ? null : hits[0].collider.GetComponentInParent<ForestTree>();
     }
     private static void Teleport(CharacterController controller, Vector3 point)
     {
