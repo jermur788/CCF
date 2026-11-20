@@ -1,11 +1,11 @@
 # MULTI-2D-COMPETITION-UNITY-UI-FIRSTPASS-V1 — verification and acceptance
 
-**Status: PROPOSED REQUIREMENTS, NOT YET IMPLEMENTED/TESTED.** Owner directed feature scope 2026-11-20 18:30. Boxes below unchecked until actual independent evidence.
+**Status: MANAGER-APPROVED REQUIREMENTS, NOT YET IMPLEMENTED/TESTED.** Owner directed feature scope 2026-11-20 18:30. Boxes below unchecked until actual independent evidence.
 
 ## Source and governance
 - [x] Unity and 2D Hegyi source calculation inspected; both 8m terms, target DBH/denominator and 0.5m floor reviewed; read-only 2D diagnostic chosen over annual-loop rewrite.
 - [x] Existing 2D adult-only light/seed/cohort absence identified from current DTO/engine; no unsupported value to be shown.
-- [ ] Owner/Manager approve exact four-file firstpass spec and architecture/API read-only surface, final labels and source ownership.
+- [x] Owner directed implementation and Manager #863 approved this four-file first-pass product specification. Exact API DTO, final reason wording and source/physical ownership remain subject to bounded writer preflight; no deployed/implemented status.
 - [ ] Fresh main coordination/physical locks/clean exact source/one writer; #879 concurrent branch reconciled, #867/#877 untouched.
 - [ ] Exact source/compile-linked file allowlist and execution packet published before code changes.
 
