@@ -1,6 +1,6 @@
-# Multi — Playable 2D Stand Map: implementation and qualification plan (DRAFT)
+# Multi — Playable 2D Stand Map: implementation and qualification plan (APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md)
 
-- **Spec:** [spec.md](spec.md), **DRAFT, corrected (C-1…C-5)**. This plan implements that spec and creates no product requirement of its own.
+- **Spec:** [spec.md](spec.md), **APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md, corrected (C-1…C-5)**. This plan implements that spec and creates no product requirement of its own.
 - **Gate status:**
   - Owner G5: **UI-A SELECTED**.
   - #730: Q-1…Q-6 **accepted within spec §0.4**, conditional on reading back this correction commit.

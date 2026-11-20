@@ -1,6 +1,6 @@
-# Multi — Playable 2D Stand Map: bounded tasks and exact writable paths (DRAFT)
+# Multi — Playable 2D Stand Map: bounded tasks and exact writable paths (APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md)
 
-- **Parent:** [spec.md](spec.md) (DRAFT) · [plan.md](plan.md).
+- **Parent:** [spec.md](spec.md) (APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md) · [plan.md](plan.md).
 - **Status:**
   - PM-T00 (Phase I) is **DONE** in `786a8637`. PM-T00a (the #730 correction C-1…C-5) is **DONE** in this commit.
   - Owner G5: **UI-A SELECTED**. #730: Q-1…Q-6 **accepted within spec §0.4**, pending readback of this commit.

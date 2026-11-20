@@ -1,6 +1,6 @@
-# Multi — Playable 2D Stand Map: delta requirements checklist (DRAFT; ALL NOT RUN)
+# Multi — Playable 2D Stand Map: delta requirements checklist (APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md; ALL NOT RUN)
 
-- **Spec:** [../spec.md](../spec.md) MULTI-STANDMAP-PLAYABLE-2D-V1, **DRAFT, corrected (C-1…C-5)**.
+- **Spec:** [../spec.md](../spec.md) MULTI-STANDMAP-PLAYABLE-2D-V1, **APPROVED — Manager #730, see this linked verdict: https://github.com/jermur788/CCF/blob/docs/Multi-849-PhaseI-Corrections-Manager-Acceptance-20261120-v1/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-849-PhaseI-C1-C5-Correction-Readback-Manager-Spec-Acceptance-20261120.md, corrected (C-1…C-5)**.
 - **Relationship:** the approved Stage 5 checklist ([26 R + 24 X](https://github.com/jermur788/CCF/blob/docs/multi-730-837-g2-contract-decision-draft-20261119-v1/specs/multirack-sitka-2d-intervention-workflow-v1/checklists/requirements.md)) remains the **gameplay acceptance authority**, with all 50 unchecked. This file adds **15 PM-R and 16 PM-X** items for the new architecture only. Each item names the Stage 5 ids it supports. No box here can mark a Stage 5 item PASS.
 - **Status:** **31 items, all unchecked, NOT RUN.** Phase I ran only the environment proof (base 66/66, worker-reported, base-only; C-3) recorded in the Phase I note, which is not a test of this delta. The #730 correction (C-1…C-5) added PM-R15, reworded PM-R01, PM-R02 and PM-X01, and checked nothing.
 
