@@ -1,11 +1,147 @@
 # Multi #849 — Playable 2D Stand Map: PM-T05…PM-T08 implementation result (author Tier-1)
 
-- **Labels (current, after the repair in §0):** **IMPLEMENTED AND REPAIRED (author)** · **author Tier-1 PASS on the repair SHA `d2c04cbb`** · independent Tier-2 of the earlier candidate `1905433f`: **NEEDS CHANGES**; **Tier-2 re-check of `d2c04cbb` NOT YET RUN** · **NOT QUALIFIED** · **NOT INTEGRATED** · **NOT RELEASED** · **NOT USER ACCEPTED**. No Manager acceptance is claimed or implied.
+- **Labels (current, after the residual fix in §0A):** **IMPLEMENTED AND REPAIRED (author)** · **author Tier-1 PASS on the residual-fix SHA `4c42e201`** · Tier-2 re-check of `d2c04cbb`: **NEEDS CHANGES (one MINOR residual, D4-R)**; **Tier-2 re-check of `4c42e201` NOT YET RUN** · **NOT QUALIFIED** · **NOT INTEGRATED** · **NOT RELEASED** · **NOT USER ACCEPTED**. No Manager acceptance is claimed or implied.
 - **Task:** CCF [#849](https://github.com/jermur788/CCF/issues/849), spec `specs/multirack-sitka-2d-playable-standmap-v1/` (MULTI-STANDMAP-PLAYABLE-2D-V1, APPROVED — Manager #730, UI-A), tasks.md rows 8–15 (PM-T05…PM-T08).
 - **Author:** Claude Opus 5.5 (single exclusive author for #849; model identity is worker-reported). Commits carry the explicit author identity `Claude Opus 5.5 <noreply@anthropic.com>` because the lane's configured Git identity is the non-author parent.
 - **Date / host:** 20 November 2026, DESKTOP-DL1BQI7 (WSL2 Ubuntu `jer`).
 - **Lane:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-StandMap2D-Source` (WSL-native, LF, detached), as named in the task packet. The live board row names the T3 Windows worktree as the registered writer checkout; this run used the WSL lane the task packet designated. Pre-write checks: host name, no `dotnet`/MSBuild process, no `index.lock`, HEAD `30fa269c`.
 - **Predecessor:** PM-T01…PM-T04 (Core facade and tests) at `30fa269cc9ec8287a15df364f41fba2bfe48f40f`, parent-verified per the task packet.
+
+## 0A. Residual-fix addendum — Tier-2 re-check residual D4-R (author, 20 November 2026)
+
+§0 below is the record for `d2c04cbb`. Where this addendum differs, **this addendum is current**.
+
+### 0A.1 What this answers
+
+- **Review:** the independent Tier-2 focused re-check by GPT-6.1 Sol, [`Multi-StandMap-Playable-2D-INDEPENDENT-TIER2-REPAIR-REVIEW-20261120.md` at `fee1324f`](https://github.com/jermur788/CCF/blob/fee1324ffc06dec9671c25f861150d98a0cb1168/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-StandMap-Playable-2D-INDEPENDENT-TIER2-REPAIR-REVIEW-20261120.md). It found D1, D2, D3 and D5 resolved and left **one MINOR residual, D4-R**: A-4 (`spec.md:344`) requires a single column "at 360 CSS px width and at 200 % zoom". At native 200 % in a 1920 px window (a 948 CSS px viewport), the page still had two columns (`535.5px 357px`), because of the 900 px breakpoint. Targets and overflow were already fine.
+- **Scope:** one narrow CSS/layout fix, the matching witness checks, and comment/README text. No other change.
+- **Lane:** the same WSL lane, detached at `b7045ecd` (equal to the remote branch head), clean, no `dotnet` process and no `index.lock` before the first write.
+- **Commit:** `4c42e2012a4c1bee3a422e41a58535343d63ac9f`, pushed as a fast-forward `b7045ecd..4c42e201`; then this handoff commit. Nothing was forced, amended or rebased.
+- **Candidate source SHA for the Tier-2 re-check: `4c42e2012a4c1bee3a422e41a58535343d63ac9f`.**
+
+### 0A.2 Changed paths, `b7045ecd..4c42e201` (all under `Tools/MultiRackSitkaP1Lab/`)
+
+| Path | Added / removed | What changed |
+|---|---|---|
+| `src/Ui/wwwroot/app.css` | +4 / −6 | **The rule removed** (below). Comments updated |
+| `src/Ui/wwwroot/app.js` | +3 / −3 | Comment lines only: the map's opening-scale comment no longer refers to a two-column layout. `defaultMapScale()` is unchanged |
+| `tests/ui-smoke.sh` (mode 100755 kept) | +146 / −0 | New checks L01–L05 and a header line |
+| `README.md` | +6 / −3 | A *Layout* bullet: one column at every width and zoom level. The zoom text says "at ordinary zoom" |
+
+Four paths, 159 lines added, 12 removed. `index.html`, every C# file and every csproj are unchanged since `d2c04cbb`.
+
+### 0A.3 The rule removed
+
+The whole `@media (min-width: 900px)` block in `app.css` is gone:
+
+```css
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+  .trees-panel, .history-panel { grid-column: 1 / -1; }
+  .trees-panel .table-wrap { max-height: 70vh; overflow-y: auto; }
+}
+```
+
+- `.layout` is now `grid-template-columns: minmax(0, 1fr)` at **every** viewport width. No width, zoom or device-pixel-ratio branch decides the page's columns. CSS cannot tell native zoom from a narrow window, so one layout at every width is the only robust way to meet the requirement.
+- **A side effect to note:** the 70 vh cap on the tree table at 900 px and wider went with the block. On wide windows, the table now flows in the page the same way it already did below 900 px. It still scrolls sideways inside its own `.table-wrap`, and *Select* is its first column.
+- **Unchanged:**
+  - every 44 px target rule;
+  - the map pane, with its own scroll and keyboard zoom and pan;
+  - the map's opening-scale rule (64 px/m below 900 CSS px or at DPR ≥ 2, the whole area otherwise);
+  - the table as the authoritative accessible path;
+  - exact-TreeId selection and the true-disc hit-test.
+- The only remaining media query, `(min-width: 600px)`, puts the two *filter fields* inside the Trees panel side by side. It is a form row, not a page column, and L03 confirms it does not touch the page layout.
+
+### 0A.4 New witness checks (`tests/ui-smoke.sh` L01–L05)
+
+These checks read the **served** `app.css` and page statically (python3 standard library). Every `@media` query is evaluated at the given width. Only `min-width` and `max-width` queries are understood; any other query fails the check. The checks are not a layout engine. §0A.6 has the real-browser measurements.
+
+| Check | Assertion |
+|---|---|
+| L01 | At **360 CSS px**, the page grid (`.layout` / `main`) has exactly one track and `display: grid`. No applicable rule sets `grid-column(-start/-end)`, `grid-area`, `grid-template-areas`, `float`, or a multi-column, `grid-auto-flow`, `grid`/`grid-template` or `flex-direction` property on it |
+| L02 | The same at **960 CSS px**, the viewport of 200 % zoom in a 1920 px window |
+| L03 | No `@media` rule touches the page layout (`main`, `.layout`, `.side`, `.panel`, `.map-panel`, `.trees-panel`, `.history-panel`). So no width or zoom level can produce two columns |
+| L04 | At **360 CSS px**, no core action needs horizontal scrolling. None of the 21 core controls is inside a sideways scroller: the scrollers are found from the stylesheet (`.map-pane`, `.table-wrap`), and a dialog is exempt only while its width is bounded by `100vw`. The table's first column is *Select*. `.actions`, `.map-tools` and `.flags` wrap. No `width`, `min-width`, `flex-basis` or inline-size is a fixed length over 288 px. `nowrap` is used only in the table and `.sr-only` |
+| L05 | The same at **960 CSS px** |
+
+**Negative control:** run against the `d2c04cbb` stylesheet, **L02 fails** (the tracks include `minmax(0, 3fr) minmax(0, 2fr)`, with `grid-column: 1 / -1` placements) and **L03 fails** (three `(min-width: 900px)` rules touch the layout). L01, L04 and L05 pass on both stylesheets, as expected. Record: `negative-controls/lcheck-new-vs-d2c04cbb.txt`.
+
+### 0A.5 Author Tier-1 — exact pushed SHA `4c42e201`, fresh WSL-native LF clone
+
+- **Harness:** `~/.ccf-orch/standmap-p1-opus/tier1-d4r-run.sh`, outside the repository and derived from the §0.5 harness; sha256 `d9efdea3a774f0a8a91b7f33cfc53366cab2ff532d94a688ac70c052d719075b`.
+- **Logs:** `~/.ccf-orch/standmap-p1-opus/tier1-logs-4c42e201/` on DESKTOP-DL1BQI7. `SHA256SUMS` covers 61 files; its own sha256 is `77233d62fdcacac6195180cf31c39dd7aeb7c6e71db761f1de34d58aacbf4daa`.
+- **Tools:** SDK 8.0.134; node `$HOME/.local/share/vite-plus/bin/node` (WSL).
+- **Result: OVERALL TIER-1 PASS, 43 of 43 gates.**
+
+| Gate | Result |
+|---|---|
+| D01, D01b | `b7045ecd..4c42e201` touches exactly README.md, app.css, app.js and ui-smoke.sh, all modifications. No mode change; `ui-smoke.sh` is still 100755 |
+| D01c, D01d | Every lab `.cs` and `.csproj` file and `index.html` is unchanged since `d2c04cbb`. In `app.js`, only comment lines changed |
+| D02, D03, protected | Every lab path since base `4bb80973` is on the 15-path list. These are unchanged since base: fixtures, `AnnualRules.cs`, `WorkContract.cs`, `AnnualEngine.cs`, CLI, `.sln` (it still has no UI project), both existing csproj files, the four base test files, `build/`, `global.json`, `Directory.Build.props`, `.gitignore`, the two linked Assets files and the P0 tree `f212c8f6` |
+| P0 reference | Copied from the authorised pinned copy and verified four ways (`9a99f781…34b3`). **Not rebuilt** |
+| B01, B02 | Solution build with TreatWarningsAsErrors: **0 warnings, 0 errors**. The UI is not built by it |
+| T01, T01b | Core runner **92/92**, exit 0. The 92 PASS names are identical to the `d2c04cbb` record |
+| T02 | **Ten no-work digests are unchanged**: `digests.txt` sha256 `4e0e47a1…ccee`, identical to the `30fa269c` record |
+| R01, R02 | UI restore from an empty local source succeeds; projects only |
+| U01, U02 | UI build: **0 warnings, 0 errors**. Exactly three embedded page assets. UI DLL `bc156e5f1b043aed6dc195c55df0112433b167455a4e8d669e91f5089097afbb` |
+| S01–S03 | `tests/ui-smoke.sh`: **137 passed, 0 failed** (132 earlier + L01–L05), including J01–J31, E00, E00b and D02f |
+| W01–W03 | P0 tracked-file digest unchanged; clone `git status` clean; `~/.aspnet` absent |
+
+- **PS-01** in this run: 16 rounds, **Execute won 2, Advance won 14**, 688 atomic reads.
+- The Core DLL hash (`b20c40d7…`) differs from the §0.5 record, although the Core sources are byte-identical (D01c). The cause, probably the clone path embedded in the build, was **not investigated**.
+
+Key log hashes (sha256):
+
+```text
+a6374d0f657cc0be41f77ce74c7dcfbe1fde52a18f1e1f147f4395f4e864f971  run.txt
+0635c050e1c5219c0e7d9aff8da9384cb95861c997ab29da2998a30a5f64285b  build.txt
+f1fd789251e9b93c96cab87fdb0e18228d22ed9082bce5f718c547dfdea6c479  tests.txt
+4e0e47a13e6b366b9eadf0d4c47c479da21fa31e8f64f6e07125826dae91ccee  digests.txt
+f418459914c58339f7366e4e61f2727e9bf0feaf0fa98fff616644d5892bbaaa  ui-build.txt
+fb713a37322f931ff599e37bfbe16f252fd5ca4d3231b919e1f34cedc3b8e618  ui-smoke/ui-smoke.txt
+0e2ba950418a851bdb3e0aa53e4e85b98665bc682114b4d8ea1d85ad4de1a92f  negative-controls/lcheck-new-vs-d2c04cbb.txt
+```
+
+### 0A.6 Real-browser evidence, Edge 157.0.4341.60 (headless, CDP), clone build of `4c42e201`
+
+- **Driver:** `d4r-layout-driver.mjs`, outside the repository, run with Windows node; sha256 `89364e7998b94ba19d67cb3fd5bfde961fda1f7c606ca8a2db32fabf7ec6d48c`.
+- **Launcher:** `d4r-edge-run.sh`. It runs the README launch command from the clone, and the server ends with SIGINT and exit 0, with nothing on stderr.
+- **Logs:** `tier1-logs-4c42e201/browser/`; `cdp-log.json` sha256 `2ef2a7c24e25e68343f89077359506d1e0b4739f285035b9064a12ffe51ecb9a`. The setup used the guarded API to make two stumps (P30-001, P30-050) and an approved plan (P30-003). The table's *Select* then chose P30-002.
+- **Two ways of setting the viewport:**
+  - **E rows are emulated:** CSS viewport and DPR set with `Emulation.setDeviceMetricsOverride`.
+  - **N rows use the browser's own zoom.** In the private profile, `chrome.settingsPrivate.setDefaultZoom(2)` ran on `edge://settings`, and `getDefaultZoom()` read back 2. The device-metrics override was cleared, and then the window bounds were set. This is the same method the reviewer used.
+- **Result: 0 failures.**
+
+| Row | Viewport (CSS px), DPR | Page columns (computed `main.layout` tracks) | Page horizontal scroll | Core actions in view horizontally | Controls ≥ 44 × 44 | Map |
+|---|---|---|---|---|---|---|
+| E360 | 360 × 800, 2, mobile + touch | **1** (`328px`) | none (360 = 360; scrollX stays 0) | 15 of 15 shown, and table *Select* in view | 118 of 118 | 64 px/m; crowns ≥ 248.53, **stumps 44.80 × 44.80** |
+| E960 | 960 × 540, 2 | **1** (`913px`) | none (945 = 945) | yes | 118 of 118 | 64 px/m; stumps 44.80 |
+| E948 | 948 × 554, 2 | **1** (`901px`) | none (933 = 933) | yes | 118 of 118 | 64 px/m; stumps 44.80 |
+| E1280 | 1280 × 800, 1 | **1** (`1233px`) | none | yes | 118 of 118 | Whole area 31.55 px/m; stump 12.66 px, with the visible under-44 note (outside A-4's named conditions) |
+| E1920 | 1920 × 1080, 1 | **1** (`1873px`) | none | yes | 118 of 118 | Whole area 48.39 px/m; stump 17.09 px, with the note |
+| **N1920** | **native 200 %**, window 1920 × 1200, giving **948 × 554**, DPR 2 | **1** (`908.5px`) | none (940 = 940; scrollX stays 0) | yes | 118 of 118 | 64 px/m; **stumps 44.80 × 44.80** |
+| N1280 | native 200 %, window 1280 × 960, giving 628 × 434, DPR 2 | **1** (`588.5px`) | none (620 = 620) | yes | 118 of 118 | 64 px/m; stumps 44.80 |
+
+- **Column test:** in every row, all four page parts (map panel, side column, Trees, History) start at left 16 px and are stacked one above the other.
+- **Approve:** with an approved plan on the page, the engine allows no pending order, so *Approve* is hidden and was not measured live. It sits in the same `<p><button>` structure, which L04 and L05 check statically.
+- **"Page horizontal scroll" is judged by two things:** `documentElement.scrollWidth ≤ clientWidth`, and `scrollTo(99999, y)` leaving `scrollX` at 0.
+  - At native zoom, `body.scrollWidth` reads 1 px more than `clientWidth` (941 against 940). The visual viewport is 940.5 px wide, so this is sub-pixel rounding, and the page cannot scroll sideways.
+  - The first driver attempt counted `body.scrollWidth` and reported this as a failure. It was a pre-commit lane run and is not counted.
+- There was no uncaught page exception.
+- **Screenshots:** for each row, `<row>.png` and `<row>-map-inspector-boundary.png`, all hashed in `SHA256SUMS`. The boundary shots show the Inspector directly below the map panel, at full width.
+
+**Negative control: the same driver on the `d2c04cbb` clone build** (`negative-controls/edge-d2c04cbb/`, `cdp-log.json` sha256 `cc7e0147bfec6e7cfb0842ff3a4d7fd244291140139f5d4fa963c54b7c6bcd07`).
+- **E960, E948, E1280, E1920 and N1920 FAIL the one-column check.**
+- N1920 gives **`535.5px 357px`**, the reviewer's exact figure.
+- E360 and N1280 pass, as the reviewer found.
+
+### 0A.7 Still unverified, limits
+
+1. **Tier-2 re-check of `4c42e201` has not run.** This addendum does not claim the review is passed.
+2. Screen reader **NOT RUN**. Physical touch **NOT RUN** (emulated). No human player session.
+3. L01–L05 read the stylesheet; they do not lay the page out. Live layout evidence is the Edge run in §0A.6, which is author-run and outside the repository.
+4. Native 200 % was set through the browser's default-zoom setting in a private headless profile, not by a person pressing Ctrl and +.
+5. §0.9 item 3 (two columns at 200 % zoom of windows 1,800 px or wider) is **superseded** by this fix. §0.9 items 4–9 stand.
 
 ## 0. Repair addendum — Tier-2 findings D1–D5 (author, 20 November 2026)
 
