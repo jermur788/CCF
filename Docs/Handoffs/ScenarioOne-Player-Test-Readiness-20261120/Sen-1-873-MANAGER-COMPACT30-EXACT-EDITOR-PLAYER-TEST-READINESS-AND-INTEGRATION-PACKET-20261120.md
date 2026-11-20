@@ -1,0 +1,60 @@
+# Sen-1 #873 — Compact30 one-candidate Editor player test readiness
+
+**Status: G0 MANAGER PLANNING / READY FOR SOURCE-OWNERSHIP AND AUTHORITY ADMISSION; NOT NATIVE-RUNNING, NOT MERGED OR PLAYER-READY.**  
+**Owner request:** 2026-11-20 14:13 UTC, "let's get the player test ready to go."  
+**Manager:** #872, OpenAI ChatGPT GPT-6, GitHub-only; actual executor not assigned.  
+**Difficulty:** HIGH integration/Unity qualification after bounded manager preflight.  
+**Scope:** Scenario One 3D only; #425 Overall G4/G5 and #863 Multi 2D unaffected.  
+**Context:** current main at packet creation `1464484e5243342a86d535d6ce93358cf5f115b4`. Canonical context instructions remain controlled by the one-full-SHA rules in AgentWorkflow; native worker must refresh exact source and context stamps before a grant.  
+**Docs branch:** `docs/sen1-873-compact30-player-test-readiness-20261120-v1`, from that main; only this report is written here.  
+**Native lane/branch/worktree:** NOT ASSIGNED. Assign exactly one separately registered source/integration writer and one lawful serial Unity operator after live custody check. Do not write into existing #820/#836/#857 owners' worktrees or unowned dirt.
+
+## 1. Exact existing candidates and reconciliation
+
+1. **Gameplay #820 / Tier2 #830**: `8cb22de077b93b4c7af076e19936f3170d6ab48b`, branch `test/sen-1-820-compact30-e2-native-qualification-20261119-v1`. A real Unity 6000.6.0f1 Editor harness explicitly opened `Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity` and passed 71/71 automated Compact30 E1/E2 checks (H1/assessment, 3 crop trees, 2 Oak+2 Beech procurement and G1 order lifecycle, Work Plan, annual ecology/reviews/no-work). A manager accepted this as PARTIAL only. It is NOT evidence of natural entry/UI/owner walk, complete save regression or completion. Owner later reported five ZX20 project copies opening to the historical five-rack forest, not Compact30; this observation is an actual user-facing blocker, not falsified by the harness.
+2. **Visual #836 consolidated**: `sen-1/836-compact30-sitka-floor-20261119-v1` at `5cbc26a4` (including prior path/fence `9a7e3a0d`). Read actual full result: https://github.com/jermur788/CCF/blob/sen-1/836-compact30-sitka-floor-20261119-v1/Docs/Handoffs/ScenarioOne-Visual-Implementation-20261119/Sen-1-836-CONSOLIDATED-PATH-FENCE-SITKA-FLOOR-RESULT-20261120.md . Implements continuous 1.2m path ribbon/soft H1, 4-sided fence with south opening, spruce needle-litter/patchy moss/twigs. Native batchmode GPU render and independent bounded DELTA review APPROVED. Protected 175 trees and 6 scene colliders retained per report; no play mode/walk/save/owner visual acceptance. This branch contains path/fence—do NOT merge/dispatched path and floor separately or recreate assets. Comparison against #820 gameplay head: **DIVERGED (visual ahead16, behind1)**, so merge/cherry-pick cannot be presumed conflict-free. Visual report's statement "cannot conflict" applies only between its OWN path and floor layers, NOT when combined with #820.
+3. **Shared blank starter #857**: `feat/ccf-857-blank-starter-20261120-v1` at `511032f0124e28fdf61a8d1b676c81330f7fa5c0`. Real separate reusable 30×30 blank scene and shared UI empty-state/source seams; #864 independent Tools-only bounded repair DELTA APPROVED, #865 narrow ForestPlayer preview suppression rationale adopted. **Not full source verified/integrated**; AC-06 literal zero-byte save witness missing, AC-09 historical Enlarged80 Year-3 exact harness v23/v24 problem, AC-10 integration pending. Source changes include shared `ForestPlayer.cs`, `ForestSaveController.cs`, `ScenarioOneUiRoot.cs`, many UI panels, `StandaloneSessionMenu`, Stand Map files and verification. #857 differs from #820 by multiple context/coordination commits; **selectively reuse only reviewed compatible seams required for player test, do not wholesale merge/replace functioning gameplay or introduce new save/profile policy**.
+4. **#850 architecture spec:** four-file shared scenario descriptor/router/save proposal still **DRAFT** despite #854 document-quality approval and #425 adoption of review quality. No cross-world profile router/persistence change from this packet. New cross-system implementation would require actual approval G4/G5 and matching specs, not Manager self-authorisation.
+5. **#871 owner personally deleted test project**; #871 CLOSED OWNER-REPORTED. No worker cleanup. **#862** non-root authenticated Flatpak Unity Hub Mode A verified twice at UID1000; reuse it. **#861** narrow standardisation can remain separate, not a gate for playable work.
+
+## 2. Critical entry defect and preferred smallest treatment
+
+Actual #820 branch `ProjectSettings/EditorBuildSettings.asset` enables ONLY `Assets/Scenes/ForestTest.unity`, same as historical/main/#836. `Compact30Bootstrap.cs` binds only when the scene name is literally `ScenarioOneCompact30`. The 71-check test harness manually calls `EditorSceneManager.OpenScene("Assets/ForestPrototype/Scenes/ScenarioOneCompact30.unity")`, bypassing normal entry. Therefore player-facing entry to the new Compact is **NOT PROVEN** and owner-reported as FAILED in previous five project copies.
+
+**Minimum next implementation decision:** provide an explicit, easy, reliable owner Editor launch/open path to the exact integrated Compact scene and verify actual menu/start, without silently changing historical default scenes or implementing a draft multi-scenario routing/save architecture. A temporary explicit Editor test entry is acceptable as a clearly labelled player-test preparation technique, not final production routing. If the requested UX requires new profile/session/Continue save semantics, STOP that action for Overall G4/G5/spec approval rather than silently implementing it. Do not put the blank starter in place of the populated Compact gameplay scene.
+
+## 3. G0 preflight required before native source execution
+
+- Refresh `Docs/Project/coordination/active-tasks.md`, live branches/HEAD/dirty work, #820/#836/#857 exact code and serialized scene, current #850/spec status, physical CCF-Ops lane/source grants, task owners and protected Unity Editor lease/PIDs. The parent #836 floor worktree and path worktree are not a source edit grant.
+- Inspect code-level compilation links between Compact E2 and shared UI/ForestPlayer/ForestSaveController/StandMap; identify overlapping files, scene UID/GUID references, profile/scene assumptions and exact zero-owner conflicts. List a minimal allowed path set and exclusions. One writable primary integrator; no parallel modification of the shared scene.
+- Confirm product choices only to extent required for existing accepted Compact30 scope: original five-rack gameplay and shared UI reused; independent Compact scenario content; no internal racks. No speculative new save rules or invasive facade cloning.
+- Determine the task class. The already-approved E1/E2 and visual candidate combination plus small entry repair may be a **PACKET ONLY bounded integration/qualification** only if inspection proves no new cross-system behavior/persistence/UX design is necessary. Otherwise return for APPROVED spec before source writes.
+- If G4/G5 approval or native custody unavailable, publish G0 read-only inventory/conflict/authority HOLD and continue only non-conflicting preparation. No invented source, scene/Unity lease, provider availability or lock clearance.
+
+## 4. Bounded native execution AFTER actual admission (not commissioned by this report)
+
+1. One clean integration worktree pinned to exact approved base and one authorised source writer. Carry forward **existing** #820 E1/E2 behavior, integrated #836 consolidated visual scene and only compatible #857 shared UI/starter seams needed for this player test. Resolve actual conflicts explicitly, no wholesale branch merges or new parallel framework.
+2. Make the precise Compact scene easy for owner to open using a documented Editor launch/scene route; verify normal player UI and refuse to call the historical five-rack scene "Compact". Preserve historical default/Continue without G4/G5 approval.
+3. Use the proven authenticated Hub sandbox non-root launch from #862, fresh lawful exclusive Unity lock on `jer-laptop`, one Editor at a time; confirm actor, lane, branch HEAD, no dirty/unowned work. No new scratch project requirement; owner's #871 deletion is final.
+4. Tier1 compile/import and scenario identity/tree/four-G1 markers/geometry/scene GUIDs; Tier2 scripted targeted gameplay and actual GUI mouse/keyboard Editor walk using the **exact candidate**, with snapshots and event trace. Retain #830 71/71 as prior evidence but requalify changed integration links—not reflexively rerun every unaffected test. Re-run corrected relevant #836 structural/visual checks if warranted by scene changes. Conduct negative save/open wrong-scene checks, old-save and Legacy40/Enlarged80/frozen Reference Future/determinism guard with a valid harness that does not silently weaken stale expectations. AC-06 single-run literal zero-byte save trace and AC-09 Year-3 status must be explicitly resolved or held.
+5. After a qualified exact Editor candidate, provide owner a **direct, minimal launch/open instruction** with branch, worktree, Unity version, exact scene and tested start path; include playtest checklist. No Windows Player build at this stage. Owner personally plays before any Windows build approval.
+
+## 5. Minimum genuine owner demonstration — PASS requires actual experience, not just report
+
+- Editor opens the **Compact30 no-rack 30×30 m** forest rather than the historical five-rack layout; player starts within southern H1 and can walk the repaired path, see fence and spruce litter floor; no meaningful obstruction/collisions.
+- Forest has the intended exact world roster and IDs, and UI is shared mature Scenario One functionality rather than a separate debug-only IMGUI substitute.
+- Walk/inspect live Sitka, personally mark and retain three crop trees; see valid/invalid mark feedback.
+- Purchase 2 sessile Oak + 2 European Beech and place at four actual G1 positions; inspect costs/protection/Work Plan, approve and execute actual orders.
+- Advance ecological year; Annual Review and changed world show causal consequences, costs and browsing/juvenile outcomes; then make at least one later substantive management decision or deliberate no-work, advance again and inspect.
+- Persistence/Continue and meaningful completion require approved contracts and valid native tests; absence must be reported as release gate, not staged using fake reviews or silently bypassed.
+- Historical Legacy40, five-rack Enlarged80, old user saves (especially `forest-save.json`), Reference Future v1, identity/determinism preserve exact known contracts. No external invited beta or Windows build until owner personal exact-candidate test and express authority.
+
+## 6. Stop conditions / handoff
+
+STOP only conflicted action if: missing source grant, an active native/physical writer, competing Editor, unapproved new save/scene routing requirement, unknown image rights, protected reference drift, inconsistent scene identity or failed compile. Publish exact blocker and continue disjoint authorised checks.
+
+Final native handoff must include branch/full commit, base/merge disposition, changed paths, compile-linked files, actor/model/host and source lane, Unity lock acquire/release proof, test results and *not-run* gates, screenshots/log evidence, independent review as required, source status vs integrated vs verified vs owner-accepted, and next single owner action. All substantial execution and qualification gets a durable GitHub Markdown report. No main merge or Windows build from this G0 packet.
+
+## 7. Dispatch status
+
+**No actor dispatched.** The repository issue is https://github.com/jermur788/CCF/issues/873. This is the single direct binding handoff URL for any subsequent authorised cross-chat native dispatch, and the Manager must provide one complete paste-ready actor-specific message only after source and physical prerequisites are genuinely resolved. Dashboard/Drive publication not verified.
