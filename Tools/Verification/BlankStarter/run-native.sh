@@ -66,6 +66,7 @@ if [[ $mode == exact-shadow || $mode == feature ]]; then
         -e trace=%file,read,readv,pread64,preadv,preadv2,write,writev,pwrite64,pwritev,pwritev2,close,fstat,mmap \
         -P "$save" -P "$save.tmp" -P "$save.bak" \
         -o "$out/$mode-save-access.strace" "${args[@]}"
+    grep -E '^CCF857 PASS total=[0-9]+ mode=blank failure= runtimeErrors=0$' "$out/$mode-console.log"
     test ! -s "$out/$mode-save-access.strace"
     cmp -- "$fixture" "$slot/forest-save.json"
     test ! -e "$slot/forest-save.json.tmp"
@@ -78,7 +79,9 @@ else
     fixture="${4:?historical fixture path}"
     cp -- "$fixture" "$slot/forest-save.json"
     sha256sum "$fixture" > "$out/historical-before.sha256"
-    "${base[@]}" "${graphics[@]}" XDG_CONFIG_HOME="$sandbox" CCF_857_HISTORICAL_PATH="$slot" "${args[@]}"
+    "${base[@]}" "${graphics[@]}" XDG_CONFIG_HOME="$sandbox" CCF_857_HISTORICAL_PATH="$slot" \
+        CCF_STAND_GEOMETRY=0 "${args[@]}"
+    grep -E '^CCF857 PASS total=[0-9]+ mode=historical failure= runtimeErrors=0$' "$out/$mode-console.log"
     sha256sum --check "$out/historical-before.sha256"
     cmp -- "$fixture" "$slot/forest-save.json.bak"
     sha256sum "$slot/forest-save.json" "$slot/forest-save.json.bak" > "$out/historical-round-trip.sha256"
