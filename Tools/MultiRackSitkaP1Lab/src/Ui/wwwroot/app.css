@@ -81,6 +81,8 @@ button {
 button:hover { filter: brightness(1.12); }
 button.small { padding: .35rem .7rem; }
 button.danger { border-color: var(--danger-line); background: var(--danger); }
+/* A command the page refuses until a re-read succeeds: visibly unavailable, its text still readable. */
+button:disabled, button:disabled:hover { border-style: dashed; background: var(--panel-raised); color: var(--muted); filter: none; cursor: not-allowed; }
 
 input, select, textarea {
   width: 100%; min-height: 44px; padding: .5rem .6rem;
@@ -127,7 +129,13 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .selected-id { font-size: 1.1rem; }
 
 /* ---- map ---------------------------------------------------------------------------------------------------------- */
-#map { display: block; width: 100%; height: auto; max-height: 85vh; border-radius: 6px; background: var(--map-ground); touch-action: manipulation; }
+/* The map scrolls inside its own pane, so zooming in never widens the page (spec §8 A-4). Zoomed, the SVG takes its
+   size from its width and height attributes (set by app.js in CSS px per metre); "fit" shows the whole area. */
+.map-tools { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0; }
+.map-pane { max-width: 100%; overflow: auto; border-radius: 6px; background: var(--map-ground); }
+.map-pane.zoomed { height: min(60vh, 30rem); }
+#map { display: block; background: var(--map-ground); touch-action: manipulation; }
+#map.fit { width: 100%; height: auto; max-height: 85vh; }
 .overlay { pointer-events: none; }
 .grid-line { stroke: var(--grid); stroke-width: .06; }
 /* Labels are drawn above the crowns, with a dark halo so they stay legible where crowns cross the margin. */

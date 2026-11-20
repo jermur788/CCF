@@ -72,6 +72,8 @@ public static class PlayerLabels
     public const string CancelApprovedPlan = "Cancel approved plan";
     public const string ExecuteApprovedPlan = "Execute approved plan";
     public const string ExecuteConfirmation = "Fells exactly {n} named trees in Year {y}, or refuses all";
+    // The same confirmation for a plan of exactly one tree ({n} is then 1), so the wording is correct in the singular.
+    public const string ExecuteConfirmationOneTree = "Fells exactly {n} named tree in Year {y}, or refuses all";
     public const string AlreadyExecuted = "Already executed — no additional Fell";
     public const string AdvanceYear = "Advance one ecological year";
     public const string ConsentKeepOrders = "Keep orders — stay in Year {y}";

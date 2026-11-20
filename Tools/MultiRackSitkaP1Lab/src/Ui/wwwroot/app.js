@@ -37,6 +37,14 @@
     lastExecution: null,
     lastWasReplay: false, // whether the latest committed command was an Execute replay
     opener: null, // the element that had focus before a dialog opened
+    // The open Execute confirmation: a frozen copy of the plan and fence it shows. Confirm sends only this copy.
+    confirmation: null,
+    // Set when the page can no longer trust what it shows: a command's outcome is unconfirmed, or a confirmation was
+    // withdrawn. Until a re-read succeeds, every engine command is disabled and refused. { title, detail } or null.
+    lock: null,
+    lockCount: 0, // goes up each time the lock is set, so only a read that began after the latest lock can lift it
+    mapScale: null, // map zoom in CSS px per metre; null fits the whole area to the pane's width
+    mapScaleChosen: false, // until the player chooses a zoom, the default follows the viewport
   };
 
   const byId = (id) => document.getElementById(id);
@@ -105,6 +113,9 @@
 
   // Relative URLs keep every request on this page's own origin and capability path.
   async function call(path, body) {
+    // While the page must re-read, nothing but a read leaves it: no command and no hit-test is sent. Each handler also
+    // refuses first, so this is the last line, not the only one.
+    if (body !== undefined && state.lock) return { kind: 'locked' };
     const init = { method: body === undefined ? 'GET' : 'POST', cache: 'no-store', credentials: 'omit', redirect: 'error' };
     if (body !== undefined) {
       init.headers = { 'Content-Type': 'application/json' };
@@ -142,11 +153,15 @@
     }
     buildStatusFilter();
     renderAll();
+    // An open Execute confirmation stays valid only while this view still shows exactly the plan and fence it confirms.
+    const confirmation = state.confirmation;
+    if (confirmation && !byId('execute-dialog').open) state.confirmation = null;
+    else if (confirmation && !confirmationStillShown(confirmation, state.view)) withdrawConfirmation(confirmation);
   }
 
   // Runs one fenced command. Nothing on the page changes until the server answers; then the answer is drawn as it is.
   async function run(path, body, what, onCommitted, options) {
-    if (state.busy || !state.view) return;
+    if (!state.view || refusedByLock(what) || state.busy) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
     const outcome = await call(path, body);
@@ -165,9 +180,13 @@
     } else if (outcome.kind === 'refused') {
       applyPayload(outcome.payload, false);
       const field = options.failingField ? options.failingField(outcome.payload.refusal.code) : null;
-      showRefusal(what, outcome.payload.refusal, field);
+      // If this view withdrew an open confirmation, the lock's explanation stays on screen with the refusal added.
+      if (state.lock) showLockAlert('Refused: ' + what + ' (' + outcome.payload.refusal.code + '). Nothing changed.');
+      else showRefusal(what, outcome.payload.refusal, field);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal(what, outcome.status, outcome.error);
+    } else if (outcome.kind === 'locked') {
+      showLockAlert('Not sent: ' + what + '.');
     } else {
       showUnconfirmed(what);
     }
@@ -240,14 +259,105 @@
     ]);
   }
 
-  // After a transport failure or a fault the outcome is unknown: the page claims neither success nor refusal, and its
-  // only offer is a re-read of the current state (spec §7.1 item 7).
+  // After a transport failure or a fault the outcome is unknown: the page claims neither success nor refusal, and a
+  // re-read of the current state is the only thing it allows (spec §7.1 item 7, PM-X15).
   function showUnconfirmed(what) {
+    lockCommands(label('OutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+      what + ': no confirmed result was received. Do not assume that it happened, or that it did not.');
+  }
+
+  // ---- the re-read lock -----------------------------------------------------------------------------------------------
+  //
+  // When the page cannot trust what it shows, its fence and its buttons cannot be trusted either. Until a re-read that
+  // began after that moment succeeds, every engine command is disabled, its handler refuses it, and call() refuses to
+  // send it, so no request but a read can leave the page.
+
+  const COMMAND_IDS = ['add-button', 'insp-remove', 'approve', 'cancel-approved', 'execute', 'execute-confirm', 'advance',
+    'consent-advance'];
+
+  function lockCommands(title, detail) {
+    state.lock = { title, detail };
+    state.lockCount += 1;
+    renderCommandGate();
+    showLockAlert(null);
+  }
+
+  function showLockAlert(extra) {
+    const lock = state.lock;
+    if (!lock) return;
     showAlert([
-      el('p', { class: 'alert-title' }, label('OutcomeUnconfirmed') || 'No answer from the local session process'),
-      el('p', null, what + ': no confirmed result was received. Do not assume that it happened, or that it did not.'),
+      el('p', { class: 'alert-title' }, lock.title),
+      el('p', null, lock.detail),
+      extra ? el('p', null, extra) : null,
+      el('p', null, 'Every command stays unavailable until a re-read of the current state succeeds.'),
       rereadButton(),
     ]);
+  }
+
+  // True, after saying so in the alert, when a command must not be sent because the page has to re-read first.
+  function refusedByLock(what) {
+    if (!state.lock) return false;
+    showLockAlert('Not sent: ' + what + '.');
+    return true;
+  }
+
+  function renderCommandGate() {
+    const locked = state.lock !== null;
+    for (const id of COMMAND_IDS) byId(id).disabled = locked;
+    for (const button of byId('pending-list').querySelectorAll('[data-remove]')) button.disabled = locked;
+  }
+
+  // ---- the Execute confirmation ---------------------------------------------------------------------------------------
+  //
+  // The dialog opens on a frozen copy of the plan and fence the page displayed, and Confirm sends exactly that copy. It
+  // never reads the plan again from a newer view. If a newer view no longer shows that plan under that fence, the
+  // confirmation is withdrawn unsent and the page must re-read before any command.
+
+  function frozen(value) {
+    if (value && typeof value === 'object') {
+      for (const inner of Object.values(value)) frozen(inner);
+      Object.freeze(value);
+    }
+    return value;
+  }
+
+  function confirmationOf(view) {
+    const plan = view.approved;
+    return frozen({
+      sessionId: view.sessionId,
+      source: Object.assign({}, view.source),
+      planStateRevision: view.planStateRevision,
+      planId: plan.planId,
+      executionKey: plan.executionKey,
+      year: view.frame.ecologicalYear,
+      orders: plan.orders.map((order) => ({ treeId: order.treeId, reason: order.reason })),
+    });
+  }
+
+  function sameSource(a, b) {
+    for (const name of new Set(Object.keys(a).concat(Object.keys(b)))) if (a[name] !== b[name]) return false;
+    return true;
+  }
+
+  // Whether the view still shows exactly the confirmed plan (PlanId, key, orders) under exactly the confirmed fence.
+  function confirmationStillShown(confirmation, view) {
+    const plan = view.approved;
+    return view.sessionId === confirmation.sessionId && view.planStateRevision === confirmation.planStateRevision &&
+      sameSource(view.source, confirmation.source) && plan !== null && plan.planId === confirmation.planId &&
+      plan.executionKey === confirmation.executionKey && plan.orders.length === confirmation.orders.length &&
+      plan.orders.every((order, index) => order.treeId === confirmation.orders[index].treeId &&
+        order.reason === confirmation.orders[index].reason);
+  }
+
+  function withdrawConfirmation(confirmation) {
+    state.confirmation = null;
+    const dialog = byId('execute-dialog');
+    if (dialog.open) dialog.close();
+    lockCommands('Confirmation withdrawn — the approved plan changed',
+      'The Execute confirmation showed plan ' + confirmation.planId + ' (' +
+      confirmation.orders.map((order) => order.treeId).join(', ') + '). The view that has just arrived no longer shows ' +
+      'that plan with that fence, so the confirmation was closed and nothing was sent. Review the plan now shown, then ' +
+      'choose Re-read; after a successful re-read you can choose Execute again.');
   }
 
   function keepFocusOr(id) {
@@ -270,6 +380,8 @@
     renderPlan();
     renderTable(items);
     renderResultAndHistory();
+    renderCommandGate();
+    renderMapScale();
     // Re-created buttons get their focus back by a stable key (an exact tree ID), so a redraw is not a focus reset.
     if (focusKey) {
       const again = document.querySelector('[data-focus-key="' + CSS.escape(focusKey) + '"]');
@@ -410,6 +522,104 @@
       svg('text', { class: 'furniture-label', x: 32.3, y: 0.25, 'text-anchor': 'middle' }, 'N'),
       svg('path', { class: 'scale-bar', d: 'M 0 34.6 L 5 34.6 M 0 34.05 L 0 35.15 M 5 34.05 L 5 35.15' }),
       svg('text', { class: 'furniture-label', x: 5.6, y: 35.0 }, '5 m'));
+  }
+
+  // ---- map zoom and pan (spec §8 A-4) ---------------------------------------------------------------------------------
+  //
+  // The map sits in its own scrolling pane, so a zoomed map never widens the page. At TARGET_SCALE every drawn item is at
+  // least 44 x 44 CSS px: the smallest, a 0.35 m stump marker, is 0.7 m x 64 px/m = 44.8 px across, and every crown is
+  // larger. Crowns keep their true radii and the server still hit-tests the true discs, so a click names only a tree whose
+  // drawn disc is under the pointer.
+  const VIEW_BOX = { x: -4, y: -1.8, w: 38, h: 37.6 }; // the map's viewBox in index.html, in metres
+  const TARGET_SCALE = 64; // CSS px per metre
+  const SCALES = [null, 32, TARGET_SCALE, 96]; // null fits the whole area to the pane's width
+  const AREA_CENTRE = { u: 15, v: 15 };
+
+  // The one-column layout (below 900 CSS px: 360 px, or 200 % zoom of a window up to 1,799 px wide) and a device pixel
+  // ratio of 2 or more (200 % zoom of a wider window on a standard display) open at TARGET_SCALE. The two-column desktop
+  // layout at ordinary zoom opens on the whole area.
+  function defaultMapScale() {
+    return window.matchMedia('(min-width: 900px)').matches && window.devicePixelRatio < 2 ? null : TARGET_SCALE;
+  }
+
+  // The map point now at the centre of the pane, in map metres.
+  function paneCentre() {
+    if (state.mapScale === null) return AREA_CENTRE;
+    const pane = byId('map-pane');
+    return {
+      u: VIEW_BOX.x + (pane.scrollLeft + pane.clientWidth / 2) / state.mapScale,
+      v: VIEW_BOX.y + (pane.scrollTop + pane.clientHeight / 2) / state.mapScale,
+    };
+  }
+
+  function centreMapOn(point) {
+    if (state.mapScale === null) return;
+    const pane = byId('map-pane');
+    pane.scrollLeft = (point.u - VIEW_BOX.x) * state.mapScale - pane.clientWidth / 2;
+    pane.scrollTop = (point.v - VIEW_BOX.y) * state.mapScale - pane.clientHeight / 2;
+  }
+
+  function setMapScale(scale, centre) {
+    const map = byId('map');
+    state.mapScale = scale;
+    byId('map-pane').classList.toggle('zoomed', scale !== null);
+    if (scale === null) {
+      map.classList.add('fit');
+      map.removeAttribute('width');
+      map.removeAttribute('height');
+    } else {
+      map.classList.remove('fit');
+      map.setAttribute('width', String(VIEW_BOX.w * scale));
+      map.setAttribute('height', String(VIEW_BOX.h * scale));
+      centreMapOn(centre);
+    }
+    renderMapScale();
+  }
+
+  function selectedPoint() {
+    const item = state.selectedId === null ? null : state.scene.find((candidate) => candidate.treeId === state.selectedId);
+    return item ? { u: item.u, v: item.v } : null;
+  }
+
+  function zoomMap(step) {
+    const index = SCALES.indexOf(state.mapScale);
+    const next = SCALES[Math.min(SCALES.length - 1, Math.max(0, index + step))];
+    state.mapScaleChosen = true;
+    if (next === state.mapScale) return;
+    // From the whole area, zoom in on the selected tree (or the centre); otherwise keep the point now in the middle.
+    setMapScale(next, state.mapScale === null ? selectedPoint() || AREA_CENTRE : paneCentre());
+  }
+
+  function showWholeArea() {
+    state.mapScaleChosen = true;
+    if (state.mapScale !== null) setMapScale(null, AREA_CENTRE);
+  }
+
+  // Half a pane per press. North is up the map, so it scrolls towards V = 0.
+  function panMap(east, south) {
+    const pane = byId('map-pane');
+    pane.scrollLeft += east * pane.clientWidth / 2;
+    pane.scrollTop += south * pane.clientHeight / 2;
+  }
+
+  // A visible, truthful statement of the current target size. It is pixel geometry only: the smallest drawn disc's
+  // diameter at this scale.
+  function renderMapScale() {
+    const note = byId('map-scale');
+    const scale = state.mapScale;
+    let text;
+    if (scale === null) {
+      text = 'Whole area. Trees are drawn at their true size, so at this scale some crowns and stumps are smaller than ' +
+        '44 × 44 px: zoom in, or use the tree table.';
+    } else {
+      const smallest = state.scene.reduce((least, item) => Math.min(least, item.radiusM), Infinity);
+      const across = Number.isFinite(smallest) ? 2 * smallest * scale : null;
+      text = 'Scale ' + scale + ' px per metre' + (across === null ? '' : ': the smallest drawn crown or stump is ' +
+        fixed(across, 1) + ' px across' + (across >= 44 ? ' (at least 44 px)' : ', below 44 px; zoom in, or use the tree table')) +
+        '. Pan with the buttons, or scroll or drag the map.';
+    }
+    // Only a change is written, so the polite live region does not repeat itself on every redraw.
+    if (note.textContent !== text) note.textContent = text;
   }
 
   // Overlapping crowns at the last clicked point (spec §5 S-4, S-5), topmost first, each with its exact ID.
@@ -640,13 +850,18 @@
     if (fromTable) state.overlap = null;
     renderAll();
     announce('Selected tree ' + treeId + '.');
-    if (fromTable) byId('inspector-heading').focus();
+    if (fromTable) {
+      // A zoomed map shows only part of the area, so it scrolls to the tree chosen in the table.
+      const point = selectedPoint();
+      if (point) centreMapOn(point);
+      byId('inspector-heading').focus();
+    }
   }
 
   // Map click (spec §5 S-2 to S-5): the page only converts the pointer to map metres; the server's hit-test on the current
   // view decides which exact IDs are under it. Bare ground never picks the nearest tree.
   async function onMapClick(event) {
-    if (state.busy || !state.view) return;
+    if (!state.view || refusedByLock('Map selection') || state.busy) return;
     const matrix = byId('map').getScreenCTM();
     if (!matrix) return;
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
@@ -682,9 +897,12 @@
       // A stale fence: redraw from the fresh view and select nothing (S-3).
       state.selectedId = null;
       applyPayload(outcome.payload, false);
-      showRefusal('Map selection', outcome.payload.refusal, null);
+      if (state.lock) showLockAlert('Refused: Map selection (' + outcome.payload.refusal.code + '). Nothing was selected.');
+      else showRefusal('Map selection', outcome.payload.refusal, null);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Map selection', outcome.status, outcome.error);
+    } else if (outcome.kind === 'locked') {
+      showLockAlert('Not sent: Map selection.');
     } else {
       showAlert([el('p', { class: 'alert-title' }, 'Map selection could not be checked with the local session; nothing was selected.'),
         rereadButton()]);
@@ -747,24 +965,31 @@
     initialFocus.focus();
   }
 
-  // Escape or any close returns focus to the control that opened the dialog, if it is still shown (spec §8 A-1).
+  // Escape or any close returns focus to the control that opened the dialog, if it is still shown and usable, unless an
+  // alert has taken focus meanwhile (spec §8 A-1).
   function returnFocus() {
     const opener = state.opener;
     state.opener = null;
-    if (opener && opener.isConnected && !opener.closest('[hidden]')) opener.focus();
+    if (byId('alert').contains(document.activeElement)) return;
+    if (opener && opener.isConnected && !opener.closest('[hidden]') && !opener.disabled) opener.focus();
   }
 
   function openExecuteDialog() {
     const view = state.view;
-    const plan = view ? view.approved : null;
-    if (!plan) return;
+    if (!view || !view.approved || refusedByLock(label('ExecuteApprovedPlan'))) return;
+    // Everything the dialog shows, and everything Confirm will send, comes from this one frozen copy.
+    const confirmation = confirmationOf(view);
+    state.confirmation = confirmation;
+    const n = confirmation.orders.length;
     byId('execute-title').textContent = label('ExecuteApprovedPlan');
-    byId('execute-text').textContent = fill(label('ExecuteConfirmation'), { n: plan.orders.length, y: view.frame.ecologicalYear }) + '.';
-    byId('execute-ids').replaceChildren(...plan.orders.map((order) => el('li', null,
+    byId('execute-text').textContent =
+      fill(label(n === 1 ? 'ExecuteConfirmationOneTree' : 'ExecuteConfirmation'), { n, y: confirmation.year }) + '.';
+    byId('execute-plan').replaceChildren('PlanId ', el('code', null, confirmation.planId));
+    byId('execute-ids').replaceChildren(...confirmation.orders.map((order) => el('li', null,
       el('span', { class: 'mono' }, order.treeId), ' — ' + order.reason)));
     // A pre-warning only (D-093): the engine refuses such a batch as a whole, whatever this page shows.
     const living = view.frame.trees.filter((tree) => tree.isLiving).map((tree) => tree.treeId);
-    const chosen = new Set(plan.orders.map((order) => order.treeId));
+    const chosen = new Set(confirmation.orders.map((order) => order.treeId));
     const warning = byId('execute-warning');
     warning.textContent = label('AllLiveBatchRefused');
     warning.hidden = !(living.length > 0 && living.every((treeId) => chosen.has(treeId)));
@@ -773,7 +998,7 @@
     openDialog(byId('execute-dialog'), byId('execute-back'));
   }
 
-  // After an unconfirmed outcome the page offers only a re-read. That shows either the receipt (it did commit) or the
+  // After an unconfirmed outcome the page allows only a re-read. That shows either the receipt (it did commit) or the
   // plan still approved (it did not), and Execute then echoes the same engine-minted key, so it can never fell twice.
   function sendExecute(request) {
     run('api/plan/execute', request, label('ExecuteApprovedPlan'), (payload) => {
@@ -798,12 +1023,27 @@
   }
 
   function onExecuteConfirmed() {
-    const view = state.view;
-    const plan = view ? view.approved : null;
+    const confirmation = state.confirmation;
+    // A view still on its way may change what is current, and its arrival re-checks this confirmation, so nothing is
+    // sent yet and the dialog stays as it is.
+    if (state.busy && confirmation) {
+      announce('Still waiting for the local session process. Nothing was sent.');
+      return;
+    }
+    state.confirmation = null;
     byId('execute-dialog').close();
-    if (!plan) return;
-    // The engine minted the PlanId and the key; the page only echoes them with the fence it displayed.
-    sendExecute({ fence: currentFence(), planId: plan.planId, executionKey: plan.executionKey });
+    if (!confirmation || refusedByLock(label('ExecuteApprovedPlan'))) return;
+    if (!confirmationStillShown(confirmation, state.view)) {
+      withdrawConfirmation(confirmation);
+      return;
+    }
+    // Exactly the confirmed copy: the engine-minted PlanId and key, and the fence of the view that was confirmed. The
+    // engine re-checks all of it; the page never substitutes a newer plan.
+    sendExecute({
+      fence: { sessionId: confirmation.sessionId, source: confirmation.source, planStateRevision: confirmation.planStateRevision },
+      planId: confirmation.planId,
+      executionKey: confirmation.executionKey,
+    });
   }
 
   function sendAdvance(consent) {
@@ -821,7 +1061,7 @@
 
   function onAdvance() {
     const view = state.view;
-    if (!view) return;
+    if (!view || refusedByLock(label('AdvanceYear'))) return;
     if (view.pending.length > 0 || view.approved !== null) openConsentDialog();
     else sendAdvance(false);
   }
@@ -853,6 +1093,7 @@
 
   async function reread(announceIt) {
     if (state.busy) return;
+    const lockCountAtStart = state.lockCount;
     state.busy = true;
     const outcome = await call('api/view');
     state.busy = false;
@@ -860,10 +1101,22 @@
       clearAlert();
       state.lastWasReplay = false;
       applyPayload(outcome.payload, false);
-      if (announceIt) {
+      // Only a successful read that began after the latest lock lifts it. A lock that this very view set, by withdrawing
+      // a confirmation it no longer matches, stays until the next successful re-read.
+      if (state.lock && state.lockCount === lockCountAtStart) {
+        state.lock = null;
+        renderCommandGate();
+      }
+      // While a lock remains, its alert is the message; the polite announcement would only contradict it.
+      if (announceIt && !state.lock) {
         announce('Re-read: ecological year ' + state.view.frame.ecologicalYear + ', work revision ' + state.view.frame.workRevision +
           ', plan-state revision ' + state.view.planStateRevision + '.');
+        keepFocusOr('plan-heading');
       }
+    } else if (state.lock) {
+      showLockAlert(outcome.kind === 'guard'
+        ? 'The re-read was refused by the local page server (' + outcome.error.code + ', HTTP ' + outcome.status + '). Try again.'
+        : 'The re-read got no answer from the local session process. Try again.');
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Re-read', outcome.status, outcome.error);
     } else {
@@ -896,16 +1149,39 @@
     byId('approve').addEventListener('click', onApprove);
     byId('cancel-approved').addEventListener('click', onCancelApproved);
     byId('execute').addEventListener('click', openExecuteDialog);
-    byId('execute-back').addEventListener('click', () => byId('execute-dialog').close());
+    byId('execute-back').addEventListener('click', () => {
+      state.confirmation = null;
+      byId('execute-dialog').close();
+    });
     byId('execute-confirm').addEventListener('click', onExecuteConfirmed);
     byId('advance').addEventListener('click', onAdvance);
     byId('consent-keep').addEventListener('click', onConsentKeep);
     byId('consent-advance').addEventListener('click', onConsentAdvance);
-    byId('execute-dialog').addEventListener('close', returnFocus);
+    // Escape fires "cancel" before the dialog closes; either way a closed confirmation can never be sent later.
+    byId('execute-dialog').addEventListener('cancel', () => {
+      state.confirmation = null;
+    });
+    byId('execute-dialog').addEventListener('close', () => {
+      if (!byId('execute-dialog').open) state.confirmation = null;
+      returnFocus();
+    });
     byId('consent-dialog').addEventListener('close', returnFocus);
+    byId('zoom-in').addEventListener('click', () => zoomMap(1));
+    byId('zoom-out').addEventListener('click', () => zoomMap(-1));
+    byId('zoom-fit').addEventListener('click', showWholeArea);
+    byId('pan-north').addEventListener('click', () => panMap(0, -1));
+    byId('pan-south').addEventListener('click', () => panMap(0, 1));
+    byId('pan-west').addEventListener('click', () => panMap(-1, 0));
+    byId('pan-east').addEventListener('click', () => panMap(1, 0));
+    // Browser zoom changes the CSS viewport; until the player picks a zoom, the map follows the default for it.
+    window.addEventListener('resize', () => {
+      const wanted = defaultMapScale();
+      if (!state.mapScaleChosen && wanted !== state.mapScale) setMapScale(wanted, paneCentre());
+    });
   }
 
   wire();
   drawGridAndFurniture();
+  setMapScale(defaultMapScale(), AREA_CENTRE);
   reread(false);
 })();

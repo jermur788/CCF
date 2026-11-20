@@ -9,12 +9,19 @@
 #     as an oracle computed from the scene at the most-overlapped point, none on bare ground inside the square, 400
 #     without a point), Approve at zero Fell, Execute (one typed Fell in the same year), replay, key conflict, Advance
 #     refused with the old fence and then committed with a fresh fence, the consent refusal and consented cancellation,
-#     and a further decision in Year+2 that also uses Remove and Cancel approved plan (and their refusals);
+#     and a further decision in Year+2 that also uses Remove and Cancel approved plan (and their refusals); an Execute
+#     under an unminted key that a later plan is minted with is refused, and that later plan then executes normally;
+#   - the page's own script against this process (J checks, Tier-2 D1 and D2): an Execute confirmation stays bound to the
+#     plan it showed when a pending re-read brings a different plan, and is withdrawn unsent; after an outcome that may
+#     or may not have committed, every engine command is disabled and refused and no request but a read leaves the page
+#     until a re-read succeeds;
 #   - SIGINT (Ctrl+C) ends the process cleanly; no file appears in the lab tree or in ~/.aspnet; P0 is untouched.
-# curl talks only to 127.0.0.1. python3 (standard-library json only) reads the JSON answers.
+# curl talks only to 127.0.0.1. python3 (standard-library json only) reads the JSON answers. node (no packages) runs the
+# served app.js in a small DOM stand-in; that stand-in is not a browser (no layout, CSS or real focus rules).
 #
 # Usage: tests/ui-smoke.sh [<evidence-dir>]
 #   Build first: ~/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj   (DOTNET overrides the dotnet used; default ~/.dotnet/dotnet)
+#   NODE overrides the node used (default: node on PATH).
 #   TMPDIR and <evidence-dir> must be outside the repository. Exit 0 only if every check passes.
 # Idempotent: every run uses a fresh temporary directory, which is removed at exit together with the process.
 set -euo pipefail
@@ -22,6 +29,7 @@ set -euo pipefail
 p1_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 repo="$(git -C "$p1_root" rev-parse --show-toplevel)"
 dotnet_bin="${DOTNET:-$HOME/.dotnet/dotnet}"
+node_bin="${NODE:-$(command -v node || true)}"
 ui_dll="$p1_root/src/Ui/bin/Debug/net8.0/sitkap1-ui.dll"
 fixture_name="p1d-30m-sitka-adult-v1.sitkap1fx.json"
 committed_fixture="$p1_root/fixtures/derived/$fixture_name"
@@ -31,6 +39,7 @@ evidence="${1:-}"
 [[ -x "$dotnet_bin" ]] || { echo "STOP: $dotnet_bin is not executable (set DOTNET)" >&2; exit 2; }
 [[ -f "$ui_dll" ]] || { echo "STOP: build first: $dotnet_bin build $p1_root/src/Ui/SitkaP1.Ui.csproj" >&2; exit 2; }
 command -v curl > /dev/null && command -v python3 > /dev/null || { echo "STOP: curl and python3 are required" >&2; exit 2; }
+[[ -n "$node_bin" && -x "$node_bin" ]] || { echo "STOP: node is required for the page witness (set NODE)" >&2; exit 2; }
 if [[ -n "$evidence" ]]; then
   mkdir -p -- "$evidence"
   case "$(cd "$evidence" && pwd -P)/" in "$repo"/*) echo "STOP: the evidence directory is inside the repository" >&2; exit 2 ;; esac
@@ -63,7 +72,7 @@ aspnet_snapshot() {
 p0_digest() { (cd "$repo" && git ls-files -z -- Tools/MultiRackSitkaLab | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64); }
 git_status() { git -C "$repo" status --porcelain --untracked-files=all -- Tools/MultiRackSitkaP1Lab Tools/MultiRackSitkaLab; }
 tree_before="$(tree_snapshot)"; aspnet_before="$(aspnet_snapshot)"; p0_before="$(p0_digest)"; status_before="$(git_status)"
-say "ui-smoke $(date -u +%FT%TZ) HEAD $(git -C "$repo" rev-parse HEAD) dotnet $("$dotnet_bin" --version) ~/.aspnet: $([[ "$aspnet_before" == absent ]] && echo absent || echo present)"
+say "ui-smoke $(date -u +%FT%TZ) HEAD $(git -C "$repo" rev-parse HEAD) dotnet $("$dotnet_bin" --version) node $(cd "$scratch" && "$node_bin" --version) ~/.aspnet: $([[ "$aspnet_before" == absent ]] && echo absent || echo present)"
 
 # ---- scratch fixture copy (a fresh regular, single-link file) -------------------------------------------------------------
 mkdir "$scratch/fixture"
@@ -278,6 +287,12 @@ check "P03 Approve fells nothing: 100 living, work 0, no event, pending moved in
   test "$(js p1 '[r["view"]["frame"]["stand"]["livingCount"], r["view"]["frame"]["workRevision"], len(r["view"]["frame"]["events"]), len(r["view"]["pending"]), [o["treeId"] for o in r["view"]["approved"]["orders"]], r["view"]["planStateRevision"]]')" == "[100, 0, 0, 0, [\"$t1\"], 2]"
 
 f2="$(fence p1)"
+# Tier-2 D3: the key plan:12 is minted only at D02 below (plan-state 12). Taking it now, for this plan, is refused with
+# nothing changed, so D03 can later execute that plan under its own minted key.
+code="$(post e-unminted "/s/$cap/api/plan/execute" "{\"fence\":$f2,\"planId\":\"$plan_id\",\"executionKey\":\"$session:plan:12:execute\"}")"
+refusal "E00 Execute the approved plan under an unminted key (the key plan 12 will be minted with)" e-unminted WorkExecutionKeyConflict
+check "E00b the refused Execute changed nothing (plan $plan_id still approved, plan-state 2, work 0, 100 living)" \
+  test "$(js e-unminted '[r["view"]["approved"]["planId"], r["view"]["planStateRevision"], r["view"]["frame"]["workRevision"], r["view"]["frame"]["stand"]["livingCount"]]')" == "[\"$plan_id\", 2, 0, 100]"
 code="$(post e1 "/s/$cap/api/plan/execute" "{\"fence\":$f2,\"planId\":\"$plan_id\",\"executionKey\":\"$exec_key\"}")"
 expect "E01 Execute the approved plan" "$code" 200
 check "E02 one typed Fell of exactly [$t1] (fell / manual-work-plan), not a replay" \
@@ -345,10 +360,497 @@ refusal "D02d Execute of the cancelled plan" d2d WorkPlanNotApproved
 code="$(post d2e "/s/$cap/api/pending/add" "{\"fence\":$(fence d2b),\"treeId\":\"$t3_live\",\"reason\":\"ui-smoke: Year 2 decision, re-added\"}")"
 expect "D02e Year 2: re-add $t3_live" "$code" 200
 code="$(post d2 "/s/$cap/api/plan/approve" "{\"fence\":$(fence d2e)}")"; expect "D02 Year 2: Approve" "$code" 200
+check "D02f this plan is minted with the key that E00 tried to take: $session:plan:12:execute" \
+  test "$(js d2 'r["view"]["approved"]["executionKey"]')" == "$session:plan:12:execute"
 code="$(post d3 "/s/$cap/api/plan/execute" "{\"fence\":$(fence d2),\"planId\":\"$(js d2 'r["view"]["approved"]["planId"]')\",\"executionKey\":\"$(js d2 'r["view"]["approved"]["executionKey"]')\"}")"
-expect "D03 Year 2: Execute" "$code" 200
+expect "D03 Year 2: Execute under its own minted key (not blocked by E00)" "$code" 200
 check "D04 Year 2 Fell of [$t3_live] in year 2; two work events; work revision 2" \
   test "$(js d3 '[[f["treeId"] for f in r["execution"]["event"]["fells"]], r["execution"]["event"]["ecologicalYear"], len(r["view"]["frame"]["events"]), r["view"]["frame"]["workRevision"]]')" == "[[\"$t3_live\"], 2, 2, 2]"
+
+# ---- the page's own script (J checks; Tier-2 D1 and D2) ---------------------------------------------------------------------
+# node runs app.js exactly as this process serves it (G11b: byte-identical to the committed file) inside a small standard-
+# DOM stand-in built from the served index.html. Every request the page makes goes through a recording fetch to this real
+# process, which can lose a response after the server has answered, fail a read, or hold a read. A second client uses the
+# same API directly. The stand-in is NOT a browser: no layout, no CSS, simplified focus. It dispatches events on disabled
+# buttons on purpose, so that each handler's own refusal is tested and not only the disabled state.
+cat > "$scratch/page-witness.mjs" << 'WITNESS'
+import vm from 'node:vm';
+
+const pageUrl = process.argv[2];
+const origin = new URL(pageUrl).origin;
+const redact = (text) => String(text).replace(/\/s\/[0-9a-f]{64}\//g, '/s/<capability>/');
+let failures = 0;
+function check(ok, label, detail) {
+  if (!ok) failures++;
+  console.log((ok ? 'PASS ' : 'FAIL ') + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+}
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function until(predicate, what, timeout = 8000) {
+  for (const end = Date.now() + timeout; Date.now() < end; await sleep(10)) if (predicate()) return true;
+  check(false, 'timed out waiting for ' + what);
+  return false;
+}
+
+// ---- a minimal standard-DOM stand-in: only what app.js uses ------------------------------------------------------------
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const pageErrors = [];
+process.on('unhandledRejection', (error) => pageErrors.push(String((error && error.stack) || error)));
+
+class FakeEvent {
+  constructor(type, init = {}) {
+    Object.assign(this, { bubbles: true }, init);
+    this.type = type;
+    this.defaultPrevented = false;
+    this.stopped = false;
+  }
+  preventDefault() { this.defaultPrevented = true; }
+  stopPropagation() { this.stopped = true; }
+}
+
+function compileSelector(selector) {
+  return selector.split(',').map((part) => {
+    const text = part.trim();
+    const tests = [];
+    const token = /([a-zA-Z][\w-]*)|#([\w-]+)|\.([\w-]+)|\[([\w-]+)(?:="((?:[^"\\]|\\.)*)")?\]/y;
+    for (let at = 0; at < text.length; at = token.lastIndex) {
+      token.lastIndex = at;
+      const m = token.exec(text);
+      if (!m) throw new Error('selector not supported by the stand-in: ' + selector);
+      if (m[1]) tests.push((e) => e.localName === m[1].toLowerCase());
+      else if (m[2]) tests.push((e) => e.getAttribute('id') === m[2]);
+      else if (m[3]) tests.push((e) => e.classList.contains(m[3]));
+      else if (m[5] !== undefined) { const value = m[5].replace(/\\(.)/g, '$1'); tests.push((e) => e.getAttribute(m[4]) === value); }
+      else tests.push((e) => e.hasAttribute(m[4]));
+    }
+    return (element) => tests.every((test) => test(element));
+  });
+}
+
+class FakeNode {
+  constructor(document) { this.ownerDocument = document; this.parentNode = null; this.childNodes = []; this.listeners = []; }
+  get isConnected() { let node = this; while (node.parentNode) node = node.parentNode; return node === this.ownerDocument.documentElement; }
+  get textContent() { return this.childNodes.map((child) => child.textContent).join(''); }
+  contains(other) { for (let node = other; node; node = node.parentNode) if (node === this) return true; return false; }
+  addEventListener(type, listener) { this.listeners.push({ type, listener }); }
+  dispatchEvent(event) {
+    event.target = this;
+    for (let node = this; node; node = node.parentNode) {
+      event.currentTarget = node;
+      for (const entry of node.listeners.slice()) {
+        if (entry.type !== event.type) continue;
+        try {
+          const result = entry.listener.call(node, event);
+          if (result && typeof result.catch === 'function') result.catch((error) => pageErrors.push(String((error && error.stack) || error)));
+        } catch (error) { pageErrors.push(String((error && error.stack) || error)); }
+      }
+      if (!event.bubbles || event.stopped) break;
+    }
+    return !event.defaultPrevented;
+  }
+}
+
+class FakeText extends FakeNode {
+  constructor(document, data) { super(document); this.data = String(data); this.nodeType = 3; }
+  get textContent() { return this.data; }
+  set textContent(value) { this.data = String(value); }
+}
+
+class FakeClassList {
+  constructor(element) { this.element = element; }
+  names() { return (this.element.getAttribute('class') || '').split(/\s+/).filter(Boolean); }
+  add(...names) { this.element.setAttribute('class', [...new Set([...this.names(), ...names])].join(' ')); }
+  remove(...names) { this.element.setAttribute('class', this.names().filter((name) => !names.includes(name)).join(' ')); }
+  contains(name) { return this.names().includes(name); }
+  toggle(name, force) {
+    const on = force === undefined ? !this.contains(name) : Boolean(force);
+    if (on) this.add(name); else this.remove(name);
+    return on;
+  }
+}
+
+class FakeElement extends FakeNode {
+  constructor(document, name, namespaceURI) {
+    super(document);
+    this.localName = namespaceURI === SVG_NS ? name : name.toLowerCase();
+    this.namespaceURI = namespaceURI;
+    this.nodeType = 1;
+    this.attributesMap = new Map();
+    this.typedValue = null;
+    this.selected = false;
+    this.open = false;
+    this.scrollLeft = 0;
+    this.scrollTop = 0;
+    this.clientWidth = 300;
+    this.clientHeight = 300;
+  }
+  get tagName() { return this.localName.toUpperCase(); }
+  get classList() { return new FakeClassList(this); }
+  setAttribute(name, value) { this.attributesMap.set(name, String(value)); }
+  getAttribute(name) { return this.attributesMap.has(name) ? this.attributesMap.get(name) : null; }
+  hasAttribute(name) { return this.attributesMap.has(name); }
+  removeAttribute(name) { this.attributesMap.delete(name); }
+  get id() { return this.getAttribute('id') || ''; }
+  get hidden() { return this.hasAttribute('hidden'); }
+  set hidden(on) { if (on) this.setAttribute('hidden', ''); else this.removeAttribute('hidden'); }
+  get disabled() { return this.hasAttribute('disabled'); }
+  set disabled(on) { if (on) this.setAttribute('disabled', ''); else this.removeAttribute('disabled'); }
+  get textContent() { return super.textContent; }
+  set textContent(value) { this.replaceChildren(String(value)); }
+  get options() { return this.childNodes.filter((child) => child.localName === 'option'); }
+  get value() {
+    if (this.localName === 'select') { const chosen = this.options.find((o) => o.selected) || this.options[0]; return chosen ? chosen.value : ''; }
+    if (this.localName === 'option') return this.getAttribute('value') ?? this.textContent;
+    return this.typedValue ?? '';
+  }
+  set value(value) {
+    if (this.localName === 'select') { for (const option of this.options) option.selected = option.value === String(value); return; }
+    this.typedValue = String(value);
+  }
+  append(...items) {
+    for (const item of items) {
+      const node = item instanceof FakeNode ? item : new FakeText(this.ownerDocument, String(item));
+      if (node.parentNode) node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
+      node.parentNode = this;
+      this.childNodes.push(node);
+    }
+  }
+  replaceChildren(...items) {
+    for (const child of this.childNodes) child.parentNode = null;
+    this.childNodes = [];
+    this.append(...items);
+  }
+  matches(selector) { return compileSelector(selector).some((test) => test(this)); }
+  closest(selector) {
+    const tests = compileSelector(selector);
+    for (let node = this; node instanceof FakeElement; node = node.parentNode) if (tests.some((test) => test(node))) return node;
+    return null;
+  }
+  querySelectorAll(selector) {
+    const tests = compileSelector(selector);
+    const found = [];
+    const walk = (node) => {
+      for (const child of node.childNodes) {
+        if (!(child instanceof FakeElement)) continue;
+        if (tests.some((test) => test(child))) found.push(child);
+        walk(child);
+      }
+    };
+    walk(this);
+    return found;
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  focus() {
+    const focusable = ['button', 'input', 'select', 'textarea', 'summary', 'a'].includes(this.localName) || this.hasAttribute('tabindex');
+    if (!focusable || this.disabled || !this.isConnected) return;
+    for (let node = this; node; node = node.parentNode) if (node.hidden || (node.localName === 'dialog' && !node.open)) return;
+    this.ownerDocument.focused = this;
+  }
+  showModal() {
+    if (this.open) throw new Error('InvalidStateError: the dialog is already open');
+    this.open = true;
+  }
+  close() {
+    if (!this.open) return;
+    this.open = false;
+    setTimeout(() => this.dispatchEvent(new FakeEvent('close', { bubbles: false })), 0);
+  }
+  // The stand-in has no layout, so client coordinates are map metres (an identity screen transform).
+  getScreenCTM() {
+    const identity = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => identity };
+    return identity;
+  }
+}
+
+class FakeDocument {
+  constructor() { this.focused = null; this.title = ''; this.documentElement = null; this.body = null; }
+  createElement(name) { return new FakeElement(this, name, 'http://www.w3.org/1999/xhtml'); }
+  createElementNS(namespaceURI, name) { return new FakeElement(this, name, namespaceURI); }
+  getElementById(id) { return this.documentElement.querySelector('#' + id); }
+  querySelector(selector) { return this.documentElement.querySelector(selector); }
+  querySelectorAll(selector) { return this.documentElement.querySelectorAll(selector); }
+  // Focus fix-up, as in a browser: an element that is gone, hidden or disabled no longer has focus.
+  get activeElement() {
+    const node = this.focused;
+    return !node || !node.isConnected || node.disabled || node.closest('[hidden]') ? this.body : node;
+  }
+}
+
+class FakeDOMPoint {
+  constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+  matrixTransform(m) { return new FakeDOMPoint(m.a * this.x + m.c * this.y + m.e, m.b * this.x + m.d * this.y + m.f); }
+}
+
+function decodeEntities(text) {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (all, name) => {
+    const lower = name.toLowerCase();
+    if (lower[0] === '#') return String.fromCodePoint(lower[1] === 'x' ? parseInt(lower.slice(2), 16) : parseInt(lower.slice(1), 10));
+    return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[lower];
+  });
+}
+
+// Enough of an HTML parser for the served page: elements, attributes, text, comments; void elements; SVG namespace.
+function parsePage(document, html) {
+  const VOID = new Set(['meta', 'link', 'input', 'br', 'hr', 'img', 'source', 'area', 'base', 'col', 'wbr']);
+  const holder = document.createElement('holder');
+  const stack = [holder];
+  const token = /<!--[\s\S]*?-->|<!doctype[^>]*>|<\/([a-zA-Z][\w-]*)\s*>|<([a-zA-Z][\w-]*)([^>]*)>|([^<]+)/gi;
+  for (let m = token.exec(html); m; m = token.exec(html)) {
+    if (m[1]) {
+      const name = m[1].toLowerCase();
+      for (let i = stack.length - 1; i > 0; i--) if (stack[i].localName.toLowerCase() === name) { stack.length = i; break; }
+    } else if (m[2]) {
+      const parent = stack[stack.length - 1];
+      const inSvg = m[2].toLowerCase() === 'svg' || stack.some((node) => node.namespaceURI === SVG_NS);
+      const element = inSvg ? document.createElementNS(SVG_NS, m[2]) : document.createElement(m[2]);
+      const attributeText = m[3].replace(/\/\s*$/, '');
+      const attribute = /([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"']+)))?/g;
+      for (let a = attribute.exec(attributeText); a; a = attribute.exec(attributeText)) {
+        element.setAttribute(a[1], decodeEntities(a[2] ?? a[3] ?? a[4] ?? ''));
+      }
+      parent.append(element);
+      if (!VOID.has(m[2].toLowerCase()) && !/\/\s*$/.test(m[3])) stack.push(element);
+    } else if (m[4]) {
+      stack[stack.length - 1].append(decodeEntities(m[4]));
+    }
+  }
+  const html5 = holder.childNodes.find((node) => node instanceof FakeElement && node.localName === 'html');
+  html5.parentNode = null;
+  document.documentElement = html5;
+  document.body = html5.querySelector('body');
+}
+
+// ---- the real process: a recording fetch for the page, and a direct client --------------------------------------------
+const requests = []; // every request the page made: { method, path, body }
+const faults = []; // test-controlled faults for the page's next matching request: lose, fail or hold
+function arm(method, path, mode) {
+  const fault = { method, path, mode };
+  fault.held = new Promise((resolve) => { fault.release = resolve; });
+  faults.push(fault);
+  return fault;
+}
+async function send(method, path, body) {
+  const headers = method === 'POST' ? { 'Content-Type': 'application/json', Origin: origin } : {};
+  const response = await fetch(new URL(path, pageUrl), { method, headers, body, redirect: 'error' });
+  const text = await response.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch { json = null; }
+  return { status: response.status, json };
+}
+async function pageFetch(path, init = {}) {
+  const method = init.method || 'GET';
+  const relative = new URL(path, pageUrl).pathname.replace(/^\/s\/[0-9a-f]{64}\//, '');
+  requests.push({ method, path: relative, body: init.body === undefined ? null : JSON.parse(init.body) });
+  const index = faults.findIndex((fault) => fault.method === method && fault.path === relative);
+  const fault = index < 0 ? null : faults.splice(index, 1)[0];
+  if (fault && fault.mode === 'fail') throw new TypeError('Failed to fetch (witness: the request was not sent)');
+  if (fault && fault.mode === 'hold') await fault.held;
+  const answer = await send(method, relative, init.body);
+  if (fault && fault.mode === 'lose') throw new TypeError('Failed to fetch (witness: the answer was lost after HTTP ' + answer.status + ')');
+  return { status: answer.status, json: async () => answer.json };
+}
+const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+const serverView = async () => (await send('GET', 'api/view')).json.view;
+async function serverCommand(path, body) {
+  const answer = await send('POST', path, JSON.stringify(body));
+  if (answer.status !== 200) throw new Error('second client: ' + path + ' answered HTTP ' + answer.status);
+  return answer.json.view;
+}
+const living = (view, treeId) => view.frame.trees.some((tree) => tree.treeId === treeId && tree.isLiving);
+
+// ---- start the page ----------------------------------------------------------------------------------------------------
+const document = new FakeDocument();
+parsePage(document, await (await fetch(pageUrl)).text());
+const appJs = await (await fetch(new URL('app.js', pageUrl))).text();
+const sandbox = {
+  document,
+  fetch: pageFetch,
+  setTimeout,
+  clearTimeout,
+  CSS: { escape: (value) => String(value).replace(/[^a-zA-Z0-9_ -￿-]/g, (c) => '\\' + c) },
+  DOMPoint: FakeDOMPoint,
+  Node: FakeNode,
+  Element: FakeElement,
+  // A one-column viewport at device pixel ratio 2, as at 360 CSS px or at 200 % zoom.
+  matchMedia: (media) => ({ media, matches: false, addEventListener() {}, removeEventListener() {} }),
+  devicePixelRatio: 2,
+  addEventListener() {},
+};
+sandbox.window = sandbox;
+vm.runInContext(appJs, vm.createContext(sandbox), { filename: 'app.js' });
+
+const byId = (id) => document.getElementById(id);
+const ids = (id) => byId(id).querySelectorAll('.mono').map((node) => node.textContent);
+const fact = (term) => {
+  const row = byId('facts').querySelectorAll('div').find((div) => div.querySelector('dt').textContent === term);
+  return row ? row.querySelector('dd').textContent : null;
+};
+const click = (element, init) => element.dispatchEvent(new FakeEvent('click', init));
+const alertText = () => byId('alert').textContent;
+const alertReread = () => byId('alert').querySelector('button');
+const COMMANDS = ['add-button', 'insp-remove', 'approve', 'cancel-approved', 'execute', 'execute-confirm', 'advance', 'consent-advance'];
+const removeButtons = () => byId('pending-list').querySelectorAll('[data-remove]');
+const allCommandsDisabled = () => COMMANDS.every((id) => byId(id).disabled) && removeButtons().every((button) => button.disabled);
+const anyCommandDisabled = () => COMMANDS.some((id) => byId(id).disabled);
+async function selectInTable(treeId) {
+  click(byId('tree-rows').querySelector('[data-select="' + treeId + '"]'));
+  await until(() => !byId('inspector-body').hidden && byId('insp-id').textContent === treeId, 'the inspector to show ' + treeId);
+}
+async function addThroughPage(treeId, reason) {
+  await selectInTable(treeId);
+  byId('reason').value = reason;
+  byId('add-form').dispatchEvent(new FakeEvent('submit'));
+}
+
+await until(() => byId('tree-rows').childNodes.length === 100, 'the first view');
+const start = await serverView();
+const startEvents = start.frame.events.length;
+const living0 = start.frame.trees.filter((tree) => tree.isLiving).map((tree) => tree.treeId);
+const [treeA, treeB, treeC] = living0.slice(-3); // trees the API checks above did not use
+check(requests.length === 1 && requests[0].method === 'GET' && requests[0].path === 'api/view' && byId('tree-rows').childNodes.length === 100,
+  `J01 the served page starts with one GET api/view and lists 100 trees (year ${start.frame.ecologicalYear}); trees used: ${treeA}, ${treeB}, ${treeC}`);
+check(byId('map').getAttribute('width') === String(38 * 64) && byId('map-scale').textContent.includes('44.8 px across (at least 44 px)'),
+  'J02 one-column default: the map is drawn at 64 px per metre and states that the smallest drawn item (a stump) is 44.8 px across',
+  { width: byId('map').getAttribute('width'), note: byId('map-scale').textContent });
+
+// ---- D1: a re-read that is still on its way when Execute is opened brings a different plan ----------------------------
+await addThroughPage(treeA, 'page witness: plan A');
+await until(() => ids('pending-list').includes(treeA), 'A pending');
+click(byId('approve'));
+await until(() => ids('approved-list').includes(treeA), 'plan A approved');
+const viewA = await serverView();
+const held = arm('GET', 'api/view', 'hold');
+let mark = requests.length;
+click(byId('reread'));
+await until(() => requests.length === mark + 1, 'the held re-read to be sent');
+click(byId('execute'));
+await until(() => byId('execute-dialog').open, 'the Execute dialog');
+check(ids('execute-ids').join() === treeA && byId('execute-plan').textContent.includes(viewA.approved.planId),
+  `J03 with a re-read still pending, the Execute confirmation shows plan A only (${treeA}) and names its PlanId`, ids('execute-ids'));
+check(byId('execute-text').textContent === `Fells exactly 1 named tree in Year ${viewA.frame.ecologicalYear}, or refuses all.`,
+  'J04 a one-tree confirmation is worded in the singular (D5)', byId('execute-text').textContent);
+let other = await serverCommand('api/plan/cancel', { fence: fenceOf(viewA) });
+other = await serverCommand('api/pending/add', { fence: fenceOf(other), treeId: treeB, reason: 'second client: plan B' });
+other = await serverCommand('api/plan/approve', { fence: fenceOf(other) });
+const planB = other.approved;
+check(planB.orders.map((order) => order.treeId).join() === treeB,
+  `J05 a second client of the same session cancelled plan A and approved plan B (${treeB}) while the dialog was open`);
+mark = requests.length;
+click(byId('execute-confirm'));
+await sleep(150);
+check(requests.length === mark && byId('execute-dialog').open,
+  'J06 Confirm while the re-read is still pending sends nothing and leaves the dialog as it is', requests.slice(mark));
+held.release();
+await until(() => ids('approved-list').includes(treeB), 'the page to draw plan B');
+await sleep(50);
+check(!byId('execute-dialog').open && alertText().includes('Confirmation withdrawn') && alertText().includes(viewA.approved.planId),
+  'J07 when the view with plan B arrives, the plan-A confirmation is withdrawn and the alert names plan A', alertText());
+check(!requests.some((request) => request.path === 'api/plan/execute'), 'J08 no Execute request was sent for either plan');
+check(allCommandsDisabled() && !byId('reread').disabled && alertReread() && !alertReread().disabled,
+  'J09 every engine command is disabled until a re-read; Re-read stays available');
+mark = requests.length;
+click(byId('execute-confirm'));
+click(byId('execute'));
+await sleep(150);
+check(requests.length === mark && !byId('execute-dialog').open,
+  'J10 clicking Execute or the withdrawn dialog\'s Execute button sends nothing and opens nothing', requests.slice(mark));
+let server = await serverView();
+check(living(server, treeA) && living(server, treeB) && server.frame.workRevision === viewA.frame.workRevision &&
+  server.approved.planId === planB.planId, 'J11 on the server, A and B are both still living, no work was executed and plan B is still approved');
+click(alertReread());
+await until(() => !anyCommandDisabled(), 'the successful re-read to lift the lock');
+check(alertText() === '' && !byId('execute').disabled, 'J12 a successful re-read lifts the lock and clears the alert');
+click(byId('execute'));
+await until(() => byId('execute-dialog').open, 'a fresh Execute dialog');
+check(ids('execute-ids').join() === treeB, `J13 the fresh confirmation shows plan B only (${treeB})`);
+click(byId('execute-confirm'));
+await until(() => requests.some((request) => request.path === 'api/plan/execute'), 'the Execute request');
+const sent = requests.find((request) => request.path === 'api/plan/execute').body;
+check(sent.planId === planB.planId && sent.executionKey === planB.executionKey && sent.fence.planStateRevision === other.planStateRevision &&
+  sent.fence.sessionId === other.sessionId && JSON.stringify(sent.fence.source) === JSON.stringify(other.source),
+  'J14 the Execute request carries exactly the confirmed plan B: its PlanId, minted key and fence', sent);
+await until(() => byId('receipt').textContent.includes(treeB), 'the receipt for plan B');
+server = await serverView();
+check(!living(server, treeB) && living(server, treeA) && server.frame.events.length === startEvents + 1,
+  `J15 the server felled exactly ${treeB} (plan B) in one event; ${treeA} is still living`);
+
+// ---- D2: an Add that committed, but whose answer was lost ------------------------------------------------------------
+const shownPlanState = fact('Plan-state revision');
+arm('POST', 'api/pending/add', 'lose');
+await addThroughPage(treeC, 'page witness: lost answer');
+await until(() => alertText().includes('Outcome unconfirmed'), 'the unconfirmed alert');
+server = await serverView();
+check(server.pending.some((order) => order.treeId === treeC) && server.planStateRevision === Number(shownPlanState) + 1,
+  `J16 the server did commit the Add (${treeC} pending, plan-state ${server.planStateRevision})`);
+check(!ids('pending-list').includes(treeC) && fact('Plan-state revision') === shownPlanState,
+  `J17 the page drew nothing it was not told: ${treeC} not shown as pending, plan-state still shown as ${shownPlanState}`);
+check(allCommandsDisabled(), 'J18 every engine command control is disabled (Add, Remove, Approve, Cancel, Execute, its confirmation, Advance, consent)',
+  COMMANDS.filter((id) => !byId(id).disabled));
+check(!byId('reread').disabled && alertReread() && !alertReread().disabled && byId('alert').contains(document.activeElement),
+  'J19 Re-read is the available action (status bar and alert) and focus is in the alert');
+mark = requests.length;
+byId('reason').value = 'must never be sent';
+byId('add-form').dispatchEvent(new FakeEvent('submit'));
+for (const id of ['approve', 'cancel-approved', 'execute', 'execute-confirm', 'advance', 'consent-advance', 'insp-remove']) click(byId(id));
+for (const button of removeButtons()) click(button);
+const crown = byId('crowns').querySelector('[data-tree-id="' + treeA + '"]');
+const crownItem = (await send('GET', 'api/view')).json.scene.find((item) => item.treeId === treeA);
+click(crown.childNodes[0], { clientX: crownItem.u, clientY: crownItem.v });
+await sleep(300);
+check(requests.length === mark, 'J20 while the outcome is unconfirmed, activating every engine command handler (Add, Approve, Cancel, ' +
+  'Execute, its confirmation, Advance, consent, Remove) and a map hit-test sends no request at all', requests.slice(mark));
+check(!byId('execute-dialog').open && !byId('consent-dialog').open && alertText().includes('Not sent'),
+  'J21 no dialog opened, and the alert says what was not sent', alertText());
+arm('GET', 'api/view', 'fail');
+click(alertReread());
+await until(() => requests.length === mark + 1, 'the failing re-read');
+await sleep(50);
+const afterFailedRead = alertText();
+click(byId('advance'));
+await sleep(100);
+check(requests.length === mark + 1 && allCommandsDisabled() && afterFailedRead.includes('no answer') &&
+  afterFailedRead.includes('Outcome unconfirmed'),
+  'J22 a failed re-read says so and leaves the lock in place: Advance is still not sent, nothing but reads can be', afterFailedRead);
+click(alertReread());
+await until(() => ids('pending-list').includes(treeC), 'the successful re-read');
+check(fact('Plan-state revision') === String(server.planStateRevision) && !byId('approve').disabled && !byId('approve').hidden && alertText() === '',
+  'J23 a successful re-read shows the committed Add, lifts the lock and clears the alert');
+click(byId('approve'));
+await until(() => ids('approved-list').includes(treeC), 'Approve after the re-read');
+check(requests[requests.length - 1].method === 'POST' && requests[requests.length - 1].path === 'api/plan/approve',
+  'J24 after the re-read a command is sent again (Approve)');
+
+// ---- D2: an Execute that committed, but whose answer was lost ----------------------------------------------------------
+arm('POST', 'api/plan/execute', 'lose');
+click(byId('execute'));
+await until(() => byId('execute-dialog').open, 'the Execute dialog for C');
+click(byId('execute-confirm'));
+await until(() => alertText().includes('Outcome unconfirmed'), 'the unconfirmed alert after Execute');
+server = await serverView();
+check(!living(server, treeC) && server.approved === null, `J25 the server did commit the Execute (${treeC} felled, approval cleared)`);
+check(ids('approved-list').includes(treeC) && allCommandsDisabled(),
+  'J26 the page still shows the plan as it last knew it, claims no Fell, and every command is disabled');
+mark = requests.length;
+click(byId('execute'));
+click(byId('execute-confirm'));
+click(byId('advance'));
+await sleep(150);
+check(requests.length === mark, 'J27 neither a retry nor any other command can be sent', requests.slice(mark));
+click(alertReread());
+await until(() => byId('receipt').textContent.includes(treeC), 'the receipt for C');
+check(byId('approved-box').hidden && fact('Work revision') === String(server.frame.workRevision) && alertText() === '',
+  'J28 the re-read shows the receipt and no approved plan, so nothing is left to execute twice');
+server = await serverView();
+check(server.frame.events.length === startEvents + 2, 'J29 the server recorded exactly two work events from the page (plans B and C)');
+check(pageErrors.length === 0, 'J30 no script error in the page', pageErrors.map(redact));
+process.exit(failures === 0 ? 0 : 1);
+WITNESS
+witness_rc=0
+(cd "$scratch" && "$node_bin" page-witness.mjs "$url") > "$scratch/witness.out" 2> "$scratch/witness.err" || witness_rc=$?
+sed -E 's#/s/[0-9a-f]{64}/#/s/<capability>/#g' "$scratch/witness.out" | tee -a "$log"
+if grep -q '^FAIL' "$scratch/witness.out"; then fail=1; fi
+check "J31 the page witness ran to the end (exit $witness_rc) with nothing on stderr" \
+  bash -c 'test "$1" == 0 && test ! -s "$2"' _ "$witness_rc" "$scratch/witness.err"
+if [[ -s "$scratch/witness.err" ]]; then sed -E 's#/s/[0-9a-f]{64}/#/s/<capability>/#g; s/^/    /' "$scratch/witness.err" | tee -a "$log"; fi
 
 all_sockets="$(sockets)"
 not_loopback="$(printf '%s\n' "$all_sockets" | awk 'NF { split($3, l, ":"); split($4, r, ":")

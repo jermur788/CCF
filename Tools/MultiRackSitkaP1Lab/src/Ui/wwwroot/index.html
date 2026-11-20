@@ -31,6 +31,18 @@
     <h2 id="map-heading" tabindex="-1">Map</h2>
     <p class="hint">North up, grid every 5 m from the south-west corner. Click or tap a crown to select that exact tree.
       The tree table is the keyboard and screen-reader path.</p>
+    <div class="map-tools" role="group" aria-label="Map zoom and pan">
+      <button type="button" id="zoom-out">Zoom out</button>
+      <button type="button" id="zoom-in">Zoom in</button>
+      <button type="button" id="zoom-fit">Whole area</button>
+      <button type="button" id="pan-north">Pan north</button>
+      <button type="button" id="pan-south">Pan south</button>
+      <button type="button" id="pan-west">Pan west</button>
+      <button type="button" id="pan-east">Pan east</button>
+    </div>
+    <p id="map-scale" class="hint" aria-live="polite"></p>
+    <!-- The map scrolls inside this pane, never the page. tabindex -1 keeps the pane itself out of the Tab order (A-2). -->
+    <div id="map-pane" class="map-pane" tabindex="-1">
     <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
       <title id="map-title">Stand map of the 30 by 30 metre management area, north up</title>
       <desc id="map-desc">Loading the current view.</desc>
@@ -47,6 +59,7 @@
       <g id="selection" class="overlay"></g>
       <g id="furniture" class="overlay"></g>
     </svg>
+    </div>
     <h3>Legend</h3>
     <ul id="legend" class="legend"></ul>
     <div id="overlap" class="overlap" hidden>
@@ -142,6 +155,7 @@
 <dialog id="execute-dialog" aria-labelledby="execute-title" aria-describedby="execute-text">
   <h2 id="execute-title"></h2>
   <p id="execute-text"></p>
+  <p id="execute-plan" class="note"></p>
   <ul id="execute-ids" class="list"></ul>
   <p id="execute-warning" class="warning" hidden></p>
   <p class="actions">

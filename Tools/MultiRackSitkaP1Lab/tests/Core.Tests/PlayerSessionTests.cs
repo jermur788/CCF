@@ -6,9 +6,10 @@ using SitkaP1.Core;
 namespace SitkaP1.Core.Tests;
 
 /// <summary>
-/// PS-01…PS-19 (spec MULTI-STANDMAP-PLAYABLE-2D-V1, plan P2): the same-lock player session view, its fences, the
-/// plan-state revision rules, engine-minted identities and the A-2 replay rule. These are the author's feature tests,
-/// not independent qualification. The map scene tests (MS-01…MS-06) are registered from here as well.
+/// PS-01…PS-20 (spec MULTI-STANDMAP-PLAYABLE-2D-V1, plan P2): the same-lock player session view, its fences, the
+/// plan-state revision rules, engine-minted identities and the A-2 replay rule. PS-20 was added for the independent
+/// Tier-2 finding D3 (a first execution must echo the minted key). These are the author's feature tests, not independent
+/// qualification. The map scene tests (MS-01…MS-06) are registered from here as well.
 /// </summary>
 internal static class PlayerSessionTests
 {
@@ -604,6 +605,7 @@ internal static class PlayerSessionTests
                 [nameof(PlayerLabels.CancelApprovedPlan)] = "Cancel approved plan",
                 [nameof(PlayerLabels.ExecuteApprovedPlan)] = "Execute approved plan",
                 [nameof(PlayerLabels.ExecuteConfirmation)] = "Fells exactly {n} named trees in Year {y}, or refuses all",
+                [nameof(PlayerLabels.ExecuteConfirmationOneTree)] = "Fells exactly {n} named tree in Year {y}, or refuses all",
                 [nameof(PlayerLabels.AlreadyExecuted)] = "Already executed — no additional Fell",
                 [nameof(PlayerLabels.AdvanceYear)] = "Advance one ecological year",
                 [nameof(PlayerLabels.ConsentKeepOrders)] = "Keep orders — stay in Year {y}",
@@ -685,6 +687,73 @@ internal static class PlayerSessionTests
                         T.True(!typeof(Delegate).IsAssignableFrom(parameter.ParameterType), where + " accepts a delegate seam");
                     }
             }
+        });
+
+        T.Add("player PS-20: a first Execute must echo the engine-minted key; an unminted or future key is refused, zero mutation", () =>
+        {
+            // Tier-2 D3: before this rule, a plan could be executed under the key a later plan would be minted, which then
+            // blocked that later plan with WorkExecutionKeyConflict.
+            var c = Open();
+            var player = new PlayerWorkPlanAdapter(c);
+            var v = Ok(player.AddPending(Fence(player.Read()), "P30-005", "PS-20 plan A"), "add A");
+            var approvedA = Ok(player.Approve(Fence(v)), "approve A");
+            var planA = approvedA.Approved!;
+            int n = approvedA.PlanStateRevision;
+            T.Eq($"{approvedA.SessionId}:plan:{n}:execute", planA.ExecutionKey, "plan A's minted key");
+
+            // Execute, Add and Approve each move the plan state by one, so plan B below is minted with exactly this key.
+            string futureKey = $"{approvedA.SessionId}:plan:{n + 3}:execute";
+            RefusedWithoutMutation(c, "WorkExecutionKeyConflict",
+                () => player.Execute(Fence(approvedA), planA.PlanId, futureKey), "plan A under plan B's future key");
+            foreach (string unminted in new[] { "invented", planA.PlanId, planA.ExecutionKey + "x", " " + planA.ExecutionKey,
+                planA.ExecutionKey.ToUpperInvariant(), $"{approvedA.SessionId}:plan:{n - 1}:execute" })
+                RefusedWithoutMutation(c, "WorkExecutionKeyConflict",
+                    () => player.Execute(Fence(approvedA), planA.PlanId, unminted), "unminted key '" + unminted + "'");
+            T.Eq(0, ReadRoot(c).Executed.Count, "no unminted key was recorded");
+            T.Eq(planA.PlanId, player.Read().Approved?.PlanId, "plan A is still approved");
+
+            // The legitimate plan still executes under its own minted key.
+            var executedA = player.Execute(Fence(approvedA), planA.PlanId, planA.ExecutionKey);
+            var afterA = Ok(executedA, "execute A with its minted key");
+            T.True(!executedA.Execution!.Replayed, "a real first execution of A");
+            T.True(executedA.Execution.Event.Fells.Select(f => f.TreeId).SequenceEqual(new[] { "P30-005" }), "A fells exactly P30-005");
+
+            // Plan B is minted with the key the refused call named, and executes normally: no WorkExecutionKeyConflict.
+            v = Ok(player.AddPending(Fence(afterA), "P30-006", "PS-20 plan B"), "add B");
+            var approvedB = Ok(player.Approve(Fence(v)), "approve B");
+            var planB = approvedB.Approved!;
+            T.Eq(futureKey, planB.ExecutionKey, "plan B's minted key is the key the refused call named");
+            var executedB = player.Execute(Fence(approvedB), planB.PlanId, planB.ExecutionKey);
+            var afterB = Ok(executedB, "execute B with its minted key");
+            T.True(!executedB.Execution!.Replayed, "a real first execution of B");
+            T.True(executedB.Execution.Event.Fells.Select(f => f.TreeId).SequenceEqual(new[] { "P30-006" }), "B fells exactly P30-006");
+            T.Eq(2, afterB.Frame.Events.Count, "two events");
+            T.Eq(2, afterB.Source.WorkRevision, "work revision 2");
+
+            // The A-2 replay rule is unchanged: the same key, PlanId, original source and session return each receipt.
+            var root = ReadRoot(c);
+            var replayA = player.Execute(Fence(approvedA), planA.PlanId, planA.ExecutionKey);
+            T.True(replayA.RefusalCode is null && replayA.Execution!.Replayed, "A replays");
+            T.Eq(executedA.Execution.Event, replayA.Execution!.Event, "A's recorded event is returned");
+            var replayB = player.Execute(Fence(approvedB), planB.PlanId, planB.ExecutionKey);
+            T.True(replayB.RefusalCode is null && replayB.Execution!.Replayed, "B replays");
+            T.Eq(executedB.Execution.Event, replayB.Execution!.Event, "B's recorded event is returned");
+            T.True(ReferenceEquals(root, ReadRoot(c)), "the replays publish nothing");
+            // The wrong-PlanId refusal is unchanged too.
+            RefusedWithoutMutation(c, "WorkExecutionKeyConflict",
+                () => player.Execute(Fence(approvedB), planA.PlanId, planB.ExecutionKey), "B's key under A's PlanId");
+
+            // The minted key of an earlier, cancelled plan is not the current plan's key either.
+            v = Ok(player.AddPending(Fence(afterB), "P30-007", "PS-20 plan X"), "add X");
+            var approvedX = Ok(player.Approve(Fence(v)), "approve X");
+            v = Ok(player.CancelApproved(Fence(approvedX)), "cancel X");
+            v = Ok(player.AddPending(Fence(v), "P30-007", "PS-20 plan Y"), "re-add");
+            var approvedY = Ok(player.Approve(Fence(v)), "approve Y");
+            var planY = approvedY.Approved!;
+            RefusedWithoutMutation(c, "WorkExecutionKeyConflict",
+                () => player.Execute(Fence(approvedY), planY.PlanId, approvedX.Approved!.ExecutionKey), "the cancelled plan's key");
+            var executedY = player.Execute(Fence(approvedY), planY.PlanId, planY.ExecutionKey);
+            T.True(executedY.RefusalCode is null && !executedY.Execution!.Replayed, "Y executes under its own minted key");
         });
 
         PlayerMapSceneTests.Register(manifestPath);

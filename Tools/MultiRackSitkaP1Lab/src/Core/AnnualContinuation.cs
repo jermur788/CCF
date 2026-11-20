@@ -408,6 +408,12 @@ internal sealed class AnnualContinuation
             var approved = root.ApprovedUnexecuted;
             if (approved is null || !string.Equals(approved.PlanId, planId, StringComparison.Ordinal))
                 throw new P1Refusal("WorkPlanNotApproved", "only the currently approved plan can execute");
+            // A first execution must echo the key the engine minted for this plan (spec C-5, §6.4). A key of the caller's own
+            // choosing, such as the key a later plan will be minted, is refused here before anything changes, so it is never
+            // recorded and can never block that later plan's own execution.
+            if (!string.Equals(executionKey, MintedExecutionKey(approved.PlanId), StringComparison.Ordinal))
+                throw new P1Refusal("WorkExecutionKeyConflict",
+                    "a first execution must use the execution key the engine minted for the approved plan");
             return WithCurrentView(Execute(approved, executionKey, beforePublish), null);
         }
     }
@@ -464,11 +470,14 @@ internal sealed class AnnualContinuation
     private PlayerCommandResult WithCurrentView(WorkExecutionResult? execution, AnnualReport? annual) =>
         new(ViewOf(root), execution, annual, null, null);
 
+    // The one execution key the engine mints for a plan (spec §6.4). The view shows it and Execute requires it.
+    private static string MintedExecutionKey(string planId) => planId + ":execute";
+
     // Caller holds sync and passes the single root it read. Every exposed collection is a fresh read-only copy.
     private PlayerSessionView ViewOf(WorkRoot current)
     {
         var plan = current.ApprovedUnexecuted;
-        var approved = plan is null ? null : new PlayerApprovedPlan(plan.PlanId, plan.PlanId + ":execute", plan.Source,
+        var approved = plan is null ? null : new PlayerApprovedPlan(plan.PlanId, MintedExecutionKey(plan.PlanId), plan.Source,
             Array.AsReadOnly(plan.Orders.ToArray()));
         return new PlayerSessionView(sessionId, current.PlanStateRevision, Token(current), FrameOf(current),
             Array.AsReadOnly(current.Pending.ToArray()), approved, Array.AsReadOnly(current.AnnualHistory.ToArray()),
