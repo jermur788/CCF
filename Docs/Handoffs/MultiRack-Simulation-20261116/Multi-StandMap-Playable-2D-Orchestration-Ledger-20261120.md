@@ -101,3 +101,16 @@ Phase I is deliberately limited: the packet makes the standalone UI host/map ada
 2. Record that SHA here and on [#849](https://github.com/jermur788/CCF/issues/849).
 3. Obtain #730 Manager acceptance of the spec delta (and, if option A, the Scenario One grant).
 4. Only then dispatch Phase II/III production writes in the same lane, followed by Tier1 and independent Tier2.
+
+---
+
+## 7. Addendum — line-ending hazard in prepared worktrees (found during Phase I)
+
+Observed while Phase I was running, and confirmed by direct inspection:
+
+- The shared repository configuration on this host sets `core.autocrlf=true`. Any checkout performed with that setting materialises CRLF in the working tree.
+- The lab's `CcfSourcePins` / `.p0ref` integrity checks compare **bytes/SHA-256**, so a CRLF-mangled checkout can fail a pin check that would pass on an LF checkout. This is an environment property, not a source defect.
+- WSL global git has `core.autocrlf` unset (Linux default = false), so a **fresh clone** made from WSL is LF-clean and is the correct reference lane for builds and pin verification.
+- The T3-prepared implementer worktree is a Windows-path checkout and therefore carries the hazard; the implementer has been verifying against a pristine LF clone instead. That is acceptable as a **baseline proof**, but the production lane for Phase II/III must be LF-clean (fresh WSL clone, or `core.autocrlf=false` set before checkout), and the pin check is the arbiter — never a hand-edited hash.
+- Related caution already sent to the implementer: several hundred `Assets/ForestPrototype/Art/**` files show as modified in **every** checkout on this host without any edit (checkout/filter artifact). Therefore `git add -A`/`commit -a` is forbidden in this task; only explicit paths may be staged, and `Assets/**` must not appear in any commit.
+- The WSL side also reports the Windows-created worktree as `prunable`; `git worktree prune` must not be run, because it would delete that admin directory.
