@@ -1,10 +1,10 @@
 # MULTI-STANDMAP-2D-SELECTED-UI-V1 — Product and UX specification
 
-- **Status: DRAFT — NOT APPROVED FOR IMPLEMENTATION.**
+- **Status: APPROVED FOR BOUNDED UI IMPLEMENTATION — Manager #863 under explicit owner delegation, 2026-11-20 14:38 UTC.** No source work has yet begun; visual-reference fidelity remains an unverified acceptance gate.
 - **Owner:** CCF owner; **manager:** Multi #863. **Task:** [#868](https://github.com/jermur788/CCF/issues/868).
 - **Prepared:** 2026-11-20, from owner feedback at 13:06, 13:12 and 13:56 UTC, source-inspected #849, two independently authored mock prototypes and the three generated UI comparison concepts.
 - **Source candidate protected:** `4c42e2012a4c1bee3a422e41a58535343d63ac9f` on `feat/multi-standmap-playable2d-20261120-v1` (NOT on main). This draft does not authorise changing any file.
-- **Gate:** User must explicitly APPROVE **this entire four-file spec**, a final image-reference identity and bounded source write lane before production. Approval of dropdown style or broad visual direction is not that gate.
+- **Approval:** The owner explicitly delegated #868 specification approval to Multi Manager #863 on 2026-11-20 at 14:38 UTC. Manager approves this four-file specification and its proposed five-option reason vocabulary for bounded front-end authoring. The actual image-reference file/hash and independent visual-fidelity check remain OPEN; they do not prohibit honest first-pass styling against the documented concept direction. A fresh sole writer/physical lane claim and precise file grants are required before source work; this approval grants no Core/API/Unity/P0/fixtures/test/merge authority.
 
 ## 1. Product problem and smallest genuine result
 
@@ -50,7 +50,7 @@ After exact tree selection show engine-supplied ID, species (Sitka), DBH, height
 4. Create a light gap for regeneration
 5. Other — specify reason
 
-Do not infer disease, windthrow, regeneration effectiveness or a crop-tree relationship from simply choosing a reason. These are **operator intentions**, not validated ecological diagnoses. Other requires non-empty trimmed text; cap to existing engine reason length/validation. For a predefined selection, send its exact readable string to the existing `AddPending(fence, treeId, reason)` route — no new backend enum/save schema and no hidden default reason. Show selected reason beside each pending/approved order, in confirmation and history. Owner has approved the dropdown+Other **mechanism**, **not these exact labels**; freeze labels with owner at spec approval, or note exact label approval separately.
+**The five reason option labels in this section are MANAGER-APPROVED implementation vocabulary under the owner's explicit delegation; subject to later owner playtest refinement, without changing reason semantics.** Do not infer disease, windthrow, regeneration effectiveness or a crop-tree relationship from simply choosing a reason. These are **operator intentions**, not validated ecological diagnoses. Other requires non-empty trimmed text; cap to existing engine reason length/validation. For a predefined selection, send its exact readable string to the existing `AddPending(fence, treeId, reason)` route — no new backend enum/save schema and no hidden default reason. Show selected reason beside each pending/approved order, in confirmation and history. Owner approved the dropdown+Other **mechanism**; Manager #863 approves these exact labels for #868 implementation under the owner's delegated approval, with actual per-tree text recorded. Future label revision remains a product change.
 
 ### R-05 Work Plan and ecological year
 
@@ -70,7 +70,7 @@ NO G1 empirical comparable areas or treatment propagation, no multi-rack/area ga
 
 ## 5. Reference and implementation gates
 
-**Before source authorisation:** (1) four-file spec approval by owner, (2) permanent image #1 reference + provenance/hash if asking for image-specific visual fidelity, (3) final reason labels if differing from proposal, (4) exact candidate base/branch/clean sole source lane and compile-linked allowlist, and (5) existing independent qualification requirements. If reference asset is unavailable, this draft can guide a style implementation but cannot claim **visual fidelity to a frozen reference**. Use one bounded writer and check live coordination/physical locks before launch. Approval of text alone does not confer G2/G4/main/source rights.
+**Manager-delegated approval granted for bounded UI authoring:** The owner expressly authorised Manager #863 to approve and dispatch this work at 14:38 UTC; four-file approval and reason labels are established on this branch. **Before a worker writes:** exact candidate base/branch/clean exclusive local lane and compile-linked file allowlist, current coordination and physical locks. **Before final visual-fidelity ACCEPTANCE:** permanently archived actual generated image #1, SHA-256/provenance and comparison; until then label style match NOT VERIFIED. Independent qualification is a later gate, not an automatic privilege. If reference asset is unavailable, this draft can guide a style implementation but cannot claim **visual fidelity to a frozen reference**. Use one bounded writer and check live coordination/physical locks before launch. Approval of text alone does not confer G2/G4/main/source rights.
 
 ## 6. Acceptance evidence
 
