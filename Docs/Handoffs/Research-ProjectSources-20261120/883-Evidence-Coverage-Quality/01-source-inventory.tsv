@@ -1,0 +1,21 @@
+# 01 — Source and version inventory (machine-readable). Status: RESEARCH PRODUCED, not reviewed, not canon.
+# sha256 truncated to 16 hex chars for display; full hashes in 01-SOURCE-AND-VERSION-INVENTORY.md
+file	role	location	bytes	sha256_16	pages	version_state	note
+CCF_Six_Papers_Relevance_Evidence_Extraction.pdf	six-paper extraction	C:\Users\hp\Documents\CCF Papers	131279	f8a699d96d5146d0	24	current	Read in full; indexes six complete papers
+CCF_Six_Complete_Forestry_Research_Papers.pdf	original paper volume	CCF Papers	17650706	4f1d75578d25e8dd	111	current	Page-aligned verification oracle
+individual based forest management.pdf	P1 source	CCF Papers	-	-	12	current	Pommerening, Maleki & Haufe 2021
+Rating experiments in forestry.pdf	P2 source	CCF Papers	2156866	52b3edbb47dc6cde	20	current	Pommerening et al. 2018
+approaches to quantifying forest structures.pdf	P3 source	CCF Papers	-	-	20	current	Pommerening 2002
+CanopyShotNoise ... .pdf	P4 source	CCF Papers	-	-	30	current	Pommerening et al. 2021
+a beyesian approach toproject forest dynamcs.pdf	P5 source	CCF Papers	-	-	14	current	Myllymäki et al. 2024
+revisiting siliculturar systems.pdf	P6 source	CCF Papers	-	-	13	current	Pommerening, Szmyt & Duchiron 2024
+CCF_Ecology_and_Regeneration_Evidence_Composite.md	composite 1	project-attachments-copy-20261120	37540	85b23b2bda00f7e5	-	attachment; NO Git counterpart	Read at heading/manifest/sweep level
+CCF_Browsing_Protection_and_Management_Evidence_Composite.md	composite 2	project-attachments-copy-20261120	27209	004756b693c4b159	-	attachment; NO Git counterpart	Read at heading/manifest/sweep level
+CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md	composite 3 attachment	project-attachments-copy-20261120	33058	12ddc2b1d42aea31	-	STALE vs Git/Drive	Missing V1B 23 Oct 2026 update
+CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md	composite 3 canonical	Git main Docs/Research + Drive 03-Ecology	35555	2704b0aa689f3120	-	current	Byte-identical Git and Drive
+CCF_CCF_Practice_Economics_and_Transformation_Evidence_Composite.md	composite 4	project-attachments-copy-20261120	34910	cb1c2421d348fc66	-	attachment; NO Git counterpart	Read at heading/manifest/sweep level
+CCF_2026-11-20_New_Reports_Evidence_Addendum.md	#860 addendum draft	archive root + docs/860-... branch	11934	b0afc3122ea4fed9	-	DRAFT / secondhand / conflicts open	Unchanged by this packet
+perrin2011.pdf	retained research	originals-from-drive	699685	597c12107cf7b84f	10	covered in Ecology composite	Not re-read this pass
+davies2008.pdf	retained research	originals-from-drive	721792	69a5f59a7d8dd1e2	-	covered in Growth composite	Not re-read this pass
+2025Forestry_TimberYearbook.pdf	retained research	originals-from-drive	3490089	a67be3bdb124395b	105	NOT incorporated	Potential economics gap O-03
+GROWFOR_Technical_Evidence_Extraction_v1.md	supporting extraction	Git Docs/Research/SitkaGrowthMortality	-	-	-	covered, cross-referenced	Not duplicated
