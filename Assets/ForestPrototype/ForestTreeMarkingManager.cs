@@ -587,6 +587,7 @@ public sealed partial class ForestTreeMarkingManager : MonoBehaviour
 
         var marker = new GameObject(type == TreeMarkType.CropTree ? "Crop Tree Mark" : "Harvest Mark");
         marker.transform.SetParent(tree.transform, false);
+        CancelParentScale(marker.transform);
 
         GameObject diamond = GameObject.CreatePrimitive(PrimitiveType.Cube);
         diamond.name = "Diamond";
@@ -621,6 +622,20 @@ public sealed partial class ForestTreeMarkingManager : MonoBehaviour
 
         MarkerObjects[tree.TreeId] = marker;
     }
+
+    // The mark sizes and heights below are in world metres. Some tree roots are not
+    // unit-scaled (Compact30 Sitka roots are normalised prefabs scaled about 10-14x),
+    // and a child would inherit that scale, so a 1.2 m disc became about 14 m wide.
+    // Dividing by the root's world scale keeps the mark in metres while it stays a
+    // child of the tree, so it still follows the tree and is destroyed with it.
+    // Unit-scaled trees (the historical worlds) get exactly scale 1, as before.
+    private static void CancelParentScale(Transform marker)
+    {
+        Vector3 parentScale = marker.parent.lossyScale;
+        marker.localScale = new Vector3(InverseOrOne(parentScale.x), InverseOrOne(parentScale.y), InverseOrOne(parentScale.z));
+    }
+
+    private static float InverseOrOne(float value) => Mathf.Abs(value) > 0.0001f ? 1f / value : 1f;
 
     private void RemoveMarker(string treeId)
     {
