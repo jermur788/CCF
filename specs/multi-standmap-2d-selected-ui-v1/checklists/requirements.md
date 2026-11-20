@@ -1,12 +1,12 @@
 # MULTI-STANDMAP-2D-SELECTED-UI-V1 — Requirements and acceptance checklist
 
-**Status: DRAFT / UNCHECKED (not executed).** Tick only with direct evidence from actual exact candidate; never treat proposed design, synthetic DOM checks or image generation as PASS.
+**Status: APPROVED SPECIFICATION / IMPLEMENTATION EVIDENCE UNCHECKED.** Manager #863 approved under explicit owner delegation on 2026-11-20 14:38 UTC. Checkboxes for completed gameplay, final reference and real qualification remain unchecked; do not treat an approved spec as implemented.
 
 ## Owner authority / reference
-- [ ] Owner explicitly approves `spec.md`, `plan.md`, `tasks.md` and `checklists/requirements.md` for source implementation.
+- [x] Owner expressly delegated approval of `spec.md`, `plan.md`, `tasks.md` and `checklists/requirements.md` to Multi Manager #863 at 14:38 UTC; Manager approved the four-file spec for bounded front-end work (not physical source custody).
 - [x] Owner chose generated image #1 as preferred **design concept** and richer legend element of generated image #3 (recorded #868 comment 7041359594; **not an actual screenshot**).
 - [x] Owner approved predefined reason dropdown + Other/custom with recorded per-tree reason (recorded #868 comment 7040442192).
-- [ ] Exact final dropdown labels approved or accepted with explicit owner signoff of this list.
+- [x] Manager #863, under the owner's explicit approval delegation, authorised the five proposed dropdown labels in `spec.md` as the V1 implementation vocabulary; owner may refine them following playtest.
 - [ ] Actual image #1 (+ image #3 legend-only if available) permanently stored, SHA-256 and generated-concept provenance verified; fidelity authority frozen.
 - [ ] Source implementation sole-writer branch/worktree, live coordination and physical lock verified with exact #849 base; no conflicting source writes.
 
@@ -44,7 +44,7 @@
 - [ ] Owner personally playtests and reports G2 acceptance separately; no Windows/Unity Player build or main/G4 merge implied.
 
 ## Mandatory stop / decision conditions
-- **NEEDS PRODUCT APPROVAL:** owner has not approved all four files, image reference not frozen, exact reason vocabulary not chosen.
+- **REFERENCE / VISUAL ACCEPTANCE HELD:** The four-file spec and V1 reason vocabulary have Manager-delegated approval, but the image-reference asset/hash remains unfrozen; do not claim image-specific fidelity or final owner acceptance. Implementation may follow the approved textual visual direction while preserving this hold.
 - **NEEDS CHANGES:** core command semantics, source provenance, accessible reflow or genuine server selection regress.
 - **HELD ON LANE:** source writer lacks real exclusive physical/coordination permission, exact base or known-good P0.
 - **APPROVED:** only for exact reviewed/qualified candidate, without pretending owner G2 or G4 happened.
