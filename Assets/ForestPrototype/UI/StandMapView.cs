@@ -20,6 +20,7 @@ public sealed class StandMapView
     // Side of the map square in UI units. The square buttons, and everything the surface draws under them, are placed on this square by
     // the shared map transform (StandMapTransform); the minimap uses the same transform at its own, smaller side.
     public const float MapSidePx = 688f;
+    private readonly BlankMapFootprint blankFootprint;
     private const float OverviewSidePx = 144f;
     private const string DefaultCaption = "Local grid · metres east and north of the south-west corner · north is up";
 
@@ -85,8 +86,20 @@ public sealed class StandMapView
         VisualElement modal = UiKit.Box("panel", "modal", "modal-map");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Stand map", "title");
+        UiKit.Add(header, ui.BlankPreview != null ? "Stand Map" : "Stand map", "title");
         VisualElement buttons = UiKit.Box("row");
+        if (ui.BlankPreview != null)
+        {
+            buttons.Add(UiKit.Button("Work Plan [Tab]", ui.ShowWorkPlan));
+            buttons.Add(UiKit.Button("Annual Review", ui.ShowReview));
+            buttons.Add(UiKit.Button("Objectives [O]", ui.ShowObjectives));
+            buttons.Add(UiKit.Button("Back to preview [M / Esc]", ui.CloseAll, true, "btn-primary"));
+            header.Add(buttons);
+            modal.Add(header);
+            blankFootprint = new BlankMapFootprint(MapSidePx, showDimensions: true);
+            modal.Add(blankFootprint);
+            return;
+        }
         buttons.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.StandMap)));
         buttons.Add(UiKit.Button("Objectives [O]", () => ui.ShowObjectives()));
         buttons.Add(UiKit.Button("Work Plan", () => ui.ShowWorkPlan()));
@@ -200,6 +213,11 @@ public sealed class StandMapView
 
     public void Refresh(bool force)
     {
+        if (blankFootprint != null)
+        {
+            blankFootprint.Refresh(force ? ui.MapSource.Rebuild() : ui.MapSource.Model);
+            return;
+        }
         ForestEcologyController eco = ui.Ecology;
         if (eco == null || eco.Cells == null)
             return;
@@ -242,6 +260,70 @@ public sealed class StandMapView
         // The dashed guidance is gone once the plan is confirmed, so its legend row goes too.
         legendView.Show(model, Overlay, key, rackMode && ui.Manager.RackPlanningV2Active && !ui.Manager.RackPlanConfirmed);
         BuildSide(eco, model);
+    }
+
+    // The blank map needs only the actual boundary and player position. Both map panels use this
+    // element and TransformFor; the historical canvas still owns the ecological grid and symbols.
+    public sealed class BlankMapFootprint : VisualElement
+    {
+        private readonly VisualElement boundary, playerDot;
+        private readonly Label dimensions;
+        private readonly float sidePx;
+
+        public BlankMapFootprint(float sidePx, bool showDimensions = false)
+        {
+            this.sidePx = sidePx;
+            style.alignSelf = Align.Center;
+            style.flexShrink = 0;
+            VisualElement panel = UiKit.Box("map-frame");
+            panel.style.width = panel.style.height = sidePx;
+            Add(panel);
+            boundary = new VisualElement { name = "blank-map-boundary", pickingMode = PickingMode.Ignore };
+            boundary.style.position = Position.Absolute;
+            boundary.style.backgroundColor = new Color(0.19f, 0.25f, 0.22f);
+            boundary.style.borderTopWidth = boundary.style.borderBottomWidth =
+                boundary.style.borderLeftWidth = boundary.style.borderRightWidth = 2f;
+            boundary.style.borderTopColor = boundary.style.borderBottomColor =
+                boundary.style.borderLeftColor = boundary.style.borderRightColor = UiKit.AccentColour;
+            panel.Add(boundary);
+            playerDot = new VisualElement { pickingMode = PickingMode.Ignore };
+            playerDot.style.position = Position.Absolute;
+            playerDot.style.width = playerDot.style.height = 8;
+            playerDot.style.backgroundColor = Color.white;
+            panel.Add(playerDot);
+            Label north = UiKit.Add(panel, "N ↑", "body");
+            north.style.position = Position.Absolute;
+            north.style.right = 6;
+            north.style.top = 4;
+            if (showDimensions) dimensions = UiKit.Add(this, "", "body");
+        }
+
+        public void Refresh(StandMapModel model)
+        {
+            boundary.style.display = model.HasProperty ? DisplayStyle.Flex : DisplayStyle.None;
+            playerDot.style.display = DisplayStyle.None;
+            if (!model.HasProperty)
+            {
+                if (dimensions != null) dimensions.text = "No ground available.";
+                return;
+            }
+            StandMapTransform transform = model.TransformFor(sidePx);
+            MapPosition nw = transform.WorldToPixels(new RackPoint(model.MinX, model.MinZ + model.DepthM));
+            MapPosition se = transform.WorldToPixels(new RackPoint(model.MinX + model.SizeM, model.MinZ));
+            boundary.style.left = nw.X;
+            boundary.style.top = nw.Y;
+            boundary.style.width = se.X - nw.X;
+            boundary.style.height = se.Y - nw.Y;
+            if (dimensions != null)
+                dimensions.text = $"{UiKit.F(model.SizeM, "0.##")} × {UiKit.F(model.DepthM, "0.##")} m · Level ground";
+
+            if (!model.HasPlayer) return;
+            MapPosition position = transform.WorldToPixels(model.Player);
+            if (position.X < nw.X || position.X > se.X || position.Y < nw.Y || position.Y > se.Y) return;
+            playerDot.style.left = position.X - 4;
+            playerDot.style.top = position.Y - 4;
+            playerDot.style.display = DisplayStyle.Flex;
+        }
     }
 
     private void BuildLayerButtons()

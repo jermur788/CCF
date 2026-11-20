@@ -47,6 +47,18 @@ public sealed class AnnualReviewView
         VisualElement header = UiKit.Box("modal-header");
         title = UiKit.Add(header, "", "title");
         VisualElement buttons = UiKit.Box("row", "screen-actions");
+        if (ui.BlankPreview != null)
+        {
+            title.text = "Annual Review";
+            buttons.Add(UiKit.Button("Work Plan [Tab]", ui.ShowWorkPlan));
+            buttons.Add(UiKit.Button("Stand Map [M]", ui.ShowMap));
+            buttons.Add(UiKit.Button("Objectives [O]", ui.ShowObjectives));
+            buttons.Add(UiKit.Button("Back to preview [Esc]", ui.CloseAll, true, "btn-primary"));
+            header.Add(buttons);
+            modal.Add(header);
+            UiKit.Add(modal, "No year has been advanced; no annual review is available.", "body");
+            return;
+        }
         earlierYear = UiKit.Button("◀ Earlier year", () => StepYear(-1));
         laterYear = UiKit.Button("Later year ▶", () => StepYear(1));
         buttons.Add(earlierYear);
@@ -87,6 +99,7 @@ public sealed class AnnualReviewView
 
     public void Refresh(bool force)
     {
+        if (ui.BlankPreview != null) return;
         ScenarioOneManager m = ui.Manager;
         bool teachingReview = ui.Learning != null && ui.Learning.NeedsReviewAcknowledgement;
         // The root calls this every frame while the review is open. HistoryYears rebuilds every completed year, so it is

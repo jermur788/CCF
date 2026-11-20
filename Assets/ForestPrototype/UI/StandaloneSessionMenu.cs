@@ -24,6 +24,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     private Identity identity;
     private string sessionNote;
     public Identity BuildIdentity => identity;
+    private bool HistoricalSaveBlocked => BlankStarterPreview.BlocksHistoricalSave(gameObject.scene);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -80,7 +81,8 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         if (IsOpen || FindFirstObjectByType<ScenarioOneManager>()?.ReferencePreviewActive == true) return;
         player = FindFirstObjectByType<ForestPlayer>(); saves = FindFirstObjectByType<ForestSaveController>();
         forestUi = FindFirstObjectByType<ScenarioOneUiRoot>();
-        if (player == null || saves == null || forestUi == null || forestUi.RootElement == null) return;
+        if (document == null || forestUi == null || forestUi.RootElement == null
+            || (!HistoricalSaveBlocked && (player == null || saves == null))) return;
         playerWasEnabled = player != null && player.enabled; savesWereEnabled = saves != null && saves.enabled;
         uiWasEnabled = forestUi != null && forestUi.enabled;
         previousTimeScale = Time.timeScale; Time.timeScale = 0;
@@ -115,13 +117,28 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     }
     private void MainCard()
     {
+        if (HistoricalSaveBlocked)
+        {
+            card.Clear(); card.RemoveFromClassList("startup-card");
+            Text(forestUi.BlankPreview.Title, 30);
+            Text(BlankStarterPreview.SaveRefusal);
+            if (forestUi.BlankPreview.FootprintError != null) Text(forestUi.BlankPreview.FootprintError);
+            ActionButton("Resume preview [F10]", Close, "btn-primary");
+            ActionButton("Quit CCF…", () => Confirm("Quit this unsaved preview?", Quit));
+            return;
+        }
         card.Clear(); card.RemoveFromClassList("startup-card"); Text("CCF · Scenario One", 30); Text(identity.buildId);
         if (!string.IsNullOrEmpty(sessionNote)) Text(sessionNote);
         Text("Manage a small plantation toward continuous-cover forest over many years: mark and plan work, approve it, advance a year, read the Annual Review, then walk back and reassess. Choose your own forestry decisions.");
         ActionButton("Start a fresh Scenario One test…", () => Confirm("Discard current unsaved progress and start a fresh forest? Your saved file is retained until you choose Save.", Restart));
         ActionButton("Continue current forest [F10]", Close, "btn-primary");
-        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () => { Close(); saves?.Load(); });
+        if (File.Exists(SavePath)) ActionButton("Load your same-build save", () =>
+        {
+            if (HistoricalSaveBlocked) return;
+            Close(); saves?.Load();
+        });
         ActionButton("Save current forest and return…", () => {
+            if (HistoricalSaveBlocked) return;
             if (File.Exists(SavePath)) Confirm("Replace your existing forest save with the current forest? Use saves only with this build.", SaveAndClose);
             else SaveAndClose();
         });
@@ -133,6 +150,7 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
     // For a facilitator handing the build to the next participant. Only the local help and lesson preferences are cleared.
     public void ResetTeachingProgress()
     {
+        if (HistoricalSaveBlocked) return;
         if (forestUi != null) forestUi.ResetTeachingProgress();
         sessionNote = "Tutorial and help progress reset on this device. Your forest and your saved game were not changed.";
         MainCard();
@@ -142,10 +160,16 @@ public sealed partial class StandaloneSessionMenu : MonoBehaviour
         card.Clear(); Text(identity.buildId); Text(prompt);
         ActionButton("Confirm", action, "btn-primary"); ActionButton("Cancel", MainCard);
     }
-    public void SaveAndClose() { Close(); saves?.Save(); }
+    public void SaveAndClose()
+    {
+        if (HistoricalSaveBlocked) return;
+        Close(); saves?.Save();
+    }
     public void Restart()
     {
-        Close(); SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+        if (HistoricalSaveBlocked || buildIndex < 0) return;
+        Close(); SceneManager.LoadScene(buildIndex);
         Debug.Log("CCF_SESSION_FRESH_TEST existingSaveRetained=True");
     }
     public void Quit() { Debug.Log("CCF_SESSION_NORMAL_QUIT"); Application.Quit(0); }

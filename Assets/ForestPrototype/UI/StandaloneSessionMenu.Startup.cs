@@ -32,7 +32,7 @@ public sealed partial class StandaloneSessionMenu
     // Keys a first-time tester needs to enter and control the stand. Not a tutorial: the in-game Help (F1) and
     // Learning objectives (O) teach once the player is in the stand. The list is ControlsReference, shared with the Walking HUD help.
     private System.Collections.Generic.IEnumerable<string[]> ControlRows =>
-        ControlsReference.RowsFor(forestUi != null && forestUi.Manager.RackPlanningV2Active);
+        ControlsReference.RowsFor(forestUi != null && forestUi.Manager != null && forestUi.Manager.RackPlanningV2Active);
 
     // True from bootstrap until the player leaves the title screen. While true, F10 does nothing.
     private bool startupScreen;
@@ -77,6 +77,11 @@ public sealed partial class StandaloneSessionMenu
     public void StartNewScenario()
     {
         if (!IsOpen || !startupScreen) return;
+        if (HistoricalSaveBlocked)
+        {
+            Close();
+            return;
+        }
         ForestEcologyController ecology = FindFirstObjectByType<ForestEcologyController>();
         Close();
         forestUi?.ShowScenarioIntroduction();
@@ -91,7 +96,8 @@ public sealed partial class StandaloneSessionMenu
     {
         if (!IsOpen || !startupScreen) return;
         string problem = null;
-        if (saves == null || !saves.CanLoad(out problem))
+        if (HistoricalSaveBlocked) problem = BlankStarterPreview.SaveRefusal;
+        if (problem != null || saves == null || !saves.CanLoad(out problem))
         {
             continueChecked = true;
             continueAvailable = false;
@@ -117,7 +123,12 @@ public sealed partial class StandaloneSessionMenu
     {
         if (continueChecked) return;
         continueChecked = true;
-        if (saves == null)
+        if (HistoricalSaveBlocked)
+        {
+            continueAvailable = false;
+            continueNote = BlankStarterPreview.SaveRefusal;
+        }
+        else if (saves == null)
         {
             continueAvailable = false;
             continueNote = "Saving is not available in this scene.";
@@ -133,16 +144,19 @@ public sealed partial class StandaloneSessionMenu
         card.AddToClassList("startup-card");
         VisualElement column = StartupColumn();
         StartupLabel(column, StartupTitle, 64, true, 2);
-        StartupLabel(column, StartupScenarioName, 34, true, 4);
-        StartupLabel(column, StartupScenarioSubtitle, 22, false, 40);
+        bool blank = HistoricalSaveBlocked;
+        StartupLabel(column, blank ? forestUi.BlankPreview.Title : StartupScenarioName, 34, true, 4);
+        StartupLabel(column, blank ? BlankStarterPreview.Banner : StartupScenarioSubtitle, 22, false, 40);
+        if (blank && forestUi.BlankPreview.FootprintError != null)
+            StartupLabel(column, forestUi.BlankPreview.FootprintError, 20, false, 10);
 
-        Button start = StartupButton(column, "Start New Scenario", StartNewScenarioClicked, true);
+        Button start = StartupButton(column, blank ? "Open preview" : "Start New Scenario", StartNewScenarioClicked, true);
         RefreshContinueState();
         Button continueButton = StartupButton(column, "Continue", ContinueSavedForest, false);
         continueButton.SetEnabled(continueAvailable);
         if (!continueAvailable)
             StartupLabel(column, continueNote, 16, false, 10);
-        StartupButton(column, "Controls / Help", ControlsHelpCard, false);
+        if (!blank) StartupButton(column, "Controls / Help", ControlsHelpCard, false);
         StartupButton(column, "Quit", Quit, false);
 
         Label build = StartupLabel(column, "Private test build · " + identity.buildId, 15, false, 0);
@@ -153,7 +167,7 @@ public sealed partial class StandaloneSessionMenu
     // Starting new never deletes a save, but F5 later would silently replace it, so say so before the choice.
     private void StartNewScenarioClicked()
     {
-        if (!File.Exists(SavePath))
+        if (HistoricalSaveBlocked || !File.Exists(SavePath))
         {
             StartNewScenario();
             return;

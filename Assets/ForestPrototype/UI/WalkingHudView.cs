@@ -36,6 +36,7 @@ public sealed class WalkingHudView
     private readonly Label rackHeading, rackTrees, rackTimber, rackMoney, rackNote, rackKeys;
     // Bottom right: the Stand Map's map, reduced (same model, transform and symbols; see HudMinimapView).
     private readonly HudMinimapView minimap;
+    private readonly Label blankIntroduction, blankGuidance;
     public HudMinimapView Minimap => minimap;
 
     public WalkingHudView(ScenarioOneUiRoot ui)
@@ -46,6 +47,29 @@ public sealed class WalkingHudView
 
         RightColumn = UiKit.Box("hud-right");
         RightColumn.name = "hud-right-column";
+        if (ui.BlankPreview != null)
+        {
+            VisualElement panel = statusPanel = UiKit.Box("panel", "hud-status");
+            UiKit.Add(panel, ui.BlankPreview.Title, "heading");
+            blankIntroduction = UiKit.Add(panel, "", "body");
+            blankIntroduction.name = "blank-preview-introduction";
+            blankGuidance = UiKit.Add(panel, "", "body");
+            blankGuidance.name = "blank-preview-guidance";
+            UiKit.Add(panel, ui.BlankPreview.FootprintError ??
+                "WASD walk · Mouse look · Esc release mouse · F10 session menu", "muted");
+            UiKit.Add(panel, "Tree inspection unavailable.", "muted");
+            VisualElement navigation = UiKit.Row(panel, "row-wrap");
+            navigation.Add(UiKit.Button("Work Plan [Tab]", ui.ShowWorkPlan));
+            navigation.Add(UiKit.Button("Stand Map [M]", ui.ShowMap));
+            navigation.Add(UiKit.Button("Annual Review", ui.ShowReview));
+            navigation.Add(UiKit.Button("Objectives [O]", ui.ShowObjectives));
+            RightColumn.Add(panel);
+            Root.Add(RightColumn);
+            foreach (Button button in navigation.Query<Button>().ToList()) button.pickingMode = PickingMode.Position;
+            minimap = new HudMinimapView(ui);
+            Root.Add(minimap.Root);
+            return;
+        }
         ObjectiveWidget = new ActiveObjectiveHudWidget(() => ui.ShowObjectives());
         RightColumn.Add(ObjectiveWidget.Root);
         VisualElement status = statusPanel = UiKit.Box("panel", "hud-status");
@@ -158,6 +182,13 @@ public sealed class WalkingHudView
 
     public void Refresh()
     {
+        if (ui.BlankPreview != null)
+        {
+            blankIntroduction.text = ui.BlankPreview.Introduction;
+            blankGuidance.text = ui.BlankPreview.Guidance;
+            minimap.Refresh();
+            return;
+        }
         ScenarioOneManager m = ui.Manager;
         ForestEcologyController eco = ui.Ecology;
         ForestPlayer player = ui.Player;

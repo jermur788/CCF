@@ -179,6 +179,7 @@ public sealed class ForestPlayer : MonoBehaviour
 
     private void Awake()
     {
+        blankStarterPreview = BlankStarterPreview.InScene(gameObject.scene);
         controller = GetComponent<CharacterController>();
         clearancePreview = GetComponent<ClearancePreview>() ?? gameObject.AddComponent<ClearancePreview>();
         if (view == null)
@@ -212,6 +213,7 @@ public sealed class ForestPlayer : MonoBehaviour
     }
 
     private ScenarioOneUiRoot uiRoot;
+    private BlankStarterPreview blankStarterPreview;
 
     private bool PointerOverUiButton(Mouse mouse)
     {
@@ -993,7 +995,7 @@ public sealed class ForestPlayer : MonoBehaviour
     {
         // Scenario One draws its walking HUD, prompts and inspection with UI
         // Toolkit (ScenarioOneUiRoot); this IMGUI serves the other modes.
-        if (Object.FindFirstObjectByType<ScenarioOneManager>() != null)
+        if (blankStarterPreview != null || Object.FindFirstObjectByType<ScenarioOneManager>() != null)
             return;
         float centerX = Screen.width * 0.5f;
         float centerY = Screen.height * 0.5f;

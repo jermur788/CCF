@@ -118,9 +118,12 @@ public sealed class StandMapModel
     // The property square: south-west corner and side in world metres, and the ecology grid laid over it.
     public bool HasProperty;
     public float MinX, MinZ, SizeM;
+    // Only the blank authoring footprint has an independent depth. Ecology remains square.
+    public float PreviewDepthM;
+    public float DepthM => PreviewDepthM > 0f ? PreviewDepthM : SizeM;
     public int CellsPerAxis;
     public float CellSizeM;
-    public float AreaHectares => SizeM * SizeM / 10000f;
+    public float AreaHectares => SizeM * DepthM / 10000f;
 
     public readonly List<MapPath> Paths = new List<MapPath>();
     public readonly List<MapRack> Racks = new List<MapRack>();
@@ -158,7 +161,7 @@ public sealed class StandMapModel
     // Moves when any tree's mark changes (marks do not change the canopy picture, only the Marks layer).
     public int MarkVersion;
 
-    public StandMapTransform TransformFor(float sidePx) => new StandMapTransform(MinX, MinZ, SizeM, sidePx);
+    public StandMapTransform TransformFor(float sidePx) => new StandMapTransform(MinX, MinZ, SizeM, DepthM, sidePx);
 
     private int canopyHash = int.MinValue, markHash = int.MinValue, staticHash = int.MinValue, dynamicHash = int.MinValue;
 
@@ -202,6 +205,7 @@ public sealed class StandMapModel
         {
             int h = 17;
             h = Mix(h, HasProperty ? 1 : 0); h = Mix(h, MinX); h = Mix(h, MinZ); h = Mix(h, SizeM); h = Mix(h, CellsPerAxis);
+            if (PreviewDepthM > 0f) h = Mix(h, PreviewDepthM);
             h = Mix(h, GroundIsLevel ? 1 : 0);
             foreach (MapPath path in Paths)
             {

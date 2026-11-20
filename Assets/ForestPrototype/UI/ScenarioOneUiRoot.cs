@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 // the open map or review. X marks trees for felling.
 public sealed class ScenarioOneUiRoot : MonoBehaviour
 {
-    public enum UiScreen { None, Map, Review, Objectives }
+    public enum UiScreen { None, Map, Review, Objectives, WorkPlan }
 
     private ScenarioOneManager manager;
     private ForestEcologyController ecology;
@@ -44,6 +44,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     public LearningObjectivesView Learning => learning;
     private Label previewBanner;
     private MenuHelpView help;
+    public BlankStarterPreview BlankPreview { get; private set; }
     public MenuHelpView Help => help;
     public bool NeedsAnnualReview => manager != null && manager.AnnualReports.Count > 0 && !manager.AnnualReviewSeen;
 
@@ -75,12 +76,17 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void Start()
     {
-        manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
-        ecology = FindFirstObjectByType<ForestEcologyController>();
+        BlankPreview = BlankStarterPreview.InScene(gameObject.scene);
+        if (BlankPreview == null)
+        {
+            manager = GetComponent<ScenarioOneManager>() ?? FindFirstObjectByType<ScenarioOneManager>();
+            ecology = FindFirstObjectByType<ForestEcologyController>();
+            player = FindFirstObjectByType<ForestPlayer>();
+            marking = FindFirstObjectByType<ForestTreeMarkingManager>();
+        }
+        else player = BlankPreview.Player;
         if (ecology != null)
             ecology.StandGeometryApplied += OnStandGeometryApplied;
-        player = FindFirstObjectByType<ForestPlayer>();
-        marking = FindFirstObjectByType<ForestTreeMarkingManager>();
 
         panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
         panelSettings.name = "Scenario One UI (runtime)";
@@ -135,7 +141,17 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         previewBanner.style.position = Position.Absolute;
         previewBanner.style.top = 14;
         previewBanner.style.alignSelf = Align.Center;
+        previewBanner.pickingMode = PickingMode.Ignore;
         root.Add(previewBanner);
+        if (BlankPreview != null)
+        {
+            previewBanner.name = "blank-preview-banner";
+            inspection.Root.style.display = DisplayStyle.None;
+            inspection.CompetitorPanel.style.display = DisplayStyle.None;
+            inspection.EstimatePanel.style.display = DisplayStyle.None;
+            UpdateBlankPreview();
+            return;
+        }
         help = new MenuHelpView(this);
         root.Add(help.Root);
         if (FindFirstObjectByType<StandaloneSessionMenu>() == null && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
@@ -174,8 +190,16 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void Update()
     {
-        if (manager == null || document == null)
+        if (document == null)
             return;
+        if (BlankPreview != null)
+        {
+            UiKit.SetCompact(document.rootVisualElement);
+            HandleBlankKeys();
+            UpdateBlankPreview();
+            return;
+        }
+        if (manager == null) return;
         UiKit.SetCompact(document.rootVisualElement);
         bool preview = manager.ReferencePreviewActive;
         if (preview) CloseHelp();
@@ -263,6 +287,35 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
             if (screen == UiScreen.Map) map.Refresh(false);
             if (screen == UiScreen.Objectives) learning.Refresh(false);
         }
+    }
+
+    private void HandleBlankKeys()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || keyboard.f10Key.wasPressedThisFrame) return;
+        if (keyboard.tabKey.wasPressedThisFrame)
+            SetScreen(screen == UiScreen.WorkPlan ? UiScreen.None : UiScreen.WorkPlan);
+        else if (keyboard.mKey.wasPressedThisFrame)
+            SetScreen(screen == UiScreen.Map ? UiScreen.None : UiScreen.Map);
+        else if (keyboard.oKey.wasPressedThisFrame)
+            SetScreen(screen == UiScreen.Objectives ? UiScreen.None : UiScreen.Objectives);
+        else if (keyboard.escapeKey.wasPressedThisFrame)
+            SetScreen(UiScreen.None);
+    }
+
+    private void UpdateBlankPreview()
+    {
+        hud.Root.style.display = screen == UiScreen.None ? DisplayStyle.Flex : DisplayStyle.None;
+        workPlan.Root.style.display = screen == UiScreen.WorkPlan ? DisplayStyle.Flex : DisplayStyle.None;
+        map.Root.style.display = screen == UiScreen.Map ? DisplayStyle.Flex : DisplayStyle.None;
+        review.Root.style.display = screen == UiScreen.Review ? DisplayStyle.Flex : DisplayStyle.None;
+        learning.Root.style.display = screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;
+        previewBanner.text = BlankStarterPreview.Banner;
+        if (screen == UiScreen.None) hud.Refresh();
+        else if (screen == UiScreen.Map) map.Refresh(false);
+        else if (screen == UiScreen.Objectives) learning.Refresh(false);
+        // UI Toolkit modals are drawn over the walking HUD; keep the preview label above both.
+        previewBanner.BringToFront();
     }
 
     // The inspection card and its detail sit top-left. Their height is capped just above the highest panel of the bottom-left
@@ -362,7 +415,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public bool ShowStormWaypoint(int cell)
     {
-        if (manager.ReferencePreviewActive || !map.SetWaypointCell(ecology, cell)) return false;
+        if (manager == null || manager.ReferencePreviewActive || !map.SetWaypointCell(ecology, cell)) return false;
         SetScreen(UiScreen.Map);
         return true;
     }
@@ -371,6 +424,15 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     {
         if (screen == next)
             return;
+        if (BlankPreview != null)
+        {
+            bool wasWalking = screen == UiScreen.None;
+            screen = next;
+            if (player != null && wasWalking != (screen == UiScreen.None))
+                player.enabled = screen == UiScreen.None;
+            UpdateBlankPreview();
+            return;
+        }
         if (screen == UiScreen.Map && next == UiScreen.None && map.HasWaypoint)
             learning.Record("map.return");
         screen = next;
@@ -404,11 +466,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         return MenuHelpView.Menu.WalkingHud;
     }
 
-    public void ShowCurrentHelp() => ShowHelp(HelpContext());
+    public void ShowCurrentHelp()
+    {
+        if (manager != null) ShowHelp(HelpContext());
+    }
 
     public void ShowHelp(MenuHelpView.Menu menu)
     {
-        if (manager.ReferencePreviewActive) return;
+        if (manager == null || manager.ReferencePreviewActive) return;
         help.Show(menu);
         manager.SetAuxiliaryPanelOpen(true);
     }
@@ -426,6 +491,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     // lesson preferences only; the forest, its save and the learning-gate on the first review are not touched.
     public void ResetTeachingProgress()
     {
+        if (BlankPreview != null) return;
         // Closing marks the open screen as seen, so close it first and clear afterwards.
         if (help != null && help.IsOpen) help.Close();
         MenuHelpView.ResetProgress();
@@ -433,31 +499,33 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         if (learning != null) learning.ReloadProgress();
     }
 
-    public void ShowScenarioIntroduction() => help.ShowScenarioIntroduction();
+    public void ShowScenarioIntroduction() => help?.ShowScenarioIntroduction();
 
     public void AcknowledgeAnnualReview()
     {
-        if (screen != UiScreen.Review || manager.AnnualReports.Count == 0) return;
+        if (manager == null || screen != UiScreen.Review || manager.AnnualReports.Count == 0) return;
         manager.MarkAnnualReviewSeen();
         review.Refresh(true);
         learning.Refresh(true);
     }
 
     // A UI learning gate only: simulation/reference harness APIs remain unchanged.
-    public string RackPlanProblem => learning.RackPlanProblem();
+    public string RackPlanProblem => manager != null ? learning.RackPlanProblem() : null;
     // S1-D T-03: the same footprint rule once the teaching sample is complete. A note only; ApproveWorkPlan/AdvanceFromWorkPlan ignore it.
-    public string RackPlanAdvisory => learning.RackPlanAdvisory();
+    public string RackPlanAdvisory => manager != null ? learning.RackPlanAdvisory() : null;
     // D-064: V2 rack work is approved only after its entrances are marked. Approval only; advancing a year is not gated by it.
-    public string RackApprovalProblem => learning.RackMarkingProblem();
+    public string RackApprovalProblem => manager != null ? learning.RackMarkingProblem() : null;
 
     public bool ApproveWorkPlan()
     {
+        if (manager == null) return false;
         if (!string.IsNullOrEmpty(RackPlanProblem) || !string.IsNullOrEmpty(RackApprovalProblem)) return false;
         return manager.ApprovePendingWork();
     }
 
     public bool AdvanceFromWorkPlan()
     {
+        if (manager == null) return false;
         if (!string.IsNullOrEmpty(RackPlanProblem)) return false;
         if (NeedsAnnualReview) { ShowReview(); return false; }
         if (!manager.AdvanceYear()) return false;
@@ -467,6 +535,11 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public void ShowWorkPlan()
     {
+        if (BlankPreview != null)
+        {
+            SetScreen(UiScreen.WorkPlan);
+            return;
+        }
         CloseHelp();
         SetScreen(UiScreen.None);
         manager.OpenWorkPlan(true);
@@ -475,7 +548,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public void ShowReview()
     {
-        manager.OpenWorkPlan(false);
+        manager?.OpenWorkPlan(false);
         SetScreen(UiScreen.Review);
     }
 
@@ -483,7 +556,7 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
     // normal SetScreen(Review) route resetting its deliberate selection to ShowLatest().
     public bool TryShowReviewYear(int year)
     {
-        if (!review.TryShowYear(year)) return false;
+        if (manager == null || !review.TryShowYear(year)) return false;
         manager.OpenWorkPlan(false);
         screen = UiScreen.Review;
         CloseHelp();
@@ -493,20 +566,20 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     public void ShowMap()
     {
-        manager.OpenWorkPlan(false);
+        manager?.OpenWorkPlan(false);
         SetScreen(UiScreen.Map);
     }
 
     public void ShowObjectives()
     {
-        manager.OpenWorkPlan(false);
+        manager?.OpenWorkPlan(false);
         SetScreen(UiScreen.Objectives);
     }
 
     public void CloseAll()
     {
         CloseHelp();
-        manager.OpenWorkPlan(false);
+        manager?.OpenWorkPlan(false);
         SetScreen(UiScreen.None);
     }
 }

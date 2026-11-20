@@ -38,6 +38,18 @@ public sealed class WorkPlanView
         owner = UiKit.Add(left, "", "subtitle");
         header.Add(left);
         VisualElement right = UiKit.Box("row", "screen-actions");
+        if (ui.BlankPreview != null)
+        {
+            title.text = "Work Plan";
+            right.Add(UiKit.Button("Annual Review", ui.ShowReview));
+            right.Add(UiKit.Button("Stand Map [M]", ui.ShowMap));
+            right.Add(UiKit.Button("Objectives [O]", ui.ShowObjectives));
+            right.Add(UiKit.Button("Back to preview", ui.CloseAll));
+            header.Add(right);
+            modal.Add(header);
+            UiKit.Add(modal, "No eligible operations in this blank starter.", "body");
+            return;
+        }
         cash = UiKit.Add(right, "", "money", "title");
         right.Add(UiKit.Button("Help [F1]", () => ui.ShowHelp(MenuHelpView.Menu.WorkPlan)));
         right.Add(UiKit.Button("Annual review", () => ui.ShowReview()));
@@ -113,6 +125,7 @@ public sealed class WorkPlanView
 
     public void Refresh(bool force)
     {
+        if (ui.BlankPreview != null) return;
         ScenarioOneManager m = ui.Manager;
         // The teaching stage decides which sections are usable, so it is part of what makes the plan redraw.
         string rackProblem = ui.RackPlanProblem;

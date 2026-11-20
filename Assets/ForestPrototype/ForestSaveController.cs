@@ -38,6 +38,11 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Save()
     {
+        if (BlankStarterPreview.BlocksHistoricalSave(gameObject.scene))
+        {
+            SetMessage(BlankStarterPreview.SaveRefusal);
+            return;
+        }
         ForestSaveData data = CaptureData();
         try
         {
@@ -220,6 +225,11 @@ public sealed class ForestSaveController : MonoBehaviour
 
     public void Load()
     {
+        if (BlankStarterPreview.BlocksHistoricalSave(gameObject.scene))
+        {
+            SetMessage(BlankStarterPreview.SaveRefusal);
+            return;
+        }
         if (!File.Exists(SavePath))
         {
             SetMessage("No save found (press F5 to save)");
@@ -239,6 +249,11 @@ public sealed class ForestSaveController : MonoBehaviour
     // scene as it is, and never touches the scene. "problem" is a short player-readable reason when it returns false.
     public bool CanLoad(out string problem)
     {
+        if (BlankStarterPreview.BlocksHistoricalSave(gameObject.scene))
+        {
+            problem = BlankStarterPreview.SaveRefusal;
+            return false;
+        }
         if (!File.Exists(SavePath))
         {
             problem = "No saved forest on this device yet.";

@@ -11,6 +11,7 @@ public sealed partial class LearningObjectivesView
     private readonly HashSet<string> done = new HashSet<string>();
     private readonly ScrollView scroll;
     private readonly Label progress;
+    private readonly Label blankObjective;
     private readonly Dictionary<string, bool> expanded = new Dictionary<string, bool>();
     private int shownCount = -1;
     private int shownRegenerationModel = -1;
@@ -62,17 +63,17 @@ public sealed partial class LearningObjectivesView
     public LearningObjectivesView(ScenarioOneUiRoot ui)
     {
         this.ui = ui;
-        ReloadProgress();
+        if (ui.BlankPreview == null) ReloadProgress();
         Root = UiKit.Box("layer", "modal-backdrop");
         UiKit.MakeModal(Root);
         VisualElement modal = UiKit.Box("panel", "modal", "modal-objectives");
         Root.Add(modal);
         VisualElement header = UiKit.Box("modal-header");
-        UiKit.Add(header, "Scenario One · one objective at a time", "title");
+        UiKit.Add(header, ui.BlankPreview != null ? "Objectives" : "Scenario One · one objective at a time", "title");
         VisualElement buttons = UiKit.Row(header);
         buttons.Add(UiKit.Button("Stand map [M]", () => ui.ShowMap()));
         buttons.Add(UiKit.Button("Work Plan [Tab]", () => ui.ShowWorkPlan()));
-        buttons.Add(UiKit.Button("Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
+        buttons.Add(UiKit.Button(ui.BlankPreview != null ? "Back to preview [O / Esc]" : "Back to forest [O / Esc]", () => ui.CloseAll(), true, "btn-primary"));
         modal.Add(header);
         progress = UiKit.Add(modal, "", "body");
 
@@ -80,6 +81,9 @@ public sealed partial class LearningObjectivesView
         scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         scroll.style.flexGrow = 1;
         modal.Add(scroll);
+        if (ui.BlankPreview != null)
+            blankObjective = UiKit.Add(scroll, "", "body");
+        if (blankObjective != null) blankObjective.name = "blank-preview-objective";
     }
 
     // Progress is saved per device, not per forest. These two let a facilitator start the next participant fresh without
@@ -92,6 +96,7 @@ public sealed partial class LearningObjectivesView
 
     public void ReloadProgress()
     {
+        if (ui.BlankPreview != null) return;
         rackReview.Reset(ui.Player != null ? ui.Player.InspectionSerial : -1);
         sequenceFacts = null;
         done.Clear();
@@ -101,6 +106,7 @@ public sealed partial class LearningObjectivesView
 
     public void Record(string id)
     {
+        if (ui.BlankPreview != null) return;
         if (!StepIds.Contains(id)) return;
         if (done.Contains(id)) return;
         done.Add(id);
@@ -117,6 +123,12 @@ public sealed partial class LearningObjectivesView
 
     public void Refresh(bool force)
     {
+        if (ui.BlankPreview != null)
+        {
+            progress.text = "No objectives configured (development preview).";
+            blankObjective.text = ui.BlankPreview.Objective;
+            return;
+        }
         if (force) sequenceFacts = null;
         int regenerationModel = ui.Ecology != null ? ui.Ecology.RegenerationModelVersion : RegenerationModel.Legacy;
         bool market = ui.Manager.BroadleafMarketActive;

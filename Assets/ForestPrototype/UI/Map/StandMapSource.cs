@@ -124,13 +124,32 @@ public sealed class StandMapSource
         refreshedFrame = Time.frameCount;
         ForestEcologyController eco = ui.Ecology;
         model.HasProperty = eco != null && eco.Cells != null && eco.CellCount > 0;
-        if (!model.HasProperty)
+        if (ui.BlankPreview != null || !model.HasProperty)
         {
             model.Racks.Clear();
             model.Trees.Clear();
             model.Juveniles.Clear();
             model.Shelters.Clear();
+            model.Paths.Clear();
+            model.Landmarks.Clear();
+            model.MiniGuidance.Clear();
+            System.Array.Clear(model.KindLabels, 0, model.KindLabels.Length);
+            model.MinX = model.MinZ = model.SizeM = model.PreviewDepthM = model.CellSizeM = 0f;
+            model.CellsPerAxis = 0;
+            model.GroundIsLevel = true;
             model.HasPlayer = model.HasWaypoint = false;
+            model.HasProperty = false;
+            sceneryRead = false;
+            treesDirty = racksDirty = true;
+            if (ui.BlankPreview != null && ui.BlankPreview.TryGetGroundBounds(out Bounds ground))
+            {
+                model.HasProperty = true;
+                model.MinX = ground.min.x;
+                model.MinZ = ground.min.z;
+                model.SizeM = ground.size.x;
+                model.PreviewDepthM = ground.size.z;
+                ReadPlayer();
+            }
             model.StampTrees();
             model.Restamp();
             return;
@@ -140,6 +159,7 @@ public sealed class StandMapSource
         model.MinX = bounds.xMin;
         model.MinZ = bounds.yMin;
         model.SizeM = bounds.width;
+        model.PreviewDepthM = 0f;
         model.CellsPerAxis = eco.CellsPerAxis;
         model.CellSizeM = eco.CellSizeMeters;
 
@@ -168,6 +188,16 @@ public sealed class StandMapSource
             ReadSmallLayers(eco);
         }
 
+        ReadPlayer();
+        Vector2 target = default;
+        model.HasWaypoint = ui.Map != null && ui.Map.TryGetWaypointTarget(out target);
+        if (model.HasWaypoint)
+            model.Waypoint = new RackPoint(target.x, target.y);
+        model.Restamp();
+    }
+
+    private void ReadPlayer()
+    {
         ForestPlayer player = ui.Player;
         model.HasPlayer = player != null;
         if (model.HasPlayer)
@@ -180,11 +210,6 @@ public sealed class StandMapSource
                 model.PlayerHeadingDegrees = StandMapTransform.HeadingOf(forward.x, forward.z);
         }
 
-        Vector2 target = default;
-        model.HasWaypoint = ui.Map != null && ui.Map.TryGetWaypointTarget(out target);
-        if (model.HasWaypoint)
-            model.Waypoint = new RackPoint(target.x, target.y);
-        model.Restamp();
     }
 
     private static readonly System.Comparison<MapTree> ByHeight = (a, b) =>
