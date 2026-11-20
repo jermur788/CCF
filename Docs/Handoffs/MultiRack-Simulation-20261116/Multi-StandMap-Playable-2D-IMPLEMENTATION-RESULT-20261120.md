@@ -1,11 +1,189 @@
 # Multi #849 — Playable 2D Stand Map: PM-T05…PM-T08 implementation result (author Tier-1)
 
-- **Labels:** **IMPLEMENTED (author)** · **author Tier-1 PASS on the pushed source SHA** · **NOT INDEPENDENTLY REVIEWED** (PM-T09 Tier-2 pending) · **NOT QUALIFIED** · **NOT INTEGRATED** · **NOT RELEASED** · **NOT USER ACCEPTED**. No Manager acceptance is claimed or implied.
+- **Labels (current, after the repair in §0):** **IMPLEMENTED AND REPAIRED (author)** · **author Tier-1 PASS on the repair SHA `d2c04cbb`** · independent Tier-2 of the earlier candidate `1905433f`: **NEEDS CHANGES**; **Tier-2 re-check of `d2c04cbb` NOT YET RUN** · **NOT QUALIFIED** · **NOT INTEGRATED** · **NOT RELEASED** · **NOT USER ACCEPTED**. No Manager acceptance is claimed or implied.
 - **Task:** CCF [#849](https://github.com/jermur788/CCF/issues/849), spec `specs/multirack-sitka-2d-playable-standmap-v1/` (MULTI-STANDMAP-PLAYABLE-2D-V1, APPROVED — Manager #730, UI-A), tasks.md rows 8–15 (PM-T05…PM-T08).
 - **Author:** Claude Opus 5.5 (single exclusive author for #849; model identity is worker-reported). Commits carry the explicit author identity `Claude Opus 5.5 <noreply@anthropic.com>` because the lane's configured Git identity is the non-author parent.
 - **Date / host:** 20 November 2026, DESKTOP-DL1BQI7 (WSL2 Ubuntu `jer`).
 - **Lane:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-StandMap2D-Source` (WSL-native, LF, detached), as named in the task packet. The live board row names the T3 Windows worktree as the registered writer checkout; this run used the WSL lane the task packet designated. Pre-write checks: host name, no `dotnet`/MSBuild process, no `index.lock`, HEAD `30fa269c`.
 - **Predecessor:** PM-T01…PM-T04 (Core facade and tests) at `30fa269cc9ec8287a15df364f41fba2bfe48f40f`, parent-verified per the task packet.
+
+## 0. Repair addendum — Tier-2 findings D1–D5 (author, 20 November 2026)
+
+Sections 1–13 below are the original record for `1905433f`. Where this addendum differs, **this addendum is current**.
+
+### 0.1 What this answers
+
+- **Review:** the independent Tier-2 by GPT-6.1 Sol, [`Multi-StandMap-Playable-2D-INDEPENDENT-TIER2-REVIEW-20261120.md` at `7fd3b72c`](https://github.com/jermur788/CCF/blob/7fd3b72cd3e50b0f33574210a6417e651c87312e/Docs/Handoffs/MultiRack-Simulation-20261116/Multi-StandMap-Playable-2D-INDEPENDENT-TIER2-REVIEW-20261120.md): **NEEDS CHANGES**, 3 MAJOR (D1–D3), 1 MINOR (D4), 1 NIT (D5).
+- **Scope:** one bounded repair cycle on the same candidate. No new scope, no new refusal code, no relaxed ecological or A-4 requirement, no weakened test.
+- **Lane:** the same WSL lane, detached at `4e95e787`, clean, no `dotnet` process and no `index.lock` before the first write.
+- **Commits:** `d2c04cbbca380b4a5076807c72f19632bf2543a8` (the source repair; pushed as a fast-forward `4e95e787..d2c04cbb`), then this handoff commit. Nothing was forced, amended or rebased.
+- **Candidate source SHA for the Tier-2 re-check: `d2c04cbbca380b4a5076807c72f19632bf2543a8`.**
+
+### 0.2 Changed paths, `4e95e787..d2c04cbb` (all under `Tools/MultiRackSitkaP1Lab/`, all on the 15-path list)
+
+| Path | Added / removed | Blob at `d2c04cbb` | Defects |
+|---|---|---|---|
+| `src/Core/AnnualContinuation.cs` | +10 / −1 | `a8f2aabb462cb1ab91c98e1a5efc9bf6c385519b` | D3 |
+| `src/Core/PlayerSessionView.cs` | +2 / −0 | `11be0cdb23352aefcb39ca3c0c1ffa7b3fcf2955` | D5 |
+| `src/Ui/wwwroot/app.js` | +302 / −26 | `f3e5f1c309a50aeb7acbb51b72eb774aea9857d1` | D1, D2, D4, D5 |
+| `src/Ui/wwwroot/index.html` | +14 / −0 | `005e1e48b841e1cff1f472a8ce96aed105e3358d` | D1, D4 |
+| `src/Ui/wwwroot/app.css` | +9 / −1 | `e44ed374b436473f1dbf586e99202a03fcd2f1f0` | D2, D4 |
+| `tests/Core.Tests/PlayerSessionTests.cs` | +72 / −3 | `53067f1703ddb172b6ec51ca78779de6f6333959` | D3, D5 |
+| `tests/ui-smoke.sh` (mode 100755 kept) | +506 / −4 | `fc511fba6697a4ff004c7e9a5dfc310abdc4bb70` | D1, D2, D3, D4, D5 |
+| `README.md` | +23 / −11 | `560c5f67ba2f76a2e77f82956b1fe033a183365c` | all |
+
+Eight paths, 938 lines added, 46 removed. Unchanged since `1905433f`: `PlayerApi.cs`, UI `Program.cs`, `SitkaP1.Ui.csproj`, `PlayerWorkPlanAdapter.cs`, `PlayerMapScene.cs`, `PlayerMapSceneTests.cs` and the test registration `tests/Core.Tests/Program.cs`. No fixture, golden, `.p0ref`, `build/`, other csproj, `.sln`, CLI, existing test, `Assets/**`, Unity or Windows-build change.
+
+### 0.3 Each defect: root cause, change, tests
+
+**D1 (MAJOR) — the confirmation could execute an undisplayed plan.**
+- *Root cause:* Confirm read the PlanId, key and fence from the latest page view, which a pending re-read could replace while the dialog stayed open.
+- *Change (`app.js`, `index.html`):*
+  - Execute opens the dialog on a frozen copy of the displayed plan and fence: session, full source token, plan-state revision, PlanId, minted key, year, and the exact IDs and reasons. The dialog renders only that copy, now including its PlanId.
+  - Confirm sends exactly that copy and nothing read from a newer view.
+  - Any newly applied view that no longer shows that plan under that fence withdraws the confirmation: the dialog closes, nothing is sent, and the re-read lock below is set, so a further successful re-read is required. The page never substitutes the current plan.
+  - Confirm pressed while a request is still on its way sends nothing and leaves the dialog open; the arriving view re-checks it. Back and Escape discard the copy.
+- *Tests:* smoke J03–J15 (the reviewer's race with a held re-read and a second client of the same session); real Edge R01–R07.
+
+**D2 (MAJOR) — "outcome unconfirmed" still allowed commands.**
+- *Root cause:* only the alert changed; no page-wide state gated the commands.
+- *Change (`app.js`, `app.css`):* one re-read lock, set by an unconfirmed outcome or a withdrawn confirmation.
+  - Every engine command is disabled: Add, Remove (inspector and list), Approve, Cancel, Execute, the dialog's Execute, Advance and the consent's advance.
+  - Each handler refuses first and says "Not sent: …" in the alert.
+  - `call()` refuses every POST, including a map hit-test, so no request but a read can leave the page.
+  - Only a successful read that began after the latest lock lifts it. A failed read keeps it.
+  - Disabled buttons have a dashed, muted style and are skipped by Tab.
+- *Tests:* smoke J16–J28 (a committed Add and a committed Execute whose answers are lost; every handler activated, including on disabled buttons; zero requests captured; a failed re-read keeps the lock; a successful re-read lifts it); real Edge U01–U05.
+
+**D3 (MAJOR) — an unminted execution key could poison a later plan.**
+- *Root cause:* the fenced first execution accepted any non-blank key.
+- *Change (`AnnualContinuation.cs`):* on the first-execution path, after the replay lookup, the fence and the PlanId check, and before any mutation, the key must equal the engine-minted key of the approved plan. Otherwise the result is the existing `WorkExecutionKeyConflict`, with zero mutation.
+  - One private helper now mints the key for both the view and this check.
+  - The replay rule (same key, PlanId, original source and session) and the wrong-PlanId refusal are unchanged.
+  - No new public refusal code: the §6.6 set is unchanged.
+- *Tests:* Core **PS-20**; smoke E00, E00b, D02f and D03.
+
+**D4 (MINOR) — map targets below 44 × 44 CSS px. What I chose, and why it meets A-4:**
+- *Choice:* a zoom-and-pan map pane (`app.js`, `app.css`, `index.html`).
+  - The SVG sits in its own scrolling pane. The pane has `tabindex="-1"`, so it is not a Tab stop (A-2 still skips the map).
+  - Seven ordinary buttons zoom and pan: *Zoom out*, *Zoom in*, *Whole area* and four *Pan* buttons. They work by keyboard. Drag and scroll also pan.
+  - The map opens at **64 CSS px per metre** when the page is one column (below 900 CSS px wide: 360 px, and 200 % zoom of any window up to 1,799 px) or when the device pixel ratio is 2 or more (200 % zoom of a wider window on a standard display). A two-column desktop at ordinary zoom opens on the whole area. Until the player chooses a zoom, a resize (browser zoom) re-applies that default.
+  - Choosing a tree in the table scrolls the zoomed map to it.
+  - A visible, polite note states the current smallest drawn target in pixels, or that the whole-area view has targets under 44 px.
+- *Why it meets A-4:*
+  - At 64 px/m the smallest drawn item, the 0.35 m stump marker, is 0.7 × 64 = 44.8 px. Every crown in this fixture is far larger.
+  - Crown radii and the stump constant are unchanged. The server still hit-tests the true discs, and the S-5 drawn-versus-hit cross-check is unchanged. No hit area is enlarged, so a click can name only a tree whose drawn disc is under the pointer.
+  - The page itself stays one column at 360 and 640 CSS px, with no page-level horizontal scroll. The core actions are outside the scrolling pane.
+  - The table remains the authoritative accessible path.
+  - Measured in real Edge: §0.7.
+- *Tests:* smoke J02 (the default scale and the stated 44.8 px); real Edge L360, L640, L960, L1280 and K01–K04.
+
+**D5 (NIT) — "1 named trees".**
+- *Change (`PlayerSessionView.cs`, `app.js`):* a new Core label `ExecuteConfirmationOneTree` = "Fells exactly {n} named tree in Year {y}, or refuses all". The page uses it when the confirmed plan has exactly one order.
+- *Tests:* PS-18 now lists it (the exact label set is still enforced); smoke J04.
+
+### 0.4 New tests and totals
+
+| Where | New or changed | Total on `d2c04cbb` |
+|---|---|---|
+| Core runner | **New:** `player PS-20: a first Execute must echo the engine-minted key; an unminted or future key is refused, zero mutation`. **Changed:** PS-18's exact expected label set gains `ExecuteConfirmationOneTree` | **92/92** (66 base + 20 PS + 6 MS). All 91 test names that passed on `1905433f` still pass |
+| `tests/ui-smoke.sh` | **New:** E00, E00b, D02f (an unminted future key is refused, then the plan minted with it executes) and J01–J31 (the page's own served `app.js`, run by node in a small DOM stand-in against the real process) | **132 passed, 0 failed** (98 earlier + 34) |
+| External Edge driver (not committed) | Phases L, K, R and U on the clone build | **43 PASS, 0 FAIL** |
+
+The smoke now needs **node** (any recent version, no packages; `NODE` overrides). The stand-in is **not a browser**: it has no layout, CSS or real focus rules, so target sizes and focus behaviour come from the Edge runs.
+
+### 0.5 Author Tier-1 — exact pushed SHA `d2c04cbb`, fresh WSL-native LF clone
+
+- **Harness:** `~/.ccf-orch/standmap-p1-opus/tier1-repair-run.sh`, outside the repository; sha256 `e48bb0ee6aff571d0ee22b838624c33b72e9e8d44f933a041d6574664e8ea5c9`.
+- **Logs:** `~/.ccf-orch/standmap-p1-opus/tier1-logs-d2c04cbb/` on DESKTOP-DL1BQI7. Its `SHA256SUMS` covers 56 files; that manifest's own sha256 is `a23a1e1a26a0ba273d667065935885c6fa09399c72785b70dca24093aba661f3`.
+- **Tools:** SDK 8.0.134, ASP.NET Core 8.0.34, node v26.13.1 (WSL).
+- **Clone:** partial and sparse, `core.autocrlf=false`; zero tracked lab files contain CR bytes.
+- **Result: OVERALL TIER-1 PASS, 40 of 40 gates.**
+
+| Gate | Result |
+|---|---|
+| D01, D01b | `4e95e787..d2c04cbb` touches exactly the eight paths of §0.2, all modifications, with no mode change |
+| D02 | `4bb80973..d2c04cbb`: every lab path is on the 15-path list; everything else is this spec folder or handoff Markdown |
+| D03 and unchanged-file gate | The test registration and the six UI and Core files listed in §0.2 are unchanged since `1905433f` |
+| Protected | Fixtures, `AnnualRules.cs`, `WorkContract.cs`, `AnnualEngine.cs`, CLI, `.sln` (no UI), both existing csproj, the four base test files, `build/`, `global.json`, `Directory.Build.props`, `.gitignore`, the two linked Assets files and the P0 tree `f212c8f6`: all unchanged since the base |
+| P0 reference | Copied from the same authorised pinned copy and verified four ways (`9a99f781…34b3`). **Not rebuilt**; `build/build-p0-core-ref.sh` not run |
+| B01, B02 | Solution build with TreatWarningsAsErrors: **0 warnings, 0 errors**; the UI is not built by it |
+| T01, T01b | Core runner **92/92**, exit 0. Every name that passed on `1905433f` passes, plus PS-20. Both `644 B-01` scans pass |
+| T02 | Ten no-work digests identical to the `30fa269c` record (`digests.txt` sha256 `4e0e47a1…ccee`) |
+| R01, R02 | UI restore from an empty local source succeeds; projects only |
+| U01, U02 | UI build: **0 warnings, 0 errors**; exactly three embedded page assets. UI DLL `0fb212a990af20d7f4441003870e4449085700de66a8da5f79093e05af00fe7b`, Core DLL `aa5ffc2d50d8bb8de90dc841807d56c38f6de92075aef3a919afa597143e91f2` |
+| S01, S02 | `tests/ui-smoke.sh`: **132 passed, 0 failed**, including J01–J31, E00, E00b and D02f |
+| W01–W03 | P0 tracked-file digest unchanged; clone `git status` clean; `~/.aspnet` absent |
+
+- **PS-01** in this run: 16 rounds and 1,170 atomic reads, with **Execute won 0, Advance won 16**, so only one race winner was observed in the exact-SHA run. (A pre-commit lane run saw Execute win 1 and Advance 15; that lane run is not evidence.) PS-14 observed 13 natural deaths after the Fell over ten years.
+
+Key log hashes (sha256):
+
+```text
+897723a6f85813f1a8441e2a811152b854ded0003676f55b5061add823a5235f  run.txt
+a7ccba67661c76f13fd060f507b36a02080759d5a39c29c4a767b5068f1e1647  build.txt
+dfa0e2948220305a221789ef46efe52f707dee2f74fa0762c579a03f632e5912  tests.txt
+4e0e47a13e6b366b9eadf0d4c47c479da21fa31e8f64f6e07125826dae91ccee  digests.txt
+373c39ce068e75ed268f1b0a88376d579c3d0639e04eaf92e1d5a34ad78e743b  ui-restore.txt
+8a27708dc05510677bf1b2fd5842eb8a60dfdec08b41a980f68a183198ab3ffe  ui-build.txt
+9b2b45f0dbac3b280308f77325bab96de4c8ee0ef1d4765ddf2d7a9a596e9b39  ui-smoke/ui-smoke.txt
+```
+
+### 0.6 Negative controls — the new checks fail on the original defects
+
+Each control is a scratch copy of the `d2c04cbb` clone with **one file put back** to `1905433f`:
+- **Script:** `negative-controls/repair-negative-controls.sh`, outside the repository.
+- **Logs:** `tier1-logs-d2c04cbb/negative-controls/` (`nc-run.txt` sha256 `8ed20cc8b62a1dc6b1c874714439ae9fd820eec4336abe6a2ac1281770c93b9d`).
+
+| Control | What failed (expected) |
+|---|---|
+| NC-1: `app.js` from `1905433f` | Smoke **FAIL**. J02 (no zoom) and J04 ("Fells exactly 1 named trees") fail. J06, J07, J09 and J11 fail. **J10 captured the old page sending `POST api/plan/execute` for plan B**: the reviewer's D1. The witness then stopped at J12, because the old page has no lock alert to click, so NC-1 does not reach the D2 checks |
+| NC-2: `AnnualContinuation.cs` from `1905433f` | Core runner **91/92: only PS-20 fails**. Smoke **FAIL**: **E00 got HTTP 200** (the old engine executed plan 2 under the future key `plan:12`), and **D03 then got 409** for the plan legitimately minted with that key: the reviewer's D3. The later steps diverge from there |
+| Edge `unconfirmed` phase on the original `1905433f` build (UI DLL `a01a2194…`) | **U03 FAIL:** all eight engine commands enabled. **U04 FAIL:** a trusted click on Advance **sent `POST api/year/advance`**, and Tab reached Remove, Approve and Advance: the reviewer's D2 (`negative-controls/edge-1905433f/cdp-log.json`, sha256 `7d968d70a85b04899ecd2b5ddd969b8862ad522499d227c29beab57ff72dfea4`) |
+
+### 0.7 Real-browser evidence, Edge 157.0.4341.60 (headless, CDP, trusted input), clone build of `d2c04cbb`
+
+- **Driver:** `edge-repair-driver.mjs`, outside the repository, run with Windows node v26.13.1; sha256 `afa62c0f3186dff7d81abb334711506857065ea9c31dd5b99c6dde611a3f0d62`.
+- **Launcher:** `repair-edge-run.sh`. It runs the README launch command from the clone, and the server ends with SIGINT and exit 0, with nothing on stderr.
+- **Folder:** `tier1-logs-d2c04cbb/browser/` (`cdp-log.json` sha256 `cdea4e4cdfa2d583f90ec69e4716eb1dc0b458277ea59b8f38a18a66d9e0dcce`). An earlier exact-SHA run with a previous driver version is kept separately in `browser-prelim-earlier-driver/` and is not counted.
+- **Viewports and zoom:** set with `Emulation.setDeviceMetricsOverride`. **200 % is emulated** as CSS size plus DPR 2; it is not the browser's zoom control.
+
+| Phase | What was measured or witnessed |
+|---|---|
+| L360: 360 × 800, mobile, touch, DPR 2 | One column; no page-level horizontal scroll (360 = 360). Map at **64.00 px/m**. **All 98 crowns ≥ 248.53 × 248.53 px; both stumps 44.80 × 44.80 px.** The pane is 294 × 480 px and scrolls internally (2,432 px of map). All 114 visible controls outside the map are ≥ 44 × 44. A trusted **tap** on crown P30-056 selected exactly P30-056. With P30-060 selected by a tap, a trusted tap on the centre of the felled P30-050 **stump** selected exactly P30-050 |
+| L640: 640 × 400 at DPR 2 (200 % of 1280 × 800) | One column; no horizontal scroll. 64 px/m. Crowns ≥ 248.53 px and stumps 44.80 px. The pane is 544 × 225 px. Controls ≥ 44. A trusted click selected an exact crown, and then the exact stump |
+| L960: 960 × 540 at DPR 2 (200 % of 1920 × 1080) | No horizontal scroll; 64 px/m (the DPR rule). Crowns ≥ 248.53 px and stumps 44.80 px. Controls ≥ 44. **The layout has two columns**: the 900 px breakpoint is unchanged from the reviewed candidate (§0.9) |
+| L1280: 1280 × 800 at DPR 1 | Whole area at 18.32 px/m. Smallest crown 70.23 px, **smallest stump 12.66 px** (A-4 does not name this condition; the note says so, and Zoom in gives 44.8 px). Controls ≥ 44 |
+| K01–K04 | Enter on Zoom out gives 32 px/m, and Zoom in returns to 64. Enter on Pan east scrolls the pane. Tab from the last pan button skips the pane and the map (A-2). Enter on Whole area fits the map and shows the under-44 px note |
+| R01–R07: D1, the reviewer's race | With a held re-read, the dialog listed only plan A (P30-099). A second client of the same session replaced it with plan B (P30-100). A trusted click on the dialog's Execute while the read was pending sent nothing. When plan B arrived, the confirmation was withdrawn, all commands were disabled, and focus moved to the alert. No Execute was sent, and A and B were both living on the server. After a re-read, a fresh dialog listed only B, and **exactly one Execute was sent, for plan B with its minted key** |
+| U01–U05: D2 at 360 px | The Add committed on the server and its answer was dropped. The page drew nothing optimistic. All eight engine commands were disabled, focus was in the alert, and Re-read was the only button in it. Trusted clicks on Advance and Add sent **no request**, and 40 Tab stops from the alert reached no engine command. A successful re-read showed the committed Add and lifted the lock |
+
+There was no uncaught page exception and no console error. Screenshots: `L360-360x800.png`, `L360-stump-selected.png`, `L640-640x400.png`, `L640-stump-selected.png`, `L960-960x540.png`, `L1280-1280x800.png`, `R01-dialog-plan-A-read-pending.png`, `R04-confirmation-withdrawn.png`, `R07-plan-B-executed.png`, `U03-unconfirmed-commands-disabled-360.png` and `U05-after-reread-360.png`, all hashed in `browser/SHA256SUMS`. A scan of all the evidence found no capability string.
+
+### 0.8 Author statuses after the repair (not checklist ticks; Tier-2 decides)
+
+| Item | Earlier Tier-2 disposition | Author status on `d2c04cbb` |
+|---|---|---|
+| PM-R08 | FAIL (D3) | AUTHOR-EVIDENCED: PS-20 and E00/D02f/D03; NC-2 shows the old failure |
+| PM-X15 | FAIL (D1, D2) | AUTHOR-EVIDENCED for D1 and D2: J03–J28, R01–R07, U01–U05; NC-1 and Edge NC. Native zoom NOT TESTED |
+| PM-R14, R-22, X-21 | PARTIAL / A-4 FAIL (D4) | A-4 targets AUTHOR-EVIDENCED at 360 and 200 % (emulated). **Still PARTIAL** overall: screen reader NOT RUN, native zoom and physical touch NOT TESTED |
+| R-12, X-12, X-11 | FAIL / PARTIAL (D1) | AUTHOR-EVIDENCED: the confirmation is bound to the plan it shows, or withdrawn unsent |
+| R-15, X-14 | PARTIAL (D3) | AUTHOR-EVIDENCED: first-use identity enforced and replay unchanged |
+| R-26 | PARTIAL (D1, D2) | AUTHOR-EVIDENCED: withdrawal and lock alerts with one recovery action |
+| PM-R11 | PASS with NIT D5 | AUTHOR-EVIDENCED: singular label (PS-18, J04) |
+| All others | as in the review | Unchanged by this repair. PM-R15 and R-25 remain NOT VERIFIED; R-06 and X-05 are not PASS (Q-3); R-07, R-08, X-07 and X-09 are G1-disabled |
+
+### 0.9 Still unverified, limits and open points
+
+1. **Tier-2 re-check of `d2c04cbb` has not run.** This addendum does not claim the review is passed.
+2. Screen reader **NOT RUN**. The browser's own 200 % zoom control is **NOT TESTED** (emulated only). Physical touch is **NOT RUN** (emulated). No human player session.
+3. At 200 % zoom of a window **1,800 px or wider** (for example 960 CSS px from 1920), the page has two columns, because the 900 px breakpoint is unchanged. Its targets are ≥ 44 px there through the DPR rule. A-4's single-column clause is evidenced at 360 and 640 CSS px only.
+4. The DPR rule also opens the map zoomed at 100 % on high-density desktop displays (DPR ≥ 2). *Whole area* gives the overview.
+5. The desktop whole-area view (1280 × 800 at DPR 1) draws stumps at 12.66 px. A-4 names only 360 px and 200 %; the page says so and offers zoom.
+6. After a withdrawn confirmation, the lock asks for one more re-read even though the arriving view is already current. This follows the repair instruction.
+7. The page witness (J checks) runs in a DOM stand-in, not a browser. It stops at the first section that throws: in NC-1 the D1 failure masked the later checks. The smoke still exits non-zero in that case.
+8. PS-01 observed only Advance wins in the exact-SHA run.
+9. PM-R15 custody, #846's native release and the lane discrepancy are unchanged and not author-verifiable.
 
 ## 1. Commits (branch `feat/multi-standmap-playable2d-20261120-v1`, forward-only)
 
@@ -286,4 +464,4 @@ All 50 stay unchecked. Under #730 Q-3, **R-06 and X-05 are not PASS from this sl
 
 ## 13. Next
 
-PM-T09: independent Tier-2 by GPT-6.1 Sol (non-author) on a fresh clone of `1905433fbec69736c4c05ec629aa5941d11952ee`. Plan P4 lists the review scope.
+PM-T09 ran on `1905433f` and returned NEEDS CHANGES (§0.1). **Next: the independent Tier-2 re-check of the repair candidate `d2c04cbbca380b4a5076807c72f19632bf2543a8`** on a fresh clone. It should retest the confirmation race, the committed-but-answer-lost recovery, first-use key rejection with normal replay, and the map target sizes at 360 px and 200 %, and should rule on the limits in §0.9.
