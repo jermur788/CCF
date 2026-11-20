@@ -45,7 +45,9 @@ else
     mkdir -p "$slot"
     fixture="${4:?historical fixture path}"
     cp -- "$fixture" "$slot/forest-save.json"
-    sha256sum "$slot/forest-save.json" > "$out/historical-before.sha256"
+    sha256sum "$fixture" > "$out/historical-before.sha256"
     "${base[@]}" "${graphics[@]}" XDG_CONFIG_HOME="$sandbox" CCF_857_HISTORICAL_PATH="$slot" "${args[@]}"
     sha256sum --check "$out/historical-before.sha256"
+    cmp -- "$fixture" "$slot/forest-save.json.bak"
+    sha256sum "$slot/forest-save.json" "$slot/forest-save.json.bak" > "$out/historical-round-trip.sha256"
 fi

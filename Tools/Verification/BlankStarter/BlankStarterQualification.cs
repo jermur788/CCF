@@ -16,7 +16,7 @@ using Object = UnityEngine.Object;
 
 // Copy temporarily to Assets/ForestPrototype; remove that copy and its .meta after the Editor exits.
 // Starts only for the named -executeMethod. Blank mode must run inside a path-filtered strace;
-// historical mode only reads the separately staged fixture, never calls the live Save method.
+// historical mode loads and round-trips a separately staged copy in an isolated config root.
 public static class BlankStarterQualification
 {
     public static void Begin()
@@ -197,7 +197,7 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
         {
             Check(Application.isFocused, "graphical Game view focused for walk/look");
             Vector3 pose = ui.Player.transform.position;
-            Cursor.lockState = CursorLockMode.Locked;
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
             yield return Frames(5);
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W));
             yield return Frames(15);
@@ -417,6 +417,15 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
         Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.Review && !Text(ui.RootElement, "No year has been advanced; no annual review is available."),
             "historical Annual Review navigates to recorded year");
         yield return Screenshot("12-historical-review");
+
+        ui.CloseAll();
+        saves.Save();
+        Check(saves.CanLoad(out _) && File.Exists(Path.Combine(Application.persistentDataPath, "forest-save.json.bak")),
+            "historical current-version Save/CanLoad succeeds in the isolated config and keeps a backup");
+        saves.Load();
+        yield return Frames(3);
+        Check(ui.Manager.CurrentEcologicalYear == 1 && ui.Manager.HistoryYears.Count == 1 && ui.Manager.WorkOrders.Count == 10,
+            "isolated current-version round trip retains historical year, review and orders");
 
         int pathCount = model.Paths.Count;
         SetField(ui, "ecology", null);
