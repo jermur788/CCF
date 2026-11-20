@@ -1,6 +1,6 @@
 # MULTI-STANDMAP-2D-SELECTED-UI-V1 — Implementation plan
 
-**Status: DRAFT / NOT APPROVED.** Companion to `spec.md`; project task #868. This is a production plan, not permission to execute.
+**Status: APPROVED FOR BOUNDED FRONT-END IMPLEMENTATION by Manager #863, acting on the owner's explicit 2026-11-20 14:38 UTC delegation.** Companion to `spec.md`. This approval grants no individual agent a physical/source lease, merge or protected file changes.
 
 ## 1. Preflight and source inventory
 
@@ -8,7 +8,7 @@ Refresh live main coordination board and physical custody. Start exact qualified
 
 ## 2. Freeze owner design reference (dependency)
 
-Obtain owner-designated actual generated **comparison image #1** (the 2026-11-20 13:52 comparison, visual selection at 13:56); store a permanent, licensed, SHA-256 logged reference in a separate later reference-asset grant or this spec's `references/` **only after permission**. Store image #3 as a separate **legend-scope-only** supporting reference if made available. State clearly “generated concept, not Unity screenshot”. Use actual file bytes; do not recreate/reinvent an image, silently substitute other screenshots or claim pixel comparisons from prose. If unavailable, mark visual matching **NOT VERIFIED** and leave final reference-fidelity gate OPEN while other approved source-independent planning may proceed.
+Obtain owner-designated actual generated **comparison image #1** (the 2026-11-20 13:52 comparison, visual selection at 13:56); store a permanent, licensed, SHA-256 logged reference in a separate later reference-asset grant or this spec's `references/` **only after permission**. Store image #3 as a separate **legend-scope-only** supporting reference if made available. State clearly “generated concept, not Unity screenshot”. Use actual file bytes; do not recreate/reinvent an image, silently substitute other screenshots or claim pixel comparisons from prose. If unavailable, mark visual matching **NOT VERIFIED** and leave final reference-fidelity gate OPEN; proceed only with approved text-grounded front-end authoring and do not assert visual fidelity or owner acceptance. Obtaining/hash-freezing the exact reference remains a Manager-controlled follow-up.
 
 ## 3. Proposed minimal source file allowlist (subject to writer preflight and approval)
 
@@ -38,4 +38,4 @@ Obtain owner-designated actual generated **comparison image #1** (the 2026-11-20
 
 **Source author stop:** any requirement for changing `PlayerApi.cs`/core, rebuilding protected P0, new growth, new tree species, new save/finance, new generated fictitious canopy, or conflicting physical/source lane must be reported as a blocker. Stop only that action, continue authorised UI/design work. Main/G4 integration requires separate authority and reviewed exact candidate. No Windows Player build before Scenario One owner playtest and explicit approval.
 
-**Owner approval request:** approve visual direction #1 + legend #3, page/controls, reason vocabulary, responsive equivalent-accessibility and the four-file spec; freeze actual image reference before reference fidelity claim. Then manager may send one complete implementation packet to a single local-capable source writer, after verifying locks.
+**Approval resolution:** Owner explicitly delegated four-file approval to Manager #863 on 2026-11-20 14:38 UTC. Manager approved image #1 style direction + image #3 legend semantics, compact desktop/reflow requirements, the exact five dropdown labels in `spec.md`, and this production plan. Manager may now dispatch one local-capable writer *after real lock/lease preflight*, without DeepSeek. The actual generated image asset is not frozen; no worker may claim pixel-specific reference fidelity until a verified reference is archived and independently compared.
