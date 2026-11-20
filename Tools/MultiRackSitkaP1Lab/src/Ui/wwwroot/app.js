@@ -1025,7 +1025,7 @@
     const request = ++state.competitionRequest;
     state.competition = null;
     renderAll();
-    byId('competition-content').replaceChildren(el('p', null, 'Reading competition…'));
+    byId('competition-content').append(el('p', null, 'Reading competition…'));
     const outcome = await call('api/competition', { fence: currentFence(), treeId: state.competitionTargetId });
     // A late response from an older selection/view can never paint numbers on a newer tree or fence.
     if (request !== state.competitionRequest || tag !== competitionTag() || state.lock) return;
@@ -1046,7 +1046,7 @@
     const box = byId('competition-content');
     const living = state.view.frame.trees.find(t => t.treeId === state.selectedId && t.isLiving);
     const report = state.lock ? null : state.competition;
-    const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', disabled: !living || !state.view.cropTreeIds.includes(state.selectedId) || Boolean(state.lock) },
+    const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', 'data-focus-key': 'competition-inspect', disabled: !living || !state.view.cropTreeIds.includes(state.selectedId) || Boolean(state.lock) },
       'Inspect selected Crop Tree competitors');
     const parts = [inspect];
     if (report) {
@@ -1058,7 +1058,7 @@
       parts.push(el('ol', { class: 'competitors' }, ...report.topFive.map((n, i) => {
         const focused = state.selectedId === n.treeId;
         return el('li', { class: focused ? 'focused' : '' },
-          el('button', { type: 'button', 'data-competitor': n.treeId, 'aria-pressed': String(focused) }, (i + 1) + ' · ' + n.treeId),
+          el('button', { type: 'button', 'data-competitor': n.treeId, 'data-focus-key': 'competition-tree-' + n.treeId, 'aria-pressed': String(focused) }, (i + 1) + ' · ' + n.treeId),
           el('span', null, fixed(n.dbhCm, 2) + ' cm DBH · ' + fixed(n.distanceM, 2) + ' m · CI ' + fixed(n.contribution, 4)),
           el('span', null, fixed(n.sharePercent, 1) + '% · ' + n.strength +
             (n.plannedRemoval === 'None' ? '' : ' · ' + n.plannedRemoval + ' Fell')));
@@ -1066,7 +1066,8 @@
       if (report.topFive.length === 0) parts.push(el('p', null, 'No living competitors inside the 8 m cutoff.'));
       parts.push(el('p', { class: 'small-note' }, 'Other neighbours: ' + report.remainingCount + ' · combined ' +
         fixed(report.remainingSharePercent, 1) + '%. Diagnostic only; not advice to fell or a growth forecast.'));
-      if (state.selectedId !== report.targetTreeId) parts.push(el('button', { type: 'button', 'data-competitor': report.targetTreeId },
+      if (state.selectedId !== report.targetTreeId) parts.push(el('button', { type: 'button', 'data-competitor': report.targetTreeId,
+        'data-focus-key': 'competition-return-' + report.targetTreeId },
         'Return to target ' + report.targetTreeId));
     }
     box.replaceChildren(...parts);
@@ -1089,6 +1090,9 @@
       state.selectedId = button.getAttribute('data-competitor');
       resetReasonPicker();
       renderAll();
+      // Returning removes that button; keep the keyboard at the target's inspection control.
+      if (state.selectedId === state.competition.targetTreeId)
+        document.querySelector('[data-inspect-competition]').focus();
       const point = selectedPoint();
       if (point) centreMapOn(point);
       announce('Selected ' + state.selectedId + '; competition target remains ' + state.competition.targetTreeId + '.');

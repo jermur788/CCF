@@ -401,6 +401,85 @@ check "V04 the scene has exactly the frame's exact IDs, in paint order 0..99" \
   test "$(js v0 '[sorted([i["treeId"] for i in r["scene"]]) == sorted([t["treeId"] for t in r["view"]["frame"]["trees"]]), [i["paintOrder"] for i in r["scene"]] == list(range(100))]')" == "[true, true]"
 
 f0="$(fence v0)"
+
+# ---- #882 B1 repair: strict Crop requests at the initial zero clocks; all refusals leave the whole view intact -----------
+cat > "$scratch/crop-validation.py" << 'CROP_VALIDATION'
+import copy, json, sys, urllib.error, urllib.request
+base = sys.argv[1]
+origin = base.split('/s/')[0]
+def send(path, body=None, raw=None, headers=None, method=None, target=None):
+    h = {'Origin': origin, 'Content-Type': 'application/json'}
+    h.update(headers or {})
+    data = raw if raw is not None else json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request((target or base) + path, data=data, headers=h, method=method)
+    try: r = urllib.request.urlopen(req, timeout=15)
+    except urllib.error.HTTPError as e: r = e
+    content = r.read()
+    return r.status, json.loads(content) if content else None
+def view(): return send('api/view')[1]['view']
+initial = view()
+body = {'fence': {k:initial[k] for k in ('sessionId','source','planStateRevision')}, 'treeId':'P30-045'}
+count = 0
+def check(ok, title):
+    global count
+    count += 1
+    print(('PASS' if ok else 'FAIL') + ' B%03d ' % count + title, flush=True)
+    if not ok: raise AssertionError(title)
+def refused(path, candidate, expected, title, **kw):
+    code, _ = send(path, candidate, **kw)
+    check(code == expected and view() == initial, title + ' HTTP ' + str(code) + '; entire view unchanged')
+check([initial['source'][k] for k in ('ecologicalYear','annualRevision','workRevision')] +
+      [initial['planStateRevision']] == [0,0,0,0] and not initial['cropTreeIds'], 'fresh zero clocks and empty Crop')
+paths = [('treeId',), ('fence',), ('fence','sessionId'), ('fence','source'), ('fence','planStateRevision')]
+paths += [('fence','source',k) for k in body['fence']['source']]
+for route in ('api/crop/mark', 'api/crop/unmark'):
+    missing = copy.deepcopy(body)
+    del missing['fence']['planStateRevision']
+    for k in ('ecologicalYear','annualRevision','workRevision'): del missing['fence']['source'][k]
+    refused(route, missing, 400, route + ' all four clocks/revisions omitted at zero')
+    for path in paths:
+        b = copy.deepcopy(body); parent = b
+        for k in path[:-1]: parent = parent[k]
+        member = parent.pop(path[-1])
+        refused(route, b, 400, route + ' missing ' + '.'.join(path))
+        # Duplicate every required member, including nested source members, using identical values.
+        # Even identical duplicates are ambiguous and must never reach Core.
+        key = json.dumps(path[-1]) + ':'
+        raw = json.dumps(body).replace(key, key + json.dumps(member) + ',' + key, 1).encode()
+        refused(route, None, 400, route + ' duplicate ' + '.'.join(path), raw=raw)
+    for path in [('fence',), ('fence','sessionId'), ('fence','source')]:
+        b = copy.deepcopy(body); parent = b
+        for k in path[:-1]: parent = parent[k]
+        parent[path[-1]] = None
+        refused(route, b, 400, route + ' null ' + '.'.join(path))
+    refused(route, None, 400, route + ' duplicate competing tree IDs',
+            raw=('{"fence":'+json.dumps(body['fence'])+',"treeId":"P30-002","treeId":"P30-001"}').encode())
+    refused(route, dict(body, TreeId='P30-001'), 400, route + ' ambiguous treeId casing')
+    b = copy.deepcopy(body); b['fence']['source']['WorkRevision'] = 0
+    refused(route, b, 400, route + ' ambiguous source member casing')
+    for path in [('fence','sessionId'), ('fence','source','workRevision'), ('fence','planStateRevision')]:
+        b = copy.deepcopy(body); parent = b
+        for k in path[:-1]: parent = parent[k]
+        parent[path[-1]] = 'another-session' if path[-1] == 'sessionId' else 1
+        refused(route, b, 409, route + ' complete but stale ' + '.'.join(path))
+    for expected, title, kw in [
+        (403, 'Origin guard', {'headers':{'Origin':'http://example.invalid'}}),
+        (403, 'Host guard', {'headers':{'Host':'localhost:'+origin.rsplit(':',1)[1]}}),
+        (404, 'capability guard', {'target':origin+'/s/'+'0'*64+'/'}),
+        (405, 'method guard', {'method':'GET'}),
+        (415, 'content-type guard', {'headers':{'Content-Type':'text/plain'}}),
+        (413, 'body-size guard', {'raw':b' '*17000})]:
+        refused(route, body, expected, route + ' ' + title, **kw)
+# The original diagnostic strictness must survive sharing its parser with Crop mutations.
+b = copy.deepcopy(body); del b['fence']['source']['ecologicalYear']
+refused('api/competition', b, 400, 'diagnostic still rejects omitted ecologicalYear at zero')
+CROP_VALIDATION
+crop_validation_rc=0
+python3 "$scratch/crop-validation.py" "$url" > "$scratch/crop-validation.out" 2> "$scratch/crop-validation.err" || crop_validation_rc=$?
+cat "$scratch/crop-validation.out" | tee -a "$log"
+check "B999 strict Crop witness completed without stderr" bash -c 'test "$1" == 0 && test ! -s "$2"' _ "$crop_validation_rc" "$scratch/crop-validation.err"
+if [[ $crop_validation_rc != 0 ]]; then fail=1; cat "$scratch/crop-validation.err" | tee -a "$log"; fi
+
 code="$(req g-noorigin POST "/s/$cap/api/plan/approve" -H 'Content-Type: application/json' --data-binary "{\"fence\":$f0}")"
 expect "G15 POST without Origin: 403" "$code" 403
 code="$(post g-badorigin "/s/$cap/api/plan/approve" "{\"fence\":$f0}" -H "Origin: http://localhost:$port")"
@@ -596,6 +675,17 @@ v = marked['view']
 fence = {k: v[k] for k in ('sessionId','source','planStateRevision')}
 target = next(t for t in v['frame']['trees'] if t['isLiving'])
 body = {'fence': fence, 'treeId': target['treeId']}
+
+# With a real retained Crop, malformed unmark must not remove it or change any view/revision.
+for raw in [
+    json.dumps(body).replace('"treeId":', '"treeId":"duplicate","treeId":').encode(),
+    json.dumps(body).replace('"planStateRevision":', '"planStateRevision":0,"planStateRevision":').encode(),
+    json.dumps(body).replace('"workRevision":', '"workRevision":0,"workRevision":').encode()
+]:
+    code, _ = send('api/crop/unmark', raw=raw)
+    assert code == 400 and send('api/view', method='GET')[1]['view'] == v
+    print('PASS BMARK retained Crop survives ambiguous unmark with unchanged entire view', flush=True)
+
 count = 0
 def check(ok, title):
     global count
@@ -1018,6 +1108,32 @@ check(requests.length === 1 && requests[0].method === 'GET' && requests[0].path 
 check(byId('map').getAttribute('width') === String(38 * 64) && byId('map-scale').textContent.includes('44.8 px across (at least 44 px)'),
   'J02 one-column default: the map is drawn at 64 px per metre and states that the smallest drawn item (a stump) is 44.8 px across',
   { width: byId('map').getAttribute('width'), note: byId('map-scale').textContent });
+
+// #882 N1 repair: this is the DOM stand-in, not real-browser/native-input evidence.
+await selectInTable(treeA);
+click(byId('crop-button'));
+await until(() => byId('crop-button').textContent === 'Remove Crop designation', 'retained Crop');
+await until(() => document.querySelector('[data-competitor]') !== null, 'automatic Crop competitor report');
+let inspectCompetition = document.querySelector('[data-inspect-competition]');
+inspectCompetition.focus();
+click(inspectCompetition);
+await until(() => document.querySelector('[data-competitor]') !== null, 'competitor report');
+check(document.activeElement.getAttribute('data-focus-key') === 'competition-inspect',
+  'BFOCUS1 Inspect retains focus across asynchronous competition redraw');
+let competitor = document.querySelector('[data-competitor]');
+const competitorId = competitor.getAttribute('data-competitor');
+competitor.focus();
+click(competitor);
+check(document.activeElement.getAttribute('data-focus-key') === 'competition-tree-' + competitorId &&
+  byId('insp-id').textContent === competitorId,
+  'BFOCUS2 selecting competitor retains focus on its rebuilt button');
+let returnToCrop = document.querySelector('[data-competitor="' + treeA + '"]');
+returnToCrop.focus();
+click(returnToCrop);
+check(document.activeElement.getAttribute('data-focus-key') === 'competition-inspect' && byId('insp-id').textContent === treeA,
+  'BFOCUS3 Return to target lands on enabled Inspect control');
+click(byId('crop-button'));
+await until(() => byId('crop-button').textContent === 'Retain as Crop Tree', 'Crop cleanup before original page guards');
 
 // ---- D1: a re-read that is still on its way when Execute is opened brings a different plan ----------------------------
 await addThroughPage(treeA, 'page witness: plan A');

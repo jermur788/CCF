@@ -71,7 +71,8 @@ internal sealed class PlayerApi
 
         // Core refuses a missing fence exactly like another session's fence (PlayerSessionMismatch), and a missing ID,
         // reason, PlanId or key exactly like a blank one, so absent values are passed through for the engine to refuse
-        // with its own codes. The page never sends a plan object, and no route here can build one.
+        // with its own codes. Crop mutations additionally require a complete, unambiguous request at this HTTP boundary.
+        // The page never sends a plan object, and no route here can build one.
         routes = new Dictionary<string, Route>(StringComparer.Ordinal)
         {
             [""] = new("GET", context => WriteAssetAsync(context, PageHtml, "text/html; charset=utf-8")),
@@ -81,9 +82,9 @@ internal sealed class PlayerApi
             ["api/hit"] = new("POST", HitTestAsync),
             ["api/competition"] = new("POST", ReadCompetitionAsync),
             ["api/crop/mark"] = new("POST", context => CommandAsync<TreeRequest>(context,
-                request => player.MarkCrop(request.Fence!, request.TreeId ?? ""))),
+                request => player.MarkCrop(request.Fence!, request.TreeId ?? ""), rejectDuplicateMembers: true)),
             ["api/crop/unmark"] = new("POST", context => CommandAsync<TreeRequest>(context,
-                request => player.UnmarkCrop(request.Fence!, request.TreeId ?? ""))),
+                request => player.UnmarkCrop(request.Fence!, request.TreeId ?? ""), rejectDuplicateMembers: true)),
             ["api/pending/add"] = new("POST", context => CommandAsync<AddRequest>(context,
                 request => player.AddPending(request.Fence!, request.TreeId ?? "", request.Reason ?? ""))),
             ["api/pending/remove"] = new("POST", context => CommandAsync<TreeRequest>(context,
@@ -246,10 +247,11 @@ internal sealed class PlayerApi
             PlayerMapScene.Build(result.View), result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage)));
     }
 
-    private static async Task CommandAsync<TRequest>(HttpContext context, Func<TRequest, PlayerCommandResult> command)
+    private static async Task CommandAsync<TRequest>(HttpContext context, Func<TRequest, PlayerCommandResult> command,
+        bool rejectDuplicateMembers = false)
         where TRequest : class
     {
-        var request = await ReadRequestAsync<TRequest>(context);
+        var request = await ReadRequestAsync<TRequest>(context, rejectDuplicateMembers);
         if (request is null) return; // a guard has already answered
         var result = command(request);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new CommandPayload(result.View,
@@ -289,7 +291,7 @@ internal sealed class PlayerApi
             {
                 using var document = JsonDocument.Parse(body);
                 RequireUniqueMembers(document.RootElement);
-                RequireCompetitionShape(document.RootElement);
+                RequireTreeRequestShape(document.RootElement);
             }
             request = JsonSerializer.Deserialize<T>(body, RequestJson);
         }
@@ -302,10 +304,11 @@ internal sealed class PlayerApi
         return request;
     }
 
-    private static void RequireCompetitionShape(JsonElement root)
+    private static void RequireTreeRequestShape(JsonElement root)
     {
         static JsonElement Member(JsonElement value, string name) => value.ValueKind == JsonValueKind.Object &&
-            value.TryGetProperty(name, out var member) ? member : throw new JsonException("missing member: " + name);
+            value.TryGetProperty(name, out var member) && member.ValueKind != JsonValueKind.Null
+                ? member : throw new JsonException("missing or null member: " + name);
         _ = Member(root, "treeId");
         var fence = Member(root, "fence");
         _ = Member(fence, "sessionId");
