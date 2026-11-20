@@ -305,17 +305,19 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
 
     private void UpdateBlankPreview()
     {
-        hud.Root.style.display = screen == UiScreen.None ? DisplayStyle.Flex : DisplayStyle.None;
+        bool walking = screen == UiScreen.None;
+        hud.Root.style.display = walking ? DisplayStyle.Flex : DisplayStyle.None;
         workPlan.Root.style.display = screen == UiScreen.WorkPlan ? DisplayStyle.Flex : DisplayStyle.None;
         map.Root.style.display = screen == UiScreen.Map ? DisplayStyle.Flex : DisplayStyle.None;
         review.Root.style.display = screen == UiScreen.Review ? DisplayStyle.Flex : DisplayStyle.None;
         learning.Root.style.display = screen == UiScreen.Objectives ? DisplayStyle.Flex : DisplayStyle.None;
         previewBanner.text = BlankStarterPreview.Banner;
-        if (screen == UiScreen.None) hud.Refresh();
+        // Keep the banner clear of navigation buttons in modal headers.
+        previewBanner.style.top = walking ? new StyleLength(14f) : new StyleLength(StyleKeyword.Auto);
+        previewBanner.style.bottom = walking ? new StyleLength(StyleKeyword.Auto) : new StyleLength(14f);
+        if (walking) hud.Refresh();
         else if (screen == UiScreen.Map) map.Refresh(false);
         else if (screen == UiScreen.Objectives) learning.Refresh(false);
-        // UI Toolkit modals are drawn over the walking HUD; keep the preview label above both.
-        previewBanner.BringToFront();
     }
 
     // The inspection card and its detail sit top-left. Their height is capped just above the highest panel of the bottom-left

@@ -216,9 +216,14 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             Check(Quaternion.Angle(rotation, ui.Player.transform.rotation) > 0.2f, "mouse delta changes real look direction");
             Check(ui.Player.GetComponent<CharacterController>().isGrounded, "character grounded after moving");
 
+            // Exercise the legacy G branch with a real ground target in range, not just a skyward aim.
+            SetField(ui.Player, "pitch", 65f);
+            yield return Frames(3);
+            Check(ui.Player.IsAimingGround, "planting negative performed while aiming at actual ground");
             yield return KeyPress(keyboard, Key.E, Key.F, Key.G, Key.T, Key.B, Key.X, Key.F1);
             Check(ui.CurrentScreen == ScenarioOneUiRoot.UiScreen.None && ui.Help == null && ui.Player.InspectedTree == null
-                && ui.Player.CarriedWood == 0, "inspection/Fell/plant/time/rack/help input leaves preview empty");
+                && !ui.Player.IsPlantingMode && ui.Player.CarriedWood == 0, "inspection/Fell/plant/time/rack/help input leaves preview empty");
+            SetField(ui.Player, "pitch", 0f);
             Check(!ui.ApproveWorkPlan() && !ui.AdvanceFromWorkPlan() && !ui.TryShowReviewYear(1), "direct plan/year/review actions refuse");
             yield return KeyPress(keyboard, Key.Tab);
             Check(Text(ui.RootElement, "Work Plan") && Text(ui.RootElement, "No eligible operations in this blank starter."), "exact Work Plan empty state");
@@ -287,6 +292,19 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             "new test-only scene opens with shared runtime scripts");
         CheckWorld(ui, 45, 60);
         yield return Screenshot("08-copy-walking-hud");
+        Keyboard copyKeyboard = InputSystem.AddDevice<Keyboard>();
+        try
+        {
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+            yield return Frames(4);
+            Vector3 spawn = ui.Player.transform.position;
+            InputSystem.QueueStateEvent(copyKeyboard, new KeyboardState(Key.W));
+            yield return Frames(10);
+            InputSystem.QueueStateEvent(copyKeyboard, new KeyboardState());
+            yield return Frames(2);
+            Check(Vector3.Distance(spawn, ui.Player.transform.position) > 0.05f, "walking also works in the copied scene");
+        }
+        finally { InputSystem.RemoveDevice(copyKeyboard); }
         ui.ShowMap();
         yield return Frames(3);
         CheckMap(ui, 45, 60);
@@ -322,6 +340,9 @@ public sealed class BlankStarterQualificationRunner : MonoBehaviour
             "all preview layers empty: racks trees juveniles shelters paths landmarks mini-guidance ecology grid and waypoint");
         var transform = model.TransformFor(StandMapView.MapSidePx);
         VisualElement boundary = ui.Map.Root.Q("blank-map-boundary");
+        VisualElement banner = ui.RootElement.Q("blank-preview-banner");
+        Check(ui.Map.Root.Query<Button>().ToList().Where(Visible).All(button => !banner.worldBound.Overlaps(button.worldBound)),
+            "preview banner does not overlap the map navigation");
         // Measure the actual boundary element's geometry in logical panel units. UI Toolkit
         // rounds the resolved layout to display pixels; check that separately at raster precision.
         float logicalWidth = boundary.style.width.value.value, logicalHeight = boundary.style.height.value.value;
