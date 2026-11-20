@@ -84,7 +84,23 @@ Observed directly at `cbcb3850` (read-only inspection; not a Unity run, not a so
 | 2026-11-20 ~10:35 | O1 | jermur788 (owner-delegated G4) | One-file allowlist amendment: `ForestPlayer.cs`, narrow legacy-IMGUI suppression in preview only | verified in source by the orchestrator | GRANTED (`d857-06`) |
 | 2026-11-20 ~11:30 | O2/O3 | openai/gpt-6.2-sol | Implemented + native qualified on `6000.6.0f1` | `c5e0547a` (tested source `fac8a909`), 26 files | IMPLEMENTED, NOT REVIEWED |
 | 2026-11-20 ~11:40 | O3 | deepseek-v4.1-flash | Reconciled the candidate: protected files re-hashed OK, fence read directly, host save state re-measured | evidence + source | RECONCILED |
-| 2026-11-20 ~11:45 | O4 | deepseek-v4.1-flash → openai/gpt-6.1-terra | Dispatched independent candidate review | `review/ccf-857-blank-starter-candidate-20261120-v1` | RUNNING |
+| 2026-11-20 ~11:45 | O4 | deepseek-v4.1-flash → openai/gpt-6.1-terra | Dispatched independent candidate review | `review/ccf-857-blank-starter-candidate-20261120-v1` | **NEEDS CHANGES** @ `32a028c7` |
+| 2026-11-20 ~12:10 | O4 | deepseek-v4.1-flash | **Retracted my own overstatement** about `PlayerPrefs`; corrected the host-incident adjudication (see §5) | review R-04 | CORRECTED |
+| 2026-11-20 ~12:15 | O4 | deepseek-v4.1-flash → openai/gpt-6.2-sol | Bounded repair of R-01 (existing `.tmp`/`.bak` witnesses) and R-02 (AC-09 determinism), plus R-03 allowlist clarification | same branch | RUNNING |
+
+---
+
+## 5. Host-directory incident — corrected record
+
+The first live-path native run rewrote Unity editor housekeeping files in `/home/jer/.config/unity3d/DefaultCompany/CCF/` (`prefs`, `Analytics/*`, `Insights/*`) and the directory was **not** restored byte-for-byte. The original `prefs` bytes were not retained.
+
+**My first adjudication contained an error and is retracted.** I wrote that "no `PlayerPrefs` writer exists in production or harness code". That is false. `Assets/ForestPrototype/UI/LearningObjectivesView.cs:91-114` and `UI/MenuHelpView.cs:64-71,154-155` contain `PlayerPrefs.DeleteKey`, `SetInt` and `Save`. My grep covered only the candidate diff, not the wider production code.
+
+**Corrected statement:** those production write paths exist. In the inspected preview paths the learning constructor skips reload, `Record` and the UI reset guard the preview, and the help view is not created, so no learning/help write was *identified* in the exercised blank path. That is not a byte-level proof that no owner key changed, because the prior bytes are gone. Residual uncertainty stands.
+
+**What is unaffected:** the save slot itself. `forest-save.json` was absent before and after, `.tmp` absent, and `forest-save.json.bak`'s SHA-256 is unchanged (`c0169790…`). The save-fence trace and its positive control are separate from the prefs question.
+
+**Lesson for any future run:** use an isolated XDG config root from the start; never run the Editor against the host config directory during qualification.
 | — | O0 | — | Delta re-review of the corrected blob | — | **PENDING** |
 | — | O0 | — | Owner G5 / #425 G4 acceptance | — | **NOT GRANTED** |
 | — | O1 | — | Source/asset grant, lane, board, lease | — | **NOT CLAIMED** |
