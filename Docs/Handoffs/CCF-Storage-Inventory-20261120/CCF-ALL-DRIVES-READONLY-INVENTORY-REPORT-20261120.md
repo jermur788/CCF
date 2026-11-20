@@ -268,7 +268,7 @@ Personal copies #361/#382, U1/U2/U3/Integration, `CCF-Primary`, `Repository.git`
 
 **One accidental write, disclosed.** At 20:41Z a shell operator-precedence error sent the ZX20 `du` output to the then-current directory instead of `/tmp/opencode`, creating `zx20_top.txt` and `zx20_top.err` inside `/media/jer/Files/CCF-Primary`. They were detected at 20:49Z, copied to `/tmp/opencode` as evidence, and removed at 20:53Z. `git status` of `CCF-Primary` was then verified to match its pre-existing state exactly: 3 modified tracked files (`AGENTS.md`, `Docs/Operations/StorageArchitecture.md`, `Docs/Project/coordination/active-tasks.md`) and 4 pre-existing untracked items. No project file, Git object, Unity state, save or cache was altered.
 
-**State at end of audit:** `/` 24.78 GB free, Files 24.27 GB free, Videos 435.6 GB free, ZX20 280.8 GB free. No Unity lock held; last lease release 20:35:36Z. Unity Hub remained open (user-owned) throughout; no Editor started.
+**State during the audit:** at preflight 20:47Z — `/` 24.78 GB free, Files 24.27 GB free, Videos 435.6 GB free, ZX20 280.8 GB free. At handback 21:52Z — `/` **21.70 GB** free, Files 24.27 GB, Videos 435.6 GB, ZX20 280.7 GB. The 3.07 GB root change occurred while other user/agent processes were active; this audit wrote only ~230 KB of local temp output plus GitHub content, and wrote no CCF data. No Unity lock was held; last lease release 20:35:36Z. Unity Hub remained open (user-owned) throughout; no Editor started.
 
 ---
 
