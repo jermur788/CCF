@@ -34,9 +34,10 @@ Owner-reported status at packet publication ("nothing touching Unity at the mome
 | G0 author handoff received | **DONE** | #856 handoff comment 2026-11-20T03:20:48Z; final HEAD `4ea5a10db061b9fe69601118649bb77b698877cf` |
 | Orchestrator fetched the five files at that exact commit | **DONE** | `gh api ...?ref=4ea5a10d…`; blob SHAs match the Overall G0 intake verification (spec `73c7c777…`, plan `59901649…`, tasks `a2960905…`, checklist `e98eec25…`, handoff `337240cd…`) |
 | Independent nonauthor review dispatched | **RUNNING** | [#858](https://github.com/jermur788/CCF/issues/858); route `codex` / `gpt-6.1-sol` (AgentWorkflow review preference), independent of the GPT-6 browser author and of the future Opus 5.5 implementer; routing decision `d857-01`, attempt `d857-01-a1` |
-| Review verdict | **PENDING** | — |
-| Spec corrections (if NEEDS CHANGES) | **PENDING** | Must be authored by a permitted non-DeepSeek route, not by the orchestrator |
-| Owner G5 / Overall #425 G4 acceptance of the exact spec blob | **NOT GRANTED** | Genuine approval gate; cannot be self-granted. Source work does not start until recorded. |
+| Review verdict | **RECEIVED — NEEDS CHANGES (document quality only)** | [Review file](https://github.com/jermur788/CCF/blob/da2c023f6b21221173ffd71e15b09c5cc2e7a437/Docs/Handoffs/CCF-Blank-Scenario-Starter-20261120/Dashboard-CCF-858-BLANK-STARTER-SPEC-INDEPENDENT-REVIEW-20261120.md) on `review/ccf-858-blank-starter-spec-review-20261120-v1` @ `da2c023f6b21221173ffd71e15b09c5cc2e7a437`; executed model `gpt-6.1-sol`; one added Markdown, readback exact. Blocking: **F-01** (undefined mandatory production-content validation gate), **F-02** (conditional independent-review wording). Non-blocking: F-03, F-04, F-05. Source claims verified against real code; scope and save-fence boundaries assessed sound; no replacement architecture requested. |
+| Spec corrections | **DONE — CORRECTED, NOT YET RE-REVIEWED** | `docs/ccf-856-blank-starter-review-corrections-20261120-v1` @ `c4d75f8e301fa1d755105531e3411588f6779b9d` (parent `4ea5a10`), authored by `claude-sonnet-5-5`, exactly four files +39/−25. Orchestrator independently verified the GitHub compare and read the `spec.md` diff in full. Status still DRAFT / NOT APPROVED. |
+| Delta re-review | **DISPATCHED** | Fresh `openai/gpt-6.1-terra` context (recorded substitution: the preferred `gpt-6.1-sol` route became unreachable when the T3 delegate transport dropped from the session catalog). Independent of the Sonnet author. |
+| Owner G5 / Overall #425 G4 acceptance of the exact spec blob | **CONDITIONAL, RECORDED** | Owner answered 2026-11-20: approve the spec at `4ea5a10` as the implementation baseline, delegate G4 for exactly this scope, and proceed through the bounded correction and re-review. Acceptance of the final corrected blob is recorded below once the delta review returns. This is an **owner** decision recorded here, not a claim that the Overall Manager #425 session reviewed it. |
 
 **Spec at intake:** `DRAFT / NOT APPROVED / NO IMPLEMENTATION AUTHORITY`. This ledger does not promote it.
 
@@ -72,6 +73,10 @@ Observed directly at `cbcb3850` (read-only inspection; not a Unity run, not a so
 | 2026-11-20 ~03:34 | O0 | deepseek-v4.1-flash (coordination) | Fetched live main, five G0 files at `4ea5a10`, verified no #857 docs branch existed, created docs branch/worktree | branch `orchestration/ccf-857-…` from `cbcb3850` | READY |
 | 2026-11-20 ~03:36 | O0 | deepseek-v4.1-flash | Read-only source preflight (§2) | local inspection | Informative, no claim |
 | 2026-11-20 ~03:38 | O0 | deepseek-v4.1-flash → codex/gpt-6.1-sol | Dispatched independent spec review `d857-01-a1` | #858 | RUNNING |
+| 2026-11-20 ~09:20 | O0 | codex/gpt-6.1-sol (reviewer) | Independent review returned **NEEDS CHANGES**, F-01/F-02 blocking | `da2c023f6b21221173ffd71e15b09c5cc2e7a437` | REVIEWED |
+| 2026-11-20 ~09:35 | O0 | jermur788 (owner) | Conditional G5 acceptance + delegated G4 for this exact scope; authorised the bounded correction and re-review | session answer | GRANTED (conditional) |
+| 2026-11-20 ~09:36 | O0 | deepseek-v4.1-flash → claudeAgent/claude-sonnet-5-5 | Dispatched bounded spec correction `d857-02-a1` (F-01…F-05) | `docs/ccf-856-blank-starter-review-corrections-20261120-v1` | RUNNING |
+| — | O0 | — | Delta re-review of the corrected blob | — | **PENDING** |
 | — | O0 | — | Owner G5 / #425 G4 acceptance | — | **NOT GRANTED** |
 | — | O1 | — | Source/asset grant, lane, board, lease | — | **NOT CLAIMED** |
 | — | O2 | — | Implementation | — | **NOT STARTED** |
