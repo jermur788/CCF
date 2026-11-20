@@ -5,6 +5,9 @@
 #   - the only listening socket is 127.0.0.1 (/proc/net/tcp 0100007F) on an ephemeral port other than 5187;
 #   - the guards: 404 without the capability, 403 for a wrong Host or Origin, 405, 415, 413 and 400; the page, style and
 #     script it serves are byte-identical to the committed src/Ui/wwwroot files;
+#   - the A-4 page layout, read statically from the served stylesheet and page (L checks): one column at 360 CSS px and at
+#     960 CSS px (200 % zoom of a 1920 px window), no media query that touches the page layout, and no core action that
+#     needs horizontal scrolling at either width;
 #   - one full Work Plan cycle through the JSON API: refusals, Add, a stale-fence refusal, hit-tests (candidates exactly
 #     as an oracle computed from the scene at the most-overlapped point, none on bare ground inside the square, 400
 #     without a point), Approve at zero Fell, Execute (one typed Fell in the same year), replay, key conflict, Advance
@@ -179,6 +182,149 @@ code="$(req jsfile GET "/s/$cap/app.js")"; check "G11 app.js: 200 text/javascrip
 check "G11b the page, app.css and app.js answers are byte-identical to the committed src/Ui/wwwroot files" bash -c \
   'cmp -s "$1" "$4/index.html" && cmp -s "$2" "$4/app.css" && cmp -s "$3" "$4/app.js"' _ \
   "$scratch/page.body" "$scratch/css.body" "$scratch/jsfile.body" "$p1_root/src/Ui/wwwroot"
+
+# ---- A-4 page layout (Tier-2 residual D4-R): one column at every width ---------------------------------------------------
+# layout <columns|independent|reach> <viewport CSS px> : evaluates the SERVED app.css and page at that viewport width. Every
+# @media query is evaluated (min-/max-width only; any other query fails the check), and a rule applies only if its query
+# does. 960 CSS px is the viewport of 200 % zoom in a 1920 px window. This is a static reading of the stylesheet and the
+# page, not a layout engine: the real-browser measurement is recorded in the handoff.
+layout() {
+  python3 -I -B - "$scratch/css.body" "$scratch/page.body" "$@" << 'PY' 2>&1 | sed 's/^/     /' | tee -a "$log"
+import re, sys
+from html.parser import HTMLParser
+css_path, page_path, what, width = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
+REM = 16.0
+src = re.sub(r"/\*.*?\*/", "", open(css_path, encoding="utf-8").read(), flags=re.S)
+
+def blocks(text):  # top-level (prelude, body) pairs
+    out, i = [], 0
+    while True:
+        j = text.find("{", i)
+        if j < 0: return out
+        depth, k = 1, j + 1
+        while depth:
+            depth += {"{": 1, "}": -1}.get(text[k], 0); k += 1
+        out.append((text[i:j].strip(), text[j + 1:k - 1])); i = k
+
+def declarations(body):
+    return [(n.strip().lower(), v.strip()) for n, v in (p.split(":", 1) for p in body.split(";") if ":" in p)]
+
+def length_px(token):
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)(px|rem|em)", token)
+    return None if not m else float(m.group(1)) * (1.0 if m.group(2) == "px" else REM)
+
+def media_applies(query):
+    result = True
+    for part in (p.strip() for p in query.split(" and ")):
+        m = re.fullmatch(r"\((min|max)-width:\s*(\S+)\)", part)
+        if not m or length_px(m.group(2)) is None: raise SystemExit("FAIL: media query not understood: @media " + query)
+        v = length_px(m.group(2))
+        result = result and (width >= v if m.group(1) == "min" else width <= v)
+    return result
+
+rules = []  # (media query or None, [selectors], [(property, value)])
+for prelude, body in blocks(src):
+    if prelude.startswith("@media"):
+        rules += [(prelude[6:].strip(), [s.strip() for s in p.split(",")], declarations(b)) for p, b in blocks(body)]
+    elif prelude.startswith("@"):
+        raise SystemExit("FAIL: unexpected at-rule " + prelude)
+    else:
+        rules.append((None, [s.strip() for s in prelude.split(",")], declarations(body)))
+applied = [(q, sels, d) for q, sels, d in rules if q is None or media_applies(q)]
+
+def last_compound(selector): return re.split(r"[\s>+~]+", selector.strip())[-1]
+def names(compound, word): return re.search(r"(^|[^\w-])" + re.escape(word) + r"($|[^\w-])", compound) is not None
+PAGE_GRID = lambda s: names(last_compound(s), ".layout") or re.match(r"main($|[.#:\[])", last_compound(s)) is not None
+MAIN_PARTS = [".layout", ".side", ".panel", ".map-panel", ".trees-panel", ".history-panel"]
+def track_list(value):  # the top-level, space-separated tracks of a grid-template-columns value
+    out, depth, cur = [], 0, ""
+    for ch in value.strip() + " ":
+        depth += {"(": 1, ")": -1}.get(ch, 0)
+        if ch.isspace() and depth == 0:
+            if cur: out.append(cur)
+            cur = ""
+        else: cur += ch
+    return out
+def tracks(value):  # repeat(n, ...) counts n times its tracks; repeat(auto-fill|auto-fit, ...) counts as many
+    count = 0
+    for t in track_list(value):
+        m = re.fullmatch(r"repeat\(\s*(\d+)\s*,(.*)\)", t)
+        count += int(m.group(1)) * tracks(m.group(2)) if m else (999 if t.startswith("repeat(") else 1)
+    return count
+def matches(compound, tag, classes, ident):  # tag, classes and id of one compound selector; pseudo-classes ignored
+    want_tag = re.match(r"[a-z][\w-]*", compound)
+    return ((not want_tag or want_tag.group(0) == tag) and set(re.findall(r"\.([\w-]+)", compound)) <= classes
+            and all(i == ident for i in re.findall(r"#([\w-]+)", compound)))
+
+if what == "columns":
+    grid = [(s, n, v) for q, sels, d in applied for s in sels if PAGE_GRID(s) for n, v in d]
+    templates = [(s, v) for s, n, v in grid if n == "grid-template-columns"]
+    displays = [v for s, n, v in grid if n == "display"]
+    banned = [(s, n, v) for s, n, v in grid if n in ("grid-template", "grid", "grid-auto-flow", "columns", "column-count", "flex-direction")]
+    placement = [(s, n, v) for q, sels, d in applied for s in sels for n, v in d
+                 if n in ("grid-column", "grid-column-start", "grid-column-end", "grid-area", "grid-template-areas", "float")]
+    print(f"at {width:g} CSS px: page grid {templates}, display {displays}, other column properties {banned}, placements {placement}")
+    ok = templates and all(tracks(v) == 1 for s, v in templates) and displays and all(v == "grid" for v in displays) and not banned and not placement
+    sys.exit(0 if ok else 1)
+
+if what == "independent":
+    queries = sorted({q for q, sels, d in rules if q is not None})
+    touching = [(q, s) for q, sels, d in rules if q is not None for s in sels
+                if PAGE_GRID(s) or any(names(last_compound(s), w) for w in MAIN_PARTS)]
+    print(f"media queries in app.css: {queries}; rules in a media query that touch the page layout: {touching}")
+    sys.exit(0 if not touching else 1)
+
+if what == "reach":
+    CORE = ["reread", "zoom-out", "zoom-in", "zoom-fit", "pan-north", "pan-south", "pan-west", "pan-east", "reason", "add-button",
+            "insp-remove", "approve", "cancel-approved", "execute", "advance", "tree-search", "status-filter",
+            "execute-back", "execute-confirm", "consent-keep", "consent-advance"]
+    # Containers that may scroll sideways at this width. A dialog is bounded by the viewport (its width uses 100vw).
+    scrollers, problems = set(), []
+    for q, sels, d in applied:
+        for s in sels:
+            for n, v in d:
+                if n in ("overflow", "overflow-x") and re.search(r"\b(auto|scroll)\b", v.split()[-1] if n == "overflow-x" else v.split()[0]):
+                    scrollers.add(last_compound(s))
+    dialog_width = [v for q, sels, d in applied for s in sels if last_compound(s) == "dialog" for n, v in d if n == "width"]
+    if "dialog" in scrollers and dialog_width and all("100vw" in v for v in dialog_width): scrollers.discard("dialog")
+    class Page(HTMLParser):
+        VOID = {"meta", "link", "input", "br", "img", "hr", "source", "col", "area", "base", "wbr", "track", "embed", "param"}
+        def __init__(self): super().__init__(); self.stack, self.found, self.first_th = [], {}, None
+        def handle_starttag(self, tag, attrs):
+            a = dict(attrs); me = (tag, set((a.get("class") or "").split()), a.get("id"))
+            if a.get("id") in CORE:
+                inside = [f"{t}#{i}" if i else f"{t}.{'.'.join(sorted(c))}" for t, c, i in self.stack
+                          if any(matches(sc, t, c, i) for sc in scrollers)]
+                self.found[a["id"]] = inside
+            if tag == "th" and self.first_th is None and any(i == "tree-table" for t, c, i in self.stack): self.first_th = ""
+            if tag not in self.VOID: self.stack.append(me)
+        def handle_endtag(self, tag):
+            while self.stack and self.stack[-1][0] != tag: self.stack.pop()
+            if self.stack: self.stack.pop()
+        def handle_data(self, data):
+            if self.first_th == "" and self.stack and self.stack[-1][0] == "th": self.first_th = data.strip()
+    page = Page(); page.feed(open(page_path, encoding="utf-8").read())
+    missing = [c for c in CORE if c not in page.found]
+    buried = {c: v for c, v in page.found.items() if v}
+    wraps = {g: [v for q, sels, d in applied for s in sels if last_compound(s) == g for n, v in d if n == "flex-wrap"] for g in (".actions", ".map-tools", ".flags")}
+    unwrapped = [g for g, v in wraps.items() if v[-1:] != ["wrap"]]
+    wide = [(s, n, v) for q, sels, d in applied for s in sels for n, v in d
+            if n in ("width", "min-width", "flex-basis", "inline-size", "min-inline-size") and not v.startswith(("min(", "clamp("))
+            and any((length_px(t) or 0) > 288 for t in re.findall(r"\d+(?:\.\d+)?(?:px|rem|em)\b", v))]
+    nowrap = [s for q, sels, d in applied for s in sels for n, v in d if n == "white-space" and "nowrap" in v
+              and not (s.startswith("#tree-table") or last_compound(s) == ".sr-only")]
+    print(f"at {width:g} CSS px: sideways scrollers {sorted(scrollers)}; core controls checked {len(page.found)}/{len(CORE)}, "
+          f"missing {missing}, inside a sideways scroller {buried}; table's first column '{page.first_th}'; "
+          f"action groups not wrapping {unwrapped}; fixed widths over 288 px {wide}; nowrap outside the table {nowrap}")
+    sys.exit(0 if not missing and not buried and page.first_th == "Select" and not unwrapped and not wide and not nowrap else 1)
+raise SystemExit("unknown layout check " + what)
+PY
+}
+check "L01 at 360 CSS px the page grid is exactly one column (one track, display grid, no column placement or multi-column property)" layout columns 360
+check "L02 at 960 CSS px (200 % zoom of a 1920 px window) the page grid is exactly one column" layout columns 960
+check "L03 no @media rule touches the page layout (main, .layout, .side, panels), so no width or zoom level gives two columns" layout independent 0
+check "L04 at 360 CSS px no core action needs horizontal scrolling: none is inside a sideways scroller, Select is the table's first column, action groups wrap, no fixed width over 288 px" layout reach 360
+check "L05 at 960 CSS px no core action needs horizontal scrolling (same conditions as L04)" layout reach 960
 code="$(req g-xorigin GET "/s/$cap/api/view" -H "Origin: http://attacker.example")"; expect "G12 GET naming a foreign Origin: 403" "$code" 403
 code="$(req g-method GET "/s/$cap/api/plan/approve")"
 check "G13 GET on a POST endpoint: 405, Allow: POST (got $code)" test "$code" == 405 -a "$(header g-method allow)" == POST

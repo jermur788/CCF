@@ -73,11 +73,14 @@ is printed), 3 the listener check failed, 64 usage.
 1. **Select a tree.** Click or tap a crown on the map, press *Select* in the tree table (the keyboard and screen-reader
    path), or type an exact, case-sensitive ID in the search box and press Enter. Where crowns overlap, the topmost is
    selected and the others are listed beside the map. Clicking bare ground selects nothing.
+   - **Layout.** The page is one column at every window width and zoom level, so 200 % zoom of a wide window (for
+     example 1920 px, a 960 CSS px viewport) is one column too. Only the map pane and the tree table scroll sideways.
    - **Zoom and pan.** The map scrolls inside its own pane. Below 900 CSS px wide (for example 360 px, or 200 % zoom) it
      opens at 64 CSS px per metre, where every crown and stump is at least 44 × 44 px; the smallest, a 0.35 m stump, is
-     44.8 px across. A wide desktop window opens on the whole area. Use *Zoom in*, *Zoom out*, *Whole area* and the four
-     *Pan* buttons, or scroll or drag the map. Choosing a tree in the table scrolls the map to it. Trees keep their true
-     crown radii at every zoom, and a click selects only a tree whose drawn disc is under the pointer.
+     44.8 px across. A wide desktop window at ordinary zoom opens on the whole area. Use *Zoom in*, *Zoom out*, *Whole
+     area* and the four *Pan* buttons, or scroll or drag the map. Choosing a tree in the table scrolls the map to it.
+     Trees keep their true crown radii at every zoom, and a click selects only a tree whose drawn disc is under the
+     pointer.
 2. **Inspector.** It shows the exact ID, status, position, age, DBH, height and crown radius, and for a dead tree its death
    year and cause. Write a reason and choose *Add to Work Plan — no tree is felled*.
 3. **Work Plan.** Remove pending orders, or choose *Approve whole Work Plan — 0 trees felled*. The engine mints the PlanId

@@ -1,6 +1,7 @@
 /* #849 playable 2D Stand Map: a dark survey-sheet style (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §4.2, §8).
    Colour is never the only cue: every tree state also has a pattern, a glyph or text. Body text keeps a contrast of at
-   least 4.5:1 on its background. One column on narrow screens and at 200 % zoom, two columns from 900 CSS px. */
+   least 4.5:1 on its background. The page is one column at every width: CSS cannot tell browser zoom from a narrow
+   window, so a single layout is the only way to keep one column at 200 % zoom of any window (spec §8 A-4). */
 
 :root {
   color-scheme: dark;
@@ -113,14 +114,11 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .noscript { margin: 1rem; padding: 1rem; border: 2px solid var(--alert-line); background: var(--alert-bg); }
 
 /* ---- layout ------------------------------------------------------------------------------------------------------- */
+/* One column at every viewport width, with no media query: 200 % zoom of a 1920 px window is a 960 CSS px viewport,
+   which no width breakpoint can tell apart from an ordinary 960 px window (spec §8 A-4). tests/ui-smoke.sh L01-L05. */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1rem; }
 .side { display: grid; align-content: start; gap: 1rem; min-width: 0; }
 .panel { min-width: 0; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
-@media (min-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
-  .trees-panel, .history-panel { grid-column: 1 / -1; }
-  .trees-panel .table-wrap { max-height: 70vh; overflow-y: auto; }
-}
 .hint, .note { color: var(--muted); }
 .warning { padding: .5rem .75rem; border: 2px solid var(--alert-line); border-radius: 6px; background: var(--alert-bg); font-weight: 600; }
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; }

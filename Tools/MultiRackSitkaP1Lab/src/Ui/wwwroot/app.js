@@ -535,9 +535,9 @@
   const SCALES = [null, 32, TARGET_SCALE, 96]; // null fits the whole area to the pane's width
   const AREA_CENTRE = { u: 15, v: 15 };
 
-  // The one-column layout (below 900 CSS px: 360 px, or 200 % zoom of a window up to 1,799 px wide) and a device pixel
-  // ratio of 2 or more (200 % zoom of a wider window on a standard display) open at TARGET_SCALE. The two-column desktop
-  // layout at ordinary zoom opens on the whole area.
+  // The page is always one column (app.css). The map opens at TARGET_SCALE below 900 CSS px (360 px, or 200 % zoom of a
+  // window up to 1,799 px wide) and at a device pixel ratio of 2 or more (200 % zoom of a wider window on a standard
+  // display). A wide window at ordinary zoom opens on the whole area.
   function defaultMapScale() {
     return window.matchMedia('(min-width: 900px)').matches && window.devicePixelRatio < 2 ? null : TARGET_SCALE;
   }
