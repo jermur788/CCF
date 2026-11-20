@@ -145,7 +145,14 @@ public sealed class ScenarioOneUiRoot : MonoBehaviour
         root.Add(previewBanner);
         help = new MenuHelpView(this);
         root.Add(help.Root);
-        if (FindFirstObjectByType<StandaloneSessionMenu>() == null && !Compact30Session.IsActive && manager != null && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
+        // A fresh scenario shows its premise once, even on a device that has already seen the help. The standalone
+        // title screen is the other place it starts: Start New Scenario calls this same method, so it must not run
+        // here as well. That screen only opens when a save controller exists, and Compact30 has none, so a fresh
+        // Compact session has no other route to the introduction. If Compact ever gains save/load, revisit this.
+        bool startupScreenAvailable = FindFirstObjectByType<StandaloneSessionMenu>() != null
+            && FindFirstObjectByType<ForestSaveController>() != null;
+        if (!startupScreenAvailable && manager != null
+            && manager.CurrentEcologicalYear == 0 && manager.WorkOrders.Count == 0 && manager.AnnualReports.Count == 0)
             help.ShowScenarioIntroduction();
     }
 
