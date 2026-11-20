@@ -1,6 +1,6 @@
 # MULTI-2D-COMPETITION-UNITY-UI-FIRSTPASS-V1 — technical plan
 
-**Status: PROPOSED IMPLEMENTATION PLAN; no native source/worktree/physical writer admitted.** Parent #881, owner G5 at 18:30 UTC. One fresh implementation lane/source writer after exact acceptance and lock checks. Reuse working code. This plan addresses **first playable competition plus owner's map/UX feedback**, not all forestry systems at once.
+**Status: MANAGER-APPROVED BOUNDED IMPLEMENTATION PLAN; no native source/worktree/physical writer admitted.** Parent #881, owner G5 at 18:30 UTC. One fresh implementation lane/source writer after exact acceptance and lock checks. Reuse working code. This plan addresses **first playable competition plus owner's map/UX feedback**, not all forestry systems at once.
 
 ## 0. Preconditions, ownership and source freshness
 
@@ -23,7 +23,7 @@ Refresh `Docs/Project/coordination/active-tasks.md`, #879/#880/#881 and **curren
 - #879: suppress PlanId/key routine text and huge code in execute modal; preserve PlanId/key requests/confirmation atomicity. If #879 already committed on a separate candidate, integrate by explicit chosen single source base and *do not duplicate edits*. Keep technical provenance accessible.
 - At 1280×720 ensure core forest map/inspect/Work Plan operations visible or reachable in the same panel action without main scroll. Contained Plan scroll for Execute/Cancel flagged in #875 should be re-judged with owner; where feasible keep execution actions sticky in Plan pane without obstructing list/approval confirmation.
 
-## 3. Suggested exact compile-linked source file request — NOT YET A WRITABLE GRANT
+## 3. Suggested exact compile-linked source file request — freezes only via separate concrete task packet
 
 **Potential writes inside standalone 2D lab only** (manager must freeze final exact allowlist with source worker):
 - `Tools/MultiRackSitkaP1Lab/src/Core/PlayerWorkPlanAdapter.cs` — read-only diagnostics at source root, if needed
