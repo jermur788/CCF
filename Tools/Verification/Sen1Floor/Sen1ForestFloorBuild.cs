@@ -41,7 +41,8 @@ public static class Sen1ForestFloorBuild
         "/media/jer/Files/CCF/Verification/Sen1-836-Floor-20261119/captures";
 
     const float TileMetres = 4.0f; // albedo tile size
-    const float BumpTileMetres = 1.6f; // normal-map tile size
+    // Slightly darker than white so the litter reads as damp organic soil at 4-10 m.
+    static readonly Color FloorTint = new Color(0.90f, 0.88f, 0.84f, 1f);
 
     // ------------------------------------------------------------ entry points
 
@@ -187,16 +188,19 @@ public static class Sen1ForestFloorBuild
         var floor = LoadOrCreateMaterial(FloorMaterialPath);
         SetTex(floor, "_BaseMap", "Sen1_SpruceFloor_Base_2048", new Vector2(
             30f / TileMetres, 30f / TileMetres));
+        // URP Lit samples _BumpMap (and _OcclusionMap) with the _BaseMap UV, so a
+        // separate tiling on those slots would be ignored: the normal map shares the
+        // 4 m albedo tile, and the clamp-sampled macro occlusion map is not used.
         SetTex(floor, "_BumpMap", "Sen1_SpruceFloor_Normal_1024", new Vector2(
-            30f / BumpTileMetres, 30f / BumpTileMetres));
-        SetTex(floor, "_OcclusionMap", "Sen1_SpruceFloor_Macro_512", Vector2.one);
-        floor.SetColor("_BaseColor", new Color(1.00f, 0.99f, 0.96f, 1f));
+            30f / TileMetres, 30f / TileMetres));
+        floor.SetTexture("_OcclusionMap", null);
+        floor.SetColor("_BaseColor", FloorTint);
         floor.SetFloat("_Metallic", 0f);
         floor.SetFloat("_Smoothness", 0.07f);
         floor.SetFloat("_BumpScale", 1.35f);
-        floor.SetFloat("_OcclusionStrength", 0.70f);
+        floor.SetFloat("_OcclusionStrength", 1.0f);
         floor.EnableKeyword("_NORMALMAP");
-        floor.EnableKeyword("_OCCLUSIONMAP");
+        floor.DisableKeyword("_OCCLUSIONMAP");
         floor.enableInstancing = true;
         EditorUtility.SetDirty(floor);
 
@@ -215,8 +219,13 @@ public static class Sen1ForestFloorBuild
         EditorUtility.SetDirty(margin);
 
         var far = LoadOrCreateMaterial(FarMaterialPath);
+        // Same tile size and tint as the stand floor so the Ground edge at +/-15 m,
+        // just inside the fence, does not show a tonal step.
         SetTex(far, "_BaseMap", "Sen1_SpruceFloor_Base_2048", new Vector2(65f, 65f));
-        far.SetColor("_BaseColor", new Color(0.88f, 0.87f, 0.83f, 1f));
+        SetTex(far, "_BumpMap", "Sen1_SpruceFloor_Normal_1024", new Vector2(65f, 65f));
+        far.SetFloat("_BumpScale", 1.35f);
+        far.EnableKeyword("_NORMALMAP");
+        far.SetColor("_BaseColor", FloorTint);
         far.SetFloat("_Metallic", 0f);
         far.SetFloat("_Smoothness", 0.07f);
         EditorUtility.SetDirty(far);
@@ -399,8 +408,10 @@ public static class Sen1ForestFloorBuild
         {
             Vector2 a = hull[i], b = hull[(i + 1) % hull.Count];
             Vector2 e = b - a;
+            // The hull is counter-clockwise, so this left-hand normal points
+            // inward; a point on the outer side of any edge is outside.
             Vector2 n = new Vector2(-e.y, e.x).normalized;
-            if (Vector2.Dot(p - a, n) > 0f) { inside = false; break; }
+            if (Vector2.Dot(p - a, n) < 0f) { inside = false; break; }
         }
         if (inside) return true;
         for (int i = 0; i < hull.Count; i++)
