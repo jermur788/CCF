@@ -7,7 +7,8 @@ mode=${1:?compile, blank, historical or reference}
 instance=${2:?Flatpak instance}
 out=$(realpath "${3:?existing evidence directory}")
 test -d "$out"
-case "$out" in /media/jer/Files/CCF/Verification/CCF-857-BlankStarter-20261120*) ;; *) exit 2 ;; esac
+evidence=/media/jer/Files/CCF/Verification/CCF-857-BlankStarter-20261120
+case "$out" in "$evidence"|"$evidence"/*) ;; *) exit 2 ;; esac
 editor=/media/jer/ZX20/Unity/6000.6.0f1/Editor/Unity
 hub=/home/jer/.var/app/com.unity.UnityHub
 base=(flatpak enter "$instance" /usr/bin/env PATH=/usr/bin:/bin HOME=/home/jer
