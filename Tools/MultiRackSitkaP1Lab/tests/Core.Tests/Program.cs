@@ -439,6 +439,7 @@ T.Add("644 B-01: P1 production source contains no file-writing or path-based fil
 
 WorkContractTests.Register(manifestPath);
 AnnualTests.Register(manifestPath, scratch);
+PlayerSessionTests.Register(manifestPath);
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;
