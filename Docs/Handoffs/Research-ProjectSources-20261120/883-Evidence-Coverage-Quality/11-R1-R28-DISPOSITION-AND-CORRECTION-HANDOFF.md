@@ -6,7 +6,8 @@
 **Independent review:** #896, commit `00c69cd12298043c32640ac60230a492b3eca9f0` —
 `CCF-896-INDEPENDENT-SCIENTIFIC-COVERAGE-AND-STAGE-C-REVIEW-RESULT.md`
 **Verdict being answered:** `NEEDS CHANGES`, 28 corrections, 14 blocking.
-**Correction commit:** `CORRECTION_COMMIT_PLACEHOLDER`
+**Correction commit:** `bd8560f1b156cc7596fe214d9ad41b455e8821df` — this file's own commit contains every R-1…R-28
+change; the SHA is recorded here in a follow-up docs commit because a file cannot embed its own commit hash.
 **Write scope observed:** `Docs/Handoffs/Research-ProjectSources-20261120/883-Evidence-Coverage-Quality/**` only.
 
 ## How to read this map
