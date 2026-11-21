@@ -1555,9 +1555,12 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       latest.replaceChildren(el('p', null, 'No ecological year has been advanced in this session.'));
     } else {
       const record = years[years.length - 1];
+      const carried = record.areas.some((year) => year.noLivingStems);
       latest.replaceChildren(
         el('p', null, 'Latest year ' + record.yearBefore + ' → ' + record.yearAfter + (record.cancelledUnexecutedWork ?
-          ' · unexecuted work in both areas was cancelled at zero Fell' : '') + '. Each area ran the unchanged annual rules on its own trees.'),
+          ' · unexecuted work in both areas was cancelled at zero Fell' : '') + (carried
+          ? '. Each populated area ran the unchanged annual rules on its own trees; an area with no living stems was carried forward unchanged.'
+          : '. Each area ran the unchanged annual rules on its own trees.')),
         table('Year ' + record.yearBefore + ' → ' + record.yearAfter + ' per area', ['Area', 'Living trees', 'Basal area (m²/ha)', 'Natural deaths'],
           record.areas.map((year) => [areaShort(year.areaId), year.before.livingCount + ' → ' + year.after.livingCount,
             fixed(year.before.basalAreaM2PerHa, 2) + ' → ' + fixed(year.after.basalAreaM2PerHa, 2),
