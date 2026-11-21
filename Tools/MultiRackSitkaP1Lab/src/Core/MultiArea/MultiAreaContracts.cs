@@ -118,6 +118,14 @@ internal static class MultiAreaLabels
     public const string MultiEdgeExcluded = "Edge neighbours excluded — each area's competition uses only its own trees";
     public const string MultiNoTransfer = "No treatment transfer — nothing done in one area is applied to the other";
     public const string MultiSessionOnly = "Session only — nothing is saved";
+    // Short forms for the header chips; each chip carries its full statement above as a tooltip, and the Details pane
+    // lists the full statements.
+    public const string MultiChipSynthetic = "Synthetic — not surveyed";
+    public const string MultiChipNotComparable = "Areas not comparable";
+    public const string MultiChipSiteUnknown = "Site UNKNOWN";
+    public const string MultiChipEdgeExcluded = "Edge neighbours excluded";
+    public const string MultiChipNoTransfer = "No treatment transfer";
+    public const string MultiChipSessionOnly = "Session only — nothing saved";
     public const string MultiReviewStatus = "Experiment review status: pending independent review (author-generated)";
     public const string MultiOnePlan = "One Work Plan covers both areas";
     public const string MultiApprove = "Approve whole two-area Work Plan — 0 trees felled";

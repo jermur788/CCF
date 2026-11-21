@@ -255,7 +255,6 @@ internal static class MultiAreaPage
 
 <div class="messages">
   <div id="alert" class="alert" role="alert" tabindex="-1"></div>
-  <div id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
 
 <main class="layout">
@@ -263,6 +262,11 @@ internal static class MultiAreaPage
     <div class="map-head">
       <h2 id="map-heading" tabindex="-1">Area map</h2>
       <div id="area-switch" class="area-switch" role="group" aria-label="Choose the area shown on the map and in the tree table"></div>
+      <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
+      <details class="legend-box">
+        <summary>Legend</summary>
+        <div id="legend" class="legend"></div>
+      </details>
     </div>
     <div class="map-viewport">
       <div id="map-pane" class="map-pane">
@@ -305,14 +309,6 @@ internal static class MultiAreaPage
       </figure>
     </div>
     <p id="map-note" class="hint map-note"></p>
-    <div id="overlap" class="overlap" hidden>
-      <h3 id="overlap-heading" tabindex="-1"></h3>
-      <ul id="overlap-list" class="list"></ul>
-    </div>
-    <details class="legend-box">
-      <summary>Legend · status cues</summary>
-      <div id="legend" class="legend"></div>
-    </details>
   </section>
 
   <div id="side" class="side" data-pane="tree">
@@ -333,7 +329,7 @@ internal static class MultiAreaPage
         <div id="inspector-body" hidden>
           <p class="selected-area" id="insp-area"></p>
           <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong> <span id="insp-chip" class="chip"></span></p>
-          <dl id="insp-facts" class="pairs insp-facts"></dl>
+          <p id="insp-summary" class="small-note insp-summary"></p>
           <section id="competition-panel" aria-labelledby="competition-heading">
             <h3 id="competition-heading">Competition (read-only)</h3>
             <div id="competition-content" aria-live="polite"></div>
@@ -360,7 +356,13 @@ internal static class MultiAreaPage
           </form>
           <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
           <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
+          <h3>Tree record</h3>
+          <dl id="insp-facts" class="pairs insp-facts"></dl>
           <p id="insp-threshold" class="note small-note"></p>
+        </div>
+        <div id="overlap" class="overlap" hidden>
+          <h3 id="overlap-heading" tabindex="-1"></h3>
+          <ul id="overlap-list" class="list"></ul>
         </div>
         <p class="field quick-id">
           <label for="quick-id">Select by exact tree ID (case-sensitive; press Enter)</label>
@@ -510,19 +512,20 @@ button:disabled, button:disabled:hover { border-style: dashed; background: var(-
 input, select, textarea { width: 100%; min-height: 44px; padding: .45rem .6rem; border: 2px solid var(--line); border-radius: 8px; background: var(--panel-raised); color: var(--text); }
 label { display: block; margin-bottom: .25rem; color: var(--muted); }
 .field { margin: .4rem 0; }
-.status-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1rem; padding: .4rem 1rem; border-bottom: 1px solid var(--panel-edge); background: linear-gradient(180deg, #1b2326, var(--panel)); }
+.status-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .8rem; padding: .3rem .8rem; border-bottom: 1px solid var(--panel-edge); background: linear-gradient(180deg, #1b2326, var(--panel)); }
 .brand { display: flex; align-items: center; gap: .5rem; min-width: 0; }
-.brand-mark { flex: none; width: 1.7rem; height: 1.7rem; fill: var(--accent); }
-.subtitle { margin: 0; color: var(--muted); font-size: .8rem; }
+.brand-mark { flex: none; width: 1.6rem; height: 1.6rem; fill: var(--accent); }
+.subtitle { margin: 0; color: var(--muted); font-size: .76rem; }
 .rail { display: flex; flex-wrap: wrap; gap: .3rem .4rem; margin: 0; }
-.rail > div { min-width: 0; padding: .05rem .55rem; border: 1px solid var(--panel-edge); border-radius: 8px; background: rgba(10, 18, 15, .55); }
-.rail dt { font-size: .68rem; letter-spacing: .03em; text-transform: uppercase; }
-.rail dd { font-size: .92rem; font-weight: 700; }
+.rail > div { min-width: 0; padding: 0 .5rem; border: 1px solid var(--panel-edge); border-radius: 8px; background: rgba(10, 18, 15, .55); }
+.rail dt { font-size: .62rem; letter-spacing: .03em; text-transform: uppercase; }
+.rail dd { font-size: .86rem; font-weight: 700; }
 .rail-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 0 auto; }
-.disclosure-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .6rem; flex-basis: 100%; min-width: 0; }
-.disclosure { margin: 0; font-size: .74rem; font-weight: 700; color: var(--focus); overflow-wrap: anywhere; }
+.rail-actions button { padding: .3rem .75rem; }
+.disclosure-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .6rem; flex-basis: 100%; min-width: 0; }
+.disclosure { margin: 0; font-size: .68rem; font-weight: 700; color: var(--focus); overflow-wrap: anywhere; }
 .flags { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; padding: 0; list-style: none; }
-.flags li { padding: 0 .5rem; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-raised); font-size: .74rem; }
+.flags li { padding: 0 .5rem; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-raised); font-size: .7rem; }
 dt { color: var(--muted); font-size: .85rem; }
 dd { margin: 0; overflow-wrap: anywhere; }
 .pairs { display: grid; gap: .3rem; margin: .4rem 0; }
@@ -532,7 +535,9 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .messages { padding: 0 1rem; }
 .alert.shown { margin-top: .5rem; padding: .6rem 1rem; border: 2px solid var(--alert-line); border-radius: 8px; background: var(--alert-bg); }
 .alert-title { font-weight: 700; }
-.announce:not(:empty) { margin-top: .35rem; padding: .2rem .9rem; font-size: .9rem; border: 1px solid var(--announce-line); border-radius: 8px; background: var(--announce-bg); }
+/* The polite status line sits in the map header row, so announcements never push the map down. */
+.announce { flex: 1 1 12rem; min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-size: .82rem; white-space: nowrap; text-overflow: ellipsis; }
+.announce:not(:empty) { padding: .15rem .6rem; border: 1px solid var(--announce-line); border-radius: 8px; background: var(--announce-bg); color: var(--text); }
 .noscript { margin: 1rem; padding: 1rem; border: 2px solid var(--alert-line); background: var(--alert-bg); }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; padding: .75rem; }
 .side { display: grid; align-content: start; gap: .75rem; min-width: 0; }
@@ -552,7 +557,8 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .plan-area { margin: .3rem 0 .6rem; padding: .3rem .6rem; border: 1px solid var(--line); border-radius: 8px; }
 .plan-total { font-weight: 700; }
 .selected-area { margin: 0; color: var(--accent); font-weight: 700; }
-.selected-id { margin: 0 0 .25rem; font-size: 1.1rem; }
+.selected-id { margin: 0; font-size: 1.1rem; }
+.insp-summary { margin: .1rem 0 .3rem; }
 .chip { display: inline-block; margin-left: .35rem; padding: .05rem .55rem; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-raised); font-size: .85rem; font-weight: 600; }
 .chip.s-PendingFell { border-color: var(--pending); color: var(--pending); }
 .chip.s-ApprovedFell { border-color: var(--approved); color: var(--approved); }
@@ -583,13 +589,15 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .map-pane { overflow: hidden; border: 1px solid var(--panel-edge); border-radius: 8px; background: radial-gradient(ellipse at center, #242b2d, #1d1f1a); }
 #map { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; max-height: 80vh; touch-action: manipulation; }
 .map-controls { position: absolute; top: .5rem; right: .5rem; z-index: 3; display: flex; flex-direction: column; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 2px 10px #0008; }
-.map-dpad { position: absolute; right: .5rem; bottom: .5rem; z-index: 3; display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 2px 10px #0008; }
+/* The pad itself is transparent: only its four buttons are drawn, so its empty corners never hide the map. */
+.map-dpad { position: absolute; right: .5rem; bottom: .5rem; z-index: 3; display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; pointer-events: none; }
+.map-dpad button { pointer-events: auto; background: var(--panel); box-shadow: 0 2px 8px #0009; }
 #pan-north { grid-column: 2; grid-row: 1; }
 #pan-west { grid-column: 1; grid-row: 2; }
 #pan-east { grid-column: 3; grid-row: 2; }
 #pan-south { grid-column: 2; grid-row: 3; }
 button.icon { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; font-size: .9rem; line-height: 1; }
-.overview { position: absolute; left: .5rem; bottom: .5rem; z-index: 2; width: 8.5rem; margin: 0; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: rgba(15, 23, 27, .88); pointer-events: none; }
+.overview { position: absolute; left: .5rem; bottom: .5rem; z-index: 2; width: 6.5rem; margin: 0; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: rgba(15, 23, 27, .88); pointer-events: none; }
 .overview svg { display: block; width: 100%; height: auto; }
 .ov-area { fill: #2b3a30; stroke: var(--muted); stroke-width: .6; }
 .ov-area.current { fill: var(--primary); stroke: var(--focus); stroke-width: 1; }
@@ -629,7 +637,10 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .select-ring { fill: none; stroke: var(--select); stroke-width: .24; }
 .north-arrow { fill: var(--text); stroke: var(--text); stroke-width: .12; }
 .scale-bar { fill: none; stroke: var(--text); stroke-width: .14; }
-.legend-box summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+/* The legend opens as a panel over the map, so it takes no height from the map pane. */
+.legend-box { position: relative; flex: none; }
+.legend-box summary { min-height: 44px; display: flex; align-items: center; padding: 0 .6rem; border: 2px solid var(--line); border-radius: 8px; cursor: pointer; }
+.legend-box[open] .legend { position: absolute; right: 0; top: calc(100% + 4px); z-index: 6; width: min(24rem, 80vw); max-height: 60vh; overflow-y: auto; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 8px 24px #000a; }
 .legend ul { display: grid; gap: .25rem; margin: 0; padding: 0; list-style: none; }
 .legend li { font-size: .86rem; }
 .overlap { margin-top: .5rem; padding: .6rem; border: 2px dashed var(--pending); border-radius: 8px; }
@@ -654,8 +665,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   .map-viewport { flex: 1 1 auto; min-height: 0; }
   .map-pane { height: 100%; }
   #map { width: 100%; height: 100%; aspect-ratio: auto; max-height: none; }
-  .legend-box[open] { max-height: 12rem; overflow-y: auto; }
-  .overlap { max-height: 8rem; overflow-y: auto; }
+  .overlap { max-height: 9rem; overflow-y: auto; }
   .side { display: flex; flex-direction: column; min-height: 0; gap: .5rem; }
   .view-tabs { display: flex; flex: none; }
   .pane { display: none; flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: .6rem; padding-right: .15rem; }
@@ -687,6 +697,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     'execute-confirm', 'advance', 'consent-advance'];
   const STATEMENTS = ['MultiSyntheticStatement', 'MultiNotComparable', 'MultiSiteUnknown', 'MultiEdgeExcluded',
     'MultiNoTransfer', 'MultiSessionOnly'];
+  // Header chips: a short form shown, its full statement as the tooltip (the Details pane lists the full statements).
+  const CHIPS = [['MultiChipSynthetic', 'MultiSyntheticStatement'], ['MultiChipNotComparable', 'MultiNotComparable'],
+    ['MultiChipSiteUnknown', 'MultiSiteUnknown'], ['MultiChipEdgeExcluded', 'MultiEdgeExcluded'],
+    ['MultiChipNoTransfer', 'MultiNoTransfer'], ['MultiChipSessionOnly', 'MultiSessionOnly']];
 
   const state = {
     view: null, // the latest multi-area view from the server
@@ -796,6 +810,11 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   function areaName(areaId) {
     const area = areaView(areaId);
     return area ? area.label + ' (' + area.areaId + ')' : String(areaId);
+  }
+  // A compact form for table rows in the narrow side panel, still with the exact area ID.
+  function areaShort(areaId) {
+    const area = areaView(areaId);
+    return area ? area.label.replace(/^Area /, '') + ' · ' + area.areaId : String(areaId);
   }
   function selectedId() { return state.areaId ? state.selected[state.areaId] || null : null; }
   function ordersIn(orders, areaId) { return orders.filter((order) => order.areaId === areaId); }
@@ -1082,10 +1101,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const approved = view.approved ? view.approved.orders.length : 0;
     const planState = approved > 0 ? 'approved, ' + approved + ' to execute' : view.pending.length > 0 ? view.pending.length + ' pending' : 'empty';
     byId('rail').replaceChildren(
-      pair('Ecological year', view.source.ecologicalYear),
+      pair('Year', view.source.ecologicalYear),
       ...view.areas.map((area) => pair(area.label + ' living', area.stand.livingCount + ' · BA ' + fixed(area.stand.basalAreaM2PerHa, 1) + ' m²/ha')),
-      pair('Work Plan (both areas)', planState));
-    byId('flags').replaceChildren(...STATEMENTS.map((name) => el('li', null, label(name))));
+      pair('Work Plan', planState));
+    byId('flags').replaceChildren(...CHIPS.map(([chip, full]) => el('li', { title: label(full) }, label(chip))));
     byId('advance').textContent = label('MultiAdvanceYear');
   }
 
@@ -1298,6 +1317,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const chip = byId('insp-chip');
     chip.textContent = statusText(item);
     chip.setAttribute('class', 'chip s-' + item.status);
+    byId('insp-summary').textContent = 'DBH ' + fixed(tree.dbhCm, 1) + ' cm · height ' + fixed(tree.heightM, 1) + ' m · crown ' +
+      fixed(tree.crownRadiusM, 2) + ' m · age ' + tree.ageYears;
     const facts = [
       pair('Species', 'Sitka spruce'),
       pair('DBH', fixed(tree.dbhCm, 2) + ' cm'),
@@ -1516,7 +1537,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       parts.push(el('p', null, 'One receipt for the whole plan · ecological year ' + event.ecologicalYear + ' · work revision ' + revision + ' · ' +
         event.areas.reduce((sum, change) => sum + change.fells.length, 0) + ' trees felled'));
       parts.push(table('Receipt per area (actual before → actual after)', ['Area', 'Living trees', 'Basal area (m²/ha)', 'Felled (recorded reason)'],
-        event.areas.map((change) => [areaName(change.areaId), change.before.livingCount + ' → ' + change.after.livingCount,
+        event.areas.map((change) => [areaShort(change.areaId), change.before.livingCount + ' → ' + change.after.livingCount,
           fixed(change.before.basalAreaM2PerHa, 2) + ' → ' + fixed(change.after.basalAreaM2PerHa, 2),
           change.fells.length === 0 ? 'none' : change.fells.map((fell) => fell.treeId + ' (' + fell.cause + '; ' + fell.reason + ')').join('; ')])));
       parts.push(technicalPlan(event.planId, event.executionKey));
@@ -1536,7 +1557,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
         el('p', null, 'Latest year ' + record.yearBefore + ' → ' + record.yearAfter + (record.cancelledUnexecutedWork ?
           ' · unexecuted work in both areas was cancelled at zero Fell' : '') + '. Each area ran the unchanged annual rules on its own trees.'),
         table('Year ' + record.yearBefore + ' → ' + record.yearAfter + ' per area', ['Area', 'Living trees', 'Basal area (m²/ha)', 'Natural deaths'],
-          record.areas.map((year) => [areaName(year.areaId), year.before.livingCount + ' → ' + year.after.livingCount,
+          record.areas.map((year) => [areaShort(year.areaId), year.before.livingCount + ' → ' + year.after.livingCount,
             fixed(year.before.basalAreaM2PerHa, 2) + ' → ' + fixed(year.after.basalAreaM2PerHa, 2),
             year.noLivingStems ? label('MultiAreaNoLivingStems') : year.naturalDeaths.length === 0 ? label('MultiNoNaturalDeaths') :
               year.naturalDeaths.map((death) => death.treeId + ' (' + death.mechanism + ')').join('; ')])));
@@ -1544,7 +1565,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const history = [];
     if (years.length > 0) {
       history.push(table('Every committed year, per area', ['Year', 'Area', 'Living trees', 'Basal area (m²/ha)', 'Natural deaths'],
-        years.flatMap((record) => record.areas.map((year) => [record.yearBefore + ' → ' + record.yearAfter, areaName(year.areaId),
+        years.flatMap((record) => record.areas.map((year) => [record.yearBefore + ' → ' + record.yearAfter, areaShort(year.areaId),
           year.before.livingCount + ' → ' + year.after.livingCount,
           fixed(year.before.basalAreaM2PerHa, 2) + ' → ' + fixed(year.after.basalAreaM2PerHa, 2),
           year.noLivingStems ? 'no living stems' : String(year.naturalDeaths.length)]))));

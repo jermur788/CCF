@@ -654,8 +654,9 @@ check(requests.length === 1 && requests[0].method === 'GET' && requests[0].path 
 check(byId('area-switch').querySelectorAll('[data-area]').length === 2 && byId('area-switch').querySelector('[data-area="MA-A"]').getAttribute('aria-pressed') === 'true',
   'two area buttons; Area A is shown first');
 check(['NOT A SURVEYED IRISH FOREST', 'AREAS NOT ASSESSED COMPARABLE', 'SITE UNKNOWN', 'EDGE NEIGHBOURS EXCLUDED', 'NO TREATMENT TRANSFER']
-  .every((phrase) => byId('disclosure').textContent.includes(phrase)) && byId('flags').textContent.includes('Site: UNKNOWN') &&
-  byId('flags').textContent.includes('Edge neighbours excluded') && byId('flags').textContent.includes('No treatment transfer'),
+  .every((phrase) => byId('disclosure').textContent.includes(phrase)) && byId('flags').textContent.includes('Site UNKNOWN') &&
+  byId('flags').textContent.includes('Edge neighbours excluded') && byId('flags').textContent.includes('No treatment transfer') &&
+  byId('flags').querySelectorAll('li').every((chip) => chip.getAttribute('title')),
   'the disclosure and the site UNKNOWN / edge neighbours excluded / no treatment transfer statements are visible');
 
 // Any living tree: competitors appear immediately, before any Crop designation, and nothing changes on the server.
@@ -738,7 +739,7 @@ check(!living(server, 'MA-A', competitorId) && !living(server, 'MA-B', bTree) &&
 click(byId('advance'));
 await until(() => byId('year-latest').textContent.includes('Latest year 0 → 1'), 'the Year+1 results');
 server = await serverView();
-check(server.source.ecologicalYear === 1 && byId('year-latest').textContent.includes('Area A (MA-A)') && byId('year-latest').textContent.includes('Area B (MA-B)') &&
+check(server.source.ecologicalYear === 1 && byId('year-latest').textContent.includes('A · MA-A') && byId('year-latest').textContent.includes('B · MA-B') &&
   byId('year-latest').textContent.includes('170 →') && byId('year-latest').textContent.includes('72 →'), 'Year+1 shows each area\'s own result');
 
 // Fail closed: an Add whose answer is lost locks every command until a re-read.
