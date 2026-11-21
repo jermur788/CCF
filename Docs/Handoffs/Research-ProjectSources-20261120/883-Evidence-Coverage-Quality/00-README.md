@@ -28,11 +28,18 @@ Short answer, evidenced in `02-COVERAGE-MATRIX.md`:
      four composites have **no Git counterpart at all**. Details in `01-SOURCE-AND-VERSION-INVENTORY.md`.
 
    A claim made in the **first version** of this packet is **withdrawn**: that the 24-page extraction's P4 Table 1
-   was shifted by one group. It is not. The extraction's rendered table is correctly grouped and matches the
-   rendered article table; the apparent shift was produced by plain-text PDF extraction interleaving table columns.
-   See `03-PRIMARY-VERIFICATION-LOG.md` V-4 for the retraction and the lesson.
+   was shifted by one group. It is not. The independent #896 review rendered compendium p. 66 and extraction p. 12
+   and found both correctly grouped and consistent with each other and with the article's row descriptions. The
+   apparent shift was produced by plain-text PDF extraction interleaving table columns. This producer did **not**
+   render those pages and claims no personal rendered verification. See `03-PRIMARY-VERIFICATION-LOG.md` V-4.
 4. The #860 addendum's one P2 figure ("slight-to-fair agreement, 36 experiments, 12 sites", explicitly marked
-   *not verified against the paper*) is now **primary-verified** and can be promoted from secondhand to cited.
+   *not verified against the paper*) is **primary-verified** and can be promoted from secondhand to cited. The
+   verification trail is the producer's V-6/V-11 plus the #896 rendered reading; the addendum's own author still
+   did not read the six papers, and `09` now says so.
+
+After the #896 review, the matrix carries **68 rows** (67 original plus candidate row P6-12): **46** material gaps,
+**13** cross-references, **5** covered, **2** design notes, **1** disputed, **1** out of scope. Row counts measure
+how finely topics were split; they are not a measure of importance, and the gaps cluster into six topics.
 
 ## Reading order
 
@@ -48,6 +55,7 @@ Short answer, evidenced in `02-COVERAGE-MATRIX.md`:
 | `08-PROPOSED-COMPOSITE-…-Human-Judgement.md` | **The actual proposed composite draft** — Stage C content, ~7 retrieval-ready sections |
 | `09-PROPOSED-860-ADDENDUM-P2-CHANGE.md` | Exact before/after text for the one addendum promotion |
 | `10-CORRECTIVE-HANDOFF-20261120.md` | What the Manager intake changed, with exact commit and inventory |
+| `11-R1-R28-DISPOSITION-AND-CORRECTION-HANDOFF.md` | #896 Stage D correction dispositions, R-1…R-28, and the corrected state |
 
 ## Honest limits of this pass
 

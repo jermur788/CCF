@@ -1,6 +1,11 @@
 # 10 — Corrective handoff: Manager intake `NEEDS CHANGES` (B1–B3)
 
 **Status:** `RESEARCH PRODUCED` — still **NOT INDEPENDENTLY REVIEWED**, **NOT CANONICALLY APPROVED**.
+
+> **HISTORICAL RECORD — superseded where it conflicts with `11`.** This file records the B1–B3 Manager-intake repair
+> as it stood at that time. Its row tally (67 / 44 / 13 / 6 / 3 / 1) and its V-9/V-10 labels were overtaken by the
+> #896 Stage D review and the R-1…R-28 corrections; use `11-R1-R28-DISPOSITION-AND-CORRECTION-HANDOFF.md` and
+> `02-COVERAGE-MATRIX.md` for current figures. It is retained unrewritten as a provenance record.
 **Lane:** `research/883-condensed-evidence-coverage-review-20261120-v1`
 **Prior head:** `7cbfefbe56bf648981e55f6e80d5892239af172d`
 **Repair commit:** `79b87611` — all corrections and both Stage C drafts in one commit, documents only.
@@ -31,7 +36,7 @@ text layers — the source's and the extraction's — were both column-interleav
 renderings produced a confident wrong answer. Table/parameter claims now require a rendered page. This host has no
 PDF renderer (no poppler, mutool, Ghostscript, PyMuPDF), which is itself a limitation the packet now states.
 
-**Retally after reclassification:** 67 rows = **44** MATERIAL GAP + **13** CROSS-REFERENCED + **6** COVERED +
+**Retally after reclassification (as at this commit; superseded by `11`):** 67 rows = **44** MATERIAL GAP + **13** CROSS-REFERENCED + **6** COVERED +
 **3** DISPUTED + **1** OUT OF SCOPE. `P4` now 6 gaps / 1 cross-reference / 0 disputed.
 
 ## B2 — Stage C drafts now exist
@@ -51,7 +56,7 @@ are pointed at the rendered table rather than transcribed from text.
 
 ## B3 — Row arithmetic fixed
 
-Both the Markdown summary and the TSV now account for all 67 rows, with an explicit `OUT OF SCOPE` column and the
+Both the Markdown summary and the TSV account for all rows at this commit, with an explicit `OUT OF SCOPE` column and the
 `O-06` row identified as the one it carries. Markdown and TSV were cross-checked programmatically (field count
 per row, status tally, per-paper tally).
 
@@ -67,9 +72,10 @@ per row, status tally, per-paper tally).
 
 1. The V-4 retraction was not re-confirmed by a local render (no renderer on this host). It rests on the Manager's
    rendered inspection plus the article's own row descriptions, which agree. One rendered look closes it.
-2. P5's "18 analysed plots" (V-9) remains unverified; the other P5 counts are confirmed.
-3. P5's ~49 trees/ha/year (V-10) is partially verified; the 3,360-tree figure is confirmed, the per-hectare rate
-   is not recomputed.
+2. ~~P5's "18 analysed plots" (V-9) remains unverified~~ — **superseded:** V-9 is confirmed as stated; the source
+   is internally inconsistent (18 vs 20). See `03` and `05` U-6.
+3. ~~P5's ~49 trees/ha/year (V-10) is partially verified~~ — **superseded:** the source states 49 trees ha⁻¹ yr⁻¹
+   directly; see `03` V-10.
 4. Coverage verdicts remain topic-level, from heading maps, manifests and published token sweeps (U-8). This is the
    packet's main exposure and the reviewer is asked to attack it directly.
 5. The proposed composite has been checked against the extraction but not against the rendered original pages for

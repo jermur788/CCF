@@ -1,62 +1,47 @@
 # 03 — Primary verification log
 
 **Status:** `RESEARCH PRODUCED`. Supporting research, not decision authority.
-**Method:** each extraction claim was located in the text layer of `CCF_Six_Complete_Forestry_Research_Papers.pdf`
-(the 111-page companion, text-extracted to `work-text\083.txt`) and compared verbatim. **Not** re-read
-end-to-end — only the consequential or contested items below.
-
-**Method limit, stated plainly:** verification used extracted text, not page images. That method is adequate for
-counts embedded in running prose (sample sizes, plot counts, observation totals) and **inadequate for table or
-parameter claims**. It produced exactly one false positive in the first version of this packet — the V-4 claim —
-which the Manager overturned by inspecting the rendered pages. Table and parameter claims must therefore be
-verified against a rendered page. This host has no PDF renderer (no poppler, mutool, Ghostscript or PyMuPDF), so
-the V-4 retraction rests on the Manager's direct rendered-page inspection plus the article's own row descriptions,
-not on a local render.
+**Method, stated plainly.** This producer's host has **no PDF renderer** (no poppler, mutool, Ghostscript or
+PyMuPDF). All producer checks below were made against the **text layer** of the 111-page companion
+(`work-text\083.txt`), which is reliable for counts embedded in prose and unreliable for tables. Where a value was
+later confirmed on a rendered page, that was done by the **independent #896 reviewer** and is attributed as such.
+**This producer claims no personal rendered-page verification.** Pages are given as paper page (`P5:4`) with the
+collection page (`c.88`) where the review supplies it.
 
 ## Results
 
-| ID | Claim as extracted | Original evidence (verbatim) | Outcome |
-|---|---|---|---|
-| V-1 | P4 data: 5,591 records, 17 plots, 5 sites, 4-9 remeasurements, ~7 yr | "The 5591 spatial tree records (crown radii, total tree heights and tree coordinates) were collected in a total of 17 plots at each of the five sites at Aarburg, Concise, Embrach, Zofingen and Zollikon … 4-9 re-measurements at variable survey intervals with an average of 7 years." | **CONFIRMED** |
-| V-2 | P5 growth data: 17,153 observations, 5,206 trees, 2 mm/yr, IQR 0.7-2.9 | "In total, the data available to modeling included 17153 growth observations (change in stem diameter between two consecutive measurements) from 5206 trees, with an absolute mean annual stem diameter growth rate of 2 mm and an interquartile range of 0.7 to 2.9 mm." | **CONFIRMED** |
-| V-3 | P4 Table 1: k 1.1287, q -0.0387, kernel 0.2478/1.6060/0.0747, standardising 96.3815 | "k … 1.1287"; "q … -0.0387"; "Shot-noise parameter scaling kernel strength … 0.2478"; "… kernel range … 1.6060"; "… kernel range … 0.0747"; "Parameter used in standardizing the interaction function … 96.3815" | **CONFIRMED** |
-| V-4 | ~~P4 Table 1 grouping: extraction shifted by one group~~ | Rendered compendium page 66 (journal p. 6847) and rendered extraction p. 12 both group: **Height relationship** a = 0.5697, b = 9.1091 (Eq. 8); **Mortality** c0 = 1.0200, c1 = 0.0200, d = 0.0060 (Eq. 10); **Recruitment** B = 0.0390, f = 0.0900; **Crown movement** R = 0.4000 m; **Superorganism switch** S = 1.3000. The article's own row descriptions say the same. | **CLAIM WITHDRAWN — false positive.** The extraction is correctly grouped; only the plain-text layer was interleaved. P4-04 reclassified from DISPUTED to MATERIAL GAP. |
-| V-5 | P2 Table 2: Ae Sitka 1,336 trees/ha, 41.9 m²/ha, dg 20.1 cm, h100 21.1 m | "Ae Sitka spruce 1336 41.9 20.1 21.1" | **CONFIRMED** |
-| V-6 | P2: 36 experiments at 12 sites | "we analysed data from twelve sites including 36 experiments in Britain using different agreement indices" | **CONFIRMED** |
-| V-7 | P1: 26 frame-tree selection experiments | "asked to select … frame trees in 26 experiments carried out throughout Great Britain" | **CONFIRMED** |
-| V-8 | P5 mortality data: 18,423 records, 5,635 trees, 1,206 deaths | "we had 18 423 observations of tree status live or dead, originating from 5635 trees in total. Among these observations there were 1206 trees that had died, mostly as a consequence of wind and snow, followed by competition and harvesting damage" | **CONFIRMED** |
-| V-9 | P5: "18 analysed stands/plots in southern Finland" | Not located as a figure this pass; only "southern Finland" as a site description | **UNVERIFIED — retain as stated, flag for reviewer** |
-| V-10 | P5: 3,360 trees reaching 1.3 m; ~49 trees/ha/year | "a total of 3360 trees reaching or surpassing" (continuation not captured); ~49/ha/yr not independently recomputed | **PARTIALLY VERIFIED** |
-| V-11 | #860 addendum: P2 agreement is "slight-to-fair, 36 experiments, 12 sites" and "not verified against the paper" | P2 reports poor-to-fair (crown thinning), fair-to-moderate (low thinning), overall mostly slight-to-fair, 4/36 poor, none substantial; 36 experiments, 12 sites | **PROMOTABLE:** the addendum's secondhand figure is correct and can be cited with P2 page refs (pp. 11, 16-17) |
+| ID | Claim | Page | Evidence | Outcome |
+|---|---|---|---|---|
+| V-1 | P4 data: 5,591 records, 17 plots, five sites, 4–9 remeasurements, ~7 yr | P4:12 / c.66 | "The 5591 spatial tree records … were collected in a total of 17 plots **at each of** the five sites at Aarburg, Concise, Embrach, Zofingen and Zollikon … 4-9 re-measurements … average of 7 years." | **CONFIRMED as quoted; interpretation UNRESOLVED.** 17-in-total vs 17-per-site is ambiguous in the source. Do not state "17 plots in total" as fact. |
+| V-2 | P5 growth data: 17,153 observations, 5,206 trees, 2 mm/yr, IQR 0.7–2.9 | P5:4 / c.88 | "…17153 growth observations … from 5206 trees, with an absolute mean annual stem diameter growth rate of 2 mm and an interquartile range of 0.7 to 2.9 mm." | **CONFIRMED** (producer text layer; #896 rendered) |
+| V-3 | P4 Table 1 numerical values | P4:12 / c.66 | All 15 values (k, q, α, β, δ, ν, a, b, c₀, c₁, d, λ_B, f, R, S) | **CONFIRMED** (producer text layer; #896 rendered all 15) |
+| V-4 | ~~P4 Table 1 grouping shifted by one group~~ | P4:12 / c.66 and extraction p. 12 | Rendered by #896: Height relationship a = 0.5697, b = 9.1091 (Eq. 8); Mortality c₀ = 1.0200, c₁ = 0.0200 (Eq. 10) and d = 0.0060 (no equation cited); Recruitment **λ_B** = 0.0390, f = 0.0900; Crown movement R = 0.4000 m; Superorganism switch S = 1.3000 | **CLAIM WITHDRAWN — false positive.** The extraction is correctly grouped. Two fidelity fixes remain: the recruitment symbol is **λ_B**, not B, and "(Eq. 10)" covers c₀/c₁ only. |
+| V-5 | P2 Table 2: Ae Sitka 1,336 trees/ha, 41.9 m²/ha, dg 20.1 cm, h100 21.1 m | P2:6 / c.20 | "Ae Sitka spruce 1336 41.9 20.1 21.1" | **CONFIRMED.** Cross-paper discrepancy: P1 Table 1 (P1:7 / c.9) gives Ae 1,321 trees/ha, h₁₀₀ 21.2 m, n = 176, and states the Ae marteloscope was 0.133 ha. Different year/area; neither is "the" Ae inventory. |
+| V-6 | P2: 36 experiments at 12 sites | P2:4 / c.18; P2:6 / c.20 | "twelve sites including 36 experiments in Britain" | **CONFIRMED** |
+| V-7 | P1: 26 frame-tree selection experiments | P1:2 / c.4; P1:7 / c.9 | "frame trees in 26 experiments carried out throughout Great Britain" | **CONFIRMED.** Raters 6–20; trees rated 83–323 (P1 Table 1). |
+| V-8 | P5 mortality data: 18,423 records, 5,635 trees, 1,206 deaths | P5:4 / c.88 | "18 423 observations of tree status live or dead, originating from 5635 trees in total … 1206 trees that had died, mostly as a consequence of wind and snow, followed by competition and harvesting damage" | **CONFIRMED.** Note: causes are attributed for *some* deaths only — "more than half the causes of death remained unknown" (P5:11 / c.95). |
+| V-9 | P5 sample size "18 plots/stands" | P5 abstract / c.85; P5:3 / c.87; P5:4 / c.88 | Abstract: "a data set involving 18 plots". §2.1: "18 Norway spruce… dominated stands in five areas (2–7 stands in each)". P5:4: "1732 trees were cut in the 18 plots altogether". **But** P5:3: "The site index of the **20 plots** varied between 25.9 m and 33 m"; and "selective thinning was repeated in 16 stands in 1996. Four stands were not thinned" (16 + 4 = 20). | **CONFIRMED as stated; source internally inconsistent.** 18 is what the paper says in three places, 20 in one. **Not reconciled.** Never cite 18 as a settled sample size. |
+| V-10 | P5 ingrowth: 3,360 trees; rate | P5:4 / c.88 | "3360 trees reaching or surpassing a height of 1.3 m … on average 40 ingrowth trees per measurement time and sample plot or **49 ingrowth trees per hectare and year**" | **CONFIRMED.** The 49 ha⁻¹ yr⁻¹ figure is directly reported, not derived by this packet. Consistency check: 40 per 0.16 ha plot per five-year interval ≈ 50 ha⁻¹ yr⁻¹. |
+| V-11 | #860 addendum's P2 agreement claim | P2 abstract / c.15; P2:11 / c.25; P2:14 / c.28; P2:16 Fig. 7 / c.30; P2:17 / c.31; Table 3 P2:9 / c.23 | Abstract: "general agreement in tree selection in Britain was only slight to fair". P2:14: low thinning κ_F "generally between 0.35 and 0.51 (fair to moderate)"; crown thinning "between 0.01 and 0.28 (poor to slight … with the notable exception of experiment Loch Ard 2015, here κ_F = 0.44)". Fig. 7: poor 4, slight 14, fair 17, moderate 1 = 36. | **CONFIRMED with page corrections.** The addendum's "slight-to-fair" matches the abstract; crown thinning was poor-to-slight with one fair exception. Verified by this producer (text layer) and by #896 (rendered). |
 
-## Retraction: V-4 was a false positive, and why that matters
+## Retraction note: V-4 was a false positive
 
-The first version of this packet claimed the 24-page extraction's P4 Table 1 was shifted by one group and told
-readers to correct it before reuse. **That was wrong.** Manager intake rendered compendium page 66 and extraction
-page 12 and found both correctly grouped and mutually consistent, matching the article's own row descriptions:
-`a`/`b` belong to the total-height relationship (Eq. 8), `c0`/`c1`/`d` to mortality thresholds (Eq. 10), `B`/`f` to
-recruitment, `R` to crown movement and `S` to the superorganism rule.
+The first version of this packet claimed the extraction's P4 Table 1 was group-shifted and advised correcting it
+before reuse. That was wrong. The error was methodological: visiting the table as plain text on the **source** side
+showed row descriptions interleaved with values, and the same interleaving in the **extraction's** text layer made
+the labels look displaced. Comparing two corrupted renderings produced a confident, wrong answer.
 
-The error was methodological, not arithmetic. Visiting the table in a plain-text extract on the **source** side
-showed row descriptions interleaved with values; the same interleaving in the **extraction's** text layer made the
-labels look displaced by one. Comparing two corrupted renderings produced a confident, wrong conclusion.
+Consequences now built into the packet:
 
-Three consequences are now built into this packet:
+1. `P4-04` is `MATERIAL GAP`, not `DISPUTED` — the table is simply absent from the composites.
+2. No table or parameter claim is verified from a text layer. Prose counts (V-2, V-5–V-8) remain acceptable and
+   were independently rendered by #896.
+3. The proposed composite reproduces Table 1 in the article's own grouping, with **λ_B** and the equation scope
+   fixed, so the earlier mistake cannot propagate into a Project attachment.
 
-1. `P4-04` is reclassified from `DISPUTED` to `MATERIAL GAP` — the table is simply absent from the composites.
-2. No table or parameter claim may be verified from a text layer. Prose counts are still acceptable (V-1, V-2,
-   V-5–V-8 remain sound).
-3. The proposed composite (`08-…`) reproduces Table 1 in the article's own grouping and carries an explicit note
-   that it supersedes the earlier error, so the mistake cannot propagate into a Project attachment.
+## Items deliberately not verified by this producer
 
-The general lesson is worth keeping beyond this task: a defect claim about a source is as fallible as the source,
-and a text-extraction artefact will happily impersonate a real error in either direction.
-
-## Items deliberately not verified
-
-- The P3 formulas (mingling, differentiation, angle index). They are textbook definitions and are quoted with
-  their worked forms; the risk of transcribing them wrongly is low but non-zero, and the reviewer should spot-check
-  M_i and T_ij against P3 pages 4-5.
-- P6's system taxonomy — descriptive, low numeric risk.
-- The four composites' own internal figures. They are a separate evidence family and were not re-audited here;
-  this packet tested only whether they cover the six-paper topics.
+- The P3 formulas (mingling, differentiation, angle index): textbook definitions quoted in their worked forms.
+  #896 checked M_i = equation (5), n = 3, values 0/0.33/0.67/1.00 and the T_ij classes on P3:5.
+- P6's system taxonomy — descriptive, low numeric risk. #896 read P6:6/P6:9 for the Sitka mentions.
+- The four composites' own internal figures: a separate evidence family, not re-audited here.

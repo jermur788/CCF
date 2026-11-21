@@ -16,7 +16,7 @@ Reasons:
    existing four would either duplicate adjacent material or distort the composites' own structure.
 2. Rewriting four composites means four new attachment versions and four new risk surfaces for a body of evidence
    that has a single coherent home.
-3. 44 of 67 audited rows are material gaps, but they cluster into six topics. One composite, six sections, mirrors
+3. 46 of 68 audited rows are material gaps, but they cluster into six topics. One composite, six sections, mirrors
    the existing extraction and keeps page traceability intact.
 4. It preserves the existing `SUPPORTING RESEARCH — NOT DECISION AUTHORITY` status without touching the files that
    currently carry it.
@@ -27,11 +27,11 @@ Reasons:
 
 | Section | Content | Cross-reference instead of duplication |
 |---|---|---|
-| 1. Individual-tree management and frame trees | P1 framework, 0-3 competitor rule, 5-10 yr assessment horizon, objective-specific retention, density examples, h/d realisation space | Practice §3 (individual-tree judgement); Growth §5/§7 (h/d, growth) |
+| 1. Individual-tree management and frame trees | P1 framework, 0-3 competitor rule, 5-10 yr assessment horizon, objective-specific retention, density examples, h/d realisation space | Practice §3 (individual-tree judgement, Brownhill density); Growth §6/§7 (slenderness, growth) |
 | 2. Tree-marking agreement and training | P2 36 experiments/12 sites, kappa categories, results, B ratio, "agreement is not ecological quality", training-design implications | research-index D-065 (delegation boundaries) |
 | 3. Structural indices for read-only measurement | P3 M_i, T_ij, R, W_i, H', S, g(r), mark correlation; edge bias; randomness-is-not-biodiversity | none — genuinely new |
 | 4. Crown geometry and plasticity (research model) | P4 scope, Swiss data, fitting method, **Table 1 in the article's own grouping**, scenario settings, superorganism result and its limits | Growth §8 (Tabbush/Davies crown models — different evidence) |
-| 5. Spatial growth and forecast uncertainty | P5 design, observed counts, RBA field, ingrowth/growth/mortality structure, uncertainty results, Hegyi-vs-relascope finding, limits | Growth §1/§2 (existing density architecture); Growth §4 (site) |
+| 5. Spatial growth and forecast uncertainty | P5 design, observed counts, RBA field, ingrowth/growth/mortality structure, uncertainty results, Hegyi-vs-relascope finding, limits | Growth §5 (Hegyi competition multiplier), Growth §8, Ecology §2; Growth §1–§2 density architecture and §4 site |
 | 6. Regeneration-method taxonomy | P6 shelter/edge/open, four basic systems, selection vs two-storeyed, felling purposes, variants vs combinations, gap examples | Ecology §2/§3 (light, seed supply); Practice §1/§3 (staged interventions, enrichment) |
 | 7. What this evidence does not authorise | The extraction's own exclusions, plus the rendered-table caution, plus the "no Irish coefficient" limits | Growth §9 (GROWFOR boundary pattern) |
 
@@ -50,12 +50,16 @@ One change only, in section D:
 > Pommerening et al. 2018, in `Rating experiments in forestry.pdf`, which is in the archive and can be checked) …
 > I have not verified this against the paper."*
 >
-> Proposed: keep the sentence, change the label from *not verified* to *verified* with page references
-> (P2 pp. 11, 16-17; agreement categories p. 9), and note that agreement is poor-to-fair for crown thinning and
-> fair-to-moderate for low thinning, with 4 of 36 experiments poor and none substantial.
+> Proposed: keep the sentence, change the label from *not verified* to *primary-verified*, naming the verifiers and
+> the artefact, with corrected page pointers — P2 pp. 1 (abstract "slight to fair"), 11 (p < 0.001), 14 (κ_F
+> ranges and the Loch Ard 2015 exception), 16 (Fig. 7 counts: poor 4, slight 14, fair 17, moderate 1), 17 (4 of 36
+> poor), and Table 3 p. 9 for the categories. Crown thinning was poor-to-slight with one fair exception; low
+> thinning fair-to-moderate; overall only slight-to-fair. The MART pp. 2, 10 citation is the secondhand report of
+> this same finding, not the rights discussion.
 
-That is a traceability improvement, not a science change, and it removes one open conflict from #860 without
-touching that addendum's other unresolved items.
+The exact before/after text is in `09-PROPOSED-860-ADDENDUM-P2-CHANGE.md`. That is a traceability improvement, not
+a science change, and it removes one open conflict from #860 without touching that addendum's other unresolved items
+or its author's own "six papers not read" statement.
 
 ## 3. What is explicitly NOT proposed
 
