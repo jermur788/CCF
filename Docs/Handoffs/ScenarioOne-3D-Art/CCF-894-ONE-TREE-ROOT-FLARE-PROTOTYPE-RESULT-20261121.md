@@ -143,3 +143,36 @@ To compare, open the canonical scene and look at the same tree. Close the Editor
    - D-032 storage for the scan binaries;
    - #886 collision reconciliation;
    - an approved four-part spec.
+
+## Addendum 2026-11-21: one continuous bark texture (owner request)
+
+**Owner request:** "same trunk texture all the way but different base design".
+
+**Why the join was visible:** the scan's photo bark met the Benchmark's own bark, which is generated rather than photographed. Their colour, pattern scale and normal detail differ, and the flare is 4 % wider. Together these made a ring at the seam.
+
+**Change:** the scene copy now uses `CCF894_RootFlare_thksce3da_BenchBark.prefab`. It is the same thksce3da shape and fit, but most of it is textured with the Benchmark's own `SS_Benchmark_Bark`.
+
+- **UVs continue the trunk's own unwrap.** The builder fitted the trunk's mapping near the seam:
+  - u = 0.6203·θ, with a mean residual of 0.016 in a period of 3.898;
+  - v = 21.668·y, with a mean residual of 0.0007.
+- **The bark flows onto the roots.** On the flare, v keeps running down by the distance beyond the stem, so the bark grain flows out along the roots.
+- **The ground contact keeps the scan texture.** That is the low, up-facing soil and moss skirt: 279 of 3,857 tris.
+
+**Candidate:** HEAD `ca32767768ac589c061b9aca573e8ae88dd92dff`, still local only.
+
+- Commits: `cab432e0` (builder and harness), `533c7475` (generated assets and scene), `ca327677` (README).
+- **Smoke run4:** `CCF894_ROOTFLARE_SMOKE_PASS checks=14 failures=0`, verdict sha256 `e90bb006…`.
+- **Lock:** acquired as `5b033522`, now released. The board row is VERIFY.
+- **Unity drift:** a session between my runs, probably the owner's test, left more auto-drift: Packages bump, SectionFive materials, `.vscode`. It was saved as `unity-drift-reverted-2-after-owner-session.patch` and `-3.patch`, then reverted.
+
+**Captures:** `run4/sheet-*.png` compares before, the B scan texture and the new bark-wrapped B. `run4/crop-roots-scan-vs-benchbark.png` is a full-resolution crop of the roots.
+
+**Author read:**
+- **The seam is gone** in the side and walking views: the trunk reads as one bark surface down into the buttresses.
+
+**New weaknesses:**
+1. **The roots look clean and pale.** The Benchmark bark has no AO or moss, so the root crotches lose the scan's darkening and green.
+2. **The soil skirt boundary is jagged.** The skirt is selected per triangle, so the bark-to-soil edge shows sawtooth steps up close.
+3. **Bark plates widen out on the flare** (u is per angle). The effect is modest.
+
+A height or AO darkening-and-moss blend toward the ground would fix 1 and 2. That needs either a Shader Graph material or a baked base texture, which is a further small step for the owner to approve.
