@@ -192,7 +192,9 @@ internal sealed partial class PlayerApi
         return WriteJsonAsync(context, StatusCodes.Status200OK, new ViewPayload(view, PlayerMapScene.Build(view), Labels));
     }
 
-    // One atomic read, one fence comparison and one pure calculation on that same immutable view.
+    // One atomic read, one fence comparison and one pure calculation on that same immutable view. Any living tree may be
+    // inspected, before or after a Crop designation (owner #882 G2 feedback): the diagnostic is read-only, so it neither
+    // requires nor creates a Crop mark, and it never proposes a Fell.
     private async Task ReadCompetitionAsync(HttpContext context)
     {
         var request = await ReadRequestAsync<TreeRequest>(context, rejectDuplicateMembers: true);
@@ -221,11 +223,6 @@ internal sealed partial class PlayerApi
             try
             {
                 report = PlayerCompetitionDiagnostics.Measure(view, treeId);
-                if (!view.CropTreeIds.Contains(treeId, StringComparer.Ordinal))
-                {
-                    report = null;
-                    refusal = new Notice("CompetitionCropRequired", "designate a retained Crop Tree before inspecting its competitors");
-                }
             }
             catch (P1Refusal reason) { refusal = new Notice(reason.Code, reason.Message); }
         }

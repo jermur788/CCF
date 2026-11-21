@@ -741,7 +741,7 @@ status({'fence':mark_fence,'treeId':target['treeId']},409,'crop mark bumps fence
 code, clear = send('api/crop/unmark', {'fence':fence,'treeId':target['treeId']})
 check(code == 200 and target['treeId'] not in clear['view']['cropTreeIds'] and clear['view']['planStateRevision']==v['planStateRevision']+1, 'unmark commits exactly one plan-state bump')
 cf = lambda v:{k:v[k] for k in ('sessionId','source','planStateRevision')}
-status({'fence':cf(clear['view']),'treeId':target['treeId']},409,'competition requires genuine retained Crop designation')
+code, plain = send(body={'fence':cf(clear['view']),'treeId':target['treeId']}); check(code == 200 and plain['refusal'] is None and plain['competition']['targetTreeId'] == target['treeId'] and target['treeId'] not in plain['view']['cropTreeIds'] and send('api/view',method='GET')[1]['view'] == clear['view'], 'competition of a living non-Crop tree is read-only and needs no Crop designation (#882 G2)')
 code, pending = send('api/pending/add', {'fence':cf(clear['view']),'treeId':target['treeId'],'reason':'crop conflict guard'})
 assert code == 200
 status({'fence':cf(pending['view']),'treeId':target['treeId']},409,'pending Fell cannot become Crop',path='api/crop/mark')
@@ -1111,6 +1111,7 @@ check(byId('map').getAttribute('width') === String(38 * 64) && byId('map-scale')
 
 // #882 N1 repair: this is the DOM stand-in, not real-browser/native-input evidence.
 await selectInTable(treeA);
+await until(() => document.querySelector('[data-competitor]') !== null && byId('competition-content').textContent.includes('not a Crop Tree'), 'competitors of a non-Crop tree before any Crop designation (#882 G2)');
 click(byId('crop-button'));
 await until(() => byId('crop-button').textContent === 'Remove Crop designation', 'retained Crop');
 await until(() => document.querySelector('[data-competitor]') !== null, 'automatic Crop competitor report');
@@ -1239,8 +1240,9 @@ check(fact('Plan-state revision') === String(server.planStateRevision) && !byId(
   'J23 a successful re-read shows the committed Add, lifts the lock and clears the alert');
 click(byId('approve'));
 await until(() => ids('approved-list').includes(treeC), 'Approve after the re-read');
-check(requests[requests.length - 1].method === 'POST' && requests[requests.length - 1].path === 'api/plan/approve',
-  'J24 after the re-read a command is sent again (Approve)');
+const lastCommand = requests.filter((request) => request.path !== 'api/competition').at(-1);
+check(lastCommand.method === 'POST' && lastCommand.path === 'api/plan/approve',
+  'J24 after the re-read a command is sent again (Approve; the selected tree\'s read-only competition reads are not commands, #882 G2)');
 
 // ---- D2: an Execute that committed, but whose answer was lost ----------------------------------------------------------
 arm('POST', 'api/plan/execute', 'lose');

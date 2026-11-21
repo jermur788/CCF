@@ -158,7 +158,8 @@
   // Shows a newly received view. A selection is kept only if its exact ID is in the new view (spec §5 S-8).
   function applyPayload(payload, keepOverlap) {
     state.view = payload.view;
-    if (state.competitionTargetId && !state.view.cropTreeIds.includes(state.competitionTargetId)) clearCompetition();
+    // Any living tree can be inspected (owner #882 G2); only a target that died or left the view is dropped.
+    if (state.competitionTargetId && !livingTree(state.competitionTargetId)) clearCompetition();
     const refreshDiagnostic = state.competitionTargetId !== null && state.competitionTag !== competitionTag();
     if (refreshDiagnostic) state.competition = null;
     state.scene = payload.scene;
@@ -1006,6 +1007,11 @@
     return JSON.stringify([currentFence(), state.competitionTargetId]);
   }
 
+  // Read-only competition is available for every living tree, whether or not it is a retained Crop Tree.
+  function livingTree(treeId) {
+    return Boolean(state.view && state.view.frame.trees.some((tree) => tree.treeId === treeId && tree.isLiving));
+  }
+
   function clearCompetition() {
     state.competitionTargetId = null;
     state.competition = null;
@@ -1046,11 +1052,13 @@
     const box = byId('competition-content');
     const living = state.view.frame.trees.find(t => t.treeId === state.selectedId && t.isLiving);
     const report = state.lock ? null : state.competition;
-    const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', 'data-focus-key': 'competition-inspect', disabled: !living || !state.view.cropTreeIds.includes(state.selectedId) || Boolean(state.lock) },
-      'Inspect selected Crop Tree competitors');
+    const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', 'data-focus-key': 'competition-inspect', disabled: !living || Boolean(state.lock) },
+      'Inspect competitors of the selected tree');
     const parts = [inspect];
     if (report) {
-      parts.push(el('p', { class: 'small-note' }, 'Retained Crop Tree ' + report.targetTreeId + ' · ' + report.neighbours.length +
+      const retained = state.view.cropTreeIds.includes(report.targetTreeId);
+      parts.push(el('p', { class: 'small-note' }, (retained ? 'Retained Crop Tree ' : 'Tree ') + report.targetTreeId +
+        (retained ? '' : ' (not a Crop Tree; read-only inspection)') + ' · ' + report.neighbours.length +
         ' living neighbours within ' + report.cutoffM + ' m. Strength describes contribution share, not tree health.'));
       parts.push(el('p', { class: 'competition-totals' }, 'Hegyi now ' + fixed(report.currentTotal, 4) +
         (report.targetPlannedForFell ? ' · Target is planned for Fell: no retained-tree release estimate.' :
@@ -1157,7 +1165,7 @@
     showPane('plan');
     renderAll();
     announce('Selected tree ' + treeId + '.');
-    if (state.view.cropTreeIds.includes(treeId)) { state.competitionTargetId = treeId; refreshCompetition(); }
+    if (livingTree(treeId)) { state.competitionTargetId = treeId; refreshCompetition(); }
     if (fromTable) {
       // A zoomed map shows only part of the area, so it scrolls to the tree chosen in the table.
       const point = selectedPoint();
@@ -1203,7 +1211,7 @@
           (candidates.length > 1 ? ' ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.' : '');
       }
       applyPayload(outcome.payload, true);
-      if (state.view.cropTreeIds.includes(state.selectedId)) { state.competitionTargetId = state.selectedId; refreshCompetition(); }
+      if (state.selectedId !== null && livingTree(state.selectedId)) { state.competitionTargetId = state.selectedId; refreshCompetition(); }
       announce(message);
     } else if (outcome.kind === 'refused') {
       // A stale fence: redraw from the fresh view and select nothing (S-3).
@@ -1463,8 +1471,8 @@
       const marked = state.view.cropTreeIds.includes(id);
       run(marked ? 'api/crop/unmark' : 'api/crop/mark', { fence: currentFence(), treeId: id },
         label(marked ? 'UnmarkCrop' : 'MarkCrop'), () => {
-          if (marked) { clearCompetition(); renderAll(); }
-          else { state.competitionTargetId = id; refreshCompetition(); }
+          // The tree stays inspected either way: competition is shown for any living tree, Crop or not.
+          if (state.competitionTargetId !== id) { state.competitionTargetId = id; refreshCompetition(); }
           announce((marked ? 'Removed Crop designation: ' : 'Retained Crop Tree: ') + id + '.');
         });
     });
