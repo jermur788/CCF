@@ -1033,8 +1033,10 @@
     renderAll();
     byId('competition-content').append(el('p', null, 'Reading competition…'));
     const outcome = await call('api/competition', { fence: currentFence(), treeId: state.competitionTargetId });
-    // A late response from an older selection/view can never paint numbers on a newer tree or fence.
-    if (request !== state.competitionRequest || tag !== competitionTag() || state.lock) return;
+    // A late response from an older selection/view can never paint numbers on a newer tree or fence. While a command is in
+    // flight the read-only diagnostic draws nothing (not even a refusal's view): the command's answer, or its lock, decides
+    // what is shown, and that answer re-reads the diagnostic.
+    if (request !== state.competitionRequest || tag !== competitionTag() || state.lock || state.busy) return;
     if (outcome.kind === 'ok') {
       state.competition = outcome.payload.competition;
       state.competitionTag = tag;

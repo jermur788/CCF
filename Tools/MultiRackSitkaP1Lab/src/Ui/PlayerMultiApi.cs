@@ -1371,8 +1371,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     state.competition = null;
     renderAll();
     const outcome = await call('api/multi/competition', { fence: currentFence(), areaId: target.areaId, treeId: target.treeId });
-    // A late answer for an older selection, area or view can never paint numbers on a newer one.
-    if (request !== state.competitionRequest || tag !== competitionTag() || state.lock) return;
+    // A late answer for an older selection, area or view can never paint numbers on a newer one. While a command is in
+    // flight the read-only diagnostic draws nothing (not even a refusal's view): the command's answer, or its lock, decides
+    // what is shown, and that answer re-reads the diagnostic.
+    if (request !== state.competitionRequest || tag !== competitionTag() || state.lock || state.busy) return;
     if (outcome.kind === 'ok') {
       state.competition = { areaId: outcome.payload.areaId, report: outcome.payload.competition };
       state.competitionTag = tag;
