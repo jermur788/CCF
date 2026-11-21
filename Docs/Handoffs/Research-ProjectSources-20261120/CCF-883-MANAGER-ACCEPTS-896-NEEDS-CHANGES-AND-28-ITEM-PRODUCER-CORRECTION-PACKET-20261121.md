@@ -16,7 +16,7 @@
 - **Writable:** only `Docs/Handoffs/Research-ProjectSources-20261120/883-Evidence-Coverage-Quality/**` in original isolated producer branch. Existing 00–10 documents and the two TSVs as referenced by R-1…R-28; optional new within-subtree corrective receipt, not a new canonical research source.
 - **Read-only:** original 111-page six-paper volume, 24-page extraction, the four original composites including both versions of Growth, #860 original addendum, #896 review, relevant `research-index.md`/existing specifications, live `Docs/Project/coordination/active-tasks.md`.
 - **Strict exclusions:** no `Docs/Research/**`, `Docs/Project/**`, `research-index.md`, `decision-log.md`, current four composites, #860 addendum's own branch/text, original PDFs, Project attachments, Drive, Unity/C#, saved states, asset binary, main merge, PR or publication. Neither a source claim nor a critic review approves gameplay mechanisms, Irish coefficients or rights to republish a table. No Windows build.
-- **Pre-start:** fetch latest live board and issues #883/#896/#425, ensure no overlapping actual writer or dirty чужой changes, confirm branch/worktree/HEAD. Register actual execution provider, lane, writer scope and phase on #883; comments are coordination receipts, **not** physical worktree grants. Preserve the author's existing committed work.
+- **Pre-start:** fetch latest live board and issues #883/#896/#425, ensure no overlapping actual writer or unrelated dirty changes, confirm branch/worktree/HEAD. Register actual execution provider, lane, writer scope and phase on #883; comments are coordination receipts, **not** physical worktree grants. Preserve the author's existing committed work.
 
 ## Correction contract — every R-ID MUST have a disposition
 
