@@ -8,7 +8,7 @@
 |---|---|
 | **Q0 COMPLETE** | **YES**: read-only equation/parameter/state inventory and research crosswalk, delivered in this file |
 | **Q1+Q2 EXECUTED** | **NO**. Q1 is BLOCKED: there is no D-091 custodian receipt and no qualification lease. No engine experiment was run. This file contains no engine output. |
-| **Q4 REVIEWED** | **PENDING**. No independent review has happened yet. |
+| **Q4 REVIEWED** | **PENDING**. One independent nonauthor review happened: OpenAI GPT-6.1 Sol, `Q0-INDEPENDENT-REVIEW.md` on branch `docs/multi-885-q0-crosswalk-review-20261121-v1` (blob `cb78f649…`, SHA-256 `1a3f7ed8…`). It reviewed revision 1 (blob `bd125f54…`) and returned **NEEDS CHANGES** (0 BLOCKING, 5 MAJOR, 3 MINOR). This is revision 2, which applies F1–F8 (§0.1). The changed-lines recheck has **not** returned. **No approval is claimed.** |
 | **MODEL CALIBRATED** | **NOT CLAIMED** |
 | **OWNER ACCEPTED** | **NOT CLAIMED** |
 | **G1 ecological validation** | **UNKNOWN** |
@@ -21,6 +21,7 @@
 | Report lane | branch `docs/multi-885-q0-equation-crosswalk-20261121-v1`, sole path `Docs/Handoffs/MultiRack-Simulation-20261116/885-q0-qualification-20261121/Q0-EQUATION-AND-RESEARCH-CROSSWALK.md` |
 | Branch base (`main` at publication) | `3a67d0987be0cf40d007892739d2ad295c84f0e0` |
 | Date | 2026-11-21 |
+| Revision | **2**. This revision applies the Q4 review corrections F1–F8 (§0.1). It is the same author: Claude Opus 5.5, Claude Code as a T3 child thread, single writer, no subagents. Revision 1 was at branch head `4be3b2f3cddcbf9c10a60e17769d3d6e1be1846d`, blob `bd125f54fdcd0d8c0ee2f3a481b59728e0570455`. All code anchors are still at candidate `4cecf873`. |
 | Method | `git -C /home/jer/Development/CCF-HP show 4cecf873:<path>` and `git ls-tree` on the local clone (read only), `gh api` for the #885 next-action packets. I created no worktree and ran no build, test, Unity, server or engine. I made no write in any Git worktree: scratch copies live in `%TEMP%\opencode\q0`, outside Git. |
 | Governing packet | `01-MA1-MULTIYEAR-QUALIFICATION-DEEPSEEK-ORCHESTRATION-PACKET.md` (branch `docs/multi-885-next-action-orchestration-research-packets-20261121-v1`, head `7a2a13fa8ab850571fb40868fb2ae7f188922b9e`), plus packets 02 and 03 in the same folder |
 
@@ -40,6 +41,26 @@ Line numbers are those of the blob at `4cecf873`.
 - *Multi-Area Sitka Spruce Data Assessment*.
 
 **These are NOT in the repository tree and were UNAVAILABLE to this worker.** I did not read, reconstruct or paraphrase them. Every claim that would depend on them is marked **UNKNOWN**. `git grep` over `Docs/` at `4cecf873` finds **no** mention of Page et al. 2001, Stokes 2009 or CONTINUCOVER. The only repository description of them is one sentence each in packet 02 (§"Input" and R1), which is a packet summary, not source evidence.
+
+### 0.1 Corrections applied in this revision
+
+These corrections follow the Q4 independent review (GPT-6.1 Sol). Its finding IDs are kept unchanged. No correction changes the engine, adds a coefficient or reports a measurement. The changed-lines recheck should verify the sections named below.
+
+| Finding | Sections changed | What changed |
+|---|---|---|
+| F1 (MAJOR) repeat equality | §2.5 "No hidden inputs" and new "Cross-session comparison projection"; §2.9 Q1 verification; §6 Repeats and Isolation check; §7 W13 | Byte-identical full views are no longer required, because the random `sessionId` appears in views and is embedded in `PlanId`, execution keys and Fell records. Repeats now use a deterministic comparison projection: annual reports, area views and history are compared directly, session-derived IDs are checked within their own session and then normalised for the ledger comparison, and serialisation, ordering and float representation are fixed. Random session generation is kept. |
+| F2 (MAJOR) units | §2.3 E3, E4, E12, E13 (units column and notes); §2.4 Units; §6 Measurements | CI is now stated as m⁻¹ (a DBH ratio divided by distance in metres), with CI50 = 5 m⁻¹ in the same convention. `p` is now a dimensionless Bernoulli probability for one annual step, not a per-year instantaneous hazard. No unit conversion is made or implied. |
+| F3 (MAJOR) growth overstatement | §5 X3, X4; §7 W2 (now an H-W2 hypothesis), W7 | The "DBH growth does not slow" and "DBH the only competition-responsive variable" claims are narrowed to the defensible one: growth has no direct occupancy/RD term. The clamp(1 − D/120) size taper is kept. DBH is the principal competition-responsive growth variable, and the crown target also responds to CI. The assumed pre-mortality window is removed, because MA-A starts above the RD onset. |
+| F4 (MAJOR) weakness list | §7, restructured into 7.1 tiers and ranking rationale, 7.2 established limits, 7.3 falsifiable hypotheses | Established limits are now separate from falsifiable hypotheses. Each hypothesis has a rejection criterion, a tolerance and named confounders. W3 is labelled a model diagnostic that cannot prove or disprove empirical transfer. W4 has a decision rule with age/DBH/spacing/dependence handling. W5 has a float32-aware tolerance. W7 drops the matched-pair test. W11 is a retention/replay statement with empty-area/null handling. The ranking rationale is explicit, and the F1/F5 defects (W13, W14) rank above documentation drift. |
+| F5 (MAJOR) protocol | §6 Design (S, intensity rule), Logging (new), Measurements, Valid comparisons | "Equivalent single intervention" is defined (removed stems as the primary match; BA, IDs and timing reported as mismatches). There is a pre-registered, outcome-independent selection and stopping rule over the allowable set, and chosen IDs are disclosed before each Execute. Retained-tree growth is now compared on matched trees, separately from selection-only mean shifts. Null means unevaluated, never zero. Every year is captured, not only checkpoints, and every command and result is logged for replay. |
+| F6 (MINOR) refusal language | §2.7 Advance row; §2.9 "No year cap" | "Refused only" and "stops only" are qualified: fence/session mismatch and missing work consent refuse before the all-empty check. Biological stopping is separated from a checked int32 overflow, which is an exception, not a refusal code. |
+| F7 (MINOR) citation | §2.2 author-reported genesis row; §8 | The citation is corrected to handoff §1 "IMPLEMENTED" item 1 (§1.1 is Deviations). The author-reported / not re-verified label is kept. |
+| F8 (MINOR) precision | §2.3 (new precision column notes on E3–E7, E9, E12–E14); §2.4 | Precision is now stated per step: float32 CI accumulation, float32 DBH/crown/area, double stand sums, and a double height envelope cast back to float32 per step. E6 is labelled algebra, not bit-exact evaluation. The S/p null and zero guards are stated. The float32-spacing claim is corrected: ΔD is 0 at D ≥ 120 cm, and rounding can stop small increments. |
+| Missing consequential weaknesses | §2.3 E15; §6 boundaries; §7 W13–W15 | The F1/F5 consequences are added as W13/W14. The boundary's last-survivor guard is no longer generalised: hazard draws alone can kill every living tree of an area (W15). |
+
+**Precision note (not a disagreement).** One shorthand of F8 reads "CI … float32 with double accumulation". At `4cecf873` the CI sum itself is accumulated in float32 (`AnnualRules.cs:69-81`). Double accumulation applies to the stand ΣD² and the vulnerability mean (`:30-32,105-110,125-128`). §2.3 states it that way.
+
+**Disagreement (one sentence, correction applied anyway).** For W4, MA-A and MA-B are complete censuses of synthetic stands, not samples, so a sampling significance test has no defined population. I therefore give a pre-registered magnitude decision rule with explicit dependence handling in place of a p-value threshold, and I name the confounders as F4 asks.
 
 ---
 
@@ -82,7 +103,7 @@ There is **no** per-tree crown ratio, vigour, suppression-history, seed, damage,
 | Edge model | "isolated per area": neighbours across the boundary are excluded, with no buffer or edge correction | `MultiAreaExperiment.cs:25-27` |
 | Fell eligibility DBH threshold | 170 mm carried as **metadata only**. It does not restrict Fell (D-093). | `MultiAreaExperiment.cs:34`; `MultiAreaContracts.cs:152` |
 | Excluded systems (declared) | browsing, canopyLight, juvenileLifecycle, mixedSpecies, pruning, recruitment, regeneration, storm | `DerivedManifest.cs:58-59` |
-| Author-reported genesis stand values (author console print, **not re-verified by me**) | MA-A: 1,868.9 stems/ha, BA 74.02 m²/ha, Dq 22.46 cm, RD 0.802. MA-B: 486.7 stems/ha, BA 39.50 m²/ha, Dq 32.15 cm, RD 0.438. | MA-1 author handoff `Docs/Handoffs/MultiRack-Simulation-20261116/885-multi-area-spec/Multi-885-MA1-TWO-AREA-SIMULATOR-SOURCE-IMPLEMENTATION-HANDOFF-20261121.md` §1.1. The tests assert only the inequalities "A RD > 0.6 > B RD" (`MultiAreaTests.cs:77-78`). |
+| Author-reported genesis stand values (author console print, **not re-verified by me**) | MA-A: 1,868.9 stems/ha, BA 74.02 m²/ha, Dq 22.46 cm, RD 0.802. MA-B: 486.7 stems/ha, BA 39.50 m²/ha, Dq 32.15 cm, RD 0.438. | MA-1 author handoff `Docs/Handoffs/MultiRack-Simulation-20261116/885-multi-area-spec/Multi-885-MA1-TWO-AREA-SIMULATOR-SOURCE-IMPLEMENTATION-HANDOFF-20261121.md` §1 "IMPLEMENTED", item 1 (handoff l.38 for MA-A, l.39 for MA-B). Revision 1 wrongly cited §1.1, which is "Deviations". These values remain **author-reported and not re-verified**. The tests assert only the inequalities "A RD > 0.6 > B RD" (`MultiAreaTests.cs:77-78`). |
 
 ### 2.3 Annual equations (in execution order), `LAB/src/Core/AnnualRules.cs`
 
@@ -90,33 +111,64 @@ There is **no** per-tree crown ratio, vigour, suppression-history, seed, damage,
 |---|---|---|---|---|---|
 | E1 | Year | `year = EcologicalYear + 1` (checked) | yr | `:15` | — |
 | E2 | Living set | living trees, ordinal by `TreeId` | — | `:16` | — |
-| E3 | Hegyi CI (pre-growth, area-local) | `CI_i = Σ_{j≠i, d_ij ≤ 8 m} (D_j / max(1, D_i)) / max(0.5, d_ij)` | dimensionless | `:67-82`; constants `:6-7` | Method [B]; 8 m cutoff [C] (`SGM/EvidenceMatrix.csv` row 16) |
-| E4 | Growth response | `r_i = 1 / (1 + CI_i / 5)` | — | `:88`; `Ci50 = 5` `:8` | Response form and CI50 are abstraction/calibration (`RES/CCF_Growth_Density…Composite.md` §5) |
-| E5 | DBH increment | `ΔD = 1.2 · site · clamp(1 − D/120, 0, 1) · r_i`, then `D ← clamp(D+ΔD, 1, 200)` | cm/yr | `:89-91`; constants `:9-10` | 1.2 cm/yr [C], evidence range 0.9–1.5 (EvidenceMatrix row 10). `site` = 1.0f (`DerivedManifest.cs:50`). **Age does not enter DBH growth.** |
-| E6 | Height | `H ← clamp(H · E(max(1,age)+1) / E(max(1,age)), 0.1, 60)`, with `E(t) = b0 (1 − e^{−0.042 t})^{1.563}` and `b0 = 20.4 / (1 − e^{−0.042·30})^{1.563}` | m | `AnnualRules.cs:92-93`; `CCF/SitkaGrowthModel.cs:37-60` | Lekwadi et al. 2012 Class III, b2/b3 [A], b0 anchor-matched to 20.4 m [A/C] (`SGM/SitkaGrowthModel1.md` lines 31-33). **No competition term; no site term.** |
-| E7 | Crown | `R_pot = max(0.1, 0.9415 + 0.07635·D)`, `R_target = R_pot · r_i`, `R ← max(0.1, R + 0.15 (R_target − R))` | m | `:94-98`; `CcfSourcePins.cs:28-30` | Tabbush & White envelope [B] (EvidenceMatrix row 13). Relaxation 0.15 lies inside the composite's 0.1–0.2/yr starting range (§5). Competition reduction is a model choice [D]. |
+| E3 | Hegyi CI (pre-growth, area-local) | `CI_i = Σ_{j≠i, d_ij ≤ 8 m} (D_j / max(1, D_i)) / max(0.5, d_ij)` | **m⁻¹**. The DBH ratio is dimensionless (both cm, floor 1 cm), and it is divided by a distance in metres (floor 0.5 m). | `:67-82`; constants `:6-7` | Method [B]; 8 m cutoff [C] (`SGM/EvidenceMatrix.csv` row 16). **Precision:** float32 throughout. `dx`, `dz` and `dx·dx + dz·dz` are float32; `Math.Sqrt` runs in double and is cast back to float32; the sum is accumulated in float32 over living trees in ordinal `TreeId` order (`:69-81`). |
+| E4 | Growth response | `r_i = 1 / (1 + CI_i / CI50)`, with **CI50 = 5 m⁻¹**: the same metre-based convention as CI, so `CI/CI50` and `r` are dimensionless | dimensionless | `:88`; `Ci50 = 5` `:8` | Response form and CI50 are abstraction/calibration (`RES/CCF_Growth_Density…Composite.md` §5). CI50 is meaningful only with distances in metres and DBH ratios as coded. Re-expressing CI in another length unit would change both CI and CI50; **no such conversion is made or implied here.** float32 (`1f/(1f + ci/5f)`). |
+| E5 | DBH increment | `ΔD = 1.2 · site · clamp(1 − D/120, 0, 1) · r_i`, then `D ← clamp(D+ΔD, 1, 200)` | cm per annual step | `:89-91`; constants `:9-10` | 1.2 cm/yr [C], evidence range 0.9–1.5 (EvidenceMatrix row 10). `site` = 1.0f (`DerivedManifest.cs:50`). **Age does not enter DBH growth.** The explicit size taper `clamp(1 − D/120)` slows growth as D rises and gives **ΔD = 0 at D ≥ 120 cm**. There is no direct N/ha or RD term. float32 throughout. |
+| E6 | Height | **Algebraic form:** `H ← clamp(H · E(max(1,age)+1) / E(max(1,age)), 0.1, 60)`, with `E(t) = b0 (1 − e^{−0.042 t})^{1.563}` and `b0 = 20.4 / (1 − e^{−0.042·30})^{1.563}`. **Evaluation as coded (not bit-identical to the algebra):** `h1 = (float)(H · E(a+1) / E(a))` in double with `H` widened, then float32 `g = h1 − H`, then float32 `H + g`, then the float32 clamp. | m | `AnnualRules.cs:92-93`; `CCF/SitkaGrowthModel.cs:37-60` | Lekwadi et al. 2012 Class III, b2/b3 [A], b0 anchor-matched to 20.4 m [A/C] (`SGM/SitkaGrowthModel1.md` lines 31-33). **No competition term; no site term.** The double envelope is cast back to float32 every step (`SitkaGrowthModel.cs:55-60`), so the ratio H/E is preserved only to float32 rounding (see W5). Reproducing exact bits needs the coded order, not the algebra. |
+| E7 | Crown | `R_pot = max(0.1, 0.9415 + 0.07635·D)`, `R_target = R_pot · r_i`, `R ← max(0.1, R + 0.15 (R_target − R))` | m | `:94-98`; `CcfSourcePins.cs:28-30` | Tabbush & White envelope [B] (EvidenceMatrix row 13). Relaxation 0.15 lies inside the composite's 0.1–0.2/yr starting range (§5). Competition reduction is a model choice [D]. Uses the **post-growth** D and the pre-growth CI response; **the crown target responds to CI**, but crown feeds nothing back (output only). float32. |
 | E8 | Age | `age ← age + 1` | yr | `:99` | — |
-| E9 | Stand aggregates (post-growth) | `N/ha = count/areaHa`; `Dq = sqrt(ΣD²/count)`; `BA/ha = ΣD² · π/40000 / areaHa` | stems/ha, cm, m²/ha | `:102-118` (duplicated byte-for-byte in arithmetic as `WorkRules.Summarize`, `WorkContract.cs:122-138`) | `count/areaHa` is evaluated as int÷float32, then widened (`:113-114`) |
+| E9 | Stand aggregates (post-growth) | `N/ha = count/areaHa`; `Dq = sqrt(ΣD²/count)`; `BA/ha = ΣD² · π/40000 / areaHa` | stems/ha, cm, m²/ha | `:102-118` (duplicated byte-for-byte in arithmetic as `WorkRules.Summarize`, `WorkContract.cs:122-138`) | `count/areaHa` is evaluated as int÷float32, then widened (`:113-114`). ΣD² is accumulated in double from float32 DBH (`:105-110`). Dq, BA/ha and RD are double. An empty living set returns an all-zero stand (`:111`). |
 | E10 | Relative density | `RD = N/ha · (Dq/25)^{2.063} / 1868` | dimensionless | `SitkaGrowthModel.cs:67-75` | Comeau et al. 2010, British [B]. Irish transfer unverified (EvidenceMatrix row 23; `SGM/AdultMortalityCalibration.md` lines 15-17). |
 | E11 | Density pressure | `P = max(0, (RD − 0.6)/0.4)`, using **post-growth** RD | — | `AnnualRules.cs:19-20`; `SitkaGrowthModel.cs:89,98-101` | onset 0.6 [C] (row 24) |
-| E12 | Suppression (only if P > 0) | `S_i = 1 − 1/(1 + CI_i/5)`, using **pre-growth** CI | — | `AnnualRules.cs:27-33` | — |
-| E13 | Hazard | `p_i = min(0.5, 0.08 · P² · S_i⁴ / mean(S⁴))` | /yr | `AnnualRules.cs:39-40`; `SitkaGrowthModel.cs:90-96,103-114` | strength 0.08 [C], exponent 4 [C], cap 0.5 numerical (rows 25-26) |
-| E14 | Mortality draw | Drawn only when `p_i > 0`: `u = SimulationRandom.Roll(model 1, "ADULT-MORT-"+TreeId, year, areaSeed)`. The tree dies if `u < p_i`. | uniform [0,1) with 24-bit resolution | `AnnualRules.cs:41-53`; `CCF/SimulationRandom.cs:41-55` | — |
-| E15 | Boundary (only if P > 0 and survivors > 1) | While survivor RD > 1, kill the survivor with the highest pre-growth S (ties by ordinal ID). The last survivor is always kept. | — | `AnnualRules.cs:58-59,120-142` | RD ≤ 1 is the maximum line [B] |
-| E16 | Next state | dead trees carried forward unchanged; report holds Before / PostGrowth / After stands and a per-tree audit | — | `:60-64`; `MultiAreaContinuation.cs:33-35` | — |
+| E12 | Suppression (only if P > 0) | `S_i = 1 − 1/(1 + CI_i/CI50)`, using **pre-growth** CI | dimensionless | `AnnualRules.cs:27-33` | **Null guard:** when P ≤ 0, S is not computed and the audit holds `null` (unevaluated), not 0 (`:25-27,38`). **Precision:** `CI_i/CI50` is a float32 quotient; the rest is double (`:29`). |
+| E13 | Annual death probability (named `hazard` in code) | `p_i = min(0.5, 0.08 · P² · V(S_i) / mean(V(S)))`, with `V(S) = clamp(S,0,1)⁴` | **dimensionless**: the Bernoulli probability of death in **one annual step**. It is **not** an instantaneous hazard rate per year, and no conversion to a rate is made or implied. | `AnnualRules.cs:39-40`; `SitkaGrowthModel.cs:90-96,103-114` | strength 0.08 [C], exponent 4 [C], cap 0.5 numerical (rows 25-26). **Zero/null guards:** p is `null` when S is null (P ≤ 0) (`AnnualRules.cs:39-40`). p is exactly 0 when P ≤ 0 or `mean(V) ≤ 0`, for example when no living tree has a neighbour within 8 m (`SitkaGrowthModel.cs:111`). The mean of V is accumulated in double over all living trees (`AnnualRules.cs:30-32`). |
+| E14 | Mortality draw | Drawn only when `p_i > 0`: `u = SimulationRandom.Roll(model 1, "ADULT-MORT-"+TreeId, year, areaSeed)`. The tree dies if `u < p_i`. | uniform [0,1) with 24-bit resolution | `AnnualRules.cs:41-53`; `CCF/SimulationRandom.cs:41-55` | `u` is `null` (not drawn) when p is null or 0 (`:41-44`). `u` is float32 and compared against the double p. |
+| E15 | Boundary (only if P > 0 and survivors > 1) | While survivor RD > 1, kill the survivor with the highest pre-growth S (ties by ordinal ID). **Within this boundary step** the last survivor is kept (`:124,134`). | — | `AnnualRules.cs:58-59,120-142` | RD ≤ 1 is the maximum line [B]. **Do not generalise the last-survivor guard.** The hazard step (E13–E14) has no survivor guard: independent draws can in principle kill every living tree of an area in one year (`:35-56`), and the boundary then returns at once with ≤ 1 survivor (`:124`). See W15. |
+| E16 | Next state | dead trees carried forward unchanged; report holds Before / PostGrowth / After stands and a per-tree audit | — | `:60-64`; `MultiAreaContinuation.cs:33-35` | Audit rows for trees already dead at the start of the year carry the placeholders `CI = 0f` and neighbours 0, with S/p/u `null` (`:62-63`). These are **not computed values** and must be logged as "not evaluated". |
 
 ### 2.4 Unit, numeric and fixed-point conventions
 
 - **Source integers.** Positions, DBH and height enter as **integer millimetres** (`DerivedManifest.cs:41-43,77-79`; `MultiAreaExperiment.cs:38,116-123`). Polygon geometry is exact `long`/`Int128` (`MultiAreaGeometry.cs:19-91`).
-- **Tree state.** Tree state is **float32** (`AnnualTree`). Authoritative serialised float32 values are stored as IEEE-754 bit patterns (`F32.cs:10-28`). `areaHa` for P1 is the bit pattern `0x3db851ec` (`DerivedManifest.cs:46`).
-- **Stand aggregates.** These are **binary64** (`AnnualRules.cs:105-117`). Height-envelope maths is binary64, then cast back to float32 (`SitkaGrowthModel.cs:55-60`).
-- **Exposure.** No fixed-point or quantised biology is used beyond float32 storage. Float32 DBH spacing near 100 cm is about 7.6·10⁻⁶ cm, far below the annual increments.
+- **Units of the derived quantities.** CI is m⁻¹ and CI50 = 5 m⁻¹ (E3–E4). r, S, P and RD are dimensionless. p is a dimensionless probability per annual step (E13). ΔD is cm per annual step.
+- **Tree state.** Tree state is **float32** (`AnnualTree`). Authoritative serialised float32 values are stored as IEEE-754 bit patterns (`F32.cs:10-28`). `areaHa` for P1 is the bit pattern `0x3db851ec` (`DerivedManifest.cs:46`). MA areas use their own float32 `areaHa` from geometry (§2.2); this is not the P1 value.
+- **Per-step precision.** These are as coded at `4cecf873`:
+  - CI, r, ΔD, DBH, crown and `areaHa` are float32. The CI sum is accumulated in **float32** (E3).
+  - Height: a binary64 envelope ratio is cast back to float32 **every step**, followed by a float32 subtract, add and clamp (E6).
+  - Stand aggregates use double accumulation of ΣD² from float32 DBH. Dq, BA/ha and RD are binary64. **N/ha is the exception**: an int ÷ float32 division, then widened (`AnnualRules.cs:105-117`).
+  - S takes a float32 `CI/CI50` quotient into double. p, P and mean V are double (E12–E13).
+  - "Stored as float32 bits" describes storage. It does not prove that every UI or JSON output uses that representation.
+- **Exposure.** No fixed-point or quantised biology is used beyond float32 storage. Float32 DBH spacing at 64–128 cm is 2⁻¹⁷ cm ≈ 7.63·10⁻⁶ cm. **This does not guarantee that every increment registers.** ΔD is exactly 0 at D ≥ 120 cm (E5 taper). As D approaches 120 cm, `ΔD` can fall below half the local float32 spacing, so `D + ΔD` rounds to D and growth stops before the taper reaches zero.
 
 ### 2.5 Determinism and seeding
 
 - **RNG and the roll key.** The RNG is model 1 (splitmix64) (`DerivedManifest.cs:49`; `SimulationRandom.cs:41-66`). The roll key is **(TreeId, ecological year, area seed)**. A tree therefore draws the same `u` in a given year whatever was felled around it. Paired control/treatment sessions automatically share per-tree-year random numbers (common random numbers). The death **probability** still differs because P and S differ.
 - **Independence of areas.** Each area depends only on its own state, seed and hectares. Evaluation order cannot matter (asserted in `MultiAreaTests.cs:209-213`).
-- **No hidden inputs.** No wall clock, no `System.Random` and no session identity enters biology. The random `sessionId` (`MultiAreaContinuation.cs:55-57`) is identity only.
+- **No hidden inputs.** No wall clock, no `System.Random` and no session identity enters biology. The random `sessionId` (`MultiAreaContinuation.cs:55-57`, 16 cryptographically random bytes as lowercase hex) does not enter biology, the source token (`:504-507`) or the annual report. **It is not absent from outputs**, though. It is `View.SessionId` (`:532`; `MultiAreaContracts.cs:88-90`), it is required in every fence (`:462-466`), and it is embedded in every minted `PlanId` `<sessionId>:ma-plan:<n>` and execution key `<PlanId>:execute` (`:191-192,510`). Those IDs are copied into `Approved`, every `MultiAreaWorkEvent` and every `MultiAreaFellRecord` (`:295,309`; `MultiAreaContracts.cs:37-38,45-46`). **Two fresh sessions therefore do not produce byte-identical full views, even at genesis**, barring a 128-bit random ID collision.
+- **Cross-session comparison projection (replaces full-view equality; F1).** Repeat and isolation checks compare this deterministic projection, never the raw view. Random session generation is kept unchanged.
+  1. **Compared directly, bytes must be equal.**
+     - `MultiAreaCommandResult.Annual` (all per-area reports, including `null` for a carried-forward area);
+     - `View.Areas` (rosters, stands, Crop marks, geometry);
+     - `View.Source` (the token; it has no session field);
+     - `View.Experiment`, `View.PlanStateRevision` and `View.AnnualHistory`;
+     - `RefusalCode` for each command.
+
+     Author test MA-E03 compares exactly `Annual` and `View.Areas` for ten no-work years (`MultiAreaTests.cs:216-232`). This projection extends that.
+  2. **Checked within each session, then excluded from the cross-session comparison.**
+     - `View.SessionId` is 32 lowercase hex characters, constant for the session, and equal to every fence the harness sends.
+     - Every `PlanId` equals `SessionId + ":ma-plan:" + n`, where n is the `PlanStateRevision` produced by that Approve.
+     - Every execution key equals `PlanId + ":execute"`.
+     - Every Fell record's `PlanId`/`ExecutionKey` equals its event's.
+
+     Any violation is a reported defect, not a normalisation case.
+  3. **Normalised, then compared.** In `Pending`, `Approved`, `Events` (with their Fell records) and every `Execution` result, replace the exact leading `SessionId + ":"` of each `PlanId` and execution key with the fixed literal `SESSION:`. Then require byte equality of the normalised ledgers. Nothing else is rewritten.
+  4. **Serialisation and order.** Use `System.Text.Json` `JsonSerializer.SerializeToUtf8Bytes` with default options, as the author tests do (`MultiAreaTests.cs:702`). Run on the same source SHA, build and runtime for both sessions. Property order is record declaration order. Collection order is the engine's own:
+     - areas ordinal by `AreaId`;
+     - audit rows and rosters ordinal by `TreeId`;
+     - history and events in commit order;
+     - Fell records ordinal by `TreeId` (`:305`).
+
+     The harness must not re-sort.
+  5. **Float representation.** Alongside the JSON bytes, the harness log records every float32 as its `F32.Bits` 32-bit pattern (8 hex digits) and every double as its 64-bit IEEE-754 pattern (16 hex digits). Equality is bit equality, so the decision never depends on decimal formatting. A JSON-byte mismatch with all bit patterns equal is reported as a serialiser difference, not a biological one.
 - **Generator.** Integer SplitMix64 over (generator seed, area index, cell, salt) (`MultiAreaGenerator.cs:100-120`). The experiment content hash is pinned at `c66d566c9b930ea1e4e46b2fe9a4f213cf212d787fdc752141107f5c4c0f1f95` (`MultiAreaTests.cs:20`).
 - **Replication consequence (important for Q2).** The canonical experiment has **exactly one seed per area**. Stochastic replication (different seeds) needs a *variant* experiment definition. That variant has a different content hash and is outside the approved canonical MA-1 design. See §6.
 
@@ -136,7 +188,7 @@ There is **no** per-tree crown ratio, vigour, suppression-history, seed, damage,
 | CancelApproved | Withdraws the plan. **0 Fell.** Orders are *not* returned to pending. | none approved | `:200-210` |
 | **Execute1** | Revalidates the whole batch (area, Fell action, duplicate, living exact ID in its own area, Crop, reason). Refuses whole if **any populated area would be left empty**. Builds every area's roster and before/after stand, then publishes **one** event (`MultiAreaWorkEvent`) and WorkRevision+1. The ecological year does **not** change. | stale token, wrong PlanId, unminted key, `WorkWouldLeaveNoLivingStems`, etc. | `:219-330`; empty guard `:268-275` |
 | Replay | Same key, PlanId and source returns the stored receipt with `Replayed=true`. **No second Fell.** | different payload → `WorkExecutionKeyConflict` | `:229-235` |
-| Advance (Year+1) | Unexecuted work needs consent. Consent cancels **all** of it at 0 Fell (`CancelledUnexecutedWork=true`). A naturally empty area is carried forward, not simulated. **Refused only when every area is empty.** | `WorkPendingConsentRequired`, `ContinuationNoLivingStems` | `:340-405`; `:346-351,372-379` |
+| Advance (Year+1) | Unexecuted work needs consent. Consent cancels **all** of it at 0 Fell (`CancelledUnexecutedWork=true`). A naturally empty area is carried forward, not simulated. **Biological refusal: only when every area is empty.** The check order is: first the fence (session, source token, plan-state revision), then work consent, then the all-empty check. So a valid fence and any required consent come first (`:345-351`, `:451-466`). | `PlayerSessionMismatch`, `PlayerSourceStale`, `PlayerPlanStateStale`, `WorkPendingConsentRequired`, then `ContinuationNoLivingStems`. Separately, a `checked` int32 overflow raises an overflow exception; it is not a refusal code (`:354,375,387,395,401`). | `:340-405`; `:346-351,372-379` |
 | Fell record | `fell` / `manual-work-plan`, reason, `EcologicalYear = y` (the year *before* the next advance), work revision, key, PlanId | — | `:291-296`; `MultiAreaContracts.cs:37-38` |
 
 ### 2.8 Year+1 chronology (as coded)
@@ -147,14 +199,17 @@ There is **no** per-tree crown ratio, vigour, suppression-history, seed, damage,
 
 ### 2.9 Maximum lawful horizon (from code)
 
-- **No year cap in MA-1.** `MultiAreaContinuation.Advance` has no year cap (`:340-405`). It stops only when every area is empty (`:350-351`) or on `checked` int32 overflow of year, revisions or age (`:354`, `:395`, `AnnualRules.cs:15,99`). That overflow is about 2.1·10⁹ years.
+- **No year cap in MA-1.** `MultiAreaContinuation.Advance` has no year cap (`:340-405`). Its stopping conditions are of three different kinds:
+  - **Biological stop.** Given a valid fence and any required work consent, the only biological stopping condition is every area being empty: `ContinuationNoLivingStems` (`:350-351`).
+  - **Procedural refusals.** These refuse a single Advance before the all-empty check and do not end the horizon: a stale or mismatched fence (`PlayerSessionMismatch`, `PlayerSourceStale`, `PlayerPlanStateStale`; `:345`, `:451-466`), and unexecuted work without consent (`WorkPendingConsentRequired`; `:346-349`).
+  - **Arithmetic limit.** A `checked` int32 overflow of year, revisions or age (`:354`, `:395`, `AnnualRules.cs:15,99`) raises an overflow exception, not a refusal code. It occurs at about 2.1·10⁹ years. How a route surfaces that exception was not inspected.
 - **50 years is permitted by the rules.** Neither the code nor any MA-1 refusal stops at a year count. A single-area test explicitly asserts "no ten-year cap" at 12 years (`ContinuationTests.cs:44-53`).
 - **Legacy one-year paths do not apply.** The legacy `AnnualEngine.Advance` (CLI `annual`) is a one-year experiment (`AnnualEngine.cs:84-85`; `LAB/src/Cli/Program.cs:56-81`). It is not the MA-1 path.
 - **Exercised horizons so far.** Author tests exercise at most **10** multi-area years (`MultiAreaTests.cs:216-232`) and 12 single-area synthetic years. **No 20- or 50-year MA-1 run exists in evidence.**
 - **How 50 years would be verified in Q1 (not done).** Run two fresh sessions to year 50 and assert:
   - `EcologicalYear == AnnualRevision == AnnualHistory.Count == 50` with no refusal;
-  - byte-identical views and annual results across the two sessions at every year;
-  - every area either living, or carried forward as `NoLivingStems`.
+  - equality of the §2.5 **cross-session comparison projection** at every year. Full views are **not** compared byte-for-byte: they differ by the random `SessionId` and the session-derived `PlanId`/key by design (F1);
+  - every area either living, or carried forward as `NoLivingStems` with a `null` report.
 
   If both areas empty first, the lawful horizon for that scenario is the last committed year. Report that as an outcome; never alter rules to continue.
 - **Execution route.** **No CLI route exists for MA-1.** It is reachable only through:
@@ -179,7 +234,7 @@ There is **no** per-tree crown ratio, vigour, suppression-history, seed, damage,
 - per-tree pre-growth CI and neighbour count, suppression, death probability and roll;
 - post-growth stand, density pressure and mean vulnerability.
 
-The root keeps only the current roster plus stand-level history. **Per-tree yearly trajectories (DBH, height, crown, CI, p, u) are therefore lost unless the caller captures every returned report.** A Q1 harness must log every report.
+The root keeps only the current roster plus stand-level history. **Per-tree yearly trajectories (DBH, height, crown, CI, p, u) are therefore not retained by the session unless the caller captures every returned report.** A Q1 harness must log every report. In principle they can be regenerated by deterministic replay of the full ordered command transcript on the same source SHA, experiment definition, build and runtime (§2.5; §6 Logging). That replay equivalence is itself unverified until run. This is a retention risk, not absolute irreproducibility (W11). For an area carried forward as empty, the report is `null` (`MultiAreaContracts.cs:63-64`), so there are no per-tree rows for that area-year.
 
 **Also lost or never recorded.**
 - Removed pending orders.
@@ -230,8 +285,8 @@ Verdicts:
 |---|---|---|---|---|---|
 | X1 | Height envelope Class III, `b2 0.042`, `b3 1.563`, H30 20.4 m (`SitkaGrowthModel.cs:37-49`) | §4 (Lekwadi 2012; anchors I–V; QA warning on rounded b0) | §5 (GROWFOR's own height model is a different Bertalanffy–Richards fit, a 47.0216, c 0.4571) | 2, 3 | **AGREE** with the Irish Class III anchor at age 30. Values beyond age 30 are modelled (`SGM/IrishHeightValidation.md` table; `SitkaGrowthModel1.md` l.32). The engine does **not** use the GROWFOR height equation. |
 | X2 | Height has no competition or thinning term (`SitkaGrowthModel.cs:51-60`) | §4 bullet 2 (top height largely independent of stocking and normal thinning); §5 (`ΔH = G_H(...)`, weak or no competition) | §4.5 (site by top height) | 4 | **AGREE** in direction. **SIMPLIFICATION**: individual height is fully determined by initial height and age, so the relative heights of suppressed trees never change. |
-| X3 | DBH increment (E5), DBH the only competition-responsive variable | §5 (`ΔDBH = G_D(age, DBH, site) × competitionMultiplier × vitality`; DBH principal) | §14.2 (individual-tree increments under release NOT validated by GROWFOR) | 10, 12 | **SIMPLIFICATION**: no age term, no vitality term, site fixed at 1.0. Potential 1.2 cm/yr is [C]. Unthinned absolute growth after about 16 cm is "later unsupported (no density feedback)" (EM 12). |
-| X4 | Hegyi CI with `r = 1/(1+CI/5)` (E3–E4) | §5 (Hegyi mechanism evidence-based; response and CI50 are abstraction) | §2A.4 / §14.2 (local Hegyi release not validated by GROWFOR) | 16 | **AGREE** (form). Known limitation: **scale-invariant**. Uniform growth leaves CI unchanged, so DBH growth does not slow as the stand fills; only mortality feels density (`SGM/CurrentModelAudit.md` structural finding 2, l.54). |
+| X3 | DBH increment (E5). DBH is the **principal** competition-responsive growth variable; the crown target also responds to CI (E7), but crown is output only. | §5 (`ΔDBH = G_D(age, DBH, site) × competitionMultiplier × vitality`; DBH principal) | §14.2 (individual-tree increments under release NOT validated by GROWFOR) | 10, 12 | **SIMPLIFICATION**: no age term, no vitality term, site fixed at 1.0. Potential 1.2 cm/yr is [C]. The size taper `clamp(1 − D/120)` is the only size/age-like modifier. Unthinned absolute growth after about 16 cm is "later unsupported (no density feedback)" (EM 12). |
+| X4 | Hegyi CI (m⁻¹) with `r = 1/(1+CI/CI50)`, CI50 = 5 m⁻¹ (E3–E4) | §5 (Hegyi mechanism evidence-based; response and CI50 are abstraction) | §2A.4 / §14.2 (local Hegyi release not validated by GROWFOR) | 16 | **AGREE** (form). Known limitation, narrowed: on a **fixed roster**, uniform proportional DBH scaling leaves CI unchanged (exactly in algebra, while every D_i ≥ 1 cm), so CI carries **no direct occupancy or RD signal**, and DBH growth has **no direct N/ha or RD term**. DBH growth **does** still slow with size through the explicit `clamp(1 − D/120)` taper (E5). CI also changes when DBH ratios diverge or neighbours die or are felled. Stand density acts directly only through mortality (E11–E15). Source: `SGM/CurrentModelAudit.md` structural finding 2, l.54. That historical audit predates the current mortality model, and this row does not claim its other conclusions. |
 | X5 | Thinning response of retained-tree DBH (DBH via CI drop after Fell) | §5 Frenchpark table: after 29 growing seasons, mean DBH 23.7 / 29.8 / 31.1 / 32.4 cm (unthinned / light / medium / heavy) | §7 (stand-level thinning-shock state not retained; "not evidence that individual retained trees do not respond") | 11 | **AGREE in direction only, as a prior Unity calibration.** EM 11 records ratios 1.28/1.38 against observed 1.26/1.37 under the **Unity C8 calibration** on the Unity stand. **UNKNOWN for MA-1's synthetic areas.** The equation lineage is the same (`AnnualRules.cs:87`), but it was not re-checked here. Frenchpark is stand **mean** DBH, which includes the selection effect of removing small trees. The engine reports Dq, not mean DBH (E9). Only the *sign* of the retained-tree increment response is a valid MA-1 check. |
 | X6 | Crown potential `0.9415 + 0.07635·D`, relaxation 0.15 (E7) | §5, §8 (Tabbush & White; k about 0.1–0.2/yr) | — | 13, 14, 15 | **AGREE** (envelope and k range). **SIMPLIFICATION**: the crown is output only (no light). Davies & Pommerening's pooled positive Hegyi coefficient is correctly not used (EM 14). The crown-length model is not implemented (EM 15). |
 | X7 | RD on the British max size–density line (E10) | §2 (no Irish N–Dq/SDI line published); §3 (DEC/DMC not for pure Sitka) | §2A.3 (GROWFOR N embeds stand mortality, no line given) | 17, 18, 23 | **SIMPLIFICATION / transfer**: British line [B], Irish transfer unverified. |
@@ -267,15 +322,29 @@ These are rejected as checks. MA-1 does not model the outcome, and the cited rep
   - **L**: a lighter manual thinning.
   - **M**: a genuinely heavier manual thinning.
   - **D**: delayed. The same rule as L, applied first at year 5.
-  - **S**: staged. L's rule applied at year 0 and again at year 10, against one equivalent single intervention.
+  - **S**: staged. L's rule applied at year 0 and again at year 10, against one equivalent single intervention **S1** (defined below).
   - **I**: isolation. Thin MA-A only; leave MA-B untouched.
   - L and M use **one shared two-area Work Plan** per intervention, which is the required two-area shared-plan case.
-- **Intensity rule.** Decide the qualitative selection rule before running. Two examples: (a) Crop-tree release, felling the listed Hegyi competitors of chosen Crop trees as returned by the read-only competition diagnostic; (b) removal from below by DBH rank among allowable trees. The **numeric size of each intervention is chosen at run time from the actual allowable set and disclosed exactly**: number of Crop trees, competitors per Crop, and the IDs felled. The allowable set is living, in-area, not Crop, not duplicate, and not emptying an area. Also record the realised removed stems, removed BA and removed fraction of both, per area, from the engine's own `MultiAreaWorkEvent` before/after.
-  - **No percentage is fixed in this protocol.**
-  - "Genuinely different" means M's removed BA exceeds L's in **both** areas. State the difference; do not assert it.
-- **Horizons.** Record years **1, 5, 10, 20** and **50**. 50 is lawful by the code (§2.9) but has never been exercised. If both areas empty before 50, report the last committed year and stop.
+- **Selection rule (pre-registered; frozen before any session is run; F5).** Rule (a), Crop-tree release, is the primary rule. Every step is computed from the state at the moment of intervention, with no reference to any later outcome.
+  1. **Crop selection.** Rank the area's living trees by DBH, descending, with ties broken by ordinal `TreeId`. Walk that list once, top to bottom. Accept a tree as Crop if its float32 E3 distance to every already-accepted Crop is **> 8 m** (the engine's own Hegyi cutoff; no new coefficient). **Stopping rule:** stop when the ranked list is exhausted. Crops therefore never appear in each other's 8 m neighbour sets.
+  2. **Competitor ranking.** For each Crop, list its living neighbours within 8 m (the same set E3 uses). Rank them by their Hegyi term `D_j / max(1, D_crop) / max(0.5, d)`, computed in float32 as in E3, descending, with ties broken by ordinal `TreeId`. Exclude Crops and trees already in the plan.
+  3. **Intensity.** **L** fells the rank-1 competitor of every Crop. **M** fells ranks 1–3 of every Crop, or all of them if fewer exist. A tree listed for two Crops is felled once. These counts are **protocol design choices, not ecological coefficients**. The Manager may change them before Q2 starts, never after any outcome is seen. **No percentage is fixed.**
+  4. **Disclosure before each Execute.** Log the Crop list, each Crop's ranked competitor list, and the exact `Approved.Orders` (area, `TreeId`, reason), plus the counts per area. Log these **before** calling Execute.
+  5. **Realised intensity.** Record removed stems, removed BA and the removed fraction of both, per area, from the engine's own `MultiAreaWorkEvent` per-area Before/After (`MultiAreaContinuation.cs:302-305`).
+  6. **"Genuinely different."** With one Crop set, M's orders ⊇ L's, so M's removed BA ≥ L's. M is "genuinely heavier" only if its removed BA is strictly greater in **both** areas. If not, report "not genuinely different in area X" and do not force it.
+  7. **Rule (b) is not used.** Removal from below by DBH rank would need a numeric stopping threshold that this Q0 cannot justify. It may be added only with a Manager-approved threshold pre-registered before any run.
+  8. **D and S timing.** D applies steps 1–6 to the year-5 state. S applies steps 1–6 at year 0. At year 10 it keeps the surviving year-0 Crops (marks of dead Crops are cleared by the engine; `:380-384`), re-ranks their competitors from the year-10 state, and fells rank 1 per surviving Crop.
+- **Equivalent single intervention S1 (F5).**
+  - **Definition.** S1 is one intervention at year 0 from the same Crop set. It fells the first `n_A` and `n_B` trees of the year-0 rule-(a) removal sequence (rank-1 competitors, then rank-2, and so on, ties by ordinal `TreeId`), where `n_A` and `n_B` are the **total realised stems** S removed per area across years 0 and 10. **The primary equivalence is therefore removed stems per area, which is exact.**
+  - **Sizing.** S1 is sized from S's realised counts only, never from any S1 outcome.
+  - **Mismatches, reported and not hidden.** Per area:
+    - (i) removed BA of S (year-0 BA plus year-10 BA, each at its time of removal) versus S1, as absolute and relative differences;
+    - (ii) removed-ID identity: the S-only IDs, S1-only IDs and the overlap count;
+    - (iii) timing: two removal years versus one.
+  - **Not constructible.** If the year-0 allowable sequence holds fewer than `n_X` trees, S1 is reported as "not constructible in area X" with the shortfall. No substitute is made.
+- **Horizons.** **Capture every committed year 1…H** (F5). Years **1, 5, 10, 20** and **50** are only the summary checkpoints computed from that all-year log; they are not the only years recorded. 50 is lawful by the code (§2.9) but has never been exercised. If both areas empty before 50, report the last committed year and stop.
 - **Repeats.**
-  - (i) Determinism: two fresh sessions per scenario must be byte-identical at every year.
+  - (i) Determinism: two fresh sessions per scenario must have an equal §2.5 **cross-session comparison projection** at every year and after every command. Raw full views are not compared, because `SessionId` and the session-derived `PlanId`/key differ by design (F1).
   - (ii) Order: compare against `MultiAreaAnnual.Step` per area in reverse order.
   - (iii) Stochastic replication: optional. It needs **variant experiments** that differ only in area seeds, which changes the content hash. Run these only if the Manager authorises a non-canonical variant, label them "variant, not MA-1 canonical", and keep them separate from canonical results.
 - **Chronology checks, per intervention.**
@@ -290,36 +359,83 @@ These are rejected as checks. MA-1 does not model the outcome, and the cited rep
   - Cancelled plan: Approve then Cancel gives 0 Fell, PlanState +1, and orders not returned.
   - Consented advance with pending work: all orders cancelled, 0 Fell, `CancelledUnexecutedWork=true`.
   - Replay of an executed key: `Replayed=true` and no change.
-  - All-empty Year+1 (`ContinuationNoLivingStems`): **not reachable** on the canonical experiment by player action, because Fell cannot empty an area. It is covered by author test MA-E05 only (`MultiAreaTests.cs:258-286`, test-only experiment). Report it as "not exercised on canonical data" unless a disclosed variant is authorised.
-- **Measurements, per area per recorded year, from every returned report.**
-  - Per tree: ID, age, DBH, height, crown radius, pre-growth CI, neighbour count, S, p, u, death year/cause/mechanism.
+  - All-empty Year+1 (`ContinuationNoLivingStems`): **not reachable** on the canonical experiment by player action, because Fell cannot empty an area. It is covered by author test MA-E05 only (`MultiAreaTests.cs:258-286`, test-only experiment). It is **not impossible by natural mortality**: the hazard step has no survivor guard (E15, W15). Whether any canonical scenario empties an area is UNKNOWN until run. Report it as "not exercised on canonical data" unless it occurs naturally or a disclosed variant is authorised.
+- **Logging (F5).** The harness keeps a complete, ordered, append-only transcript. This is what makes deterministic replay and the W11 check possible.
+  - **Every command** in issue order, with:
+    - its type (read view, Crop mark/unmark, `AddPending`, `RemovePending`, `Approve`, `CancelApproved`, `Execute`, `Advance`, `Competition`);
+    - every argument (area, `TreeId`, reason, consent flag, `PlanId`, execution key);
+    - the fence values sent.
+  - **Every `MultiAreaCommandResult`**: `RefusalCode`/`RefusalMessage`, `Execution`, `Annual`, and the §2.5 projection of `View` (raw `SessionId` recorded once per session).
+  - **Header**: source SHA, experiment content hash, harness SHA-256, build and runtime identity, and session start order.
+- **Null and empty semantics (F5).**
+  - **`null` means "not evaluated", never zero.** S, p and u are `null` when P ≤ 0. u is `null` when p is `null` or 0. p = 0 is a real evaluated zero (E12–E14).
+  - Dead carried rows hold placeholder CI 0 and neighbours 0. These are logged as "not evaluated", not as measured zeros (E16).
+  - **Empty area.** An area carried forward empty has `Report = null` (`MultiAreaContracts.cs:63-64`) and history `NoLivingStems = true`. The log records one "carried forward, no per-tree audit" row for that area-year and zero per-tree rows. This is not missing data. Its stand is the all-zero stand (E9).
+  - Means over an empty set (for example, mean DBH of zero living trees) are reported as `null`, never 0.
+- **Measurements, per area, for every committed year, from every returned report.**
+  - Per tree: ID, age, DBH, height, crown radius, pre-growth CI (m⁻¹), neighbour count, S, p (per annual step), u, death year/cause/mechanism, with the null semantics above.
   - Counts: living, hazard deaths, boundary deaths, cumulative natural deaths, cumulative Fell.
-  - Stand: N/ha, **areaHa-normalised BA**, Dq, arithmetic mean DBH (computed by the harness, for Frenchpark-style direction), RD, density pressure, mean vulnerability.
-  - Plan and work ledger: work ledger, plan IDs and keys.
+  - Stand: N/ha, **areaHa-normalised BA**, Dq, arithmetic mean DBH (computed by the harness, for Frenchpark-style direction, with the decomposition below), RD, density pressure, mean vulnerability.
+  - Plan and work ledger: work ledger, plan IDs and keys (raw, plus the §2.5 normalised form).
   - **No-double-application check**: every Fell ID appears once in the ledger and dies once. The sum of Fell plus natural deaths equals genesis minus living.
-  - **Isolation check**: in session I, MA-B's roster and reports are byte-identical to session C's MA-B at every year.
-- **Valid comparisons.** Compare only the *direction* of retained-tree DBH increment and stand mean DBH between C, L and M, against Frenchpark (composite §5) and EM 11. State explicitly that these are synthetic stands, not yield plots, and not comparable to Frenchpark's site, age or duration. No BA-threshold, windthrow, recruitment or volume check (§5.1).
+  - **Isolation check**: in session I versus session C, at every year, these must be byte- and bit-equal: MA-B's `View.Areas[B]`, `Annual.Areas[B].Report` and every history `Areas[B]` entry. Global fields that legitimately differ (`WorkRevision`, `PlanStateRevision`, the event ledger, `CancelledUnexecutedWork`, `SessionId`) are excluded and listed.
+- **Valid comparisons (F5).**
+  - **Retained-tree growth.** The **matched retained set** for a window [t₀, t₁] is the set of `TreeId`s living at t₀ and at t₁ in **every** compared session, and never felled in any of them. This is valid because every session starts from the same canonical genesis IDs. For each such tree, report `ΔD = D(t₁) − D(t₀)` and the paired difference `ΔD_L − ΔD_C` (likewise for M and C). The set is conditional on survival in all sessions; report its size and its share of genesis.
+  - **Selection-only shift.** At the instant of each Execute, with the year unchanged and no growth, report the arithmetic mean DBH and Dq of the post-Fell living set minus those of the pre-Fell set, per area, from the event's Before/After and the roster.
+  - **Stand mean DBH.** This is reported only alongside both components above. It mixes retained growth, removal selection and natural-mortality selection, and is never used alone as evidence of a growth response.
+  - **Frenchpark comparison.** Only the **sign** of the matched retained-tree increment difference is compared with Frenchpark (composite §5) and EM 11. State explicitly that these are synthetic stands, not yield plots, and not comparable to Frenchpark's site, age or duration.
+  - **Excluded.** No BA-threshold, windthrow, recruitment or volume check (§5.1).
 
 ---
 
 ## 7. Weakness list (time-boxed, falsifiable, ranked by consequence)
 
-Each item is a hypothesis to test in Q1/Q2. None is a measured result.
+Revision 2 (F4) separates **established limits** from **falsifiable hypotheses**:
+- Established limits are facts read from code or documentation. They need no hypothesis test, only optional runtime confirmation.
+- Hypotheses have a rejection criterion, a tolerance and named confounders.
 
-| Rank | Weakness | Anchor | Falsifying test (time box) |
+The W1–W12 identifiers from revision 1 are kept for traceability. W13–W15 are added from the review's "missing consequential weaknesses". **None is a measured result.** Every tolerance and decision threshold below is a **protocol choice made here, not an ecological coefficient**. The Manager may change any of them before Q2 starts, never after any outcome is seen.
+
+### 7.1 Consequence ranking and its rationale
+
+Items are grouped in tiers by **what they can invalidate**. Order *between* tiers is the claim. Order *within* a tier is presentation only; no ordinal consequence within a tier is claimed.
+
+| Tier | Criterion | Items |
+|---|---|---|
+| T1 | Makes a v1 qualification gate fail or be undetermined **regardless of biology** | W13 repeat-gate defect (F1); W14 treatment underdetermination (F5) |
+| T2 | Removes a whole class of CCF outcomes at **every** horizon | W1 no recruitment |
+| T3 | Could reverse the **sign or direction** of the treatment comparisons §6 allows | W3 mortality calibration transfer; W6 single seed per area; W4 edge exclusion |
+| T4 | Changes magnitude or interpretation of growth/mortality, not the protocol's validity | W2 no direct occupancy feedback in growth; W15 hazard can empty an area; W7 no age term; W8 crown output only |
+| T5 | Implementation conventions and resolution | W5 site-fixed height; W9 mixed chronology; W10 granularity |
+| T6 | Record keeping and documentation | W11 retention/replay; W12 documentation drift |
+
+W13 and W14 rank above W12 because a defective gate invalidates conclusions, whereas README drift misleads a reader but changes no result. Revision 2 corrects both defects in the protocol text (§2.5, §6). Their residual risk is that a Q1 harness fails to implement those corrections, so they stay listed.
+
+### 7.2 Established limits (code or documentation facts; no hypothesis test)
+
+| ID | Limit | Anchor | Optional runtime confirmation (time box) |
 |---|---|---|---|
-| W1 | No recruitment: N/ha is non-increasing, so CCF transformation and regeneration outcomes cannot appear at any horizon | `DerivedManifest.cs:58-59` | Assert living count is non-increasing in every scenario to year 50. It is refuted only if any year's living count exceeds the previous year's. (Analysis of Q2 logs, 0.5 h) |
-| W2 | Hegyi scale invariance: DBH growth does not slow as the stand fills; density acts only through mortality | `AnnualRules.cs:67-91`; `SGM/CurrentModelAudit.md` l.54 | In session C, plot mean CI against RD over 20 years. The weakness is confirmed if mean CI stays roughly flat while RD rises toward 1 before deaths begin. (1 h) |
-| W3 | Mortality constants [C] were calibrated on the Unity 40 m stand and transferred to 0.09–0.15 ha synthetic areas with no evidence | `SitkaGrowthModel.cs:89-96`; `SGM/AdultMortalityCalibration.md` l.51-60 | Compare year-by-year hazard versus boundary death shares in MA-A against the "hazard does most of the thinning" claim. A boundary-dominated MA-A shows the calibration does not carry over. (1 h) |
-| W4 | Edge exclusion with no buffer or correction: boundary trees have systematically lower CI and faster growth in small polygons | `MultiAreaExperiment.cs:25-27`; `AnnualRules.cs:71-80` | Bin session-C trees by distance to their polygon edge (< 8 m vs ≥ 8 m) and compare mean CI and 10-year DBH increment. A significant edge excess confirms bias. (1.5 h) |
-| W5 | "Site UNKNOWN" label versus a hard-coded Irish Class III height trajectory and `site = 1.0` DBH | `MultiAreaExperiment.cs:20,28-29`; `SitkaGrowthModel.cs:37-60`; `AnnualRules.cs:89` | Check `H_i(t)/E(age_i(t))` is constant per tree for every year in C, L and M. Constant ratios show height is site-fixed, not unknown, and the disclosure needs wording. (0.5 h) |
-| W6 | Single seed per area: canonical runs give one stochastic realisation, so C-versus-L differences can be seed artefacts | `MultiAreaGenerator.cs:41,46` | Under an authorised variant, rerun C and L with k alternative area seeds. If the sign of the C–L difference in deaths or Dq flips across seeds, single-seed conclusions are invalid. (2 h, variant authorisation required) |
-| W7 | No age term in DBH growth and the 120 cm DBH scale: old and young trees of equal DBH and CI grow identically | `AnnualRules.cs:89-91`; composite §5 `G_D(age,…)` | Find MA-B pairs of a 47-year and a 29-year tree with similar DBH and CI. Equal increments confirm. (0.5 h) |
-| W8 | Crown is output only: no light or crown feedback, so release changes crowns visually but crowns never feed back | `AnnualRules.cs:94-98` vs `:67-82` | Code-read confirmation exists already. Runtime check: the per-tree DBH and death sequences of two sessions are identical whatever their crown values. Crown-only perturbation needs a variant, so read-only evidence is sufficient. (0.25 h) |
-| W9 | Mixed chronology: hazard and boundary use pre-growth suppression with post-growth RD | `AnnualRules.cs:17-33,132` | Document only. Recompute S from post-growth CI offline on logged rows and count how many boundary-order choices would change. (1 h) |
-| W10 | Small-area granularity: one stem is about 10.9 /ha in MA-A and about 6.7 /ha in MA-B, so stand metrics move in coarse steps | `MultiAreaGeometry.cs:130`; E9 | Report N/ha step size alongside every intensity, so readers do not over-read small differences. (0.25 h) |
-| W11 | History loss: per-tree yearly audit rows are not stored, so the experiment is irreproducible unless the harness logs each report | `MultiAreaContracts.cs:56-67` | Check that the harness log has `years × trees` rows and that its replayed digest matches. (0.25 h) |
-| W12 | Documentation drift: `LAB/README.md:153` says CLI `annual` is "always REFUSED in F0", but `AnnualEngine.RequireAnnualDomain` lets an accepted fixture through (`AnnualEngine.cs:57-63`) | as cited | Q1 runs `annual` once against the accepted fixture and records refused or not. Outcome UNKNOWN until run. (0.1 h) |
+| W13 | **v1 repeat gate was structurally impossible.** Revision 1 required byte-identical full views across fresh sessions, but `SessionId` is random and embedded in `PlanId`, keys and Fell records. That gate fails regardless of biology. Corrected by the §2.5 projection. | `MultiAreaContinuation.cs:55-57,191-192,510,532`; `MultiAreaContracts.cs:88-90` | Q1 asserts the projection's within-session ID checks and cross-session equality (§2.5). (0.5 h) |
+| W14 | **v1 treatments were underdetermined.** "Equivalent" single intervention, adaptive intensity and stand-mean comparisons were undefined, so treatment conclusions could not be fixed in advance. Corrected by the §6 pre-registered rule, S1 definition, matched-tree comparison and logging. | §6 | Q1 logs the disclosure record before every Execute (§6). (0.25 h) |
+| W1 | **No recruitment.** N/ha is non-increasing, so CCF transformation and regeneration outcomes cannot appear at any horizon. | `DerivedManifest.cs:58-59`; no recruitment code in `LAB/src/Core` | Assert living count is non-increasing year on year in every scenario. Any increase is a defect report, not a biological finding. (Q2 log analysis, 0.5 h) |
+| W15 | **Last-survivor guard is boundary-only.** The boundary step keeps its last survivor, but hazard draws (p ≤ 0.5 per tree, independent u) have no guard, so natural mortality can in principle empty an area. That area is then carried forward with `Report = null`. Whether it happens on canonical data is UNKNOWN. | `AnnualRules.cs:35-56,124,134`; `MultiAreaContinuation.cs:364-379` | Report the first year, if any, in which an area has `NoLivingStems = true`, per scenario. (0.1 h) |
+| W7 | **No age term in DBH growth.** E5 uses only D, CI and site (with the D/120 taper), so equal-D, equal-CI trees grow identically whatever their age. Revision 1's matched 47/29-year pair test is dropped: such pairs need not exist, and the fact follows from code. | `AnnualRules.cs:88-91`; composite §5 `G_D(age,…)` | Covered by the H-W2(b) recomputation below: a tree-year whose ΔD departs from `f(D, CI)` would refute it. (0 h extra) |
+| W8 | **Crown is output only.** The crown target responds to CI, but crown feeds no competition, growth or mortality term. | `AnnualRules.cs:94-98` vs `:17-33,67-91` | Read-only evidence is sufficient. Perturbing crown alone would need a variant. (0 h) |
+| W5 | **Site label versus fixed trajectory.** Site is reported `UNKNOWN`, but height follows the hard-coded Class III envelope and DBH uses `site = 1.0f`. That disclosure needs wording; the ratio check below cannot decide whether "site unknown" is right. | `MultiAreaExperiment.cs:20,28-29`; `SitkaGrowthModel.cs:37-60`; `AnnualRules.cs:89` | **Implementation check (not a hypothesis).** Let `ρ_i(t) = H_i(t)/E(age_i(t))` be computed in double from logged float32 H. Expect `|ρ_i(t)/ρ_i(0) − 1| ≤ 8·t·2⁻²⁴` for every living tree, with t the number of steps. That allows for float32 rounding of about 3–4 operations per step; exact ratio equality is **not** expected (E6). Trees that touch the 0.1 m or 60 m clamp are excluded and listed. A larger drift is reported as a defect in the E6 description. (0.5 h) |
+| W9 | **Mixed chronology.** Hazard and boundary use pre-growth suppression with post-growth RD. This is an implementation convention. | `AnnualRules.cs:17-33,132` | Descriptive only. Recompute S from post-growth CI offline on logged rows and count how many boundary-order choices would change. No pass/fail. (1 h) |
+| W10 | **Small-area granularity.** One stem is about 10.9/ha in MA-A and about 6.7/ha in MA-B (nominal, before float32 `areaHa` rounding), so stand metrics move in coarse steps. | `MultiAreaGeometry.cs:130`; E9 | Report the N/ha step size alongside every intensity. (0.25 h) |
+| W11 | **Retention/replay, not absolute irreproducibility.** Per-tree yearly audit rows are not retained by the session (§3). If the harness does not retain every report, trajectories are recoverable only by deterministic replay of the full logged transcript on the same source SHA, definition, build and runtime, and that replay equivalence is unverified until run. | `MultiAreaContracts.cs:56-67` | (a) **Row count.** The expected per-tree rows are Σ over area-years with non-null `Report` of that report's audit-row count, which includes dead carried rows. A `null` report contributes **zero** rows plus one "carried forward" marker row. The log must match exactly. (b) **Replay.** Replay the transcript in a fresh session and require §2.5 projection equality at every step. (0.5 h) |
+| W12 | **Documentation drift.** `LAB/README.md:153` says CLI `annual` is "always REFUSED in F0", but `AnnualEngine.RequireAnnualDomain` admits an accepted fixture (`AnnualEngine.cs:57-63`). The review notes that the README's exact command lacks the fixture directory: per code it returns usage exit 64 after admission, and the same command with a directory supplied opens and advances (review anchor 40). | as cited; `LAB/src/Cli/Program.cs:56-81` | Q1 runs both command forms once and records the exit code and output. Runtime outcome UNKNOWN until run. (0.1 h) |
+
+### 7.3 Falsifiable hypotheses (rejection criterion, tolerance, confounders)
+
+| ID | Hypothesis | Anchor | Test, rejection criterion and tolerance | Confounders and limits (time box) |
+|---|---|---|---|---|
+| H-W2 (narrowed W2; F3) | (a) On a fixed roster, CI is invariant to uniform proportional DBH scaling, so CI carries no direct occupancy/RD signal. (b) Annual ΔD is a function of pre-growth D and CI only (and site): there is no direct N/ha or RD term, while growth still slows through the `clamp(1 − D/120)` taper. | `AnnualRules.cs:67-91`; `SGM/CurrentModelAudit.md` l.54 | (a) Offline, on logged year-t rosters of sessions C and M: recompute every living tree's CI from logged positions and DBH, then again with all DBH × λ, λ ∈ {1.1, 1.5}. **Reject (a)** if any tree with `λ·D_i ≥ 1 cm` has `|CI_λ − CI| > 1·10⁻⁵ · max(CI, 1 m⁻¹)`. That tolerance covers float32 accumulation over the roughly 40 neighbours (π·8² m² ÷ 2.24² m²) a 2.24 m grid places within 8 m. (b) For every logged living tree-year, recompute ΔD from logged pre-growth D and CI with the E4–E5 operations in float32, in the coded order. **Reject (b)** if any `ΔD_obs` differs from `ΔD_pred` by more than 1 ULP of D(t+1). | No assumed pre-mortality interval: MA-A starts **above** the RD onset (`MultiAreaTests.cs:77-78`), so CI and mortality are confounded from year 1, and (a) is tested on fixed rosters offline instead. (b) is a model-identity test; it cannot show that real Sitka lacks density feedback. (1 h) |
+| H-W3 (model diagnostic, not a transfer test) | In canonical MA-A, the hazard step, not the boundary, does most of the natural thinning, as the calibration intended on the Unity 40 m stand. | `SitkaGrowthModel.cs:77-96`; `SGM/AdultMortalityCalibration.md` l.51-60 | Per scenario, count natural deaths by mechanism over each consecutive 10-year window and the whole horizon. **Diagnostic flag** if boundary deaths exceed 50 % of natural deaths in any window with ≥ 10 natural deaths. Windows with < 10 deaths are reported but not flagged. | **This diagnoses internal model behaviour at this area size only.** Neither outcome proves or disproves empirical transfer of the [C] constants to Irish stands, and a "hazard-dominated" result does **not** validate them. Confounders: initial RD (MA-A starts at author-reported 0.802); area size and stem count (W10); a single seed (W6). (1 h) |
+| H-W4 (edge exclusion) | Trees within 8 m of their own polygon edge have systematically lower pre-growth CI, and larger matched-retained ΔD, than interior trees. Cause: neighbours outside the polygon are excluded, with no buffer or correction. | `MultiAreaExperiment.cs:25-27`; `AnnualRules.cs:71-80` | Session C, each area separately, at years 0 and 10 **separately** (not pooled), stratified by cohort (MA-B: 29 and 47 years). Fit `CI ~ edge + ln(D_i)` per stratum by ordinary least squares, edge = distance to own polygon boundary < 8 m. **Confirm bias** if the edge coefficient is negative and its magnitude exceeds 20 % of the interior mean CI in **every** stratum at **both** years. **Reject** if it is ≥ 0 in every stratum. Otherwise report "mixed". Repeat with 10-year ΔD on the matched retained set. | **Census, not sample**: no p-value is computed (see the §0.1 disagreement sentence). **Dependence**: neighbouring trees share neighbours and successive years share trees, so trees are not treated as independent replicates and years are not pooled. **Age**: stratify by cohort. **DBH**: CI depends on D_i through the ratio, handled by the `ln(D_i)` term. **Spacing**: generator jitter (2.24 m and 4.3 m grids) is uniform by design; report neighbour count per group so that truncation, the effect itself, is visible. **The shared A–B edge** has real excluded neighbours (13 pairs, author-reported); outer edges have none by design, so that part is a stated design limit, not an ecological edge effect. (1.5 h) |
+| H-W6 (single seed) | C-versus-L differences seen in the canonical single-seed run hold across stochastic realisations. | `MultiAreaGenerator.cs:41,46` | Requires a **Manager-authorised variant** differing only in area seeds; genesis is unchanged because the generator seed is separate. Pre-register k ≥ 10 seed pairs. For each per-area outcome (cumulative natural deaths at year 20; Dq at year 20; mean matched-retained ΔD over 0–20), record the sign of C − L per seed. **Reject robustness** of a canonical sign if any of the k seeds gives the opposite sign. Exact zeros are reported as "tie", not as agreement. | The variant has a different content hash and is labelled "variant, not MA-1 canonical". Common random numbers within a seed (§2.5) reduce, but do not remove, within-seed noise. (2 h, variant authorisation required) |
+
 
 ---
 
@@ -329,13 +445,17 @@ Each item is a hypothesis to test in Q1/Q2. None is a measured result.
 
 **Read from tests, not executed.** Genesis tree counts, exact areas, the content hash and the behaviours asserted by the named tests. I did **not** run the tests. The author's pass claims are in the MA-1 handoff, not verified here.
 
-**Author-reported, not verified.** MA-A and MA-B genesis N/ha, BA, Dq and RD (§2.2), and the 13 cross-boundary pairs.
+**Author-reported, not verified.** MA-A and MA-B genesis N/ha, BA, Dq and RD (§2.2; handoff §1 "IMPLEMENTED" item 1), and the 13 cross-boundary pairs.
 
 **Inferred.**
 - The common-random-number property (from the roll key).
 - That no year cap exists (from the absence of one in the read code paths).
-- That the all-empty refusal is unreachable by player action on canonical data.
-- The W1–W12 hypotheses.
+- That the all-empty refusal is unreachable by player action on canonical data. It is reachable in principle by natural hazard mortality (W15).
+- The §7.3 hypotheses and the §7.2 runtime confirmations.
+
+**Protocol choices, not evidence.** The §2.5 normalisation literal, the §6 selection counts (rank 1 for L, ranks 1–3 for M) and every §7 tolerance and decision threshold are protocol choices made in this revision. None is a coefficient, measurement or calibration.
+
+**Not checked in this revision.** I did not inspect how a route surfaces a `checked` overflow exception (§2.9). I did not re-read the ranking internals of `PlayerCompetitionDiagnostics.Measure`. The §6 rule computes its own competitor ranking from logged positions and DBH instead.
 
 **Needs a run (Q1/Q2, blocked).** Every trajectory, horizon outcome, death count, edge effect, intensity value and the behaviour of the README `annual` command.
 
@@ -373,5 +493,15 @@ Each item is a hypothesis to test in Q1/Q2. None is a measured result.
 **Handoffs:**
 - `Docs/Handoffs/MultiRack-Simulation-20261116/885-multi-area-spec/Multi-885-MA1-TWO-AREA-SIMULATOR-SOURCE-IMPLEMENTATION-HANDOFF-20261121.md` (l.1-60 plus grep). It is the only file in that folder at `4cecf873`; I found no separate "approved spec" file there.
 - Packets 01, 02 and 03 at `docs/multi-885-next-action-orchestration-research-packets-20261121-v1@7a2a13fa`.
+
+**Read again for revision 2 (all at `4cecf873`, read only):**
+- `LAB/src/Core/AnnualRules.cs` (whole);
+- `CCF/SitkaGrowthModel.cs` l.30-115;
+- `LAB/src/Core/MultiArea/MultiAreaContinuation.cs` l.40-70, 180-240, 260-470, 504-545;
+- `MultiAreaContracts.cs` l.12-100;
+- `LAB/tests/Core.Tests/MultiAreaTests.cs` l.60-80, 160-232, 639, 702;
+- the MA-1 author handoff, l.1-60 and l.33-43.
+
+**Also read for revision 2:** the Q4 review `Docs/Handoffs/MultiRack-Simulation-20261116/885-q0-qualification-20261121/Q0-INDEPENDENT-REVIEW.md` on branch `docs/multi-885-q0-crosswalk-review-20261121-v1` (blob `cb78f64975a6915a062ae733c11b36fabc665367`, SHA-256 `1a3f7ed8031ad1889d0b1567e8b9f0ce607aaca0ba09d01e106f81ce5c1e4f1b`, 150 lines), fetched by `gh api`.
 
 **Not read.** The `AdultMortalityDesign`, `HeightCandidateComparison`, `EconomyTutorialImpact`, `SaveVersioningAssessment` and `CanonicalDecisionProposal` files (other than grep hits), the remaining `WindthrowV1/*.md`, and all `Evidence/*.csv`. None was needed for an anchored claim above.
