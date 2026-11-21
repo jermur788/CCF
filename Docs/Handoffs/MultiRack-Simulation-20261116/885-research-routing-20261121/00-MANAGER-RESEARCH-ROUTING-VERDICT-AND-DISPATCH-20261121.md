@@ -1,0 +1,52 @@
+# CCF Multi #885 — Research routing verdict and six separate handoffs — 2026-11-21
+
+**Manager verdict: THREE deep-research routes possible, but ONLY TWO justified for immediate external Deep Research.** Four other needs should not be mislabeled a new external Deep Research job. This is task routing, **not completed research**, source calibration, feature implementation or authorization to run any worker.
+
+## Classification
+
+| Task | Route | Urgency | Binding handoff |
+|---|---|---|---|
+| Sitka growth, competition and multi-year model qualification | **LOCAL C#/MODEL + EXISTING SOURCES** | NOW, after safe integration | [01-growth-competition-evidence-vs-calibration.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/01-growth-competition-evidence-vs-calibration.md) |
+| Irish longitudinal CCF thinning/transformation | **DEEP RESEARCH — YES** | NOW, docs-only independent | [02-ccf-thinning-transformation-deep-research.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/02-ccf-thinning-transformation-deep-research.md) |
+| MA-2 comparable area empirical evidence, NO-GO gate | **DEEP RESEARCH — YES** | NOW, docs-only independent; no MA-2 code | [03-ma2-area-comparability-deep-research.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/03-ma2-area-comparability-deep-research.md) |
+| Canopy gaps, regeneration and seed-light mechanisms | **CONDITIONAL DEEP RESEARCH** | First gap audit; external only when justified | [04-regeneration-canopy-light-targeted-deep-research.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/04-regeneration-canopy-light-targeted-deep-research.md) |
+| Browsing protection and growth-damage evidence | **EXISTING-SOURCE AUDIT** | Later; no new DR | [05-browsing-protection-existing-evidence.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/05-browsing-protection-existing-evidence.md) |
+| Timber value, harvesting costs and market updates | **EXISTING-SOURCE AUDIT; CONDITIONAL CURRENT-MARKET DR** | Later; no new DR until economics in scope | [06-economics-transformation-market-evidence.md](https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/06-economics-transformation-market-evidence.md) |
+
+**Count:** 2 immediate Deep Research (Irish repeated-thinning evidence; empirical comparable-area data), 1 conditional Deep Research after source-gap map (regeneration/light), 1 primarily numerical model-qualification task (growth/competition), 2 existing-composite audit tasks (browsing; economics, with later conditional market search). No broad redundant Deep Research request.
+
+## Why
+
+The attached project research composites already hold substantial sourced summaries and page/DOI cross-references for growth, ecology, browsing and economics. They are labelled **SUPPORTING RESEARCH — NOT DECISION AUTHORITY**. GROWFOR extraction and six-paper consolidation are separate retained originals. The missing high-value external questions are (a) actual measured longitudinal Irish CCF treatments over multiple cycles and (b) source-linked area-level comparator features/outcomes for MA-2. The latter remains #828 positive G1 NO-GO until the actual source-derived rows are proven; synthetic MA-1 area A/B cannot supply that proof.
+
+The best **feature-relevant offline task** immediately after safe MA-1 integration is to run 1/5/10/20/50-year deterministic no-work and contrasting selective-thinning scenarios against the precise annual engine; compare supported source units and outputs; do not modify rules, golden fixtures or science claims. Do not confuse technical reproducibility with ecological validation.
+
+**#883 parallel source stewardship:** https://github.com/jermur788/CCF/issues/883 . Manager previously found a false PDF text-layer claim about shifted six-paper extraction parameter groups and missing complete proposed composite amendments. Prior producer files are **NEEDS CHANGES**, not accepted. Correct producer record and obtain separate scientific/editorial review; do not launch a duplicate comprehensive six-paper extraction.
+
+**MA-1 G4:** https://github.com/jermur788/CCF/blob/docs/multi-885-ma1-manager-g4-integration-verdict-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-multi-area-spec/Multi-885-MANAGER-G4-APPROVED-CONTROLLED-INTEGRATION-GATE-20261121.md authorises a controlled integration attempt, NOT main merge or owner acceptance; do not treat its 1-year outcomes as field calibration. Existing owner #882 playtest accepted? **NO — NEEDS CHANGES**, and MA-1 owner G2 remains separate.
+
+## Proposed delegation and ownership
+
+1. Deep Research worker A: **02 repeated CCF thinning**, read-only external/public literature and original study data; own docs branch/result path; independent forestry review. May run without Unity or owner playtest.
+2. Different Deep Research worker B: **03 MA-2 comparator evidence**, separately evaluate original empirical area-level data and control candidates; preserve NO-GO if missing. No MA-2 implementation.
+3. Research/model worker C: **01 annual model validation** once separate integration preflight and safe exact candidate become available; can first map equations and sources read-only. Simulations use local scratch and proportional gates, NOT production code edits.
+4. Research/editorial worker D: **#883 remediation**, existing producer lane only after custody refresh, followed by independent reviewer; avoid overlapping write with workstreams A/B.
+5. Defer or narrowly audit tasks 04–06. They should not consume the first available expert source-capable worker over the high-value simulation tests.
+
+Deep Research means substantive external evidence retrieval/critique rather than general discussion. It does **not** grant access to paid papers or local files unavailable to a worker. Primary article passages, tables and usable data must be acquired legally; any missing access explicitly reported. Preserve publication rights and separate authorship/independent review.
+
+## One complete paste-ready dispatch — Deep Research task 02
+
+> You are a **fresh Deep Research investigator** for CCF, not a C# developer. **Binding direct GitHub handoff:** https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/02-ccf-thinning-transformation-deep-research.md . Difficulty HIGH; provider a research-capable agent with external primary-source access; project manager #885, no source/physical lane claimed. Start by reading the linked task packet, live GitHub `Docs/Project/coordination/active-tasks.md` and `Docs/Project/research-index.md`, and the attached CCF Practice/Economics and Growth/Density research composites. Refresh ownership before claiming a docs-only branch. Retrieve source-level Irish longitudinal Sitka continuous-cover thinning/transformation studies and underlying measured repeated-intervention outcomes; record species, plot/site, treatment, years, n, units, numeric outputs, uncertainty and limits. UK transfer clearly labelled; negative outcomes retained. Map 3–5 falsifiable model-check scenarios, **do not adopt model constants**, modify simulation, make owner decisions or occupy Unity. Publish one new GitHub Markdown source-linked result on an exclusive docs-only branch and ask a **separate independent forestry reviewer**, not the producer helper, to check the findings. If data cannot be accessed, state INCOMPLETE and identify precise gaps. Return exact URL, source inventory and limitations to Manager #885. Owner action needed: none for this research-only execution.
+
+## Separate dispatch for task 03
+
+> You are a **separate Deep Research investigator** for CCF MA-2 empirical area comparability. **Binding direct GitHub handoff:** https://github.com/jermur788/CCF/blob/docs/multi-885-research-routing-six-handoffs-20261121-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-research-routing-20261121/03-ma2-area-comparability-deep-research.md . High difficulty; do not overlap with task 02 writer. Follow #828/#851 existing NO-GO, D-065 source audit, project research index and approved MA-1 limitations. Find and independently verify actual plot/area-level source rows, for **at least two positive source-supported comparable targets and one negative/unknown control**, with stand/site/distribution/treatment/outcomes. If unavailable, remain NO-GO; do not invent a threshold, confuse synthetic MA-1 A/B with actual empirical comparators, propose automatic Fell or implement MA-2. Work read-only sources and own unique docs-only result branch, acquire normal claim and source rights, obtain independent nonauthor review, publish one direct GitHub Markdown result with exact data provenance and explicit evidence-gate verdict. No source/Unity/worktree changes or owner G5 decision is granted.
+
+## Management boundaries
+- Coordination: current committed `Docs/Project/coordination/active-tasks.md` must be refreshed at actual worker admission; do not claim a source lock from this routing document.
+- All source composites are supporting research, not mechanics authority. D-065 delegated treatment sources support guidance analogues, NOT a universally documented sample→coverage→workplan workflow or a validated similarity threshold.
+- Canonical Git, not Drive read-only mirror. No project-context generator/publication, `main`, source, save, Unity or paid scientific extraction is done here.
+- Results must be independent and stage-honest; owner playtest today is unavailable, so do not wait on human acceptance for docs-only research.
+
+**Manager next step:** route tasks 02 and 03 as separate Deep Research sessions when capacity is available, while continuing controlled MA-1 integration and #883 remediation through their own existing lanes. All packets READY, none RUNNING by this docs publication.
