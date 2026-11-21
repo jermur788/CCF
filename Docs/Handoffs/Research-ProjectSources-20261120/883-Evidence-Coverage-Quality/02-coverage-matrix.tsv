@@ -1,10 +1,6 @@
 # 02 — Coverage matrix (machine-readable). Status: RESEARCH PRODUCED, not reviewed, not canon.
-# Columns: row_id, source, original_pdf_page, topic, claim_or_quantity, units, evidence_class, composite_location, coverage_strength, status, action
+# Columns: row_id, source, paper_page, topic, claim_or_quantity, units, evidence_class, composite_location, coverage_strength, status, action
 # status = COVERED | CROSS-REFERENCED-INTENTIONALLY | MATERIAL GAP | DISPUTED | OUT OF SCOPE | DESIGN NOTE
-# DESIGN NOTE = a producer inference/design caution, not a source finding; excluded from evidence counts
-# paper_page = page of that paper as supplied (paper-relative). Collection page = paper_page + offset:
-#   P1 +2, P2 +14, P3 +34, P4 +54, P5 +84, P6 +98. (P4 Table 1 is p.12 in both by coincidence.)
-# Rows are not exhaustive (see 02-COVERAGE-MATRIX.md); P6-12 is an added candidate row. | DESIGN NOTE
 # DESIGN NOTE = a producer inference/design caution, not a source finding; excluded from evidence counts
 # paper_page = page of that paper as supplied (paper-relative). Collection page = paper_page + offset:
 #   P1 +2, P2 +14, P3 +34, P4 +54, P5 +84, P6 +98. (P4 Table 1 is p.12 in both by coincidence.)

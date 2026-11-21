@@ -25,7 +25,8 @@ agreement sentence, because P2 is a complete paper on disk and its figures were 
 - Human marking agreement is only slight-to-fair (36 experiments, 12 sites, British study; Pommerening et al.
   2018, `Rating experiments in forestry.pdf`), so expert marks are not "correct answers". **PRIMARY-VERIFIED**
   against the paper by the #883 producer (claims V-6/V-11) and independently by the #896 reviewer: 36 experiments
-  at 12 sites, marteloscopes 0.1 ha each except Ae at 0.133 ha, 19 rater groups of 9-20; low-thinning kappa_F
+  at 12 sites, marteloscopes 0.1 ha each (Ae 0.133 ha per **P1 Table 1, p. 7**; P2 Table 2 gives 0.1 ha), 19 rater
+  groups of 9-20; low-thinning kappa_F
   generally 0.35-0.51 (fair to moderate) and crown thinning 0.01-0.28 (poor to slight, the single exception being
   Loch Ard 2015 at 0.44), overall only slight-to-fair (abstract), 4 of 36 experiments poor and none substantial or
   almost perfect (P2 pp. 1, 11, 14, 16, 17; agreement categories Table 3, p. 9; low-vs-crown p < 0.001, p. 11).
@@ -40,7 +41,7 @@ agreement sentence, because P2 is a complete paper on disk and its figures were 
 |---|---|---|
 | Provenance label for this claim | secondhand, "can be checked" | primary-verified, with named verifiers and page pointers |
 | Precision of the agreement result | "slight-to-fair" | low thinning fair-to-moderate; crown thinning poor-to-slight with one fair (Loch Ard 2015); overall slight-to-fair; 4 of 36 poor; none substantial |
-| Study description | 36 experiments, 12 sites | adds 0.1 ha plots (Ae 0.133 ha), 19 rater groups of 9-20 |
+| Study description | 36 experiments, 12 sites | adds 0.1 ha plots (Ae 0.133 ha per **P1 Table 1, p. 7**; P2 Table 2 gives 0.1 ha), 19 rater groups of 9-20 |
 | MART citation | supports the claim | retained, but as the secondhand report of the same finding |
 | Authorship of the verification | unstated | named, with the addendum's own blind spot preserved |
 

@@ -68,9 +68,11 @@ source (P5 18 vs 20; P4 "17 plots at each of") it is preserved as unresolved rat
 | Arithmetic | 46 + 13 + 5 + 2 + 1 + 1 = **68** |
 | TSV integrity | one row per ID, no duplicates, 11 fields per row (verified programmatically) |
 
-This replaces the 67 / 44 / 13 / 6 / 3 / 1 tally. The movement is explained by four status changes and one added
-row, not by redefining the taxonomy mid-stream: `DESIGN NOTE` was introduced for rows that were never source
-findings, and the two P2 rows left `DISPUTED` because the dispute was resolved *in favour of* the source.
+This replaces the 67 / 44 / 13 / 6 / 3 / 1 tally. The movement is five status changes (`P2-01` and `P2-04`
+`DISPUTED` → `MATERIAL GAP`; `P5-09` `MATERIAL GAP` → `CROSS-REFERENCED-INTENTIONALLY`; `P2-09` and `P6-09` →
+`DESIGN NOTE`) and one added row (`P6-12`). `DESIGN NOTE` was introduced for rows that were never source findings.
+The two P2 rows are no longer disputed because verification resolved the dispute in favour of the source; only
+`O-04` remains `DISPUTED`.
 
 ## Persisting unresolved items (unchanged by this pass)
 
