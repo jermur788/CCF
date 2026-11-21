@@ -147,7 +147,42 @@ The pairing matches the scan's stem thickness and height to each model's size. T
   - Portable PNG textures beside the FBX.
 - **Scope of states:** **Phase A = Unpruned only** (4 models × 3 LODs = 12 FBX). Phase B (pruning states) only after owner approval; see 5 and O-3.
 
-### 4.4 Ecology and visual boundary
+### 4.4 Prefab-ready delivery contract (owner goal: reusable Unity prefabs at the end)
+
+The end product is **reusable Unity prefabs**. Astra does not make them, because Unity is excluded. The existing Editor tool `Assets/ForestPrototype/Editor/ForestryAssetSetup.cs` (on `origin/main` @ `cfc802d2`) already builds every CCF tree prefab from delivered FBX:
+
+- one LODGroup prefab per base and state, at `Assets/ForestPrototype/Prefabs/Forestry/Pruning/<Base>/<Base>_<State>.prefab`;
+- three LODs with transitions 0.55 / 0.20 / 0.04 and cross-fade;
+- each LOD child normalised by `1 / authoredHeight`;
+- **every material slot resolved by FBX material name** against an explicit list per family.
+
+Deliver so the Unity step (§11) is a few table rows rather than a rework:
+
+1. **Naming:**
+   - `<Asset>/<Asset>_Unpruned_LOD0.fbx`, `_LOD1.fbx` and `_LOD2.fbx`;
+   - later, for Phase B, `<Asset>_<LowPruned|MediumPruned|HighPruned>_<Recent|Healed>_LOD<n>.fbx`.
+
+   This is exactly the `StateKeys` pattern the tool reads. Use exactly **three LODs**.
+2. **Unchanged parts keep their existing material names exactly**, so the tool reuses the existing project materials:
+   - Benchmark family: `SS_Benchmark_Bark`, `SS_Benchmark_Needles` (plus `SS_Benchmark_CutWood` / `SS_Benchmark_WeatheredScar` in Phase B);
+   - Crop family: `Sitka_Bark`, `Sitka_Pole_Bark`, `Sitka_Needles` (plus `Pruning_ExposedWood` / `Pruning_HealedScar` in Phase B).
+3. **Exactly one new material per asset, for the baked lower trunk,** named `RF_<Asset>_LowerTrunk`. Its textures go in `Textures/`:
+   - `RF_<Asset>_LowerTrunk_BaseColor.png` (sRGB);
+   - `…_Normal.png` (OpenGL convention, linear);
+   - `…_MetallicSmoothness.png` (RGB = 0 metallic, A = smoothness, linear). This follows the Benchmark bark convention: a Unity URP Lit material with smoothness taken from the metallic alpha.
+   - Add `…_Occlusion.png` only if you use it.
+
+   No other new material names.
+4. **Soil pivot, metre scale, −Z forward / Y up, authored height in the manifest.** The tool normalises by that height, so it must be the measured top of the tree, to within ±2 cm of the original.
+5. **`Import_Spec.json`** at the package root. For each asset, list:
+   - the base name, authored height and family (`Benchmark` or `Crop`), plus the upper-model base it derives from;
+   - the FBX paths per state and LOD;
+   - each material name, with its texture files and import settings: texture type (Default / NormalMap), sRGB on or off, alpha source, max size 2048, and URP Lit settings (surface opaque or alpha clip 0.35, render face, smoothness source).
+
+   That gives the Unity implementer a single machine-readable table.
+6. **No colliders and no LODGroup in the FBX.** The game adds its own tree collider at runtime, and the prefab tool adds the LODGroup.
+
+### 4.5 Ecology and visual boundary
 
 These are visual assets only. The scans are of old Swedish (probably Norway) spruce. **Whether Sitka spruce at these ages and sizes shows this root form and moss cover is UNVERIFIED.** Record that as a visual calibration in the README, not as an ecological fact.
 
@@ -182,6 +217,7 @@ Do not encode age, DBH, growth, pruning history or any gameplay state in names, 
 ```
 Sitka_RootFlare_01/
   README.md                         # method, pairing, fit numbers, limits, biology caveat
+  Import_Spec.json                  # prefab-ready table for ForestryAssetSetup.cs (see 4.4)
   Asset_Manifest.json               # per asset: source model+scan (+sha256), authored height, junction height, footprint, LOD tris, files
   Validation_Summary.json
   Textures/                         # shared original bark/foliage + per-asset lower-trunk bakes (2K PNG)
@@ -229,6 +265,7 @@ Sitka_RootFlare_01/
 | A-9 | A before/after preview per asset, original against new, from the same camera, at walking eye height (1.65 m, ~3 m away) and close (0.4–0.6 m), under neutral lighting. |
 | A-10 | The README records:<br>• the pairing, fit scale, junction height and footprint (in authored metres, and at 8 / 12 / 16 m in-game heights for scaled use);<br>• the biology caveat;<br>• the scan IDs and hashes;<br>• the Phase B plan;<br>• known limits. |
 | A-11 | No file outside §6 changed. Report a before/after listing (or hash list) of the source folders you read. |
+| A-12 | **Prefab-ready:** the §4.4 naming, material names and `Import_Spec.json` are complete. A reimport check confirms the material slot names in every FBX are exactly the existing family names plus one `RF_<Asset>_LowerTrunk` per asset. |
 
 **Verification is visual and automated in Blender only.** In-game acceptance, LOD transitions, performance, wind and Unity import are **NOT TESTED** by this task and must be reported as such.
 
@@ -247,12 +284,34 @@ Sitka_RootFlare_01/
 - **O-1 Pairing.** Use §3.3 by default. Note that Phase 0 rated **Sitka_Mature_01 as the weaker mature model, a REPLACE candidate** in favour of Benchmark_01. The owner's instruction here keeps "the upper part the same as the original models", so Mature_01 is included as asked. The owner may prefer two Benchmark-upper variants instead.
 - **O-2 ugghcjqfa is Raw only.** The default is to decimate in Blender to Mid-like ~4–6 k tris for LOD0 geometry and bake detail from the Raw. Alternatively, the owner downloads the **Mid** zip.
 - **O-3 Pruning states.** Phase B would add Low, Medium and High pruning, each Recent or Healed (21 FBX per asset), using `build_pruning.py`, **after** the owner approves Phase A visually.
+- **O-5 Prefabs.** The owner's end goal is reusable prefabs. §4.4 makes Astra's output prefab-ready, and §11 is the Unity step. D-032 storage must be decided before prefabs are committed.
 - **O-4 Production use.** Putting these into Compact30 means a Unity integration task: new prefabs, swapping scene visual children while keeping IDs, colliders and roster, and #886 collision reconciliation. That task is **SPEC REQUIRED** and separate. This packet authorises none of it.
 
-## 11. Deliverable and next recipient
+## 11. Phase C: reusable Unity prefabs (separate task, NOT Astra; listed so Phase A output fits it)
 
-- **Astra delivers:** the §6 package plus `RESULT.md`. RESULT.md must state the pairing used, the per-asset fit numbers, the A-1…A-11 table with PASS / FAIL / NOT TESTED, the exact paths and sha256 of every delivered file, open limits, and whether Phase B is recommended.
+This needs a Unity-capable implementer with its own task packet, board row, isolated worktree and the D-091 Unity lease. Prepare that packet after the owner approves Phase A visually.
+
+1. **Import** the package into a new art folder: proposed `Assets/ForestPrototype/Art/SitkaRootFlare/`, plus `Materials/` and `Textures/`.
+2. **Extend `ForestryAssetSetup.cs` minimally.** Add:
+   - a `RootFlare` material family, or the lower-trunk material names on top of the existing families, following `Import_Spec.json`;
+   - four `TreeBase` rows (name, modelDir, authored height, the original family's bark/needle materials, and the same `Group` as the upper model: SitkaPole for Young_02 and Pole_01, SitkaMature for the two mature models).
+
+   Then run **Tools ▸ Forest Prototype ▸ Build Crop-Tree Pruning Art**. That produces `Prefabs/Forestry/Pruning/<Asset>/<Asset>_Unpruned.prefab`, plus the pruning-state prefabs after Phase B.
+3. **Verify** each prefab:
+   - 1 m normalised height, LOD0–2 present with the tool's transitions, no Collider, URP Lit materials resolved (no pink or null slots);
+   - existing prefabs and their GUIDs unchanged;
+   - a disposable scene copy showing all four, with same-camera before/after captures.
+4. **Not in Phase C:**
+   - wiring into the spawner's `defaultMaturePruningBases` / `defaultPolePruningBases`;
+   - swapping Compact30 scene trees. That is SPEC REQUIRED, keeping tree IDs, positions, roster, colliders and saves, with #886 collision reconciled;
+   - deleting any old prefab.
+5. **Blocker to resolve first: D-032 binary storage, still OPEN.** Prefabs are reusable across checkouts and teammates only if their FBX and textures are in the repository. The Unity prototype kept Fab-derived bytes git-ignored, so its prefabs would break on a fresh clone. The owner states the licence is not an issue, but committing roughly 20–60 MB of FBX and PNG (and whether to use Git LFS) is a D-032 storage decision. It must be made before Phase C commits anything.
+
+## 12. Deliverable and next recipient
+
+- **Astra delivers:** the §6 package plus `RESULT.md`. RESULT.md must state the pairing used, the per-asset fit numbers, the A-1…A-12 table with PASS / FAIL / NOT TESTED, the exact paths and sha256 of every delivered file, open limits, and whether Phase B is recommended.
 - **Next:**
   1. The **owner** does a visual review of the previews.
-  2. If approved, an **independent reviewer**, not Astra and not the prototype author, checks A-1…A-11 from the raw files.
-  3. A separate **Unity integration** task follows, with a spec, its own lease and native tests.
+  2. If approved, an **independent reviewer**, not Astra and not the prototype author, checks A-1…A-12 from the raw files.
+  3. **Phase C** (§11) makes the reusable prefabs, with its own packet, lease and D-032 decision.
+  4. Putting them into Compact30 is a further **SPEC REQUIRED** integration task.
