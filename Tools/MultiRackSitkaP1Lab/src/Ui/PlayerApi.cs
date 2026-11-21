@@ -20,7 +20,7 @@ namespace SitkaP1.Ui;
 /// is unconfirmed, so the page must re-read. Guard order: Host, capability, route and method, Origin, then for a POST the
 /// content type, the body size and the JSON shape.
 /// </remarks>
-internal sealed class PlayerApi
+internal sealed partial class PlayerApi
 {
     /// <summary>The largest request body accepted (spec §3.6 item 3).</summary>
     internal const long MaxBodyBytes = 16 * 1024;
@@ -63,9 +63,10 @@ internal sealed class PlayerApi
     private readonly Dictionary<string, Route> routes;
     private volatile Listener? listener; // set once, after the bind is checked and before the URL is printed
 
-    internal PlayerApi(PlayerWorkPlanAdapter player, string capability)
+    internal PlayerApi(PlayerWorkPlanAdapter player, MultiAreaWorkPlanAdapter multiArea, string capability)
     {
         this.player = player;
+        this.multiArea = multiArea;
         this.capability = capability;
         capabilityBytes = Encoding.ASCII.GetBytes(capability);
 
@@ -98,6 +99,8 @@ internal sealed class PlayerApi
             ["api/year/advance"] = new("POST", context => CommandAsync<AdvanceRequest>(context,
                 request => player.Advance(request.Fence!, request.ConsentToCancelWork))),
         };
+        // MA-1 two-area page and routes (PlayerMultiApi.cs): same prefix, same listener, same guards in HandleAsync.
+        AddMultiAreaRoutes();
     }
 
     /// <summary>Called once the loopback bind is verified: from then on a request must name exactly this host and origin.</summary>

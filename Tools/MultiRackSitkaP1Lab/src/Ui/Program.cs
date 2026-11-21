@@ -26,10 +26,13 @@ internal static class UiProcess
         }
 
         PlayerWorkPlanAdapter player;
+        MultiAreaWorkPlanAdapter multiArea;
         try
         {
             // The only file this process reads: the trusted, catalog-checked fixture, through Core's no-follow reader.
             player = PlayerWorkPlanAdapter.Open(args[0]);
+            // MA-1: the synthetic two-area experiment is generated and validated in code; it reads no file.
+            multiArea = MultiAreaWorkPlanAdapter.OpenSynthetic();
         }
         catch (P1Refusal refusal)
         {
@@ -52,7 +55,7 @@ internal static class UiProcess
         });
 
         await using var app = builder.Build();
-        var api = new PlayerApi(player, capability);
+        var api = new PlayerApi(player, multiArea, capability);
         app.Run(api.HandleAsync); // one terminal handler: every request passes the same guards (PlayerApi)
         await app.StartAsync();
 
@@ -69,6 +72,7 @@ internal static class UiProcess
         api.AdmitRequestsFor(port);
         Console.WriteLine($"{PlayerLabels.Title}. {PlayerLabels.SessionOnly}.");
         Console.WriteLine($"Open http://127.0.0.1:{port}/s/{capability}/");
+        Console.WriteLine($"Two-area MA-1 simulator: http://127.0.0.1:{port}/s/{capability}/multi");
         Console.WriteLine("Ctrl+C ends the session; nothing is saved.");
 
         // Ctrl+C (SIGINT) or SIGTERM stops the host gracefully; then the in-memory session is simply dropped.
