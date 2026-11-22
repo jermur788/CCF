@@ -1,37 +1,69 @@
 # CCF #885 — Opus 5.5 implementation result: final navy forest UI on the real `/multi` page
 
-**IMPLEMENTED: YES (source).  BROWSER-TESTED: YES, but only against a disposable mock API (not the served `/multi`).  COMPILED: NO.  SERVED `/multi` RUNTIME: NO.  REVIEWED: NO.  OWNER ACCEPTED: NO.  INTEGRATED: NO.**
+**IMPLEMENTED ON TASK BRANCH.  COMPILED: YES — 0 warnings, 0 errors.  REAL `/multi` RUNTIME: YES — 49 of 51 scripted checks passed on real stand data; the 2 non-passes are explained in §5 and neither is a code defect.  REVIEWED: NO.  OWNER ACCEPTED: NO.  INTEGRATED: NO.**
 
-## Identity, authority and baseline
+This revision replaces the earlier version of this file (in commit `3e6a6add`), which said "COMPILED: NO / not run". That statement became stale once the build was run (deviation **D3** below).
 
-| Item | Value |
-|---|---|
-| Actor | Claude Opus 5.5 (`claude-opus-5-5`), Claude Code in T3 Code. Running in the Astra owner thread `1f1a1a27-d17e-445f-b302-9670616e7494` after the Astra (gpt-6-astra) session hit its usage limit; the owner then directly instructed "I want you to implement this design". No separate child thread was created. |
-| Design implemented | https://github.com/jermur788/CCF/blob/docs/multi-885-astra-final-forest-ui-20261122-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-owner-ux/Multi-885-ASTRA-FINAL-DESIGN-AND-OPUS55-IMPLEMENTATION-PACKET-20261122.md (docs commit `305582e2c6edd08f2aece72ed85dd93e5bdb9640`) |
-| Custody | D-091 pre-admission receipt, docs commit `ce3417fbe36e9ca4923594a8f4b2dc5a35d10166` on `docs/multi-885-astra-d091-admission-20261122-v1`. Source-only; build, restore, `dotnet` and runtime **not** admitted, and none was run. |
-| Baseline | `a692e1bf5d21304d06e696db1f47d1988ff80ee1` (`feat/multi-885-owner-ux-20261122-v1`); `PlayerMultiApi.cs` blob `7a589996a6a56b1852b8fff2e8ad0d85e6256b3e`, 126 455 bytes — both verified before editing. |
-| Lane | `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-885-AstraOpusUI-20261122`, branch `feat/multi-885-astra-opus-ui-20261122-v1`, clean at exact baseline before the first write. |
-| Candidate | the commit that adds this file (see `git log -1` on the branch; reported to the owner/Astra with its SHA). |
+# IMPLEMENTATION HANDOFF
 
-**Deviation — lane creation route.** The receipt's preferred route (`t3_worktree_handoff`) failed: the tool timed out running `git status` on the dirty primary checkout over the `\\wsl.localhost` path. The lane was then created with WSL `git worktree add -b feat/multi-885-astra-opus-ui-20261122-v1 <reserved path> a692e1bf…` at exactly the reserved path, branch and base, after checking that path and branch (local and remote) were absent. HEAD and a clean status were verified before any edit. No other lane, listener, process or the primary checkout was touched.
+## 1. Identity, Routing & Execution Provenance
 
-## Changed files
+- **Task / Issue ID & Direct URL:** CCF #885 — https://github.com/jermur788/CCF/issues/885
+- **Worker / Session Name:** T3 Code thread `1f1a1a27-d17e-445f-b302-9670616e7494` ("Forestry Simulator Dashboard Redesign"). It was originally the Astra design thread (OpenAI gpt-6-astra). After that session hit its usage limit, the owner re-bound it to Claude Opus 5.5 with the direct instruction "I want you to implement this design" (**D2**). Because this thread is now the Primary author, it is **NOT eligible** to act as independent reviewer.
+- **Role:** Primary
+- **Task Class:** PACKET ONLY
+- **Model Identity:**
+  - Requested: `claude-opus-5-5` (owner instruction and design packet). Selected: `claude-opus-5-5`. Resolved: `claude-opus-5-5`, as stated by the runtime model identity given to this session. Executed: `claude-opus-5-5`, from the same self-report; no external attestation was observed.
+  - Effort: requested UNKNOWN, executed UNKNOWN (not observed).
+  - Policy note: DeepSeek V4.1 Flash (opencode-go) acted only as the D-091 physical custodian, issuing the custody receipts. It wrote no source in this lane. This checkout's local git `user.name` is "DeepSeek V4.1 Flash orchestrator", so both commits on this branch set the author explicitly to `Claude Opus 5.5 <noreply@anthropic.com>`.
+- **Tools Actually Used in This Session:** Claude Code (Read/Write/Edit/Grep/Bash/PowerShell/ToolSearch); T3 `t3_worktree_handoff` (failed, D1); WSL `git`; `gh` (read-only API reads, then one branch push); `/home/jer/.dotnet/dotnet` 8.0.134 (one build); `python3` (splice and masking scripts); `node` v26 (syntax check; CDP driver); already-installed Microsoft Edge headless over CDP. No package or tool was installed.
 
-1. `Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` — **only the interiors** of `MultiAreaPage.Html`, `MultiAreaPage.Css`, `MultiAreaPage.Js`. 1 456 insertions, 708 deletions; file now 175 003 bytes.
-2. This result file.
+## 2. Repository, Branch & Durable Handoff Links
 
-No `wwwroot`, Core, tests, fixtures, goldens, Unity, P0, packages or other `src/Ui` bytes changed. No dependency, CDN, font or asset was added.
+- **Repository:** https://github.com/jermur788/CCF
+- **Worktree / Lane Path:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-885-AstraOpusUI-20261122`
+- **Branch:** `feat/multi-885-astra-opus-ui-20261122-v1`
+- **Base SHA:** `a692e1bf5d21304d06e696db1f47d1988ff80ee1`
+- **Implementation commit (source + first result revision):** `3e6a6add63e3838f770170e2ba2974b4bc1fe298` — https://github.com/jermur788/CCF/commit/3e6a6add63e3838f770170e2ba2974b4bc1fe298
+- **HEAD SHA:** the commit that adds this revision (child of `3e6a6add`). A file cannot contain its own commit hash, so the exact 40-character SHA is reported in the return message and is the branch tip.
+- **Compare URL:** https://github.com/jermur788/CCF/compare/a692e1bf5d21304d06e696db1f47d1988ff80ee1...feat/multi-885-astra-opus-ui-20261122-v1
+- **Packet Context Commit SHA:** `3a67d0987be0cf40d007892739d2ad295c84f0e0`
+- **Current `main` HEAD SHA Verified Remote:** `3a67d0987be0cf40d007892739d2ad295c84f0e0` (fetched 2026-11-22T17:07:38Z; re-verified after the push — see the return message)
+- **GITHUB HANDOFF PATH:** `Docs/Handoffs/MultiRack-Simulation-20261116/885-owner-ux/Multi-885-ASTRA-OPUS-UI-IMPLEMENTATION-RESULT-20261122.md`
+- **GITHUB HANDOFF COMMIT:** the HEAD commit above
+- **DIRECT GITHUB HANDOFF URL:** https://github.com/jermur788/CCF/blob/feat/multi-885-astra-opus-ui-20261122-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-owner-ux/Multi-885-ASTRA-OPUS-UI-IMPLEMENTATION-RESULT-20261122.md
+- **EXTERNAL EVIDENCE ARCHIVE:** `/home/jer/Development/CCF-885-Astra-UI-Evidence-20261122` — mode `700` (verified). The capability exists only under `private/` (mode-600 files). Every other file is redacted and was scanned: the capability occurs 0 times outside `private/`.
+
+**Authority chain**
+- Design implemented: https://github.com/jermur788/CCF/blob/docs/multi-885-astra-final-forest-ui-20261122-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-owner-ux/Multi-885-ASTRA-FINAL-DESIGN-AND-OPUS55-IMPLEMENTATION-PACKET-20261122.md (`305582e2c6edd08f2aece72ed85dd93e5bdb9640`)
+- D-091 pre-admission: `ce3417fbe36e9ca4923594a8f4b2dc5a35d10166`
+- Amendment (one compile, one bounded runtime, issued 2026-11-22T09:28Z): `28abb53de644d8228e000b3efc8cb73839ec131e`
+- Custodian reconciliation and runtime clearance (2026-11-22T16:47Z), `4231039ce1c9bffd674f42e0fb144842fdd91931`: https://github.com/jermur788/CCF/blob/docs/multi-885-astra-reconcile-20261122-v1/Docs/Handoffs/MultiRack-Simulation-20261116/885-owner-ux/Multi-885-D091-ASTRA-OPUS-UI-LANE-RECONCILIATION-AND-RUNTIME-CLEARANCE-20261122.md
+
+## 3. Live GitHub Coordination & Physical Lock Snapshot
+
+- **Live `Docs/Project/coordination/active-tasks.md`:** last changing commit `3a67d0987be0cf40d007892739d2ad295c84f0e0` (2026-11-21T09:25:49Z), blob `9124d7854d071d2b612de91608ed64d35c1773b7`, fetched 2026-11-22T17:07:38Z.
+- **This Task's Live Claim / Lock Status:** the board has no row for this lane or branch, matching the custodian's §1 finding of no competing claim. Custody comes from the D-091 receipts above. The "MULTI #885 … 2D MANAGER" row is present and active. `active-tasks.md` was not edited.
+- **Active Overlapping or Adjacent Claims / Lanes:** none for `PlayerMultiApi.cs` or this branch. Adjacent rows (#886 Compact30, #887, #891, #894, #897) concern Unity, asset or research work and were not touched. No new #885 comment has appeared since `7077170116` (09:28Z).
+- **Machine-Wide Unity Lock State:** untouched. No Unity, Unity Hub, `Assets/` or Unity-lock file was read for locking, acquired or written.
+- **Protected Listeners Alive After Run:** `127.0.0.1:33767` (PID 1750123), `127.0.0.1:43649` (PID 1806361) and `127.0.0.1:46593` (PID 839989) were all listening before, during and after the run, and were never bound, proxied or signalled.
+
+## 4. Exact Changes & Scope Compliance
+
+- **WHAT CHANGED:** the owner-chosen final design, implemented inside the `MultiAreaPage` Html, Css and Js literal interiors only (commit `3e6a6add`, detailed below), plus this result file. This last commit changes only this file.
+- **FILES CHANGED (`git diff --stat a692e1bf…HEAD`):** `Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` (+1456/−708, unchanged since `3e6a6add`) and this result Markdown. No other path.
+- **SCOPE CHECK:** Yes. Only `PlayerMultiApi.cs` (unchanged since `3e6a6add`) and this result file. `tests/`, csproj, props, `wwwroot`, Core, `.p0ref`, fixtures, Unity and `Assets/` are untouched.
+- **PLAYER-FACING RESULT:** see §5 — every item there was observed on the real `/multi` page with real stand data (MA-A: 171 trees, 5-vertex outline; MA-B: 73 trees, 4-vertex outline).
+- **UNRELATED WORK & CLEANLINESS:** the WSL-native `git status --short` is empty. The only untracked content is git-ignored build output (`.p0ref/`, `src/{Core,Ui}/{bin,obj}`). My server (PID 1791937) is stopped, and no build-server process is running.
 
 ### Outside-literals byte identity (rerunnable)
 
-`before` = baseline blob via `git show a692e1bf…:Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs`; `after` = candidate working file.
-
 ```
-before.masked.sha256 34126c39b99ef97adf3d704e84ef8be2cd4cd65d51079ed13d4e8e97ed1d4c16
-after.masked.sha256  34126c39b99ef97adf3d704e84ef8be2cd4cd65d51079ed13d4e8e97ed1d4c16
+before.masked.sha256 34126c39b99ef97adf3d704e84ef8be2cd4cd65d51079ed13d4e8e97ed1d4c16   (a692e1bf:…/PlayerMultiApi.cs)
+after.masked.sha256  34126c39b99ef97adf3d704e84ef8be2cd4cd65d51079ed13d4e8e97ed1d4c16   (candidate)
 ```
 
-Delimiter lines are unchanged (`    internal const string Html|Css|Js = """` and closing `""";` at column 0). The new interiors contain no `"""`, no CR, no BOM. `git diff --check` passed.
+The custodian ran this script independently, got the same hash, and confirmed that the guard rejects a deliberate mutation of a code token.
 
 ```python
 #!/usr/bin/env python3
@@ -74,101 +106,108 @@ if __name__ == '__main__':
     print(hashlib.sha256(mask(raw)).hexdigest())
 ```
 
-Rerun: `git show a692e1bf5d21304d06e696db1f47d1988ff80ee1:Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs | python3 mask_literals_v1.py -` and `python3 mask_literals_v1.py Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` on the candidate.
+### What the page now does (implementation summary)
 
-## What changed on the page
+- **Layout:**
+  - Navy top bar with Year, a two-line Advance button ("Both areas · does not execute work") and Re-read.
+  - Area A, Area B and Work Plan summary cards. The local draft count is separate from the pending count.
+  - One compact notice with Details.
+  - Grid of map | legend (232 px) | side panel (380 px) at 1920 px; 176 / 310 px from 1024–1599 px; stacked map → side panel → legend below 1024 px or at 200 % zoom.
+- **Map:**
+  - The viewBox always matches the pane's aspect ratio. Fit places the whole area beside (or below) the navigation dock, never under it.
+  - All eleven graded zoom levels are kept, and pan is clamped.
+  - Hit-testing is unchanged: the browser's `getScreenCTM()` with the server's `api/multi/hit`.
+  - Light blue-grey exterior with a metric grid; slate interior clipped to the real polygon; dashed boundary; passive north indicator; a scale bar computed from the current zoom; a status pill.
+- **Dock (F2/F3):** N/W/E/S compass, a separate + / − / Fit column, and Area A/B buttons drawn from the real outlines (`aria-pressed`, existing `showArea`). The old duplicate area switch and the overview inset are removed. All targets are at least 44 px.
+- **Trees:**
+  - Six original procedural layered Sitka spruce symbols, scaled to each tree's server `radiusM` and turned by its ID seed.
+  - A lite version is used below 11 px radius. Each tree's drawing is cached and rebuilt only when its server item changes.
+  - Felled trees are stumps with X; naturally dead trees are bare branches with D.
+- **Legend (F4):** the same mark functions as the map draw all eleven states. Visible by default; Hide/Show is kept in memory across area switches (no web storage).
+- **Competitors (F1):**
+  - Selecting a living tree makes it the area's reference and reads its competition immediately.
+  - The five ranked competitors are native checkboxes in a local, per-area draft. Ticking never moves the reference.
+  - Ineligible rows show why they are disabled.
+  - Draft count, Clear and "Add selected N to Fell plan" sit in a sticky dock with the outcome report.
+  - "Fell this tree instead" offers the reference itself (living, non-Crop) through the same path.
+  - `reasonToSend()` precedence is unchanged: note, else release intent (Crop reference only), else `Owner-selected felling`.
+- **Sequential add:**
+  - The ID list is frozen when Add is pressed, and one operation-wide guard holds until the sequence ends.
+  - Each `pending/add` carries the fence of the latest confirmed view. Requests are never parallel and never retried automatically.
+  - It stops at the first 409, guard refusal or unconfirmed outcome, and reports confirmed, refused/unconfirmed and not-attempted IDs.
+  - An unconfirmed outcome locks commands until a successful Re-read.
+- **Unchanged by source:** `call`, `currentFence`, `run`, the lock and re-read rules, stale-response guards, Execute confirmation freeze/withdraw, consent flow, exact-ID inputs, focus restore, `textContent`-only text, no `innerHTML`, no inline style or handlers, no other origin.
 
-**Layout and palette.** Navy top bar with brand, Year, two-line *Advance one ecological year · Both areas · does not execute work* and Re-read. Three summary cards: Area A, Area B (living count, basal area, ha — all from `view.areas`) and the shared Work Plan (approved / pending / “No queued work”, plus a separate local draft count that never changes the pending count; **View plan →** opens the Work Plan tab). One compact amber notice: the disclosure, the server chip labels (full statements as tooltips), **Details** (opens the Details tab) and the session-only chip. The workspace is a grid: map | legend (232 px) | side panel (380 px) at 1920; 176 / 310 px, 8 px gaps and 16 px gutters from 1024–1599 px; stacked map → side panel → two-column legend below 1024 px (also 200 % zoom). Tabs Tree / Work Plan (count) / Trees / Results (count) / Details sit in the head row on every width.
+## 5. Verification Evidence
 
-**Map.** The SVG fills the pane and its viewBox always has the pane's aspect ratio. At Fit, the area box is fitted into the part of the pane **beside the navigation dock** (or below it when that gives a larger fit, e.g. narrow), so the stand is never under the dock. Zoom and pan move only that usable part and can bring any part of the stand out from under the dock. All eleven graded zoom levels are kept; +/− disable at the ends; pan buttons are disabled at Fit and at each clamp. Hit-testing still uses the browser's own `getScreenCTM()` inverse and the unchanged server `api/multi/hit`, so framing never changes which tree a click hits. Light blue-grey exterior with a 5 m grid (10 m when zoomed far out) in experiment X/Z metres; slate stand interior with a subtle procedural texture, clipped by the **real area polygon**; dashed boundary; passive north indicator and a **metric scale bar computed from the current zoom**; a status pill (reference and draft count, approved-standing count, or add progress).
+- **VERIFICATION TIER RUN:** Tier 1 (bounded real `/multi` runtime check). The existing 16:36 build was reused per custodian receipt `4231039c` and not recompiled.
+- **VERIFICATION RUN:**
+  - Build, 2026-11-22 16:36 (lane local time), after the 09:32 amendment: `/home/jer/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj` from `Tools/MultiRackSitkaP1Lab` (SDK 8.0.134). **Build succeeded, 0 warnings, 0 errors**, exit 0, with `TreatWarningsAsErrors=true` from `Directory.Build.props`.
+  - P0: the pinned binary was copied read-only from the Integration lane and all three pin checks passed (`9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`). Not rebuilt.
+  - Runtime: `/home/jer/.dotnet/dotnet src/Ui/bin/Debug/net8.0/sitkap1-ui.dll <evidence>/fixture`. Own **PID 1791937**, OS-assigned **127.0.0.1:43373**.
+  - Scratch stand data: a copy of `fixtures/derived/p1d-30m-sitka-adult-v1.sitkap1fx.json`, sha256 `bcaaa5c3…57c4`, identical to the committed file before and after the run.
+  - Browser: already-installed Edge (headless) driven over CDP by `real.mjs`, plus `real-followup.mjs` in the same server session. Both scripts are archived in the evidence directory.
+  - Stopped with SIGTERM after verifying the command line; the server logged "Session ended; nothing was saved."
+- **VERIFICATION RESULTS — real data:** the main run passed 44 of 46 checks and the same-session follow-up passed 5 of 5, so 49 of 51 overall. The 2 non-passes are not code defects:
+  1. **"Server records the release reason":** the test ticked the release box and then switched A→B→A before Add. The area switch reset the reason, which is inherited baseline behaviour (see limitations), so `Owner-selected felling` was sent. The follow-up repeated the check without an area switch, and it passed.
+  2. **"Zero console errors":** the only entry was the browser's own network log, "Failed to load resource: 409", for the deliberately provoked refusal. There were no JavaScript exceptions, no `console.error`/`warn` calls and no CSP violations.
 
-**Navigation dock (F2, F3).** One grouped ~212 px dock: N/W/E/S compass (centre glyph decorative), separate + / − / Fit column, then two area buttons drawn from each area's real polygon, with `aria-pressed`, an “N in plan” note and a screen-reader summary. They call the existing `showArea`; the old header area switch and the overview inset are removed, so there is no duplicate switch. All dock targets measure 44 × 44 px or larger.
+  | Area | Observed on real `/multi` |
+  |---|---|
+  | Data and areas | Two areas (MA-A 171 trees, MA-B 73); the table and map draw every tree; area buttons have 5 and 4 polygon points, matching the real outlines; `aria-pressed` follows the shown area |
+  | Fit vs dock | Stand clear of the dock at 1920 for A and B, with the legend hidden, and at 1280×720 for A and B |
+  | Scale and zoom | Scale bar 5 m at Fit and 2× → 2 m at 4×; + disabled at the 11th level; Fit restores |
+  | Legend | Visible by default with 11 states; Hide survives B→A→B→A; Show restores it and focuses Hide |
+  | Ticking | Reference MA-A-001 marked Crop through the real API; 4 competitors ticked; reference pinned; pending count unchanged; A→B→A keeps reference and 4-tree draft |
+  | Sequential add | 4 `pending/add` requests sent one after another, all HTTP 200, plan-state revisions 1 → 2 → 3 → 4, in ranked order; server pending holds exactly those IDs; rows then show "Already pending Fell"; living counts unchanged |
+  | Release reason (follow-up) | Crop reference, one competitor ticked, release ticked, Add → server records exactly `Competition release for retained Crop Tree MA-A-001 (operator intent)` |
+  | Real refusal mid-sequence | 3 ticked. After the 1st add's 200, the test marked the 2nd tree Crop through the real API. The server refused the 2nd add with **409 PlayerPlanStateStale**; the 3rd was **never sent**. The report read "Stopped after 1 of 3 … Refused MA-A-018 … Not attempted MA-A-017 … nothing was rolled back". The refused tree, now Crop, was dropped from the draft with a visible reason; the 3rd stayed ticked |
+  | Lost request | A browser-side interception dropped one add before sending. The page reported **unconfirmed**, locked commands (Advance and Approve disabled) and raised the alert. Re-read sent one GET, lifted the lock, and the dropped add was **never sent or resent** |
+  | Fell this tree instead | MA-B-001 added once (HTTP 200) with `Owner-selected felling` |
+  | Approve | 6 orders approved; living counts unchanged (171/73); no event; ticks disabled with the explanation "The plan is approved, so editing is locked…" |
+  | Execute | Exact-ID confirmation ("Fells exactly 6 named trees across 2 areas in Year 0, or refuses all.") with focus on Back. After Confirm: year still 0, living 166/72 (−5/−1, exactly the approved IDs), one receipt |
+  | Year advance | With one pending order and one unsent tick, the dialog showed both the unexecuted-work consent and the separate unsent-draft warning, focused on Keep. Keep left year, order and draft unchanged. Cancel-and-advance: year 0 → 1, `cancelledUnexecutedWork = true`, pending empty, drafts cleared |
+  | Layout | Sideways overflow 0 px at 1920×1080 (twice) and 1280×720. At 1280×720 Add is visible and all 11 legend states are visible |
+  | Server | stderr 0 bytes; 0 exception/fail lines; HTTP across the run 28× 200, 1× 409 (the intended refusal), 1 not sent (the intended drop); 0× 5xx |
+  | Browser | 0 JavaScript exceptions, 0 `console.error`/`warn` calls, 0 CSP violations. One browser network-log entry, "Failed to load resource: 409", for the deliberately provoked refusal |
 
-**Trees.** Six original procedural Sitka spruce variants (dark crown mass, four tiers of whorled boughs lit from the north-west, feathered needle sprays, pale leader), drawn once into shared symbols at unit radius. Each tree reuses one, scaled to its **server `radiusM`** and turned by its own ID seed. Below 11 px on-screen radius a “lite” symbol without needles is used. Strokes are merged per tier and colour (about 30 elements per symbol), and each tree's drawing is cached and rebuilt only when its server item, or its lite/full level, changes. Felled trees are stumps with an X; naturally dead trees are bare grey branches with D — distinct from executed stumps. The transparent true-radius hit disc is unchanged and decorations take no pointer events.
+  Screenshots (not committed): `<evidence>/shots/real-01…12*.png`. Results: `real-checks.json`, `real-followup-checks.json`, `real-http-log.json`, `server.out.redacted.txt`, `RUN-NOTES.txt`.
+- **MEASUREMENT INTEGRITY CHECK (Gate G3):** `tests/` untouched. Part J of `tests/ui-smoke-multiarea.sh` is pre-existing baseline drift (**D5**): it references `reason-choice` and `(not a Crop Tree)`, and baseline `a692e1bf` `PlayerMultiApi.cs` contains 0 occurrences of each. The smoke script was not run.
+- **REMAINING VERIFICATION GATES STILL REQUIRED:** independent review by a separate non-author thread (this thread is the Primary author under D2), then an owner visual and playtest check.
 
-**One shared mark system (F4).** The same functions draw the map and the legend. Marks: Crop C (solid pale-blue ring), Reference R (white dashed ring and tag), Inspected (solid white halo, for a non-living selection), Competitor 1–5 (dotted ring and number), Fell choice (solid warm ring, tick, warm number), Pending P (amber dashed ring), Approved A (double blue ring, still standing), Felled X, Dead D, and the boundary. Ring widths and badge sizes are in screen pixels, so they read the same at every zoom. The legend is visible by default with all eleven states. **Hide legend** frees the column and widens the map; **Show legend** appears at the top right of the map. The choice is kept in memory across area switches (no web storage).
+## 6. Blockers, Gates & Decisions for the Manager
 
-**Reference tree and competitors (F1).** Selecting any living tree (map, Trees table, exact-ID box, overlap list) makes it that area's **reference** and reads its competition immediately, without marking Crop (U04). The card shows the ID, the Crop chip if retained, *Sitka spruce · status*, DBH / Height / **Crown radius** / Age, *Reference stays pinned while choosing*, and the separate Crop options action. For a living non-Crop reference there is also a small “Fell this tree instead” action through the same fenced path. The five server-ranked competitors are native checkboxes showing rank, exact ID, DBH, CI share, strength, distance and CI term. Ticking changes only a local per-area draft; it never calls `chooseTree` or moves the reference.
-
-A row is disabled, with a visible reason, when its tree is retained Crop, already pending, in the approved plan, felled, dead or the reference itself. All rows are disabled while the plan is approved, during a re-read lock or while an add sequence runs. Draft count, **Clear selection** and **Add selected N to Fell plan** stay visible in a sticky dock at the bottom of the side panel.
-
-The reason line keeps `reasonToSend()` precedence: trimmed note, else the ticked release intent (offered only when the reference is a retained Crop), else exactly `Owner-selected felling`. Competition totals, the planned figure (queued or approved only, never drafts) and the rank/strength disclaimer are under *Current / planned competition details*.
-
-**Sequential add semantics.**
-- The ordered ID list is frozen at the moment Add is pressed. One operation-wide guard (`state.batch` plus `state.busy`) holds for the whole sequence; area or reference switches, map selection, plan edits, Crop, year advance, Re-read and other writes wait with an announcement. Pan, zoom and reading stay available.
-- Each `api/multi/pending/add` carries the fence of the **latest confirmed view** — recomputed from every 200 response, never reused, never parallel.
-- An intermediate view keeps the report the sequence started from on screen (rows show each tree's new status), so competition reads cannot reset the batch. Competition is re-read once afterwards.
-- On a 409 the page shows the server view and stops, reporting the confirmed IDs, the refused ID with its code and message, and the IDs not attempted.
-- On a guard refusal it stops and says the request did not reach the engine.
-- On a transport failure or `OutcomeUnconfirmed` it labels that ID **unconfirmed**, stops and locks commands until a successful Re-read. Nothing is retried or resent automatically.
-- Confirmed IDs leave the draft. Refused and not-attempted IDs stay if still eligible. Nothing is presented as all-or-nothing, and nothing is rolled back.
-
-**Draft reconciliation.** After every view or competition read, draft IDs that became ineligible or left the top five are dropped, and the page says which and why. Choosing a different reference in an area clears that area's draft with an announcement. Each area keeps its own reference and draft across A→B→A. An empty map click now keeps the reference and draft (previously it cleared the selection) so a stray click cannot discard choices. Before a year advance, unsent drafts get their own warning and Stay / Discard choice, separate from the server's explicit consent to cancel unexecuted work. Drafts are cleared only after a successful advance.
-
-**Work Plan.** Pending → Approved → Execute stepper. *Approve Fell plan · N orders* (fells zero, locks editing). Approved box *N approved · still standing — Execution has not happened. Year remains Y*. Warm-brown *Execute approved Fell · N orders* opens the unchanged frozen exact-ID confirmation with Back focused; the dialog now also says the year does not change. *Cancel approved plan* discards orders. Technical PlanId and execution key stay collapsed under *Technical reference* (U07). The receipt, Results and Details panes keep their server-only content.
-
-**Unchanged behaviour preserved (by source; listed so a reviewer can check):** `call`, `currentFence`, `run`, the lock and re-read rules, the stale-response guards in `refreshCompetition`, the Execute confirmation freeze/withdraw logic, the consent flow and `consentToCancelWork`, the exact-ID inputs, the overlap list, focus restore by `data-focus-key`, `textContent`-only text, no `innerHTML`, no inline style or handlers, no web storage, no other origin.
-
-## F1–F4 and U01–U09 mapping (implementation status, not acceptance)
-
-| Item | Status | Note |
-|---|---|---|
-| F1 multi-select competitors, retained reference, safe sequential add | DONE (source; mock-tested) | Semantics above |
-| F2 real area buttons in the dock | DONE | Real polygons, `aria-pressed`, existing `showArea` |
-| F3 grouped compass + zoom on the map | DONE | 44 px targets; stand kept beside the dock at Fit |
-| F4 default-visible illustrated legend with hide/show | DONE | Same renderer as the map; preference in memory only |
-| U01 graphics | PARTIAL | Visibly new spruce, palette and marks per the owner's latest navy/light-surround direction. This **supersedes** U01's earlier “match the Unity charcoal/forest look”; no Unity-asset side-by-side was made |
-| U02 on-map grouped controls | DONE | |
-| U03 graded zoom | DONE (kept) | Eleven levels; usable-area centring |
-| U04 click any living tree → competition | DONE (kept) | |
-| U05 numbered competitors → Fell in one clear action | DONE in the F1 form | Tick 1–5 then one Add. The old per-competitor *inspect* button and “Return to reference” were removed (spec F1: row toggles do not call `chooseTree`) |
-| U06 no forced reason typing | DONE (kept) | Default `Owner-selected felling`; optional note; truthful release intent |
-| U07 machine IDs hidden | DONE (kept) | Collapsed *Technical reference* only |
-| U08 compact desktop | PARTIAL | 1280×720: no page scroll, all legend states visible, Add visible; the reference card plus Add dock leave room for about two competitor rows before the pane scrolls |
-| U09 state mapping | DONE (source) | Letter, number, tick or ring pattern per state; dead ≠ felled |
-| U10 / U11 | NOT MODELLED / DEFERRED | Untouched |
-
-## Checks actually run
-
-| Check | Result |
-|---|---|
-| Baseline HEAD, clean lane, baseline blob and size | pass |
-| `node --check` on the JS extracted from the spliced C# literal (Node v26.13.1) | pass |
-| Each literal interior equals the reviewed page file byte-for-byte | pass |
-| Masked SHA-256 before = after | pass (values above) |
-| `git diff --check`; changed paths = `PlayerMultiApi.cs` + this file | pass |
-| C# compile / `dotnet build` | **not run — not admitted** |
-| Served `/multi` in a real session | **not run — not admitted** |
-| P0 hash before/after | not checked (no P0 access admitted; P0 untouched by construction) |
-
-**Browser harness (disposable, outside the repository, not part of the candidate).** The exact HTML, CSS and JS from the C# literals were served by a local Node server with a strict CSP (`default-src 'none'; script-src 'self'; style-src 'self'; …`) and a mock `fetch`. The mock returns synthetic data in the payload shape the page reads (`view`, `scenes`, `labels`, `competition`, `refusal`, `execution`, `annual`), checks fences and can inject a refusal or a network failure. Headless Microsoft Edge was driven over CDP. **52 / 52 checks passed** and there were no CSP violations or console errors. The checks covered:
-- legend visible with 11 states, and a server hit-test map click;
-- crop reference with five rows: tick 4 / untick / Clear / re-tick, with the reference pinned and the pending count unchanged by drafts;
-- A→B→A keeping reference and draft;
-- four adds sent strictly in sequence with plan-state revisions 1, 2, 3, 4;
-- the refusal mid-sequence report, which stays visible in the viewport;
-- network failure → unconfirmed + lock, then Re-read with **no resend**;
-- Approve fells zero and locks editing; the Execute dialog focuses Back and fells only approved IDs, with the year unchanged;
-- the year-advance draft warning with Stay keeping year and draft, then advance clearing drafts and moving to year+1;
-- legend hide/show, focus, and the preference surviving an area switch;
-- all eleven zoom levels, pan clamps and Fit;
-- dock targets ≥ 44 px;
-- no horizontal overflow at 1920, 1280, 640, 390 and 960 css px at 2× (200 % of 1920×1080);
-- at 1280×720: stand beside the dock, Add visible and all legend states visible;
-- narrow order map → side → legend.
-
-A zoom-step redraw measured about 150–230 ms in headless software rendering (no GPU). Private evidence (not committed): `C:\Users\hp\.t3\outputs\multi885-opus-impl\harness\` (`shots/01…13*.png`, `run-final.json`, `driver.mjs`, `mock-api.js`).
-
-**What the harness does not prove:** the real server's payloads, labels, refusal codes, CSP header and timing; C# compilation of the literal; behaviour with the real 171/73-tree geometry. The mock's data, labels and rules are invented.
-
-## Remaining limitations and deviations
-
-- **Not compiled and not run on the real server.** Needed next, under a build/runtime grant: compile, serve `/multi` in a fresh disposable session, and repeat the focused flow, including one real refusal.
-- At 1280×720 only about two competitor rows are visible before the side pane scrolls (the Add dock stays visible).
-- The old single-competitor inspect flow (“Fell candidate” tag, `frameInspection`) was removed in favour of F1. A non-Crop reference can still be felled itself via “Fell this tree instead”.
-- An empty map click no longer clears the selection (deliberate; protects drafts).
-- Header chips now render inline in the notice, and `MultiDisclosure` is also listed first in Details.
-
-## Next step
-
-Astra (or the owner-routed reviewer) reviews this exact candidate. Fixes, if any, go back to this same writer under valid custody. Approval is not owner acceptance or integration.
+- **DEVIATIONS (as recorded by the custodian, `4231039c`):**
+  - **D1** — `t3_worktree_handoff` timed out on the dirty primary checkout; the lane was created with WSL `git worktree add -b … <reserved path> a692e1bf…`. Accepted.
+  - **D2** — no separate child thread; the Astra thread was re-bound to `claude-opus-5-5` by direct owner instruction. Accepted as an identity amendment; single writer preserved; not eligible as reviewer.
+  - **D3** — the earlier revision of this file said "COMPILED: NO / not run". The build actually ran at 16:36, after the 09:32 amendment and within its authority. Corrected in this revision.
+  - **D4** — the build ran without `--disable-build-servers` and without an external `TMPDIR`. Waived once by the custodian; no build-server process remains and no output escaped the lane. A repeat must use both.
+  - **D5** — smoke Part J drift is pre-existing, as described in §5.
+- **KNOWN LIMITATIONS / UNVERIFIED CLAIMS:**
+  - **"Match Unity" (U01) is PARTIAL.** The owner's later navy, light-surround and better-trees direction supersedes it; no Unity side-by-side was made.
+  - **1280×720:** with the real (long, upper-case) `MultiDisclosure`, the notice wraps to three lines, so only part of the first competitor row shows before the side pane scrolls. Add and all legend states remain visible.
+  - **Reason resets on area switch:** switching areas resets the reason choice (note and release tick) while the competitor draft is kept. This is inherited from the baseline `showArea` → `resetReasonPicker()`. The reason preview shows the reason that will be sent before Add.
+  - **Behaviour changes:**
+    - The old single-competitor "inspect" button and "Return to reference" are removed in favour of the F1 checkboxes.
+    - An empty map click keeps the selection and draft.
+    - `MultiDisclosure` is also listed first in Details.
+  - **Not exercised:**
+    - a guard (4xx non-409) refusal during a real add sequence;
+    - real narrow widths (640 / 390 px) — checked earlier only in the mock-API harness (overflow 0);
+    - screen reader;
+    - real touch devices;
+    - performance on a low-end machine.
+- **F1–F4 / U01–U09 status:**
+  - Done: F1, F2, F3, F4.
+  - U01: partial.
+  - U02, U03, U04: done.
+  - U05: done in the F1 form.
+  - U06, U07: done.
+  - U08: partial (as above).
+  - U09: done.
+  - U10, U11: deferred.
+- **TRIGGERED REVIEW GATES:** independent non-author review of the exact branch tip; owner visual and playtest acceptance.
+- **GITHUB ADMIN UPDATES STILL NEEDED (by the Manager, not this worker):** an `active-tasks.md` row for this lane, branch and its state, and an #885 comment linking this handoff.
+- **DECISIONS NEEDED:** who performs the independent review; whether to shorten the notice at compact heights; whether the reason choice should survive area switches (changing that needs another literal-only edit and a new grant).
+- **WORKER ASSESSMENT:** IMPLEMENTED ON TASK BRANCH | Ready for independent review: **Yes**
+- **RECOMMENDED NEXT STEP:** dispatch one independent reviewer (a different thread, not this author) against the exact branch tip using this handoff, the masking script and the evidence archive. Then the owner plays the real `/multi` page.
