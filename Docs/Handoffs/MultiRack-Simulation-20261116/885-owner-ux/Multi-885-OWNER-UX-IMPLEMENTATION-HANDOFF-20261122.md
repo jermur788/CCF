@@ -1,6 +1,6 @@
 # Multi #885 owner UI implementation handoff
 
-Implementation on task branch; build blocked by missing prebuilt P0 dependency. DONE below means source implementation, not rendered or behavioural acceptance.
+Implementation on task branch; **builds and serves** (see the verification addendum at the end for the P0 reference route and the HTTP check). DONE below means source implementation; rendered visual judgement is still the owner's.
 
 - Worker/role: CCF Sol Writer, sole implementation writer.
 - Branch: `feat/multi-885-owner-ux-20261122-v1`.
@@ -8,7 +8,8 @@ Implementation on task branch; build blocked by missing prebuilt P0 dependency. 
 - Base: `4cecf87339bea4d32907955a8d5625d1f27f96bd`.
 - Inspected context commit: `62e39ec621e38a84030c08b35a171e297056c9ed`.
 - Committed source SHA: `b3a62953bd614736f4d5bc7dcbcf0de0b95037e0`.
-- Handoff commit: the separate commit adding this file after the source commit; neither commit pushed by this worker.
+- Review-fix commit: `5072a8cd6b7556f660ca0baa8cef7afca1d38739` (all eight Opus 5.5 non-blocking findings).
+- Handoff commit: the commit adding this file; no commit was pushed by this worker.
 
 The latest direct packet expands the older spec's three-file grant to include ONLY `MultiAreaPage.Html`, `.Css` and `.Js` inside `PlayerMultiApi.cs`. The owner `/multi` page and the sibling single-area page both contain the improvements. No Core, API contract, fixture, Unity, save, package or other-worktree source was edited. Starting and post-source-commit tracked status were clean; there was no unrelated work to preserve in this lane.
 
@@ -47,9 +48,9 @@ Commands and actual results (external helper scripts are in `C:/Users/hp/AppData
 - `wsl -d Ubuntu -- bash /mnt/c/Users/hp/AppData/Local/Temp/opencode/ccf885-commit-source.sh`: scoped `git add`, whitespace check and WSL commit with author `CCF Sol Writer <writer@local>` succeeded at the source SHA above; tracked status was clean.
 - Final base-to-HEAD allowed-path/byte-boundary/whitespace checks and handoff commit use `ccf885-finalize.sh`; the final response records its resulting handoff SHA.
 
-**Runtime check: NOT RUN.** The missing pinned prebuilt `.p0ref/SitkaLab.Core.dll` prevents creating the changed runnable assembly. The packet expressly prohibits P0 rebuilding and grants no cross-lane binary-copy permission; no recovery build script was run. No UI process was started or stopped, no HTTP request was made to the demo ports, and no HTTP 200 result is claimed.
+**Runtime check by the author: NOT RUN.** At the time of writing, the missing pinned prebuilt `.p0ref/SitkaLab.Core.dll` prevented creating the changed runnable assembly. That blocker was cleared afterwards by the orchestrator; the build and HTTP results are in the verification addendum at the end of this document.
 
-No automated test suite, Core tests, ui-smoke scripts, Unity build, Windows build, long scenario, independent review, browser rendering or gameplay interaction check was run. Desktop 1280x720 appearance, 200% zoom, actual crown pointer behaviour, note/release submission, approve/execute/replay and annual outcomes are not directly checked in a running browser. Source/syntax checks and the failed build are the entire validation evidence.
+No automated test suite, Core tests, ui-smoke scripts, Unity build, Windows build, long scenario or browser interaction check was run by the author. Desktop 1280x720 appearance, 200% zoom, actual crown pointer behaviour, note/release submission, approve/execute/replay and annual outcomes were not checked in a running browser by the author. The addendum records the later build, HTTP check and independent review.
 
 Owner access after the orchestrator supplies the exact pinned prebuilt P0 reference through an authorized action and builds this candidate:
 
@@ -61,4 +62,29 @@ cd /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-885-OwnerUX-20261122/Tools/M
 
 Open the locally printed **Two-area MA-1 simulator** address ending in `/multi`. Its capability stays in the local terminal and is deliberately absent here. The printed single-area address opens the sibling page. Expected source-defined flow: select a living tree, read ranked neighbours, pick a rank, optionally add a note or release intent, add the exact candidate to pending Fell, then separately approve and confirm Execute. Fit restores the currently shown area's complete map. Process exit ends this session; no saving is added.
 
-Remaining blocker: the lane is not buildable without its pinned prebuilt P0 dependency. Remaining publication belongs to the orchestrator: push the two commits and publish the GitHub-tracked handoff; no integration, dashboard synchronization or owner acceptance is claimed by this worker.
+Remaining publication belongs to the orchestrator: push the branch and publish this GitHub-tracked handoff; no integration, dashboard synchronization or owner acceptance is claimed by this worker.
+
+---
+
+# Verification and review addendum (orchestrator, 2026-11-22)
+
+The build blocker recorded above was cleared without touching P0 source, the fixtures or the expected hash.
+
+**P0 reference.** This lane had no `.p0ref`. The pinned `build/build-p0-core-ref.sh` was run and produced `bcbdbf05d1f36334fbbf113da70355272952bd9dc9046a9bb78e858e61d697b0`, which the Core guard correctly refused: the pin's own provenance records `sdk=8.0.133`, and this host now has only **8.0.134**, so the pin is not locally reproducible. The already-qualified artifact was therefore installed from the integration lane (same base commit `4cecf873`, provenance `sdk=8.0.133`) and re-hashed here as `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3` — an exact match. No expected hash and no P0 source byte was edited. This is an environment finding, not a code change.
+
+**Build.** `/home/jer/.dotnet/dotnet build src/Ui/SitkaP1.Ui.csproj` — **succeeded, 0 warnings, 0 errors**, producing `src/Ui/bin/Debug/net8.0/sitkap1-ui.dll`.
+
+**HTTP check.** One bounded run of `sitkap1-ui.dll fixtures/derived` on an ephemeral loopback port: `/s/<cap>/` **200**, `/s/<cap>/multi` **200**. Served bytes contain the graded zoom arrays, `Owner-selected felling`, `Add tree … to Fell plan` and `Technical reference`; a scan for `style="`, `.style.`, `innerHTML` and `insertAdjacentHTML` across both pages and all three assets returned **0** hits. That process was stopped; the owner demo lane and the #877/#882 listeners were never touched.
+
+**Independent review — Claude Opus 5.5 (owner-requested).** First pass on `b3a62953`: **APPROVED, no blocking findings**; it confirmed the reason precedence and exact strings, the approve→execute and fence preservation, `circle.crown` as the sole first-child pointer target, CSP compliance, and the Unity palette/light/notch/shadow parity. It raised eight non-blocking findings; all eight were fixed in **`5072a8cd`** (candidate-label truthfulness, area codes off routine screens, `aria-live` churn, narrow-screen default zoom, north-arrow placement, 9–12 conifer tips, dead CSS/JS removal, reference tag during lock). Delta re-check on `48eac2b3..5072a8cd`: **APPROVED**, seven fixes fully closed, fix 8 partial.
+
+**Known non-blocking follow-ups (not fixed, recorded honestly).**
+1. On the no-confirmed-outcome lock path the reference tag can persist until the next map redraw; competitor rings already behave the same way. A one-line `renderMap()` inside `lockCommands` would close it.
+2. Two single-area labels restate the Core `ManagementArea` text instead of reading it, so wording could drift.
+3. The north arrow is now painted over any crowns at top centre (it is pointer-transparent).
+4. If `#map` measures 0×0 when the default zoom is chosen, every level ties and the maximum is selected; on a typical phone that still yields ≈45 px/m.
+
+**Not verified.** No browser rendering or screenshots, no screen-reader run, no real-device narrow-screen test, no side-by-side with the Unity map, no performance measurement of the ground pattern. No test suite, Core tests, Unity build, Windows build, long scenario or annual-outcome run. Owner visual judgement remains the acceptance route.
+
+**Status: IMPLEMENTED — NOT VERIFIED, NOT OWNER-ACCEPTED.** U10/U11 remain openly deferred and are not faked in the UI.
+
