@@ -8,3 +8,5 @@
 5. DeepSeek verifies source commit scope from GitHub and hands directly to Manager #885 for owner visual playtest, keeping acceptance separate. No independent review or test suite commissioned.
 
 Stop only on a genuine physical/source lock conflict, changed Core/API requirement, bearer leak or protected source; no broad infrastructure diversion.
+
+**Stage 3a (F4 owner correction, same writer):** Replace the closed `details.legend-box` approach on `/multi` with a right-side map legend visible by default. Include faithful miniature icon swatches for the current living/Crop/reference/competitor/Pending/Approved/Felled/Dead/boundary cues, with readable labels and a simple Hide/Show legend button. Keep that legend separate from the unified navigation control dock; adjust stacked/narrow layout without obscuring map/click targets.
