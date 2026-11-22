@@ -57,7 +57,7 @@ Implement the owner-visible U01–U09 changes in the standalone 2D Stand Map bro
 | Optional runtime sanity | one bounded local launch on a free loopback port with `fixtures/derived`, HTTP fetch of `/` only, then stop that PID. No screenshots claimed unless actually captured. |
 | Transport | the orchestrator pushes the committed branch with the existing host credential; the writer does not need to push |
 
-**Read-only, no exceptions:** `src/Core/**`, `src/Ui/PlayerApi.cs`, `src/Ui/PlayerMultiApi.cs`, `src/Ui/Program.cs`, tests, fixtures and goldens, the pinned P0 core reference (`9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`), `Assets/**` including `Assets/ForestPrototype/UI/Map/StandMapCanopyRaster.cs`, `StandMapSymbols.cs` and `Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss`, the integration lane, the owner demo lane, `main`, every other worktree, and every running listener.
+**Read-only, no exceptions:** `src/Core/**`, `src/Ui/PlayerApi.cs`, `src/Ui/Program.cs`, tests, fixtures and goldens, the pinned P0 core reference (`9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`), `Assets/**` including `Assets/ForestPrototype/UI/Map/StandMapCanopyRaster.cs`, `StandMapSymbols.cs` and `Assets/ForestPrototype/UI/Resources/ScenarioOneUi.uss`, the integration lane, the owner demo lane, `main`, every other worktree, and every running listener. `src/Ui/PlayerMultiApi.cs` is read-only **except** the presentation literals in §7.
 
 **Forbidden:** merging to `main`; touching the demo lane or its build; changing simulation equations, save/schema, reason data contract, `AnnualRules`, fixtures, Unity assets or the P0 reference; adding packages; deleting files; reformatting whole files; inventing tree biology, light/seed/regeneration data, species or economics; publishing any screenshot or claim that was not actually produced.
 
@@ -67,4 +67,22 @@ Denied or missing physical path · any second writer on the three files · a nee
 
 ## 6. Non-claims
 
-This receipt does not implement, build, verify, qualify, review, accept or demonstrate anything. It does not authorise U10/U11, a new reason data policy, a Unity or Windows build, a broaden test programme, or any change outside the three UI files and one result document. Owner visual judgement after the implementation is separate and remains the only acceptance route.
+This receipt does not implement, build, verify, qualify, review, accept or demonstrate anything. It does not authorise U10/U11, a new reason data policy, a Unity or Windows build, a broaden test programme, or any change outside the files named in §4 and §7. Owner visual judgement after the implementation is separate and remains the only acceptance route.
+
+## 7. Scope correction — the page the owner actually plays is not in `wwwroot`
+
+**Measured after the first version of this receipt, before any source edit.** `src/Ui/Program.cs` serves **two** pages from one process:
+
+| Route | Page | Source of the served bytes |
+|---|---|---|
+| `/s/<capability>/` | single-area Stand Map | embedded resources `wwwroot/{index.html,app.css,app.js}` |
+| `/s/<capability>/multi` | **two-area MA-1 simulator — the owner's demo page** | `MultiAreaPage.Html`, `.Css`, `.Js` string literals inside `src/Ui/PlayerMultiApi.cs` (~lines 216–2031) |
+
+The owner playtest reservation `fc27ae74` describes the session as *"inspect A and B"*, and the demo evidence is the Crop → competitor → Fell → Approve → Execute → three-year MA-1 sequence. That is the `/multi` page. The original allowlist in §4 — taken from the task packet — therefore could not have changed the page the owner judges.
+
+**Corrected grant (presentation only).** `Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` is writable **only inside** the three string literals `MultiAreaPage.Html`, `MultiAreaPage.Css` and `MultiAreaPage.Js`. Every other byte of that file — routes, method tables, fence/allow-list members, JSON parsing, error codes, response writing, capability checks — must remain **byte-identical**. `git diff` for this file must touch no line outside those three literal ranges, and the reviewer of record is the diff itself.
+
+**Both surfaces are in scope**, in this order: (1) `MultiAreaPage` in `PlayerMultiApi.cs`, because it is what the owner sees; (2) the three `wwwroot` files, so the sibling page at `/` carries the same visual language and is not left divergent. No C# API, contract, fence, fixture, Core, save or Unity change is permitted by this correction.
+
+**Recorded trade-off.** The two pages are already separate near-duplicate implementations (JS line similarity ≈0.39). The corrected scope duplicates presentation work rather than unifying them. Unifying them into one shared asset set would be a larger structural change to the served page identity and is deliberately **out of scope**; it is noted here so the duplication is a known, accepted cost and not an accident.
+
