@@ -6,3 +6,6 @@
 - [ ] T4 Put compass, zoom and area selection in one compact coherent on-map dock at appropriate sizes (F3).
 - [ ] T5 Commit only allowed `PlayerMultiApi.cs` presentation-literal changes and one handoff; label implementation and remaining gaps honestly.
 - [ ] T6 Orchestrator performs GitHub readback/path/byte-boundary check and returns direct handoff; no review/test programme, no main merge.
+
+
+- [ ] **T4a (F4)** Make a right-of-map legend visible by default, add Hide/Show toggle, and render actual map-matching status icons plus short text; responsive and non-colour-only. Implement in the **same** PlayerMultiApi literal edit as F1–F3.
