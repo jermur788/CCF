@@ -48,7 +48,7 @@
       <p class="hint">North up · 5 m grid · select a crown or exact ID</p>
     </div>
     <div class="map-body">
-      <!-- The map scrolls inside this pane, never the page. tabindex -1 keeps the pane itself out of the Tab order (A-2). -->
+      <!-- Zoom changes the real-metre SVG viewport. The pane stays out of the Tab order (A-2). -->
       <div class="map-viewport">
       <div id="map-pane" class="map-pane" tabindex="-1">
       <svg id="map" viewBox="-4 -1.8 38 37.6" role="img" aria-labelledby="map-title map-desc">
@@ -89,6 +89,13 @@
         <g id="furniture" class="overlay"></g>
       </svg>
       </div>
+          <div class="map-dpad" role="group" aria-label="Pan the map">
+            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲ N</span></button>
+            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀ W</span></button>
+            <span class="d-c" aria-hidden="true">Pan</span>
+            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">E ▶</span></button>
+            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">S ▼</span></button>
+          </div>
           <div class="zoom-row map-zoom" role="group" aria-label="Zoom">
             <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">+</span></button>
             <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
@@ -96,20 +103,6 @@
           </div>
       </div>
       <div class="map-aside">
-        <div class="map-tools" role="group" aria-label="Pan controls">
-          <div class="dpad" role="group" aria-label="Pan the map">
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲ N</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀ W</span></button>
-            <span class="d-c" aria-hidden="true">Pan</span>
-            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">E ▶</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">S ▼</span></button>
-            <span class="d-gap" aria-hidden="true"></span>
-          </div>
-
-        </div>
         <p id="map-scale" class="hint scale-note" aria-live="polite"></p>
         <details class="legend-box">
           <summary id="legend-heading">Legend · status cues</summary>
@@ -123,32 +116,16 @@
     </div>
   </section>
 
-  <div id="side" class="side" data-pane="plan">
+  <div id="side" class="side" data-pane="tree">
     <nav class="view-tabs" aria-label="Side panel views">
-      <button type="button" class="view-tab" data-pane-button="plan" aria-controls="pane-plan" aria-pressed="true">Plan</button>
+      <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
+      <button type="button" class="view-tab" data-pane-button="plan" aria-controls="pane-plan" aria-pressed="false">Plan</button>
       <button type="button" class="view-tab" data-pane-button="trees" aria-controls="pane-trees" aria-pressed="false">Trees</button>
       <button type="button" class="view-tab" data-pane-button="history" aria-controls="pane-history" aria-pressed="false">History</button>
       <button type="button" class="view-tab" data-pane-button="details" aria-controls="pane-details" aria-pressed="false">Details</button>
     </nav>
 
-    <div id="pane-plan" class="pane">
-      <section class="panel" aria-labelledby="plan-heading">
-        <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
-        <h3>Pending orders <span class="step-note">(not felled)</span></h3>
-        <p id="pending-empty" class="note">No pending orders.</p>
-        <ul id="pending-list" class="list orders"></ul>
-        <p><button type="button" id="approve" hidden></button></p>
-        <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
-        <p id="approved-empty" class="note">No approved plan.</p>
-        <div id="approved-box" hidden>
-          <dl id="approved-facts" class="pairs"></dl>
-          <p class="actions">
-            <button type="button" id="cancel-approved"></button>
-            <button type="button" id="execute" class="danger"></button>
-          </p>
-          <ul id="approved-list" class="list orders"></ul>
-        </div>
-      </section>
+    <div id="pane-tree" class="pane">
       <section class="panel" aria-labelledby="inspector-heading">
         <h2 id="inspector-heading" tabindex="-1">Selected tree</h2>
         <div id="inspector-empty">
@@ -156,34 +133,31 @@
         </div>
         <div id="inspector-body" hidden>
           <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong> <span id="insp-chip" class="chip"></span></p>
-          <dl id="insp-facts" class="pairs insp-facts"></dl>
           <p class="actions"><button type="button" id="crop-button"></button></p>
           <p id="crop-note" class="note small-note"></p>
-          <section id="competition-panel" aria-labelledby="competition-heading">
-            <h3 id="competition-heading">Competition inspection</h3>
-            <p class="note small-note">Retain a Crop Tree, inspect competitors, then propose a neighbour for Fell. A diagnostic, not felling advice.</p>
-            <div id="competition-content" aria-live="polite"></div>
-          </section>
           <form id="add-form" class="add-form" novalidate hidden>
-            <p class="field">
-              <label for="reason-choice">Reason for felling (required; recorded with the order)</label>
-              <select id="reason-choice" aria-describedby="reason-help">
-                <option value="">Choose a reason…</option>
-                <option id="reason-release" value="Release competition around a retained tree" disabled>Competition release — inspect a Crop Tree first</option>
-                <option value="other">Other — specify reason</option>
-              </select>
+            <p><button type="submit" id="add-button" class="primary"></button></p>
+            <p id="release-wrap" class="field release-option" hidden>
+              <label><input type="checkbox" id="reason-release"><span id="release-label"></span></label>
             </p>
-            <p id="reason-help" class="note small-note">Operator intent, not a diagnosis. Light, seed and regeneration: NOT MODELLED.</p>
-            <p id="reason-other-wrap" class="field" hidden>
-              <label for="reason">Your reason (required for Other)</label>
+            <details id="reason-other-wrap" class="optional-note">
+              <summary>Add a note (optional)</summary>
+              <label for="reason">Optional note recorded with this Fell order</label>
               <textarea id="reason" rows="2" maxlength="2000"></textarea>
-            </p>
+              <p id="reason-help" class="note small-note">Note takes precedence; otherwise the ticked release intent, otherwise Owner-selected felling.</p>
+            </details>
             <p id="reason-error" class="field-error" role="alert" hidden></p>
             <p id="reason-preview" class="note small-note" aria-live="polite"></p>
-            <p><button type="submit" id="add-button" class="primary"></button></p>
           </form>
+          <section id="competition-panel" aria-labelledby="competition-heading">
+            <h3 id="competition-heading">Competition inspection</h3>
+            <div id="competition-content" aria-live="polite"></div>
+          </section>
           <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
           <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
+          <details class="tree-record"><summary>Tree record</summary>
+            <dl id="insp-facts" class="pairs insp-facts"></dl>
+          </details>
           <p id="insp-threshold" class="note small-note"></p>
         </div>
         <p class="field quick-id">
@@ -191,8 +165,26 @@
           <input id="quick-id" type="search" autocomplete="off" autocapitalize="off" spellcheck="false">
         </p>
       </section>
+    </div>
 
-
+    <div id="pane-plan" class="pane">
+      <section class="panel" aria-labelledby="plan-heading">
+        <h2 id="plan-heading" tabindex="-1">Work Plan</h2>
+        <h3>Pending orders <span class="step-note">(not felled)</span></h3>
+        <p id="pending-empty" class="note">No pending orders.</p>
+        <p class="plan-actions"><button type="button" id="approve" hidden></button></p>
+        <ul id="pending-list" class="list orders"></ul>
+        <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
+        <p id="approved-empty" class="note">No approved plan.</p>
+        <div id="approved-box" hidden>
+          <dl id="approved-facts" class="pairs"></dl>
+          <p class="actions plan-actions">
+            <button type="button" id="cancel-approved"></button>
+            <button type="button" id="execute" class="danger"></button>
+          </p>
+          <ul id="approved-list" class="list orders"></ul>
+        </div>
+      </section>
 
       <section class="panel" aria-labelledby="year-heading">
         <h2 id="year-heading" tabindex="-1">Result and year</h2>
@@ -259,7 +251,7 @@
 <dialog id="execute-dialog" aria-labelledby="execute-title" aria-describedby="execute-text">
   <h2 id="execute-title"></h2>
   <p id="execute-text"></p>
-  <p id="execute-plan" class="note"></p>
+  <div id="execute-plan" class="note"></div>
   <ul id="execute-ids" class="list orders"></ul>
   <p id="execute-warning" class="warning" hidden></p>
   <p class="actions">

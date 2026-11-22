@@ -24,15 +24,14 @@
     Living: 'green crown, standing',
     PendingFell: 'dashed yellow ring and a P badge; proposed only, still standing',
     ApprovedFell: 'solid double orange ring and an A badge; approved, still standing',
-    Felled: 'small stump with a cross; the canopy gap is open',
-    NaturalDead: 'hatched grey crown with a dashed outline',
+    Felled: 'light stump, rings and X badge; the canopy gap is open',
+    NaturalDead: 'bare branches and D badge; natural death',
   };
   // Manager #863 approved these labels for #868 (spec R-04). Each is the player's stated intention, sent as the exact
   // reason text through the existing Add route; the page never infers or diagnoses anything from it.
-  const REASON_OTHER = 'other';
   // Must match the desktop @media rule at the end of app.css.
   const DESKTOP_QUERY = '(min-width: 1024px)';
-  const PANES = ['plan', 'trees', 'history', 'details'];
+  const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
 
   const state = {
     view: null, // the latest PlayerSessionView from the server
@@ -52,7 +51,8 @@
     // withdrawn. Until a re-read succeeds, every engine command is disabled and refused. { title, detail } or null.
     lock: null,
     lockCount: 0, // goes up each time the lock is set, so only a read that began after the latest lock can lift it
-    mapScale: null, // map zoom in CSS px per metre; null fits the whole area to the pane's width
+    mapScale: null, // zoom relative to Fit; null shows the whole area
+    mapCentre: null, // UI-only viewport centre, clamped to the full map
     competition: null, // server report, never a browser calculation
     competitionTargetId: null,
     competitionTag: null,
@@ -460,7 +460,6 @@
     const view = state.view;
     const crowns = [];
     const marks = [];
-    const shadows = [];
     const ordered = state.scene.slice().sort((a, b) => a.paintOrder - b.paintOrder);
     for (const item of ordered) {
       const focusIds = state.competition && !state.lock ? [state.competition.targetTreeId,
@@ -471,9 +470,6 @@
       group.append(svg('circle', { class: 'crown', cx: item.u, cy: item.v, r: item.radiusM }));
       group.append(...crownDecoration(item));
       crowns.push(group);
-      if (item.status !== 'Felled') {
-        shadows.push(svg('circle', { class: 'crown-shadow', cx: item.u + 0.3, cy: item.v + 0.35, r: item.radiusM }));
-      }
       // Status marks sit in an overlay that ignores the pointer, so a mark never changes which crown is hit.
       if (item.isCrop) {
         marks.push(svg('circle', { class: 'crop-ring', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }));
@@ -486,7 +482,10 @@
         marks.push(svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }));
         marks.push(svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.5 }));
         marks.push(...statusBadge(item, 'A'));
+      } else if (item.status === 'NaturalDead') {
+        marks.push(...statusBadge(item, 'D'));
       } else if (item.status === 'Felled') {
+        marks.push(...statusBadge(item, 'X'));
         const d = 0.24;
         marks.push(svg('path', {
           class: 'stump-x',
@@ -495,7 +494,7 @@
         }));
       }
     }
-    byId('shadows').replaceChildren(...shadows);
+    byId('shadows').replaceChildren(); // Shadows are drawn within each crown group in paint order.
     byId('crowns').replaceChildren(...crowns);
     if (state.competition && !state.lock) {
       state.competition.topFive.forEach((entry, rank) => {
@@ -505,14 +504,18 @@
         marks.push(svg('text', { class: 'competitor-rank', x: item.u, y: item.v }, rank + 1));
       });
       const target = items.get(state.competition.targetTreeId);
-      if (target) marks.push(svg('circle', { class: 'inspection-ring', cx: target.u, cy: target.v, r: target.radiusM + 0.6 }));
+
     }
+    const reference = items.get(state.competitionTargetId);
+    if (reference) marks.push(...referenceMarks(reference));
     byId('marks').replaceChildren(...marks);
 
     const chosen = state.selectedId === null ? null : items.get(state.selectedId);
     byId('selection').replaceChildren(...(chosen ? [
       svg('circle', { class: 'select-halo', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('circle', { class: 'select-ring', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
+      svg('text', { class: 'candidate-tag', x: chosen.u, y: chosen.v + chosen.radiusM + 1, 'text-anchor': 'middle' },
+        reference && reference.treeId !== chosen.treeId ? 'Fell candidate' : 'Selected'),
     ] : []));
 
     const approvedOrders = view.approved ? view.approved.orders.length : 0;
@@ -525,30 +528,154 @@
 
   // Decoration drawn inside a tree's own group, so a crown painted above it also covers its decoration. Every part has
   // the "deco" class, which ignores the pointer. It is derived only from the item's own centre, radius and status.
+// SVG adaptation of StandMapCanopyRaster and StandMapSymbols: five reusable seeded whorl variants,
+  // true server radius, north-west light L=(-.52,+.56,+.64), ambient .56, diffuse .66. Shape/tint are drawing only.
+  // Raster leaf pixels are approximated by lit branch facets and needles; no biological values are inferred.
+  const CANOPY_PALETTE = {
+    ground: [70, 66, 50], conifer: [30, 64, 50], beech: [92, 128, 70], oak: [116, 128, 64],
+    otherBroadleaf: [104, 140, 80], dead: [100, 94, 84], stump: [206, 188, 150],
+  }; // Only conifer is used: the current server supplies synthetic Sitka, not broadleaf species.
+
+  function canopyHash(a, b, c) {
+    let h = (Math.imul(a, 0x9e3779b1) + Math.imul(b, 0x85ebca6b) + Math.imul(c, 0xc2b2ae35) + 0x27d4eb2f) >>> 0;
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+    h = Math.imul(h ^ (h >>> 12), 0x297a2d39);
+    return (h ^ (h >>> 15)) >>> 0;
+  }
+
+  function canopySeed(id) {
+    let seed = 7;
+    for (const ch of String(id || 'legend')) seed = canopyHash(seed, ch.charCodeAt(0), 7);
+    return seed;
+  }
+
+  function canopyRandom(seed, channel) { return (canopyHash(seed, channel, 2) & 0xffffff) / 16777216; }
+
+  function canopyColour(base, shade, warm = 0) {
+    return 'rgb(' + base.map((v, i) => Math.max(0, Math.min(255,
+      Math.round(v * shade * (i === 0 ? 1 + warm : i === 2 ? 1 - warm * .9 : 1))))).join(',') + ')';
+  }
+
+  function canopyLight(x, y) {
+    const z = Math.sqrt(Math.max(0, 1 - x * x - y * y));
+    return .56 + .66 * Math.max(0, x * -.52 - y * .56 + z * .64);
+  }
+
+  function groundNoise(x, y, cells, seed) {
+    const fx = x * cells, fy = y * cells;
+    const ix = Math.floor(fx), iy = Math.floor(fy);
+    const smooth = (t) => t * t * (3 - 2 * t);
+    const tx = smooth(fx - ix), ty = smooth(fy - iy);
+    const at = (a, b) => (canopyHash(a % cells, b % cells, seed) & 0xffffff) / 16777216;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    return lerp(lerp(at(ix, iy), at(ix + 1, iy), tx), lerp(at(ix, iy + 1), at(ix + 1, iy + 1), tx), ty);
+  }
+
+  function drawCanopyDefs() {
+    const defs = byId('map').querySelector('defs');
+    const shadow = svg('radialGradient', { id: 'canopy-shadow' });
+    shadow.append(svg('stop', { offset: '0%', 'stop-color': '#000', 'stop-opacity': .40 }),
+      svg('stop', { offset: '48%', 'stop-color': '#000', 'stop-opacity': .40 }),
+      svg('stop', { offset: '100%', 'stop-color': '#000', 'stop-opacity': 0 }));
+    defs.append(shadow);
+    // Two periodic value-noise lattices at different scales, sampled once into shared SVG tiles.
+    [12.8, 9.7].forEach((period, index) => {
+      const tile = svg('pattern', { id: 'moss-' + index, patternUnits: 'userSpaceOnUse', width: period, height: period });
+      const seed = index === 0 ? 0x51ed270b : 0x9e3779b9;
+      const size = 24, cell = period / size;
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const n = 255 * (.65 * groundNoise(x / size, y / size, 14, seed) +
+          .35 * groundNoise(x / size, y / size, 5, seed ^ 0xabcd)) - 128;
+        const colour = CANOPY_PALETTE.ground.map((v, i) => Math.round(v + n / [7, 6, 8][i]));
+        tile.append(svg('rect', { x: x * cell, y: y * cell, width: cell + .005, height: cell + .005,
+          fill: 'rgb(' + colour.join(',') + ')' }));
+      }
+      defs.append(tile);
+    });
+    const floor = svg('pattern', { id: 'canopy-ground', patternUnits: 'userSpaceOnUse', width: 124.16, height: 124.16 });
+    floor.append(svg('rect', { width: 124.16, height: 124.16, fill: 'url(#moss-0)' }),
+      svg('rect', { width: 124.16, height: 124.16, fill: 'url(#moss-1)', opacity: .4 }));
+    defs.append(floor);
+    for (let variant = 0; variant < 5; variant++) {
+      const seed = canopyHash(977, 16, variant + 7);
+      const tint = .87 + .26 * canopyRandom(seed, 1);
+      const warm = -.07 + .14 * canopyRandom(seed, 3);
+      const gradient = svg('radialGradient', { id: 'whorl-light-' + variant, cx: '.31', cy: '.27', r: '.75' });
+      [[0, 1.24], [.45, canopyLight(-.25, -.25)], [1, .42]].forEach(([offset, shade]) =>
+        gradient.append(svg('stop', { offset, 'stop-color': canopyColour(CANOPY_PALETTE.conifer, shade * tint, warm) })));
+      defs.append(gradient);
+      [false, true].forEach((small) => {
+        const tips = small ? 6 + variant % 3 : 9 + variant;
+        const valley = small ? .62 : .70;
+        const symbol = svg('g', { id: 'whorl-' + (small ? 'small-' : '') + variant });
+        const points = [];
+        const point = (a, r) => [Math.cos(a) * r, Math.sin(a) * r];
+        for (let k = 0; k < tips * 2; k++) {
+          const angle = k * Math.PI / tips - Math.PI / 2 + Math.PI * 2 * canopyRandom(seed, 15);
+          const rag = .94 + .035 * Math.cos(2 * angle + variant) + .025 * Math.cos(3 * angle + seed);
+          points.push(point(angle, rag * (k % 2 === 0 ? 1 : valley)));
+        }
+        symbol.append(svg('polygon', { points: points.map((p) => p.join(',')).join(' '), fill: 'url(#whorl-light-' + variant + ')' }));
+        let needles = '';
+        for (let branch = 0; branch < tips; branch++) {
+          const tip = points[branch * 2];
+          const notch = points[(branch * 2 + 1) % points.length];
+          const shade = canopyLight(tip[0] * .6, tip[1] * .6) * tint;
+          symbol.append(svg('path', { d: 'M 0 0 L ' + tip.join(' ') + ' L ' + notch.join(' ') + ' Z',
+            fill: canopyColour(CANOPY_PALETTE.conifer, shade * 1.1, warm), opacity: .40 }));
+          for (let step = 2; step <= 5; step++) {
+            const t = step / 7;
+            const x = tip[0] * t, y = tip[1] * t;
+            const width = (1 - t) * .09;
+            needles += 'M ' + (x - tip[1] * width) + ' ' + (y + tip[0] * width) + ' L ' +
+              (x + tip[0] * .12) + ' ' + (y + tip[1] * .12) + ' L ' +
+              (x + tip[1] * width) + ' ' + (y - tip[0] * width) + ' ';
+          }
+        }
+        symbol.append(svg('path', { d: needles, fill: 'none', stroke: canopyColour(CANOPY_PALETTE.conifer, 1.5 * tint, warm),
+          'stroke-width': .014, opacity: small ? .30 : .52 }),
+          svg('circle', { cx: -.025, cy: -.025, r: .075, fill: canopyColour(CANOPY_PALETTE.conifer, 1.8 * tint, warm) }));
+        defs.append(symbol);
+      });
+      const dead = svg('g', { id: 'bare-branches-' + variant, opacity: .68 });
+      let branches = '';
+      for (let k = 0; k < 9; k++) {
+        const angle = k * Math.PI * 2 / 9 + variant;
+        const x = Math.cos(angle) * (.64 + .14 * canopyRandom(seed, k + 20));
+        const y = Math.sin(angle) * (.64 + .14 * canopyRandom(seed, k + 20));
+        branches += 'M 0 0 L ' + x + ' ' + y + ' M ' + x * .55 + ' ' + y * .55 +
+          ' l ' + (-y * .19) + ' ' + (x * .19) + ' M ' + x * .72 + ' ' + y * .72 +
+          ' l ' + (y * .15) + ' ' + (-x * .15) + ' ';
+      }
+      dead.append(svg('path', { d: branches, fill: 'none', stroke: canopyColour(CANOPY_PALETTE.dead, .88),
+        'stroke-width': .045, 'stroke-linecap': 'round' }));
+      defs.append(dead);
+    }
+  }
+
   function crownDecoration(item) {
     const { u, v } = item;
     const r = item.radiusM;
-    if (item.status === 'Felled') {
-      return [svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.62 }),
-        svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * 0.3 })];
-    }
-    // Pointed conifer whorls follow the Unity raster's branch-tip/valley principle. All points stay inside
-    // the original radius; the faint disc remains the honest selectable crown footprint, with the same paint order.
-    const tips = 9;
-    const points = [];
-    let d = '';
-    for (let k = 0; k < tips * 2; k++) {
-      const angle = k * Math.PI / tips - Math.PI / 2;
-      const reach = r * (k % 2 === 0 ? 0.98 : 0.66);
-      points.push((u + Math.cos(angle) * reach) + ',' + (v + Math.sin(angle) * reach));
-      if (k % 2 === 0) d += 'M ' + u + ' ' + v + ' L ' +
-        (u + Math.cos(angle) * reach) + ' ' + (v + Math.sin(angle) * reach) + ' ';
-    }
-    const parts = item.status === 'NaturalDead' ? [] :
-      [svg('polygon', { class: 'conifer-whorl deco', points: points.join(' ') })];
-    parts.push(svg('path', { class: 'spokes deco', d }));
-    if (item.status !== 'NaturalDead') parts.push(svg('circle', { class: 'tip deco', cx: u, cy: v, r: Math.min(0.18, r * 0.1) }));
-    return parts;
+    if (item.status === 'Felled') return [
+      svg('circle', { class: 'stump-disc deco', cx: u, cy: v, r }),
+      svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * .65 }),
+      svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * .32 }),
+    ];
+    const seed = canopySeed(item.treeId);
+    const variant = seed % 5;
+    const stretch = .90 + .20 * canopyRandom(seed, 13);
+    const dead = item.status === 'NaturalDead';
+    const id = dead ? 'bare-branches-' + variant : 'whorl-' + (r < .65 ? 'small-' : '') + variant;
+    return [svg('circle', { class: 'deco', cx: u + r * .30, cy: v + r * .30, r: r * 1.15,
+      fill: 'url(#canopy-shadow)', opacity: dead ? .45 : 1 }),
+      svg('use', { class: 'deco', href: '#' + id, opacity: .90 + .10 * canopyRandom(seed, 1),
+        transform: 'translate(' + u + ' ' + v + ') scale(' +
+          (r * Math.min(1, stretch)) + ' ' + (r * Math.min(1, 1 / stretch)) + ')' })];
+  }
+
+  function referenceMarks(item) {
+    return [svg('circle', { class: 'inspection-ring', cx: item.u, cy: item.v, r: item.radiusM + .6 }),
+      svg('text', { class: 'reference-tag', x: item.u, y: item.v - item.radiusM - .85, 'text-anchor': 'middle' }, 'Reference')];
   }
 
   // A small lettered badge at the north-east edge of a crown: P (pending, proposed only) or A (approved, still standing).
@@ -556,7 +683,7 @@
     const angle = -Math.PI / 4;
     const cx = item.u + Math.cos(angle) * (item.radiusM + 0.25);
     const cy = item.v + Math.sin(angle) * (item.radiusM + 0.25);
-    const kind = letter === 'P' ? 'pending' : letter === 'C' ? 'crop' : 'approved';
+    const kind = letter === 'P' ? 'pending' : letter === 'C' ? 'crop' : letter === 'D' ? 'dead' : letter === 'X' ? 'executed' : 'approved';
     return [svg('circle', { class: 'glyph-bg glyph-' + kind, cx, cy, r: 0.42 }),
       svg('text', { class: 'glyph-text ' + letter.toLowerCase(), x: cx, y: cy }, letter)];
   }
@@ -570,6 +697,7 @@
       return group;
     };
     if (kind === 'Living' || kind === 'NaturalDead') box.append(crown(kind, 1.1));
+    if (kind === 'NaturalDead') box.append(...statusBadge({ u: 0, v: 0, radiusM: .75 }, 'D'));
     if (kind === 'PendingFell') {
       box.append(crown(kind, 0.85), svg('circle', { class: 'ring-pending', cx: 0, cy: 0, r: 1.15 }),
         ...statusBadge({ u: 0, v: 0, radiusM: 0.75 }, 'P'));
@@ -606,10 +734,11 @@
       .map((status) => el('li', null, swatch(status), el('span', null, statusName(status) + ' — ' + STATUS_CUE[status], count(status))));
     const marksList = [];
     if (state.selectedId !== null && items.has(state.selectedId)) {
-      marksList.push(el('li', null, swatch('Selected'), 'Selected tree — thick white ring'));
+      marksList.push(el('li', null, swatch('Selected'), 'Selected tree — thick white ring; Fell candidate tag on a chosen neighbour'));
     }
     if (state.view.cropTreeIds.length) marksList.push(el('li', null, swatch('Crop'),
       'Retained Crop Tree — blue ring + C (' + state.view.cropTreeIds.length + ')'));
+    marksList.push(el('li', null, 'Dashed halo + Reference tag — inspected tree; ranks 1–5 — competitors'));
     marksList.push(el('li', null, swatch('Boundary'), 'Management area boundary — dashed line'));
     byId('legend').replaceChildren(
       el('h4', null, 'Tree species'), species,
@@ -642,55 +771,41 @@
 
   // ---- map zoom and pan (spec §8 A-4) ---------------------------------------------------------------------------------
   //
-  // The map sits in its own scrolling pane, so a zoomed map never widens the page. At TARGET_SCALE every drawn item is at
-  // least 44 x 44 CSS px: the smallest, a 0.35 m stump marker, is 0.7 m x 64 px/m = 44.8 px across, and every crown is
-  // larger. Crowns keep their true radii and the server still hit-tests the true discs, so a click names only a tree whose
-  // drawn disc is under the pointer.
-  const VIEW_BOX = { x: -4, y: -1.8, w: 38, h: 37.6 }; // the map's viewBox in index.html, in metres
-  const TARGET_SCALE = 64; // CSS px per metre
-  const SCALES = [null, 32, TARGET_SCALE, 96]; // null fits the whole area to the pane's width
+  // One SVG unit remains one real metre at every level. A viewBox changes only the viewport;
+  // it cannot change the server's crown radius or hit coordinates. Eleven fixed levels make +/- reversible.
+  const VIEW_BOX = { x: -4, y: -1.8, w: 38, h: 37.6 };
+  const SCALES = [null, ...Array.from({ length: 10 }, (_, i) => Math.pow(5, (i + 1) / 10))];
   const AREA_CENTRE = { u: 15, v: 15 };
 
-  // At desktop width (app.css) the map has its own screen-high pane and opens on the whole area. In the stacked column it
-  // opens at TARGET_SCALE below 900 CSS px (360 px, or 200 % zoom of a window up to 1,799 px wide) and at a device pixel
-  // ratio of 2 or more (200 % zoom of a wider window on a standard display), as before #868.
-  function defaultMapScale() {
-    if (window.matchMedia(DESKTOP_QUERY).matches) return null;
-    return window.matchMedia('(min-width: 900px)').matches && window.devicePixelRatio < 2 ? null : TARGET_SCALE;
+  function defaultMapScale() { return null; }
+
+  function mapBox() {
+    const zoom = state.mapScale || 1;
+    const w = VIEW_BOX.w / zoom, h = VIEW_BOX.h / zoom;
+    const centre = state.mapCentre || { u: VIEW_BOX.x + VIEW_BOX.w / 2, v: VIEW_BOX.y + VIEW_BOX.h / 2 };
+    return { x: Math.min(VIEW_BOX.x + VIEW_BOX.w - w, Math.max(VIEW_BOX.x, centre.u - w / 2)),
+      y: Math.min(VIEW_BOX.y + VIEW_BOX.h - h, Math.max(VIEW_BOX.y, centre.v - h / 2)), w, h };
   }
 
-  // The map point now at the centre of the pane, in map metres.
   function paneCentre() {
-    if (state.mapScale === null) return AREA_CENTRE;
-    const pane = byId('map-pane');
-    return {
-      u: VIEW_BOX.x + (pane.scrollLeft + pane.clientWidth / 2) / state.mapScale,
-      v: VIEW_BOX.y + (pane.scrollTop + pane.clientHeight / 2) / state.mapScale,
-    };
+    const box = mapBox();
+    return { u: box.x + box.w / 2, v: box.y + box.h / 2 };
   }
 
   function centreMapOn(point) {
-    if (state.mapScale === null) return;
-    const pane = byId('map-pane');
-    pane.scrollLeft = (point.u - VIEW_BOX.x) * state.mapScale - pane.clientWidth / 2;
-    pane.scrollTop = (point.v - VIEW_BOX.y) * state.mapScale - pane.clientHeight / 2;
+    state.mapCentre = point;
+    const box = mapBox();
+    state.mapCentre = { u: box.x + box.w / 2, v: box.y + box.h / 2 };
+    byId('map').setAttribute('viewBox', [box.x, box.y, box.w, box.h].join(' '));
+    renderMapScale();
   }
 
   function setMapScale(scale, centre) {
-    const map = byId('map');
     state.mapScale = scale;
-    byId('map-pane').classList.toggle('zoomed', scale !== null);
-    if (scale === null) {
-      map.classList.add('fit');
-      map.removeAttribute('width');
-      map.removeAttribute('height');
-    } else {
-      map.classList.remove('fit');
-      map.setAttribute('width', String(VIEW_BOX.w * scale));
-      map.setAttribute('height', String(VIEW_BOX.h * scale));
-      centreMapOn(centre);
-    }
-    renderMapScale();
+    byId('map').classList.add('fit');
+    byId('map').removeAttribute('width');
+    byId('map').removeAttribute('height');
+    centreMapOn(scale === null ? AREA_CENTRE : centre);
   }
 
   function selectedPoint() {
@@ -703,42 +818,50 @@
     const next = SCALES[Math.min(SCALES.length - 1, Math.max(0, index + step))];
     state.mapScaleChosen = true;
     if (next === state.mapScale) return;
-    // From the whole area, zoom in on the selected tree (or the centre); otherwise keep the point now in the middle.
     setMapScale(next, state.mapScale === null ? selectedPoint() || AREA_CENTRE : paneCentre());
   }
 
   function showWholeArea() {
     state.mapScaleChosen = true;
-    if (state.mapScale !== null) setMapScale(null, AREA_CENTRE);
+    setMapScale(null, AREA_CENTRE);
   }
 
-  // Half a pane per press. North is up the map, so it scrolls towards V = 0.
   function panMap(east, south) {
-    const pane = byId('map-pane');
     if (state.mapScale === null) return;
-    pane.scrollLeft = Math.max(0, Math.min(pane.scrollWidth - pane.clientWidth, pane.scrollLeft + east * pane.clientWidth / 2));
-    pane.scrollTop = Math.max(0, Math.min(pane.scrollHeight - pane.clientHeight, pane.scrollTop + south * pane.clientHeight / 2));
-    renderMapScale();
+    const box = mapBox();
+    centreMapOn({ u: box.x + box.w / 2 + east * box.w / 4, v: box.y + box.h / 2 + south * box.h / 4 });
   }
 
-  // A visible, truthful statement of the current target size. It is pixel geometry only: the smallest drawn disc's
-  // diameter at this scale.
   function renderMapScale() {
-    const pane = byId('map-pane');
+    const box = mapBox();
     const fit = state.mapScale === null;
-    byId('pan-north').disabled = fit || pane.scrollTop <= 0;
-    byId('pan-south').disabled = fit || pane.scrollTop >= pane.scrollHeight - pane.clientHeight - 1;
-    byId('pan-west').disabled = fit || pane.scrollLeft <= 0;
-    byId('pan-east').disabled = fit || pane.scrollLeft >= pane.scrollWidth - pane.clientWidth - 1;
+    const full = VIEW_BOX;
+    byId('pan-north').disabled = fit || box.y <= full.y;
+    byId('pan-south').disabled = fit || box.y + box.h >= full.y + full.h - .001;
+    byId('pan-west').disabled = fit || box.x <= full.x;
+    byId('pan-east').disabled = fit || box.x + box.w >= full.x + full.w - .001;
     byId('zoom-in').disabled = state.mapScale === SCALES[SCALES.length - 1];
     byId('zoom-out').disabled = fit;
+    const rect = byId('map').getBoundingClientRect();
+    const ppm = Math.min(rect.width / box.w, rect.height / box.h);
     const smallest = state.scene.reduce((least, item) => Math.min(least, item.radiusM), Infinity);
-    const across = 2 * smallest * state.mapScale;
-    const text = fit ? 'Whole 30 m area · pan disabled at Fit. Zoom for small crowns, or use Trees.' :
-      state.mapScale + ' px/m · smallest crown/stump ' + fixed(across, 1) + ' px across' +
-      (across >= 44 ? ' (at least 44 px)' : '; zoom or use Trees for a 44 px target') +
-      '. Cardinal buttons pan the viewport; edges are clamped.';
-    if (byId('map-scale').textContent !== text) byId('map-scale').textContent = text;
+    const across = Number.isFinite(smallest) ? ' · smallest target ' + fixed(2 * smallest * ppm, 1) + ' px' : '';
+    byId('map-scale').textContent = (fit ? 'Fit whole 30 m area' : fixed(state.mapScale, 2) + '× Fit') +
+      ' · ' + fixed(ppm, 1) + ' px/m' + across + ' · 5 m grid; use Trees for small targets.';
+  }
+
+  // A quick pick keeps both the reference and candidate in view; only zoom out if their true footprints require it.
+  function frameInspection() {
+    const a = state.scene.find((item) => item.treeId === state.competitionTargetId);
+    const b = state.scene.find((item) => item.treeId === state.selectedId);
+    if (!a || !b || state.mapScale === null) return;
+    const left = Math.min(a.u - a.radiusM, b.u - b.radiusM) - 1.5;
+    const right = Math.max(a.u + a.radiusM, b.u + b.radiusM) + 1.5;
+    const top = Math.min(a.v - a.radiusM, b.v - b.radiusM) - 1.5;
+    const bottom = Math.max(a.v + a.radiusM, b.v + b.radiusM) + 1.5;
+    while (state.mapScale !== null && (mapBox().w < right - left || mapBox().h < bottom - top))
+      state.mapScale = SCALES[Math.max(0, SCALES.indexOf(state.mapScale) - 1)];
+    centreMapOn({ u: (left + right) / 2, v: (top + bottom) / 2 });
   }
 
   // Overlapping crowns at the last clicked point (spec §5 S-4, S-5), topmost first, each with its exact ID.
@@ -824,7 +947,7 @@
         'Remove the pending Fell or cancel its approved plan before designating Crop.' :
         tree.isLiving ? 'Crop is a retained tree designation for this session; it changes no annual biology.' :
           'Dead trees cannot retain a Crop designation.';
-    byId('add-button').textContent = label('AddToWorkPlan');
+    byId('add-button').textContent = 'Add tree ' + tree.treeId + ' to Fell plan';
     renderReasonPicker();
     byId('insp-remove-wrap').hidden = item.status !== 'PendingFell';
     byId('insp-remove').textContent = label('RemoveFromWorkPlan');
@@ -859,7 +982,8 @@
     byId('approved-facts').replaceChildren(
       pair('Status', 'Approved — still standing'),
       pair('Ecological year', plan.source.ecologicalYear),
-      pair('Orders', plan.orders.length));
+      pair('Orders', plan.orders.length),
+      pair('Support', technicalPlan(plan.planId, plan.executionKey)));
     byId('approved-list').replaceChildren(...plan.orders.map((order) => el('li', null,
       el('span', { class: 'mono' }, order.treeId), el('span', { class: 'order-reason' }, 'Reason: ' + order.reason))));
     byId('cancel-approved').textContent = label('CancelApprovedPlan');
@@ -933,6 +1057,7 @@
         pair('Living trees', event.before.livingCount + ' → ' + event.after.livingCount),
         pair('Basal area', fixed(event.before.basalAreaM2PerHa, 2) + ' → ' + fixed(event.after.basalAreaM2PerHa, 2) + ' m²/ha'),
         pair('Stems per ha', fixed(event.before.stemsPerHa, 1) + ' → ' + fixed(event.after.stemsPerHa, 1))));
+      receipt.push(technicalPlan(event.planId, event.executionKey));
       receipt.push(el('h4', null, 'Felled in this event'));
       receipt.push(el('ul', { class: 'list orders' }, ...event.fells.map((fell) => el('li', null,
         el('span', { class: 'mono' }, fell.treeId), ' — ' + fell.cause + ' (' + fell.mechanism + ')',
@@ -977,7 +1102,8 @@
   function renderPaneButtons() {
     const view = state.view;
     const text = {
-      plan: 'Plan',
+      tree: 'Tree',
+      plan: 'Work Plan (' + (view.pending.length + (view.approved ? view.approved.orders.length : 0)) + ')',
       trees: 'Trees (' + view.frame.trees.length + ')',
       history: 'History (' + (view.annualHistory.length + view.frame.events.length) + ')',
       details: 'Details',
@@ -998,7 +1124,7 @@
   }
 
   function technicalPlan(planId, executionKey) {
-    return el('details', { class: 'technical-plan' }, el('summary', null, 'Technical provenance'),
+    return el('details', { class: 'technical-plan' }, el('summary', null, 'Technical reference'),
       el('p', null, 'PlanId ', el('code', null, planId)),
       el('p', null, 'Execution key ', el('code', null, executionKey)));
   }
@@ -1055,13 +1181,12 @@
     const living = state.view.frame.trees.find(t => t.treeId === state.selectedId && t.isLiving);
     const report = state.lock ? null : state.competition;
     const inspect = el('button', { type: 'button', 'data-inspect-competition': 'true', 'data-focus-key': 'competition-inspect', disabled: !living || Boolean(state.lock) },
-      'Inspect competitors of the selected tree');
-    const parts = [inspect];
+      'Use selected tree as reference');
+    const parts = state.selectedId !== state.competitionTargetId ? [inspect] : [];
     if (report) {
       const retained = state.view.cropTreeIds.includes(report.targetTreeId);
-      parts.push(el('p', { class: 'small-note' }, (retained ? 'Retained Crop Tree ' : 'Tree ') + report.targetTreeId +
-        (retained ? '' : ' (not a Crop Tree; read-only inspection)') + ' · ' + report.neighbours.length +
-        ' living neighbours within ' + report.cutoffM + ' m. Strength describes contribution share, not tree health.'));
+      parts.push(el('p', { class: 'small-note' }, (retained ? 'Retained Crop reference ' : 'Reference tree ') + report.targetTreeId + ' · ' + report.neighbours.length +
+        ' living neighbours within ' + report.cutoffM + ' m.'));
       parts.push(el('p', { class: 'competition-totals' }, 'Hegyi now ' + fixed(report.currentTotal, 4) +
         (report.targetPlannedForFell ? ' · Target is planned for Fell: no retained-tree release estimate.' :
           ' → ' + fixed(report.hypotheticalTotal, 4) + ' if pending/approved neighbours are removed.')));
@@ -1078,13 +1203,10 @@
         fixed(report.remainingSharePercent, 1) + '%. Diagnostic only; not advice to fell or a growth forecast.'));
       if (state.selectedId !== report.targetTreeId) parts.push(el('button', { type: 'button', 'data-competitor': report.targetTreeId,
         'data-focus-key': 'competition-return-' + report.targetTreeId },
-        'Return to target ' + report.targetTreeId));
+        'Return to reference tree ' + report.targetTreeId));
     }
     box.replaceChildren(...parts);
-    const option = byId('reason-release');
-    option.disabled = releaseReason() === '';
-    option.textContent = option.disabled ? 'Competition release — select a listed Crop competitor first' :
-      'Competition release for ' + report.targetTreeId + ' (intent)';
+    renderReasonPicker();
   }
 
   function onCompetitionClick(event) {
@@ -1101,35 +1223,34 @@
       resetReasonPicker();
       renderAll();
       // Returning removes that button; keep the keyboard at the target's inspection control.
-      if (state.selectedId === state.competition.targetTreeId)
-        document.querySelector('[data-inspect-competition]').focus();
-      const point = selectedPoint();
-      if (point) centreMapOn(point);
+      if (state.selectedId === state.competition.targetTreeId) byId('inspector-heading').focus();
+      frameInspection();
+      showPane('tree');
       announce('Selected ' + state.selectedId + '; competition target remains ' + state.competition.targetTreeId + '.');
     }
   }
 
   // ---- the reason picker (spec R-04) ---------------------------------------------------------------------------------------
   //
-  // A predefined choice is sent as its exact label. "Other" needs the player's own text, trimmed. The placeholder sends
-  // nothing: the Other text box is hidden and emptied whenever Other is not chosen, so it cannot carry a hidden reason.
+  // The player can propose ordinary Fell immediately; optional notes and release intent are explicit choices.
 
   function reasonToSend() {
-    const choice = byId('reason-choice').value;
-    if (choice === 'Release competition around a retained tree') return releaseReason();
-    if (choice !== '' && choice !== REASON_OTHER) return choice;
-    return byId('reason').value.trim();
+    // Explicit precedence: note if present, else the ticked release label, else Owner-selected felling.
+    // This is operator intent only; the existing API still requires a nonempty reason.
+    const note = byId('reason').value.trim();
+    return note || (byId('reason-release').checked ? releaseReason() : '') || 'Owner-selected felling';
   }
 
   function renderReasonPicker() {
-    const other = byId('reason-choice').value === REASON_OTHER;
-    byId('reason-other-wrap').hidden = !other;
-    const text = reasonToSend();
-    const preview = byId('reason-preview');
-    const message = text === '' ? '' : 'Will be recorded as: “' + text + '”';
-    if (preview.textContent !== message) preview.textContent = message;
-    // A "reason missing" message is withdrawn as soon as a usable reason is there.
-    if (text !== '') showReasonError(null);
+    const release = releaseReason();
+    const checkbox = byId('reason-release');
+    checkbox.disabled = release === '';
+    if (checkbox.disabled) checkbox.checked = false;
+    byId('release-wrap').hidden = release === '';
+    byId('release-label').textContent = release === '' ? '' :
+      'Record this as competition release for retained Crop Tree ' + state.competition.targetTreeId;
+    byId('reason-preview').textContent = 'Recorded reason: ' + reasonToSend();
+    showReasonError(null);
   }
 
   // The missing-reason message sits under the field, so the layout above the Work Plan does not move.
@@ -1137,19 +1258,19 @@
     const box = byId('reason-error');
     box.hidden = message === null;
     box.textContent = message === null ? '' : message;
-    for (const id of ['reason-choice', 'reason']) {
+    for (const id of ['reason-release', 'reason']) {
       if (message === null) byId(id).removeAttribute('aria-invalid');
     }
     if (message !== null) reasonField().setAttribute('aria-invalid', 'true');
   }
 
   function onReasonChoice() {
-    if (byId('reason-choice').value !== REASON_OTHER) byId('reason').value = '';
     renderReasonPicker();
   }
 
   function resetReasonPicker() {
-    byId('reason-choice').value = '';
+    byId('reason-release').checked = false;
+    byId('reason-other-wrap').open = false;
     byId('reason').value = '';
     renderReasonPicker();
     showReasonError(null);
@@ -1163,13 +1284,13 @@
     clearCompetition();
     resetReasonPicker();
     if (fromTable) state.overlap = null;
-    // The selected tree and its actions live in the Plan pane.
-    showPane('plan');
+    // The selected tree and its actions live in the Tree pane.
+    showPane('tree');
     renderAll();
     announce('Selected tree ' + treeId + '.');
     if (livingTree(treeId)) { state.competitionTargetId = treeId; refreshCompetition(); }
     if (fromTable) {
-      // A zoomed map shows only part of the area, so it scrolls to the tree chosen in the table.
+      // A zoomed map shows only part of the area, so it centres on the tree chosen in the table.
       const point = selectedPoint();
       if (point) centreMapOn(point);
       byId('inspector-heading').focus();
@@ -1208,7 +1329,7 @@
       } else {
         state.selectedId = candidates[0].treeId;
         state.overlap = candidates.length > 1 ? { candidates, ambiguous: false } : null;
-        showPane('plan');
+        showPane('tree');
         message = 'Selected tree ' + state.selectedId + '.' +
           (candidates.length > 1 ? ' ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.' : '');
       }
@@ -1249,9 +1370,9 @@
 
   // ---- commands -------------------------------------------------------------------------------------------------------
 
-  // The field the player must fix when no usable reason was given: the Other text box, or the reason list.
+  // Focus the optional note if the server reports a reason refusal.
   function reasonField() {
-    return byId('reason-choice').value === REASON_OTHER ? byId('reason') : byId('reason-choice');
+    return byId('reason');
   }
 
   function onAdd(event) {
@@ -1259,14 +1380,6 @@
     const treeId = state.selectedId;
     if (treeId === null || refusedByLock('Add ' + treeId + ' to the Work Plan')) return;
     const reason = reasonToSend();
-    // Checked here so the player is told at once; the engine still refuses a blank reason itself (WorkReasonRequired).
-    if (reason === '') {
-      const other = byId('reason-choice').value === REASON_OTHER;
-      showReasonError('Not sent: ' + (other ? 'write your reason in the Other box; it cannot be blank.'
-        : 'choose a reason for this tree first.') + ' ' + label('NothingChanged') + '.');
-      reasonField().focus();
-      return;
-    }
     run('api/pending/add', { fence: currentFence(), treeId, reason }, 'Add ' + treeId + ' to the Work Plan',
       (payload) => {
         resetReasonPicker();
@@ -1494,7 +1607,7 @@
     byId('tree-search').addEventListener('keydown', exactIdKey('tree-search'));
     byId('quick-id').addEventListener('keydown', exactIdKey('quick-id'));
     byId('status-filter').addEventListener('change', renderAll);
-    byId('reason-choice').addEventListener('change', onReasonChoice);
+    byId('reason-release').addEventListener('change', onReasonChoice);
     byId('reason').addEventListener('input', renderReasonPicker);
     byId('add-form').addEventListener('submit', onAdd);
     byId('side').querySelector('.view-tabs').addEventListener('click', (event) => {
@@ -1543,6 +1656,7 @@
     });
   }
 
+  drawCanopyDefs();
   wire();
   drawGridAndFurniture();
   setMapScale(defaultMapScale(), AREA_CENTRE);

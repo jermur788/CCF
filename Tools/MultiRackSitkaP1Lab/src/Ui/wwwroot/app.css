@@ -199,9 +199,7 @@ details.expand .full { display: block; padding: .2rem 0 .4rem; }
 .view-tab[aria-pressed="true"] { border-color: var(--accent); background: var(--primary); }
 
 /* ---- map ---------------------------------------------------------------------------------------------------------- */
-/* The map scrolls inside its own pane, so zooming in never widens the page (spec §8 A-4). Zoomed, the SVG takes its
-   size from its width and height attributes (set by app.js in CSS px per metre); "fit" shows the whole area. The
-   zoom controls occupy a backed corner outside the scrolling SVG; their events cannot hit a crown. */
+/* Zoom changes the SVG viewBox in real metres. Floating controls sit inside the map viewport. */
 .map-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .8rem; margin-bottom: .4rem; }
 .map-head h2 { margin: 0; }
 .map-head .hint { margin: 0; font-size: .84rem; }
@@ -349,4 +347,89 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   .pane .panel { padding: .65rem; }
   .pane h3 { margin-top: .5rem; }
   #approved-facts { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+}
+
+
+/* #885 owner map: palette/whorls from Unity; the transparent first-child discs keep server hit geometry. */
+:root { --floor: rgb(70, 66, 50); --boundary: #eeeee2eb; --stump: rgb(206, 188, 150); }
+.ground { fill: url(#canopy-ground); }
+.tree .crown { fill: #1e4032; fill-opacity: .07; stroke: none; pointer-events: fill; }
+.tree.s-NaturalDead .crown, .tree.s-Felled .crown { fill: #645e54; fill-opacity: .03; stroke: none; }
+.deco, .deco *, .reference-tag, .candidate-tag { pointer-events: none; }
+.tree.dimmed { opacity: .70; }
+.stump-disc { fill: rgb(206, 188, 150); fill-opacity: .92; stroke: #5f513a; stroke-width: .035; }
+.stump-ring { fill: none; stroke: #786848; stroke-width: .03; }
+.inspection-ring { stroke-dasharray: .28 .18; stroke: #eaece6; }
+.reference-tag, .candidate-tag { fill: #fff; stroke: #10191d; stroke-width: .22; paint-order: stroke; font-size: .72px; font-weight: 750; }
+.glyph-text.d, .glyph-text.x { fill: #eeeadd; }
+.glyph-dead, .glyph-executed { stroke: #eeeadd; }
+.map-dpad { position: absolute; left: .5rem; top: .5rem; right: auto; bottom: auto; z-index: 3;
+  display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; pointer-events: none; }
+.map-dpad button { pointer-events: auto; background: var(--panel); box-shadow: 0 2px 8px #0009; }
+.map-dpad .d-c { grid-column: 2; grid-row: 2; display: grid; place-items: center; font-size: .7rem;
+  text-shadow: 0 1px 3px #000; pointer-events: none; }
+#pan-north { grid-column: 2; grid-row: 1; }
+#pan-west { grid-column: 1; grid-row: 2; }
+#pan-east { grid-column: 3; grid-row: 2; }
+#pan-south { grid-column: 2; grid-row: 3; }
+.map-zoom, .map-controls { pointer-events: none; }
+.map-zoom button, .map-controls button { pointer-events: auto; }
+.release-option label { display: flex; align-items: center; gap: .5rem; font-size: .84rem; }
+.release-option input { flex: none; width: 44px; height: 44px; min-height: 44px; margin: 0; }
+.optional-note summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
+.competitors { gap: .2rem; }
+.competitors li { display: grid; grid-template-columns: minmax(7rem, .85fr) minmax(0, 1.2fr); gap: 0 .4rem; align-items: center; }
+.competitors button { grid-row: span 2; min-width: 0; overflow-wrap: anywhere; padding: .25rem .4rem; }
+.competitors span { font-size: .75rem; }
+.competition-totals { margin: .25rem 0; font-size: .84rem; }
+.add-form { margin: .3rem 0; }
+.add-form .primary { width: 100%; }
+.small-note { font-size: .80rem; }
+.plan-actions { position: sticky; top: 0; z-index: 2; padding: .25rem 0; background: var(--panel); }
+.plan-area { padding: .2rem .4rem; }
+.plan-area h4 { margin-top: .2rem; }
+.orders li { padding: .2rem .4rem; }
+@media (max-width: 1023px) {
+  .map-viewport { min-height: 19rem; }
+  #map.fit, #map { min-height: 19rem; }
+  .view-tabs { display: flex; }
+}
+@media (min-width: 1024px) {
+  .panel { padding: .6rem; }
+  .pane .panel { padding: .55rem; }
+  .pane h3 { margin-top: .45rem; }
+  .map-viewport { min-height: 0; }
+  .pane { scrollbar-gutter: stable; }
+}
+
+@media (min-width: 1024px) { .side[data-pane="tree"] #pane-tree { display: grid; } }
+
+
+.tree-record summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
+/* The map owns its viewport; zooming never creates a second scrolling surface. */
+.map-pane { overflow: hidden; }
+.map-aside .legend-box[open] { overflow: visible; max-height: none; }
+.map-aside .legend-box { position: relative; }
+.map-aside .legend-box[open] .legend { position: absolute; bottom: 100%; right: 0; z-index: 6;
+  width: min(25rem, 80vw); max-height: 65vh; overflow-y: auto; padding: .6rem; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px; }
+@media (min-width: 1024px) {
+  .view-tab { min-width: 0; padding: .3rem .4rem; }
+  .quick-id label { font-size: .8rem; }
+  #map.fit { width: 100%; height: 100%; max-height: none; }
+}
+
+
+.map-dpad button.icon { width: 44px; height: 44px; }
+.map-zoom { display: flex; flex-direction: column; flex-wrap: nowrap; }
+/* At narrow widths all sections stack in document order; desktop tabs select one scrolling pane. */
+@media (max-width: 1023px) { .view-tabs { display: none; } }
+@media (min-width: 1024px) {
+  .status-bar { padding: .3rem .7rem; gap: .2rem .6rem; }
+  .rail { gap: .25rem .4rem; }
+  .rail > div { padding: 0 .4rem; }
+  .rail dt { font-size: .64rem; }
+  .rail dd { font-size: .86rem; }
+  .brand h1 { font-size: 1.12rem; }
+  .disclosure { font-size: .7rem; }
 }

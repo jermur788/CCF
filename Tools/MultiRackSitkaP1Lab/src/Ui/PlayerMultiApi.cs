@@ -298,10 +298,11 @@ internal static class MultiAreaPage
         <button type="button" id="zoom-fit" class="icon fit" aria-label="Fit whole area" title="Fit whole area">Fit</button>
       </div>
       <div class="map-dpad" role="group" aria-label="Pan the map">
-        <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲</span></button>
-        <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀</span></button>
-        <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">▶</span></button>
-        <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">▼</span></button>
+        <span class="d-c" aria-hidden="true">Pan</span>
+        <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">▲ N</span></button>
+        <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">◀ W</span></button>
+        <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">E ▶</span></button>
+        <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">S ▼</span></button>
       </div>
       <figure class="overview" aria-labelledby="overview-caption">
         <svg id="overview" viewBox="0 0 10 10" aria-hidden="true" focusable="false"></svg>
@@ -330,34 +331,31 @@ internal static class MultiAreaPage
           <p class="selected-area" id="insp-area"></p>
           <p class="selected-id">Tree <strong id="insp-id" class="mono"></strong> <span id="insp-chip" class="chip"></span></p>
           <p id="insp-summary" class="small-note insp-summary"></p>
+          <form id="add-form" class="add-form" novalidate hidden>
+            <p><button type="submit" id="add-button" class="primary"></button></p>
+            <p id="release-wrap" class="field release-option" hidden>
+              <label><input type="checkbox" id="reason-release"><span id="release-label"></span></label>
+            </p>
+            <details id="reason-other-wrap" class="optional-note">
+              <summary>Add a note (optional)</summary>
+              <label for="reason">Optional note recorded with this Fell order</label>
+              <textarea id="reason" rows="2" maxlength="2000"></textarea>
+              <p id="reason-help" class="note small-note">Note takes precedence; otherwise the ticked release intent, otherwise Owner-selected felling.</p>
+            </details>
+            <p id="reason-error" class="field-error" role="alert" hidden></p>
+            <p id="reason-preview" class="note small-note" aria-live="polite"></p>
+          </form>
           <section id="competition-panel" aria-labelledby="competition-heading">
             <h3 id="competition-heading">Competition (read-only)</h3>
             <div id="competition-content" aria-live="polite"></div>
           </section>
           <p class="actions"><button type="button" id="crop-button"></button></p>
           <p id="crop-note" class="note small-note"></p>
-          <form id="add-form" class="add-form" novalidate hidden>
-            <p class="field">
-              <label for="reason-choice">Reason for felling (required; recorded with the order)</label>
-              <select id="reason-choice" aria-describedby="reason-help">
-                <option value="">Choose a reason…</option>
-                <option id="reason-release" value="release" disabled>Competition release — inspect a retained Crop Tree first</option>
-                <option value="other">Other — type your reason</option>
-              </select>
-            </p>
-            <p id="reason-help" class="note small-note">Your stated intent, not a diagnosis. High competition is never a reason by itself.</p>
-            <p id="reason-other-wrap" class="field" hidden>
-              <label for="reason">Your reason (required for Other)</label>
-              <textarea id="reason" rows="2" maxlength="2000"></textarea>
-            </p>
-            <p id="reason-error" class="field-error" role="alert" hidden></p>
-            <p id="reason-preview" class="note small-note" aria-live="polite"></p>
-            <p><button type="submit" id="add-button" class="primary"></button></p>
-          </form>
           <p id="insp-remove-wrap" hidden><button type="button" id="insp-remove"></button></p>
           <p id="insp-approved-note" class="note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
-          <h3>Tree record</h3>
-          <dl id="insp-facts" class="pairs insp-facts"></dl>
+          <details class="tree-record"><summary>Tree record</summary>
+            <dl id="insp-facts" class="pairs insp-facts"></dl>
+          </details>
           <p id="insp-threshold" class="note small-note"></p>
         </div>
         <div id="overlap" class="overlap" hidden>
@@ -377,17 +375,17 @@ internal static class MultiAreaPage
         <p id="plan-scope" class="note small-note"></p>
         <h3>Pending Fell <span class="step-note">(not felled)</span></h3>
         <p id="pending-total" class="plan-total"></p>
+        <p class="plan-actions"><button type="button" id="approve" hidden></button></p>
         <div id="pending-areas"></div>
-        <p><button type="button" id="approve" hidden></button></p>
         <h3>Approved plan <span class="step-note">(still standing until executed)</span></h3>
         <p id="approved-empty" class="note">No approved plan.</p>
         <div id="approved-box" hidden>
           <p id="approved-total" class="plan-total"></p>
-          <div id="approved-areas"></div>
-          <p class="actions">
+          <p class="actions plan-actions">
             <button type="button" id="cancel-approved"></button>
             <button type="button" id="execute" class="danger"></button>
           </p>
+          <div id="approved-areas"></div>
         </div>
       </section>
       <section class="panel" aria-labelledby="receipt-heading">
@@ -448,7 +446,7 @@ internal static class MultiAreaPage
   <h2 id="execute-title"></h2>
   <p id="execute-text"></p>
   <div id="execute-areas"></div>
-  <p id="execute-plan" class="note"></p>
+  <div id="execute-plan" class="note"></div>
   <p class="actions">
     <button type="button" id="execute-back">Back</button>
     <button type="button" id="execute-confirm" class="danger">Confirm felling</button>
@@ -672,6 +670,89 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   .side[data-pane="tree"] #pane-tree, .side[data-pane="plan"] #pane-plan, .side[data-pane="trees"] #pane-trees,
   .side[data-pane="history"] #pane-history, .side[data-pane="details"] #pane-details { display: grid; }
 }
+
+/* #885 owner map: palette/whorls from Unity; the transparent first-child discs keep server hit geometry. */
+:root { --floor: rgb(70, 66, 50); --boundary: #eeeee2eb; --stump: rgb(206, 188, 150); }
+.ground { fill: url(#canopy-ground); }
+.tree .crown { fill: #1e4032; fill-opacity: .07; stroke: none; pointer-events: fill; }
+.tree.s-NaturalDead .crown, .tree.s-Felled .crown { fill: #645e54; fill-opacity: .03; stroke: none; }
+.deco, .deco *, .reference-tag, .candidate-tag { pointer-events: none; }
+.tree.dimmed { opacity: .70; }
+.stump-disc { fill: rgb(206, 188, 150); fill-opacity: .92; stroke: #5f513a; stroke-width: .035; }
+.stump-ring { fill: none; stroke: #786848; stroke-width: .03; }
+.inspection-ring { stroke-dasharray: .28 .18; stroke: #eaece6; }
+.reference-tag, .candidate-tag { fill: #fff; stroke: #10191d; stroke-width: .22; paint-order: stroke; font-size: .72px; font-weight: 750; }
+.glyph-text.d, .glyph-text.x { fill: #eeeadd; }
+.glyph-dead, .glyph-executed { stroke: #eeeadd; }
+.map-dpad { position: absolute; left: .5rem; top: .5rem; right: auto; bottom: auto; z-index: 3;
+  display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; pointer-events: none; }
+.map-dpad button { pointer-events: auto; background: var(--panel); box-shadow: 0 2px 8px #0009; }
+.map-dpad .d-c { grid-column: 2; grid-row: 2; display: grid; place-items: center; font-size: .7rem;
+  text-shadow: 0 1px 3px #000; pointer-events: none; }
+#pan-north { grid-column: 2; grid-row: 1; }
+#pan-west { grid-column: 1; grid-row: 2; }
+#pan-east { grid-column: 3; grid-row: 2; }
+#pan-south { grid-column: 2; grid-row: 3; }
+.map-zoom, .map-controls { pointer-events: none; }
+.map-zoom button, .map-controls button { pointer-events: auto; }
+.release-option label { display: flex; align-items: center; gap: .5rem; font-size: .84rem; }
+.release-option input { flex: none; width: 44px; height: 44px; min-height: 44px; margin: 0; }
+.optional-note summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
+.competitors { gap: .2rem; }
+.competitors li { display: grid; grid-template-columns: minmax(7rem, .85fr) minmax(0, 1.2fr); gap: 0 .4rem; align-items: center; }
+.competitors button { grid-row: span 2; min-width: 0; overflow-wrap: anywhere; padding: .25rem .4rem; }
+.competitors span { font-size: .75rem; }
+.competition-totals { margin: .25rem 0; font-size: .84rem; }
+.add-form { margin: .3rem 0; }
+.add-form .primary { width: 100%; }
+.small-note { font-size: .80rem; }
+.plan-actions { position: sticky; top: 0; z-index: 2; padding: .25rem 0; background: var(--panel); }
+.plan-area { padding: .2rem .4rem; }
+.plan-area h4 { margin-top: .2rem; }
+.orders li { padding: .2rem .4rem; }
+@media (max-width: 1023px) {
+  .map-viewport { min-height: 19rem; }
+  #map.fit, #map { min-height: 19rem; }
+  .view-tabs { display: flex; }
+}
+@media (min-width: 1024px) {
+  .panel { padding: .6rem; }
+  .pane .panel { padding: .55rem; }
+  .pane h3 { margin-top: .45rem; }
+  .map-viewport { min-height: 0; }
+  .pane { scrollbar-gutter: stable; }
+}
+
+
+.tree-record summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
+/* The map owns its viewport; zooming never creates a second scrolling surface. */
+.map-pane { overflow: hidden; }
+.map-aside .legend-box[open] { overflow: visible; max-height: none; }
+.map-aside .legend-box { position: relative; }
+.map-aside .legend-box[open] .legend { position: absolute; bottom: 100%; right: 0; z-index: 6;
+  width: min(25rem, 80vw); max-height: 65vh; overflow-y: auto; padding: .6rem; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px; }
+@media (min-width: 1024px) {
+  .view-tab { min-width: 0; padding: .3rem .4rem; }
+  .quick-id label { font-size: .8rem; }
+  #map.fit { width: 100%; height: 100%; max-height: none; }
+}
+
+
+.map-dpad button.icon { width: 44px; height: 44px; }
+.map-zoom { display: flex; flex-direction: column; flex-wrap: nowrap; }
+/* At narrow widths all sections stack in document order; desktop tabs select one scrolling pane. */
+@media (max-width: 1023px) { .view-tabs { display: none; } }
+@media (min-width: 1024px) {
+  .status-bar { padding: .3rem .7rem; gap: .2rem .6rem; }
+  .rail { gap: .25rem .4rem; }
+  .rail > div { padding: 0 .4rem; }
+  .rail dt { font-size: .64rem; }
+  .rail dd { font-size: .86rem; }
+  .brand h1 { font-size: 1.12rem; }
+  .disclosure { font-size: .7rem; }
+}
+
 """;
 
     internal const string Js = """
@@ -689,9 +770,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const STATUS_LABEL = { Living: 'StatusLiving', PendingFell: 'StatusPendingFell', ApprovedFell: 'StatusApprovedFell',
     Felled: 'StatusFelled', NaturalDead: 'StatusNaturalDead' };
-  const ZOOMS = [1, 1.6, 2.5, 4];
-  const REASON_OTHER = 'other';
-  const REASON_RELEASE = 'release';
+  const ZOOMS = Array.from({ length: 11 }, (_, i) => Math.pow(4, i / 10)); // reversible ~1.15x steps
   const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
   const COMMAND_IDS = ['crop-button', 'add-button', 'insp-remove', 'approve', 'cancel-approved', 'execute',
     'execute-confirm', 'advance', 'consent-advance'];
@@ -776,7 +855,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   }
 
   function technicalPlan(planId, executionKey) {
-    return el('details', { class: 'technical-plan' }, el('summary', null, 'Technical provenance'),
+    return el('details', { class: 'technical-plan' }, el('summary', null, 'Technical reference'),
       el('p', null, 'PlanId ', el('code', null, planId)), el('p', null, 'Execution key ', el('code', null, executionKey)));
   }
 
@@ -1158,9 +1237,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       const dimmed = focusIds && !focusIds.has(item.treeId);
       const group = svg('g', { class: 'tree s-' + item.status + (dimmed ? ' dimmed' : ''), 'data-tree-id': item.treeId });
       group.append(svg('circle', { class: 'crown', cx: item.u, cy: item.v, r: item.radiusM }));
-      if (item.status === 'Living' || item.status === 'PendingFell' || item.status === 'ApprovedFell') {
-        group.append(svg('circle', { class: 'tip', cx: item.u, cy: item.v, r: Math.min(0.2, item.radiusM * 0.12) }));
-      }
+      group.append(...crownDecoration(item));
       crowns.push(group);
       if (item.isCrop) {
         marks.push(svg('circle', { class: 'crop-ring', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }), ...badge(item, 'C'));
@@ -1170,7 +1247,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       } else if (item.status === 'ApprovedFell') {
         marks.push(svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.2 }),
           svg('circle', { class: 'ring-approved', cx: item.u, cy: item.v, r: item.radiusM + 0.5 }), ...badge(item, 'A'));
+      } else if (item.status === 'NaturalDead') {
+        marks.push(...badge(item, 'D'));
       } else if (item.status === 'Felled') {
+        marks.push(...badge(item, 'X'));
         const d = 0.24;
         marks.push(svg('path', { class: 'stump-x', d: 'M ' + (item.u - d) + ' ' + (item.v - d) + ' L ' + (item.u + d) + ' ' +
           (item.v + d) + ' M ' + (item.u - d) + ' ' + (item.v + d) + ' L ' + (item.u + d) + ' ' + (item.v - d) }));
@@ -1184,27 +1264,185 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
           svg('text', { class: 'competitor-rank', x: item.u, y: item.v }, rank + 1));
       });
       const target = items.get(report.targetTreeId);
-      if (target) marks.push(svg('circle', { class: 'inspection-ring', cx: target.u, cy: target.v, r: target.radiusM + 0.6 }));
+
     }
+    const reference = state.competitionTarget && state.competitionTarget.areaId === area.areaId
+      ? items.get(state.competitionTarget.treeId) : null;
+    if (reference) marks.push(...referenceMarks(reference));
     byId('crowns').replaceChildren(...crowns);
     byId('marks').replaceChildren(...marks);
     const chosen = selectedId() ? items.get(selectedId()) : null;
     byId('selection').replaceChildren(...(chosen ? [
       svg('circle', { class: 'select-halo', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('circle', { class: 'select-ring', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
+      svg('text', { class: 'candidate-tag', x: chosen.u, y: chosen.v + chosen.radiusM + 1, 'text-anchor': 'middle' },
+        reference && reference.treeId !== chosen.treeId ? 'Fell candidate' : 'Selected'),
     ] : []));
     byId('map-desc').textContent = 'North-up map of ' + areaName(area.areaId) + ', ' + area.areaM2Exact + ' square metres. ' +
       'Ecological year ' + state.view.source.ecologicalYear + '. Living trees ' + area.stand.livingCount + '. ' +
       (selectedId() ? 'Selected tree ' + selectedId() + '. ' : '') + 'Use the tree table to select a tree by keyboard.';
-    byId('map-note').textContent = area.label + ': ' + area.stockingNote + '. Site ' + area.site + '. ' + label('MultiEdgeExcluded') + '.';
+    byId('map-note').textContent = areaName(area.areaId) + ' · ' + (state.zoom === 1 ? 'Fit whole area' :
+      fixed(state.zoom, 2) + '× Fit · viewport ' + fixed(box.w, 1) + ' × ' + fixed(box.h, 1) + ' m') +
+      ' · 5 m grid · site ' + area.site + ' · neighbours across area edges excluded.';
     renderLegend();
+  }
+
+
+  // SVG adaptation of StandMapCanopyRaster and StandMapSymbols: five reusable seeded whorl variants,
+  // true server radius, north-west light L=(-.52,+.56,+.64), ambient .56, diffuse .66. Shape/tint are drawing only.
+  // Raster leaf pixels are approximated by lit branch facets and needles; no biological values are inferred.
+  const CANOPY_PALETTE = {
+    ground: [70, 66, 50], conifer: [30, 64, 50], beech: [92, 128, 70], oak: [116, 128, 64],
+    otherBroadleaf: [104, 140, 80], dead: [100, 94, 84], stump: [206, 188, 150],
+  }; // Only conifer is used: the current server supplies synthetic Sitka, not broadleaf species.
+
+  function canopyHash(a, b, c) {
+    let h = (Math.imul(a, 0x9e3779b1) + Math.imul(b, 0x85ebca6b) + Math.imul(c, 0xc2b2ae35) + 0x27d4eb2f) >>> 0;
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+    h = Math.imul(h ^ (h >>> 12), 0x297a2d39);
+    return (h ^ (h >>> 15)) >>> 0;
+  }
+
+  function canopySeed(id) {
+    let seed = 7;
+    for (const ch of String(id || 'legend')) seed = canopyHash(seed, ch.charCodeAt(0), 7);
+    return seed;
+  }
+
+  function canopyRandom(seed, channel) { return (canopyHash(seed, channel, 2) & 0xffffff) / 16777216; }
+
+  function canopyColour(base, shade, warm = 0) {
+    return 'rgb(' + base.map((v, i) => Math.max(0, Math.min(255,
+      Math.round(v * shade * (i === 0 ? 1 + warm : i === 2 ? 1 - warm * .9 : 1))))).join(',') + ')';
+  }
+
+  function canopyLight(x, y) {
+    const z = Math.sqrt(Math.max(0, 1 - x * x - y * y));
+    return .56 + .66 * Math.max(0, x * -.52 - y * .56 + z * .64);
+  }
+
+  function groundNoise(x, y, cells, seed) {
+    const fx = x * cells, fy = y * cells;
+    const ix = Math.floor(fx), iy = Math.floor(fy);
+    const smooth = (t) => t * t * (3 - 2 * t);
+    const tx = smooth(fx - ix), ty = smooth(fy - iy);
+    const at = (a, b) => (canopyHash(a % cells, b % cells, seed) & 0xffffff) / 16777216;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    return lerp(lerp(at(ix, iy), at(ix + 1, iy), tx), lerp(at(ix, iy + 1), at(ix + 1, iy + 1), tx), ty);
+  }
+
+  function drawCanopyDefs() {
+    const defs = byId('map').querySelector('defs');
+    const shadow = svg('radialGradient', { id: 'canopy-shadow' });
+    shadow.append(svg('stop', { offset: '0%', 'stop-color': '#000', 'stop-opacity': .40 }),
+      svg('stop', { offset: '48%', 'stop-color': '#000', 'stop-opacity': .40 }),
+      svg('stop', { offset: '100%', 'stop-color': '#000', 'stop-opacity': 0 }));
+    defs.append(shadow);
+    // Two periodic value-noise lattices at different scales, sampled once into shared SVG tiles.
+    [12.8, 9.7].forEach((period, index) => {
+      const tile = svg('pattern', { id: 'moss-' + index, patternUnits: 'userSpaceOnUse', width: period, height: period });
+      const seed = index === 0 ? 0x51ed270b : 0x9e3779b9;
+      const size = 24, cell = period / size;
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const n = 255 * (.65 * groundNoise(x / size, y / size, 14, seed) +
+          .35 * groundNoise(x / size, y / size, 5, seed ^ 0xabcd)) - 128;
+        const colour = CANOPY_PALETTE.ground.map((v, i) => Math.round(v + n / [7, 6, 8][i]));
+        tile.append(svg('rect', { x: x * cell, y: y * cell, width: cell + .005, height: cell + .005,
+          fill: 'rgb(' + colour.join(',') + ')' }));
+      }
+      defs.append(tile);
+    });
+    const floor = svg('pattern', { id: 'canopy-ground', patternUnits: 'userSpaceOnUse', width: 124.16, height: 124.16 });
+    floor.append(svg('rect', { width: 124.16, height: 124.16, fill: 'url(#moss-0)' }),
+      svg('rect', { width: 124.16, height: 124.16, fill: 'url(#moss-1)', opacity: .4 }));
+    defs.append(floor);
+    for (let variant = 0; variant < 5; variant++) {
+      const seed = canopyHash(977, 16, variant + 7);
+      const tint = .87 + .26 * canopyRandom(seed, 1);
+      const warm = -.07 + .14 * canopyRandom(seed, 3);
+      const gradient = svg('radialGradient', { id: 'whorl-light-' + variant, cx: '.31', cy: '.27', r: '.75' });
+      [[0, 1.24], [.45, canopyLight(-.25, -.25)], [1, .42]].forEach(([offset, shade]) =>
+        gradient.append(svg('stop', { offset, 'stop-color': canopyColour(CANOPY_PALETTE.conifer, shade * tint, warm) })));
+      defs.append(gradient);
+      [false, true].forEach((small) => {
+        const tips = small ? 6 + variant % 3 : 9 + variant;
+        const valley = small ? .62 : .70;
+        const symbol = svg('g', { id: 'whorl-' + (small ? 'small-' : '') + variant });
+        const points = [];
+        const point = (a, r) => [Math.cos(a) * r, Math.sin(a) * r];
+        for (let k = 0; k < tips * 2; k++) {
+          const angle = k * Math.PI / tips - Math.PI / 2 + Math.PI * 2 * canopyRandom(seed, 15);
+          const rag = .94 + .035 * Math.cos(2 * angle + variant) + .025 * Math.cos(3 * angle + seed);
+          points.push(point(angle, rag * (k % 2 === 0 ? 1 : valley)));
+        }
+        symbol.append(svg('polygon', { points: points.map((p) => p.join(',')).join(' '), fill: 'url(#whorl-light-' + variant + ')' }));
+        let needles = '';
+        for (let branch = 0; branch < tips; branch++) {
+          const tip = points[branch * 2];
+          const notch = points[(branch * 2 + 1) % points.length];
+          const shade = canopyLight(tip[0] * .6, tip[1] * .6) * tint;
+          symbol.append(svg('path', { d: 'M 0 0 L ' + tip.join(' ') + ' L ' + notch.join(' ') + ' Z',
+            fill: canopyColour(CANOPY_PALETTE.conifer, shade * 1.1, warm), opacity: .40 }));
+          for (let step = 2; step <= 5; step++) {
+            const t = step / 7;
+            const x = tip[0] * t, y = tip[1] * t;
+            const width = (1 - t) * .09;
+            needles += 'M ' + (x - tip[1] * width) + ' ' + (y + tip[0] * width) + ' L ' +
+              (x + tip[0] * .12) + ' ' + (y + tip[1] * .12) + ' L ' +
+              (x + tip[1] * width) + ' ' + (y - tip[0] * width) + ' ';
+          }
+        }
+        symbol.append(svg('path', { d: needles, fill: 'none', stroke: canopyColour(CANOPY_PALETTE.conifer, 1.5 * tint, warm),
+          'stroke-width': .014, opacity: small ? .30 : .52 }),
+          svg('circle', { cx: -.025, cy: -.025, r: .075, fill: canopyColour(CANOPY_PALETTE.conifer, 1.8 * tint, warm) }));
+        defs.append(symbol);
+      });
+      const dead = svg('g', { id: 'bare-branches-' + variant, opacity: .68 });
+      let branches = '';
+      for (let k = 0; k < 9; k++) {
+        const angle = k * Math.PI * 2 / 9 + variant;
+        const x = Math.cos(angle) * (.64 + .14 * canopyRandom(seed, k + 20));
+        const y = Math.sin(angle) * (.64 + .14 * canopyRandom(seed, k + 20));
+        branches += 'M 0 0 L ' + x + ' ' + y + ' M ' + x * .55 + ' ' + y * .55 +
+          ' l ' + (-y * .19) + ' ' + (x * .19) + ' M ' + x * .72 + ' ' + y * .72 +
+          ' l ' + (y * .15) + ' ' + (-x * .15) + ' ';
+      }
+      dead.append(svg('path', { d: branches, fill: 'none', stroke: canopyColour(CANOPY_PALETTE.dead, .88),
+        'stroke-width': .045, 'stroke-linecap': 'round' }));
+      defs.append(dead);
+    }
+  }
+
+  function crownDecoration(item) {
+    const { u, v } = item;
+    const r = item.radiusM;
+    if (item.status === 'Felled') return [
+      svg('circle', { class: 'stump-disc deco', cx: u, cy: v, r }),
+      svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * .65 }),
+      svg('circle', { class: 'stump-ring deco', cx: u, cy: v, r: r * .32 }),
+    ];
+    const seed = canopySeed(item.treeId);
+    const variant = seed % 5;
+    const stretch = .90 + .20 * canopyRandom(seed, 13);
+    const dead = item.status === 'NaturalDead';
+    const id = dead ? 'bare-branches-' + variant : 'whorl-' + (r < .65 ? 'small-' : '') + variant;
+    return [svg('circle', { class: 'deco', cx: u + r * .30, cy: v + r * .30, r: r * 1.15,
+      fill: 'url(#canopy-shadow)', opacity: dead ? .45 : 1 }),
+      svg('use', { class: 'deco', href: '#' + id, opacity: .90 + .10 * canopyRandom(seed, 1),
+        transform: 'translate(' + u + ' ' + v + ') scale(' +
+          (r * Math.min(1, stretch)) + ' ' + (r * Math.min(1, 1 / stretch)) + ')' })];
+  }
+
+  function referenceMarks(item) {
+    return [svg('circle', { class: 'inspection-ring', cx: item.u, cy: item.v, r: item.radiusM + .6 }),
+      svg('text', { class: 'reference-tag', x: item.u, y: item.v - item.radiusM - .85, 'text-anchor': 'middle' }, 'Reference')];
   }
 
   function badge(item, letter) {
     const angle = -Math.PI / 4;
     const cx = item.u + Math.cos(angle) * (item.radiusM + 0.25);
     const cy = item.v + Math.sin(angle) * (item.radiusM + 0.25);
-    const kind = letter === 'P' ? 'pending' : letter === 'C' ? 'crop' : 'approved';
+    const kind = letter === 'P' ? 'pending' : letter === 'C' ? 'crop' : letter === 'D' ? 'dead' : letter === 'X' ? 'executed' : 'approved';
     return [svg('circle', { class: 'glyph-bg glyph-' + kind, cx, cy, r: 0.42 }),
       svg('text', { class: 'glyph-text ' + letter.toLowerCase(), x: cx, y: cy }, letter)];
   }
@@ -1263,10 +1501,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       el('li', null, 'Blue ring + C — retained Crop Tree (a designation; changes no biology)'),
       el('li', null, 'Dashed yellow ring + P — pending Fell, still standing'),
       el('li', null, 'Double orange ring + A — approved Fell, still standing'),
-      el('li', null, 'Small stump with a cross — felled (the crown gap is open)'),
-      el('li', null, 'Hatched grey crown — dead by natural mortality'),
-      el('li', null, 'Numbered dashed rings — the inspected tree’s five strongest competitors (teal ring)'),
-      el('li', null, 'Thick white ring — the selected tree'),
+      el('li', null, 'Light stump + rings + X — executed Fell; canopy gap open'),
+      el('li', null, 'Bare branches + D — natural death'),
+      el('li', null, 'Ranks 1–5 — real competitors; dashed halo + Reference tag — reference tree'),
+      el('li', null, 'Thick white ring + Fell candidate tag — selected neighbour; no felling until execution'),
       el('li', null, 'Dashed white outline — this area’s boundary; the inset shows both areas')));
   }
 
@@ -1341,7 +1579,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       item.status === 'PendingFell' || item.status === 'ApprovedFell' ? 'Remove the pending Fell or cancel its approved plan before designating Crop.' :
         tree.isLiving ? label('MultiCropSeparate') + '.' : 'Dead trees cannot retain a Crop designation.';
     byId('add-form').hidden = item.status !== 'Living' || item.isCrop;
-    byId('add-button').textContent = label('MultiAddToPlan');
+    byId('add-button').textContent = 'Add tree ' + tree.treeId + ' to Fell plan';
     byId('insp-remove-wrap').hidden = item.status !== 'PendingFell';
     byId('insp-remove').textContent = label('MultiRemoveFromPlan');
     byId('insp-approved-note').hidden = item.status !== 'ApprovedFell';
@@ -1407,10 +1645,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const id = selectedId();
     const comp = state.lock ? null : state.competition;
     const report = comp && comp.areaId === areaId ? comp.report : null;
-    const parts = [el('p', { class: 'small-note' }, label('MultiCompetitionReadOnly') + '.')];
+    const parts = [];
     if (report) {
       const isCrop = areaView(areaId).cropTreeIds.includes(report.targetTreeId);
-      parts.push(el('p', null, (isCrop ? 'Retained Crop Tree ' : 'Tree ') + report.targetTreeId + (isCrop ? '' : ' (not a Crop Tree)') +
+      parts.push(el('p', { class: 'small-note' }, (isCrop ? 'Retained Crop reference ' : 'Reference tree ') + report.targetTreeId +
         ' · ' + report.neighbours.length + ' living neighbours in ' + areaName(areaId) + ' within ' + report.cutoffM + ' m.'));
       parts.push(el('p', { class: 'competition-totals' }, 'Current total Hegyi CI ' + fixed(report.currentTotal, 4) +
         (report.targetPlannedForFell ? ' · This tree is planned for Fell: no release estimate.' :
@@ -1428,7 +1666,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
         fixed(report.remainingSharePercent, 1) + '% share. Strength describes share of CI, not tree health.'));
       if (id !== report.targetTreeId) {
         parts.push(el('button', { type: 'button', 'data-competitor': report.targetTreeId, 'data-focus-key': 'competitor-return' },
-          'Return to inspected tree ' + report.targetTreeId));
+          'Return to reference tree ' + report.targetTreeId));
       }
     } else if (id && livingIn(areaId, id) && state.competitionTarget) {
       parts.push(el('p', null, 'Reading competition…'));
@@ -1436,44 +1674,45 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       parts.push(el('p', null, 'Competition is shown for living trees only.'));
     }
     box.replaceChildren(...parts);
-    const option = byId('reason-release');
-    const release = releaseReason();
-    option.disabled = release === '';
-    option.textContent = release === '' ? 'Competition release — select a listed competitor of an inspected Crop Tree first' : release;
+    renderReasonPicker();
   }
 
   // ---- the reason picker -----------------------------------------------------------------------------------------------
 
   function reasonToSend() {
-    const choice = byId('reason-choice').value;
-    if (choice === REASON_RELEASE) return releaseReason();
-    if (choice === REASON_OTHER) return byId('reason').value.trim();
-    return '';
+    // Explicit precedence: note if present, else the ticked release label, else Owner-selected felling.
+    // This is operator intent only; the existing API still requires a nonempty reason.
+    const note = byId('reason').value.trim();
+    return note || (byId('reason-release').checked ? releaseReason() : '') || 'Owner-selected felling';
   }
 
   function renderReasonPicker() {
-    const other = byId('reason-choice').value === REASON_OTHER;
-    byId('reason-other-wrap').hidden = !other;
-    const text = reasonToSend();
-    const message = text === '' ? '' : 'Will be recorded as: “' + text + '”';
-    if (byId('reason-preview').textContent !== message) byId('reason-preview').textContent = message;
-    if (text !== '') showReasonError(null);
+    const release = releaseReason();
+    const checkbox = byId('reason-release');
+    checkbox.disabled = release === '';
+    if (checkbox.disabled) checkbox.checked = false;
+    byId('release-wrap').hidden = release === '';
+    byId('release-label').textContent = release === '' ? '' :
+      'Record this as competition release for retained Crop Tree ' + state.competition.report.targetTreeId;
+    byId('reason-preview').textContent = 'Recorded reason: ' + reasonToSend();
+    showReasonError(null);
   }
 
   function showReasonError(message) {
     const box = byId('reason-error');
     box.hidden = message === null;
     box.textContent = message === null ? '' : message;
-    for (const id of ['reason-choice', 'reason']) if (message === null) byId(id).removeAttribute('aria-invalid');
+    for (const id of ['reason-release', 'reason']) if (message === null) byId(id).removeAttribute('aria-invalid');
     if (message !== null) reasonField().setAttribute('aria-invalid', 'true');
   }
 
   function reasonField() {
-    return byId('reason-choice').value === REASON_OTHER ? byId('reason') : byId('reason-choice');
+    return byId('reason');
   }
 
   function resetReasonPicker() {
-    byId('reason-choice').value = '';
+    byId('reason-release').checked = false;
+    byId('reason-other-wrap').open = false;
     byId('reason').value = '';
     renderReasonPicker();
     showReasonError(null);
@@ -1645,10 +1884,16 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   }
 
   function renderMapControls() {
+    const area = currentArea();
+    if (!area) return;
     const fit = state.zoom === ZOOMS[0];
+    const box = viewBox(area), full = fullBox(area);
     byId('zoom-in').disabled = state.zoom === ZOOMS[ZOOMS.length - 1];
     byId('zoom-out').disabled = fit;
-    for (const id of ['pan-north', 'pan-south', 'pan-west', 'pan-east']) byId(id).disabled = fit;
+    byId('pan-north').disabled = fit || box.y <= full.y;
+    byId('pan-south').disabled = fit || box.y + box.h >= full.y + full.h - .001;
+    byId('pan-west').disabled = fit || box.x <= full.x;
+    byId('pan-east').disabled = fit || box.x + box.w >= full.x + full.w - .001;
   }
 
   function zoomMap(step) {
@@ -1678,6 +1923,23 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const clamped = viewBox(area);
     state.centre = { u: clamped.x + clamped.w / 2, v: clamped.y + clamped.h / 2 };
     renderMap();
+    renderMapControls();
+  }
+
+  // Keep the reference and quick-picked neighbour visible together, at a fixed reversible zoom level.
+  function frameInspection() {
+    const area = currentArea();
+    const target = state.competitionTarget;
+    const a = target ? itemOf(target.areaId, target.treeId) : null;
+    const b = itemOf(state.areaId, selectedId());
+    if (!area || !a || !b || state.zoom === 1) return;
+    const left = Math.min(a.u - a.radiusM, b.u - b.radiusM) - 1.5;
+    const right = Math.max(a.u + a.radiusM, b.u + b.radiusM) + 1.5;
+    const top = Math.min(a.v - a.radiusM, b.v - b.radiusM) - 1.5;
+    const bottom = Math.max(a.v + a.radiusM, b.v + b.radiusM) + 1.5;
+    while (state.zoom > 1 && (viewBox(area).w < right - left || viewBox(area).h < bottom - top))
+      state.zoom = ZOOMS[Math.max(0, ZOOMS.indexOf(state.zoom) - 1)];
+    state.centre = { u: (left + right) / 2, v: (top + bottom) / 2 };
   }
 
   // ---- selection --------------------------------------------------------------------------------------------------------
@@ -1790,12 +2052,6 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     const treeId = selectedId();
     if (treeId === null || refusedByLock('Add ' + treeId + ' to the Work Plan')) return;
     const reason = reasonToSend();
-    if (reason === '') {
-      showReasonError('Not sent: ' + (byId('reason-choice').value === REASON_OTHER ? 'write your reason in the Other box; it cannot be blank.' :
-        'choose a reason for this tree first.') + ' ' + label('MultiNothingChanged') + '.');
-      reasonField().focus();
-      return;
-    }
     run('api/multi/pending/add', { fence: currentFence(), areaId, treeId, reason }, 'Add ' + treeId + ' to the Work Plan', (payload) => {
       resetReasonPicker();
       announce('Done: ' + label('MultiAddToPlan') + ' (' + treeId + ' in ' + areaName(areaId) + ', reason: ' + reason + '). Total pending ' +
@@ -1966,7 +2222,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       // Selecting a listed competitor keeps the inspected tree as the competition target, so a release reason can be stated.
       state.selected[state.competition.areaId] = button.getAttribute('data-competitor');
       resetReasonPicker();
+      frameInspection();
       renderAll();
+      showPane('tree');
+      if (selectedId() === state.competition.report.targetTreeId) byId('inspector-heading').focus();
       announce('Selected ' + button.getAttribute('data-competitor') + '; competition target remains ' + state.competition.report.targetTreeId + '.');
     });
     byId('overlap-list').addEventListener('click', (event) => {
@@ -1983,10 +2242,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     byId('tree-search').addEventListener('input', renderTable);
     byId('tree-search').addEventListener('keydown', exactIdKey('tree-search'));
     byId('quick-id').addEventListener('keydown', exactIdKey('quick-id'));
-    byId('reason-choice').addEventListener('change', () => {
-      if (byId('reason-choice').value !== REASON_OTHER) byId('reason').value = '';
-      renderReasonPicker();
-    });
+    byId('reason-release').addEventListener('change', renderReasonPicker);
     byId('reason').addEventListener('input', renderReasonPicker);
     byId('add-form').addEventListener('submit', onAdd);
     byId('insp-remove').addEventListener('click', () => removePending(state.areaId, selectedId()));
@@ -2024,6 +2280,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     byId('pan-east').addEventListener('click', () => panMap(1, 0));
   }
 
+  drawCanopyDefs();
   wire();
   reread(false);
 })();
