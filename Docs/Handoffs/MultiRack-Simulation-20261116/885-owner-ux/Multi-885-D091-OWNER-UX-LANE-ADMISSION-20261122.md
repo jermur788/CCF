@@ -86,3 +86,15 @@ The owner playtest reservation `fc27ae74` describes the session as *"inspect A a
 
 **Recorded trade-off.** The two pages are already separate near-duplicate implementations (JS line similarity ≈0.39). The corrected scope duplicates presentation work rather than unifying them. Unifying them into one shared asset set would be a larger structural change to the served page identity and is deliberately **out of scope**; it is noted here so the duplication is a known, accepted cost and not an accident.
 
+## 8. Lane closure (2026-11-22)
+
+**RELEASED on documented completion.** The lane produced committed source and was published; it is no longer an active writer claim.
+
+- Published branch: `feat/multi-885-owner-ux-20261122-v1`, head `a692e1bf5d21304d06e696db1f47d1988ff80ee1`.
+- Source commits: `b3a62953` (implementation), `5072a8cd` (review fixes), `a692e1bf` (handoff and verification addendum).
+- Changed paths across the whole lane: the three `wwwroot` files, `PlayerMultiApi.cs` presentation literals only (all bytes outside verified byte-identical to the base), and one new Markdown handoff. No Core, API, fixture, save, Unity, P0 or `main` change.
+- Build and HTTP evidence, and the owner-requested Opus 5.5 review verdicts, are recorded in the handoff addendum rather than duplicated here.
+- The owner demo lane, the #877 and #882 listeners and every other worktree were never touched.
+- **Not claimed:** integrated, verified, owner-accepted, playable-quality. Owner visual judgement remains the acceptance route.
+
+
