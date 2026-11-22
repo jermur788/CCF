@@ -672,7 +672,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
 }
 
 /* #885 owner map: palette/whorls from Unity; the transparent first-child discs keep server hit geometry. */
-:root { --floor: rgb(70, 66, 50); --boundary: #eeeee2eb; --stump: rgb(206, 188, 150); }
+:root { --boundary: #eeeee2eb; --stump: rgb(206, 188, 150); }
 .ground { fill: url(#canopy-ground); }
 .tree .crown { fill: #1e4032; fill-opacity: .07; stroke: none; pointer-events: fill; }
 .tree.s-NaturalDead .crown, .tree.s-Felled .crown { fill: #645e54; fill-opacity: .03; stroke: none; }
@@ -693,8 +693,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
 #pan-west { grid-column: 1; grid-row: 2; }
 #pan-east { grid-column: 3; grid-row: 2; }
 #pan-south { grid-column: 2; grid-row: 3; }
-.map-zoom, .map-controls { pointer-events: none; }
-.map-zoom button, .map-controls button { pointer-events: auto; }
+.map-controls { pointer-events: none; }
+.map-controls button { pointer-events: auto; }
 .release-option label { display: flex; align-items: center; gap: .5rem; font-size: .84rem; }
 .release-option input { flex: none; width: 44px; height: 44px; min-height: 44px; margin: 0; }
 .optional-note summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
@@ -712,7 +712,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
 .orders li { padding: .2rem .4rem; }
 @media (max-width: 1023px) {
   .map-viewport { min-height: 19rem; }
-  #map.fit, #map { min-height: 19rem; }
+  #map { min-height: 19rem; }
   .view-tabs { display: flex; }
 }
 @media (min-width: 1024px) {
@@ -727,20 +727,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
 .tree-record summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
 /* The map owns its viewport; zooming never creates a second scrolling surface. */
 .map-pane { overflow: hidden; }
-.map-aside .legend-box[open] { overflow: visible; max-height: none; }
-.map-aside .legend-box { position: relative; }
-.map-aside .legend-box[open] .legend { position: absolute; bottom: 100%; right: 0; z-index: 6;
-  width: min(25rem, 80vw); max-height: 65vh; overflow-y: auto; padding: .6rem; background: var(--panel);
-  border: 1px solid var(--line); border-radius: 8px; }
 @media (min-width: 1024px) {
   .view-tab { min-width: 0; padding: .3rem .4rem; }
   .quick-id label { font-size: .8rem; }
-  #map.fit { width: 100%; height: 100%; max-height: none; }
 }
 
 
 .map-dpad button.icon { width: 44px; height: 44px; }
-.map-zoom { display: flex; flex-direction: column; flex-wrap: nowrap; }
 /* At narrow widths all sections stack in document order; desktop tabs select one scrolling pane. */
 @media (max-width: 1023px) { .view-tabs { display: none; } }
 @media (min-width: 1024px) {
@@ -888,12 +881,12 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   function itemOf(areaId, treeId) { return sceneOf(areaId).find((item) => item.treeId === treeId) || null; }
   function areaName(areaId) {
     const area = areaView(areaId);
-    return area ? area.label + ' (' + area.areaId + ')' : String(areaId);
+    return area ? area.label : String(areaId);
   }
-  // A compact form for table rows in the narrow side panel, still with the exact area ID.
+  // Table rows use the same plain area names as the other routine surfaces.
   function areaShort(areaId) {
     const area = areaView(areaId);
-    return area ? area.label.replace(/^Area /, '') + ' · ' + area.areaId : String(areaId);
+    return area ? area.label : String(areaId);
   }
   function selectedId() { return state.areaId ? state.selected[state.areaId] || null : null; }
   function ordersIn(orders, areaId) { return orders.filter((order) => order.areaId === areaId); }
@@ -1193,7 +1186,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       const inPlan = ordersIn(view.pending, area.areaId).length + (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0);
       return el('button', { type: 'button', class: 'area-tab', 'data-area': area.areaId, 'data-focus-key': 'area:' + area.areaId,
         'aria-pressed': String(area.areaId === state.areaId) },
-        el('span', { class: 'area-name' }, area.label + ' · ' + area.areaId),
+        el('span', { class: 'area-name' }, area.label),
         el('span', { class: 'area-meta' }, area.stand.livingCount + ' living · ' + fixed(area.areaHa, 4) + ' ha' +
           (inPlan > 0 ? ' · ' + inPlan + ' in plan' : '')));
     }));
@@ -1263,12 +1256,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
         marks.push(svg('circle', { class: 'competitor-ring', cx: item.u, cy: item.v, r: item.radiusM + 0.35 }),
           svg('text', { class: 'competitor-rank', x: item.u, y: item.v }, rank + 1));
       });
-      const target = items.get(report.targetTreeId);
-
     }
     const reference = state.competitionTarget && state.competitionTarget.areaId === area.areaId
       ? items.get(state.competitionTarget.treeId) : null;
-    if (reference) marks.push(...referenceMarks(reference));
+    if (reference && !state.lock) marks.push(...referenceMarks(reference));
     byId('crowns').replaceChildren(...crowns);
     byId('marks').replaceChildren(...marks);
     const chosen = selectedId() ? items.get(selectedId()) : null;
@@ -1276,7 +1267,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       svg('circle', { class: 'select-halo', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('circle', { class: 'select-ring', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('text', { class: 'candidate-tag', x: chosen.u, y: chosen.v + chosen.radiusM + 1, 'text-anchor': 'middle' },
-        reference && reference.treeId !== chosen.treeId ? 'Fell candidate' : 'Selected'),
+        reference && reference.treeId !== chosen.treeId && chosen.status === 'Living' && !chosen.isCrop ? 'Fell candidate' : 'Selected'),
     ] : []));
     byId('map-desc').textContent = 'North-up map of ' + areaName(area.areaId) + ', ' + area.areaM2Exact + ' square metres. ' +
       'Ecological year ' + state.view.source.ecologicalYear + '. Living trees ' + area.stand.livingCount + '. ' +
@@ -1365,7 +1356,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
         gradient.append(svg('stop', { offset, 'stop-color': canopyColour(CANOPY_PALETTE.conifer, shade * tint, warm) })));
       defs.append(gradient);
       [false, true].forEach((small) => {
-        const tips = small ? 6 + variant % 3 : 9 + variant;
+        const tips = small ? 6 + variant % 3 : 9 + variant % 4;
         const valley = small ? .62 : .70;
         const symbol = svg('g', { id: 'whorl-' + (small ? 'small-' : '') + variant });
         const points = [];
@@ -1467,9 +1458,9 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     labels.push(svg('text', { class: 'grid-label', x: side / 2, y: side + 2.9, 'text-anchor': 'middle' }, 'X metres east'));
     byId('grid').replaceChildren(...lines);
     byId('furniture').replaceChildren(...labels,
-      svg('path', { class: 'north-arrow', d: 'M ' + (side + 1.4) + ' 3.2 L ' + (side + 1.4) + ' 1.0 M ' + (side + 1.4) + ' 0.1 L ' +
-        (side + 0.8) + ' 1.2 L ' + (side + 2.0) + ' 1.2 Z' }),
-      svg('text', { class: 'furniture-label', x: side + 1.4, y: -0.8, 'text-anchor': 'middle' }, 'N'),
+      svg('path', { class: 'north-arrow', d: 'M ' + (side / 2 + 3) + ' 5.2 L ' + (side / 2 + 3) + ' 3.0 M ' + (side / 2 + 3) + ' 2.1 L ' +
+        (side / 2 + 2.4) + ' 3.2 L ' + (side / 2 + 3.6) + ' 3.2 Z' }),
+      svg('text', { class: 'furniture-label', x: side / 2 + 3, y: 1.2, 'text-anchor': 'middle' }, 'N'),
       svg('path', { class: 'scale-bar', d: 'M 0 ' + (side + 2.4) + ' L 5 ' + (side + 2.4) }),
       svg('text', { class: 'furniture-label', x: 5.5, y: side + 2.75 }, '5 m'));
   }
@@ -1694,7 +1685,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
     byId('release-wrap').hidden = release === '';
     byId('release-label').textContent = release === '' ? '' :
       'Record this as competition release for retained Crop Tree ' + state.competition.report.targetTreeId;
-    byId('reason-preview').textContent = 'Recorded reason: ' + reasonToSend();
+    const preview = 'Recorded reason: ' + reasonToSend();
+    if (byId('reason-preview').textContent !== preview) byId('reason-preview').textContent = preview;
     showReasonError(null);
   }
 
@@ -1857,7 +1849,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
       pair('Source class', e.sourceClass), pair('Manifest content hash', expandable(e.manifestContentHash)),
       pair('Generator', e.generatorId + ' v' + e.generatorVersion + ', seed ' + e.generatorSeed),
       pair('Review status', e.reviewStatus), pair('Edge model', e.edgeModel, 'wide'), pair('Site', e.siteNote, 'wide'),
-      ...view.areas.map((area) => pair(areaName(area.areaId), area.areaM2Exact + ' m² (' + fixed(area.areaHa, 4) + ' ha) · seed ' +
+      ...view.areas.map((area) => pair(area.label + ' (' + area.areaId + ')', area.areaM2Exact + ' m² (' + fixed(area.areaHa, 4) + ' ha) · seed ' +
         area.simulationSeed + ' · ' + area.trees.length + ' tree records')),
       pair('Models', 'RNG v' + s.rngModelVersion + ' · growth model v' + s.growthModelVersion + ' · rules ' + s.p1AlgorithmVersion +
         ' · ' + s.areaModelVersion), pair('Ecological year', s.ecologicalYear), pair('Annual revision', s.annualRevision),
@@ -2136,7 +2128,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
         announce(label('MultiAlreadyExecuted') + '.');
         return;
       }
-      announce('Done: ' + label('MultiExecute') + '. ' + execution.event.areas.map((change) => change.areaId + ' living ' +
+      announce('Done: ' + label('MultiExecute') + '. ' + execution.event.areas.map((change) => areaName(change.areaId) + ' living ' +
         change.before.livingCount + ' → ' + change.after.livingCount + ' (felled ' + (change.fells.map((f) => f.treeId).join(', ') || 'none') + ')').join('; ') + '.');
     }, 'receipt-heading');
     showPane('plan');
@@ -2145,7 +2137,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .65); }
   function sendAdvance(consent) {
     run('api/multi/year/advance', { fence: currentFence(), consentToCancelWork: consent }, label('MultiAdvanceYear'), (payload) => {
       const record = payload.view.annualHistory[payload.view.annualHistory.length - 1];
-      announce('Done: year ' + record.yearBefore + ' → ' + record.yearAfter + '. ' + record.areas.map((year) => year.areaId + ' living ' +
+      announce('Done: year ' + record.yearBefore + ' → ' + record.yearAfter + '. ' + record.areas.map((year) => areaName(year.areaId) + ' living ' +
         year.before.livingCount + ' → ' + year.after.livingCount + (year.noLivingStems ? ' (no living stems)' : ', natural deaths ' + year.naturalDeaths.length))
         .join('; ') + '.' + (record.cancelledUnexecutedWork ? ' Unexecuted work was cancelled at zero Fell.' : ''));
       showPane('history');

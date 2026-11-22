@@ -437,6 +437,7 @@
       pair('Work Plan', planState));
     byId('facts').replaceChildren(
       pair('Domain', source.domain),
+      pair('Management area', label('ManagementArea')),
       pair('Fixture', source.fixtureId),
       pair('Fixture file SHA-256', expandable(source.fixtureFileSha256)),
       pair('Fixture content hash', expandable(source.fixtureContentHash)),
@@ -451,7 +452,7 @@
       pair('Basal area', fixed(stand.basalAreaM2PerHa, 2) + ' m²/ha'),
       pair('Quadratic mean DBH (Dq)', fixed(stand.quadraticMeanDbhCm, 1) + ' cm'),
       pair('Area', fixed(view.extent.areaHa, 2) + ' ha'));
-    byId('flags').replaceChildren(...['ManagementArea', 'ComparisonExtension', 'Money', 'SessionOnly'].map((name) => el('li', null, label(name))));
+    byId('flags').replaceChildren(...['ManagementArea', 'ComparisonExtension', 'Money', 'SessionOnly'].map((name) => el('li', null, name === 'ManagementArea' ? 'One undivided management area (not a rack)' : label(name))));
   }
 
   // Map (spec §4): the server's scene, drawn in its paint order. One SVG user unit is one metre; U runs east from the west
@@ -507,7 +508,7 @@
 
     }
     const reference = items.get(state.competitionTargetId);
-    if (reference) marks.push(...referenceMarks(reference));
+    if (reference && !state.lock) marks.push(...referenceMarks(reference));
     byId('marks').replaceChildren(...marks);
 
     const chosen = state.selectedId === null ? null : items.get(state.selectedId);
@@ -515,11 +516,11 @@
       svg('circle', { class: 'select-halo', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('circle', { class: 'select-ring', cx: chosen.u, cy: chosen.v, r: chosen.radiusM + 0.45 }),
       svg('text', { class: 'candidate-tag', x: chosen.u, y: chosen.v + chosen.radiusM + 1, 'text-anchor': 'middle' },
-        reference && reference.treeId !== chosen.treeId ? 'Fell candidate' : 'Selected'),
+        reference && reference.treeId !== chosen.treeId && chosen.status === 'Living' && !chosen.isCrop ? 'Fell candidate' : 'Selected'),
     ] : []));
 
     const approvedOrders = view.approved ? view.approved.orders.length : 0;
-    byId('map-desc').textContent = 'North-up map. ' + label('ManagementArea') + '. Ecological year ' + view.frame.ecologicalYear +
+    byId('map-desc').textContent = 'North-up map. One undivided management area (not a rack). Ecological year ' + view.frame.ecologicalYear +
       '. Living trees ' + view.frame.stand.livingCount + '; pending orders ' + view.pending.length + '; approved orders ' +
       approvedOrders + '. ' + (state.selectedId !== null ? 'Selected tree ' + state.selectedId + '. ' : '') +
       'Use the tree table to select a tree by keyboard.';
@@ -605,7 +606,7 @@
         gradient.append(svg('stop', { offset, 'stop-color': canopyColour(CANOPY_PALETTE.conifer, shade * tint, warm) })));
       defs.append(gradient);
       [false, true].forEach((small) => {
-        const tips = small ? 6 + variant % 3 : 9 + variant;
+        const tips = small ? 6 + variant % 3 : 9 + variant % 4;
         const valley = small ? .62 : .70;
         const symbol = svg('g', { id: 'whorl-' + (small ? 'small-' : '') + variant });
         const points = [];
@@ -777,7 +778,15 @@
   const SCALES = [null, ...Array.from({ length: 10 }, (_, i) => Math.pow(5, (i + 1) / 10))];
   const AREA_CENTRE = { u: 15, v: 15 };
 
-  function defaultMapScale() { return null; }
+  function defaultMapScale() {
+    if (window.matchMedia(DESKTOP_QUERY).matches) return null;
+    if (window.matchMedia('(min-width: 900px)').matches && window.devicePixelRatio < 2) return null;
+    const rect = byId('map').getBoundingClientRect();
+    const fitScale = Math.min(rect.width / VIEW_BOX.w, rect.height / VIEW_BOX.h);
+    // The levels are viewport multipliers; choose the one closest to 64 CSS px per metre.
+    return SCALES.slice(1).reduce((best, scale) =>
+      Math.abs(scale * fitScale - 64) < Math.abs(best * fitScale - 64) ? scale : best, SCALES[SCALES.length - 1]);
+  }
 
   function mapBox() {
     const zoom = state.mapScale || 1;
@@ -1249,7 +1258,8 @@
     byId('release-wrap').hidden = release === '';
     byId('release-label').textContent = release === '' ? '' :
       'Record this as competition release for retained Crop Tree ' + state.competition.targetTreeId;
-    byId('reason-preview').textContent = 'Recorded reason: ' + reasonToSend();
+    const preview = 'Recorded reason: ' + reasonToSend();
+    if (byId('reason-preview').textContent !== preview) byId('reason-preview').textContent = preview;
     showReasonError(null);
   }
 
