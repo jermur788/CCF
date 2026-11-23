@@ -435,6 +435,10 @@ internal static class MultiAreaPage
           </form>
           </div>
 
+          <!-- UX-01/UX-08: while a tree is inspected, the ground panel moves here, below the primary block, so it never pushes
+               ranks 1-5 or Add down. With no tree inspected it sits at the top of this pane. -->
+          <div id="ground-slot" class="ground-slot"></div>
+
           <section class="tree-more" aria-label="More for this tree">
             <details id="reason-details" class="reason-details">
               <summary>Fell reason: <span id="reason-summary"></span> · optional note</summary>
@@ -1012,6 +1016,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .log-ring { fill: none; stroke: #6e5130; stroke-width: 1; vector-effect: non-scaling-stroke; }
 .log-halo { fill: none; stroke: #06111d; stroke-opacity: .8; stroke-width: 4.5; vector-effect: non-scaling-stroke; }
 .ground-panel h2 { margin: .1rem 0 .3rem; font-size: 1rem; }
+.ground-slot > .ground-panel { margin: .5rem .8rem 0; padding: .6rem .8rem; background: var(--panel-2); }
 .ground-level { display: flex; align-items: center; gap: .5rem; margin: 0 0 .3rem; font-size: 1.05rem; font-weight: 650; }
 .ground-swatch { flex: none; width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 3px; }
 .ground-summary dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .15rem .7rem; margin: 0; }
@@ -1184,12 +1189,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove'];
   // Light Guide presentation (a VISUAL mapping, not a simulation law). The engine's light index L in [0, 1] is eased by
   // t = L^LIGHT_EASE, which keeps the low end visible, and then sets both the opacity (LIGHT_ALPHA_MAX * t) and the colour
-  // along muted rose -> coral -> pale peach. L = 0 draws nothing; any L > 0 gets a strictly positive opacity (never rounded
-  // to zero, never cut off by a threshold); both rise continuously and monotonically up to L = 1.
+  // along muted rose -> coral -> pale peach. L = 0 draws nothing; any L > 0 gets a strictly positive opacity (no floor,
+  // no threshold: the mapping is continuous at 0, and opacityText never writes a positive value as "0"); both rise
+  // continuously and monotonically up to L = 1.
   const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
   const LIGHT_EASE = 0.65;
   const LIGHT_ALPHA_MAX = 0.9;
-  const LIGHT_ALPHA_FLOOR = 0.0001; // the smallest opacity written for any positive L, so it can never format as "0"
   // Level words for the ground inspector's text (the map itself is continuous; colour is never the only cue).
   const LIGHT_WORDS = [[0.1, 'Very shaded'], [0.35, 'Low'], [0.65, 'Moderate'], [Infinity, 'Bright']];
   const STATEMENTS = ['MultiSyntheticStatement', 'MultiNotComparable', 'MultiSiteUnknown', 'MultiEdgeExcluded',
@@ -1215,6 +1220,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     competitionTag: null,
     competitionRequest: 0,
     busy: false,
+    // Generation of map selection attempts. A map click takes the next number; Escape, Close inspection, an area switch and
+    // any other selection advance it, so a hit-test answer that arrives after one of those is discarded unseen.
+    mapPick: 0,
     batch: null, // the add sequence in flight, if any; one operation-wide guard for its whole duration
     batchResult: null, // the latest add sequence's outcome, shown until the area's reference changes
     lock: null, // set when the page can no longer trust what it shows; only a re-read lifts it
@@ -1354,8 +1362,13 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const segment = t <= 0.5 ? 0 : 1;
     const f = segment === 0 ? t / 0.5 : (t - 0.5) / 0.5;
     const rgb = LIGHT_STOPS[segment].map((low, i) => Math.round(low + (LIGHT_STOPS[segment + 1][i] - low) * f));
-    const opacity = Math.max(LIGHT_ALPHA_FLOOR, LIGHT_ALPHA_MAX * t);
-    return { colour: '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join(''), opacity: opacity.toFixed(4) };
+    return { colour: '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join(''), opacity: opacityText(LIGHT_ALPHA_MAX * t) };
+  }
+  // A positive opacity as text that never reads "0": four decimals (as before) down to 0.01, then enough decimals for three
+  // significant figures, and exponent form only for values too small for fixed notation (an L far below any real cell).
+  function opacityText(opacity) {
+    const decimals = Math.max(4, 2 - Math.floor(Math.log10(opacity)));
+    return decimals <= 100 ? opacity.toFixed(decimals) : opacity.toExponential(3);
   }
   function lightWord(index) {
     const word = LIGHT_WORDS.find(([below]) => index < below)[1];
@@ -2416,6 +2429,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const on = state.lightOn && state.groundMode;
     panel.hidden = !on;
     byId('map-pane').classList.toggle('ground-mode', on);
+    placeGroundPanel(panel);
     if (!on) return;
     const g = state.ground && state.ground.areaId === state.areaId ? state.ground : null;
     const cell = g && !g.missing ? groundCell(g.areaId, g.column, g.row) : null;
@@ -2465,6 +2479,29 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('ground-caveat').textContent = label('MultiLightGuideLabel') + '. ' + models.notCalibratedCaveat;
   }
 
+  // Where the ground panel sits (UX-01 over UX-08): while a tree is inspected in this area, directly below its primary
+  // block (reference, ranks 1-5, Add), so Inspect ground never pushes those below the fold; otherwise at the top of the
+  // Tree pane. Moving it keeps keyboard focus if focus was inside it.
+  function placeGroundPanel(panel) {
+    const id = selectedId();
+    const inspected = Boolean(id && treeIn(state.areaId, id) && itemOf(state.areaId, id));
+    const slot = byId('ground-slot');
+    const pane = byId('pane-tree');
+    const home = inspected ? slot : pane;
+    if (panel.parentNode === home && (inspected || pane.firstElementChild === panel)) return;
+    const focused = panel.contains(document.activeElement) ? document.activeElement : null;
+    if (inspected) slot.append(panel);
+    else pane.prepend(panel);
+    if (focused) focused.focus({ preventScroll: true });
+  }
+
+  // A ground action (reading a spot; turning Inspect ground on with no tree inspected) brings the ground panel into view
+  // with the smallest scroll; the next tree selection puts the inspector back at the top.
+  function focusGroundPanel() {
+    byId('ground-heading').focus({ preventScroll: true });
+    byId('ground-panel').scrollIntoView({ block: 'nearest' });
+  }
+
   // Light Guide visibility. Turning it off also ends Inspect ground; turning it on never changes what a click does.
   function setLightGuide(on) {
     state.lightOn = on;
@@ -2482,7 +2519,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.groundMode = on;
     if (!on) state.ground = null;
     renderAll();
-    if (moveFocus) byId(on ? 'ground-heading' : 'ground-mode').focus();
+    // With a tree inspected the panel waits below the primary block, so focus stays on the pressed toggle (its On state,
+    // the status line and the announcement say what a click now does) and the inspector does not scroll.
+    if (moveFocus && on && byId('ground-panel').parentNode !== byId('ground-slot')) focusGroundPanel();
+    else if (moveFocus) byId('ground-mode').focus();
     announce(on ? 'Inspect ground on: click open ground with no crown over it to read its light. Clicking a crown still selects the tree; press Escape or Stop to return.' :
       'Inspect ground off: clicking open ground no longer reads its light. The Light Guide is still ' + (state.lightOn ? 'on' : 'off') + '.');
   }
@@ -2504,7 +2544,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.ground = cell ? { areaId, column: cell.column, row: cell.row } : { areaId, missing: true };
     showPane('tree');
     renderAll();
-    byId('ground-heading').focus();
+    focusGroundPanel();
     announce(cell ? 'Ground at X ' + fixed(cell.centreXM, 1) + ', Z ' + fixed(cell.centreZM, 1) + ': ' + lightWord(cell.lightIndex) +
       ', modelled light index ' + fixed(cell.lightIndex, 3) + ', canopy cover ' + pct(cell.geometricCoveredFraction) + ', ' +
       plural(cell.contributingTreeIds.length, 'shading tree', 'shading trees') + '. Your selection and Fell draft are unchanged.'
@@ -3363,6 +3403,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function showArea(areaId) {
     if (!areaView(areaId) || areaId === state.areaId) return;
     if (state.batch) { waitForBatch(); return; }
+    state.mapPick += 1; // a hit-test still in flight was for the other area
     state.areaId = areaId;
     state.zoom = ZOOMS[0];
     state.centre = null;
@@ -3387,6 +3428,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function chooseTree(areaId, treeId, fromList) {
     if (!treeIn(areaId, treeId)) return;
     if (state.batch) { waitForBatch(); return; }
+    state.mapPick += 1; // this selection is newer than any map click still waiting for its hit-test
     if (areaId !== state.areaId) { state.areaId = areaId; state.zoom = ZOOMS[0]; state.centre = null; }
     let cleared = '';
     const draft = state.drafts[areaId];
@@ -3404,6 +3446,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     else clearCompetition();
     showPane('tree');
     renderAll();
+    // UX-01: every new selection starts the inspector at the top, so the reference, ranks 1-5 and Add are in view even if
+    // the previous inspection had been scrolled down.
+    byId('pane-tree').scrollTop = 0;
     announce('Selected tree ' + treeId + ' in ' + areaName(areaId) + '.' + cleared);
     if (state.competitionTarget) refreshCompetition();
   }
@@ -3415,6 +3460,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // exactly as usual. Only when Inspect ground is on and the hit-test reports no crown at that point does the click read
   // the local ground cell (changing no selection or draft). A batch, lock, busy, refused, guarded or failed hit-test never
   // falls through to a ground read.
+  // Stale answers: each click takes a new mapPick number. If Escape, Close inspection, an area switch or another selection
+  // happened while the hit-test was in flight, mapPick has moved on and the late answer is dropped whole: no view applied,
+  // no tree selected, no draft cleared, no ground read, no alert and no announcement.
   async function onMapClick(event) {
     if (state.batch) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
@@ -3422,9 +3470,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const matrix = byId('map').getScreenCTM();
     if (!area || !matrix) return;
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const pick = ++state.mapPick;
     state.busy = true;
     const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: point.x, v: point.y });
     state.busy = false;
+    if (pick !== state.mapPick) {
+      // A selection made while this hit-test was in flight may have had its competitor read dropped (refreshCompetition
+      // draws nothing while busy); read it again now, read-only, for that newer selection.
+      if (state.competitionTarget && !state.competition && !state.lock && !state.batch) refreshCompetition();
+      return;
+    }
     if (outcome.kind === 'ok') {
       clearAlert();
       const candidates = outcome.payload.candidates;
@@ -3459,6 +3514,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // drawing, so the map returns to normal. Zoom, pan, area, Light Guide, Crop designations, queued or approved orders and
   // the year are untouched; nothing is sent. (Removing a Crop designation is a separate, explicit command.)
   function closeInspection() {
+    state.mapPick += 1; // a map click still waiting for its hit-test must not reopen what is being closed
     const areaId = state.areaId;
     const id = selectedId();
     if (!id) return false;
@@ -3482,7 +3538,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // this handler then does nothing in that same key press; a search box with text clears itself first; next, Inspect
   // ground stops; next, the tree inspection closes. The Light Guide is never switched off by Escape.
   function onEscape(event) {
-    if (event.key !== 'Escape' || event.defaultPrevented) return;
+    if (event.key !== 'Escape') return;
+    // Any Escape abandons a map click still waiting for its hit-test (it stays immediately responsive: nothing waits).
+    state.mapPick += 1;
+    if (event.defaultPrevented) return;
     if (document.querySelector('dialog[open]')) return;
     const target = event.target;
     if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;

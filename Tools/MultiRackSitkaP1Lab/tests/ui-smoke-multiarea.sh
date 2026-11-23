@@ -488,6 +488,18 @@ class FakeElement extends FakeNode {
     this.childNodes = [];
     this.append(...items);
   }
+  // Standard Element.prepend / firstElementChild / scrollIntoView, which the owner UX repair R2 page uses to keep the
+  // ground panel below the inspector's primary block (the stand-in has no layout, so scrollIntoView does nothing).
+  prepend(...items) {
+    const nodes = items.map((item) => item instanceof FakeNode ? item : new FakeText(this.ownerDocument, String(item)));
+    for (const node of nodes) {
+      if (node.parentNode) node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
+      node.parentNode = this;
+    }
+    this.childNodes.unshift(...nodes);
+  }
+  get firstElementChild() { return this.childNodes.find((child) => child instanceof FakeElement) || null; }
+  scrollIntoView() {}
   matches(selector) { return compileSelector(selector).some((test) => test(this)); }
   closest(selector) {
     const tests = compileSelector(selector);
@@ -739,6 +751,117 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
   click(byId('reread'));
   await waitF2(() => byId('approved-box').hidden, 'the cancelled plan to disappear');
   checkF2(cancelled.status === 200 && (await serverView()).approved === null, 'cleanup: the F-2 plan was cancelled through the API (nothing was felled)');
+}
+
+// ---- R2 (owner UX repair Phase A, repair 2): (1) a new selection puts the inspector back at the top and, with Inspect
+// ground on, the ground panel sits below the primary block; (2) a map hit-test answer that arrives after Escape, Close or
+// a newer selection is discarded whole. Labelled R2a.. so the J numbering below is unchanged. The stand-in has no layout,
+// so (1) is checked structurally here and by pixels in the real-browser driver.
+{
+  let r2 = 0;
+  const checkR2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    r2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'R2' + String.fromCharCode(96 + r2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitR2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkR2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+  const pane = byId('pane-tree');
+  const groundPanel = byId('ground-panel');
+  const v = (await send('GET', 'api/multi/view')).json;
+  const aScene = v.scenes['MA-A'];
+  const aLiving = areaOf(v.view, 'MA-A').trees.filter((t) => t.isLiving).map((t) => t.treeId);
+  const itemOf = (id) => aScene.find((item) => item.treeId === id);
+  const crownAt = (id) => byId('crowns').querySelector('[data-tree-id="' + id + '"]').childNodes[0];
+  const firstTree = aLiving.find((id) => id !== aTree && itemOf(id));
+  const crownTree = aLiving.filter((id) => itemOf(id))[Math.floor(aLiving.length / 2)];
+  const crown = itemOf(crownTree);
+  // A newer selection far from the clicked crown, so the stale hit-test cannot name it.
+  const farTree = aLiving.filter((id) => itemOf(id) && id !== crownTree)
+    .sort((x, y) => Math.hypot(itemOf(y).u - crown.u, itemOf(y).v - crown.v) - Math.hypot(itemOf(x).u - crown.u, itemOf(x).v - crown.v))[0];
+
+  // (1) Scroll reset on a table selection and on a crown click.
+  pane.scrollTop = 420;
+  await selectInTable(firstTree);
+  checkR2(pane.scrollTop === 0, 'a new selection from the Trees table puts the inspector back at the top (scrollTop 420 → 0)', pane.scrollTop);
+  pane.scrollTop = 420;
+  let mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== firstTree, 'a crown click to select a tree');
+  checkR2(pane.scrollTop === 0 && !byId('inspector-body').hidden, 'a new selection by a crown click puts the inspector back at the top', [pane.scrollTop, byId('insp-id').textContent]);
+
+  // (1) Ground panel placement with Inspect ground on.
+  click(byId('light-toggle'));
+  click(byId('ground-mode'));
+  await waitR2(() => !groundPanel.hidden, 'Inspect ground on');
+  const body = byId('inspector-body');
+  const dock = body.querySelector('.add-dock');
+  const slot = byId('ground-slot');
+  checkR2(groundPanel.parentNode === slot && slot.parentNode === body && body.childNodes.indexOf(slot) > body.childNodes.indexOf(dock) &&
+    byId('ground-mode').getAttribute('aria-pressed') === 'true' && byId('ground-mode-text').textContent === 'Inspect ground: On',
+    'Inspect ground on with a tree inspected: the ground panel sits after the Add bar (below ranks 1-5), the mode still reads On',
+    [groundPanel.parentNode && groundPanel.parentNode.id, body.childNodes.indexOf(slot), body.childNodes.indexOf(dock)]);
+  checkR2(document.activeElement === byId('ground-mode') && pane.scrollTop === 0,
+    'turning Inspect ground on with a tree inspected keeps focus on the pressed toggle and does not scroll the inspector', [document.activeElement && document.activeElement.id, pane.scrollTop]);
+  pane.scrollTop = 420;
+  mark = requests.length;
+  click(crownAt(farTree), { clientX: itemOf(farTree).u, clientY: itemOf(farTree).v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== crownTree, 'a crown click in ground mode to select');
+  checkR2(pane.scrollTop === 0 && groundPanel.parentNode === slot && byId('ground-mode').getAttribute('aria-pressed') === 'true' &&
+    byId('light-toggle').getAttribute('aria-pressed') === 'true',
+    'a crown click in ground mode selects, resets the inspector to the top, keeps the ground panel below and keeps both modes on',
+    [pane.scrollTop, byId('insp-id').textContent]);
+  click(byId('inspect-close'));
+  await waitR2(() => byId('inspector-body').hidden, 'Close inspection');
+  checkR2(groundPanel.parentNode === pane && pane.firstElementChild === groundPanel && !groundPanel.hidden,
+    'with no tree inspected the ground panel returns to the top of the Tree pane');
+  escape();
+  click(byId('light-toggle'));
+  await waitR2(() => groundPanel.hidden && byId('light-toggle').getAttribute('aria-pressed') === 'false', 'Inspect ground and the Light Guide off');
+
+  // (2) Escape while the hit-test is in flight: the late answer must not reopen the inspection.
+  await selectInTable(firstTree);
+  let held = arm('POST', 'api/multi/hit', 'hold');
+  mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the held hit-test to be sent');
+  escape();
+  checkR2(byId('inspector-body').hidden, 'Escape closes the inspection at once while the hit-test is still in flight');
+  await sleep(80);
+  const announcedAfterEscape = byId('announce').textContent;
+  held.release();
+  await sleep(400);
+  checkR2(byId('inspector-body').hidden && !byId('inspector-empty').hidden && !byId('tree-rows').querySelector('[aria-current="true"]'),
+    'the late hit-test answer did not reselect a tree or reopen the inspection', byId('insp-id').textContent);
+  checkR2(byId('announce').textContent === announcedAfterEscape && !byId('announce').textContent.startsWith('Selected tree') &&
+    !requests.slice(mark).some((r) => r.path === 'api/multi/competition') && alertText() === '',
+    'the late answer made no announcement, no competitor read and no alert', [byId('announce').textContent, alertText()]);
+
+  // (2) A newer selection while the hit-test is in flight wins, with its draft intact.
+  await selectInTable(firstTree);
+  held = arm('POST', 'api/multi/hit', 'hold');
+  mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the second held hit-test to be sent');
+  await selectInTable(farTree);
+  await sleep(250); // the competitor read for farTree answers while the hit-test is still held (busy), so it is dropped
+  held.release();
+  await waitR2(() => byId('rank-layer').querySelector('[data-rank-toggle]'), 'the newer selection\'s competitors (re-read after the stale answer)');
+  const rank = byId('rank-layer').querySelector('[data-rank-toggle]');
+  if (rank) click(rank);
+  await waitR2(() => byId('add-button').textContent.includes('1'), 'one draft choice for the newer selection');
+  const addText = byId('add-button').textContent;
+  await sleep(300);
+  checkR2(byId('insp-id').textContent === farTree && byId('add-button').textContent === addText && addText.includes('1') &&
+    !byId('announce').textContent.includes(crownTree),
+    'a stale hit-test answer never overwrites a newer selection or clears its draft', [byId('insp-id').textContent, farTree, addText, byId('announce').textContent]);
+  click(byId('inspect-close'));
+  await waitR2(() => byId('inspector-body').hidden, 'cleanup: close the inspection');
+  await selectInTable(aTree);
 }
 
 // Area B: switch, then select a tree by a click on its drawn crown.
