@@ -528,6 +528,14 @@ class FakeElement extends FakeNode {
     const identity = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => identity };
     return identity;
   }
+  // Standard Node.cloneNode, which the #885 page's drawGrid uses for the inner grid lines (J01 root cause on the base:
+  // without it the first render threw before the tree table was filled).
+  cloneNode(deep) {
+    const copy = new FakeElement(this.ownerDocument, this.localName, this.namespaceURI);
+    for (const [name, value] of this.attributesMap) copy.attributesMap.set(name, value);
+    if (deep) for (const child of this.childNodes) copy.append(child instanceof FakeElement ? child.cloneNode(true) : new FakeText(this.ownerDocument, child.textContent));
+    return copy;
+  }
 }
 
 class FakeDocument {
@@ -653,11 +661,14 @@ check(requests.length === 1 && requests[0].method === 'GET' && requests[0].path 
   'the served page starts with one GET api/multi/view', requests);
 check(byId('area-switch').querySelectorAll('[data-area]').length === 2 && byId('area-switch').querySelector('[data-area="MA-A"]').getAttribute('aria-pressed') === 'true',
   'two area buttons; Area A is shown first');
-check(['NOT A SURVEYED IRISH FOREST', 'AREAS NOT ASSESSED COMPARABLE', 'SITE UNKNOWN', 'EDGE NEIGHBOURS EXCLUDED', 'NO TREATMENT TRANSFER']
+// /multi runs Stage 4 (1/1/1) by default (owner decision 2026-11-23, spec multi-stage4-ui-catchup-v1): growth and crowns
+// use the connected woodland, so the page states that instead of the model 0 "edge neighbours excluded" statement.
+check(['NOT A SURVEYED IRISH FOREST', 'AREAS NOT ASSESSED COMPARABLE', 'SITE UNKNOWN', 'CONNECTED WOODLAND', 'NO TREATMENT TRANSFER']
   .every((phrase) => byId('disclosure').textContent.includes(phrase)) && byId('flags').textContent.includes('Site UNKNOWN') &&
-  byId('flags').textContent.includes('Edge neighbours excluded') && byId('flags').textContent.includes('No treatment transfer') &&
+  byId('flags').textContent.includes('Connected woodland') && byId('flags').textContent.includes('No treatment transfer') &&
+  !byId('disclosure').textContent.includes('EDGE NEIGHBOURS EXCLUDED') &&
   byId('flags').querySelectorAll('li').every((chip) => chip.getAttribute('title')),
-  'the disclosure and the site UNKNOWN / edge neighbours excluded / no treatment transfer statements are visible');
+  'the disclosure and the site UNKNOWN / connected woodland / no treatment transfer statements are visible');
 
 // Any living tree: competitors appear immediately, before any Crop designation, and nothing changes on the server.
 const aTree = areaOf(start, 'MA-A').trees[60].treeId;
