@@ -15,7 +15,7 @@
   "PASS [1280x720] N/W/E/S pan the map in their own direction (north up) :: {\"east\":\"moved\",\"south\":\"moved\",\"west\":\"moved\",\"north\":\"moved\"}",
   "PASS [1280x720] zoom − steps back and Fit restores the whole area (pans disabled at Fit, as before) :: {\"z1\":\"1.52×\",\"z2\":\"1.32×\",\"z3\":{\"z\":\"Fit\",\"panDisabled\":true}}",
   "PASS [1280x720] Area A | Area B switch the map",
-  "PASS [1280x720] UX-01: after clicking a living tree, ranks 1-5 and an actionable \"Add selected to Fell plan\" are visible without scrolling :: {\"rows\":5,\"lastRowBottom\":651,\"firstRowTop\":442,\"dockTop\":656,\"addTop\":662,\"addBottom\":706,\"innerHeight\":720,\"scrollTop\":0,\"paneTop\":292,\"closeVisible\":true,\"closeText\":\"× Close inspection\"}",
+  "PASS [1280x720] UX-01: after clicking a living tree, ranks 1-5 and an actionable \"Add selected to Fell plan\" are visible without scrolling :: {\"rows\":5,\"lastRowBottom\":643,\"firstRowTop\":434,\"dockTop\":648,\"addTop\":654,\"addBottom\":698,\"innerHeight\":720,\"scrollTop\":0,\"paneTop\":292,\"closeVisible\":true,\"closeText\":\"× Close inspection\"}",
   "PASS [1280x720] UX-03: \"× Close inspection\" is visible beside the reference ID :: × Close inspection",
   "PASS [1280x720] UX-02: five map rank buttons, numbered 1-5, each carrying the exact engine ID of the engine's rank (same order as the inspector), with an ARIA label :: [[1,\"MA-A-015\",28],[2,\"MA-A-016\",28],[3,\"MA-A-002\",28],[4,\"MA-A-030\",28],[5,\"MA-A-017\",28]]",
   "PASS [1280x720] UX-02: map rank 1 toggles exactly MA-A-015 on; its inspector checkbox follows; the reference stays MA-A-001 :: {\"label\":\"Add selected 1 to Fell plan\"}",
@@ -23,7 +23,7 @@
   "PASS [1280x720] UX-02: map rank 3 toggles exactly MA-A-002 on; its inspector checkbox follows; the reference stays MA-A-001 :: {\"label\":\"Add selected 3 to Fell plan\"}",
   "PASS [1280x720] UX-02: map rank 4 toggles exactly MA-A-030 on; its inspector checkbox follows; the reference stays MA-A-001 :: {\"label\":\"Add selected 4 to Fell plan\"}",
   "PASS [1280x720] UX-02: map rank 5 toggles exactly MA-A-017 on; its inspector checkbox follows; the reference stays MA-A-001 :: {\"label\":\"Add selected 5 to Fell plan\"}",
-  "PASS [1280x720] UX-01: with all five chosen the rows and the one-line \"Add selected 5 to Fell plan\" button still fit without scrolling :: {\"lastRowBottom\":651,\"dockTop\":656,\"addBottom\":706,\"addHeight\":44,\"label\":\"Add selected 5 to Fell plan\",\"scrollTop\":0}",
+  "PASS [1280x720] UX-01: with all five chosen the rows and the one-line \"Add selected 5 to Fell plan\" button still fit without scrolling :: {\"lastRowBottom\":643,\"dockTop\":648,\"addBottom\":698,\"addHeight\":44,\"label\":\"Add selected 5 to Fell plan\",\"scrollTop\":0}",
   "PASS [1280x720] UX-02: clicking rank 2 again clears only MA-A-016 (multi-select kept)",
   "PASS [1280x720] UX-02: unticking MA-A-002 in the inspector clears map rank 3",
   "PASS [1280x720] UX-02: Tab moves focus to rank 2 with a visible 3 px focus outline :: {\"key\":\"rank:MA-A-016\",\"outline\":\"solid\",\"width\":\"3px\"}",
@@ -35,7 +35,7 @@
   "PASS [1280x720] UX-03: the next Escape exits inspection; ranks, enlargement and dimming are gone (normal tree rendering) :: {\"empty\":true,\"ranks\":true,\"dimmed\":0,\"leaders\":0,\"zoom\":\"1.32×\",\"area\":\"Area A · 0.0915 ha\",\"vb\":\"-21.5988 6.2351 66.4900 34.4068\",\"focus\":\"map-heading\"}",
   "PASS [1280x720] UX-03: closing keeps zoom, pan, area, the Crop designation, the queued orders and the year :: {\"keep\":{\"zoom\":\"1.32×\",\"area\":\"Area A · 0.0915 ha\",\"vb\":\"-21.5988 6.2351 66.4900 34.4068\"},\"e2\":{\"zoom\":\"1.32×\",\"vb\":\"-21.5988 6.2351 66.4900 34.4068\"},\"crops\":[\"MA-A-001\"]}",
   "PASS [1280x720] UX-03: \"× Close inspection\" exits the same way and clears the temporary draft choice :: {\"x1\":{\"empty\":true,\"zoom\":\"1.32×\"},\"checkedAfterReselect\":0}",
-  "PASS [1280x720] UX-06: every cell with L > 0 is drawn with a strictly positive opacity; L = 0 cells are not drawn :: {\"drawn\":144,\"positive\":144,\"zero\":0,\"minL\":0.0006697774,\"minOpacity\":0.0078}",
+  "PASS [1280x720] UX-06: every cell with L > 0 is drawn with a strictly positive opacity; L = 0 cells are not drawn :: {\"drawn\":144,\"positive\":144,\"zero\":0,\"minL\":0.0006697774,\"minOpacity\":0.00778}",
   "PASS [1280x720] UX-06/F-3: no numbered band markers or band classes; the layer lies under the crowns and takes no clicks :: {\"texts\":0,\"under\":true,\"pe\":\"none\"}",
   "PASS [1280x720] UX-06: across the real cells opacity and colour brightness never decrease as L increases",
   "PASS [1280x720] UX-09: the legend says \"Light Guide\" with a Shaded→Bright ramp; no band labels or calibration text on the map :: Light Guide Shaded Bright Inspect ground reads the value at a spot.",
@@ -53,6 +53,7 @@
   "PASS [1280x720] UX-08: the open-ground read changes no selection, no draft and nothing on the server :: {\"insp\":\"MA-B-001\",\"label\":\"Add selected 1 to Fell plan\"}",
   "PASS [1280x720] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: LowLight index0.302 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover5% of this cell under living crownsShading trees6Light and canopy cover are separate engine quantities.",
   "PASS [1280x720] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {\"treesSummary\":\"Contributing trees (6)\"}",
+  "PASS [1280x720] R2: with a tree inspected, the open-ground read sits below the primary block (after the Add bar) and is scrolled into view with its heading focused :: {\"slot\":\"ground-slot\",\"top\":343,\"bottom\":712,\"dockBottom\":335,\"paneTop\":292,\"paneBottom\":712,\"scrollTop\":369,\"focus\":\"ground-heading\"}",
   "PASS [1280x720] UX-08: with Inspect ground ON a rank click toggles only its own tree ID (MA-B-010), keeps the reference and does not read the ground :: {\"changed\":[\"MA-B-010\"]}",
   "PASS [1280x720] UX-08: a spot with no ground sample says so; no value is synthesised :: {\"heading\":\"Area B · no sample\",\"summary\":\"No modelled ground sample at that spot (it is outside this area's light cells). No value is shown or estimated.\",\"tech\":true}",
   "PASS [1280x720] UX-08: with a modal dialog open (ground mode ON) a map click is swallowed: no hit-test, no ground read, no selection change :: {\"open\":true,\"heading\":\"Area B · ground at X 38.8, Z 8.8\",\"insp\":\"MA-B-001\",\"posts\":[]}",
@@ -63,6 +64,23 @@
   "PASS [1280x720] UX-08: after leaving ground mode a crown click selects that tree as before (MA-B-002) :: {\"now\":\"MA-B-002\"}",
   "PASS [1280x720] Escape then closes the inspection; the Light Guide is never switched off by Escape :: {\"body\":true,\"light\":\"true\"}",
   "PASS [1280x720] AC21: Light Guide, Inspect ground and inspection changes had no server side effect :: {\"year\":0,\"rev\":5,\"work\":0,\"pending\":[\"MA-A:MA-A-015:Owner-selected felling\",\"MA-A:MA-A-016:Owner-selected felling\",\"MA-A:MA-A-030:Owner-selected felling\",\"MA-A:MA-A-017:Owner-selected felling\"],\"approved\":null,\"events\":0,\"crops\":[[\"MA-A-001\"],[]],\"living\":[171,73]}",
+  "PASS [1280x720] R2: Inspect ground ON with nothing inspected shows its panel at the top of the Tree pane (heading focused) :: {\"parent\":\"pane-tree\",\"first\":\"ground-panel\",\"hidden\":false,\"pressed\":\"true\",\"focus\":\"ground-heading\"}",
+  "PASS [1280x720] R2/AC01: Inspect ground ON + crown click (MA-B-003): reference, ranks 1-5 and Add are above the fold with no scrolling; the ground panel sits below them; both modes stay on :: {\"rows\":5,\"firstRowTop\":434,\"lastRowBottom\":643,\"rowH\":38,\"rowFontPx\":13.44,\"refTop\":293,\"paneTop\":292,\"paneBottom\":712,\"dockTop\":648,\"dockBottom\":704,\"addTop\":654,\"addBottom\":698,\"addH\":44,\"addText\":\"Add selected to Fell plan\",\"innerHeight\":720,\"scrollTop\":0,\"groundHidden\":false,\"groundParent\":\"ground-slot\",\"groundTop\":712,\"groundPressed\":\"true\",\"light\":\"true\"}",
+  "PASS [1280x720] R2/AC01: Inspect ground ON with all five ranks ticked: the rows and \"Add selected 5 to Fell plan\" still fit without scrolling :: {\"rows\":5,\"firstRowTop\":434,\"lastRowBottom\":643,\"rowH\":38,\"rowFontPx\":13.44,\"refTop\":293,\"paneTop\":292,\"paneBottom\":712,\"dockTop\":648,\"dockBottom\":704,\"addTop\":654,\"addBottom\":698,\"addH\":44,\"addText\":\"Add selected 5 to Fell plan\",\"innerHeight\":720,\"scrollTop\":0,\"groundHidden\":false,\"groundParent\":\"ground-slot\",\"groundTop\":712,\"groundPressed\":\"true\",\"light\":\"true\"}",
+  "PASS [1280x720] R2: Inspect ground ON, inspector scrolled down (scrollTop 708) then another crown (MA-B-004): the primary block is back in view with no manual scrolling :: {\"rows\":5,\"firstRowTop\":434,\"lastRowBottom\":643,\"rowH\":38,\"rowFontPx\":13.44,\"refTop\":293,\"paneTop\":292,\"paneBottom\":712,\"dockTop\":648,\"dockBottom\":704,\"addTop\":654,\"addBottom\":698,\"addH\":44,\"addText\":\"Add selected to Fell plan\",\"innerHeight\":720,\"scrollTop\":0,\"groundHidden\":false,\"groundParent\":\"ground-slot\",\"groundTop\":712,\"groundPressed\":\"true\",\"light\":\"true\"}",
+  "PASS [1280x720] R2: after an open-ground read scrolled the inspector (scrollTop 420), a crown click (MA-B-005) shows the primary block again without scrolling :: {\"gr\":{\"heading\":\"Area B · ground at X 38.8, Z 8.8\",\"scrollTop\":420,\"insp\":\"MA-B-004\"},\"f\":{\"rows\":5,\"firstRowTop\":434,\"lastRowBottom\":643,\"rowH\":38,\"rowFontPx\":13.44,\"refTop\":293,\"paneTop\":292,\"paneBottom\":712,\"dockTop\":648,\"dockBottom\":704,\"addTop\":654,\"addBottom\":698,\"addH\":44,\"addText\":\"Add selected to Fell plan\",\"innerHeight\":720,\"scrollTop\":0,\"groundHidden\":false,\"groundParent\":\"ground-slot\",\"groundTop\":712,\"groundPressed\":\"true\",\"light\":\"true\"}}",
+  "PASS [1280x720] R2: Inspect ground OFF, inspector scrolled down (scrollTop 526) then another crown (MA-B-005): the primary block is back in view with no manual scrolling :: {\"rows\":5,\"firstRowTop\":434,\"lastRowBottom\":643,\"rowH\":38,\"rowFontPx\":13.44,\"refTop\":293,\"paneTop\":292,\"paneBottom\":712,\"dockTop\":648,\"dockBottom\":704,\"addTop\":654,\"addBottom\":698,\"addH\":44,\"addText\":\"Add selected to Fell plan\",\"innerHeight\":720,\"scrollTop\":0,\"groundHidden\":true,\"groundParent\":\"ground-slot\",\"groundTop\":0,\"groundPressed\":\"false\",\"light\":\"true\"}",
+  "PASS [1280x720] R2/UX-03: Escape closes the inspection immediately while the hit-test answer is still pending :: {\"body\":true,\"empty\":true,\"insp\":null,\"announce\":\"Closed the inspection of MA-B-005. Zoom, area, Crop designations and the Work Plan are unchanged.\",\"alert\":\"\",\"area\":\"Area B · 0.1500 ha\",\"add\":\"Add selected to Fell plan\",\"ranks\":true}",
+  "PASS [1280x720] R2/UX-03: the late hit-test answer (topmost MA-B-044) is discarded: inspection stays closed, no reselection, no announcement, no competitor read :: {\"ra1\":\"Closed the inspection of MA-B-005. Zoom, area, Crop designations and the Work Plan are unchanged.\",\"ra2\":{\"body\":true,\"empty\":true,\"insp\":null,\"announce\":\"Closed the inspection of MA-B-005. Zoom, area, Crop designations and the Work Plan are unchanged.\",\"alert\":\"\",\"area\":\"Area B · 0.1500 ha\",\"add\":\"Add selected to Fell plan\",\"ranks\":true},\"compPostsA\":0}",
+  "PASS [1280x720] R2: a newer selection (MA-B-003) made while the hit-test answer was pending is kept; the late answer (topmost MA-B-044) changes nothing and the competitors load :: {\"rb0\":\"MA-B-003\",\"rb1\":{\"body\":false,\"empty\":false,\"insp\":\"MA-B-003\",\"announce\":\"Selected tree MA-B-003 in Area B.\",\"alert\":\"\",\"area\":\"Area B · 0.1500 ha\",\"add\":\"Add selected to Fell plan\",\"ranks\":false}}",
+  "PASS [1280x720] R2: an area switch while the hit-test answer was pending: the page stays on Area A; back in B the reference MA-B-003 and its draft (\"Add selected 1 to Fell plan\") are intact (late topmost MA-B-044 ignored) :: {\"rc0\":[\"Area A · 0.0915 ha\",\"Showing Area A. Selected tree MA-A-005.\"],\"rc1\":[\"MA-B-003\",\"Add selected 1 to Fell plan\"]}",
+  "PASS [1280x720] R2: the three races changed nothing on the server",
+  "PASS [1280x720] R2 ramp: L = 0 draws nothing (one injected zero cell disappears; every other cell is drawn) :: {\"drawn\":143,\"before\":144}",
+  "PASS [1280x720] R2 ramp: every L > 0 has a strictly positive opacity text that never reads \"0\", and the browser parses it (computed value is not the default 1) :: [[1e-200,\"9.000e-131\",\"0\"],[1e-9,\"0.00000127\",\"1.27e-06\"],[0.0001,\"0.00226\",\"0.00226\"],[0.01,\"0.0451\",\"0.0451\"],[0.05,\"0.1284\",\"0.1284\"],[0.5,\"0.5736\",\"0.5736\"],[1,\"0.9000\",\"0.9\"]]",
+  "PASS [1280x720] R2 ramp: continuous at 0 (no floor: opacity at L = 1e-200 is 0.9·L^0.65 to 3 significant figures) and strictly increasing over the chosen L :: [9e-131,0.00000127,0.00226,0.0451,0.1284,0.5736,0.9]",
+  "INFO [1280x720] ramp table (L → opacity text, colour, summed RGB change over the floor): 0 → not drawn, Δ0 | 0.0001 → 0.00226 #7f3b4a, Δ0 | 0.01 → 0.0451 #88414e, Δ8 | 0.05 → 0.1284 #994d54, Δ26 | 0.5 → 0.5736 #e49383, Δ227 | 1 → 0.9000 #ffd9bd, Δ496 | 1e-9 → 0.00000127 | 1e-200 → 9.000e-131 (computed 0)",
+  "PASS [1280x720] R2 ramp pixels: L = 0 unchanged; L = 0.0001 at most as visible as 0.01; 0.01 faint but visible; rising through 0.05, 0.5 and 1 :: [0,0,8,26,227,496]",
+  "PASS [1280x720] R2 ramp: a normal re-read restores the engine values (all real cells drawn again)",
   "PASS [1280x720] Approve fells nothing and approves exactly the queued IDs :: {\"year\":0,\"rev\":6,\"work\":0,\"pending\":[],\"approved\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-030\",\"MA-A-017\"],\"events\":0,\"crops\":[[\"MA-A-001\"],[]],\"living\":[171,73]}",
   "PASS [1280x720] F-2: with stage4 null, Execute (and Approve) are withdrawn :: Execute approved two-area plan · re-read needed",
   "PASS [1280x720] F-2: no model 0 / legacy claim (no edge exclusion, no \"Light NOT MODELLED\"); the page says unavailable :: Seed, regeneration, site, money and saving: NOT MODELLED. Which light and neighbourhood model this view used cannot be stated until a re-read.",
@@ -86,11 +104,11 @@
   },
   {
    "name": "02-selected-five-ranks-1280x720.png",
-   "bytes": 342645
+   "bytes": 342451
   },
   {
    "name": "03-ranks-chosen-synced-1280x720.png",
-   "bytes": 345991
+   "bytes": 345695
   },
   {
    "name": "04-inspection-closed-1280x720.png",
@@ -98,7 +116,7 @@
   },
   {
    "name": "05-light-guide-area-a-1280x720.png",
-   "bytes": 328254
+   "bytes": 328145
   },
   {
    "name": "06-light-guide-area-b-1280x720.png",
@@ -106,15 +124,15 @@
   },
   {
    "name": "07-ground-inspection-1280x720.png",
-   "bytes": 302657
+   "bytes": 303919
   },
   {
    "name": "10-ground-mode-crown-selects-1280x720.png",
-   "bytes": 315468
+   "bytes": 318454
   },
   {
    "name": "09-f2-readout-unavailable-1280x720.png",
-   "bytes": 370664
+   "bytes": 364923
   }
  ]
 }

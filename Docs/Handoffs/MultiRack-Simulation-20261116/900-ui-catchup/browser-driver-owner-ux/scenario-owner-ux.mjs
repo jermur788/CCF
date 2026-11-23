@@ -1,4 +1,7 @@
 // Stage 4 owner UX repair, Phase A: real-browser verification in headless Microsoft Edge over CDP.
+// R1 rewrote section G (crown wins over ground). R2 adds the R2 section after G: the AC01 fold with Inspect ground ON/OFF,
+// all five ticked and scrolled inspectors; three deterministic stale hit-test races (Escape, newer selection, area switch;
+// the page's fetch holds the real hit-test answer until the driver releases it); and the ramp table from injected L values.
 // Usage (Windows node v26): node scenario-owner-ux.mjs <evidenceDir> <fileHoldingTheBaseUrl> <W>x<H>
 // Run once per viewport against a FRESH server session (year 0, empty plan). The base URL file is outside the repository
 // and is never printed: every output line goes through redact().
@@ -375,6 +378,12 @@ async function main() {
     check(!g1.treesOpen && !g1.techOpen && g1.treesSummary === 'Contributing trees (' + c.contributingTreeIds.length + ')' &&
       c.contributingTreeIds.every((id) => g1.ids.includes(id)) && g1.tech.includes('column ' + c.column + ', row ' + c.row) && g1.tech.includes('k10a10') && g1.tech.includes('Calibrated PARno'),
       'UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures', { treesSummary: g1.treesSummary });
+    const gv = await page.eval(`(() => { const p = document.getElementById('pane-tree').getBoundingClientRect(); const g = document.getElementById('ground-panel'); const r = g.getBoundingClientRect();
+      const d = document.querySelector('.add-dock').getBoundingClientRect();
+      return { slot: g.parentNode.id, top: Math.round(r.top), bottom: Math.round(r.bottom), dockBottom: Math.round(d.bottom), paneTop: Math.round(p.top), paneBottom: Math.round(p.bottom),
+        scrollTop: document.getElementById('pane-tree').scrollTop, focus: document.activeElement.id }; })()`);
+    check(gv.slot === 'ground-slot' && gv.top >= gv.dockBottom - 1 && gv.top >= gv.paneTop - 1 && gv.top < gv.paneBottom && gv.focus === 'ground-heading',
+      'R2: with a tree inspected, the open-ground read sits below the primary block (after the Add bar) and is scrolled into view with its heading focused', gv);
     await page.click('#ground-trees > summary');
     await shot(page, '07-ground-inspection');
     // A rank button still toggles only its own tree ID in ground mode (rank > crown > ground) and leaves the ground reading alone.
@@ -448,7 +457,6 @@ async function main() {
       'UX-08: Inspect ground ON, clicking a crown SELECTS that tree (the hit-test\'s topmost, ' + (hitAtOther[0] || '?') + ') and shows no ground read; the mode stays on', g7);
     check(JSON.stringify(await server(page)) === JSON.stringify(sCrown), 'UX-08: the ground-mode crown selection sent nothing that changes the server view');
     const selectedInGround = g7.insp;
-    await shot(page, '10-ground-mode-crown-selects');
     // Escape stops Inspect ground first (Light Guide stays on), then closes the inspection.
     await page.key('Escape');
     const g4 = await page.eval(`({ ground: document.getElementById('ground-mode').getAttribute('aria-pressed'), panel: document.getElementById('ground-panel').hidden,
@@ -468,6 +476,172 @@ async function main() {
     check(g6.body && g6.light === 'true', 'Escape then closes the inspection; the Light Guide is never switched off by Escape', g6);
     const sLight = await server(page);
     check(JSON.stringify(sLight) === JSON.stringify(sClosed), 'AC21: Light Guide, Inspect ground and inspection changes had no server side effect', sLight);
+
+    // ---- R2. Repair 2 regressions: AC01 fold with Inspect ground ON/OFF and scrolled inspectors; stale hit-test answers;
+    // the continuous light ramp. Area B, Light Guide on, nothing inspected at this point.
+    const foldNow = () => page.eval(`(() => { const rows = [...document.querySelectorAll('.comp-row')].map((e) => e.getBoundingClientRect());
+      const dock = document.querySelector('.add-dock').getBoundingClientRect(); const add = document.getElementById('add-button').getBoundingClientRect();
+      const pane = document.getElementById('pane-tree'); const pr = pane.getBoundingClientRect(); const ref = document.querySelector('.ref-card').getBoundingClientRect();
+      const g = document.getElementById('ground-panel'); const gr = g.getBoundingClientRect(); const label = document.querySelector('.comp-row label');
+      return { rows: rows.length, firstRowTop: rows.length ? Math.round(rows[0].top) : null, lastRowBottom: rows.length ? Math.round(rows[rows.length - 1].bottom) : null,
+        rowH: rows.length ? Math.round(rows[0].height) : null, rowFontPx: label ? parseFloat(getComputedStyle(label).fontSize) : null,
+        refTop: Math.round(ref.top), paneTop: Math.round(pr.top), paneBottom: Math.round(pr.bottom), dockTop: Math.round(dock.top), dockBottom: Math.round(dock.bottom),
+        addTop: Math.round(add.top), addBottom: Math.round(add.bottom), addH: Math.round(add.height), addText: document.getElementById('add-button').textContent, innerHeight,
+        scrollTop: pane.scrollTop, groundHidden: g.hidden, groundParent: g.parentNode.id, groundTop: Math.round(gr.top),
+        groundPressed: document.getElementById('ground-mode').getAttribute('aria-pressed'), light: document.getElementById('light-toggle').getAttribute('aria-pressed') }; })()`);
+    const foldOk = (f) => f.rows === 5 && f.scrollTop === 0 && f.refTop >= f.paneTop && f.firstRowTop >= f.paneTop && f.lastRowBottom <= f.dockTop + 1 &&
+      f.addBottom <= f.innerHeight && f.addBottom <= f.paneBottom + 1 && f.rowH >= 36 && f.rowFontPx >= 12 && f.addH >= 40;
+    const scrollToBottom = () => page.eval(`(() => { const p = document.getElementById('pane-tree'); p.scrollTop = p.scrollHeight; return p.scrollTop; })()`);
+    await page.click('#ground-mode');
+    const r2a = await page.eval(`({ parent: document.getElementById('ground-panel').parentNode.id, first: document.getElementById('pane-tree').firstElementChild.id, hidden: document.getElementById('ground-panel').hidden,
+      pressed: document.getElementById('ground-mode').getAttribute('aria-pressed'), focus: document.activeElement.id })`);
+    check(r2a.parent === 'pane-tree' && r2a.first === 'ground-panel' && !r2a.hidden && r2a.pressed === 'true' && r2a.focus === 'ground-heading',
+      'R2: Inspect ground ON with nothing inspected shows its panel at the top of the Tree pane (heading focused)', r2a);
+    const usedB = [refB, selectedInGround, backTarget.hit[0]];
+    const refR2 = await selectReference(page, 'MA-B', usedB);
+    let f = await foldNow();
+    check(foldOk(f) && f.groundPressed === 'true' && f.light === 'true' && f.groundParent === 'ground-slot' && !f.groundHidden && f.groundTop >= f.dockBottom - 1,
+      'R2/AC01: Inspect ground ON + crown click (' + refR2 + '): reference, ranks 1-5 and Add are above the fold with no scrolling; the ground panel sits below them; both modes stay on', f);
+    await shot(page, '10-ground-mode-crown-selects');
+    for (let k = 0; k < 5; k++) { const r = (await ranksDom(page))[k]; await page.clickAt(r.x, r.y); await sleep(120); }
+    f = await foldNow();
+    check(foldOk(f) && f.addText.includes('Add selected 5') && f.groundPressed === 'true',
+      'R2/AC01: Inspect ground ON with all five ranks ticked: the rows and "' + f.addText + '" still fit without scrolling', f);
+    const scrolled1 = await scrollToBottom();
+    const refR2b = await selectReference(page, 'MA-B', [...usedB, refR2]);
+    f = await foldNow();
+    check(scrolled1 > 0 && foldOk(f) && f.groundPressed === 'true' && f.groundParent === 'ground-slot',
+      'R2: Inspect ground ON, inspector scrolled down (scrollTop ' + scrolled1 + ') then another crown (' + refR2b + '): the primary block is back in view with no manual scrolling', f);
+    // A ground read with a tree inspected scrolls the reading into view; the next crown click puts the inspector back at the top.
+    let openR2 = null;
+    for (const o of candidatesOpen) {
+      const at = await screenOf(page, o.u, o.v);
+      if (at.onMap && at.x > 0 && at.y > 0 && at.x < W && at.y < H && await page.eval(`(() => { const e = document.elementFromPoint(${at.x}, ${at.y}); return !!e && !e.closest('#crowns') && !e.closest('[data-rank-toggle]') && !!e.closest('#map'); })()`)) { openR2 = at; break; }
+    }
+    if (openR2) {
+      await page.clickAt(openR2.x, openR2.y);
+      await sleep(150);
+      await page.idle();
+      const gr = await page.eval(`({ heading: document.getElementById('ground-heading').textContent, scrollTop: document.getElementById('pane-tree').scrollTop, insp: document.getElementById('insp-id').textContent })`);
+      const refR2c = await selectReference(page, 'MA-B', [...usedB, refR2, refR2b]);
+      f = await foldNow();
+      check(gr.heading.includes('ground at') && gr.insp === refR2b && foldOk(f) && f.groundPressed === 'true',
+        'R2: after an open-ground read scrolled the inspector (scrollTop ' + gr.scrollTop + '), a crown click (' + refR2c + ') shows the primary block again without scrolling', { gr, f });
+    } else check(false, 'R2: an on-screen open-ground point exists with a tree inspected');
+    await page.click('#ground-mode');
+    const scrolled2 = await scrollToBottom();
+    const refR2d = await selectReference(page, 'MA-B', [...usedB, refR2, refR2b]);
+    f = await foldNow();
+    check(scrolled2 > 0 && foldOk(f) && f.groundPressed === 'false' && f.groundHidden && f.light === 'true',
+      'R2: Inspect ground OFF, inspector scrolled down (scrollTop ' + scrolled2 + ') then another crown (' + refR2d + '): the primary block is back in view with no manual scrolling', f);
+
+    // Stale hit-test answers. Deterministic race: a fetch wrapper lets the real api/multi/hit request reach the server and
+    // answer, then holds that answer inside the page until the driver releases it, after the interfering action.
+    await page.eval(`(() => { const real = window.fetch.bind(window); window.__holdHit = false; window.__hitHeld = 0;
+      window.fetch = async (input, init) => { const r = await real(input, init);
+        if (window.__holdHit && String(input).endsWith('api/multi/hit')) { window.__hitHeld += 1; await new Promise((resolve) => { window.__releaseHit = resolve; }); }
+        return r; }; })()`);
+    const raceState = () => page.eval(`({ body: document.getElementById('inspector-body').hidden, empty: !document.getElementById('inspector-empty').hidden,
+      insp: document.getElementById('inspector-body').hidden ? null : document.getElementById('insp-id').textContent, announce: document.getElementById('announce').textContent,
+      alert: document.getElementById('alert').textContent, area: document.getElementById('map-subtitle').textContent, add: document.getElementById('add-button').textContent,
+      ranks: document.getElementById('rank-layer').hidden })`);
+    const holdAndClick = async (exclude, n) => {
+      const t = await crownTarget(exclude);
+      const at = await screenOf(page, t.u, t.v);
+      await page.eval(`window.__holdHit = true`);
+      await page.clickAt(at.x, at.y);
+      await page.waitFor(`window.__hitHeld === ${n}`, 'the held hit-test answer ' + n);
+      return t;
+    };
+    const release = async () => { await page.eval(`window.__holdHit = false; window.__releaseHit()`); await sleep(700); await page.idle(); };
+    // (a) Escape while the answer is held.
+    const sRace = await server(page);
+    let postMark = page.log.posts.length;
+    const tA = await holdAndClick([refR2d], 1);
+    await page.key('Escape');
+    const ra0 = await raceState();
+    await sleep(150);
+    const ra1 = await raceState();
+    await release();
+    const ra2 = await raceState();
+    const compPostsA = page.log.posts.slice(postMark).filter((p) => p === 'api/multi/competition').length;
+    check(ra0.body && ra0.empty, 'R2/UX-03: Escape closes the inspection immediately while the hit-test answer is still pending', ra0);
+    check(ra2.body && ra2.empty && ra2.ranks && ra2.announce === ra1.announce && !ra2.announce.startsWith('Selected') && ra2.alert === '' && compPostsA === 0,
+      'R2/UX-03: the late hit-test answer (topmost ' + tA.hit[0] + ') is discarded: inspection stays closed, no reselection, no announcement, no competitor read', { ra1: ra1.announce, ra2, compPostsA });
+    // (b) A newer selection (exact ID + Enter) while the answer is held.
+    await selectReference(page, 'MA-B', [...usedB, refR2d]);
+    const tB = await holdAndClick([refR2, await inspected(page)], 2);
+    await page.eval(`(() => { const q = document.getElementById('quick-id'); q.value = ${JSON.stringify(refR2)}; q.focus(); })()`);
+    await page.key('Enter');
+    const rb0 = await raceState();
+    await release();
+    await page.waitFor(`document.querySelectorAll('#competition-content [data-draft]').length > 0`, 'the newer selection\'s competitors after the stale answer', 8000);
+    const rb1 = await raceState();
+    check(rb0.insp === refR2 && rb1.insp === refR2 && !rb1.announce.includes(tB.hit[0]) && rb1.alert === '' && (await rowsDom(page)).length === 5,
+      'R2: a newer selection (' + refR2 + ') made while the hit-test answer was pending is kept; the late answer (topmost ' + tB.hit[0] + ') changes nothing and the competitors load', { rb0: rb0.insp, rb1 });
+    // (c) An area switch while the answer is held; the newer draft in Area B survives.
+    ranks = await ranksDom(page);
+    await page.clickAt(ranks[0].x, ranks[0].y);
+    await sleep(150);
+    const draftB = await draftLabel(page);
+    const tC = await holdAndClick([refR2], 3);
+    await page.click('.area-tab[data-area="MA-A"]');
+    await release();
+    const rc0 = await raceState();
+    await page.click('.area-tab[data-area="MA-B"]');
+    await page.waitFor(`document.getElementById('map-subtitle').textContent.startsWith('Area B')`, 'Area B again');
+    await page.waitFor(`document.querySelectorAll('#competition-content [data-draft]').length > 0`, 'the Area B reference competitors', 8000);
+    const rc1 = await raceState();
+    check(draftB.includes('Add selected 1') && rc0.area.startsWith('Area A') && !rc0.announce.includes(tC.hit[0]) && rc1.insp === refR2 && rc1.add === draftB,
+      'R2: an area switch while the hit-test answer was pending: the page stays on Area A; back in B the reference ' + refR2 + ' and its draft ("' + draftB + '") are intact (late topmost ' + tC.hit[0] + ' ignored)', { rc0: [rc0.area, rc0.announce], rc1: [rc1.insp, rc1.add] });
+    check(JSON.stringify(await server(page)) === JSON.stringify(sRace), 'R2: the three races changed nothing on the server');
+
+    // The continuous ramp: the page's own lightPaint for chosen L values, by injecting them into one read-out (display
+    // only, like the F-2 injection below) and reading the drawn cells; then a normal re-read restores the engine values.
+    await page.click('.area-tab[data-area="MA-A"]');
+    await page.waitFor(`document.getElementById('map-subtitle').textContent.startsWith('Area A')`, 'Area A for the ramp');
+    const RAMP_L = [0, 1e-200, 1e-9, 0.0001, 0.01, 0.05, 0.5, 1];
+    await page.eval(`(() => { window.__rampNext = false; const real = window.fetch.bind(window);
+      window.fetch = async (input, init) => { const r = await real(input, init); if (window.__rampNext && String(input).endsWith('api/multi/view')) { window.__rampNext = false;
+        const j = await r.json(); const cells = j.stage4.areas.find((a) => a.areaId === 'MA-A').ground; ${JSON.stringify(RAMP_L)}.forEach((L, i) => { cells[i].lightIndex = L; });
+        return new Response(JSON.stringify(j), { status: r.status, headers: { 'Content-Type': 'application/json' } }); } return r; }; })()`);
+    const positiveBefore = await page.eval(`document.querySelectorAll('#light-cells polygon').length`);
+    await page.eval(`window.__rampNext = true`);
+    await page.click('#reread');
+    await page.idle();
+    await sleep(300);
+    const ramp = await page.eval(`(() => { const all = [...document.querySelectorAll('#light-cells polygon')];
+      return { drawn: all.length, cells: ${JSON.stringify(RAMP_L)}.map((L) => { const e = all.find((p) => Number(p.dataset.light) === L);
+        return e ? { L, op: e.getAttribute('fill-opacity'), fill: e.getAttribute('fill'), computed: getComputedStyle(e).fillOpacity } : { L, op: null }; }) }; })()`);
+    const byL = (L) => ramp.cells.find((c) => c.L === L);
+    const positives = ramp.cells.filter((c) => c.L > 0);
+    const zeroText = (s) => /^0*\.?0*$/.test(s) || /^0(\.0+)?$/.test(s);
+    check(byL(0).op === null && ramp.drawn === positiveBefore - 1, 'R2 ramp: L = 0 draws nothing (one injected zero cell disappears; every other cell is drawn)', { drawn: ramp.drawn, before: positiveBefore });
+    // The computed value shows the browser parsed the attribute (an unparsable value would fall back to the default 1); the
+    // browser may serialise a tiny computed number as 0, so positivity of the computed value is required only from 1e-4 up.
+    check(positives.every((c) => c.op !== null && Number(c.op) > 0 && !zeroText(c.op) && Number(c.computed) < 1 && (c.L < 0.0001 || Number(c.computed) > 0)),
+      'R2 ramp: every L > 0 has a strictly positive opacity text that never reads "0", and the browser parses it (computed value is not the default 1)', positives.map((c) => [c.L, c.op, c.computed]));
+    const ordered = positives.map((c) => Number(c.op));
+    check(ordered.every((v, i) => i === 0 || v > ordered[i - 1]) && Math.abs(Number(byL(1e-200).op) - 0.9 * Math.pow(1e-200, 0.65)) / (0.9 * Math.pow(1e-200, 0.65)) < 1e-3,
+      'R2 ramp: continuous at 0 (no floor: opacity at L = 1e-200 is 0.9·L^0.65 to 3 significant figures) and strictly increasing over the chosen L', ordered);
+    const sw = [0, 0.0001, 0.01, 0.05, 0.5, 1].map((L) => (L === 0 ? { colour: '#7f3b4a', op: 0 } : { colour: byL(L).fill, op: byL(L).op }));
+    await page.eval(`(() => { const host = document.createElement('div'); host.id = 'test-swatches2'; host.style.position = 'fixed'; host.style.left = '0'; host.style.top = '0'; host.style.zIndex = '99';
+      const NS = 'http://www.w3.org/2000/svg'; const s = document.createElementNS(NS, 'svg'); s.setAttribute('width', '360'); s.setAttribute('height', '40');
+      ${JSON.stringify(sw)}.forEach((p, i) => { const bg = document.createElementNS(NS, 'rect'); bg.setAttribute('x', i * 60); bg.setAttribute('width', 60); bg.setAttribute('height', 40); bg.setAttribute('fill', 'rgb(27,36,48)');
+        const fg = document.createElementNS(NS, 'rect'); fg.setAttribute('x', i * 60 + 10); fg.setAttribute('y', 10); fg.setAttribute('width', 40); fg.setAttribute('height', 20); fg.setAttribute('fill', p.colour); fg.setAttribute('fill-opacity', p.op); s.append(bg, fg); });
+      host.append(s); document.body.append(host); })()`);
+    await sleep(150);
+    const img2 = await page.capture({ x: 0, y: 0, width: 360, height: 40 });
+    await page.eval(`document.getElementById('test-swatches2').remove()`);
+    const deltas = [0, 1, 2, 3, 4, 5].map((i) => { const bg = img2.px(i * 60 + 4, 4), fg = img2.px(i * 60 + 30, 20); return fg.reduce((s, v, k) => s + Math.abs(v - bg[k]), 0); });
+    info('ramp table (L → opacity text, colour, summed RGB change over the floor): ' + [0, 0.0001, 0.01, 0.05, 0.5, 1].map((L, i) => L + ' → ' + (L === 0 ? 'not drawn' : byL(L).op + ' ' + byL(L).fill) + ', Δ' + deltas[i]).join(' | ') +
+      ' | 1e-9 → ' + byL(1e-9).op + ' | 1e-200 → ' + byL(1e-200).op + ' (computed ' + byL(1e-200).computed + ')');
+    check(deltas[0] === 0 && deltas[2] > 0 && deltas[2] <= 24 && deltas[3] > deltas[2] && deltas[4] > deltas[3] && deltas[5] > deltas[4] && deltas[1] <= deltas[2],
+      'R2 ramp pixels: L = 0 unchanged; L = 0.0001 at most as visible as 0.01; 0.01 faint but visible; rising through 0.05, 0.5 and 1', deltas);
+    await page.click('#reread');
+    await page.idle();
+    await sleep(300);
+    check((await page.eval(`document.querySelectorAll('#light-cells polygon').length`)) === positiveBefore, 'R2 ramp: a normal re-read restores the engine values (all real cells drawn again)');
 
     // ---- H. Work Plan: Pending → Approve → Execute unchanged ---------------------------------------------------------------
     await page.click('#light-toggle');

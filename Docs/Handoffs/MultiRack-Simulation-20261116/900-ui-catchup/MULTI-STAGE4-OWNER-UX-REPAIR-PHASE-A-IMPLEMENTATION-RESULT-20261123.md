@@ -9,13 +9,139 @@
 | Base | `e7c1a57da519ed1ee03ccfbad240196a66df0905` (reviewed Stage 4 UI catch-up candidate; not moved) |
 | Source/test HEAD (Phase A) | `9fed4eb91ed51522e3be2188c9f1539d06106d4d` |
 | Phase A handoff HEAD | `9dd6f601100d55bfca12c1584afb6fc081ba5b7e` (kept in history; not amended) |
-| **Repair R1 source HEAD** | **`1a22d01c`** (`fix(multi-owner-ux): UX-08 crown selection outranks ground inspection`), on top of `9dd6f601` |
-| **Final HEAD** | the commit that adds this R1 update (driver, results, screenshots, handoff), directly on top of `1a22d01c` |
+| Repair R1 source HEAD | `1a22d01c` (`fix(multi-owner-ux): UX-08 crown selection outranks ground inspection`), on top of `9dd6f601`; R1 docs HEAD `f0db8323` |
+| **Repair R2 source HEAD** | **`550e10b49fef5d2c3c71cbb8b299f86b9ecb96b8`** (`fix(multi-owner-ux): R2 keep ranks/Add above the fold in ground mode; drop stale hit-test answers`), on top of `f0db8323` |
+| **Final HEAD** | the commit that adds this R2 update (driver, results, changed screenshots, handoff), directly on top of `550e10b4` |
 | Worktree | `C:\Users\hp\.t3\worktrees\CCF-HP\t3-8fc40b07-b22b8bb5869955c0` (Windows checkout of a worktree whose git dir is `/home/jer/Development/CCF-HP/.git/worktrees/t3-8fc40b07-b22b8bb5869955c0`; WSL path `/mnt/c/Users/hp/.t3/worktrees/CCF-HP/t3-8fc40b07-b22b8bb5869955c0`) |
 | Phase B (UX-10) | **Not started.** It was not needed to satisfy Phase A |
 | Integration | None. No merge, no rebase, no force push, `main` untouched |
 
 Unity, Windows builds, save/load and `main` integration were **not** run and are **not** claimed. Everything here is about the standalone browser `/multi` page in `Tools/MultiRackSitkaP1Lab`.
+
+## R2 — independent-review findings and repairs (2026-11-23)
+
+**Where the findings came from, plainly.** The two defects and the ramp note below came from an independent adversarial review run by **GPT-6.1 Sol** against `f0db8323`. That run was **terminated by a provider usage limit** and **never produced a published review or a verdict**. They are therefore **unverified observations** that the task packet asked me to fix and re-prove. They are **not an approval** of anything, and nothing in this section should be read as a completed independent review. An independent review of R2 is still outstanding.
+
+Same writer (Claude Opus 5.5), same branch, new commits only on top of `f0db8323` (no amend, rebase or force push; `e7c1a57d` and `f0db8323` stay in history). Worktree for R2: a native WSL worktree `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2-20261123`, created detached at `f0db8323` (the lane branch was still checked out in the two earlier T3 worktrees, which I did not touch) and pushed to the lane branch as a fast-forward. Being native WSL, it needed none of R1's CRLF or `GIT_DIR` workarounds. TMPDIR `/tmp/opus-ownerux-r2/tmp`. A setup slip, recorded for completeness: my first `git worktree add` lost its path variable in the `wsl.exe` layer and created an empty, clean, detached worktree named `f0db8323…` inside the main checkout at `main`'s HEAD. I removed it at once with `git worktree remove` (0 changes in it; nothing else touched).
+
+Write scope respected: `src/Ui/PlayerMultiApi.cs` (inside the `MultiAreaPage` HTML, CSS and JS strings only), `tests/ui-smoke-multiarea.sh`, and this folder. `src/Core`, `PlayerApi.cs`, `Program.cs`, `Assets`, fixtures, `.sln`, `.p0ref`, saves and `main` are untouched. `.p0ref` was copied read-only from `CCF-Multi-Stage4UiCatchup-20261123` and never rebuilt (`9a99f781…`, `sha256sum -c` OK before and after).
+
+### R2.1 Defect 1 (MAJOR): the ground panel pushed ranks 1–5 below the fold
+
+What was reported: at 1280×720, with Inspect ground on, the ground panel sat **above** the inspector, so a crown selection pushed the five competitor rows below the fold. Separately, after the inspector had been scrolled, selecting another tree left its primary controls off-screen. Both break AC01/UX-01.
+
+What changed (commit `550e10b4`):
+
+- **Placement.** A new empty slot `#ground-slot` sits in `#inspector-body` directly **after** the Add bar (`.add-dock`). `placeGroundPanel()`, called from `renderGround()` on every render, moves the existing `#ground-panel` there while a tree is inspected in the shown area, and back to the top of `#pane-tree` when nothing is inspected. Keyboard focus inside the panel is preserved across the move. In the slot the panel gets a slightly inset card style. The order is therefore reference → ranks 1–5 → Add → ground panel → everything else. The ground panel can no longer push the primary block down.
+- **Scroll reset.** `chooseTree()` (every selection path: crown click, Trees table, competitor link, exact ID) sets `#pane-tree.scrollTop = 0` after rendering.
+- **Ground mode stays obvious and keyboard reachable (UX-08 unchanged).** `aria-pressed` and "Inspect ground: On/Off", the status line, the crosshair, the × Stop button and Escape all work as before. A crown click in ground mode still clears only the ground read (`state.ground = null`); the mode stays on and the Light Guide is never switched off.
+- **Focus rules.** Turning Inspect ground on **with a tree inspected** keeps focus on the pressed toggle and does not scroll the inspector. The panel is below the primary block, and the button state, the status line and the announcement say what a click now does. With nothing inspected, the heading is focused as before. An **open-ground read** focuses the ground heading (`preventScroll`) and scrolls the panel into view with `scrollIntoView({ block: 'nearest' })`, because the reading is what the user just asked for. The next tree selection resets the inspector to the top.
+- Rows and the Add button were **not** shrunk or hidden. The measured sizes are unchanged from R1: rows 38 px high, 13.44 px text, Add 44 px at 1280×720; rows 50 px, 14.4 px, Add 48 px at 1920×1080.
+
+Design choice for a reviewer to attack: after an open-ground read **while a tree is inspected**, the reading is scrolled into view, so the reference summary and the upper rank rows scroll out of view until the next selection. At 1280×720: scrollTop 369, and the sticky Add bar stays visible just above the reading (screenshot 07). I treated this as a ground interaction, not a tree selection. The AC01 guarantee (every tree selection shows the primary block without scrolling) holds.
+
+### R2.2 Defect 2 (MAJOR): a late hit-test answer reopened a closed inspection
+
+What was reported: Escape closed the inspection while `api/multi/hit` was pending; the late answer then re-applied its payload and reselected the tree.
+
+Mechanism (commit `550e10b4`): a **map-selection generation counter** `state.mapPick`.
+
+- `onMapClick` takes `const pick = ++state.mapPick` just before sending the hit-test. After `await call(...)`, it releases `state.busy` exactly as before and then checks `if (pick !== state.mapPick)`. If the generation moved, the answer is **dropped whole**, whatever its kind (ok, refused, guard, locked, transport). No `applyPayload`, no `chooseTree`, no draft clear, no ground read, no alert and no announcement.
+- These advance the counter and so invalidate an in-flight attempt:
+  - **every Escape key press**: at the top of `onEscape`, before the dialog and search-box early returns, so Escape stays immediately responsive and is never blocked;
+  - **Close inspection** (`closeInspection`, also used by Escape);
+  - **an area switch** (`showArea`, after its existing guards);
+  - **any new selection** (`chooseTree`, which every selection path uses, including the map click's own success path after the check).
+- Knock-on handled: while a hit-test is pending, `state.busy` is true. `refreshCompetition` already discards an answer that arrives while busy, so a newer selection made during the pending hit could be left without competitors. When a stale answer is dropped and the current reference has no competitor report, the page now re-reads it (read-only, the existing `refreshCompetition`).
+- Unchanged and intact: the `state.batch` / `refusedByLock` / `state.busy` entry guards; the refused / guard / locked / failed branches for a **current** answer (same messages); a refused or locked hit-test still never falls through to a ground read. Busy semantics are unchanged: a second map click while a hit-test is pending is still ignored. A dropped stale `refused` answer means its newer view is not applied; the page keeps its current view, and the next command is fenced by the server as always.
+
+### R2.3 Ramp decision (MINOR): the floor is removed, not kept
+
+`LIGHT_ALPHA_FLOOR` is gone. Opacity is `LIGHT_ALPHA_MAX · L^LIGHT_EASE` (0.9 · L^0.65): exactly 0 at L = 0 (no element drawn), and continuous, strictly positive and strictly increasing for L > 0. The "never prints as 0" guarantee moved into formatting. `opacityText()` writes 4 decimals as before down to opacity 0.01, so strings for L ≥ ~0.0013 are byte-identical to R1, e.g. `0.0451`. Below that it writes enough decimals for three significant figures, e.g. `0.00226`, `0.00000127`. Only below 1e-100, which `toFixed` cannot express, it writes exponent form, e.g. `9.000e-131`. Edge parses that form: its computed value is not the default 1, and it serialises as `0`.
+
+Observed with the page's own `lightPaint` (injected L values on one re-read of Area A, then a normal re-read restored all 144 real cells). Same at both viewports:
+
+| L | Opacity written | Colour | Summed RGB change over the floor colour (pixels) |
+|---|---|---|---|
+| 0 | not drawn | — | **0** |
+| 1e-200 | `9.000e-131` | `#7f3b4a` | (not drawn as a swatch) |
+| 1e-9 | `0.00000127` | `#7f3b4a` | (not drawn as a swatch) |
+| 0.0001 | `0.00226` | `#7f3b4a` | **0** (below one 8-bit step; R1 wrote the same value, the floor only mattered below L ≈ 7.6e-7) |
+| 0.01 | `0.0451` | `#88414e` | **8** (unchanged from R1) |
+| 0.05 | `0.1284` | `#994d54` | **26** |
+| 0.5 | `0.5736` | `#e49383` | **227** |
+| 1 | `0.9000` | `#ffd9bd` | **496** |
+
+Invariants checked: L = 0 draws nothing (143 of 144 cells drawn after one cell was set to 0); every L > 0 has a positive opacity text that never reads "0"; the values are strictly increasing over the eight chosen L; at L = 1e-200 the value equals 0.9·L^0.65 to three significant figures, so there is no floor. As in R1 (D-6), positive L below about 7e-4 changes no 8-bit pixel even though the written opacity is positive.
+
+### R2.4 Tests added
+
+- `tests/ui-smoke-multiarea.sh`, checks **R2a–R2j** in the existing page witness (numbered R2.. so the J IDs and the baseline failure IDs do not move). They sit after the F-2 block and before the pre-existing `reason-choice` crash point, so they run. The DOM stand-in gained the standard `prepend`, `firstElementChild` and a no-op `scrollIntoView`; without them the page's first render threw in the stand-in.
+  - R2a/R2b: scroll reset after a table selection and after a crown click.
+  - R2c/R2d/R2e/R2f: panel placement and focus rules.
+  - R2g/R2h/R2i: Escape during a **held** hit-test (the witness's existing `arm(…, 'hold')` fault). Expected: no reselection, no announcement, no competitor read, no alert.
+  - R2j: a newer selection during a held hit-test keeps its selection and its draft.
+  - **Negative control:** against the `f0db8323` page (same witness), **8 of 10 fail** (R2a–R2e, R2h, R2i, R2j). For example, the late answer reselected `MA-A-086` and announced "Selected tree MA-A-086 in Area A.", and scrollTop stayed 420. R2f and R2g are non-regression guards and pass on both.
+- Real-browser driver `scenario-owner-ux.mjs`: one new check in section G (where an open-ground read appears) and a new **R2 section** (17 checks) between G and H. The R1 screenshot 10 moved from section G into R2, where it shows the fold. Section G's checks and every other check are unchanged. 70 → **87** checks per viewport.
+
+### R2.5 Re-proof (all re-run by me in the R2 worktree; nothing reused from earlier runs)
+
+| Gate | Result |
+|---|---|
+| `dotnet build MultiRackSitkaP1Lab.sln` (8.0.134, `/home/jer/.dotnet/dotnet`) | **0 warnings, 0 errors** |
+| `dotnet build src/Ui/SitkaP1.Ui.csproj` | **0 warnings, 0 errors** |
+| Core suite | **184/184**, 0 failed; anchors F-01 `7e3a2a86…`, F-02 `a692a6d5…`, S4 V-02 `814e8165…`, S4 R-02 `8a926776…` present and PASS; P0 trust checks PASS |
+| `ui-smoke-multiarea.sh` | **128 pass / 6 fail**: J04, J05, J09, J10, J11, J99, **all pre-existing** (identical IDs to the 118/6 baseline; J99 is the same `byId('reason-choice').value = 'other'` TypeError, now at witness line 539 because the R2 block was inserted above it). +10 = the new R2a–R2j, all PASS. **No new failure** |
+| `ui-smoke.sh` | **250 pass / 4 fail**: L01, L02, L06, J31, **all pre-existing** (identical to baseline; J31 is the same `getBoundingClientRect` witness crash). **No new failure** |
+| Real headless Edge 1280×720, fresh server | **87/87 PASS** (+3 INFO lines) |
+| Real headless Edge 1920×1080, fresh server | **87/87 PASS** (+3 INFO lines) |
+| CSP violations / exceptions / console errors or warnings / HTTP 5xx | 0 / 0 / 0 / 0 at both viewports |
+| No sideways scroll | 1280 = 1280 and 1920 = 1920, start and end |
+| Protected listeners 127.0.0.1:33767, :43649, :46593 | alive before, during and after; never bound. Lane servers took OS-assigned ports and were stopped afterwards |
+
+New regression checks, observed numbers (pane = `#pane-tree`; at 1280×720 the pane spans y 292–712 and the viewport is 720; at 1920×1080 it spans y 326–1068 and the viewport is 1080):
+
+| Check | 1280×720 | 1920×1080 |
+|---|---|---|
+| Ground ON, nothing inspected | panel first child of the Tree pane, heading focused | same |
+| **Ground ON + crown click** (MA-B-003) | scrollTop 0; reference top 293; rows 434–643; Add 654–698; ground panel starts at 712, below the Add bar (bottom 704), in `#ground-slot`; mode On, Light Guide On | scrollTop 0; rows 555–832; Add 881–929; panel below the Add bar |
+| Same, **all five ticked** | "Add selected 5 to Fell plan", rows 434–643, Add bottom 698, scrollTop 0 | same layout, Add bottom 929 |
+| **Scrolled inspector** (scrollTop 708) + another crown, ground ON | scrollTop 0, rows and Add as above | scrolled 584 → 0 |
+| Open-ground read scrolled the pane (scrollTop 420) + crown click | scrollTop 0, primary block back | 324 → 0 |
+| Scrolled (526) + another crown, **ground OFF** | scrollTop 0, panel hidden, Light Guide still On | 416 → 0 |
+| Open-ground read with a tree inspected | panel in slot, top 343 ≥ Add bar bottom 335, inside the pane, heading focused, scrollTop 369 | top 730 ≥ 722, scrollTop 244 |
+| **Escape while the hit-test answer is held** | inspection closed at once; after release: still closed, no rank layer, announcement unchanged ("Closed the inspection of MA-B-005…"), 0 competitor reads, no alert; the late topmost MA-B-044 ignored | same |
+| **Newer selection** (exact ID MA-B-003 + Enter) while held | MA-B-003 kept; late answer (MA-B-044) ignored; its five competitors loaded after the drop | same |
+| **Area switch** while held, with a 1-tick draft in B | page stays on Area A; back in B: MA-B-003 and "Add selected 1 to Fell plan" intact | same |
+| Server view across the three races | unchanged | unchanged |
+
+**How the race was made deterministic:** the driver wraps `window.fetch` in the page. The real `api/multi/hit` request is sent and answered by the real server (it is read-only), and the wrapper then holds that answer inside the page (`await` on a promise) until the driver calls `__releaseHit()`. The driver waits for `__hitHeld === n`, performs the interfering action (real Escape key, real Enter in the exact-ID box, real click on the Area A tab), checks the immediate state, releases, waits 700 ms plus idle, and checks again. The smoke witness does the same with its existing `hold` fault, which holds the request before it is sent.
+
+Earlier ground-mode checks, re-confirmed at both viewports (same numbers as R1):
+
+- A crown click with Inspect ground on selects MA-B-044.
+- An open-ground click reads "ground at X 38.8, Z 8.8" and leaves the selection, draft and server unchanged.
+- A rank click changes only `MA-B-010`.
+- With a modal open, a map click is swallowed (`posts: []`).
+- Escape order holds: dialog, then ground mode (Light Guide stays on, 239 cells, inspection open), then inspection.
+
+### R2.6 Screenshots
+
+Refreshed because their visible behaviour changed:
+
+| File | Change | Bytes | sha256 |
+|---|---|---|---|
+| `07-ground-inspection-1280x720.png` | the open-ground reading now appears **below** the Add bar, scrolled into view | 303,919 | `58f31fb2…` |
+| `07-ground-inspection-1920x1080.png` | same at 1920×1080 | 752,456 | `8b9eb359…` |
+| `10-ground-mode-crown-selects-1280x720.png` | ground ON + crown click: reference, ranks 1–5 and Add fully visible; the ground panel is no longer above them | 318,454 | `9c7ae4a9…` |
+
+The other nine committed PNGs are unchanged; their states differ only by bytes or by scenario order, not by behaviour. Set: 12 PNGs, **4,838,103 B**, largest 762,902 B (AC-9: ≤ 0.9 MB per image, ≤ 5 MB per set). `10-ground-mode-crown-selects-1920x1080.png` (763,953 B) is **not** committed because it would take the set over 5 MB. It and every other R2 PNG, both raw run logs, the Core log, the final smoke logs and the negative-control smoke log are off-repo at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-repair2-20261123/` (`SHA256SUMS`, 28 files, capability redacted). Committed results and logs contain **zero** `/s/<64 hex>/` capability paths and zero 64-hex tokens (checked).
+
+### R2.7 Not verified / notes
+
+- **Not verified:** owner playtest; any independent review of R2 (the GPT-6.1 Sol run above did not complete); Unity, Windows builds, save/load; `p0-isolation.sh`, `build-output-safety.sh`, `cli-safety.sh`; screen-reader output (announcements were read from the DOM, not heard); narrow layouts below 1024 px for the new placement (the side panel is not a scroll container there; no fold requirement applies). A stale **refused** or **locked** hit-test answer is dropped by the same single check before the outcome branches. No test injects a refused or locked hit answer during a race; the current-answer branches are byte-identical to R1.
+- The committed `scenario-owner-ux.mjs` differs from the copy that ran only by the 3-line header comment added afterwards (checked with `diff`).
+- The R2 commits carry the author identity configured in this repository's Git config (`DeepSeek V4.1 Flash orchestrator <jermur788@users.noreply.github.com>`, the same as on `f0db8323`), with a `Co-Authored-By: Claude Opus 5.5` trailer. The writer of R2 is Claude Opus 5.5.
 
 ## R1. Bounded repair after the owner's decisions (2026-11-23)
 
@@ -108,7 +234,9 @@ UX-06 light ramp spot checks, both viewports, unchanged from Phase A: L = 0 / 0.
 | `9fed4eb9` | `fix(multi-owner-ux)`: keep "Add selected N to Fell plan" on one line (found by the browser fold re-check) |
 | `9dd6f601` | Browser driver for this task, results, screenshots, this handoff |
 | `1a22d01c` | R1 `fix(multi-owner-ux)`: UX-08 crown selection outranks ground inspection (owner decision) |
-| *(R1 docs commit)* | R1 driver section G, re-run results, changed screenshots, this update |
+| `f0db8323` | R1 driver section G, re-run results, changed screenshots, R1 update of this file |
+| `550e10b4` | R2 `fix(multi-owner-ux)`: ground panel below the primary block, scroll reset on selection, stale hit-test answers dropped (`mapPick`), continuous ramp; witness R2a–R2j |
+| *(R2 docs commit)* | R2 driver section, re-run results, three refreshed screenshots, this R2 update |
 
 ## 2. Changed files and why
 
@@ -128,14 +256,14 @@ Not touched (verified with `git diff e7c1a57d HEAD`, empty): `src/Ui/PlayerApi.c
 
 | ID | Status | What was done |
 |---|---|---|
-| **UX-01** | DONE | Inspector reordered: compact reference block (eyebrow + ID + status chip on one line, beside **× Close inspection**; one line of DBH / Height / Crown r), then **Competitors for Fell** ranks 1–5, then the sticky Add bar. Fell reason, Crop, "Fell this tree instead", Pruning, remove/approved notes, competition details and the tree record now sit **below** the primary flow (`.tree-more`). Age moved to the Tree record (it was already listed there). Fewer than five: heading shows "N of 5", no padding rows. At 1280×720 the five rows end at y=651 and the Add button at y=706 (viewport 720), pane scrollTop 0, both with nothing chosen and with all five chosen |
+| **UX-01** | DONE | Inspector reordered: compact reference block (eyebrow + ID + status chip on one line, beside **× Close inspection**; one line of DBH / Height / Crown r), then **Competitors for Fell** ranks 1–5, then the sticky Add bar. Fell reason, Crop, "Fell this tree instead", Pruning, remove/approved notes, competition details and the tree record now sit **below** the primary flow (`.tree-more`). Age moved to the Tree record (it was already listed there). Fewer than five: heading shows "N of 5", no padding rows. At 1280×720 the five rows end at y=651 and the Add button at y=706 (viewport 720), pane scrollTop 0, both with nothing chosen and with all five chosen. **R2:** every selection resets the Tree pane to the top, and with Inspect ground on the ground panel sits **below** the Add bar while a tree is inspected (R2.1). Measured with ground on: rows 434–643, Add 654–698, scrollTop 0, also with all five ticked and after a scrolled inspector |
 | **UX-02** | DONE | The numbered rank tiles are real `<button>`s on a new HTML layer over the map (`#rank-layer`), each with `data-rank-toggle="<engine tree ID>"`, `aria-pressed`, ARIA label "Competitor k, tree ID, Fell draft", 28×28 px, 3 px focus outline. A click goes through the same `toggleDraft(treeId)` as the inspector checkbox, so both directions stay in sync by ID. Positions come from the display-only spread layout and are **never** used to find a tree. The layer is a sibling of the SVG, so a rank click never reaches the map handler: no hit-test, no reference change, no request. Blocked competitors stay focusable with `aria-disabled` and announce why. Chosen state = filled tile + tick corner + `aria-pressed` (not colour alone); the count is announced through the existing polite live region. No new route |
-| **UX-03** | DONE | **× Close inspection** beside the ID; Escape runs the same action. Precedence: (1) an open `<dialog>` closes itself first and the handler does nothing in that key press; (2) a search box with text clears itself first; (3) **Inspect ground** stops; (4) the inspection closes. Closing clears that area's selection, its reference's unsent draft and batch result, and the enlarged focus layout; zoom, pan, area, Light Guide, Crop designations, queued/approved orders and year are kept; nothing is sent. With the Light Guide on, Escape never turns it off |
+| **UX-03** | DONE | **× Close inspection** beside the ID; Escape runs the same action. Precedence: (1) an open `<dialog>` closes itself first and the handler does nothing in that key press; (2) a search box with text clears itself first; (3) **Inspect ground** stops; (4) the inspection closes. Closing clears that area's selection, its reference's unsent draft and batch result, and the enlarged focus layout; zoom, pan, area, Light Guide, Crop designations, queued/approved orders and year are kept; nothing is sent. With the Light Guide on, Escape never turns it off. **R2:** any Escape, Close inspection, area switch or new selection invalidates a pending map hit-test (`state.mapPick`), so a late answer can no longer reopen a closed inspection (R2.2) |
 | **UX-04** | DONE | One quiet line "Synthetic Sitka experiment · 2 areas · Site unknown" + native `<details>` "Details". Inside, unchanged and verbatim: the full Stage 4 disclosure (`MultiDisclosureStage4`: synthetic not surveyed, not comparable, site unknown, connected woodland for growth/crowns, per-area density mortality / Work Plans / summaries, no transfer, no Unity parity), the chips with their full-statement tooltips, "Session only" and a link to the Details pane. The map-foot line no longer repeats "site UNKNOWN · growth and crowns use both areas…" (AC07) |
 | **UX-05** | DONE | Dock 158 px wide (was 212). Compass 3×3 (N top-centre, W/E middle, S bottom-centre, empty centre), then one `− · Fit · +` row, then `Area A · Area B` on one row. 44 px targets kept; north-up, pan/zoom limits, Fit and area-switch handlers unchanged |
-| **UX-06** | DONE | Light cells moved **under the crowns** (`#light-cells` now precedes `#crowns`, clipped to the area, no pointer events, no text). Per cell: `t = L^0.65`, opacity `= 0.9·t` (floor `0.0001` for any `L > 0`, written with 4 decimals, so it can never print as 0), colour linear through `#7F3B4A → #DA796D → #FFD9BD` by `t`. `L = 0`: no element. Old numbered band markers, `lc-1..5` fills and their halos (F-3) are gone. OFF by default |
+| **UX-06** | DONE | Light cells moved **under the crowns** (`#light-cells` now precedes `#crowns`, clipped to the area, no pointer events, no text). Per cell: `t = L^0.65`, opacity `= 0.9·t` (**R2:** no floor, continuous at 0. It is written with 4 decimals down to 0.01, then with three significant figures, so it never prints as 0; see R2.3. Phase A/R1 had a `0.0001` floor), colour linear through `#7F3B4A → #DA796D → #FFD9BD` by `t`. `L = 0`: no element. Old numbered band markers, `lc-1..5` fills and their halos (F-3) are gone. OFF by default |
 | **UX-07** | DONE | Ground panel: level word (Very shaded / Low / Moderate / Bright; `L = 0` adds "no modelled light"), "Light index 0.037 on a 0–1 scale (modelled; 1 = unshaded)", "Canopy cover 96% of this cell under living crowns" (the engine's separate `geometricCoveredFraction`), "Shading trees 8". Closed disclosures: **Contributing trees (n)** with the IDs; **Technical details** with the index (4 dp), the cover fraction, column/row, grid size and clipped m², centre X/Z, cross-border trees, light model label + version, "Calibrated PAR no", the guide label and the not-calibrated caveat |
-| **UX-08** | DONE, **owner-decided precedence (R1, `1a22d01c`)** | Precedence is the literal spec order: modal dialog > rank toggle button > tree crown selection > ground inspection (only while Inspect ground is on). With the Light Guide on or off and Inspect ground on or off, a map click goes to the server hit-test and a crown there is selected exactly as before. **Inspect ground** is an explicit `aria-pressed` toggle shown only with the Light Guide on; while on, a click where the hit-test reports **no crown** finds the engine cell containing the point and shows it (status line, outline on the chosen cell; crosshair over open ground, pointer over crowns). A refused/locked/failed hit-test never falls through to a ground read. A point with no cell says "No modelled ground sample… No value is shown or estimated". Leaving (button, **× Stop**, Escape) stops ground reads and leaves the Light Guide as it was. UX risk accepted by the owner: ground reads are limited to open ground (R1.3) |
+| **UX-08** | DONE, **owner-decided precedence (R1, `1a22d01c`)** | Precedence is the literal spec order: modal dialog > rank toggle button > tree crown selection > ground inspection (only while Inspect ground is on). With the Light Guide on or off and Inspect ground on or off, a map click goes to the server hit-test and a crown there is selected exactly as before. **Inspect ground** is an explicit `aria-pressed` toggle shown only with the Light Guide on; while on, a click where the hit-test reports **no crown** finds the engine cell containing the point and shows it (status line, outline on the chosen cell; crosshair over open ground, pointer over crowns). A refused/locked/failed hit-test never falls through to a ground read. A point with no cell says "No modelled ground sample… No value is shown or estimated". Leaving (button, **× Stop**, Escape) stops ground reads and leaves the Light Guide as it was. UX risk accepted by the owner: ground reads are limited to open ground (R1.3). **R2:** while a tree is inspected the ground panel sits below the primary block. Turning the mode on then keeps focus on the pressed toggle, and an open-ground read scrolls its panel into view (R2.1) |
 | **UX-09** | DONE | The map legend strip says "Light Guide · Shaded [ramp] Bright · Inspect ground reads the value at a spot." The ramp is an SVG gradient sampled from the same mapping. No band labels, no "modelled light – not measured sunlight", no calibration text on the map. Source/version/uncertainty remain in the ground panel's Technical details and the Details pane (unchanged). The level is always given as text + number in the inspector |
 | **F-2** | DONE; **Approve lock accepted by the owner (R1.2, no code change)** | `readoutState()` = `stage4` / `legacy` / `unavailable` (`stage4: null`). Unavailable shows neither the model 0 statements (edge exclusion, "Light … NOT MODELLED") nor the Stage 4 ones; notice, Details pane, history line and rack cards say the read-out is unavailable. **Approve and Execute are disabled** (Execute label "… · re-read needed"), the Work Plan pane shows a notice with a Re-read button, `openExecuteDialog` refuses with a Re-read alert, and an Execute confirmation open when an unpaired view arrives is withdrawn unsent (`samePrunes` now returns false without a read-out). Server-side stale-fence 409 untouched and re-verified |
 
@@ -200,7 +328,7 @@ How the F-2 state was produced: the real server only sends `stage4: null` when a
 - **D-3, inspector wording/layout.** Heading "Choose competitors for Fell" became "Competitors for Fell · N within 8 m"; the strength word moved under the Hegyi CI value (column header "Hegyi CI"); "Clear selection" became "Clear" with `aria-label` "Clear the Fell draft selection"; on short desktops (≤ 820 px high) the visible "n selected · draft only" line and the area tag next to "Reference tree" are hidden (the map subtitle and the pressed Area button name the area; the count is in the Add button and announced); a long status chip shortens with an ellipsis (full text in its tooltip and the Tree record); Age is in the Tree record only. All other information is still present below the fold.
 - **D-4, map foot.** The foot no longer repeats "site UNKNOWN · growth and crowns use both areas; Work Plans and summaries per area" or the model 0 edge sentence; the full statements stay in the notice Details and the Details pane (AC07). The rack cards' "Model 1/1/1 · Synthetic stand · Light: not PAR" badges are **unchanged** (not in the UX list); the owner may consider them repeated warnings, which would be a follow-up.
 - **D-5, Escape and search boxes.** A search box with text keeps the browser's own Escape (clear the field) and the inspection stays open in that key press. Not stated in the spec; chosen to avoid destroying typed text.
-- **D-6, light mapping constants** (`LIGHT_EASE 0.65`, `LIGHT_ALPHA_MAX 0.9`, floor `0.0001`, level-word thresholds 0.1 / 0.35 / 0.65) are visual parameters, not ecology. The suggested `min(0.65, 0.65·L^1.2)` would give opacity ≈ 0.0026 at L = 0.01, which rounds to **no pixel change**; the ease 0.65 gives an 8-level summed change at 0.01 (measured). Below about L = 0.0007 the change rounds to zero pixels on an 8-bit screen although the written opacity stays positive ("potentially imperceptibly subtle", per spec §1). Cells are crisp 2.5 m squares (`shape-rendering: crispEdges`, no blur), so the layer looks blocky up close; blurring would spill light into L = 0 cells, which the spec forbids.
+- **D-6, light mapping constants** (`LIGHT_EASE 0.65`, `LIGHT_ALPHA_MAX 0.9`, level-word thresholds 0.1 / 0.35 / 0.65; the Phase A/R1 floor `0.0001` was **removed in R2**, see R2.3) are visual parameters, not ecology. The suggested `min(0.65, 0.65·L^1.2)` would give opacity ≈ 0.0026 at L = 0.01, which rounds to **no pixel change**; the ease 0.65 gives an 8-level summed change at 0.01 (measured). Below about L = 0.0007 the change rounds to zero pixels on an 8-bit screen although the written opacity stays positive ("potentially imperceptibly subtle", per spec §1). Cells are crisp 2.5 m squares (`shape-rendering: crispEdges`, no blur), so the layer looks blocky up close; blurring would spill light into L = 0 cells, which the spec forbids.
 - **D-7, ground lookup.** The page matches a clicked point to the read-out's own clipped cell polygon (point-in-polygon), the same kind of screen→map conversion the page already does for hit-testing. It never interpolates or estimates a value.
 - **D-8, rank buttons are positioned with CSSOM** (`element.style.left/top`), which the page CSP (`style-src 'self'`) allows; zero CSP reports in both runs. Positions are recomputed on every map render (zoom, pan, resize).
 - **L-1, AC-9 screenshots (Phase A; R1 set: 12 PNGs, 4,827,430 B, see R1.4).** All nine 1280×720 states are committed plus two 1920×1080 states (Light Guide Area B, ground inspection): 11 PNGs, 4,517,240 B, largest 762,902 B, within ≤ 0.9 MB/image and ≤ 5 MB/set. The other seven 1920×1080 PNGs (one is 1,184,051 B, over the per-image cap) are kept outside the repo with the raw logs at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-20261123/` (`SHA256SUMS` there).
@@ -221,9 +349,9 @@ How the F-2 state was produced: the real server only sends `stage4: null` when a
 | `05-light-guide-area-a-1280x720.png` | Light Guide on, Area A (almost all very low light) | 328,254 | `8bc04947…` |
 | `06-light-guide-area-b-1280x720.png` | Light Guide on, Area B (brighter real openings) | 313,703 | `87ac7abf…` |
 | `06-light-guide-area-b-1920x1080.png` | Same at 1920×1080 | 762,902 | `75086cd3…` |
-| `07-ground-inspection-1280x720.png` | **R1:** Inspect ground on, open-ground read: concise summary, contributing trees expanded, truthful hint | 302,657 | `135f6e6e…` |
-| `07-ground-inspection-1920x1080.png` | **R1:** same at 1920×1080 | 746,031 | `686a6ad6…` |
-| `10-ground-mode-crown-selects-1280x720.png` | **R1, new:** Inspect ground on, a crown click selected MA-B-044; panel "choose a spot", no ground read | 315,468 | `2d15032f…` |
+| `07-ground-inspection-1280x720.png` | **R2:** Inspect ground on, open-ground read with a tree inspected: the reading sits below the Add bar, scrolled into view; concise summary, contributing trees expanded | 303,919 | `58f31fb2…` |
+| `07-ground-inspection-1920x1080.png` | **R2:** same at 1920×1080 | 752,456 | `8b9eb359…` |
+| `10-ground-mode-crown-selects-1280x720.png` | **R2:** Inspect ground on, a crown click selected MA-B-003: reference, ranks 1–5 and Add fully visible, ground panel below them | 318,454 | `9c7ae4a9…` |
 | `08-notice-details-1280x720.png` | Notice Details open with every caveat | 219,667 | `2696243c…` |
 | `09-f2-readout-unavailable-1280x720.png` | F-2: unavailable read-out, Approve/Execute withdrawn | 370,664 | `cde1086f…` |
 
@@ -236,5 +364,5 @@ No capability URL is in any committed file. A fresh capability URL for the owner
 3. Click map numbers 1, 3, 5: each turns orange with a tick, the matching rows tick, the button says "Add selected 3 to Fell plan". Click 3 again: it clears. Untick row 1: map 1 clears.
 4. Press Escape (or **× Close inspection**): the map returns to normal; zoom and area stay.
 5. **Light Guide: On**: soft rose-to-peach light appears on the floor under the crowns (Area A is almost all dark; Area B's open edges are pale peach). Clicking a crown still selects it.
-6. **Inspect ground: On**. Click a crown: it is selected as usual (no ground read). Click open ground with no crown over it (easiest in Area B; Area A is almost all crown): a short summary (level, light index, canopy cover, shading trees); the selection and draft are unchanged. Escape stops ground mode; the Light Guide stays on.
+6. **Inspect ground: On**. Click a crown: it is selected as usual (no ground read), and ranks 1–5 and Add stay visible; the ground panel waits below them. Click open ground with no crown over it (easiest in Area B; Area A is almost all crown): a short summary (level, light index, canopy cover, shading trees); the selection and draft are unchanged. Escape stops ground mode; the Light Guide stays on.
 7. Queue → Approve → Execute work as before.
