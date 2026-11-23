@@ -621,6 +621,9 @@ async function pageFetch(path, init = {}) {
   if (fault && fault.mode === 'hold') await fault.held;
   const answer = await send(method, relative, init.body);
   if (fault && fault.mode === 'lose') throw new TypeError('Failed to fetch (witness: the answer was lost after HTTP ' + answer.status + ')');
+  // 'unpaired': the server's answer exactly, except that its engine read-out is missing (stage4: null), as the server sends
+  // when the session moved between a command and its read-out (owner UX repair F-2).
+  if (fault && fault.mode === 'unpaired' && answer.json) answer.json.stage4 = null;
   return { status: answer.status, json: async () => answer.json };
 }
 const serverView = async () => (await send('GET', 'api/multi/view')).json.view;
@@ -681,6 +684,62 @@ check(byId('marks').querySelectorAll('.competitor-rank').length === Math.min(5, 
 let server = await serverView();
 check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pending.length === 0 && server.planStateRevision === 0,
   'inspection created no Crop mark and no Fell order');
+
+// ---- F-2 (owner UX repair Phase A, spec multi-stage4-owner-ux-20261123-v1): a view whose engine read-out could not be
+// paired (stage4: null) is shown as "unavailable", never as model 0 / legacy, and Execute is withdrawn until a paired
+// re-read; the server's stale-fence refusal stays fail-closed. Labelled F2a.. so the J numbering below is unchanged.
+{
+  let f2 = 0;
+  const checkF2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    f2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'F2' + String.fromCharCode(96 + f2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitF2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkF2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+  let v = await serverView();
+  const f2Tree = areaOf(v, 'MA-A').trees.find((t) => t.isLiving && t.treeId !== aTree).treeId;
+  const added = await send('POST', 'api/multi/pending/add', JSON.stringify({ fence: fenceOf(v), areaId: 'MA-A', treeId: f2Tree, reason: 'page witness F-2' }));
+  const staleFence = fenceOf(v);
+  v = await serverView();
+  const approved = await send('POST', 'api/multi/plan/approve', JSON.stringify({ fence: fenceOf(v) }));
+  checkF2(added.status === 200 && approved.status === 200, 'setup: one Fell order queued and approved through the API', [added.status, approved.status]);
+  const plan = (await serverView()).approved;
+  arm('GET', 'api/multi/view', 'unpaired');
+  let f2Mark = requests.length;
+  click(byId('reread'));
+  if (await waitF2(() => !byId('approved-box').hidden && !byId('readout-unavailable').hidden, 'the unpaired view with its approved plan')) {
+    const disclosure = byId('disclosure').textContent + ' | ' + byId('flags').textContent;
+    checkF2(!/EDGE NEIGHBOURS EXCLUDED|Edge neighbours excluded/i.test(disclosure) && disclosure.includes('unavailable') && !disclosure.includes('CONNECTED WOODLAND'),
+      'unavailable: the notice claims neither model 0 edge exclusion nor the Stage 4 model', disclosure);
+    const details = byId('statements').textContent + ' | ' + byId('details-note').textContent;
+    checkF2(!details.includes('Edge neighbours excluded') && !details.includes('Light, seed') && details.includes('unavailable'),
+      'unavailable: the Details pane says so and makes no legacy "Light NOT MODELLED" or edge-exclusion claim', details);
+    checkF2(byId('execute').disabled && byId('approve').disabled && byId('execute').textContent.includes('re-read needed') &&
+      byId('area-cards').textContent.includes('read-out unavailable'),
+      'unavailable: Execute and Approve are withdrawn and the rack cards say the read-out is unavailable', byId('execute').textContent);
+    click(byId('execute'));
+    await sleep(100);
+    checkF2(!byId('execute-dialog').open && alertText().includes('Execute needs a re-read') &&
+      !requests.slice(f2Mark).some((r) => r.path === 'api/multi/plan/execute'), 'unavailable: no Execute confirmation opens and no Execute is sent', alertText());
+  }
+  const stale = await send('POST', 'api/multi/plan/execute', JSON.stringify({ fence: staleFence, planId: plan.planId, executionKey: plan.executionKey }));
+  checkF2(stale.status === 409 && stale.json && stale.json.refusal && (await serverView()).events.length === 0,
+    'the server still refuses an Execute with a stale fence (409, fail-closed, nothing felled)', [stale.status, stale.json && stale.json.refusal]);
+  click(byId('readout-reread'));
+  await waitF2(() => byId('readout-unavailable').hidden && !byId('execute').disabled && byId('disclosure').textContent.includes('CONNECTED WOODLAND'),
+    'a paired re-read restoring the Stage 4 statements and Execute');
+  checkF2(byId('readout-unavailable').hidden && !byId('execute').disabled, 'after a paired re-read Execute is offered again');
+  v = await serverView();
+  const cancelled = await send('POST', 'api/multi/plan/cancel', JSON.stringify({ fence: fenceOf(v) }));
+  click(byId('reread'));
+  await waitF2(() => byId('approved-box').hidden, 'the cancelled plan to disappear');
+  checkF2(cancelled.status === 200 && (await serverView()).approved === null, 'cleanup: the F-2 plan was cancelled through the API (nothing was felled)');
+}
 
 // Area B: switch, then select a tree by a click on its drawn crown.
 click(byId('area-switch').querySelector('[data-area="MA-B"]'));
