@@ -6,12 +6,28 @@ internal static class AnnualRules
     // The frozen Sitka constants now live in one named profile; the arithmetic below is unchanged (Multi #899 Stage 1).
     private static readonly SpeciesProfile Species = SpeciesProfile.Sitka;
 
-    internal static AnnualReport Calculate(AnnualState state, int simulationSeed, float areaHa)
+    internal static AnnualReport Calculate(AnnualState state, int simulationSeed, float areaHa) =>
+        Calculate(state, simulationSeed, areaHa, CrownModelVersion.LegacyFrozen, woodland: null);
+
+    /// <summary>
+    /// The annual step with an explicit crown model. <see cref="CrownModelVersion.LegacyFrozen"/> takes exactly the frozen
+    /// path (and ignores <paramref name="woodland"/>). <see cref="CrownModelVersion.AreaScaledEquilibriumC2"/> changes only
+    /// the crown response: its CI is evaluated over <paramref name="woodland"/> (every living tree of the connected woodland
+    /// at the start of the year, ordinal TreeId order). DBH growth, height, mortality and the boundary rule keep using this
+    /// area's own competition exactly as before (spec #899: "only crown initialisation and crown response change").
+    /// </summary>
+    internal static AnnualReport Calculate(AnnualState state, int simulationSeed, float areaHa, CrownModelVersion crownModel,
+        AnnualTree[]? woodland)
     {
+        CrownModel.RequireKnown(crownModel);
+        if (crownModel != CrownModelVersion.LegacyFrozen && woodland is null)
+            throw new P1Refusal("CrownWoodlandRequired", "CrownModel 1 needs the connected-woodland neighbourhood");
         int year = checked(state.EcologicalYear + 1);
         var before = state.Trees.Where(tree => tree.IsLiving).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
         var competition = before.Select(tree => Competition(tree, before)).ToArray();
-        var grown = before.Select((tree, i) => Grow(tree, competition[i].Ci)).ToArray();
+        var grown = crownModel == CrownModelVersion.LegacyFrozen
+            ? before.Select((tree, i) => Grow(tree, competition[i].Ci)).ToArray()
+            : before.Select((tree, i) => GrowC2(tree, competition[i].Ci, Competition(tree, woodland!).Ci)).ToArray();
         var postGrowth = Stand(grown, areaHa);
         double pressure = SitkaGrowthModel.DensityPressure(postGrowth.RelativeDensity);
 
@@ -60,7 +76,7 @@ internal static class AnnualRules
                 .OrderBy(row => row.Before.TreeId, StringComparer.Ordinal).ToArray()), deaths.AsReadOnly());
     }
 
-    private static (float Ci, int Neighbours) Competition(AnnualTree target, AnnualTree[] trees)
+    internal static (float Ci, int Neighbours) Competition(AnnualTree target, AnnualTree[] trees)
     {
         float ci = 0f;
         int neighbours = 0;
@@ -93,6 +109,17 @@ internal static class AnnualRules
         float radius = MathF.Max(Species.CrownRadiusFloorM,
             tree.CrownRadiusM + (target - tree.CrownRadiusM) * Species.CrownRelaxation);
         return tree with { AgeYears = checked(tree.AgeYears + 1), DbhCm = dbh, HeightM = height, CrownRadiusM = radius };
+    }
+
+    /// <summary>
+    /// CrownModel 1: the frozen DBH/height/age update driven by this area's <paramref name="ci"/>, then the C2 crown step
+    /// driven by the connected-woodland <paramref name="crownCi"/>, using the post-growth DBH exactly as model 0 does.
+    /// </summary>
+    internal static AnnualTree GrowC2(AnnualTree tree, float ci, float crownCi)
+    {
+        if (!tree.IsLiving) return tree;
+        var grown = Grow(tree, ci);
+        return grown with { CrownRadiusM = CrownModel.NextRadiusM(Species, tree.CrownRadiusM, grown.DbhCm, crownCi) };
     }
 
     private static AnnualStand Stand(IEnumerable<AnnualTree> living, float areaHa)

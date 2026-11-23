@@ -28,9 +28,18 @@ internal sealed record MultiAreaRoot(
 /// <summary>The per-area annual step: the unchanged AnnualRules.Calculate and the same next-state construction as AnnualContinuation.</summary>
 internal static class MultiAreaAnnual
 {
-    internal static (AnnualReport Report, AnnualState Next) Step(AnnualState state, int simulationSeed, float areaHa)
+    internal static (AnnualReport Report, AnnualState Next) Step(AnnualState state, int simulationSeed, float areaHa) =>
+        Step(state, simulationSeed, areaHa, CrownModelVersion.LegacyFrozen, woodland: null);
+
+    /// <summary>
+    /// The same step with an explicit crown model. For CrownModel 1 <paramref name="woodland"/> is the connected-woodland
+    /// neighbourhood read from the start-of-year root (never from another area's freshly stepped state), so area order
+    /// cannot change any result and no area mutates another.
+    /// </summary>
+    internal static (AnnualReport Report, AnnualState Next) Step(AnnualState state, int simulationSeed, float areaHa,
+        CrownModelVersion crownModel, AnnualTree[]? woodland)
     {
-        var report = AnnualRules.Calculate(state, simulationSeed, areaHa);
+        var report = AnnualRules.Calculate(state, simulationSeed, areaHa, crownModel, woodland);
         var next = new AnnualState(report.YearAfter, Array.AsReadOnly(report.Trees.Select(row => row.After).ToArray()));
         return (report, next);
     }
@@ -49,6 +58,8 @@ internal sealed class MultiAreaContinuation
         string AreaM2Exact, IReadOnlyList<MultiAreaVertex> Polygon, PlayerMapExtent Extent);
 
     private readonly object sync = new();
+    private readonly CrownModelVersion crownModel;
+    private readonly string areaModelVersion;
     private readonly IReadOnlyList<AreaInfo> areas; // ordinal by AreaId, the same order as root.Areas
     private readonly MultiAreaExperimentInfo experiment;
     private readonly string areaIds;
@@ -56,26 +67,52 @@ internal sealed class MultiAreaContinuation
     private readonly string sessionId =
         Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
     private MultiAreaRoot root;
+    // Session-only canopy/light read-outs (#900), one per light grid, valid for one committed tree state. Tree state changes
+    // only on Execute (WorkRevision) or an annual step (AnnualRevision: natural death and crown growth), so Pending, Approve,
+    // Crop marks and reads never recompute or change them. Never saved and never part of a token.
+    private readonly Dictionary<double, (int AnnualRevision, int WorkRevision, CanopyLightReport Report)> canopyCache = new();
+    private int canopyRecomputeCount;
 
-    internal MultiAreaContinuation(MultiAreaExperiment definition)
+    internal MultiAreaContinuation(MultiAreaExperiment definition) : this(definition, CrownModelVersion.LegacyFrozen)
+    {
+    }
+
+    /// <summary>
+    /// Start a session with an explicit crown model. Model 0 is exactly the frozen MA-1 path. Model 1 (C2) derives each
+    /// living tree's year-0 radius as r_0 = r_target(CI_0) over the connected genesis woodland; the experiment manifest, its
+    /// content hash and every other genesis value are unchanged (a derived session path, not a new fixture).
+    /// </summary>
+    internal MultiAreaContinuation(MultiAreaExperiment definition, CrownModelVersion crownModel)
     {
         ArgumentNullException.ThrowIfNull(definition);
+        CrownModel.RequireKnown(crownModel);
         definition.Validate();
+        this.crownModel = crownModel;
+        bool connected = crownModel != CrownModelVersion.LegacyFrozen;
+        areaModelVersion = connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion;
         string contentHash = definition.ContentHash();
         experiment = new MultiAreaExperimentInfo(definition.ExperimentId, MultiAreaIdentity.Format, MultiAreaIdentity.SchemaVersion,
             MultiAreaIdentity.Domain, MultiAreaIdentity.SourceClass, contentHash, definition.GeneratorId,
             definition.GeneratorVersion, definition.GeneratorSeed, MultiAreaIdentity.ReviewStatus, MultiAreaIdentity.Disclosure,
-            MultiAreaIdentity.EdgeModel, MultiAreaIdentity.SiteNote);
+            connected ? MultiAreaIdentity.EdgeModelConnectedCrownC2 : MultiAreaIdentity.EdgeModel, MultiAreaIdentity.SiteNote);
         areas = Array.AsReadOnly(definition.Areas.Select(InfoOf).ToArray());
         areaIds = string.Join(",", definition.Areas.Select(area => area.AreaId));
-        var states = definition.Areas.Select(area => new MultiAreaAreaState(area.AreaId,
-            new AnnualState(0, MultiAreaExperiment.GenesisTrees(area)), Array.Empty<string>())).ToArray();
+        var genesis = definition.Areas.Select(MultiAreaExperiment.GenesisTrees).ToArray();
+        if (connected)
+        {
+            var woodland = CrownModel.Woodland(genesis.SelectMany(trees => trees));
+            genesis = genesis.Select(trees => CrownModel.Equilibrate(SpeciesProfile.Sitka, trees, woodland)).ToArray();
+        }
+        var states = definition.Areas.Select((area, i) => new MultiAreaAreaState(area.AreaId,
+            new AnnualState(0, genesis[i]), Array.Empty<string>())).ToArray();
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
             Array.Empty<MultiAreaYearRecord>());
     }
 
     internal string SessionId => sessionId;
+
+    internal CrownModelVersion SelectedCrownModel => crownModel;
 
     /// <summary>The whole view, built from ONE root reference under ONE lock acquisition.</summary>
     internal MultiAreaSessionView ReadView()
@@ -356,6 +393,10 @@ internal sealed class MultiAreaContinuation
             var records = new MultiAreaAreaYear[root.Areas.Count];
             var reports = new MultiAreaAreaReport[root.Areas.Count];
             bool lostCrop = false;
+            // CrownModel 1 only: the start-of-year connected woodland, shared read-only by every area's step.
+            AnnualTree[]? woodland = crownModel == CrownModelVersion.LegacyFrozen
+                ? null
+                : CrownModel.Woodland(root.Areas.SelectMany(area => area.State.Trees));
             for (int i = 0; i < root.Areas.Count; i++)
             {
                 var area = root.Areas[i];
@@ -363,7 +404,9 @@ internal sealed class MultiAreaContinuation
                 AnnualState next;
                 if (area.State.Trees.Any(tree => tree.IsLiving))
                 {
-                    var (report, stepped) = MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa);
+                    var (report, stepped) = crownModel == CrownModelVersion.LegacyFrozen
+                        ? MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa)
+                        : MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa, crownModel, woodland);
                     next = stepped;
                     records[i] = new MultiAreaAreaYear(area.AreaId, report.Before, report.After,
                         Array.AsReadOnly(report.Deaths.ToArray()), NoLivingStems: false);
@@ -402,6 +445,40 @@ internal sealed class MultiAreaContinuation
             };
             return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(reports)));
         }
+    }
+
+    // ------------------------------------------------------------------------------------------------ canopy and light (#900)
+
+    /// <summary>
+    /// Read-only canopy cover, growing-space and modelled light read-out of the CURRENT committed trees, per area polygon,
+    /// with the connected woodland as the neighbourhood. Computed at most once per committed tree state and light grid
+    /// (load, Execute, natural death, annual crown growth); Pending, Approve, Crop marks and repeated reads return the same
+    /// cached value. Session-only: nothing is saved and no root, token or revision changes.
+    /// </summary>
+    internal CanopyLightReport ReadCanopyLight(double lightCellM = CanopyLightEvaluator.DefaultLightCellM)
+    {
+        CanopyLightEvaluator.RequireSupportedGrid(lightCellM);
+        lock (sync)
+        {
+            if (canopyCache.TryGetValue(lightCellM, out var cached) &&
+                cached.AnnualRevision == root.AnnualRevision && cached.WorkRevision == root.WorkRevision)
+                return cached.Report;
+            var input = new CanopyArea[root.Areas.Count];
+            for (int i = 0; i < input.Length; i++)
+                input[i] = new CanopyArea(areas[i].AreaId,
+                    Array.AsReadOnly(areas[i].Polygon.Select(v => new CanopyVertex(v.XM, v.ZM)).ToArray()), areas[i].AreaHa,
+                    root.Areas[i].State.Trees);
+            var report = CanopyLightEvaluator.Evaluate(input, lightCellM, crownModel);
+            canopyCache[lightCellM] = (root.AnnualRevision, root.WorkRevision, report);
+            canopyRecomputeCount++;
+            return report;
+        }
+    }
+
+    /// <summary>How many times a canopy/light read-out has been computed in this session (for recompute-trigger tests).</summary>
+    internal int CanopyRecomputeCount
+    {
+        get { lock (sync) return canopyRecomputeCount; }
     }
 
     // ------------------------------------------------------------------------------------------------ read-only inspection
@@ -504,7 +581,7 @@ internal sealed class MultiAreaContinuation
     private MultiAreaSourceToken Token(MultiAreaRoot current) => new(MultiAreaIdentity.Domain, experiment.ExperimentId,
         experiment.ManifestContentHash, areaIds, current.EcologicalYear, current.AnnualRevision, current.WorkRevision,
         DerivedManifest.RngModelVersion, DerivedManifest.GrowthModelVersion, DerivedManifest.P1AlgorithmVersion,
-        MultiAreaIdentity.AreaModelVersion, MultiAreaIdentity.ActionEligibleDbhThresholdMm);
+        areaModelVersion, MultiAreaIdentity.ActionEligibleDbhThresholdMm);
 
     // The one execution key the engine mints for a plan. The view shows it and a first Execute requires it.
     private static string MintedExecutionKey(string planId) => planId + ":execute";

@@ -444,6 +444,7 @@ PlayerCompetitionTests.Register(manifestPath);
 PlayerCropStateTests.Register(manifestPath);
 MultiAreaTests.Register(manifestPath);
 Model0FingerprintTests.Register(manifestPath);
+CrownC2Tests.Register();
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;

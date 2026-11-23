@@ -72,9 +72,12 @@ internal static class Model0FingerprintTests
         return w.Hash();
     }
 
-    internal static string MultiAreaFingerprint()
+    /// <summary>With no model the original one-argument constructor is used, exactly as on the base commit.</summary>
+    internal static string MultiAreaFingerprint(CrownModelVersion? model = null)
     {
-        var c = new MultiAreaContinuation(MultiAreaGenerator.Generate());
+        var c = model is CrownModelVersion m
+            ? new MultiAreaContinuation(MultiAreaGenerator.Generate(), m)
+            : new MultiAreaContinuation(MultiAreaGenerator.Generate());
         var w = new Fingerprint();
         foreach (var area in c.ReadView().Areas) w.Trees(area.Trees);
         for (int year = 0; year < 10; year++)

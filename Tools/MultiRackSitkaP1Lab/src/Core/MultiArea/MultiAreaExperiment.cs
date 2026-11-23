@@ -17,6 +17,8 @@ internal static class MultiAreaIdentity
     // The author never marks its own experiment as accepted (same rule as TrustTables.cs).
     internal const string ReviewStatus = "PendingIndependentReview";
     internal const string AreaModelVersion = "ma1-isolated-per-area-v1";
+    // CrownModel 1 sessions only (#899, D-094): the crown neighbourhood is the connected woodland; everything else per area.
+    internal const string AreaModelVersionConnectedCrownC2 = "ma1-connected-woodland-crown-c2-v1";
     internal const string Site = "UNKNOWN";
     internal const string Disclosure =
         "SYNTHETIC AUTHORED TWO-AREA SITKA EXPERIMENT. NOT A SURVEYED IRISH FOREST. AREAS NOT ASSESSED COMPARABLE. " +
@@ -25,6 +27,10 @@ internal static class MultiAreaIdentity
     internal const string EdgeModel =
         "isolated per area: competition, growth and mortality use only the trees of the same area; " +
         "neighbours across an area boundary are excluded";
+    internal const string EdgeModelConnectedCrownC2 =
+        "CrownModel 1 (area-scaled-equilibrium-c2-v1): crown initialisation and annual crown response use Hegyi competition " +
+        "over every living tree of the connected woodland (both areas, 8 m); the outer perimeter borders open grassland with " +
+        "no synthetic neighbours; DBH growth, height, mortality, Work Plans and summaries remain per area";
     internal const string SiteNote =
         "site UNKNOWN; the unchanged engine uses its constant site value 1.0f for every area; no per-area site value is active";
     internal const string LocalFrame =
