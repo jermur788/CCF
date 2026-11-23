@@ -1,6 +1,6 @@
 # Tasks — MULTI Stage 5 (APPROVED)
 
-**Status: APPROVED — owner approval 2026-11-23; AMENDED — owner Option A, 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; Option A changes §4, Q4 and Q5; see the `spec.md` approval and amendment records). Boxes are ticked only from observed evidence.
+**Status: APPROVED — owner approval 2026-11-23; AMENDED — owner Option A, 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; Option A changes §4, Q4 and Q5; see the `spec.md` approval and amendment records). **AMENDED — owner final bounded-repair decisions, 2026-11-23:** the `S5-07A` population and units, and the `S5-02` criterion (T16). Boxes are ticked only from observed evidence.
 
 - [x] T0a Owner locked decisions 1–6 and `e7c1a57d` base recorded (2026-11-23).
 - [x] T0b Read-only source audit: Unity `RegenDensityMax = 1.5`, per-cell occupancy `density/max`, one band promoted per cell per year, `PromotionHeightM = 3.5`, mast 15 %/35 %/50 %, `promotionMinimumLight` absent from `SitkaSpruce.asset`.
@@ -24,3 +24,8 @@
 - [ ] T13 Independent review (different model/session from the implementer), then owner acceptance.
 - [ ] T14 Option A repair pass on the task branch, with F3–F6 cleanups and a repair handoff.
 - [ ] T15 Delta re-review of the changed promotion code and the new `S5-07A`/`S5-07B` tests, then owner acceptance.
+- [ ] T16 Final bounded repair (owner decisions 2026-11-23, no rule change):
+  - matched-area `S5-07A` (D1) and the `S5-07B` unmatched-block disclosure;
+  - comparative `S5-02` (D2), with the poor-light census as a diagnostic;
+  - a straddling-block test (F6 corner);
+  - a final repair handoff, then delta re-review.
