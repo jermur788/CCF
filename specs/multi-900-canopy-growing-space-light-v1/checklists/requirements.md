@@ -1,26 +1,30 @@
-# Multi #900 — Proposed requirements checklist
+# Multi #900 — Approved requirements checklist
 
-**DRAFT / not authorisation.** Mark from observed evidence only.
+**Status: APPROVED (D-094, 2026-11-23).** Mark from observed evidence only.
 
-## User-visible demonstration
-- [ ] R01 From same Area A snapshot, actual exact-ID Fell/Execute changes canopy geometry and modelled local light immediately in the same ecological year. Pending/Approved plans before Execute must make zero ecological changes.
-- [ ] R02 Year +1/+3 changes in canopy/light derive from the **chosen #899 crown evolution**, not CSS/SVG, and matched no-work copy enables a fair control.
-- [ ] R03 Area B switches and displays its own independent field, without cross-area neighbour influence or false comparable-stand experimental claims.
-- [ ] R04 User can toggle heatmap/inspect ground point/cell and read legend/units/caveats. No fake seedling or light-driven regeneration outcome in this slice.
-- [ ] R05 Focused crown 2× magnification, displaced competitor art, status symbols and labels do not modify ecological geometry or light values.
+## Decision gates (satisfied)
 
-## Model and scientific credibility
-- [ ] R06 Clearly separate Hegyi CI/stocking/growing-space diagnostics, projected polygon-clipped union canopy cover and modelled relative light/index. Do not equate summed crowns, canopy cover, canopy openness and actual understorey PAR.
-- [ ] R07 Use actual tree IDs, positions, state and selected realised `CrownRadiusM`; dead/stump no-shading policy verified, area shape and units correct, edge polygons area-weighted.
-- [ ] R08 Unity old kernel (5m; reach R+half-cell; lateral * height/8; product of gaps) reproduced exactly **or** numerical differences disclosed on tiny cases, with underlying Unity code left unchanged.
-- [ ] R09 Empirical light algorithm and coefficients measured/justified with explicit data domain, observational uncertainty, UK→Ireland limitations and per-model errors; no assumption that k10a10 predicts measured RLI.
-- [ ] R10 At least one Irish/UK observed stand benchmark reports actual BA/N, treatment, sampling method and before/after openness/transmittance; do not force this one site to become a universal threshold or conflate openness and PAR.
-- [ ] R11 Grid resolution / boundary sensitivity tested with an authorised small offline comparison, including sparse gaps and 0,1,2 overlapping crowns.
-- [ ] R12 Finite 0≤relative light≤1; no tree means open model proxy; deterministic repeat; no cross-area effects; efficient enough with actual 171/73 tree counts (measured, not inferred).
-- [ ] R13 Version `lightModelVersion` / output semantics documented, differences between Unity parity proxy and selected empirically corrected model labelled. Offline/real run IDs and numerical ranges archived.
+- [x] G01 #899 crown model fixed (C2) and fed into this layer.
+- [x] G02 Light model fixed as `Modelled Light Index (Unity k10a10 proxy — not calibrated PAR)`, version `unity-k10a10-decoupled-v1`.
+- [x] G03 Grid/buffer fixed: 2.5 m default, 5.0 m parity, `b = 2.5 m` independent of cell size.
+- [x] G04 Boundary policy fixed: connected-woodland neighbours, open-grassland outer edge, per-rack summaries.
+- [x] G05 Engine-first: no overlay/heatmap/inspector this pass; session-only outputs; zero save-schema change.
 
-## Scope and authority
-- [ ] R14 #899 numerical crown-model decision G5 recorded; this draft's U/V light model choice G5 recorded; full quartet APPROVED and actual D-091 physical single-writer lease obtained before source changes.
-- [ ] R15 P0/Legacy40/frozen Reference Future v1, 3D Unity scenes/assets/ecology, old 2D synthetic fixtures, current Work Plan, source fences, no-save session semantics all preserved or explicitly separately owner-approved/versioned.
-- [ ] R16 No unapproved recruitment, juvenile survival, planting, browsing, timber, windthrow, new species, 3D shared-engine rewrite or speculative infrastructure.
-- [ ] R17 Final proof distinguishes source-implemented, independently reviewed, numerical/empirical qualified and owner-accepted; one bounded real player-facing demo and direct GitHub handoff.
+## Implementation evidence (unchecked until observed)
+
+- [ ] R01 Empty stand returns light 1.000 and cover 0.
+- [ ] R02 Single mature overhead returns 0.000; single 4 m young overhead returns 0.500.
+- [ ] R03 Drip-line edge `r = 1.73 m` returns 0.409 identically at 5.0 m and 2.5 m spacing.
+- [ ] R04 Two-tree narrow gap ≈ 0.349 with 0 % geometric union overlap; dense lattice shows no 13× grid artefact.
+- [ ] R05 Stump and biologically dead trees contribute no cover or shade (result 1.000 in isolation).
+- [ ] R06 5.0 m mode matches the Unity equation exactly; 2.5 m mode is decoupled and differs only by sampling/buffer.
+- [ ] R07 Geometric cover is polygon-clipped **union**, not summed disks; uncovered m² and opening dimensions reported.
+- [ ] R08 Cross-border living neighbours within 8 m influence the adjacent rack's cells; stems beyond the outer perimeter do not.
+- [ ] R09 Per-rack summaries are area-weighted by clipped cell area and never blended across racks.
+- [ ] R10 Approve alone changes no canopy or light value; Execute changes exactly the removed IDs; Year +1/+3 follows crown evolution.
+- [ ] R11 Matched untreated control and treated run reported at years 0/1/3 with exact deltas and measured runtime on 171/73 trees.
+- [ ] R12 Values finite and bounded 0–1; deterministic TreeId order; repeated runs identical.
+- [ ] R13 `LightModelMetadata` present with version, kind, caveat and uncertainties.
+- [ ] R14 P0/Legacy40/Reference Future v1, frozen fixtures, Work Plan fences and session-only semantics preserved.
+- [ ] R15 No recruitment, planting, browsing, LAI/PAR fit, species curve, save change, Unity or UI change.
+- [ ] R16 Final proof distinguishes implemented, numerically qualified, reviewed and owner-accepted; overlay deferred to a separate approved slice.

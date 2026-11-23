@@ -1,66 +1,92 @@
-# Multi #900 — Canopy cover, local growing-space diagnostics and forest-floor light (2D)
+# Multi #900 — Canopy cover, growing-space diagnostics and forest-floor light (2D)
 
-**Status: DRAFT / PROPOSED SPEC — NOT APPROVED FOR IMPLEMENTATION.** Owner direction 2026-11-23 00:22 UTC: extend the standalone 2D Sitka simulator with canopy/growing-space and light, reuse as much *verified* 3D Unity engine work as justified, and check numerical accuracy **during** development. #899 has not selected a realised-crown model; this spec does **not** select one.
+**Status: APPROVED — owner decision D-094 (2026-11-23).** SPEC REQUIRED: new ecological output, shared numerical rule, cross-rack interaction and player-facing readout. This pass is **engine-first**: it proves the calculations inside the pure 2D engine and automated tests, and does **not** add a map overlay, heatmap or ground inspector.
 
-**Task class:** SPEC REQUIRED (new ecological output, cross-engine shared rules, UI display, multi-area treatment effects). Owner-facing intent: a player can understand which ground is covered, how neighbouring trees compete, where relative light increases after real Fell and how it changes again as crowns grow. Phase-1 light is an explanatory/diagnostic metric **only**, not yet a causal regeneration or growth mechanism.
+## 0. Authority and source readback (2026-11-23)
 
-## 0. Authority and source readback (2026-11-23 drafting)
-- Current 3D source [`ForestEcologyController.cs`](https://github.com/jermur788/CCF/blob/main/Assets/ForestPrototype/ForestEcologyController.cs), blob `0290a7beab639e48585f97c6af8cf993959b9f37`. Its `RecomputeCanopy()` at lines ~818–850 uses the actual living-crown position, radius and height on the centres of a 5 m ecology grid. For each cell and tree, `reach = radius × CanopyShadeReachPerCrownRadius(=1) + cellSize/2`; `lateral=clamp01(1−distance/reach)`; `vertical=clamp01(height/8)`; `influence=lateral×vertical`; cumulative `gap=Π(1−influence)`, `Canopy=1−gap` and `Light=1−Canopy`. The 1× reach is documented `k10a10` gameplay calibration, **not a calibrated PAR radiation transfer model**. **Source caution:** the exact code excludes `tree.IsStump`; inspect how natural dead stems are represented before establishing a cross-engine alive-filter contract.
-- Unity annual order at ~474–495: competition → pre-growth canopy/light → DBH/height growth → crown relaxation → density mortality → new canopy/light → regeneration. Batch Fell recomputes canopy/light after the batch once. `ForestEcologyCell.cs` stores `Canopy` and `Light` floats. [`TreeSpeciesDefinition.cs`](https://github.com/jermur788/CCF/blob/main/Assets/ForestPrototype/TreeSpeciesDefinition.cs) carries species light-response arrays for **juvenile processes**, not a proof of canopy light accuracy. No automatic adoption of juvenile curves.
-- Current 2D [`AnnualRules.cs`](https://github.com/jermur788/CCF/blob/a692e1bf5d21304d06e696db1f47d1988ff80ee1/Tools/MultiRackSitkaP1Lab/src/Core/AnnualRules.cs), blob `dc299b3271c9dd406f4f580793cd8212b94ac718`: per-tree adult competition/growth and crown-size updates; **no equivalent area cell canopy/light state**. Two-area `/multi` API/page is [`PlayerMultiApi.cs`](https://github.com/jermur788/CCF/blob/feat/multi-885-astra-opus-ui-20261122-v1/Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs), and the presentation is embedded in `MultiAreaPage.Html/Css/Js` literals, **not** only `wwwroot`. The UI artistically magnifies/moves focused crowns in latest revision: NEVER use SVG screen geometry for ecological light; use authoritative unmodified source tree X/Z, height, true `CrownRadiusM`, living state and area polygon.
-- [#899 crown model](https://github.com/jermur788/CCF/issues/899) still determines the authoritative **realised crown state** to be fed into this phase. Its potential-growth formula/initialisation are under review. This spec does not re-baseline #899 and must use its chosen version by **explicit G5 decision**.
-- [Project game brief](https://github.com/jermur788/CCF/blob/main/Docs/Project/game-brief.md): CCF management choices should have legible, spatial and delayed consequences; smaller private woodland owners/managers are core audience. Eight-scenario/species/Unity long-term direction does not authorise a broad refactor of the 2D/3D engines.
-- [Current #885 original simulation](https://github.com/jermur788/CCF/issues/885) is a synthetic two-area adult-Sitka, ephemeral in-memory laboratory. No recruitment, actual ground-light observations, save/load or 3D parity claimed.
+- 3D kernel [`ForestEcologyController.cs`](https://github.com/jermur788/CCF/blob/main/Assets/ForestPrototype/ForestEcologyController.cs), blob `0290a7beab639e48585f97c6af8cf993959b9f37`. `RecomputeCanopy()` evaluates living tree centre, `CrownRadius` and `Height` on 5 m cell centres: `reach = radius × 1 + cell/2`; `lateral = clamp01(1 − d/reach)`; `vertical = clamp01(h/8)`; `influence = lateral × vertical`; `gap = Π(1 − influence)`; `Canopy = 1 − gap`; `Light = gap`. The 1× reach and `h/8` are documented `k10a10` gameplay calibration, **not calibrated PAR**. `RecomputeCanopy` skips `IsStump`; `FindTrees()` excludes `IsBiologicallyDead`, so only living trees cast.
+- Unity annual order (~474–495): competition → pre-growth canopy/light → DBH/height growth → crown relaxation → density mortality → post-growth canopy/light → regeneration. Batch Fell recomputes once after the batch.
+- Current 2D engine [`AnnualRules.cs`](https://github.com/jermur788/CCF/blob/a692e1bf5d21304d06e696db1f47d1988ff80ee1/Tools/MultiRackSitkaP1Lab/src/Core/AnnualRules.cs), blob `dc299b32…`: per-tree adult competition/growth and crown updates, no area cell canopy/light state. The multi-area contracts and fenced commands already exist in `src/Core/MultiArea/`.
+- `MultiAreaGenerator` places Area A and Area B in **one integer-millimetre world frame** and they share the boundary segment `(36,2)–(40,18)` m. The former draft statement that the areas are fully independent is superseded by D-094.
+- The 2D page artistically magnifies/displaces focused crowns. **Never use SVG screen geometry for ecology.** Use authoritative tree X/Z, height, true `CrownRadiusM`, living state and the rack polygon.
+- `#899` is now decided (D-094): `CrownModel 1` supplies the realised crown radius fed into this layer.
 
 ## 1. Terms and outputs (do not conflate)
-1. **Tree-level growing-space pressure** is the *existing* documented neighbour competition index (Hegyi CI and stand density) plus optional spatial diagnostics such as neighbour counts, crown-footprint overlap or clearance. It is **not** a mechanically allocated non-overlapping area in m²/tree and does not itself confer rights to change DBH, mortality or crown-growth rules. If #899 adopts directional crown dynamics, use their selected approved state through an interface, not an independent 2D crown reconstruction.
-2. **Projected canopy cover** is the polygon-clipped **union** of genuine *authoritative* living crown footprints (physical geometric ground plan) divided by area; report exposed canopy openings from union geometry. The sum of individual crown areas is not canopy cover. If only radius is authoritative, a circular projection is an explicit approximation; do not claim measured true canopy shape.
-3. **Forest-floor relative light** is a separate estimated 0–1 fraction of light at sample points under the canopy, with stated reference (e.g. relative to above-stand incoming PAR). It is NOT equal to projected uncovered fraction except under a separately justified ideal opaque-canopy assumption. The current Unity `cell.Light=Π(1−influence)` is a *historical gameplay proxy*; an empirically supported transmittance version/parameter choice is needed before labelling its values PAR/RLI.
-4. **Light field** is area-local spatial sampling of the *same* physical trees and polygon, in metres and hectares. Area A and Area B are independent simulation states; never couple their neighbours/light.
-5. **Basal area, live tree density and projected crown coverage** are three different variables and all remain available to explain treatment. Do not infer species regeneration or wind risk as already causal from them.
 
-## 2. Phase-1 target: minimum genuine player demonstration
-One actual control-and-treatment comparison on **the same frozen Area A state**, with Area B optionally inspected separately:
-- Player chooses a retained Crop/reference tree, adds several real exact-ID neighbouring trees to Fell Work Plan, **Approves (0 Fell)**, then **Executes (exact Fell)**. Same Year-0 tree positions: show the physical canopy openings and relative light at selected cell/point **before vs immediately after actual Execute**. Unsaved draft/pending/approved but unexecuted plans **do not** alter authoritative light.
-- Advance Year +1 and +3; as surviving crowns evolve using #899's chosen model, recalculate canopy and show whether the opening persists or recloses. Compare with an **immutable no-treatment copy of the identical Area A initial snapshot**, not by treating inherently different Area B as an experimental control.
-- At any view, player can switch Area A/B and inspect **local** relative-light heatmap, quantitative canopy covered/uncovered fraction, local light value and the nearby contributing trees. Use current navy UI, existing map and control dock; optional overlay toggle + short legend + one inspector explanation. **No redesign or fake colour-only ecological claim.** Display provenance/uncertainty (e.g. `Modelled relative light — experimental`).
-- The evidence must show real source values and treatment-linked changes, not a static image, fabricated sunlight, no-work fake Fell or recalculation from the 2× visually expanded competitor crowns.
+1. **Growing-space competition** = the existing Hegyi `CI`, living neighbour count within 8 m and stand density/basal area. It is not a mechanically allocated area per tree and does not itself change growth, mortality or crown rules.
+2. **Geometric crown cover** = polygon-clipped **union** of authoritative living crown projections ÷ rack area. The sum of crown areas is not cover. A circular crown projection is an explicit geometric simplification.
+3. **Forest-floor light** = a separate 0–1 index sampled at cell centres. It is **not** equal to the uncovered fraction and is **not** measured PAR.
+4. **Light field** = area-local sampling of the same physical trees and polygon, in metres and hectares. Rack summaries are per rack; the tree neighbourhood is the connected woodland (§1.5).
+5. **Basal area, live density and crown cover** are three different variables and stay separately reported.
 
-## 3. Scientific reuse policy — prefer verified contracts, not blind porting
-**Reuse candidates ranked:**
-- **Direct reuse of concepts/ordering:** Unity cell structure, metre coordinates, local tree life status, post-Fell and post-growth invalidation/recompute, Hegyi competition diagnostics, explicit provenance labels, separation of canopy, relative light and juvenile responses.
-- **Controlled port of numerical calculation:** Reimplement/extract the small `RecomputeCanopy` pure mathematical kernel into a *candidate pure C# evaluator* operating on immutable numeric inputs, **only after** approval and existing code/compile-linked file inventory. Compare the port against Unity's exact same tiny synthetic snapshots. UnityEngine `Mathf`, transforms and `ForestTree` cannot be referenced directly from standalone .NET; do not make Unity a build dependency or duplicate entire engine. If byte/numerical parity is not supported, preserve semantics and explicitly qualify numeric differences.
-- **Do NOT blindly reuse empirical meaning:** `k10a10` reach, `height/8` saturation, cell-centre falloff and product-of-gaps were calibrated for gameplay, not verified radiation transport in Irish Sitka. A 5 m sampling grid is an **initial parity resolution proposal**, not intrinsically accurate enough for small gaps; compare with finer 2.5 m (offline sensitivity) and partially clipped boundary cells.
-- **Conditional long-term reuse:** one pure shared 2D/3D canopy/light core is a *future* cross-engine option once same contracts/data and qualification prove reuse; NOT an immediate rewrite, Unity source edit or new package grant. Check each reused/compiled dependency path separately and seek separate permission before extraction.
+### 1.5 Connected-woodland rule (D-094)
 
-## 4. Numerical model choice and calibration candidates — SELECT LATER
-**Candidate U (Unity parity baseline):** `L_U(x)=Π_i [1−clamp01(1−d_i/(R_i+cellWidth/2))×clamp01(H_i/8)]` at sample centre, `Canopy_U=1−L_U`. Store computed `L_U` only as **Unity-style canopy/light index** until validated. Edge and height limitations disclosed. Do not treat the formula as physically measured PAR.
+- Living trees from **both racks** contribute to competition, crown overlap and shade reach across the shared border; a tree within 8 m of the border must see its cross-border neighbours.
+- The outer perimeter of the combined woodland borders **open grassland**: no synthetic neighbours and no ghost trees outside the site.
+- Canopy/light output and summaries are computed and reported **per rack polygon**. Do not blend Area A and Area B into one percentage. Area B is not an experimental control for Area A.
 
-**Candidate V (evidence-calibrated forest-floor light):** a model incorporating projected crown/gap geometry and measured transmission/leaf-area/vertical canopy information if accessible; may include extinction attenuation or local gap-angle model. Parameterisation and inputs **TBD** from actual Sitka transmittance datasets, not invented. A Beer–Lambert relationship `T=e^{−k·LAI}` is a **candidate theoretical approach**, not admissible as a fitted formula without LAI, extinction and stand structure information. Preserve canopy cover as a separate geometric layer even if using V. Do not insert a new biological leaf-area state unsupported by actual source evidence.
+## 2. This pass: engine-first proof, no overlay
 
-**Decision rule:** when U fits data adequately for a bounded demonstrator, reuse it with an honest `modelled relative light proxy` label; when U fails materially and V has stronger validation, use a new *versioned* calibration backed by empirical data and accept explicit new code complexity. If neither supports a percent-RLI claim, release only labelled relative light **index** and canopy geometry rather than inventing precision. **Owner G5** chooses the eventual quantitative light version and state/policy after a short auditable comparison.
+- Implement a pure, read-only `CanopyLightEvaluator` over immutable engine-authoritative living trees and each rack polygon.
+- Demonstrate in automated tests and engine output: a matched duplicate of the initial connected woodland (untreated control), a real Work Plan **Mark → Approve** (assert zero canopy/light change), **Execute** a multi-tree Fell in Area A, then Year +1 and +3.
+- Report before/after and control deltas: removed TreeIds, geometric cover %, uncovered m², largest opening width, affected 2.5 m cells, light-index shifts, cross-border cells and measured runtime.
+- **No `/multi` heatmap, overlay toggle or ground inspector in this pass.** The existing navy map, SVG, layout and controls are unchanged. A later, separately approved slice may consume these read-outs in the UI.
+- Values are session-only, version-stamped and carry **zero save-schema change**.
 
-## 5. Accuracy checks throughout, not after the final UI
-**A — Provenance/geometry preflight (READ-ONLY):** confirm exact multi-area source/fixture SHA, stand polygons, tree IDs, metres, living/standing semantics, #899 crown model selected version, area units and whether geometry matches the 2D visual. Compute actual per-tree radius distribution, basal area, crown union and gap sizes before coding. Do not use nominal crown-summed area as fraction of ground cover.
-**B — Controlled Unity numeric crosswalk:** feed tiny 0/1/2/overlapping-tree scenes into unchanged Unity mathematical semantics and candidate pure evaluator; compare per-cell coverage/light with declared precision/rounding tolerances, not guessed PASS. Test no trees (fully open proxy), one tree centre and edge, overlap, dead/stump, near-boundary, zero-radius guard and two isolated areas. Unity parity is necessary for faithful port, **not sufficient** for empirical realism.
-**C — Forestry validation:** use original UK/Irish Sitka crown openness/transmittance studies and actual sample domains (BA m²/ha, stocking N/ha, stand age, site and treatment). Evaluate measured vs predicted light at treatments/year0/year2, spatial contrast and trend; quantify errors/bias and uncertainty if raw paired samples permit. Do NOT force global mean to match a cherry-picked site. References:
-  - Hale et al., `Relationships between canopy transmittance and stand parameters in Sitka spruce and Scots pine stands in Britain` (2009), DOI [10.1093/forestry/cpp020](https://doi.org/10.1093/forestry/cpp020): light is affected by **both** BA and stems/ha; published example BA 30 m²/ha with stocking below 450 stems/ha is **conditional guidance**, NOT a universal threshold.
-  - COFORD [Irish CCF report](https://www.coford.ie/media/coford/content/publications/projectreports/CCF.pdf) and uploaded `CCF_CCF_Practice_Economics_and_Transformation_Evidence_Composite.md`: Ballinagappoge **canopy openness** ~8.3/11.3% just after two thinning intensities, ~5.5/7.2% two years later, site-specific and **NOT an automatic relative PAR light target**; distinct site BA bands 24/29/34 m²/ha.
-  - [Forest Research note](https://cdn.forestresearch.gov.uk/2004/12/fcin063.pdf) on canopy light and photographic measurement. [Hale study on Sitka understorey light](https://www.sciencedirect.com/science/article/abs/pii/S0378112700006964) and [Sitka thinning light](https://www.sciencedirect.com/science/article/abs/pii/S0378112702005406). Uploaded `CCF_Growth_Density_and_Species_Quantitative_Evidence_Composite.md` lists transfer threshold ~20% RLI **for Sitka juvenile growth**, not an automatic canopy-light calibration constant. [Teagasc ContinuFOR gap/light poster](https://teagasc.ie/wp-content/uploads/2025/05/IUFRO_2023_ContinuFOR_poster.pdf).
-  - Data categories **IRISH DIRECT / UK TRANSFER / MODEL ASSUMPTION / GAME TUNING** documented separately; missing light/PAR/LAI observations remain UNKNOWN, not numerically guessed.
-**D — Feature behaviour:** one matched real control and actual 10-tree Fell on same Area A, real year 0/1/3 outputs, optional other-area independent check. Log exact tree ID/coordinates, canopy-cover percent, local indexed/modelled RLI, exposed geometry, quantiles, changes in surviving crown radii. Ensure approval alone leaves canopy unchanged. One browser demonstration screenshot is a UI check only, not ecological validation.
-**E — Practical limits:** deterministic repeated calculations; area isolation; finite bounded 0–1 light; empty canopy bright; no signal from felled/dead crowns; order independence in theoretical aggregation with documented floating-point summation; 5 m vs 2.5 m sensitivity; reasonable runtime on 171-tree/73-tree areas. Performance numbers must be MEASURED, no invented budget.
+## 3. Approved light model — `unity-k10a10-decoupled-v1`
+
+For each sample cell centre `x` inside the rack polygon and every **living** tree `i` in the connected woodland:
+
+```text
+reach_i     = r_i * 1.0 + 2.5                      metres (fixed physical buffer)
+lateral_i   = clamp01(1 - distance(x, p_i) / reach_i)
+vertical_i  = clamp01(h_i / 8.0)
+influence_i = clamp01(lateral_i * vertical_i)
+lightIndex(x) = Π_i (1 - influence_i)               deterministic TreeId order
+```
+
+- **Grid-decoupled:** `b = 2.5 m` is fixed and independent of cell width. The former `+ cellWidth/2` is replaced. At a 5.0 m grid this equals Unity's half-cell exactly, which is why 5.0 m is the parity oracle.
+- **Default grid 2.5 m**, clipped to the rack polygon, expanded by a trimmed boundary-cell area; area-weight rack summaries by the clipped cell area. **5.0 m mode is retained** as the exact Unity parity oracle.
+- Output is finite and bounded `[0,1]`. Empty stand = 1.0.
+- Label: **`Modelled Light Index (Unity k10a10 proxy — not calibrated PAR)`**. Version `lightModelVersion = "unity-k10a10-decoupled-v1"`.
+- **No calibrated Beer–Lambert/PAR model in this pass.** Do not invent LAI, extinction coefficients, crown opacity or percent PAR.
+
+### Model metadata
+
+`LightModelMetadata` carries: `version`, `kind = "index"`, `calibratedPar = false`, `gridCellM` (2.5 or 5.0), `shadeBufferM = 2.5`, the caveat text, and uncertainties: C2 crown bias (~+5–15 % mean radius), Area A high stocking (~74 m²/ha), open-grassland outer-edge brightening, circular-crown simplification, and non-causal diagnostic status.
+
+## 4. Grid and boundary policy
+
+- 0.25 m micro-grid for the geometric union; 2.5 m default for light; 5.0 m parity mode.
+- Cells whose centre is outside the polygon are excluded; boundary cells are clipped and weighted by clipped area. No renormalisation that hides edge loss.
+- Two isolated areas are never averaged. Cross-border tree influence is allowed; cross-border *summary* aggregation is not.
+
+## 5. Accuracy checks during development
+
+**A — Provenance/geometry (read-only):** confirm exact source SHA, polygons, tree IDs, metres, living/dead semantics, crown model version and area units. Report radius distribution, basal area, union and gap sizes before coding. Do not use nominal crown sums.
+
+**B — Numerical oracle:** 0/1/2-tree and overlapping cases; empty stand = 1.000; single mature overhead = 0.000; single 4 m young overhead = 0.500; drip-line edge `r = 1.73 m` → 0.409 at both 5.0 m and 2.5 m; narrow two-tree gap ≈ 0.349 with 0 % union overlap; dense lattice shows no 13× grid-size artefact; stump/dead exclusion = 1.000. Exact 5.0 m parity against the Unity equation.
+
+**C — Forestry provenance (not a fit):** cite Hale et al. 2009 (BA and stems/ha both affect transmittance), COFORD Ballinagappoge canopy openness 8.3/11.3 % after thinning and 5.5/7.2 % two years later, and Forest Research light guidance. These are **site-specific openness/transmittance observations**, not a calibration target for this index. Keep `IRISH DIRECT / UK TRANSFER / MODEL ASSUMPTION / GAME TUNING` labels; missing PAR/LAI stays `UNKNOWN`.
+
+**D — Behaviour:** matched control vs actual 10-tree Fell, years 0/1/3, exact IDs, cover, uncovered area, opening dimensions, light deltas, surviving radius changes; Approve alone must change nothing.
+
+**E — Limits:** deterministic repeat; finite 0–1; empty canopy bright; no signal from felled/dead crowns; 2.5/5.0 sensitivity documented; measured runtime on the real 171/73 tree counts.
 
 ## 6. Boundary and future dependency
-**INCLUDED after approval:** pure light evaluator, area-cell geometry and calculated output contracts, read-only spatial overlay/inspector, authoritative recompute after Execute/Year+1, exact local growing-space diagnostics and targeted light validation. **NOT INCLUDED:** new recruitment, planting, browsing, seed rain, species curves, forest-floor vegetation causality, LAI photosynthesis engine, storms, extra synthetic rack transfer, economics, save/load or changing historical Unity ecology.
 
-Frozen P0/Legacy40/Reference Future v1 and existing MA-1 exact baseline, old fixtures, source fences, Work Plan approvals and deterministic replay protected. Standalone 2D remains session-only; derived canopy/light values need **no persistent save** in first slice, but explicit version identity in responses/history and predictable recalculation. Reuse/compile-linked file set must be authorised independently: initially expected new pure 2D Core evaluator and API/view + `MultiAreaPage` presentation literals, exact paths settled **after** independent source crosswalk and owner G5. **No approved code edit or merge** follows from this DRAFT.
+**INCLUDED:** pure evaluator, area-cell geometry, versioned read-only output contracts, recompute after Execute and after annual growth/death, per-tree growing-space diagnostics, canopy cover and gap summaries, targeted numerical qualification.
+
+**NOT INCLUDED:** new recruitment, planting, browsing, seed rain, species curves, forest-floor vegetation causality, LAI/photosynthesis, storms, economics, save/load, Unity code changes, map overlay/heatmap/inspector, or any change to historical Unity ecology.
+
+Frozen P0/Legacy40/Reference Future v1, existing MA-1 baselines, old fixtures, source fences, Work Plan approvals and deterministic replay remain protected. Session-only derived values; explicit version identity in responses; predictable cache invalidation on Execute, natural death and annual crown growth.
 
 ## 7. Decision gates
-- **G5/Owner:** adopt #899 exact crown radius state, choose light model U / empirically fitted V / index-only result, sampling grid/edge policy, uncertainty labels and any contract/save/version semantics.
-- **G4/Manager:** approve exact full spec quartet and file-level source scope, new single writable lane, authorised owner/worker and independent reviewer (if required by model risk).
-- **D-091 physical custody:** local worktree, machine/port/Unity exclusions, source/compile and narrow test permission before an implementation actor starts.
-- **G3 calibration:** staged empirical/field comparison and targeted offline numerical qualification; useful feature completion does not require another broad multi-year/Unity/P0 test programme.
-- **G2/Owner:** after an actual playable demonstration, assess usefulness and integrity of the light data; review verdict ≠ owner acceptance.
 
-**Source/evidence confidence:** repo implementation facts verified against GitHub readback as of draft, scientific studies sourced or project research extracted, numerical light values for MA-A/B **not computed here**, biological fidelity **not established**, no implementation or source writer claimed.
+- **G5/Owner — satisfied (D-094):** crown model, light model, grid, buffer and labels fixed above.
+- **G4/Manager — satisfied by this APPROVED quartet plus the D-091 lane receipt:** one writable lane, one writer, independent reviewer.
+- **D-091 physical custody:** required before the implementation actor starts; no Unity lease, no Editor.
+- **G3 calibration:** targeted offline numerical checks only; no broad multi-year/Unity matrix.
+- **G2/Owner:** after a real read-out demonstration, judge usefulness and integrity; review ≠ acceptance.
+
+**Source/evidence confidence:** implementation facts re-read from source; scientific studies sourced; MA-A/B light values **not yet computed**; biological fidelity **not established**; no implementation claimed by this document.

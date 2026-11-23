@@ -1,13 +1,14 @@
-# Multi #900 — Draft tasks (no checks imply completion)
-- [ ] T0 #899 owner-selected realised crown semantics and exact MA-A/B starting-state provenance established; no guessed #899 acceptance.
-- [ ] T1 Read-only Unity 3D `RecomputeCanopy` and annual-order crosswalk, including 5m grid, radius+half-cell reach, 1/(8m height) factor, product of gaps; identify numerical limitations and existing code reuse constraints.
-- [ ] T2 Trace 2D area polygon/coordinates, tree status and real radius, Hegyi/growing-space CI, immutable source/fixture SHA, state revision/fences. Distinguish visually enlarged crowns from physical geometry.
-- [ ] T3 Offline physical polygon-clipped projected crown union and area-weighted uncovered fraction for both areas, with edge cell handling; no sum-of-areas substitution.
-- [ ] T4 Faithful Unity light-index tiny input oracle vs standalone pure C# numerical prototype in scratch (no production code); compare 5m and finer grid sensitivity.
-- [ ] T5 Extract/review original Irish/UK canopy-open/transmittance evidence; record sample domain, BA/N, units, measurement method (openness vs PAR), observed uncertainties and whether a numeric fit is possible.
-- [ ] T6 Prepare U / V / index-only model recommendation, explicit equations/coefficient provenance, output semantics, light-area resolution and expected errors/unknowns.
-- [ ] T7 Obtain owner G5 light-model and #899 crown binding; revise quartet to APPROVED, secure new D-091 single writer/file grants and only necessary local runtime rights.
-- [ ] T8 Implement correct Core light evaluator, area geometry, cache invalidation and read-only output after real Execute/annual updates. No causality or new regeneration yet.
-- [ ] T9 Implement small optional `/multi` heatmap and ground-cell/area-light readout with source/version caveat, preserve existing owner-chosen SVG/dock/workflow.
-- [ ] T10 Narrow checks: 0/1/overlap/edge/dead/Fell cells, parity/accuracy, determinism, no-work vs real Fell+1/+3, both areas independent, approve-alone 0 light change, correct 0..1 index.
-- [ ] T11 Separate independent science/maths review as needed; source handoff and one real owner demonstration; no acceptance or integrated claim until actual evidence.
+# Multi #900 — Approved tasks
+
+- [x] T0 #899 crown semantics and MA-A/B starting-state provenance established (D-094, source read).
+- [x] T1 Unity `RecomputeCanopy`, dead/stump filter and annual order crosswalked; 5 m reach and `h/8` identified as gameplay calibration.
+- [x] T2 2D polygons, shared frame/border, tree status, radii source and pure-Core contracts traced.
+- [x] T3 Light model, grid, buffer and labels fixed by owner (D-094); draft U/V choice closed.
+- [x] T4 Quartet marked APPROVED; overlay deferred; file scope limited to `src/Core` plus tests.
+- [ ] T5 Pure `CanopyLightEvaluator`: 0.25 m clipped circle union; 2.5 m default / 5.0 m parity light; `b = 2.5`; area-weighted per-rack summaries.
+- [ ] T6 `LightModelMetadata` with version, `kind = index`, not-calibrated-PAR caveat and uncertainties.
+- [ ] T7 Recompute triggers: initial load, Execute, natural death, annual crown growth. Pending/Approve mutate nothing.
+- [ ] T8 Connected-woodland neighbour handling across the shared border; no synthetic neighbours outside the perimeter; summaries stay per rack.
+- [ ] T9 Oracle tests: empty/single/young/drip-line/two-tree gap/lattice/stump-dead/5.0 m parity/grid decoupling.
+- [ ] T10 Matched control vs real 10-tree Fell at years 0/1/3 with exact metrics and measured runtime.
+- [ ] T11 Separate independent review; GitHub handoff with honest statuses; no overlay or acceptance claim.

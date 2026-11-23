@@ -1,15 +1,17 @@
-# Multi #900 — Draft plan (no implementation permission)
+# Multi #900 — Approved plan (engine-first)
 
-**Goal:** One playable map overlay showing real local canopy cover and modelled relative ground light, reacting to actual approved/executed Fell and annual crown recovery; credible numbers, no invented vegetation.
+**Status: APPROVED (D-094, 2026-11-23).** No map overlay, no Unity, no save change.
 
-**P0 — Precondition and evidence (read-only):** Resolve #899 realised crown model choice/initialisation with the actual owner G5 decision; independently trace current MA-A/B tree/area geometry and source stamp. Freeze one matched no-work and >10 exact-Fell snapshot pair. Inspect source of Unity 5m canopy/light formula, `ForestEcologyCell` states, competition and update ordering; note numerical/game-tuning assumptions. No Core/Unity edits.
+**Goal:** compute and prove honest canopy cover, growing-space diagnostics and a modelled light index inside the pure 2D engine, reacting to real Execute and annual crown change.
 
-**P1 — Unit/algorithm comparison (read-only offline):** replicate unchanged Unity light kernel in a pure numeric scratch oracle, test tiny input fixtures, compare 5m/2.5m edge sensitivity, calculate physical crown union. Compare published/accessible Irish and British transmittance/openness studies. Publish one evidence table with errors, parameters and chosen *candidate* algorithm. If raw PAR data are absent, explicitly restrict outputs to `modelled relative light index`; no invented validation.
+**P0 — Evidence (done, read-only):** #899 decided (C2); MA-A/B geometry and shared boundary traced; Unity kernel inspected; dead/stump policy verified; existing pure-Core contracts and fenced commands confirmed.
 
-**P2 — Owner approval:** present U (faithful Unity proxy), V (empirically calibrated light if evidence supports), or index-only. Owner approves precise algorithm, #899 crown source, light unit/semantics, new model version, API/derived data policy and UI display. Mark spec **APPROVED** only then.
+**P1 — Oracle (done/in progress, offline):** replicate the Unity 5 m kernel in a pure numeric oracle; confirm `b = 2.5 m` decoupling equals Unity at 5 m; define the 2.5 m default and clipped boundary weighting. No production code before the lane receipt.
 
-**P3 — One source implementation slice (future, gated):** sole authorised C# source writer in a distinct D-091 worktree; reuse a tiny proven Unity numeric contract in a standalone pure C# evaluator without importing UnityEngine, linked files protected. Add polygon-clipped cells/area-local light and crown union from true tree locations and selected crown model; recompute after genuine Execute and annual advance; return versioned read-only data; minimal heatmap/cell inspector in existing `/multi` layout (no redesign); exact edit allowlist issued separately.
+**P2 — Approval (done, D-094):** owner fixed the light model as the labelled Unity proxy, 2.5 m default / 5.0 m parity, per-rack output with connected-woodland neighbours, and no overlay this pass.
 
-**P4 — Proportional qualification:** compare tiny-scene parity, physical union/edge tests and field trends; run actual Area A matched control vs >10 Fell year0→1→3, ensure Area B independent and Work Plan unchanged; 1 real browser view to confirm truthful data display. Review model maths independently of implementing thread if empirically consequential. No full Q1, P0 L4, Unity build, Windows, broad scenario matrix, main merge.
+**P3 — One implementation slice:** sole C# writer in its own D-091 worktree on base `1e4e0221`. Add a pure `CanopyLightEvaluator` in `src/Core` over immutable views; geometric union on 0.25 m; light on 2.5 m (5.0 m mode); metadata; recompute triggers; per-rack summaries. Do not restructure existing contracts, do not edit UI presentation, do not add routes or overlay.
 
-**P5 — Owner playtest and outcome:** give owner a side-by-side before/after illustration from *actual* area values, inspector/legend and explain limitations. Publish exact commit/metrics/model version, distinguish IMPLEMENTED/REVIEWED/VERIFIED/ACCEPTED and route next regeneration feature separately. A DRAFT cannot start P3.
+**P4 — Proportional qualification:** 0/1/2-tree oracles, grid decoupling, dead/stump, exact 5.0 m parity, cross-border neighbour, outer-perimeter absence; matched control vs real 10-tree Fell at years 0/1/3; Approve-alone zero change; measured runtime. No full Q1, P0 L4, Unity build, Windows or broad scenario matrix.
+
+**P5 — Handoff:** exact commit and metrics, model version and caveats, `IMPLEMENTED` / `NUMERICALLY QUALIFIED` / `REVIEWED` separated; one real read-out demonstration; route any future overlay as a separate approved slice.
