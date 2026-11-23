@@ -1,0 +1,86 @@
+PASS /multi loads on 1/1/1 with the k10a10 decoupled light model, not calibrated PAR :: [1,1,1,"unity-k10a10-decoupled-v1",false]
+PASS Area A/B crown radii are C2-realistic :: [{"min":0.96609336,"max":2.6371229,"mean":1.7253172892397657},{"min":1.8247241,"max":3.9672341,"mean":2.940631509589041}]
+PASS both rack cards show the four readouts :: ["Area A · living stand171 living trees74.0m²/ha basal area · 0.0915 haCanopy cover96% · open 33 m²Stand densityRD 0.80Natural deaths0 this year · 0 logs totalModelModel 1/1/1Synthetic standLight: not PAR","Area B · living stand73 living trees39.5m²/ha basal area · 0.1500 haCanopy cover88% · open 182 m²Stand densityRD 0.44Natural deaths0 this year · 0 logs totalModelModel 1/1/1Synthetic standLight: not PAR"]
+PASS the disclosure states the connected-woodland Stage 4 model (no stale edge-exclusion claim) :: SYNTHETIC AUTHORED TWO-AREA SITKA EXPERIMENT. NOT A SURVEYED IRISH FOREST. AREAS NOT ASSESSED COMPARABLE. SITE UNKNOWN. CONNECTED WOODLAND: GROWTH AND CROWNS USE BOTH AREAS; DENSITY MORTALITY, WORK PLANS AND SUMMARIES STAY PER AREA. NO TREATMENT TRANSFER BETWEEN AREAS. NOT UNITY NUMERICAL OR GEOMETRY PARITY. | Synthetic — not surveyed · Areas not comparable · Site UNKNOWN · Connected woodland · No treatment transfer
+PASS S0 1920x1080 legend shown light off: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S0 1920x1080 legend shown light off: stand clear of the navigation dock at Fit :: {"stand":[480,519,1052,971],"dock":[39,364,251,650]}
+PASS S0 1920x1080 legend shown light on: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S0 1920x1080 legend shown light on: stand clear of the navigation dock at Fit :: {"stand":[500,507,1031,926],"dock":[39,364,251,650]}
+PASS S0 1920x1080 legend shown light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S0 1920x1080 legend hidden light off: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S0 1920x1080 legend hidden light off: stand clear of the navigation dock at Fit :: {"stand":[602,519,1174,971],"dock":[39,364,251,650]}
+PASS S0 1920x1080 legend hidden light on: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S0 1920x1080 legend hidden light on: stand clear of the navigation dock at Fit :: {"stand":[614,512,1161,944],"dock":[39,364,251,650]}
+PASS S0 1920x1080 legend hidden light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S0 1280x720 legend shown light off: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S0 1280x720 legend shown light off: stand clear of the navigation dock at Fit :: {"stand":[370,410,645,627],"dock":[27,339,239,595]}
+PASS S0 1280x720 legend shown light on: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S0 1280x720 legend shown light on: stand clear of the navigation dock at Fit :: {"stand":[396,393,618,568],"dock":[27,338,239,594]}
+PASS S0 1280x720 legend shown light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S0 1280x720 legend hidden light off: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S0 1280x720 legend hidden light off: stand clear of the navigation dock at Fit :: {"stand":[454,415,746,646],"dock":[27,339,239,595]}
+PASS S0 1280x720 legend hidden light on: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S0 1280x720 legend hidden light on: stand clear of the navigation dock at Fit :: {"stand":[472,404,727,605],"dock":[27,339,239,595]}
+PASS S0 1280x720 legend hidden light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+SHOT a-baseline-1920x1080.png 837166 bytes
+SHOT a-baseline-1280x720.png 306591 bytes
+PASS an Area B ground cell is shaded by Area A trees (connected woodland light) :: {"cellKey":"11:3","cellLight":0.0038238764,"contributors":["MA-A-026","MA-A-027","MA-A-040","MA-A-041","MA-A-042","MA-A-055","MA-A-056","MA-A-057","MA-A-058","MA-A-072","MA-A-073"],"borderKey":"15:3","borderLight":0.30227077,"borderA":["MA-A-044","MA-A-059","MA-A-060","MA-A-076"]}
+PASS the ground inspector shows the exact label, light index, cover fraction, contributors and the caveat :: {"heading":"Area A · cell 11, 3","label":"Modelled Light Guide (Unity k10a10 proxy — not calibrated PAR)","facts":"Modelled Light Index (0–1)0.004 · band 1 of 5Overhead cover fraction100% of this cell under living crownsContributing trees11: MA-A-026, MA-A-027, MA-A-040, MA-A-041, MA-A-042, MA-A-055, MA-A-056, MA-A-057, MA-A-058, MA-A-072, MA-A-073Cross-border trees0Cell2.5 m grid · 6.25 m² inside the area · centre X 28.75, Z 8.75","caveat":"A relative 0–1 index from the Unity k10a10 gameplay kernel: reach = crown radius + 2.5 m, lateral = clamp01(1 − d/reach), vertical = clamp01(height/8), light = product of (1 − influence) over living trees. It is NOT measured or calibrated PAR, not percent transmittance and not the uncovered fraction. No LAI, extinction coefficient or crown opacity is modelled; missing PAR/LAI evidence stays UNKNOWN."}
+PASS the Light Guide legend carries the exact label :: Modelled Light Guide (Unity k10a10 proxy — not calibrated PAR)
+PASS inspecting a cell kept the reference and the unsent ticked Fell drafts :: {"count":"2 selected · draft only","ref":"MA-A-026","ticked":["MA-A-011","MA-A-027"]}
+SHOT b-light-guide-ground-1920x1080.png 553371 bytes
+SHOT b-light-guide-ground-1280x720.png 231626 bytes
+PASS the inspector shows lifts X / 3 and the engine eligibility :: Pruning lifts 0 / 3 | Eligible now: next lift raises the crown base to 2.5 m.
+PASS queuing Prune creates Pending only: no crown, cover or light change :: [{"areaId":"MA-B","treeId":"MA-B-001","targetCrownBaseHeightM":2.5}]
+PASS the Work Plan lists "✂ Pending Prune" with icon and text :: Area A · 0 pending ordersNo pending Fell in this area.Area B · 1 pending order✂ Pending PruneMA-B-001one lift · crown base to 2.5 m · not cutRemove from Work Plan
+SHOT c0-prune-pending-1920x1080.png 538097 bytes
+SHOT c0-prune-pending-1280x720.png 224676 bytes
+PASS Approve changes no ecology :: 1
+PASS the Work Plan lists "✂ Approved Prune" :: Area A · no ordersArea B · 1 order✂ Approved PruneMA-B-001one lift · crown base to 2.5 m · cut on ExecuteTechnical referencePlanId 81db8edd019f84450dae37c315c8edd9:ma-plan:2Execution key 81db8edd019f8
+SHOT c-prune-workplan-1920x1080.png 537973 bytes
+SHOT c-prune-workplan-1280x720.png 223893 bytes
+PASS Execute asks for confirmation of the Prune :: Prunes exactly 1 named tree in Year 0 (one lift each; the crown is cut at once; the year does not change), or refuses all. | Confirm pruning
+PASS Execute: radius × 0.92 immediately, year unchanged :: {"before":3.3890924,"after":3.1179652,"year":0}
+PASS canopy cover and modelled light read-outs updated after the Prune :: {"cover":[0.878716413543179,0.8776330802098457],"light":[0.14718472061700963,0.14754862162988722]}
+PASS the receipt lists the engine prune record :: One receipt for the whole plan · ecological year 0 · work revision 0 → 1 · 0 trees felledReceipt per area (actual before → actual after)AreaLiving treesBasal ar
+PASS the 5-year guard then reports ineligible; Add is disabled with the engine reason :: {"text":"Not eligible: a tree needs at least five years between pruning lifts (next lift possible in year 5).","why":"Not eligible (engine): a tree needs at least five years between pruning lifts.","disabled":true,"lifts":"Pruning lifts 1 / 3"}
+PASS ten or more trees queued for Fell through the page (multi-tree ticked flow plus single adds) :: 16
+PASS the Work Plan stays per area :: ["Area A · 16 pending orders","Area B · 0 pending orders"]
+PASS Execute confirmation names the work :: Fells exactly 16 named trees across 1 areas in Year 0, or refuses all. | Confirm felling
+PASS Area A cover drops and open ground rises after the multi-tree Fell :: {"before":"Area A · living stand171 living trees74.0m²/ha basal area · 0.0915 haCanopy cover96% · open 33 m²Stand densityRD 0.80Natural deaths0 this year · 0 logs totalModelModel 1/1/1Synthetic standLight: not PAR","after":"Area A · living stand155 living trees65.8m²/ha basal area · 0.0915 haCanopy cover89% · open 99 m²Stand densityRD 0.71Natural deaths0 this year · 0 logs totalModelModel 1/1/1Synthetic standLight: not PAR"}
+PASS the local light index lifts at the inspected cell; caveat visible :: {"before":0.004,"after":0.606,"cell":"11:3"}
+PASS cross-rack: felling Area A trees lifts modelled light in an Area B border cell (connected woodland) :: {"before":0.302,"after":0.823,"cell":"15:3","felledShaders":["MA-A-044","MA-A-059","MA-A-060","MA-A-076"]}
+PASS rack summaries stay per area (Area B counts only its own deaths) :: Area B · living stand73 living trees39.5m²/ha basal area · 0.1500 haCanopy cover88% · open 185 m²Stand densityRD 0.44Natural deaths0 this year · 0 logs totalModelModel 1/1/1Synthetic standLight: not PAR
+YEARS [[1,0.8951,96,0,0,0,0,0.583,1.581,9],[2,0.8925,98.4,4,4,4,0,0.557,1.63,8],[3,0.8919,98.9,3,7,7,0,0.53,1.671,8],[4,0.8944,96.6,2,9,9,0,0.505,1.713,8],[5,0.8915,99.2,5,14,14,0.01,0.483,1.754,8],[6,0.8907,100,3,17,17,0.01,0.462,1.794,8]]
+PASS the felled gap re-closes gradually (gap-cell cover rises, its light falls, year on year) :: [[1,"0.000","0.583","1.581"],[2,"0.000","0.557","1.630"],[3,"0.000","0.530","1.671"],[4,"0.000","0.505","1.713"],[5,"0.010","0.483","1.754"],[6,"0.010","0.462","1.794"]]
+INFO Area A cover by year (engine): 1:0.8951 2:0.8925 3:0.8919 4:0.8944 5:0.8915 6:0.8907 — natural deaths 0/4/3/2/5/3
+PASS natural deaths produce fallen-log markers, one per deadwood record :: {"logs":17,"drawn":17}
+PASS the rack summary counts natural deaths this year and total logs :: [[0,0],[4,4],[3,7],[2,9],[5,14],[3,17]]
+PASS legend entries for standing dead (D), stumps (X), fallen logs and Prune states :: ["Living spruce","Crop tree · C","Reference · R","Inspected tree · I","Competitor · 1–5","Fell choice · ✓","Pending Fell · P","Approved Fell · A","Felled tree · X","Naturally dead · D","Fallen deadwood · log","Pending Prune · ✂","Approved Prune · ✂","Area boundary"]
+SHOT d-thinning-gaps-deadwood-1920x1080.png 844777 bytes
+SHOT d-thinning-gaps-deadwood-1280x720.png 297061 bytes
+PASS S4 1920x1080 legend shown light off: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S4 1920x1080 legend shown light off: stand clear of the navigation dock at Fit :: {"stand":[480,519,1052,971],"dock":[39,364,251,650]}
+PASS S4 1920x1080 legend shown light on: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S4 1920x1080 legend shown light on: stand clear of the navigation dock at Fit :: {"stand":[500,507,1031,926],"dock":[39,364,251,650]}
+PASS S4 1920x1080 legend shown light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S4 1920x1080 legend hidden light off: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S4 1920x1080 legend hidden light off: stand clear of the navigation dock at Fit :: {"stand":[602,519,1174,971],"dock":[39,364,251,650]}
+PASS S4 1920x1080 legend hidden light on: no sideways scroll :: {"scrollWidth":1920,"innerWidth":1920}
+PASS S4 1920x1080 legend hidden light on: stand clear of the navigation dock at Fit :: {"stand":[614,512,1161,944],"dock":[39,364,251,650]}
+PASS S4 1920x1080 legend hidden light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S4 1280x720 legend shown light off: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S4 1280x720 legend shown light off: stand clear of the navigation dock at Fit :: {"stand":[370,410,645,627],"dock":[27,339,239,595]}
+PASS S4 1280x720 legend shown light on: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S4 1280x720 legend shown light on: stand clear of the navigation dock at Fit :: {"stand":[396,393,618,568],"dock":[27,338,239,594]}
+PASS S4 1280x720 legend shown light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS S4 1280x720 legend hidden light off: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S4 1280x720 legend hidden light off: stand clear of the navigation dock at Fit :: {"stand":[454,415,746,646],"dock":[27,339,239,595]}
+PASS S4 1280x720 legend hidden light on: no sideways scroll :: {"scrollWidth":1280,"innerWidth":1280}
+PASS S4 1280x720 legend hidden light on: stand clear of the navigation dock at Fit :: {"stand":[472,404,727,605],"dock":[27,339,239,595]}
+PASS S4 1280x720 legend hidden light on: light cells carry band numbers + 5-band legend :: {"cells":144,"numbers":144}
+PASS 0 console errors / exceptions :: {"console":[],"exceptions":[],"logEntries":[],"http5xx":[],"requests":100,"statuses":{"200":100}}
+PASS 0 CSP violations :: []
+PASS 0 server 5xx responses :: {"statuses":{"200":100},"requests":100}
+PASS an ineligible tree is refused by the engine with the refusal code the read-out showed (HTTP 409, nothing changed) :: {"tree":"MA-A-011","readoutCode":"PruneTreeNotLiving","readoutReason":"only living trees can be pruned","status":409,"code":"PruneTreeNotLiving","message":"only a living exact tree ID of this area can be pruned","sameRevision":true,"browserLogLinesAdded":["error network: Failed to load resource: the server responded with a status of 409 (Conflict)"]}
+OVERALL PASS (73 passed, 0 failed)
