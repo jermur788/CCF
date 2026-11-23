@@ -1,0 +1,18 @@
+{
+ "viewport": "1920x1080",
+ "failures": 0,
+ "results": [
+  "INFO [1920x1080] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "INFO [1920x1080] RCARD2: Add -> Work Plan -> Approve -> back to the same tree. The earlier result card is still showing :: {\"cardShown\":true,\"cardText\":\"Added 2 trees to the Fell plan × Dismiss Added as pending (not felled): MA-A-015, MA-A-016\",\"formRendered\":false,\"captionTextInDom\":\"The plan is approved, so editing is locked. Cancel the approved plan to change it.\",\"captionVisible\":false,\"allRowCheckboxesDisabled\":true,\"rowsAbove\":true}",
+  "INFO [1920x1080] RCARD2: after Dismiss the form and its explanation are visible :: {\"formRendered\":true,\"addDisabled\":true,\"addText\":\"Add selected to Fell plan\",\"caption\":\"The plan is approved, so editing is locked. Cancel the approved plan to change it.\",\"captionVisible\":true}",
+  "PASS [1920x1080] RCARD2 (observation, expected by the R3 design): while the card shows, the \"why is Add unavailable\" caption is not visible even though the plan is now approved :: {\"cardShown\":true,\"captionVisible\":false}",
+  "PASS [1920x1080] RCARD2: Dismiss restores the form, and the caption text in the page explains the lock (\"The plan is approved, so editing is locked. Cancel the approved plan t\") :: {\"text\":\"The plan is approved, so editing is locked. Cancel the approved plan to change it.\",\"rendered\":true}",
+  "INFO [1920x1080] RCARD2 observation (pre-existing, not from R3): whether that caption is VISIBLE depends on the height. At short desktop heights the stylesheet sets #add-caption to display:none, so a disabled Add button shows no reason there :: {\"viewport\":\"1920x1080\",\"captionVisible\":true,\"shortDesktopRule\":false}"
+ ],
+ "shots": [
+  {
+   "name": "RCARD2-card-after-approve-1920x1080.png",
+   "bytes": 835608
+  }
+ ]
+}

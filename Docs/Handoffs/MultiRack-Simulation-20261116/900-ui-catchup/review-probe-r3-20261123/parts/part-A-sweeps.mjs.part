@@ -1,0 +1,224 @@
+    // =====================================================================================================================
+    // R3 reviewer utilities (new). Everything below measures the page; nothing is imported from the writer's driver.
+    // =====================================================================================================================
+    const foldB = (f) => (f.n === 0 ? true : f.scrollTop === 0 && f.refReach && f.refInPane && f.closeReach && f.rowsAbove && f.rowsReach.every(Boolean) &&
+      (f.cardShown ? true : (f.addRendered && f.addReach && f.addTop >= f.paneTop - 0.5 && f.addBottom <= f.paneVisBottom + 0.5)));
+    const parityOk = (f) => f.heights.length === 0 || (Math.max(...f.heights) - Math.min(...f.heights)) <= 1;
+    const foldNow = (slack = false) => ev(`window.__rv.foldB(${slack ? 'true' : 'false'})`);
+    const FULL_REASON = { 'Pending Fell': 'Already pending Fell', 'Approved plan': 'In the approved plan', 'Retained Crop': 'Retained Crop — not offered for Fell',
+      'Prune plan': 'In the Prune plan', Reference: 'Reference tree', 'Other area': 'Not in this area', Felled: 'Felled', Dead: 'Dead' };
+
+    let axReady = false;
+    async function axOf(selector) {
+      if (!axReady) { try { await page.send('DOM.enable'); await page.send('Accessibility.enable'); } catch { /* best effort */ } axReady = true; }
+      const { root } = await page.send('DOM.getDocument', { depth: 0 });
+      const q = await page.send('DOM.querySelector', { nodeId: root.nodeId, selector });
+      if (!q.nodeId) return null;
+      const r = await page.send('Accessibility.getPartialAXTree', { nodeId: q.nodeId, fetchRelatives: false });
+      const n = r.nodes && r.nodes[0];
+      return n ? { role: n.role && n.role.value, name: n.name && n.name.value, ignored: n.ignored } : null;
+    }
+
+    async function sweepB(label) {
+      const lists = await livingIds(); const recs = []; const t0 = Date.now();
+      for (const l of lists) {
+        await showArea(l.areaId);
+        for (const id of l.ids) {
+          await selectById(id);
+          let f = await foldNow(true);
+          // R3 probe fix: while the competition read is in flight the page shows "Reading competition…" (a .comp-empty paragraph with no rows).
+          // That is NOT a measurement; wait for the real content, and count anything that never arrives as unmeasured.
+          for (let tries = 0; f.n === 0 && tries < 40; tries++) {
+            const t = await ev(`document.getElementById('competition-content').textContent`);
+            if (!/Reading competition/.test(t)) break;
+            await sleep(250); f = await foldNow(true);
+          }
+          const zeroText = f.n === 0 ? await ev(`document.getElementById('competition-content').textContent.trim().slice(0, 90)`) : null;
+          const zeroLegit = f.n === 0 && /No living competitor inside/.test(zeroText || '');
+          const wi = f.whyInfo.filter(Boolean);
+          const rec = { id, area: l.areaId, n: f.n, blocked: f.blocked, ok: foldB(f), parity: parityOk(f), hMin: f.heights.length ? Math.min(...f.heights) : null, hMax: f.heights.length ? Math.max(...f.heights) : null,
+            slack: f.slack, gap: f.gapRowsToDock, whyClipped: wi.filter((w) => w.whyClipped).length, metaClipped: wi.filter((w) => w.metaClipped).length, reasons: wi.map((w) => w.why),
+            zeroLegit, unmeasured: f.n === 0 && !zeroLegit, zeroText };
+          if (!rec.ok) rec.detail = { lastBottom: Math.round(f.lastBottom), dockTop: Math.round(f.dockTop), addTop: Math.round(f.addTop), addBottom: Math.round(f.addBottom), paneVisBottom: Math.round(f.paneVisBottom), innerHeight: f.innerHeight,
+            rowsAbove: f.rowsAbove, rowsReach: f.rowsReach.filter(Boolean).length, addReach: f.addReach, refReach: f.refReach, closeReach: f.closeReach, scrollTop: f.scrollTop, heights: f.heights };
+          recs.push(rec);
+        }
+      }
+      await closeInspect();
+      fs.writeFileSync(path.join(OUT, 'sweep-' + label + '-' + tag + '.json'), J({ label, viewport: tag, seconds: Math.round((Date.now() - t0) / 1000), recs }));
+      return recs;
+    }
+
+    function summarize(recs) {
+      const bad = recs.filter((r) => !r.ok);
+      const byBlocked = {};
+      for (const r of recs) { const k = String(r.blocked); const b = (byBlocked[k] = byBlocked[k] || { trees: 0, fail: 0 }); b.trees++; if (!r.ok) b.fail++; }
+      const withBlocked = recs.filter((r) => r.blocked > 0);
+      const slacks = recs.filter((r) => r.slack !== null).map((r) => r.slack);
+      const gaps = recs.filter((r) => r.gap !== null).map((r) => r.gap);
+      const reasons = {}; for (const r of recs) for (const w of r.reasons) reasons[w] = (reasons[w] || 0) + 1;
+      const hs = recs.flatMap((r) => [r.hMin, r.hMax]).filter((x) => Number.isFinite(x));
+      return { trees: recs.length, withFiveRows: recs.filter((r) => r.n === 5).length, shortLists: recs.filter((r) => r.n > 0 && r.n < 5).length, zeroRowsLegit: recs.filter((r) => r.zeroLegit).length, unmeasured: recs.filter((r) => r.unmeasured).length,
+        failing: bad.length, byBlocked, treesWithBlocked: withBlocked.length, blockedRows: withBlocked.reduce((s, r) => s + r.blocked, 0),
+        maxBlockedOnOneTree: Math.max(0, ...recs.map((r) => r.blocked)), parityFail: recs.filter((r) => !r.parity).length, whyClipped: recs.reduce((s, r) => s + r.whyClipped, 0), metaClipped: recs.reduce((s, r) => s + r.metaClipped, 0),
+        rowHeightsSeen: [...new Set(hs)].sort((a, b) => a - b), minSlack: slacks.length ? Math.min(...slacks) : null, minGapRowsToDock: gaps.length ? Math.min(...gaps) : null, reasons, failSample: bad.slice(0, 3) };
+    }
+
+    function reportState(label, recs, expectBlocked) {
+      const s = summarize(recs);
+      info('sweep summary [' + label + ']', s);
+      check(s.unmeasured === 0, 'sweep validity [' + label + ']: every one of the ' + s.trees + ' trees was actually measured (no tree left on "Reading competition…"; zero-row trees are genuine "No living competitor" cases)', { trees: s.trees, withFiveRows: s.withFiveRows, shortLists: s.shortLists, zeroRowsLegit: s.zeroRowsLegit, unmeasured: s.unmeasured });
+      if (expectBlocked) check(s.treesWithBlocked >= 5, 'sweep validity [' + label + ']: the loaded state really produced blocked competitor rows (otherwise a pass would be vacuous)', { treesWithBlocked: s.treesWithBlocked, blockedRows: s.blockedRows, maxBlockedOnOneTree: s.maxBlockedOnOneTree, reasons: s.reasons });
+      check(s.failing === 0, 'AC01 / spec 0.2 [' + label + ']: for EVERY living tree (' + s.trees + '; ' + s.treesWithBlocked + ' with blocked rows) the reference, ranks 1-5 and Add are above the fold with no inspector scroll', { failing: s.failing, byBlockedRows: s.byBlocked, sample: s.failSample });
+      check(s.parityFail === 0, 'F-01 [' + label + ']: every row of every tree has the SAME height (a blocked row is no taller than a free row)', { rowHeightsSeen: s.rowHeightsSeen, parityFail: s.parityFail });
+      check(s.whyClipped === 0, 'F-01 [' + label + ']: the short reason on every blocked row is fully visible (not cut by the ellipsis)', { blockedRows: s.blockedRows, reasonCut: s.whyClipped, metaTailCut: s.metaClipped });
+      return s;
+    }
+
+    // every free rank ticked by the real mouse on the tightest trees (the one-line "Add selected N to Fell plan" is at its widest)
+    async function tickAllWorst(label, recs, k = 6) {
+      const worst = recs.filter((r) => r.slack !== null).sort((a, b) => a.slack - b.slack).slice(0, k);
+      const out = [];
+      for (const r of worst) {
+        await showArea(r.area); await selectById(r.id);
+        const ids = (await ev(`window.__rv.ranks()`)).filter((b) => b.pressed === 'false' && b.disabled !== 'true').map((b) => b.id);
+        for (const id of ids) { const cur = (await ev(`window.__rv.ranks()`)).find((x) => x.id === id); await page.clickAt(cur.x, cur.y); await sleep(110); }
+        const f = await foldNow(true);
+        out.push({ id: r.id, blocked: r.blocked, add: f.addText, ok: foldB(f), slackTicked: f.slack, slackBefore: r.slack });
+      }
+      await closeInspect();
+      check(out.every((o) => o.ok), 'AC01 [' + label + ']: with every free rank ticked by the real mouse on the ' + out.length + ' tightest trees, rows and the one-line Add button are still above the fold', out);
+    }
+
+    // how low can the viewport go before the tightest trees stop fitting? (1280 wide only)
+    async function headroom(label, recs, k = 6) {
+      if (W !== 1280) return;
+      const worst = recs.filter((r) => r.slack !== null).sort((a, b) => a.slack - b.slack).slice(0, k);
+      const table = {};
+      for (const h of [720, 716, 712, 708, 704, 700, 696, 692]) {
+        await page.viewport(W, h);
+        const pass = [];
+        for (const r of worst) { await showArea(r.area); await selectById(r.id); pass.push(foldB(await foldNow(false))); }
+        table[h] = pass.every(Boolean) ? 'all ' + pass.length + ' fit' : pass.filter(Boolean).length + '/' + pass.length + ' fit';
+      }
+      await page.viewport(W, H); await closeInspect();
+      info('headroom [' + label + ']: viewport height vs the ' + worst.length + ' tightest trees (' + worst.map((r) => r.id + ' b' + r.blocked + ' slack ' + r.slack).join('; ') + ')', table);
+      return table;
+    }
+
+    // the reason must be reachable without sight: tooltip, screen-reader text, the browser's own computed accessible name, and the focusable map rank button
+    async function a11ySample(label, recs) {
+      const pick = recs.filter((r) => r.blocked > 0).sort((a, b) => b.blocked - a.blocked).slice(0, 3);
+      const out = [];
+      for (const r of pick) {
+        await showArea(r.area); await selectById(r.id);
+        const f = await foldNow(false);
+        const rows = await ev(`[...document.querySelectorAll('#competition-content .comp-row.blocked')].map((li) => ({ id: li.querySelector('input').dataset.draft, short: li.querySelector('.comp-why').textContent }))`);
+        const ranks = await ev(`window.__rv.ranks()`);
+        const wis = f.whyInfo.filter(Boolean);   // same order as the blocked rows (R3 probe fix: match by position, not by reason text)
+        for (let ri = 0; ri < rows.length; ri++) {
+          const row = rows[ri];
+          const w = wis[ri];
+          const full = FULL_REASON[row.short] || row.short;
+          const ax = await axOf('#competition-content input[data-draft="' + row.id + '"]');
+          const rk = ranks.find((x) => x.id === row.id);
+          out.push({ tree: r.id, competitor: row.id, visible: row.short, full, tooltipHasFull: !!(w && w.title && w.title.includes(full) && w.title.includes(row.id)), srText: w && w.sr, srHasFull: !!(w && w.sr && w.sr.includes('Cannot be chosen: ' + full)),
+            shortAriaHidden: w && w.whyAriaHidden === 'true', axName: ax && ax.name, axHasFull: !!(ax && ax.name && ax.name.includes(full)), axRepeatsShort: !!(ax && ax.name && ax.name.includes(row.short) && full !== row.short && !ax.name.includes(full)),
+            rankButtonLabel: rk && rk.label, rankHasFull: !!(rk && rk.label && rk.label.includes(full)), rankIsButton: rk && rk.tag === 'button' });
+        }
+      }
+      await closeInspect();
+      check(out.length > 0 && out.every((o) => o.tooltipHasFull && o.srHasFull && o.shortAriaHidden && o.axHasFull), 'F-01 [' + label + ']: for every blocked row sampled the FULL reason is reachable without sight: row tooltip, screen-reader text, and the checkbox\'s accessible name as computed by Edge (the short visible text is aria-hidden)', out.slice(0, 6));
+      check(out.length > 0 && out.every((o) => o.rankHasFull && o.rankIsButton), 'F-01 [' + label + ']: the focusable map rank button of each blocked competitor also carries the full reason (the checkbox itself is disabled and not tabbable)', out.slice(0, 4).map((o) => [o.competitor, o.rankButtonLabel]));
+    }
+
+    // ---- loaded-state set-up, done through the page's own controls where it is the thing under test --------------------------
+    let QPLAN = null;
+    async function queueFour() {
+      const lists = await livingIds(); const A = lists.find((l) => l.areaId === 'MA-A').ids; const B = lists.find((l) => l.areaId === 'MA-B').ids;
+      const topA = await rvx(`rv.allTopFive('MA-A', ${J(A)})`); const topB = await rvx(`rv.allTopFive('MA-B', ${J(B)})`);
+      const popOf = (ids, top) => { const p = {}; for (const id of ids) for (const c of (top[id] || [])) p[c] = (p[c] || 0) + 1; return p; };
+      const popA = popOf(A, topA), popB = popOf(B, topB);
+      let best = null;
+      for (const id of A) {
+        const five = topA[id]; if (!five || five.length < 5) continue;
+        const sorted = five.slice().sort((p, q) => popA[q] - popA[p] || (p < q ? -1 : 1));
+        const score = sorted.slice(0, 4).reduce((s, c) => s + popA[c], 0);
+        if (!best || score > best.score) best = { ref: id, four: sorted.slice(0, 4), fifth: sorted[4], score };
+      }
+      const rankedA = Object.keys(popA).sort((p, q) => popA[q] - popA[p] || (p < q ? -1 : 1)); const rankedB = Object.keys(popB).sort((p, q) => popB[q] - popB[p] || (p < q ? -1 : 1));
+      const cropA = [best.fifth, ...rankedA.filter((c) => c !== best.ref && !best.four.includes(c) && c !== best.fifth).slice(0, 2)];
+      const cropB = rankedB.slice(0, 2);
+      QPLAN = { best, cropA, cropB, popularity: { four: best.four.map((c) => popA[c]), fifth: popA[best.fifth], maxA: popA[rankedA[0]], maxB: popB[rankedB[0]] } };
+      await showArea('MA-A'); await selectById(best.ref);
+      for (const id of best.four) { const b = (await ev(`window.__rv.ranks()`)).find((x) => x.id === id); await page.clickAt(b.x, b.y); await sleep(150); }
+      const before = await rvx(`rv.snap()`);
+      await page.click('#add-button'); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'add result', 15000); await settle(450);
+      const after = await rvx(`rv.snap()`);
+      await closeInspect();
+      info('queued four Fell orders through the page\'s own map ranks and Add (real mouse)', { reference: best.ref, queued: best.four, popularityOfThose: QPLAN.popularity.four, pendingBefore: before.pending.length, pendingAfter: after.pending.length, fifthLeftFreeForCrop: best.fifth });
+      check(after.pending.length === before.pending.length + 4 && best.four.every((id) => after.pending.some((p) => p.includes(':' + id + ':'))), 'set-up: exactly the four ticked competitors were queued as pending Fell orders', after.pending);
+    }
+    async function cropAndApprove() {
+      for (const [areaId, ids] of [['MA-A', QPLAN.cropA], ['MA-B', QPLAN.cropB]]) {
+        await showArea(areaId);
+        for (const id of ids) {
+          await selectById(id);
+          if ((await ev(`document.getElementById('crop-button').textContent`)) !== 'Remove Crop designation') {
+            await page.click('#crop-button'); await page.waitFor(`document.getElementById('crop-button').textContent === 'Remove Crop designation'`, 'crop ' + id, 9000); await sleep(250);
+          }
+        }
+      }
+      await closeInspect();
+      await page.click('[data-pane-button="plan"]'); await sleep(250);
+      await page.click('#approve'); await settle(500);
+      await page.waitFor(`!document.getElementById('approved-box').hidden`, 'approved', 9000);
+      const s = await rvx(`rv.snap()`);
+      info('set-up: Crop designations made with the page\'s Crop button, plan approved with the page\'s Approve button', { crops: s.crops.map((c) => c.length), approved: s.approved && s.approved.length, pending: s.pending.length });
+      check(s.approved && s.approved.length === 4 && s.crops.flat().length >= 4, 'set-up: approved plan of 4 orders plus Crop designations', { approved: s.approved, crops: s.crops });
+      await page.click('[data-pane-button="tree"]'); await sleep(200);
+    }
+
+    // ===== RS0..RS4: the loaded-state fold sweeps (the core re-test of F-01) =====================================================
+    let RS_STATE = {};
+    await section('RS0', async () => {
+      const recs = await sweepB('clean'); RS_STATE.clean = recs;
+      reportState('clean session', recs, false);
+      await tickAllWorst('clean session', recs);
+      await headroom('clean session', recs);
+    });
+    await section('RS1', async () => {
+      await queueFour();
+      const recs = await sweepB('queued4'); RS_STATE.queued4 = recs;
+      reportState('4 queued Fell orders', recs, true);
+      await tickAllWorst('4 queued Fell orders', recs);
+      await a11ySample('4 queued Fell orders', recs);
+      await headroom('4 queued Fell orders', recs);
+    });
+    await section('RS2', async () => {
+      await cropAndApprove();
+      const recs = await sweepB('approved-crop'); RS_STATE.approved = recs;
+      reportState('approved plan + Crop designations', recs, true);
+      await a11ySample('approved plan + Crop designations', recs);
+      await headroom('approved plan + Crop designations', recs);
+    });
+    await section('RS3', async () => {
+      await page.click('[data-pane-button="plan"]'); await sleep(250);
+      const s0 = await rvx(`rv.snap()`);
+      await page.click('#execute'); await page.waitFor(`document.getElementById('execute-dialog').open`, 'execute dialog', 9000);
+      await page.click('#execute-confirm'); await settle(800);
+      await page.waitFor(`document.getElementById('approved-box').hidden`, 'executed', 12000);
+      const s1 = await rvx(`rv.snap()`);
+      info('set-up: real Execute through the page', { livingBefore: s0.living, livingAfter: s1.living, events: s1.events });
+      await page.click('[data-pane-button="tree"]'); await sleep(200);
+      const recs = await sweepB('after-execute'); RS_STATE.executed = recs;
+      reportState('after Execute (the four trees felled; Crop designations remain)', recs, false);
+    });
+    await section('RS4', async () => {
+      await page.click('#advance'); await sleep(300);
+      if (await ev(`document.getElementById('consent-dialog').open`)) await page.click('#consent-advance');
+      await settle(800);
+      await page.waitFor(`document.getElementById('year-value').textContent === '1'`, 'year 1', 20000);
+      const recs = await sweepB('year1'); RS_STATE.year1 = recs;
+      reportState('after Year+1 (felled stumps and any natural deaths exist)', recs, false);
+    });

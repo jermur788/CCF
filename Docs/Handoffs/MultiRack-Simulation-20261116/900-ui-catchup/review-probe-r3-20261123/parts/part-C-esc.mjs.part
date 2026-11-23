@@ -1,0 +1,110 @@
+    // ===== RESC: F-05, the dialog-only Escape no longer cancels a pending map click (and everything else still does) ============
+    await section('RESC', async () => {
+      await setLight(false); await setGround(false); await closeInspect(); await page.click('#reread'); await settle(400);
+      const openDialog = async () => { await page.click('#advance'); await page.waitFor(`document.getElementById('consent-dialog').open`, 'consent dialog', 8000); };
+      const dialogOpen = () => ev(`document.getElementById('consent-dialog').open`);
+      const out = {};
+      // D1 (ok answer): hold the answer, open the dialog, Escape closes ONLY the dialog; releasing then applies the click normally
+      {
+        await showArea('MA-A'); const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids; const R0 = ids[0];
+        await selectById(R0); const t = await crownTarget('MA-A', [R0, ids[1]]);
+        await ev(`window.__held = 0; window.__mode = 'hold-ans'`); await page.clickAt(t.at.x, t.at.y); await page.waitFor(`window.__held >= 1`, 'held', 8000);
+        await openDialog(); const inFlight = await ev(`window.__rv.state()`);
+        const snap0 = await rvx(`rv.snap()`);
+        // what the server answered to THIS click (the wrapper recorded it; Chromium rounds the pixel and crowns overlap there, so it is not predicted)
+        const atClick = await ev(`window.__lastHitIds`);
+        await page.key('Escape'); const afterEsc = { dialog: await dialogOpen(), insp: await ev(`window.__rv.inspected()`), ground: await ev(`document.getElementById('ground-mode').getAttribute('aria-pressed')`) };
+        await ev(`window.__open()`); await sleep(900); await waitCompetition(7000).catch(() => {});
+        const end = await ev(`window.__rv.state()`); const snap1 = await rvx(`rv.snap()`);
+        out.D1 = { reference: R0, topmostAtTreeCentre: t.hit[0], topmostAtClickedPixel: atClick && atClick[0], candidatesAtClickedPixel: atClick, inFlightInsp: inFlight.insp, afterEsc, endInsp: end.insp, alertShown: end.alertShown, announce: end.announce.slice(0, 80), serverUnchanged: snap0.hash === snap1.hash };
+        check(afterEsc.dialog === false && afterEsc.insp === R0 && atClick && end.insp === atClick[0] && end.insp !== R0 && !end.alertShown && snap0.hash === snap1.hash, 'F-05 (D1, ok answer): an Escape that only closes a dialog leaves the pending map click alone: the late answer is applied as a normal selection (' + R0 + ' -> ' + (atClick && atClick[0]) + ', the server hit-test at the clicked pixel), no alert, server unchanged', out.D1);
+      }
+      // D2 (refused answer): same, but the held request is refused by the server (fence moved): the refusal must be SHOWN, not swallowed
+      {
+        await page.click('#reread'); await settle(400); await closeInspect(); await showArea('MA-B');
+        const ids = (await livingIds()).find((l) => l.areaId === 'MA-B').ids; const R0 = ids[0], C0 = ids[12];
+        await selectById(R0); const t = await crownTarget('MA-B', [R0, ids[1], C0]);
+        await ev(`window.__held = 0; window.__mode = 'hold-req'`); await page.clickAt(t.at.x, t.at.y); await page.waitFor(`window.__held >= 1`, 'held', 8000);
+        await openDialog(); const adv = await advanceFence('MA-B', C0);
+        await page.key('Escape'); const closed = !(await dialogOpen());
+        await ev(`window.__open()`); await sleep(1000);
+        const end = await ev(`window.__rv.state()`);
+        out.D2 = { reference: R0, advance: adv, dialogClosed: closed, endInsp: end.insp, alertShown: end.alertShown, alert: end.alert.slice(0, 120) };
+        check(closed && end.insp === R0 && end.alertShown && /Refused|stale|PlayerPlanStateStale/i.test(end.alert), 'F-05 (D2, refused answer): after a dialog-only Escape the late REFUSED answer is not treated as stale: its refusal is shown, nothing is selected, the earlier reference stays', out.D2);
+      }
+      // D3: dialog-only Escape, THEN a real Escape (closes the inspection) while still held: the late answer must now be dropped whole
+      {
+        await page.click('#reread'); await settle(400); await closeInspect(); await showArea('MA-A');
+        const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids; const R0 = ids[2];
+        await selectById(R0); const t = await crownTarget('MA-A', [R0, ids[3]]);
+        await ev(`window.__held = 0; window.__mode = 'hold-ans'`); await page.clickAt(t.at.x, t.at.y); await page.waitFor(`window.__held >= 1`, 'held', 8000);
+        await openDialog(); await page.key('Escape');
+        const mid = await ev(`window.__rv.inspected()`);
+        await page.key('Escape'); const closedInsp = await ev(`window.__rv.inspected()`);
+        const ann = await ev(`document.getElementById('announce').textContent`);
+        await ev(`window.__open()`); await sleep(900);
+        const end = await ev(`window.__rv.state()`);
+        out.D3 = { reference: R0, lateTopmost: t.hit[0], afterDialogEsc: mid, afterSecondEsc: closedInsp, endInsp: end.insp, alertShown: end.alertShown, announceSame: end.announce === ann };
+        check(mid === R0 && closedInsp === null && end.insp === null && !end.alertShown && end.announce === ann, 'F-05 (D3): a normal Escape after the dialog one still closes the inspection and drops the late answer whole (nothing reopened, no alert, no announcement)', out.D3);
+      }
+      // D4: Escape pressed in the search box with text only clears the box; the page does NOT lose the map click? (state of play, reported)
+      {
+        await page.click('#reread'); await settle(400); await closeInspect(); await showArea('MA-A');
+        const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids; const R0 = ids[4];
+        await selectById(R0); const t = await crownTarget('MA-A', [R0, ids[5]]);
+        await ev(`window.__held = 0; window.__mode = 'hold-ans'`); await page.clickAt(t.at.x, t.at.y); await page.waitFor(`window.__held >= 1`, 'held', 8000);
+        await ev(`(() => { const q = document.getElementById('quick-id'); q.value = 'zz'; q.focus(); })()`); await page.key('Escape');
+        const cleared = await ev(`document.getElementById('quick-id').value`);
+        await ev(`window.__open()`); await sleep(900);
+        const end = await ev(`window.__rv.state()`);
+        info('D4 (not a requirement): Escape in the exact-ID box with text, while a map click is in flight', { searchBoxAfter: cleared, reference: R0, lateTopmost: t.hit[0], inspectedAfterRelease: end.insp, readAs: end.insp === R0 ? 'the late answer was dropped (any Escape still abandons a map click)' : 'the late answer was applied' });
+      }
+      await page.click('#reread'); await settle(400); await closeInspect();
+    });
+
+    // ===== RF07: positive light indices below 0.0005 (F-07), and the ground read scroll (F-03, unchanged by decision) ==========
+    await section('RF07', async () => {
+      await showArea('MA-B'); await closeInspect(); await page.click('#zoom-fit'); await setLight(true); await setGround(true);
+      // a tree is inspected first so the read happens exactly as in the owner's flow (F-03); its rank layer is then on screen
+      const idsB = (await livingIds()).find((l) => l.areaId === 'MA-B').ids; await selectById(idsB[5]);
+      const oB = await openCells('MA-B');
+      let spot = null;
+      for (const o of oB.open.sort((p, q) => q.clear - p.clear)) { const at = await ev(`window.__rv.screenOf(${o.u}, ${o.v})`); if (at.inView && at.onMap && !at.onCrown && !at.onRank) { spot = { ...o, at }; break; } }
+      check(spot !== null, 'RF07 set-up: an on-screen open-ground spot exists in Area B (with a tree inspected)', spot && { key: spot.key, L: spot.L });
+      const f0 = await foldNow(false);
+      const sc0 = await ev(`document.getElementById('pane-tree').scrollTop`);
+      const at = await ev(`window.__rv.screenOf(${spot.u}, ${spot.v})`);
+      await page.clickAt(at.x, at.y); await sleep(450);
+      const vis = await ev(`(() => { const reach = window.__rv.reach; return { scrollTop: document.getElementById('pane-tree').scrollTop, refId: reach(document.getElementById('insp-id')), close: reach(document.getElementById('inspect-close')),
+        rowsReachable: [...document.querySelectorAll('#competition-content .comp-row')].filter((r) => reach(r)).length, add: reach(document.getElementById('add-button')), heading: reach(document.getElementById('ground-heading')), summary: reach(document.getElementById('ground-summary')) }; })()`);
+      info('F-03 (kept as is by owner decision): an open-ground read while a tree is inspected', { before: { scrollTop: sc0, rowsAbove: f0.rowsAbove }, after: vis, previousReview: { scrollTop1280: 369, scrollTop1920: 244, refReach: false, closeReach: false, rows1280: '0 of 5', rows1920: '5 of 5' } });
+      check(vis.scrollTop > 0 && vis.heading && vis.summary, 'F-03: behaviour unchanged by R3: the read still scrolls the pane so the reading (heading and summary) is visible', vis);
+      const word = await ev(`({ summary: document.getElementById('ground-summary').innerText.replace(/\\s+/g, ' '), tech: document.getElementById('ground-facts').textContent.replace(/\\s+/g, ' ') })`);
+      info('real reading before any injection', { L: spot.L, summary: word.summary.slice(0, 120) });
+      const cases = [[0, 'zero'], [1e-9, '1e-9'], [0.00004, '0.00004'], [0.0004, '0.0004'], [0.00049999, '0.00049999'], [0.0005, '0.0005'], [0.00051, '0.00051'], [0.0014, '0.0014'], [0.0015, '0.0015'], [0.302, '0.302']];
+      const rows = [];
+      for (const [L, name] of cases) {
+        // The click's own hit-test answer re-applies the server view (real values), so the injection goes INTO that answer: the read
+        // that follows then uses the injected cell for the summary, the Technical details and the announcement alike.
+        await ev(`window.__mutateHit = (j) => { if (j.stage4) for (const c of j.stage4.areas.find((a) => a.areaId === 'MA-B').ground) if (c.column === ${spot.col} && c.row === ${spot.row}) c.lightIndex = ${L}; }`);
+        await page.clickAt(at.x, at.y); await sleep(500);
+        const t = await ev(`({ summary: document.getElementById('ground-summary').innerText.replace(/\\s+/g, ' '), tech: document.getElementById('ground-facts').textContent.replace(/\\s+/g, ' '), aria: document.getElementById('ground-summary').getAttribute('aria-label') || null })`);
+        const sumIdx = /Light index\s*([<>0-9. ]+?)\s+on a 0/.exec(t.summary); const techIdx = /Modelled light index\s*([0-9.]+)/.exec(t.tech);
+        const ann = await ev(`document.getElementById('announce').textContent`);
+        const annIdx = /modelled light index ([<0-9. ]+?),/.exec(ann);
+        rows.push({ L: name, summaryIndex: sumIdx && sumIdx[1].trim(), technicalIndex: techIdx && techIdx[1], announcedIndex: annIdx && annIdx[1].trim(), word: (/Very shaded|Low|Moderate|Bright/.exec(t.summary) || [])[0] || null, noLight: /no modelled light/i.test(t.summary + ' ' + ann) });
+      }
+      info('light index text by injected value (concise summary / Technical details / announcement)', rows);
+      const pos = rows.filter((r) => r.L !== 'zero');
+      check(pos.every((r) => r.summaryIndex !== '0.000' && r.announcedIndex !== '0.000'), 'F-07: no POSITIVE light index is ever printed as "0.000" (concise summary and announcement)', pos.map((r) => [r.L, r.summaryIndex, r.announcedIndex]));
+      check(['1e-9', '0.00004', '0.0004', '0.00049999'].every((n) => { const r = rows.find((x) => x.L === n); return r.summaryIndex === '< 0.001' && r.announcedIndex === '< 0.001'; }), 'F-07: every positive index below 0.0005 reads "< 0.001" (1e-9, 0.00004, 0.0004, 0.00049999) in the summary and the announcement', rows.filter((r) => ['1e-9', '0.00004', '0.0004', '0.00049999'].includes(r.L)));
+      check(rows.find((r) => r.L === '0.0005').summaryIndex === '0.001' && rows.find((r) => r.L === '0.00051').summaryIndex === '0.001' && rows.find((r) => r.L === '0.302').summaryIndex === '0.302', 'F-07: values from 0.0005 up print as before (0.0005 -> 0.001, 0.00051 -> 0.001, 0.302 -> 0.302)', rows.filter((r) => ['0.0005', '0.00051', '0.302'].includes(r.L)).map((r) => [r.L, r.summaryIndex]));
+      const z = rows.find((r) => r.L === 'zero');
+      check(z.summaryIndex === '0.000' && z.noLight, 'F-07: a true zero still reads "0.000" with the "no modelled light" wording', z);
+      const tiny = rows.find((r) => r.L === '0.00004');
+      info('F-07 residual (observation): Technical details keep 4 decimals, so a positive value below 0.00005 still reads "0.0000" THERE (not the concise summary)', { L_0_00004_technical: tiny.technicalIndex, L_1e_9_technical: rows.find((r) => r.L === '1e-9').technicalIndex, smallestRealLSeenInYears0to3: 0.00066555 });
+      await page.click('#reread'); await settle(380);
+      const back = await ev(`document.getElementById('ground-summary').innerText.replace(/\\s+/g, ' ')`);
+      check(back.includes('Light index ' + spot.L.toFixed(3)), 'F-07: after a normal re-read the real value (' + spot.L.toFixed(3) + ') is shown again', back.slice(0, 100));
+      await setGround(false); await closeInspect();
+    });

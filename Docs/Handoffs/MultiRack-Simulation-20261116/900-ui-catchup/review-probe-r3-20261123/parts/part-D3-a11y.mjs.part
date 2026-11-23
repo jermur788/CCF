@@ -1,0 +1,43 @@
+    // ===== RA11Y: the a11y check on its own (the first sweep runs carried a probe bug in this check, found and fixed afterwards) ===========
+    await section('RA11Y', async () => {
+      const lists = await livingIds(); const A = lists.find((l) => l.areaId === 'MA-A').ids;
+      await queueFour();
+      const top = await rvx(`rv.allTopFive('MA-A', ${J(A)})`);
+      const four = QPLAN.best.four;
+      const cand = A.map((id) => ({ area: 'MA-A', id, blocked: (top[id] || []).filter((c) => four.includes(c)).length })).filter((r) => r.blocked > 0).sort((p, q) => q.blocked - p.blocked || (p.id < q.id ? -1 : 1)).slice(0, 4);
+      info('RA11Y candidates (trees with the most queued competitors)', cand);
+      await a11ySample('4 queued Fell orders (RA11Y, position-matched)', cand);
+      await cropAndApprove();
+      const cand2 = cand.slice(0, 3).map((r) => ({ ...r }));
+      await a11ySample('approved plan + Crop designations (RA11Y, position-matched)', cand2);
+    });
+
+    // ===== RMETA: what does the DBH / CI-share tail of a blocked row look like once the ellipsis has cut it? ======================
+    await section('RMETA', async () => {
+      const lists = await livingIds(); const A = lists.find((l) => l.areaId === 'MA-A').ids; const B = lists.find((l) => l.areaId === 'MA-B').ids;
+      await queueFour(); await cropAndApprove();
+      const topA = await rvx(`rv.allTopFive('MA-A', ${J(A)})`); const topB = await rvx(`rv.allTopFive('MA-B', ${J(B)})`);
+      const blockedSet = new Set([...QPLAN.best.four, ...QPLAN.cropA, ...QPLAN.cropB]);
+      const cand = [...A.map((id) => ({ area: 'MA-A', id, n: (topA[id] || []).filter((c) => blockedSet.has(c)).length })), ...B.map((id) => ({ area: 'MA-B', id, n: (topB[id] || []).filter((c) => blockedSet.has(c)).length }))]
+        .filter((r) => r.n > 0).sort((p, q) => q.n - p.n || (p.id < q.id ? -1 : 1)).slice(0, 14);
+      const rows = [];
+      for (const r of cand) {
+        await showArea(r.area); await selectById(r.id);
+        const got = await ev(`[...document.querySelectorAll('#competition-content .comp-row.blocked')].map((li) => {
+          const line = li.querySelector('.comp-line'), why = li.querySelector('.comp-why'), meta = li.querySelector('.comp-meta'); const lb = line.getBoundingClientRect(), mb = meta.getBoundingClientRect();
+          const tn = meta.firstChild; const range = document.createRange(); let visible = tn.length;
+          const limit = lb.right - 7; // the ellipsis takes about this much of the line when text is cut
+          if (mb.right > lb.right + 0.5) { visible = 0; for (let k = tn.length; k >= 0; k--) { range.setStart(tn, 0); range.setEnd(tn, k); if (range.getBoundingClientRect().right <= limit) { visible = k; break; } } }
+          return { why: why.textContent, meta: meta.textContent, visibleChars: visible, totalChars: tn.length, shown: meta.textContent.slice(0, visible) + (visible < tn.length ? '…' : ''), lineW: Math.round(lb.width), cutPx: Math.max(0, Math.round(mb.right - lb.right)) }; })`);
+        for (const g of got) rows.push({ tree: r.id, ...g });
+      }
+      const byWhy = {};
+      for (const g of rows) { const k = g.why; const d = (byWhy[k] = byWhy[k] || { rows: 0, cut: 0, minVisibleChars: 99, maxCutPx: 0, example: null, worst: null }); d.rows++; if (g.visibleChars < g.totalChars) { d.cut++; if (!d.example) d.example = g.shown + ' (full: ' + g.meta + ')'; } if (g.visibleChars < d.minVisibleChars) { d.minVisibleChars = g.visibleChars; d.worst = g.shown + ' (full: ' + g.meta + ')'; } d.maxCutPx = Math.max(d.maxCutPx, g.cutPx); }
+      info('blocked-row meta text (DBH and CI share after the reason) as actually visible; lineW = width of the one-line area', { viewport: W + 'x' + H, rowsMeasured: rows.length, byReason: byWhy });
+      // does the DBH survive? the share? (the part a player would compare)
+      const dbhLost = rows.filter((g) => !/^\d+\.\d cm/.test(g.shown)).length;
+      const dbhPartial = rows.filter((g) => /^\d+\.\d cm/.test(g.shown) && g.visibleChars < g.totalChars && g.visibleChars < g.meta.indexOf('cm') + 2).length;
+      info('how much information the ellipsis removes', { rows: rows.length, rowsWhereDbhNumberIsGone: dbhLost, rowsWhereOnlyTheShareTailIsCut: rows.filter((g) => g.visibleChars < g.totalChars && /^\d+\.\d cm/.test(g.shown)).length, rowsFullyVisible: rows.filter((g) => g.visibleChars === g.totalChars).length });
+      const worst = rows.slice().sort((p, q) => p.visibleChars / p.totalChars - q.visibleChars / q.totalChars)[0];
+      if (worst) { await showArea(cand.find((c) => c.id === worst.tree).area); await selectById(worst.tree); await shot('RMETA-worst-row'); }
+    });

@@ -1,0 +1,29 @@
+    // ===== RVP: informational. How far below the documented minimum viewport does the fold hold, and at other pixel ratios? Clean session. ====
+    await section('RVP', async () => {
+      const lists = await livingIds();
+      const pick = []; for (const l of lists) { const step = Math.max(1, Math.floor(l.ids.length / 8)); for (let i = 0; i < l.ids.length; i += step) pick.push({ area: l.areaId, id: l.ids[i] }); }
+      const measure = async (label) => {
+        let ok = 0, tot = 0, worstOverlap = -1e9, rowsReach = 0, rowsTot = 0, addReach = 0, withRows = 0; let minSlack = 1e9;
+        for (const p of pick) {
+          await showArea(p.area); await selectById(p.id);
+          const f = await foldNow(true); tot++;
+          if (foldB(f)) ok++;
+          if (f.n > 0) { withRows++; worstOverlap = Math.max(worstOverlap, Math.round(f.lastBottom - Math.min(f.dockTop, f.paneVisBottom))); if (f.addReach) addReach++; rowsReach += f.rowsReach.filter(Boolean).length; rowsTot += f.n; if (f.slack !== null) minSlack = Math.min(minSlack, f.slack); }
+        }
+        await closeInspect();
+        return { setting: label, treesFitting: ok + '/' + tot, worstRowOverlapPx: worstOverlap, rowsReachable: rowsReach + '/' + rowsTot, addReachable: addReach + '/' + withRows, minFreeRoomBelowDockPx: minSlack };
+      };
+      const table = [];
+      // sizes: the documented minimum, then shorter viewports; and what a real "1280 x 720 browser WINDOW" leaves for the page (about 85-110 px of browser chrome)
+      for (const [w, h, note] of [[1280, 720, 'documented minimum'], [1280, 700, ''], [1280, 698, ''], [1280, 697, ''], [1280, 696, ''], [1280, 680, ''], [1280, 650, ''], [1280, 610, 'a 1280x720 browser WINDOW once toolbars take ~110 px'], [1366, 650, 'a 1366x768 laptop window'], [1536, 730, 'a 1920x1080 screen at 125% scale'], [1600, 800, ''], [1024, 768, 'below the minimum width']]) {
+        await page.viewport(w, h); await sleep(250);
+        table.push({ size: w + 'x' + h, note, ...(await measure(w + 'x' + h)) });
+      }
+      // device pixel ratio at the documented minimum (CSS size unchanged)
+      for (const dpr of [1.25, 1.5, 2]) {
+        await page.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: dpr, mobile: false }); await sleep(450);
+        table.push({ size: '1280x720', note: 'device pixel ratio ' + dpr, ...(await measure('dpr ' + dpr)) });
+      }
+      await page.viewport(W, H);
+      info('viewport and pixel-ratio sampling, clean session, ' + pick.length + ' trees spread over both areas (below 1280x720 the owner states no fold requirement applies; this is informational)', table);
+    });

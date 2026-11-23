@@ -1,0 +1,19 @@
+{
+ "viewport": "1920x1080",
+ "failures": 0,
+ "results": [
+  "INFO [1920x1080] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "INFO [1920x1080] queued four Fell orders through the page's own map ranks and Add (real mouse) :: {\"reference\":\"MA-A-042\",\"queued\":[\"MA-A-058\",\"MA-A-057\",\"MA-A-028\",\"MA-A-041\"],\"popularityOfThose\":[10,9,8,7],\"pendingBefore\":0,\"pendingAfter\":4,\"fifthLeftFreeForCrop\":\"MA-A-027\"}",
+  "PASS [1920x1080] set-up: exactly the four ticked competitors were queued as pending Fell orders :: [\"MA-A:MA-A-041:Owner-selected felling\",\"MA-A:MA-A-057:Owner-selected felling\",\"MA-A:MA-A-028:Owner-selected felling\",\"MA-A:MA-A-058:Owner-selected felling\"]",
+  "INFO [1920x1080] set-up: Crop designations made with the page's Crop button, plan approved with the page's Approve button :: {\"crops\":[3,2],\"approved\":4,\"pending\":0}",
+  "PASS [1920x1080] set-up: approved plan of 4 orders plus Crop designations :: {\"approved\":[\"MA-A-041\",\"MA-A-057\",\"MA-A-028\",\"MA-A-058\"],\"crops\":[[\"MA-A-027\",\"MA-A-084\",\"MA-A-106\"],[\"MA-B-033\",\"MA-B-035\"]]}",
+  "INFO [1920x1080] blocked-row meta text (DBH and CI share after the reason) as actually visible; lineW = width of the one-line area :: {\"viewport\":\"1920x1080\",\"rowsMeasured\":31,\"byReason\":{\"Approved plan\":{\"rows\":25,\"cut\":0,\"minVisibleChars\":14,\"maxCutPx\":0,\"example\":null,\"worst\":\"24.8 cm · 8.4% (full: 24.8 cm · 8.4%)\"},\"Retained Crop\":{\"rows\":6,\"cut\":0,\"minVisibleChars\":14,\"maxCutPx\":0,\"example\":null,\"worst\":\"20.9 cm · 5.2% (full: 20.9 cm · 5.2%)\"}}}",
+  "INFO [1920x1080] how much information the ellipsis removes :: {\"rows\":31,\"rowsWhereDbhNumberIsGone\":0,\"rowsWhereOnlyTheShareTailIsCut\":0,\"rowsFullyVisible\":31}"
+ ],
+ "shots": [
+  {
+   "name": "RMETA-worst-row-1920x1080.png",
+   "bytes": 839327
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+    // ===== RCARD2: the card replaces the whole Add form, including the caption that says WHY Add is unavailable ================
+    await section('RCARD2', async () => {
+      await page.viewport(W, H); await closeInspect(); await page.click('#reread'); await settle(400); await showArea('MA-A');
+      const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids;
+      let R = null;
+      for (const id of ids) { await selectById(id); const rows = await ev(`window.__rv.rows()`); if (rows.length === 5 && rows.every((r) => !r.disabled)) { R = id; break; } }
+      const rk = await ev(`window.__rv.ranks()`); await page.clickAt(rk[0].x, rk[0].y); await sleep(140);
+      const rk2 = await ev(`window.__rv.ranks()`); await page.clickAt(rk2[1].x, rk2[1].y); await sleep(140);
+      await page.click('#add-button'); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'add result', 15000); await settle(450);
+      const c0 = await cardProbe();
+      // go to the Work Plan, approve, come back to the SAME tree
+      await page.click('[data-pane-button="plan"]'); await sleep(250);
+      await page.click('#approve'); await settle(500);
+      await page.waitFor(`!document.getElementById('approved-box').hidden`, 'approved', 9000);
+      await page.click('[data-pane-button="tree"]'); await sleep(300);
+      const f = await foldNow(true), c = await cardProbe();
+      const cap = await ev(`(() => { const e = document.getElementById('add-caption'); return { text: e.textContent, rendered: e.getClientRects().length > 0 }; })()`);
+      const lockedRows = await ev(`window.__rv.rows().every((r) => r.disabled)`);
+      info('RCARD2: Add -> Work Plan -> Approve -> back to the same tree. The earlier result card is still showing', { cardShown: c.shown, cardText: c.text, formRendered: c.formRendered, captionTextInDom: cap.text, captionVisible: cap.rendered, allRowCheckboxesDisabled: lockedRows, rowsAbove: f.rowsAbove });
+      await shot('RCARD2-card-after-approve');
+      await page.click('[data-batch="dismiss"]'); await sleep(300);
+      const f2 = await foldNow(true), c2 = await cardProbe();
+      const cap2 = await ev(`(() => { const e = document.getElementById('add-caption'); return { text: e.textContent, rendered: e.getClientRects().length > 0 }; })()`);
+      info('RCARD2: after Dismiss the form and its explanation are visible', { formRendered: c2.formRendered, addDisabled: f2.addDisabled, addText: f2.addText, caption: cap2.text, captionVisible: cap2.rendered });
+      check(c0.shown && c.shown && !c.formRendered && !cap.rendered, 'RCARD2 (observation, expected by the R3 design): while the card shows, the "why is Add unavailable" caption is not visible even though the plan is now approved', { cardShown: c.shown, captionVisible: cap.rendered });
+      check(c2.formRendered && /approved|locked/i.test(cap2.text), 'RCARD2: Dismiss restores the form, and the caption text in the page explains the lock ("' + cap2.text.slice(0, 70) + '")', cap2);
+      info('RCARD2 observation (pre-existing, not from R3): whether that caption is VISIBLE depends on the height. At short desktop heights the stylesheet sets #add-caption to display:none, so a disabled Add button shows no reason there', { viewport: W + 'x' + H, captionVisible: cap2.rendered, shortDesktopRule: H <= 820 });
+    });

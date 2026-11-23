@@ -1,0 +1,173 @@
+    // ===== RDOC: F-04, the documented minimum, as served and as shown ==================================================================
+    await section('RDOC', async () => {
+      const served = await ev(`(async () => { const parts = { page: await (await window.__real(location.href)).text() };
+        for (const e of document.querySelectorAll('script[src],link[rel="stylesheet"]')) { const s = e.getAttribute('src') || e.getAttribute('href'); try { parts[s] = await (await window.__real(s)).text(); } catch { parts[s] = ''; } }
+        return Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, { len: v.length, htmlComment: /documented minimum supported desktop size is 1280 x 720/.test(v), cssComment: /1280 x 720 is the documented minimum supported desktop size/.test(v) }])); })()`);
+      info('served resources that mention the documented minimum', served);
+      check(Object.values(served).some((x) => x.htmlComment) && Object.values(served).some((x) => x.cssComment), 'F-04: the served page carries the documented minimum 1280 x 720 in its top HTML comment and in the short-desktop CSS comment', served);
+      const pane = await ev(`document.getElementById('screen-note').closest('[id^="pane-"]').id`);
+      await page.click('[data-pane-button="' + pane.replace('pane-', '') + '"]'); await sleep(250);
+      const place = await ev(`(() => { const n = document.getElementById('screen-note'); const p = n.closest('.pane'); const b = n.getBoundingClientRect(); const pb = p.getBoundingClientRect();
+        const heads = [...p.querySelectorAll('h2,h3,summary')].map((h) => ({ t: h.textContent.trim().slice(0, 40), top: Math.round(h.getBoundingClientRect().top - pb.top + p.scrollTop) }));
+        return { noteTopInPaneContent: Math.round(b.top - pb.top + p.scrollTop), paneScrollHeight: p.scrollHeight, paneClientHeight: p.clientHeight, paneScrollTop: p.scrollTop, notesPosition: Math.round(100 * (b.top - pb.top + p.scrollTop) / p.scrollHeight) + '% down the pane', before: heads.slice(-4) }; })()`);
+      info('F-04: where the note sits in the Details pane (before any scrolling)', place);
+      await ev(`document.getElementById('screen-note').scrollIntoView({ block: 'center' })`); await sleep(250);
+      const note = await ev(`(() => { const n = document.getElementById('screen-note'); const b = n.getBoundingClientRect(); return { text: n.textContent, reach: window.__rv.reach(n), top: Math.round(b.top), bottom: Math.round(b.bottom), ih: innerHeight, paneShown: getComputedStyle(n.closest('.pane')).display !== 'none' }; })()`);
+      check(note.paneShown && note.reach && /at least 1280 × 720/.test(note.text) && /without scrolling/.test(note.text), 'F-04: the Details pane carries the note "…desktop browser windows of at least 1280 × 720…" and it is readable once the pane is scrolled to it', note);
+      info('F-04 wording to judge: the note says browser WINDOWS; the fold is measured on the page VIEWPORT (a 1280 x 720 window has a shorter viewport once browser toolbars are counted)', { note: note.text });
+      await page.click('[data-pane-button="tree"]'); await sleep(200);
+    });
+
+    // ===== RADD: F-02 post-Add card, the two behaviour changes, real partial / guard / unconfirmed Adds ======================
+    const cardProbe = () => ev(`(() => { const c = document.getElementById('batch-result'); const t = c.querySelector('.alert-title'); const more = c.querySelector('[data-batch="more"]'); const dis = c.querySelector('[data-batch="dismiss"]');
+      const rect = (e) => { if (!e) return null; const b = e.getBoundingClientRect(); return { w: Math.round(b.width), h: Math.round(b.height), shown: e.getClientRects().length > 0 }; };
+      const a = document.activeElement; const body = document.getElementById('batch-body');
+      return { shown: !c.hidden && c.getClientRects().length > 0, text: c.innerText.replace(/\\s+/g, ' ').slice(0, 300), title: t ? t.textContent : null, titleCut: t ? t.scrollWidth > t.clientWidth + 1 : null, titleTip: t ? t.title : null,
+        open: c.classList.contains('open'), cls: c.className, more: rect(more), moreText: more ? more.textContent : null, moreExpanded: more ? more.getAttribute('aria-expanded') : null, dismiss: rect(dis),
+        focus: a.id || a.getAttribute('data-batch') || a.localName, formRendered: document.getElementById('add-form').getClientRects().length > 0, dockClass: document.getElementById('add-dock').className,
+        bodyShown: body ? body.getClientRects().length > 0 : null, live: document.getElementById('announce').textContent.slice(0, 200), alertShown: document.getElementById('alert').classList.contains('shown'),
+        alertText: document.getElementById('alert').innerText.replace(/\\s+/g, ' ').slice(0, 260) }; })()`);
+
+    await section('RADD', async () => {
+      await setLight(false); await setGround(false); await closeInspect(); await page.click('#reread'); await settle(350);
+      await showArea('MA-A');
+      const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids;
+      const used = [];
+      const freeRef = async () => { for (const id of ids) { if (used.includes(id)) continue; await selectById(id); const rows = await ev(`window.__rv.rows()`); if (rows.length === 5 && rows.every((r) => !r.disabled)) { used.push(id); return id; } } return null; };
+      const tick = async (ks) => { for (const k of ks) { const rk = await ev(`window.__rv.ranks()`); await page.clickAt(rk[k].x, rk[k].y); await sleep(140); } };
+      const addAndWait = async () => { await page.click('#add-button'); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'add result', 15000); await settle(450); };
+      const short = H <= 820;
+
+      // ---- A: a complete Add ----
+      const R1 = await freeRef(); await tick([0, 1]);
+      await addAndWait();
+      const f1 = await foldNow(true), c1 = await cardProbe();
+      await shot('RADD-1-after-add');
+      check(c1.shown && !c1.formRendered && foldB(f1), 'F-02: after a complete Add the result card stands in the Add form\'s place and ALL FIVE rows stay above the dock and reachable', { cardH: f1.cardH, lastBottom: Math.round(f1.lastBottom), dockTop: Math.round(f1.dockTop), paneVisBottom: Math.round(f1.paneVisBottom), formRendered: c1.formRendered, rowsAbove: f1.rowsAbove, rowsReachable: f1.rowsReach.filter(Boolean).length });
+      if (short) check(f1.cardH <= 48 && !c1.bodyShown && c1.more && c1.more.shown && c1.dismiss && c1.dismiss.shown, 'F-02: at the short height the card is ONE line (title, Details, Dismiss) with its detail lines closed', { cardH: f1.cardH, bodyShown: c1.bodyShown, title: c1.title, titleCut: c1.titleCut, more: c1.more, dismiss: c1.dismiss });
+      else check(!(c1.more && c1.more.shown) && c1.bodyShown, 'F-02: at the tall height the card shows its lines at once (no Details control) and is still below all five rows', { cardH: f1.cardH, bodyShown: c1.bodyShown, more: c1.more });
+      info('post-Add card as shown (R1 = ' + R1 + ', ranks 1-2 added)', { text: c1.text, focus: c1.focus, live: c1.live, dockH: f1.dockH, cardH: f1.cardH, controls: { details: c1.more, dismiss: c1.dismiss }, titleTip: c1.titleTip });
+      // target sizes of the two new controls, against the page's own 44 px convention and the 24 px WCAG 2.2 minimum
+      const tg = [c1.dismiss, short ? c1.more : null].filter(Boolean);
+      info('new control sizes (CSS px): the page uses 44 px targets elsewhere; WCAG 2.2 AA minimum is 24 px', { dismiss: c1.dismiss, details: c1.more, all24: tg.every((t) => t.w >= 24 && t.h >= 24), all44: tg.every((t) => t.w >= 44 && t.h >= 44) });
+      // Details (short heights only): opens on request
+      if (short && c1.more && c1.more.shown) {
+        await page.click('[data-batch="more"]'); await sleep(200);
+        const fo = await foldNow(false), co = await cardProbe();
+        info('Details opened ON REQUEST at the short height', { cardH: fo.cardH, bodyShown: co.bodyShown, expanded: co.moreExpanded, buttonText: co.moreText, focus: co.focus, rowsAboveDock: fo.rowsAbove, rowsReachable: fo.rowsReach.filter(Boolean).length + '/5', lastBottom: Math.round(fo.lastBottom), dockTop: Math.round(fo.dockTop), text: co.text });
+        check(co.bodyShown && co.moreExpanded === 'true' && co.focus === 'more' && /Hide details/.test(co.moreText), 'F-02: Details opens the detail lines, aria-expanded flips, focus stays on the toggle', { bodyShown: co.bodyShown, expanded: co.moreExpanded, focus: co.focus, text: co.moreText });
+        await shot('RADD-1b-details-open');
+        await page.click('[data-batch="more"]'); await sleep(200);
+        const fc = await foldNow(false), cc = await cardProbe();
+        check(!cc.bodyShown && cc.moreExpanded === 'false' && fc.cardH <= 48 && foldB(fc), 'F-02: Hide details closes it again; the card is one line and all five rows are above the dock again', { cardH: fc.cardH, rowsAbove: fc.rowsAbove });
+      }
+      // ---- behaviour change 1: a draft change ends the card ----
+      await tick([2]);
+      const f3 = await foldNow(true), c3 = await cardProbe();
+      check(!c3.shown && f3.addRendered && /Add selected 1 /.test(f3.addText) && foldB(f3), 'Behaviour change 1 (map): ticking a map rank after an Add ends the result card; the Add form is back with the new count and is above the fold', { cardShown: c3.shown, add: f3.addText, addRendered: f3.addRendered, live: c3.live });
+      await addAndWait();
+      const c4 = await cardProbe();
+      const rows4 = await ev(`window.__rv.rows()`);
+      await page.click('#competition-content input[data-draft="' + rows4[3].id + '"]'); await sleep(250);
+      const c4b = await cardProbe(), f4 = await foldNow(true);
+      check(c4.shown && !c4b.shown && f4.addRendered && /Add selected 1 /.test(f4.addText) && foldB(f4), 'Behaviour change 1 (inspector): ticking an inspector checkbox after an Add also ends the card and returns the form', { before: c4.shown, after: c4b.shown, add: f4.addText });
+      // ---- Dismiss by real click; nothing sent; focus and announcement ----
+      await addAndWait();
+      const reqs1 = await ev(`window.__reqs.length`);
+      await page.click('[data-batch="dismiss"]'); await sleep(250);
+      const c5 = await cardProbe(), f5 = await foldNow(true); const reqs2 = await ev(`window.__reqs.length`);
+      check(!c5.shown && f5.addRendered && foldB(f5) && reqs2 === reqs1, 'F-02: × Dismiss ends the card, the Add form is back above the fold, nothing is sent', { requestsSent: reqs2 - reqs1, add: f5.addText, addDisabled: f5.addDisabled });
+      info('focus and announcement after Dismiss (nothing left to add, so the Add button is disabled)', { focus: c5.focus, live: c5.live });
+      // ---- a new selection ends it, as before ----
+      await tick([4]); await addAndWait();
+      const c6 = await cardProbe();
+      const other = ids.find((id) => !used.includes(id));
+      await selectById(other);
+      const c6b = await cardProbe(), f6 = await foldNow(true);
+      check(c6.shown && !c6b.shown && foldB(f6), 'F-02: selecting another tree ends the card as before', { before: c6.shown, after: c6b.shown });
+
+      // ---- a REAL partial Add (the writer did not provoke one): the second order is refused because the server moved ----
+      const runFault = async (mode, at, beforeRelease) => {
+        await ev(`window.__addCalls = 0; window.__addHeld = 0; window.__addPlan = { at: ${at}, mode: ${J(mode)} }`);
+        await page.click('#add-button');
+        await page.waitFor(`window.__addHeld >= 1`, 'add held ' + mode, 12000);
+        const extra = beforeRelease ? await beforeRelease() : null;
+        await ev(`window.__addOpen()`);
+        await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'partial result', 15000); await settle(500);
+        return extra;
+      };
+      const R2 = await freeRef();
+      const chosen2 = (await ev(`window.__rv.ranks()`)).slice(0, 3).map((r) => r.id);
+      await tick([0, 1, 2]);
+      const side = ids[ids.length - 1];
+      const adv = await runFault('hold-req', 2, () => advanceFence('MA-A', side));
+      const fp = await foldNow(true), cp = await cardProbe();
+      await shot('RADD-2-partial-refused');
+      const rowsP = await ev(`window.__rv.rows()`); const snapP = await rvx(`rv.snap()`);
+      info('PARTIAL Add provoked for real (call 2 of 3 refused because the server fence moved)', { reference: R2, advanceFence: adv, title: cp.title, titleCut: cp.titleCut, titleTip: cp.titleTip, cls: cp.cls, text: cp.text, cardH: fp.cardH, rowsAbove: fp.rowsAbove, formRendered: cp.formRendered,
+        draftStillTicked: rowsP.filter((r) => r.checked).map((r) => r.id), chosen: chosen2, confirmedPendingOfThem: chosen2.filter((id) => snapP.pending.some((p) => p.includes(':' + id + ':'))) });
+      check(cp.shown && /^Stopped after 1 of 3/.test(cp.title || '') && /refused MA-A-\d+/.test(cp.title || '') && !cp.formRendered && foldB(fp), 'Partial Add: the card says "Stopped after 1 of 3 · refused <ID>", replaces the Add form, and all five rows are still above the dock', { title: cp.title, cardH: fp.cardH, rowsAbove: fp.rowsAbove, formRendered: cp.formRendered });
+      check(rowsP.filter((r) => r.checked).length === 2, 'Partial Add: the two unsent choices are still ticked in the rows (the draft was not lost)', rowsP.filter((r) => r.checked).map((r) => r.id));
+      if (short) check(!cp.titleCut || !!cp.titleTip, 'Partial Add (short height): if the one-line title is cut, its full text is in the tooltip', { titleCut: cp.titleCut, tip: cp.titleTip });
+      // keyboard path: Tab from the card, then Enter on Dismiss
+      const seq = [cp.focus];
+      await page.key('Tab'); seq.push((await cardProbe()).focus);
+      if (short) { await page.key('Tab'); seq.push((await cardProbe()).focus); }
+      info('keyboard: focus after the Add, then Tab' + (short ? ' Tab' : ''), seq);
+      await ev(`document.querySelector('[data-batch="dismiss"]').focus()`);
+      await page.key('Enter'); await sleep(250);
+      if ((await cardProbe()).shown) { info('Enter did not dismiss; trying Space (harness diagnosis)', {}); await page.key(' '); await sleep(250); }
+      const fd = await foldNow(true), cd = await cardProbe();
+      check(!cd.shown && fd.addRendered && /Add selected 2 /.test(fd.addText) && foldB(fd), 'Partial Add: keyboard Enter on Dismiss returns the Add form with the remaining draft ("' + fd.addText + '"), above the fold', { add: fd.addText, focus: cd.focus, live: cd.live });
+      await page.click('#add-button'); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'retry result', 15000); await settle(450);
+      const cr = await cardProbe(), snapR = await rvx(`rv.snap()`);
+      check(/^Added 2 trees/.test(cr.title || '') && chosen2.every((id) => snapR.pending.some((p) => p.includes(':' + id + ':'))), 'Partial Add: after Dismiss the retry of the remaining draft succeeds, so all THREE chosen competitors are now pending exactly once (the page applied the newer view the refusal carried)', { title: cr.title, chosen: chosen2, pendingForThem: chosen2.map((id) => snapR.pending.filter((p) => p.includes(':' + id + ':')).length) });
+
+      // ---- guard refusal at the FIRST order (0 of N) ----
+      const R3 = await freeRef(); await tick([0, 1]);
+      await runFault('guard', 1, null);
+      const fg = await foldNow(true), cg = await cardProbe();
+      info('GUARD refusal at the first order', { title: cg.title, cls: cg.cls, cardH: fg.cardH, formRendered: cg.formRendered, rowsAbove: fg.rowsAbove });
+      check(cg.shown && /^Stopped after 0 of 2/.test(cg.title || '') && !cg.formRendered && foldB(fg), 'Guard refusal: "Stopped after 0 of 2 · refused <ID>" replaces the form, rows above the dock', { title: cg.title, rowsAbove: fg.rowsAbove });
+      await page.click('[data-batch="dismiss"]'); await sleep(250);
+      const fg2 = await foldNow(true);
+      check(fg2.addRendered && /Add selected 2 /.test(fg2.addText) && foldB(fg2), 'Guard refusal: Dismiss returns the form with both choices intact', { add: fg2.addText });
+      await ev(`window.__addPlan = null`);
+      await page.click('#add-button'); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'retry', 15000); await settle(450);
+      check(/^Added 2 trees/.test((await cardProbe()).title || ''), 'Guard refusal: the retry succeeds', (await cardProbe()).title);
+
+      // ---- transport failure at the SECOND order: unconfirmed, commands lock until a re-read ----
+      const R4 = await freeRef(); await tick([0, 1, 2]);
+      await runFault('transport', 2, null);
+      const ft = await foldNow(true), ct = await cardProbe();
+      info('UNCONFIRMED outcome (transport failure at order 2 of 3)', { title: ct.title, cls: ct.cls, cardH: ft.cardH, formRendered: ct.formRendered, rowsAbove: ft.rowsAbove, alertShown: ct.alertShown, alert: ct.alertText.slice(0, 200), focus: ct.focus });
+      check(ct.shown && /^Stopped after 1 of 3/.test(ct.title || '') && /unconfirmed/.test(ct.title || '') && ct.alertShown && !ct.formRendered && foldB(ft), 'Unconfirmed Add: the card names the unconfirmed tree, the lock alert is shown, the form is replaced, rows above the dock', { title: ct.title, alert: ct.alertText.slice(0, 120) });
+      await page.click('#reread'); await settle(500);
+      const fr = await foldNow(true), cr2 = await cardProbe();
+      info('after the re-read that clears the lock', { cardShown: cr2.shown, title: cr2.title, formRendered: cr2.formRendered, add: fr.addText, addDisabled: fr.addDisabled });
+      if (cr2.shown) { await page.click('[data-batch="dismiss"]'); await sleep(250); }
+      const fr3 = await foldNow(true);
+      check(fr3.addRendered && foldB(fr3), 'Unconfirmed Add: after a re-read and Dismiss the Add form is back above the fold', { add: fr3.addText, addDisabled: fr3.addDisabled });
+      await closeInspect();
+    });
+
+    // ===== RINJ: five different blocked reasons on one tree (Felled, Dead, Approved, Crop, Prune): worst-case text, by injection ===
+    await section('RINJ', async () => {
+      await page.click('#reread'); await settle(400); await closeInspect(); await showArea('MA-A');
+      const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids;
+      let T = null, five = null;
+      for (const id of ids.slice(20)) { await selectById(id); const rows = await ev(`window.__rv.rows()`); if (rows.length === 5 && rows.every((r) => !r.disabled)) { T = id; five = rows.map((r) => r.id); break; } }
+      check(T !== null, 'RINJ set-up: a tree with five free competitors exists', T);
+      await ev(`window.__mutateView = (j) => { const sc = j.scenes['MA-A']; const set = (id, f) => { const it = sc.find((x) => x.treeId === id); if (it) f(it); };
+        set(${J(five[0])}, (it) => { it.status = 'Felled'; }); set(${J(five[1])}, (it) => { it.status = 'NaturalDead'; }); set(${J(five[2])}, (it) => { it.status = 'ApprovedFell'; }); set(${J(five[3])}, (it) => { it.isCrop = true; });
+        const a = j.stage4.areas.find((x) => x.areaId === 'MA-A'); const s = a.trees.find((x) => x.treeId === ${J(five[4])}); if (s) s.prunePlanState = 'PendingPrune'; }`);
+      await page.click('#reread'); await settle(600);
+      await page.waitFor(`document.querySelectorAll('#competition-content .comp-row.blocked').length >= 5`, 'five blocked rows', 8000).catch(() => {});
+      const f = await foldNow(true); const wi = f.whyInfo.filter(Boolean);
+      await shot('RINJ-five-reasons');
+      info('five different reasons injected into one tree\'s competitors (view injection; the engine does not rank Felled/Dead trees)', { tree: T, reasonsShown: wi.map((w) => w.why), heights: f.heights, titles: wi.map((w) => w.title), sr: wi.map((w) => w.sr) });
+      check(f.blocked === 5 && wi.map((w) => w.why).join('|') === 'Felled|Dead|Approved plan|Retained Crop|Prune plan', 'F-01 (injected): the five blocked rows show Felled, Dead, Approved plan, Retained Crop and Prune plan', wi.map((w) => w.why));
+      check(parityOk(f) && foldB(f) && wi.every((w) => !w.whyClipped), 'F-01 (injected): all five rows are blocked and still the same height; rows, Add and the fold hold; no reason is cut', { heights: f.heights, rowsAbove: f.rowsAbove, add: f.addText });
+      check(wi.every((w) => w.sr && w.sr.startsWith('Cannot be chosen: ') && w.title && w.title.length > 20), 'F-01 (injected): each of the five has screen-reader text ("Cannot be chosen: <full reason>.") and a tooltip', wi.map((w) => [w.why, w.sr, w.title]));
+      await page.click('#reread'); await settle(500); await closeInspect();
+    });

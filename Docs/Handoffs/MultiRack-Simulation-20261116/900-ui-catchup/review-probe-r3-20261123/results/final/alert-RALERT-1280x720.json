@@ -1,0 +1,13 @@
+{
+ "viewport": "1280x720",
+ "failures": 0,
+ "results": [
+  "INFO [1280x720] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "INFO [1280x720] plain REFUSAL partway through an Add: alert region and live status :: {\"alertShown\":false,\"alertText\":\"\",\"status\":\"Stopped after 1 of 3: refused MA-A-016. Added: MA-A-015. Not attempted: MA-A-002.\",\"statusVisible\":true}",
+  "PASS [1280x720] N-02/F-02: a partial Add refused by the server raises NO alert (only the card and the status line carry it) :: {\"alertShown\":false,\"alertText\":\"\",\"status\":\"Stopped after 1 of 3: refused MA-A-016. Added: MA-A-015. Not attempted: MA-A-002.\",\"statusVisible\":true}",
+  "INFO [1280x720] GUARD refusal at the first order: alert region and live status :: {\"alertShown\":false,\"alertText\":\"\",\"status\":\"Stopped after 0 of 2: refused MA-A-016. Added: none. Not attempted: MA-A-002.\",\"statusVisible\":true}",
+  "PASS [1280x720] N-02/F-02: a guard refusal of an Add raises NO alert either :: {\"alertShown\":false,\"alertText\":\"\",\"status\":\"Stopped after 0 of 2: refused MA-A-016. Added: none. Not attempted: MA-A-002.\",\"statusVisible\":true}",
+  "PASS [1280x720] N-02: the status line in the map header is visible on screen and carries the count and the refused tree even when the one-line card title is cut :: {\"alertShown\":false,\"alertText\":\"\",\"status\":\"Stopped after 1 of 3: refused MA-A-016. Added: MA-A-015. Not attempted: MA-A-002.\",\"statusVisible\":true}"
+ ],
+ "shots": []
+}

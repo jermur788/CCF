@@ -1,0 +1,25 @@
+    // ===== RALERT: does a plain (partial / guard) refusal raise an alert? (I had read this from the code; this asserts it) ===========
+    await section('RALERT', async () => {
+      await setLight(false); await setGround(false); await closeInspect(); await page.click('#reread'); await settle(400); await showArea('MA-A');
+      const ids = (await livingIds()).find((l) => l.areaId === 'MA-A').ids;
+      const freeRef = async () => { for (const id of ids) { await selectById(id); const rows = await ev(`window.__rv.rows()`); if (rows.length === 5 && rows.every((r) => !r.disabled)) return id; } return null; };
+      const tick = async (ks) => { for (const k of ks) { const rk = await ev(`window.__rv.ranks()`); await page.clickAt(rk[k].x, rk[k].y); await sleep(140); } };
+      const run = async (mode, at, before) => {
+        await ev(`window.__addCalls = 0; window.__addHeld = 0; window.__addPlan = { at: ${at}, mode: ${J(mode)} }`);
+        await page.click('#add-button'); await page.waitFor(`window.__addHeld >= 1`, 'held', 12000);
+        if (before) await before();
+        await ev(`window.__addOpen()`); await page.waitFor(`document.getElementById('batch-result').hidden === false`, 'result', 15000); await settle(500);
+        return ev(`({ alertShown: document.getElementById('alert').classList.contains('shown'), alertText: document.getElementById('alert').innerText.replace(/\\s+/g, ' ').slice(0, 160), status: document.getElementById('announce').textContent.slice(0, 160),
+          statusVisible: (() => { const e = document.getElementById('announce'); const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== 'hidden' && !e.classList.contains('sr-only'); })() })`);
+      };
+      await freeRef(); await tick([0, 1, 2]);
+      const side = ids[ids.length - 1];
+      const refused = await run('hold-req', 2, () => advanceFence('MA-A', side));
+      info('plain REFUSAL partway through an Add: alert region and live status', refused);
+      check(!refused.alertShown, 'N-02/F-02: a partial Add refused by the server raises NO alert (only the card and the status line carry it)', refused);
+      await page.click('[data-batch="dismiss"]'); await sleep(250);
+      const guard = await run('guard', 1, null);
+      info('GUARD refusal at the first order: alert region and live status', guard);
+      check(!guard.alertShown, 'N-02/F-02: a guard refusal of an Add raises NO alert either', guard);
+      check(refused.statusVisible && /Stopped after 1 of 3: refused MA-A-\d+/.test(refused.status), 'N-02: the status line in the map header is visible on screen and carries the count and the refused tree even when the one-line card title is cut', refused);
+    });

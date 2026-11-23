@@ -1,0 +1,48 @@
+{
+ "viewport": "1280x720",
+ "failures": 0,
+ "results": [
+  "INFO [1280x720] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "PASS [1280x720] F-02: after a complete Add the result card stands in the Add form's place and ALL FIVE rows stay above the dock and reachable :: {\"cardH\":36.4,\"lastBottom\":633,\"dockTop\":638,\"paneVisBottom\":712,\"formRendered\":false,\"rowsAbove\":true,\"rowsReachable\":5}",
+  "PASS [1280x720] F-02: at the short height the card is ONE line (title, Details, Dismiss) with its detail lines closed :: {\"cardH\":36.4,\"bodyShown\":false,\"title\":\"Added 2 trees to the Fell plan\",\"titleCut\":true,\"more\":{\"w\":46,\"h\":28,\"shown\":true},\"dismiss\":{\"w\":63,\"h\":28,\"shown\":true}}",
+  "INFO [1280x720] post-Add card as shown (R1 = MA-A-001, ranks 1-2 added) :: {\"text\":\"Added 2 trees to the Fell plan Details × Dismiss\",\"focus\":\"batch-result\",\"live\":\"Added 2 trees to the Fell plan as pending orders (not felled): MA-A-015, MA-A-016. Total pending 2.\",\"dockH\":42.171875,\"cardH\":36.4,\"controls\":{\"details\":{\"w\":46,\"h\":28,\"shown\":true},\"dismiss\":{\"w\":63,\"h\":28,\"shown\":true}},\"titleTip\":\"Added 2 trees to the Fell plan\"}",
+  "INFO [1280x720] new control sizes (CSS px): the page uses 44 px targets elsewhere; WCAG 2.2 AA minimum is 24 px :: {\"dismiss\":{\"w\":63,\"h\":28,\"shown\":true},\"details\":{\"w\":46,\"h\":28,\"shown\":true},\"all24\":true,\"all44\":false}",
+  "INFO [1280x720] Details opened ON REQUEST at the short height :: {\"cardH\":83.7,\"bodyShown\":true,\"expanded\":\"true\",\"buttonText\":\"Hide details\",\"focus\":\"more\",\"rowsAboveDock\":false,\"rowsReachable\":\"5/5\",\"lastBottom\":633,\"dockTop\":622,\"text\":\"Added 2 trees to the Fell plan Hide details × Dismiss Added as pending (not felled): MA-A-015, MA-A-016\"}",
+  "PASS [1280x720] F-02: Details opens the detail lines, aria-expanded flips, focus stays on the toggle :: {\"bodyShown\":true,\"expanded\":\"true\",\"focus\":\"more\",\"text\":\"Hide details\"}",
+  "PASS [1280x720] F-02: Hide details closes it again; the card is one line and all five rows are above the dock again :: {\"cardH\":36.4,\"rowsAbove\":true}",
+  "PASS [1280x720] Behaviour change 1 (map): ticking a map rank after an Add ends the result card; the Add form is back with the new count and is above the fold :: {\"cardShown\":false,\"add\":\"Add selected 1 to Fell plan\",\"addRendered\":true,\"live\":\"Ticked MA-A-002. 1 tree selected for Fell, draft only.\"}",
+  "PASS [1280x720] Behaviour change 1 (inspector): ticking an inspector checkbox after an Add also ends the card and returns the form :: {\"before\":true,\"after\":false,\"add\":\"Add selected 1 to Fell plan\"}",
+  "PASS [1280x720] F-02: × Dismiss ends the card, the Add form is back above the fold, nothing is sent :: {\"requestsSent\":0,\"add\":\"Add selected to Fell plan\",\"addDisabled\":true}",
+  "INFO [1280x720] focus and announcement after Dismiss (nothing left to add, so the Add button is disabled) :: {\"focus\":\"inspector-heading\",\"live\":\"Dismissed the Add result. Orders already added stay pending in the Work Plan.\"}",
+  "PASS [1280x720] F-02: selecting another tree ends the card as before :: {\"before\":true,\"after\":false}",
+  "INFO [1280x720] PARTIAL Add provoked for real (call 2 of 3 refused because the server fence moved) :: {\"reference\":\"MA-A-004\",\"advanceFence\":\"marked\",\"title\":\"Stopped after 1 of 3 · refused MA-A-005\",\"titleCut\":true,\"titleTip\":\"Stopped after 1 of 3 · refused MA-A-005\",\"cls\":\"batch-result partial\",\"text\":\"Stopped after 1 of 3 · refused MA-A-005 Details × Dismiss\",\"cardH\":36.4,\"rowsAbove\":true,\"formRendered\":false,\"draftStillTicked\":[\"MA-A-005\",\"MA-A-019\"],\"chosen\":[\"MA-A-003\",\"MA-A-005\",\"MA-A-019\"],\"confirmedPendingOfThem\":[\"MA-A-003\"]}",
+  "PASS [1280x720] Partial Add: the card says \"Stopped after 1 of 3 · refused <ID>\", replaces the Add form, and all five rows are still above the dock :: {\"title\":\"Stopped after 1 of 3 · refused MA-A-005\",\"cardH\":36.4,\"rowsAbove\":true,\"formRendered\":false}",
+  "PASS [1280x720] Partial Add: the two unsent choices are still ticked in the rows (the draft was not lost) :: [\"MA-A-005\",\"MA-A-019\"]",
+  "PASS [1280x720] Partial Add (short height): if the one-line title is cut, its full text is in the tooltip :: {\"titleCut\":true,\"tip\":\"Stopped after 1 of 3 · refused MA-A-005\"}",
+  "INFO [1280x720] keyboard: focus after the Add, then Tab Tab :: [\"batch-result\",\"more\",\"dismiss\"]",
+  "PASS [1280x720] Partial Add: keyboard Enter on Dismiss returns the Add form with the remaining draft (\"Add selected 2 to Fell plan\"), above the fold :: {\"add\":\"Add selected 2 to Fell plan\",\"focus\":\"add-button\",\"live\":\"Dismissed the Add result. Orders already added stay pending in the Work Plan.\"}",
+  "PASS [1280x720] Partial Add: after Dismiss the retry of the remaining draft succeeds, so all THREE chosen competitors are now pending exactly once (the page applied the newer view the refusal carried) :: {\"title\":\"Added 2 trees to the Fell plan\",\"chosen\":[\"MA-A-003\",\"MA-A-005\",\"MA-A-019\"],\"pendingForThem\":[1,1,1]}",
+  "INFO [1280x720] GUARD refusal at the first order :: {\"title\":\"Stopped after 0 of 2 · refused MA-A-007\",\"cls\":\"batch-result failed\",\"cardH\":36.4,\"formRendered\":false,\"rowsAbove\":true}",
+  "PASS [1280x720] Guard refusal: \"Stopped after 0 of 2 · refused <ID>\" replaces the form, rows above the dock :: {\"title\":\"Stopped after 0 of 2 · refused MA-A-007\",\"rowsAbove\":true}",
+  "PASS [1280x720] Guard refusal: Dismiss returns the form with both choices intact :: {\"add\":\"Add selected 2 to Fell plan\"}",
+  "PASS [1280x720] Guard refusal: the retry succeeds :: Added 2 trees to the Fell plan",
+  "INFO [1280x720] UNCONFIRMED outcome (transport failure at order 2 of 3) :: {\"title\":\"Stopped after 1 of 3 · unconfirmed MA-A-024\",\"cls\":\"batch-result partial\",\"cardH\":36.4,\"formRendered\":false,\"rowsAbove\":true,\"alertShown\":true,\"alert\":\"Outcome unconfirmed — re-read current state Adding MA-A-024 to the Work Plan: no confirmed result was received. Do not assume that it happened, or that it did not. Not attempted: MA-A-025. Every comma\",\"focus\":\"alert\"}",
+  "PASS [1280x720] Unconfirmed Add: the card names the unconfirmed tree, the lock alert is shown, the form is replaced, rows above the dock :: {\"title\":\"Stopped after 1 of 3 · unconfirmed MA-A-024\",\"alert\":\"Outcome unconfirmed — re-read current state Adding MA-A-024 to the Work Plan: no confirmed result was received. Do not a\"}",
+  "INFO [1280x720] after the re-read that clears the lock :: {\"cardShown\":true,\"title\":\"Stopped after 1 of 3 · unconfirmed MA-A-024\",\"formRendered\":false,\"add\":\"Add selected 2 to Fell plan\",\"addDisabled\":false}",
+  "PASS [1280x720] Unconfirmed Add: after a re-read and Dismiss the Add form is back above the fold :: {\"add\":\"Add selected 2 to Fell plan\",\"addDisabled\":false}"
+ ],
+ "shots": [
+  {
+   "name": "RADD-1-after-add-1280x720.png",
+   "bytes": 347731
+  },
+  {
+   "name": "RADD-1b-details-open-1280x720.png",
+   "bytes": 349838
+  },
+  {
+   "name": "RADD-2-partial-refused-1280x720.png",
+   "bytes": 343944
+  }
+ ]
+}
