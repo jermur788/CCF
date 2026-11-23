@@ -5,18 +5,174 @@
 | Date | 2026-11-23 |
 | Spec | `specs/multi-stage4-owner-ux-20261123-v1/` at `b95a56bf` (APPROVED, Phase A only) |
 | Role | Sole implementer (Claude Opus 5.5). **No self-review**: the independent reviewer is a different agent and thread |
+| **Authorship (all commits)** | **Every commit of this lane from `267be9ff` (the first after `e7c1a57d`) to the final HEAD carries the repository's configured Git identity, `DeepSeek V4.1 Flash orchestrator <jermur788@users.noreply.github.com>`, as author and committer. That Git author is not the actual author: the implementer of all of them was Claude Opus 5.5, as each commit's `Co-Authored-By: Claude Opus 5.5` trailer says** (the trailer is self-asserted; Git cannot verify it) |
 | Branch | `feat/multi-stage4-owner-ux-20261123-v1` |
 | Base | `e7c1a57da519ed1ee03ccfbad240196a66df0905` (reviewed Stage 4 UI catch-up candidate; not moved) |
 | Source/test HEAD (Phase A) | `9fed4eb91ed51522e3be2188c9f1539d06106d4d` |
 | Phase A handoff HEAD | `9dd6f601100d55bfca12c1584afb6fc081ba5b7e` (kept in history; not amended) |
 | Repair R1 source HEAD | `1a22d01c` (`fix(multi-owner-ux): UX-08 crown selection outranks ground inspection`), on top of `9dd6f601`; R1 docs HEAD `f0db8323` |
-| **Repair R2 source HEAD** | **`550e10b49fef5d2c3c71cbb8b299f86b9ecb96b8`** (`fix(multi-owner-ux): R2 keep ranks/Add above the fold in ground mode; drop stale hit-test answers`), on top of `f0db8323` |
-| **Final HEAD** | the commit that adds this R2 update (driver, results, changed screenshots, handoff), directly on top of `550e10b4` |
-| Worktree | `C:\Users\hp\.t3\worktrees\CCF-HP\t3-8fc40b07-b22b8bb5869955c0` (Windows checkout of a worktree whose git dir is `/home/jer/Development/CCF-HP/.git/worktrees/t3-8fc40b07-b22b8bb5869955c0`; WSL path `/mnt/c/Users/hp/.t3/worktrees/CCF-HP/t3-8fc40b07-b22b8bb5869955c0`) |
+| Repair R2 source HEAD | `550e10b49fef5d2c3c71cbb8b299f86b9ecb96b8`, on top of `f0db8323`; R2 docs HEAD `5f3b5bf3` (reviewed; verdict NEEDS CHANGES, see R3) |
+| **Repair R3 commits** | **`9d40b166`** page fix, **`9abf5c3e`** smoke witness R3a–R3j, **`4e3ba42b`** browser driver and loaded fold sweep, all on top of `5f3b5bf3` |
+| **Final HEAD** | the commit that adds this R3 update (results, refreshed screenshots, handoff), directly on top of `4e3ba42b` |
+| Worktree (R3) | native WSL worktree `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R3-20261123`, local branch `feat/multi-stage4-owner-ux-20261123-v1-r3-local` created at `5f3b5bf3`, pushed to the lane branch as a fast-forward |
+| Worktree (Phase A) | `C:\Users\hp\.t3\worktrees\CCF-HP\t3-8fc40b07-b22b8bb5869955c0` (Windows checkout of a worktree whose git dir is `/home/jer/Development/CCF-HP/.git/worktrees/t3-8fc40b07-b22b8bb5869955c0`; WSL path `/mnt/c/Users/hp/.t3/worktrees/CCF-HP/t3-8fc40b07-b22b8bb5869955c0`) |
 | Phase B (UX-10) | **Not started.** It was not needed to satisfy Phase A |
 | Integration | None. No merge, no rebase, no force push, `main` untouched |
 
 Unity, Windows builds, save/load and `main` integration were **not** run and are **not** claimed. Everything here is about the standalone browser `/multi` page in `Tools/MultiRackSitkaP1Lab`.
+
+## R3 — independent review findings (NEEDS CHANGES) and repairs (2026-11-23)
+
+### R3.1 Where the findings came from
+
+The first published independent review of this work is by **Claude Sonnet 5.5** (owner-designated substitute for GPT-6.1 Sol, whose run ended at a provider usage limit without publishing anything). It reviewed exactly **`5f3b5bf3`** and is published at review commit **`53796c58`** (`Docs/Handoffs/MultiRack-Simulation-20261116/900-ui-catchup/MULTI-STAGE4-OWNER-UX-REPAIR-PHASE-A-INDEPENDENT-REVIEW-20261123.md` on `docs/multi-stage4-owner-ux-independent-review-r2-20261123-v1`). **Verdict: NEEDS CHANGES**, with one **MAJOR** finding (F-01: the fold breaks at 1280×720 once competitor rows are blocked), MINOR findings F-02, F-03 and F-04, and observations F-05 to F-11. Its PASS results on the R2 repairs (ground-mode layout, stale hit-test answers, light ramp) were not redone, except where R3 touched the code they cover (see R3.5). This R3 is the writer's repair. It is **not** a re-review, owner acceptance or integration.
+
+### R3.2 Owner clarifications (canonical: spec commit `7b06da6f`, `specs/multi-stage4-owner-ux-20261123-v1/spec.md` section 0.2)
+
+1. **1280×720 is the documented minimum supported desktop width.** The five competitor rows and Add must hold above the fold there, including rows whose competitor is blocked (queued, approved, Crop or felled). Below 1280×720 no fold requirement applies.
+2. **F-03, an open-ground read scrolling the primary block out of view: keep the current behaviour.** Not changed in R3.
+
+### R3.3 What changed, per finding (commit `9d40b166`, all inside the `MultiAreaPage` HTML, CSS and JS strings)
+
+| Finding | Outcome | What changed |
+|---|---|---|
+| **F-01 MAJOR** | **Fixed** | A blocked row no longer gets a third line. Its **short reason opens the existing second (meta) line**: "Pending Fell · 19.1 cm · 15.5%". The short forms are Pending Fell, Approved plan, Retained Crop, Prune plan, Reference, Other area, Felled, Dead. That line now spans the ID and distance columns, so the reason is never cut. At 1280×720 a long meta tail can end in an ellipsis. The **full reason** ("Already pending Fell") is in the row's **tooltip** (`title` on the label: "Competitor 4 · MA-A-030 · Already pending Fell · 24.7 cm · 9.8%") and in **screen-reader text** inside the label ("Cannot be chosen: Already pending Fell."). The visible short form is `aria-hidden`, so a screen reader reads the full text once. Keyboard users also still reach the reason through the focusable map rank button, whose label and announcement carry the full reason (unchanged). Result: **blocked rows are exactly the height of free rows, 38 px at 1280×720 and 50 px at 1920×1080**, with no row shrunk, no row removed and the Add button unchanged (44 px / 48 px). Visible side effect for every row: the distance now sits on line 1 beside the ID instead of being centred across both lines |
+| **F-02** | **Fixed** | On desktop (≥ 1024 px wide) the post-Add card now **takes the Add form's place** in the sticky dock instead of stacking on it. On short desktops (≤ 820 px high) it is **one line**: the title, **Details** (`aria-expanded`, opens the full lines on request) and **× Dismiss**. The title ends in an ellipsis when long ("Added 4 trees to …"); the full text is in its tooltip, under Details and in the live-region announcement. The card ends on **Dismiss**, on **any draft change** (new at every size: ticking or unticking a rank or checkbox clears the previous Add result) or on another selection, as before. The Add form then returns. Consequence a reviewer should know: after a *partial* Add, the remaining draft is visible in the rows, but the Add button is hidden until the player dismisses the card or changes the draft. Below 1024 px wide (stacked layout, static dock) the card and form still stack, as before |
+| F-03 | **Unchanged** (owner decision R3.2) | — |
+| **F-04** | **Fixed** (documented and held) | 1280×720 is stated as the minimum supported desktop size in the page's top HTML comment, the short-desktop CSS comment, and a new visible note in the **Details** pane: "Screen size: this page is laid out for desktop browser windows of at least 1280 × 720. There, a selected tree's reference, its ranks 1–5 and Add fit without scrolling. Smaller windows still work but may need scrolling." Below 1280×720 nothing is claimed or tested |
+| **F-05** | **Changed** | `onEscape` now returns on an open dialog **before** it bumps `state.mapPick`. An Escape that only closes a dialog therefore no longer cancels a pending map click. Every other Escape still bumps first. The stale-answer guarantee is unchanged: such an Escape closes nothing else, so a late answer cannot reopen anything it closed. Re-proved below (R3.5) |
+| F-06 | Unchanged | Observation only; fail-closed behaviour unchanged (no code touched there) |
+| **F-07** | **Fixed** | The concise ground summary and its announcement read **"< 0.001"** for 0 < L < 0.0005 instead of "0.000". Technical details keep 4 decimals. Not reachable with real data today (smallest real L 0.00067) |
+| F-08 | Unchanged | Disclosed precision limits (D-6) |
+| F-09 | **Improved** | Spacing-only trims at short heights: competition top padding, heading margin, column-head padding, row gap .30 → .25 rem, reference-card bottom padding. **Rows are not shrunk.** See the margin numbers in R3.5 |
+| F-10 | Unchanged | Pre-existing witness failures; the new R3 witness checks sit **above** the J99 crash point and run |
+| **F-11** | **Fixed** | One sentence in the header table now covers authorship for every commit from `267be9ff` to the final HEAD |
+
+### R3.4 The test-bias correction (the root cause of F-01 surviving two rounds)
+
+**Plainly:** the old browser driver's `selectReference` only accepted a reference whose five competitors were **all unblocked**, and the smoke witness used clean sessions. Every fold check I ran in Phase A, R1 and R2 was therefore the favourable case. The blocked row's extra line was never measured, and I reported a fold PASS that did not hold in the normal working loop. The independent reviewer caught it.
+
+What the tests do now (`4e3ba42b`, `9abf5c3e`):
+
+- **`fold-sweep-owner-ux.mjs` (new)**: one fresh server, three session states. Each state sweeps **every living tree of both areas** (244), selected by exact ID with the real Enter key:
+  - **clean**;
+  - **queued**: 4 Fell orders added through the page's own Add, with real mouse clicks on map ranks 1–4 of MA-A-001, so trees with 1, 2, 3 and 4 blocked rows exist;
+  - **approved + Crop**: plus Crop on MA-A-001's fifth competitor and on two competitors of MA-B-001, then Approve. This gives "Approved plan" and "Retained Crop" rows, and MA-A-001 then has **all five rows blocked**.
+  
+  In the clean and queued states each tree is also measured with **every free row ticked**. A tree passes only if, with no scrolling, the reference card, ranks 1–k and the rendered Add button are inside the pane and viewport, the last row ends above the dock, and every row is ≥ 36 px and the same height. The run **reports how many trees were swept and how many had blocked rows**, so coverage is visible. It also checks the post-Add card.
+- **Main scenario**: the old helper is kept for steps that need five tickable ranks, with a comment saying it is the favourable case. A new `selectByIdWithBlocked` picks references with exactly k blocked rows. A new **R3 section** runs right after the first real Add: the post-Add card, Details, Dismiss, then references with **1, 2 and 4 blocked rows with every free rank ticked by the real mouse**. Also new: race (d) for F-05 and the F-07 check. 87 → **96** checks at 1280×720 and **95** at 1920×1080 (Details is short-height only).
+- **Smoke witness R3a–R3j**: a loaded session made through the page's Add. It checks the two-line row structure for blocked and free rows (the stand-in has no layout, so the fold is structural there), the reason text, tooltip and screen-reader text, the card's Details and Dismiss, that a draft change ends the card, and F-05. The orders are removed again afterwards.
+- **Negative controls, run by me against the unfixed `5f3b5bf3` page in a throwaway worktree:**
+  - **Sweep, 1280×720**: clean 244/244 pass. **Queued: all 10 trees with blocked rows fail** (20 of 488 measurements; rows 65 px; worst rows-to-dock gap −211 px). **Approved + Crop: all 22 trees with blocked rows fail**, including MA-A-001 with 5 blocked (rows up to 79 px).
+  - **Witness**: 130 pass / 17 fail. Every R3 check fails except R3b (the Add itself) and R3j (clean-up).
+  - Committed as `fold-sweep-negative-control-5f3b5bf3-*`.
+
+### R3.5 Re-proof (all re-run by me on the final files; nothing reused)
+
+Environment unchanged: `/home/jer/.dotnet/dotnet` 8.0.134 only; `TMPDIR=/tmp/opus-ownerux-r3/tmp`; `.p0ref` copied read-only from `CCF-Multi-Stage4UiCatchup-20261123` and never rebuilt; Windows node v26.13.1 and headless Edge over CDP; every server on an OS-assigned port, one fresh server per browser run.
+
+| Gate | Result |
+|---|---|
+| `dotnet build MultiRackSitkaP1Lab.sln --disable-build-servers` | **0 warnings, 0 errors** |
+| `dotnet build src/Ui/SitkaP1.Ui.csproj --disable-build-servers` | **0 warnings, 0 errors** |
+| Core suite | **184/184**, exit 0; anchors `7e3a2a86…1ece`, `a692a6d5…233d`, `814e8165…6287`, `8a926776…87fb` present and PASS |
+| P0 pin `.p0ref/SitkaLab.Core.dll` | `9a99f781…34b3` before and after |
+| `ui-smoke-multiarea.sh` (final witness) | **138 pass / 6 fail**: J04, J05, J09, J10, J11, J99, **all pre-existing**. The FAIL and TypeError lines are byte-identical to the reviewer's committed runs at both HEAD and BASE. +10 = R3a–R3j, all PASS. **No new failure** |
+| `ui-smoke.sh` | **250 pass / 4 fail**: L01, L02, L06, J31, **all pre-existing** (FAIL lines byte-identical to the reviewer's HEAD and BASE runs). **No new failure** |
+| Real Edge scenario 1280×720 | **96/96 PASS** |
+| Real Edge scenario 1920×1080 | **95/95 PASS** |
+| Real Edge fold sweep 1280×720 | **14/14 PASS** |
+| Real Edge fold sweep 1920×1080 | **13/13 PASS** |
+| CSP violations / exceptions / console errors / HTTP 5xx | 0 / 0 / 0 / 0 in all four browser runs |
+| No sideways scroll | 1280 = 1280 and 1920 = 1920, start and end |
+| Protected listeners 127.0.0.1:33767, :43649, :46593 | alive before and after; never bound |
+
+**Loaded fold sweep** (244 living trees in every state; trees counted by how many of their five rows are blocked):
+
+| State | Trees with blocked rows (by count) | 1280×720 | 1920×1080 | Unfixed `5f3b5bf3`, 1280×720 |
+|---|---|---|---|---|
+| clean | 0 | **244/244** (488 measurements incl. 244 ticked) | **244/244** | 244/244 |
+| 4 queued | **10** (1: 5, 2: 3, 3: 1, 4: 1) | **244/244** (488 measurements) | **244/244** | **all 10 fail** |
+| approved + Crop | **22** (1: 13, 2: 5, 3: 2, 4: 1, 5: 1) | **244/244** (244 measurements; editing locked) | **244/244** | **all 22 fail** |
+
+Row heights in every state: **38 px** at 1280×720 and **50 px** at 1920×1080, blocked or not.
+
+**Fold margin**, worst tree, same in every state:
+
+| | 1280×720 | 1920×1080 | Unfixed page, 1280×720 clean |
+|---|---|---|---|
+| Rows → dock gap | **5 px** | **11 px** | 4 px |
+| Free pane room below the dock | **18 px** | **83 px** | 8 px |
+
+How to read these. The rows-to-dock gap (the reviewer's "4 px") is the dock's own top margin. It stays the same whenever the dock sits in normal flow, which is why it reads 5 px here. The number that decides when rows get covered is the free room below the dock: how much a row or the dock can grow before the sticky dock starts overlapping rows. At 1280×720 that rose from **8 px to 18 px**.
+
+**F-02 post-Add card** (scenario and sweep, MA-A-001 right after adding ranks 1–4):
+
+| | 1280×720 | 1920×1080 |
+|---|---|---|
+| Last row bottom | 633 | 832 |
+| Card | top 644, height **36** (one line) | top 852, height 95 |
+| Dock | 638–680 | 843–947 |
+| Add form | not rendered | not rendered |
+| Rows above the card | **all five** | **all five** |
+
+At 1280×720, Details opens the card to 104 px and closes it back to 36 px. × Dismiss: card gone, Add back above the fold, focus on the heading, nothing sent. A draft change ends the card ("Add selected 1 to Fell plan").
+
+**Worst cases with the real mouse** (scenario, every free rank ticked):
+
+| Reference | Blocked rows | Add label | Fold at 1280×720 |
+|---|---|---|---|
+| MA-A-003 | 1 | "Add selected 4" | rows end 633, dock top 638, Add bottom 688 |
+| MA-A-002 | 2 | "Add selected 3" | same |
+| MA-A-001 | 4 | "Add selected 1" | same |
+
+All three PASS at both viewports. The sweep's MA-A-001 with **all five blocked** (4 approved + 1 Crop) also PASSES at both.
+
+**R2 gains re-confirmed (same scenario runs, both viewports):**
+- **Ground-ON layout**: crown click; all five ticked; scrolled inspector → reset; open-ground read then crown; ground OFF scroll reset.
+- **Stale-answer races**: (a) Escape, (b) newer selection and (c) area switch all still PASS. The matrix was re-run because R3 changed `onEscape`. **(d) new, F-05**: Escape that only closes the Year+1 dialog while the hit-test answer is held. Afterwards the late answer selects MA-B-044 as a normal click, and the server is unchanged by all four races.
+- **Light ramp**: values unchanged (pixels 0 / 0 / 8 / 26 / 227 / 496; L = 1e-200 → `9.000e-131`; continuous at 0).
+- **Ground precedence**: crown wins; rank toggles only its ID; a modal swallows clicks with no request; Escape order unchanged.
+- **F-07**: an injected L = 0.0004 reads "Light index < 0.001" (Technical details `0.0004`); the next real read shows 0.302 again.
+
+**Run history, for honesty (none of these runs is committed evidence):**
+1. My first sweep reported every *ticked* measurement as failing. That was a harness bug: it clicked several checkboxes from one list, and each click re-renders the rows. The layout values in those records passed. Fixed by re-querying after each tick.
+2. My first F-07 browser check injected into a view that the click's own hit-test answer then replaced. The injection was moved to that answer.
+3. Two background runs (an early negative control and an early 1920 sweep) died because I stopped their servers while they were still running.
+4. The first witness runs read the live region before `announce()` had set it, and read rows during the post-Add re-read. Waits added.
+
+Every committed result comes from the final files listed above.
+
+### R3.6 Screenshots
+
+Refreshed because their visible behaviour changed (the new row layout; 07-1920 shows the rows), plus two new clipped Tree-pane shots:
+
+| File | State | Bytes | sha256 |
+|---|---|---|---|
+| `02-selected-five-ranks-1280x720.png` | new row layout (distance on line 1, meta line spanning) | 341,669 | `bb85d4bc…` |
+| `03-ranks-chosen-synced-1280x720.png` | same | 345,070 | `38e9c7c7…` |
+| `07-ground-inspection-1280x720.png` | same state as R2; retaken with the R3 page | 303,947 | `526f7a52…` |
+| `07-ground-inspection-1920x1080.png` | rows visible in the new layout | 752,308 | `d0d7529a…` |
+| `10-ground-mode-crown-selects-1280x720.png` | new row layout | 318,049 | `ee415d95…` |
+| `11-blocked-rows-1280x720.png` (**new**, Tree pane only) | MA-A-001 with four "Pending Fell" rows at full height, the free rank 3 ticked, "Add selected 1 to Fell plan" above the fold | 40,005 | `e3b73ee8…` |
+| `12-after-add-card-1280x720.png` (**new**, Tree pane only) | right after Add: five rows above the one-line card "Added 4 trees to … · Details · × Dismiss" | 40,928 | `5d4a329d…` |
+
+Set: **14 PNGs, 4,916,524 B, largest 762,902 B** (AC-9: ≤ 0.9 MB per image, ≤ 5 MB per set). The 1920×1080 versions of 11 and 12 (50,894 B and 52,009 B) are **not** committed because they would take the set over 5 MB. They, every other R3 PNG, all raw run logs, the full per-tree sweep records, the build, Core and smoke logs, and the negative-control logs are off-repo at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-repair3-20261123/` (`SHA256SUMS`, 47 files). Committed results: `browser-results-*.json`, `browser-run-*.txt`, `fold-sweep-*.json`, `fold-sweep-run-*.txt` and the negative-control pair in `browser-driver-owner-ux/`. **Zero** `/s/<64 hex>/` capability paths and zero 64-hex tokens in that folder (checked).
+
+### R3.7 Proposed follow-up — NOT done
+
+**Map-letter badge beside the competitor ID.** A small P / A / C / X / D badge, the letters the map legend already uses, beside each blocked competitor's ID, next to the short reason text. It would tie the list to the map and make blocked rows easier to spot at a glance. **The owner chose not to include it in this repair.** It is not required by any acceptance criterion, it adds a new visual element to a repair that is about height, and every extra element is another thing the reviewer must re-check. Words remain the carrier in any case: seven reasons cannot each get a legible icon, and the page's own rule is that a state is never carried by colour or symbol alone. Proposed only; not implemented.
+
+### R3.8 Still not verified
+
+- An independent re-review of R3; owner playtest and acceptance; AC22 as written; integration.
+- Unity, Windows builds, save/load.
+- `p0-isolation.sh`, `build-output-safety.sh`, `cli-safety.sh`.
+- **Screen-reader output**: the screen-reader text and announcements were read from the DOM, not heard.
+- **Viewports**: browser zoom, device pixel ratio other than 1, other browsers, touch, high contrast; any viewport other than 1280×720 and 1920×1080. Below 1280×720 nothing is claimed.
+- **Data coverage**: a *real* partial or failed Add at short heights (the card's partial path was not provoked in a browser); a Felled or Dead competitor row in the sweep (only Pending, Approved and Crop reasons occurred); the L < 0.0005 path on real data (injection only).
+- **Locks**: lock collision / the D-091 grant (not available to me). I did not edit the coordination board.
+- A throwaway worktree for the `5f3b5bf3` negative controls was created at `/tmp/opus-ownerux-r3/negctl-5f3b` (its smoke script replaced locally) and removed afterwards.
 
 ## R2 — independent-review findings and repairs (2026-11-23)
 
@@ -236,7 +392,11 @@ UX-06 light ramp spot checks, both viewports, unchanged from Phase A: L = 0 / 0.
 | `1a22d01c` | R1 `fix(multi-owner-ux)`: UX-08 crown selection outranks ground inspection (owner decision) |
 | `f0db8323` | R1 driver section G, re-run results, changed screenshots, R1 update of this file |
 | `550e10b4` | R2 `fix(multi-owner-ux)`: ground panel below the primary block, scroll reset on selection, stale hit-test answers dropped (`mapPick`), continuous ramp; witness R2a–R2j |
-| *(R2 docs commit)* | R2 driver section, re-run results, three refreshed screenshots, this R2 update |
+| `5f3b5bf3` | R2 driver section, re-run results, three refreshed screenshots, R2 update of this file (reviewed: NEEDS CHANGES) |
+| `9d40b166` | R3 `fix(multi-owner-ux)`: blocked rows stay two lines (F-01), post-Add card replaces the Add form (F-02), 1280×720 minimum documented (F-04), dialog-only Escape keeps a pending map click (F-05), "< 0.001" (F-07), spacing (F-09) |
+| `9abf5c3e` | R3 `test(ui-smoke-multiarea)`: loaded-session witness checks R3a–R3j |
+| `4e3ba42b` | R3 `test(owner-ux driver)`: `fold-sweep-owner-ux.mjs`, scenario R3 section, race (d), F-07 check, `shotClip` |
+| *(R3 docs commit)* | R3 results, sweep and negative-control results, refreshed and new screenshots, this R3 update |
 
 ## 2. Changed files and why
 
