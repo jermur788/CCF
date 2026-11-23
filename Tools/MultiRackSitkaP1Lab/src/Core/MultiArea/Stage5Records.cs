@@ -15,6 +15,14 @@ internal sealed record Stage5Band(float Density, float Height, int EstablishYear
 /// One 2.5 m (or 5.0 m) ground cell whose centre lies strictly inside its area polygon: its lattice position (shared with
 /// the canopy/light evaluator), the light index used in the latest step, bramble and bracken cover (0–1) and its bands in
 /// establishment-year order.
+/// <para>
+/// <see cref="Light"/> is the light index this cell's rules used in the latest step (spec §3 steps 5a–9): the light of the
+/// woodland that step read, which is the post-adult-step roster of that year (at year 0, the genesis roster). Two things
+/// are deliberately not in it: the adults promoted in that same step (they first shade the regeneration layer in the next
+/// year's step), and any Fell executed since. So it equals the canopy read-out of the committed root in every year without
+/// a promotion, and in a promotion year it equals the light of the committed roster without that year's new adults (both
+/// asserted by test S5-08 P-05). Use the canopy read-out, not this value, to show the current canopy.
+/// </para>
 /// </summary>
 internal sealed record Stage5Cell(int Column, int Row, float CentreXM, float CentreZM, double ClippedAreaM2, float Light,
     float Bramble, float Bracken, IReadOnlyList<Stage5Band> Bands)
@@ -36,20 +44,42 @@ internal sealed record MultiAreaClearUndergrowthOrder(string AreaId, int Column,
 internal sealed record MultiAreaClearUndergrowthRecord(string AreaId, int Column, int Row, int EcologicalYear, int WorkRevision,
     string ExecutionKey, string PlanId, float BrambleBefore, float BrackenBefore, int BandsKept, double AbundanceKept);
 
-/// <summary>One band promoted into one CrownModel 1 adult (the band's abundance is exported to exactly one tree).</summary>
+/// <summary>
+/// One cohort promoted into one CrownModel 1 adult. <see cref="ExportedDensity"/> is the winning band's abundance (it sets
+/// the tree). <see cref="CohortBandsExported"/> and <see cref="CohortDensityExported"/> are the block's other represented
+/// bands of the same cohort that left with it (spec §4 Option A1); they may lie in another area of a straddling block.
+/// </summary>
 internal sealed record Stage5PromotionRecord(string TreeId, string AreaId, int Column, int Row, int BlockX, int BlockZ,
     int EstablishYear, int AgeYears, float HeightM, float DbhCm, float CrownRadiusM, float WoodlandCi, float XM, float ZM,
-    bool CentreFallback, float ExportedDensity);
+    bool CentreFallback, float ExportedDensity, int CohortBandsExported, double CohortDensityExported);
 
 /// <summary>
 /// One area's read-only annual regeneration account (Unity RegenerationAnnualAccount, plus vegetation loss and the block
-/// cap). Abundances are in the cell's own units, so they sum to an area total that is comparable between grids.
+/// rules). Abundances are in the cell's own units, so they sum to an area total that is comparable between grids.
+/// <list type="bullet">
+/// <item><see cref="PromotionExported"/>: all abundance this area's cells lost to promotion (winning bands and cohort-export
+/// bands), so StartingAbundance − losses + EstablishmentAccepted − PromotionExported = EndingAbundance.</item>
+/// <item><see cref="BlockCapDeferredCells"/>: qualifying cells whose qualifying band neither promoted nor left with the block's
+/// promoted cohort this year (it waits: block cap, block credit or a younger cohort).</item>
+/// <item><see cref="CohortBandsExported"/>: this area's bands that left with a cohort promoted in their block.</item>
+/// <item><see cref="BudgetWithheldBlocks"/>: blocks whose would-be winner lies in this area but whose credit was short.</item>
+/// <item><see cref="CellEstablishmentAccepted"/>: this year's accepted abundance per cell, in lattice order (diagnostics).</item>
+/// </list>
 /// </summary>
 internal sealed record Stage5AreaAccount(string AreaId, int Cells, double SeedArrival, double StartingAbundance,
     double VegetationLoss, double LightLoss, double BrowseLoss, double EstablishmentRequested, double EstablishmentAccepted,
     double CapacityRejected, int BandsCreated, int BandMerges, int ThresholdCrossings, int QualifyingCells,
     int BlockCapDeferredCells, double PromotionExported, double EndingAbundance, double MeanRelativeOccupancy,
-    double MeanBramble, double MeanBracken, double MeanLight, IReadOnlyList<Stage5PromotionRecord> Promotions);
+    double MeanBramble, double MeanBracken, double MeanLight, IReadOnlyList<Stage5PromotionRecord> Promotions,
+    int CohortBandsExported, int BudgetWithheldBlocks, IReadOnlyList<float> CellEstablishmentAccepted);
+
+/// <summary>
+/// The promotion credit of one aligned 5 m block (spec §4 Option A2), in cell-years. Each year the block gains
+/// <see cref="InPolygonCells"/>; a promotion spends one full block's worth of cells (4 at 2.5 m, 1 at 5.0 m); unspent credit
+/// is capped at one promotion. So the block's long-run promotion budget is InPolygonCells × a per year, and a full block
+/// (every 5.0 m cell is one) is never limited by it. Session state only: never saved.
+/// </summary>
+internal sealed record Stage5BlockCredit(int BlockX, int BlockZ, int InPolygonCells, int Credit);
 
 /// <summary>One shared Stage 5 year: the one woodland mast roll and every area's account, in area order.</summary>
 internal sealed record Stage5YearAccount(int YearBefore, int YearAfter, double MastRoll, string MastLabel, float MastMultiplier,
@@ -66,7 +96,8 @@ internal sealed record MultiAreaStage5State(
     IReadOnlyList<MultiAreaClearUndergrowthOrder> PendingClears,
     IReadOnlyList<MultiAreaClearUndergrowthOrder> ApprovedClears,
     IReadOnlyList<MultiAreaClearUndergrowthRecord> ClearLog,
-    IReadOnlyList<Stage5YearAccount> Accounts)
+    IReadOnlyList<Stage5YearAccount> Accounts,
+    IReadOnlyList<Stage5BlockCredit> Blocks)
 {
     /// <summary>True when any cell of any area still holds juvenile abundance.</summary>
     public bool HasAbundance => Areas.Any(area => area.Cells.Any(cell => cell.Bands.Any(band => band.Density > 0f)));
@@ -89,4 +120,4 @@ internal sealed record MultiAreaStage5View(string SessionId, int EcologicalYear,
     MultiAreaModelSelection Models, Stage5Options Options, int MastSeed, IReadOnlyList<string> EvidenceLabels,
     IReadOnlyList<Stage5AreaCells> Areas, IReadOnlyList<MultiAreaClearUndergrowthOrder> PendingClears,
     IReadOnlyList<MultiAreaClearUndergrowthOrder> ApprovedClears, IReadOnlyList<MultiAreaClearUndergrowthRecord> ClearLog,
-    IReadOnlyList<Stage5YearAccount> Accounts);
+    IReadOnlyList<Stage5YearAccount> Accounts, IReadOnlyList<Stage5BlockCredit> Blocks);

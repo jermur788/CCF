@@ -5,11 +5,13 @@ internal sealed record Stage5PromotionCandidate(int AreaOrder, string AreaId, in
     int BlockZ, int EstablishYear, float Height);
 
 /// <summary>
-/// Promotion of juvenile bands into CrownModel 1 adults (spec §3.3, §4 and owner Q2/Q5).
+/// Promotion of juvenile bands into CrownModel 1 adults (spec §3.3, §4 and owner Q2/Q5, amended by owner Option A).
 /// <list type="bullet">
 /// <item>The oldest represented band with height ≥ 3.5 m qualifies (Unity OldestQualifyingBand). No light gate (Q2).</item>
 /// <item>At most one promotion per aligned 5 m block per year, blocks = floor(x/5), floor(z/5) in the world frame (Q5,
-/// SIMULATION ABSTRACTION). Winner: oldest EstablishYear, then tallest, then lowest (Column, Row). Other cells keep their band.</item>
+/// SIMULATION ABSTRACTION). Winner: oldest EstablishYear, then tallest, then lowest (Column, Row).</item>
+/// <item>Option A1: the block's other represented bands of the winner's cohort (same EstablishYear) leave with it into the
+/// same tree; bands of other cohorts stay. Option A2: the block must hold a full block of credit (see Stage5Annual).</item>
 /// <item>The band becomes ONE adult: Age = max(1, year − establishYear), Height = band height, DBH = clamp(1.5·H, 2, 20) cm,
 /// r_0 = CrownModel 1 equilibrium radius max(0.1, r_pot(DBH) / sqrt(1 + CI_woodland/5)), not the open-grown r_pot.</item>
 /// <item>Its position is jittered inside the source cell from the cell's STAGE5-PROMO stream and is always strictly inside
@@ -28,6 +30,35 @@ internal static class Stage5Promotion
             if (oldest is null || band.EstablishYear < oldest.EstablishYear) oldest = band;
         }
         return oldest;
+    }
+
+    /// <summary>
+    /// The represented band of one cohort (one establishment year) in a cell, or null. There is at most one: the band
+    /// invariants (Unity NormalizeBands) keep establishment years unique within a cell. The sub-threshold accumulator is not a
+    /// represented band and is never returned.
+    /// </summary>
+    public static Stage5BandWork? CohortBand(List<Stage5BandWork> bands, int establishYear, Stage5CellScale scale)
+    {
+        Stage5BandWork? found = null;
+        foreach (var band in bands)
+        {
+            if (band.Density < scale.Threshold || band.EstablishYear != establishYear) continue;
+            if (found is not null)
+                throw new InvalidOperationException("Stage 5 bands of one cell must have unique establishment years.");
+            found = band;
+        }
+        return found;
+    }
+
+    /// <summary>
+    /// C, the number of grid cells in a full aligned 5 m block: 4 at 2.5 m and 1 at 5.0 m. It is 1/a, so a block with n
+    /// in-polygon cells has the budget n × a = n / C promotions per year. Fixed by the grid geometry, not a tuned constant.
+    /// </summary>
+    public static int CellsPerBlock(double cellM)
+    {
+        CanopyLightEvaluator.RequireSupportedGrid(cellM);
+        double perSide = Stage5Constants.PromotionBlockM / cellM;
+        return (int)Math.Round(perSide * perSide);
     }
 
     /// <summary>Unity CanPromote: height ≥ 3.5 m and light ≥ promotionMinimumLight (0 for Sitka, Q2).</summary>

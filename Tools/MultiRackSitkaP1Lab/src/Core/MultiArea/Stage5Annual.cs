@@ -10,43 +10,62 @@ internal sealed record Stage5AnnualResult(MultiAreaStage5State Next,
 
 /// <summary>
 /// The Stage 5 annual steps 5a–12 (spec §3), run after the unchanged Stage 4 adult step of every area. It is a pure function
-/// of the start-of-year Stage 5 state and every area's post-adult-step roster: the light field, the seed sources and the
-/// promotion competitors are read from the whole connected woodland at once, and areas are matched by ID, so the order the
-/// areas are given in cannot change any result. It never mutates its inputs.
+/// of the start-of-year Stage 5 state, every area's post-adult-step roster and the light field of that woodland: the light,
+/// the seed sources and the promotion competitors are read from the whole connected woodland at once, and areas are matched
+/// by ID, so the order the areas are given in cannot change any result. It never mutates its inputs.
 /// </summary>
 internal static class Stage5Annual
 {
-    /// <summary>Year-0 state: every in-polygon cell with bramble = bracken = 0.25 · T(light) and no regeneration yet.</summary>
+    /// <summary>
+    /// Year-0 state: every in-polygon cell with bramble = bracken = 0.25 · T(light) and no regeneration yet, and every aligned
+    /// 5 m block that holds an in-polygon cell, with no promotion credit yet (spec §4 Option A2).
+    /// </summary>
     public static MultiAreaStage5State Genesis(Stage5Options options, int mastSeed, IReadOnlyList<Stage5AreaInput> areas)
     {
         options.RequireValid();
         var ordered = areas.OrderBy(area => area.AreaId, StringComparer.Ordinal).ToArray();
-        var woodland = CrownModel.Woodland(ordered.SelectMany(area => area.Trees));
-        var light = RefreshLight(ordered, options, woodland);
-        var cells = ordered.Select((area, i) => new Stage5AreaCells(area.AreaId, Array.AsReadOnly(light[i].Select(cell =>
+        var light = ModelLight(ordered, options.GridCellM);
+        var cells = ordered.Select(area => new Stage5AreaCells(area.AreaId, Array.AsReadOnly(light[area.AreaId].Select(cell =>
         {
             float cover = Stage5Undergrowth.Initial(cell.LightIndex);
             return new Stage5Cell(cell.Column, cell.Row, cell.CentreXM, cell.CentreZM, cell.ClippedAreaM2, cell.LightIndex,
                 cover, cover, Array.Empty<Stage5Band>());
         }).ToArray()))).ToArray();
+        // A block straddling two areas counts the in-polygon cells of both (cells of different areas never coincide).
+        var blocks = cells.SelectMany(area => area.Cells)
+            .GroupBy(cell => Stage5Promotion.BlockOf(cell.Column, cell.Row, options.GridCellM))
+            .OrderBy(group => group.Key.X).ThenBy(group => group.Key.Z)
+            .Select(group => new Stage5BlockCredit(group.Key.X, group.Key.Z, group.Count(), 0))
+            .ToArray();
         return new MultiAreaStage5State(options, mastSeed, Array.AsReadOnly(cells), Array.Empty<MultiAreaClearUndergrowthOrder>(),
-            Array.Empty<MultiAreaClearUndergrowthOrder>(), Array.Empty<MultiAreaClearUndergrowthRecord>(), Array.Empty<Stage5YearAccount>());
+            Array.Empty<MultiAreaClearUndergrowthOrder>(), Array.Empty<MultiAreaClearUndergrowthRecord>(), Array.Empty<Stage5YearAccount>(),
+            Array.AsReadOnly(blocks));
     }
 
-    /// <summary>One Stage 5 year ending in ecological year <paramref name="yearAfter"/>.</summary>
-    public static Stage5AnnualResult Step(MultiAreaStage5State start, IReadOnlyList<Stage5AreaInput> areas, int yearAfter)
+    /// <summary>
+    /// One Stage 5 year ending in ecological year <paramref name="yearAfter"/>, reading the model light of the post-adult-step
+    /// woodland (spec §3 step 5). This is the only overload a session uses.
+    /// </summary>
+    public static Stage5AnnualResult Step(MultiAreaStage5State start, IReadOnlyList<Stage5AreaInput> areas, int yearAfter) =>
+        Step(start, areas, yearAfter, ModelLight(InStateOrder(start, areas), start.Options.GridCellM));
+
+    /// <summary>
+    /// The same year with the light field given: the light index of every in-polygon cell of every area, keyed by area ID,
+    /// in each area's lattice order. Every session calls the overload above, which passes the model light, and nothing in
+    /// <see cref="Stage5Options"/> or the session can select another field. This overload lets the S5-07A qualification
+    /// control give the 2.5 m and 5.0 m grids one identical light field.
+    /// </summary>
+    public static Stage5AnnualResult Step(MultiAreaStage5State start, IReadOnlyList<Stage5AreaInput> areas, int yearAfter,
+        IReadOnlyDictionary<string, IReadOnlyList<CanopyLightCell>> lightByArea)
     {
         var options = start.Options;
         var scale = Stage5CellScale.For(options.GridCellM);
-        // Areas are matched by ID and processed in the state's own (ordinal) order, whatever order the caller used.
-        var byId = areas.ToDictionary(area => area.AreaId, StringComparer.Ordinal);
-        if (byId.Count != start.Areas.Count || start.Areas.Any(area => !byId.ContainsKey(area.AreaId)))
-            throw new P1Refusal("Stage5AreasMismatch", "the Stage 5 step needs exactly the areas of its state");
-        var inputs = start.Areas.Select(area => byId[area.AreaId]).ToArray();
+        var inputs = InStateOrder(start, areas);
+        var light = inputs.Select(area => lightByArea.TryGetValue(area.AreaId, out var cells) ? cells
+            : throw new P1Refusal("Stage5LightMissing", "the Stage 5 step needs the light of " + area.AreaId)).ToArray();
 
-        // Step 5: the refreshed light of the post-adult-step woodland. Steps 7–8: one shared mast roll, then seed sources.
+        // Steps 7–8: one shared mast roll, then the seed sources of the post-adult-step woodland.
         var woodland = CrownModel.Woodland(inputs.SelectMany(area => area.Trees));
-        var light = RefreshLight(inputs, options, woodland);
         var mast = Stage5Mast.ForYear(start.MastSeed, yearAfter);
         var sources = Stage5SeedRain.Sources(woodland, mast.Multiplier);
 
@@ -59,7 +78,7 @@ internal static class Stage5Annual
             RequireSameLattice(cells, light[i], start.Areas[i].AreaId);
             work[i] = new List<Stage5BandWork>[cells.Count];
             covers[i] = new (float, float)[cells.Count];
-            var tally = tallies[i] = new AreaTally();
+            var tally = tallies[i] = new AreaTally(cells.Count);
             for (int c = 0; c < cells.Count; c++)
             {
                 var cell = cells[c];
@@ -78,13 +97,14 @@ internal static class Stage5Annual
                 if (seedRain > 0f) tally.SeedArrival += seedRain;
                 float requested = Stage5Bands.RequestedEstablishment(seedRain, cellLight, scale);
                 if (requested > 0f)
-                    Stage5Bands.AdmitRecruitment(bands, yearAfter, Stage5Constants.RegenInitialHeightM, requested, scale, tally.Bands);
+                    tally.CellAccepted[c] = Stage5Bands.AdmitRecruitment(bands, yearAfter, Stage5Constants.RegenInitialHeightM, requested,
+                        scale, tally.Bands);
                 work[i][c] = bands;
             }
         }
 
-        // 10. Promotion: at most one per aligned 5 m block of the whole woodland.
-        var promoted = Promote(start, inputs, light, work, woodland, scale, yearAfter, tallies);
+        // 10. Promotion under the block rules of the whole woodland (spec §4, owner Option A).
+        var promoted = Promote(start, inputs, light, work, woodland, scale, yearAfter, tallies, out var nextBlocks);
 
         // 11–12. Neutral suitability (a constant 1.0, no state) and the read-only accounts.
         var nextAreas = new Stage5AreaCells[inputs.Length];
@@ -109,6 +129,7 @@ internal static class Stage5Annual
         {
             Areas = Array.AsReadOnly(nextAreas),
             Accounts = Array.AsReadOnly(start.Accounts.Append(account).ToArray()),
+            Blocks = Array.AsReadOnly(nextBlocks),
         };
         return new Stage5AnnualResult(nextState, promoted, account);
     }
@@ -139,33 +160,59 @@ internal static class Stage5Annual
         }
     }
 
+    // Step 10 (spec §4, owner Option A) for every aligned 5 m block of the whole woodland:
+    //   A2 (1) the block's credit gains its in-polygon cell count;
+    //      (2) if one of its cells qualifies and the credit holds a full block, the block winner becomes ONE adult and the
+    //          credit pays one full block; otherwise nothing in the block promotes this year;
+    //   A1     the block's other represented bands of the winner's cohort (same EstablishYear) leave with it into that tree;
+    //   A2 (3) unspent credit is capped at one promotion.
+    // A full block (every 5.0 m cell is one) always holds a full block of credit after (1), so its budget never binds, and a
+    // 5.0 m block has no other cell to export from: the 5.0 m behaviour is the first-approval rule. Blocks are disjoint, so the
+    // order they are visited in cannot change any result.
     private static IReadOnlyDictionary<string, IReadOnlyList<AnnualTree>> Promote(MultiAreaStage5State start, Stage5AreaInput[] inputs,
         IReadOnlyList<CanopyLightCell>[] light, List<Stage5BandWork>[][] work, AnnualTree[] woodland, Stage5CellScale scale,
-        int yearAfter, AreaTally[] tallies)
+        int yearAfter, AreaTally[] tallies, out Stage5BlockCredit[] nextBlocks)
     {
         double cellM = start.Options.GridCellM;
+        int fullBlock = Stage5Promotion.CellsPerBlock(cellM);
+        var blockCells = new Dictionary<(int X, int Z), List<(int Area, int Cell)>>();
         var candidates = new List<Stage5PromotionCandidate>();
         for (int i = 0; i < inputs.Length; i++)
         {
             var cells = start.Areas[i].Cells;
             for (int c = 0; c < cells.Count; c++)
             {
+                var block = Stage5Promotion.BlockOf(cells[c].Column, cells[c].Row, cellM);
+                if (!blockCells.TryGetValue(block, out var members)) blockCells[block] = members = new List<(int, int)>();
+                members.Add((i, c));
                 var band = Stage5Promotion.OldestQualifyingBand(work[i][c], light[i][c].LightIndex, scale);
                 if (band is null || band.Density <= 0f) continue;
-                var (blockX, blockZ) = Stage5Promotion.BlockOf(cells[c].Column, cells[c].Row, cellM);
-                candidates.Add(new Stage5PromotionCandidate(i, inputs[i].AreaId, c, cells[c].Column, cells[c].Row, blockX, blockZ,
+                candidates.Add(new Stage5PromotionCandidate(i, inputs[i].AreaId, c, cells[c].Column, cells[c].Row, block.X, block.Z,
                     band.EstablishYear, band.Height));
                 tallies[i].QualifyingCells++;
             }
         }
-        var winners = Stage5Promotion.Winners(candidates);
-        foreach (var candidate in candidates) tallies[candidate.AreaOrder].BlockCapDeferredCells++;
-        foreach (var winner in winners) tallies[winner.AreaOrder].BlockCapDeferredCells--;
+
+        // A2 (1): this year's budget accrues, in cell-years.
+        var credit = new Dictionary<(int X, int Z), int>(start.Blocks.Count);
+        foreach (var block in start.Blocks) credit.Add((block.BlockX, block.BlockZ), checked(block.Credit + block.InPolygonCells));
 
         var existingIds = inputs.SelectMany(area => area.Trees).Select(tree => tree.TreeId).ToHashSet(StringComparer.Ordinal);
         var promoted = inputs.ToDictionary(area => area.AreaId, _ => new List<AnnualTree>(), StringComparer.Ordinal);
-        foreach (var winner in winners)
+        var bandsGone = new HashSet<(int Area, int Cell, int EstablishYear)>(); // promoted or exported this year
+        foreach (var winner in Stage5Promotion.Winners(candidates))
         {
+            var key = (winner.BlockX, winner.BlockZ);
+            if (!credit.TryGetValue(key, out int available))
+                throw new InvalidOperationException("Stage 5 promotion block without a credit record.");
+            // A2 (2): without a full block of credit the block's bands wait for a later year.
+            if (available < fullBlock)
+            {
+                tallies[winner.AreaOrder].BudgetWithheldBlocks++;
+                continue;
+            }
+            credit[key] = available - fullBlock;
+
             var input = inputs[winner.AreaOrder];
             var cell = start.Areas[winner.AreaOrder].Cells[winner.CellIndex];
             var bands = work[winner.AreaOrder][winner.CellIndex];
@@ -176,34 +223,63 @@ internal static class Stage5Annual
             var (x, z, fallback) = Stage5Promotion.Place(input.Polygon, cell.CentreXM, cell.CentreZM, cellM, input.AreaId,
                 cell.Column, cell.Row, yearAfter, input.SimulationSeed);
             var (tree, ci) = Stage5Promotion.NewAdult(treeId, x, z, yearAfter, band.EstablishYear, band.Height, woodland);
-            // The band's abundance is exported to exactly one tree and the band is removed (Unity, not a stem count).
+            // The winning band's abundance is exported to exactly one tree and the band is removed (Unity, not a stem count).
             bands.Remove(band);
+            bandsGone.Add((winner.AreaOrder, winner.CellIndex, band.EstablishYear));
             promoted[input.AreaId].Add(tree);
             tallies[winner.AreaOrder].PromotionExported += band.Density;
+
+            // A1: the same cohort in the block's other cells leaves with it. Each such band is in exactly one cell and is
+            // removed here once, so its abundance is exported once, into this one tree, and booked to its own area.
+            int cohortBands = 0;
+            double cohortDensity = 0.0;
+            foreach (var (siblingArea, siblingCell) in blockCells[key])
+            {
+                if (siblingArea == winner.AreaOrder && siblingCell == winner.CellIndex) continue;
+                var sibling = Stage5Promotion.CohortBand(work[siblingArea][siblingCell], band.EstablishYear, scale);
+                if (sibling is null) continue;
+                work[siblingArea][siblingCell].Remove(sibling);
+                bandsGone.Add((siblingArea, siblingCell, sibling.EstablishYear));
+                cohortBands++;
+                cohortDensity += sibling.Density;
+                tallies[siblingArea].PromotionExported += sibling.Density;
+                tallies[siblingArea].CohortBandsExported++;
+            }
+
             tallies[winner.AreaOrder].Promotions.Add(new Stage5PromotionRecord(treeId, input.AreaId, cell.Column, cell.Row,
                 winner.BlockX, winner.BlockZ, band.EstablishYear, tree.AgeYears, tree.HeightM, tree.DbhCm, tree.CrownRadiusM, ci,
-                tree.XM, tree.ZM, fallback, band.Density));
+                tree.XM, tree.ZM, fallback, band.Density, cohortBands, cohortDensity));
         }
+        // A candidate whose qualifying band is still in its cell waits for a later year.
+        foreach (var candidate in candidates)
+            if (!bandsGone.Contains((candidate.AreaOrder, candidate.CellIndex, candidate.EstablishYear)))
+                tallies[candidate.AreaOrder].BlockCapDeferredCells++;
+
+        // A2 (3): unspent credit never exceeds one promotion (the unit of the hard cap).
+        nextBlocks = start.Blocks.Select(block => block with { Credit = Math.Min(credit[(block.BlockX, block.BlockZ)], fullBlock) })
+            .ToArray();
         return promoted.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<AnnualTree>)pair.Value.AsReadOnly(), StringComparer.Ordinal);
     }
 
-    // The light of every cell of every area, in each area's lattice order. CellCentre is the model; the S5-07 control reads
-    // every cell's light at the centre of its aligned 5 m block instead (identical to CellCentre on the 5.0 m grid).
-    private static IReadOnlyList<CanopyLightCell>[] RefreshLight(IReadOnlyList<Stage5AreaInput> areas, Stage5Options options,
-        AnnualTree[] woodland)
+    // Areas are matched by ID and processed in the state's own (ordinal) order, whatever order the caller used.
+    private static Stage5AreaInput[] InStateOrder(MultiAreaStage5State start, IReadOnlyList<Stage5AreaInput> areas)
+    {
+        var byId = areas.ToDictionary(area => area.AreaId, StringComparer.Ordinal);
+        if (byId.Count != start.Areas.Count || start.Areas.Any(area => !byId.ContainsKey(area.AreaId)))
+            throw new P1Refusal("Stage5AreasMismatch", "the Stage 5 step needs exactly the areas of its state");
+        return start.Areas.Select(area => byId[area.AreaId]).ToArray();
+    }
+
+    // The model light of every cell of every area at its own cell centre (the unchanged canopy/light evaluator, Layer C),
+    // from the given rosters as one connected woodland, keyed by area ID in each area's lattice order.
+    private static IReadOnlyDictionary<string, IReadOnlyList<CanopyLightCell>> ModelLight(IReadOnlyList<Stage5AreaInput> areas,
+        double gridCellM)
     {
         var canopyAreas = areas.Select(area => new CanopyArea(area.AreaId,
             Array.AsReadOnly(area.Polygon.Select(v => new CanopyVertex(v.XM, v.ZM)).ToArray()), area.AreaHa, area.Trees)).ToArray();
-        var fields = CanopyLightEvaluator.LightFields(canopyAreas, options.GridCellM);
-        if (options.LightSampling == Stage5LightSampling.CellCentre)
-            return fields.Select(field => field.Cells).ToArray();
-        return fields.Select(field => (IReadOnlyList<CanopyLightCell>)Array.AsReadOnly(field.Cells.Select(cell =>
-        {
-            var (blockX, blockZ) = Stage5Promotion.BlockOf(cell.Column, cell.Row, options.GridCellM);
-            float x = (float)((blockX + 0.5) * Stage5Constants.PromotionBlockM);
-            float z = (float)((blockZ + 0.5) * Stage5Constants.PromotionBlockM);
-            return cell with { LightIndex = CanopyLightEvaluator.LightIndexAt(x, z, woodland) };
-        }).ToArray())).ToArray();
+        var fields = CanopyLightEvaluator.LightFields(canopyAreas, gridCellM);
+        return areas.Select((area, i) => (area.AreaId, fields[i].Cells))
+            .ToDictionary(pair => pair.AreaId, pair => pair.Cells, StringComparer.Ordinal);
     }
 
     private static void RequireSameLattice(IReadOnlyList<Stage5Cell> cells, IReadOnlyList<CanopyLightCell> light, string areaId)
@@ -220,8 +296,11 @@ internal static class Stage5Annual
     {
         public readonly Stage5BandCounters Bands = new();
         public readonly List<Stage5PromotionRecord> Promotions = new();
+        public readonly float[] CellAccepted;
         public double SeedArrival, StartingAbundance, VegetationLoss, LightLoss, BrowseLoss, PromotionExported;
-        public int QualifyingCells, BlockCapDeferredCells;
+        public int QualifyingCells, BlockCapDeferredCells, CohortBandsExported, BudgetWithheldBlocks;
+
+        public AreaTally(int cells) => CellAccepted = new float[cells];
 
         public Stage5AreaAccount ToAccount(string areaId, Stage5Cell[] cells, List<Stage5BandWork>[] work, Stage5CellScale scale)
         {
@@ -233,7 +312,7 @@ internal static class Stage5Annual
                 Bands.BandMerges, Bands.ThresholdCrossings, QualifyingCells, BlockCapDeferredCells, PromotionExported, ending,
                 n == 0 ? 0.0 : occupancy / n, n == 0 ? 0.0 : cells.Average(cell => (double)cell.Bramble),
                 n == 0 ? 0.0 : cells.Average(cell => (double)cell.Bracken), n == 0 ? 0.0 : cells.Average(cell => (double)cell.Light),
-                Promotions.AsReadOnly());
+                Promotions.AsReadOnly(), CohortBandsExported, BudgetWithheldBlocks, Array.AsReadOnly(CellAccepted));
         }
     }
 }

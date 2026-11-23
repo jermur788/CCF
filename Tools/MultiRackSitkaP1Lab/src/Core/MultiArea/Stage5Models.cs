@@ -22,17 +22,6 @@ internal enum MultiAreaRegenerationModelVersion
     SitkaCohortCompetitionBrowse = 1,
 }
 
-/// <summary>
-/// Where each ground cell reads its light index from. <see cref="CellCentre"/> is the model. The other value exists only for
-/// the S5-07 grid-consistency control: every cell reads the light at the centre of its aligned 5 m block, so a 2.5 m run and
-/// a 5.0 m run see exactly the same light field and only the scaling policy differs.
-/// </summary>
-internal enum Stage5LightSampling
-{
-    CellCentre = 0,
-    SharedFiveMetreBlockCentre = 1,
-}
-
 /// <summary>The Stage 5 inputs that are not model switches. <see cref="Default"/> is the production setting.</summary>
 internal sealed record Stage5Options
 {
@@ -48,9 +37,6 @@ internal sealed record Stage5Options
     /// </summary>
     public int? MastSeed { get; init; }
 
-    /// <summary>Light sampling; only the S5-07 control uses a value other than <see cref="Stage5LightSampling.CellCentre"/>.</summary>
-    public Stage5LightSampling LightSampling { get; init; } = Stage5LightSampling.CellCentre;
-
     public static readonly Stage5Options Default = new();
 
     internal Stage5Options RequireValid()
@@ -58,8 +44,6 @@ internal sealed record Stage5Options
         CanopyLightEvaluator.RequireSupportedGrid(GridCellM);
         if (!float.IsFinite(BackgroundBrowsePressure) || BackgroundBrowsePressure < 0f || BackgroundBrowsePressure > 1f)
             throw new P1Refusal("Stage5BrowsePressureInvalid", "background browse pressure must be a finite value in [0, 1]");
-        if (!Enum.IsDefined(LightSampling))
-            throw new P1Refusal("Stage5LightSamplingUnknown", "unknown Stage 5 light sampling");
         return this;
     }
 }
@@ -131,10 +115,14 @@ internal static class Stage5Constants
     public const float SoilStability = 1f;
     public const float EstablishmentSuitability = 1f;
 
-    // ---- Grid scaling and promotion (SIMULATION ABSTRACTION, owner-approved §4 / Q5) ----
+    // ---- Grid scaling and promotion (SIMULATION ABSTRACTION, owner-approved §4 / Q5, amended by owner Option A 2026-11-23) ----
     /// <summary>Unity's own cell size; the area factor is a = (cell / 5 m)², so a 5.0 m run reproduces Unity's scaling.</summary>
     public const double UnityCellM = 5.0;
-    /// <summary>Promotion budget: at most one promotion per aligned 5 m block per year (world frame).</summary>
+    /// <summary>
+    /// The aligned promotion block (world frame): at most one promotion per block per year, the block's other bands of the
+    /// promoted cohort leave with it, and its yearly budget is (in-polygon cells) × a (spec §4, Option A). The block credit
+    /// needs no constant of its own: its unit, the number of cells in a full block, follows from this size and the grid.
+    /// </summary>
     public const double PromotionBlockM = 5.0;
     /// <summary>Jitter attempts inside the source cell before falling back to the (in-polygon) cell centre.</summary>
     public const int PromotionPlacementAttempts = 8;
@@ -152,7 +140,8 @@ internal static class Stage5Evidence
         "Seed kernel, light response, mast, browse and bramble/bracken constants: Gameplay Calibration / Transfer from Unity, not measured Irish values";
     public const string Light = "Light is the modelled Unity k10a10 index, not calibrated PAR";
     public const string GridScaling =
-        "2.5 m grid scaling (capacity, request and representation threshold × (cell/5 m)², one promotion per 5 m block per year): Simulation Abstraction";
+        "2.5 m grid scaling (capacity, request and representation threshold × (cell/5 m)²; at most one promotion per 5 m block per year, " +
+        "the block's other bands of that cohort exported into the same tree, and a block budget proportional to its in-polygon cells): Simulation Abstraction";
     public const string NeutralSite = "Site productivity, soil stability and establishment suitability are a neutral 1.0 (no soil or history data)";
     public const string NotBeneficial =
         "Regeneration output is a consequence of the stated rules only; it is not an ecological forecast and not a claim that regeneration is beneficial";

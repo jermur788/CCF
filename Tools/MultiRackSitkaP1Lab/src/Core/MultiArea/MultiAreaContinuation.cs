@@ -195,7 +195,7 @@ internal sealed class MultiAreaContinuation
             var stage5 = RequireStage5();
             return new MultiAreaStage5View(sessionId, root.EcologicalYear, root.PlanStateRevision, Token(root), models, stage5.Options,
                 stage5.MastSeed, Stage5Evidence.All, stage5.Areas, stage5.PendingClears, stage5.ApprovedClears, stage5.ClearLog,
-                stage5.Accounts);
+                stage5.Accounts, stage5.Blocks);
         }
     }
 

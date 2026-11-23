@@ -50,7 +50,7 @@ internal static class Stage5Support
         a.Polygon, a.AreaHa, a.Trees)).ToArray();
 
     internal static MultiAreaStage5State StateOf(MultiAreaStage5View s5) => new(s5.Options, s5.MastSeed, s5.Areas, s5.PendingClears,
-        s5.ApprovedClears, s5.ClearLog, s5.Accounts);
+        s5.ApprovedClears, s5.ClearLog, s5.Accounts, s5.Blocks);
 
     /// <summary>
     /// Two touching 20 × 20 m square racks (A west, B east). Each needs at least one stem; trees are (id suffix, x mm, y mm,
@@ -120,13 +120,45 @@ internal static class Stage5Support
 
     // ---------------------------------------------------------------- fingerprint of a Stage 5 read-out
 
+    private static string F(float v) => F32.Hex(F32.Bits(v));
+    private static string D(double v) => BitConverter.DoubleToUInt64Bits(v).ToString("x16", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The first-pass Stage 5 fingerprint of a read-out. Its text is unchanged from cb739cbd, so the 5.0 m purity pin
+    /// (S5-07A) compares like with like; the fields added by the Option A amendment are in <see cref="WriteAmendment"/>.
+    /// </summary>
     internal static void Write(Model0FingerprintTests.Fingerprint w, MultiAreaStage5View s5)
     {
-        static string F(float v) => F32.Hex(F32.Bits(v));
-        static string D(double v) => BitConverter.DoubleToUInt64Bits(v).ToString("x16", CultureInfo.InvariantCulture);
         w.Text("stage5 year " + s5.EcologicalYear + " grid " + D(s5.Options.GridCellM) + " pressure " + F(s5.Options.BackgroundBrowsePressure) +
             " mastSeed " + s5.MastSeed + " token " + s5.Source.AreaModelVersion);
-        foreach (var area in s5.Areas)
+        WriteCore(w, s5.Areas, s5.PendingClears.Concat(s5.ApprovedClears), s5.ClearLog, s5.Accounts);
+    }
+
+    /// <summary>A whole Stage 5 state (first-pass fields and Option A fields), for comparing a state with no session view.</summary>
+    internal static void WriteState(Model0FingerprintTests.Fingerprint w, MultiAreaStage5State s)
+    {
+        w.Text("stage5 state grid " + D(s.Options.GridCellM) + " pressure " + F(s.Options.BackgroundBrowsePressure) + " mastSeed " + s.MastSeed);
+        WriteCore(w, s.Areas, s.PendingClears.Concat(s.ApprovedClears), s.ClearLog, s.Accounts);
+        WriteAmendment(w, s.Blocks, s.Accounts);
+    }
+
+    /// <summary>The fields added by the owner Option A amendment: block credit, cohort export, budget refusals, per-cell acceptance.</summary>
+    internal static void WriteAmendment(Model0FingerprintTests.Fingerprint w, IReadOnlyList<Stage5BlockCredit> blocks, IReadOnlyList<Stage5YearAccount> accounts)
+    {
+        foreach (var b in blocks) w.Text(string.Join("|", "block", b.BlockX, b.BlockZ, b.InPolygonCells, b.Credit));
+        foreach (var y in accounts)
+            foreach (var a in y.Areas)
+            {
+                w.Text(string.Join("|", "amend", y.YearAfter, a.AreaId, a.CohortBandsExported, a.BudgetWithheldBlocks,
+                    string.Join(",", a.CellEstablishmentAccepted.Select(F))));
+                foreach (var p in a.Promotions) w.Text(string.Join("|", "cohort", p.TreeId, p.CohortBandsExported, D(p.CohortDensityExported)));
+            }
+    }
+
+    private static void WriteCore(Model0FingerprintTests.Fingerprint w, IReadOnlyList<Stage5AreaCells> areas,
+        IEnumerable<MultiAreaClearUndergrowthOrder> orders, IReadOnlyList<MultiAreaClearUndergrowthRecord> clearLog, IReadOnlyList<Stage5YearAccount> accounts)
+    {
+        foreach (var area in areas)
         {
             w.Text(area.AreaId + " cells " + area.Cells.Count);
             foreach (var cell in area.Cells)
@@ -137,11 +169,11 @@ internal static class Stage5Support
                     w.Text(string.Join("|", F(b.Density), F(b.Height), b.EstablishYear, b.OriginYear, F(b.LastBrowsedFraction), b.LastBrowseAssessmentYear));
             }
         }
-        foreach (var o in s5.PendingClears.Concat(s5.ApprovedClears)) w.Text("order " + o.AreaId + "|" + o.Column + "|" + o.Row);
-        foreach (var r in s5.ClearLog)
+        foreach (var o in orders) w.Text("order " + o.AreaId + "|" + o.Column + "|" + o.Row);
+        foreach (var r in clearLog)
             w.Text(string.Join("|", "clear", r.AreaId, r.Column, r.Row, r.EcologicalYear, r.WorkRevision, F(r.BrambleBefore), F(r.BrackenBefore),
                 r.BandsKept, D(r.AbundanceKept)));
-        foreach (var y in s5.Accounts)
+        foreach (var y in accounts)
         {
             w.Text(string.Join("|", "year", y.YearBefore, y.YearAfter, D(y.MastRoll), y.MastLabel, F(y.MastMultiplier)));
             foreach (var a in y.Areas)
