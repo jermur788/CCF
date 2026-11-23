@@ -31,6 +31,15 @@ internal static class MultiAreaIdentity
         "CrownModel 1 (area-scaled-equilibrium-c2-v1): crown initialisation and annual crown response use Hegyi competition " +
         "over every living tree of the connected woodland (both areas, 8 m); the outer perimeter borders open grassland with " +
         "no synthetic neighbours; DBH growth, height, mortality, Work Plans and summaries remain per area";
+    // Stage 4 sessions only (D-095): adult DBH and crown use the connected woodland; density mortality stays per rack.
+    internal const string AreaModelVersionStage4 = "ma1-connected-woodland-stage4-adult-mortality-v1";
+    internal const string EdgeModelStage4 =
+        "Stage 4 (AdultModelVersion 1, MortalityModelVersion 1, CrownModelVersion 1): adult DBH growth and the C2 crown " +
+        "response use Hegyi competition over every living tree of the connected woodland (both areas, 8 m); density " +
+        "mortality (relative density and suppression) is evaluated per rack from that rack's own living stems and polygon " +
+        "area, never pooled; the outer perimeter borders open grassland with no synthetic neighbours";
+    internal const string SiteNoteStage4 =
+        "site UNKNOWN; Stage 4 reads a per-position site-productivity seam that is exactly 1.0 everywhere (no soil map)";
     internal const string SiteNote =
         "site UNKNOWN; the unchanged engine uses its constant site value 1.0f for every area; no per-area site value is active";
     internal const string LocalFrame =

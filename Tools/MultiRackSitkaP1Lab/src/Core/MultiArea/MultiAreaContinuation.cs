@@ -59,6 +59,8 @@ internal sealed class MultiAreaContinuation
 
     private readonly object sync = new();
     private readonly CrownModelVersion crownModel;
+    private readonly MultiAreaModelSelection models;
+    private readonly Stage4Options? stage4Options; // non-null only for the full Stage 4 selection
     private readonly string areaModelVersion;
     private readonly IReadOnlyList<AreaInfo> areas; // ordinal by AreaId, the same order as root.Areas
     private readonly MultiAreaExperimentInfo experiment;
@@ -83,18 +85,37 @@ internal sealed class MultiAreaContinuation
     /// content hash and every other genesis value are unchanged (a derived session path, not a new fixture).
     /// </summary>
     internal MultiAreaContinuation(MultiAreaExperiment definition, CrownModelVersion crownModel)
+        : this(definition, new MultiAreaModelSelection(AdultModelVersion.Legacy, MortalityModelVersion.Legacy, crownModel))
+    {
+    }
+
+    /// <summary>
+    /// Start a session with explicit adult, mortality and crown models (Stage 4, D-095). Only the frozen selection, the
+    /// Stage 1–3 crown selection and the full Stage 4 selection are accepted. <paramref name="stage4"/> carries the neutral
+    /// site-productivity field and the species profile; it is ignored (and must be null) unless the selection is Stage 4.
+    /// </summary>
+    internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        CrownModel.RequireKnown(crownModel);
+        ArgumentNullException.ThrowIfNull(models);
+        models.RequireSupported();
+        if (stage4 is not null && !models.IsStage4)
+            throw new P1Refusal("Stage4ModelRequired", "Stage 4 options need the full Stage 4 model selection");
+        var crownModel = models.Crown;
         definition.Validate();
+        this.models = models;
+        this.stage4Options = models.IsStage4 ? (stage4 ?? Stage4Options.Default).RequireValid() : null;
         this.crownModel = crownModel;
         bool connected = crownModel != CrownModelVersion.LegacyFrozen;
-        areaModelVersion = connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion;
+        areaModelVersion = models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
+            : connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion;
         string contentHash = definition.ContentHash();
         experiment = new MultiAreaExperimentInfo(definition.ExperimentId, MultiAreaIdentity.Format, MultiAreaIdentity.SchemaVersion,
             MultiAreaIdentity.Domain, MultiAreaIdentity.SourceClass, contentHash, definition.GeneratorId,
             definition.GeneratorVersion, definition.GeneratorSeed, MultiAreaIdentity.ReviewStatus, MultiAreaIdentity.Disclosure,
-            connected ? MultiAreaIdentity.EdgeModelConnectedCrownC2 : MultiAreaIdentity.EdgeModel, MultiAreaIdentity.SiteNote);
+            models.IsStage4 ? MultiAreaIdentity.EdgeModelStage4
+                : connected ? MultiAreaIdentity.EdgeModelConnectedCrownC2 : MultiAreaIdentity.EdgeModel,
+            models.IsStage4 ? MultiAreaIdentity.SiteNoteStage4 : MultiAreaIdentity.SiteNote);
         areas = Array.AsReadOnly(definition.Areas.Select(InfoOf).ToArray());
         areaIds = string.Join(",", definition.Areas.Select(area => area.AreaId));
         var genesis = definition.Areas.Select(MultiAreaExperiment.GenesisTrees).ToArray();
@@ -113,6 +134,8 @@ internal sealed class MultiAreaContinuation
     internal string SessionId => sessionId;
 
     internal CrownModelVersion SelectedCrownModel => crownModel;
+
+    internal MultiAreaModelSelection SelectedModels => models;
 
     /// <summary>The whole view, built from ONE root reference under ONE lock acquisition.</summary>
     internal MultiAreaSessionView ReadView()

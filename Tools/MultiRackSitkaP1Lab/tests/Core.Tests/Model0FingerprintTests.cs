@@ -78,6 +78,12 @@ internal static class Model0FingerprintTests
         var c = model is CrownModelVersion m
             ? new MultiAreaContinuation(MultiAreaGenerator.Generate(), m)
             : new MultiAreaContinuation(MultiAreaGenerator.Generate());
+        return MultiAreaFingerprintOf(c);
+    }
+
+    /// <summary>The same fixed recipe on an already constructed session (Stage 4 selections reuse it unchanged).</summary>
+    internal static string MultiAreaFingerprintOf(MultiAreaContinuation c)
+    {
         var w = new Fingerprint();
         foreach (var area in c.ReadView().Areas) w.Trees(area.Trees);
         for (int year = 0; year < 10; year++)
