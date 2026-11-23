@@ -21,6 +21,15 @@
 | Published quartet | `b4dd96a2` on `docs/multi-stage4-owner-ux-spec-20261123-v1` |
 | Publication is verbatim | Owner bundle preserved byte-identical, sha256 `849f89899c61d35eafc713ccc488e23b0a460a8f4332744703964fe17b3d08c4` |
 
+### 0.2 Owner clarifications after the R2 independent review (2026-11-23)
+
+| Question | Owner decision |
+|---|---|
+| Minimum supported desktop width (UX-01 requires one to be documented) | **1280x720 is the documented minimum supported desktop width.** The five competitor rows and Add must hold above the fold there, including rows whose competitor is blocked (queued, approved, Crop or felled). 1920x1080 holds today; below 1280x720 no fold requirement applies. |
+| F-03 — may an open-ground read scroll the primary block out of view? | **Yes, keep the current behaviour.** The reading scrolls into view; the reference summary and `Close inspection` may leave the screen until the next selection. Escape and `Stop` remain available. |
+
+These clarify open parameters in UX-01 and UX-07. They do not change any other requirement, acceptance criterion or owner decision.
+
 ## 1. Intent and definition of done
 The owner personally exercised the approved-for-playtest Stage 4 `/multi` candidate and identified player-interaction problems. Prioritise the actual playable flow: click any living tree; inspect its five ranked competitors; select via map ranks 1–5 or inspector; draft Fell; close inspection with × or Escape and restore the normal map; navigate both areas without a bulky panel; inspect an unobtrusive, continuously graduated ground-light visual while retaining tree selection.
 
