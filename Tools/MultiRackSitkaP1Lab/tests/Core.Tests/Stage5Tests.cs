@@ -96,62 +96,81 @@ internal static class Stage5Tests
     // ============================================================================================ S5-02 dark interior vs managed gap
     private static void GapAndInterior()
     {
-        T.Add("S5-02 G-01: same seed sources: the dense unthinned interior stays suppressed; a managed gap raises the light index, establishes cohorts and grows them toward promotion", () =>
+        T.Add("S5-02 G-01: same seed sources: a managed gap raises the light index; the dense unthinned interior never reaches promotion height, and its cohorts stay materially shorter and sparser than the gap's across the horizon (comparative, owner decision D2); the poor-light census is printed, never asserted", () =>
         {
             // Area A interior: the gap is every living tree within 7.5 m of (20, 15); the test cells are those whose centre is
             // within 5 m of that point, read in both sessions. Light is the modelled k10a10 index, not calibrated PAR.
             const float gx = 20f, gz = 15f;
+            const int horizon = 15;
+            // Margins fixed in the spec (second amendment record, D2) before this pass measured anything; they come from spec
+            // constants, not from observed data:
+            //   one maximal year of growth: 0.35 × the LightResponse peak 0.90 = 0.315 m (§3.2), so a lead of at least this much
+            //   cannot be a one-year establishment offset;
+            //   0.8, the §3.2 poor-light survival factor (the spec's own one-year suppression penalty);
+            //   year 12, the first year a year-1 cohort can reach 3.5 m (0.15 + 11 × 0.315 = 3.615 m); year 15, the horizon end.
+            const double maxAnnualGrowthM = 0.35 * 0.90;
+            const double poorLightSurvival = 0.8;
+            int[] materialYears = { 12, horizon };
             var dense = Session();
             var gap = Session();
             int felled = FellGap(gap, "MA-A", gx, gz, 7.5f);
             T.True(felled >= 10, "the gap removes a real group of stems (" + felled + ")");
             Stage5Cell[] Cells(MultiAreaContinuation c) => c.ReadStage5View().Areas.Single(a => a.AreaId == "MA-A").Cells
                 .Where(cell => (cell.CentreXM - gx) * (cell.CentreXM - gx) + (cell.CentreZM - gz) * (cell.CentreZM - gz) <= 25f).ToArray();
-            double denseTallest = 0, denseTallest12 = 0, gapTallest12 = 0, denseAbundance12 = 0, gapAbundance12 = 0, gapLight1 = 0, denseLight1 = 0;
+            var testCells = Cells(dense).Select(c => (c.Column, c.Row)).ToHashSet();
+            T.True(testCells.Count > 0 && testCells.SetEquals(Cells(gap).Select(c => (c.Column, c.Row))), "the same test cells in both sessions");
+            static double Tallest(Stage5Cell[] cells) => cells.SelectMany(c => c.Bands).Select(b => (double)b.Height).DefaultIfEmpty(0).Max();
+            Stage5PromotionRecord[] Promotions(MultiAreaContinuation c) => c.ReadStage5View().Accounts.SelectMany(y => y.Areas)
+                .SelectMany(a => a.Promotions).Where(p => p.AreaId == "MA-A" && testCells.Contains((p.Column, p.Row))).ToArray();
+
+            var rows = new List<(int Year, double DenseTallest, double GapReached, double DenseAbundance, double GapAbundance, int Poor, double DenseLight)>();
+            double gapLight1 = 0, denseLight1 = 0, gapTallest12 = 0;
             bool denseQualified = false;
-            Stage5Cell[] dense12 = Array.Empty<Stage5Cell>();
-            var perYear = new List<string>();
-            for (int year = 1; year <= 15; year++)
+            for (int year = 1; year <= horizon; year++)
             {
                 Advance(dense);
                 Advance(gap);
                 var d = Cells(dense);
                 var g = Cells(gap);
-                denseTallest = Math.Max(denseTallest, d.SelectMany(c => c.Bands).Select(b => (double)b.Height).DefaultIfEmpty(0).Max());
-                denseQualified |= d.Any(c => c.Bands.Any(b => b.Height >= 3.5f));
-                // Each cell's Light is the light its rules used in that year's step (the poor-light penalty reads exactly it).
-                perYear.Add($"y{year} {d.Average(c => (double)c.Light):F3} ({d.Count(c => Stage5Juvenile.LightSurvival(c.Light) < 1.0)}/{d.Length} poor)");
+                denseQualified |= d.Any(c => c.Bands.Any(b => b.Height >= Stage5Constants.PromotionHeightM));
                 if (year == 1) { gapLight1 = g.Average(c => (double)c.Light); denseLight1 = d.Average(c => (double)c.Light); }
-                if (year == 12)
-                {
-                    gapTallest12 = g.SelectMany(c => c.Bands).Select(b => (double)b.Height).DefaultIfEmpty(0).Max();
-                    denseTallest12 = d.SelectMany(c => c.Bands).Select(b => (double)b.Height).DefaultIfEmpty(0).Max();
-                    denseAbundance12 = d.Sum(c => c.Abundance);
-                    gapAbundance12 = g.Sum(c => c.Abundance);
-                    dense12 = d;
-                }
+                if (year == 12) gapTallest12 = Tallest(g);
+                // A gap cohort that has promoted has left the bands; it counts at its promotion height (the height it reached).
+                double gapReached = Math.Max(Tallest(g), Promotions(gap).Select(p => (double)p.HeightM).DefaultIfEmpty(0).Max());
+                // Each cell's Light is the light its rules used in that year's step (the poor-light penalty reads exactly it).
+                rows.Add((year, Tallest(d), gapReached, d.Sum(c => c.Abundance), g.Sum(c => c.Abundance),
+                    d.Count(c => Stage5Juvenile.LightSurvival(c.Light) < 1.0), d.Average(c => (double)c.Light)));
             }
-            var denseCellKeys = Cells(dense).Select(c => (c.Column, c.Row)).ToHashSet();
-            int densePromotions = dense.ReadStage5View().Accounts.SelectMany(y => y.Areas).SelectMany(a => a.Promotions)
-                .Count(p => p.AreaId == "MA-A" && denseCellKeys.Contains((p.Column, p.Row)));
-            Console.WriteLine($"  S5-02 cells {denseCellKeys.Count}: light y1 dense {denseLight1:F3} gap {gapLight1:F3}; " +
-                $"y12 dense light max {dense12.Max(c => c.Light):F3} (LR max {dense12.Max(c => Stage5Juvenile.LightResponse(c.Light)):F3}); " +
-                $"y12 abundance dense {denseAbundance12:F4} gap {gapAbundance12:F4}; tallest y12 dense {denseTallest12:F2} m gap {gapTallest12:F2} m; dense max over 15 y {denseTallest:F2} m");
-            Console.WriteLine("  S5-02 dense mean light per year (cells under the poor-light survival penalty): " + string.Join("; ", perYear));
+            int densePromotions = Promotions(dense).Length;
+            Console.WriteLine($"  S5-02 cells {testCells.Count}, felled {felled}: light y1 dense {denseLight1:F3} gap {gapLight1:F3}; gap promotions from the test cells {Promotions(gap).Length}, dense {densePromotions}");
+            Console.WriteLine("  S5-02 per year (dense tallest / gap tallest reached, m; dense / gap standing abundance; dense mean light): " +
+                string.Join("; ", rows.Select(r => $"y{r.Year} {r.DenseTallest:F2}/{r.GapReached:F2} m, {r.DenseAbundance:F3}/{r.GapAbundance:F3}, {r.DenseLight:F3}")));
+            Console.WriteLine("  S5-02 DIAGNOSTIC (printed, never asserted): poor-light census, dense test cells with LR < 0.15 (survival × 0.8) per year: " +
+                string.Join(", ", rows.Select(r => $"y{r.Year} {r.Poor}/{testCells.Count}")) +
+                $". Year 12: {rows[11].Poor}/{testCells.Count} dense test cells in the poor-light band (the interior's light rises as Area A self-thins).");
+            foreach (int y in materialYears)
+            {
+                var r = rows[y - 1];
+                Console.WriteLine($"  S5-02 year {y}: gap lead {r.GapReached - r.DenseTallest:F3} m (margin ≥ {maxAnnualGrowthM:F3} m); " +
+                    $"dense / gap abundance {r.DenseAbundance / r.GapAbundance:F3} (margin ≤ {poorLightSurvival:F1})");
+            }
+
             T.True(gapLight1 > denseLight1 + 0.2, "the gap raises the modelled light index");
-            // "Suppressed" is read as the spec states it: the interior never reaches promotion height or promotes, while the gap
-            // (same seed sources) is taller and more abundant at the same age. A fixed interior height cap is not a spec value:
-            // as Area A self-thins its interior light rises, so interior bands do grow slowly (reported above).
-            T.True(!denseQualified && densePromotions == 0, "the dense interior never reaches promotion height nor promotes in 15 years");
-            T.True(gapTallest12 > denseTallest12, "gap cohorts are taller than the dense interior's at the same time");
-            T.True(gapAbundance12 > denseAbundance12, "the gap establishes more regeneration than the dense interior");
-            T.True(gapTallest12 >= 1.5, "gap cohorts grow past the bramble/bracken escape height toward promotion");
-            // F4: suppression is compared in year 12, so the poor-light band is identified with the light of that same year: every
-            // dense test cell's own year-12 light is under the rule's poor-light survival penalty (LR < 0.15, survival × 0.8).
-            // Asserted last, so a failure here still shows that every comparative criterion above was checked.
-            T.True(dense12.Length > 0 && dense12.All(c => Stage5Juvenile.LightSurvival(c.Light) < 1.0),
-                $"in year 12, when the cohorts are compared, every dense test cell is in the poor-light band (LR < 0.15, survival × 0.8): " +
-                $"{dense12.Count(c => Stage5Juvenile.LightSurvival(c.Light) < 1.0)}/{dense12.Length} are");
+            T.True(!denseQualified && densePromotions == 0, "the dense interior never reaches promotion height (3.5 m) nor promotes in 15 years");
+            foreach (var r in rows)
+            {
+                T.True(r.DenseTallest <= r.GapReached, $"year {r.Year}: the dense interior is never taller than the gap ({r.DenseTallest:F3} vs {r.GapReached:F3} m)");
+                T.True(r.DenseAbundance <= r.GapAbundance, $"year {r.Year}: the dense interior is never more abundant than the gap ({r.DenseAbundance:F4} vs {r.GapAbundance:F4})");
+            }
+            foreach (int y in materialYears)
+            {
+                var r = rows[y - 1];
+                T.True(r.GapReached - r.DenseTallest >= maxAnnualGrowthM,
+                    $"year {y}: materially shorter: the gap leads by at least one maximal year of growth, 0.315 m ({r.GapReached - r.DenseTallest:F3} m)");
+                T.True(r.DenseAbundance <= poorLightSurvival * r.GapAbundance,
+                    $"year {y}: materially sparser: dense abundance at most 0.8 × the gap's ({r.DenseAbundance:F4} vs {r.GapAbundance:F4})");
+            }
+            T.True(gapTallest12 >= 1.5, "gap cohorts grow past the bramble/bracken escape height (1.5 m) toward promotion by year 12");
         });
     }
 
@@ -688,6 +707,90 @@ internal static class Stage5Tests
                 if (grid == 2.5) T.True(cohortBands > 0, "2.5 m: cohort export really happens in a 30-year run");
                 else T.Eq(0, cohortBands, "5.0 m: one cell per block, so nothing is exported with a winner");
             }
+        });
+
+        T.Add("S5-08 P-08: an aligned 5 m block that straddles two racks (F6): its credit counts the in-polygon cells of both racks; the winner may lie in either rack and the cohort's band in the other rack leaves with it, booked to that rack; one tree per cohort; the abundance identity holds in each rack", () =>
+        {
+            // Two touching treeless 7.5 × 7.5 m racks: light is 1 everywhere and there is no seed. The shared edge x = 7.5 m
+            // runs through the aligned 5 m blocks of block column 1:
+            //   block (1,0) = MA-A cells (2,0), (2,1) and MA-B cells (3,0), (3,1): a full block, n = 4, budget 1 per year;
+            //   block (1,1) = MA-A cell (2,2) and MA-B cell (3,2): n = 2, budget 1 every second year.
+            // Counted per rack instead, they would be 2-cell and 1-cell blocks and promote less often than asserted below.
+            static MultiAreaVertex V(double x, double z) => new(x, z);
+            var racks = new[]
+            {
+                new Stage5AreaInput("MA-A", 801, new[] { V(0, 0), V(7.5, 0), V(7.5, 7.5), V(0, 7.5) }, 0.005625f, Array.Empty<AnnualTree>()),
+                new Stage5AreaInput("MA-B", 802, new[] { V(7.5, 0), V(15, 0), V(15, 7.5), V(7.5, 7.5) }, 0.005625f, Array.Empty<AnnualTree>()),
+            };
+            var s = Stage5Annual.Genesis(Stage5Options.Default, 1, racks);
+            T.Eq("MA-A columns 0-2, MA-B columns 3-5",
+                $"MA-A columns {s.Areas[0].Cells.Min(c => c.Column)}-{s.Areas[0].Cells.Max(c => c.Column)}, MA-B columns {s.Areas[1].Cells.Min(c => c.Column)}-{s.Areas[1].Cells.Max(c => c.Column)}",
+                "the shared edge splits block column 1 (2.5 m columns 2 and 3) between the racks");
+            T.Eq("0,0,4;0,1,2;1,0,4;1,1,2;2,0,4;2,1,2", string.Join(";", s.Blocks.Select(b => $"{b.BlockX},{b.BlockZ},{b.InPolygonCells}")),
+                "a straddling block counts the in-polygon cells of both racks: (1,0) 2 + 2 = 4, (1,1) 1 + 1 = 2");
+            T.True(Stage5Annual.Genesis(new Stage5Options { GridCellM = 5.0 }, 1, racks).Blocks.All(b => b.BlockX != 1),
+                "5.0 m: block column 1 has no cell (its 5 m centre lies on the shared edge, in neither rack): a 2.5 m-only block, as in S5-07");
+            int Index(string area, int col, int row) => s.Areas.Single(a => a.AreaId == area).Cells.ToList().FindIndex(c => c.Column == col && c.Row == row);
+            // Block (1,0): cohort 3 wins in MA-A (taller), cohort 5 wins in MA-B (taller), cohort 7 only in MA-B.
+            s = WithCell(s, "MA-A", Index("MA-A", 2, 0), c => c with { Bands = new[] { Band(0.1f, 3.7f, 3), Band(0.1f, 3.6f, 5) } });
+            s = WithCell(s, "MA-B", Index("MA-B", 3, 1), c => c with { Bands = new[] { Band(0.1f, 3.6f, 3), Band(0.1f, 3.8f, 5) } });
+            s = WithCell(s, "MA-B", Index("MA-B", 3, 0), c => c with { Bands = new[] { Band(0.1f, 3.6f, 7) } });
+            // Block (1,1): cohort 3 wins in MA-B (taller), cohort 5 only in MA-A, cohort 7 only in MA-B.
+            s = WithCell(s, "MA-A", Index("MA-A", 2, 2), c => c with { Bands = new[] { Band(0.1f, 3.6f, 3), Band(0.1f, 3.6f, 5) } });
+            s = WithCell(s, "MA-B", Index("MA-B", 3, 2), c => c with { Bands = new[] { Band(0.1f, 3.7f, 3), Band(0.1f, 3.6f, 7) } });
+
+            var log = new List<string>();
+            var exportedByYear = new Dictionary<int, string>();
+            int withheldA = 0, withheldB = 0, cohortBands = 0;
+            double worst = 0, booked = 0, recorded = 0;
+            for (int year = 17; year <= 24; year++)
+            {
+                var r = Stage5Annual.Step(s, racks, year);
+                foreach (var a in r.Account.Areas)
+                {
+                    foreach (var p in a.Promotions) log.Add($"{year}:{p.TreeId}+{p.CohortBandsExported}");
+                    var polygon = racks.Single(x => x.AreaId == a.AreaId).Polygon;
+                    T.True(r.PromotedTrees[a.AreaId].All(t => InsidePolygon(polygon, t.XM, t.ZM)), $"year {year}: every {a.AreaId} tree is strictly inside its own rack");
+                    worst = Math.Max(worst, Math.Abs(a.StartingAbundance - (a.LightLoss + a.BrowseLoss + a.VegetationLoss) + a.EstablishmentAccepted -
+                        a.PromotionExported - a.EndingAbundance));
+                    booked += a.PromotionExported;
+                    recorded += a.Promotions.Sum(p => (double)p.ExportedDensity + p.CohortDensityExported);
+                    cohortBands += a.CohortBandsExported;
+                }
+                var byArea = r.Account.Areas.ToDictionary(a => a.AreaId, StringComparer.Ordinal);
+                withheldA += byArea["MA-A"].BudgetWithheldBlocks;
+                withheldB += byArea["MA-B"].BudgetWithheldBlocks;
+                exportedByYear[year] = $"A {byArea["MA-A"].CohortBandsExported}/{byArea["MA-A"].PromotionExported:R}, B {byArea["MA-B"].CohortBandsExported}/{byArea["MA-B"].PromotionExported:R}";
+                if (year == 17)
+                {
+                    var record = byArea["MA-A"].Promotions.Single();
+                    T.Eq((double)0.1f, record.CohortDensityExported, "year 17: the MA-A winner's record carries the cohort-3 band exported from MA-B");
+                    T.Eq((1, (double)0.1f), (byArea["MA-B"].CohortBandsExported, byArea["MA-B"].PromotionExported),
+                        "year 17: the exported MA-B band is booked to MA-B, the rack it left");
+                    T.Eq((0, (double)0.1f), (byArea["MA-A"].CohortBandsExported, byArea["MA-A"].PromotionExported), "year 17: MA-A books only its own winner");
+                    var left = r.Next.Areas.Single(a => a.AreaId == "MA-B").Cells[Index("MA-B", 3, 1)].Bands;
+                    T.Eq("5", string.Join(",", left.Select(b => b.EstablishYear)), "year 17: MA-B cell (3,1) lost its cohort-3 band and keeps cohort 5");
+                    T.Eq(1, byArea["MA-B"].BudgetWithheldBlocks, "year 17: block (1,1) holds 2 of 4 credit cells, so its MA-B winner waits (booked to MA-B)");
+                }
+                if (year == 18)
+                    T.Eq((2, 0), (byArea["MA-A"].CohortBandsExported, byArea["MA-B"].CohortBandsExported),
+                        "year 18: both MA-B winners take their cohort's MA-A band (cohort 5 from (2,0), cohort 3 from (2,2)), booked to MA-A");
+                s = r.Next;
+            }
+            Console.WriteLine("  S5-08 P-08 promotions (year:tree+cohort bands exported): " + string.Join(", ", log));
+            Console.WriteLine("  S5-08 P-08 exports per year (cohort bands / promotion export): " + string.Join("; ", exportedByYear.Select(p => p.Key + " " + p.Value)));
+            // Full straddling block: one cohort every year (budget 1), the winner alternating between the racks.
+            // 2-cell straddling block: one cohort every second year (budget 0.5), counted over both racks.
+            T.Eq("17:R17-MA-A-2-0+1, 18:R18-MA-B-3-1+1, 18:R18-MA-B-3-2+1, 19:R19-MA-B-3-0+0, 20:R20-MA-A-2-2+0, 22:R22-MA-B-3-2+0",
+                string.Join(", ", log), "straddling blocks: promotion schedule, winners in either rack, cohort export across the edge");
+            T.Eq((1, 2), (withheldA, withheldB), "block (1,1) credit withheld in years 17, 19 and 21, each booked to the rack of that year's would-be winner");
+            T.Eq(3, cohortBands, "three bands left with a winner in the other rack");
+            T.True(s.Areas.All(a => a.Cells.All(c => c.Bands.Count == 0)), "nine bands became six trees, one per cohort per block, with nothing left over");
+            // (1,0): 4 accrues each idle year and is capped at 4. (1,1): 0 after year 22, then 2 in year 23 and 4 in year 24.
+            T.Eq("1,0,4,4;1,1,2,4", string.Join(";", s.Blocks.Where(b => b.BlockX == 1).Select(b => $"{b.BlockX},{b.BlockZ},{b.InPolygonCells},{b.Credit}")),
+                "after the idle years 23–24 each straddling block holds one full block of credit (4), never more");
+            T.True(worst <= 1e-6, $"the abundance identity holds in each rack in every year (worst {worst:E2})");
+            T.True(Math.Abs(booked - recorded) <= 1e-9, "the racks book exactly the abundance the promotion records carry");
         });
     }
 
