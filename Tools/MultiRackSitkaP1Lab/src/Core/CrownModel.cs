@@ -44,6 +44,19 @@ public static class CrownModel
         MathF.Max(species.CrownRadiusFloorM, radiusM + (TargetRadiusM(species, dbhCm, ci) - radiusM) * species.CrownRelaxation);
 
     /// <summary>
+    /// Stage 4 pruned C2 target: max(floor, (r_pot / sqrt(1 + CI/Ci50)) * 0.92^lifts). With no lifts the factor is exactly 1,
+    /// so this equals <see cref="TargetRadiusM"/> bit for bit.
+    /// </summary>
+    internal static float PrunedTargetRadiusM(SpeciesProfile species, float dbhCm, float ci, int pruningLifts) =>
+        MathF.Max(species.CrownRadiusFloorM,
+            species.PotentialCrownRadiusM(dbhCm) / MathF.Sqrt(1f + ci / species.Ci50) * PruningRules.TargetFactor(pruningLifts));
+
+    /// <summary>One annual C2 relaxation step towards the pruned target (Stage 4).</summary>
+    internal static float NextRadiusM(SpeciesProfile species, float radiusM, float dbhCm, float ci, int pruningLifts) =>
+        MathF.Max(species.CrownRadiusFloorM,
+            radiusM + (PrunedTargetRadiusM(species, dbhCm, ci, pruningLifts) - radiusM) * species.CrownRelaxation);
+
+    /// <summary>
     /// The connected-woodland neighbourhood: every LIVING tree of every area, in ordinal TreeId order. This fixed order makes
     /// the floating-point Hegyi sum independent of area order. Only real trees are included; nothing is added beyond the
     /// outer perimeter (it borders open grassland).

@@ -23,7 +23,12 @@ internal sealed record MultiAreaRoot(
     IReadOnlyDictionary<string, MultiAreaExecutedWork> Executed,
     IReadOnlyList<MultiAreaWorkOrder> Pending,
     MultiAreaApprovedPlan? Approved,
-    IReadOnlyList<MultiAreaYearRecord> AnnualHistory);
+    IReadOnlyList<MultiAreaYearRecord> AnnualHistory,
+    MultiAreaStage4State? Stage4 = null) // Stage 4 sessions only (D-095); null on every model 0 / Stage 1–3 root
+{
+    /// <summary>True when any Fell or Prune order is pending or approved and not yet executed.</summary>
+    internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0;
+}
 
 /// <summary>The per-area annual step: the unchanged AnnualRules.Calculate and the same next-state construction as AnnualContinuation.</summary>
 internal static class MultiAreaAnnual
@@ -40,6 +45,15 @@ internal static class MultiAreaAnnual
         CrownModelVersion crownModel, AnnualTree[]? woodland)
     {
         var report = AnnualRules.Calculate(state, simulationSeed, areaHa, crownModel, woodland);
+        var next = new AnnualState(report.YearAfter, Array.AsReadOnly(report.Trees.Select(row => row.After).ToArray()));
+        return (report, next);
+    }
+
+    /// <summary>The Stage 4 step of one rack: woodland-driven growth, this rack's own density mortality, same next-state rule.</summary>
+    internal static (AnnualReport Report, AnnualState Next) StepStage4(AnnualState state, int simulationSeed, float areaHa,
+        AnnualTree[] woodland, Func<string, int> pruningLiftsOf, Stage4Options options)
+    {
+        var report = AnnualRules.CalculateStage4(state, simulationSeed, areaHa, woodland, pruningLiftsOf, options);
         var next = new AnnualState(report.YearAfter, Array.AsReadOnly(report.Trees.Select(row => row.After).ToArray()));
         return (report, next);
     }
@@ -128,7 +142,7 @@ internal sealed class MultiAreaContinuation
             new AnnualState(0, genesis[i]), Array.Empty<string>())).ToArray();
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
-            Array.Empty<MultiAreaYearRecord>());
+            Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null);
     }
 
     internal string SessionId => sessionId;
@@ -141,6 +155,44 @@ internal sealed class MultiAreaContinuation
     internal MultiAreaSessionView ReadView()
     {
         lock (sync) return ViewOf(root);
+    }
+
+    /// <summary>
+    /// The Stage 4 read-out (life states, pruning, per-rack RD, natural deaths and deadwood) of ONE root under ONE lock.
+    /// It is a separate read so the existing session view keeps its exact shape; it changes nothing. On a model 0 or
+    /// Stage 1–3 session it still reports life states and RD, with no pruning or deadwood (those exist only in Stage 4).
+    /// </summary>
+    internal MultiAreaStage4View ReadStage4View()
+    {
+        lock (sync)
+        {
+            var current = root;
+            var stage4 = current.Stage4 ?? MultiAreaStage4State.Empty;
+            var last = current.AnnualHistory.Count == 0 ? null : current.AnnualHistory[^1];
+            var areaViews = new MultiAreaStage4AreaView[current.Areas.Count];
+            for (int i = 0; i < areaViews.Length; i++)
+            {
+                var area = current.Areas[i];
+                var trees = area.State.Trees.Select(tree =>
+                {
+                    var pruning = stage4.PruningOf(tree.TreeId);
+                    return new MultiAreaStage4TreeView(tree.TreeId, LifeStates.Of(tree),
+                        LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.Cause : null,
+                        LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.EcologicalYear : null,
+                        pruning.Lifts, pruning.CrownBaseHeightM, pruning.LastPruningYear, tree.CrownRadiusM);
+                }).ToArray();
+                int annual = last?.Areas[i].NaturalDeaths.Count ?? 0;
+                int cumulative = current.AnnualHistory.Sum(year => year.Areas[i].NaturalDeaths.Count);
+                areaViews[i] = new MultiAreaStage4AreaView(area.AreaId, areas[i].AreaHa,
+                    WorkRules.Summarize(area.State.Trees, areas[i].AreaHa).RelativeDensity, annual, cumulative,
+                    Array.AsReadOnly(stage4.Deadwood.Where(record => record.AreaId == area.AreaId).ToArray()),
+                    Array.AsReadOnly(trees));
+            }
+            return new MultiAreaStage4View(sessionId, current.EcologicalYear, current.PlanStateRevision, Token(current),
+                models.Adult, models.Mortality, models.Crown, Stage4Evidence.All, Array.AsReadOnly(areaViews),
+                Array.AsReadOnly(stage4.PendingPrunes.ToArray()), Array.AsReadOnly(stage4.ApprovedPrunes.ToArray()),
+                Array.AsReadOnly(stage4.PruneLog.ToArray()));
+        }
     }
 
     // ------------------------------------------------------------------------------------------------ Crop marks
@@ -205,7 +257,8 @@ internal sealed class MultiAreaContinuation
                 throw new P1Refusal("WorkReasonRequired", "every manual selection needs a recorded reason");
             if (root.Approved is not null)
                 throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is awaiting execution; cancel it before editing");
-            if (root.Pending.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)))
+            if (root.Pending.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)) ||
+                (root.Stage4?.PendingPrunes.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)) ?? false))
                 throw new P1Refusal("WorkDuplicateTreeId", "the tree ID is already in the pending Work Plan");
             RequireLivingInArea(index, treeId, unknownCode: "UnknownTreeId", deadCode: "WorkTreeNotLive",
                 "only a living exact tree ID of this area can be proposed for Fell");
@@ -237,7 +290,67 @@ internal sealed class MultiAreaContinuation
         }
     }
 
-    /// <summary>Approve the whole cross-area pending plan under an engine-minted PlanId and key. Zero Fell.</summary>
+    /// <summary>
+    /// Stage 4: add one fenced Prune order (one exact living tree of one area, target crown-base height). Pending only: no
+    /// tree, crown or clock changes. The verified guards are checked now for a clean refusal and again at Execute.
+    /// A tree may carry at most one order (Fell or Prune) in a plan; a retained Crop Tree may be pruned.
+    /// </summary>
+    internal MultiAreaCommandResult AddPrune(MultiAreaFence fence, string areaId, string treeId, float targetCrownBaseHeightM)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var stage4 = RequireStage4();
+            int index = AreaIndex(areaId);
+            if (string.IsNullOrWhiteSpace(treeId))
+                throw new P1Refusal("UnknownTreeId", "a tree ID is required");
+            if (root.Approved is not null)
+                throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is awaiting execution; cancel it before editing");
+            if (root.Pending.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)) ||
+                stage4.PendingPrunes.Any(order => string.Equals(order.TreeId, treeId, StringComparison.Ordinal)))
+                throw new P1Refusal("WorkDuplicateTreeId", "the tree ID is already in the pending Work Plan");
+            RequireLivingInArea(index, treeId, unknownCode: "UnknownTreeId", deadCode: "PruneTreeNotLiving",
+                "only a living exact tree ID of this area can be pruned");
+            PruningRules.Require(FindTree(index, treeId)!, stage4.PruningOf(treeId), targetCrownBaseHeightM, root.EcologicalYear);
+            var pending = stage4.PendingPrunes.Append(new MultiAreaPruneOrder(areaId, treeId, targetCrownBaseHeightM)).ToArray();
+            root = root with
+            {
+                Stage4 = stage4 with { PendingPrunes = Array.AsReadOnly(pending) },
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithView(null, null);
+        }
+    }
+
+    /// <summary>Stage 4: remove one pending Prune order before approval. Never touches biology.</summary>
+    internal MultiAreaCommandResult RemovePrune(MultiAreaFence fence, string areaId, string treeId)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var stage4 = RequireStage4();
+            AreaIndex(areaId);
+            if (root.Approved is not null)
+                throw new P1Refusal("WorkPlanAlreadyApproved", "the plan is approved; cancel it before editing");
+            var match = stage4.PendingPrunes.FirstOrDefault(order => order.TreeId == treeId);
+            if (match is null)
+                throw new P1Refusal("UnknownWorkOrder", "the tree ID has no pending Prune order");
+            if (match.AreaId != areaId)
+                throw new P1Refusal("MultiAreaWrongArea", "the pending Prune for " + treeId + " belongs to " + match.AreaId + ", not " + areaId);
+            var pending = stage4.PendingPrunes.Where(order => !ReferenceEquals(order, match)).ToArray();
+            root = root with
+            {
+                Stage4 = stage4 with { PendingPrunes = Array.AsReadOnly(pending) },
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithView(null, null);
+        }
+    }
+
+    /// <summary>
+    /// Approve the whole cross-area pending plan under an engine-minted PlanId and key. Zero Fell, and (Stage 4) zero
+    /// pruning: pending Prune orders move into the approval with the Fell orders and nothing ecological changes.
+    /// </summary>
     internal MultiAreaCommandResult Approve(MultiAreaFence fence)
     {
         lock (sync)
@@ -245,13 +358,24 @@ internal sealed class MultiAreaContinuation
             RequireFence(fence);
             if (root.Approved is not null)
                 throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is already awaiting execution");
-            if (root.Pending.Count == 0)
+            var stage4 = root.Stage4;
+            if (root.Pending.Count == 0 && (stage4?.PendingPrunes.Count ?? 0) == 0)
                 throw new P1Refusal("WorkEmptyPlan", "there is no pending work to approve");
             int planState = checked(root.PlanStateRevision + 1);
             string planId = FormattableString.Invariant($"{sessionId}:ma-plan:{planState}");
             var plan = new MultiAreaApprovedPlan(planId, MintedExecutionKey(planId), Token(root),
                 Array.AsReadOnly(root.Pending.ToArray()));
-            root = root with { Approved = plan, Pending = Array.Empty<MultiAreaWorkOrder>(), PlanStateRevision = planState };
+            root = root with
+            {
+                Approved = plan,
+                Pending = Array.Empty<MultiAreaWorkOrder>(),
+                PlanStateRevision = planState,
+                Stage4 = stage4 is null ? null : stage4 with
+                {
+                    ApprovedPrunes = Array.AsReadOnly(stage4.PendingPrunes.ToArray()),
+                    PendingPrunes = Array.Empty<MultiAreaPruneOrder>(),
+                },
+            };
             return WithView(null, null);
         }
     }
@@ -264,7 +388,12 @@ internal sealed class MultiAreaContinuation
             RequireFence(fence);
             if (root.Approved is null)
                 throw new P1Refusal("WorkPlanNotApproved", "there is no approved plan to cancel");
-            root = root with { Approved = null, PlanStateRevision = checked(root.PlanStateRevision + 1) };
+            root = root with
+            {
+                Approved = null,
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+                Stage4 = root.Stage4 is null ? null : root.Stage4 with { ApprovedPrunes = Array.Empty<MultiAreaPruneOrder>() },
+            };
             return WithView(null, null);
         }
     }
@@ -302,7 +431,8 @@ internal sealed class MultiAreaContinuation
                     "a first execution must use the execution key the engine minted for the approved plan");
             if (plan.Source != Token(root))
                 throw new P1Refusal("WorkPlanStaleSource", "the source, year or a revision moved since approval");
-            if (plan.Orders.Count == 0)
+            var approvedPrunes = root.Stage4?.ApprovedPrunes ?? Array.Empty<MultiAreaPruneOrder>();
+            if (plan.Orders.Count == 0 && approvedPrunes.Count == 0)
                 throw new P1Refusal("WorkEmptyPlan", "the approved plan contains no orders");
 
             // 1. Revalidate the WHOLE batch against the current root before anything is built.
@@ -325,6 +455,21 @@ internal sealed class MultiAreaContinuation
                     ordersByArea[order.AreaId] = inArea = new Dictionary<string, MultiAreaWorkOrder>(StringComparer.Ordinal);
                 inArea[order.TreeId] = order;
             }
+            // Stage 4: every approved Prune is revalidated against the current tree, its pruning history and the current year.
+            var prunesByArea = new Dictionary<string, Dictionary<string, MultiAreaPruneOrder>>(StringComparer.Ordinal);
+            foreach (var order in approvedPrunes)
+            {
+                int index = AreaIndex(order.AreaId);
+                if (!seen.Add(order.TreeId))
+                    throw new P1Refusal("WorkDuplicateTreeId", "the approved plan contains a duplicate tree ID");
+                RequireLivingInArea(index, order.TreeId, unknownCode: "PruneTreeNotLiving", deadCode: "PruneTreeNotLiving",
+                    "a pruned ID is not a living exact-case tree of its area in the current source");
+                PruningRules.Require(FindTree(index, order.TreeId)!, root.Stage4!.PruningOf(order.TreeId),
+                    order.TargetCrownBaseHeightM, root.EcologicalYear);
+                if (!prunesByArea.TryGetValue(order.AreaId, out var inArea))
+                    prunesByArea[order.AreaId] = inArea = new Dictionary<string, MultiAreaPruneOrder>(StringComparer.Ordinal);
+                inArea[order.TreeId] = order;
+            }
             // 2. Owner safeguard: a batch that would leave ANY currently populated area with no living tree is refused whole.
             foreach (var (areaId, inArea) in ordersByArea)
             {
@@ -339,10 +484,14 @@ internal sealed class MultiAreaContinuation
             int year = root.EcologicalYear;
             var nextAreas = new MultiAreaAreaState[root.Areas.Count];
             var changes = new MultiAreaAreaChange[root.Areas.Count];
+            var pruning = root.Stage4 is null ? null
+                : new Dictionary<string, TreePruningState>(root.Stage4.Pruning, StringComparer.Ordinal);
+            var pruneRecords = new List<MultiAreaPruneRecord>();
             for (int i = 0; i < root.Areas.Count; i++)
             {
                 var area = root.Areas[i];
                 ordersByArea.TryGetValue(area.AreaId, out var targets);
+                prunesByArea.TryGetValue(area.AreaId, out var prunes);
                 var trees = new AnnualTree[area.State.Trees.Count];
                 var fells = new List<MultiAreaFellRecord>();
                 for (int t = 0; t < trees.Length; t++)
@@ -354,6 +503,17 @@ internal sealed class MultiAreaContinuation
                         fells.Add(new MultiAreaFellRecord(area.AreaId, tree.TreeId, FellCause.Harvest, FellCause.Mechanism,
                             order.Reason, year, workRevision, executionKey, plan.PlanId));
                     }
+                    else if (tree.IsLiving && prunes is not null && prunes.TryGetValue(tree.TreeId, out var prune))
+                    {
+                        // One lift (Unity TryPrune): immediate r = max(0.1, r * 0.92); lifts + 1; crown base = target; year.
+                        // No clock moves; the crown change publishes with WorkRevision, which invalidates canopy/light.
+                        var history = pruning![tree.TreeId] = pruning.TryGetValue(tree.TreeId, out var old)
+                            ? old with { Lifts = old.Lifts + 1, CrownBaseHeightM = prune.TargetCrownBaseHeightM, LastPruningYear = year }
+                            : new TreePruningState(1, prune.TargetCrownBaseHeightM, year);
+                        trees[t] = tree with { CrownRadiusM = PruningRules.CutRadiusM(tree.CrownRadiusM) };
+                        pruneRecords.Add(new MultiAreaPruneRecord(area.AreaId, tree.TreeId, prune.TargetCrownBaseHeightM, year,
+                            workRevision, executionKey, plan.PlanId, tree.CrownRadiusM, trees[t].CrownRadiusM, history.Lifts));
+                    }
                     else
                     {
                         trees[t] = tree;
@@ -363,10 +523,18 @@ internal sealed class MultiAreaContinuation
                 var after = WorkRules.Summarize(trees, areas[i].AreaHa);
                 changes[i] = new MultiAreaAreaChange(area.AreaId, before, after,
                     Array.AsReadOnly(fells.OrderBy(record => record.TreeId, StringComparer.Ordinal).ToArray()));
-                nextAreas[i] = targets is null ? area : area with { State = new AnnualState(year, Array.AsReadOnly(trees)) };
+                nextAreas[i] = targets is null && prunes is null ? area : area with { State = new AnnualState(year, Array.AsReadOnly(trees)) };
                 afterAreaBuilt?.Invoke(area.AreaId);
             }
             var committed = new MultiAreaWorkEvent(executionKey, plan.PlanId, year, workRevision, Array.AsReadOnly(changes));
+            var nextStage4 = root.Stage4 is null ? null : root.Stage4 with
+            {
+                Pruning = pruning!,
+                ApprovedPrunes = Array.Empty<MultiAreaPruneOrder>(),
+                PruneLog = Array.AsReadOnly(root.Stage4.PruneLog
+                    .Concat(pruneRecords.OrderBy(r => r.AreaId, StringComparer.Ordinal).ThenBy(r => r.TreeId, StringComparer.Ordinal))
+                    .ToArray()),
+            };
 
             // Test-only fault seam: rosters, event and revisions are complete, but nothing has been published.
             beforePublish?.Invoke();
@@ -384,6 +552,7 @@ internal sealed class MultiAreaContinuation
                 Executed = executedMap,
                 Approved = null,
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
+                Stage4 = nextStage4,
             };
             return WithView(new MultiAreaExecutionResult(executionKey, year, workRevision, committed, Replayed: false), null);
         }
@@ -403,7 +572,7 @@ internal sealed class MultiAreaContinuation
         lock (sync)
         {
             RequireFence(fence);
-            bool hasWork = root.Pending.Count > 0 || root.Approved is not null;
+            bool hasWork = root.HasUnexecutedWork;
             if (hasWork && !consentToCancelWork)
                 throw new P1Refusal("WorkPendingConsentRequired",
                     "advancing the year with unexecuted work needs explicit consent to cancel all of it at zero Fell");
@@ -420,6 +589,10 @@ internal sealed class MultiAreaContinuation
             AnnualTree[]? woodland = crownModel == CrownModelVersion.LegacyFrozen
                 ? null
                 : CrownModel.Woodland(root.Areas.SelectMany(area => area.State.Trees));
+            // Stage 4 only: deadwood records are numbered in area order, then in the order the rules recorded the deaths.
+            var stage4 = root.Stage4;
+            var deadwood = new List<FallenDeadwoodRecord>();
+            int nextDeadwood = stage4?.NextDeadwoodNumber ?? 1;
             for (int i = 0; i < root.Areas.Count; i++)
             {
                 var area = root.Areas[i];
@@ -427,10 +600,24 @@ internal sealed class MultiAreaContinuation
                 AnnualState next;
                 if (area.State.Trees.Any(tree => tree.IsLiving))
                 {
-                    var (report, stepped) = crownModel == CrownModelVersion.LegacyFrozen
-                        ? MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa)
-                        : MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa, crownModel, woodland);
+                    var (report, stepped) = stage4 is not null
+                        ? MultiAreaAnnual.StepStage4(area.State, info.Seed, info.AreaHa, woodland!,
+                            treeId => stage4.PruningOf(treeId).Lifts, stage4Options!)
+                        : crownModel == CrownModelVersion.LegacyFrozen
+                            ? MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa)
+                            : MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa, crownModel, woodland);
                     next = stepped;
+                    if (stage4 is not null)
+                    {
+                        var byId = stepped.Trees.ToDictionary(tree => tree.TreeId, StringComparer.Ordinal);
+                        foreach (var death in report.Deaths)
+                        {
+                            var dead = byId[death.TreeId];
+                            deadwood.Add(new FallenDeadwoodRecord(FallenDeadwoodRecord.IdFor(nextDeadwood++), dead.TreeId,
+                                area.AreaId, SpeciesProfile.Sitka.SpeciesId, dead.XM, dead.ZM, death.EcologicalYear, death.Cause,
+                                dead.DbhCm, dead.HeightM, FallenDeadwoodRecord.StemVolumeM3(dead.DbhCm, dead.HeightM)));
+                        }
+                    }
                     records[i] = new MultiAreaAreaYear(area.AreaId, report.Before, report.After,
                         Array.AsReadOnly(report.Deaths.ToArray()), NoLivingStems: false);
                     reports[i] = new MultiAreaAreaReport(area.AreaId, report);
@@ -465,6 +652,14 @@ internal sealed class MultiAreaContinuation
                 Pending = hasWork ? Array.Empty<MultiAreaWorkOrder>() : root.Pending,
                 Approved = hasWork ? null : root.Approved,
                 PlanStateRevision = checked(root.PlanStateRevision + (hasWork || lostCrop ? 1 : 0)),
+                // Stage 4: consented cancellation clears Prune orders with the Fells; deadwood is appended, never rewritten.
+                Stage4 = stage4 is null ? null : stage4 with
+                {
+                    PendingPrunes = hasWork ? Array.Empty<MultiAreaPruneOrder>() : stage4.PendingPrunes,
+                    ApprovedPrunes = hasWork ? Array.Empty<MultiAreaPruneOrder>() : stage4.ApprovedPrunes,
+                    Deadwood = Array.AsReadOnly(stage4.Deadwood.Concat(deadwood).ToArray()),
+                    NextDeadwoodNumber = nextDeadwood,
+                },
             };
             return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(reports)));
         }
@@ -564,6 +759,10 @@ internal sealed class MultiAreaContinuation
         if (fence is null || !string.Equals(fence.SessionId, sessionId, StringComparison.Ordinal))
             throw new P1Refusal("PlayerSessionMismatch", "this request does not belong to the current multi-area session");
     }
+
+    private MultiAreaStage4State RequireStage4() => root.Stage4 ??
+        throw new P1Refusal("Stage4ModelRequired",
+            "pruning needs AdultModelVersion 1, MortalityModelVersion 1 and CrownModelVersion 1; this session is not Stage 4");
 
     private int AreaIndex(string areaId)
     {

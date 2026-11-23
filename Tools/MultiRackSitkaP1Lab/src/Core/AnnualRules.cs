@@ -22,12 +22,44 @@ internal static class AnnualRules
         CrownModel.RequireKnown(crownModel);
         if (crownModel != CrownModelVersion.LegacyFrozen && woodland is null)
             throw new P1Refusal("CrownWoodlandRequired", "CrownModel 1 needs the connected-woodland neighbourhood");
+        Func<AnnualTree, float, AnnualTree> grow = crownModel == CrownModelVersion.LegacyFrozen
+            ? (tree, ci) => Grow(tree, ci)
+            : (tree, ci) => GrowC2(tree, ci, Competition(tree, woodland!).Ci);
+        return CalculateCore(state, simulationSeed, areaHa, grow, LegacyDeathCause);
+    }
+
+    /// <summary>The model 0 cause string of a density death (kept exactly; Stage 4 uses <see cref="LifeStates.DensitySuppression"/>).</summary>
+    internal const string LegacyDeathCause = "self-thinning";
+
+    /// <summary>
+    /// Stage 4 (D-095, AdultModelVersion 1 + MortalityModelVersion 1 + CrownModelVersion 1). Growth: DBH responds to the
+    /// connected-woodland CI, DBH and height increments are scaled by the per-position site value and the growth-age-phase
+    /// factors, and the C2 crown target carries the pruning factor 0.92^lifts. Mortality: EXACTLY the per-rack arithmetic
+    /// of <see cref="CalculateCore"/> (this rack's own CI for suppression, this rack's own area for RD), with each victim
+    /// recorded as a biological death with cause <see cref="LifeStates.DensitySuppression"/>.
+    /// </summary>
+    internal static AnnualReport CalculateStage4(AnnualState state, int simulationSeed, float areaHa, AnnualTree[] woodland,
+        Func<string, int> pruningLiftsOf, Stage4Options options)
+    {
+        ArgumentNullException.ThrowIfNull(woodland);
+        return CalculateCore(state, simulationSeed, areaHa,
+            (tree, _) => GrowStage4(tree, Competition(tree, woodland).Ci, options.SiteAt(tree), options.GrowthAgePhases,
+                pruningLiftsOf(tree.TreeId)),
+            LifeStates.DensitySuppression);
+    }
+
+    /// <summary>
+    /// The shared annual step: start-of-year per-area competition, <paramref name="grow"/> (given this area's own CI), the
+    /// post-growth stand, the density hazard with its deterministic rolls, then the RD ≤ 1.0 boundary. Only the growth law and
+    /// the recorded cause differ between models; every mortality expression is the frozen one.
+    /// </summary>
+    private static AnnualReport CalculateCore(AnnualState state, int simulationSeed, float areaHa,
+        Func<AnnualTree, float, AnnualTree> grow, string deathCause)
+    {
         int year = checked(state.EcologicalYear + 1);
         var before = state.Trees.Where(tree => tree.IsLiving).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
         var competition = before.Select(tree => Competition(tree, before)).ToArray();
-        var grown = crownModel == CrownModelVersion.LegacyFrozen
-            ? before.Select((tree, i) => Grow(tree, competition[i].Ci)).ToArray()
-            : before.Select((tree, i) => GrowC2(tree, competition[i].Ci, Competition(tree, woodland!).Ci)).ToArray();
+        var grown = before.Select((tree, i) => grow(tree, competition[i].Ci)).ToArray();
         var postGrowth = Stand(grown, areaHa);
         double pressure = SitkaGrowthModel.DensityPressure(postGrowth.RelativeDensity);
 
@@ -58,9 +90,9 @@ internal static class AnnualRules
             var after = grown[i];
             if (roll < probability)
             {
-                var death = new AnnualDeath(after.TreeId, year, "self-thinning", "hazard");
+                var death = new AnnualDeath(after.TreeId, year, deathCause, "hazard");
                 deaths.Add(death);
-                after = after with { Death = death };
+                after = LifeStates.ApplyBiologicalDeath(after, death);
             }
             else
                 survivors.Add(i);
@@ -68,7 +100,7 @@ internal static class AnnualRules
         }
 
         if (suppression is not null)
-            ApplyBoundary(audit, survivors, areaHa, year, deaths, suppression);
+            ApplyBoundary(audit, survivors, areaHa, year, deaths, suppression, deathCause);
         return new AnnualReport(state.EcologicalYear, year, Stand(before, areaHa), postGrowth,
             Stand(audit.Select(row => row.After).Where(tree => tree.IsLiving), areaHa), pressure, meanVulnerability,
             Array.AsReadOnly(audit.Concat(state.Trees.Where(tree => !tree.IsLiving)
@@ -122,6 +154,35 @@ internal static class AnnualRules
         return grown with { CrownRadiusM = CrownModel.NextRadiusM(Species, tree.CrownRadiusM, grown.DbhCm, crownCi) };
     }
 
+    /// <summary>
+    /// Stage 4 adult growth (Unity ForestEcologyController.GrowAdults for Sitka, with the D-095 extensions):
+    ///   dbhPotential = 1.2 * site * clamp01(1 - DBH/120); dbhGrowth = dbhPotential * (1 / (1 + CI_woodland/5))
+    ///   heightGrowth = (NextHeight(h, age) - h) * site
+    ///   both increments × the growth-age-phase factors (none for Sitka, so 1 and 1)
+    ///   DBH clamped [1, 200], height [0.1, 60], age + 1; crown: C2 step with target × 0.92^lifts.
+    /// The DBH response is written as Unity and the frozen rule write it (multiply by the reciprocal), so at site 1.0, no
+    /// phases and no lifts this equals <see cref="GrowC2"/> driven by the woodland CI, bit for bit.
+    /// </summary>
+    internal static AnnualTree GrowStage4(AnnualTree tree, float woodlandCi, float site, IReadOnlyList<GrowthAgePhase>? phases,
+        int pruningLifts)
+    {
+        if (!tree.IsLiving) return tree;
+        float response = 1f / (1f + woodlandCi / Species.Ci50);
+        float dbhPotential = Species.PotentialDbhGrowthCm * site * Math.Clamp(1f - tree.DbhCm / Species.DbhGrowthScaleCm, 0f, 1f);
+        float dbhGrowth = dbhPotential * response;
+        float heightGrowth = (SitkaGrowthModel.NextHeight(tree.HeightM, tree.AgeYears) - tree.HeightM) * site;
+        if (GrowthAgePhases.HasPhases(phases))
+        {
+            var (dbhFactor, heightFactor) = GrowthAgePhases.FactorsAt(phases, tree.AgeYears);
+            dbhGrowth *= dbhFactor;
+            heightGrowth *= heightFactor;
+        }
+        float dbh = Math.Clamp(tree.DbhCm + dbhGrowth, 1f, 200f);
+        float height = Math.Clamp(tree.HeightM + heightGrowth, 0.1f, 60f);
+        float radius = CrownModel.NextRadiusM(Species, tree.CrownRadiusM, dbh, woodlandCi, pruningLifts);
+        return tree with { AgeYears = checked(tree.AgeYears + 1), DbhCm = dbh, HeightM = height, CrownRadiusM = radius };
+    }
+
     private static AnnualStand Stand(IEnumerable<AnnualTree> living, float areaHa)
     {
         int count = 0;
@@ -141,7 +202,7 @@ internal static class AnnualRules
     }
 
     private static void ApplyBoundary(AnnualTreeAudit[] audit, List<int> survivors, float areaHa, int year,
-        List<AnnualDeath> deaths, double[] suppression)
+        List<AnnualDeath> deaths, double[] suppression, string deathCause)
     {
         int count = survivors.Count;
         if (count <= 1) return;
@@ -158,9 +219,9 @@ internal static class AnnualRules
             var tree = audit[i].After;
             count--;
             squaredDbhSum -= (double)tree.DbhCm * tree.DbhCm;
-            var death = new AnnualDeath(tree.TreeId, year, "self-thinning", "boundary");
+            var death = new AnnualDeath(tree.TreeId, year, deathCause, "boundary");
             deaths.Add(death);
-            audit[i] = audit[i] with { After = tree with { Death = death } };
+            audit[i] = audit[i] with { After = LifeStates.ApplyBiologicalDeath(tree, death) };
         }
     }
 }

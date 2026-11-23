@@ -80,6 +80,21 @@ internal static class LifeStates
     public static LifeState Of(AnnualTree tree) => tree.Death is null
         ? LifeState.Living
         : string.Equals(tree.Death.Cause, FellCause.Harvest, StringComparison.Ordinal) ? LifeState.FelledStump : LifeState.BiologicallyDead;
+
+    /// <summary>
+    /// The biological-death transition (Unity ForestTree.ApplyMortality): records cause and year on a living tree. It is
+    /// idempotent: a tree that is already dead or felled is returned unchanged, so a second death can never be recorded.
+    /// It is not a Fell, so the tree never becomes a stump and yields nothing.
+    /// </summary>
+    public static AnnualTree ApplyBiologicalDeath(AnnualTree tree, AnnualDeath death)
+    {
+        if (!tree.IsLiving) return tree;
+        if (string.IsNullOrWhiteSpace(death.Cause) || death.EcologicalYear < 0 ||
+            string.Equals(death.Cause, FellCause.Harvest, StringComparison.Ordinal) ||
+            !string.Equals(death.TreeId, tree.TreeId, StringComparison.Ordinal))
+            throw new P1Refusal("BiologicalDeathInvalid", "a biological death needs this tree's ID, a non-fell cause and a non-negative year");
+        return tree with { Death = death };
+    }
 }
 
 /// <summary>Evidence labels shown with Stage 4 output (spec §3).</summary>
