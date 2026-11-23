@@ -1,0 +1,21 @@
+PATH	SIZE_MB	NEWEST	FILES	HINT
+CCF-Dev	7166	2026-11-19	127	Multi-20261119 _fetch-packet.sh _ipad-state.sh 
+CCF-Restore-810	1	2026-11-19	40	00-preflight.sh 01-issue-check.sh 02-post-running.sh 
+Multi-885-StageB-20261121-evidence	4	2026-11-21	47	885-comments-start.json P0-ignored-after-independent.txt P0-status-after-independent.txt 
+Research	5311	2026-11-13	96	Samsara2-20261113 Samsara2-CorePaired-20261113 
+_ipad	82	2026-11-19	11	packet.md repo 
+b21-offline-reproduction-20261112	3268	2026-11-12	645	AGENTS.md CLAUDE.md CONTRIBUTING.md 
+b21-recovery-evidence-20261112	3	2026-11-12	54	INDEPENDENT-REVIEW.md MANAGER-HANDOFF.md PHASE-A.md 
+ccf-workbench	1	2026-11-23	1	inbox outbox 
+ccf-worktrees	2373	2026-11-16	146	CCF-MULTI-008-SitkaLab-WSL2-20261114 multi-p0-567-wsl2-qualification 
+dev	5405	2026-11-12	241	development-operations-dashboard ipad-mini-2 t3code 
+migration-evidence	1809	2026-11-12	372	CUTOVER-PACKET.md REPORT-toolchain-readiness.md RESTORATION-REPORT.md 
+migration-staging	2668	2026-11-12	26	T3Fork-Migration-20261111-nZgkPz 
+migration-test-evidence-20261112	1	2026-11-12	77	INDEPENDENT-REVIEW.md MANAGER-HANDOFF.md MANAGER-HANDOFF.pre-review.md 
+migration-test-qualification-20261112	3490	2026-11-12	1111	AGENTS.md CLAUDE.md CONTRIBUTING.md 
+multi008-evidence	3	2026-11-14	56	A-linux-core-host B-persistence-security C-host 
+multi589-evidence	2	2026-11-16	39	01-identity-tests 02-live-host 03-aborted-first-attempt 
+orch-scratch	2	2026-11-21	66	01-fetch-handoff.sh 02-commits.sh 03-d091.sh 
+qualification-evidence-20261112	1	2026-11-12	31	INDEPENDENT-REVIEW.md MANAGER-HANDOFF.md MANAGER-HANDOFF.pre-review.md 
+qualification-windows-20261112	3524	2026-11-12	1581	AGENTS.md CLAUDE.md CONTRIBUTING.md 
+toolchain-dl	1	2026-11-12	3	install-vp.sh vp-install.log vp-install.time 
