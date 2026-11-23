@@ -78,12 +78,21 @@ internal sealed partial class PlayerApi
             request => multiArea.Execute(request.Fence!, request.PlanId!, request.ExecutionKey!))));
         routes.Add("api/multi/year/advance", new("POST", context => MultiCommandAsync<MultiAdvanceRequest>(context, MultiAdvanceMembers,
             request => multiArea.Advance(request.Fence!, request.ConsentToCancelWork))));
+        // Stage 4 Prune (spec multi-stage4-ui-catchup-v1 FR-4): the Fell pattern exactly - full fence, exact area and tree ID,
+        // strict members, engine fence and refusal with a fresh view. The engine chooses the lift height; Approve, Cancel,
+        // Execute and Year+1 are the existing shared Work Plan routes.
+        routes.Add("api/multi/prune/add", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
+            request => multiArea.AddPrune(request.Fence!, request.AreaId!, request.TreeId!))));
+        routes.Add("api/multi/prune/remove", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
+            request => multiArea.RemovePrune(request.Fence!, request.AreaId!, request.TreeId!))));
     }
 
+    // The view and its Stage 4 / canopy / light read-out are taken from one root under one engine lock.
     private Task ReadMultiViewAsync(HttpContext context)
     {
-        var view = multiArea.Read();
-        return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiViewPayload(view, ScenesOf(view), MultiLabels));
+        var snapshot = multiArea.ReadSnapshot();
+        return WriteJsonAsync(context, StatusCodes.Status200OK,
+            new MultiViewPayload(snapshot.View, ScenesOf(snapshot.View), MultiLabels, snapshot.Readout));
     }
 
     // One fenced read and one pure calculation on that same immutable view; never a mutation, never a Crop requirement.
@@ -93,7 +102,7 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         var result = multiArea.Competition(request.Fence!, request.AreaId!, request.TreeId!);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
-            result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage)));
+            result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage), multiArea.ReadoutFor(result.View)));
     }
 
     private async Task MultiHitTestAsync(HttpContext context)
@@ -102,17 +111,19 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         var result = multiArea.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
-            result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage)));
+            result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage), multiArea.ReadoutFor(result.View)));
     }
 
-    private static async Task MultiCommandAsync<TRequest>(HttpContext context, IReadOnlyList<string> required,
+    // The read-out attached to a command's answer belongs to the same root as its view; if another request moved the session
+    // in between, it is null and the page says so instead of pairing values from two roots.
+    private async Task MultiCommandAsync<TRequest>(HttpContext context, IReadOnlyList<string> required,
         Func<TRequest, MultiAreaCommandResult> command) where TRequest : class
     {
         var request = await ReadMultiRequestAsync<TRequest>(context, required);
         if (request is null) return; // a guard has already answered
         var result = command(request);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(result.View, ScenesOf(result.View),
-            NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual));
+            NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual, multiArea.ReadoutFor(result.View)));
     }
 
     // Every area's map items, built by Core's unchanged single-area map scene from this same view.
@@ -195,18 +206,19 @@ internal sealed partial class PlayerApi
 
     private sealed record MultiHitRequest(MultiAreaFence? Fence, string? AreaId, double? U, double? V);
 
+    // Stage4 (JSON "stage4") is additive: every member the page already reads keeps its name and shape.
     private sealed record MultiViewPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
-        IReadOnlyDictionary<string, string> Labels);
+        IReadOnlyDictionary<string, string> Labels, MultiAreaUiReadout? Stage4);
 
     private sealed record MultiCommandPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
-        Notice? Refusal, MultiAreaExecutionResult? Execution, MultiAreaAnnualResult? Annual);
+        Notice? Refusal, MultiAreaExecutionResult? Execution, MultiAreaAnnualResult? Annual, MultiAreaUiReadout? Stage4);
 
     private sealed record MultiCompetitionPayload(MultiAreaSessionView View,
         IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes, string AreaId, PlayerCompetitionReport? Competition,
-        Notice? Refusal);
+        Notice? Refusal, MultiAreaUiReadout? Stage4);
 
     private sealed record MultiHitPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
-        string AreaId, IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal);
+        string AreaId, IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal, MultiAreaUiReadout? Stage4);
 }
 
 /// <summary>
