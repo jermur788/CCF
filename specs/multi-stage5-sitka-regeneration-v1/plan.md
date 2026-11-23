@@ -1,6 +1,6 @@
 # Plan — MULTI Stage 5 natural Sitka regeneration (engine only)
 
-**Status: DRAFT — awaiting owner approval.** Nothing below is authorised until `spec.md` is marked `APPROVED` and a D-091 lane receipt exists.
+**Status: APPROVED — owner approval 2026-11-23.** `spec.md` is `APPROVED`; the owner approved the §4 `2.5 m` area-consistent scaling policy and the binding Q1–Q6 resolutions recorded verbatim in `spec.md` (Q1 mast: one annual `NextDouble()` on `STAGE5-MAST`, `<0.15 → 1.5`, `<0.50 → 0.4`, else `1.0`; Q2: `promotionMinimumLight = 0`, no extra light gate; Q3: regeneration version appended to `AreaModelVersion` only when `!= 0`; Q4: `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds for accepted abundance and multi-year promotions, edge-block effect reported honestly; Q5: aligned `5 m` block cap, max 1 promotion per block per year, tie-breaker oldest `EstablishYear`, then tallest height, then deterministic `(Column, Row)`; Q6: `V(h)` uses pre-growth height). Production edits still require a D-091 lane receipt (Gate 0 below).
 
 ## Gate 0 — before any production edit (all must be true)
 
@@ -27,7 +27,7 @@
 
 ## Trade-offs for the owner
 
-- **Block cap vs fractional accumulator (spec §4/Q5).** Recommend the aligned-5 m block cap: easier to read, exactly reproduces Unity at 5.0 m, costs a documented edge-block approximation.
+- **Block cap vs fractional accumulator (spec §4/Q5).** Owner chose the aligned-5 m block cap (2026-11-23): easier to read, exactly reproduces Unity at 5.0 m, costs a documented edge-block approximation.
 - **Scaled extensive quantities vs copying Unity per cell.** Copying is simpler but inflates abundance and promotions 4× at 2.5 m; rejected.
 - **Selective clearing** deviates from Unity's destructive clear. Intended, documented, and needs a Unity-side decision later if the two games are ever to be compared.
 

@@ -1,6 +1,18 @@
 # MULTI Stage 5 — Natural Sitka regeneration, bramble/bracken competition, selective undergrowth clearing and light browsing
 
-**Status: DRAFT — awaiting owner approval. Not approved. No production code, D-091 coding lane or branch is authorised by this document.**
+**Status: APPROVED — owner approval 2026-11-23.** The owner approved this quartet, the §4 area-consistent `2.5 m` scaling policy, and the binding Q1–Q6 resolutions recorded below. Implementation is authorised only inside an admitted D-091 lane branched from `e7c1a57d` (see `plan.md` Gate 0).
+
+### Owner approval record (2026-11-23, binding — not re-litigated)
+
+- Owner approved the §4 `2.5 m` area-consistent scaling policy.
+- **Q1 Mast:** one annual `NextDouble()` roll on the isolated woodland-wide `STAGE5-MAST` stream, cumulative thresholds `<0.15 → 1.5`, `<0.50 → 0.4`, else `1.0`.
+- **Q2 Promotion light gate:** `promotionMinimumLight = 0` — no extra light gate.
+- **Q3 Token:** append the regeneration version to `AreaModelVersion` **only when `!= 0`**, so `0/0/0`, `0/0/1` and `1/1/1` tokens and hashes stay byte-identical.
+- **Q4 `S5-07` tolerance:** `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds, for accepted abundance and multi-year promotion ratios; report the edge-block effect honestly.
+- **Q5 Promotion cap:** aligned `5 m` block cap (max 1 promotion per block per year). Tie-breaker: oldest `EstablishYear`, then tallest height, then deterministic `(Column, Row)`.
+- **Q6 Browse height:** `V(h)` uses pre-growth height.
+
+Where the earlier draft text differs from these resolutions (notably the §4 block-winner order), the resolution above governs and the text below has been aligned to it.
 Task class: `SPEC REQUIRED` (new causal regeneration, understorey competition, browsing, promotion, one new Work Plan command).
 Lane: standalone 2D Sitka Engine, `Tools/MultiRackSitkaP1Lab` only. **Zero** Unity `Assets/`, Compact30/Legacy40/Enlarged80/Reference Future v1, `/multi` UI, or save-schema change.
 
@@ -81,10 +93,10 @@ DBH    = clamp(1.5 · Height, 2, 20) cm
 r_0    = max(0.1, r_pot(DBH) / sqrt(1 + CI_woodland/5))        CrownModel 1, NOT open-grown r_pot
 ```
 
-`CI_woodland` is the connected-woodland Hegyi index (8 m) evaluated at the promoted stem. The light gate `PromotionMinimumLight` exists in Unity code but is **not serialised in `SitkaSpruce.asset`** (reads as 0, i.e. inactive); Stage 5 therefore applies no light gate — **Open question Q2**.
+`CI_woodland` is the connected-woodland Hegyi index (8 m) evaluated at the promoted stem. The light gate `PromotionMinimumLight` exists in Unity code but is **not serialised in `SitkaSpruce.asset`** (reads as 0, i.e. inactive); Stage 5 therefore applies no light gate — **Q2 resolved by owner: `promotionMinimumLight = 0`, no extra light gate**.
 `TreeId = "R{year}-{areaId}-{col}-{row}"`, asserted unique against all existing IDs. Position: deterministic jitter inside the source cell from stream `STAGE5-PROMO-{areaId}-{col}-{row}-{year}`; if the point is outside the clipped area polygon, retry a fixed number of times, then fall back to the cell centre (centre-in-polygon is guaranteed by cell membership). A tree is never placed outside the polygon.
 
-## 4. Area-consistent `2.5 m` scaling policy (PROPOSED — owner sign-off required)
+## 4. Area-consistent `2.5 m` scaling policy (APPROVED by owner 2026-11-23)
 
 **Source facts (verified):** Unity cohort `Density` is an *abstract abundance per cell*, not a stem count ("Not a stem-count conversion", `ForestEcologyController`). Occupancy is `Density / RegenDensityMax`, shared capacity per cell is 1 (`ForestEcologyCell.AdmitDensity`). Promotion exports a whole band to **one** tree, at most one band per cell per year. All of this is defined for a `5 m` cell (`25 m²`). Copied unchanged onto `2.5 m` cells (`6.25 m²`), the same woodland would admit 4× the abundance per hectare and could promote 4× the trees per hectare per year.
 
@@ -96,7 +108,7 @@ Let `cell = 2.5` or `5.0` m and `a = (cell/5.0)²` (so `a = 0.25` at 2.5 m, `a =
 | Cell capacity | `RegenDensityMax · a` (1.5 → 0.375) | keeps **relative** occupancy (0–1) and abundance per hectare equal |
 | Representation threshold | `0.01 · a` | a band of the same relative size stays represented |
 | Promotion budget | **≤ 1 promotion per aligned 5.0 m block per year**, blocks = `floor(x/5), floor(z/5)` in the world frame | caps trees/ha/yr at Unity's ceiling without fractional trees |
-| Block winner | greatest height, then oldest, then lowest `(col,row)` | deterministic; non-winners stay and can promote next year |
+| Block winner | oldest `EstablishYear`, then tallest height, then lowest `(Column, Row)` (owner Q5 resolution) | deterministic; non-winners stay and can promote next year |
 | Growth, survival, seed rain, light, undergrowth | unchanged (all intensive) | per-point or per-plant rates |
 
 Known approximation: an edge `5 m` block with fewer than four in-polygon cell centres still gets the full budget of 1. `S5-07` measures this; it is not hidden.
@@ -116,13 +128,13 @@ Supported grids remain `{2.5, 5.0}` only (the existing `CanopyLightEvaluator` ru
 
 ## 7. State and atomic commit
 
-New immutable `MultiAreaStage5State` carried as one more optional member of `MultiAreaRoot` (`= null` on every model-0/Stage 1–4 root, the same pattern as `Stage4`). It holds per-area cells (undergrowth covers, cohorts, sub-threshold accumulator), pending/approved/executed clear orders, annual accounts and the Stage 5 options (`BackgroundBrowsePressure`, grid). One reference assignment publishes it with the rest of the root; a simulated pre-commit failure must leave the previous root intact. Session-only: nothing here is saved. How the regeneration version enters `MultiAreaSourceToken` without changing earlier tokens is **Open question Q3**.
+New immutable `MultiAreaStage5State` carried as one more optional member of `MultiAreaRoot` (`= null` on every model-0/Stage 1–4 root, the same pattern as `Stage4`). It holds per-area cells (undergrowth covers, cohorts, sub-threshold accumulator), pending/approved/executed clear orders, annual accounts and the Stage 5 options (`BackgroundBrowsePressure`, grid). One reference assignment publishes it with the rest of the root; a simulated pre-commit failure must leave the previous root intact. Session-only: nothing here is saved. How the regeneration version enters `MultiAreaSourceToken` without changing earlier tokens is **Q3, resolved by owner**: it is appended to `AreaModelVersion` only when `!= 0`.
 
 ## 8. Adult-empty racks
 
 An area with 0 living adults still: advances its ecological year, receives cross-rack seed, updates undergrowth, and grows/promotes its cohorts. Whether Stage 4 currently short-circuits such an area is verified in plan Stage 1; if it does, the fix is confined to `Regeneration = 1` paths.
 
-## 9. Open questions for the owner
+## 9. Questions put to the owner (all resolved 2026-11-23 — see the approval record at the top)
 
 - **Q1 Mast bands — resolved from source, please confirm.** The brief's `0.15 / 0.35 / 0.50` are probabilities/cumulative edges, not three sampled rolls: Unity gives good = 15 % (×1.5), poor = 35 % (×0.4, roll in `[0.15, 0.50)`), normal = 50 % (×1.0). Expected multiplier = 0.225 + 0.14 + 0.5 = 0.865. Unity rolls mast per species with the stand RNG; Stage 5 uses the isolated `STAGE5-MAST` stream per year instead (intentional, §6).
 - **Q2 Promotion light gate.** No gate (Unity asset leaves it at 0). Confirm.
