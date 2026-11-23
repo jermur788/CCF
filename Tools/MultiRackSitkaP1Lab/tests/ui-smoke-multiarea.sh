@@ -864,6 +864,141 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
   await selectInTable(aTree);
 }
 
+// ---- R3 (owner UX repair Phase A, repair 3): a LOADED session. Fell orders are queued through the page's own Add for the
+// top competitors of one reference, so its rows are blocked. The stand-in has no layout, so the fold is checked
+// structurally here (every row, blocked or not, is the same two-line grid: rank + ID + distance, then one meta line that
+// starts with the short reason) and by pixels in the real-browser driver and fold sweep. Also: the post-Add card takes the
+// Add form's place with Details and Dismiss, a draft change ends it, and an Escape that only closes a dialog leaves a
+// pending map click alone (F-05). The orders are removed again at the end so the checks below see the same session as
+// before. Labelled R3a.. so the J numbering below is unchanged.
+{
+  let r3 = 0;
+  const checkR3 = (ok, label, detail) => {
+    if (!ok) failures++;
+    r3++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'R3' + String.fromCharCode(96 + r3) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitR3 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkR3(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+  const errorsBefore = pageErrors.length;
+  const v0 = await serverView();
+  const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+  const aIds = areaOf(v0, 'MA-A').trees.filter((t) => t.isLiving).map((t) => t.treeId);
+  let refA = null;
+  let topA = null;
+  for (const id of aIds) {
+    if (id === aTree) continue;
+    const r = await send('POST', 'api/multi/competition', JSON.stringify({ fence: fenceOf(v0), areaId: 'MA-A', treeId: id }));
+    if (r.json && r.json.competition && r.json.competition.topFive.length === 5) { refA = id; topA = r.json.competition.topFive.map((n) => n.treeId); break; }
+  }
+  const rankButton = (id) => byId('rank-layer').querySelector('[data-rank-toggle="' + id + '"]');
+  const rowsOf = () => byId('competition-content').querySelectorAll('li');
+  // Looked up by class too, so that against an older page these checks fail instead of crashing the witness.
+  const dock = byId('add-dock') || byId('inspector-body').querySelector('.add-dock');
+  const card = byId('batch-result');
+  const control = (name) => card.querySelector('[data-batch="' + name + '"]');
+  const addThrough = async (ids, what) => {
+    for (const id of ids) click(rankButton(id));
+    await waitR3(() => byId('add-button').textContent === 'Add selected ' + ids.length + ' to Fell plan', what + ': ' + ids.length + ' draft choices');
+    byId('add-form').dispatchEvent(new FakeEvent('submit'));
+    await waitR3(() => !card.hidden && !document.documentElement.classList.contains('busy'), what + ': the Add result card');
+    await rowsBack(what);
+  };
+  // After an Add the page re-reads the reference's competition; the rows and rank buttons return when it answers.
+  async function rowsBack(what) {
+    await waitR3(() => rowsOf().length === 5 && byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, what + ': the competitor rows again');
+  }
+  // The two-line row structure: exactly input, ID, distance, CI and one meta line; a blocked row puts its short reason at
+  // the start of the meta line (no extra line), with the full reason in the tooltip and in screen-reader text.
+  const rowShape = () => rowsOf().map((li) => {
+    const label = li.querySelector('label');
+    const kids = label.childNodes.filter((n) => n instanceof FakeElement);
+    const line = label.querySelector('.comp-line');
+    const why = line && line.querySelector('.comp-why');
+    const sr = line && line.querySelector('.sr-only');
+    return { blocked: li.classList.contains('blocked'), shape: kids.map((k) => k.localName === 'input' ? 'input' : (k.getAttribute('class') || '').split(' ').pop()).join(','),
+      first: line && line.firstElementChild ? line.firstElementChild.getAttribute('class') : null, why: why ? why.textContent : null,
+      whyHidden: why ? why.getAttribute('aria-hidden') : null, sr: sr ? sr.textContent : null, title: label.getAttribute('title') };
+  });
+  const shapeOk = (rows, blockedIds) => rows.length === 5 && rows.every((r) => r.shape === 'input,comp-id,comp-dist,comp-ci,comp-line') &&
+    rows.filter((r) => r.blocked).length === blockedIds &&
+    rows.every((r) => r.blocked ? r.first === 'comp-why' && r.why === 'Pending Fell' && r.whyHidden === 'true' && r.sr === 'Cannot be chosen: Already pending Fell. ' &&
+      r.title && r.title.includes('Already pending Fell') : r.why === null && r.sr === null && r.title === null);
+
+  if (!refA) checkR3(false, 'no MA-A reference with five competitors found');
+  else {
+    await selectInTable(refA);
+    await waitR3(() => byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, 'the five rank buttons of ' + refA);
+    checkR3(shapeOk(rowShape(), 0), 'clean session: all five rows of ' + refA + ' have the same two-line structure and no reason', rowShape());
+    await addThrough(topA.slice(0, 3), 'first Add');
+    let s = await serverView();
+    checkR3(topA.slice(0, 3).every((id) => s.pending.some((o) => o.areaId === 'MA-A' && o.treeId === id)) && s.pending.length === v0.pending.length + 3,
+      'three of ' + refA + '\'s competitors were queued through the page\'s Add', s.pending.map((o) => o.treeId));
+    checkR3(shapeOk(rowShape(), 3), 'loaded: the three blocked rows keep the two-line structure; "Pending Fell" opens the meta line; full reason in the tooltip and screen-reader text', rowShape());
+    const more = control('more');
+    const dismiss = control('dismiss');
+    checkR3(dock.classList.contains('showing-result') && card.querySelector('.alert-title').textContent === 'Added 3 trees to the Fell plan' && more &&
+      more.getAttribute('aria-expanded') === 'false' && more.getAttribute('aria-controls') === 'batch-body' && dismiss && byId('batch-body') &&
+      byId('batch-body').textContent.includes(topA[0]),
+      'F-02: the post-Add card is in the dock with a one-line title, Details (collapsed) and Dismiss; the dock is marked so a short desktop shows it instead of the Add form',
+      { cls: dock.getAttribute('class'), title: card.querySelector('.alert-title') && card.querySelector('.alert-title').textContent });
+    if (more) click(more);
+    const opened = Boolean(more) && card.getAttribute('class').includes('open') && control('more').getAttribute('aria-expanded') === 'true';
+    if (more) click(control('more'));
+    checkR3(opened && !card.getAttribute('class').includes('open') && control('more').getAttribute('aria-expanded') === 'false',
+      'F-02: Details opens and closes the card\'s detail lines (aria-expanded follows)');
+    click(rankButton(topA[3]));
+    await waitR3(() => card.hidden, 'a draft change to end the card');
+    checkR3(card.hidden && !dock.classList.contains('showing-result') && byId('add-button').textContent === 'Add selected 1 to Fell plan',
+      'F-02: changing the draft ends the card and brings the Add form back', [card.hidden, dock.getAttribute('class'), byId('add-button').textContent]);
+    if (byId('add-button').textContent === 'Add selected 1 to Fell plan') byId('add-form').dispatchEvent(new FakeEvent('submit'));
+    await waitR3(() => !card.hidden && !document.documentElement.classList.contains('busy'), 'second Add: the result card');
+    await rowsBack('second Add');
+    const sBefore = JSON.stringify(await serverView());
+    if (control('dismiss')) click(control('dismiss'));
+    await waitR3(() => byId('announce').textContent.startsWith('Dismissed the Add result'), 'the Dismiss announcement');
+    checkR3(card.hidden && !dock.classList.contains('showing-result') && JSON.stringify(await serverView()) === sBefore &&
+      [byId('add-button'), byId('inspector-heading')].includes(document.activeElement) && byId('announce').textContent.startsWith('Dismissed the Add result'),
+      'F-02: Dismiss ends the card, the Add form returns, focus lands on Add or the heading, nothing is sent', [document.activeElement && document.activeElement.id, byId('announce').textContent]);
+    checkR3(shapeOk(rowShape(), 4), 'loaded: four blocked rows and one free row, all the same two-line structure', rowShape());
+
+    // F-05: an Escape that only closes a dialog no longer drops a map click whose hit-test is still in flight.
+    const scene = (await send('GET', 'api/multi/view')).json.scenes['MA-A'];
+    // The living crown farthest from the reference, so the hit-test cannot answer with the reference itself.
+    const refItem = scene.find((item) => item.treeId === refA);
+    const target = scene.filter((item) => aIds.includes(item.treeId) && item.treeId !== refA)
+      .sort((x, y) => Math.hypot(y.u - refItem.u, y.v - refItem.v) - Math.hypot(x.u - refItem.u, x.v - refItem.v))[0];
+    const held = arm('POST', 'api/multi/hit', 'hold');
+    const mark = requests.length;
+    click(byId('crowns').querySelector('[data-tree-id="' + target.treeId + '"]').childNodes[0], { clientX: target.u, clientY: target.v });
+    await waitR3(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the held hit-test (F-05)');
+    byId('consent-dialog').setAttribute('open', '');
+    escape();
+    byId('consent-dialog').removeAttribute('open');
+    held.release();
+    await waitR3(() => byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree'), 'the map click answer after a dialog-only Escape');
+    checkR3(!byId('inspector-body').hidden && byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree') && alertText() === '',
+      'F-05: an Escape that only closed a dialog leaves the pending map click alone; its answer selects ' + byId('insp-id').textContent, [byId('insp-id').textContent, byId('announce').textContent]);
+
+    // Clean-up: remove the four orders and re-read, so the rest of the witness sees the session it saw before R3.
+    click(byId('inspect-close'));
+    for (const id of topA.slice(0, 4)) {
+      const now = await serverView();
+      await send('POST', 'api/multi/pending/remove', JSON.stringify({ fence: fenceOf(now), areaId: 'MA-A', treeId: id }));
+    }
+    click(byId('reread'));
+    await waitR3(() => !document.documentElement.classList.contains('busy') && byId('pending-areas').querySelectorAll('.mono').length === 0, 'the re-read after clean-up');
+    s = await serverView();
+    checkR3(s.pending.length === v0.pending.length && pageErrors.length === errorsBefore, 'clean-up: the queued orders are gone; no page error during R3',
+      { pending: s.pending.length, errors: pageErrors.slice(errorsBefore) });
+  }
+  await selectInTable(aTree);
+}
+
 // Area B: switch, then select a tree by a click on its drawn crown.
 click(byId('area-switch').querySelector('[data-area="MA-B"]'));
 await until(() => byId('tree-rows').childNodes.length === 73, 'the Area B table (73 rows)');
