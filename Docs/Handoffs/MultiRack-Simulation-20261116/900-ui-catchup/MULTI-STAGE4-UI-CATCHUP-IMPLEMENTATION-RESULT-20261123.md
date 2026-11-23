@@ -171,16 +171,16 @@ The gap re-closes **locally**. **Area A total cover did not rise** (0.8951 → 0
 
 Captured in that final run at exact viewports, deviceScaleFactor 1. No capability token is visible: the page shows no URL and headless Edge has no address bar.
 
-| State | 1280×720 (committed, `Docs/Handoffs/MultiRack-Simulation-20261116/900-ui-catchup/evidence/`) | 1920×1080 (outside the repo: over the ~400 KB limit) |
+| State | 1280×720 (committed, `Docs/Handoffs/MultiRack-Simulation-20261116/900-ui-catchup/evidence/`) | 1920×1080 (committed, same directory) |
 |---|---|---|
-| (a) baseline map | `a-baseline-1280x720.png` 306,591 B | `/tmp/ui900/evidence/a-baseline-1920x1080.png` 837,166 B |
-| (b) Light Guide On + ground inspector | `b-light-guide-ground-1280x720.png` 231,626 B | `/tmp/ui900/evidence/b-light-guide-ground-1920x1080.png` 553,371 B |
-| (c) Prune Work Plan — Pending | `c0-prune-pending-1280x720.png` 224,676 B | `/tmp/ui900/evidence/c0-prune-pending-1920x1080.png` 538,097 B |
-| (c) Prune Work Plan — Approved | `c-prune-workplan-1280x720.png` 223,893 B | `/tmp/ui900/evidence/c-prune-workplan-1920x1080.png` 537,973 B |
-| (d) post-thinning gaps + fallen deadwood (year 6) | `d-thinning-gaps-deadwood-1280x720.png` 297,061 B | `/tmp/ui900/evidence/d-thinning-gaps-deadwood-1920x1080.png` 844,777 B |
+| (a) baseline map | `a-baseline-1280x720.png` 306,591 B | `a-baseline-1920x1080.png` 837,166 B |
+| (b) Light Guide On + ground inspector | `b-light-guide-ground-1280x720.png` 231,626 B | `b-light-guide-ground-1920x1080.png` 553,371 B |
+| (c) Prune Work Plan — Pending | `c0-prune-pending-1280x720.png` 224,676 B | `c0-prune-pending-1920x1080.png` 538,097 B |
+| (c) Prune Work Plan — Approved | `c-prune-workplan-1280x720.png` 223,893 B | `c-prune-workplan-1920x1080.png` 537,973 B |
+| (d) post-thinning gaps + fallen deadwood (year 6) | `d-thinning-gaps-deadwood-1280x720.png` 297,061 B | `d-thinning-gaps-deadwood-1920x1080.png` 844,777 B |
 
-- **Committed set:** 5 PNGs, 1,283,847 B total. A plan cannot hold Pending and Approved Prunes at the same time, so (c) has one image per state.
-- **The 1920×1080 PNGs are not in the repo.** They are on scratch paths, also at `C:\Users\hp\AppData\Local\Temp\ui900\evidence-final\`, so they may be lost when temp storage is cleaned. They can be regenerated with `browser-driver/scenario.mjs`.
+- **Committed set:** 10 PNGs, 4,595,231 B total (1280×720 1,283,847 B; 1920×1080 3,311,384 B). A plan cannot hold Pending and Approved Prunes at the same time, so state (c) has one image per state and five states exist per resolution.
+- **Both resolutions are in the repository.** AC-9 was reconciled with the owner on 2026-11-23: the earlier ≤ 400 KB per image / ≤ 3 MB per set bound was an orchestration size cap, not a product requirement, and the tested UI does not meet it without changing the rendering. AC-9 now reads ≤ 0.9 MB each, ≤ 5 MB per set, both resolutions committed. The scratch copies under `/tmp/ui900/evidence/` are no longer the evidence of record; `browser-driver/scenario.mjs` can regenerate any of the images.
 
 ## 9. J01 / J99 triage (`tests/ui-smoke-multiarea.sh`)
 
@@ -207,7 +207,7 @@ Captured in that final run at exact viewports, deviceScaleFactor 1. No capabilit
 | FR-8 layouts, no sideways scroll, dock clear | PASS | 8 states (2 sizes × legend × Light Guide), checked at start and after 6 years: 16/16 |
 | FR-9 atomic-refusal test | PASS | U-01 |
 | AC-4 smoke no regression | PASS with exception: 110/6 vs base 107/2; the 6 are pre-existing #885 drift exposed by the J01 fix (§9) |
-| AC-9 eight screenshots ≤ 400 KB | PARTIAL: 1280×720 set committed (5); 1920×1080 set over the limit and kept outside the repo, as the packet instructs |
+| AC-9 ten screenshots, both resolutions, ≤ 0.9 MB each, ≤ 5 MB set | PASS: 10 committed PNGs at 1920×1080 and 1280×720, 4,595,231 B total, largest 844,777 B; owner-corrected bound recorded in the spec |
 
 ## 11. Known limitations and UNKNOWNs (reviewer attention)
 

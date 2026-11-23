@@ -50,7 +50,7 @@ A checked item needs evidence, not assertion. The evidence column is filled in t
 - [ ] AC-6 Prune gate end to end — evidence:
 - [ ] AC-7 Fell + light + years — evidence:
 - [ ] AC-8 cross-rack — evidence:
-- [ ] AC-9 eight screenshots within size limits, no token — evidence:
+- [ ] AC-9 ten screenshots committed, both resolutions, each ≤ 0.9 MB and set ≤ 5 MB, no token (owner correction 2026-11-23) — evidence:
 
 ## Spec conformance
 

@@ -102,7 +102,7 @@ The new routes sit behind the unchanged `PlayerApi.HandleAsync` guards (capabili
 - **AC-6** Prune gate end to end in the browser: Pending (no crown/light change), Approve (no ecology change), Execute (confirmation, radius × 0.92 immediately, canopy/light readouts update, year unchanged, then ineligible by the 5-year guard), ineligible tree refused with the engine reason.
 - **AC-7** Fell + light + years in the browser: Light Guide on, cell inspected, multi-tree Fell in Area A, cover drops, uncovered m² rises, local light lifts, caveat visible; Year+1 several times shows gradual re-closure and natural deaths producing fallen-log markers and counter increments.
 - **AC-8** Cross-rack: a tree or cell near the A/B border shows connected ecological response while Work Plans and rack summaries stay per area.
-- **AC-9** Eight committed screenshots (1920×1080 and 1280×720 × baseline, Light Guide + ground inspector, Prune Pending/Approved, post-thinning gaps + fallen deadwood), PNG, each ≲ 400 KB, set ≲ 3 MB, no capability token visible.
+- **AC-9** Ten committed screenshots — five states (baseline, Light Guide + ground inspector, Prune Pending, Prune Approved, post-thinning gaps + fallen deadwood) at each of 1920×1080 and 1280×720 — PNG, each ≤ 0.9 MB, set ≤ 5 MB, no capability token visible. *(Owner correction 2026-11-23: both resolutions are committed; the earlier ≤ 400 KB / ≤ 3 MB bound was an orchestration size cap, not a product requirement, and the tested UI does not compress to it without changing the rendering.)*
 
 ## Stop conditions
 
@@ -116,5 +116,6 @@ The new routes sit behind the unchanged `PlayerApi.HandleAsync` guards (capabili
 
 None blocking. Presentation choices made inside the locked decisions (recorded for owner review in the handoff, not new scope):
 
-- A Stage 4 natural death keeps its standing-dead crown drawing and D badge (engine LifeState BiologicallyDead) and additionally gets the fallen-log symbol for its deadwood record at the same coordinates. Unity hides the tree and shows only a log; the owner may prefer that.
+- A Stage 4 natural death keeps its standing-dead crown drawing and D badge (engine LifeState BiologicallyDead) and additionally gets the fallen-log symbol for its deadwood record at the same coordinates. Unity hides the tree and shows only a log; **owner confirmed 2026-11-23 that both are kept in `/multi`.**
+- Prune target heights follow the verified Unity Sitka schedule 2.5 / 5 / 6.5 m; **owner confirmed 2026-11-23 that this schedule is the rule.**
 - With the Light Guide on, map clicks inspect ground cells; tree selection stays available from the Trees table and exact-ID box (turning the guide off restores crown clicks).
