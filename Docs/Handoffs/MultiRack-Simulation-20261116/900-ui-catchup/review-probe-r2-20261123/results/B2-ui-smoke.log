@@ -1,0 +1,283 @@
+ui-smoke 2026-11-23T14:36:22Z HEAD 5f3b5bf3c9f711125fb61ddee55de1ff9690c19b dotnet 8.0.134 node v26.13.1 ~/.aspnet: absent
+PASS S00 scratch fixture copy sha256 bcaaa5c3d9b3d36ad8319ffcc361a6225a02b90281cef8435de7c52f8ff757c4 equals the committed fixture
+launch line: Open http://127.0.0.1:41211/s/<capability>/
+PASS S01 printed URL is http://127.0.0.1:<port>/s/<64 hex>/ with port 41211 (not 5187, not privileged)
+PASS S02 the only LISTEN socket of pid 1018845 is [/proc/net/tcp 0100007F:A0FB] (got [/proc/net/tcp 0100007F:A0FB])
+PASS G01 GET / without capability: 404, empty body: HTTP 404
+PASS G02 wrong capability: 404, empty body: HTTP 404
+PASS G03 63-character capability prefix: 404, empty body: HTTP 404
+PASS G04 Host localhost:41211: 403, empty body: HTTP 403
+PASS G05 DNS-rebinding Host: 403, empty body: HTTP 403
+PASS G06 page with capability and exact Host: HTTP 200
+PASS G07 page is text/html with the external script and style only
+PASS G08 page answer: no CORS header, Cache-Control no-store, strict CSP, nosniff, no-referrer, DENY framing, no Server
+PASS G09 /s/<capability> without slash: 308 to /s/<capability>/ (got 308)
+PASS G10 app.css: 200 text/css
+PASS G11 app.js: 200 text/javascript
+PASS G11b the page, app.css and app.js answers are byte-identical to the committed src/Ui/wwwroot files
+     at 360 CSS px: page grid [('.layout', 'minmax(0, 1fr)')], display ['grid'], other column properties [], placements [('.map-dpad .d-c', 'grid-column', '2'), ('#pan-north', 'grid-column', '2'), ('#pan-west', 'grid-column', '1'), ('#pan-east', 'grid-column', '3'), ('#pan-south', 'grid-column', '2')]
+FAIL L01 at 360 CSS px the page grid is exactly one column (one track, display grid, no column placement or multi-column property)
+     at 960 CSS px: page grid [('.layout', 'minmax(0, 1fr)')], display ['grid'], other column properties [], placements [('.map-dpad .d-c', 'grid-column', '2'), ('#pan-north', 'grid-column', '2'), ('#pan-west', 'grid-column', '1'), ('#pan-east', 'grid-column', '3'), ('#pan-south', 'grid-column', '2')]
+FAIL L02 at 960 CSS px (200 % zoom of a 1920 px window) the page grid is exactly one column
+     media queries in app.css: ['(max-width: 1023px)', '(min-width: 1024px)', '(min-width: 600px)']; rules in a media query that touch the page layout: [('(min-width: 1024px)', 'body'), ('(min-width: 1024px)', '.layout'), ('(min-width: 1024px)', '.map-panel'), ('(min-width: 1024px)', '.side'), ('(min-width: 1024px)', '.pane'), ('(min-width: 1024px)', '.side[data-pane="plan"] #pane-plan'), ('(min-width: 1024px)', '.side[data-pane="trees"] #pane-trees'), ('(min-width: 1024px)', '.side[data-pane="history"] #pane-history'), ('(min-width: 1024px)', '.side[data-pane="details"] #pane-details'), ('(min-width: 1024px)', '.pane .panel'), ('(min-width: 1024px)', '.panel'), ('(min-width: 1024px)', '.pane .panel'), ('(min-width: 1024px)', '.pane'), ('(min-width: 1024px)', '.side[data-pane="tree"] #pane-tree'), ('(min-width: 1024px)', '.rail > div')]; page-layout queries other than (min-width: 1024px): []; (min-width: 1024px) applies at {'360': False, '640': False, '960': False}
+PASS L03 the only @media query touching the page layout (main, .layout, .side, panels, or any element containing them) is exactly (min-width: 1024px), and it applies at none of 360, 640 or 960 CSS px
+     at 360 CSS px: sideways scrollers ['.map-pane', '.table-wrap']; core controls checked 21/21, missing [], inside a sideways scroller {}; table's first column 'Select'; action groups not wrapping []; fixed widths over 288 px []; nowrap outside the table []
+PASS L04 at 360 CSS px no core action needs horizontal scrolling: none is inside a sideways scroller, Select is the table's first column, action groups wrap, no fixed width over 288 px
+     at 960 CSS px: sideways scrollers ['.map-pane', '.table-wrap']; core controls checked 21/21, missing [], inside a sideways scroller {}; table's first column 'Select'; action groups not wrapping []; fixed widths over 288 px []; nowrap outside the table []
+PASS L05 at 960 CSS px no core action needs horizontal scrolling (same conditions as L04)
+     at 640 CSS px: page grid [('.layout', 'minmax(0, 1fr)')], display ['grid'], other column properties [], placements [('.map-dpad .d-c', 'grid-column', '2'), ('#pan-north', 'grid-column', '2'), ('#pan-west', 'grid-column', '1'), ('#pan-east', 'grid-column', '3'), ('#pan-south', 'grid-column', '2')]
+FAIL L06 at 640 CSS px (200 % zoom of a 1280 px window) the page grid is exactly one column
+     at 640 CSS px: sideways scrollers ['.map-pane', '.table-wrap']; core controls checked 21/21, missing [], inside a sideways scroller {}; table's first column 'Select'; action groups not wrapping []; fixed widths over 288 px []; nowrap outside the table []
+PASS L07 at 640 CSS px no core action needs horizontal scrolling (same conditions as L04)
+     at 1280 CSS px: page grid [(None, '.layout', 'minmax(0, 1fr)'), ('(min-width: 1024px)', '.layout', 'minmax(0, 1fr) clamp(22rem, 30vw, 28rem)')], display ['grid'], view buttons display ['none', 'flex'], children of main [(['panel', 'map-panel'], None), (['side'], 'side')]
+PASS L08 at 1280 CSS px (min-width: 1024px) gives the approved desktop page: two grid tracks, the map panel then the side panel, view buttons shown
+PASS G12 GET naming a foreign Origin: 403: HTTP 403
+PASS G13 GET on a POST endpoint: 405, Allow: POST (got 405)
+PASS G14 unknown endpoint under the capability: 404: HTTP 404
+PASS V00 GET api/view: HTTP 200
+PASS V01 view: 100 exact fixture IDs, 100 scene items, year 0, annual 0, work 0, plan-state 0, nothing pending or approved
+PASS V02 labels come from Core: G1 disabled, money unavailable (not 0), session only
+PASS V03 every frame tree and scene item carries the JSON names the page reads (xm, zm, crownRadiusM, u, v, radiusM, paintOrder)
+PASS V04 the scene has exactly the frame's exact IDs, in paint order 0..99
+PASS B001 fresh zero clocks and empty Crop
+PASS B002 api/crop/mark all four clocks/revisions omitted at zero HTTP 400; entire view unchanged
+PASS B003 api/crop/mark missing treeId HTTP 400; entire view unchanged
+PASS B004 api/crop/mark duplicate treeId HTTP 400; entire view unchanged
+PASS B005 api/crop/mark missing fence HTTP 400; entire view unchanged
+PASS B006 api/crop/mark duplicate fence HTTP 400; entire view unchanged
+PASS B007 api/crop/mark missing fence.sessionId HTTP 400; entire view unchanged
+PASS B008 api/crop/mark duplicate fence.sessionId HTTP 400; entire view unchanged
+PASS B009 api/crop/mark missing fence.source HTTP 400; entire view unchanged
+PASS B010 api/crop/mark duplicate fence.source HTTP 400; entire view unchanged
+PASS B011 api/crop/mark missing fence.planStateRevision HTTP 400; entire view unchanged
+PASS B012 api/crop/mark duplicate fence.planStateRevision HTTP 400; entire view unchanged
+PASS B013 api/crop/mark missing fence.source.domain HTTP 400; entire view unchanged
+PASS B014 api/crop/mark duplicate fence.source.domain HTTP 400; entire view unchanged
+PASS B015 api/crop/mark missing fence.source.fixtureId HTTP 400; entire view unchanged
+PASS B016 api/crop/mark duplicate fence.source.fixtureId HTTP 400; entire view unchanged
+PASS B017 api/crop/mark missing fence.source.fixtureFileSha256 HTTP 400; entire view unchanged
+PASS B018 api/crop/mark duplicate fence.source.fixtureFileSha256 HTTP 400; entire view unchanged
+PASS B019 api/crop/mark missing fence.source.fixtureContentHash HTTP 400; entire view unchanged
+PASS B020 api/crop/mark duplicate fence.source.fixtureContentHash HTTP 400; entire view unchanged
+PASS B021 api/crop/mark missing fence.source.managementScopeId HTTP 400; entire view unchanged
+PASS B022 api/crop/mark duplicate fence.source.managementScopeId HTTP 400; entire view unchanged
+PASS B023 api/crop/mark missing fence.source.ecologicalYear HTTP 400; entire view unchanged
+PASS B024 api/crop/mark duplicate fence.source.ecologicalYear HTTP 400; entire view unchanged
+PASS B025 api/crop/mark missing fence.source.annualRevision HTTP 400; entire view unchanged
+PASS B026 api/crop/mark duplicate fence.source.annualRevision HTTP 400; entire view unchanged
+PASS B027 api/crop/mark missing fence.source.workRevision HTTP 400; entire view unchanged
+PASS B028 api/crop/mark duplicate fence.source.workRevision HTTP 400; entire view unchanged
+PASS B029 api/crop/mark missing fence.source.rngModelVersion HTTP 400; entire view unchanged
+PASS B030 api/crop/mark duplicate fence.source.rngModelVersion HTTP 400; entire view unchanged
+PASS B031 api/crop/mark missing fence.source.growthModelVersion HTTP 400; entire view unchanged
+PASS B032 api/crop/mark duplicate fence.source.growthModelVersion HTTP 400; entire view unchanged
+PASS B033 api/crop/mark missing fence.source.p1AlgorithmVersion HTTP 400; entire view unchanged
+PASS B034 api/crop/mark duplicate fence.source.p1AlgorithmVersion HTTP 400; entire view unchanged
+PASS B035 api/crop/mark missing fence.source.actionEligibleDbhThresholdMm HTTP 400; entire view unchanged
+PASS B036 api/crop/mark duplicate fence.source.actionEligibleDbhThresholdMm HTTP 400; entire view unchanged
+PASS B037 api/crop/mark null fence HTTP 400; entire view unchanged
+PASS B038 api/crop/mark null fence.sessionId HTTP 400; entire view unchanged
+PASS B039 api/crop/mark null fence.source HTTP 400; entire view unchanged
+PASS B040 api/crop/mark duplicate competing tree IDs HTTP 400; entire view unchanged
+PASS B041 api/crop/mark ambiguous treeId casing HTTP 400; entire view unchanged
+PASS B042 api/crop/mark ambiguous source member casing HTTP 400; entire view unchanged
+PASS B043 api/crop/mark complete but stale fence.sessionId HTTP 409; entire view unchanged
+PASS B044 api/crop/mark complete but stale fence.source.workRevision HTTP 409; entire view unchanged
+PASS B045 api/crop/mark complete but stale fence.planStateRevision HTTP 409; entire view unchanged
+PASS B046 api/crop/mark Origin guard HTTP 403; entire view unchanged
+PASS B047 api/crop/mark Host guard HTTP 403; entire view unchanged
+PASS B048 api/crop/mark capability guard HTTP 404; entire view unchanged
+PASS B049 api/crop/mark method guard HTTP 405; entire view unchanged
+PASS B050 api/crop/mark content-type guard HTTP 415; entire view unchanged
+PASS B051 api/crop/mark body-size guard HTTP 413; entire view unchanged
+PASS B052 api/crop/unmark all four clocks/revisions omitted at zero HTTP 400; entire view unchanged
+PASS B053 api/crop/unmark missing treeId HTTP 400; entire view unchanged
+PASS B054 api/crop/unmark duplicate treeId HTTP 400; entire view unchanged
+PASS B055 api/crop/unmark missing fence HTTP 400; entire view unchanged
+PASS B056 api/crop/unmark duplicate fence HTTP 400; entire view unchanged
+PASS B057 api/crop/unmark missing fence.sessionId HTTP 400; entire view unchanged
+PASS B058 api/crop/unmark duplicate fence.sessionId HTTP 400; entire view unchanged
+PASS B059 api/crop/unmark missing fence.source HTTP 400; entire view unchanged
+PASS B060 api/crop/unmark duplicate fence.source HTTP 400; entire view unchanged
+PASS B061 api/crop/unmark missing fence.planStateRevision HTTP 400; entire view unchanged
+PASS B062 api/crop/unmark duplicate fence.planStateRevision HTTP 400; entire view unchanged
+PASS B063 api/crop/unmark missing fence.source.domain HTTP 400; entire view unchanged
+PASS B064 api/crop/unmark duplicate fence.source.domain HTTP 400; entire view unchanged
+PASS B065 api/crop/unmark missing fence.source.fixtureId HTTP 400; entire view unchanged
+PASS B066 api/crop/unmark duplicate fence.source.fixtureId HTTP 400; entire view unchanged
+PASS B067 api/crop/unmark missing fence.source.fixtureFileSha256 HTTP 400; entire view unchanged
+PASS B068 api/crop/unmark duplicate fence.source.fixtureFileSha256 HTTP 400; entire view unchanged
+PASS B069 api/crop/unmark missing fence.source.fixtureContentHash HTTP 400; entire view unchanged
+PASS B070 api/crop/unmark duplicate fence.source.fixtureContentHash HTTP 400; entire view unchanged
+PASS B071 api/crop/unmark missing fence.source.managementScopeId HTTP 400; entire view unchanged
+PASS B072 api/crop/unmark duplicate fence.source.managementScopeId HTTP 400; entire view unchanged
+PASS B073 api/crop/unmark missing fence.source.ecologicalYear HTTP 400; entire view unchanged
+PASS B074 api/crop/unmark duplicate fence.source.ecologicalYear HTTP 400; entire view unchanged
+PASS B075 api/crop/unmark missing fence.source.annualRevision HTTP 400; entire view unchanged
+PASS B076 api/crop/unmark duplicate fence.source.annualRevision HTTP 400; entire view unchanged
+PASS B077 api/crop/unmark missing fence.source.workRevision HTTP 400; entire view unchanged
+PASS B078 api/crop/unmark duplicate fence.source.workRevision HTTP 400; entire view unchanged
+PASS B079 api/crop/unmark missing fence.source.rngModelVersion HTTP 400; entire view unchanged
+PASS B080 api/crop/unmark duplicate fence.source.rngModelVersion HTTP 400; entire view unchanged
+PASS B081 api/crop/unmark missing fence.source.growthModelVersion HTTP 400; entire view unchanged
+PASS B082 api/crop/unmark duplicate fence.source.growthModelVersion HTTP 400; entire view unchanged
+PASS B083 api/crop/unmark missing fence.source.p1AlgorithmVersion HTTP 400; entire view unchanged
+PASS B084 api/crop/unmark duplicate fence.source.p1AlgorithmVersion HTTP 400; entire view unchanged
+PASS B085 api/crop/unmark missing fence.source.actionEligibleDbhThresholdMm HTTP 400; entire view unchanged
+PASS B086 api/crop/unmark duplicate fence.source.actionEligibleDbhThresholdMm HTTP 400; entire view unchanged
+PASS B087 api/crop/unmark null fence HTTP 400; entire view unchanged
+PASS B088 api/crop/unmark null fence.sessionId HTTP 400; entire view unchanged
+PASS B089 api/crop/unmark null fence.source HTTP 400; entire view unchanged
+PASS B090 api/crop/unmark duplicate competing tree IDs HTTP 400; entire view unchanged
+PASS B091 api/crop/unmark ambiguous treeId casing HTTP 400; entire view unchanged
+PASS B092 api/crop/unmark ambiguous source member casing HTTP 400; entire view unchanged
+PASS B093 api/crop/unmark complete but stale fence.sessionId HTTP 409; entire view unchanged
+PASS B094 api/crop/unmark complete but stale fence.source.workRevision HTTP 409; entire view unchanged
+PASS B095 api/crop/unmark complete but stale fence.planStateRevision HTTP 409; entire view unchanged
+PASS B096 api/crop/unmark Origin guard HTTP 403; entire view unchanged
+PASS B097 api/crop/unmark Host guard HTTP 403; entire view unchanged
+PASS B098 api/crop/unmark capability guard HTTP 404; entire view unchanged
+PASS B099 api/crop/unmark method guard HTTP 405; entire view unchanged
+PASS B100 api/crop/unmark content-type guard HTTP 415; entire view unchanged
+PASS B101 api/crop/unmark body-size guard HTTP 413; entire view unchanged
+PASS B102 diagnostic still rejects omitted ecologicalYear at zero HTTP 400; entire view unchanged
+PASS B999 strict Crop witness completed without stderr
+PASS G15 POST without Origin: 403: HTTP 403
+PASS G16 POST with Origin http://localhost:41211: 403: HTTP 403
+PASS G17 POST text/plain: 415: HTTP 415
+PASS G18 POST form-urlencoded: 415: HTTP 415
+PASS G19 POST body over 16 KiB: 413: HTTP 413
+PASS G20 malformed JSON: 400: HTTP 400
+PASS G21 a caller-built plan object (unknown member): 400: HTTP 400
+PASS G22 JSON null body: 400: HTTP 400
+PASS G23 after every guard refusal the view is unchanged (plan-state 0, nothing pending, work 0)
+trees used: P30-001 (Fell in Year 0), P30-002 (consented cancellation); wrong-case form: p30-001
+PASS R01 Add with a wrong-case ID: HTTP 409 UnknownTreeId, fresh view attached
+PASS R02 Add with a blank reason: HTTP 409 WorkReasonRequired, fresh view attached
+PASS R03 Add with another session's fence: HTTP 409 PlayerSessionMismatch, fresh view attached
+PASS R04 Approve without a fence: HTTP 409 PlayerSessionMismatch, fresh view attached
+PASS R05 Approve with nothing pending: HTTP 409 WorkEmptyPlan, fresh view attached
+PASS R06 Execute without an approved plan: HTTP 409 WorkPlanNotApproved, fresh view attached
+PASS R07 after the refusals: plan-state 0, nothing pending, 100 living
+PASS A01 Add P30-001 with a reason: HTTP 200
+PASS A02 Add: pending [P30-001], plan-state 1, work 0, 100 living, year 0, no event (no tree felled)
+PASS A03 the scene marks P30-001 PendingFell
+PASS A04 Add with the pre-Add fence: HTTP 409 PlayerPlanStateStale, fresh view attached
+PASS A05 the stale Add changed nothing (pending [P30-001], plan-state 1)
+PASS H01 hit-test at the centre of P30-001 (1.069000244140625, 28.092000007629395): HTTP 200
+PASS H02 candidates include P30-001, topmost first, and every candidate disc contains the point
+H01 candidates at P30-001: ["P30-001", "P30-011"]
+PASS H03 hit-test on bare ground outside every crown: 200 and no candidate (got 200)
+PASS H04 hit-test with a stale fence: HTTP 409 PlayerPlanStateStale, fresh view attached
+PASS H05 the stale hit-test returned no candidate
+PASS H06 hit-test without u and v: 400 (a missing point is never read as 0): HTTP 400
+PASS H07 hit-test at the most-overlapped grid point (2.75, 19.25): 200, candidates exactly ["P30-042", "P30-022", "P30-041", "P30-032", "P30-031"], topmost first (got 200)
+PASS H08 that point is a real overlap: 5 crowns (at least 2)
+PASS H09 hit-test on bare ground inside the square (29.75, 30.0; no crown covers it): 200 and no candidate, so the nearest tree is not chosen (got 200)
+PASS P01 Approve the whole Work Plan: HTTP 200
+PASS P02 engine-minted PlanId d088c2a2fcc7edad6f3b2be64e8e3f98:plan:2 = <session>:plan:2 and key = <PlanId>:execute
+PASS P03 Approve fells nothing: 100 living, work 0, no event, pending moved into the plan, plan-state 2
+PASS E00 Execute the approved plan under an unminted key (the key plan 12 will be minted with): HTTP 409 WorkExecutionKeyConflict, fresh view attached
+PASS E00b the refused Execute changed nothing (plan d088c2a2fcc7edad6f3b2be64e8e3f98:plan:2 still approved, plan-state 2, work 0, 100 living)
+PASS E01 Execute the approved plan: HTTP 200
+PASS E02 one typed Fell of exactly [P30-001] (fell / manual-work-plan), not a replay
+PASS E03 same year 0 and annual revision 0; work revision 0 -> 1; 99 living; plan-state 3; approval cleared
+PASS E04 the work event: living 100 -> 99 and basal area falls; the frame stand equals the event's after-stand
+PASS E05 P30-001 is drawn as a Felled stump (radius 0.35 m) with death year 0, cause fell
+E01 basal area m2/ha: [55.87290918844456, 54.92832822053524]
+PASS E06 the same Execute again with the original fence (a retry): HTTP 200
+PASS E07 replay: replayed=true and nothing changed (work 1, 99 living, one event, plan-state 3)
+PASS E08 the same key with another PlanId: HTTP 409 WorkExecutionKeyConflict, fresh view attached
+PASS E09 Add of the felled tree P30-001: HTTP 409 UnknownTreeId, fresh view attached
+PASS Y01 Advance with the pre-Execute fence: HTTP 409 PlayerSourceStale, fresh view attached
+PASS Y02 the refused Advance changed nothing (year 0, annual revision 0)
+PASS Y03 re-read for a fresh fence: HTTP 200
+PASS Y04 Advance with the fresh fence: HTTP 200
+PASS Y05 one genuine year 0 -> 1 (annual revision 1); P30-001 stays dead with its Fell cause; plan-state unchanged (3)
+PASS Y06 history: one AnnualYearRecord 0 -> 1 without cancelled work; the year started from 99 living
+Y04 year 0 -> 1: living [99, 99], natural deaths []
+PASS C01 Add P30-002 in Year 1: HTTP 200
+PASS C02 Advance with unexecuted work and no consent: HTTP 409 WorkPendingConsentRequired, fresh view attached
+PASS C03 the refused Advance changed nothing (year 1, pending [P30-002])
+PASS C04 Advance with consent to cancel the unexecuted work: HTTP 200
+PASS C05 consent: Year 2, nothing pending, still one work event (zero Fell), P30-002 not felled, plan-state 5, record marks the cancellation
+PASS D01 Year 2: Add P30-004: HTTP 200
+PASS D01b Year 2: Add P30-005: HTTP 200
+PASS D01c Year 2: Remove P30-005: HTTP 200
+PASS D01d Remove: pending back to [P30-004], plan-state 8 (5, then add, add, remove), work 1, still one event (no Fell)
+PASS D01e Remove of an ID that is no longer pending: HTTP 409 UnknownWorkOrder, fresh view attached
+PASS D02a Year 2: Approve: HTTP 200
+PASS D02b Year 2: Cancel the approved plan: HTTP 200
+PASS D02c Cancel: no approved plan, its orders not returned to pending, plan-state 10, work 1, still one event (no Fell)
+PASS D02d Execute of the cancelled plan: HTTP 409 WorkPlanNotApproved, fresh view attached
+PASS D02e Year 2: re-add P30-004: HTTP 200
+PASS D02 Year 2: Approve: HTTP 200
+PASS D02f this plan is minted with the key that E00 tried to take: d088c2a2fcc7edad6f3b2be64e8e3f98:plan:12:execute
+PASS D03 Year 2: Execute under its own minted key (not blocked by E00): HTTP 200
+PASS D04 Year 2 Fell of [P30-004] in year 2; two work events; work revision 2
+PASS BMARK retained Crop survives ambiguous unmark with unchanged entire view
+PASS BMARK retained Crop survives ambiguous unmark with unchanged entire view
+PASS BMARK retained Crop survives ambiguous unmark with unchanged entire view
+PASS K01 one fenced view and exact target
+PASS K02 all contributions sum to current CI in annual order
+PASS K03 strongest five and ordinal tie order
+PASS K04 only other living neighbours within inclusive 8 m cutoff
+PASS K05 read changed no session/source/plan/roster/history
+PASS K06 full source fence stale gives 409
+PASS K07 plan-state fence stale gives 409
+PASS K08 foreign session gives 409
+PASS K09 unknown exact ID gives 409
+PASS K10 felled target refused with 409
+PASS K11 missing fence refused
+PASS K12 missing tree ID refused
+PASS K13 unknown JSON member refused
+PASS K14 duplicate JSON member refused
+PASS K15 missing numeric source field refused rather than defaulting to zero
+PASS K16 string in numeric source field refused
+PASS K17 competition foreign Origin refused
+PASS K18 competition wrong Host refused
+PASS K19 competition wrong capability refused
+PASS K20 competition wrong method refused
+PASS K21 competition wrong Content-Type refused
+PASS K22 competition oversized body refused
+PASS K23 client cannot supply fabricated crop state
+PASS K24 each neighbour term independently agrees with f32 Hegyi arithmetic
+PASS K25 finite shares and honest 8 m model cutoff
+PASS K26 Crop truth present in both view and map
+PASS K27 crop mark bumps fence; stale unmark refused
+PASS K28 unmark commits exactly one plan-state bump
+PASS K29 competition of a living non-Crop tree is read-only and needs no Crop designation (#882 G2)
+PASS K30 pending Fell cannot become Crop
+PASS K31 approved Fell cannot become Crop
+PASS K32 crop refusal never mutates frozen approved plan
+PASS K33 explicit cancellation then Crop designation allowed
+PASS K34 retained Crop refuses pending Fell
+PASS K35 Crop mark survives fresh view/refresh read
+PASS K36 Crop mark guarded by Origin
+PASS K37 witness leaves no Crop/work state for original page guards
+PASS K99 additive competition and crop witness completed without stderr
+FAIL J31 the page witness ran to the end (exit 1) with nothing on stderr
+    app.js:784
+        const rect = byId('map').getBoundingClientRect();
+                                 ^
+    
+    TypeError: byId(...).getBoundingClientRect is not a function
+        at defaultMapScale (app.js:784:30)
+        at app.js:1672:15
+        at app.js:1674:3
+        at Script.runInContext (node:vm:150:12)
+        at Object.runInContext (node:vm:302:6)
+        at file:///home/jer/.cache/review-r2-tmp/ccf-p1-uismoke.nIXcgjQF/page-witness.mjs:303:4
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    
+    Node.js v26.13.1
+PASS N01 every TCP socket of the process is on 127.0.0.1 (socket count at this moment: 1)
+PASS Z01 SIGINT ends the process with exit 0 and 'Session ended; nothing was saved.' (exit 0)
+PASS Z02 the server wrote nothing to stderr (no unconfirmed outcome, no fault)
+PASS Z03 the port no longer answers after exit (curl status 000)
+PASS W01 no file created, changed or removed anywhere in the lab tree (236 entries, bin/obj/.p0ref included)
+PASS W02 ~/.aspnet unchanged (absent before and after)
+PASS W03 P0 tracked-file digest unchanged (9e218ca7f29c73895ad4a66dc6ca90cf1a844126bd74e417e0d8cdc0489e30e8)
+PASS W04 git status of both labs unchanged
+PASS W05 committed fixture sha256 unchanged
+OVERALL: FAIL (250 passed, 4 failed)

@@ -1,0 +1,13 @@
+=== A2 Ui build
+MSBuild version 17.8.64+8859a167a for .NET
+  Determining projects to restore...
+  Restored /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Ui/SitkaP1.Ui.csproj (in 207 ms).
+  1 of 2 projects are up-to-date for restore.
+  SitkaP1.Core -> /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Core/bin/Debug/net8.0/SitkaP1.Core.dll
+  SitkaP1.Ui -> /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Ui/bin/Debug/net8.0/sitkap1-ui.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.85

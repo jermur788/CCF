@@ -1,0 +1,37 @@
+{
+ "viewport": "1024x768",
+ "failures": 1,
+ "results": [
+  "INFO [1024x768] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "PASS [1024x768] AC09: Light Guide is OFF by default (no cells drawn, no legend, no Inspect ground button) :: {\"light\":\"false\",\"cells\":0,\"groundHidden\":true,\"legendHidden\":true,\"ramp\":0}",
+  "PASS [1024x768] AC07: one short notice line, Details closed :: {\"line\":\"Synthetic Sitka experiment · 2 areas · Site unknown\",\"h\":34,\"open\":false,\"mapPaneText\":\"5\\n10\\n15\\n20\\n25\\n30\\n35\\n40\\n5\\n10\\n15\\n20\\n25\\n30\\n35\\n40\\nX metres east · Z metres north\\n\\nMAP NAVIGATION\\nFIT\\n\\n↑\\nN\\n←\\nW\\nE\\n→\\nS\\n↓\\n−\\nFit\\n+\\nArea A\\n· 171 living · 0.0915 ha\\nArea B\\n· 73 living · 0.1500 ha\\n\\nN\\n\\n10 m\"}",
+  "PASS [1024x768] AC07: Details holds every caveat named in UX-04 :: {\"missing\":[],\"text\":\"SYNTHETIC AUTHORED TWO-AREA SITKA EXPERIMENT. NOT A SURVEYED IRISH FOREST. AREAS NOT ASSESSED COMPARABLE. SITE UNKNOWN. CONNECTED WOODLAND: GROWTH AND CROWNS USE BOTH AREAS; DENSITY MORTALITY, WORK PLANS AND SUMMARIES STAY PER AREA. NO TREATMENT TRANSFER BETWEEN AREAS. NOT UNITY NUMERICAL OR GEOMETRY PARITY. Synthetic — not surveyed · Areas not comparable · Site UNKNOWN · Connected woodland · No treatment transfer Session only — nothing saved All experiment and model provenance\"}",
+  "PASS [1024x768] AC07/AC14: the map pane carries no repeated warning text (Light Guide off) :: 5 10 15 20 25 30 35 40 5 10 15 20 25 30 35 40 X metres east · Z metres north MAP NAVIGATION FIT ↑ N ← W E → S ↓ − Fit + Area A · 171 living · 0.0915 ha Area B · 73 living · 0.1500 ha N 10 m",
+  "PASS [1024x768] AC08: compass N top-centre, W/E middle row, S bottom-centre :: {\"n\":{\"l\":84,\"t\":430.28125,\"r\":128,\"b\":474.28125,\"w\":44,\"h\":44},\"w\":{\"l\":36,\"t\":478.28125,\"r\":80,\"b\":522.28125,\"w\":44,\"h\":44},\"e\":{\"l\":132,\"t\":478.28125,\"r\":176,\"b\":522.28125,\"w\":44,\"h\":44},\"s\":{\"l\":84,\"t\":526.28125,\"r\":128,\"b\":570.28125,\"w\":44,\"h\":44},\"out\":{\"l\":36,\"t\":583.28125,\"r\":80,\"b\":627.28125,\"w\":44,\"h\":44},\"fit\":{\"l\":84,\"t\":583.28125,\"r\":128,\"b\":627.28125,\"w\":44,\"h\":44},\"inn\":{\"l\":132,\"t\":583.28125,\"r\":176,\"b\":627.28125,\"w\":44,\"h\":44},\"dock\":{\"l\":27,\"t\":402.59375,\"r\":185,\"b\":695.28125,\"w\":158,\"h\":292.6875},\"tabs\":[{\"l\":36,\"t\":640.28125,\"w\":68,\"h\":46},{\"l\":108,\"t\":640.28125,\"w\":68,\"h\":46}]}",
+  "PASS [1024x768] AC08: one horizontal − | Fit | + row directly under the compass :: {\"out\":583.28125,\"fit\":583.28125,\"inn\":583.28125}",
+  "PASS [1024x768] AC08: Area A | Area B on one horizontal row below :: [{\"l\":36,\"t\":640.28125,\"w\":68,\"h\":46},{\"l\":108,\"t\":640.28125,\"w\":68,\"h\":46}]",
+  "PASS [1024x768] AC08: pointer targets are at least 44 px :: {\"dockW\":158}",
+  "PASS [1024x768] AC16: no horizontal page overflow at the start :: {\"sw\":1024,\"bw\":1024,\"iw\":1024,\"sh\":768,\"ih\":768}",
+  "PASS [1024x768] AC16: at Fit the stand outline never lies under the navigation dock (either area) :: {\"A\":{\"standLeft\":225,\"dockRight\":185,\"overlap\":false},\"B\":{\"standLeft\":217,\"dockRight\":185,\"overlap\":false}}",
+  "PASS [1024x768] AC16: the shown area is exposed as the pressed Area button (state is not colour alone) :: [[\"MA-A\",\"false\"],[\"MA-B\",\"true\"]]",
+  "PASS [1024x768] AC08: navigation buttons work: N/W/E/S pan in their own direction (north up), + narrows, − steps back, Fit restores the exact original view; pans are disabled at Fit (original behaviour) :: {\"z0\":\"Fit\",\"z1\":\"1.52×\",\"z2\":\"1.32×\",\"z3\":\"Fit\",\"res\":{\"pan-east\":\"moved\",\"pan-south\":\"moved\",\"pan-west\":\"moved\",\"pan-north\":\"moved\"},\"pansDisabledAtFit\":true}",
+  "FAIL [1024x768] AC16: map legend Hide then Show: the primary block stays above the fold with no scrolling and nothing overflows horizontally :: {\"withLegend\":false,\"hidden\":false,\"shown\":false,\"overflowHidden\":false,\"overflowShown\":false}",
+  "INFO [1024x768] narrow viewport sample (not an acceptance criterion) :: {\"width\":1024,\"height\":768,\"overflowX\":false,\"trees\":[{\"id\":\"MA-B-001\",\"ok\":false,\"n\":5,\"scrollTop\":0,\"rowsReachable\":false,\"addReachable\":true,\"lastBottom\":742,\"addBottom\":754,\"ih\":768},{\"id\":\"MA-B-002\",\"ok\":false,\"n\":5,\"scrollTop\":0,\"rowsReachable\":false,\"addReachable\":true,\"lastBottom\":742,\"addBottom\":754,\"ih\":768},{\"id\":\"MA-B-003\",\"ok\":false,\"n\":5,\"scrollTop\":0,\"rowsReachable\":false,\"addReachable\":true,\"lastBottom\":742,\"addBottom\":754,\"ih\":768},{\"id\":\"MA-B-004\",\"ok\":false,\"n\":5,\"scrollTop\":0,\"rowsReachable\":false,\"addReachable\":true,\"lastBottom\":742,\"addBottom\":754,\"ih\":768},{\"id\":\"MA-B-005\",\"ok\":false,\"n\":5,\"scrollTop\":0,\"rowsReachable\":false,\"addReachable\":true,\"lastBottom\":742,\"addBottom\":754,\"ih\":768},{\"id\":\"MA-B-006\",\"ok\":true,\"n\":3,\"scrollTop\":0,\"rowsReachable\":true,\"addReachable\":true,\"lastBottom\":657,\"addBottom\":711,\"ih\":768}]}",
+  "PASS [1024x768] AC20: no CSP violation :: []",
+  "PASS [1024x768] AC20: no script exception and no console error/warning other than the browser's own \"409\" resource lines :: {\"ex\":[],\"console\":[],\"other\":[]}",
+  "INFO [1024x768] console lines that are only the browser reporting a 409 the reviewer provoked (stale-fence probes) :: {\"count\":0,\"http409\":0}",
+  "PASS [1024x768] AC20: no HTTP 5xx :: []",
+  "PASS [1024x768] AC16: no horizontal page overflow at the end of the run :: {\"sw\":1024,\"bw\":1024,\"iw\":1024}",
+  "INFO [1024x768] HTTP statuses seen :: {\"200\":17}"
+ ],
+ "shots": [
+  {
+   "name": "P0-initial-1024x768.png",
+   "bytes": 246449
+  },
+  {
+   "name": "PN-narrow-1024x768.png",
+   "bytes": 232083
+  }
+ ]
+}

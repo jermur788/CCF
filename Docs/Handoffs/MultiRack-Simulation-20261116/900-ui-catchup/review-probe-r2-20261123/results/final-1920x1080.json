@@ -1,0 +1,88 @@
+{
+ "viewport": "1920x1080",
+ "failures": 3,
+ "results": [
+  "INFO [1920x1080] fresh session baseline :: {\"year\":0,\"rev\":0,\"pending\":0,\"living\":[171,73]}",
+  "PASS [1920x1080] AC02: five real <button> rank markers 1-5 carry the ENGINE tree IDs in the engine rank order, ARIA labelled, targets >= 24 px :: {\"topFive\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-002\",\"MA-A-030\",\"MA-A-017\"],\"ranks\":[[1,\"MA-A-015\",\"28x28\",\"Competitor 1, tree MA-A-015, Fell draft\"],[2,\"MA-A-016\",\"28x28\",\"Competitor 2, tree MA-A-016, Fell draft\"],[3,\"MA-A-002\",\"28x28\",\"Competitor 3, tree MA-A-002, Fell draft\"],[4,\"MA-A-030\",\"28x28\",\"Competitor 4, tree MA-A-030, Fell draft\"],[5,\"MA-A-017\",\"28x28\",\"Competitor 5, tree MA-A-017, Fell draft\"]]}",
+  "PASS [1920x1080] AC02: clicking map ranks 1,2,3,4,5 toggles exactly that engine ID on (multi-select), reference unchanged, checkbox follows, and the click sends NO request at all (CDP + page level) :: [{\"rank\":1,\"id\":\"MA-A-015\",\"sentCdp\":0,\"sentPage\":0,\"ok\":true},{\"rank\":2,\"id\":\"MA-A-016\",\"sentCdp\":0,\"sentPage\":0,\"ok\":true},{\"rank\":3,\"id\":\"MA-A-002\",\"sentCdp\":0,\"sentPage\":0,\"ok\":true},{\"rank\":4,\"id\":\"MA-A-030\",\"sentCdp\":0,\"sentPage\":0,\"ok\":true},{\"rank\":5,\"id\":\"MA-A-017\",\"sentCdp\":0,\"sentPage\":0,\"ok\":true}]",
+  "PASS [1920x1080] AC02: clicking rank 2 again clears only that ID :: {\"ranks\":[\"true\",\"false\",\"true\",\"true\",\"true\"],\"rows\":[true,false,true,true,true]}",
+  "PASS [1920x1080] AC03: unticking row 4 in the inspector clears map rank 4 (inspector -> map), no request sent :: {\"ranks\":[\"true\",\"false\",\"true\",\"false\",\"true\"],\"rows\":[true,false,true,false,true]}",
+  "PASS [1920x1080] AC02/AC16: keyboard Tab reaches rank 2 with a visible focus outline, Space toggles it, focus stays on it, the count is announced :: {\"kb\":{\"key\":\"rank:MA-A-016\",\"outline\":\"solid\",\"w\":\"3px\"},\"kb2\":{\"pressed\":[\"true\",\"true\",\"true\",\"false\",\"true\"],\"key\":\"rank:MA-A-016\",\"ann\":\"Ticked MA-A-016. 4 trees selected for Fell, draft only.\"}}",
+  "PASS [1920x1080] AC03: after switching to Area B and back, the draft is intact and map ranks and inspector ticks still agree :: {\"chosenNow\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-002\",\"MA-A-017\"],\"afterArea\":{\"insp\":\"MA-A-001\",\"ranks\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-002\",\"MA-A-017\"],\"rows\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-002\",\"MA-A-017\"]}}",
+  "PASS [1920x1080] AC04: Add queued exactly the chosen IDs (not all competitors); nothing approved or executed :: {\"chosenNow\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-002\",\"MA-A-017\"],\"pending\":[\"MA-A:MA-A-015:Owner-selected felling\",\"MA-A:MA-A-016:Owner-selected felling\",\"MA-A:MA-A-002:Owner-selected felling\",\"MA-A:MA-A-017:Owner-selected felling\"],\"approved\":null,\"events\":0}",
+  "PASS [1920x1080] AC04: Pending is separate: no Approve and no Execute happened :: {\"year\":0,\"rev\":4,\"work\":0,\"pending\":[\"MA-A:MA-A-015:Owner-selected felling\",\"MA-A:MA-A-016:Owner-selected felling\",\"MA-A:MA-A-002:Owner-selected felling\",\"MA-A:MA-A-017:Owner-selected felling\"],\"approved\":null,\"events\":0,\"crops\":[[],[]],\"living\":[171,73],\"hash\":\"1a827d7b63a160\"}",
+  "FAIL [1920x1080] AC01: with the post-Add batch result shown, the rows and Add are still reachable above the fold :: {\"blocked\":4,\"closeRight\":1864,\"paneClientRight\":1881,\"rowsReachableCount\":4,\"n\":5,\"scrollTop\":0,\"paneTop\":326,\"paneBottom\":1068,\"innerHeight\":1080,\"refTop\":327,\"refBottom\":490,\"firstTop\":555,\"lastBottom\":898,\"rowH\":67,\"dockTop\":847,\"dockBottom\":1068,\"addTop\":982,\"addBottom\":1030,\"addH\":48,\"addText\":\"Add selected to Fell plan\",\"formHidden\":false,\"addDisabled\":true,\"rowsReachable\":false,\"addReachable\":true,\"closeReachable\":true,\"refReachable\":true,\"groundHidden\":true,\"groundParent\":\"ground-slot\",\"groundTop\":0,\"groundBottom\":0}",
+  "PASS [1920x1080] AC03: selecting a new reference clears both the map ranks and the inspector ticks :: {\"ranks\":0,\"rows\":0,\"add\":\"Add selected to Fell plan\"}",
+  "PASS [1920x1080] AC06: with a dialog open Escape dismisses ONLY the dialog; the inspection stays open :: {\"dialog\":false,\"insp\":\"MA-A-046\"}",
+  "PASS [1920x1080] UX-03/UX-08: next Escape stops Inspect ground only; Light Guide stays on and visible; the inspection stays open :: {\"ground\":\"false\",\"light\":\"true\",\"insp\":\"MA-A-046\",\"cells\":144}",
+  "PASS [1920x1080] AC05: the third Escape closes the inspection: normal (non-enlarged) map, no rank layer, no dimming :: {\"empty\":true,\"ranks\":true,\"dimmed\":0,\"leaders\":0,\"zoom\":\"1.52×\",\"vb\":\"-11.5862 8.4621 54.3556 29.9528\",\"area\":\"Area A · 0.0915 ha\",\"light\":\"true\"}",
+  "PASS [1920x1080] AC05/AC21: closing preserved zoom, pan, area, Light Guide, the Crop designation, the queued orders and the year; the server view is byte-identical :: {\"keep\":{\"zoom\":\"1.52×\",\"vb\":\"-11.5862 8.4621 54.3556 29.9528\",\"area\":\"Area A · 0.0915 ha\"},\"kept\":{\"zoom\":\"1.52×\",\"vb\":\"-11.5862 8.4621 54.3556 29.9528\"},\"crops\":[\"MA-A-046\"],\"pending\":4}",
+  "PASS [1920x1080] AC05: \"× Close inspection\" closes the same way and the temporary draft does not come back :: {\"c1\":{\"empty\":true,\"zoom\":\"1.52×\"},\"ticksAfterReselect\":0}",
+  "PASS [1920x1080] P4 setup: no alert is showing (stable layout for the pixel diff)",
+  "INFO [1920x1080] floor colour (modal Light-Guide-off pixel inside the cells) :: [26,35,47]",
+  "INFO [1920x1080] cells with >= 60 clean floor pixels :: 29",
+  "PASS [1920x1080] P4 setup: eight Area B cells have enough clean floor pixels to read the real layer :: [447,432,396,314,288,283,271,259]",
+  "PASS [1920x1080] P4 setup: switching the Light Guide on does not move or resize the map (pixel diff is valid) :: {\"off\":[25,326.703125,1234,707.296875],\"on\":[25,326.703125,1234,707.296875]}",
+  "PASS [1920x1080] AC09: the Light Guide adds ONLY light-cell polygons to the map (no discs, circles, text, numbered band markers) :: {\"polygons\":238,\"addedNodes\":238,\"perTagDelta\":{\"polygon\":238}}",
+  "FAIL [1920x1080] AC10: on the REAL layer every sampled CLEAN floor pixel (5x5 neighbourhood floor-coloured) equals under*(1-a)+colour*a for that cell's own opacity and colour (no extra glow, no hidden bright spot) :: {\"cells\":52,\"pixels\":5899,\"maxChannelError\":29.17,\"badPixels\":380,\"badCells\":{\"35:2\":3,\"21:6\":15,\"35:1\":14,\"16:6\":2,\"21:8\":1,\"17:6\":8,\"26:10\":27,\"32:15\":6,\"22:6\":7,\"27:10\":16,\"26:12\":2,\"16:4\":10,\"16:1\":19,\"22:10\":10,\"35:0\":45,\"26:0\":2,\"21:7\":14,\"33:3\":24,\"29:6\":3,\"25:0\":45,\"28:10\":15,\"17:4\":11,\"26:8\":3,\"35:3\":13,\"29:13\":10,\"19:8\":3,\"28:13\":2,\"33:4\":15,\"17:1\":9,\"30:8\":3,\"20:1\":5,\"34:2\":13,\"22:1\":3,\"24:11\":2},\"worst\":[{\"cell\":\"35:2\",\"L\":0.5,\"at\":[996,596],\"off\":[25,34,46],\"on\":[137,96,92],\"expected\":[141,99,95],\"err\":4.4},{\"cell\":\"35:2\",\"L\":0.5,\"at\":[996,597],\"off\":[24,34,46],\"on\":[137,96,93],\"expected\":[141,99,95],\"err\":4},{\"cell\":\"35:2\",\"L\":0.5,\"at\":[996,598],\"off\":[25,34,46],\"on\":[136,95,92],\"expected\":[141,99,95],\"err\":5.4},{\"cell\":\"21:6\",\"L\":1,\"at\":[596,464],\"off\":[26,35,47],\"on\":[228,195,172],\"expected\":[232,199,175],\"err\":4.1}]}",
+  "PASS [1920x1080] AC09/F-3: Light Guide on vs off differs ONLY inside the drawn cells (no halo, glow, disc or marker anywhere else on the map) :: {\"outsideDiff\":0,\"firstOut\":null}",
+  "INFO [1920x1080] ramp on the real layer (L -> written opacity, fill, computed, mean summed RGB change per floor pixel) :: [{\"L\":0,\"drawn\":false,\"op\":null,\"fill\":null,\"computed\":null,\"meanSummedRgbDelta\":0},{\"L\":1e-9,\"drawn\":true,\"op\":\"0.00000127\",\"fill\":\"#7f3b4a\",\"computed\":\"1.27e-06\",\"meanSummedRgbDelta\":0},{\"L\":0.0004,\"drawn\":true,\"op\":\"0.00557\",\"fill\":\"#803c4a\",\"computed\":\"0.00557\",\"meanSummedRgbDelta\":1},{\"L\":0.01,\"drawn\":true,\"op\":\"0.0451\",\"fill\":\"#88414e\",\"computed\":\"0.0451\",\"meanSummedRgbDelta\":8},{\"L\":0.05,\"drawn\":true,\"op\":\"0.1284\",\"fill\":\"#994d54\",\"computed\":\"0.1284\",\"meanSummedRgbDelta\":26.72},{\"L\":0.2,\"drawn\":true,\"op\":\"0.3162\",\"fill\":\"#bf6763\",\"computed\":\"0.3162\",\"meanSummedRgbDelta\":89.04},{\"L\":0.5,\"drawn\":true,\"op\":\"0.5736\",\"fill\":\"#e49383\",\"computed\":\"0.5736\",\"meanSummedRgbDelta\":229.62},{\"L\":1,\"drawn\":true,\"op\":\"0.9000\",\"fill\":\"#ffd9bd\",\"computed\":\"0.9\",\"meanSummedRgbDelta\":498.88}]",
+  "PASS [1920x1080] AC10: L = 0 draws nothing and changes no pixel :: {\"L\":0,\"drawn\":false,\"op\":null,\"fill\":null,\"computed\":null,\"meanSummedRgbDelta\":0}",
+  "PASS [1920x1080] AC10: EVERY positive L (down to 1e-9) has a strictly positive written opacity that never reads \"0\" and Edge parses it (computed value is not the default 1) :: [[1e-9,\"0.00000127\",\"1.27e-06\"],[0.0004,\"0.00557\",\"0.00557\"],[0.01,\"0.0451\",\"0.0451\"],[0.05,\"0.1284\",\"0.1284\"],[0.2,\"0.3162\",\"0.3162\"],[0.5,\"0.5736\",\"0.5736\"],[1,\"0.9000\",\"0.9\"]]",
+  "PASS [1920x1080] AC10: opacity strictly increases over L = 1e-9, 0.0004, 0.01, 0.05, 0.2, 0.5, 1 (no plateau, no floor) :: [0.00000127,0.00557,0.0451,0.1284,0.3162,0.5736,0.9]",
+  "PASS [1920x1080] AC10: measured pixel change rises monotonically; L = 0.01 is faint but nonzero; L = 1 is the brightest :: [0,1,8,26.72,89.04,229.62,498.88]",
+  "PASS [1920x1080] AC10: L = 1 is bright pale peach (#ffd9bd at opacity >= 0.85) :: {\"L\":1,\"drawn\":true,\"op\":\"0.9000\",\"fill\":\"#ffd9bd\",\"computed\":\"0.9\",\"meanSummedRgbDelta\":498.88}",
+  "PASS [1920x1080] AC10: across all drawn cells opacity and colour brightness never decrease as L increases :: {\"cells\":238}",
+  "INFO [1920x1080] hues of the ramp (degrees), canopy sample and WCAG contrast of composited light over the real floor vs the canopy :: {\"rose\":347,\"coral\":7,\"peach\":25,\"canopyMeanRgb\":[31,49,34],\"canopySamples\":40,\"compositeL05\":[142,99,95],\"compositeL1\":[232,199,175],\"contrastL1VsFloor\":9.97,\"contrastL05VsFloor\":3.09,\"contrastL1VsCanopy\":8.69,\"contrastFloorVsCanopy\":1.15}",
+  "PASS [1920x1080] P4: a normal re-read restores the engine values (every real positive cell drawn, nothing injected remains) :: {\"restored\":239,\"real\":239}",
+  "PASS [1920x1080] AC10: Area A (real engine values, almost entirely very dark) draws exactly the cells with L > 0; no light is invented :: {\"cells\":144,\"positive\":144,\"zero\":0,\"drawn\":144,\"minL\":0.0006697774,\"maxL\":0.22000802,\"legend\":\"Light Guide Shaded Bright Inspect ground reads the value at a spot.\",\"mapText\":\"P P P P C 5 10 15 20 25 30 35 40 5 10 15 20 25 30 35 40 X metres east · Z metres north MAP NAVIGATION FIT ↑ N ← W E → S ↓ − Fit + Area A 4 in plan · 171 living · 0.0915 ha Area B · 73 living · 0.1500 ha N 5 m\"}",
+  "PASS [1920x1080] AC14/UX-09: with the Light Guide on the map says only \"Light Guide\", Shaded->Bright, and repeats no disclaimer :: Light Guide Shaded Bright Inspect ground reads the value at a spot.",
+  "INFO [1920x1080] L = 1e-200 (far below any real cell): written opacity and the value Edge computes from it :: {\"op\":\"9.000e-131\",\"computed\":\"0\",\"L\":\"1e-200\"}",
+  "PASS [1920x1080] AC10: even L = 1e-200 is written as a positive opacity (the text never reads \"0\") :: {\"op\":\"9.000e-131\",\"computed\":\"0\",\"L\":\"1e-200\"}",
+  "PASS [1920x1080] DEFECT-2: stale REFUSED answer + Escape, nothing selected afterwards: no alert, no selection, no re-read, no write :: {\"adv\":\"marked\",\"st\":{\"insp\":null,\"alert\":\"\",\"announce\":\"Closed the inspection of MA-B-001. Zoom, area, Crop designat\"},\"reqs\":[]}",
+  "PASS [1920x1080] AC15/DEFECT-2: the page was left on an older view (the newer refused view was dropped); its next fenced command (Approve) is REFUSED by the server (409), nothing is approved or written, and the refusal is shown (fails closed) :: {\"approveEnabled\":true,\"alert\":\"Refused: Approve whole two-area Work Plan — 0 trees felled PlayerPlanStateStale — the Work Plan changed since this view was read; nothing changed, re-read the current view Nothing changed. Current ecological year 0. The \",\"serverRev\":{\"moved\":7,\"after\":7},\"approvedAfter\":null}",
+  "INFO [1920x1080] EXPLORE E2 (clean state): a rank toggled while a map click is in flight :: {\"reference\":\"MA-B-031\",\"lateTopmost\":\"MA-B-044\",\"whileHeld\":{\"add\":\"Add selected 1 to Fell plan\",\"pressed\":\"true,false,false,false,false\"},\"afterRelease\":{\"insp\":\"MA-B-044\",\"add\":\"Add selected to Fell plan\",\"announce\":\"Selected tree MA-B-044 in Area B. Cleared 1 unsent draft choice for the previous reference MA-B-031.\"}}",
+  "INFO [1920x1080] before approve :: {\"pending\":5,\"living\":[171,73]}",
+  "PASS [1920x1080] AC04: Approve approves exactly the queued orders and fells nothing :: {\"approved\":5,\"living\":[171,73]}",
+  "INFO [1920x1080] loaded sweep detail (with an APPROVED plan (Fell orders approved) and a Crop designation) :: {\"trees\":244,\"failing\":0,\"byBlockedRows\":{\"2\":{\"trees\":1,\"fail\":0},\"3\":{\"trees\":2,\"fail\":0},\"4\":{\"trees\":4,\"fail\":0},\"5\":{\"trees\":237,\"fail\":0}},\"addButtonUnreachable\":0,\"closeButtonPastPaneEdge\":0,\"sampleFail\":[]}",
+  "PASS [1920x1080] AC01 (LOADED session, plan APPROVED: competitors read \"In the approved plan\"): for every living tree the five rows and Add are reachable above the fold :: {\"trees\":244,\"failing\":0,\"byBlockedRows\":{\"2\":{\"trees\":1,\"fail\":0},\"3\":{\"trees\":2,\"fail\":0},\"4\":{\"trees\":4,\"fail\":0},\"5\":{\"trees\":237,\"fail\":0}}}",
+  "PASS [1920x1080] AC15: with stage4 null the page says the read-out is UNAVAILABLE and offers no Execute :: {\"exec\":true,\"execText\":\"Execute approved two-area plan · re-read needed\",\"approveDisabled\":true,\"banner\":\" The engine read-out for this view could not be paired with it, so Prune orders cannot be shown and Approve and Execute are withdrawn until a re-read. Re-read c\"}",
+  "PASS [1920x1080] AC15: stage4 null does not masquerade as model 0 / legacy (no edge-exclusion or \"Light NOT MODELLED\" statement) :: Model read-out unavailable for this view, so the model statements are not shown. Choose Re-read. Synthetic authored experiment — not a surveyed Irish forest. Areas not assessed comparable. Site: UNKNOWN — no site, soil, exposure or history is modelled. No treatment transfer — nothing done in one are",
+  "PASS [1920x1080] AC15: a paired re-read restores Execute",
+  "PASS [1920x1080] AC15: the server still refuses a command carrying a stale fence (HTTP 409 with a refusal) :: {\"status\":409,\"code\":\"PlayerPlanStateStale\"}",
+  "FAIL [1920x1080] P9: section aborted by an exception :: Error: timed out waiting for executed\n    at Object.waitFor (file:///C:/Users/hp/AppData/Local/Temp/review-r2/probe/cdp-review.mjs:143:13)\n    at async file:///C:/Users/hp/AppData/Local/Temp/review-r2/probe/review-probe.mjs:807:7\n    at async section (file:///C:/Users/hp/AppData/Local/Temp/review-r2/probe/review-probe.mjs:39:9)\n    at async main (file:///C:/Users/hp/AppData/Local/Temp/review-r2/probe/review-probe.mjs:776:5)",
+  "INFO [1920x1080] P9 state at abort :: {\"state\":{\"insp\":null,\"area\":\"Area B\",\"announce\":\"Re-read: ecological year 0, work revision 0, plan-state revision 8.\",\"alert\":\"Refused: Execute approved two-area planPlayerPlanStateStale — the Work Plan changed since this view was read; nothing changed, re-read the current viewNothing changed. Current ecological year 0.The page now shows the current view. Review it, then try again.\",\"alertShown\":true,\"add\":\"Add selected to Fell plan\",\"ranksHidden\":true,\"zoom\":\"Fit\",\"vb\":\"-50.4452 -2.2000 136.0280 61.4000\",\"year\":\"0\",\"light\":\"false\",\"ground\":\"false\"},\"competition\":\"\",\"pane\":\"Work Plan 5\",\"alert\":\"Refused: Execute approved two-area plan PlayerPlanStateStale — the Work Plan changed since this view was read; nothing changed, re-read the current view Nothing changed. Current ecological year 0. The page now shows the current view. Review it, then try again.\",\"lockHint\":\"alert shown\",\"dialogs\":[]}",
+  "PASS [1920x1080] AC20: no CSP violation :: []",
+  "PASS [1920x1080] AC20: no script exception and no console error/warning other than the browser's own \"409\" resource lines :: {\"ex\":[],\"console\":[],\"other\":[]}",
+  "INFO [1920x1080] console lines that are only the browser reporting a 409 the reviewer provoked (stale-fence probes) :: {\"count\":4,\"http409\":4}",
+  "PASS [1920x1080] AC20: no HTTP 5xx :: []",
+  "PASS [1920x1080] AC16: no horizontal page overflow at the end of the run :: {\"sw\":1920,\"bw\":1920,\"iw\":1920}",
+  "INFO [1920x1080] HTTP statuses seen :: {\"200\":313,\"409\":4}"
+ ],
+ "shots": [
+  {
+   "name": "P2-ranks-chosen-1920x1080.png",
+   "bytes": 832372
+  },
+  {
+   "name": "P2-after-add-1920x1080.png",
+   "bytes": 839667
+  },
+  {
+   "name": "P4-light-area-b-injected-1920x1080.png",
+   "bytes": 766409
+  },
+  {
+   "name": "P4-light-area-a-1920x1080.png",
+   "bytes": 826354
+  },
+  {
+   "name": "P9-f2-unavailable-1920x1080.png",
+   "bytes": 965609
+  },
+  {
+   "name": "ERR-P9-1920x1080.png",
+   "bytes": 630623
+  }
+ ]
+}

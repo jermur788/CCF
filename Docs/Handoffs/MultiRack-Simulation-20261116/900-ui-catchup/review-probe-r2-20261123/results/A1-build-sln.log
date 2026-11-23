@@ -1,0 +1,15 @@
+=== A1 solution build
+MSBuild version 17.8.64+8859a167a for .NET
+  Determining projects to restore...
+  Restored /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Core/SitkaP1.Core.csproj (in 190 ms).
+  Restored /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/tests/Core.Tests/SitkaP1.Core.Tests.csproj (in 194 ms).
+  Restored /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Cli/SitkaP1.Cli.csproj (in 194 ms).
+  SitkaP1.Core -> /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Core/bin/Debug/net8.0/SitkaP1.Core.dll
+  SitkaP1.Cli -> /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/src/Cli/bin/Debug/net8.0/sitkap1.dll
+  SitkaP1.Core.Tests -> /home/jer/Development/CCF-HP-Worktrees/CCF-Multi-Stage4OwnerUX-R2Review-20261123/Tools/MultiRackSitkaP1Lab/tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:08.25

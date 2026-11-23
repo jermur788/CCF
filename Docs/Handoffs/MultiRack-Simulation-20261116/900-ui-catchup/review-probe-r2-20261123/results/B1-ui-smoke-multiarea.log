@@ -1,0 +1,149 @@
+ui-smoke-multiarea 2026-11-23T14:35:58Z HEAD 5f3b5bf3c9f711125fb61ddee55de1ff9690c19b dotnet 8.0.134 node v26.13.1
+run api: server pid 1018536 (this script's own process), port 46595
+PASS S01-api the process prints the two-area page address on the same listener
+PASS S02-api the port is ephemeral, not 5187 and not privileged
+PASS M01 GET multi: 200 text/html with only its own external script and style
+PASS M02 the page answer has the strict headers: CSP self only, no-store, nosniff, no-referrer, DENY framing, no CORS, no Server
+PASS M03 multi.css: 200 text/css
+PASS M04 multi.js: 200 text/javascript
+PASS M05 the served multi.js passes node --check
+PASS M06 GET api/multi/manifest and api/multi/view: 200 and 200
+PASS M07 the manifest's SHA-256 body hash equals its contentHash, the view token, the experiment record and the pinned c66d566c9b930ea1e4e46b2fe9a4f213cf212d787fdc752141107f5c4c0f1f95
+PASS W001 two areas MA-A and MA-B
+PASS W002 171 and 73 living trees
+PASS W003 fresh clocks
+PASS W004 geometry-derived areas and distinct seeds
+PASS W005 globally unique, area-prefixed IDs; no P30- ID
+PASS W006 foreign Origin -> HTTP 403 OriginRefused; the entire view is unchanged
+PASS W007 wrong Host -> HTTP 403 None; the entire view is unchanged
+PASS W008 wrong capability -> HTTP 404 None; the entire view is unchanged
+PASS W009 GET on a POST route -> HTTP 405 MethodNotAllowed; the entire view is unchanged
+PASS W010 text/plain -> HTTP 415 UnsupportedMediaType; the entire view is unchanged
+PASS W011 body over 16 KiB -> HTTP 413 RequestTooLarge; the entire view is unchanged
+PASS W012 malformed JSON -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W013 JSON null body -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W014 missing fence -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W015 null fence -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W016 missing token member domain -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W017 missing token member experimentId -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W018 missing token member manifestContentHash -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W019 missing token member areaIds -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W020 missing token member ecologicalYear -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W021 missing token member annualRevision -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W022 missing token member workRevision -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W023 missing token member rngModelVersion -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W024 missing token member growthModelVersion -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W025 missing token member p1AlgorithmVersion -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W026 missing token member areaModelVersion -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W027 missing token member actionEligibleDbhThresholdMm -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W028 unknown member -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W029 case-shifted member name -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W030 duplicate member -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W031 string in a numeric token member -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W032 empty tree ID -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W033 tree ID with whitespace -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W034 reason over 2000 characters -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W035 hit-test without v -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W036 Year+1 without an explicit consent member -> HTTP 400 BadRequest; the entire view is unchanged
+PASS W037 MA-A non-Crop tree MA-A-061: ranked competitors from its own area only (22 neighbours, CI 5.4404)
+PASS W038 MA-A top five carry share and strength, strongest first
+PASS W039 MA-B non-Crop tree MA-B-021: ranked competitors from its own area only (9 neighbours, CI 1.6564)
+PASS W040 MA-B top five carry share and strength, strongest first
+PASS W041 competition reads changed nothing: no Crop, no pending, same revisions
+PASS W042 competition for an A tree under B -> HTTP 409 MultiAreaWrongArea; the entire view is unchanged
+PASS W043 competition for an unknown ID -> HTTP 409 CompetitionTreeUnknown; the entire view is unchanged
+PASS W044 Crop MA-A-061 (HTTP 200)
+PASS W045 Crop is explicit session state; plan-state 1
+PASS W046 Fell MA-A-046 in A (HTTP 200)
+PASS W047 Fell MA-B-021 in B (HTTP 200)
+PASS W048 one pending list covers both areas
+PASS W049 probe tree MA-A-171 is not the Crop or its competitor
+PASS W050 Add with a stale fence -> HTTP 409 PlayerPlanStateStale; the entire view is unchanged
+PASS W051 Add an A tree under B -> HTTP 409 MultiAreaWrongArea; the entire view is unchanged
+PASS W052 Fell the retained Crop -> HTTP 409 CropTreeRetained; the entire view is unchanged
+PASS W053 duplicate ID -> HTTP 409 WorkDuplicateTreeId; the entire view is unchanged
+PASS W054 unknown area -> HTTP 409 MultiAreaUnknownArea; the entire view is unchanged
+PASS W055 blank reason -> HTTP 409 WorkReasonRequired; the entire view is unchanged
+PASS W056 Approve the two-area plan (HTTP 200)
+PASS W057 engine-minted PlanId and key
+PASS W058 Approve fells zero trees in both areas; no event
+PASS W059 both maps show the approved trees still standing
+PASS W060 Execute under an unminted key -> HTTP 409 WorkExecutionKeyConflict; the entire view is unchanged
+PASS W061 Execute (HTTP 200)
+PASS W062 one event; work revision 0 -> 1; same year; approval cleared
+PASS W063 receipt per area: living 171 -> 170 and 73 -> 72, basal area falls in both
+PASS W064 typed Fell of exactly the approved IDs, in their own areas
+PASS W065 the receipt after-stands equal the committed stands
+INFO receipt BA m2/ha [('MA-A', 74.022, 73.164), ('MA-B', 39.504, 38.695)]
+PASS W066 identical replay returns the same receipt once; no second Fell
+PASS W067 altered replay (other PlanId) -> HTTP 409 WorkExecutionKeyConflict; the entire view is unchanged
+PASS W068 Fell an already felled tree -> HTTP 409 WorkTreeNotLive; the entire view is unchanged
+PASS W069 Year+1 with the pre-Execute fence -> HTTP 409 PlayerSourceStale; the entire view is unchanged
+PASS W070 Year+1 (HTTP 200)
+PASS W071 one shared year; one annual report per area
+PASS W072 each area advanced from its real post-Fell roster
+PASS W073 felled trees stay felled
+INFO year 0 -> 1 per area [('MA-A', 170, 165, 5), ('MA-B', 72, 72, 0)]
+PASS W074 pending in B (HTTP 200)
+PASS W075 Year+1 with pending work, no consent -> HTTP 409 WorkPendingConsentRequired; the entire view is unchanged
+PASS W076 Year+1 with consent (HTTP 200)
+PASS W077 consent cancelled the whole Work Plan at zero Fell
+PASS W078 MA-A hit-test at a crown centre returns that exact ID
+PASS W079 MA-B hit-test at a crown centre returns that exact ID
+PASS W080 a hit-test on bare ground selects nothing
+PASS W081 a stale hit-test is refused with no candidate
+PASS W082 every living B tree is pending (72 adds, each HTTP 200)
+PASS W083 Approve a plan that would empty B (HTTP 200)
+PASS W084 Execute a plan that would leave B with no living tree -> HTTP 409 WorkWouldLeaveNoLivingStems; the entire view is unchanged
+PASS W085 nothing felled; the plan is still approved
+PASS W086 Cancel the refused plan (HTTP 200)
+INFO workflow checks: 86
+PASS W999 the HTTP workflow witness completed without stderr
+PASS Z01-api SIGINT ends this script's own process with exit 0 and 'Session ended; nothing was saved.' (exit 0)
+PASS Z02-api the server wrote nothing to stderr (no unconfirmed outcome, no fault)
+run page: server pid 1018660 (this script's own process), port 38557
+PASS S01-page the process prints the two-area page address on the same listener
+PASS S02-page the port is ephemeral, not 5187 and not privileged
+PASS J01 the served page starts with one GET api/multi/view
+PASS J02 two area buttons; Area A is shown first
+PASS J03 the disclosure and the site UNKNOWN / connected woodland / no treatment transfer statements are visible
+FAIL J04 timed out waiting for competitors of a non-Crop tree in A
+FAIL J05 selecting a non-Crop living tree in A reads its ranked competitors at once
+PASS J06 the map numbers the strongest competitors
+PASS J07 inspection created no Crop mark and no Fell order
+PASS F2a setup: one Fell order queued and approved through the API
+PASS F2b unavailable: the notice claims neither model 0 edge exclusion nor the Stage 4 model
+PASS F2c unavailable: the Details pane says so and makes no legacy "Light NOT MODELLED" or edge-exclusion claim
+PASS F2d unavailable: Execute and Approve are withdrawn and the rack cards say the read-out is unavailable
+PASS F2e unavailable: no Execute confirmation opens and no Execute is sent
+PASS F2f the server still refuses an Execute with a stale fence (409, fail-closed, nothing felled)
+PASS F2g after a paired re-read Execute is offered again
+PASS F2h cleanup: the F-2 plan was cancelled through the API (nothing was felled)
+PASS R2a a new selection from the Trees table puts the inspector back at the top (scrollTop 420 → 0)
+PASS R2b a new selection by a crown click puts the inspector back at the top
+PASS R2c Inspect ground on with a tree inspected: the ground panel sits after the Add bar (below ranks 1-5), the mode still reads On
+PASS R2d turning Inspect ground on with a tree inspected keeps focus on the pressed toggle and does not scroll the inspector
+PASS R2e a crown click in ground mode selects, resets the inspector to the top, keeps the ground panel below and keeps both modes on
+PASS R2f with no tree inspected the ground panel returns to the top of the Tree pane
+PASS R2g Escape closes the inspection at once while the hit-test is still in flight
+PASS R2h the late hit-test answer did not reselect a tree or reopen the inspection
+PASS R2i the late answer made no announcement, no competitor read and no alert
+PASS R2j a stale hit-test answer never overwrites a newer selection or clears its draft
+PASS J08 Area B shows only its own exact IDs; nothing selected there yet
+FAIL J09 the map click was hit-tested by the server in Area B and selected MA-B-020
+FAIL J10 timed out waiting for competitors of the B tree
+FAIL J11 the B competitors are reported for Area B
+FAIL J99 the page witness ran to the end (exit 1) with nothing on stderr
+    file:///home/jer/.cache/review-r2-tmp/ccf-ma1-uismoke.QOjCVzar/page-witness.mjs:539
+    byId('reason-choice').value = 'other';
+                                ^
+    
+    TypeError: Cannot set properties of null (setting 'value')
+        at file:///home/jer/.cache/review-r2-tmp/ccf-ma1-uismoke.QOjCVzar/page-witness.mjs:539:29
+    
+    Node.js v26.13.1
+PASS Z01-page SIGINT ends this script's own process with exit 0 and 'Session ended; nothing was saved.' (exit 0)
+PASS Z02-page the server wrote nothing to stderr (no unconfirmed outcome, no fault)
+PASS Z03 no file created, changed or removed anywhere in the lab tree
+PASS Z04 git status of both labs unchanged
+OVERALL: FAIL (128 passed, 6 failed)
