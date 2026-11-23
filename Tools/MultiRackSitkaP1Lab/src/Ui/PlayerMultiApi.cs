@@ -292,6 +292,7 @@ internal static class MultiAreaPage
   <div class="workspace-head">
     <h2 id="map-heading" tabindex="-1">Stand map</h2>
     <p id="map-subtitle" class="map-subtitle"></p>
+    <button type="button" id="light-toggle" class="light-toggle" aria-pressed="false" aria-controls="light-legend"><span aria-hidden="true">☀</span> <span id="light-toggle-text">Light Guide: Off</span></button>
     <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
     <nav class="view-tabs" aria-label="Side panel views">
       <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
@@ -315,6 +316,8 @@ internal static class MultiAreaPage
         <g id="grid-in" class="overlay" clip-path="url(#area-clip)"></g>
         <polygon id="area-outline" class="area-outline" points="0,0"></polygon>
         <g id="crowns"></g>
+        <g id="deadwood" class="overlay"></g>
+        <g id="light-cells"></g>
         <g id="marks" class="overlay"></g>
         <g id="selection" class="overlay"></g>
         <g id="furniture" class="overlay"></g>
@@ -347,6 +350,11 @@ internal static class MultiAreaPage
       <p class="scale" aria-hidden="true"><svg id="scale-bar" class="scale-bar" width="80" height="9" viewBox="0 0 80 9" focusable="false"><path id="scale-path" d="M 1 1 V 8 H 79 V 1"></path></svg> <span id="scale-text"></span></p>
       <p id="map-status" class="map-status" hidden></p>
     </div>
+    <div id="light-legend" class="light-legend" hidden>
+      <p id="light-legend-title" class="light-legend-title"></p>
+      <ol id="light-ramp" class="light-ramp" aria-label="Light bands: cell number, colour and index range"></ol>
+      <p class="light-legend-note">Cell number = band. Click a cell to inspect it; crown clicks resume when the guide is off.</p>
+    </div>
     <div class="map-foot">
       <p id="map-note" class="map-note"></p>
       <p class="map-note map-note-end">Draft choices are not work orders</p>
@@ -364,6 +372,13 @@ internal static class MultiAreaPage
 
   <div id="side" class="side" data-pane="tree">
     <div id="pane-tree" class="pane">
+      <section id="ground-panel" class="panel ground-panel" aria-labelledby="ground-heading" hidden>
+        <p class="ref-top"><span class="eyebrow">Ground cell</span> <button type="button" id="ground-close" class="link-button small-link">Close</button></p>
+        <h2 id="ground-heading" tabindex="-1"></h2>
+        <p id="ground-label" class="ground-label"></p>
+        <dl id="ground-facts" class="pairs ground-facts"></dl>
+        <p id="ground-caveat" class="small-note"></p>
+      </section>
       <section class="panel tree-panel" aria-labelledby="inspector-heading">
         <div id="inspector-empty" class="inspector-empty">
           <h2 class="eyebrow-heading">Reference tree</h2>
@@ -386,6 +401,15 @@ internal static class MultiAreaPage
               </p>
             </div>
             <p id="crop-note" class="small-note crop-note"></p>
+            <div id="prune-box" class="prune-box" hidden>
+              <p class="prune-head"><span class="eyebrow">Pruning</span> <strong id="prune-lifts"></strong></p>
+              <p id="prune-status" class="prune-status"></p>
+              <p class="prune-actions">
+                <button type="button" id="prune-add" class="small prune-add" aria-describedby="prune-why"></button>
+                <button type="button" id="prune-remove" class="small secondary" hidden></button>
+              </p>
+              <p id="prune-why" class="small-note prune-why"></p>
+            </div>
             <p id="insp-remove-wrap" class="ref-extra" hidden><button type="button" id="insp-remove" class="secondary"></button></p>
             <p id="insp-approved-note" class="note small-note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
           </div>
@@ -517,7 +541,8 @@ internal static class MultiAreaPage
         <h2 id="details-heading" tabindex="-1">Experiment and technical provenance</h2>
         <ul id="statements" class="list statements"></ul>
         <dl id="facts" class="facts"></dl>
-        <p class="note small-note">Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area's ecology uses only its own trees.</p>
+        <ul id="stage4-statements" class="list statements"></ul>
+        <p id="details-note" class="note small-note">Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area's ecology uses only its own trees.</p>
       </section>
     </div>
   </div>
@@ -889,6 +914,47 @@ dialog { width: min(38rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); 
 dialog::backdrop { background: rgba(3, 9, 17, .72); }
 dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
+/* ---- Stage 1–4 read-outs (spec multi-stage4-ui-catchup-v1): every value is an engine value, formatted only ------- */
+.area-card { flex-wrap: wrap; row-gap: .25rem; }
+.area-readouts { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: .1rem .9rem; margin: 0; padding-top: .3rem; border-top: 1px solid var(--edge); font-size: .76rem; }
+.area-readouts > div { display: flex; align-items: baseline; gap: .3rem; min-width: 0; }
+.area-readouts dt { color: var(--muted); font-size: .7rem; }
+.area-readouts dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.area-readouts dd small { color: var(--muted); font-weight: 500; }
+.model-badge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
+.model-badge abbr { padding: 0 .35rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); color: var(--text); font-size: .68rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.light-toggle { min-height: 36px; padding: .2rem .75rem; font-size: .84rem; }
+.light-toggle[aria-pressed="true"] { border-color: var(--gold-edge); background: #3a3420; }
+.light-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .8rem; padding: .35rem .9rem; border-top: 1px solid var(--edge); font-size: .74rem; }
+.light-legend-title { margin: 0; font-weight: 650; }
+.light-ramp { display: flex; flex-wrap: wrap; gap: .15rem .6rem; margin: 0; padding: 0; list-style: none; }
+.light-ramp li { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.light-ramp svg { width: 16px; height: 16px; }
+.light-legend-note { margin: 0; color: var(--muted); }
+.light-cell { stroke: #0b1523; stroke-opacity: .55; stroke-width: 1; vector-effect: non-scaling-stroke; fill-opacity: .62; cursor: crosshair; }
+.light-cell.inspected { stroke: #ffffff; stroke-opacity: 1; stroke-width: 3; }
+.lc-1 { fill: #2d1e63; } .lc-2 { fill: #3b5ca8; } .lc-3 { fill: #23968f; } .lc-4 { fill: #86c75e; } .lc-5 { fill: #f4e45a; }
+.lc-text { fill: #ffffff; font-weight: 700; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: #0b1523; stroke-width: 2px; stroke-linejoin: round; pointer-events: none; }
+.log-body { fill: #8a6a43; stroke: #2a1d0e; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.log-end { fill: #d9bf8c; stroke: #2a1d0e; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.log-ring { fill: none; stroke: #6e5130; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.log-halo { fill: none; stroke: #06111d; stroke-opacity: .8; stroke-width: 4.5; vector-effect: non-scaling-stroke; }
+.ground-panel h2 { margin: .1rem 0 .2rem; font-size: 1.1rem; }
+.ground-label { margin: 0 0 .3rem; color: var(--notice-text); font-size: .8rem; font-weight: 600; }
+.ground-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; }
+.ground-facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: .5rem; }
+.ground-facts dd { font-variant-numeric: tabular-nums; }
+.prune-box { margin: .45rem 0 0; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
+.prune-box p { margin: .15rem 0; }
+.prune-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.prune-head strong { font-variant-numeric: tabular-nums; }
+.prune-status { font-size: .82rem; }
+.prune-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.prune-add { border-color: var(--approved); }
+.prune-why { margin: 0; }
+.order-kind { display: inline-block; margin-right: .4rem; padding: 0 .3rem; border: 1px solid var(--line); border-radius: 3px; font-size: .7rem; font-weight: 600; }
+.order-kind.k-prune { border-color: var(--approved); color: var(--approved); }
+
 /* ---- desktop: one screen, panes scroll inside ------------------------------------------------------------------ */
 @media (min-width: 1024px) {
   body { display: flex; flex-direction: column; height: 100vh; min-height: 38rem; }
@@ -938,6 +1004,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .comp-head, .comp-row label { grid-template-columns: 2.2rem minmax(0, 1fr) 3.8rem 3.3rem; gap: .3rem; }
   .comp-row label { min-height: 48px; padding: .25rem .45rem; font-size: .84rem; }
   .map-dock { left: 10px; top: 10px; }
+  .area-readouts { gap: 0 .6rem; padding-top: .2rem; font-size: .7rem; }
+  .area-readouts dt { font-size: .66rem; }
+  .light-legend { padding: .25rem .8rem; font-size: .7rem; }
 }
 @media (min-width: 1024px) and (max-height: 820px) {
   .topbar { padding-top: .4rem; padding-bottom: .4rem; }
@@ -988,6 +1057,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 // The only page-local state beyond display choices is the per-area Fell draft: exact competitor IDs ticked for the current
 // reference tree. A draft is not a work order. "Add selected" sends them one at a time through the existing pending/add
 // command, each with the fence of the latest confirmed view, and stops at the first refusal or unconfirmed outcome.
+//
+// Stage 1–4 catch-up (spec multi-stage4-ui-catchup-v1): every payload also carries "stage4", the engine's read-out of the
+// same committed root (life states, pruning eligibility and its reason, canopy cover, open ground, RD, natural deaths,
+// fallen deadwood and the 2.5 m modelled light cells). The page formats those values and computes none of them; banding a
+// light index into five display bands and multiplying a fraction by 100 for "%" are display formatting only.
 'use strict';
 
 (function () {
@@ -999,7 +1073,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   const PANE_NAMES = { tree: 'Tree', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
   // Server commands whose buttons a re-read lock or a running add sequence disables. The draft Add button has its own rule.
   const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
-    'execute-confirm', 'advance', 'consent-advance'];
+    'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove'];
+  // Display bands of the engine's light index (formatting only): band b covers [LIGHT_BANDS[b-1], LIGHT_BANDS[b]).
+  const LIGHT_BANDS = [0, 0.2, 0.4, 0.6, 0.8, 1];
   const STATEMENTS = ['MultiSyntheticStatement', 'MultiNotComparable', 'MultiSiteUnknown', 'MultiEdgeExcluded',
     'MultiNoTransfer', 'MultiSessionOnly'];
   // Notice chips: a short form shown, its full statement as the tooltip (the Details pane lists the full statements).
@@ -1035,6 +1111,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     zoom: 1,
     centre: null, // centre of the usable map area (beside the navigation dock), in map metres
     legendHidden: false,
+    stage4: null, // the engine's read-out of the same root as view (null if the server could not pair one)
+    lightOn: false, // Light Guide overlay: Off by default
+    ground: null, // { areaId, column, row } of the inspected ground cell
   };
 
   const byId = (id) => document.getElementById(id);
@@ -1135,6 +1214,28 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
   function selectedId() { return state.areaId ? state.selected[state.areaId] || null : null; }
   function ordersIn(orders, areaId) { return orders.filter((order) => order.areaId === areaId); }
+
+  // ---- the engine's Stage 4 read-out (same root as the view) -------------------------------------------------------------
+  function s4Area(areaId) {
+    const readout = state.stage4;
+    return readout && areaId ? readout.areas.find((area) => area.areaId === areaId) || null : null;
+  }
+  function s4Tree(areaId, treeId) {
+    const area = s4Area(areaId);
+    return area && treeId ? area.trees.find((tree) => tree.treeId === treeId) || null : null;
+  }
+  function pendingPrunes() { return state.stage4 ? state.stage4.pendingPrunes : []; }
+  function approvedPrunes() { return state.stage4 ? state.stage4.approvedPrunes : []; }
+  function isStage4() { return Boolean(state.stage4 && state.stage4.models.adultModelVersion === 1); }
+  function lightBand(index) {
+    for (let band = 1; band < LIGHT_BANDS.length - 1; band++) if (index < LIGHT_BANDS[band]) return band;
+    return LIGHT_BANDS.length - 1;
+  }
+  function groundCell(areaId, column, row) {
+    const area = s4Area(areaId);
+    return area ? area.ground.find((cell) => cell.column === column && cell.row === row) || null : null;
+  }
+  function pct(fraction) { return fixed(fraction * 100, 0) + '%'; }
   function baseStatusText(item) {
     const template = label(STATUS_LABEL[item.status]);
     return template ? fill(template, { y: item.deathYear }) : String(item.status);
@@ -1178,6 +1279,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       case 'NaturalDead': return 'Dead';
       default: break;
     }
+    const s4 = s4Tree(areaId, treeId);
+    if (s4 && s4.prunePlanState) return 'In the Prune plan';
     if (treeId === referenceIn(areaId)) return 'Reference tree';
     return null;
   }
@@ -1222,7 +1325,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function applyPayload(payload, keepOverlap) {
     state.view = payload.view;
     state.scenes = payload.scenes || {};
+    state.stage4 = payload.stage4 || null;
     if (payload.labels) state.labels = payload.labels;
+    if (state.ground && !groundCell(state.ground.areaId, state.ground.column, state.ground.row)) state.ground = null;
     if (!areaView(state.areaId)) state.areaId = state.view.areas.length > 0 ? state.view.areas[0].areaId : null;
     for (const areaId of Object.keys(state.selected)) {
       if (!treeIn(areaId, state.selected[areaId])) delete state.selected[areaId];
@@ -1380,6 +1485,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const blocked = state.lock !== null || state.batch !== null;
     for (const id of COMMAND_IDS) byId(id).disabled = blocked;
     for (const button of document.querySelectorAll('[data-remove]')) button.disabled = blocked;
+    for (const button of document.querySelectorAll('[data-prune-remove]')) button.disabled = blocked;
+    if (!blocked) renderPruneGate();
     byId('add-button').disabled = state.batch !== null || !addAvailability().ok;
     byId('draft-clear').disabled = state.batch !== null || draftOf(state.areaId).length === 0;
     byId('reread').disabled = state.batch !== null;
@@ -1417,6 +1524,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       executionKey: plan.executionKey,
       year: view.source.ecologicalYear,
       orders: plan.orders.map((order) => ({ areaId: order.areaId, treeId: order.treeId, reason: order.reason })),
+      prunes: approvedPrunes().map((order) => ({ areaId: order.areaId, treeId: order.treeId,
+        targetCrownBaseHeightM: order.targetCrownBaseHeightM })),
     });
   }
 
@@ -1431,7 +1540,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       sameSource(view.source, confirmation.source) && plan !== null && plan.planId === confirmation.planId &&
       plan.executionKey === confirmation.executionKey && plan.orders.length === confirmation.orders.length &&
       plan.orders.every((order, index) => order.areaId === confirmation.orders[index].areaId &&
-        order.treeId === confirmation.orders[index].treeId && order.reason === confirmation.orders[index].reason);
+        order.treeId === confirmation.orders[index].treeId && order.reason === confirmation.orders[index].reason) &&
+      samePrunes(confirmation.prunes);
+  }
+
+  // The approved Prune orders now shown must be exactly those the confirmation froze (no read-out: cannot confirm).
+  function samePrunes(frozenPrunes) {
+    if (!state.stage4) return frozenPrunes.length === 0;
+    const now = approvedPrunes();
+    return now.length === frozenPrunes.length && now.every((order, index) => order.areaId === frozenPrunes[index].areaId &&
+      order.treeId === frozenPrunes[index].treeId && order.targetCrownBaseHeightM === frozenPrunes[index].targetCrownBaseHeightM);
   }
 
   function withdrawConfirmation(confirmation) {
@@ -1439,7 +1557,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const dialog = byId('execute-dialog');
     if (dialog.open) dialog.close();
     lockCommands('Confirmation withdrawn — the approved plan changed',
-      'The Execute confirmation showed ' + confirmation.orders.map((order) => order.treeId).join(', ') + '. The view that ' +
+      'The Execute confirmation showed ' + confirmation.orders.concat(confirmation.prunes).map((order) => order.treeId).join(', ') + '. The view that ' +
       'has just arrived no longer shows that plan with that fence, so nothing was sent. Review the plan now shown, then ' +
       'choose Re-read; after a successful re-read you can choose Execute again.');
   }
@@ -1454,6 +1572,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     renderAreaSwitch();
     renderMap();
     renderOverlap();
+    renderGround();
+    renderLightLegend();
     renderInspector();
     renderCompetition();
     renderBatchResult();
@@ -1486,21 +1606,52 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         el('p', { class: 'area-card-count' }, el('strong', null, String(area.stand.livingCount)), ' ', el('span', null, 'living trees'))),
       el('div', { class: 'area-card-side' },
         el('strong', null, fixed(area.stand.basalAreaM2PerHa, 1)),
-        el('span', null, 'm²/ha basal area · ' + fixed(area.areaHa, 4) + ' ha')))));
+        el('span', null, 'm²/ha basal area · ' + fixed(area.areaHa, 4) + ' ha')),
+      areaReadouts(area.areaId))));
     const approved = view.approved ? view.approved.orders.length : 0;
+    const approvedP = approvedPrunes().length;
+    const pendingP = pendingPrunes().length;
     const drafts = draftTotal();
-    byId('plan-summary').textContent = approved > 0 ? plural(approved, 'approved Fell', 'approved Fell') :
-      view.pending.length > 0 ? view.pending.length + ' pending Fell' : 'No queued work';
-    byId('plan-summary-sub').textContent = [approved > 0 ? 'still standing' : view.pending.length > 0 ? 'not approved' : '',
+    byId('plan-summary').textContent = approved + approvedP > 0
+      ? [approved > 0 ? plural(approved, 'approved Fell', 'approved Fell') : '', approvedP > 0 ? approvedP + ' approved Prune' : ''].filter(Boolean).join(' · ')
+      : view.pending.length + pendingP > 0
+        ? [view.pending.length > 0 ? view.pending.length + ' pending Fell' : '', pendingP > 0 ? pendingP + ' pending Prune' : ''].filter(Boolean).join(' · ')
+        : 'No queued work';
+    byId('plan-summary-sub').textContent = [approved + approvedP > 0 ? 'nothing done yet' : view.pending.length + pendingP > 0 ? 'not approved' : '',
       drafts > 0 ? plural(drafts, 'draft choice', 'draft choices') : ''].filter(Boolean).join(' · ');
-    byId('disclosure').textContent = label('MultiDisclosure');
+    byId('disclosure').textContent = label(isStage4() ? 'MultiDisclosureStage4' : 'MultiDisclosure');
     const chips = [];
-    CHIPS.forEach(([chip, full], index) => {
+    const chipList = isStage4() ? CHIPS.map((pair) => pair[0] === 'MultiChipEdgeExcluded' ? ['MultiChipConnectedWoodland', 'MultiConnectedWoodland'] : pair) : CHIPS;
+    chipList.forEach(([chip, full], index) => {
       if (index > 0) chips.push(' · ');
       chips.push(el('abbr', { title: label(full) }, label(chip)));
     });
     byId('flags').replaceChildren(...chips);
     byId('session-note').replaceChildren(el('abbr', { title: label('MultiSessionOnly') }, label('MultiChipSessionOnly')));
+  }
+
+  // The four rack readouts: canopy cover and open ground, stand density (RD), natural deaths / fallen deadwood and the model
+  // badge. Engine values from the read-out of this same root, formatted only.
+  function areaReadouts(areaId) {
+    const s4 = s4Area(areaId);
+    const readout = state.stage4;
+    if (!s4 || !readout) {
+      return el('p', { class: 'area-readouts' }, 'Stage 4 read-out unavailable for this view — choose Re-read.');
+    }
+    const c = s4.canopy;
+    const m = readout.models;
+    return el('dl', { class: 'area-readouts' },
+      el('div', null, el('dt', null, 'Canopy cover'), el('dd', null, pct(c.geometricCoverFraction), ' ',
+        el('small', null, '· open ' + fixed(c.geometricUncoveredM2, 0) + ' m²'))),
+      el('div', null, el('dt', null, 'Stand density'), el('dd', null, 'RD ' + fixed(c.relativeDensity, 2))),
+      el('div', null, el('dt', null, 'Natural deaths'), el('dd', null, c.annualNaturalDeaths + ' this year', ' ',
+        el('small', null, '· ' + plural(c.fallenDeadwoodCount, 'log', 'logs') + ' total'))),
+      el('div', null, el('dt', { class: 'sr-only' }, 'Model'), el('dd', { class: 'model-badge' },
+        el('abbr', { title: 'CrownModelVersion ' + m.crownModelVersion + ', AdultModelVersion ' + m.adultModelVersion +
+          ', MortalityModelVersion ' + m.mortalityModelVersion + ', light ' + m.lightModelVersion + ' (' + fixed(m.lightCellM, 1) + ' m cells)' },
+        'Model ' + m.crownModelVersion + '/' + m.adultModelVersion + '/' + m.mortalityModelVersion),
+        el('abbr', { title: m.syntheticStandDisclaimer }, 'Synthetic stand'),
+        el('abbr', { title: m.notCalibratedCaveat }, 'Light: not PAR'))));
   }
 
   function areaThumb(area) {
@@ -1518,7 +1669,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function renderAreaSwitch() {
     const view = state.view;
     byId('area-switch').replaceChildren(...view.areas.map((area) => {
-      const inPlan = ordersIn(view.pending, area.areaId).length + (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0);
+      const inPlan = ordersIn(view.pending, area.areaId).length + (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0) +
+        ordersIn(pendingPrunes(), area.areaId).length + ordersIn(approvedPrunes(), area.areaId).length;
       return el('button', { type: 'button', class: 'area-tab', 'data-area': area.areaId, 'data-focus-key': 'area:' + area.areaId,
         'aria-pressed': String(area.areaId === state.areaId) },
         areaThumb(area),
@@ -1682,7 +1834,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const className = 'tree s-' + item.status + (dimmed ? ' dimmed' : '');
       if (cached.node.getAttribute('class') !== className) cached.node.setAttribute('class', className);
       (focused ? focusCrowns : crowns).push(cached.node);
-      marks.push(...statusMarks(item, mpp));
+      marks.push(...statusMarks(item, mpp), ...pruneMarks(area.areaId, item, mpp));
     }
     if (report) {
       // Each rank tile (and its tick box) takes the first corner around its crown that does not cover another tile, the
@@ -1716,6 +1868,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const host = byId('crowns');
     const unchanged = host.childNodes.length === crowns.length && crowns.every((node, index) => host.childNodes[index] === node);
     if (!unchanged) host.replaceChildren(...crowns);
+    // Fallen deadwood at the engine's map position of each record (a fixed-size symbol: not to scale, no fall direction).
+    const s4 = s4Area(area.areaId);
+    byId('deadwood').replaceChildren(...(s4 ? s4.canopy.fallenDeadwood.flatMap((record) => logMark(record.u, record.v, mpp)) : []));
+    renderLightCells(area.areaId, mpp, box.scale);
     byId('marks').replaceChildren(...marks);
     const chosen = selectedId() ? items.get(selectedId()) : null;
     const lit = chosen && !state.lock ? (chosen.treeId === reference ? referenceMarks(chosen, mpp, true) : inspectMarks(chosen, mpp, true)) : [];
@@ -1726,7 +1882,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('map-subtitle').textContent = area.label + ' · ' + fixed(area.areaHa, 4) + ' ha';
     byId('map-note').textContent = areaName(area.areaId) + ' · ' + (state.zoom === 1 ? 'Fit whole area' :
       fixed(state.zoom, 2) + '× Fit · view ' + fixed(box.uw, 1) + ' × ' + fixed(box.uh, 1) + ' m') +
-      ' · site ' + area.site + ' · neighbours across area edges excluded';
+      ' · site ' + area.site + (isStage4() ? ' · growth and crowns use both areas; Work Plans and summaries per area' :
+        ' · neighbours across area edges excluded');
     byId('zoom-state').textContent = state.zoom === 1 ? 'Fit' : fixed(state.zoom, 2) + '×';
     renderScale(box.scale);
     renderMapStatus(reference, draft.size);
@@ -1747,6 +1904,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const view = state.view;
     let text = '';
     if (state.batch) text = 'Adding ' + (state.batch.confirmed.length + 1) + ' of ' + state.batch.ids.length + ' to the Fell plan…';
+    else if (view.approved && approvedPrunes().length > 0) text = workTotals(view.approved.orders.length, approvedPrunes().length) + ' approved · nothing done yet';
     else if (view.approved) text = plural(view.approved.orders.length, 'approved Fell', 'approved Fell') + ' · still standing';
     else if (reference) text = 'Reference ' + reference + ' · ' + plural(drafts, 'draft choice', 'draft choices');
     box.hidden = text === '';
@@ -1982,6 +2140,110 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return marks;
   }
 
+  // Stage 4 Work Plan state of a living tree, from the engine read-out: a scissors tile in the work-state corner, with the
+  // Fell convention for the line (dashed = pending, double = approved). A tree never holds both a Fell and a Prune order.
+  function pruneMarks(areaId, item, mpp) {
+    const s4 = s4Tree(areaId, item.treeId);
+    if (!s4 || !s4.prunePlanState) return [];
+    return s4.prunePlanState === 'PendingPrune'
+      ? [underline(item, 'ring-pending', mpp, 4), badge(item, TILE.status, '✂', 'pending', mpp)]
+      : [underline(item, 'ring-approved', mpp, 4), underline(item, 'ring-approved', mpp, 8), badge(item, TILE.status, '✂', 'approved', mpp)];
+  }
+
+  // A fallen log: a short horizontal stem with an end-grain disc, a fixed 26 × 8 px symbol. Its shape (not its colour)
+  // tells it apart from a standing dead crown (D) and a stump (X). It implies no length, direction, decay or value.
+  function logMark(u, v, mpp) {
+    const half = 13 * mpp, h = 4 * mpp;
+    const body = 'M ' + n3(u - half) + ' ' + n3(v - h) + ' H ' + n3(u + half - h) + ' A ' + n3(h) + ' ' + n3(h) + ' 0 0 1 ' +
+      n3(u + half - h) + ' ' + n3(v + h) + ' H ' + n3(u - half) + ' Z';
+    const g = svg('g', { class: 'log' });
+    g.append(svg('path', { class: 'log-halo', d: body }), svg('path', { class: 'log-body', d: body }),
+      svg('ellipse', { class: 'log-end', cx: n3(u - half), cy: n3(v), rx: n3(h * .75), ry: n3(h) }),
+      svg('ellipse', { class: 'log-ring', cx: n3(u - half), cy: n3(v), rx: n3(h * .35), ry: n3(h * .5) }));
+    return [g];
+  }
+
+  // The Light Guide: every polygon-clipped 2.5 m cell of the shown area, coloured by display band and numbered with it when
+  // the cell is large enough on screen. Values come from the engine read-out; cells take clicks only while the guide is on.
+  function renderLightCells(areaId, mpp, scale) {
+    const host = byId('light-cells');
+    const s4 = s4Area(areaId);
+    if (!state.lightOn || !s4) { host.replaceChildren(); return; }
+    // Every cell carries its band number (never colour alone); the digit shrinks with the cell down to 6 px on screen.
+    const cellPx = state.stage4.models.lightCellM * scale;
+    const fontPx = Math.max(6, Math.min(10, cellPx * 0.62));
+    const nodes = [];
+    for (const cell of s4.ground) {
+      const band = lightBand(cell.lightIndex);
+      const inspected = state.ground && state.ground.areaId === areaId && state.ground.column === cell.column && state.ground.row === cell.row;
+      nodes.push(svg('polygon', { class: 'light-cell lc-' + band + (inspected ? ' inspected' : ''), 'data-cell': cell.column + ':' + cell.row,
+        points: cell.polygon.map((p) => n3(p.u) + ',' + n3(p.v)).join(' ') }));
+      nodes.push(svg('text', { class: 'lc-text', x: n3(cell.centreU), y: n3(cell.centreV), 'font-size': n3(fontPx * mpp) }, band));
+    }
+    host.replaceChildren(...nodes);
+  }
+
+  function renderLightLegend() {
+    const legend = byId('light-legend');
+    legend.hidden = !state.lightOn;
+    byId('light-toggle').setAttribute('aria-pressed', String(state.lightOn));
+    byId('light-toggle-text').textContent = 'Light Guide: ' + (state.lightOn ? 'On' : 'Off');
+    if (!state.lightOn) return;
+    byId('light-legend-title').textContent = label('MultiLightGuideLabel');
+    if (byId('light-ramp').childNodes.length > 0) return;
+    const items = [];
+    for (let band = 1; band < LIGHT_BANDS.length; band++) {
+      const swatch = svg('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' });
+      swatch.append(svg('rect', { class: 'light-cell lc-' + band, x: 1, y: 1, width: 14, height: 14 }),
+        svg('text', { class: 'lc-text', x: 8, y: 8.5, 'font-size': 10 }, band));
+      items.push(el('li', null, swatch, band + ' · ' + fixed(LIGHT_BANDS[band - 1], 1) + '–' + fixed(LIGHT_BANDS[band], 1) +
+        (band === 1 ? ' darkest' : band === LIGHT_BANDS.length - 1 ? ' brightest' : '')));
+    }
+    byId('light-ramp').replaceChildren(...items);
+  }
+
+  // The ground inspector: the engine's values for one cell. Inspecting a cell never changes a selection or a Fell draft.
+  function renderGround() {
+    const panel = byId('ground-panel');
+    const g = state.ground;
+    const cell = g && state.lightOn && g.areaId === state.areaId ? groundCell(g.areaId, g.column, g.row) : null;
+    panel.hidden = !cell;
+    if (!cell) return;
+    const models = state.stage4.models;
+    byId('ground-heading').textContent = areaName(g.areaId) + ' · cell ' + cell.column + ', ' + cell.row;
+    byId('ground-label').textContent = label('MultiLightGuideLabel');
+    const contributors = cell.contributingTreeIds;
+    byId('ground-facts').replaceChildren(
+      pair('Modelled Light Index (0–1)', fixed(cell.lightIndex, 3) + ' · band ' + lightBand(cell.lightIndex) + ' of 5'),
+      pair('Overhead cover fraction', pct(cell.geometricCoveredFraction) + ' of this cell under living crowns'),
+      pair('Contributing trees', contributors.length === 0 ? 'none (no living crown shades this cell centre)' :
+        el('span', { class: 'mono' }, contributors.length + ': ' + contributors.join(', '))),
+      pair('Cross-border trees', String(cell.crossBorderTrees)),
+      pair('Cell', fixed(models.lightCellM, 1) + ' m grid · ' + fixed(cell.clippedAreaM2, 2) + ' m² inside the area · centre X ' +
+        fixed(cell.centreXM, 2) + ', Z ' + fixed(cell.centreZM, 2)));
+    byId('ground-caveat').textContent = models.notCalibratedCaveat;
+  }
+
+  function setLightGuide(on) {
+    state.lightOn = on;
+    if (!on) state.ground = null;
+    renderAll();
+    announce(on ? 'Light Guide on: map clicks now inspect ground cells; tree selection stays available from the Trees tab.' :
+      'Light Guide off: map clicks select trees again.');
+  }
+
+  function inspectCell(areaId, key) {
+    const [column, row] = key.split(':').map(Number);
+    const cell = groundCell(areaId, column, row);
+    if (!cell) return;
+    state.ground = { areaId, column, row };
+    showPane('tree');
+    renderAll();
+    announce('Ground cell ' + column + ', ' + row + ': modelled light index ' + fixed(cell.lightIndex, 2) + ', cover ' +
+      pct(cell.geometricCoveredFraction) + ', ' + plural(cell.contributingTreeIds.length, 'contributing tree', 'contributing trees') +
+      '. Your selection and Fell draft are unchanged.');
+  }
+
   // Grid lines every 5 m (10 m when zoomed far out) of the experiment frame across the light exterior, faintly inside the
   // stand, labelled in the same X (east) and Z (north) metres as the tree table.
   function drawGrid(area, mpp, scale) {
@@ -2046,6 +2308,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         ...statusMarks(Object.assign({}, item, { status: 'Felled' }), mpp)]],
       ['Naturally dead · D', 'Annual mortality, not felling', (item, mpp) => [...legendTree(item, 'NaturalDead'),
         ...statusMarks(Object.assign({}, item, { status: 'NaturalDead' }), mpp)]],
+      ['Fallen deadwood · log', 'One log per natural death; not to scale', (item, mpp) => logMark(0, 0, mpp * 1.6)],
+      ['Pending Prune · ✂', 'Queued; no crown cut yet', (item, mpp) => [...legendTree(item, 'Living'),
+        underline(item, 'ring-pending', mpp, 4), badge(item, TILE.status, '✂', 'pending', mpp)]],
+      ['Approved Prune · ✂', 'Crown cut only on Execute', (item, mpp) => [...legendTree(item, 'Living'),
+        underline(item, 'ring-approved', mpp, 4), underline(item, 'ring-approved', mpp, 8), badge(item, TILE.status, '✂', 'approved', mpp)]],
     ];
     const items = rows.map(([name, description, draw]) => el('li', null, legendIcon(draw),
       el('span', null, el('span', { class: 'legend-name' }, name), el('span', { class: 'legend-desc' }, description))));
@@ -2140,6 +2407,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       facts.push(pair('Death year', tree.death.ecologicalYear));
       facts.push(pair('Cause', tree.death.cause + ' (' + tree.death.mechanism + ')'));
     }
+    const s4 = s4Tree(areaId, tree.treeId);
+    if (s4) {
+      facts.push(pair('Life state', s4.lifeState + (s4.deathCause ? ' · ' + s4.deathCause + ', year ' + s4.deathYear : '')));
+      facts.push(pair('Pruning lifts', s4.pruningLifts + ' / ' + s4.maxPruningLifts + (s4.pruningLifts > 0
+        ? ' · crown base ' + fixed(s4.crownBaseHeightM, 1) + ' m · last lift year ' + s4.lastPruningYear : '')));
+    }
     const reason = recordedReason(areaId, tree.treeId);
     if (reason !== null) facts.push(pair('Recorded reason', reason, 'wide'));
     byId('insp-facts').replaceChildren(...facts);
@@ -2158,6 +2431,48 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('insp-approved-note').hidden = item.status !== 'ApprovedFell';
     byId('insp-threshold').textContent = label('MultiThresholdInformational');
     byId('insp-threshold').hidden = !tree.isLiving;
+    renderPruneBox(areaId, tree, item, s4);
+  }
+
+  // Pruning of the inspected living tree: lifts so far, and the engine's eligibility for the next scheduled lift with its own
+  // reason. The page decides nothing about eligibility; it only refuses to send while the plan state already says no.
+  function renderPruneBox(areaId, tree, item, s4) {
+    const box = byId('prune-box');
+    box.hidden = !tree.isLiving || !s4;
+    if (box.hidden) return;
+    byId('prune-lifts').textContent = 'Pruning lifts ' + s4.pruningLifts + ' / ' + s4.maxPruningLifts;
+    let status;
+    if (s4.prunePlanState === 'PendingPrune') status = '✂ Pending Prune — no crown is cut until the approved plan is executed.';
+    else if (s4.prunePlanState === 'ApprovedPrune') status = '✂ Approved Prune — the crown is cut only when the plan is executed.';
+    else if (s4.pruneEligible) status = 'Eligible now: next lift raises the crown base to ' + fixed(s4.nextPruneTargetM, 1) + ' m.';
+    else status = 'Not eligible: ' + s4.pruneRefusalReason + (s4.nextPruneEligibleYear !== null ? ' (next lift possible in year ' +
+      s4.nextPruneEligibleYear + ')' : '') + '.';
+    byId('prune-status').textContent = status;
+    const add = byId('prune-add');
+    add.textContent = '✂ ' + label('MultiAddToPrunePlan');
+    add.hidden = Boolean(s4.prunePlanState);
+    const remove = byId('prune-remove');
+    remove.hidden = s4.prunePlanState !== 'PendingPrune';
+    remove.textContent = 'Remove Prune from Work Plan';
+    remove.setAttribute('aria-label', 'Remove the pending Prune of ' + tree.treeId);
+    byId('prune-why').textContent = pruneAvailability(areaId, item, s4).why || label('MultiPrunePendingNote') + '.';
+  }
+
+  // Whether "Add to Prune plan" can send now, and the plain reason when not: the engine's refusal reason first.
+  function pruneAvailability(areaId, item, s4) {
+    if (!s4 || !item) return { ok: false, why: 'Select a living tree.' };
+    if (!s4.pruneEligible) return { ok: false, why: 'Not eligible (engine): ' + s4.pruneRefusalReason + '.' };
+    if (s4.prunePlanState) return { ok: false, why: 'Already in the Work Plan as a Prune.' };
+    if (item.status === 'PendingFell' || item.status === 'ApprovedFell') return { ok: false, why: 'This tree has a Fell order; one order per tree.' };
+    if (state.view.approved) return { ok: false, why: 'The plan is approved, so editing is locked. Cancel the approved plan to change it.' };
+    return { ok: true, why: null };
+  }
+
+  function renderPruneGate() {
+    const areaId = state.areaId;
+    const id = selectedId();
+    const s4 = s4Tree(areaId, id);
+    byId('prune-add').disabled = !pruneAvailability(areaId, id ? itemOf(areaId, id) : null, s4).ok;
   }
 
   // ---- read-only competition: any living tree, before or after any Crop designation ------------------------------------
@@ -2253,6 +2568,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         (report.targetPlannedForFell ? ' · This tree is planned for Fell: no release estimate.' :
           ' → ' + fixed(report.hypotheticalTotal, 4) + ' if its pending or approved neighbours were felled.')));
       more.push(el('p', { class: 'small-note' }, 'The planned figure counts only queued or approved orders, never unsent draft choices.'));
+      if (isStage4()) more.push(el('p', { class: 'small-note' }, label('MultiCompetitionAreaOnly') + '.'));
       more.push(el('p', { class: 'small-note' }, 'Other neighbours: ' + report.remainingCount + ' · combined ' +
         fixed(report.remainingSharePercent, 1) + '% share. Rank is current competition rank, not health or a felling recommendation; ' +
         'strength describes share of CI, not tree health.'));
@@ -2503,6 +2819,22 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       label('MultiRemoveFromPlan')) : null)));
   }
 
+  // Prune orders: icon and text name the state (never colour alone); the target height is the engine's scheduled lift.
+  function pruneList(orders, approved, removable) {
+    return el('ul', { class: 'list orders prune-orders' }, ...orders.map((order) => el('li', null,
+      el('span', null, el('span', { class: 'order-kind k-prune' }, approved ? '✂ Approved Prune' : '✂ Pending Prune'),
+        el('span', { class: 'mono' }, order.treeId)),
+      el('span', { class: 'order-reason' }, 'one lift · crown base to ' + fixed(order.targetCrownBaseHeightM, 1) + ' m' +
+        (approved ? ' · cut on Execute' : ' · not cut')),
+      removable ? el('button', { type: 'button', class: 'small', 'data-prune-remove': order.treeId, 'data-area': order.areaId,
+        'data-focus-key': 'prune-remove:' + order.treeId, 'aria-label': 'Remove the pending Prune of ' + order.treeId },
+      label('MultiRemoveFromPlan')) : null)));
+  }
+
+  function workTotals(fells, prunes) {
+    return [fells > 0 ? fells + ' Fell' : '', prunes > 0 ? prunes + ' Prune' : ''].filter(Boolean).join(' · ');
+  }
+
   function perAreaCounts(orders) {
     return state.view.areas.map((area) => area.label + ' ' + ordersIn(orders, area.areaId).length).join(' · ');
   }
@@ -2510,22 +2842,30 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function renderPlan() {
     const view = state.view;
     const plan = view.approved;
+    const pendingP = pendingPrunes();
+    const approvedP = approvedPrunes();
+    const pendingCount = view.pending.length + pendingP.length;
     byId('plan-heading').textContent = plan ? 'Approved work plan' : 'Work plan';
-    byId('step-pending').className = !plan && view.pending.length > 0 ? 'now' : '';
+    byId('step-pending').className = !plan && pendingCount > 0 ? 'now' : '';
     byId('step-approved').className = plan ? 'now' : '';
     byId('plan-scope').textContent = label('MultiOnePlan') + '. ' + label('MultiLastLivingRefused') + '.';
-    byId('pending-box').hidden = plan !== null && view.pending.length === 0;
-    byId('pending-total').textContent = view.pending.length === 0 ? 'No pending Fell' :
-      view.pending.length + ' pending Fell · not felled (' + perAreaCounts(view.pending) + ')';
+    byId('pending-box').hidden = plan !== null && pendingCount === 0;
+    byId('pending-total').textContent = view.pending.length === 0 && pendingP.length === 0 ? 'No pending Fell' :
+      pendingP.length === 0 ? view.pending.length + ' pending Fell · not felled (' + perAreaCounts(view.pending) + ')' :
+        workTotals(view.pending.length, pendingP.length) + ' pending · nothing felled or cut (' +
+          state.view.areas.map((area) => area.label + ' ' + (ordersIn(view.pending, area.areaId).length + ordersIn(pendingP, area.areaId).length)).join(' · ') + ')';
     byId('pending-areas').replaceChildren(...view.areas.map((area) => {
       const orders = ordersIn(view.pending, area.areaId);
+      const prunes = ordersIn(pendingP, area.areaId);
       return el('section', { class: 'plan-area', 'aria-label': 'Pending in ' + areaName(area.areaId) },
-        el('h4', null, areaName(area.areaId) + ' · ' + plural(orders.length, 'pending order', 'pending orders')),
-        orders.length === 0 ? el('p', { class: 'small-note' }, 'No pending Fell in this area.') : orderList(orders, 'pending-orders', true));
+        el('h4', null, areaName(area.areaId) + ' · ' + plural(orders.length + prunes.length, 'pending order', 'pending orders')),
+        orders.length === 0 && prunes.length === 0 ? el('p', { class: 'small-note' }, 'No pending Fell in this area.') : null,
+        orders.length === 0 ? null : orderList(orders, 'pending-orders', true),
+        prunes.length === 0 ? null : pruneList(prunes, false, true));
     }));
     const approve = byId('approve');
-    approve.textContent = label('MultiApprove') + ' · ' + plural(view.pending.length, 'order', 'orders');
-    approve.hidden = view.pending.length === 0 || plan !== null;
+    approve.textContent = label('MultiApprove') + ' · ' + plural(pendingCount, 'order', 'orders');
+    approve.hidden = pendingCount === 0 || plan !== null;
     byId('approved-empty').hidden = plan !== null;
     byId('approved-box').hidden = plan === null;
     if (plan === null) {
@@ -2533,17 +2873,22 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       byId('approved-total').textContent = '';
       return;
     }
-    byId('approved-total').textContent = plan.orders.length + ' approved · still standing';
+    byId('approved-total').textContent = approvedP.length === 0 ? plan.orders.length + ' approved · still standing' :
+      workTotals(plan.orders.length, approvedP.length) + ' approved · nothing felled or cut yet';
     byId('approved-sub').textContent = 'Execution has not happened. Year remains ' + view.source.ecologicalYear + '. ' +
-      perAreaCounts(plan.orders) + ' · approved in year ' + plan.source.ecologicalYear + '.';
+      state.view.areas.map((area) => area.label + ' ' + (ordersIn(plan.orders, area.areaId).length + ordersIn(approvedP, area.areaId).length)).join(' · ') +
+      ' · approved in year ' + plan.source.ecologicalYear + '.';
     byId('approved-areas').replaceChildren(...view.areas.map((area) => {
       const orders = ordersIn(plan.orders, area.areaId);
+      const prunes = ordersIn(approvedP, area.areaId);
+      const n = orders.length + prunes.length;
       return el('section', { class: 'plan-area', 'aria-label': 'Approved in ' + areaName(area.areaId) },
-        el('h4', null, areaName(area.areaId) + ' · ' + (orders.length === 0 ? 'no orders' : plural(orders.length, 'order', 'orders'))),
-        orders.length === 0 ? null : orderList(orders, 'approved-orders', false));
+        el('h4', null, areaName(area.areaId) + ' · ' + (n === 0 ? 'no orders' : plural(n, 'order', 'orders'))),
+        orders.length === 0 ? null : orderList(orders, 'approved-orders', false),
+        prunes.length === 0 ? null : pruneList(prunes, true, false));
     }), technicalPlan(plan.planId, plan.executionKey));
     byId('cancel-approved').textContent = label('MultiCancelApproved');
-    byId('execute').textContent = label('MultiExecute') + ' · ' + plural(plan.orders.length, 'order', 'orders');
+    byId('execute').textContent = label('MultiExecute') + ' · ' + plural(plan.orders.length + approvedP.length, 'order', 'orders');
   }
 
   function renderReceipt() {
@@ -2562,6 +2907,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         event.areas.map((change) => [areaShort(change.areaId), change.before.livingCount + ' → ' + change.after.livingCount,
           fixed(change.before.basalAreaM2PerHa, 2) + ' → ' + fixed(change.after.basalAreaM2PerHa, 2),
           change.fells.length === 0 ? 'none' : change.fells.map((fell) => fell.treeId + ' (' + fell.cause + '; ' + fell.reason + ')').join('; ')])));
+      const pruned = state.stage4 ? state.stage4.pruneLog.filter((record) => record.executionKey === event.executionKey) : [];
+      if (pruned.length > 0) {
+        parts.push(table('Pruned in this Execute (engine record)', ['Tree', 'Area', 'Crown radius (m)', 'Crown base', 'Lifts'],
+          pruned.map((record) => [record.treeId, areaShort(record.areaId), fixed(record.crownRadiusBeforeM, 3) + ' → ' + fixed(record.crownRadiusAfterM, 3),
+            fixed(record.targetCrownBaseHeightM, 1) + ' m', record.liftsAfter + ' / 3'])));
+      }
       parts.push(technicalPlan(event.planId, event.executionKey));
     }
     byId('receipt').replaceChildren(...parts);
@@ -2579,8 +2930,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       latest.replaceChildren(
         el('p', null, 'Latest year ' + record.yearBefore + ' → ' + record.yearAfter + (record.cancelledUnexecutedWork ?
           ' · unexecuted work in both areas was cancelled at zero Fell' : '') + (carried
-          ? '. Each populated area ran the unchanged annual rules on its own trees; an area with no living stems was carried forward unchanged.'
-          : '. Each area ran the unchanged annual rules on its own trees.')),
+          ? '. Each populated area ran the annual rules; an area with no living stems was carried forward unchanged.'
+          : isStage4() ? '. Stage 4 rules: growth and crowns over the connected woodland; density mortality from each area\'s own stems.'
+            : '. Each area ran the unchanged annual rules on its own trees.')),
         table('Year ' + record.yearBefore + ' → ' + record.yearAfter + ' per area', ['Area', 'Living trees', 'Basal area (m²/ha)', 'Natural deaths'],
           record.areas.map((year) => [areaShort(year.areaId), year.before.livingCount + ' → ' + year.after.livingCount,
             fixed(year.before.basalAreaM2PerHa, 2) + ' → ' + fixed(year.after.basalAreaM2PerHa, 2),
@@ -2632,8 +2984,19 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const view = state.view;
     const e = view.experiment;
     const s = view.source;
-    byId('statements').replaceChildren(...['MultiDisclosure'].concat(STATEMENTS, ['MultiReviewStatus', 'MultiEmptyAreaRule'])
+    const stage4 = isStage4();
+    const statements = stage4 ? STATEMENTS.map((name) => (name === 'MultiEdgeExcluded' ? 'MultiConnectedWoodland' : name)) : STATEMENTS;
+    byId('statements').replaceChildren(...[stage4 ? 'MultiDisclosureStage4' : 'MultiDisclosure'].concat(statements, ['MultiReviewStatus', 'MultiEmptyAreaRule'])
       .map((name) => label(name)).filter((text) => text !== '').map((text) => el('li', null, text)));
+    const m = state.stage4 ? state.stage4.models : null;
+    byId('stage4-statements').replaceChildren(...(m ? [
+      'Models: CrownModelVersion ' + m.crownModelVersion + ' · AdultModelVersion ' + m.adultModelVersion + ' · MortalityModelVersion ' +
+        m.mortalityModelVersion + ' · light ' + m.lightModelVersion + ' (' + fixed(m.lightCellM, 1) + ' m cells, shade buffer b = ' + fixed(m.shadeBufferM, 1) + ' m)',
+      m.lightLabel + ': ' + m.notCalibratedCaveat,
+      label('MultiDeadwoodNote'),
+    ].concat(m.evidenceLabels, m.lightUncertainties) : []).map((text) => el('li', null, text)));
+    byId('details-note').textContent = stage4 ? label('MultiNotModelledStage4') :
+      'Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area\'s ecology uses only its own trees.';
     byId('facts').replaceChildren(
       pair('Experiment', e.experimentId), pair('Format', e.format + ' v' + e.schemaVersion), pair('Domain', e.domain),
       pair('Source class', e.sourceClass), pair('Manifest content hash', expandable(e.manifestContentHash)),
@@ -2649,7 +3012,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function renderPaneButtons() {
     const view = state.view;
-    const counts = { plan: view.pending.length + (view.approved ? view.approved.orders.length : 0), history: view.annualHistory.length };
+    const counts = { plan: view.pending.length + (view.approved ? view.approved.orders.length : 0) + pendingPrunes().length +
+      approvedPrunes().length, history: view.annualHistory.length };
     for (const button of document.querySelectorAll('[data-pane-button]')) {
       const name = button.getAttribute('data-pane-button');
       const wanted = PANE_NAMES[name] + (name in counts ? '|' + counts[name] : '');
@@ -2765,6 +3129,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
 
   async function onMapClick(event) {
+    // With the Light Guide on, a click inspects the engine's ground cell under it (the browser's own hit-test on the drawn
+    // cell). It sends nothing and never changes the selection or an unsent Fell draft.
+    if (state.lightOn && state.view) {
+      const cell = event.target && event.target.closest ? event.target.closest('[data-cell]') : null;
+      if (cell) inspectCell(state.areaId, cell.getAttribute('data-cell'));
+      else announce('Light Guide is on: click a ground cell inside the area, or turn the guide off to select trees on the map.');
+      return;
+    }
     if (state.batch) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
     const area = currentArea();
@@ -2866,10 +3238,32 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       () => announce('Done: ' + label('MultiRemoveFromPlan') + ' (' + treeId + '). Pending order removed; no draft changed.'), 'plan-heading');
   }
 
+  // Queue one Prune for the inspected living tree. The engine chooses the lift height and checks every guard again.
+  function onPruneAdd() {
+    const areaId = state.areaId;
+    const treeId = selectedId();
+    const s4 = s4Tree(areaId, treeId);
+    if (!state.view || state.busy || state.batch || !treeId || !s4) return;
+    if (refusedByLock('Add ' + treeId + ' to the Prune plan')) return;
+    if (!pruneAvailability(areaId, itemOf(areaId, treeId), s4).ok) return;
+    run('api/multi/prune/add', { fence: currentFence(), areaId, treeId }, 'Add ' + treeId + ' to the Prune plan', (payload) => {
+      const order = payload.stage4 ? payload.stage4.pendingPrunes.find((o) => o.treeId === treeId) : null;
+      announce('Done: ' + treeId + ' added as a pending Prune' + (order ? ' (crown base to ' + fixed(order.targetCrownBaseHeightM, 1) + ' m)' : '') +
+        '. No crown was cut; Approve and Execute are separate.');
+    }, 'prune-remove');
+  }
+
+  function removePrune(areaId, treeId) {
+    if (!areaId || !treeId || state.batch) return;
+    run('api/multi/prune/remove', { fence: currentFence(), areaId, treeId }, 'Remove the pending Prune of ' + treeId,
+      () => announce('Done: pending Prune of ' + treeId + ' removed. Nothing was cut.'), 'plan-heading');
+  }
+
   function onApprove() {
     run('api/multi/plan/approve', { fence: currentFence() }, label('MultiApprove'), (payload) => {
-      announce('Done: ' + label('MultiApprove') + '. Approved: ' + payload.view.approved.orders.map((o) => o.treeId).join(', ') +
-        '. Nothing was felled. Living trees unchanged: ' + payload.view.areas.map((a) => a.label + ' ' + a.stand.livingCount).join(', ') + '.');
+      const prunes = payload.stage4 ? payload.stage4.approvedPrunes.map((o) => o.treeId) : [];
+      announce('Done: ' + label('MultiApprove') + '. Approved: ' + payload.view.approved.orders.map((o) => o.treeId).concat(prunes).join(', ') +
+        '. Nothing was felled or cut. Living trees unchanged: ' + payload.view.areas.map((a) => a.label + ' ' + a.stand.livingCount).join(', ') + '.');
     }, 'plan-heading');
   }
 
@@ -2897,14 +3291,23 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const confirmation = confirmationOf(view);
     state.confirmation = confirmation;
     const n = confirmation.orders.length;
+    const m = confirmation.prunes.length;
     const areas = new Set(confirmation.orders.map((order) => order.areaId)).size;
     byId('execute-title').textContent = label('MultiExecute');
-    byId('execute-text').textContent = fill(label(n === 1 ? 'MultiExecuteConfirmationOneTree' : 'MultiExecuteConfirmation'),
+    const fellText = n === 0 ? '' : fill(label(n === 1 ? 'MultiExecuteConfirmationOneTree' : 'MultiExecuteConfirmation'),
       { n, a: areas, y: confirmation.year }) + '.';
+    const pruneText = m === 0 ? '' : n === 0 ? fill(label('MultiExecutePruneConfirmation'), { n: m, y: confirmation.year })
+      .replace('named trees', m === 1 ? 'named tree' : 'named trees') + '.'
+      : 'It also prunes exactly ' + plural(m, 'named tree', 'named trees') + ' (one lift each) in the same all-or-nothing Execute.';
+    byId('execute-text').textContent = [fellText, pruneText].filter(Boolean).join(' ');
+    byId('execute-confirm').textContent = n > 0 && m > 0 ? 'Confirm felling and pruning' : m > 0 ? 'Confirm pruning' : 'Confirm felling';
     byId('execute-areas').replaceChildren(...view.areas.map((area) => {
       const orders = confirmation.orders.filter((order) => order.areaId === area.areaId);
-      return el('section', { class: 'plan-area' }, el('h3', null, areaName(area.areaId) + ' — ' + orders.length),
-        orders.length === 0 ? el('p', { class: 'note' }, 'No Fell in this area.') : orderList(orders, 'approved-orders', false));
+      const prunes = confirmation.prunes.filter((order) => order.areaId === area.areaId);
+      return el('section', { class: 'plan-area' }, el('h3', null, areaName(area.areaId) + ' — ' + (orders.length + prunes.length)),
+        orders.length === 0 && prunes.length === 0 ? el('p', { class: 'note' }, 'No Fell in this area.') : null,
+        orders.length === 0 ? null : orderList(orders, 'approved-orders', false),
+        prunes.length === 0 ? null : pruneList(prunes, true, false));
     }));
     byId('execute-plan').replaceChildren(label('MultiLastLivingRefused') + '. The ecological year does not change. ',
       technicalPlan(confirmation.planId, confirmation.executionKey));
@@ -2938,8 +3341,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         announce(label('MultiAlreadyExecuted') + '.');
         return;
       }
+      const pruned = payload.stage4 ? payload.stage4.pruneLog.filter((record) => record.executionKey === execution.executionKey) : [];
       announce('Done: ' + label('MultiExecute') + '. ' + execution.event.areas.map((change) => areaName(change.areaId) + ' living ' +
-        change.before.livingCount + ' → ' + change.after.livingCount + ' (felled ' + (change.fells.map((f) => f.treeId).join(', ') || 'none') + ')').join('; ') + '.');
+        change.before.livingCount + ' → ' + change.after.livingCount + ' (felled ' + (change.fells.map((f) => f.treeId).join(', ') || 'none') + ')').join('; ') + '.' +
+        (pruned.length ? ' Pruned: ' + pruned.map((r) => r.treeId + ' crown ' + fixed(r.crownRadiusBeforeM, 2) + ' → ' + fixed(r.crownRadiusAfterM, 2) + ' m').join('; ') +
+          '. The year did not change.' : ''));
     }, 'receipt-heading');
     showPane('plan');
   }
@@ -2963,7 +3369,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function onAdvance() {
     const view = state.view;
     if (!view || state.batch || refusedByLock(label('MultiAdvanceYear'))) return;
-    const work = view.pending.length > 0 || view.approved !== null;
+    const work = view.pending.length > 0 || view.approved !== null || pendingPrunes().length > 0;
     const drafts = draftTotal();
     if (work || drafts > 0) openConsentDialog(work, drafts);
     else sendAdvance(false);
@@ -2977,8 +3383,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('consent-text').textContent = work ? 'The Work Plan has unexecuted work. Advancing the year needs your explicit choice; cancelling ' +
       'removes ALL pending and approved orders in BOTH areas and fells nothing.' : 'The Work Plan has no unexecuted work. Advancing the year fells nothing.';
     byId('consent-areas').replaceChildren(...(work ? view.areas.map((area) => {
-      const pending = ordersIn(view.pending, area.areaId).map((order) => order.treeId);
-      const approved = view.approved ? ordersIn(view.approved.orders, area.areaId).map((order) => order.treeId) : [];
+      const pending = ordersIn(view.pending, area.areaId).map((order) => order.treeId)
+        .concat(ordersIn(pendingPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'));
+      const approved = (view.approved ? ordersIn(view.approved.orders, area.areaId).map((order) => order.treeId) : [])
+        .concat(ordersIn(approvedPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'));
       return el('p', null, areaName(area.areaId) + ': ' + (pending.length ? 'pending ' + pending.join(', ') : 'no pending orders') + '; ' +
         (approved.length ? 'approved ' + approved.join(', ') : 'no approved orders') + '.');
     }) : []));
@@ -3065,6 +3473,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const button = event.target.closest('[data-remove]');
       if (button) removePending(button.getAttribute('data-area'), button.getAttribute('data-remove'));
     });
+    byId('pending-areas').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-prune-remove]');
+      if (button) removePrune(button.getAttribute('data-area'), button.getAttribute('data-prune-remove'));
+    });
+    byId('prune-add').addEventListener('click', onPruneAdd);
+    byId('prune-remove').addEventListener('click', () => removePrune(state.areaId, selectedId()));
+    byId('light-toggle').addEventListener('click', () => setLightGuide(!state.lightOn));
+    byId('ground-close').addEventListener('click', () => { state.ground = null; renderAll(); byId('map-heading').focus(); });
     byId('approve').addEventListener('click', onApprove);
     byId('cancel-approved').addEventListener('click', onCancelApproved);
     byId('execute').addEventListener('click', openExecuteDialog);

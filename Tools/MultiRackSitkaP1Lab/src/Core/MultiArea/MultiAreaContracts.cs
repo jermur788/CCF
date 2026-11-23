@@ -154,4 +154,24 @@ internal static class MultiAreaLabels
     public const string MultiOutcomeUnconfirmed = "Outcome unconfirmed — re-read current state";
     public const string MultiNoNaturalDeaths = "no natural deaths";
     public const string MultiAreaNoLivingStems = "no living stems — carried forward unchanged";
+
+    // Stage 1–4 UI catch-up (spec multi-stage4-ui-catchup-v1): the page shows these for a 1/1/1 session, where the model 0
+    // "edge neighbours excluded" statements above would no longer be true. The manifest disclosure itself is unchanged.
+    public const string MultiDisclosureStage4 =
+        "SYNTHETIC AUTHORED TWO-AREA SITKA EXPERIMENT. NOT A SURVEYED IRISH FOREST. AREAS NOT ASSESSED COMPARABLE. SITE UNKNOWN. " +
+        "CONNECTED WOODLAND: GROWTH AND CROWNS USE BOTH AREAS; DENSITY MORTALITY, WORK PLANS AND SUMMARIES STAY PER AREA. " +
+        "NO TREATMENT TRANSFER BETWEEN AREAS. NOT UNITY NUMERICAL OR GEOMETRY PARITY.";
+    public const string MultiConnectedWoodland =
+        "Connected woodland — adult growth and crowns use Hegyi competition over both areas' living trees (8 m); density mortality, Work Plans and summaries stay per area";
+    public const string MultiChipConnectedWoodland = "Connected woodland";
+    public const string MultiCompetitionAreaOnly =
+        "This read-only diagnostic ranks this area's own trees only; Stage 4 growth and crowns use the connected woodland";
+    public const string MultiLightGuideLabel = "Modelled Light Guide (Unity k10a10 proxy — not calibrated PAR)";
+    public const string MultiAddToPrunePlan = "Add to Prune plan";
+    public const string MultiPrunePendingNote = "Queues a Prune only: no crown is cut until the approved plan is executed";
+    public const string MultiExecutePruneConfirmation =
+        "Prunes exactly {n} named trees in Year {y} (one lift each; the crown is cut at once; the year does not change), or refuses all";
+    public const string MultiDeadwoodNote = "Fallen deadwood: one log per natural death, at the stem position; not to scale, no fall direction, no decay or value";
+    public const string MultiNotModelledStage4 =
+        "Seed, regeneration, understorey, site, money and saving: NOT MODELLED. Light is a modelled index (Unity k10a10 proxy — not calibrated PAR).";
 }
