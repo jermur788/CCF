@@ -242,7 +242,9 @@ internal static class MultiAreaPage
 <body>
 <!-- MA-1 two-area manual forestry page (Multi #885). Every value is filled in by multi.js from the server view. At 1024 CSS
      px and wider the map, the legend and the side panel share one screen; below that everything stacks: map, side panel,
-     legend. -->
+     legend. The documented minimum supported desktop size is 1280 x 720 CSS px (owner decision, spec 0.2): from there up a
+     selected tree's reference, ranks 1-5 and Add fit above the fold without scrolling, also when competitors are blocked.
+     Smaller windows still work, but no fold is promised there. -->
 <a class="skip-link" id="skip-trees" href="#trees-heading">Skip to the tree table</a>
 
 <header class="topbar" aria-labelledby="page-title">
@@ -425,7 +427,7 @@ internal static class MultiAreaPage
             <div id="competition-content"></div>
           </section>
 
-          <div class="add-dock">
+          <div id="add-dock" class="add-dock">
           <div id="batch-result" class="batch-result" tabindex="-1" hidden></div>
           <form id="add-form" class="add-form" novalidate hidden>
             <p class="draft-line"><span id="draft-count" class="draft-count"></span></p>
@@ -579,6 +581,7 @@ internal static class MultiAreaPage
         <dl id="facts" class="facts"></dl>
         <ul id="stage4-statements" class="list statements"></ul>
         <p id="details-note" class="note small-note">Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area's ecology uses only its own trees.</p>
+        <p id="screen-note" class="small-note">Screen size: this page is laid out for desktop browser windows of at least 1280 × 720. There, a selected tree's reference, its ranks 1–5 and Add fit without scrolling. Smaller windows still work but may need scrolling.</p>
       </section>
     </div>
   </div>
@@ -903,13 +906,20 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .comp-row.chosen label { border-color: var(--gold); background: #2c2a23; }
 .comp-row.blocked label { border-style: dashed; background: var(--panel); cursor: not-allowed; }
 .comp-row input { width: 22px; height: 22px; min-height: 0; margin: 0 auto; accent-color: var(--gold); cursor: inherit; }
-.comp-id { display: block; font-weight: 650; overflow-wrap: anywhere; }
+/* Each competitor row is two lines whatever its state (UX-01 at 1280 x 720): line 1 = rank, ID, distance; line 2 = the
+   meta line, which spans the ID and distance columns. A blocked row puts a short reason at the start of that line instead
+   of adding a third line; the full reason stays in the row's tooltip and in screen-reader text (R3, F-01). */
+.comp-rows > .comp-row > label { grid-template-rows: auto auto; row-gap: 0; }
+.comp-row input { grid-row: 1 / span 2; }
+.comp-id { display: block; grid-column: 2; grid-row: 1; min-width: 0; font-weight: 650; overflow-wrap: anywhere; }
 .comp-id .rank { margin-right: .35rem; color: var(--gold-edge); font-style: italic; font-weight: 700; }
-.comp-meta { display: block; color: var(--muted); font-size: .72rem; }
-.comp-why { display: block; color: var(--pending); font-size: .72rem; font-weight: 600; }
+.comp-dist { grid-column: 3; grid-row: 1; }
+.comp-ci { grid-column: 4; grid-row: 1 / span 2; }
+.comp-line { display: block; grid-column: 2 / span 2; grid-row: 2; min-width: 0; overflow: hidden; color: var(--muted); font-size: .72rem;
+  white-space: nowrap; text-overflow: ellipsis; }
+.comp-why { color: var(--pending); font-weight: 600; }
 .comp-num { text-align: right; font-variant-numeric: tabular-nums; font-size: .84rem; }
 .comp-strength { display: block; color: var(--muted); font-size: .68rem; }
-.comp-meta { white-space: nowrap; }
 .add-row { display: flex; align-items: center; gap: .5rem; }
 /* One line whatever the count, so the sticky Add bar never grows over rank 5 (UX-01). */
 .add-row .add-button { flex: 1 1 auto; width: auto; padding: .45rem .6rem; white-space: nowrap; }
@@ -920,6 +930,10 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .batch-result.failed { border-left-color: var(--alert-line); }
 .batch-result p { margin: .2rem 0; }
 .batch-result .alert-title { font-weight: 700; }
+.batch-head { display: flex; align-items: center; gap: .5rem; }
+.batch-head .alert-title { flex: 1 1 auto; min-width: 0; margin: 0; }
+.batch-head .link-button { flex: none; min-height: 28px; padding: .1rem .2rem; font-size: .8rem; }
+.batch-more { display: none; }
 .add-dock { position: sticky; bottom: 0; z-index: 2; margin-top: .5rem; background: var(--panel); box-shadow: 0 -8px 14px rgba(11, 21, 35, .55); }
 .add-dock:has(> :not([hidden])) { border-top: 1px solid var(--edge); }
 .add-form { margin: 0; padding: .55rem 1rem .7rem; }
@@ -1057,6 +1071,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .side[data-pane="history"] #pane-history, .side[data-pane="details"] #pane-details { display: block; }
   .pane > .panel + .panel { margin-top: var(--gap); }
   .overlap { max-height: 9rem; overflow-y: auto; }
+  /* R3 (F-02): after Add, the result card takes the Add form's place in the sticky dock instead of stacking on it, so the
+     dock does not grow over ranks 1-5. Changing the draft, Dismiss or another selection ends the card; the form returns. */
+  .add-dock.showing-result .add-form { display: none; }
 }
 /* Compact desktop (about 1280 × 720): narrower columns, tighter gaps; targets stay at least 44 px. */
 @media (min-width: 1024px) and (max-width: 1599px) {
@@ -1096,7 +1113,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .light-legend { padding: .25rem .8rem; font-size: .7rem; }
   .ground-facts > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
-/* Short desktop (about 1280 x 720): the reference summary, ranks 1-5 and Add selected must fit without scrolling (UX-01). */
+/* Short desktop (about 1280 x 720): the reference summary, ranks 1-5 and Add selected must fit without scrolling (UX-01).
+   1280 x 720 is the documented minimum supported desktop size (owner, spec 0.2); below it no fold is promised. */
 @media (min-width: 1024px) and (max-height: 820px) {
   .topbar { padding-top: .4rem; padding-bottom: .4rem; }
   .btn-sub { font-size: .7rem; }
@@ -1106,19 +1124,27 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .competition .small-note { margin-bottom: .3rem; }
   #insp-pinned { display: none; }
   #add-caption { display: none; }
-  .ref-card { padding: .45rem .8rem .4rem; }
+  .ref-card { padding: .4rem .8rem .3rem; }
   .ref-top { margin-bottom: .1rem; }
   .ref-id .tag { display: none; } /* the map subtitle and the pressed Area button already name the area */
   .ref-title h2 { font-size: 1.15rem; }
   .key-facts { margin-top: .2rem; }
   .key-facts > div { display: flex; align-items: baseline; gap: .25rem; min-width: 0; }
   .key-facts dd { font-size: .9rem; }
-  .competition { padding: .4rem .8rem 0; }
-  .competition h3 { margin-bottom: .25rem; font-size: .92rem; }
-  .comp-head { padding-bottom: .1rem; }
-  .comp-rows { gap: .3rem; }
+  /* R3 (F-09): spacing only, rows unchanged, so the Add bar keeps about 18 px of free room below it at 1280 x 720. */
+  .competition { padding: .25rem .8rem 0; }
+  .competition h3 { margin-bottom: .15rem; font-size: .92rem; }
+  .comp-head { padding-bottom: 0; }
+  .comp-rows { gap: .25rem; }
   .comp-row label { min-height: 38px; padding: .1rem .45rem; line-height: 1.2; }
   .add-dock { margin-top: .3rem; }
+  /* R3 (F-02): on a short desktop the result card is one line (title, Details, Dismiss), so the dock is no taller than the
+     Add form it replaces and never covers ranks 1-5; its detail lines open on request. */
+  .batch-result { max-height: none; overflow: visible; margin: .3rem .8rem; padding: .2rem .5rem; }
+  .batch-head .alert-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .batch-more { display: inline-flex; }
+  .batch-body { display: none; }
+  .batch-result.open .batch-body { display: block; max-height: 6rem; overflow-y: auto; }
   .add-form { padding: .3rem .8rem .4rem; }
   .add-form p { margin: 0; }
   .draft-line { display: none; }
@@ -1223,6 +1249,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     // Generation of map selection attempts. A map click takes the next number; Escape, Close inspection, an area switch and
     // any other selection advance it, so a hit-test answer that arrives after one of those is discarded unseen.
     mapPick: 0,
+    batchResultOpen: false,
     batch: null, // the add sequence in flight, if any; one operation-wide guard for its whole duration
     batchResult: null, // the latest add sequence's outcome, shown until the area's reference changes
     lock: null, // set when the page can no longer trust what it shows; only a re-read lifts it
@@ -1283,6 +1310,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // Display rounding only: the value itself always comes from the server view.
   function fixed(value, digits) {
     return typeof value === 'number' ? value.toFixed(digits) : String(value);
+  }
+
+  // The concise light index (3 decimals). A positive value too small to show there reads "< 0.001", never "0.000"; the
+  // Technical details keep 4 decimals (R3, F-07).
+  function lightIndexText(value) {
+    return typeof value === 'number' && value > 0 && value < 0.0005 ? '< 0.001' : fixed(value, 3);
   }
 
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
@@ -1426,6 +1459,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (s4 && s4.prunePlanState) return 'In the Prune plan';
     if (treeId === referenceIn(areaId)) return 'Reference tree';
     return null;
+  }
+
+  // The few words a competitor row has room for (R3, F-01). The full blockedReason text stays in the row's tooltip and
+  // screen-reader text, and in the map rank button's label.
+  const SHORT_BLOCKED = {
+    'Retained Crop — not offered for Fell': 'Retained Crop', 'Already pending Fell': 'Pending Fell',
+    'In the approved plan': 'Approved plan', 'In the Prune plan': 'Prune plan', 'Reference tree': 'Reference', 'Not in this area': 'Other area'
+  };
+  function shortBlockedReason(why) {
+    return SHORT_BLOCKED[why] || why;
   }
 
   // ---- talking to the local session process ---------------------------------------------------------------------------
@@ -2453,7 +2496,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const n = cell.contributingTreeIds.length;
       summary.push(el('p', { class: 'ground-level' }, swatch, lightWord(cell.lightIndex)),
         el('dl', null,
-          el('dt', null, 'Light index'), el('dd', null, fixed(cell.lightIndex, 3) + ' on a 0–1 scale (modelled; 1 = unshaded)'),
+          el('dt', null, 'Light index'), el('dd', null, lightIndexText(cell.lightIndex) + ' on a 0–1 scale (modelled; 1 = unshaded)'),
           el('dt', null, 'Canopy cover'), el('dd', null, pct(cell.geometricCoveredFraction) + ' of this cell under living crowns'),
           el('dt', null, 'Shading trees'), el('dd', null, n === 0 ? 'none' : String(n))),
         el('p', { class: 'small-note' }, 'Light and canopy cover are separate engine quantities.'));
@@ -2546,7 +2589,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     renderAll();
     focusGroundPanel();
     announce(cell ? 'Ground at X ' + fixed(cell.centreXM, 1) + ', Z ' + fixed(cell.centreZM, 1) + ': ' + lightWord(cell.lightIndex) +
-      ', modelled light index ' + fixed(cell.lightIndex, 3) + ', canopy cover ' + pct(cell.geometricCoveredFraction) + ', ' +
+      ', modelled light index ' + lightIndexText(cell.lightIndex) + ', canopy cover ' + pct(cell.geometricCoveredFraction) + ', ' +
       plural(cell.contributingTreeIds.length, 'shading tree', 'shading trees') + '. Your selection and Fell draft are unchanged.'
       : s4 ? 'No modelled ground sample at that spot; nothing is estimated.' : 'The ground light read-out is unavailable for this view.');
   }
@@ -2864,14 +2907,18 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
             const disabled = Boolean(why) || planLocked || frozenNow;
             const input = el('input', { type: 'checkbox', 'data-draft': n.treeId, 'data-focus-key': 'draft:' + n.treeId,
               checked: ticked, disabled });
+            const meta = fixed(n.dbhCm, 1) + ' cm · ' + fixed(n.sharePercent, 1) + '%';
             return el('li', { class: 'comp-row' + (ticked ? ' chosen' : '') + (why ? ' blocked' : '') },
-              el('label', null, input,
-                el('span', null,
-                  el('span', { class: 'comp-id' }, el('span', { class: 'rank' }, String(index + 1)), el('span', { class: 'mono' }, n.treeId)),
-                  el('span', { class: 'comp-meta' }, fixed(n.dbhCm, 1) + ' cm · ' + fixed(n.sharePercent, 1) + '%'),
-                  why ? el('span', { class: 'comp-why' }, why) : null),
-                el('span', { class: 'comp-num' }, fixed(n.distanceM, 2) + ' m'),
-                el('span', { class: 'comp-num' }, fixed(n.contribution, 4), el('span', { class: 'comp-strength' }, n.strength))));
+              el('label', why ? { title: 'Competitor ' + (index + 1) + ' · ' + n.treeId + ' · ' + why + ' · ' + meta } : null, input,
+                el('span', { class: 'comp-id' }, el('span', { class: 'rank' }, String(index + 1)), el('span', { class: 'mono' }, n.treeId)),
+                el('span', { class: 'comp-num comp-dist' }, fixed(n.distanceM, 2) + ' m'),
+                el('span', { class: 'comp-num comp-ci' }, fixed(n.contribution, 4), el('span', { class: 'comp-strength' }, n.strength)),
+                // One line: a blocked row's short reason first, then DBH and CI share (the end may be cut with an ellipsis).
+                el('span', { class: 'comp-line' },
+                  why ? el('span', { class: 'comp-why', 'aria-hidden': 'true' }, shortBlockedReason(why)) : null,
+                  why ? el('span', { class: 'sr-only' }, 'Cannot be chosen: ' + why + '. ') : null,
+                  why ? el('span', { 'aria-hidden': 'true' }, ' · ') : null,
+                  el('span', { class: 'comp-meta' }, meta))));
           })));
       }
       more.push(el('p', { class: 'competition-totals' }, 'Current total Hegyi CI ' + fixed(report.currentTotal, 4) +
@@ -2996,6 +3043,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     draft.ids = draft.ids.filter((id) => id !== treeId);
     if (on) draft.ids.push(treeId);
     state.draftNotice = null;
+    // Changing the draft ends the previous Add result card, so the Add form is back for the new choice (R3, F-02).
+    if (state.batchResult && state.batchResult.areaId === areaId) { state.batchResult = null; state.batchResultOpen = false; }
     renderAll();
     const n = draft.ids.length;
     announce((on ? 'Ticked ' : 'Unticked ') + treeId + '. ' + plural(n, 'tree', 'trees') + ' selected for Fell, draft only.');
@@ -3025,6 +3074,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       guard: null, unconfirmed: null, unattempted: [] };
     state.batch = result;
     state.batchResult = null;
+    state.batchResultOpen = false;
     state.busy = true;
     document.documentElement.classList.add('busy');
     clearAlert();
@@ -3071,7 +3121,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     announce(batchSummary(result));
     if (!result.unconfirmed) {
       const add = byId('add-button');
-      if (add.disabled || add.closest('[hidden]')) byId('batch-result').focus();
+      // On a short desktop the result card stands in for the Add form (R3, F-02), so the button is not rendered.
+      const rendered = typeof add.getClientRects !== 'function' || add.getClientRects().length > 0;
+      if (add.disabled || add.closest('[hidden]') || !rendered) byId('batch-result').focus();
       else add.focus();
     }
     if (!state.lock && state.competitionTarget && state.competitionTag !== competitionTag()) refreshCompetition();
@@ -3094,12 +3146,21 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const result = state.batchResult;
     const show = result && result.areaId === state.areaId && result.ref === referenceIn(state.areaId);
     box.hidden = !show;
+    byId('add-dock').classList.toggle('showing-result', Boolean(show));
     if (!show) { box.replaceChildren(); return; }
     const n = result.ids.length;
     const complete = result.confirmed.length === n;
-    box.setAttribute('class', 'batch-result' + (complete ? '' : result.confirmed.length > 0 ? ' partial' : ' failed'));
-    const parts = [el('p', { class: 'alert-title' }, complete ? 'Added ' + plural(n, 'tree', 'trees') + ' to the Fell plan' :
-      'Stopped after ' + result.confirmed.length + ' of ' + n)];
+    box.setAttribute('class', 'batch-result' + (complete ? '' : result.confirmed.length > 0 ? ' partial' : ' failed') +
+      (state.batchResultOpen ? ' open' : ''));
+    const stopped = result.refused ? ' · refused ' + result.refused.treeId : result.guard ? ' · refused ' + result.guard.treeId :
+      result.unconfirmed ? ' · unconfirmed ' + result.unconfirmed.treeId : '';
+    const title = complete ? 'Added ' + plural(n, 'tree', 'trees') + ' to the Fell plan' : 'Stopped after ' + result.confirmed.length + ' of ' + n + stopped;
+    // The head line is all a short desktop shows (R3, F-02); Details opens the lines below. Dismiss ends the card.
+    const head = el('div', { class: 'batch-head' }, el('p', { class: 'alert-title', title }, title),
+      el('button', { type: 'button', class: 'link-button batch-more', 'data-batch': 'more', 'aria-expanded': String(Boolean(state.batchResultOpen)),
+        'aria-controls': 'batch-body' }, state.batchResultOpen ? 'Hide details' : 'Details'),
+      el('button', { type: 'button', class: 'link-button', 'data-batch': 'dismiss', 'aria-label': 'Dismiss the Add result' }, '× Dismiss'));
+    const parts = [];
     parts.push(el('p', null, 'Added as pending (not felled): ', el('span', { class: 'mono' }, listIds(result.confirmed))));
     if (result.refused) {
       parts.push(el('p', null, 'Refused: ', el('span', { class: 'mono' }, result.refused.treeId), ' — ',
@@ -3117,7 +3178,35 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       parts.push(el('p', null, 'Not attempted (still in your draft if eligible): ', el('span', { class: 'mono' }, listIds(result.unattempted))));
     }
     if (!complete) parts.push(el('p', { class: 'small-note' }, 'Orders already added stay pending; nothing was rolled back.'));
-    box.replaceChildren(...parts);
+    box.replaceChildren(head, el('div', { id: 'batch-body', class: 'batch-body' }, ...parts));
+  }
+
+  // Ends the Add result card (Dismiss, or the player changing the draft): the Add form returns in its place.
+  function dismissBatchResult(focusAdd) {
+    if (!state.batchResult) return;
+    state.batchResult = null;
+    state.batchResultOpen = false;
+    renderBatchResult();
+    if (focusAdd) {
+      const add = byId('add-button');
+      if (!add.disabled && !add.closest('[hidden]')) add.focus();
+      else byId('inspector-heading').focus();
+    }
+  }
+
+  function onBatchResultClick(event) {
+    const button = event.target.closest('[data-batch]');
+    if (!button) return;
+    if (button.getAttribute('data-batch') === 'dismiss') {
+      const added = state.batchResult ? state.batchResult.confirmed.length : 0;
+      dismissBatchResult(true);
+      announce('Dismissed the Add result.' + (added > 0 ? ' Orders already added stay pending in the Work Plan.' : ''));
+      return;
+    }
+    state.batchResultOpen = !state.batchResultOpen;
+    renderBatchResult();
+    const again = byId('batch-result').querySelector('[data-batch="more"]');
+    if (again) again.focus();
   }
 
   // ---- the combined Work Plan, the receipt and the year results ----------------------------------------------------------
@@ -3539,10 +3628,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // ground stops; next, the tree inspection closes. The Light Guide is never switched off by Escape.
   function onEscape(event) {
     if (event.key !== 'Escape') return;
-    // Any Escape abandons a map click still waiting for its hit-test (it stays immediately responsive: nothing waits).
+    // An Escape that only closes an open dialog leaves a pending map click alone (R3, F-05): it closes nothing else, so a
+    // late answer cannot reopen anything this key press closed.
+    if (document.querySelector('dialog[open]')) return;
+    // Every other Escape abandons a map click still waiting for its hit-test (it stays immediately responsive: nothing waits).
     state.mapPick += 1;
     if (event.defaultPrevented) return;
-    if (document.querySelector('dialog[open]')) return;
     const target = event.target;
     if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;
     if (state.lightOn && state.groundMode) {
@@ -3843,6 +3934,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       if (box) toggleDraft(box.getAttribute('data-draft'), box.checked);
     });
     byId('draft-clear').addEventListener('click', clearDraft);
+    byId('batch-result').addEventListener('click', onBatchResultClick);
     byId('add-reference').addEventListener('click', onAddReference);
     byId('overlap-list').addEventListener('click', (event) => {
       const button = event.target.closest('[data-pick]');
