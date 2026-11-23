@@ -3,12 +3,8 @@ namespace SitkaP1.Core;
 /// <summary>The pure-adult source route, detached from Unity objects and from the committed experiment state.</summary>
 internal static class AnnualRules
 {
-    private const float HegyiCutoffM = 8f;
-    private const float HegyiDistanceFloorM = 0.5f;
-    private const float Ci50 = 5f;
-    private const float PotentialDbhGrowthCm = 1.2f;
-    private const float DbhGrowthScaleCm = 120f;
-    private const float CrownRelaxation = 0.15f;
+    // The frozen Sitka constants now live in one named profile; the arithmetic below is unchanged (Multi #899 Stage 1).
+    private static readonly SpeciesProfile Species = SpeciesProfile.Sitka;
 
     internal static AnnualReport Calculate(AnnualState state, int simulationSeed, float areaHa)
     {
@@ -26,7 +22,7 @@ internal static class AnnualRules
         double[]? suppression = null;
         if (pressure > 0.0)
         {
-            suppression = competition.Select(entry => 1.0 - 1.0 / (1.0 + entry.Ci / Ci50)).ToArray();
+            suppression = competition.Select(entry => 1.0 - 1.0 / (1.0 + entry.Ci / Species.Ci50)).ToArray();
             double sum = 0.0;
             foreach (double value in suppression) sum += SitkaGrowthModel.Vulnerability(value);
             meanVulnerability = sum / suppression.Length;
@@ -74,8 +70,8 @@ internal static class AnnualRules
             float dx = target.XM - tree.XM;
             float dz = target.ZM - tree.ZM;
             float distance = (float)Math.Sqrt(dx * dx + dz * dz);
-            if (distance > HegyiCutoffM) continue;
-            ci += (tree.DbhCm / MathF.Max(1f, target.DbhCm)) / MathF.Max(HegyiDistanceFloorM, distance);
+            if (distance > Species.HegyiCutoffM) continue;
+            ci += (tree.DbhCm / MathF.Max(1f, target.DbhCm)) / MathF.Max(Species.HegyiDistanceFloorM, distance);
             neighbours++;
         }
         return (ci, neighbours);
@@ -85,17 +81,17 @@ internal static class AnnualRules
     {
         if (!tree.IsLiving) return tree;
         // ForestEcologyController.GrowAdults and RelaxCrowns, for the unpruned Sitka asset.
-        float response = 1f / (1f + ci / Ci50);
+        float response = 1f / (1f + ci / Species.Ci50);
         float site = F32.FromBits(DerivedManifest.SiteProductivityBits);
-        float dbhPotential = PotentialDbhGrowthCm * site * Math.Clamp(1f - tree.DbhCm / DbhGrowthScaleCm, 0f, 1f);
+        float dbhPotential = Species.PotentialDbhGrowthCm * site * Math.Clamp(1f - tree.DbhCm / Species.DbhGrowthScaleCm, 0f, 1f);
         float dbh = Math.Clamp(tree.DbhCm + dbhPotential * response, 1f, 200f);
         float heightGrowth = SitkaGrowthModel.NextHeight(tree.HeightM, tree.AgeYears) - tree.HeightM;
         float height = Math.Clamp(tree.HeightM + heightGrowth, 0.1f, 60f);
-        float potential = MathF.Max(CcfSourcePins.CrownRadiusFloorM,
-            CcfSourcePins.CrownRadiusIntercept + CcfSourcePins.CrownRadiusPerCmDbh * dbh);
+        float potential = MathF.Max(Species.CrownRadiusFloorM,
+            Species.CrownRadiusIntercept + Species.CrownRadiusPerCmDbh * dbh);
         float target = potential * response;
-        float radius = MathF.Max(CcfSourcePins.CrownRadiusFloorM,
-            tree.CrownRadiusM + (target - tree.CrownRadiusM) * CrownRelaxation);
+        float radius = MathF.Max(Species.CrownRadiusFloorM,
+            tree.CrownRadiusM + (target - tree.CrownRadiusM) * Species.CrownRelaxation);
         return tree with { AgeYears = checked(tree.AgeYears + 1), DbhCm = dbh, HeightM = height, CrownRadiusM = radius };
     }
 

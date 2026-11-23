@@ -35,6 +35,25 @@ internal static class Model0FingerprintTests
             T.Eq(hash, MultiAreaFingerprint(), "repeat run is identical");
             if (PinnedMultiAreaHash.Length > 0) T.Eq(PinnedMultiAreaHash, hash, "pinned model 0 multi-area fingerprint");
         });
+
+        T.Add("model0 F-03: the Sitka profile holds exactly the frozen constants; site conditions are neutral and inert", () =>
+        {
+            var s = SpeciesProfile.Sitka;
+            T.Eq(F32.Bits(0.9415f), F32.Bits(s.CrownRadiusIntercept), "intercept");
+            T.Eq(F32.Bits(0.07635f), F32.Bits(s.CrownRadiusPerCmDbh), "per cm");
+            T.Eq(F32.Bits(0.1f), F32.Bits(s.CrownRadiusFloorM), "floor");
+            T.Eq(5f, s.Ci50, "Ci50");
+            T.Eq(F32.Bits(0.15f), F32.Bits(s.CrownRelaxation), "k");
+            T.Eq(F32.Bits(1.2f), F32.Bits(s.PotentialDbhGrowthCm), "DBH growth");
+            T.Eq(120f, s.DbhGrowthScaleCm, "DBH scale");
+            T.Eq(8f, s.HegyiCutoffM, "Hegyi radius");
+            T.Eq(0.5f, s.HegyiDistanceFloorM, "Hegyi floor");
+            foreach (long mm in new long[] { 10, 222, 345, 1999, 2000 })
+                T.Eq(DerivedManifest.CrownBitsFor(mm), F32.Bits(s.PotentialCrownRadiusM((float)(mm / 10.0))), "potential equals the frozen crown rule at " + mm);
+            T.True(SiteConditions.Neutral.IsNeutral, "neutral default");
+            T.Eq(SiteConditions.Neutral, SiteConditions.Neutral.RequireNeutral(), "neutral accepted");
+            T.Refuses("SiteEffectNotModelled", () => (SiteConditions.Neutral with { Fertility = 1.1f }).RequireNeutral());
+        });
     }
 
     internal static string SingleAreaFingerprint(string fixtureDirectory)
