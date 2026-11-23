@@ -56,6 +56,21 @@ internal static class PruningRules
     {
         if (RefusalCode(tree, state, target, year) is string code) throw new P1Refusal(code, Message(code));
     }
+
+    /// <summary>
+    /// The verified Unity Sitka lift schedule (ScenarioOne.asset pruningLiftTargetHeightsM, read through
+    /// ScenarioOneDefinition.NextPruningTargetHeightM): the target crown-base height of lift 1, 2 and 3. Gameplay
+    /// calibration, not timber-quality evidence. The /multi player never chooses or sends a target; the engine uses this.
+    /// </summary>
+    public static readonly IReadOnlyList<float> SitkaLiftTargetHeightsM = Array.AsReadOnly(new[] { 2.5f, 5f, 6.5f });
+
+    /// <summary>The scheduled target of the next lift after <paramref name="lifts"/> lifts, or NaN when no lift is scheduled.</summary>
+    public static float NextLiftTargetM(int lifts) =>
+        lifts >= 0 && lifts < SitkaLiftTargetHeightsM.Count ? SitkaLiftTargetHeightsM[lifts] : float.NaN;
+
+    /// <summary>The first failed guard for the next scheduled lift in <paramref name="year"/>, or null when it is allowed.</summary>
+    public static string? ScheduledRefusalCode(AnnualTree tree, TreePruningState state, int year) =>
+        RefusalCode(tree, state, NextLiftTargetM(state.Lifts), year);
 }
 
 /// <summary>

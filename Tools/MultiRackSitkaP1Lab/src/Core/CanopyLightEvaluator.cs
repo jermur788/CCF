@@ -191,6 +191,76 @@ public static class CanopyLightEvaluator
 
     private static float Clamp01(float value) => value < 0f ? 0f : value > 1f ? 1f : value;
 
+    // ------------------------------------------------------------------------------------------------ per-cell detail (#900 UI)
+    // Internal read-only helpers for the /multi ground inspector. They never change Evaluate: each repeats an existing rule
+    // exactly (the same float kernel, the same micro-grid and inside test, the same Sutherland–Hodgman clip).
+
+    /// <summary>
+    /// The living trees whose light influence at (x, z) is above zero, in the given (ordinal TreeId) order: exactly the
+    /// factors of <see cref="LightIndexAt"/> that differ from 1. Evaluating the kernel over these trees alone therefore gives
+    /// the same light index bit for bit.
+    /// </summary>
+    internal static IReadOnlyList<string> ContributorsAt(float x, float z, IReadOnlyList<AnnualTree> livingInTreeIdOrder)
+    {
+        var ids = new List<string>();
+        foreach (var tree in livingInTreeIdOrder)
+        {
+            if (!tree.IsLiving) continue;
+            float dx = x - tree.XM;
+            float dz = z - tree.ZM;
+            float distance = (float)Math.Sqrt(dx * dx + dz * dz);
+            float reach = tree.CrownRadiusM * ShadeReachPerCrownRadius + ShadeBufferM;
+            float lateral = Clamp01(1f - distance / reach);
+            float vertical = Clamp01(tree.HeightM / VerticalFullHeightM);
+            if (Clamp01(lateral * vertical) > 0f) ids.Add(tree.TreeId);
+        }
+        return ids.AsReadOnly();
+    }
+
+    /// <summary>The convex polygon clipped to one axis-aligned square (the light cell's drawn shape), in engine metres.</summary>
+    internal static IReadOnlyList<CanopyVertex> ClippedSquare(IReadOnlyList<CanopyVertex> polygon, double x0, double z0, double x1, double z1)
+    {
+        var ring = polygon.Select(p => (p.XM, p.ZM)).ToList();
+        ring = Clip(ring, p => p.Item1 - x0, (a, b) => Lerp(a, b, (x0 - a.Item1) / (b.Item1 - a.Item1)));
+        ring = Clip(ring, p => x1 - p.Item1, (a, b) => Lerp(a, b, (x1 - a.Item1) / (b.Item1 - a.Item1)));
+        ring = Clip(ring, p => p.Item2 - z0, (a, b) => Lerp(a, b, (z0 - a.Item2) / (b.Item2 - a.Item2)));
+        ring = Clip(ring, p => z1 - p.Item2, (a, b) => Lerp(a, b, (z1 - a.Item2) / (b.Item2 - a.Item2)));
+        return ring.Count < 3 ? Array.Empty<CanopyVertex>() : ring.Select(p => new CanopyVertex(p.Item1, p.Item2)).ToArray();
+    }
+
+    /// <summary>
+    /// Layer B restricted to one light cell: the clipped area of the 0.25 m micro-cells inside the light cell whose centres
+    /// are strictly inside the polygon (sampled), and of those whose centre is also within a living crown circle (covered).
+    /// The micro-grid is the same world-anchored lattice, inside test, crown test and clipped weighting as Layer B.
+    /// </summary>
+    internal static (double CoveredM2, double SampledM2) CellCover(IReadOnlyList<CanopyVertex> polygon,
+        IReadOnlyList<AnnualTree> living, int column, int row, double lightCellM)
+    {
+        const double s = CoverMicroCellM;
+        int perCell = (int)Math.Round(lightCellM / s);
+        int mc0 = column * perCell, mr0 = row * perCell;
+        double x0 = column * lightCellM, z0 = row * lightCellM, x1 = (column + 1) * lightCellM, z1 = (row + 1) * lightCellM;
+        // Only crowns whose bounding square touches this cell can cover one of its micro-cells.
+        var near = living.Where(t => t.IsLiving && t.XM + t.CrownRadiusM >= x0 - s && t.XM - t.CrownRadiusM <= x1 + s &&
+            t.ZM + t.CrownRadiusM >= z0 - s && t.ZM - t.CrownRadiusM <= z1 + s).ToArray();
+        double covered = 0.0, sampled = 0.0;
+        for (int r = mr0; r < mr0 + perCell; r++)
+        for (int c = mc0; c < mc0 + perCell; c++)
+        {
+            double cx = (c + 0.5) * s, cz = (r + 0.5) * s;
+            if (!StrictlyInside(polygon, cx, cz)) continue;
+            double mx0 = c * s, mz0 = r * s;
+            double a = SquareWhollyInside(polygon, mx0, mz0, mx0 + s, mz0 + s) ? s * s : ClippedSquareArea(polygon, mx0, mz0, mx0 + s, mz0 + s);
+            sampled += a;
+            foreach (var tree in near)
+            {
+                double dx = cx - tree.XM, dz = cz - tree.ZM, radius = tree.CrownRadiusM;
+                if (dx * dx + dz * dz <= radius * radius) { covered += a; break; }
+            }
+        }
+        return (covered, sampled);
+    }
+
     private static CanopyLightField Light(CanopyArea area, AnnualTree[] woodland, IReadOnlyDictionary<string, string> owner, double cell)
     {
         var polygon = area.Polygon;

@@ -447,6 +447,7 @@ Model0FingerprintTests.Register(manifestPath);
 CrownC2Tests.Register();
 CanopyLightTests.Register();
 Stage4Tests.Register();
+Stage4UiCatchupTests.Register();
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;

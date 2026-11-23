@@ -18,17 +18,35 @@ internal sealed class MultiAreaWorkPlanAdapter
         manifest = experiment.ManifestFileBytes();
     }
 
-    /// <summary>Generate the synthetic two-area experiment in code (no file is read) and start one in-memory session.</summary>
-    internal static MultiAreaWorkPlanAdapter OpenSynthetic()
+    /// <summary>
+    /// Generate the synthetic two-area experiment in code (no file is read) and start one in-memory session. The /multi
+    /// page's session is Stage 4 by default (owner decision 2026-11-23: CrownModelVersion 1, AdultModelVersion 1,
+    /// MortalityModelVersion 1, canopy union and 2.5 m decoupled light). Any supported selection can still be chosen
+    /// explicitly, including the frozen <see cref="MultiAreaModelSelection.Legacy"/>, which stays the Core default ctor.
+    /// </summary>
+    internal static MultiAreaWorkPlanAdapter OpenSynthetic(MultiAreaModelSelection? models = null)
     {
         var experiment = MultiAreaGenerator.Generate();
-        return new MultiAreaWorkPlanAdapter(new MultiAreaContinuation(experiment), experiment);
+        return new MultiAreaWorkPlanAdapter(new MultiAreaContinuation(experiment, models ?? MultiAreaModelSelection.Stage4), experiment);
     }
 
     /// <summary>The canonical manifest bytes of this session's experiment (a fresh copy). SHA-256 of its body is the content hash.</summary>
     internal byte[] ManifestBytes() => (byte[])manifest.Clone();
 
     internal MultiAreaSessionView Read() => session.ReadView();
+
+    /// <summary>The view and its UI read-out (Stage 4, canopy, deadwood, ground cells) from one root.</summary>
+    internal MultiAreaUiSnapshot ReadSnapshot() => session.ReadUiSnapshot();
+
+    /// <summary>The UI read-out of the root <paramref name="view"/> came from, or null if the session has moved on since.</summary>
+    internal MultiAreaUiReadout? ReadoutFor(MultiAreaSessionView view) => session.ReadUiReadout(view.Source, view.PlanStateRevision);
+
+    /// <summary>Queue one Prune (Pending only) at the engine's next scheduled lift height. Refusals return a fresh view.</summary>
+    internal MultiAreaCommandResult AddPrune(MultiAreaFence fence, string areaId, string treeId) =>
+        Refusable(() => session.AddScheduledPrune(fence, areaId, treeId));
+
+    internal MultiAreaCommandResult RemovePrune(MultiAreaFence fence, string areaId, string treeId) =>
+        Refusable(() => session.RemovePrune(fence, areaId, treeId));
 
     internal MultiAreaCommandResult MarkCrop(MultiAreaFence fence, string areaId, string treeId) =>
         Refusable(() => session.MarkCrop(fence, areaId, treeId));

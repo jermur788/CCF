@@ -645,8 +645,10 @@ internal static class MultiAreaTests
             var adapter = typeof(MultiAreaWorkPlanAdapter);
             var members = adapter.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
                 .Where(m => !m.IsPrivate && !m.IsSpecialName).ToArray();
-            T.True(members.Select(m => m.Name).Order(StringComparer.Ordinal).SequenceEqual(new[] { "AddPending", "Advance", "Approve",
-                "CancelApproved", "Competition", "Execute", "HitTest", "ManifestBytes", "MarkCrop", "OpenSynthetic", "Read", "RemovePending", "UnmarkCrop" }),
+            // #900 UI catch-up adds the fenced Prune commands and the one-root UI read-outs (spec multi-stage4-ui-catchup-v1).
+            T.True(members.Select(m => m.Name).Order(StringComparer.Ordinal).SequenceEqual(new[] { "AddPending", "AddPrune", "Advance", "Approve",
+                "CancelApproved", "Competition", "Execute", "HitTest", "ManifestBytes", "MarkCrop", "OpenSynthetic", "Read", "ReadSnapshot",
+                "ReadoutFor", "RemovePending", "RemovePrune", "UnmarkCrop" }),
                 "exact adapter members: " + string.Join(",", members.Select(m => m.Name).Order()));
             foreach (var parameter in members.SelectMany(m => m.GetParameters()))
                 T.True(!typeof(Delegate).IsAssignableFrom(parameter.ParameterType) && parameter.ParameterType != typeof(MultiAreaApprovedPlan),

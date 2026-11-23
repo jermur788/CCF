@@ -88,6 +88,9 @@ internal sealed class MultiAreaContinuation
     // Crop marks and reads never recompute or change them. Never saved and never part of a token.
     private readonly Dictionary<double, (int AnnualRevision, int WorkRevision, CanopyLightReport Report)> canopyCache = new();
     private int canopyRecomputeCount;
+    // The /multi ground cells (per-cell shape, cover fraction and contributing trees) for the cached 2.5 m report. Same
+    // validity rule as canopyCache; session-only.
+    private (int AnnualRevision, int WorkRevision, IReadOnlyList<IReadOnlyList<MultiAreaGroundCell>> Ground)? groundCache;
 
     internal MultiAreaContinuation(MultiAreaExperiment definition) : this(definition, CrownModelVersion.LegacyFrozen)
     {
@@ -164,35 +167,79 @@ internal sealed class MultiAreaContinuation
     /// </summary>
     internal MultiAreaStage4View ReadStage4View()
     {
+        lock (sync) return Stage4ViewOf(root);
+    }
+
+    /// <summary>
+    /// The /multi page read: the session view and its full UI read-out (Stage 4 states, pruning eligibility, canopy summary,
+    /// deadwood and the 2.5 m ground cells), both from ONE root under ONE lock. Changes nothing.
+    /// </summary>
+    internal MultiAreaUiSnapshot ReadUiSnapshot()
+    {
         lock (sync)
         {
-            var current = root;
-            var stage4 = current.Stage4 ?? MultiAreaStage4State.Empty;
-            var last = current.AnnualHistory.Count == 0 ? null : current.AnnualHistory[^1];
-            var areaViews = new MultiAreaStage4AreaView[current.Areas.Count];
-            for (int i = 0; i < areaViews.Length; i++)
-            {
-                var area = current.Areas[i];
-                var trees = area.State.Trees.Select(tree =>
-                {
-                    var pruning = stage4.PruningOf(tree.TreeId);
-                    return new MultiAreaStage4TreeView(tree.TreeId, LifeStates.Of(tree),
-                        LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.Cause : null,
-                        LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.EcologicalYear : null,
-                        pruning.Lifts, pruning.CrownBaseHeightM, pruning.LastPruningYear, tree.CrownRadiusM);
-                }).ToArray();
-                int annual = last?.Areas[i].NaturalDeaths.Count ?? 0;
-                int cumulative = current.AnnualHistory.Sum(year => year.Areas[i].NaturalDeaths.Count);
-                areaViews[i] = new MultiAreaStage4AreaView(area.AreaId, areas[i].AreaHa,
-                    WorkRules.Summarize(area.State.Trees, areas[i].AreaHa).RelativeDensity, annual, cumulative,
-                    Array.AsReadOnly(stage4.Deadwood.Where(record => record.AreaId == area.AreaId).ToArray()),
-                    Array.AsReadOnly(trees));
-            }
-            return new MultiAreaStage4View(sessionId, current.EcologicalYear, current.PlanStateRevision, Token(current),
-                models.Adult, models.Mortality, models.Crown, Stage4Evidence.All, Array.AsReadOnly(areaViews),
-                Array.AsReadOnly(stage4.PendingPrunes.ToArray()), Array.AsReadOnly(stage4.ApprovedPrunes.ToArray()),
-                Array.AsReadOnly(stage4.PruneLog.ToArray()));
+            var view = ViewOf(root);
+            return new MultiAreaUiSnapshot(view, ReadoutOf(view));
         }
+    }
+
+    /// <summary>
+    /// The UI read-out of the CURRENT root, but only when it is still the root named by <paramref name="source"/> and
+    /// <paramref name="planStateRevision"/> (the root a command's view came from); null when anything moved since, so a
+    /// read-out is never paired with a view of another root.
+    /// </summary>
+    internal MultiAreaUiReadout? ReadUiReadout(MultiAreaSourceToken source, int planStateRevision)
+    {
+        lock (sync)
+        {
+            if (source != Token(root) || planStateRevision != root.PlanStateRevision) return null;
+            return ReadoutOf(ViewOf(root));
+        }
+    }
+
+    // Caller holds sync. The canopy report and the ground cells are cached per committed tree state (AnnualRevision and
+    // WorkRevision), like ReadCanopyLight: Pending, Approve, Crop marks and reads reuse them.
+    private MultiAreaUiReadout ReadoutOf(MultiAreaSessionView view)
+    {
+        var canopy = ReadCanopyLight(CanopyLightEvaluator.DefaultLightCellM);
+        if (groundCache is null || groundCache.Value.AnnualRevision != root.AnnualRevision ||
+            groundCache.Value.WorkRevision != root.WorkRevision)
+        {
+            var woodland = CrownModel.Woodland(view.Areas.SelectMany(area => area.Trees));
+            var ground = view.Areas.Select((area, i) => MultiAreaUiReadouts.GroundOf(area, canopy.Areas[i], woodland)).ToArray();
+            groundCache = (root.AnnualRevision, root.WorkRevision, Array.AsReadOnly(ground));
+        }
+        return MultiAreaUiReadouts.Build(view, Stage4ViewOf(root), canopy, models, groundCache.Value.Ground);
+    }
+
+    // Caller holds sync. The body of ReadStage4View, unchanged, over the root passed in.
+    private MultiAreaStage4View Stage4ViewOf(MultiAreaRoot current)
+    {
+        var stage4 = current.Stage4 ?? MultiAreaStage4State.Empty;
+        var last = current.AnnualHistory.Count == 0 ? null : current.AnnualHistory[^1];
+        var areaViews = new MultiAreaStage4AreaView[current.Areas.Count];
+        for (int i = 0; i < areaViews.Length; i++)
+        {
+            var area = current.Areas[i];
+            var trees = area.State.Trees.Select(tree =>
+            {
+                var pruning = stage4.PruningOf(tree.TreeId);
+                return new MultiAreaStage4TreeView(tree.TreeId, LifeStates.Of(tree),
+                    LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.Cause : null,
+                    LifeStates.Of(tree) == LifeState.BiologicallyDead ? tree.Death!.EcologicalYear : null,
+                    pruning.Lifts, pruning.CrownBaseHeightM, pruning.LastPruningYear, tree.CrownRadiusM);
+            }).ToArray();
+            int annual = last?.Areas[i].NaturalDeaths.Count ?? 0;
+            int cumulative = current.AnnualHistory.Sum(year => year.Areas[i].NaturalDeaths.Count);
+            areaViews[i] = new MultiAreaStage4AreaView(area.AreaId, areas[i].AreaHa,
+                WorkRules.Summarize(area.State.Trees, areas[i].AreaHa).RelativeDensity, annual, cumulative,
+                Array.AsReadOnly(stage4.Deadwood.Where(record => record.AreaId == area.AreaId).ToArray()),
+                Array.AsReadOnly(trees));
+        }
+        return new MultiAreaStage4View(sessionId, current.EcologicalYear, current.PlanStateRevision, Token(current),
+            models.Adult, models.Mortality, models.Crown, Stage4Evidence.All, Array.AsReadOnly(areaViews),
+            Array.AsReadOnly(stage4.PendingPrunes.ToArray()), Array.AsReadOnly(stage4.ApprovedPrunes.ToArray()),
+            Array.AsReadOnly(stage4.PruneLog.ToArray()));
     }
 
     // ------------------------------------------------------------------------------------------------ Crop marks
@@ -319,6 +366,20 @@ internal sealed class MultiAreaContinuation
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
             };
             return WithView(null, null);
+        }
+    }
+
+    /// <summary>
+    /// Stage 4, /multi page: add one Prune order whose target crown-base height is the engine's next scheduled lift for that
+    /// tree (<see cref="PruningRules.NextLiftTargetM"/>, the Unity Sitka schedule). The player never sends a target. Every
+    /// fence, guard and refusal is exactly that of <see cref="AddPrune"/> (the lock is re-entrant, so it sees the same root).
+    /// </summary>
+    internal MultiAreaCommandResult AddScheduledPrune(MultiAreaFence fence, string areaId, string treeId)
+    {
+        lock (sync)
+        {
+            int lifts = (root.Stage4 ?? MultiAreaStage4State.Empty).PruningOf(treeId ?? string.Empty).Lifts;
+            return AddPrune(fence, areaId, treeId!, PruningRules.NextLiftTargetM(lifts));
         }
     }
 
