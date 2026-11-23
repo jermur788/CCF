@@ -1,0 +1,74 @@
+PASS [1280x720] a fresh session: year 0, no plan :: {"year":0,"rev":0,"work":0,"pending":[],"approved":null,"events":0,"crops":[[],[]],"living":[171,73]}
+PASS [1280x720] UX-06: the Light Guide is OFF by default (no cells, no legend, no Inspect ground) :: {"light":"false","cells":0,"ground":true,"legend":true}
+PASS [1280x720] UX-04: one unobtrusive notice line, Details closed :: {"line":"Synthetic Sitka experiment · 2 areas · Site unknown","h":34,"open":false}
+PASS [1280x720] UX-04: Details keeps every caveat verbatim (synthetic, not comparable, site unknown, connected woodland, per-area mortality/plans/summaries, no transfer, no Unity parity) :: []
+SHOT 08-notice-details-1280x720.png 219667 bytes
+PASS [1280x720] UX-05: compass in a 3 x 3 grid (N top-centre, W/E middle row, S bottom-centre) :: {"n":{"l":84,"t":331.015625,"r":128,"b":375.015625,"w":44,"h":44},"w":{"l":36,"t":379.015625,"r":80,"b":423.015625,"w":44,"h":44},"e":{"l":132,"t":379.015625,"r":176,"b":423.015625,"w":44,"h":44},"s":{"l":84,"t":427.015625,"r":128,"b":471.015625,"w":44,"h":44},"out":{"l":36,"t":484.015625,"r":80,"b":528.015625,"w":44,"h":44},"fit":{"l":84,"t":484.015625,"r":128,"b":528.015625,"w":44,"h":44},"in":{"l":132,"t":484.015625,"r":176,"b":528.015625,"w":44,"h":44},"a":36,"tabs":[{"l":36,"t":541.015625,"w":68,"h":46},{"l":108,"t":541.015625,"w":68,"h":46}],"dock":{"l":27,"t":303.328125,"r":185,"b":596.015625,"w":158,"h":292.6875}}
+PASS [1280x720] UX-05: one horizontal − | Fit | + row directly below the compass :: {"out":{"l":36,"t":484.015625,"r":80,"b":528.015625,"w":44,"h":44},"fit":{"l":84,"t":484.015625,"r":128,"b":528.015625,"w":44,"h":44},"in":{"l":132,"t":484.015625,"r":176,"b":528.015625,"w":44,"h":44}}
+PASS [1280x720] UX-05: Area A | Area B on one row below the zoom row :: [{"l":36,"t":541.015625,"w":68,"h":46},{"l":108,"t":541.015625,"w":68,"h":46}]
+PASS [1280x720] UX-05: the dock is narrow (≤ 170 px; was 212 px) and every target stays ≥ 44 px :: {"dockWidth":158}
+PASS [1280x720] no sideways scroll; the stand is clear of the dock at Fit :: {"scrollWidth":1280,"bodyScrollWidth":1280,"innerWidth":1280,"zoom":"Fit","overlap":false,"dock":[27,303,185,596]}
+SHOT 01-initial-map-1280x720.png 342424 bytes
+PASS [1280x720] zoom + narrows the view :: {"z1":"1.52×"}
+PASS [1280x720] N/W/E/S pan the map in their own direction (north up) :: {"east":"moved","south":"moved","west":"moved","north":"moved"}
+PASS [1280x720] zoom − steps back and Fit restores the whole area (pans disabled at Fit, as before) :: {"z1":"1.52×","z2":"1.32×","z3":{"z":"Fit","panDisabled":true}}
+PASS [1280x720] Area A | Area B switch the map
+PASS [1280x720] UX-01: after clicking a living tree, ranks 1-5 and an actionable "Add selected to Fell plan" are visible without scrolling :: {"rows":5,"lastRowBottom":651,"firstRowTop":442,"dockTop":656,"addTop":662,"addBottom":706,"innerHeight":720,"scrollTop":0,"paneTop":292,"closeVisible":true,"closeText":"× Close inspection"}
+PASS [1280x720] UX-03: "× Close inspection" is visible beside the reference ID :: × Close inspection
+PASS [1280x720] UX-02: five map rank buttons, numbered 1-5, each carrying the exact engine ID of the engine's rank (same order as the inspector), with an ARIA label :: [[1,"MA-A-015",28],[2,"MA-A-016",28],[3,"MA-A-002",28],[4,"MA-A-030",28],[5,"MA-A-017",28]]
+SHOT 02-selected-five-ranks-1280x720.png 342735 bytes
+PASS [1280x720] UX-02: map rank 1 toggles exactly MA-A-015 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 1 to Fell plan"}
+PASS [1280x720] UX-02: map rank 2 toggles exactly MA-A-016 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 2 to Fell plan"}
+PASS [1280x720] UX-02: map rank 3 toggles exactly MA-A-002 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 3 to Fell plan"}
+PASS [1280x720] UX-02: map rank 4 toggles exactly MA-A-030 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 4 to Fell plan"}
+PASS [1280x720] UX-02: map rank 5 toggles exactly MA-A-017 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 5 to Fell plan"}
+PASS [1280x720] UX-01: with all five chosen the rows and the one-line "Add selected 5 to Fell plan" button still fit without scrolling :: {"lastRowBottom":651,"dockTop":656,"addBottom":706,"addHeight":44,"label":"Add selected 5 to Fell plan","scrollTop":0}
+PASS [1280x720] UX-02: clicking rank 2 again clears only MA-A-016 (multi-select kept)
+PASS [1280x720] UX-02: unticking MA-A-002 in the inspector clears map rank 3
+PASS [1280x720] UX-02: Tab moves focus to rank 2 with a visible 3 px focus outline :: {"key":"rank:MA-A-016","outline":"solid","width":"3px"}
+PASS [1280x720] UX-02: Space on the focused rank toggles it; focus stays on it after the redraw :: {"kb2":"rank:MA-A-016"}
+PASS [1280x720] the selection count is announced (polite live region) :: Ticked MA-A-016. 4 trees selected for Fell, draft only.
+PASS [1280x720] rank toggles are draft only: no Work Plan write, no Fell, the server view is unchanged :: {"posts":["api/multi/hit","api/multi/competition"]}
+SHOT 03-ranks-chosen-synced-1280x720.png 345991 bytes
+PASS [1280x720] AC04: Add queued exactly the chosen IDs (MA-A-015, MA-A-016, MA-A-030, MA-A-017), not all competitors :: ["MA-A:MA-A-015:Owner-selected felling","MA-A:MA-A-016:Owner-selected felling","MA-A:MA-A-030:Owner-selected felling","MA-A:MA-A-017:Owner-selected felling"]
+PASS [1280x720] UX-03/AC06: Escape with a dialog open closes only the dialog; the inspection stays open :: {"dialog":false,"id":"MA-A-001"}
+PASS [1280x720] UX-03: the next Escape exits inspection; ranks, enlargement and dimming are gone (normal tree rendering) :: {"empty":true,"ranks":true,"dimmed":0,"leaders":0,"zoom":"1.32×","area":"Area A · 0.0915 ha","vb":"-21.5988 6.2351 66.4900 34.4068","focus":"map-heading"}
+PASS [1280x720] UX-03: closing keeps zoom, pan, area, the Crop designation, the queued orders and the year :: {"keep":{"zoom":"1.32×","area":"Area A · 0.0915 ha","vb":"-21.5988 6.2351 66.4900 34.4068"},"e2":{"zoom":"1.32×","vb":"-21.5988 6.2351 66.4900 34.4068"},"crops":["MA-A-001"]}
+SHOT 04-inspection-closed-1280x720.png 436934 bytes
+PASS [1280x720] UX-03: "× Close inspection" exits the same way and clears the temporary draft choice :: {"x1":{"empty":true,"zoom":"1.32×"},"checkedAfterReselect":0}
+PASS [1280x720] UX-06: every cell with L > 0 is drawn with a strictly positive opacity; L = 0 cells are not drawn :: {"drawn":144,"positive":144,"zero":0,"minL":0.0006697774,"minOpacity":0.0078}
+PASS [1280x720] UX-06/F-3: no numbered band markers or band classes; the layer lies under the crowns and takes no clicks :: {"texts":0,"under":true,"pe":"none"}
+PASS [1280x720] UX-06: across the real cells opacity and colour brightness never decrease as L increases
+PASS [1280x720] UX-09: the legend says "Light Guide" with a Shaded→Bright ramp; no band labels or calibration text on the map :: Light Guide Shaded Bright Inspect ground reads the value at a spot.
+PASS [1280x720] UX-06: the mapping at L = 0 / 0.01 / 0.05 / 0.5 / 1 is invisible / extremely faint but nonzero / rising / rising / brightest pale peach :: [{"L":0,"colour":"#7f3b4a","op":0},{"L":0.01,"colour":"#88414e","op":0.0451},{"L":0.05,"colour":"#994d54","op":0.1284},{"L":0.5,"colour":"#e49383","op":0.5736},{"L":1,"colour":"#ffd9bd","op":0.9}]
+PASS [1280x720] UX-06 pixels: L = 0 leaves the floor unchanged; L = 0.01 changes it faintly but visibly on inspection; brightness rises through 0.05, 0.5 and 1 :: {"diffs":[0,8,26,227,496],"rgb":[[27,36,48],[32,37,50],[43,41,53],[143,99,96],[233,199,175]]}
+SHOT 05-light-guide-area-a-1280x720.png 328254 bytes
+PASS [1280x720] Area B shows its brighter real openings (no light invented in Area A) :: {"drawn":239,"maxOp":0.7905}
+SHOT 06-light-guide-area-b-1280x720.png 313703 bytes
+PASS [1280x720] UX-08: with the Light Guide on, clicking a crown selects that tree (no ground panel) :: MA-B-001
+PASS [1280x720] UX-08: rank toggles work with the Light Guide on
+PASS [1280x720] UX-08: Inspect ground has an obvious On state (pressed button, panel, crosshair, status line) :: {"pressed":"true","panel":true,"cls":true,"status":"Inspect ground is on: click any spot to read its light · tree selection paused · Esc stops"}
+PASS [1280x720] UX-08: in Inspect ground a click on a crown reads the ground cell there and does NOT select that tree :: {"insp":"MA-B-001","other":"MA-B-044","heading":"Area B · ground at X 63.8, Z 18.8"}
+PASS [1280x720] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: Very shadedLight index0.037 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover96% of this cell under living crownsShading trees8Light and canopy cover are separate engine quantities.
+PASS [1280x720] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {"treesSummary":"Contributing trees (8)"}
+SHOT 07-ground-inspection-1280x720.png 305578 bytes
+PASS [1280x720] UX-08: a rank click in ground mode toggles the draft and does not read the ground
+PASS [1280x720] UX-08: a spot with no ground sample says so; no value is synthesised :: {"heading":"Area B · no sample","summary":"No modelled ground sample at that spot (it is outside this area's light cells). No value is shown or estimated.","tech":true}
+PASS [1280x720] UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open :: {"ground":"false","panel":true,"light":"true","cells":239,"insp":"MA-B-001","body":false}
+PASS [1280x720] UX-08: after leaving ground mode a crown click selects a tree again :: {"now":"MA-B-044"}
+PASS [1280x720] Escape then closes the inspection; the Light Guide is never switched off by Escape :: {"body":true,"light":"true"}
+PASS [1280x720] AC21: Light Guide, Inspect ground and inspection changes had no server side effect :: {"year":0,"rev":5,"work":0,"pending":["MA-A:MA-A-015:Owner-selected felling","MA-A:MA-A-016:Owner-selected felling","MA-A:MA-A-030:Owner-selected felling","MA-A:MA-A-017:Owner-selected felling"],"approved":null,"events":0,"crops":[["MA-A-001"],[]],"living":[171,73]}
+PASS [1280x720] Approve fells nothing and approves exactly the queued IDs :: {"year":0,"rev":6,"work":0,"pending":[],"approved":["MA-A-015","MA-A-016","MA-A-030","MA-A-017"],"events":0,"crops":[["MA-A-001"],[]],"living":[171,73]}
+PASS [1280x720] F-2: with stage4 null, Execute (and Approve) are withdrawn :: Execute approved two-area plan · re-read needed
+PASS [1280x720] F-2: no model 0 / legacy claim (no edge exclusion, no "Light NOT MODELLED"); the page says unavailable :: Seed, regeneration, site, money and saving: NOT MODELLED. Which light and neighbourhood model this view used cannot be stated until a re-read.
+SHOT 09-f2-readout-unavailable-1280x720.png 370664 bytes
+PASS [1280x720] F-2: a paired re-read restores Execute
+PASS [1280x720] F-2: an open Execute confirmation is withdrawn unsent when the read-out becomes unavailable :: Confirmation withdrawn — the read-out of this view is unavailableThe Execute confirmation showed MA-A-015, MA-A-016, MA-
+PASS [1280x720] Execute fells exactly the confirmed trees through the unchanged fenced path :: {"execText":"Fells exactly 4 named trees across 1 areas in Year 0, or refuses all.","living":[167,73]}
+PASS [1280x720] Year+1 still advances one ecological year
+PASS [1280x720] no sideways scroll at the end :: {"scrollWidth":1280,"bodyScrollWidth":1280,"innerWidth":1280,"zoom":"Fit","overlap":false,"dock":[27,303,185,596]}
+PASS [1280x720] no CSP violation (the rank buttons are positioned through CSSOM, not style attributes) :: []
+PASS [1280x720] no script exception and no console error or warning :: {"ex":[],"console":[]}
+PASS [1280x720] no HTTP 5xx :: []
+STATUSES {"200":61}
+RESULT 1280x720: 63/63 PASS
