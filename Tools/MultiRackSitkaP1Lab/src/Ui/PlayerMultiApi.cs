@@ -907,7 +907,9 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .comp-strength { display: block; color: var(--muted); font-size: .68rem; }
 .comp-meta { white-space: nowrap; }
 .add-row { display: flex; align-items: center; gap: .5rem; }
-.add-row .add-button { flex: 1 1 auto; width: auto; }
+/* One line whatever the count, so the sticky Add bar never grows over rank 5 (UX-01). */
+.add-row .add-button { flex: 1 1 auto; width: auto; padding: .45rem .6rem; white-space: nowrap; }
+.add-row .link-button { flex: none; }
 .comp-empty { margin: .3rem 0; color: var(--muted); }
 .batch-result { max-height: 11rem; overflow-y: auto; margin: .5rem 1rem 0; padding: .55rem .75rem; border: 1px solid var(--line); border-left: 4px solid var(--approved); border-radius: 6px; background: var(--panel-2); font-size: .84rem; }
 .batch-result.partial { border-left-color: var(--pending); }
@@ -1122,6 +1124,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .notice { font-size: .76rem; }
   .ref-links .link-button { min-height: 32px; }
   .add-button { min-height: 44px; }
+  .add-row .add-button { font-size: .86rem; }
   .reason-details summary { min-height: 36px; padding: .45rem .6rem; }
 }
 /* Narrow / 200% zoom: map, then side panel, then the legend, which stays visible (two columns where it fits). */
