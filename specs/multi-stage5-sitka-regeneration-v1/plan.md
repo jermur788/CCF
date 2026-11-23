@@ -4,6 +4,12 @@
 
 **AMENDED — owner Option A, 2026-11-23.** After the first pass failed `S5-07` on promotions, the owner approved block-cohort export and an area-proportional block budget (spec §4, Q5), and split `S5-07` into the blocking `S5-07A` (identical shared light field) and the non-blocking diagnostic `S5-07B` (spec §9 Q4). The comparison horizon is 30 years.
 
+**AMENDED — owner final bounded-repair decisions, 2026-11-23.** These change no rule:
+- D1: `S5-07A` is gated on the blocks represented on both lattices, per hectare of matched in-polygon area; the 12 blocks that exist only on the 2.5 m lattice are disclosed in `S5-07B`.
+- D2: `S5-02` is a comparative suppression criterion with margins fixed in advance; the poor-light census is a diagnostic only.
+
+See spec, second amendment record and §9 Q4.
+
 ## Gate 0 — before any production edit (all must be true)
 
 1. Quartet in `specs/multi-stage5-sitka-regeneration-v1/` committed and marked `APPROVED` (D-094/D-095 cited at `3238846d` until reconciled on `main`).
@@ -35,4 +41,4 @@
 
 ## Stop conditions
 
-Any change to frozen hashes at Regeneration `0`; need to touch `Assets/`, `/multi` UI files or a save schema; another writer on the lab; D-091 not granted; `S5-07` cannot reach tolerance without changing a locked decision. After the Option A amendment: `S5-07A` cannot reach `[0.75, 1.33]` on the amended rule (do not widen the tolerance or add a damping constant). Stop and report the concrete fact.
+Any change to frozen hashes at Regeneration `0`; need to touch `Assets/`, `/multi` UI files or a save schema; another writer on the lab; D-091 not granted; `S5-07` cannot reach tolerance without changing a locked decision. After the Option A amendment: `S5-07A` cannot reach `[0.75, 1.33]` on the amended rule (do not widen the tolerance or add a damping constant). After the final bounded-repair decisions: `S5-07A` misses `[0.75, 1.33]` after honest matched-area normalisation (do not adjust the rule, the tolerance, the population or the control). Stop and report the concrete fact.

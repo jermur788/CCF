@@ -1,6 +1,6 @@
 # MULTI Stage 5 — Natural Sitka regeneration, bramble/bracken competition, selective undergrowth clearing and light browsing
 
-**Status: APPROVED — owner approval 2026-11-23. AMENDED — owner Option A, 2026-11-23** (§4 promotion rule, Q4 and Q5; see the amendment record below). The owner approved this quartet, the §4 area-consistent `2.5 m` scaling policy, and the binding Q1–Q6 resolutions recorded below. Implementation is authorised only inside an admitted D-091 lane branched from `e7c1a57d` (see `plan.md` Gate 0).
+**Status: APPROVED — owner approval 2026-11-23. AMENDED — owner Option A, 2026-11-23** (§4 promotion rule, Q4 and Q5; see the amendment record below). **AMENDED — owner final bounded-repair decisions, 2026-11-23** (`S5-07A` population and units, `S5-02` criterion; no rule change; see the second amendment record below). The owner approved this quartet, the §4 area-consistent `2.5 m` scaling policy, and the binding Q1–Q6 resolutions recorded below. Implementation is authorised only inside an admitted D-091 lane branched from `e7c1a57d` (see `plan.md` Gate 0).
 
 ### Owner approval record (2026-11-23, binding — not re-litigated)
 
@@ -8,7 +8,7 @@
 - **Q1 Mast:** one annual `NextDouble()` roll on the isolated woodland-wide `STAGE5-MAST` stream, cumulative thresholds `<0.15 → 1.5`, `<0.50 → 0.4`, else `1.0`.
 - **Q2 Promotion light gate:** `promotionMinimumLight = 0` — no extra light gate.
 - **Q3 Token:** append the regeneration version to `AreaModelVersion` **only when `!= 0`**, so `0/0/0`, `0/0/1` and `1/1/1` tokens and hashes stay byte-identical.
-- **Q4 `S5-07` tolerance:** `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds, for accepted abundance and multi-year promotion ratios; report the edge-block effect honestly. *(Amended 2026-11-23 by owner Option A: split into `S5-07A` / `S5-07B`, see the amendment record and §9.)*
+- **Q4 `S5-07` tolerance:** `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds, for accepted abundance and multi-year promotion ratios; report the edge-block effect honestly. *(Amended 2026-11-23 by owner Option A: split into `S5-07A` / `S5-07B`, see the amendment record and §9. Amended again 2026-11-23, final bounded repair: the blocking `S5-07A` population is the blocks represented on both lattices, in per-hectare units of matched in-polygon area; see the second amendment record and §9.)*
 - **Q5 Promotion cap:** aligned `5 m` block cap (max 1 promotion per block per year). Tie-breaker: oldest `EstablishYear`, then tallest height, then deterministic `(Column, Row)`. *(Amended 2026-11-23 by owner Option A: cohort export and an area-proportional block budget are added, see the amendment record and §4.)*
 - **Q6 Browse height:** `V(h)` uses pre-growth height.
 
@@ -28,6 +28,46 @@ Where the earlier draft text differs from these resolutions (notably the §4 blo
 - **Stop rule.** If A1 and A2 as specified cannot reach `S5-07A`, the implementer stops and reports the numbers. The tolerance is not widened and no damping constant is added.
 
 The A2 mechanism (block credit, §4) and the A1 cohort identity were chosen by the implementer within these owner constraints. They are written here before the amended code was implemented or measured.
+
+### Owner amendment record — final bounded repair (2026-11-23, binding)
+
+**Why.** The Option A repair (`feat/multi-stage5-sitka-regeneration-20261123-v1` @ `a3d86aa2`, handoff `MULTI-STAGE5-SITKA-REGENERATION-REPAIR-20261123.md`) left two red tests:
+- **`S5-07A`.** Whole-stand promotion ratios were 1.575 (managed thinning) and 2.008 (no work). The two lattices do not cover the same boundary ground. Twelve MA-1 blocks hold in-polygon 2.5 m cells but no 5.0 m cell, because their 5 m centre lies outside every polygon. Under the shared field, those twelve blocks alone gave 1023 and 731 of the 2.5 m promotions, with nothing on the 5.0 m side to compare against.
+- **`S5-02`.** The test read "suppressed" as an absolute proxy: every dense test cell in the poor-light band in year 12. That proxy was never an owner criterion. The interior's light legitimately rises as Area A self-thins.
+
+**Owner decisions, 2026-11-23.** Neither decision changes a rule, a constant, the tolerance or the shared-light control.
+
+- **D1 — `S5-07A` is matched-area normalised.** The blocking population is the set of aligned 5 m blocks represented on **both** lattices. These are the blocks whose 5 m centre lies inside a polygon, which is exactly the 5.0 m grid's cells. The ratios are per hectare of **matched in-polygon area**, computed from each lattice's own in-polygon cells in those blocks. Whole-stand figures and the unmatched blocks become `S5-07B` disclosures. Rule text: §9 Q4.
+- **D2 — `S5-02` is comparative suppression.** The blocking claim is comparative: the dense unthinned interior never reaches promotion height, and its cohorts stay materially shorter and sparser than the managed gap across the horizon. The poor-light census becomes a printed diagnostic and is never asserted. Rule text: below.
+- **Stop rule.** If `S5-07A` still misses `[0.75, 1.33]` after honest area normalisation, the implementer stops and reports the numbers. The rule, the tolerance, the population and the control are not adjusted.
+
+**`S5-02` qualification criterion (D2).**
+
+*Setup, unchanged from the first pass:*
+- Two `1/1/1/1` MA-1 sessions with the same seed sources. The gap session fells every living Area A tree within 7.5 m of (20, 15) in year 0 (a managed gap); the dense session stays unthinned.
+- The test cells are the Area A cells whose centre is within 5 m of (20, 15), read in both sessions.
+- The horizon is 15 years. Light is the modelled index, not calibrated PAR.
+
+*Blocking criteria:*
+1. **The gap raises the light index.** In year 1, the mean light of the test cells is higher in the gap by more than 0.2. This is unchanged from the first pass, and its margin is not re-derived here.
+2. **The dense interior never reaches promotion height.** In no year from 1 to 15 does any band of a dense test cell reach 3.5 m (§3.3), and no dense test cell promotes.
+3. **The order never inverts.** In every year from 1 to 15:
+   - the dense interior's tallest cohort is no taller than the tallest cohort the gap has reached (a gap cohort that has promoted counts at its promotion height);
+   - the dense standing abundance is no larger than the gap's.
+4. **Materially shorter and sparser.** In year 12 and in year 15:
+   - the gap's tallest reached cohort is at least **0.315 m** taller than the dense interior's tallest;
+   - the dense standing abundance is at most **0.8 ×** the gap's.
+5. **The gap grows toward promotion.** In year 12, the gap's tallest cohort is at least 1.5 m, the bramble/bracken escape height of §3.1. This is unchanged from the first pass.
+
+*Why these margins follow from the spec, not from observed data.* They are fixed here before this pass measured anything.
+- **0.315 m = 0.35 × 0.90.** This is the largest annual height increment the §3.2 growth rule allows, because LightResponse peaks at 0.90. A smaller lead could come from cohorts established one year apart, so it would not show suppression. A lead of at least one maximal year of growth cannot come from that.
+- **0.8** is the §3.2 poor-light survival factor, the spec's own one-year suppression penalty. "Materially sparser" means the interior holds no more than the gap would hold after one year of that penalty.
+- **Year 12** is the first year in which a cohort established in year 1 can reach promotion height at the fastest growth the spec allows: `0.15 + 11 × 0.315 = 3.615 m ≥ 3.5 m`, while year 11 gives only 3.30 m. **Year 15** is the end of the horizon.
+- *Standing abundance* is not credited with abundance a gap cohort exported by promotion. Criteria 3 and 4 are therefore conservative in the dense interior's favour.
+
+*Diagnostic only (printed, never asserted):* the poor-light census, i.e. how many dense test cells have `LightResponse(light) < 0.15` in each year, including year 12.
+
+> **Superseded proxy (first pass and Option A repair test, never an owner criterion), kept for history.** "In year 12, when the cohorts are compared, every dense test cell is in the poor-light band (LR < 0.15, survival × 0.8)." The repair run measured 7 of 12.
 Task class: `SPEC REQUIRED` (new causal regeneration, understorey competition, browsing, promotion, one new Work Plan command).
 Lane: standalone 2D Sitka Engine, `Tools/MultiRackSitkaP1Lab` only. **Zero** Unity `Assets/`, Compact30/Legacy40/Enlarged80/Reference Future v1, `/multi` UI, or save-schema change.
 
@@ -172,10 +212,37 @@ An area with 0 living adults still: advances its ecological year, receives cross
 - **Q1 Mast bands — resolved from source, please confirm.** The brief's `0.15 / 0.35 / 0.50` are probabilities/cumulative edges, not three sampled rolls: Unity gives good = 15 % (×1.5), poor = 35 % (×0.4, roll in `[0.15, 0.50)`), normal = 50 % (×1.0). Expected multiplier = 0.225 + 0.14 + 0.5 = 0.865. Unity rolls mast per species with the stand RNG; Stage 5 uses the isolated `STAGE5-MAST` stream per year instead (intentional, §6).
 - **Q2 Promotion light gate.** No gate (Unity asset leaves it at 0). Confirm.
 - **Q3 Token.** Proposal: add the regeneration version to the existing `AreaModelVersion` string only when `≠ 0`, leaving the record shape and all earlier tokens byte-identical.
-- **Q4 `S5-07` tolerance — AMENDED by owner Option A, 2026-11-23 (split gate).** The draft proposal ("ratio of 2.5 m / 5.0 m for (a) mean relative occupancy, (b) cumulative promotions per hectare over 10 years lies in `[0.75, 1.33]`") is superseded. Its **10-year horizon was stale** (review finding F7): no band can reach 3.5 m within 10 years (`0.15 + 10 × 0.35 × 0.9 = 3.30 m`), so a 10-year promotion ratio is `0/0`. **The comparison horizon is 30 years.** Both parts use the same ≥ 20 deterministic woodland-mast seeds, 30 years, and two scenarios on MA-1: "managed thinning" (every second living stem felled in year 0) and "no work". The metrics are cumulative accepted establishment abundance (cohort abundance accepted into bands) and cumulative adult promotions, over the whole stand (interior and edge blocks together).
-  - **`S5-07A` — BLOCKING.** Under an identical shared light field, both the **pooled** ratio (Σ 2.5 m / Σ 5.0 m over the seeds) and the **mean** of the per-seed ratios lie in `[0.75, 1.33]` for both metrics in both scenarios; pooled and mean must both pass. In addition: zero out-of-polygon promoted trees over every study run; `5.0 m` keeps `a = 1.0` with no edge-gate reduction (its output equals the first-pass engine's); and no invented damping constant.
+- **Q4 `S5-07` tolerance — AMENDED by owner Option A, 2026-11-23 (split gate).** The draft proposal ("ratio of 2.5 m / 5.0 m for (a) mean relative occupancy, (b) cumulative promotions per hectare over 10 years lies in `[0.75, 1.33]`") is superseded. Its **10-year horizon was stale** (review finding F7): no band can reach 3.5 m within 10 years (`0.15 + 10 × 0.35 × 0.9 = 3.30 m`), so a 10-year promotion ratio is `0/0`. **The comparison horizon is 30 years.** Both parts use the same ≥ 20 deterministic woodland-mast seeds, 30 years, and two scenarios on MA-1: "managed thinning" (every second living stem felled in year 0) and "no work". The metrics are cumulative accepted establishment abundance (cohort abundance accepted into bands) and cumulative adult promotions. `S5-07A` measures them over the matched-area population below; `S5-07B` reports them over the whole stand (interior and edge blocks together) and over that population. *(Amended 2026-11-23, final bounded repair D1. The Option A text said "over the whole stand (interior and edge blocks together)" for both parts.)*
+  - **`S5-07A` — BLOCKING (amended again 2026-11-23, final bounded repair D1).**
+    - *Population.* The aligned 5 m blocks represented on **both** lattices: those whose 5 m centre `((X + 0.5) · 5, (Z + 0.5) · 5)` is strictly inside an area polygon, under the lattices' own centre-in-polygon rule. These are exactly the cells of the 5.0 m grid, 101 on MA-1. The test **asserts** this correspondence instead of assuming it:
+      - every 5.0 m block holds exactly one 5.0 m cell;
+      - the set of 2.5 m blocks with an in-polygon 5 m centre equals the set of 5.0 m cells;
+      - every interior block is matched.
+    - *Units.* Per hectare of **matched in-polygon area**. Each lattice's area comes from its own in-polygon cells in the matched blocks:
+      - `A_2.5 = Σ n_block × 6.25 m²`, because a matched block holds 1–4 in-polygon 2.5 m cells;
+      - `A_5.0 = (number of matched blocks) × 25 m²`.
+
+      Both totals are reported and asserted to be > 0. *Accepted abundance per hectare* is the abundance accepted into bands in the matched blocks' cells over 30 years, divided by that lattice's matched area. *Promotions per hectare* is the number of promotions whose block is matched, divided by that lattice's matched area.
+    - *Gate.* Both of these lie in `[0.75, 1.33]`, for both metrics in both scenarios:
+      - the pooled ratio `(Σ_s x_2.5,s / A_2.5) / (Σ_s x_5.0,s / A_5.0)`;
+      - the mean over seeds of `(x_2.5,s / A_2.5) / (x_5.0,s / A_5.0)`.
+    - *Unchanged:*
+      - zero out-of-polygon promoted trees over every study run (whole stand, both lattices);
+      - `5.0 m` keeps `a = 1.0` with no edge-gate reduction (its output equals the first-pass engine's);
+      - no invented damping constant;
+      - the shared light field below, and its proof.
+    - *Printed, not gated:* whole-stand ratios and raw-count matched ratios.
+    - *Superseded wording (Option A, 2026-11-23), kept for history:* "Under an identical shared light field, both the **pooled** ratio (Σ 2.5 m / Σ 5.0 m over the seeds) and the **mean** of the per-seed ratios lie in `[0.75, 1.33]` for both metrics in both scenarios; pooled and mean must both pass. In addition: zero out-of-polygon promoted trees over every study run; `5.0 m` keeps `a = 1.0` with no edge-gate reduction (its output equals the first-pass engine's); and no invented damping constant." That wording compared raw whole-stand totals.
+
     *Shared light field.* For each scenario, the field is the light index of the **regeneration-free adult canopy**: the post-adult-step roster, in that year, of a `1/1/1/0` run of the same woodland and scenario. It is evaluated with the unchanged `CanopyLightEvaluator` kernel at the centre of each aligned 5 m block, and every cell of both grids reads its block-centre value (a 5.0 m cell's centre is its block centre). *Frozen or excluded, in both grids alike:* the shading of Stage 5 promoted trees on the regeneration layer. Each run keeps its own adult step, seed rain and promoted adults. *Proof, not assertion:* the test asserts bit-equal light at every block present in both lattices in every year of every seed and scenario. It also asserts that its year loop reproduces `MultiAreaContinuation.Advance` bit for bit when it is given the model light, so the light source is the only difference.
   - **`S5-07B` — MANDATORY, NON-BLOCKING DIAGNOSTIC.** The same comparison under each grid's own `CanopyLightEvaluator` field: cell-centre sampling of the run's own canopy, including its own promoted trees. There is no `[0.75, 1.33]` threshold and no assertion, so it can never fail the suite. Disclosed: the real-light accepted-abundance and promotion ratios (pooled, mean, and per-seed minimum/median/maximum); interior-only and edge-only sub-ratios for both light bases (a 5 m block is interior when all four of its 2.5 m cell centres are in polygon; a 5.0 m cell is interior when its block is); and the statement that light is a non-PAR modelled index (`unity-k10a10-decoupled-v1`), so a higher 2.5 m real-light recruitment reflects finer gap-resolution sampling of that index rather than a scaling defect.
+
+    *Unmatched-block disclosure, added 2026-11-23 (final bounded repair D1).* `S5-07B` also reports the blocks represented on the 2.5 m lattice only, which number 12 on MA-1. For both light bases it gives:
+    - their count;
+    - their in-polygon 2.5 m area;
+    - their promotions and accepted abundance.
+
+    It states explicitly that the whole-stand 2.5 m figure exceeds the 5.0 m figure partly because the finer lattice represents boundary ground the coarser lattice cannot.
 - **Q5 Block cap — AMENDED by owner Option A, 2026-11-23.** First approval: aligned `5 m` block cap, at most one promotion per block per year, tie-breaker oldest `EstablishYear`, then tallest height, then `(Column, Row)`. Amended: the same blocks, hard cap and tie-breaker, plus Option A1 cohort export and the Option A2 area-proportional budget realised as the integer block credit (§4). The draft's alternative "fractional-promotion accumulator" exists only in the form of that block credit; no fractional tree is ever created.
 - **Q6 Browse height.** Browse `V(h)` and `p_veg` use pre-growth height (as stated for `p_veg`); confirm against `JuvenileEcologyRules` during implementation.
 
