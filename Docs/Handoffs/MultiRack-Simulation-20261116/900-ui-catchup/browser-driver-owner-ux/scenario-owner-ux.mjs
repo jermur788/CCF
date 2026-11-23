@@ -2,6 +2,9 @@
 // R1 rewrote section G (crown wins over ground). R2 adds the R2 section after G: the AC01 fold with Inspect ground ON/OFF,
 // all five ticked and scrolled inspectors; three deterministic stale hit-test races (Escape, newer selection, area switch;
 // the page's fetch holds the real hit-test answer until the driver releases it); and the ramp table from injected L values.
+// R3 adds a loaded-session section right after the first Add (F-01 blocked rows with 1, 2 and 4 blocked, every free rank
+// ticked with the real mouse; F-02 the post-Add card), a fourth race (F-05: an Escape that only closes a dialog keeps a
+// pending map click) and the F-07 "< 0.001" summary. The every-tree loaded sweep is fold-sweep-owner-ux.mjs.
 // Usage (Windows node v26): node scenario-owner-ux.mjs <evidenceDir> <fileHoldingTheBaseUrl> <W>x<H>
 // Run once per viewport against a FRESH server session (year 0, empty plan). The base URL file is outside the repository
 // and is never printed: every output line goes through redact().
@@ -70,7 +73,9 @@ async function clickCrown(page, areaId, treeId) {
 }
 
 // A living tree of the area whose crown centre is clickable on the map and which the hit-test selects, with five ranked
-// competitors none of which is blocked.
+// competitors none of which is blocked. R3 note: this is deliberately the favourable case (the steps that use it need five
+// tickable ranks), so it must not be the only fold evidence. Blocked rows are covered by selectByIdWithBlocked below, the
+// R3 section and fold-sweep-owner-ux.mjs (every living tree, clean and loaded).
 async function selectReference(page, areaId, exclude) {
   const ids = await page.eval(`(async () => { const p = await (await fetch('api/multi/view')).json(); return p.view.areas.find((a) => a.areaId === ${JSON.stringify(areaId)}).trees.filter((t) => t.isLiving).map((t) => t.treeId); })()`);
   for (const id of ids) {
@@ -84,6 +89,43 @@ async function selectReference(page, areaId, exclude) {
   }
   throw new Error('no clickable reference with five free competitors in ' + areaId);
 }
+
+// R3: selects (exact ID + the real Enter key) the first living tree of the area whose five ranked competitors include
+// exactly `blocked` already queued trees. The count is found with the read-only competition route against the current
+// pending list, then confirmed on the rendered rows.
+async function selectByIdWithBlocked(page, areaId, blocked, exclude = []) {
+  const id = await page.eval(`(async () => { const p = await (await fetch('api/multi/view', { cache: 'no-store' })).json(); const v = p.view;
+    const fence = { sessionId: v.sessionId, source: v.source, planStateRevision: v.planStateRevision }; const queued = new Set(v.pending.map((o) => o.treeId));
+    const skip = new Set(${JSON.stringify(exclude)});
+    for (const t of v.areas.find((a) => a.areaId === ${JSON.stringify(areaId)}).trees.filter((x) => x.isLiving && !queued.has(x.treeId) && !skip.has(x.treeId))) {
+      const r = await (await fetch('api/multi/competition', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fence, areaId: ${JSON.stringify(areaId)}, treeId: t.treeId }) })).json();
+      if (r.competition && r.competition.topFive.length === 5 && r.competition.topFive.filter((n) => queued.has(n.treeId)).length === ${blocked}) return t.treeId; }
+    return null; })()`);
+  if (!id) throw new Error('no reference in ' + areaId + ' with exactly ' + blocked + ' blocked competitors');
+  await page.eval(`(() => { const q = document.getElementById('quick-id'); q.focus(); q.value = ${JSON.stringify(id)}; })()`);
+  await page.key('Enter');
+  await page.waitFor(`document.getElementById('insp-id').textContent === ${JSON.stringify(id)} && document.querySelectorAll('#competition-content .comp-row').length === 5 &&
+    !document.documentElement.classList.contains('busy')`, 'the competitors of ' + id, 10000);
+  await sleep(100);
+  return id;
+}
+
+// R3: the fold of the shown reference, including the post-Add card and each row's reason line.
+const LOADED_FOLD = `(() => { const rows = [...document.querySelectorAll('#competition-content .comp-row')]; const rr = rows.map((e) => e.getBoundingClientRect());
+  const pane = document.getElementById('pane-tree'); const pr = pane.getBoundingClientRect(); const dock = document.getElementById('add-dock').getBoundingClientRect();
+  const add = document.getElementById('add-button'); const ab = add.getBoundingClientRect(); const card = document.getElementById('batch-result'); const cb = card.getBoundingClientRect();
+  const ref = document.querySelector('.ref-card').getBoundingClientRect();
+  return { rows: rows.length, blocked: rows.filter((e) => e.classList.contains('blocked')).length, chosen: rows.filter((e) => e.classList.contains('chosen')).length,
+    rowH: rr.map((b) => Math.round(b.height)), firstTop: Math.round(rr[0].top), lastBottom: Math.round(rr[rr.length - 1].bottom), refTop: Math.round(ref.top),
+    paneTop: Math.round(pr.top), paneBottom: Math.round(pr.bottom), dockTop: Math.round(dock.top), dockBottom: Math.round(dock.bottom), scrollTop: pane.scrollTop, innerHeight,
+    addRendered: ab.height > 0, addTop: Math.round(ab.top), addBottom: Math.round(ab.bottom), addH: Math.round(ab.height), addText: add.textContent,
+    cardShown: !card.hidden, cardTop: Math.round(cb.top), cardH: Math.round(cb.height), focus: document.activeElement.id,
+    why: rows.map((e) => { const w = e.querySelector('.comp-why'); return w ? w.textContent : null; }),
+    sr: rows.map((e) => { const s = e.querySelector('.comp-line .sr-only'); return s ? s.textContent : null; }),
+    titles: rows.map((e) => e.querySelector('label').title) }; })()`;
+const loadedFoldOk = (f) => f.rows === 5 && f.scrollTop === 0 && f.refTop >= f.paneTop && f.firstTop >= f.paneTop && f.lastBottom <= f.dockTop + 1 &&
+  f.dockBottom <= Math.min(f.innerHeight, f.paneBottom + 1) && Math.min(...f.rowH) >= 36 && Math.max(...f.rowH) - Math.min(...f.rowH) <= 1;
 
 async function main() {
   if (!(await reachable(base + 'multi'))) throw new Error('server not reachable from Windows');
@@ -228,6 +270,65 @@ async function main() {
     const sAdded = await server(page);
     check(sAdded.pending.map((p) => p.split(':')[1]).sort().join() === chosen.slice().sort().join() && sAdded.pending.every((p) => p.endsWith(':Owner-selected felling')),
       'AC04: Add queued exactly the chosen IDs (' + chosen.join(', ') + '), not all competitors', sAdded.pending);
+
+    // ---- R3. Loaded session (F-01, F-02): the four orders just added block four of ref's five competitor rows ----------
+    await page.waitFor(`document.querySelectorAll('#competition-content .comp-row.blocked').length === 4`, 'the four blocked rows after Add', 10000);
+    await sleep(200);
+    const shortDesk = H <= 820;
+    const shotSide = async (name) => {
+      const clip = await page.eval(`(() => { const b = document.querySelector('.side').getBoundingClientRect(); return { x: Math.round(b.left), y: Math.round(b.top), width: Math.round(b.width), height: Math.round(b.height) }; })()`);
+      const file = path.join(OUT, name + '-' + tag + '.png');
+      const bytes = await page.shotClip(file, clip);
+      shots.push({ name: path.basename(file), bytes });
+      console.log('SHOT ' + path.basename(file) + ' ' + bytes + ' bytes');
+    };
+    let lf = await page.eval(LOADED_FOLD);
+    check(loadedFoldOk(lf) && lf.blocked === 4 && lf.cardShown && !lf.addRendered && lf.lastBottom <= lf.cardTop + 1 && (!shortDesk || lf.cardH <= 40),
+      'R3/F-02: right after Add, ranks 1-5 of ' + ref + ' (4 now blocked) stay above the result card, which replaces the Add form' + (shortDesk ? ' as one line' : ''),
+      { lastBottom: lf.lastBottom, cardTop: lf.cardTop, cardH: lf.cardH, dock: [lf.dockTop, lf.dockBottom], rowH: lf.rowH });
+    check(lf.why.filter((w) => w === 'Pending Fell').length === 4 && lf.sr.filter((s) => s === 'Cannot be chosen: Already pending Fell. ').length === 4 &&
+      lf.titles.filter((t) => t.includes('Already pending Fell')).length === 4,
+      'R3/F-01: each blocked row starts its single meta line with "Pending Fell"; the full reason is in its tooltip and screen-reader text', { why: lf.why });
+    await shotSide('12-after-add-card');
+    if (shortDesk) {
+      await page.click('#batch-result [data-batch="more"]');
+      const lo = await page.eval(LOADED_FOLD);
+      await page.click('#batch-result [data-batch="more"]');
+      const lc = await page.eval(LOADED_FOLD);
+      check(lo.cardH > lf.cardH && lc.cardH === lf.cardH && loadedFoldOk(lc), 'R3/F-02: Details opens the card\'s lines on request and closes them again', { open: lo.cardH, closed: lc.cardH });
+    }
+    const sBeforeDismiss = await server(page);
+    await page.click('#batch-result [data-batch="dismiss"]');
+    await sleep(200);
+    lf = await page.eval(LOADED_FOLD);
+    check(!lf.cardShown && lf.addRendered && loadedFoldOk(lf) && lf.addBottom <= lf.innerHeight && ['add-button', 'inspector-heading'].includes(lf.focus) &&
+      JSON.stringify(await server(page)) === JSON.stringify(sBeforeDismiss),
+      'R3/F-02: × Dismiss ends the card; the Add form is back above the fold (focus on ' + lf.focus + '); nothing was sent', { add: lf.addText, focus: lf.focus });
+    // Worst cases with the real mouse on the map rank buttons: references with exactly 1 and 2 blocked rows, then ref itself
+    // (4 blocked), each with every free rank ticked.
+    const tickFreeRanks = async () => {
+      let n = 0;
+      for (const r of await ranksDom(page)) { if (r.disabled === 'true' || r.pressed === 'true') continue; await page.clickAt(r.x, r.y); await sleep(120); n++; }
+      return n;
+    };
+    const worst = async (id, k) => {
+      const n = await tickFreeRanks();
+      const f = await page.eval(LOADED_FOLD);
+      check(f.blocked === k && n === 5 - k && f.chosen === n && loadedFoldOk(f) && f.addRendered && f.addTop >= f.lastBottom && f.addBottom <= f.innerHeight && f.addH >= 40 &&
+        f.addText === 'Add selected ' + n + ' to Fell plan',
+        'R3/F-01: ' + id + ' with ' + k + ' blocked row' + (k === 1 ? '' : 's') + ' and all ' + n + ' free rank' + (n === 1 ? '' : 's') + ' ticked (real mouse): ranks 1-5 and "' + f.addText + '" above the fold, no scrolling',
+        { rowH: f.rowH, lastBottom: f.lastBottom, dockTop: f.dockTop, addBottom: f.addBottom, room: f.paneBottom - f.dockBottom, why: f.why });
+    };
+    for (const k of [1, 2]) await worst(await selectByIdWithBlocked(page, 'MA-A', k, [ref]), k);
+    await page.eval(`(() => { const q = document.getElementById('quick-id'); q.focus(); q.value = ${JSON.stringify(ref)}; })()`);
+    await page.key('Enter');
+    await page.waitFor(`document.getElementById('insp-id').textContent === ${JSON.stringify(ref)} && document.querySelectorAll('#competition-content .comp-row').length === 5 &&
+      !document.documentElement.classList.contains('busy')`, 'the reference again', 10000);
+    await sleep(100);
+    await worst(ref, 4);
+    await shotSide('11-blocked-rows');
+    // Leave the draft empty again, as section E expects.
+    for (const r of await ranksDom(page)) if (r.pressed === 'true') { await page.clickAt(r.x, r.y); await sleep(120); }
 
     // ---- E. Escape precedence and Close inspection ------------------------------------------------------------------------
     await page.click('#crop-button');
@@ -425,6 +526,30 @@ async function main() {
     await page.key('Escape');
     const m2 = await page.eval(`({ open: document.getElementById('consent-dialog').open, ground: document.getElementById('ground-mode').getAttribute('aria-pressed') })`);
     check(!m2.open && m2.ground === 'true' && JSON.stringify(await server(page)) === JSON.stringify(preModal.server), 'Escape closes only the dialog; Inspect ground stays on', m2);
+    // R3 (F-07): a positive light index below 0.0005 reads "< 0.001" in the concise summary, never "0.000". Injected into the
+    // open cell's value in the read-out that the open-ground click's own hit-test answer carries (display only, like the ramp
+    // and F-2 injections); the next click, uninjected, shows the engine value again.
+    await page.eval(`(() => { window.__tiny = false; const real = window.fetch.bind(window);
+      window.fetch = async (input, init) => { const r = await real(input, init); if (!window.__tiny || !/api\\/multi\\/(hit|view)$/.test(String(input))) return r;
+        const j = await r.json(); const s4 = j.stage4 || (j.payload && j.payload.stage4);
+        if (s4) { const g = s4.areas.find((a) => a.areaId === 'MA-B').ground.find((x) => x.column === ${c.column} && x.row === ${c.row}); g.lightIndex = 0.0004; }
+        return new Response(JSON.stringify(j), { status: r.status, headers: { 'Content-Type': 'application/json' } }); }; })()`);
+    await page.eval(`window.__tiny = true`);
+    await page.click('#reread');
+    await page.idle();
+    await page.clickAt(openAt.x, openAt.y);
+    await sleep(200);
+    await page.idle();
+    const tiny = await page.eval(`({ summary: document.getElementById('ground-summary').textContent, tech: document.getElementById('ground-facts').textContent })`);
+    await page.eval(`window.__tiny = false`);
+    await page.click('#reread');
+    await page.idle();
+    await page.clickAt(openAt.x, openAt.y);
+    await sleep(200);
+    await page.idle();
+    const restored = await page.eval(`document.getElementById('ground-summary').textContent`);
+    check(tiny.summary.includes('Light index< 0.001') && !tiny.summary.includes('0.000') && tiny.tech.includes('0.0004') && restored.includes('Light index' + expectIndex),
+      'R3/F-07: an injected L = 0.0004 reads "< 0.001" in the summary (4 decimals in Technical details); a normal re-read restores ' + expectIndex, { summary: tiny.summary.slice(0, 90), restored: restored.slice(0, 60) });
     // Inspect ground ON + a crown: the crown wins. The tree is selected exactly as a normal selection; no ground read is shown.
     // A crown point that is visible, on the drawn crowns (not under a rank button) and whose server hit-test topmost is a
     // tree outside `exclude`, so clicking it must change the selection if crowns win.
@@ -594,7 +719,20 @@ async function main() {
     const rc1 = await raceState();
     check(draftB.includes('Add selected 1') && rc0.area.startsWith('Area A') && !rc0.announce.includes(tC.hit[0]) && rc1.insp === refR2 && rc1.add === draftB,
       'R2: an area switch while the hit-test answer was pending: the page stays on Area A; back in B the reference ' + refR2 + ' and its draft ("' + draftB + '") are intact (late topmost ' + tC.hit[0] + ' ignored)', { rc0: [rc0.area, rc0.announce], rc1: [rc1.insp, rc1.add] });
-    check(JSON.stringify(await server(page)) === JSON.stringify(sRace), 'R2: the three races changed nothing on the server');
+    // (d) R3 (F-05): an Escape that only closes a dialog leaves the pending map click alone, so its answer selects as usual.
+    const tD = await holdAndClick([refR2], 4);
+    await page.click('#advance');
+    await page.waitFor(`document.getElementById('consent-dialog').open`, 'the Year+1 dialog while the hit-test answer is held');
+    await page.key('Escape');
+    const rd0 = await page.eval(`({ dialog: document.getElementById('consent-dialog').open, insp: document.getElementById('insp-id').textContent })`);
+    await release();
+    await page.waitFor(`document.getElementById('insp-id').textContent === ${JSON.stringify(tD.hit[0])} && document.querySelectorAll('#competition-content [data-draft]').length > 0`,
+      'the late answer to select after a dialog-only Escape', 8000).catch(() => {});
+    const rd1 = await raceState();
+    check(!rd0.dialog && rd0.insp === refR2 && rd1.insp === tD.hit[0] && rd1.alert === '',
+      'R3/F-05: Escape that only closes the Year+1 dialog keeps the pending map click; its late answer then selects ' + tD.hit[0] + ' as a normal click',
+      { rd0, rd1: [rd1.insp, rd1.announce] });
+    check(JSON.stringify(await server(page)) === JSON.stringify(sRace), 'R2/R3: the four races changed nothing on the server (no year advance, no plan change)');
 
     // The continuous ramp: the page's own lightPaint for chosen L values, by injecting them into one read-out (display
     // only, like the F-2 injection below) and reading the drawn cells; then a normal re-read restores the engine values.

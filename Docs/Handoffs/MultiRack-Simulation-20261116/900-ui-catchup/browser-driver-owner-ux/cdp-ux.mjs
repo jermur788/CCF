@@ -174,6 +174,13 @@ export async function launch() {
       fs.writeFileSync(file, bytes);
       return bytes.length;
     },
+    // R3: a PNG of one viewport region, written as is (smaller evidence files than a full-viewport shot).
+    async shotClip(file, clip) {
+      const r = await S('Page.captureScreenshot', { format: 'png', clip: { ...clip, scale: 1 }, captureBeyondViewport: false });
+      const bytes = Buffer.from(r.data, 'base64');
+      fs.writeFileSync(file, bytes);
+      return bytes.length;
+    },
     async capture(clip) {
       const r = await S('Page.captureScreenshot', { format: 'png', clip: { ...clip, scale: 1 }, captureBeyondViewport: false });
       return decodePng(Buffer.from(r.data, 'base64'));
