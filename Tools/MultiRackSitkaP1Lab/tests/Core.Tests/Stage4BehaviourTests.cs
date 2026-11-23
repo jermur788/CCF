@@ -896,10 +896,13 @@ internal static class Stage4BehaviourTests
         T.Eq(start.Events.Count, after.Events.Count, "a year adds no work event");
     }
 
-    /// <summary>A fixed Stage 4 script (Fells in years 0 and 3, Prunes in years 0 and 5, ten years), fingerprinted with the Stage 4 view.</summary>
-    private static string RunFingerprint(Stage4Options options)
+    /// <summary>
+    /// A fixed Stage 4 script (Fells in years 0 and 3, Prunes in years 0 and 5, ten years), fingerprinted with the Stage 4 view.
+    /// Stage 5 reuses it on an explicit selection (1/1/1/0 or 1/1/1/1); with no selection it is exactly the Stage 4 recipe.
+    /// </summary>
+    internal static string RunFingerprint(Stage4Options options, MultiAreaModelSelection? models = null, Stage5Options? stage5 = null)
     {
-        var c = Stage4(options);
+        var c = models is null ? Stage4(options) : new MultiAreaContinuation(MultiAreaGenerator.Generate(), models, options, stage5);
         var w = new Model0FingerprintTests.Fingerprint();
         string? pruned = null;
         for (int year = 0; year < 10; year++)
