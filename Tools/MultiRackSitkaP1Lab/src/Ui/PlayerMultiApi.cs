@@ -1003,7 +1003,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .ramp-end { color: var(--muted); }
 .light-legend-note { margin: 0 0 0 auto; color: var(--muted); }
 .light-cell { stroke: none; pointer-events: none; }
-.map-pane.ground-mode #map, .map-pane.ground-mode #map .tree .crown { cursor: crosshair; }
+/* UX-08: crowns keep the pointer (a crown click still selects); only open ground shows the crosshair. */
+.map-pane.ground-mode #map { cursor: crosshair; }
 .ground-pick { fill: none; stroke: #ffffff; stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
 .ground-pick-halo { fill: none; stroke: #06111d; stroke-opacity: .8; stroke-width: 5; vector-effect: non-scaling-stroke; }
 .log-body { fill: #8a6a43; stroke: #2a1d0e; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
@@ -1228,7 +1229,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     legendHidden: false,
     stage4: null, // the engine's read-out of the same root as view (null if the server could not pair one)
     lightOn: false, // Light Guide overlay: Off by default
-    groundMode: false, // Inspect ground: map clicks read the ground instead of selecting trees (only with the Light Guide on)
+    groundMode: false, // Inspect ground: a click with no crown under it reads the ground (crowns still select; Light Guide on only)
     ground: null, // { areaId, column, row } of the inspected ground cell, or { areaId, missing: true } when no sample is there
   };
 
@@ -2048,7 +2049,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const box = byId('map-status');
     const view = state.view;
     let text = '';
-    if (state.groundMode && state.lightOn) text = 'Inspect ground is on: click any spot to read its light · tree selection paused · Esc stops';
+    if (state.groundMode && state.lightOn) text = 'Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops';
     else if (state.batch) text = 'Adding ' + (state.batch.confirmed.length + 1) + ' of ' + state.batch.ids.length + ' to the Fell plan…';
     else if (view.approved && approvedPrunes().length > 0) text = workTotals(view.approved.orders.length, approvedPrunes().length) + ' approved · nothing done yet';
     else if (view.approved) text = plural(view.approved.orders.length, 'approved Fell', 'approved Fell') + ' · still standing';
@@ -2424,8 +2425,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       summary.push(el('p', null, 'The ground light read-out is unavailable for this view. Choose Re-read; nothing is estimated.'));
     } else if (!g) {
       byId('ground-heading').textContent = areaName(state.areaId) + ' · choose a spot';
-      summary.push(el('p', null, 'Click any spot inside the area to read its modelled ground light. Tree selection is paused until you stop; ' +
-        'the competitor numbers still work.'));
+      summary.push(el('p', null, 'Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. ' +
+        'Clicking a crown still selects that tree.'));
     } else if (!cell) {
       byId('ground-heading').textContent = areaName(state.areaId) + ' · no sample';
       summary.push(el('p', null, 'No modelled ground sample at that spot (it is outside this area\'s light cells). No value is shown or estimated.'));
@@ -2473,17 +2474,17 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       'Light Guide off.');
   }
 
-  // Inspect ground (UX-08): an explicit mode, only with the Light Guide on. While it is on, a map click reads the ground
-  // under the pointer instead of selecting a tree (rank buttons and dialogs still come first). Leaving it restores normal
-  // tree selection and keeps the Light Guide exactly as it was.
+  // Inspect ground (UX-08): an explicit mode, only with the Light Guide on. While it is on, a map click with no crown under
+  // it reads the ground there; dialogs, rank buttons and crowns still come first (see onMapClick). Leaving it keeps the
+  // Light Guide exactly as it was.
   function setGroundMode(on, moveFocus) {
     if (on && !state.lightOn) return;
     state.groundMode = on;
     if (!on) state.ground = null;
     renderAll();
     if (moveFocus) byId(on ? 'ground-heading' : 'ground-mode').focus();
-    announce(on ? 'Inspect ground on: click any spot on the map to read its light. Tree selection is paused; press Escape or Stop to return.' :
-      'Inspect ground off: clicking a crown selects the tree again. The Light Guide is still ' + (state.lightOn ? 'on' : 'off') + '.');
+    announce(on ? 'Inspect ground on: click open ground with no crown over it to read its light. Clicking a crown still selects the tree; press Escape or Stop to return.' :
+      'Inspect ground off: clicking open ground no longer reads its light. The Light Guide is still ' + (state.lightOn ? 'on' : 'off') + '.');
   }
 
   // Which engine light cell (if any) contains a map point. The cells are the read-out's own clipped squares; this only
@@ -3407,17 +3408,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (state.competitionTarget) refreshCompetition();
   }
 
-  // Map click precedence (UX-08): an open dialog takes every click (it is modal); a rank button handles its own click and
-  // never reaches the map; then, only while Inspect ground is on, the click reads the ground under it (sending nothing and
-  // changing no selection or draft); otherwise, with the Light Guide on or off, the server's hit-test selects the crown.
+  // Map click precedence (UX-08, the approved spec order, confirmed by the owner on 2026-11-23):
+  //   modal dialog > rank toggle button > tree crown selection > ground inspection (only while Inspect ground is on).
+  // An open dialog takes every click (it is modal); a rank button handles its own click and never reaches the map. Every
+  // other map click goes to the server's read-only hit-test, with Inspect ground on or off, and a crown there is selected
+  // exactly as usual. Only when Inspect ground is on and the hit-test reports no crown at that point does the click read
+  // the local ground cell (changing no selection or draft). A batch, lock, busy, refused, guarded or failed hit-test never
+  // falls through to a ground read.
   async function onMapClick(event) {
-    if (state.lightOn && state.groundMode && state.view) {
-      const matrix = byId('map').getScreenCTM();
-      if (!matrix) return;
-      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
-      inspectPoint(state.areaId, point.x, point.y);
-      return;
-    }
     if (state.batch) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
     const area = currentArea();
@@ -3434,9 +3432,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         // An empty click keeps the reference and its draft: only a deliberate choice of another tree replaces them.
         state.overlap = null;
         applyPayload(outcome.payload, false);
+        // Re-checked after the await: Escape or Stop may have ended Inspect ground while the hit-test was in flight.
+        if (state.lightOn && state.groundMode) { inspectPoint(area.areaId, point.x, point.y); return; }
         announce('No crown at this point — the selection is unchanged.');
         return;
       }
+      if (state.lightOn && state.groundMode) state.ground = null; // a crown hit is a selection, not a ground read
       state.overlap = candidates.length > 1 ? { areaId: area.areaId, candidates } : null;
       applyPayload(outcome.payload, true);
       chooseTree(area.areaId, candidates[0].treeId, false);
