@@ -122,52 +122,40 @@ internal static class Stage4BehaviourTests
             var trees = Grid("MA-T", 10, 10, 2f, i => 15f + (i * 7 % 9) * 0.5f);
             const float areaHa = 0.04f;
             const int seed = 4242;
+            // The expectation is built from the INPUT trees only (independent Hegyi, growth, S, V, P, p and rolls); nothing
+            // from the report feeds it. The report is then compared against it.
+            var e = ExpectMortality(trees, trees, areaHa, seed, 1);
             var report = AnnualRules.CalculateStage4(new AnnualState(0, trees), seed, areaHa, CrownModel.Woodland(trees), _ => 0, Stage4Options.Default);
-            double rd = OracleRd(report.PostGrowth.LivingCount, areaHa, report.Trees.Select(r => r.After));
-            Near(rd, report.PostGrowth.RelativeDensity, 0, "RD = N/ha*(Dq/25)^2.063/1868");
-            T.True(rd > 0.6 && rd < 1.0, "mid-range RD (" + rd.ToString("0.0000", CultureInfo.InvariantCulture) + ")");
-            double p = Math.Max(0.0, (rd - 0.6) / 0.4);
-            Near(p, report.PostGrowthDensityPressure, 0, "P = (RD-0.6)/0.4");
-            var s = report.Trees.Select(r => 1.0 - 1.0 / (1.0 + (double)(r.PreGrowthCi / 5f))).ToArray();
-            double meanV = s.Average(v => Math.Pow(v, 4));
-            for (int i = 0; i < s.Length; i++)
-            {
-                var row = report.Trees[i];
-                Near(Math.Min(0.5, 0.08 * p * p * Math.Pow(s[i], 4) / meanV), row.DeathProbability!.Value, 1e-15, row.Before.TreeId + " p");
-                T.Eq(F32.Bits(SimulationRandom.Roll(DerivedManifest.RngModelVersion, "ADULT-MORT-" + row.Before.TreeId, 1, seed)),
-                    F32.Bits(row.MortalityRoll!.Value), row.Before.TreeId + " roll");
-                T.Eq(row.MortalityRoll < row.DeathProbability, !row.After.IsLiving, row.Before.TreeId + " death iff roll < p");
-            }
-            for (int i = 0; i < s.Length; i++)
-            for (int j = 0; j < s.Length; j++)
-                if (s[i] > s[j]) T.True(report.Trees[i].DeathProbability >= report.Trees[j].DeathProbability, "more suppressed => higher p");
+            T.True(e.PostGrowthRd > 0.6 && e.PostGrowthRd < 1.0, "mid-range RD (" + e.PostGrowthRd.ToString("0.0000", CultureInfo.InvariantCulture) + ")");
+            T.True(e.Ids.All(id => e.Probability[id] > 0.0), "every tree has a positive hazard and a roll");
+            AssertMortality(report, e, "M-02");
+            for (int i = 0; i < e.Ids.Count; i++)
+            for (int j = 0; j < e.Ids.Count; j++)
+                if (e.Suppression[e.Ids[i]] > e.Suppression[e.Ids[j]])
+                    T.True(e.Probability[e.Ids[i]] >= e.Probability[e.Ids[j]], "more suppressed => higher p");
+            T.Eq(0, e.Boundary.Count, "no boundary kills below RD 1.0");
             T.True(report.Deaths.All(d => d.Mechanism == "hazard" && d.Cause == LifeStates.DensitySuppression && d.EcologicalYear == 1),
                 "hazard deaths only, cause DensitySuppression, year 1");
             Console.WriteLine(FormattableString.Invariant(
-                $"  S4 mid-range: RD {rd:0.0000}, P {p:0.0000}, p range {report.Trees.Min(r => r.DeathProbability):0.000000}-{report.Trees.Max(r => r.DeathProbability):0.000000}, deaths {report.Deaths.Count}"));
+                $"  S4 mid-range (independent oracle): RD {e.PostGrowthRd:0.0000}, P {e.Pressure:0.0000}, p range {e.Probability.Values.Min():0.000000}-{e.Probability.Values.Max():0.000000}, hazard {e.Hazard.Count}, report deaths {report.Deaths.Count}"));
         });
 
         T.Add("S4 M-03: RD above 1.0 triggers deterministic boundary kills (S desc, TreeId asc) until RD <= 1.0", () =>
         {
             var trees = Grid("MA-T", 10, 10, 2f, i => 28f + (i * 5 % 7));
             const float areaHa = 0.04f;
-            var report = AnnualRules.CalculateStage4(new AnnualState(0, trees), 777, areaHa, CrownModel.Woodland(trees), _ => 0, Stage4Options.Default);
-            T.True(report.PostGrowth.RelativeDensity > 1.0, "post-growth RD > 1.0 (" + report.PostGrowth.RelativeDensity + ")");
-            var boundary = report.Deaths.Where(d => d.Mechanism == "boundary").Select(d => d.TreeId).ToArray();
-            T.True(boundary.Length > 0, "boundary kills happened");
-            // Oracle: the hazard survivors, ordered by suppression descending then TreeId ascending.
-            var hazardDead = report.Deaths.Where(d => d.Mechanism == "hazard").Select(d => d.TreeId).ToHashSet();
-            var survivors = report.Trees.Where(r => !hazardDead.Contains(r.Before.TreeId)).ToList();
-            var order = survivors.OrderByDescending(r => 1.0 - 1.0 / (1.0 + (double)(r.PreGrowthCi / 5f)))
-                .ThenBy(r => r.Before.TreeId, StringComparer.Ordinal).Select(r => r.Before.TreeId).ToArray();
-            T.Eq(string.Join(",", order.Take(boundary.Length)), string.Join(",", boundary), "victims are the most suppressed, in order");
-            var alive = survivors.Where(r => !boundary.Contains(r.Before.TreeId)).Select(r => r.After).ToArray();
-            var beforeLast = survivors.Where(r => !boundary.Take(boundary.Length - 1).Contains(r.Before.TreeId)).Select(r => r.After with { Death = null }).ToArray();
-            T.True(OracleRd(alive.Length, areaHa, alive) <= 1.0, "RD after the boundary <= 1.0");
-            T.True(OracleRd(beforeLast.Length, areaHa, beforeLast) > 1.0, "the last victim was still needed");
-            Near(OracleRd(alive.Length, areaHa, alive), report.After.RelativeDensity, 0, "reported final RD");
+            const int seed = 777;
+            // Hazard victims come from SimulationRandom.Roll on "ADULT-MORT-"+TreeId against the independent p; boundary victims
+            // from those independent survivors in S-desc/TreeId-asc order until the oracle RD is <= 1.0.
+            var e = ExpectMortality(trees, trees, areaHa, seed, 1);
+            T.True(e.PostGrowthRd > 1.0, "oracle post-growth RD > 1.0 (" + e.PostGrowthRd + ")");
+            T.True(e.Hazard.Count > 0 && e.Boundary.Count > 0, "both hazard and boundary victims expected");
+            T.True(e.FinalRd <= 1.0, "oracle RD after the boundary <= 1.0");
+            T.True(e.RdBeforeLastBoundaryKill > 1.0, "the last boundary victim was still needed");
+            var report = AnnualRules.CalculateStage4(new AnnualState(0, trees), seed, areaHa, CrownModel.Woodland(trees), _ => 0, Stage4Options.Default);
+            AssertMortality(report, e, "M-03");
             Console.WriteLine(FormattableString.Invariant(
-                $"  S4 boundary: post-growth RD {report.PostGrowth.RelativeDensity:0.0000}, hazard {hazardDead.Count}, boundary {boundary.Length}, final RD {report.After.RelativeDensity:0.0000}"));
+                $"  S4 boundary (independent oracle): post-growth RD {e.PostGrowthRd:0.0000}, hazard {e.Hazard.Count}, boundary {e.Boundary.Count}, final RD {e.FinalRd:0.0000}; report identical"));
         });
 
         T.Add("S4 M-04: boundary ties (equal suppression) are broken by TreeId ascending", () =>
@@ -266,6 +254,112 @@ internal static class Stage4BehaviourTests
                 Console.WriteLine(FormattableString.Invariant(
                     $"  S4 deadwood {record.DeadwoodId} {record.TreeId} {record.AreaId} {record.SpeciesId} ({record.XM:0.000},{record.ZM:0.000}) y{record.DeathYear} {record.Cause} DBH {record.DbhCm:0.000} cm H {record.HeightM:0.000} m V {record.EstimatedVolumeM3:0.000000} m3"));
             Console.WriteLine("  S4 deadwood totals: overstocked " + so.Areas.Sum(a => a.Deadwood.Count) + ", thinned " + st.Areas.Sum(a => a.Deadwood.Count));
+        });
+
+        T.Add("S4 D-02: an overstocked two-rack session with boundary deaths: one deadwood per hazard AND boundary victim, end to end", () =>
+        {
+            var c = new MultiAreaContinuation(BoundaryExperiment(), MultiAreaModelSelection.Stage4);
+            var allVictims = new HashSet<string>(StringComparer.Ordinal);
+            int boundaryTotal = 0, hazardTotal = 0;
+            Console.WriteLine("  S4 boundary-death session (year area: post-growth RD | hazard | boundary | final RD | new deadwood)");
+            for (int year = 1; year <= 3; year++)
+            {
+                var start = c.ReadView();
+                var startDeadwood = c.ReadStage4View().Areas.SelectMany(a => a.Deadwood).ToArray();
+                var woodland = CrownModel.Woodland(start.Areas.SelectMany(a => a.Trees));
+                // Independent expectation for every rack, from the start-of-year committed trees only.
+                var expected = start.Areas.Select(a => ExpectMortality(a.Trees, woodland, a.AreaHa, a.SimulationSeed, year)).ToArray();
+                var result = Advance(c);
+                var after = c.ReadView();
+                var s4 = c.ReadStage4View();
+                T.Eq(year, after.Source.EcologicalYear, "year advanced");
+
+                // 1. The engine's mortality equals the independent oracle in every rack.
+                for (int i = 0; i < start.Areas.Count; i++)
+                    AssertMortality(result.Areas[i].Report!, expected[i], start.Areas[i].AreaId + " y" + year);
+
+                // 2. Deadwood: earlier records untouched, then exactly one new record per victim, numbered on from the last.
+                var allDeadwood = s4.Areas.SelectMany(a => a.Deadwood).OrderBy(d => d.DeadwoodId, StringComparer.Ordinal).ToArray();
+                var previous = startDeadwood.OrderBy(d => d.DeadwoodId, StringComparer.Ordinal).ToArray();
+                T.Eq(previous.Length, allDeadwood.Count(d => previous.Any(p => p.DeadwoodId == d.DeadwoodId)), "old IDs still present once");
+                foreach (var old in previous)
+                    T.Eq(old, allDeadwood.Single(d => d.DeadwoodId == old.DeadwoodId), "record " + old.DeadwoodId + " is immutable");
+                var fresh = allDeadwood.Where(d => !previous.Any(p => p.DeadwoodId == d.DeadwoodId)).ToArray();
+                int number = previous.Length + 1;
+                int k = 0;
+                for (int i = 0; i < start.Areas.Count; i++)
+                {
+                    var area = start.Areas[i];
+                    var e = expected[i];
+                    var victims = e.Hazard.Concat(e.Boundary).ToArray();
+                    var areaFresh = fresh.Where(d => d.AreaId == area.AreaId).ToArray();
+                    T.Eq(victims.Length, areaFresh.Length, area.AreaId + " y" + year + ": one deadwood record per victim");
+                    foreach (string id in victims)
+                    {
+                        var record = fresh[k++];
+                        var startTree = area.Trees.Single(t => t.TreeId == id);
+                        float dbh = e.GrownDbh[id], height = e.GrownHeight[id];
+                        T.Eq(FallenDeadwoodRecord.IdFor(number++), record.DeadwoodId, "sequential, never reused ID");
+                        T.Eq((id, area.AreaId, "sitka-spruce", F32.Bits(startTree.XM), F32.Bits(startTree.ZM), year, LifeStates.DensitySuppression,
+                                F32.Bits(dbh), F32.Bits(height)),
+                            (record.TreeId, record.AreaId, record.SpeciesId, F32.Bits(record.XM), F32.Bits(record.ZM), record.DeathYear, record.Cause,
+                                F32.Bits(record.DbhCm), F32.Bits(record.HeightM)), id + " deadwood fields from the oracle");
+                        T.Eq(F32.Bits(dbh * dbh * 0.00007854f * (height * 0.5f)), F32.Bits(record.EstimatedVolumeM3), id + " float32 volume");
+                        T.True(allVictims.Add(id), id + " dies only once in the session");
+
+                        // Life state: biologically dead, never a stump, never felled, never a Crop Tree.
+                        var view = s4.Areas[i].Trees.Single(t => t.TreeId == id);
+                        T.Eq((LifeState.BiologicallyDead, LifeStates.DensitySuppression, (int?)year), (view.LifeState, view.DeathCause, view.DeathYear),
+                            id + " BiologicallyDead, cause, year");
+                        T.True(view.LifeState != LifeState.FelledStump, id + " not a FelledStump");
+                        T.True(!after.Areas[i].CropTreeIds.Contains(id), id + " no Crop mark");
+                    }
+                    foreach (string id in e.Boundary.Take(1).Concat(e.Boundary.Skip(1).TakeLast(1)))
+                    {
+                        var r = areaFresh.Single(d => d.TreeId == id);
+                        Console.WriteLine(FormattableString.Invariant(
+                            $"    boundary deadwood {r.DeadwoodId} {r.TreeId} {r.AreaId} {r.SpeciesId} ({r.XM:0.000},{r.ZM:0.000}) y{r.DeathYear} {r.Cause} DBH {r.DbhCm:0.000} cm H {r.HeightM:0.000} m V {r.EstimatedVolumeM3:0.000000} m3 S {e.Suppression[id]:0.000000}"));
+                    }
+                    hazardTotal += e.Hazard.Count;
+                    boundaryTotal += e.Boundary.Count;
+                    string span = areaFresh.Length > 0 ? " (" + areaFresh[0].DeadwoodId + ".." + areaFresh[^1].DeadwoodId + ")" : "";
+                    Console.WriteLine(FormattableString.Invariant(
+                        $"    y{year} {area.AreaId}: {e.PostGrowthRd:0.0000} | {e.Hazard.Count,2} | {e.Boundary.Count,2} | {e.FinalRd:0.0000} | {areaFresh.Length,2}{span}"));
+                }
+                T.Eq(fresh.Length, k, "no deadwood record without a victim");
+                T.Eq(allDeadwood.Length, allDeadwood.Select(d => d.DeadwoodId).Distinct().Count(), "deadwood IDs unique");
+                T.Eq(allDeadwood.Length, allDeadwood.Select(d => d.TreeId).Distinct().Count(), "one record per tree, ever");
+
+                // 3. No Fell receipt, no work event and therefore no harvest/timber record for any victim.
+                T.Eq(0, after.Events.Count, "an annual step creates no work event / Fell receipt");
+                T.True(after.Events.SelectMany(ev => ev.Areas).SelectMany(a => a.Fells).All(f => !allVictims.Contains(f.TreeId)), "no Fell of a victim");
+
+                // 4. Victims are absent from next year's woodland CI, cover and light: the session's read-out equals one evaluated
+                //    with the victims deleted outright, and differs from one where they are put back alive.
+                var nextWoodland = CrownModel.Woodland(after.Areas.SelectMany(a => a.Trees));
+                T.True(nextWoodland.All(t => !allVictims.Contains(t.TreeId)), "victims are not in the next woodland CI set");
+                foreach (var t in nextWoodland)
+                {
+                    var withoutVictims = after.Areas.SelectMany(a => a.Trees).Where(x => !allVictims.Contains(x.TreeId));
+                    T.Eq(F32.Bits(HegyiOracle(t, withoutVictims)), F32.Bits(CrownModel.WoodlandCompetition(t, nextWoodland).Ci),
+                        t.TreeId + " next-year woodland CI ignores victims");
+                }
+                var session = c.ReadCanopyLight();
+                var removed = EvaluateCanopy(after, t => allVictims.Contains(t.TreeId) ? null : t);
+                AssertSameCanopy(removed, session, "y" + year + " canopy/light with victims deleted");
+                T.True(session.Trees.All(g => !allVictims.Contains(g.TreeId)), "victims have no growing-space row");
+                var revived = EvaluateCanopy(after, t => fresh.Any(d => d.TreeId == t.TreeId) ? t with { Death = null } : t);
+                T.True(fresh.Length == 0 || revived.Areas.Zip(session.Areas).Any(p =>
+                        p.First.Cover.CoveredM2 != p.Second.Cover.CoveredM2 || p.First.Light.MeanLightIndex != p.Second.Light.MeanLightIndex),
+                    "the comparison is sensitive: reviving this year's victims changes cover/light");
+            }
+            T.True(boundaryTotal > 0, "boundary deaths reached the session (" + boundaryTotal + ")");
+            T.True(hazardTotal > 0, "hazard deaths reached the session (" + hazardTotal + ")");
+            var final = c.ReadStage4View().Areas.SelectMany(a => a.Deadwood).ToArray();
+            T.Eq(hazardTotal + boundaryTotal, final.Length, "total deadwood = total victims");
+            T.Eq(string.Join(",", Enumerable.Range(1, final.Length).Select(FallenDeadwoodRecord.IdFor)),
+                string.Join(",", final.Select(d => d.DeadwoodId).OrderBy(x => x, StringComparer.Ordinal)), "IDs DW0001.. contiguous, none reused");
+            Console.WriteLine("  S4 boundary-death session totals: hazard " + hazardTotal + ", boundary " + boundaryTotal + ", deadwood " + final.Length);
         });
 
         // ------------------------------------------------------------------------------------------- pruning
@@ -408,7 +502,7 @@ internal static class Stage4BehaviourTests
             T.Refuses("PruneTreeNotLiving", () => c.AddPrune(Fence(v), "MA-A", victim.TreeId, 1f));
         });
 
-        T.Add("S4 P-04: an approved Prune is cancelled with consent at zero lifts; Execute revalidates and refuses all", () =>
+        T.Add("S4 P-04: consented Year+1 cancels an approved Prune at zero lifts; Execute of the cancelled plan is refused", () =>
         {
             var c = Stage4();
             var v = c.ReadView();
@@ -522,6 +616,182 @@ internal static class Stage4BehaviourTests
         foreach (var t in living) sum += (double)t.DbhCm * t.DbhCm;
         double dq = Math.Sqrt(sum / living.Length);
         return (living.Length / areaHa) * Math.Pow(dq / 25.0, 2.063) / 1868.0;
+    }
+
+    /// <summary>
+    /// The independently derived outcome of one Stage 4 annual step for one rack (site 1.0, no phases, no lifts).
+    /// Hazard is in TreeId order; Boundary is in kill order. Keys are TreeIds of the rack's living start-of-year trees.
+    /// </summary>
+    private sealed record MortalityExpectation(IReadOnlyList<string> Ids, IReadOnlyDictionary<string, float> Ci,
+        IReadOnlyDictionary<string, float> GrownDbh, IReadOnlyDictionary<string, float> GrownHeight, double PostGrowthRd, double Pressure,
+        double? MeanVulnerability, IReadOnlyDictionary<string, double> Suppression, IReadOnlyDictionary<string, double> Probability,
+        IReadOnlyDictionary<string, float> Roll, IReadOnlyList<string> Hazard, IReadOnlyList<string> Boundary, double FinalRd,
+        double RdBeforeLastBoundaryKill);
+
+    /// <summary>
+    /// Independent oracle of the per-rack Stage 4 step, written from the spec formulas and the Unity constants:
+    ///   CI (rack) = 8 m Hegyi over the rack's own living trees; CI_woodland = the same over <paramref name="woodland"/>;
+    ///   DBH' = clamp(DBH + 1.2·clamp01(1−DBH/120)·1/(1+CI_woodland/5), 1, 200); H' = clamp(H + (NextHeight(H, age) − H), 0.1, 60);
+    ///   RD = (N/areaHa)·(Dq/25)^2.063/1868 on the grown stems; P = max(0, (RD−0.6)/(1−0.6));
+    ///   S = 1 − 1/(1 + CI/5); V = clamp01(S)^4; p = min(0.5, 0.08·P·P·V/mean V); roll = Roll(1, "ADULT-MORT-"+id, year, seed);
+    ///   hazard death iff roll &lt; p; then, over the hazard survivors in S-desc/TreeId-asc order, boundary kills while RD &gt; 1.0
+    ///   and more than one stem remains. Float32/double expression order follows the written rule so equality can be exact.
+    /// Only the frozen height law (SitkaGrowthModel.NextHeight) and the RNG are shared with the engine.
+    /// </summary>
+    private static MortalityExpectation ExpectMortality(IEnumerable<AnnualTree> rackTrees, IEnumerable<AnnualTree> woodland, float areaHa,
+        int seed, int year)
+    {
+        var rack = rackTrees.Where(t => t.IsLiving).OrderBy(t => t.TreeId, StringComparer.Ordinal).ToArray();
+        var wood = woodland.Where(t => t.IsLiving).ToArray();
+        int n = rack.Length;
+        var ids = rack.Select(t => t.TreeId).ToArray();
+        var ci = new float[n];
+        var dbh = new float[n];
+        var height = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            var t = rack[i];
+            ci[i] = HegyiOracle(t, rack);
+            float wci = HegyiOracle(t, wood);
+            float response = 1f / (1f + wci / 5f);
+            float potential = 1.2f * 1f * Math.Clamp(1f - t.DbhCm / 120f, 0f, 1f);
+            dbh[i] = Math.Clamp(t.DbhCm + potential * response, 1f, 200f);
+            float heightGrowth = (SitkaGrowthModel.NextHeight(t.HeightM, t.AgeYears) - t.HeightM) * 1f;
+            height[i] = Math.Clamp(t.HeightM + heightGrowth, 0.1f, 60f);
+        }
+        double SumSq(IEnumerable<int> idx) { double s = 0.0; foreach (int i in idx) s += (double)dbh[i] * dbh[i]; return s; }
+        static double Rd(int count, float area, double sumSq) =>
+            count == 0 ? 0.0 : (double)(count / area) * Math.Pow(Math.Sqrt(sumSq / count) / 25.0, 2.063) / 1868.0;
+
+        double postRd = Rd(n, areaHa, SumSq(Enumerable.Range(0, n)));
+        double pressure = Math.Max(0.0, (postRd - 0.6) / (1.0 - 0.6));
+        var s = new Dictionary<string, double>(StringComparer.Ordinal);
+        var p = new Dictionary<string, double>(StringComparer.Ordinal);
+        var roll = new Dictionary<string, float>(StringComparer.Ordinal);
+        var hazard = new List<string>();
+        var boundary = new List<string>();
+        var survivors = Enumerable.Range(0, n).ToList();
+        double? meanV = null;
+        double rdBeforeLast = double.NaN;
+        if (pressure > 0.0)
+        {
+            var sup = ci.Select(x => 1.0 - 1.0 / (1.0 + (double)(x / 5f))).ToArray();
+            double sum = 0.0;
+            foreach (double v in sup) sum += Math.Pow(Math.Max(0.0, Math.Min(1.0, v)), 4.0);
+            meanV = sum / n;
+            survivors.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                s[ids[i]] = sup[i];
+                double v = Math.Pow(Math.Max(0.0, Math.Min(1.0, sup[i])), 4.0);
+                double prob = meanV.Value <= 0.0 ? 0.0 : Math.Min(0.5, 0.08 * pressure * pressure * v / meanV.Value);
+                p[ids[i]] = prob;
+                if (prob > 0.0)
+                {
+                    float r = SimulationRandom.Roll(DerivedManifest.RngModelVersion, "ADULT-MORT-" + ids[i], year, seed);
+                    roll[ids[i]] = r;
+                    if (r < prob) { hazard.Add(ids[i]); continue; }
+                }
+                survivors.Add(i);
+            }
+            int count = survivors.Count;
+            double sumSq = SumSq(survivors);
+            if (count > 1 && Rd(count, areaHa, sumSq) > 1.0)
+                foreach (int i in survivors.OrderByDescending(i => sup[i]).ThenBy(i => ids[i], StringComparer.Ordinal).ToArray())
+                {
+                    if (count <= 1 || Rd(count, areaHa, sumSq) <= 1.0) break;
+                    rdBeforeLast = Rd(count, areaHa, sumSq);
+                    count--;
+                    sumSq -= (double)dbh[i] * dbh[i];
+                    boundary.Add(ids[i]);
+                }
+        }
+        var alive = Enumerable.Range(0, n).Where(i => !hazard.Contains(ids[i]) && !boundary.Contains(ids[i])).ToArray();
+        return new MortalityExpectation(ids, Map(ci), Map(dbh), Map(height), postRd, pressure, meanV, s, p, roll, hazard, boundary,
+            Rd(alive.Length, areaHa, SumSq(alive)), rdBeforeLast);
+
+        Dictionary<string, float> Map(float[] values) =>
+            Enumerable.Range(0, n).ToDictionary(i => ids[i], i => values[i], StringComparer.Ordinal);
+    }
+
+    /// <summary>Compares one engine report with an independent expectation, bit for bit where the values are deterministic.</summary>
+    private static void AssertMortality(AnnualReport report, MortalityExpectation e, string label)
+    {
+        static ulong D(double v) => BitConverter.DoubleToUInt64Bits(v);
+        var rows = report.Trees.Where(r => r.Before.IsLiving).ToArray();
+        T.Eq(string.Join(",", e.Ids), string.Join(",", rows.Select(r => r.Before.TreeId)), label + ": same living roster");
+        T.Eq(D(e.PostGrowthRd), D(report.PostGrowth.RelativeDensity), label + ": post-growth RD");
+        T.Eq(D(e.Pressure), D(report.PostGrowthDensityPressure), label + ": P");
+        T.Eq(e.MeanVulnerability.HasValue, report.MeanVulnerability.HasValue, label + ": mean V present iff P > 0");
+        if (e.MeanVulnerability is double mv) T.Eq(D(mv), D(report.MeanVulnerability!.Value), label + ": mean V");
+        foreach (var row in rows)
+        {
+            string id = row.Before.TreeId;
+            T.Eq(F32.Bits(e.Ci[id]), F32.Bits(row.PreGrowthCi), label + " " + id + ": rack CI");
+            T.Eq(F32.Bits(e.GrownDbh[id]), F32.Bits(row.After.DbhCm), label + " " + id + ": DBH");
+            T.Eq(F32.Bits(e.GrownHeight[id]), F32.Bits(row.After.HeightM), label + " " + id + ": height");
+            T.Eq(e.Suppression.TryGetValue(id, out double sv) ? D(sv) : (ulong?)null, row.Suppression is double rs ? (ulong?)D(rs) : null, label + " " + id + ": S");
+            T.Eq(e.Probability.TryGetValue(id, out double pv) ? D(pv) : (ulong?)null, row.DeathProbability is double rp ? (ulong?)D(rp) : null, label + " " + id + ": p");
+            T.Eq(e.Roll.TryGetValue(id, out float rv) ? F32.Bits(rv) : (uint?)null, row.MortalityRoll is float rr ? (uint?)F32.Bits(rr) : null, label + " " + id + ": roll");
+            bool dies = e.Hazard.Contains(id) || e.Boundary.Contains(id);
+            T.Eq(dies ? LifeState.BiologicallyDead : LifeState.Living, LifeStates.Of(row.After), label + " " + id + ": life state");
+        }
+        var expectedDeaths = e.Hazard.Select(id => id + "/hazard").Concat(e.Boundary.Select(id => id + "/boundary"));
+        T.Eq(string.Join(",", expectedDeaths), string.Join(",", report.Deaths.Select(d => d.TreeId + "/" + d.Mechanism)),
+            label + ": complete victim set, hazard (TreeId order) then boundary (kill order)");
+        T.True(report.Deaths.All(d => d.Cause == LifeStates.DensitySuppression && d.EcologicalYear == report.YearAfter), label + ": cause and year");
+        T.Eq(D(e.FinalRd), D(report.After.RelativeDensity), label + ": final RD");
+    }
+
+    /// <summary>
+    /// Two touching 20 × 20 m racks. Area A is a deliberately extreme synthetic 10 × 10 grid at 2 m pitch of 40–46 cm stems: its
+    /// post-growth RD is about 4, and because p is capped at 0.5 the hazard alone cannot bring it under 1.0, so boundary victims
+    /// are guaranteed in year 1 whatever the rolls (an RD ≈ 2 stand can fall under 1.0 on hazard alone). Area B is a light 4 × 4 grid
+    /// at 5 m whose west column is 3.5 m from Area A's east column, so cross-border woodland CI is in play.
+    /// </summary>
+    private static MultiAreaExperiment BoundaryExperiment()
+    {
+        static MillimetrePoint P(long x, long y) => new(x, y);
+        var a = new List<MultiAreaTreeDefinition>();
+        for (int i = 0; i < 100; i++)
+            a.Add(new MultiAreaTreeDefinition("MA-A-" + (i + 1).ToString("D3", CultureInfo.InvariantCulture),
+                1_000 + (i % 10) * 2_000, 1_000 + (i / 10) * 2_000, 40, 400 + (i * 5 % 7) * 10, 25_000));
+        var b = new List<MultiAreaTreeDefinition>();
+        for (int i = 0; i < 16; i++)
+            b.Add(new MultiAreaTreeDefinition("MA-B-" + (i + 1).ToString("D3", CultureInfo.InvariantCulture),
+                22_500 + (i % 4) * 5_000, 2_500 + (i / 4) * 5_000, 30, 200, 16_000));
+        return new MultiAreaExperiment("mad-s4-boundary-test", "s4-test", 1, 1, new[]
+        {
+            new MultiAreaDefinition("MA-A", "Area A", "S4 overstocked boundary test",
+                new[] { P(0, 0), P(20_000, 0), P(20_000, 20_000), P(0, 20_000) }, 601, a),
+            new MultiAreaDefinition("MA-B", "Area B", "S4 light neighbour",
+                new[] { P(20_000, 0), P(40_000, 0), P(40_000, 20_000), P(20_000, 20_000) }, 602, b),
+        });
+    }
+
+    /// <summary>Canopy/light of the view's committed racks after <paramref name="edit"/> (null deletes the tree outright).</summary>
+    private static CanopyLightReport EvaluateCanopy(MultiAreaSessionView v, Func<AnnualTree, AnnualTree?> edit) =>
+        CanopyLightEvaluator.Evaluate(v.Areas.Select(a => new CanopyArea(a.AreaId,
+                Array.AsReadOnly(a.Polygon.Select(p => new CanopyVertex(p.XM, p.ZM)).ToArray()), a.AreaHa,
+                Array.AsReadOnly(a.Trees.Select(edit).Where(t => t is not null).Select(t => t!).ToArray()))).ToArray(),
+            CanopyLightEvaluator.DefaultLightCellM, CrownModelVersion.AreaScaledEquilibriumC2);
+
+    private static void AssertSameCanopy(CanopyLightReport expected, CanopyLightReport actual, string what)
+    {
+        T.Eq(expected.Trees.Count, actual.Trees.Count, what + ": growing-space rows");
+        for (int i = 0; i < expected.Trees.Count; i++) T.Eq(expected.Trees[i], actual.Trees[i], what + ": growing space " + expected.Trees[i].TreeId);
+        T.Eq(expected.Areas.Count, actual.Areas.Count, what + ": areas");
+        for (int i = 0; i < expected.Areas.Count; i++)
+        {
+            var x = expected.Areas[i];
+            var y = actual.Areas[i];
+            T.Eq(x.Stand, y.Stand, what + " " + x.AreaId + ": stand");
+            T.Eq(x.Cover, y.Cover, what + " " + x.AreaId + ": cover");
+            T.Eq((x.Light.SampledAreaM2, x.Light.MeanLightIndex, x.Light.MinLightIndex, x.Light.MaxLightIndex, x.Light.CellsWithCrossBorderInfluence),
+                (y.Light.SampledAreaM2, y.Light.MeanLightIndex, y.Light.MinLightIndex, y.Light.MaxLightIndex, y.Light.CellsWithCrossBorderInfluence),
+                what + " " + x.AreaId + ": light summary");
+            T.True(x.Light.Cells.SequenceEqual(y.Light.Cells), what + " " + x.AreaId + ": every light cell");
+        }
     }
 
     private static double Inc(AnnualTreeAudit row, Func<AnnualTree, float> field) => (double)field(row.After) - field(row.Before);
