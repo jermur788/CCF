@@ -111,6 +111,27 @@ public static class CanopyLightEvaluator
     public static float LightIndexAt(float xM, float zM, IReadOnlyList<AnnualTree> livingInTreeIdOrder) =>
         Kernel(xM, zM, livingInTreeIdOrder, owner: null, areaId: null).Light;
 
+    /// <summary>
+    /// Layer C only (Multi Stage 5): every area's light field exactly as <see cref="Evaluate"/> computes it — the same
+    /// connected woodland, world-anchored lattice, centre-in-polygon rule, clipped areas and float kernel — without the cover
+    /// and growing-space layers. It does not change <see cref="Evaluate"/>.
+    /// </summary>
+    internal static IReadOnlyList<CanopyLightField> LightFields(IReadOnlyList<CanopyArea> areas, double lightCellM)
+    {
+        RequireSupportedGrid(lightCellM);
+        if (areas is null || areas.Count == 0) throw new P1Refusal("CanopyAreasRequired", "at least one area is required");
+        var owner = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var area in areas)
+        {
+            RequireConvexCounterClockwise(area.Polygon, area.AreaId);
+            foreach (var tree in area.Trees)
+                if (!owner.TryAdd(tree.TreeId, area.AreaId))
+                    throw new P1Refusal("CanopyTreeIdNotUnique", "tree IDs must be unique across the woodland: " + tree.TreeId);
+        }
+        var woodland = CrownModel.Woodland(areas.SelectMany(area => area.Trees));
+        return Array.AsReadOnly(areas.Select(area => Light(area, woodland, owner, lightCellM)).ToArray());
+    }
+
     public static CanopyLightReport Evaluate(IReadOnlyList<CanopyArea> areas, double lightCellM = DefaultLightCellM,
         CrownModelVersion crownModel = CrownModelVersion.LegacyFrozen)
     {

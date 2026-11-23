@@ -24,10 +24,12 @@ internal sealed record MultiAreaRoot(
     IReadOnlyList<MultiAreaWorkOrder> Pending,
     MultiAreaApprovedPlan? Approved,
     IReadOnlyList<MultiAreaYearRecord> AnnualHistory,
-    MultiAreaStage4State? Stage4 = null) // Stage 4 sessions only (D-095); null on every model 0 / Stage 1–3 root
+    MultiAreaStage4State? Stage4 = null, // Stage 4 sessions only (D-095); null on every model 0 / Stage 1–3 root
+    MultiAreaStage5State? Stage5 = null) // Stage 5 (1/1/1/1) sessions only; null on every Stage 1–4 root
 {
-    /// <summary>True when any Fell or Prune order is pending or approved and not yet executed.</summary>
-    internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0;
+    /// <summary>True when any Fell, Prune or ClearUndergrowth order is pending or approved and not yet executed.</summary>
+    internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0 ||
+        (Stage5?.PendingClears.Count ?? 0) > 0;
 }
 
 /// <summary>The per-area annual step: the unchanged AnnualRules.Calculate and the same next-state construction as AnnualContinuation.</summary>
@@ -107,25 +109,30 @@ internal sealed class MultiAreaContinuation
     }
 
     /// <summary>
-    /// Start a session with explicit adult, mortality and crown models (Stage 4, D-095). Only the frozen selection, the
-    /// Stage 1–3 crown selection and the full Stage 4 selection are accepted. <paramref name="stage4"/> carries the neutral
-    /// site-productivity field and the species profile; it is ignored (and must be null) unless the selection is Stage 4.
+    /// Start a session with explicit adult, mortality, crown and regeneration models (Stage 4, D-095; Stage 5). Only the
+    /// frozen selection, the Stage 1–3 crown selection, the full Stage 4 selection and Stage 4 + regeneration 1 are accepted.
+    /// <paramref name="stage4"/> carries the neutral site-productivity field and the species profile; it must be null unless
+    /// the selection is Stage 4. <paramref name="stage5"/> carries the Stage 5 grid, browse pressure and mast seed; it must be
+    /// null unless the selection is 1/1/1/1.
     /// </summary>
-    internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null)
+    internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null,
+        Stage5Options? stage5 = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(models);
         models.RequireSupported();
         if (stage4 is not null && !models.IsStage4)
             throw new P1Refusal("Stage4ModelRequired", "Stage 4 options need the full Stage 4 model selection");
+        if (stage5 is not null && !models.IsStage5)
+            throw new P1Refusal("Stage5ModelRequired", "Stage 5 options need the 1/1/1/1 model selection");
         var crownModel = models.Crown;
         definition.Validate();
         this.models = models;
         this.stage4Options = models.IsStage4 ? (stage4 ?? Stage4Options.Default).RequireValid() : null;
         this.crownModel = crownModel;
         bool connected = crownModel != CrownModelVersion.LegacyFrozen;
-        areaModelVersion = models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
-            : connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion;
+        areaModelVersion = Stage5Identity.AreaModelVersion(models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
+            : connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion, models.Regeneration);
         string contentHash = definition.ContentHash();
         experiment = new MultiAreaExperimentInfo(definition.ExperimentId, MultiAreaIdentity.Format, MultiAreaIdentity.SchemaVersion,
             MultiAreaIdentity.Domain, MultiAreaIdentity.SourceClass, contentHash, definition.GeneratorId,
@@ -143,9 +150,16 @@ internal sealed class MultiAreaContinuation
         }
         var states = definition.Areas.Select((area, i) => new MultiAreaAreaState(area.AreaId,
             new AnnualState(0, genesis[i]), Array.Empty<string>())).ToArray();
+        // Stage 5 only: year-0 ground cells and undergrowth from the genesis woodland's light. The woodland mast seed is the
+        // experiment's generator seed unless the options name one.
+        var stage5State = models.IsStage5
+            ? Stage5Annual.Genesis((stage5 ?? Stage5Options.Default).RequireValid(),
+                (stage5 ?? Stage5Options.Default).MastSeed ?? unchecked((int)definition.GeneratorSeed),
+                Stage5Inputs(states.Select(state => state.State.Trees).ToArray()))
+            : null;
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
-            Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null);
+            Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null, stage5State);
     }
 
     internal string SessionId => sessionId;
@@ -168,6 +182,21 @@ internal sealed class MultiAreaContinuation
     internal MultiAreaStage4View ReadStage4View()
     {
         lock (sync) return Stage4ViewOf(root);
+    }
+
+    /// <summary>
+    /// The Stage 5 read-out (ground cells, undergrowth, regeneration bands, clear orders and annual accounts) of ONE root under
+    /// ONE lock. Refused on a session that is not 1/1/1/1. It changes nothing; every list in it is already immutable.
+    /// </summary>
+    internal MultiAreaStage5View ReadStage5View()
+    {
+        lock (sync)
+        {
+            var stage5 = RequireStage5();
+            return new MultiAreaStage5View(sessionId, root.EcologicalYear, root.PlanStateRevision, Token(root), models, stage5.Options,
+                stage5.MastSeed, Stage5Evidence.All, stage5.Areas, stage5.PendingClears, stage5.ApprovedClears, stage5.ClearLog,
+                stage5.Accounts);
+        }
     }
 
     /// <summary>
@@ -409,8 +438,58 @@ internal sealed class MultiAreaContinuation
     }
 
     /// <summary>
+    /// Stage 5: add one fenced ClearUndergrowth order for one existing in-polygon ground cell of one area. Pending only: no
+    /// cover, band, tree or clock changes until the approved plan is executed.
+    /// </summary>
+    internal MultiAreaCommandResult AddClearUndergrowth(MultiAreaFence fence, string areaId, int column, int row)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var stage5 = RequireStage5();
+            AreaIndex(areaId);
+            if (root.Approved is not null)
+                throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is awaiting execution; cancel it before editing");
+            RequireClearCell(stage5, areaId, column, row);
+            if (stage5.PendingClears.Any(order => order.AreaId == areaId && order.Column == column && order.Row == row))
+                throw new P1Refusal("ClearDuplicateCell", "this ground cell is already in the pending Work Plan");
+            var pending = stage5.PendingClears.Append(new MultiAreaClearUndergrowthOrder(areaId, column, row)).ToArray();
+            root = root with
+            {
+                Stage5 = stage5 with { PendingClears = Array.AsReadOnly(pending) },
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithView(null, null);
+        }
+    }
+
+    /// <summary>Stage 5: remove one pending ClearUndergrowth order before approval. Never touches ecology.</summary>
+    internal MultiAreaCommandResult RemoveClearUndergrowth(MultiAreaFence fence, string areaId, int column, int row)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var stage5 = RequireStage5();
+            AreaIndex(areaId);
+            if (root.Approved is not null)
+                throw new P1Refusal("WorkPlanAlreadyApproved", "the plan is approved; cancel it before editing");
+            var match = stage5.PendingClears.FirstOrDefault(order => order.AreaId == areaId && order.Column == column && order.Row == row);
+            if (match is null)
+                throw new P1Refusal("UnknownWorkOrder", "that ground cell has no pending ClearUndergrowth order");
+            var pending = stage5.PendingClears.Where(order => !ReferenceEquals(order, match)).ToArray();
+            root = root with
+            {
+                Stage5 = stage5 with { PendingClears = Array.AsReadOnly(pending) },
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithView(null, null);
+        }
+    }
+
+    /// <summary>
     /// Approve the whole cross-area pending plan under an engine-minted PlanId and key. Zero Fell, and (Stage 4) zero
-    /// pruning: pending Prune orders move into the approval with the Fell orders and nothing ecological changes.
+    /// pruning and (Stage 5) zero clearing: pending Prune and ClearUndergrowth orders move into the approval with the Fell
+    /// orders and nothing ecological changes.
     /// </summary>
     internal MultiAreaCommandResult Approve(MultiAreaFence fence)
     {
@@ -420,7 +499,8 @@ internal sealed class MultiAreaContinuation
             if (root.Approved is not null)
                 throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is already awaiting execution");
             var stage4 = root.Stage4;
-            if (root.Pending.Count == 0 && (stage4?.PendingPrunes.Count ?? 0) == 0)
+            var stage5 = root.Stage5;
+            if (root.Pending.Count == 0 && (stage4?.PendingPrunes.Count ?? 0) == 0 && (stage5?.PendingClears.Count ?? 0) == 0)
                 throw new P1Refusal("WorkEmptyPlan", "there is no pending work to approve");
             int planState = checked(root.PlanStateRevision + 1);
             string planId = FormattableString.Invariant($"{sessionId}:ma-plan:{planState}");
@@ -435,6 +515,11 @@ internal sealed class MultiAreaContinuation
                 {
                     ApprovedPrunes = Array.AsReadOnly(stage4.PendingPrunes.ToArray()),
                     PendingPrunes = Array.Empty<MultiAreaPruneOrder>(),
+                },
+                Stage5 = stage5 is null ? null : stage5 with
+                {
+                    ApprovedClears = Array.AsReadOnly(stage5.PendingClears.ToArray()),
+                    PendingClears = Array.Empty<MultiAreaClearUndergrowthOrder>(),
                 },
             };
             return WithView(null, null);
@@ -454,6 +539,7 @@ internal sealed class MultiAreaContinuation
                 Approved = null,
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
                 Stage4 = root.Stage4 is null ? null : root.Stage4 with { ApprovedPrunes = Array.Empty<MultiAreaPruneOrder>() },
+                Stage5 = root.Stage5 is null ? null : root.Stage5 with { ApprovedClears = Array.Empty<MultiAreaClearUndergrowthOrder>() },
             };
             return WithView(null, null);
         }
@@ -493,7 +579,8 @@ internal sealed class MultiAreaContinuation
             if (plan.Source != Token(root))
                 throw new P1Refusal("WorkPlanStaleSource", "the source, year or a revision moved since approval");
             var approvedPrunes = root.Stage4?.ApprovedPrunes ?? Array.Empty<MultiAreaPruneOrder>();
-            if (plan.Orders.Count == 0 && approvedPrunes.Count == 0)
+            var approvedClears = root.Stage5?.ApprovedClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>();
+            if (plan.Orders.Count == 0 && approvedPrunes.Count == 0 && approvedClears.Count == 0)
                 throw new P1Refusal("WorkEmptyPlan", "the approved plan contains no orders");
 
             // 1. Revalidate the WHOLE batch against the current root before anything is built.
@@ -530,6 +617,15 @@ internal sealed class MultiAreaContinuation
                 if (!prunesByArea.TryGetValue(order.AreaId, out var inArea))
                     prunesByArea[order.AreaId] = inArea = new Dictionary<string, MultiAreaPruneOrder>(StringComparer.Ordinal);
                 inArea[order.TreeId] = order;
+            }
+            // Stage 5: every approved clear must name an existing in-polygon cell of its own area, once.
+            var clearCells = new HashSet<(string, int, int)>();
+            foreach (var order in approvedClears)
+            {
+                AreaIndex(order.AreaId);
+                RequireClearCell(root.Stage5!, order.AreaId, order.Column, order.Row);
+                if (!clearCells.Add((order.AreaId, order.Column, order.Row)))
+                    throw new P1Refusal("ClearDuplicateCell", "the approved plan clears one ground cell twice");
             }
             // 2. Owner safeguard: a batch that would leave ANY currently populated area with no living tree is refused whole.
             foreach (var (areaId, inArea) in ordersByArea)
@@ -596,6 +692,12 @@ internal sealed class MultiAreaContinuation
                     .Concat(pruneRecords.OrderBy(r => r.AreaId, StringComparer.Ordinal).ThenBy(r => r.TreeId, StringComparer.Ordinal))
                     .ToArray()),
             };
+            // Stage 5: selective clearing (bramble and bracken to 0, every Sitka band kept); the year does not move.
+            var nextStage5 = root.Stage5 is null || approvedClears.Count == 0 ? root.Stage5
+                : Stage5Clearing.Apply(root.Stage5, approvedClears, year, workRevision, executionKey, plan.PlanId).Next with
+                {
+                    ApprovedClears = Array.Empty<MultiAreaClearUndergrowthOrder>(),
+                };
 
             // Test-only fault seam: rosters, event and revisions are complete, but nothing has been published.
             beforePublish?.Invoke();
@@ -614,6 +716,7 @@ internal sealed class MultiAreaContinuation
                 Approved = null,
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
                 Stage4 = nextStage4,
+                Stage5 = nextStage5,
             };
             return WithView(new MultiAreaExecutionResult(executionKey, year, workRevision, committed, Replayed: false), null);
         }
@@ -637,7 +740,8 @@ internal sealed class MultiAreaContinuation
             if (hasWork && !consentToCancelWork)
                 throw new P1Refusal("WorkPendingConsentRequired",
                     "advancing the year with unexecuted work needs explicit consent to cancel all of it at zero Fell");
-            if (root.Areas.All(area => !area.State.Trees.Any(tree => tree.IsLiving)))
+            // Stage 5: a woodland with juvenile regeneration still has a year to advance even if no adult is alive.
+            if (root.Areas.All(area => !area.State.Trees.Any(tree => tree.IsLiving)) && !(root.Stage5?.HasAbundance ?? false))
                 throw new P1Refusal("ContinuationNoLivingStems", "every area has no living stems; there is no year to advance");
 
             int year = root.EcologicalYear;
@@ -701,6 +805,28 @@ internal sealed class MultiAreaContinuation
             var yearRecord = new MultiAreaYearRecord(year, checked(year + 1), revision, root.WorkRevision,
                 Array.AsReadOnly(records), hasWork);
 
+            // Stage 5 only (spec §3 steps 5a–12): after every area's adult step (an adult-empty area included), one pure step
+            // over the start-of-year Stage 5 state and the post-adult-step woodland. Promoted adults join their area's roster
+            // in ordinal TreeId order; consented cancellation clears pending and approved ClearUndergrowth orders too.
+            MultiAreaStage5State? nextStage5 = null;
+            if (root.Stage5 is { } stage5Start)
+            {
+                var stepped = Stage5Annual.Step(stage5Start, Stage5Inputs(nextAreas.Select(area => area.State.Trees).ToArray()),
+                    checked(year + 1));
+                for (int i = 0; i < nextAreas.Length; i++)
+                {
+                    var promoted = stepped.PromotedTrees[nextAreas[i].AreaId];
+                    if (promoted.Count == 0) continue;
+                    var roster = nextAreas[i].State.Trees.Concat(promoted).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
+                    nextAreas[i] = nextAreas[i] with { State = new AnnualState(checked(year + 1), Array.AsReadOnly(roster)) };
+                }
+                nextStage5 = stepped.Next with
+                {
+                    PendingClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.PendingClears,
+                    ApprovedClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.ApprovedClears,
+                };
+            }
+
             // Test-only fault seam: every area is calculated, nothing is published.
             beforeCommit?.Invoke();
 
@@ -721,6 +847,7 @@ internal sealed class MultiAreaContinuation
                     Deadwood = Array.AsReadOnly(stage4.Deadwood.Concat(deadwood).ToArray()),
                     NextDeadwoodNumber = nextDeadwood,
                 },
+                Stage5 = nextStage5,
             };
             return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(reports)));
         }
@@ -824,6 +951,26 @@ internal sealed class MultiAreaContinuation
     private MultiAreaStage4State RequireStage4() => root.Stage4 ??
         throw new P1Refusal("Stage4ModelRequired",
             "pruning needs AdultModelVersion 1, MortalityModelVersion 1 and CrownModelVersion 1; this session is not Stage 4");
+
+    private MultiAreaStage5State RequireStage5() => root.Stage5 ??
+        throw new P1Refusal("Stage5ModelRequired",
+            "regeneration and ClearUndergrowth need the 1/1/1/1 model selection; this session is not Stage 5");
+
+    // A clear target must be one existing in-polygon ground cell of its own area. A cell of the other area is refused as
+    // MultiAreaWrongArea (as for trees); a cell of no area (outside every polygon, or no such lattice cell) as ClearCellNotInArea.
+    private static void RequireClearCell(MultiAreaStage5State stage5, string areaId, int column, int row)
+    {
+        if (stage5.CellOf(areaId, column, row) is not null) return;
+        foreach (var area in stage5.Areas)
+            if (area.AreaId != areaId && stage5.CellOf(area.AreaId, column, row) is not null)
+                throw new P1Refusal("MultiAreaWrongArea",
+                    FormattableString.Invariant($"ground cell ({column}, {row}) belongs to {area.AreaId}, not {areaId}"));
+        throw new P1Refusal("ClearCellNotInArea", "no in-polygon ground cell of this area has that column and row");
+    }
+
+    // The Stage 5 inputs of every area, in area order, for the given rosters (one per area, same order).
+    private Stage5AreaInput[] Stage5Inputs(IReadOnlyList<IReadOnlyList<AnnualTree>> rosters) =>
+        areas.Select((info, i) => new Stage5AreaInput(info.AreaId, info.Seed, info.Polygon, info.AreaHa, rosters[i])).ToArray();
 
     private int AreaIndex(string areaId)
     {
