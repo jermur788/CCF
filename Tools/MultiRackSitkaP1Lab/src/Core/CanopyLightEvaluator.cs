@@ -38,10 +38,13 @@ public sealed record TreeGrowingSpace(string TreeId, string AreaId, float Ci, in
 public sealed record CanopyStandDiagnostics(int LivingStems, double StemsPerHa, double BasalAreaM2PerHa);
 
 /// <summary>
-/// Layer B, one area, on a 0.25 m micro-grid of cell centres strictly inside the polygon. Covered = centre inside at least
-/// one living crown circle (the union). Overlapped = inside two or more. MeanOverlapCount is the mean number of crowns over
-/// the covered micro-cells. Openings are 4-connected uncovered regions; an opening's width is the diameter of the largest
-/// circle inscribed in it on the micro-grid, bounded by crowns and by the polygon edge.
+/// Layer B, one area, on a 0.25 m micro-grid of cell centres strictly inside the polygon. Each included micro-cell is
+/// weighted by its exact polygon-clipped area. Covered = clipped area of cells whose centre is inside at least one living
+/// crown circle (the union). UncoveredM2 = polygon area − CoveredM2 and CoverFraction = CoveredM2 / polygon area.
+/// SampledAreaM2 (the sum of clipped areas of included cells, ≤ the polygon area) is reported, not renormalised away.
+/// Overlapped = clipped area inside two or more crowns. MeanOverlapCount is the area-weighted mean number of crowns over
+/// the covered area. Openings are 4-connected uncovered regions; an opening's area is the sum of its clipped cell areas and
+/// its width is the diameter of the largest circle inscribed in it on the micro-grid, bounded by crowns and the polygon edge.
 /// </summary>
 public sealed record CanopyCover(double MicroCellM, double SampledAreaM2, double CoveredM2, double UncoveredM2, double CoverFraction,
     double OverlappedM2, double MeanOverlapCount, int OpeningCount, double LargestOpeningAreaM2, double LargestOpeningWidthM);
@@ -252,17 +255,26 @@ public static class CanopyLightEvaluator
             }
         }
 
-        long insideCells = 0, coveredCells = 0, overlappedCells = 0, coveredCountSum = 0;
+        // Every included micro-cell is weighted by the exact area of the polygon clipped to it, so a boundary cell counts
+        // only the part that lies inside the rack. Cells whose four corners are all inside (or on) the convex polygon are
+        // whole; only boundary cells need the Sutherland–Hodgman clip shared with the light layer.
+        var cellArea = new double[cols * rows];
+        double sampledM2 = 0.0, coveredM2 = 0.0, overlappedM2 = 0.0, coveredCountArea = 0.0;
         var open = new bool[cols * rows];
         for (int i = 0; i < open.Length; i++)
         {
             if (!inside[i]) continue;
-            insideCells++;
+            double x0 = (c0 + i % cols) * s, z0 = (r0 + i / cols) * s;
+            double a = SquareWhollyInside(polygon, x0, z0, x0 + s, z0 + s)
+                ? s * s
+                : ClippedSquareArea(polygon, x0, z0, x0 + s, z0 + s);
+            cellArea[i] = a;
+            sampledM2 += a;
             if (count[i] > 0)
             {
-                coveredCells++;
-                coveredCountSum += count[i];
-                if (count[i] >= 2) overlappedCells++;
+                coveredM2 += a;
+                coveredCountArea += count[i] * a;
+                if (count[i] >= 2) overlappedM2 += a;
             }
             else open[i] = true;
         }
@@ -272,20 +284,20 @@ public static class CanopyLightEvaluator
         var label = new int[cols * rows];
         var queue = new Queue<int>();
         int openings = 0;
-        long largestCells = 0;
+        double largestAreaM2 = 0.0;
         double largestWidthM = 0.0;
         for (int start = 0; start < open.Length; start++)
         {
             if (!open[start] || label[start] != 0) continue;
             openings++;
-            long size = 0;
+            double size = 0.0;
             double maxD2 = 0.0;
             label[start] = openings;
             queue.Enqueue(start);
             while (queue.Count > 0)
             {
                 int i = queue.Dequeue();
-                size++;
+                size += cellArea[i];
                 maxD2 = Math.Max(maxD2, distance2[i]);
                 int r = i / cols, c = i % cols;
                 foreach (int n in new[] { c > 0 ? i - 1 : -1, c < cols - 1 ? i + 1 : -1, r > 0 ? i - cols : -1, r < rows - 1 ? i + cols : -1 })
@@ -293,20 +305,34 @@ public static class CanopyLightEvaluator
             }
             // Inscribed diameter: centre-to-nearest-blocked-centre distance d gives a clear width of (2d − 1) cells.
             double widthM = Math.Max(1.0, 2.0 * Math.Sqrt(maxD2) - 1.0) * s;
-            if (size > largestCells || (size == largestCells && widthM > largestWidthM))
+            if (size > largestAreaM2 || (size == largestAreaM2 && widthM > largestWidthM))
             {
-                largestCells = size;
+                largestAreaM2 = size;
                 largestWidthM = widthM;
             }
         }
 
-        double cellArea = s * s;
-        double sampledM2 = insideCells * cellArea;
-        double coveredM2 = coveredCells * cellArea;
-        return new CanopyCover(s, sampledM2, coveredM2, sampledM2 - coveredM2,
-            insideCells == 0 ? 0.0 : (double)coveredCells / insideCells, overlappedCells * cellArea,
-            coveredCells == 0 ? 0.0 : (double)coveredCountSum / coveredCells, openings, largestCells * cellArea,
+        // Covered and uncovered partition the true polygon area (not the sampled area), and the fraction uses the polygon
+        // area too. SampledAreaM2 stays visible beside it: the strip of boundary cells whose centres fall outside is not
+        // sampled, and that loss is reported, not renormalised away (it is counted as uncovered).
+        double polygonM2 = PolygonAreaM2(polygon);
+        return new CanopyCover(s, sampledM2, coveredM2, polygonM2 - coveredM2, coveredM2 / polygonM2, overlappedM2,
+            coveredM2 == 0.0 ? 0.0 : coveredCountArea / coveredM2, openings, largestAreaM2,
             openings == 0 ? 0.0 : largestWidthM);
+    }
+
+    /// <summary>True when all four corners of the square are inside or on the convex polygon (so the square is wholly inside).</summary>
+    private static bool SquareWhollyInside(IReadOnlyList<CanopyVertex> polygon, double x0, double z0, double x1, double z1)
+    {
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            var a = polygon[i];
+            var b = polygon[(i + 1) % polygon.Count];
+            if (Cross(a.XM, a.ZM, b.XM, b.ZM, x0, z0) < 0 || Cross(a.XM, a.ZM, b.XM, b.ZM, x1, z0) < 0 ||
+                Cross(a.XM, a.ZM, b.XM, b.ZM, x1, z1) < 0 || Cross(a.XM, a.ZM, b.XM, b.ZM, x0, z1) < 0)
+                return false;
+        }
+        return true;
     }
 
     /// <summary>

@@ -29,6 +29,39 @@ internal static class CrownC2Tests
             T.Eq(CrownModel.C2RuleId, "area-scaled-equilibrium-c2-v1", "rule id");
         });
 
+        T.Add("crown C2-00: independent hand-computed C2 radii (literal expected values, not derived from CrownModel)", () =>
+        {
+            // Hand: r_pot(30 cm) = 0.9415 + 0.07635·30 = 3.232 m.
+            //   CI 0  -> 3.232 / sqrt(1)            = 3.232
+            //   CI 5  -> 3.232 / sqrt(2)            = 2.2853691167949215
+            //   CI 15 -> 3.232 / sqrt(4)            = 1.616
+            //   one step from r = 2.0 at CI 5: 2.0 + (2.2853691167949215 − 2.0)·0.15 = 2.042805367519238
+            // r_pot(45 cm) = 4.37725; CI 2.5 -> 4.37725 / sqrt(1.5) = 3.574009658865889
+            var cases = new (string What, float Actual, double Expected)[]
+            {
+                ("DBH 30, CI 0", CrownModel.TargetRadiusM(Sitka, 30f, 0f), 3.232),
+                ("DBH 30, CI 5", CrownModel.TargetRadiusM(Sitka, 30f, 5f), 2.2853691167949215),
+                ("DBH 30, CI 15", CrownModel.TargetRadiusM(Sitka, 30f, 15f), 1.616),
+                ("DBH 45, CI 2.5", CrownModel.TargetRadiusM(Sitka, 45f, 2.5f), 3.574009658865889),
+                ("step r 2.0, DBH 30, CI 5", CrownModel.NextRadiusM(Sitka, 2.0f, 30f, 5f), 2.042805367519238),
+            };
+            foreach (var (what, actual, expected) in cases)
+            {
+                T.True(Math.Abs(actual - expected) <= 1e-6, $"{what}: {actual:R} vs hand {expected:R}");
+                Console.WriteLine($"  C2 hand oracle {what}: engine {actual:R}, hand {expected:R}, |diff| {Math.Abs(actual - expected):E2}");
+            }
+
+            // End to end through the woodland Hegyi CI: target DBH 30 at (0,0); neighbours DBH 30 at 4 m and DBH 60 at 3 m.
+            // Hand CI = (30/30)/4 + (60/30)/3 = 0.9166666666666666; r_0 = 3.232 / sqrt(1 + 0.18333…) = 2.971103650398022.
+            var target = new AnnualTree("H-0", 0f, 0f, 30, 30f, 20f, 3f);
+            var woodland = CrownModel.Woodland(new[] { target, new AnnualTree("H-1", 4f, 0f, 30, 30f, 20f, 3f), new AnnualTree("H-2", 0f, 3f, 30, 60f, 20f, 3f) });
+            var (ci, neighbours) = CrownModel.WoodlandCompetition(target, woodland);
+            T.True(Math.Abs(ci - 0.9166666666666666) <= 1e-6 && neighbours == 2, $"hand CI {ci:R}");
+            float r0 = CrownModel.Equilibrate(Sitka, new[] { target }, woodland)[0].CrownRadiusM;
+            T.True(Math.Abs(r0 - 2.971103650398022) <= 1e-6, $"hand r_0 {r0:R}");
+            Console.WriteLine($"  C2 hand oracle Hegyi end-to-end: CI {ci:R} (hand 0.9166666666666666), r_0 {r0:R} (hand 2.971103650398022)");
+        });
+
         T.Add("crown C2-02: year 0 starts at r_0 = r_target(CI_0) over the connected woodland; nothing else of genesis changes", () =>
         {
             var e = MultiAreaGenerator.Generate();
