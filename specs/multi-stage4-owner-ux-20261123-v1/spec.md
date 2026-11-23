@@ -27,6 +27,7 @@
 |---|---|
 | Minimum supported desktop width (UX-01 requires one to be documented) | **1280x720 is the documented minimum supported desktop width.** The five competitor rows and Add must hold above the fold there, including rows whose competitor is blocked (queued, approved, Crop or felled). 1920x1080 holds today; below 1280x720 no fold requirement applies. |
 | F-03 — may an open-ground read scroll the primary block out of view? | **Yes, keep the current behaviour.** The reading scrolls into view; the reference summary and `Close inspection` may leave the screen until the next selection. Escape and `Stop` remain available. |
+| AC22 names "Independent GPT-6.1 Sol review". Sol's review run ended on a provider usage limit and published nothing. | **Satisfied by substitution, owner 2026-11-23.** The owner designated Claude Sonnet 5.5 as the independent reviewer; AC22 is treated as met by that review of the exact candidate. GPT-6.1 Sol did not review this change. |
 
 These clarify open parameters in UX-01 and UX-07. They do not change any other requirement, acceptance criterion or owner decision.
 
