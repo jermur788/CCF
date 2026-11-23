@@ -13,6 +13,11 @@ const base = fs.readFileSync(URL_FILE, 'utf8').trim();
 const tag = W + 'x' + H;
 const results = [];
 let failures = 0;
+function info(text) {
+  const line = 'INFO [' + tag + '] ' + redact(text);
+  results.push(line);
+  console.log(line);
+}
 function check(ok, label, detail) {
   if (!ok) failures++;
   const line = (ok ? 'PASS ' : 'FAIL ') + '[' + tag + '] ' + label + (detail === undefined ? '' : ' :: ' + redact(typeof detail === 'string' ? detail : JSON.stringify(detail)));
@@ -300,7 +305,8 @@ async function main() {
     check(lightB.drawn > 0 && lightB.maxOp > 0.6, 'Area B shows its brighter real openings (no light invented in Area A)', lightB);
     await shot(page, '06-light-guide-area-b');
 
-    // ---- G. With the Light Guide on: crowns still select; Inspect ground is explicit and isolated (UX-07/UX-08) ----------
+    // ---- G. With the Light Guide on: crowns still select; Inspect ground reads only open ground (UX-07/UX-08) ------------
+    // Owner decision 2026-11-23 (literal spec): modal dialog > rank button > crown selection > ground read (ground mode only).
     const refB = await selectReference(page, 'MA-B');
     check((await inspected(page)) === refB && (await page.eval(`document.getElementById('ground-panel').hidden`)),
       'UX-08: with the Light Guide on, clicking a crown selects that tree (no ground panel)', refB);
@@ -309,31 +315,60 @@ async function main() {
     await sleep(120);
     check((await ranksDom(page))[0].pressed === 'true', 'UX-08: rank toggles work with the Light Guide on');
     await page.click('#ground-mode');
-    const gm = await page.eval(`({ pressed: document.getElementById('ground-mode').getAttribute('aria-pressed'), panel: !document.getElementById('ground-panel').hidden,
-      cls: document.getElementById('map-pane').classList.contains('ground-mode'), status: document.getElementById('map-status').textContent })`);
-    check(gm.pressed === 'true' && gm.panel && gm.cls && gm.status.includes('Inspect ground is on'), 'UX-08: Inspect ground has an obvious On state (pressed button, panel, crosshair, status line)', gm);
-    // Click a crown position in ground mode: it reads the ground cell there and does not select that tree.
-    const other = await page.eval(`(async () => { const p = await (await fetch('api/multi/view')).json(); const ground = p.stage4.areas.find((a) => a.areaId === 'MA-B').ground;
-      const ids = new Set(${JSON.stringify([refB])}); const m = document.getElementById('map').getScreenCTM();
+    const gm = await page.eval(`({ pressed: document.getElementById('ground-mode').getAttribute('aria-pressed'), text: document.getElementById('ground-mode-text').textContent,
+      panel: !document.getElementById('ground-panel').hidden, cls: document.getElementById('map-pane').classList.contains('ground-mode'), status: document.getElementById('map-status').textContent,
+      mapCursor: getComputedStyle(document.getElementById('map')).cursor, crownCursor: getComputedStyle(document.querySelector('#crowns .tree .crown')).cursor,
+      hint: document.getElementById('ground-summary').textContent })`);
+    check(gm.pressed === 'true' && gm.text === 'Inspect ground: On' && gm.panel && gm.cls && gm.status.includes('Inspect ground is on'),
+      'UX-08: Inspect ground has an obvious On state (pressed button "Inspect ground: On", panel, status line)', gm);
+    check(gm.status.includes('crowns still select trees') && gm.status.includes('open ground') && !/paused/.test(gm.status + gm.hint) &&
+      gm.hint.includes('Clicking a crown still selects that tree') && gm.mapCursor === 'crosshair' && gm.crownCursor === 'pointer',
+      'UX-08: the hint and cursor are truthful: crosshair over open ground, pointer over crowns, text says crowns still select', gm);
+    // How much of each area's cell grid is open ground for the server's hit-test (probed at every cell centre, read-only).
+    const probeOpen = (areaId) => page.eval(`(async () => { const p = await (await fetch('api/multi/view', { cache: 'no-store' })).json(); const v = p.view;
+      const fence = { sessionId: v.sessionId, source: v.source, planStateRevision: v.planStateRevision };
       const inside = (pts, u, v) => { let ins = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const a = pts[i], b = pts[j]; if ((a.v > v) !== (b.v > v) && u < (b.u - a.u) * (v - a.v) / (b.v - a.v) + a.u) ins = !ins; } return ins; };
-      for (const t of p.scenes['MA-B']) {
-        if (ids.has(t.treeId) || t.status !== 'Living') continue;
-        const e = document.elementFromPoint(m.a * t.u + m.c * t.v + m.e, m.b * t.u + m.d * t.v + m.f);
-        const cell = ground.find((c) => inside(c.polygon, t.u, t.v));
-        if (cell && e && e.closest && e.closest('#crowns')) return { tree: t.treeId, u: t.u, v: t.v, cell };
-      }
-      return null; })()`);
-    const otherAt = await screenOf(page, other.u, other.v);
-    await page.clickAt(otherAt.x, otherAt.y);
-    await sleep(200);
+      const cells = p.stage4.areas.find((a) => a.areaId === ${JSON.stringify(areaId)}).ground; const open = [];
+      for (const c of cells) { const u = c.polygon.reduce((s, q) => s + q.u, 0) / c.polygon.length, w = c.polygon.reduce((s, q) => s + q.v, 0) / c.polygon.length;
+        if (!inside(c.polygon, u, w)) continue;
+        const r = await (await fetch('api/multi/hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fence, areaId: ${JSON.stringify(areaId)}, u, v: w }) })).json();
+        if (r.candidates && r.candidates.length === 0) open.push({ u, v: w, cell: c }); }
+      return { cells: cells.length, open }; })()`);
+    const openA = await probeOpen('MA-A');
+    info('Area A open ground for the hit-test: ' + openA.open.length + ' of ' + openA.cells + ' cell centres (' + (100 * openA.open.length / openA.cells).toFixed(1) + '%) have no crown');
+    const openB = await probeOpen('MA-B');
+    info('Area B open ground for the hit-test: ' + openB.open.length + ' of ' + openB.cells + ' cell centres (' + (100 * openB.open.length / openB.cells).toFixed(1) + '%) have no crown');
+    // An open-ground point that is on screen, on the map and not under a drawn crown or a rank button. A real click lands
+    // on a whole pixel, so the test prefers the hit-test-empty cell centre farthest from any crown edge (drawn radii are
+    // used only to choose a test point; the server's hit-test above decided it is open).
+    const sceneB = await page.eval(`(async () => (await (await fetch('api/multi/view')).json()).scenes['MA-B'].filter((t) => t.status === 'Living').map((t) => ({ u: t.u, v: t.v, r: t.radiusM })))()`);
+    const clearance = (o) => Math.min(...sceneB.map((t) => Math.hypot(t.u - o.u, t.v - o.v) - t.r));
+    const candidatesOpen = openB.open.map((o) => ({ ...o, clear: clearance(o) })).sort((a, b) => b.clear - a.clear);
+    let open = null, openAt = null;
+    for (const o of candidatesOpen) {
+      const at = await screenOf(page, o.u, o.v);
+      const ok = at.onMap && at.x > 0 && at.y > 0 && at.x < W && at.y < H && await page.eval(`(() => { const e = document.elementFromPoint(${at.x}, ${at.y}); return !!e && !e.closest('#crowns') && !e.closest('[data-rank-toggle]'); })()`);
+      if (ok) { open = o; openAt = at; break; }
+    }
+    check(open !== null, 'an on-screen open-ground point exists in Area B (hit-test reports no crown there)', open && { u: open.u, v: open.v, clearanceM: Number(open.clear.toFixed(2)) });
+    // Inspect ground ON + open ground: reads the ground cell; selection, draft and the server are unchanged.
+    const snapshotUi = async () => ({ insp: await inspected(page), label: await draftLabel(page), rows: JSON.stringify(await rowsDom(page)),
+      ranks: JSON.stringify((await ranksDom(page)).map((r) => [r.id, r.pressed])), server: await server(page) });
+    const before = await snapshotUi();
+    await page.clickAt(openAt.x, openAt.y);
+    await sleep(150);
+    await page.idle();
     const g1 = await page.eval(`({ heading: document.getElementById('ground-heading').textContent, summary: document.getElementById('ground-summary').textContent,
       treesOpen: document.getElementById('ground-trees').open, techOpen: document.getElementById('ground-tech').open, treesSummary: document.getElementById('ground-trees-summary').textContent,
       ids: document.getElementById('ground-tree-ids').textContent, tech: document.getElementById('ground-facts').textContent, insp: document.getElementById('insp-id').textContent,
       pick: document.querySelectorAll('#ground-mark polygon').length })`);
-    const c = other.cell;
+    const c = open.cell;
     const expectIndex = c.lightIndex.toFixed(3), expectCover = (c.geometricCoveredFraction * 100).toFixed(0) + '%';
-    check(g1.insp === refB && g1.heading.includes('ground at X ' + c.centreXM.toFixed(1)) && g1.pick === 2,
-      'UX-08: in Inspect ground a click on a crown reads the ground cell there and does NOT select that tree', { insp: g1.insp, other: other.tree, heading: g1.heading });
+    const afterOpen = await snapshotUi();
+    check(g1.heading.includes('ground at X ' + c.centreXM.toFixed(1)) && g1.pick === 2,
+      'UX-08: Inspect ground ON, a click on open ground (no crown) shows the ground inspector for that cell', { heading: g1.heading });
+    check(afterOpen.insp === refB && afterOpen.label === before.label && afterOpen.rows === before.rows && afterOpen.ranks === before.ranks &&
+      JSON.stringify(afterOpen.server) === JSON.stringify(before.server), 'UX-08: the open-ground read changes no selection, no draft and nothing on the server', { insp: afterOpen.insp, label: afterOpen.label });
     check(/Very shaded|Low|Moderate|Bright/.test(g1.summary) && g1.summary.includes('Light index' + expectIndex) && g1.summary.includes('Canopy cover' + expectCover) &&
       g1.summary.includes('Shading trees' + (c.contributingTreeIds.length || 'none')) && !g1.summary.includes(c.contributingTreeIds[0] || '§'),
       'UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top)', g1.summary);
@@ -342,33 +377,92 @@ async function main() {
       'UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures', { treesSummary: g1.treesSummary });
     await page.click('#ground-trees > summary');
     await shot(page, '07-ground-inspection');
-    // A rank button still toggles in ground mode (rank > ground) and leaves the ground reading alone.
+    // A rank button still toggles only its own tree ID in ground mode (rank > crown > ground) and leaves the ground reading alone.
     ranks = await ranksDom(page);
     const r1 = ranks.find((r) => r.disabled !== 'true' && r.pressed === 'false');
     if (r1) {
+      const pressedBefore = ranks.map((r) => [r.id, r.pressed]);
       await page.clickAt(r1.x, r1.y);
       await sleep(150);
       const g2 = await page.eval(`document.getElementById('ground-heading').textContent`);
-      check((await ranksDom(page)).find((r) => r.id === r1.id).pressed === 'true' && g2 === g1.heading, 'UX-08: a rank click in ground mode toggles the draft and does not read the ground');
-    }
-    // Outside the area there is no sample, and nothing is estimated.
+      const pressedAfter = (await ranksDom(page)).map((r) => [r.id, r.pressed]);
+      const changed = pressedAfter.filter((p, i) => p[1] !== pressedBefore[i][1]).map((p) => p[0]);
+      check(changed.length === 1 && changed[0] === r1.id && (await inspected(page)) === refB && g2 === g1.heading,
+        'UX-08: with Inspect ground ON a rank click toggles only its own tree ID (' + r1.id + '), keeps the reference and does not read the ground', { changed });
+    } else check(false, 'UX-08: a free rank button exists for the ground-mode rank check');
+    // Outside the area there is no crown and no sample, and nothing is estimated.
     const outside = await page.eval(`(async () => { const p = await (await fetch('api/multi/view')).json(); const a = p.view.areas.find((x) => x.areaId === 'MA-B');
       const side = a.extent.sideM; const low = a.polygon.map((q) => ({ u: q.xm - a.extent.minXM, v: a.extent.minZM + side - q.zm })).sort((x, y) => y.v - x.v)[0]; return { u: low.u, v: low.v + 1.2 }; })()`);
     const outAt = await screenOf(page, outside.u, outside.v);
     await page.clickAt(outAt.x, outAt.y);
     await sleep(150);
+    await page.idle();
     const g3 = await page.eval(`({ heading: document.getElementById('ground-heading').textContent, summary: document.getElementById('ground-summary').textContent, tech: document.getElementById('ground-tech').hidden })`);
     check(outAt.onMap && g3.heading.endsWith('no sample') && g3.summary.includes('No modelled ground sample') && g3.tech, 'UX-08: a spot with no ground sample says so; no value is synthesised', g3);
+    // An open modal dialog swallows a map click, also in ground mode.
+    await page.clickAt(openAt.x, openAt.y);
+    await sleep(150);
+    await page.idle();
+    const preModal = { heading: await page.eval(`document.getElementById('ground-heading').textContent`), insp: await inspected(page), server: await server(page) };
+    await page.click('#advance');
+    await page.waitFor(`document.getElementById('consent-dialog').open`, 'the Year+1 consent dialog (ground mode)');
+    const postsBefore = page.log.posts.length;
+    await page.clickAt(outAt.x, outAt.y);
+    await sleep(250);
+    const m1 = { open: await page.eval(`document.getElementById('consent-dialog').open`), heading: await page.eval(`document.getElementById('ground-heading').textContent`),
+      insp: await inspected(page), posts: page.log.posts.slice(postsBefore) };
+    check(m1.open && m1.heading === preModal.heading && m1.insp === preModal.insp && m1.posts.length === 0,
+      'UX-08: with a modal dialog open (ground mode ON) a map click is swallowed: no hit-test, no ground read, no selection change', m1);
+    await page.key('Escape');
+    const m2 = await page.eval(`({ open: document.getElementById('consent-dialog').open, ground: document.getElementById('ground-mode').getAttribute('aria-pressed') })`);
+    check(!m2.open && m2.ground === 'true' && JSON.stringify(await server(page)) === JSON.stringify(preModal.server), 'Escape closes only the dialog; Inspect ground stays on', m2);
+    // Inspect ground ON + a crown: the crown wins. The tree is selected exactly as a normal selection; no ground read is shown.
+    // A crown point that is visible, on the drawn crowns (not under a rank button) and whose server hit-test topmost is a
+    // tree outside `exclude`, so clicking it must change the selection if crowns win.
+    const crownTarget = (exclude) => page.eval(`(async () => { const p = await (await fetch('api/multi/view', { cache: 'no-store' })).json(); const v = p.view;
+      const fence = { sessionId: v.sessionId, source: v.source, planStateRevision: v.planStateRevision }; const m = document.getElementById('map').getScreenCTM();
+      const skip = new Set(${JSON.stringify(exclude)});
+      for (const t of p.scenes['MA-B']) {
+        if (skip.has(t.treeId) || t.status !== 'Living') continue;
+        const x = m.a * t.u + m.c * t.v + m.e, y = m.b * t.u + m.d * t.v + m.f;
+        if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) continue;
+        const e = document.elementFromPoint(x, y);
+        if (!(e && e.closest && e.closest('#crowns') && !e.closest('[data-rank-toggle]'))) continue;
+        const r = await (await fetch('api/multi/hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fence, areaId: 'MA-B', u: t.u, v: t.v }) })).json();
+        const hit = (r.candidates || []).map((c) => c.treeId);
+        if (hit.length > 0 && !skip.has(hit[0])) return { tree: t.treeId, u: t.u, v: t.v, hit };
+      }
+      return null; })()`);
+    const other = await crownTarget([refB]);
+    const otherAt = await screenOf(page, other.u, other.v);
+    const hitAtOther = other.hit;
+    const sCrown = await server(page);
+    await page.clickAt(otherAt.x, otherAt.y);
+    await sleep(200);
+    await page.idle();
+    await page.waitFor(`document.querySelectorAll('#competition-content [data-draft]').length > 0 || document.querySelector('#competition-content .comp-empty')`, 'competition (ground mode crown)', 8000);
+    const g7 = await page.eval(`({ insp: document.getElementById('inspector-body').hidden ? null : document.getElementById('insp-id').textContent, heading: document.getElementById('ground-heading').textContent,
+      pick: document.querySelectorAll('#ground-mark polygon').length, ground: document.getElementById('ground-mode').getAttribute('aria-pressed'), techHidden: document.getElementById('ground-tech').hidden,
+      status: document.getElementById('map-status').textContent })`);
+    check(hitAtOther.length > 0 && g7.insp === hitAtOther[0] && g7.insp !== refB && g7.heading.endsWith('choose a spot') && g7.pick === 0 && g7.techHidden && g7.ground === 'true',
+      'UX-08: Inspect ground ON, clicking a crown SELECTS that tree (the hit-test\'s topmost, ' + (hitAtOther[0] || '?') + ') and shows no ground read; the mode stays on', g7);
+    check(JSON.stringify(await server(page)) === JSON.stringify(sCrown), 'UX-08: the ground-mode crown selection sent nothing that changes the server view');
+    const selectedInGround = g7.insp;
+    await shot(page, '10-ground-mode-crown-selects');
     // Escape stops Inspect ground first (Light Guide stays on), then closes the inspection.
     await page.key('Escape');
     const g4 = await page.eval(`({ ground: document.getElementById('ground-mode').getAttribute('aria-pressed'), panel: document.getElementById('ground-panel').hidden,
       light: document.getElementById('light-toggle').getAttribute('aria-pressed'), cells: document.querySelectorAll('#light-cells polygon').length, insp: document.getElementById('insp-id').textContent,
       body: document.getElementById('inspector-body').hidden })`);
-    check(g4.ground === 'false' && g4.panel && g4.light === 'true' && g4.cells > 0 && !g4.body && g4.insp === refB,
+    check(g4.ground === 'false' && g4.panel && g4.light === 'true' && g4.cells > 0 && !g4.body && g4.insp === selectedInGround,
       'UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open', g4);
-    const back = await clickCrown(page, 'MA-B', other.tree);
+    const backTarget = await crownTarget([selectedInGround]);
+    const backAt = await screenOf(page, backTarget.u, backTarget.v);
+    await page.clickAt(backAt.x, backAt.y);
+    await sleep(200);
+    await page.idle();
     const g5 = await inspected(page);
-    check(back.clicked && g5 !== refB, 'UX-08: after leaving ground mode a crown click selects a tree again', { now: g5 });
+    check(g5 === backTarget.hit[0] && g5 !== selectedInGround, 'UX-08: after leaving ground mode a crown click selects that tree as before (' + backTarget.hit[0] + ')', { now: g5 });
     await page.key('Escape');
     const g6 = await page.eval(`({ body: document.getElementById('inspector-body').hidden, light: document.getElementById('light-toggle').getAttribute('aria-pressed') })`);
     check(g6.body && g6.light === 'true', 'Escape then closes the inspection; the Light Guide is never switched off by Escape', g6);
@@ -449,7 +543,8 @@ async function main() {
 
 main().then(() => {
   fs.writeFileSync(path.join(OUT, 'browser-results-' + tag + '.json'), JSON.stringify({ viewport: tag, failures, results, shots }, null, 1));
-  console.log('RESULT ' + tag + ': ' + (results.length - failures) + '/' + results.length + ' PASS');
+  const checks = results.filter((r) => !r.startsWith('INFO ')).length;
+  console.log('RESULT ' + tag + ': ' + (checks - failures) + '/' + checks + ' PASS');
   process.exit(failures === 0 ? 0 : 1);
 }).catch((error) => {
   console.log('ABORT ' + redact(error && error.stack || error));

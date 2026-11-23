@@ -16,7 +16,7 @@ PASS [1920x1080] Area A | Area B switch the map
 PASS [1920x1080] UX-01: after clicking a living tree, ranks 1-5 and an actionable "Add selected to Fell plan" are visible without scrolling :: {"rows":5,"lastRowBottom":844,"firstRowTop":567,"dockTop":855,"addTop":893,"addBottom":941,"innerHeight":1080,"scrollTop":0,"paneTop":326,"closeVisible":true,"closeText":"× Close inspection"}
 PASS [1920x1080] UX-03: "× Close inspection" is visible beside the reference ID :: × Close inspection
 PASS [1920x1080] UX-02: five map rank buttons, numbered 1-5, each carrying the exact engine ID of the engine's rank (same order as the inspector), with an ARIA label :: [[1,"MA-A-015",28],[2,"MA-A-016",28],[3,"MA-A-002",28],[4,"MA-A-030",28],[5,"MA-A-017",28]]
-SHOT 02-selected-five-ranks-1920x1080.png 827567 bytes
+SHOT 02-selected-five-ranks-1920x1080.png 920583 bytes
 PASS [1920x1080] UX-02: map rank 1 toggles exactly MA-A-015 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 1 to Fell plan"}
 PASS [1920x1080] UX-02: map rank 2 toggles exactly MA-A-016 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 2 to Fell plan"}
 PASS [1920x1080] UX-02: map rank 3 toggles exactly MA-A-002 on; its inspector checkbox follows; the reference stays MA-A-001 :: {"label":"Add selected 3 to Fell plan"}
@@ -47,15 +47,25 @@ PASS [1920x1080] Area B shows its brighter real openings (no light invented in A
 SHOT 06-light-guide-area-b-1920x1080.png 762902 bytes
 PASS [1920x1080] UX-08: with the Light Guide on, clicking a crown selects that tree (no ground panel) :: MA-B-001
 PASS [1920x1080] UX-08: rank toggles work with the Light Guide on
-PASS [1920x1080] UX-08: Inspect ground has an obvious On state (pressed button, panel, crosshair, status line) :: {"pressed":"true","panel":true,"cls":true,"status":"Inspect ground is on: click any spot to read its light · tree selection paused · Esc stops"}
-PASS [1920x1080] UX-08: in Inspect ground a click on a crown reads the ground cell there and does NOT select that tree :: {"insp":"MA-B-001","other":"MA-B-044","heading":"Area B · ground at X 63.8, Z 18.8"}
-PASS [1920x1080] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: Very shadedLight index0.037 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover96% of this cell under living crownsShading trees8Light and canopy cover are separate engine quantities.
-PASS [1920x1080] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {"treesSummary":"Contributing trees (8)"}
-SHOT 07-ground-inspection-1920x1080.png 748388 bytes
-PASS [1920x1080] UX-08: a rank click in ground mode toggles the draft and does not read the ground
+PASS [1920x1080] UX-08: Inspect ground has an obvious On state (pressed button "Inspect ground: On", panel, status line) :: {"pressed":"true","text":"Inspect ground: On","panel":true,"cls":true,"status":"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops","mapCursor":"crosshair","crownCursor":"pointer","hint":"Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. Clicking a crown still selects that tree."}
+PASS [1920x1080] UX-08: the hint and cursor are truthful: crosshair over open ground, pointer over crowns, text says crowns still select :: {"pressed":"true","text":"Inspect ground: On","panel":true,"cls":true,"status":"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops","mapCursor":"crosshair","crownCursor":"pointer","hint":"Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. Clicking a crown still selects that tree."}
+INFO [1920x1080] Area A open ground for the hit-test: 2 of 144 cell centres (1.4%) have no crown
+INFO [1920x1080] Area B open ground for the hit-test: 22 of 239 cell centres (9.2%) have no crown
+PASS [1920x1080] an on-screen open-ground point exists in Area B (hit-test reports no crown there) :: {"u":3.6,"v":46.4,"clearanceM":1.84}
+PASS [1920x1080] UX-08: Inspect ground ON, a click on open ground (no crown) shows the ground inspector for that cell :: {"heading":"Area B · ground at X 38.8, Z 8.8"}
+PASS [1920x1080] UX-08: the open-ground read changes no selection, no draft and nothing on the server :: {"insp":"MA-B-001","label":"Add selected 1 to Fell plan"}
+PASS [1920x1080] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: LowLight index0.302 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover5% of this cell under living crownsShading trees6Light and canopy cover are separate engine quantities.
+PASS [1920x1080] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {"treesSummary":"Contributing trees (6)"}
+SHOT 07-ground-inspection-1920x1080.png 746031 bytes
+PASS [1920x1080] UX-08: with Inspect ground ON a rank click toggles only its own tree ID (MA-B-010), keeps the reference and does not read the ground :: {"changed":["MA-B-010"]}
 PASS [1920x1080] UX-08: a spot with no ground sample says so; no value is synthesised :: {"heading":"Area B · no sample","summary":"No modelled ground sample at that spot (it is outside this area's light cells). No value is shown or estimated.","tech":true}
-PASS [1920x1080] UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open :: {"ground":"false","panel":true,"light":"true","cells":239,"insp":"MA-B-001","body":false}
-PASS [1920x1080] UX-08: after leaving ground mode a crown click selects a tree again :: {"now":"MA-B-044"}
+PASS [1920x1080] UX-08: with a modal dialog open (ground mode ON) a map click is swallowed: no hit-test, no ground read, no selection change :: {"open":true,"heading":"Area B · ground at X 38.8, Z 8.8","insp":"MA-B-001","posts":[]}
+PASS [1920x1080] Escape closes only the dialog; Inspect ground stays on :: {"open":false,"ground":"true"}
+PASS [1920x1080] UX-08: Inspect ground ON, clicking a crown SELECTS that tree (the hit-test's topmost, MA-B-044) and shows no ground read; the mode stays on :: {"insp":"MA-B-044","heading":"Area B · choose a spot","pick":0,"ground":"true","techHidden":true,"status":"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops"}
+PASS [1920x1080] UX-08: the ground-mode crown selection sent nothing that changes the server view
+SHOT 10-ground-mode-crown-selects-1920x1080.png 765058 bytes
+PASS [1920x1080] UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open :: {"ground":"false","panel":true,"light":"true","cells":239,"insp":"MA-B-044","body":false}
+PASS [1920x1080] UX-08: after leaving ground mode a crown click selects that tree as before (MA-B-002) :: {"now":"MA-B-002"}
 PASS [1920x1080] Escape then closes the inspection; the Light Guide is never switched off by Escape :: {"body":true,"light":"true"}
 PASS [1920x1080] AC21: Light Guide, Inspect ground and inspection changes had no server side effect :: {"year":0,"rev":5,"work":0,"pending":["MA-A:MA-A-015:Owner-selected felling","MA-A:MA-A-016:Owner-selected felling","MA-A:MA-A-030:Owner-selected felling","MA-A:MA-A-017:Owner-selected felling"],"approved":null,"events":0,"crops":[["MA-A-001"],[]],"living":[171,73]}
 PASS [1920x1080] Approve fells nothing and approves exactly the queued IDs :: {"year":0,"rev":6,"work":0,"pending":[],"approved":["MA-A-015","MA-A-016","MA-A-030","MA-A-017"],"events":0,"crops":[["MA-A-001"],[]],"living":[171,73]}
@@ -70,5 +80,5 @@ PASS [1920x1080] no sideways scroll at the end :: {"scrollWidth":1920,"bodyScrol
 PASS [1920x1080] no CSP violation (the rank buttons are positioned through CSSOM, not style attributes) :: []
 PASS [1920x1080] no script exception and no console error or warning :: {"ex":[],"console":[]}
 PASS [1920x1080] no HTTP 5xx :: []
-STATUSES {"200":61}
-RESULT 1920x1080: 63/63 PASS
+STATUSES {"200":460}
+RESULT 1920x1080: 70/70 PASS

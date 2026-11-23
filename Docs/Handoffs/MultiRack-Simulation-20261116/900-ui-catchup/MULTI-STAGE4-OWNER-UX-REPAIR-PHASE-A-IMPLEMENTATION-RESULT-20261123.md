@@ -7,13 +7,97 @@
 | Role | Sole implementer (Claude Opus 5.5). **No self-review**: the independent reviewer is a different agent and thread |
 | Branch | `feat/multi-stage4-owner-ux-20261123-v1` |
 | Base | `e7c1a57da519ed1ee03ccfbad240196a66df0905` (reviewed Stage 4 UI catch-up candidate; not moved) |
-| Source/test HEAD | `9fed4eb91ed51522e3be2188c9f1539d06106d4d` |
-| Final HEAD | the commit that adds this file, directly on top of `9fed4eb9` (evidence + driver + this handoff; no source change) |
+| Source/test HEAD (Phase A) | `9fed4eb91ed51522e3be2188c9f1539d06106d4d` |
+| Phase A handoff HEAD | `9dd6f601100d55bfca12c1584afb6fc081ba5b7e` (kept in history; not amended) |
+| **Repair R1 source HEAD** | **`1a22d01c`** (`fix(multi-owner-ux): UX-08 crown selection outranks ground inspection`), on top of `9dd6f601` |
+| **Final HEAD** | the commit that adds this R1 update (driver, results, screenshots, handoff), directly on top of `1a22d01c` |
 | Worktree | `C:\Users\hp\.t3\worktrees\CCF-HP\t3-8fc40b07-b22b8bb5869955c0` (Windows checkout of a worktree whose git dir is `/home/jer/Development/CCF-HP/.git/worktrees/t3-8fc40b07-b22b8bb5869955c0`; WSL path `/mnt/c/Users/hp/.t3/worktrees/CCF-HP/t3-8fc40b07-b22b8bb5869955c0`) |
 | Phase B (UX-10) | **Not started.** It was not needed to satisfy Phase A |
 | Integration | None. No merge, no rebase, no force push, `main` untouched |
 
 Unity, Windows builds, save/load and `main` integration were **not** run and are **not** claimed. Everything here is about the standalone browser `/multi` page in `Tools/MultiRackSitkaP1Lab`.
+
+## R1. Bounded repair after the owner's decisions (2026-11-23)
+
+Same writer (Claude Opus 5.5), same branch, new commits only on top of `9dd6f601`; no amend, rebase or force push; the reviewed base `e7c1a57d` did not move. Worktree for R1: `C:\Users\hp\.t3\worktrees\CCF-HP\t3-51cf0f49-fc6c0cea68fda749` (git dir `/home/jer/Development/CCF-HP/.git/worktrees/t3-51cf0f49-fc6c0cea68fda749`).
+
+### R1.1 Owner decision on UX-08 (precedence): the literal spec order, code changed
+
+> modal dialog **>** rank toggle button **>** tree crown selection **>** ground inspection (only when ground mode is active)
+
+The Phase A interpretation D-1 (ground first while Inspect ground is on) was **rejected by the owner** and is removed. What `onMapClick` in `src/Ui/PlayerMultiApi.cs` now does (commit `1a22d01c`):
+
+```js
+async function onMapClick(event) {
+  if (state.batch) { waitForBatch(); return; }
+  if (!state.view || refusedByLock('Map selection') || state.busy) return;
+  ...
+  const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: point.x, v: point.y });
+  ...
+  if (candidates.length === 0) {
+    state.overlap = null;
+    applyPayload(outcome.payload, false);
+    // Re-checked after the await: Escape or Stop may have ended Inspect ground while the hit-test was in flight.
+    if (state.lightOn && state.groundMode) { inspectPoint(area.areaId, point.x, point.y); return; }
+    announce('No crown at this point — the selection is unchanged.');
+    return;
+  }
+  if (state.lightOn && state.groundMode) state.ground = null; // a crown hit is a selection, not a ground read
+  ... chooseTree(area.areaId, candidates[0].treeId, false);   // unchanged normal selection
+```
+
+- An open `<dialog>` is modal, so it takes every click; rank buttons are on a sibling HTML layer and never reach the map handler (unchanged).
+- Every other map click, with Inspect ground on or off, goes to the **existing** read-only `api/multi/hit` path behind the existing `state.batch` / `refusedByLock` / `state.busy` guards (no new endpoint, no new hit-test, no double send). A crown there is selected exactly as a normal selection.
+- Only when Inspect ground is on **and** the hit-test reports no crown is the local ground cell read: no further request, no selection change, no draft change (Phase A's ground-read semantics are unchanged).
+- A refused, guarded, locked or failed hit-test shows its usual message and **never** falls through to a ground read.
+- Truthful affordance: the status line reads "Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops"; the panel hint reads "Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. Clicking a crown still selects that tree."; the announcements say the same; the crosshair cursor is shown only over open ground and crowns keep the pointer. The button keeps its `aria-pressed` and "Inspect ground: On/Off" text and stays keyboard reachable.
+- Not changed: crown geometry, cell values, ranking, the Light Guide mapping, the hit-test tolerance, routes, payloads, any C#.
+
+### R1.2 Owner decision on F-2: Approve lock accepted, no code change
+
+The owner **accepted** that Approve, Execute and the Execute confirmation are all disabled/withdrawn while the read-out is unavailable (Phase A D-2). Behaviour is unchanged and re-verified (smoke F2a–F2h and the browser F-2 checks below).
+
+### R1.3 UX RISK (accepted by the owner)
+
+**Crown-wins precedence leaves ground inspection limited to open ground.** Area A is ~96% canopy cover (the area card: 96%, open 33 m² of 900 m², ≈ 3.7% open area; the owner's figure ~4%). Measured in this run with the server's own hit-test at every light-cell centre (read-only): **Area A 2 of 144 cell centres (1.4%)** have no crown; Area B 22 of 239 (9.2%). In practice, in Area A almost every ground click selects a tree instead, and a ground value under a crown cannot be read by clicking. Two further consequences a reviewer should know: (a) a click a pixel inside a crown edge selects that tree (observed: a point 0.02 m outside MA-B-006's crown radius rounded onto it and selected MA-B-006); (b) because a crown click in ground mode is a normal selection, choosing a different tree clears the previous reference's unsent draft, as it always does outside ground mode (observed and announced: "Cleared 2 unsent draft choices…"). The rule was implemented as directed; I did not substitute another rule. If the owner later wants ground values under crowns, that needs a separate decision (not proposed here).
+
+### R1.4 Re-run evidence (observed by me in the R1 worktree; nothing reused from the Phase A browser run)
+
+| Check | Result |
+|---|---|
+| `dotnet build MultiRackSitkaP1Lab.sln` (8.0.134, `/home/jer/.dotnet/dotnet`) | **0 warnings, 0 errors** |
+| `dotnet build src/Ui/SitkaP1.Ui.csproj` | **0 warnings, 0 errors** |
+| Core suite | **184/184**, 0 failed (anchor / P0 trust / source-identity checks all PASS) |
+| `.p0ref/SitkaLab.Core.dll` (copied read-only from the reviewed candidate lane, never rebuilt) | `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`, `sha256sum -c` OK |
+| `ui-smoke-multiarea.sh` | **118 pass / 6 fail**: J04, J05, J09, J10, J11, J99, identical to the baseline; F2a–F2h all PASS. **All 6 pre-existing**: J99 is the same witness crash `byId('reason-choice').value = 'other'` (TypeError on null), the others the same #885-era selectors |
+| `ui-smoke.sh` | **250 pass / 4 fail**: L01, L02, L06, J31, identical to the baseline. **All 4 pre-existing** (J31 = the same `getBoundingClientRect is not a function` witness crash) |
+| Real headless Edge, 1280×720, fresh server | **70/70 PASS** (+ 2 INFO lines) |
+| Real headless Edge, 1920×1080, fresh server | **70/70 PASS** (+ 2 INFO lines) |
+| CSP violations / exceptions / console errors / HTTP 5xx | 0 / 0 / 0 / 0 at both viewports |
+| No sideways scroll | 1280 = 1280, 1920 = 1920 (start and end) |
+| Protected listeners 127.0.0.1:33767, :43649, :46593 | alive before, during and after; never bound (each lane server took an OS-assigned port) |
+
+Ground-mode precedence checks, both viewports (same numbers at both):
+
+| Check | Observed |
+|---|---|
+| Inspect ground ON, click a crown | MA-B-044 (the hit-test's topmost there) **selected**; ground panel "Area B · choose a spot", no ground mark, Technical details hidden, mode still On; server view unchanged |
+| Inspect ground ON, click open ground (hit-test: no crown; u 3.6, v 46.4, 1.84 m from the nearest crown edge) | ground inspector "Area B · ground at X 38.8, Z 8.8", mark drawn; reference stays MA-B-001, Add label stays "Add selected 1 to Fell plan", rows and rank states identical, server view identical |
+| Inspect ground ON, rank button | only MA-B-010 changed (`changed: ["MA-B-010"]`); reference and ground reading unchanged |
+| Inspect ground ON, modal open (Year+1 consent), click the map | dialog stays open, no request sent (`posts: []`), ground reading and selection unchanged; Escape then closes only the dialog and Inspect ground stays On |
+| Escape order | first Escape stops Inspect ground (Light Guide stays On, 239 cells, inspection of MA-B-044 stays open); after leaving, a crown click selects MA-B-002; the next Escape closes the inspection |
+| Hint / cursor | status and panel text as in R1.1; `#map` cursor `crosshair`, crown cursor `pointer`; no "paused" wording |
+| Outside the area | "no sample", nothing estimated (unchanged) |
+
+UX-06 light ramp spot checks, both viewports, unchanged from Phase A: L = 0 / 0.01 / 0.05 / 0.5 / 1 → opacity **0 / 0.0451 / 0.1284 / 0.5736 / 0.9**, colours `#7f3b4a` / `#88414e` / `#994d54` / `#e49383` / `#ffd9bd`; pixels over the floor colour: summed RGB change **0 / 8 / 26 / 227 / 496**. Every cell with L > 0 is drawn with opacity > 0; monotonic over the real cells.
+
+**Driver changes** (`browser-driver-owner-ux/scenario-owner-ux.mjs`, section G rewritten for crown-wins; 70 checks per viewport, was 63; INFO lines are not counted). Honest run history: the first 1280×720 attempt had 4 FAIL + abort because the driver picked an "open" cell centre 0.02 m outside a crown edge and the integer-pixel click landed on the crown (the page correctly selected it); the driver now picks the hit-test-empty cell centre with the most clearance. A 1920×1080 attempt then had 1 FAIL because the "click a crown after leaving ground mode" step clicked a crown centre covered by something other than that crown; the step now picks a crown point that is on `#crowns`, not under a rank button, with a known hit-test topmost. Both viewports were then re-run on fresh servers: 70/70 each. Those are the committed results.
+
+**Screenshots changed by R1:** `07-ground-inspection-1280x720.png` and `07-ground-inspection-1920x1080.png` (new hint text; the read is now of open ground) replaced; `10-ground-mode-crown-selects-1280x720.png` added. Set: 12 PNGs, **4,827,430 B**, largest 762,902 B (AC-9: ≤ 0.9 MB each, ≤ 5 MB set). The other 1280×720 shots were retaken and are unchanged in visible behaviour, so the Phase A files stay (02 differs by 90 bytes, same state). All 20 R1 PNGs, both raw run logs, the Core and smoke logs are off-repo at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-repair-20261123/` (`SHA256SUMS`, capability-redacted). No capability URL in any committed file (checked: zero `/s/<64 hex>/` matches).
+
+**R1 environment notes.** Fresh T3 worktree; `git checkout --ignore-other-worktrees -B feat/multi-stage4-owner-ux-20261123-v1 9dd6f601` because the branch was still checked out (clean, idle) in the Phase A worktree `t3-8fc40b07`, which I did not touch; that worktree's checkout is now behind its branch ref and will show R1 as reverse changes if used. As in Phase A (L-4), Windows Git has `core.autocrlf=true`; I re-materialised `Tools/MultiRackSitkaP1Lab`, `900-ui-catchup` and the 3,350 CRLF text files under `Assets/ForestPrototype` with `core.autocrlf=false` (byte-identical to the commit; `git status` clean before editing). The Core tests' own `git` calls need `GIT_DIR`/`GIT_WORK_TREE` set in WSL. `TMPDIR` was `/tmp/opus-ownerux-repair/tmp`.
+
+**Not verified in R1:** owner playtest; independent review; Unity, Windows builds, save/load; `p0-isolation.sh`, `build-output-safety.sh`, `cli-safety.sh`; screen-reader output (announcement text was read from the DOM, not heard); any `main` integration.
 
 ## 1. Commits
 
@@ -22,7 +106,9 @@ Unity, Windows builds, save/load and `main` integration were **not** run and are
 | `267be9ff` | `feat(multi-owner-ux)`: UX-01..UX-09 and F-2 in `MultiAreaPage` (`PlayerMultiApi.cs`) |
 | `0e17f641` | `test(ui-smoke-multiarea)`: F-2 unpaired read-out checks F2a..F2h in the existing page witness |
 | `9fed4eb9` | `fix(multi-owner-ux)`: keep "Add selected N to Fell plan" on one line (found by the browser fold re-check) |
-| *(this commit)* | Browser driver for this task, results, screenshots, this handoff |
+| `9dd6f601` | Browser driver for this task, results, screenshots, this handoff |
+| `1a22d01c` | R1 `fix(multi-owner-ux)`: UX-08 crown selection outranks ground inspection (owner decision) |
+| *(R1 docs commit)* | R1 driver section G, re-run results, changed screenshots, this update |
 
 ## 2. Changed files and why
 
@@ -31,9 +117,9 @@ Unity, Windows builds, save/load and `main` integration were **not** run and are
 | `Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` | The whole change, inside the `MultiAreaPage` raw strings (HTML, CSS, JS). No route, payload, fence or C# logic changed (the C# above `MultiAreaPage` is byte-identical) |
 | `Tools/MultiRackSitkaP1Lab/tests/ui-smoke-multiarea.sh` | Adds an `unpaired` fault mode (the server's real answer with `stage4` set to null) and eight F-2 checks. Existing checks untouched |
 | `Docs/Handoffs/.../900-ui-catchup/browser-driver-owner-ux/cdp-ux.mjs` | New. The committed `../browser-driver/cdp.mjs` pattern plus real key events, clipped screenshots and a tiny PNG decoder for pixel checks. The old driver is not modified |
-| `Docs/Handoffs/.../900-ui-catchup/browser-driver-owner-ux/scenario-owner-ux.mjs` | New. 63 real-browser checks per viewport |
+| `Docs/Handoffs/.../900-ui-catchup/browser-driver-owner-ux/scenario-owner-ux.mjs` | New. 63 real-browser checks per viewport at Phase A; 70 after the R1 section G rewrite |
 | `Docs/Handoffs/.../900-ui-catchup/browser-driver-owner-ux/browser-results-{1280x720,1920x1080}.json`, `browser-run-*.txt` | Raw results of the final runs (capability redacted, checked: zero 64-hex tokens) |
-| `Docs/Handoffs/.../900-ui-catchup/evidence-owner-ux/*.png` | 11 screenshots (§7) |
+| `Docs/Handoffs/.../900-ui-catchup/evidence-owner-ux/*.png` | 12 screenshots after R1 (§7; 11 at Phase A) |
 | this file | Handoff |
 
 Not touched (verified with `git diff e7c1a57d HEAD`, empty): `src/Ui/PlayerApi.cs`, `src/Ui/Program.cs`, `src/Core/**`, `fixtures/**`, the `.sln`, `.p0ref`, Unity `Assets/**`, packages, saves, the approved quartet, every historical handoff and the previous `browser-driver/`.
@@ -49,9 +135,9 @@ Not touched (verified with `git diff e7c1a57d HEAD`, empty): `src/Ui/PlayerApi.c
 | **UX-05** | DONE | Dock 158 px wide (was 212). Compass 3×3 (N top-centre, W/E middle, S bottom-centre, empty centre), then one `− · Fit · +` row, then `Area A · Area B` on one row. 44 px targets kept; north-up, pan/zoom limits, Fit and area-switch handlers unchanged |
 | **UX-06** | DONE | Light cells moved **under the crowns** (`#light-cells` now precedes `#crowns`, clipped to the area, no pointer events, no text). Per cell: `t = L^0.65`, opacity `= 0.9·t` (floor `0.0001` for any `L > 0`, written with 4 decimals, so it can never print as 0), colour linear through `#7F3B4A → #DA796D → #FFD9BD` by `t`. `L = 0`: no element. Old numbered band markers, `lc-1..5` fills and their halos (F-3) are gone. OFF by default |
 | **UX-07** | DONE | Ground panel: level word (Very shaded / Low / Moderate / Bright; `L = 0` adds "no modelled light"), "Light index 0.037 on a 0–1 scale (modelled; 1 = unshaded)", "Canopy cover 96% of this cell under living crowns" (the engine's separate `geometricCoveredFraction`), "Shading trees 8". Closed disclosures: **Contributing trees (n)** with the IDs; **Technical details** with the index (4 dp), the cover fraction, column/row, grid size and clipped m², centre X/Z, cross-border trees, light model label + version, "Calibrated PAR no", the guide label and the not-calibrated caveat |
-| **UX-08** | DONE, *with an interpretation to review* (§6 D-1) | With the Light Guide on and Inspect ground off, a crown click selects the tree exactly as before (server hit-test). **Inspect ground** is an explicit `aria-pressed` toggle shown only with the Light Guide on; while on, a map click finds the engine cell containing the point and shows it (crosshair cursor, status line, outline on the chosen cell). Rank buttons and dialogs still take precedence. A point with no cell says "No modelled ground sample… No value is shown or estimated". Leaving (button, **× Stop**, Escape) restores tree selection and leaves the Light Guide as it was |
+| **UX-08** | DONE, **owner-decided precedence (R1, `1a22d01c`)** | Precedence is the literal spec order: modal dialog > rank toggle button > tree crown selection > ground inspection (only while Inspect ground is on). With the Light Guide on or off and Inspect ground on or off, a map click goes to the server hit-test and a crown there is selected exactly as before. **Inspect ground** is an explicit `aria-pressed` toggle shown only with the Light Guide on; while on, a click where the hit-test reports **no crown** finds the engine cell containing the point and shows it (status line, outline on the chosen cell; crosshair over open ground, pointer over crowns). A refused/locked/failed hit-test never falls through to a ground read. A point with no cell says "No modelled ground sample… No value is shown or estimated". Leaving (button, **× Stop**, Escape) stops ground reads and leaves the Light Guide as it was. UX risk accepted by the owner: ground reads are limited to open ground (R1.3) |
 | **UX-09** | DONE | The map legend strip says "Light Guide · Shaded [ramp] Bright · Inspect ground reads the value at a spot." The ramp is an SVG gradient sampled from the same mapping. No band labels, no "modelled light – not measured sunlight", no calibration text on the map. Source/version/uncertainty remain in the ground panel's Technical details and the Details pane (unchanged). The level is always given as text + number in the inspector |
-| **F-2** | DONE | `readoutState()` = `stage4` / `legacy` / `unavailable` (`stage4: null`). Unavailable shows neither the model 0 statements (edge exclusion, "Light … NOT MODELLED") nor the Stage 4 ones; notice, Details pane, history line and rack cards say the read-out is unavailable. **Approve and Execute are disabled** (Execute label "… · re-read needed"), the Work Plan pane shows a notice with a Re-read button, `openExecuteDialog` refuses with a Re-read alert, and an Execute confirmation open when an unpaired view arrives is withdrawn unsent (`samePrunes` now returns false without a read-out). Server-side stale-fence 409 untouched and re-verified |
+| **F-2** | DONE; **Approve lock accepted by the owner (R1.2, no code change)** | `readoutState()` = `stage4` / `legacy` / `unavailable` (`stage4: null`). Unavailable shows neither the model 0 statements (edge exclusion, "Light … NOT MODELLED") nor the Stage 4 ones; notice, Details pane, history line and rack cards say the read-out is unavailable. **Approve and Execute are disabled** (Execute label "… · re-read needed"), the Work Plan pane shows a notice with a Re-read button, `openExecuteDialog` refuses with a Re-read alert, and an Execute confirmation open when an unpaired view arrives is withdrawn unsent (`samePrunes` now returns false without a read-out). Server-side stale-fence 409 untouched and re-verified |
 
 ## 4. Verification commands (run by me in this lane)
 
@@ -93,15 +179,15 @@ node .../scenario-owner-ux.mjs <outDir> //wsl.localhost/Ubuntu/<file holding the
 | P0 pin `.p0ref/SitkaLab.Core.dll` (before and after) | `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3` | identical |
 | `ui-smoke-multiarea.sh` | 110 pass / 6 fail: J04, J05, J09, J10, J11, J99 | **118 pass / 6 fail**: the same J04, J05, J09, J10, J11, J99, plus **8 new F2a–F2h, all PASS** |
 | `ui-smoke.sh` (single area) | 250 pass / 4 fail: L01, L02, L06, J31 | **250 pass / 4 fail**: the same L01, L02, L06, J31 |
-| Real Edge, 1280×720 | n/a | **63/63 PASS** |
-| Real Edge, 1920×1080 | n/a | **63/63 PASS** |
+| Real Edge, 1280×720 | n/a | 63/63 PASS at `9fed4eb9` (superseded: **70/70** at R1 `1a22d01c`, R1.4) |
+| Real Edge, 1920×1080 | n/a | 63/63 PASS at `9fed4eb9` (superseded: **70/70** at R1 `1a22d01c`, R1.4) |
 | Horizontal overflow (extra probe) | n/a | none at 1280×720, 1920×1080, 1024×768, 390×844 |
 | CSP violations / console errors / exceptions / HTTP 5xx | n/a | 0 / 0 / 0 / 0 (both viewports) |
 | Protected listeners 127.0.0.1:33767, :43649, :46593 | alive | alive, never bound |
 
 **Smoke failure classification: all pre-existing, none caused by this change.** Multi-area: the page witness still reads #885-era elements that the page no longer has (`[data-competitor]`, `.competitor-rank`, `#reason-choice`); J04/J05/J09/J10/J11 fail on those selectors and J99 records the same crash, `byId('reason-choice').value = 'other'` (base: witness line 357; final: line 416, shifted only by the inserted F-2 block). Single area: files read by `ui-smoke.sh` are unchanged by this branch. The pass count rose 110 → 118 only because of the eight added F-2 checks; I numbered them F2a..F2h so the J numbering (and so the baseline failure IDs) did not move.
 
-**Real-browser checks (each viewport, fresh session).** Light Guide OFF by default; one-line notice ≤ 40 px and Details with every caveat verbatim; compass 3×3, `− Fit +` row, `Area A | B` row, dock ≤ 170 px with 44 px targets; zoom/pan N/W/E/S/Fit/area switch; UX-01 fold with 0 and with 5 chosen; five rank buttons carrying the engine's top-five IDs in order; ranks 1→5 each toggling exactly its ID and the matching checkbox, re-click clears, inspector→map sync, Tab focus with a visible 3 px outline, Space toggles with focus kept, announced count, **server view unchanged by toggles** (only `hit`/`competition` reads sent); Add queued exactly the chosen IDs; Escape closes the Year+1 dialog only, the next Escape closes inspection and restores normal rendering with zoom/pan/area/Crop/orders/year kept; × Close does the same and the cleared draft does not return; light cells = exactly the cells with `L > 0`, all with opacity > 0, under the crowns, no text, monotonic over real cells; ramp values at L = 0 / 0.01 / 0.05 / 0.5 / 1 = opacity 0 / 0.0451 / 0.1284 / 0.5736 / 0.9 with `#ffd9bd` at 1; **pixels** over the floor colour: summed RGB change 0 / 8 / 26 / 227 / 496; crown click selects with the Light Guide on; rank toggles with it on; Inspect ground On state; a ground click on a crown reads that cell and does **not** select the tree; summary values equal the engine cell (index 3 dp, cover %, count); IDs and provenance behind closed disclosures; rank click in ground mode toggles and does not read ground; outside point says "no sample"; Escape stops ground mode first with the Light Guide still on; tree selection returns; no server side effect from Light/ground/inspection; Approve fells nothing; F-2 unavailable state (no legacy claims, Approve/Execute withdrawn), paired re-read restores Execute, an open confirmation is withdrawn unsent; real Execute fells exactly the confirmed trees; Year+1 advances. Full lines in `browser-driver-owner-ux/browser-run-*.txt`.
+**Real-browser checks (each viewport, fresh session; Phase A run at `9fed4eb9`; the ground-mode part is superseded by R1.4).** Light Guide OFF by default; one-line notice ≤ 40 px and Details with every caveat verbatim; compass 3×3, `− Fit +` row, `Area A | B` row, dock ≤ 170 px with 44 px targets; zoom/pan N/W/E/S/Fit/area switch; UX-01 fold with 0 and with 5 chosen; five rank buttons carrying the engine's top-five IDs in order; ranks 1→5 each toggling exactly its ID and the matching checkbox, re-click clears, inspector→map sync, Tab focus with a visible 3 px outline, Space toggles with focus kept, announced count, **server view unchanged by toggles** (only `hit`/`competition` reads sent); Add queued exactly the chosen IDs; Escape closes the Year+1 dialog only, the next Escape closes inspection and restores normal rendering with zoom/pan/area/Crop/orders/year kept; × Close does the same and the cleared draft does not return; light cells = exactly the cells with `L > 0`, all with opacity > 0, under the crowns, no text, monotonic over real cells; ramp values at L = 0 / 0.01 / 0.05 / 0.5 / 1 = opacity 0 / 0.0451 / 0.1284 / 0.5736 / 0.9 with `#ffd9bd` at 1; **pixels** over the floor colour: summed RGB change 0 / 8 / 26 / 227 / 496; crown click selects with the Light Guide on; rank toggles with it on; Inspect ground On state; (R1: a click on a crown in ground mode now **selects** the tree and a click on open ground reads the cell, see R1.4); summary values equal the engine cell (index 3 dp, cover %, count); IDs and provenance behind closed disclosures; rank click in ground mode toggles and does not read ground; outside point says "no sample"; Escape stops ground mode first with the Light Guide still on; tree selection returns; no server side effect from Light/ground/inspection; Approve fells nothing; F-2 unavailable state (no legacy claims, Approve/Execute withdrawn), paired re-read restores Execute, an open confirmation is withdrawn unsent; real Execute fells exactly the confirmed trees; Year+1 advances. Full lines in `browser-driver-owner-ux/browser-run-*.txt`.
 
 How the F-2 state was produced: the real server only sends `stage4: null` when another request moves the session between a command and its read-out (a race). Both tests therefore inject it: the smoke witness nulls `stage4` in the real server answer; the browser scenario wraps `window.fetch` to do the same for one `api/multi/view` answer. The 409 check uses a real stale fence against the real server.
 
@@ -109,15 +195,15 @@ How the F-2 state was produced: the real server only sends `stage4: null` when a
 
 ## 6. Deviations, interpretations and limitations a reviewer should attack
 
-- **D-1, UX-08 click precedence (interpretation).** The spec lists "modal > rank toggle > tree crown selection > ground inspection (only if ground mode is active)" and also "returning from ground inspection restores normal tree interaction". Area A is ~96% crown cover, so if crowns always won, ground mode would almost never reach the ground. I implemented: modal > rank button > (Inspect ground **on**: ground) / (Inspect ground **off**, Light Guide on or off: crown selection; ground is never inspected). Crown selection is therefore paused only while the user has explicitly switched Inspect ground on, and this is stated on screen. If the owner wants crowns to win even inside ground mode, it is a one-line change in `onMapClick`.
-- **D-2, F-2 also withdraws Approve.** The spec names Execute. Without a read-out the pending Prune orders are unknown, so approving would approve orders the user cannot see; I disabled Approve too. An Execute confirmation open when an unpaired view arrives triggers the existing withdraw-and-lock path, so the whole page waits for a re-read.
+- **D-1, UX-08 click precedence. SUPERSEDED by the owner's decision (R1.1).** Phase A read the ground first while Inspect ground was on; the owner rejected that and confirmed the literal spec order (crowns win; ground only where the hit-test finds no crown). Implemented in `1a22d01c`; the accepted UX risk is R1.3.
+- **D-2, F-2 also withdraws Approve. ACCEPTED by the owner (R1.2).** The spec names Execute. Without a read-out the pending Prune orders are unknown, so approving would approve orders the user cannot see; I disabled Approve too. An Execute confirmation open when an unpaired view arrives triggers the existing withdraw-and-lock path, so the whole page waits for a re-read.
 - **D-3, inspector wording/layout.** Heading "Choose competitors for Fell" became "Competitors for Fell · N within 8 m"; the strength word moved under the Hegyi CI value (column header "Hegyi CI"); "Clear selection" became "Clear" with `aria-label` "Clear the Fell draft selection"; on short desktops (≤ 820 px high) the visible "n selected · draft only" line and the area tag next to "Reference tree" are hidden (the map subtitle and the pressed Area button name the area; the count is in the Add button and announced); a long status chip shortens with an ellipsis (full text in its tooltip and the Tree record); Age is in the Tree record only. All other information is still present below the fold.
 - **D-4, map foot.** The foot no longer repeats "site UNKNOWN · growth and crowns use both areas; Work Plans and summaries per area" or the model 0 edge sentence; the full statements stay in the notice Details and the Details pane (AC07). The rack cards' "Model 1/1/1 · Synthetic stand · Light: not PAR" badges are **unchanged** (not in the UX list); the owner may consider them repeated warnings, which would be a follow-up.
 - **D-5, Escape and search boxes.** A search box with text keeps the browser's own Escape (clear the field) and the inspection stays open in that key press. Not stated in the spec; chosen to avoid destroying typed text.
 - **D-6, light mapping constants** (`LIGHT_EASE 0.65`, `LIGHT_ALPHA_MAX 0.9`, floor `0.0001`, level-word thresholds 0.1 / 0.35 / 0.65) are visual parameters, not ecology. The suggested `min(0.65, 0.65·L^1.2)` would give opacity ≈ 0.0026 at L = 0.01, which rounds to **no pixel change**; the ease 0.65 gives an 8-level summed change at 0.01 (measured). Below about L = 0.0007 the change rounds to zero pixels on an 8-bit screen although the written opacity stays positive ("potentially imperceptibly subtle", per spec §1). Cells are crisp 2.5 m squares (`shape-rendering: crispEdges`, no blur), so the layer looks blocky up close; blurring would spill light into L = 0 cells, which the spec forbids.
 - **D-7, ground lookup.** The page matches a clicked point to the read-out's own clipped cell polygon (point-in-polygon), the same kind of screen→map conversion the page already does for hit-testing. It never interpolates or estimates a value.
 - **D-8, rank buttons are positioned with CSSOM** (`element.style.left/top`), which the page CSP (`style-src 'self'`) allows; zero CSP reports in both runs. Positions are recomputed on every map render (zoom, pan, resize).
-- **L-1, AC-9 screenshots.** All nine 1280×720 states are committed plus two 1920×1080 states (Light Guide Area B, ground inspection): 11 PNGs, 4,517,240 B, largest 762,902 B, within ≤ 0.9 MB/image and ≤ 5 MB/set. The other seven 1920×1080 PNGs (one is 1,184,051 B, over the per-image cap) are kept outside the repo with the raw logs at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-20261123/` (`SHA256SUMS` there).
+- **L-1, AC-9 screenshots (Phase A; R1 set: 12 PNGs, 4,827,430 B, see R1.4).** All nine 1280×720 states are committed plus two 1920×1080 states (Light Guide Area B, ground inspection): 11 PNGs, 4,517,240 B, largest 762,902 B, within ≤ 0.9 MB/image and ≤ 5 MB/set. The other seven 1920×1080 PNGs (one is 1,184,051 B, over the per-image cap) are kept outside the repo with the raw logs at `/home/jer/.local/share/ccf-evidence/multi-stage4-owner-ux-20261123/` (`SHA256SUMS` there).
 - **L-2, data reality.** At year 0 no cell has L exactly 0 (Area A: 144 cells, L 0.00067–0.22, median 0.0053; Area B: 239 cells, 0.0101–0.819, median 0.109). The L = 0 rule is verified through the ramp/pixel test and the "only L > 0 cells are drawn" check, not on a real zero cell.
 - **L-3, the old witness drift is not fixed** (out of scope; pre-existing #885 selectors).
 - **L-4, environment.** This worktree is a Windows checkout (system Git has `core.autocrlf=true`, no `.gitattributes`). Before any edit I re-materialised the tracked files with `core.autocrlf=false` (LF, byte-identical to the commit; otherwise the Core source-identity test failed on CRLF and the `.sh` smokes could not run), and used `core.filemode=false` per command. `.p0ref` was copied read-only, then made user-writable on `/mnt/c` because the read-only bit blocked MSBuild's copy; content and hash unchanged. Builds ran from WSL on `/mnt/c`.
@@ -135,8 +221,9 @@ How the F-2 state was produced: the real server only sends `stage4: null` when a
 | `05-light-guide-area-a-1280x720.png` | Light Guide on, Area A (almost all very low light) | 328,254 | `8bc04947…` |
 | `06-light-guide-area-b-1280x720.png` | Light Guide on, Area B (brighter real openings) | 313,703 | `87ac7abf…` |
 | `06-light-guide-area-b-1920x1080.png` | Same at 1920×1080 | 762,902 | `75086cd3…` |
-| `07-ground-inspection-1280x720.png` | Inspect ground on: concise summary, contributing trees expanded | 305,578 | `d48071be…` |
-| `07-ground-inspection-1920x1080.png` | Same at 1920×1080 | 748,388 | `c2213e6b…` |
+| `07-ground-inspection-1280x720.png` | **R1:** Inspect ground on, open-ground read: concise summary, contributing trees expanded, truthful hint | 302,657 | `135f6e6e…` |
+| `07-ground-inspection-1920x1080.png` | **R1:** same at 1920×1080 | 746,031 | `686a6ad6…` |
+| `10-ground-mode-crown-selects-1280x720.png` | **R1, new:** Inspect ground on, a crown click selected MA-B-044; panel "choose a spot", no ground read | 315,468 | `2d15032f…` |
 | `08-notice-details-1280x720.png` | Notice Details open with every caveat | 219,667 | `2696243c…` |
 | `09-f2-readout-unavailable-1280x720.png` | F-2: unavailable read-out, Approve/Execute withdrawn | 370,664 | `cde1086f…` |
 
@@ -149,5 +236,5 @@ No capability URL is in any committed file. A fresh capability URL for the owner
 3. Click map numbers 1, 3, 5: each turns orange with a tick, the matching rows tick, the button says "Add selected 3 to Fell plan". Click 3 again: it clears. Untick row 1: map 1 clears.
 4. Press Escape (or **× Close inspection**): the map returns to normal; zoom and area stay.
 5. **Light Guide: On**: soft rose-to-peach light appears on the floor under the crowns (Area A is almost all dark; Area B's open edges are pale peach). Clicking a crown still selects it.
-6. **Inspect ground: On**, click a spot: a short summary (level, light index, canopy cover, shading trees). Escape stops ground mode; the Light Guide stays on.
+6. **Inspect ground: On**. Click a crown: it is selected as usual (no ground read). Click open ground with no crown over it (easiest in Area B; Area A is almost all crown): a short summary (level, light index, canopy cover, shading trees); the selection and draft are unchanged. Escape stops ground mode; the Light Guide stays on.
 7. Queue → Approve → Execute work as before.

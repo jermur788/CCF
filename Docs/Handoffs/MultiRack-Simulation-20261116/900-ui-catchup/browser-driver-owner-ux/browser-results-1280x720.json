@@ -44,14 +44,23 @@
   "PASS [1280x720] Area B shows its brighter real openings (no light invented in Area A) :: {\"drawn\":239,\"maxOp\":0.7905}",
   "PASS [1280x720] UX-08: with the Light Guide on, clicking a crown selects that tree (no ground panel) :: MA-B-001",
   "PASS [1280x720] UX-08: rank toggles work with the Light Guide on",
-  "PASS [1280x720] UX-08: Inspect ground has an obvious On state (pressed button, panel, crosshair, status line) :: {\"pressed\":\"true\",\"panel\":true,\"cls\":true,\"status\":\"Inspect ground is on: click any spot to read its light · tree selection paused · Esc stops\"}",
-  "PASS [1280x720] UX-08: in Inspect ground a click on a crown reads the ground cell there and does NOT select that tree :: {\"insp\":\"MA-B-001\",\"other\":\"MA-B-044\",\"heading\":\"Area B · ground at X 63.8, Z 18.8\"}",
-  "PASS [1280x720] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: Very shadedLight index0.037 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover96% of this cell under living crownsShading trees8Light and canopy cover are separate engine quantities.",
-  "PASS [1280x720] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {\"treesSummary\":\"Contributing trees (8)\"}",
-  "PASS [1280x720] UX-08: a rank click in ground mode toggles the draft and does not read the ground",
+  "PASS [1280x720] UX-08: Inspect ground has an obvious On state (pressed button \"Inspect ground: On\", panel, status line) :: {\"pressed\":\"true\",\"text\":\"Inspect ground: On\",\"panel\":true,\"cls\":true,\"status\":\"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops\",\"mapCursor\":\"crosshair\",\"crownCursor\":\"pointer\",\"hint\":\"Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. Clicking a crown still selects that tree.\"}",
+  "PASS [1280x720] UX-08: the hint and cursor are truthful: crosshair over open ground, pointer over crowns, text says crowns still select :: {\"pressed\":\"true\",\"text\":\"Inspect ground: On\",\"panel\":true,\"cls\":true,\"status\":\"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops\",\"mapCursor\":\"crosshair\",\"crownCursor\":\"pointer\",\"hint\":\"Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. Clicking a crown still selects that tree.\"}",
+  "INFO [1280x720] Area A open ground for the hit-test: 2 of 144 cell centres (1.4%) have no crown",
+  "INFO [1280x720] Area B open ground for the hit-test: 22 of 239 cell centres (9.2%) have no crown",
+  "PASS [1280x720] an on-screen open-ground point exists in Area B (hit-test reports no crown there) :: {\"u\":3.6,\"v\":46.4,\"clearanceM\":1.84}",
+  "PASS [1280x720] UX-08: Inspect ground ON, a click on open ground (no crown) shows the ground inspector for that cell :: {\"heading\":\"Area B · ground at X 38.8, Z 8.8\"}",
+  "PASS [1280x720] UX-08: the open-ground read changes no selection, no draft and nothing on the server :: {\"insp\":\"MA-B-001\",\"label\":\"Add selected 1 to Fell plan\"}",
+  "PASS [1280x720] UX-07: concise summary: level word, the engine light index, the separate canopy cover and the shading-tree count (no IDs on top) :: LowLight index0.302 on a 0–1 scale (modelled; 1 = unshaded)Canopy cover5% of this cell under living crownsShading trees6Light and canopy cover are separate engine quantities.",
+  "PASS [1280x720] UX-07: contributing IDs, cell, grid, model provenance and calibration are kept behind closed disclosures :: {\"treesSummary\":\"Contributing trees (6)\"}",
+  "PASS [1280x720] UX-08: with Inspect ground ON a rank click toggles only its own tree ID (MA-B-010), keeps the reference and does not read the ground :: {\"changed\":[\"MA-B-010\"]}",
   "PASS [1280x720] UX-08: a spot with no ground sample says so; no value is synthesised :: {\"heading\":\"Area B · no sample\",\"summary\":\"No modelled ground sample at that spot (it is outside this area's light cells). No value is shown or estimated.\",\"tech\":true}",
-  "PASS [1280x720] UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open :: {\"ground\":\"false\",\"panel\":true,\"light\":\"true\",\"cells\":239,\"insp\":\"MA-B-001\",\"body\":false}",
-  "PASS [1280x720] UX-08: after leaving ground mode a crown click selects a tree again :: {\"now\":\"MA-B-044\"}",
+  "PASS [1280x720] UX-08: with a modal dialog open (ground mode ON) a map click is swallowed: no hit-test, no ground read, no selection change :: {\"open\":true,\"heading\":\"Area B · ground at X 38.8, Z 8.8\",\"insp\":\"MA-B-001\",\"posts\":[]}",
+  "PASS [1280x720] Escape closes only the dialog; Inspect ground stays on :: {\"open\":false,\"ground\":\"true\"}",
+  "PASS [1280x720] UX-08: Inspect ground ON, clicking a crown SELECTS that tree (the hit-test's topmost, MA-B-044) and shows no ground read; the mode stays on :: {\"insp\":\"MA-B-044\",\"heading\":\"Area B · choose a spot\",\"pick\":0,\"ground\":\"true\",\"techHidden\":true,\"status\":\"Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops\"}",
+  "PASS [1280x720] UX-08: the ground-mode crown selection sent nothing that changes the server view",
+  "PASS [1280x720] UX-03/UX-08 precedence: Escape first stops Inspect ground; the Light Guide stays on and the inspection stays open :: {\"ground\":\"false\",\"panel\":true,\"light\":\"true\",\"cells\":239,\"insp\":\"MA-B-044\",\"body\":false}",
+  "PASS [1280x720] UX-08: after leaving ground mode a crown click selects that tree as before (MA-B-002) :: {\"now\":\"MA-B-002\"}",
   "PASS [1280x720] Escape then closes the inspection; the Light Guide is never switched off by Escape :: {\"body\":true,\"light\":\"true\"}",
   "PASS [1280x720] AC21: Light Guide, Inspect ground and inspection changes had no server side effect :: {\"year\":0,\"rev\":5,\"work\":0,\"pending\":[\"MA-A:MA-A-015:Owner-selected felling\",\"MA-A:MA-A-016:Owner-selected felling\",\"MA-A:MA-A-030:Owner-selected felling\",\"MA-A:MA-A-017:Owner-selected felling\"],\"approved\":null,\"events\":0,\"crops\":[[\"MA-A-001\"],[]],\"living\":[171,73]}",
   "PASS [1280x720] Approve fells nothing and approves exactly the queued IDs :: {\"year\":0,\"rev\":6,\"work\":0,\"pending\":[],\"approved\":[\"MA-A-015\",\"MA-A-016\",\"MA-A-030\",\"MA-A-017\"],\"events\":0,\"crops\":[[\"MA-A-001\"],[]],\"living\":[171,73]}",
@@ -77,7 +86,7 @@
   },
   {
    "name": "02-selected-five-ranks-1280x720.png",
-   "bytes": 342735
+   "bytes": 342645
   },
   {
    "name": "03-ranks-chosen-synced-1280x720.png",
@@ -97,7 +106,11 @@
   },
   {
    "name": "07-ground-inspection-1280x720.png",
-   "bytes": 305578
+   "bytes": 302657
+  },
+  {
+   "name": "10-ground-mode-crown-selects-1280x720.png",
+   "bytes": 315468
   },
   {
    "name": "09-f2-readout-unavailable-1280x720.png",
