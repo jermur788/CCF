@@ -46,6 +46,8 @@ internal static class Stage4Tests
             T.Eq(new MultiAreaContinuation(e).ReadView().Experiment.ManifestContentHash, s4.ReadView().Experiment.ManifestContentHash,
                 "experiment manifest/content hash unchanged");
         });
+
+        Stage4BehaviourTests.Register();
     }
 
     /// <summary>The model-0 fingerprint recipe (fixed Fells in years 0 and 3, ten years) on any explicit selection.</summary>
