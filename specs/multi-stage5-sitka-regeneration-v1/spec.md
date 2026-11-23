@@ -1,6 +1,6 @@
 # MULTI Stage 5 — Natural Sitka regeneration, bramble/bracken competition, selective undergrowth clearing and light browsing
 
-**Status: APPROVED — owner approval 2026-11-23.** The owner approved this quartet, the §4 area-consistent `2.5 m` scaling policy, and the binding Q1–Q6 resolutions recorded below. Implementation is authorised only inside an admitted D-091 lane branched from `e7c1a57d` (see `plan.md` Gate 0).
+**Status: APPROVED — owner approval 2026-11-23. AMENDED — owner Option A, 2026-11-23** (§4 promotion rule, Q4 and Q5; see the amendment record below). The owner approved this quartet, the §4 area-consistent `2.5 m` scaling policy, and the binding Q1–Q6 resolutions recorded below. Implementation is authorised only inside an admitted D-091 lane branched from `e7c1a57d` (see `plan.md` Gate 0).
 
 ### Owner approval record (2026-11-23, binding — not re-litigated)
 
@@ -8,11 +8,26 @@
 - **Q1 Mast:** one annual `NextDouble()` roll on the isolated woodland-wide `STAGE5-MAST` stream, cumulative thresholds `<0.15 → 1.5`, `<0.50 → 0.4`, else `1.0`.
 - **Q2 Promotion light gate:** `promotionMinimumLight = 0` — no extra light gate.
 - **Q3 Token:** append the regeneration version to `AreaModelVersion` **only when `!= 0`**, so `0/0/0`, `0/0/1` and `1/1/1` tokens and hashes stay byte-identical.
-- **Q4 `S5-07` tolerance:** `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds, for accepted abundance and multi-year promotion ratios; report the edge-block effect honestly.
-- **Q5 Promotion cap:** aligned `5 m` block cap (max 1 promotion per block per year). Tie-breaker: oldest `EstablishYear`, then tallest height, then deterministic `(Column, Row)`.
+- **Q4 `S5-07` tolerance:** `2.5 m / 5.0 m` ratio within `[0.75, 1.33]` across ≥20 seeds, for accepted abundance and multi-year promotion ratios; report the edge-block effect honestly. *(Amended 2026-11-23 by owner Option A: split into `S5-07A` / `S5-07B`, see the amendment record and §9.)*
+- **Q5 Promotion cap:** aligned `5 m` block cap (max 1 promotion per block per year). Tie-breaker: oldest `EstablishYear`, then tallest height, then deterministic `(Column, Row)`. *(Amended 2026-11-23 by owner Option A: cohort export and an area-proportional block budget are added, see the amendment record and §4.)*
 - **Q6 Browse height:** `V(h)` uses pre-growth height.
 
 Where the earlier draft text differs from these resolutions (notably the §4 block-winner order), the resolution above governs and the text below has been aligned to it.
+
+**Correction made during the first approval, recorded explicitly (independent review finding F8).** The approval commit `85d85a8d` changed one rule line, not only status and records: the §4 "Block winner" row was corrected from the draft wording "greatest height, then oldest, then lowest `(col,row)`" (draft `6c74588e`) to "oldest `EstablishYear`, then tallest height, then lowest `(Column, Row)`", so that it matches the owner's Q5 resolution. The corrected order comes from the owner's Q5 answer. The original draft text did **not** say this; it stated the opposite priority of height and age.
+
+### Owner amendment record — Option A (2026-11-23, binding)
+
+**Why.** The first implementation pass (`feat/multi-stage5-sitka-regeneration-20261123-v1` @ `cb739cbd`) met every criterion except `S5-07`: accepted abundance was in tolerance, but the 2.5 m / 5.0 m ratio of multi-year promotions was 1.92–4.30 against `[0.75, 1.33]`. The independent review (`review/multi-stage5-sitka-regen-20261123-v1` @ `77b29925`, verdict NEEDS CHANGES) found no coding defect. The first-approval rule limited promotions per block **per year** but not per **cohort**, so the four 2.5 m cells of one block could turn one cohort into up to four trees. It also gave an edge block with fewer than four in-polygon cells the full budget of one.
+
+**Owner decision, 2026-11-23: Option A.**
+
+- **A1 Block-cohort export (Regeneration `1` only).** A promotion turns **one** band into **one** tree. The block's other represented bands of the **same cohort** are removed with it and exported into that same tree. Later cohorts may still promote in later years; that is correct behaviour, not a leak. Rule text: §4 "Cohort export".
+- **A2 Area-proportional block budget, no invented constants.** `budget_block = (in-polygon cell centres in the block) × a`, with `a = (cell/5.0)²`. A full 2.5 m block has `4 × 0.25 = 1.0`, a block with 3 of 4 cells has `0.75`, and so on. At `5.0 m` a block is one cell with `a = 1.0`, so a full block has exactly `1.0` and the `5.0 m` behaviour equals the first-approval rule (owner purity criterion: `5.0 m` keeps `a = 1.0` with no edge-gate reduction). The fractional budget is realised deterministically with no damping constant, and the hard cap of one promotion per block per year stays. Rule text: §4 "Block credit".
+- **A3 Split gate.** `S5-07` becomes `S5-07A` (**blocking**: identical shared light field, proved, not asserted) and `S5-07B` (**mandatory, non-blocking diagnostic**: each grid's own light). Rule text: §9 Q4 and `checklists/requirements.md`.
+- **Stop rule.** If A1 and A2 as specified cannot reach `S5-07A`, the implementer stops and reports the numbers. The tolerance is not widened and no damping constant is added.
+
+The A2 mechanism (block credit, §4) and the A1 cohort identity were chosen by the implementer within these owner constraints. They are written here before the amended code was implemented or measured.
 Task class: `SPEC REQUIRED` (new causal regeneration, understorey competition, browsing, promotion, one new Work Plan command).
 Lane: standalone 2D Sitka Engine, `Tools/MultiRackSitkaP1Lab` only. **Zero** Unity `Assets/`, Compact30/Legacy40/Enlarged80/Reference Future v1, `/multi` UI, or save-schema change.
 
@@ -84,7 +99,7 @@ survival = survival_light · (1 − 0.04·p) · (1 − p_veg)     (double precis
 
 ### 3.3 Promotion into `CrownModel 1`
 
-The oldest qualifying represented band (`height ≥ 3.5 m`) becomes **one** adult Sitka and the band is removed:
+The oldest qualifying represented band (`height ≥ 3.5 m`) becomes **one** adult Sitka and the band is removed (amended 2026-11-23: the block's other represented bands of the same cohort are exported into the same tree, and the block must hold promotion credit; §4):
 
 ```text
 Age    = max(1, ecologicalYear − establishYear)
@@ -107,12 +122,30 @@ Let `cell = 2.5` or `5.0` m and `a = (cell/5.0)²` (so `a = 0.25` at 2.5 m, `a =
 | Requested density per event | `requested · a` | density is extensive (per cell) |
 | Cell capacity | `RegenDensityMax · a` (1.5 → 0.375) | keeps **relative** occupancy (0–1) and abundance per hectare equal |
 | Representation threshold | `0.01 · a` | a band of the same relative size stays represented |
-| Promotion budget | **≤ 1 promotion per aligned 5.0 m block per year**, blocks = `floor(x/5), floor(z/5)` in the world frame | caps trees/ha/yr at Unity's ceiling without fractional trees |
-| Block winner | oldest `EstablishYear`, then tallest height, then lowest `(Column, Row)` (owner Q5 resolution) | deterministic; non-winners stay and can promote next year |
+| Promotion budget (**amended, Option A2**) | each aligned 5.0 m block (blocks = `floor(x/5), floor(z/5)` in the world frame) earns `budget_block = n_block · a` promotions per year, where `n_block` is the number of in-polygon cell centres of the block over all areas; **at most one promotion per block per year** (hard cap). Realised by the integer block credit below | trees/ha/yr ceiling proportional to in-polygon area; a full block, and every 5.0 m cell, keeps Unity's ceiling of exactly 1 |
+| Block winner | oldest `EstablishYear`, then tallest height, then lowest `(Column, Row)` (owner Q5 resolution) | deterministic |
+| Cohort export (**amended, Option A1**) | when a block promotes, every other cell of the block loses its represented band of the winner's cohort into the same tree; bands of other cohorts stay and can promote in later years | one tree per cohort per 5 m block, as one 5 m cell does |
 | Growth, survival, seed rain, light, undergrowth | unchanged (all intensive) | per-point or per-plant rates |
 
-Known approximation: an edge `5 m` block with fewer than four in-polygon cell centres still gets the full budget of 1. `S5-07` measures this; it is not hidden.
 Supported grids remain `{2.5, 5.0}` only (the existing `CanopyLightEvaluator` rule).
+
+**Block credit (Option A2): integer and exact.** Let `C = (5.0 / cell)²` be the number of cells in a full block (`C = 4` at 2.5 m, `C = 1` at 5.0 m), so `budget_block = n_block / C`. Each block carries an integer credit `K`, counted in cell-years, with `K = 0` at year 0. In step 10 of every year, for every block:
+
+1. `K ← K + n_block` (this year's budget accrues).
+2. If the block has at least one qualifying candidate and `K ≥ C`, its winner promotes (one tree at most, the hard cap) and `K ← K − C`. Otherwise nothing in that block promotes or is exported this year.
+3. `K ← min(K, C)`. Unspent credit never exceeds one promotion, which is the unit of the hard cap.
+
+*Long-run rate.* A block that always has a candidate promotes exactly `n_block / C` times per year: every year for a full block, 3 years in every 4 for `n_block = 3`, every second year for `n_block = 2`, and 1 year in 4 for `n_block = 1`. In any `T` consecutive years a block promotes at most `1 + ⌊n_block · T / C⌋` times. A full block (`n_block = C`, which includes every 5.0 m cell) always holds `K ≥ C` after step 1, so its budget never binds. At 5.0 m a block is a single cell, so cohort export removes nothing either: the 5.0 m behaviour is exactly the first-approval rule, with `a = 1.0` and no edge-gate reduction (`S5-07A` checks this against a fingerprint measured on the first-pass engine). The arithmetic is integer: there is no fractional tree, no random draw and no constant other than `C`, which the grid geometry fixes. The credit is session state in `MultiAreaStage5State` and is never saved.
+
+**Cohort identity and no double counting (Option A1).** A band's cohort is its `EstablishYear`. Within one cell the represented bands have unique establishment years: this is the ported Unity `NormalizeBands` invariant, and a merged band carries Unity's abundance-weighted, half-up-rounded year. A cohort therefore has at most one represented band per cell. When block `b` promotes the winner's band of cohort `Y`:
+
+- the winner's band becomes the one tree and is removed; its height and establishment year set the tree as in §3.3 (unchanged);
+- every other in-polygon cell of block `b`, in any area, removes its represented band with `EstablishYear = Y` if it has one, whether that band qualifies or not. Its abundance is exported into the same tree and booked as promotion export of that cell's own area;
+- sub-threshold accumulators (which are not represented bands) and the bands of every other cohort are untouched. They may promote in later years, subject to the block credit.
+
+There is no double counting. Each band lives in exactly one cell and is removed at most once. One promotion per block per year means one tree per exported cohort. The per-area account identity `starting − losses + accepted − exported = ending` holds in every year and is asserted. A later merge in a sibling cell can produce a band that again carries year `Y`; that band holds abundance that was never exported, so its later promotion is a new export, not a second count. A sibling band of the same cohort whose year was shifted to `Y ± 1` by an earlier merge is not matched. This is an accepted approximation of the cohort match, and `S5-07A` measures its consequence.
+
+> **Superseded wording (first approval, 2026-11-23), kept for history.** Promotion budget: "**≤ 1 promotion per aligned 5.0 m block per year**, blocks = `floor(x/5), floor(z/5)` in the world frame — caps trees/ha/yr at Unity's ceiling without fractional trees". Block winner rationale: "deterministic; non-winners stay and can promote next year". "Known approximation: an edge `5 m` block with fewer than four in-polygon cell centres still gets the full budget of 1. `S5-07` measures this; it is not hidden." Option A replaced this because it limited trees per block per year but not per cohort, and it gave edge blocks a full budget.
 
 ## 5. `ClearUndergrowth` Work Plan command
 
@@ -128,7 +161,7 @@ Supported grids remain `{2.5, 5.0}` only (the existing `CanopyLightEvaluator` ru
 
 ## 7. State and atomic commit
 
-New immutable `MultiAreaStage5State` carried as one more optional member of `MultiAreaRoot` (`= null` on every model-0/Stage 1–4 root, the same pattern as `Stage4`). It holds per-area cells (undergrowth covers, cohorts, sub-threshold accumulator), pending/approved/executed clear orders, annual accounts and the Stage 5 options (`BackgroundBrowsePressure`, grid). One reference assignment publishes it with the rest of the root; a simulated pre-commit failure must leave the previous root intact. Session-only: nothing here is saved. How the regeneration version enters `MultiAreaSourceToken` without changing earlier tokens is **Q3, resolved by owner**: it is appended to `AreaModelVersion` only when `!= 0`.
+New immutable `MultiAreaStage5State` carried as one more optional member of `MultiAreaRoot` (`= null` on every model-0/Stage 1–4 root, the same pattern as `Stage4`). It holds per-area cells (undergrowth covers, cohorts, sub-threshold accumulator), the per-block promotion credit (§4, amended 2026-11-23), pending/approved/executed clear orders, annual accounts and the Stage 5 options (`BackgroundBrowsePressure`, grid). One reference assignment publishes it with the rest of the root; a simulated pre-commit failure must leave the previous root intact. Session-only: nothing here is saved. How the regeneration version enters `MultiAreaSourceToken` without changing earlier tokens is **Q3, resolved by owner**: it is appended to `AreaModelVersion` only when `!= 0`.
 
 ## 8. Adult-empty racks
 
@@ -139,8 +172,11 @@ An area with 0 living adults still: advances its ecological year, receives cross
 - **Q1 Mast bands — resolved from source, please confirm.** The brief's `0.15 / 0.35 / 0.50` are probabilities/cumulative edges, not three sampled rolls: Unity gives good = 15 % (×1.5), poor = 35 % (×0.4, roll in `[0.15, 0.50)`), normal = 50 % (×1.0). Expected multiplier = 0.225 + 0.14 + 0.5 = 0.865. Unity rolls mast per species with the stand RNG; Stage 5 uses the isolated `STAGE5-MAST` stream per year instead (intentional, §6).
 - **Q2 Promotion light gate.** No gate (Unity asset leaves it at 0). Confirm.
 - **Q3 Token.** Proposal: add the regeneration version to the existing `AreaModelVersion` string only when `≠ 0`, leaving the record shape and all earlier tokens byte-identical.
-- **Q4 `S5-07` tolerance.** Proposal: over ≥ 20 deterministic woodland-mast seeds, ratio of 2.5 m / 5.0 m for (a) mean relative occupancy, (b) cumulative promotions per hectare over 10 years lies in `[0.75, 1.33]`; an unscaled policy would sit near 4. Zero out-of-polygon trees is an exact requirement.
-- **Q5 Block cap.** Proposal in §4 versus a fractional-promotion accumulator. I recommend the block cap (simpler, deterministic, learner-readable).
+- **Q4 `S5-07` tolerance — AMENDED by owner Option A, 2026-11-23 (split gate).** The draft proposal ("ratio of 2.5 m / 5.0 m for (a) mean relative occupancy, (b) cumulative promotions per hectare over 10 years lies in `[0.75, 1.33]`") is superseded. Its **10-year horizon was stale** (review finding F7): no band can reach 3.5 m within 10 years (`0.15 + 10 × 0.35 × 0.9 = 3.30 m`), so a 10-year promotion ratio is `0/0`. **The comparison horizon is 30 years.** Both parts use the same ≥ 20 deterministic woodland-mast seeds, 30 years, and two scenarios on MA-1: "managed thinning" (every second living stem felled in year 0) and "no work". The metrics are cumulative accepted establishment abundance (cohort abundance accepted into bands) and cumulative adult promotions, over the whole stand (interior and edge blocks together).
+  - **`S5-07A` — BLOCKING.** Under an identical shared light field, both the **pooled** ratio (Σ 2.5 m / Σ 5.0 m over the seeds) and the **mean** of the per-seed ratios lie in `[0.75, 1.33]` for both metrics in both scenarios; pooled and mean must both pass. In addition: zero out-of-polygon promoted trees over every study run; `5.0 m` keeps `a = 1.0` with no edge-gate reduction (its output equals the first-pass engine's); and no invented damping constant.
+    *Shared light field.* For each scenario, the field is the light index of the **regeneration-free adult canopy**: the post-adult-step roster, in that year, of a `1/1/1/0` run of the same woodland and scenario. It is evaluated with the unchanged `CanopyLightEvaluator` kernel at the centre of each aligned 5 m block, and every cell of both grids reads its block-centre value (a 5.0 m cell's centre is its block centre). *Frozen or excluded, in both grids alike:* the shading of Stage 5 promoted trees on the regeneration layer. Each run keeps its own adult step, seed rain and promoted adults. *Proof, not assertion:* the test asserts bit-equal light at every block present in both lattices in every year of every seed and scenario. It also asserts that its year loop reproduces `MultiAreaContinuation.Advance` bit for bit when it is given the model light, so the light source is the only difference.
+  - **`S5-07B` — MANDATORY, NON-BLOCKING DIAGNOSTIC.** The same comparison under each grid's own `CanopyLightEvaluator` field: cell-centre sampling of the run's own canopy, including its own promoted trees. There is no `[0.75, 1.33]` threshold and no assertion, so it can never fail the suite. Disclosed: the real-light accepted-abundance and promotion ratios (pooled, mean, and per-seed minimum/median/maximum); interior-only and edge-only sub-ratios for both light bases (a 5 m block is interior when all four of its 2.5 m cell centres are in polygon; a 5.0 m cell is interior when its block is); and the statement that light is a non-PAR modelled index (`unity-k10a10-decoupled-v1`), so a higher 2.5 m real-light recruitment reflects finer gap-resolution sampling of that index rather than a scaling defect.
+- **Q5 Block cap — AMENDED by owner Option A, 2026-11-23.** First approval: aligned `5 m` block cap, at most one promotion per block per year, tie-breaker oldest `EstablishYear`, then tallest height, then `(Column, Row)`. Amended: the same blocks, hard cap and tie-breaker, plus Option A1 cohort export and the Option A2 area-proportional budget realised as the integer block credit (§4). The draft's alternative "fractional-promotion accumulator" exists only in the form of that block credit; no fractional tree is ever created.
 - **Q6 Browse height.** Browse `V(h)` and `p_veg` use pre-growth height (as stated for `p_veg`); confirm against `JuvenileEcologyRules` during implementation.
 
 ## 10. Exclusions
@@ -152,7 +188,7 @@ No Unity `Assets/`, Compact30, Legacy40, Enlarged80, Reference Future v1, histor
 | Part | Class |
 |---|---|
 | Seed-kernel, LightResponse, mast, browse, bramble/bracken constants | `GAMEPLAY CALIBRATION` / `TRANSFER` from Unity — not measured Irish values |
-| Grid scaling policy §4 | `SIMULATION ABSTRACTION` (new, needs sign-off) |
+| Grid scaling policy §4 (incl. Option A cohort export and block credit) | `SIMULATION ABSTRACTION` (owner-approved 2026-11-23, amended by Option A the same day) |
 | `CrownModel 1` initial radius on promotion | `SIMULATION ABSTRACTION` per D-094 |
 | Neutral site (1.0) | deliberate neutral default, no soil data |
 
