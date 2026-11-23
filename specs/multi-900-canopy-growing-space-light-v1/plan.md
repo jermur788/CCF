@@ -1,0 +1,15 @@
+# Multi #900 — Draft plan (no implementation permission)
+
+**Goal:** One playable map overlay showing real local canopy cover and modelled relative ground light, reacting to actual approved/executed Fell and annual crown recovery; credible numbers, no invented vegetation.
+
+**P0 — Precondition and evidence (read-only):** Resolve #899 realised crown model choice/initialisation with the actual owner G5 decision; independently trace current MA-A/B tree/area geometry and source stamp. Freeze one matched no-work and >10 exact-Fell snapshot pair. Inspect source of Unity 5m canopy/light formula, `ForestEcologyCell` states, competition and update ordering; note numerical/game-tuning assumptions. No Core/Unity edits.
+
+**P1 — Unit/algorithm comparison (read-only offline):** replicate unchanged Unity light kernel in a pure numeric scratch oracle, test tiny input fixtures, compare 5m/2.5m edge sensitivity, calculate physical crown union. Compare published/accessible Irish and British transmittance/openness studies. Publish one evidence table with errors, parameters and chosen *candidate* algorithm. If raw PAR data are absent, explicitly restrict outputs to `modelled relative light index`; no invented validation.
+
+**P2 — Owner approval:** present U (faithful Unity proxy), V (empirically calibrated light if evidence supports), or index-only. Owner approves precise algorithm, #899 crown source, light unit/semantics, new model version, API/derived data policy and UI display. Mark spec **APPROVED** only then.
+
+**P3 — One source implementation slice (future, gated):** sole authorised C# source writer in a distinct D-091 worktree; reuse a tiny proven Unity numeric contract in a standalone pure C# evaluator without importing UnityEngine, linked files protected. Add polygon-clipped cells/area-local light and crown union from true tree locations and selected crown model; recompute after genuine Execute and annual advance; return versioned read-only data; minimal heatmap/cell inspector in existing `/multi` layout (no redesign); exact edit allowlist issued separately.
+
+**P4 — Proportional qualification:** compare tiny-scene parity, physical union/edge tests and field trends; run actual Area A matched control vs >10 Fell year0→1→3, ensure Area B independent and Work Plan unchanged; 1 real browser view to confirm truthful data display. Review model maths independently of implementing thread if empirically consequential. No full Q1, P0 L4, Unity build, Windows, broad scenario matrix, main merge.
+
+**P5 — Owner playtest and outcome:** give owner a side-by-side before/after illustration from *actual* area values, inspector/legend and explain limitations. Publish exact commit/metrics/model version, distinguish IMPLEMENTED/REVIEWED/VERIFIED/ACCEPTED and route next regeneration feature separately. A DRAFT cannot start P3.
