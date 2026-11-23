@@ -1,6 +1,6 @@
 # CCF Multi Stage 4 — Owner UX Repair and Light Guide Presentation
 **Spec ID:** SPEC-MULTI-STAGE4-OWNER-UX-20261123-V1  
-**Status:** DRAFT — owner direction captured; DeepSeek must publish and obtain formal spec/plan/tasks/checklist approval before source authoring  
+**Status:** APPROVED (Phase A only) — owner approved 2026-11-23 after publication at `b4dd96a2`; originally owner-supplied DRAFT, published verbatim. Phase B (UX-10) remains UNAPPROVED and requires its own G5 model/history decision and approval gate.  
 **Date:** 23 November 2026  
 **Coordinator:** DeepSeek orchestration agent  
 **Primary implementer:** Claude Opus 5.5  
@@ -10,6 +10,16 @@
 **Reviewed starting candidate:** `feat/multi-stage4-ui-catchup-20261123-v1` at immutable reviewed `e7c1a57da519ed1ee03ccfbad240196a66df0905`  
 **Coordinator's detailed existing reference:** `Docs/Handoffs/MultiRack-Simulation-20261116/900-ui-catchup/MULTI-STAGE4-UI-CATCHUP-CODEX-CONTINUATION-HANDOFF-20261123.md` at `db24a5422e9b0dffc9f2ff5bcd26406243941029`, on `docs/multi-900-codex-continuation-20261123-v1`  
 **Important ID collision:** This is the Stage 4 UI catch-up owner UX follow-on. It is NOT issue #900's separate DRAFT forestry canopy/light-engine specification. Do not conflate scopes or approvals.
+
+## 0.1 Approval record
+
+| Field | Value |
+|---|---|
+| Approved by | Project owner (direct instruction, 2026-11-23) |
+| Approved scope | Phase A, UX-01–UX-09, plus bounded F-2 truthful `stage4:null` handling inside `PlayerMultiApi.cs` |
+| Not approved | Phase B / UX-10; any `src/Core` edit; `PlayerApi.cs`; `Program.cs`; Unity `Assets/**`; saves; `main` merge |
+| Published quartet | `b4dd96a2` on `docs/multi-stage4-owner-ux-spec-20261123-v1` |
+| Publication is verbatim | Owner bundle preserved byte-identical, sha256 `849f89899c61d35eafc713ccc488e23b0a460a8f4332744703964fe17b3d08c4` |
 
 ## 1. Intent and definition of done
 The owner personally exercised the approved-for-playtest Stage 4 `/multi` candidate and identified player-interaction problems. Prioritise the actual playable flow: click any living tree; inspect its five ranked competitors; select via map ranks 1–5 or inspector; draft Fell; close inspection with × or Escape and restore the normal map; navigate both areas without a bulky panel; inspect an unobtrusive, continuously graduated ground-light visual while retaining tree selection.

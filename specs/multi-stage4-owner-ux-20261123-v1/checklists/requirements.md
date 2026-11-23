@@ -1,5 +1,5 @@
 # CCF Multi Stage 4 Owner UX Repair — Acceptance Checklist
-**Spec status:** DRAFT / UNCHECKED  
+**Spec status:** APPROVED for Phase A (2026-11-23) / UNCHECKED. Phase B AC23–AC29 not approved.  
 **Evidence standard:** Source and actual browser evidence required. Author claims do not equal independent review or owner acceptance.
 
 ## Phase A — Player workflow

@@ -1,5 +1,5 @@
 # CCF Multi Stage 4 Owner UX Repair — Tasks
-**Status:** DRAFT. Check only on actual evidence. One writer/file set.
+**Status:** APPROVED for Phase A (2026-11-23). Phase B tasks T17–T22 remain UNAPPROVED. Check only on actual evidence. One writer/file set.
 
 ## Coordination
 - [ ] T01 DeepSeek confirms `origin/main` board, source candidate `e7c1a57d`, current D-091 and protected listeners.
