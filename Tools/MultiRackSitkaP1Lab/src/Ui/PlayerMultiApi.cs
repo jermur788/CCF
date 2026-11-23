@@ -944,6 +944,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .ground-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; }
 .ground-facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: .5rem; }
 .ground-facts dd { font-variant-numeric: tabular-nums; }
+.ground-facts .ids { overflow-wrap: normal; }
+.ground-facts .ids .id { white-space: nowrap; }
 .prune-box { margin: .45rem 0 0; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
 .prune-box p { margin: .15rem 0; }
 .prune-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
@@ -1007,6 +1009,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .area-readouts { gap: 0 .6rem; padding-top: .2rem; font-size: .7rem; }
   .area-readouts dt { font-size: .66rem; }
   .light-legend { padding: .25rem .8rem; font-size: .7rem; }
+  .ground-facts > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 @media (min-width: 1024px) and (max-height: 820px) {
   .topbar { padding-top: .4rem; padding-bottom: .4rem; }
@@ -2217,7 +2220,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       pair('Modelled Light Index (0–1)', fixed(cell.lightIndex, 3) + ' · band ' + lightBand(cell.lightIndex) + ' of 5'),
       pair('Overhead cover fraction', pct(cell.geometricCoveredFraction) + ' of this cell under living crowns'),
       pair('Contributing trees', contributors.length === 0 ? 'none (no living crown shades this cell centre)' :
-        el('span', { class: 'mono' }, contributors.length + ': ' + contributors.join(', '))),
+        el('span', { class: 'mono ids' }, contributors.length + ': ', ...contributors.flatMap((id, i) =>
+          [i > 0 ? ', ' : null, el('span', { class: 'id' }, id)].filter((part) => part !== null)))),
       pair('Cross-border trees', String(cell.crossBorderTrees)),
       pair('Cell', fixed(models.lightCellM, 1) + ' m grid · ' + fixed(cell.clippedAreaM2, 2) + ' m² inside the area · centre X ' +
         fixed(cell.centreXM, 2) + ', Z ' + fixed(cell.centreZM, 2)));
@@ -2239,6 +2243,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.ground = { areaId, column, row };
     showPane('tree');
     renderAll();
+    // The inspector sits at the top of the Tree pane, which may be scrolled down to the Fell draft: bring it into view.
+    byId('ground-heading').focus();
     announce('Ground cell ' + column + ', ' + row + ': modelled light index ' + fixed(cell.lightIndex, 2) + ', cover ' +
       pct(cell.geometricCoveredFraction) + ', ' + plural(cell.contributingTreeIds.length, 'contributing tree', 'contributing trees') +
       '. Your selection and Fell draft are unchanged.');
