@@ -1,11 +1,11 @@
-# Tasks — MULTI Stage 5 (DRAFT)
+# Tasks — MULTI Stage 5 (APPROVED)
 
-**Status: DRAFT.** Boxes are ticked only from observed evidence.
+**Status: APPROVED — owner approval 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; see `spec.md` approval record). Boxes are ticked only from observed evidence.
 
 - [x] T0a Owner locked decisions 1–6 and `e7c1a57d` base recorded (2026-11-23).
 - [x] T0b Read-only source audit: Unity `RegenDensityMax = 1.5`, per-cell occupancy `density/max`, one band promoted per cell per year, `PromotionHeightM = 3.5`, mast 15 %/35 %/50 %, `promotionMinimumLight` absent from `SitkaSpruce.asset`.
 - [x] T0c Draft quartet published for owner review.
-- [ ] T0d **Owner approves quartet and answers Q1–Q6; status changed to APPROVED.**
+- [x] T0d **Owner approves quartet and answers Q1–Q6; status changed to APPROVED.** (2026-11-23)
 - [ ] T1 Gate 0: live coordination refresh, D-091 admission, branch from `e7c1a57d`, baseline fingerprints and test count recorded.
 - [ ] T2 Stage 1 read-only confirmations (spec Q3, adult-empty short-circuit, `SimulationRandom` shape, band merge code).
 - [ ] T3 Version enum, selection/refusal rules, null `MultiAreaStage5State`; Regeneration `0` byte-identical on `0/0/0/0`, `0/0/1/0`, `1/1/1/0`.

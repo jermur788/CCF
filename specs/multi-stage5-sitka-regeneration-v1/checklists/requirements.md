@@ -1,13 +1,13 @@
-# Requirements — MULTI Stage 5 numerical quality gates (DRAFT)
+# Requirements — MULTI Stage 5 numerical quality gates (APPROVED)
 
-**Status: DRAFT.** Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
+**Status: APPROVED — owner approval 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; see `spec.md` approval record). Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
 
 ## Decision gates (before implementation)
 
 - [x] G01 Owner locked the six product decisions and the `e7c1a57d` base.
-- [ ] G02 Owner approved the §4 area-consistent scaling policy (or chose another).
-- [ ] G03 Owner answered Q1–Q6 in `spec.md`.
-- [ ] G04 Quartet marked `APPROVED`.
+- [x] G02 Owner approved the §4 area-consistent scaling policy (or chose another). (2026-11-23: approved as written)
+- [x] G03 Owner answered Q1–Q6 in `spec.md`. (2026-11-23, recorded verbatim in the `spec.md` approval record)
+- [x] G04 Quartet marked `APPROVED`. (2026-11-23)
 - [ ] G05 D-091 lane receipt and baseline fingerprints recorded.
 
 ## Qualification tests
