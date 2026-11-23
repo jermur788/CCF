@@ -28,7 +28,8 @@ internal sealed partial class PlayerApi
     private const string JsonContentType = "application/json; charset=utf-8";
 
     // The page is self-contained: its own script, style and API only. No inline code, frames, forms or other origins.
-    private const string PagePolicy = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; " +
+    // img-src data: lets the /multi map draw its embedded spruce crown sprites (#885); nothing is fetched from elsewhere.
+    private const string PagePolicy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'self'; " +
         "base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
     private static readonly byte[] PageHtml = EmbeddedAsset("index.html");
