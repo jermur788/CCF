@@ -30,7 +30,7 @@ Repository-relative evidence prefixes below:
 
 I read AgentWorkflow, the project context documents, specs/README, the quartet, admission, implementation handoff, changed source/tests and browser evidence. I obtained the live GitHub active-tasks content with `gh api repos/jermur788/CCF/contents/Docs/Project/coordination/active-tasks.md`; the supplied task/admission remains this review's narrower grant. No coordination file was edited.
 
-**Authority limit:** the original owner packet's complete section 3 A/B/C is not in the candidate's catch-up directory and was not supplied verbatim. I checked the four locked decisions in the review request and the A=test/B=readout+API/C=page deliverables restated by the quartet/handoff. Exact word-for-word comparison with the original packet, including the claimed oversized-image exception, is NOT TESTED. I requested its location while continuing independent work. The two explicitly open owner choices (prune heights and dead-tree drawing) are not defects.
+**Authority clarification (direct user message, 2026-11-23):** the original owner packet was supplied in the orchestration session and never committed; it has no repository path or GitHub link. The user subsequently supplied section 3 A/B/C verbatim in substance: A is the bounded execute-time Prune revalidation/atomic-refusal test with frozen outputs retained; B is authoritative engine readout and fenced Prune API exposure; C is the #885 page extension, including preserved Fell drafts and accessible light/deadwood presentation. This supplied authority agrees with the quartet and reviewed implementation within the limits below. Verified PlayerMultiApi.cs constants override the packet's guessed wwwroot paths; all stated exclusions remain in force. The user also confirmed both choices: retain the 2.5 / 5 / 6.5 m Unity pruning schedule and both the standing-dead D crown and fallen-log marker. The code matches both. The complete original packet beyond the supplied decisions/A/B/C, including the claimed oversized-image exception, remains unavailable for independent comparison. Its lack of durable publication is F-6, an observation rather than a candidate defect.
 
 ## Checks actually run
 
@@ -88,11 +88,11 @@ PASS means the bounded claim stated in that row is supported; NOT TESTED is not 
 | Check | Status | Evidence / limits |
 |---|---|---|
 | 1a. Locked decision (a): /multi 1/1/1, union canopy, 2.5 m decoupled light; legacy retained | PASS | P/src/Core/MultiArea/MultiAreaWorkPlanAdapter.cs:27; MultiAreaUiReadout.cs:122,152; U-02 and direct API initial view. |
-| 1b. Decision (b): natural-death logs, non-colour shape/legend/counts; D distinct from X | PASS | P/src/Ui/PlayerMultiApi.cs:2158,2317; H/evidence/d-thinning-gaps-deadwood-1280x720.png; H/browser-driver/browser-results-20261123.json:272. 17 logs and 3 deaths this year are shown. Drawing both D and a log is the declared open choice. |
+| 1b. Decision (b): natural-death logs, non-colour shape/legend/counts; D distinct from X | PASS | P/src/Ui/PlayerMultiApi.cs:2158,2317; H/evidence/d-thinning-gaps-deadwood-1280x720.png; H/browser-driver/browser-results-20261123.json:272. 17 logs and 3 deaths this year are shown. Drawing both D and a log matches the subsequently confirmed owner decision; the confirmed 2.5/5/6.5 m schedule is in P/src/Core/Stage4Records.cs:65. |
 | 1c. Decision (c): no twin; both sizes, no sideways scrolling | PASS (inspected author evidence) | Driver scenario.mjs:48 checks document AND body width, dock intersection and stand bounds for 16 states; results JSON:7 onward. Five committed PNGs visually inspected. Also found all five external 1920x1080 images at declared /tmp paths, checked dimensions and byte lengths, visually inspected baseline/light/deadwood. No independent browser/layout rerun. |
 | 1d. Decision (d): authoritative display | PASS | See check 3. |
-| 1e. Section 3 A/B/C as restated | PASS | A: U-01, lines 21-77. B: MultiAreaUiReadout.cs:29-111; PlayerMultiApi.cs:84-126. C: rack cards, Prune, light inspector and logs in page and evidence. No Stage 5, twin, persistence or package scope added. |
-| 1f. Quartet status and authority | PASS / NOT TESTED | All four declare APPROVED; spec.md:15,77 states subordinate task authority, matching specs/README. Commit 18518b97 precedes source edits. Original owner-packet wording/approval provenance beyond the supplied instruction is NOT TESTED. |
+| 1e. Section 3 A/B/C supplied directly and restated by the quartet | PASS | A: U-01, lines 21-77. B: MultiAreaUiReadout.cs:29-111; PlayerMultiApi.cs:84-126. C: rack cards, Prune, light inspector, preserved Fell drafts and logs in page and evidence. Directly supplied A/B/C and exclusions match this bounded scope. No Stage 5, twin, persistence or package scope added. |
+| 1f. Quartet status and authority | PASS / NOT TESTED | All four declare APPROVED; spec.md:15,77 states subordinate task authority, matching specs/README. Commit 18518b97 precedes source edits. The direct authority clarification confirms A/B/C and the two choices. Exact comparison with the remaining unpublished original packet/approval provenance is NOT TESTED. |
 | 1g. Literal spec acceptance completeness | FAIL | S/spec.md:105 requires committed images at both resolutions; only five 1280x720 PNGs are tracked. H implementation handoff:174-183,210 honestly declares the exception. F-1 below. AC-2's full 184 count is author-reported, not independently repeated. |
 | 2a. Core default ctor/model-0 paths and Stage 1-3 | PASS | MultiAreaContinuation.cs:95 ctor unchanged; diff is new read/cache/scheduled-Prune code plus extraction of the unchanged Stage4ViewOf body. Annual/Execute model-0 algorithms untouched. U-02, MA tests, F-01/F-02, C2 and S4 V-01/V-02 passed. Four fingerprints reproduced above. |
 | 2b. Shared evaluator and single-area isolation | PASS (source + selected runtime) | CanopyLightEvaluator diff is one 70-line insertion of internal helpers at line 194; existing Evaluate/Kernel/Cover/Light bodies unchanged. `git diff 500a50ae HEAD -- P/src/Ui/PlayerApi.cs P/src/Ui/Program.cs P/src/Ui/wwwroot` empty (with P expanded). Single-area F-01 passes. Full single-area smoke NOT TESTED. |
@@ -160,6 +160,12 @@ R-02 checks repeatability and difference from legacy/Stage3, then prints the fin
 
 The earlier PASS line reports 100 successful responses and zero errors. facts.console holds a reference to the mutable log, so the saved JSON later contains 101 HTTP 200 plus one intentional 409 and its network error. This is explained by the final refusal probe, not a hidden application/CSP failure. The 73-pass claim is internally consistent with that sequencing.
 
+### F-6 - OBSERVATION: original owner packet was not durably published
+
+**Evidence:** direct user authority clarification in the review orchestration session, 2026-11-23; S/spec.md:15,77 records the candidate's restated authority.
+
+The user confirms that the original packet has no repository path or GitHub link. The supplied locked decisions, subsequent A/B/C restatement and confirmed pruning/drawing choices are sufficient authority for the bounded checks above. The remainder of the original session-only packet cannot be independently compared or recovered from the candidate. Publishing a durable authoritative packet would improve future auditability. This is an upstream provenance observation, **not a defect of this candidate**, and adds no required candidate fix. The clarification does not establish an AC-9 screenshot exception.
+
 ## Checks not run / unproven claims
 
 - Full top-level Core 184-case suite; reviewer ran the 76 relevant existing cases instead.
@@ -167,7 +173,7 @@ The earlier PASS line reports 100 successful responses and zero errors. facts.co
 - p0-isolation.sh, build-output-safety.sh, cli-safety.sh, build-p0-core-ref.sh.
 - A fresh real Edge/CDP run, native owner playtest, independent dynamic layout/zoom matrix, or forced null-readout race.
 - Unity, asset import, save/load, Windows build, package installation, external services or load/performance qualification.
-- Original full owner packet verification; historical absence of force-push/second writer; dashboard publication/synchronization.
+- Exact comparison with the complete original owner packet beyond the directly supplied locked decisions and A/B/C, including any screenshot exception; historical absence of force-push/second writer; dashboard publication/synchronization.
 - G4 integration, a main merge, post-integration tests or owner acceptance. None is implied by this source review.
 
 The external 1920 Prune images were checked for file size/dimensions but not visually opened; the three other 1920 states and all five committed 1280 states were visually opened. No image or driver was regenerated.
@@ -188,7 +194,8 @@ Context commit: candidate-local 62e39ec621e38a84030c08b35a171e297056c9ed;
 SPEC:
 - ID/status: SPEC-multi-stage4-ui-catchup-V1 / APPROVED
 - Conformance: FAIL literal AC-9; functional FR-1..FR-9 supported as scoped above;
-               original complete owner-packet comparison NOT TESTED.
+               directly supplied locked decisions/A/B/C and both confirmed choices match;
+               remaining unpublished original-packet comparison NOT TESTED.
 Reasons:
 - No blocking/major source or gameplay defect found.
 - 76 selected existing cases and reviewer API probes pass; all five anchors match.
@@ -199,7 +206,7 @@ Required fixes / remaining gates:
 - Resolve F-1 through required evidence or an authorised spec/retention correction.
 - F-2/F-3 are nonblocking improvement recommendations, not invented engine blockers.
 - Preserve declared smoke failures; no blanket green-smoke or full-184 reviewer claim.
-- Owner retains prune-height/dead-tree drawing choices and personal acceptance.
+- Confirmed prune-height/dead-tree drawing choices match; personal owner acceptance remains pending.
 Integration target: designated authorised Multi integration candidate, then main
                     only under its separate G4 grant; reviewer does not merge.
 Integrated HEAD: none.
@@ -223,5 +230,5 @@ Post-integration verification:
 - Execute atomic-refusal deliverable A is genuinely met.
 - The six known multi-smoke failures reflect stale base-page witness controls; they remain failures.
 - Minor UI issues: unavailable readout falls back to legacy wording; light-number halos obscure colours.
-- Prune heights and standing-dead-plus-log drawing remain your open choices.
+- Your confirmed prune heights and standing-dead-plus-log drawing match the code.
 - No Unity, full 184-case rerun, fresh browser qualification, integration or owner acceptance is claimed.
