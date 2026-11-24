@@ -297,8 +297,9 @@ internal sealed partial class PlayerApi
 }
 
 /// <summary>
-/// The two-area page: pure inline SVG visual system, Stage 4 Owner UX polish preserved, read-only ecology overlays
-/// and lazy cell inspector, served from memory under strict CSP (no WebP sprites, no inline JS, no external URLs).
+/// The two-area page: pure inline SVG visual system, Stage 4 Owner UX polish preserved, interactive Pass 2 modes
+/// (Select Tree, Inspect Cell, Plant, Spot Clear), provisional Draft previews, sequential fence-chained queueing,
+/// and full Work Plan controls served from memory under strict CSP (no WebP sprites, no inline JS, no external URLs).
 /// </summary>
 internal static class MultiAreaPage
 {
@@ -315,9 +316,9 @@ internal static class MultiAreaPage
 <script src="multi.js" defer></script>
 </head>
 <body>
-<!-- Two-area Stand Map (Pass 1 Map Integration, spec multi-map-integration-pass1-v1). Pure inline SVG visual system,
-     zero WebP sprites, zero Pass 2 write controls. Minimum supported desktop viewport: 1280 x 720 CSS px (ranks 1-5
-     and Add remain above the fold without scrolling, including when competitors are blocked). -->
+<!-- Two-area Stand Map (Pass 2 Map Integration, spec multi-map-integration-pass2-v1). Pure inline SVG visual system,
+     zero WebP sprites, six fenced Work Plan verbs under Pending -> Approve -> Execute. Minimum supported desktop
+     viewport: 1280 x 720 CSS px (ranks 1-5 and Add remain above the fold without scrolling, including blocked rows). -->
 <a class="skip-link" id="skip-trees" href="#trees-heading">Skip to the tree table</a>
 
 <header class="topbar" aria-labelledby="page-title">
@@ -378,6 +379,8 @@ internal static class MultiAreaPage
     <div class="mode-switch" role="group" aria-label="Map interaction mode">
       <button type="button" id="mode-tree" class="mode-btn" data-map-mode="tree" aria-pressed="true">Select Tree</button>
       <button type="button" id="mode-cell" class="mode-btn" data-map-mode="cell" aria-pressed="false">Inspect Cell</button>
+      <button type="button" id="mode-plant" class="mode-btn" data-map-mode="plant" aria-pressed="false">Plant</button>
+      <button type="button" id="mode-spot" class="mode-btn" data-map-mode="spot" aria-pressed="false">Spot Clear</button>
     </div>
     <label class="sr-only" for="overlay-select">Ground overlay</label>
     <select id="overlay-select" class="overlay-select" aria-label="Ground overlay">
@@ -611,7 +614,7 @@ internal static class MultiAreaPage
 
           <!-- #ccf-spot-clear: Circular dashed ring (~1 m2, world-scale r=0.564m) over bare soil + twigs, NO seedling -->
           <symbol id="ccf-spot-clear" viewBox="-100 -100 200 200">
-            <circle cx="0" cy="0" r="92" fill="#402f1e" fill-opacity="0.86"></circle>
+            <circle cx="0" cy="0" r="95" fill="#402f1e" fill-opacity="0.86"></circle>
             <g stroke="#9d805c" stroke-width="4.5" stroke-linecap="round" opacity="0.85">
               <line x1="-46" y1="-24" x2="-12" y2="-36"></line><line x1="16" y1="-44" x2="48" y2="-16"></line>
               <line x1="-54" y1="22" x2="-10" y2="34"></line><line x1="6" y1="16" x2="46" y2="42"></line>
@@ -621,7 +624,7 @@ internal static class MultiAreaPage
               <circle cx="-32" cy="8" r="5"></circle><circle cx="28" cy="-26" r="4"></circle>
               <circle cx="8" cy="48" r="5"></circle><circle cx="-20" cy="-48" r="4"></circle>
             </g>
-            <circle cx="0" cy="0" r="93" fill="none" stroke="#edc774" stroke-width="9" stroke-dasharray="22 14"></circle>
+            <circle cx="0" cy="0" r="95" fill="none" stroke="#edc774" stroke-width="8" stroke-dasharray="22 14"></circle>
           </symbol>
 
           <!-- #ccf-natural-seedlings: Cell-level natural regeneration presence glyph (never individual stem counts) -->
@@ -706,7 +709,8 @@ internal static class MultiAreaPage
         <polygon id="area-outline" class="area-outline" points="0,0"></polygon>
         <g id="crowns"></g>
         <g id="deadwood" class="overlay"></g>
-        <g id="planted-layer" class="overlay"></g>
+        <g id="planted-layer" class="planted-layer"></g>
+        <g id="draft-preview" class="overlay"></g>
         <g id="ground-mark" class="overlay"></g>
         <g id="marks" class="overlay"></g>
         <g id="selection" class="overlay"></g>
@@ -763,10 +767,18 @@ internal static class MultiAreaPage
       <!-- Inspect Cell mode: explicitly SWAPS the inspector body (never stacks above the tree panel). -->
       <section id="cell-panel" class="panel cell-panel" aria-labelledby="cell-heading" hidden>
         <div class="ref-title">
-          <p class="eyebrow">Inspect cell · read-only</p>
+          <p class="eyebrow">Inspect cell · 2.5 m ground cell</p>
           <button type="button" id="cell-close" class="close-inspect" aria-keyshortcuts="Escape" title="Return to Select Tree mode (Esc)"><span aria-hidden="true">×</span> Exit cell mode</button>
         </div>
         <h2 id="cell-heading" tabindex="-1">Select a 2.5 m cell</h2>
+        <div id="cell-actions" class="drawer-actions" hidden>
+          <p id="cell-clear-status" class="small-note"></p>
+          <p class="actions">
+            <button type="button" id="cell-clear-add" class="primary small">Clear undergrowth (spares seedlings)</button>
+            <button type="button" id="cell-clear-remove" class="secondary small" hidden>Remove pending clear</button>
+          </p>
+          <p id="cell-clear-note" class="small-note">Whole 2.5 m cell · spares seedlings · Queues Pending order only; Approve and Execute are separate.</p>
+        </div>
         <div id="cell-summary" class="cell-summary"></div>
         <div id="cell-cohorts" class="cell-cohorts"></div>
         <details id="cell-trees" class="more ground-more" hidden><summary id="cell-trees-summary">Contributing trees</summary>
@@ -774,6 +786,77 @@ internal static class MultiAreaPage
         <details id="cell-tech" class="more ground-more" hidden><summary>Technical details</summary>
           <dl id="cell-facts" class="pairs ground-facts"></dl>
           <p id="cell-caveat" class="small-note"></p></details>
+      </section>
+
+      <!-- Plant mode: provisional local Draft preview (snap OFF, zero engine order) + sequential Work Plan drawer. -->
+      <section id="plant-panel" class="panel drawer-panel" aria-labelledby="plant-heading" hidden>
+        <div class="ref-title">
+          <p class="eyebrow">Plant · provisional Draft (snap OFF)</p>
+          <button type="button" id="plant-close" class="close-inspect" aria-keyshortcuts="Escape" title="Return to Select Tree mode (Esc)"><span aria-hidden="true">×</span> Exit Plant mode</button>
+        </div>
+        <h2 id="plant-heading" tabindex="-1">Place a planting point</h2>
+        <p id="plant-coords" class="drawer-coords">Click anywhere on the map to place a provisional Draft preview (snap OFF; zero order sent yet).</p>
+        <div class="field">
+          <label for="plant-species">Species (nursery juvenile · 0.6 m, age 3)</label>
+          <select id="plant-species">
+            <option value="sessile-oak" selected>Sessile Oak (sessile-oak)</option>
+            <option value="beech">European Beech (beech)</option>
+          </select>
+        </div>
+        <div class="drawer-checks">
+          <label class="check-row"><input type="checkbox" id="plant-opt-shelter"><span>Add 8-year shelter</span></label>
+          <label class="check-row"><input type="checkbox" id="plant-opt-spot"><span>Spot-clear ~1 m² (0.564 m ring preview)</span></label>
+        </div>
+        <p class="actions">
+          <button type="button" id="plant-queue" class="primary wide" disabled>Queue to Work Plan</button>
+        </p>
+        <p class="drawer-sub-actions">
+          <button type="button" id="plant-clear-draft" class="link-button small-link" hidden>Clear draft point</button>
+        </p>
+        <p id="plant-note" class="small-note">Queues Pending orders in sequence (Plant → Shelter → SpotClear). Zero ecology change until Approved and Executed.</p>
+        <div id="plant-result" class="drawer-result" tabindex="-1" hidden></div>
+      </section>
+
+      <!-- Spot Clear mode: provisional seedling-free 0.564 m circular preview (snap OFF) + Work Plan drawer. -->
+      <section id="spot-panel" class="panel drawer-panel" aria-labelledby="spot-heading" hidden>
+        <div class="ref-title">
+          <p class="eyebrow">Spot Clear · provisional Draft (snap OFF)</p>
+          <button type="button" id="spot-close" class="close-inspect" aria-keyshortcuts="Escape" title="Return to Select Tree mode (Esc)"><span aria-hidden="true">×</span> Exit Spot Clear</button>
+        </div>
+        <h2 id="spot-heading" tabindex="-1">Place a ~1 m² spot clear</h2>
+        <p id="spot-coords" class="drawer-coords">Click anywhere on the map to place a provisional seedling-free 0.564 m circular preview (snap OFF; zero order sent yet).</p>
+        <p class="actions">
+          <button type="button" id="spot-queue" class="primary wide" disabled>Queue Spot Clear (~1 m²)</button>
+        </p>
+        <p class="drawer-sub-actions">
+          <button type="button" id="spot-clear-draft" class="link-button small-link" hidden>Clear draft point</button>
+        </p>
+        <p id="spot-note" class="small-note">Selective ~1 m² circle (r ≈ 0.564 m, no seedling inside). Queues Pending order only; Approve and Execute are separate.</p>
+        <div id="spot-result" class="drawer-result" tabindex="-1" hidden></div>
+      </section>
+
+      <!-- Planted sapling (PJ) inspector in Select Tree mode: shows Queue 8-year Shelter when living and unsheltered. -->
+      <section id="juvenile-panel" class="panel drawer-panel" aria-labelledby="pj-heading" hidden>
+        <div class="ref-head">
+          <div class="ref-id">
+            <p class="ref-top"><span class="eyebrow">Planted sapling (PJ)</span> <span id="pj-area" class="tag"></span></p>
+            <div class="ref-title">
+              <h2 id="pj-heading" tabindex="-1"><span id="pj-id" class="mono"></span></h2>
+            </div>
+          </div>
+          <button type="button" id="pj-close" class="close-inspect" aria-keyshortcuts="Escape" title="Close sapling inspection (Esc)"><span aria-hidden="true">×</span> Close sapling</button>
+        </div>
+        <p id="pj-summary" class="ref-sub"></p>
+        <dl id="pj-facts" class="pairs insp-facts"></dl>
+        <div id="pj-shelter-box" class="prune-box">
+          <p class="prune-head"><span class="eyebrow">Browse shelter</span> <strong id="pj-shelter-state"></strong></p>
+          <p id="pj-shelter-detail" class="prune-status"></p>
+          <p class="prune-actions">
+            <button type="button" id="pj-shelter-add" class="primary small" hidden>Queue 8-year Shelter</button>
+            <button type="button" id="pj-shelter-remove" class="secondary small" hidden>Remove pending shelter</button>
+          </p>
+          <p id="pj-shelter-note" class="small-note"></p>
+        </div>
       </section>
 
       <!-- Select Tree mode (default): preserves exact Stage 4 R3 above-the-fold layout at 1280 x 720 and 1920 x 1080. -->
@@ -882,7 +965,7 @@ internal static class MultiAreaPage
         <div id="pending-box">
           <div class="plan-state pending-state">
             <p id="pending-total" class="plan-total"></p>
-            <p class="small-note">Pending orders are not felled. Approving fells zero trees and locks editing.</p>
+            <p class="small-note">Pending orders change zero ecology. Approving changes zero ecology and locks editing.</p>
           </div>
           <p class="plan-actions"><button type="button" id="approve" class="primary wide" hidden></button></p>
           <div id="pending-areas"></div>
@@ -935,6 +1018,10 @@ internal static class MultiAreaPage
             <tbody id="tree-rows"></tbody>
           </table>
         </div>
+      </section>
+      <section id="planted-section" class="panel" aria-labelledby="planted-heading" hidden>
+        <h2 id="planted-heading">Planted saplings (PJ)</h2>
+        <ul id="planted-list" class="list orders"></ul>
       </section>
     </div>
 
@@ -1140,7 +1227,7 @@ label { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .
 
 /* ---- the map ------------------------------------------------------------------------------------------------------- */
 .map-pane { position: relative; flex: 1 1 auto; min-height: 0; height: clamp(24rem, 72vh, 44rem); overflow: hidden; background: radial-gradient(ellipse at 55% 45%, var(--exterior-1), var(--exterior-2) 110%); }
-.map-pane.cell-mode #map { cursor: crosshair; }
+.map-pane.cell-mode #map, .map-pane.plant-mode #map, .map-pane.spot-mode #map { cursor: crosshair; }
 #map { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: manipulation; }
 .map-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem 1rem; padding: .4rem .9rem; border-top: 1px solid var(--edge); }
 .map-note { margin: 0; color: var(--muted); font-size: .74rem; }
@@ -1190,7 +1277,12 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .grid-label { fill: #7f97ae; font-size: .9px; paint-order: stroke; stroke: var(--exterior-1); stroke-width: .25px; stroke-linejoin: round; }
 .area-outline { fill: none; stroke: #7f97ae; stroke-width: 1.4; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .tree .crown { fill: #000; fill-opacity: 0; stroke: none; pointer-events: fill; cursor: pointer; }
-.map-pane.cell-mode .tree .crown { pointer-events: none; }
+.map-pane.cell-mode .tree .crown, .map-pane.plant-mode .tree .crown, .map-pane.spot-mode .tree .crown { pointer-events: none; }
+.planted-layer { pointer-events: none; }
+.planted-layer .planted-pj { pointer-events: all; cursor: pointer; }
+.planted-layer .pj-hit { fill: #000; fill-opacity: 0; stroke: none; pointer-events: fill; cursor: pointer; }
+.map-pane.cell-mode .planted-layer .planted-pj, .map-pane.plant-mode .planted-layer .planted-pj, .map-pane.spot-mode .planted-layer .planted-pj,
+.map-pane.cell-mode .planted-layer .pj-hit, .map-pane.plant-mode .planted-layer .pj-hit, .map-pane.spot-mode .planted-layer .pj-hit { pointer-events: none; }
 .deco, .deco * { pointer-events: none; }
 .tree.dimmed { opacity: .25; }
 .stump-disc { fill: var(--stump); stroke: #6e5a3c; stroke-width: .035; }
@@ -1233,6 +1325,14 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .seedling-tag { fill: #e9f5d0; font-weight: 700; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: #07131e; stroke-width: .18px; }
 .clear-cell-pending { fill: #4f3a1c; fill-opacity: .34; stroke: var(--pending); stroke-width: 2; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
 .clear-cell-approved { fill: #2a5572; fill-opacity: .36; stroke: var(--approved); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.spot-order-pending { fill: #4f3a1c; fill-opacity: .34; stroke: var(--pending); stroke-width: 2; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
+.spot-order-approved { fill: #2a5572; fill-opacity: .36; stroke: var(--approved); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.plant-order-ring-pending { fill: #241f12; fill-opacity: .68; stroke: var(--pending); stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.plant-order-ring-approved { fill: #1b3a40; fill-opacity: .76; stroke: var(--approved); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.draft-ring { fill: #64748b; fill-opacity: .16; stroke: #cbd5e1; stroke-width: 2; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
+.draft-cross { fill: none; stroke: #e2e8f0; stroke-width: 1.8; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.draft-label { fill: #e2e8f0; font-weight: 700; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: #06111d; stroke-width: .2px; }
+.pj-selected-ring { fill: none; stroke: var(--reference); stroke-width: 2.4; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
 .ground-pick { fill: none; stroke: #ffffff; stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
 .ground-pick-halo { fill: none; stroke: #06111d; stroke-opacity: .85; stroke-width: 5; vector-effect: non-scaling-stroke; }
 
@@ -1352,8 +1452,21 @@ dd { margin: 0; overflow-wrap: anywhere; }
 .overlap h3 { margin-top: 0; font-size: .9rem; }
 .quick-id { margin: .6rem 1rem .9rem; padding-top: .5rem; border-top: 1px solid var(--edge); }
 
-/* Cell Inspector */
-.cell-panel h2 { margin: .15rem 0 .45rem; font-size: 1.05rem; }
+/* Cell Inspector & Pass 2 Drawers */
+.cell-panel h2, .drawer-panel h2 { margin: .15rem 0 .45rem; font-size: 1.05rem; }
+.drawer-actions { margin: .45rem 0 .55rem; padding: .5rem .65rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
+.drawer-actions p { margin: .2rem 0; }
+.drawer-coords { margin: .3rem 0 .55rem; padding: .45rem .6rem; border: 1px dashed #64748b; border-radius: 6px; background: var(--page); font-size: .84rem; }
+.drawer-checks { display: grid; gap: .35rem; margin: .5rem 0 .65rem; }
+.check-row { display: flex; align-items: center; gap: .55rem; margin: 0; padding: .35rem .55rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: .86rem; cursor: pointer; }
+.check-row input { flex: none; width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--blue-edge); }
+.drawer-sub-actions { margin: .2rem 0 .35rem; text-align: right; }
+.drawer-result { margin-top: .55rem; padding: .55rem .7rem; border: 1px solid var(--line); border-left: 4px solid var(--approved); border-radius: 6px; background: var(--panel-2); font-size: .84rem; }
+.drawer-result.partial { border-left-color: var(--pending); }
+.drawer-result.failed { border-left-color: var(--alert-line); }
+.drawer-result p { margin: .2rem 0; }
+.partial-list { display: grid; gap: .3rem; margin: .4rem 0; padding: 0; list-style: none; }
+.partial-list li { display: flex; align-items: center; justify-content: space-between; gap: .45rem; padding: .28rem .45rem; border: 1px solid var(--edge); border-radius: 5px; background: var(--panel); }
 .cell-summary dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .2rem .75rem; margin: .35rem 0; }
 .cell-summary dd { font-variant-numeric: tabular-nums; }
 .cell-cohorts { margin-top: .55rem; }
@@ -1464,8 +1577,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .ref-sub { display: none; }
   .key-facts dt { font-size: .62rem; }
   #add-caption { font-size: .72rem; }
-  .view-tab { padding: .25rem .5rem; font-size: .84rem; }
-  .mode-btn, .overlay-select { min-height: 32px; font-size: .78rem; padding: .15rem .5rem; }
+  .workspace-head { gap: .25rem .45rem; }
+  .map-subtitle { font-size: .76rem; }
+  .announce { flex: 1 1 2rem; }
+  .view-tab { padding: .25rem .42rem; font-size: .8rem; }
+  .mode-btn { min-height: 32px; font-size: .74rem; padding: .15rem .44rem; }
+  .overlay-select { min-height: 32px; font-size: .74rem; padding: .15rem .4rem; }
   .ref-card { padding: .55rem .8rem .45rem; }
   .competition { padding: .45rem .8rem .1rem; }
   .add-form { padding: .4rem .8rem .5rem; }
@@ -1543,13 +1660,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 """;
 
     internal const string Js = """
-// Two-area Stand Map (Pass 1 Map Integration, spec multi-map-integration-pass1-v1).
-// Presentation authority (D-020): this script computes zero forestry, canopy, light, RD, DBH->radius or pruning rules.
+// Two-area Stand Map (Pass 2 Map Integration, spec multi-map-integration-pass2-v1).
+// Presentation authority (D-020): this script computes zero forestry, spacing, canopy, light, RD, DBH->radius or pruning rules.
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 'use strict';
 
 (function () {
   const SVG_NS = 'http://www.w3.org/2000/svg';
+  const SPOT_PREVIEW_RADIUS_M = Math.sqrt(1 / Math.PI); // visual radius (~0.564 m) for ~1 m2 Spot Clear circle preview
   const STATUS_LABEL = { Living: 'StatusLiving', PendingFell: 'StatusPendingFell', ApprovedFell: 'StatusApprovedFell',
     Felled: 'StatusFelled', NaturalDead: 'StatusNaturalDead' };
   const SPECIES_NAME = { 'sitka-spruce': 'Sitka spruce', 'sessile-oak': 'Sessile oak', beech: 'European beech' };
@@ -1560,7 +1678,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
   const PANE_NAMES = { tree: 'Tree', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
   const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
-    'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove'];
+    'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove',
+    'cell-clear-add', 'cell-clear-remove', 'plant-queue', 'spot-queue', 'pj-shelter-add', 'pj-shelter-remove'];
   const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
   const LIGHT_EASE = 0.65;
   const LIGHT_ALPHA_MAX = 0.9;
@@ -1581,6 +1700,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     ecology: null,
     areaId: null,
     selected: {},
+    selectedJuvenile: null, // { areaId, juvenileId } when inspecting a planted sapling in Select Tree mode
     drafts: {},
     draftNotice: null,
     overlap: null,
@@ -1589,6 +1709,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     competitionTag: null,
     competitionRequest: 0,
     busy: false,
+    queueRunning: false,
     mapPick: 0,
     cellPick: 0,
     batchResultOpen: false,
@@ -1604,10 +1725,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     zoom: 1,
     centre: null,
     legendHidden: false,
-    mapMode: 'tree', // 'tree' (Select Tree, default, crown wins) | 'cell' (Inspect Cell, swaps right inspector)
+    mapMode: 'tree', // 'tree' | 'cell' | 'plant' | 'spot'
     overlay: 'off', // 'off' | 'light' | 'undergrowth' | 'seedlings'
     cellDetail: null, // server cell detail from POST api/multi/cell, or { areaId, missing: true }
     cellLoading: false,
+    plantDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
+    plantResult: null, // sequential Plant -> Shelter -> SpotClear queue result + partial disclosure
+    spotDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
+    spotResult: null,
   };
 
   const byId = (id) => document.getElementById(id);
@@ -1753,6 +1878,35 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
   function pendingPrunes() { return state.stage4 ? state.stage4.pendingPrunes : []; }
   function approvedPrunes() { return state.stage4 ? state.stage4.approvedPrunes : []; }
+  function pendingClears() { return state.ecology ? (state.ecology.pendingClear || []) : []; }
+  function approvedClears() { return state.ecology ? (state.ecology.approvedClear || []) : []; }
+  function pendingPlantings() { return state.ecology ? (state.ecology.pendingPlanting || []) : []; }
+  function approvedPlantings() { return state.ecology ? (state.ecology.approvedPlanting || []) : []; }
+  function worldFromMap(area, u, v) {
+    return { xM: area.extent.minXM + u, zM: area.extent.minZM + area.extent.sideM - v };
+  }
+  function plantedIn(areaId) {
+    return state.ecology ? (state.ecology.planted || []).filter((j) => j.areaId === areaId) : [];
+  }
+  function juvenileById(juvenileId) {
+    return state.ecology && juvenileId ? (state.ecology.planted || []).find((j) => j.juvenileId === juvenileId) || null : null;
+  }
+  function currentJuvenile() {
+    const sel = state.selectedJuvenile;
+    if (!sel || sel.areaId !== state.areaId) return null;
+    const j = juvenileById(sel.juvenileId);
+    return j && j.areaId === state.areaId ? j : null;
+  }
+  function shelterForJuvenile(j) {
+    if (!state.ecology || !j) return null;
+    const list = (state.ecology.shelters || []).filter((s) => s.juvenileId === j.juvenileId);
+    return list.find((s) => s.isEffective) || list[list.length - 1] || null;
+  }
+  function matchingShelterOrder(orders, j) {
+    if (!j) return null;
+    return orders.find((o) => o.kind === 'Shelter' && o.areaId === j.areaId &&
+      Math.abs(o.xm - j.xm) < 1e-4 && Math.abs(o.zm - j.zm) < 1e-4) || null;
+  }
   function isStage4() { return Boolean(state.stage4 && state.stage4.models.adultModelVersion === 1); }
   function isPhase2() { return Boolean(state.ecology && state.ecology.models && state.ecology.models.species === 1); }
   function readoutState() { return !state.stage4 ? 'unavailable' : isPhase2() ? 'phase2' : isStage4() ? 'stage4' : 'legacy'; }
@@ -1878,6 +2032,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         !groundCell(state.cellDetail.areaId, state.cellDetail.column, state.cellDetail.row)) {
       state.cellDetail = null;
     }
+    if (state.selectedJuvenile && !juvenileById(state.selectedJuvenile.juvenileId)) {
+      state.selectedJuvenile = null;
+    }
     if (!areaView(state.areaId)) state.areaId = state.view.areas.length > 0 ? state.view.areas[0].areaId : null;
     for (const areaId of Object.keys(state.selected)) {
       if (!treeIn(areaId, state.selected[areaId])) delete state.selected[areaId];
@@ -1962,6 +2119,30 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         return label('MultiCropFellRefused') + '.';
       case 'ContinuationNoLivingStems':
         return 'Every area has no living tree, so there is no year to advance.';
+      case 'Phase2CoordinatesInvalid':
+        return 'Choose a finite map point inside the area polygon and try again.';
+      case 'Phase2PointOutsideArea':
+        return 'Pick a point strictly inside the active area boundary and try again.';
+      case 'Phase2PointWithoutGroundCell':
+        return 'That edge sliver has no modelled 2.5 m ground cell. Choose a point further inside the area.';
+      case 'Phase2DuplicateOrder':
+        return 'An order of this kind is already queued at that exact point. Remove the existing order or pick a different point.';
+      case 'Phase2SpeciesUnknown':
+        return 'Choose Sessile Oak (sessile-oak) or European Beech (beech) and try again.';
+      case 'PlantSpacingTooClose':
+        return 'Choose a planting point further away from existing planted saplings or queued Plant orders.';
+      case 'PlantTooCloseToAdult':
+        return 'Choose a planting point further away from living adult stems.';
+      case 'ShelterNoTarget':
+        return 'A shelter requires a living planted sapling (PJ) or a queued Plant order at that point.';
+      case 'ShelterAlreadyPresent':
+        return 'An active or queued shelter already protects that point.';
+      case 'ClearCellNotInArea':
+        return 'Choose an in-polygon 2.5 m ground cell of the active area.';
+      case 'ClearDuplicateCell':
+        return 'That ground cell is already queued for ClearUndergrowth.';
+      case 'UnknownWorkOrder':
+        return 'That pending order is no longer in the Work Plan. Review the current Work Plan.';
       default:
         return 'Review the current view, then choose again.';
     }
@@ -2021,17 +2202,31 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
 
   function renderCommandGate() {
-    const blocked = state.lock !== null || state.batch !== null;
-    for (const id of COMMAND_IDS) byId(id).disabled = blocked;
+    const blocked = state.lock !== null || state.batch !== null || state.queueRunning;
+    const planLocked = Boolean(state.view && state.view.approved);
+    for (const id of COMMAND_IDS) {
+      const node = byId(id);
+      if (node) node.disabled = blocked;
+    }
     if (readoutState() === 'unavailable') for (const id of ['approve', 'execute', 'execute-confirm']) byId(id).disabled = true;
     for (const button of document.querySelectorAll('[data-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-prune-remove]')) button.disabled = blocked;
-    if (!blocked) renderPruneGate();
-    byId('add-button').disabled = state.batch !== null || !addAvailability().ok;
-    byId('draft-clear').disabled = state.batch !== null || draftOf(state.areaId).length === 0;
-    byId('reread').disabled = state.batch !== null;
+    for (const button of document.querySelectorAll('[data-clear-remove]')) button.disabled = blocked;
+    for (const button of document.querySelectorAll('[data-planting-remove]')) button.disabled = blocked;
+    if (!blocked) {
+      renderPruneGate();
+      byId('cell-clear-add').disabled = planLocked || !isPhase2();
+      byId('cell-clear-remove').disabled = planLocked;
+      byId('plant-queue').disabled = planLocked || !isPhase2() || !state.plantDraft || state.plantDraft.areaId !== state.areaId;
+      byId('spot-queue').disabled = planLocked || !isPhase2() || !state.spotDraft || state.spotDraft.areaId !== state.areaId;
+      byId('pj-shelter-add').disabled = planLocked || !isPhase2();
+      byId('pj-shelter-remove').disabled = planLocked;
+    }
+    byId('add-button').disabled = state.batch !== null || state.queueRunning || !addAvailability().ok;
+    byId('draft-clear').disabled = state.batch !== null || state.queueRunning || draftOf(state.areaId).length === 0;
+    byId('reread').disabled = state.batch !== null || state.queueRunning;
     for (const button of document.querySelectorAll('[data-area]')) {
-      if (button.classList.contains('area-tab')) button.disabled = state.batch !== null;
+      if (button.classList.contains('area-tab')) button.disabled = state.batch !== null || state.queueRunning;
     }
   }
 
@@ -2063,6 +2258,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       orders: plan.orders.map((order) => ({ areaId: order.areaId, treeId: order.treeId, reason: order.reason })),
       prunes: approvedPrunes().map((order) => ({ areaId: order.areaId, treeId: order.treeId,
         targetCrownBaseHeightM: order.targetCrownBaseHeightM })),
+      clears: approvedClears().map((order) => ({ areaId: order.areaId, column: order.column, row: order.row })),
+      plantings: approvedPlantings().map((order) => ({ orderId: order.orderId, kind: order.kind, areaId: order.areaId,
+        speciesId: order.speciesId || null, xm: order.xm, zm: order.zm })),
     });
   }
 
@@ -2078,7 +2276,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       plan.executionKey === confirmation.executionKey && plan.orders.length === confirmation.orders.length &&
       plan.orders.every((order, index) => order.areaId === confirmation.orders[index].areaId &&
         order.treeId === confirmation.orders[index].treeId && order.reason === confirmation.orders[index].reason) &&
-      samePrunes(confirmation.prunes);
+      samePrunes(confirmation.prunes) && sameClears(confirmation.clears) && samePlantings(confirmation.plantings);
   }
 
   function samePrunes(frozenPrunes) {
@@ -2088,14 +2286,31 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       order.treeId === frozenPrunes[index].treeId && order.targetCrownBaseHeightM === frozenPrunes[index].targetCrownBaseHeightM);
   }
 
+  function sameClears(frozenClears) {
+    if (frozenClears.length > 0 && !state.ecology) return false;
+    const now = approvedClears();
+    return now.length === frozenClears.length && now.every((o, i) => o.areaId === frozenClears[i].areaId &&
+      o.column === frozenClears[i].column && o.row === frozenClears[i].row);
+  }
+
+  function samePlantings(frozenPlantings) {
+    if (frozenPlantings.length > 0 && !state.ecology) return false;
+    const now = approvedPlantings();
+    return now.length === frozenPlantings.length && now.every((o, i) => o.orderId === frozenPlantings[i].orderId &&
+      o.kind === frozenPlantings[i].kind && o.areaId === frozenPlantings[i].areaId);
+  }
+
   function withdrawConfirmation(confirmation) {
     state.confirmation = null;
     const dialog = byId('execute-dialog');
     if (dialog.open) dialog.close();
     const unpaired = readoutState() === 'unavailable';
+    const names = confirmation.orders.concat(confirmation.prunes).map((order) => order.treeId)
+      .concat(confirmation.clears.map((c) => 'Cell(' + c.column + ',' + c.row + ')'))
+      .concat(confirmation.plantings.map((p) => p.orderId));
     lockCommands(unpaired ? 'Confirmation withdrawn — the read-out of this view is unavailable' : 'Confirmation withdrawn — the approved plan changed',
-      'The Execute confirmation showed ' + (confirmation.orders.concat(confirmation.prunes).map((order) => order.treeId).join(', ') || 'no orders') +
-      '. ' + (unpaired ? 'The view that has just arrived came without its engine read-out, so its Prune orders cannot be checked'
+      'The Execute confirmation showed ' + (names.join(', ') || 'no orders') +
+      '. ' + (unpaired ? 'The view that has just arrived came without its engine read-out, so its orders cannot be checked'
         : 'The view that has just arrived no longer shows that plan with that fence') + ', so nothing was sent. Review the plan now ' +
       'shown, then choose Re-read; after a successful re-read you can choose Execute again.');
   }
@@ -2113,6 +2328,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     renderMap();
     renderOverlap();
     renderCellInspector();
+    renderPlantDrawer();
+    renderSpotDrawer();
+    renderJuvenileInspector();
     renderInspector();
     renderCompetition();
     renderBatchResult();
@@ -2159,14 +2377,20 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       areaReadouts(area.areaId))));
     const approved = view.approved ? view.approved.orders.length : 0;
     const approvedP = approvedPrunes().length;
+    const approvedC = approvedClears().length;
+    const approvedPl = approvedPlantings();
     const pendingP = pendingPrunes().length;
+    const pendingC = pendingClears().length;
+    const pendingPl = pendingPlantings();
+    const totalApproved = approved + approvedP + approvedC + approvedPl.length;
+    const totalPending = view.pending.length + pendingP + pendingC + pendingPl.length;
     const drafts = draftTotal();
-    byId('plan-summary').textContent = approved + approvedP > 0
-      ? [approved > 0 ? plural(approved, 'approved Fell', 'approved Fell') : '', approvedP > 0 ? approvedP + ' approved Prune' : ''].filter(Boolean).join(' · ')
-      : view.pending.length + pendingP > 0
-        ? [view.pending.length > 0 ? view.pending.length + ' pending Fell' : '', pendingP > 0 ? pendingP + ' pending Prune' : ''].filter(Boolean).join(' · ')
+    byId('plan-summary').textContent = totalApproved > 0
+      ? workTotals(approved, approvedP, approvedC, approvedPl) + ' approved'
+      : totalPending > 0
+        ? workTotals(view.pending.length, pendingP, pendingC, pendingPl) + ' pending'
         : 'No queued work';
-    byId('plan-summary-sub').textContent = [approved + approvedP > 0 ? 'nothing done yet' : view.pending.length + pendingP > 0 ? 'not approved' : '',
+    byId('plan-summary-sub').textContent = [totalApproved > 0 ? 'nothing executed yet' : totalPending > 0 ? 'not approved' : '',
       drafts > 0 ? plural(drafts, 'draft choice', 'draft choices') : ''].filter(Boolean).join(' · ');
     byId('notice-line').textContent = badgeText + ' · Site unknown · Modelled light · not calibrated PAR';
     const readout = readoutState();
@@ -2219,15 +2443,24 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
 
   function renderModeAndOverlayControls() {
-    const isCell = state.mapMode === 'cell';
-    byId('mode-tree').setAttribute('aria-pressed', String(!isCell));
-    byId('mode-cell').setAttribute('aria-pressed', String(isCell));
-    byId('map-pane').classList.toggle('cell-mode', isCell);
+    const mode = state.mapMode;
+    byId('mode-tree').setAttribute('aria-pressed', String(mode === 'tree'));
+    byId('mode-cell').setAttribute('aria-pressed', String(mode === 'cell'));
+    byId('mode-plant').setAttribute('aria-pressed', String(mode === 'plant'));
+    byId('mode-spot').setAttribute('aria-pressed', String(mode === 'spot'));
+    const pane = byId('map-pane');
+    pane.classList.toggle('cell-mode', mode === 'cell');
+    pane.classList.toggle('plant-mode', mode === 'plant');
+    pane.classList.toggle('spot-mode', mode === 'spot');
     const sel = byId('overlay-select');
     if (sel.value !== state.overlay) sel.value = state.overlay;
-    // Explicit swap of the right-hand inspector body: Inspect Cell hides #tree-panel and shows #cell-panel (never stacks).
-    byId('cell-panel').hidden = !isCell;
-    byId('tree-panel').hidden = isCell;
+    // Explicit swap of the right-hand inspector body: exactly ONE panel is visible at a time (never stacks).
+    const showPj = mode === 'tree' && currentJuvenile() !== null;
+    byId('cell-panel').hidden = mode !== 'cell';
+    byId('plant-panel').hidden = mode !== 'plant';
+    byId('spot-panel').hidden = mode !== 'spot';
+    byId('juvenile-panel').hidden = !showPj;
+    byId('tree-panel').hidden = mode !== 'tree' || showPj;
   }
 
   function areaThumb(area) {
@@ -2246,7 +2479,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const view = state.view;
     byId('area-switch').replaceChildren(...view.areas.map((area) => {
       const inPlan = ordersIn(view.pending, area.areaId).length + (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0) +
-        ordersIn(pendingPrunes(), area.areaId).length + ordersIn(approvedPrunes(), area.areaId).length;
+        ordersIn(pendingPrunes(), area.areaId).length + ordersIn(approvedPrunes(), area.areaId).length +
+        ordersIn(pendingClears(), area.areaId).length + ordersIn(approvedClears(), area.areaId).length +
+        ordersIn(pendingPlantings(), area.areaId).length + ordersIn(approvedPlantings(), area.areaId).length;
       return el('button', { type: 'button', class: 'area-tab', 'data-area': area.areaId, 'data-focus-key': 'area:' + area.areaId,
         'aria-pressed': String(area.areaId === state.areaId) },
         areaThumb(area),
@@ -2516,11 +2751,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     renderSpotPatches(area.areaId);
     renderDeadwoodLayer(area.areaId, mpp);
     renderPlantedLayer(area.areaId, mpp);
+    renderDraftPreview(area.areaId, mpp);
     renderGroundMark(area.areaId);
     byId('marks').replaceChildren(...marks);
     renderRankLayer(ranks, box);
 
-    const chosen = inTreeMode && selectedId() ? items.get(selectedId()) : null;
+    const chosen = inTreeMode && !currentJuvenile() && selectedId() ? items.get(selectedId()) : null;
     const lit = chosen && !state.lock ? (chosen.treeId === reference ? referenceMarks(chosen, mpp, true) : inspectMarks(chosen, mpp, true)) : [];
     byId('selection').replaceChildren(...lit);
 
@@ -2615,9 +2851,21 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     for (const p of (state.ecology.patches || [])) {
       if (p.areaId !== areaId) continue;
       const r = p.radiusM;
-      nodes.push(svg('use', { href: '#ccf-spot-clear', 'data-patch-id': p.patchId,
+      nodes.push(svg('use', { href: '#ccf-spot-clear', 'data-patch-id': p.patchId, 'data-radius-m': n3(r),
         x: n3(p.u - r), y: n3(p.v - r), width: n3(2 * r), height: n3(2 * r) }));
     }
+    const drawQueuedSpot = (orders, cls, stateTag) => {
+      for (const o of orders) {
+        if (o.areaId !== areaId || o.kind !== 'SpotClear') continue;
+        const r = SPOT_PREVIEW_RADIUS_M;
+        const g = svg('g', { 'data-spot-order': o.orderId, 'data-order-state': stateTag });
+        g.append(svg('title', null, o.orderId + ' · ' + stateTag + ' SpotClear (~1 m², r ≈ 0.564 m, no seedling)'));
+        g.append(svg('circle', { class: cls, cx: n3(o.u), cy: n3(o.v), r: n3(r) }));
+        nodes.push(g);
+      }
+    };
+    drawQueuedSpot(pendingPlantings(), 'spot-order-pending', 'Pending');
+    drawQueuedSpot(approvedPlantings(), 'spot-order-approved', 'Approved');
     host.replaceChildren(...nodes);
   }
 
@@ -2636,27 +2884,85 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     host.replaceChildren(...nodes);
   }
 
-  // Planted juveniles (PJ) and active/expired shelters in their own layer ABOVE SpotClear patches.
+  // Planted juveniles (PJ), active/expired shelters, and queued Plant/Shelter orders ABOVE SpotClear patches.
   function renderPlantedLayer(areaId, mpp) {
     const host = byId('planted-layer');
     if (!state.ecology) { host.replaceChildren(); return; }
     const nodes = [];
     const sSize = Math.max(0.75, 18 * mpp);
+    const selectedPj = currentJuvenile();
     for (const j of (state.ecology.planted || [])) {
       if (j.areaId !== areaId || !j.isActive) continue;
       const sym = SAPLING_SYMBOL[j.speciesId] || 'ccf-sapling-oak';
-      const g = svg('g', { class: 'planted-pj', 'data-juvenile-id': j.juvenileId });
-      g.append(svg('title', null, j.juvenileId + ' · ' + speciesLabel(j.speciesId) + ' planted sapling, H ' + fixed(j.heightM, 2) + ' m'));
+      const g = svg('g', { class: 'planted-pj', 'data-juvenile-id': j.juvenileId, 'data-species': j.speciesId });
+      g.append(svg('title', null, j.juvenileId + ' · ' + speciesLabel(j.speciesId) + ' planted sapling, H ' + fixed(j.heightM, 2) + ' m (click to inspect)'));
+      g.append(svg('circle', { class: 'pj-hit', cx: n3(j.u), cy: n3(j.v), r: n3(Math.max(0.45, sSize * 0.6)) }));
       g.append(svg('use', { href: '#' + sym, x: n3(j.u - sSize / 2), y: n3(j.v - sSize / 2), width: n3(sSize), height: n3(sSize) }));
+      if (selectedPj && selectedPj.juvenileId === j.juvenileId) {
+        g.append(svg('circle', { class: 'pj-selected-ring', cx: n3(j.u), cy: n3(j.v), r: n3(sSize * 0.65) }));
+      }
       nodes.push(g);
     }
     const shSize = Math.max(0.95, 22 * mpp);
     for (const sh of (state.ecology.shelters || [])) {
       if (sh.areaId !== areaId) continue;
       const sym = sh.isEffective ? 'ccf-shelter-active' : 'ccf-shelter-expired';
-      const g = svg('g', { class: 'shelter-mark', 'data-shelter-id': sh.shelterId, 'data-effective': String(sh.isEffective) });
+      const g = svg('g', { class: 'shelter-mark', 'data-shelter-id': sh.shelterId, 'data-juvenile-target': sh.juvenileId,
+        'data-effective': String(sh.isEffective) });
       g.append(svg('title', null, sh.shelterId + ' (' + (sh.isEffective ? 'Active shelter · expires year ' + sh.expiryYear : 'Expired shelter · expired year ' + sh.expiryYear) + ')'));
       g.append(svg('use', { href: '#' + sym, x: n3(sh.u - shSize / 2), y: n3(sh.v - shSize / 2), width: n3(shSize), height: n3(shSize) }));
+      nodes.push(g);
+    }
+    const qSize = Math.max(0.75, 18 * mpp);
+    const drawQueuedPlanting = (orders, approved) => {
+      const ringCls = approved ? 'plant-order-ring-approved' : 'plant-order-ring-pending';
+      const prefix = approved ? '✓' : '◷';
+      const stateWord = approved ? 'Approved' : 'Pending';
+      for (const o of orders) {
+        if (o.areaId !== areaId || o.kind === 'SpotClear') continue;
+        const iconId = o.kind === 'Plant' ? 'ccf-action-plant' : 'ccf-action-shelter';
+        const dx = o.kind === 'Shelter' ? qSize * 0.42 : 0;
+        const g = svg('g', { 'data-planting-order': o.orderId, 'data-order-kind': o.kind, 'data-order-state': stateWord });
+        g.append(svg('title', null, o.orderId + ' · ' + prefix + ' ' + stateWord + ' ' + o.kind +
+          (o.speciesId ? ' (' + speciesLabel(o.speciesId) + ')' : '')));
+        g.append(svg('circle', { class: ringCls, cx: n3(o.u + dx), cy: n3(o.v), r: n3(qSize * 0.56) }));
+        g.append(svg('use', { href: '#' + iconId, x: n3(o.u + dx - qSize * 0.44), y: n3(o.v - qSize * 0.44),
+          width: n3(qSize * 0.88), height: n3(qSize * 0.88) }));
+        nodes.push(g);
+      }
+    };
+    drawQueuedPlanting(pendingPlantings(), false);
+    drawQueuedPlanting(approvedPlantings(), true);
+    host.replaceChildren(...nodes);
+  }
+
+  // Provisional local Draft previews (dashed slate outline, snap OFF, zero engine order).
+  function renderDraftPreview(areaId, mpp) {
+    const host = byId('draft-preview');
+    const nodes = [];
+    const arm = Math.max(0.32, 7 * mpp);
+    if (state.mapMode === 'plant' && state.plantDraft && state.plantDraft.areaId === areaId) {
+      const d = state.plantDraft;
+      const wantSpot = Boolean(byId('plant-opt-spot') && byId('plant-opt-spot').checked);
+      const wantShelter = Boolean(byId('plant-opt-shelter') && byId('plant-opt-shelter').checked);
+      const g = svg('g', { id: 'draft-plant-preview', 'data-draft-kind': 'plant' });
+      if (wantSpot) {
+        g.append(svg('circle', { class: 'draft-ring', 'data-draft-spot-ring': 'true', cx: n3(d.u), cy: n3(d.v), r: n3(SPOT_PREVIEW_RADIUS_M) }));
+      }
+      g.append(svg('circle', { class: 'draft-ring', cx: n3(d.u), cy: n3(d.v), r: n3(Math.max(0.28, 8 * mpp)) }));
+      g.append(svg('path', { class: 'draft-cross', d: 'M ' + n3(d.u - arm) + ' ' + n3(d.v) + ' L ' + n3(d.u + arm) + ' ' + n3(d.v) +
+        ' M ' + n3(d.u) + ' ' + n3(d.v - arm) + ' L ' + n3(d.u) + ' ' + n3(d.v + arm) }));
+      const labelText = 'Draft Plant' + (wantShelter ? ' + Shelter' : '') + (wantSpot ? ' + Spot' : '');
+      g.append(svg('text', { class: 'draft-label', x: n3(d.u), y: n3(d.v - Math.max(0.75, 15 * mpp)), 'font-size': n3(Math.max(0.45, 10 * mpp)) }, labelText));
+      nodes.push(g);
+    } else if (state.mapMode === 'spot' && state.spotDraft && state.spotDraft.areaId === areaId) {
+      const d = state.spotDraft;
+      const g = svg('g', { id: 'draft-spot-preview', 'data-draft-kind': 'spot' });
+      // Seedling-free 0.564 m circular preview at exact (X, Z)
+      g.append(svg('circle', { class: 'draft-ring', 'data-draft-spot-ring': 'true', cx: n3(d.u), cy: n3(d.v), r: n3(SPOT_PREVIEW_RADIUS_M) }));
+      g.append(svg('path', { class: 'draft-cross', d: 'M ' + n3(d.u - arm * 0.6) + ' ' + n3(d.v) + ' L ' + n3(d.u + arm * 0.6) + ' ' + n3(d.v) +
+        ' M ' + n3(d.u) + ' ' + n3(d.v - arm * 0.6) + ' L ' + n3(d.u) + ' ' + n3(d.v + arm * 0.6) }));
+      g.append(svg('text', { class: 'draft-label', x: n3(d.u), y: n3(d.v - Math.max(0.75, 15 * mpp)), 'font-size': n3(Math.max(0.45, 10 * mpp)) }, 'Draft Spot Clear (~1 m²)'));
       nodes.push(g);
     }
     host.replaceChildren(...nodes);
@@ -2728,9 +3034,15 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const view = state.view;
     let text = '';
     if (state.mapMode === 'cell') text = 'Inspect Cell mode: click any 2.5 m cell inside the area · Esc returns to Select Tree (draft Fell ticks kept)';
+    else if (state.mapMode === 'plant') text = 'Plant mode (snap OFF): click map for provisional Draft preview · Esc returns to Select Tree (draft Fell ticks kept)';
+    else if (state.mapMode === 'spot') text = 'Spot Clear mode (snap OFF): click map for seedling-free 0.564 m Draft preview · Esc returns to Select Tree (draft Fell ticks kept)';
     else if (state.batch) text = 'Adding ' + (state.batch.confirmed.length + 1) + ' of ' + state.batch.ids.length + ' to the Fell plan…';
-    else if (view.approved && approvedPrunes().length > 0) text = workTotals(view.approved.orders.length, approvedPrunes().length) + ' approved · nothing done yet';
-    else if (view.approved) text = plural(view.approved.orders.length, 'approved Fell', 'approved Fell') + ' · still standing';
+    else if (state.queueRunning) text = 'Queueing planting Work Plan orders in sequence…';
+    else if (view.approved) {
+      const summary = workTotals(view.approved.orders.length, approvedPrunes().length, approvedClears().length, approvedPlantings());
+      text = summary + ' approved · nothing executed yet';
+    }
+    else if (currentJuvenile()) text = 'Sapling ' + currentJuvenile().juvenileId + ' · ' + speciesLabel(currentJuvenile().speciesId);
     else if (reference) text = 'Reference ' + reference + ' · ' + plural(drafts, 'draft choice', 'draft choices');
     box.hidden = text === '';
     box.textContent = text;
@@ -2891,25 +3203,29 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       : [underline(item, 'ring-approved', mpp, 4), underline(item, 'ring-approved', mpp, 8), badge(item, TILE.status, '✓✂', 'approved', mpp)];
   }
 
-  // ---- Inspect Cell mode (POST api/multi/cell) ------------------------------------------------------------------------
+  // ---- Interactive modes: Inspect Cell, Plant, Spot Clear, and PJ Sapling inspection ----------------------------------
 
   function setMapMode(mode, moveFocus) {
-    if (mode !== 'tree' && mode !== 'cell') return;
+    if (!['tree', 'cell', 'plant', 'spot'].includes(mode)) return;
     if (state.mapMode === mode) return;
     state.mapMode = mode;
-    if (mode === 'tree') {
-      state.cellPick += 1;
-      state.cellLoading = false;
-    }
+    state.cellPick += 1;
+    state.cellLoading = false;
+    if (mode !== 'plant') state.plantDraft = null;
+    if (mode !== 'spot') state.spotDraft = null;
     showPane('tree');
+    byId('pane-tree').scrollTop = 0;
     renderAll();
     if (moveFocus) {
-      if (mode === 'cell') byId('cell-heading').focus();
-      else byId('mode-tree').focus();
+      byId('mode-' + mode).focus();
     }
-    announce(mode === 'cell'
-      ? 'Inspect Cell mode active: click any 2.5 m cell inside the area to inspect light, undergrowth and natural cohorts. Draft Fell ticks are preserved; press Escape to return.'
-      : 'Select Tree mode active: clicking a crown selects that tree. Draft Fell ticks preserved.');
+    const msgs = {
+      tree: 'Select Tree mode active: clicking a crown or planted sapling inspects it. Draft Fell ticks preserved.',
+      cell: 'Inspect Cell mode active: click any 2.5 m cell inside the area to inspect or queue ClearUndergrowth. Draft Fell ticks preserved; press Escape to return.',
+      plant: 'Plant mode active (snap OFF): click any point on the map for a provisional Draft preview, then Queue to Work Plan. Draft Fell ticks preserved; press Escape to return.',
+      spot: 'Spot Clear mode active (snap OFF): click any point on the map for a provisional seedling-free 0.564 m preview, then Queue Spot Clear. Draft Fell ticks preserved; press Escape to return.',
+    };
+    announce(msgs[mode]);
   }
 
   function setOverlay(value) {
@@ -2973,12 +3289,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function renderCellInspector() {
     if (state.mapMode !== 'cell') return;
+    const actionsBox = byId('cell-actions');
     const summaryBox = byId('cell-summary');
     const cohortsBox = byId('cell-cohorts');
     const treesBox = byId('cell-trees');
     const techBox = byId('cell-tech');
     if (state.cellLoading) {
       byId('cell-heading').textContent = 'Reading cell detail…';
+      actionsBox.hidden = true;
       summaryBox.replaceChildren(el('p', { class: 'small-note' }, 'Querying server cell state (read-only)…'));
       cohortsBox.replaceChildren();
       treesBox.hidden = true;
@@ -2988,9 +3306,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const c = state.cellDetail && state.cellDetail.areaId === state.areaId ? state.cellDetail : null;
     if (!c) {
       byId('cell-heading').textContent = areaName(state.areaId) + ' · choose a 2.5 m cell';
+      actionsBox.hidden = true;
       summaryBox.replaceChildren(
-        el('p', null, 'Click any spot inside ' + areaName(state.areaId) + ' to fetch full read-only cell detail via POST api/multi/cell.'),
-        el('p', { class: 'small-note' }, 'Read-only: draft Fell ticks and Work Plan are unchanged. Press Escape or Exit cell mode to return to Select Tree.'));
+        el('p', null, 'Click any spot inside ' + areaName(state.areaId) + ' to fetch cell detail via POST api/multi/cell and optionally queue ClearUndergrowth.'),
+        el('p', { class: 'small-note' }, 'Inspecting is read-only: draft Fell ticks and Work Plan are unchanged. Press Escape or Exit cell mode to return to Select Tree.'));
       cohortsBox.replaceChildren();
       treesBox.hidden = true;
       techBox.hidden = true;
@@ -2998,6 +3317,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     }
     if (c.missing) {
       byId('cell-heading').textContent = areaName(state.areaId) + ' · outside cells';
+      actionsBox.hidden = true;
       summaryBox.replaceChildren(el('p', null, 'No in-polygon 2.5 m cell at that point. No value is shown or estimated.'));
       cohortsBox.replaceChildren();
       treesBox.hidden = true;
@@ -3005,13 +3325,32 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       return;
     }
 
+    const hasPendingClear = pendingClears().some((o) => o.areaId === c.areaId && o.column === c.column && o.row === c.row);
+    const hasApprovedClear = approvedClears().some((o) => o.areaId === c.areaId && o.column === c.column && o.row === c.row);
+    const planLocked = Boolean(state.view && state.view.approved);
+    actionsBox.hidden = false;
+    byId('cell-clear-add').hidden = hasPendingClear || hasApprovedClear;
+    byId('cell-clear-remove').hidden = !hasPendingClear;
+    byId('cell-clear-status').textContent = hasPendingClear
+      ? 'Pending ClearUndergrowth in Work Plan (zero undergrowth cleared yet).'
+      : hasApprovedClear
+        ? 'Approved ClearUndergrowth awaiting Execute (cancel the approved plan to edit).'
+        : planLocked
+          ? 'The plan is approved, so editing is locked. Cancel the approved plan to change it.'
+          : 'Whole 2.5 m cell selective clear (bramble & bracken to 0 on Execute; spares seedlings).';
+
     byId('cell-heading').textContent = areaName(c.areaId) + ' · cell (' + c.column + ', ' + c.row + ')';
     const paint = lightPaint(c.lightIndex);
     const swatch = svg('svg', { class: 'ground-swatch', viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' });
     swatch.append(svg('rect', { width: 10, height: 10, fill: 'rgb(' + SLATE.join(',') + ')' }));
     if (paint) swatch.append(svg('rect', { width: 10, height: 10, fill: paint.colour, 'fill-opacity': paint.opacity }));
-    const clearLabel = c.hasPendingClear ? 'Pending ClearUndergrowth (Whole 2.5 m cell · spares seedlings)'
-      : c.hasApprovedClear ? 'Approved ClearUndergrowth (Whole 2.5 m cell · spares seedlings)' : 'None';
+    const clearLabel = hasPendingClear ? 'Pending ClearUndergrowth (Whole 2.5 m cell · spares seedlings)'
+      : hasApprovedClear ? 'Approved ClearUndergrowth (Whole 2.5 m cell · spares seedlings)' : 'None';
+
+    // Sync live bramble/bracken from compact cells when available so post-Execute clearing reflects immediately.
+    const compactRow = compactCellsFor(c.areaId).get(c.column + ':' + c.row);
+    const liveBramble = compactRow ? compactRow[4] : c.bramble;
+    const liveBracken = compactRow ? compactRow[5] : c.bracken;
 
     summaryBox.replaceChildren(
       el('p', { class: 'ground-level' }, swatch, lightWord(c.lightIndex)),
@@ -3019,8 +3358,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       el('dl', null,
         el('dt', null, 'Light index'), el('dd', null, lightIndexText(c.lightIndex) + ' (0–1 modelled)'),
         el('dt', null, 'Canopy cover'), el('dd', null, pct(c.geometricCoveredFraction)),
-        el('dt', null, 'Bramble cover'), el('dd', null, c.bramble === null ? 'not modelled' : pct1(c.bramble)),
-        el('dt', null, 'Bracken cover'), el('dd', null, c.bracken === null ? 'not modelled' : pct1(c.bracken)),
+        el('dt', null, 'Bramble cover'), el('dd', null, liveBramble === null ? 'not modelled' : pct1(liveBramble)),
+        el('dt', null, 'Bracken cover'), el('dd', null, liveBracken === null ? 'not modelled' : pct1(liveBracken)),
         el('dt', null, 'Browse pressure'), el('dd', null, c.browsePressure === null ? 'not modelled' : fixed(c.browsePressure, 2)),
         el('dt', null, 'Clear state'), el('dd', null, clearLabel)));
 
@@ -3052,7 +3391,164 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       pair('Cell centre', 'X ' + fixed(c.centreXM, 2) + ' m east, Z ' + fixed(c.centreZM, 2) + ' m north'),
       pair('Cross-border trees', String(c.crossBorderTrees)),
       pair('Polygon vertices', String((c.polygon || []).length)));
-    byId('cell-caveat').textContent = 'Modelled light · not calibrated PAR. Read-only inspection; zero state or revision change.';
+    byId('cell-caveat').textContent = 'Modelled light · not calibrated PAR. Inspecting changes nothing; ClearUndergrowth commits only on Execute.';
+  }
+
+  function renderPlantDrawer() {
+    if (state.mapMode !== 'plant') return;
+    const d = state.plantDraft && state.plantDraft.areaId === state.areaId ? state.plantDraft : null;
+    const planLocked = Boolean(state.view && state.view.approved);
+    byId('plant-heading').textContent = d ? areaName(d.areaId) + ' · provisional planting point' : areaName(state.areaId) + ' · place a planting point';
+    byId('plant-coords').textContent = d
+      ? 'Provisional Draft (snap OFF · zero order queued): X ' + fixed(d.xM, 2) + ' m east, Z ' + fixed(d.zM, 2) + ' m north'
+      : 'Click anywhere on the map to place a provisional Draft preview (snap OFF; zero order sent yet).';
+    byId('plant-clear-draft').hidden = !d;
+    byId('plant-note').textContent = planLocked
+      ? 'The plan is approved, so editing is locked. Cancel the approved plan before queueing new planting orders.'
+      : 'Queues Pending orders sequentially (Plant → Shelter → SpotClear) using each response’s fresh fence. Zero ecology change until Approved and Executed.';
+
+    const box = byId('plant-result');
+    const r = state.plantResult && state.plantResult.areaId === state.areaId ? state.plantResult : null;
+    box.hidden = !r;
+    if (!r) { box.replaceChildren(); return; }
+    const stillPending = new Set(pendingPlantings().map((o) => o.orderId));
+    const hasErr = Boolean(r.refused || r.guard || r.unconfirmed);
+    const partial = hasErr && r.queued.length > 0;
+    box.setAttribute('class', 'drawer-result' + (partial ? ' partial' : hasErr ? ' failed' : ''));
+    const parts = [];
+    if (partial) {
+      parts.push(el('p', { class: 'alert-title' }, 'Stopped at ' + (r.refused ? r.refused.kind : r.guard ? r.guard.kind : r.unconfirmed.kind) +
+        ' — earlier pending order(s) remain queued'));
+    } else if (hasErr) {
+      parts.push(el('p', { class: 'alert-title' }, 'Refused: ' + (r.refused ? r.refused.kind : r.guard ? r.guard.kind : r.unconfirmed.kind) + ' (nothing queued)'));
+    } else {
+      parts.push(el('p', { class: 'alert-title' }, 'Queued ' + plural(r.queued.length, 'pending order', 'pending orders') + ' (not executed)'));
+    }
+    if (r.refused) {
+      parts.push(el('p', null, el('code', null, r.refused.code), ' — ' + r.refused.message));
+    }
+    if (r.guard) {
+      parts.push(el('p', null, el('code', null, r.guard.code), ' (HTTP ' + r.guard.status + ') — ' + r.guard.message));
+    }
+    if (r.unconfirmed) {
+      parts.push(el('p', null, 'Unconfirmed outcome — re-read required before further commands.'));
+    }
+    if (r.queued.length > 0) {
+      parts.push(el('p', { class: 'small-note' }, partial ? 'Earlier pending orders queued before stopping (one-click remove below):' : 'Pending orders in Work Plan:'));
+      parts.push(el('ul', { class: 'partial-list' }, ...r.queued.map((o) => {
+        const active = stillPending.has(o.orderId);
+        return el('li', null,
+          el('span', null, el('span', { class: 'mono' }, o.orderId), ' · ' + o.kind + (o.speciesId ? ' (' + speciesLabel(o.speciesId) + ')' : '') +
+            (active ? '' : ' · removed')),
+          active && !planLocked ? el('button', { type: 'button', class: 'small secondary', 'data-planting-remove': o.orderId,
+            'aria-label': 'Remove pending order ' + o.orderId }, 'Remove') : null);
+      })));
+    }
+    if (r.unattempted && r.unattempted.length > 0) {
+      parts.push(el('p', { class: 'small-note' }, 'Not attempted: ' + r.unattempted.join(', ') + '.'));
+    }
+    box.replaceChildren(...parts);
+  }
+
+  function renderSpotDrawer() {
+    if (state.mapMode !== 'spot') return;
+    const d = state.spotDraft && state.spotDraft.areaId === state.areaId ? state.spotDraft : null;
+    const planLocked = Boolean(state.view && state.view.approved);
+    byId('spot-heading').textContent = d ? areaName(d.areaId) + ' · provisional Spot Clear' : areaName(state.areaId) + ' · place a ~1 m² spot clear';
+    byId('spot-coords').textContent = d
+      ? 'Provisional Draft (snap OFF · seedling-free 0.564 m ring · zero order queued): X ' + fixed(d.xM, 2) + ' m east, Z ' + fixed(d.zM, 2) + ' m north'
+      : 'Click anywhere on the map to place a provisional seedling-free 0.564 m circular preview (snap OFF; zero order sent yet).';
+    byId('spot-clear-draft').hidden = !d;
+    byId('spot-note').textContent = planLocked
+      ? 'The plan is approved, so editing is locked. Cancel the approved plan before queueing new Spot Clear orders.'
+      : 'Selective ~1 m² circle (r ≈ 0.564 m, spares natural seedlings). Queues Pending order only; Approve and Execute are separate.';
+
+    const box = byId('spot-result');
+    const r = state.spotResult && state.spotResult.areaId === state.areaId ? state.spotResult : null;
+    box.hidden = !r;
+    if (!r) { box.replaceChildren(); return; }
+    const stillPending = new Set(pendingPlantings().map((o) => o.orderId));
+    const active = r.order && stillPending.has(r.order.orderId);
+    box.setAttribute('class', 'drawer-result' + (r.refused ? ' failed' : ''));
+    if (r.refused) {
+      box.replaceChildren(
+        el('p', { class: 'alert-title' }, 'Refused: Spot Clear'),
+        el('p', null, el('code', null, r.refused.code), ' — ' + r.refused.message));
+    } else if (r.order) {
+      box.replaceChildren(
+        el('p', { class: 'alert-title' }, 'Queued pending SpotClear (not executed)'),
+        el('ul', { class: 'partial-list' }, el('li', null,
+          el('span', null, el('span', { class: 'mono' }, r.order.orderId), ' · X ' + fixed(r.order.xm, 2) + ', Z ' + fixed(r.order.zm, 2) +
+            (active ? '' : ' · removed')),
+          active && !planLocked ? el('button', { type: 'button', class: 'small secondary', 'data-planting-remove': r.order.orderId,
+            'aria-label': 'Remove pending order ' + r.order.orderId }, 'Remove') : null)));
+    }
+  }
+
+  function renderJuvenileInspector() {
+    const j = currentJuvenile();
+    if (state.mapMode !== 'tree' || !j) return;
+    const spName = speciesLabel(j.speciesId);
+    byId('pj-area').textContent = areaName(j.areaId);
+    byId('pj-id').textContent = j.juvenileId;
+    const statusWord = j.isActive ? 'Living planted sapling' : j.promotedTreeId ? 'Promoted to adult ' + j.promotedTreeId : 'Dead (' + (j.deathCause || 'unknown') + ', year ' + j.deathYear + ')';
+    byId('pj-summary').textContent = spName + ' · ' + statusWord;
+    const facts = [
+      pair('Species', spName + ' (' + j.speciesId + ')'),
+      pair('Height', fixed(j.heightM, 2) + ' m'),
+      pair('Age', fixed(j.ageYears, 1) + ' years'),
+      pair('Planting year', String(j.plantingYear)),
+      pair('Position', 'X ' + fixed(j.xm, 2) + ' m east, Z ' + fixed(j.zm, 2) + ' m north', 'wide'),
+    ];
+    if (j.lastAssessmentYear >= 0) {
+      facts.push(pair('Last browse', (j.lastYearBrowsed ? 'Browsed' : 'Unbrowsed') + ' (p ' + pct1(j.lastBrowseProbability) + ', yr ' + j.lastAssessmentYear + ')', 'wide'));
+      facts.push(pair('Veg loss prob.', pct1(j.lastVegetationLossProbability)));
+    }
+    byId('pj-facts').replaceChildren(...facts);
+
+    const shelter = shelterForJuvenile(j);
+    const hasActiveShelter = Boolean(shelter && shelter.isEffective);
+    const pendingShelter = matchingShelterOrder(pendingPlantings(), j);
+    const approvedShelter = matchingShelterOrder(approvedPlantings(), j);
+    const planLocked = Boolean(state.view && state.view.approved);
+    const addBtn = byId('pj-shelter-add');
+    const remBtn = byId('pj-shelter-remove');
+    if (hasActiveShelter) {
+      byId('pj-shelter-state').textContent = 'Active · ' + shelter.shelterId;
+      byId('pj-shelter-detail').textContent = 'Active 8-year shelter protecting ' + j.juvenileId + ' (installed year ' + shelter.installedYear + ', expires year ' + shelter.expiryYear + ').';
+      addBtn.hidden = true;
+      remBtn.hidden = true;
+      byId('pj-shelter-note').textContent = 'Protected from browsing while effective (strictly before year ' + shelter.expiryYear + ').';
+    } else if (!j.isActive) {
+      byId('pj-shelter-state').textContent = 'Not eligible';
+      byId('pj-shelter-detail').textContent = 'Only a living unpromoted planted sapling (PJ) can receive a shelter.';
+      addBtn.hidden = true;
+      remBtn.hidden = true;
+      byId('pj-shelter-note').textContent = '';
+    } else if (pendingShelter) {
+      byId('pj-shelter-state').textContent = 'Pending · ' + pendingShelter.orderId;
+      byId('pj-shelter-detail').textContent = '8-year shelter queued in Work Plan (not installed until Approved and Executed).';
+      addBtn.hidden = true;
+      remBtn.hidden = false;
+      remBtn.setAttribute('data-pj-remove-order', pendingShelter.orderId);
+      byId('pj-shelter-note').textContent = 'Queues Pending order only; zero ecology change until Execute.';
+    } else if (approvedShelter) {
+      byId('pj-shelter-state').textContent = 'Approved · ' + approvedShelter.orderId;
+      byId('pj-shelter-detail').textContent = '8-year shelter approved and awaiting Execute.';
+      addBtn.hidden = true;
+      remBtn.hidden = true;
+      byId('pj-shelter-note').textContent = 'Cancel the approved plan to change it.';
+    } else {
+      byId('pj-shelter-state').textContent = shelter ? 'Expired (' + shelter.shelterId + ')' : 'Unsheltered';
+      byId('pj-shelter-detail').textContent = shelter
+        ? 'Previous shelter expired in year ' + shelter.expiryYear + ' (map state only). This living sapling has no active shelter.'
+        : 'This living sapling has no active browse shelter.';
+      addBtn.hidden = false;
+      remBtn.hidden = true;
+      byId('pj-shelter-note').textContent = planLocked
+        ? 'The plan is approved, so editing is locked. Cancel the approved plan to queue a shelter.'
+        : 'Queues an 8-year shelter Pending order via POST api/multi/shelter/add. Zero ecology change until Execute.';
+    }
   }
 
   // ---- grid and legend ------------------------------------------------------------------------------------------------
@@ -3662,15 +4158,20 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       label('MultiRemoveFromPlan')) : null)));
   }
 
-  // Read-only display of any engine-queued ClearUndergrowth / Plant / Shelter / SpotClear orders (zero Pass 2 write controls).
-  function readOnlyEcoOrderList(clears, plantings, approved) {
+  // ClearUndergrowth / Plant / Shelter / SpotClear Work Plan rows, with targeted remove buttons before Approve.
+  function ecoOrderList(clears, plantings, approved, removable) {
     if (clears.length === 0 && plantings.length === 0) return null;
     const rows = [];
     for (const c of clears) {
       rows.push(el('li', null,
-        el('span', { class: 'order-head' }, statePill(approved, 'ccf-action-clear', 'Clear'),
+        el('span', { class: 'order-head' }, statePill(approved, 'ccf-action-clear', 'ClearUndergrowth'),
           el('span', { class: 'mono' }, 'Cell (' + c.column + ', ' + c.row + ')')),
-        el('span', { class: 'order-reason' }, 'Whole 2.5 m cell · spares seedlings (read-only)')));
+        el('span', { class: 'order-reason' }, 'Whole 2.5 m cell · spares seedlings' + (approved ? ' · cleared on Execute' : ' · pending')),
+        removable ? el('button', { type: 'button', class: 'small', 'data-clear-remove': c.column + ':' + c.row,
+          'data-clear-col': String(c.column), 'data-clear-row': String(c.row), 'data-area': c.areaId,
+          'data-focus-key': 'clear-remove:' + c.areaId + ':' + c.column + ':' + c.row,
+          'aria-label': 'Remove pending ClearUndergrowth for cell (' + c.column + ', ' + c.row + ')' },
+        label('MultiRemoveFromPlan')) : null));
     }
     for (const p of plantings) {
       const icon = p.kind === 'Plant' ? 'ccf-action-plant' : p.kind === 'Shelter' ? 'ccf-action-shelter' : 'ccf-action-spot';
@@ -3678,13 +4179,29 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         el('span', { class: 'order-head' }, statePill(approved, icon, p.kind),
           el('span', { class: 'mono' }, p.orderId)),
         el('span', { class: 'order-reason' }, (p.speciesId ? speciesLabel(p.speciesId) + ' · ' : '') +
-          'X ' + fixed(p.xm, 1) + ', Z ' + fixed(p.zm, 1) + ' (read-only)')));
+          'X ' + fixed(p.xm, 2) + ', Z ' + fixed(p.zm, 2) + (approved ? ' · commits on Execute' : ' · pending')),
+        removable ? el('button', { type: 'button', class: 'small', 'data-planting-remove': p.orderId,
+          'data-focus-key': 'planting-remove:' + p.orderId,
+          'aria-label': 'Remove pending ' + p.kind + ' order ' + p.orderId },
+        label('MultiRemoveFromPlan')) : null));
     }
     return el('ul', { class: 'list orders eco-orders' }, ...rows);
   }
 
-  function workTotals(fells, prunes) {
-    return [fells > 0 ? fells + ' Fell' : '', prunes > 0 ? prunes + ' Prune' : ''].filter(Boolean).join(' · ');
+  function workTotals(fells, prunes, clears, plantings) {
+    const c = clears || 0;
+    const pl = plantings || [];
+    const nPlant = pl.filter((o) => o.kind === 'Plant').length;
+    const nShelter = pl.filter((o) => o.kind === 'Shelter').length;
+    const nSpot = pl.filter((o) => o.kind === 'SpotClear').length;
+    return [
+      fells > 0 ? fells + ' Fell' : '',
+      prunes > 0 ? prunes + ' Prune' : '',
+      c > 0 ? c + ' Clear' : '',
+      nPlant > 0 ? nPlant + ' Plant' : '',
+      nShelter > 0 ? nShelter + ' Shelter' : '',
+      nSpot > 0 ? nSpot + ' SpotClear' : '',
+    ].filter(Boolean).join(' · ');
   }
   function perAreaCounts(orders) {
     return state.view.areas.map((area) => area.label + ' ' + ordersIn(orders, area.areaId).length).join(' · ');
@@ -3695,10 +4212,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const plan = view.approved;
     const pendingP = pendingPrunes();
     const approvedP = approvedPrunes();
-    const pendingC = state.ecology ? (state.ecology.pendingClear || []) : [];
-    const approvedC = state.ecology ? (state.ecology.approvedClear || []) : [];
-    const pendingPl = state.ecology ? (state.ecology.pendingPlanting || []) : [];
-    const approvedPl = state.ecology ? (state.ecology.approvedPlanting || []) : [];
+    const pendingC = pendingClears();
+    const approvedC = approvedClears();
+    const pendingPl = pendingPlantings();
+    const approvedPl = approvedPlantings();
     const pendingCount = view.pending.length + pendingP.length + pendingC.length + pendingPl.length;
     byId('plan-heading').textContent = plan ? 'Approved work plan' : 'Work plan';
     byId('step-pending').className = !plan && pendingCount > 0 ? 'now' : '';
@@ -3709,7 +4226,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('pending-total').textContent = pendingCount === 0 ? 'No pending orders' :
       pendingP.length === 0 && pendingC.length === 0 && pendingPl.length === 0
         ? view.pending.length + ' pending Fell · not felled (' + perAreaCounts(view.pending) + ')'
-        : (workTotals(view.pending.length, pendingP.length) || (pendingCount + ' orders')) + ' pending · nothing executed yet';
+        : workTotals(view.pending.length, pendingP.length, pendingC.length, pendingPl) + ' pending · nothing executed yet';
     byId('pending-areas').replaceChildren(...view.areas.map((area) => {
       const orders = ordersIn(view.pending, area.areaId);
       const prunes = ordersIn(pendingP, area.areaId);
@@ -3721,7 +4238,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         n === 0 ? el('p', { class: 'small-note' }, 'No pending orders in this area.') : null,
         orders.length === 0 ? null : orderList(orders, false, true),
         prunes.length === 0 ? null : pruneList(prunes, false, true),
-        readOnlyEcoOrderList(clears, plants, false));
+        ecoOrderList(clears, plants, false, true));
     }));
     const approve = byId('approve');
     approve.textContent = label('MultiApprove') + ' · ' + plural(pendingCount, 'order', 'orders');
@@ -3736,7 +4253,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const approvedCount = plan.orders.length + approvedP.length + approvedC.length + approvedPl.length;
     byId('approved-total').textContent = approvedP.length === 0 && approvedC.length === 0 && approvedPl.length === 0
       ? plan.orders.length + ' approved · still standing'
-      : (workTotals(plan.orders.length, approvedP.length) || (approvedCount + ' orders')) + ' approved · nothing executed yet';
+      : workTotals(plan.orders.length, approvedP.length, approvedC.length, approvedPl) + ' approved · nothing executed yet';
     byId('approved-sub').textContent = 'Execution has not happened. Year remains ' + view.source.ecologicalYear + ' · approved in year ' + plan.source.ecologicalYear + '.';
     byId('approved-areas').replaceChildren(...view.areas.map((area) => {
       const orders = ordersIn(plan.orders, area.areaId);
@@ -3748,7 +4265,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         el('h4', null, areaName(area.areaId) + ' · ' + (n === 0 ? 'no orders' : plural(n, 'order', 'orders'))),
         orders.length === 0 ? null : orderList(orders, true, false),
         prunes.length === 0 ? null : pruneList(prunes, true, false),
-        readOnlyEcoOrderList(clears, plants, true));
+        ecoOrderList(clears, plants, true, false));
     }), technicalPlan(plan.planId, plan.executionKey));
     byId('cancel-approved').textContent = label('MultiCancelApproved');
     byId('execute').textContent = readoutState() === 'unavailable' ? label('MultiExecute') + ' · re-read needed' :
@@ -3780,6 +4297,26 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
             return [record.treeId, speciesLabel(speciesOf(record.treeId)), fixed(record.crownRadiusBeforeM, 3) + ' → ' + fixed(record.crownRadiusAfterM, 3),
               fixed(record.targetCrownBaseHeightM, 1) + ' m', record.liftsAfter + ' / ' + maxLifts];
           })));
+      }
+      if (seen && seen.executionKey === event.executionKey && ((seen.clears && seen.clears.length > 0) || (seen.plantings && seen.plantings.length > 0))) {
+        const ecoRows = [];
+        for (const c of (seen.clears || [])) {
+          ecoRows.push(['ClearUndergrowth', areaShort(c.areaId), 'Cell (' + c.column + ', ' + c.row + ')', 'Whole 2.5 m cell · spares seedlings']);
+        }
+        for (const p of (seen.plantings || [])) {
+          ecoRows.push([p.kind, areaShort(p.areaId), p.orderId, (p.speciesId ? speciesLabel(p.speciesId) + ' · ' : '') + 'X ' + fixed(p.xm, 2) + ', Z ' + fixed(p.zm, 2)]);
+        }
+        parts.push(table('Clearing and planting committed in this Execute', ['Action', 'Area', 'Order / Cell', 'Detail'], ecoRows));
+      }
+      if (state.ecology && ((state.ecology.planted && state.ecology.planted.length > 0) ||
+          (state.ecology.shelters && state.ecology.shelters.length > 0) ||
+          (state.ecology.patches && state.ecology.patches.length > 0))) {
+        const activePj = state.ecology.planted.filter((j) => j.isActive).length;
+        const activeSh = state.ecology.shelters.filter((s) => s.isEffective).length;
+        parts.push(el('p', { class: 'small-note' }, 'Committed Phase 2 objects: ' +
+          plural(activePj, 'active PJ sapling', 'active PJ saplings') + ' · ' +
+          plural(activeSh, 'active shelter', 'active shelters') + ' · ' +
+          plural(state.ecology.patches.length, 'spot-clear patch', 'spot-clear patches') + '.'));
       }
       parts.push(technicalPlan(event.planId, event.executionKey));
     }
@@ -3844,6 +4381,22 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('tree-rows').replaceChildren(...rows);
     byId('tree-caption').textContent = 'Every tree of ' + areaName(area.areaId) + ', with its exact ID and species';
     byId('rows-shown').textContent = rows.length + ' rows shown for ' + area.label + (query !== '' ? ' (filtered)' : '');
+    const pjs = plantedIn(area.areaId);
+    const pjSec = byId('planted-section');
+    pjSec.hidden = pjs.length === 0;
+    if (pjs.length > 0) {
+      const selPj = currentJuvenile();
+      byId('planted-list').replaceChildren(...pjs.map((j) => {
+        const sh = shelterForJuvenile(j);
+        const active = selPj && selPj.juvenileId === j.juvenileId;
+        const shNote = sh && sh.isEffective ? 'active shelter ' + sh.shelterId : sh ? 'expired shelter' : 'unsheltered';
+        return el('li', null,
+          el('span', { class: 'order-head' }, el('span', { class: 'mono' }, j.juvenileId), ' · ' + speciesLabel(j.speciesId)),
+          el('span', { class: 'order-reason' }, (j.isActive ? 'H ' + fixed(j.heightM, 2) + ' m · ' + shNote : j.promotedTreeId ? 'Promoted ' + j.promotedTreeId : 'Dead')),
+          el('button', { type: 'button', class: 'small', 'data-pj-select': j.juvenileId,
+            'aria-label': (active ? 'Selected ' : 'Select ') + j.juvenileId }, active ? 'Selected' : 'Select'));
+      }));
+    }
   }
 
   function renderDetails() {
@@ -3889,8 +4442,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function renderPaneButtons() {
     const view = state.view;
-    const counts = { plan: view.pending.length + (view.approved ? view.approved.orders.length : 0) + pendingPrunes().length +
-      approvedPrunes().length, history: view.annualHistory.length };
+    const counts = {
+      plan: view.pending.length + (view.approved ? view.approved.orders.length : 0) + pendingPrunes().length +
+        approvedPrunes().length + pendingClears().length + approvedClears().length +
+        pendingPlantings().length + approvedPlantings().length,
+      history: view.annualHistory.length,
+    };
     for (const button of document.querySelectorAll('[data-pane-button]')) {
       const name = button.getAttribute('data-pane-button');
       const wanted = PANE_NAMES[name] + (name in counts ? '|' + counts[name] : '');
@@ -3957,15 +4514,18 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function showArea(areaId) {
     if (!areaView(areaId) || areaId === state.areaId) return;
-    if (state.batch) { waitForBatch(); return; }
+    if (state.batch || state.queueRunning) { waitForBatch(); return; }
     state.mapPick += 1;
     state.cellPick += 1;
     state.areaId = areaId;
     state.zoom = ZOOMS[0];
     state.centre = null;
     state.overlap = null;
+    state.selectedJuvenile = null;
     state.cellDetail = null;
     state.cellLoading = false;
+    state.plantDraft = null;
+    state.spotDraft = null;
     resetReasonPicker();
     const id = selectedId();
     if (id && livingIn(areaId, id)) {
@@ -3983,9 +4543,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function chooseTree(areaId, treeId, fromList) {
     if (!treeIn(areaId, treeId)) return;
-    if (state.batch) { waitForBatch(); return; }
+    if (state.batch || state.queueRunning) { waitForBatch(); return; }
     state.mapPick += 1;
-    if (state.mapMode === 'cell') state.mapMode = 'tree';
+    state.selectedJuvenile = null;
+    if (state.mapMode !== 'tree') {
+      state.plantDraft = null;
+      state.spotDraft = null;
+      state.mapMode = 'tree';
+    }
     if (areaId !== state.areaId) { state.areaId = areaId; state.zoom = ZOOMS[0]; state.centre = null; }
     let cleared = '';
     const draft = state.drafts[areaId];
@@ -4008,8 +4573,37 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (state.competitionTarget) refreshCompetition();
   }
 
+  function chooseJuvenile(areaId, juvenileId) {
+    const j = juvenileById(juvenileId);
+    if (!j) return;
+    if (state.batch || state.queueRunning) { waitForBatch(); return; }
+    state.mapPick += 1;
+    if (state.mapMode !== 'tree') {
+      state.plantDraft = null;
+      state.spotDraft = null;
+      state.mapMode = 'tree';
+    }
+    if (j.areaId !== state.areaId) { state.areaId = j.areaId; state.zoom = ZOOMS[0]; state.centre = null; }
+    state.selectedJuvenile = { areaId: j.areaId, juvenileId: j.juvenileId };
+    showPane('tree');
+    renderAll();
+    byId('pane-tree').scrollTop = 0;
+    byId('pj-heading').focus();
+    announce('Selected planted sapling ' + j.juvenileId + ' (' + speciesLabel(j.speciesId) + ') in ' + areaName(j.areaId) + '. Draft Fell ticks preserved.');
+  }
+
+  function closeJuvenileInspection(moveFocus) {
+    if (!state.selectedJuvenile) return false;
+    const id = state.selectedJuvenile.juvenileId;
+    state.selectedJuvenile = null;
+    renderAll();
+    if (moveFocus) byId('mode-tree').focus();
+    announce('Closed inspection of planted sapling ' + id + '. Draft Fell ticks preserved.');
+    return true;
+  }
+
   async function onMapClick(event) {
-    if (state.batch) { waitForBatch(); return; }
+    if (state.batch || state.queueRunning) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
     const area = currentArea();
     const matrix = byId('map').getScreenCTM();
@@ -4022,7 +4616,37 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       return;
     }
 
-    // Select Tree mode (default): crown clicks win via POST api/multi/hit.
+    // Plant mode: click places a provisional local Draft preview only (dashed slate, snap OFF, zero engine order).
+    if (state.mapMode === 'plant') {
+      const world = worldFromMap(area, point.x, point.y);
+      state.plantDraft = { areaId: area.areaId, u: point.x, v: point.y, xM: world.xM, zM: world.zM };
+      state.plantResult = null;
+      showPane('tree');
+      renderAll();
+      byId('plant-heading').focus();
+      announce('Provisional Draft planting point at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
+      return;
+    }
+
+    // Spot Clear mode: click places a provisional seedling-free 0.564 m circular preview at exact (X, Z) (snap OFF).
+    if (state.mapMode === 'spot') {
+      const world = worldFromMap(area, point.x, point.y);
+      state.spotDraft = { areaId: area.areaId, u: point.x, v: point.y, xM: world.xM, zM: world.zM };
+      state.spotResult = null;
+      showPane('tree');
+      renderAll();
+      byId('spot-heading').focus();
+      announce('Provisional Draft Spot Clear (~1 m², 0.564 m ring) at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
+      return;
+    }
+
+    // Select Tree mode (default): clicking a rendered PJ sapling inspects it (preserving adult Fell drafts); otherwise crown clicks win via POST api/multi/hit.
+    const pjEl = event.target && event.target.closest ? event.target.closest('[data-juvenile-id]') : null;
+    if (pjEl) {
+      chooseJuvenile(area.areaId, pjEl.getAttribute('data-juvenile-id'));
+      return;
+    }
+
     const pick = ++state.mapPick;
     state.busy = true;
     const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: point.x, v: point.y });
@@ -4062,7 +4686,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const areaId = state.areaId;
     const id = selectedId();
     if (!id) return false;
-    if (state.batch) { waitForBatch(); return true; }
+    if (state.batch || state.queueRunning) { waitForBatch(); return true; }
     const drafts = draftOf(areaId).length;
     delete state.selected[areaId];
     delete state.drafts[areaId];
@@ -4077,11 +4701,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return true;
   }
 
-  // Escape precedence (spec §5.7 + Stage 4 R3 F-05):
+  // Escape precedence (Pass 2 spec §4.3 + Stage 4 R3 F-05):
   // 1) open modal dialog closes itself (leaves pending map hit-test alone);
   // 2) non-empty search box clears itself;
-  // 3) Inspect Cell mode exits to Select Tree mode WITHOUT clearing draft Fell ticks;
-  // 4) tree inspection closes. Ground overlay is never cleared by Escape.
+  // 3) Plant / Spot Clear / Inspect Cell preview & mode exits to Select Tree WITHOUT clearing draft Fell ticks or overlay;
+  // 4) PJ sapling inspection closes back to adult tree inspector WITHOUT clearing draft Fell ticks;
+  // 5) adult tree selection closes. Work Plan is NEVER mutated by Escape.
   function onEscape(event) {
     if (event.key !== 'Escape') return;
     if (document.querySelector('dialog[open]')) return;
@@ -4090,9 +4715,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (event.defaultPrevented) return;
     const target = event.target;
     if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;
-    if (state.mapMode === 'cell') {
+    if (state.mapMode !== 'tree') {
       event.preventDefault();
+      state.plantDraft = null;
+      state.spotDraft = null;
       setMapMode('tree', true);
+      return;
+    }
+    if (state.selectedJuvenile) {
+      event.preventDefault();
+      closeJuvenileInspection(true);
       return;
     }
     if (closeInspection()) event.preventDefault();
@@ -4108,14 +4740,167 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         clearAlert();
         chooseTree(area.areaId, typed, true);
         if (!state.batch) byId('inspector-heading').focus();
-      } else {
-        showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
-          el('p', null, 'No tree in either area has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
+        return;
       }
+      const pj = juvenileById(typed);
+      if (pj) {
+        clearAlert();
+        chooseJuvenile(pj.areaId, pj.juvenileId);
+        return;
+      }
+      showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
+        el('p', null, 'No tree or planted sapling in either area has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
     };
   }
 
-  // ---- Stage 4 commands (Fell, Prune, Crop, Approve, Cancel, Execute, Year +1; zero Pass 2 writes) --------------------
+  // ---- Work Plan commands (Fell, Prune, ClearUndergrowth, Plant, Shelter, SpotClear, Crop, Approve, Cancel, Execute, Year +1) ----
+
+  function onCellClearAdd() {
+    const c = state.cellDetail;
+    if (!c || c.missing || !state.view || state.batch || state.queueRunning) return;
+    run('api/multi/clear/add', { fence: currentFence(), areaId: c.areaId, column: c.column, row: c.row },
+      'Queue ClearUndergrowth for cell (' + c.column + ', ' + c.row + ')',
+      () => announce('Done: cell (' + c.column + ', ' + c.row + ') queued as pending ClearUndergrowth (spares seedlings; nothing cleared yet).'),
+      'cell-clear-remove');
+  }
+
+  function removeClear(areaId, column, row) {
+    if (!areaId || state.batch || state.queueRunning) return;
+    run('api/multi/clear/remove', { fence: currentFence(), areaId, column: Number(column), row: Number(row) },
+      'Remove pending ClearUndergrowth for cell (' + column + ', ' + row + ')',
+      () => announce('Done: pending ClearUndergrowth for cell (' + column + ', ' + row + ') removed.'),
+      state.mapMode === 'cell' ? 'cell-clear-add' : 'plan-heading');
+  }
+
+  function removePlanting(orderId) {
+    if (!orderId || state.batch || state.queueRunning) return;
+    run('api/multi/planting/remove', { fence: currentFence(), orderId },
+      'Remove pending order ' + orderId,
+      () => announce('Done: pending order ' + orderId + ' removed from Work Plan.'),
+      state.mapMode === 'plant' ? 'plant-heading' : state.mapMode === 'spot' ? 'spot-heading' :
+        currentJuvenile() ? 'pj-heading' : 'plan-heading');
+  }
+
+  // Sequential fence-chained planting queue: (1) plant/add, (2) if ticked shelter/add, (3) if ticked spot-clear/add.
+  // Stops immediately on step 2/3 409, surfaces exact Core refusal, and discloses earlier pending orders with one-click remove.
+  async function onPlantQueue() {
+    if (!state.view || !state.plantDraft || state.busy || state.batch || state.queueRunning) return;
+    if (refusedByLock('Queue planting order')) return;
+    if (state.view.approved) {
+      showAlert([el('p', { class: 'alert-title' }, 'The plan is approved'), el('p', null, recoveryFor('WorkPlanAlreadyApproved'))]);
+      return;
+    }
+    const { areaId, xM, zM } = state.plantDraft;
+    const speciesId = byId('plant-species').value;
+    const wantShelter = Boolean(byId('plant-opt-shelter').checked);
+    const wantSpot = Boolean(byId('plant-opt-spot').checked);
+    const steps = [{ kind: 'Plant', path: 'api/multi/plant/add', body: (fence) => ({ fence, areaId, speciesId, xM, zM }) }];
+    if (wantShelter) steps.push({ kind: 'Shelter', path: 'api/multi/shelter/add', body: (fence) => ({ fence, areaId, xM, zM }) });
+    if (wantSpot) steps.push({ kind: 'SpotClear', path: 'api/multi/spot-clear/add', body: (fence) => ({ fence, areaId, xM, zM }) });
+
+    const result = { areaId, speciesId, xM, zM, queued: [], refused: null, guard: null, unconfirmed: null, unattempted: [] };
+    state.queueRunning = true;
+    state.busy = true;
+    state.plantResult = null;
+    document.documentElement.classList.add('busy');
+    renderCommandGate();
+
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      const beforeIds = new Set(pendingPlantings().map((o) => o.orderId));
+      const outcome = await call(step.path, step.body(currentFence()));
+      if (outcome.kind === 'ok') {
+        clearAlert();
+        applyPayload(outcome.payload, false);
+        const added = pendingPlantings().find((o) => !beforeIds.has(o.orderId));
+        result.queued.push(added || { orderId: '(queued)', kind: step.kind, areaId, speciesId: step.kind === 'Plant' ? speciesId : null, xm: xM, zm: zM });
+        continue;
+      }
+      result.unattempted = steps.slice(i + 1).map((s) => s.kind);
+      if (outcome.kind === 'refused') {
+        result.refused = { kind: step.kind, code: outcome.payload.refusal.code, message: outcome.payload.refusal.message };
+        applyPayload(outcome.payload, false);
+        showRefusal('Queue ' + step.kind, outcome.payload.refusal);
+      } else if (outcome.kind === 'guard') {
+        result.guard = { kind: step.kind, status: outcome.status, code: outcome.error.code, message: outcome.error.message };
+        showGuardRefusal('Queue ' + step.kind, outcome.status, outcome.error);
+      } else if (outcome.kind === 'locked') {
+        result.unattempted = steps.slice(i).map((s) => s.kind);
+        showLockAlert('Not sent: Queue ' + step.kind + '.');
+      } else {
+        result.unconfirmed = { kind: step.kind, detail: outcome.kind === 'unconfirmed' ? outcome.error.message : outcome.detail };
+        lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+          'Queue ' + step.kind + ': no confirmed result was received. Do not assume that it happened, or that it did not.');
+      }
+      break;
+    }
+
+    state.queueRunning = false;
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    if (!result.refused && !result.guard && !result.unconfirmed) {
+      state.plantDraft = null;
+    }
+    state.plantResult = result;
+    renderAll();
+    if (!result.unconfirmed) {
+      if (result.refused) {
+        const queuedText = result.queued.length > 0
+          ? ' Earlier pending orders queued: ' + result.queued.map((o) => o.orderId + ' (' + o.kind + ')').join(', ') + '.'
+          : ' Nothing queued.';
+        announce('Refused ' + result.refused.kind + ' (' + result.refused.code + ').' + queuedText);
+      } else if (!result.guard) {
+        announce('Queued as pending (not executed): ' + result.queued.map((o) => o.orderId + ' (' + o.kind + ')').join(', ') + '.');
+      }
+    }
+  }
+
+  async function onSpotQueue() {
+    if (!state.view || !state.spotDraft || state.busy || state.batch || state.queueRunning) return;
+    if (refusedByLock('Queue Spot Clear')) return;
+    if (state.view.approved) {
+      showAlert([el('p', { class: 'alert-title' }, 'The plan is approved'), el('p', null, recoveryFor('WorkPlanAlreadyApproved'))]);
+      return;
+    }
+    const { areaId, xM, zM } = state.spotDraft;
+    const beforeIds = new Set(pendingPlantings().map((o) => o.orderId));
+    state.busy = true;
+    state.spotResult = null;
+    document.documentElement.classList.add('busy');
+    const outcome = await call('api/multi/spot-clear/add', { fence: currentFence(), areaId, xM, zM });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    if (outcome.kind === 'ok') {
+      clearAlert();
+      state.spotDraft = null;
+      applyPayload(outcome.payload, false);
+      const added = pendingPlantings().find((o) => !beforeIds.has(o.orderId));
+      state.spotResult = { areaId, order: added || { orderId: '(queued)', kind: 'SpotClear', areaId, xm: xM, zm: zM }, refused: null };
+      renderAll();
+      announce('Queued pending SpotClear ' + (added ? added.orderId : '') + ' (not executed).');
+    } else if (outcome.kind === 'refused') {
+      state.spotResult = { areaId, order: null, refused: outcome.payload.refusal };
+      applyPayload(outcome.payload, false);
+      showRefusal('Queue Spot Clear', outcome.payload.refusal);
+      announce('Refused SpotClear (' + outcome.payload.refusal.code + '). Nothing changed.');
+    } else if (outcome.kind === 'guard') {
+      showGuardRefusal('Queue Spot Clear', outcome.status, outcome.error);
+    } else if (outcome.kind === 'locked') {
+      showLockAlert('Not sent: Queue Spot Clear.');
+    } else {
+      lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+        'Queue Spot Clear: no confirmed result was received. Do not assume that it happened, or that it did not.');
+    }
+  }
+
+  function onPjShelterAdd() {
+    const j = currentJuvenile();
+    if (!j || !state.view || state.batch || state.queueRunning) return;
+    run('api/multi/shelter/add', { fence: currentFence(), areaId: j.areaId, xM: j.xm, zM: j.zm },
+      'Queue 8-year Shelter for ' + j.juvenileId,
+      () => announce('Done: 8-year shelter queued as pending for ' + j.juvenileId + ' (not installed until Execute).'),
+      'pj-shelter-remove');
+  }
 
   function onCrop() {
     const areaId = state.areaId;
@@ -4183,8 +4968,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function onApprove() {
     run('api/multi/plan/approve', { fence: currentFence() }, label('MultiApprove'), (payload) => {
       const prunes = payload.stage4 ? payload.stage4.approvedPrunes.map((o) => o.treeId) : [];
-      announce('Done: ' + label('MultiApprove') + '. Approved: ' + payload.view.approved.orders.map((o) => o.treeId).concat(prunes).join(', ') +
-        '. Nothing was felled or cut.');
+      const clears = payload.ecology ? (payload.ecology.approvedClear || []).map((c) => 'Cell(' + c.column + ',' + c.row + ')') : [];
+      const plants = payload.ecology ? (payload.ecology.approvedPlanting || []).map((p) => p.orderId) : [];
+      announce('Done: ' + label('MultiApprove') + '. Approved: ' +
+        payload.view.approved.orders.map((o) => o.treeId).concat(prunes, clears, plants).join(', ') +
+        '. Zero ecology changed.');
     }, 'plan-heading');
   }
 
@@ -4203,7 +4991,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function openExecuteDialog() {
     const view = state.view;
-    if (!view || !view.approved || state.batch || refusedByLock(label('MultiExecute'))) return;
+    if (!view || !view.approved || state.batch || state.queueRunning || refusedByLock(label('MultiExecute'))) return;
     if (readoutState() === 'unavailable') {
       showAlert([el('p', { class: 'alert-title' }, 'Execute needs a re-read'),
         el('p', null, 'The engine read-out for this view could not be paired with it, so the approved plan cannot be confirmed exactly. Nothing was sent.'),
@@ -4214,22 +5002,34 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.confirmation = confirmation;
     const n = confirmation.orders.length;
     const m = confirmation.prunes.length;
+    const c = confirmation.clears.length;
+    const p = confirmation.plantings.length;
     const areas = new Set(confirmation.orders.map((order) => order.areaId)).size;
     byId('execute-title').textContent = label('MultiExecute');
     const fellText = n === 0 ? '' : fill(label(n === 1 ? 'MultiExecuteConfirmationOneTree' : 'MultiExecuteConfirmation'),
       { n, a: areas, y: confirmation.year }) + '.';
-    const pruneText = m === 0 ? '' : n === 0 ? fill(label('MultiExecutePruneConfirmation'), { n: m, y: confirmation.year })
+    const pruneText = m === 0 ? '' : n === 0 && c === 0 && p === 0 ? fill(label('MultiExecutePruneConfirmation'), { n: m, y: confirmation.year })
       .replace('named trees', m === 1 ? 'named tree' : 'named trees') + '.'
-      : 'It also prunes exactly ' + plural(m, 'named tree', 'named trees') + ' (one lift each) in the same all-or-nothing Execute.';
-    byId('execute-text').textContent = [fellText, pruneText].filter(Boolean).join(' ');
-    byId('execute-confirm').textContent = n > 0 && m > 0 ? 'Confirm felling and pruning' : m > 0 ? 'Confirm pruning' : 'Confirm felling';
+      : 'Prunes ' + plural(m, 'named tree', 'named trees') + ' (one lift each).';
+    const ecoParts = [];
+    if (c > 0) ecoParts.push('clears undergrowth on ' + plural(c, 'cell', 'cells') + ' (spares seedlings)');
+    if (p > 0) ecoParts.push('commits ' + plural(p, 'planting order', 'planting orders') + ' (SpotClear → Plant → Shelter)');
+    const ecoText = ecoParts.length === 0 ? '' :
+      (n === 0 && m === 0 ? 'Atomically ' : 'Also ') + ecoParts.join(' and ') + ' in Year ' + confirmation.year + ', or refuses all.';
+    byId('execute-text').textContent = [fellText, pruneText, ecoText].filter(Boolean).join(' ');
+    byId('execute-confirm').textContent = (c > 0 || p > 0) ? 'Confirm Work Plan execution'
+      : n > 0 && m > 0 ? 'Confirm felling and pruning' : m > 0 ? 'Confirm pruning' : 'Confirm felling';
     byId('execute-areas').replaceChildren(...view.areas.map((area) => {
       const orders = confirmation.orders.filter((order) => order.areaId === area.areaId);
       const prunes = confirmation.prunes.filter((order) => order.areaId === area.areaId);
-      return el('section', { class: 'plan-area' }, el('h3', null, areaName(area.areaId) + ' — ' + (orders.length + prunes.length)),
-        orders.length === 0 && prunes.length === 0 ? el('p', { class: 'note' }, 'No Fell in this area.') : null,
+      const clears = confirmation.clears.filter((order) => order.areaId === area.areaId);
+      const plants = confirmation.plantings.filter((order) => order.areaId === area.areaId);
+      const total = orders.length + prunes.length + clears.length + plants.length;
+      return el('section', { class: 'plan-area' }, el('h3', null, areaName(area.areaId) + ' — ' + total),
+        total === 0 ? el('p', { class: 'note' }, 'No orders in this area.') : null,
         orders.length === 0 ? null : orderList(orders, true, false),
-        prunes.length === 0 ? null : pruneList(prunes, true, false));
+        prunes.length === 0 ? null : pruneList(prunes, true, false),
+        ecoOrderList(clears, plants, true, false));
     }));
     byId('execute-plan').replaceChildren(label('MultiLastLivingRefused') + '. The ecological year does not change. ',
       technicalPlan(confirmation.planId, confirmation.executionKey));
@@ -4250,8 +5050,15 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     };
     run('api/multi/plan/execute', request, label('MultiExecute'), (payload) => {
       const execution = payload.execution;
-      state.lastExecution = { executionKey: execution.executionKey, workRevisionBefore: request.fence.source.workRevision,
-        workRevisionAfter: execution.workRevision };
+      state.lastExecution = {
+        executionKey: execution.executionKey,
+        workRevisionBefore: request.fence.source.workRevision,
+        workRevisionAfter: execution.workRevision,
+        clears: confirmation.clears,
+        plantings: confirmation.plantings,
+      };
+      state.plantResult = null;
+      state.spotResult = null;
       renderReceipt();
       if (execution.replayed) { announce(label('MultiAlreadyExecuted') + '.'); return; }
       announce('Done: ' + label('MultiExecute') + '. Completed · History Log updated.');
@@ -4266,6 +5073,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       state.draftNotice = null;
       state.batchResult = null;
       state.cellDetail = null;
+      state.plantDraft = null;
+      state.plantResult = null;
+      state.spotDraft = null;
+      state.spotResult = null;
       renderAll();
       const record = payload.view.annualHistory[payload.view.annualHistory.length - 1];
       announce('Done: year ' + record.yearBefore + ' → ' + record.yearAfter + '.' +
@@ -4276,8 +5087,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 
   function onAdvance() {
     const view = state.view;
-    if (!view || state.batch || refusedByLock(label('MultiAdvanceYear'))) return;
-    const work = view.pending.length > 0 || view.approved !== null || pendingPrunes().length > 0;
+    if (!view || state.batch || state.queueRunning || refusedByLock(label('MultiAdvanceYear'))) return;
+    const work = view.pending.length > 0 || view.approved !== null || pendingPrunes().length > 0 ||
+      pendingClears().length > 0 || pendingPlantings().length > 0;
     const drafts = draftTotal();
     if (work || drafts > 0) openConsentDialog(work, drafts);
     else sendAdvance(false);
@@ -4288,12 +5100,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.consentWork = work;
     byId('consent-title').textContent = label('MultiAdvanceYear');
     byId('consent-text').textContent = work ? 'The Work Plan has unexecuted work. Advancing the year needs your explicit choice; cancelling ' +
-      'removes ALL pending and approved orders in BOTH areas and fells nothing.' : 'The Work Plan has no unexecuted work. Advancing the year fells nothing.';
+      'removes ALL pending and approved orders in BOTH areas and executes nothing.' : 'The Work Plan has no unexecuted work. Advancing the year executes nothing.';
     byId('consent-areas').replaceChildren(...(work ? view.areas.map((area) => {
       const pending = ordersIn(view.pending, area.areaId).map((order) => order.treeId)
-        .concat(ordersIn(pendingPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'));
+        .concat(ordersIn(pendingPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'))
+        .concat(ordersIn(pendingClears(), area.areaId).map((c) => 'Cell(' + c.column + ',' + c.row + ') (Clear)'))
+        .concat(ordersIn(pendingPlantings(), area.areaId).map((p) => p.orderId + ' (' + p.kind + ')'));
       const approved = (view.approved ? ordersIn(view.approved.orders, area.areaId).map((order) => order.treeId) : [])
-        .concat(ordersIn(approvedPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'));
+        .concat(ordersIn(approvedPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'))
+        .concat(ordersIn(approvedClears(), area.areaId).map((c) => 'Cell(' + c.column + ',' + c.row + ') (Clear)'))
+        .concat(ordersIn(approvedPlantings(), area.areaId).map((p) => p.orderId + ' (' + p.kind + ')'));
       return el('p', null, areaName(area.areaId) + ': ' + (pending.length ? 'pending ' + pending.join(', ') : 'no pending orders') + '; ' +
         (approved.length ? 'approved ' + approved.join(', ') : 'no approved orders') + '.');
     }) : []));
@@ -4342,9 +5158,42 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       if (button) showArea(button.getAttribute('data-area'));
     });
     byId('map').addEventListener('click', onMapClick);
-    byId('mode-tree').addEventListener('click', () => setMapMode('tree', false));
+    byId('mode-tree').addEventListener('click', () => setMapMode('tree', true));
     byId('mode-cell').addEventListener('click', () => setMapMode('cell', true));
+    byId('mode-plant').addEventListener('click', () => setMapMode('plant', true));
+    byId('mode-spot').addEventListener('click', () => setMapMode('spot', true));
     byId('cell-close').addEventListener('click', () => setMapMode('tree', true));
+    byId('plant-close').addEventListener('click', () => setMapMode('tree', true));
+    byId('spot-close').addEventListener('click', () => setMapMode('tree', true));
+    byId('pj-close').addEventListener('click', () => closeJuvenileInspection(true));
+    byId('cell-clear-add').addEventListener('click', onCellClearAdd);
+    byId('cell-clear-remove').addEventListener('click', () => {
+      const c = state.cellDetail;
+      if (c && !c.missing) removeClear(c.areaId, c.column, c.row);
+    });
+    byId('plant-opt-shelter').addEventListener('change', () => renderMap());
+    byId('plant-opt-spot').addEventListener('change', () => renderMap());
+    byId('plant-queue').addEventListener('click', onPlantQueue);
+    byId('plant-clear-draft').addEventListener('click', () => { state.plantDraft = null; renderAll(); });
+    byId('plant-result').addEventListener('click', (event) => {
+      const rm = event.target.closest('[data-planting-remove]');
+      if (rm) removePlanting(rm.getAttribute('data-planting-remove'));
+    });
+    byId('spot-queue').addEventListener('click', onSpotQueue);
+    byId('spot-clear-draft').addEventListener('click', () => { state.spotDraft = null; renderAll(); });
+    byId('spot-result').addEventListener('click', (event) => {
+      const rm = event.target.closest('[data-planting-remove]');
+      if (rm) removePlanting(rm.getAttribute('data-planting-remove'));
+    });
+    byId('pj-shelter-add').addEventListener('click', onPjShelterAdd);
+    byId('pj-shelter-remove').addEventListener('click', () => {
+      const orderId = byId('pj-shelter-remove').getAttribute('data-pj-remove-order');
+      if (orderId) removePlanting(orderId);
+    });
+    byId('planted-list').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-pj-select]');
+      if (btn) chooseJuvenile(state.areaId, btn.getAttribute('data-pj-select'));
+    });
     byId('overlay-select').addEventListener('change', (event) => setOverlay(event.target.value));
     byId('crop-button').addEventListener('click', onCrop);
     byId('reread').addEventListener('click', () => reread(true));
@@ -4386,7 +5235,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const rm = event.target.closest('[data-remove]');
       if (rm) { removePending(rm.getAttribute('data-area'), rm.getAttribute('data-remove')); return; }
       const pr = event.target.closest('[data-prune-remove]');
-      if (pr) removePrune(pr.getAttribute('data-area'), pr.getAttribute('data-prune-remove'));
+      if (pr) { removePrune(pr.getAttribute('data-area'), pr.getAttribute('data-prune-remove')); return; }
+      const cl = event.target.closest('[data-clear-remove]');
+      if (cl) { removeClear(cl.getAttribute('data-area'), cl.getAttribute('data-clear-col'), cl.getAttribute('data-clear-row')); return; }
+      const pl = event.target.closest('[data-planting-remove]');
+      if (pl) removePlanting(pl.getAttribute('data-planting-remove'));
     });
     byId('prune-add').addEventListener('click', onPruneAdd);
     byId('prune-remove').addEventListener('click', () => removePrune(state.areaId, selectedId()));
