@@ -561,6 +561,80 @@ internal static class Phase2Tests
             var stage5 = new MultiAreaContinuation(MultiAreaGenerator.Generate(), MultiAreaModelSelection.Stage5);
             T.Refuses("Phase2ModelRequired", () => stage5.AddPlant(Fence(stage5.ReadView()), "MA-A", Oak, p.X, p.Z));
         });
+
+        T.Add("P2-04b C-03: a point strictly inside the polygon but in no in-polygon 2.5 m ground cell (boundary sliver) is refused with Phase2PointWithoutGroundCell (ratified, spec amendment 4); a refused Add changes nothing and a sliver order in an approved batch refuses the whole batch atomically", () =>
+        {
+            var c = MixedSession();
+            var v0 = c.ReadView();
+            var locate = Phase2Annual.Locator(Stage5Of(c));
+            var adults = v0.Areas.SelectMany(a => a.Trees).Where(t => t.IsLiving).ToArray();
+            // Same 0.25 m scan as FindPoint, over both racks: points strictly inside and ≥ 0.7 m from every living adult
+            // (otherwise valid), split by whether the locator finds a ground cell.
+            int candidates = 0, slivers = 0;
+            (string Area, float X, float Z)? sliver = null;
+            foreach (var area in v0.Areas)
+            {
+                double minX = area.Polygon.Min(q => q.XM), maxX = area.Polygon.Max(q => q.XM);
+                double minZ = area.Polygon.Min(q => q.ZM), maxZ = area.Polygon.Max(q => q.ZM);
+                for (double z = Math.Ceiling(minZ) + 0.125; z < maxZ; z += 0.25)
+                    for (double x = Math.Ceiling(minX) + 0.125; x < maxX; x += 0.25)
+                    {
+                        float fx = (float)x, fz = (float)z;
+                        if (!Stage5Promotion.StrictlyInside(area.Polygon, fx, fz)) continue;
+                        if (adults.Any(t => (t.XM - fx) * (t.XM - fx) + (t.ZM - fz) * (t.ZM - fz) < 0.7f * 0.7f)) continue;
+                        candidates++;
+                        if (locate(fx, fz) is not null) continue;
+                        slivers++;
+                        if (sliver is null && adults.All(t => (t.XM - fx) * (t.XM - fx) + (t.ZM - fz) * (t.ZM - fz) >= 1.2f * 1.2f))
+                            sliver = (area.AreaId, fx, fz);
+                    }
+            }
+            Console.WriteLine($"  P2-04b sliver points {slivers} of {candidates} otherwise-valid scan points ({100.0 * slivers / candidates:F2} %)");
+            T.True(sliver is not null, "MA-1 has a boundary-sliver point strictly inside a polygon with no in-polygon ground cell");
+            var s = sliver!.Value;
+            T.True(Stage5Promotion.StrictlyInside(v0.Areas.Single(a => a.AreaId == s.Area).Polygon, s.X, s.Z) && locate(s.X, s.Z) is null,
+                $"sliver point {s.Area} ({s.X}, {s.Z}) is inside the polygon and in no ground cell");
+
+            void Refused(Func<MultiAreaFence, MultiAreaCommandResult> command)
+            {
+                var before = Root(c);
+                T.Refuses("Phase2PointWithoutGroundCell", () => command(Fence(c.ReadView())));
+                T.True(ReferenceEquals(before, Root(c)), "a refused sliver command changed nothing");
+            }
+            Refused(f => c.AddPlant(f, s.Area, Oak, s.X, s.Z));
+            Refused(f => c.AddSpotClear(f, s.Area, s.X, s.Z));
+            Refused(f => c.AddShelter(f, s.Area, s.X, s.Z));
+
+            // A valid pending batch stays exactly as it was when a sliver order is added to it.
+            var p = FindPoint(c, s.Area, 1.2f, (x, z) => (x - s.X) * (x - s.X) + (z - s.Z) * (z - s.Z) > 16f);
+            c.AddSpotClear(Fence(c.ReadView()), s.Area, p.X, p.Z);
+            c.AddPlant(Fence(c.ReadView()), s.Area, Oak, p.X, p.Z);
+            Refused(f => c.AddPlant(f, s.Area, Beech, s.X, s.Z));
+            T.Eq("P2W0001,P2W0002", string.Join(",", Phase2Of(c).PendingOrders.Select(o => o.OrderId)), "the valid pending batch is intact");
+
+            // Execute: a sliver Plant injected into the approved batch after approval refuses the whole batch.
+            var v = c.Approve(Fence(c.ReadView())).View;
+            var approved = Root(c);
+            RootField.SetValue(c, approved with
+            {
+                Phase2 = approved.Phase2! with
+                {
+                    ApprovedOrders = Array.AsReadOnly(approved.Phase2.ApprovedOrders
+                        .Append(new MultiAreaPlantOrder("P2W9999", s.Area, Beech, s.X, s.Z)).ToArray()),
+                },
+            });
+            var injected = Root(c);
+            T.Refuses("Phase2PointWithoutGroundCell", () => c.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey));
+            var after = Root(c);
+            T.True(ReferenceEquals(injected, after), "the refused Execute committed nothing");
+            T.True(after.EcologicalYear == 0 && after.WorkRevision == 0 && after.Phase2!.Juveniles.Count == 0 && after.Phase2.Patches.Count == 0 &&
+                after.Phase2.Shelters.Count == 0 && after.Phase2.WorkLog.Count == 0, "no patch, juvenile, shelter, work record, year or revision of the batch exists");
+
+            // Control: the same approved batch without the sliver order executes, so the sliver alone caused the refusal.
+            RootField.SetValue(c, approved);
+            c.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
+            T.True(Phase2Of(c).Juveniles.Count == 1 && Phase2Of(c).Patches.Count == 1, "without the sliver order the batch executes");
+        });
     }
 
     // ============================================================================================ P2-05 browsing and shelters
@@ -788,6 +862,54 @@ internal static class Phase2Tests
                 return w.Hash();
             }
         });
+
+        T.Add("P2-06b S-02 (paired survival): the same planted Oak in the same full-light cell, unweeded vs 1 m² spot-cleared, over 200 area seeds at default browse pressure: the unweeded arm loses stems to vegetation (DeathCause \"vegetation\", counted as VegetationDeaths, not light) and patched survival is strictly greater", () =>
+        {
+            const int replicates = 200, years = 6;
+            const float x = 3.75f, z = 3.75f; // centre of MA-A cell (1, 1)
+            var arms = new[] { "unweeded", "spot-cleared" };
+            var alive = new int[2];
+            var causes = new[] { new Dictionary<string, int>(StringComparer.Ordinal), new Dictionary<string, int>(StringComparer.Ordinal) };
+            var accountedVegetation = new int[2];
+            for (int k = 0; k < replicates; k++)
+            {
+                var inputs = EmptySquares().Select(a => a with { SimulationSeed = a.SimulationSeed + 1000 * k }).ToArray();
+                var light = FixedLight(inputs, 2.5, (_, _) => 1f);
+                var (s5, s2) = EmptyStates(inputs);
+                var juvenile = Juvenile("PJ0001", "MA-A", Oak, x, z, 3f, 0.6f) with { PlantingYear = 1 };
+                // The patch exactly as Execute writes it before year 1 (created and guarded in year 1, covers 0).
+                var patch = new SpotPatch("SP0001", "MA-A", x, z, Phase2Constants.SpotClearRadiusM, 1, 1, 0f, 0f);
+                var states = new[]
+                {
+                    (S5: s5, S2: s2 with { Juveniles = new[] { juvenile } }),
+                    (S5: s5, S2: s2 with { Juveniles = new[] { juvenile }, Patches = new[] { patch } }),
+                };
+                if (k == 0)
+                    T.True(s5.Areas[0].Cells[CellIndex(s5, "MA-A", 1, 1)].Bramble > 0f, "the bright cell starts with bramble cover");
+                for (int arm = 0; arm < 2; arm++)
+                {
+                    for (int year = 1; year <= years; year++)
+                    {
+                        var step = Phase2Annual.Step(states[arm].S5, states[arm].S2, inputs, year, Array.Empty<Phase2DensityRecord>(), light);
+                        accountedVegetation[arm] += step.Phase2Account.Planted.Sum(a => a.VegetationDeaths);
+                        states[arm] = (step.NextStage5, step.NextPhase2);
+                    }
+                    var end = states[arm].S2.Juveniles.Single();
+                    T.True(end.PromotedTreeId is null, "no promotion inside the window");
+                    if (end.Alive) alive[arm]++;
+                    else causes[arm][end.DeathCause!] = causes[arm].GetValueOrDefault(end.DeathCause!) + 1;
+                }
+            }
+            for (int arm = 0; arm < 2; arm++)
+                Console.WriteLine($"  P2-06b {arms[arm]}: alive {alive[arm]}/{replicates} ({100.0 * alive[arm] / replicates:F1} %); deaths " +
+                    (causes[arm].Count == 0 ? "none" : string.Join(", ", causes[arm].OrderBy(p => p.Key).Select(p => p.Key + " " + p.Value))) +
+                    $"; account VegetationDeaths {accountedVegetation[arm]}");
+            int vegetationDeaths = causes[0].GetValueOrDefault("vegetation");
+            T.True(vegetationDeaths >= 1, "the unweeded arm records at least one vegetation-attributable death (" + vegetationDeaths + ")");
+            T.Eq(vegetationDeaths, accountedVegetation[0], "every unweeded vegetation death is counted as VegetationDeaths in the planted account");
+            T.True(causes[1].GetValueOrDefault("vegetation") < vegetationDeaths, "the spot-cleared arm loses fewer stems to vegetation");
+            T.True(alive[1] > alive[0], $"patched survival {alive[1]} is strictly greater than unweeded survival {alive[0]}");
+        });
     }
 
     // ============================================================================================ P2-07 planted promotion
@@ -846,6 +968,71 @@ internal static class Phase2Tests
             var modelStep = Phase2Annual.Step(s5, state2, inputs, 1, Array.Empty<Phase2DensityRecord>());
             T.Eq("PL-PJ0007", modelStep.NextPhase2.Juveniles.Single().PromotedTreeId, "promoted under model light");
             T.True(modelStep.NextStage5.Areas.SelectMany(a => a.Cells).All(cell => cell.Light == 1f), "this year's light is the canopy without the new adult");
+        });
+
+        T.Add("P2-07b P-03 (end to end): on MA-1 through the public session path only, Plant + Shelter + SpotClear at a bright Area B point, then Advance until the juvenile promotes to PL-{juvenileId} at its exact X/Z with the C2 initial crown; natural 5 m block credit and natural promotions equal an unplanted twin's every year", () =>
+        {
+            var c = Phase2Session();
+            var twin = Phase2Session();
+            var s5 = Stage5Of(c);
+            var locate = Phase2Annual.Locator(s5);
+            float brightest = s5.Areas.Single(a => a.AreaId == "MA-B").Cells.Max(cell => cell.Light);
+            var p = FindPoint(c, "MA-B", 1.2f, (x, z) => locate(x, z) is var (a, ci) && s5.Areas[a].AreaId == "MA-B" &&
+                s5.Areas[a].Cells[ci].Light >= 0.9f * brightest);
+            var (pa, pc) = locate(p.X, p.Z)!.Value;
+            T.True(s5.Areas[pa].Cells[pc].Light >= 0.5f, "a bright Area B cell (light " + s5.Areas[pa].Cells[pc].Light + ")");
+            c.AddSpotClear(Fence(c.ReadView()), "MA-B", p.X, p.Z);
+            c.AddPlant(Fence(c.ReadView()), "MA-B", Oak, p.X, p.Z);
+            c.AddShelter(Fence(c.ReadView()), "MA-B", p.X, p.Z);
+            ApproveAndExecute(c);
+            string juvenileId = Phase2Of(c).Juveniles.Single().JuvenileId;
+            T.Eq("PJ0001", juvenileId, "engine-minted juvenile id");
+            string treeId = "PL-" + juvenileId;
+
+            static string Natural(MultiAreaContinuation s) => string.Join(";",
+                Stage5Of(s).Accounts[^1].Areas.SelectMany(a => a.Promotions).Select(q => q.TreeId + "@" + q.BlockX + "," + q.BlockZ)
+                    .Concat(Phase2Of(s).Accounts[^1].Natural.SelectMany(a => a.Promotions).Select(q => q.TreeId + "@" + q.BlockX + "," + q.BlockZ)));
+
+            int promotedYear = -1;
+            for (int y = 1; y <= 40 && promotedYear < 0; y++)
+            {
+                Advance(c);
+                Advance(twin);
+                T.True(Stage5Of(c).Blocks.SequenceEqual(Stage5Of(twin).Blocks), "natural 5 m block credit equals the unplanted twin, year " + y);
+                T.Eq(Natural(twin), Natural(c), "natural promotions equal the unplanted twin, year " + y);
+                var j = Phase2Of(c).Juveniles.Single();
+                T.True(j.Alive, $"the planted Oak is alive in year {y} (died of {j.DeathCause})");
+                if (j.PromotedTreeId is not null) promotedYear = y;
+            }
+            T.True(promotedYear > 0, "the planted Oak promotes within 40 years");
+            var juvenile = Phase2Of(c).Juveniles.Single();
+            var cellAtPromotion = Stage5Of(c).Areas[pa].Cells[pc];
+            Console.WriteLine($"  P2-07b {juvenileId} promoted to {juvenile.PromotedTreeId} in ecological year {promotedYear} at H {juvenile.HeightM:F3} m, " +
+                $"age {juvenile.AgeYears}, cell light {cellAtPromotion.Light:F3}");
+            T.Eq(treeId, juvenile.PromotedTreeId, "promoted to PL-{juvenileId}");
+            T.True(juvenile.HeightM >= 3.5f && cellAtPromotion.Light >= 0.2f, "Oak promotion gates: H ≥ 3.5 m and cell light ≥ 0.2");
+            T.Eq(promotedYear, c.ReadView().Source.EcologicalYear, "promoted in the year just advanced");
+
+            var roster = Root(c).Areas.Single(a => a.AreaId == "MA-B").State.Trees;
+            var tree = roster.Single(t => t.TreeId == treeId);
+            T.True(F32.Bits(tree.XM) == F32.Bits(p.X) && F32.Bits(tree.ZM) == F32.Bits(p.Z), "PL-* at the exact planted X/Z");
+            T.True(c.ReadView().Areas.Single(a => a.AreaId == "MA-B").Trees.Any(t => t.TreeId == treeId && t.IsLiving), "the recruit is a living adult in the view");
+            T.Eq(Oak, Phase2Of(c).TreeSpecies[treeId], "the recruit is recorded as Oak");
+            // C2 initial crown: DBH = clamp(1.5·H, 2, 20), r_0 = the Oak C2 target at the CI of this year's post-adult-step
+            // woodland, i.e. every living stem except the recruits promoted in this same year.
+            var newThisYear = Stage5Of(c).Accounts[^1].Areas.SelectMany(a => a.Promotions).Select(q => q.TreeId)
+                .Concat(Phase2Of(c).Accounts[^1].Natural.SelectMany(a => a.Promotions).Select(q => q.TreeId))
+                .Concat(Phase2Of(c).Accounts[^1].Planted.SelectMany(a => a.PromotedTreeIds)).ToHashSet(StringComparer.Ordinal);
+            var woodland = CrownModel.Woodland(Root(c).Areas.SelectMany(a => a.State.Trees).Where(t => !newThisYear.Contains(t.TreeId)));
+            float dbh = Math.Clamp(1.5f * juvenile.HeightM, 2f, 20f);
+            T.Eq(F32.Bits(dbh), F32.Bits(tree.DbhCm), "DBH = clamp(1.5·H, 2, 20)");
+            T.Eq(F32.Bits(juvenile.HeightM), F32.Bits(tree.HeightM), "height carried over");
+            T.Eq(Math.Max(1, (int)Math.Round(juvenile.AgeYears, MidpointRounding.ToEven)), tree.AgeYears, "Age = max(1, round(age))");
+            float ci = CrownModel.WoodlandCompetition(tree with { CrownRadiusM = 0f }, woodland).Ci;
+            T.Eq(F32.Bits(Phase2Crown.TargetRadiusM(Phase2Species.Oak, dbh, ci)), F32.Bits(tree.CrownRadiusM), "C2 initial crown radius (CI " + ci + ")");
+            var planted = Phase2Of(c).Accounts[^1].Planted.Single(a => a.SpeciesId == Oak);
+            T.True(planted.Promoted == 1 && planted.PromotedTreeIds.SequenceEqual(new[] { treeId }), "planted account records the promotion");
+            T.True(Phase2Of(c).Accounts.Take(promotedYear - 1).All(a => a.Planted.All(x => x.Promoted == 0)), "no earlier promotion");
         });
     }
 
