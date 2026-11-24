@@ -375,5 +375,17 @@ It reviewed `ca750ab..803bdd83`, at head `2dde7348`, clean worktree, and wrote n
 - It noted its own limitation: "this was not a blind review, and the separation from the first reviewer is by thread only
   (same model)".
 
+### Commit sequence (for exact traceability)
+
+| Commit | What it is |
+|---|---|
+| `ca750ab5` | implementation, first reviewed head (verdict NEEDS CHANGES) |
+| `76a5707e` | first handoff publication |
+| `803bdd83` | repair of both blocking findings (re-review verdict APPROVED) |
+| `2dde7348` | handoff updated with the first verdict and the repairs |
+| `a20640ae` | post-approval corrections (real generation guarantee, recovery no-clobber, dialog confirmations, pinned Prune code, Stage 4 option branch, browser recovery phase) |
+| `1635245f` | final handoff content (its commit message was reused in error and still says the re-review was pending — the content records the APPROVED verdict) |
+| this commit | adds only this note, so the message mismatch is on the record rather than hidden |
+
 **Final state of this branch:** IMPLEMENTED, REVIEWED (APPROVED after one repair cycle), **not INTEGRATED** (no `main`
 merge, no PR) and **not ACCEPTED** (no owner playtest). The handoff's earlier overclaims are corrected in §3.1/§3.2.
