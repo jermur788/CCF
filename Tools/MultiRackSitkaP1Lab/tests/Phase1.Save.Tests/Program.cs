@@ -667,6 +667,29 @@ T.Add("NB1b: concurrent saves of one slot are serialized and leave one complete 
     T.True(inspect.PrimaryRefusal is null && inspect.BackupExists && inspect.BackupRefusal is null,
         "one save is the primary and the other its verified backup");
 });
+T.Add("R2 backup recovery is refused while the primary still verifies, and is exactly what a corrupt primary gets", () =>
+{
+    // Independent review finding 2: Restore backup used to replace a valid newer save with the older backup on one click.
+    // The store now refuses recovery while the primary decodes, so a good save can never be rolled back by accident.
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    slots.Save("alpha", model0Bytes, replaceExisting: false);
+    slots.Save("alpha", pendingBytes, replaceExisting: true); // backup = model0, primary = pending
+    string primary = Path.Combine(slots.Directory, "alpha.ccf2d.json"), backup = primary + ".bak";
+    byte[] primaryBefore = File.ReadAllBytes(primary);
+    var refused = T.Refuses("SlotPrimaryValid", () => slots.RecoverFromBackup("alpha"));
+    T.True(refused.Message.Contains("still holds a complete, verified save", StringComparison.Ordinal), "the refusal says why");
+    T.Bytes(primaryBefore, File.ReadAllBytes(primary), "the newer save is byte-identical after the refusal");
+    T.Bytes(model0Bytes, File.ReadAllBytes(backup), "the backup is untouched");
+    T.Eq(0, slots.Inspect("alpha").LeftoverTempFiles.Count, "no temp file left");
+
+    // A primary that no longer verifies is the one case recovery exists for.
+    File.WriteAllBytes(primary, Encoding.UTF8.GetBytes("{ not a save"));
+    var recovered = slots.RecoverFromBackup("alpha");
+    T.Eq(Phase1SlotCommitStatus.DurablyCommitted, recovered.Status, "recovery over a corrupt primary committed");
+    T.Bytes(model0Bytes, File.ReadAllBytes(primary), "the verified backup was restored over the corrupt primary");
+    T.Bytes(model0Bytes, File.ReadAllBytes(backup), "the backup itself is kept");
+    T.Eq(0, slots.Inspect("alpha").LeftoverTempFiles.Count, "still no temp file");
+});
 T.Add("golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding", () =>
 {
     // Pins the exact canonical bytes of schema 2. Any change to key order, spelling, tags, fixture values or the schema

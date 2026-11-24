@@ -62,12 +62,7 @@ internal static class Phase1RootMapping
             return new Phase1ExecutedWork(kv.Key, Token(kv.Value.Source), Orders(kv.Value.Orders));
         }).ToArray();
 
-        var options = new Phase1Options(
-            stage4Options is null ? null : Stage4Options(stage4Options),
-            root.Stage5 is null ? null : new Phase1Stage5Options(root.Stage5.Options.GridCellM, root.Stage5.Options.BackgroundBrowsePressure,
-                root.Stage5.Options.MastSeed),
-            root.Phase2 is null ? null : new Phase1Phase2Options(root.Phase2.Options.OakMastSeed, root.Phase2.Options.BeechMastSeed,
-                Species(root.Phase2.Options.GenesisSpecies)));
+        var options = Phase1RootMapping.OptionsOf(root, stage4Options);
 
         return new Phase1SaveState(options, root.EcologicalYear, root.AnnualRevision, root.WorkRevision, root.PlanStateRevision,
             L(root.Areas.Select(a => new Phase1AreaState(a.AreaId, a.State.EcologicalYear, L(a.State.Trees.Select(Tree)), L(a.CropTreeIds)))),
@@ -81,6 +76,20 @@ internal static class Phase1RootMapping
             root.Stage5 is null ? null : Stage5(root.Stage5),
             root.Phase2 is null ? null : Phase2(root.Phase2));
     }
+
+    // ------------------------------------------------------------------------------------------------ options
+
+    /// <summary>
+    /// The deterministic session options as the save DTO holds them (Stage 4 growth phases, Stage 5 grid/browse/mast seed,
+    /// Phase 2 seeds and genesis species). Used both by <see cref="Capture"/> and by the engine's load check that the saved
+    /// options are exactly the running session's options.
+    /// </summary>
+    internal static Phase1Options OptionsOf(MultiAreaRoot root, Stage4Options? stage4Options) =>
+        new(stage4Options is null ? null : Stage4Options(stage4Options),
+            root.Stage5 is null ? null : new Phase1Stage5Options(root.Stage5.Options.GridCellM,
+                root.Stage5.Options.BackgroundBrowsePressure, root.Stage5.Options.MastSeed),
+            root.Phase2 is null ? null : new Phase1Phase2Options(root.Phase2.Options.OakMastSeed, root.Phase2.Options.BeechMastSeed,
+                Species(root.Phase2.Options.GenesisSpecies)));
 
     private static Phase1Stage4Options Stage4Options(Stage4Options o)
     {

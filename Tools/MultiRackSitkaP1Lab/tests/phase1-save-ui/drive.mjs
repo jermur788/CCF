@@ -136,6 +136,17 @@ async function click(cdp, selector) {
   await sleep(120);
 }
 
+// A real key press on whatever has focus (Enter/Space activate the focused control, as a keyboard player does).
+async function press(cdp, key) {
+  const code = key === 'Enter' ? 'Enter' : key === 'Space' ? 'Space' : key;
+  const vk = key === 'Enter' ? 13 : key === 'Space' ? 32 : key === 'Tab' ? 9 : 0;
+  for (const type of ['keyDown', 'keyUp']) {
+    await cdp.send('Input.dispatchKeyEvent', { type, key: key === 'Space' ? ' ' : key, code, windowsVirtualKeyCode: vk,
+      nativeVirtualKeyCode: vk, text: type === 'keyDown' && key === 'Enter' ? '\r' : undefined });
+  }
+  await sleep(150);
+}
+
 async function typeInto(cdp, selector, text) {
   await click(cdp, selector);
   await evaluate(cdp, `(() => { const e = document.querySelector(${JSON.stringify(selector)}); e.select(); })()`);
@@ -330,15 +341,16 @@ async function saveSlot(cdp) {
     JSON.stringify(fits) + ')');
   await shot(cdp, 'saves-empty-1280', 1280, 720);
 
-  await typeInto(cdp, '#save-slot', slot);
-  const enabled = await evaluate(cdp, "!document.getElementById('save-do').disabled");
-  check(enabled, 'a valid slot name enables the Save control');
-  await click(cdp, '#save-do');
-  await waitFor(cdp, "document.getElementById('saves-status').textContent.includes('Saved')", 'the save to be confirmed', 30000);
+  // Keyboard path: the slot name field and the Save control are reachable and operable without a mouse.
+  await evaluate(cdp, "document.getElementById('save-slot').focus()");
+  await cdp.send('Input.insertText', { text: slot });
+  await press(cdp, 'Tab');
+  const focused = await evaluate(cdp, "document.activeElement && document.activeElement.id");
+  check(focused === 'save-do', 'Tab from the slot name reaches the Save control (' + focused + ')');
+  await press(cdp, 'Enter');
+  await waitFor(cdp, "document.getElementById('saves-status').textContent.includes('Saved')", 'the keyboard save', 30000);
   const status = await evaluate(cdp, "document.getElementById('saves-status').textContent");
-  check(status.includes('durably committed') || status.includes('flush was not confirmed'),
-    'the page states the real commit state: ' + status.slice(0, 160));
-  check(!status.includes('flush was not confirmed'), 'the write was durably committed on this host');
+  check(status.includes('durably committed'), 'the page states the real commit state: ' + status.slice(0, 160));
   await waitFor(cdp, `Array.from(document.querySelectorAll('#saves-rows code')).some((c) => c.textContent === ${JSON.stringify(slot)})`,
     'the saved slot to appear in the list');
   const row = await evaluate(cdp, `(() => { const tr = Array.from(document.querySelectorAll('#saves-rows tr'))
@@ -351,10 +363,42 @@ async function saveSlot(cdp) {
     return { width: Math.round(r.width), height: Math.round(r.height), vw: innerWidth, vh: innerHeight }; })()`);
   check(fitsBig.width <= fitsBig.vw && fitsBig.height <= fitsBig.vh,
     'at 1920x1080 the dialog stays inside the viewport (' + JSON.stringify(fitsBig) + ')');
+
+  // Overwrite is a separate, explicit act: the same slot again without the tick writes nothing.
+  await typeInto(cdp, '#save-slot', slot);
+  const wrapShown = await evaluate(cdp, "!document.getElementById('save-overwrite-wrap').hidden");
+  check(wrapShown, 'an existing slot name reveals the explicit overwrite control');
+  await click(cdp, '#save-do');
+  await sleep(300);
+  const warned = await evaluate(cdp, "document.getElementById('saves-status').textContent");
+  check(warned.includes('already holds a save') && warned.includes('Nothing was written'),
+    'Save on an existing slot without the overwrite tick warns and writes nothing');
+
+  // Approve the pending plan through the page, then save again with the tick: the file now holds an APPROVED plan, so the
+  // load phase can prove the approved -> pending-draft policy in the real UI.
+  await click(cdp, '#saves-close');
+  await click(cdp, '#view-plan');
+  await waitFor(cdp, "document.getElementById('approve') && !document.getElementById('approve').hidden", 'the Approve control');
+  await click(cdp, '#approve');
+  await waitFor(cdp, "document.getElementById('execute') && !document.getElementById('execute').hidden", 'the approved plan');
+  const approved = await currentView(cdp);
+  check(approved.approved !== null && approved.pending.length === 0, 'the plan is approved in the live session before the second save');
+  await openSaves(cdp);
+  await typeInto(cdp, '#save-slot', slot);
+  await click(cdp, '#save-overwrite');
+  const ticked = await evaluate(cdp, "document.getElementById('save-overwrite').checked");
+  check(ticked, 'the overwrite tick is a real checkbox the player must set');
+  await click(cdp, '#save-do');
+  await waitFor(cdp, "document.getElementById('saves-status').textContent.includes('Saved')", 'the confirmed overwrite', 30000);
+  const status2 = await evaluate(cdp, "document.getElementById('saves-status').textContent");
+  check(status2.includes('durably committed'), 'the confirmed overwrite committed durably: ' + status2.slice(0, 140));
+  await shot(cdp, 'saves-overwrite-1280', 1280, 720);
+  if (oldFile) writeFileSync(oldFile, JSON.stringify({ sessionId: approved.sessionId, source: approved.source,
+    planStateRevision: approved.planStateRevision, year: approved.source.ecologicalYear, trees: counts(approved), approved: true }));
+  await click(cdp, '#saves-close');
   const errorsAfter = errors();
   check(errorsAfter.length === 0, 'no console error or CSP violation while saving' +
     (errorsAfter.length ? ': ' + JSON.stringify(errorsAfter[0]).slice(0, 200) : ''));
-  await click(cdp, '#saves-close');
 }
 
 async function loadSlot(cdp) {
@@ -371,6 +415,10 @@ async function loadSlot(cdp) {
     .find((r) => r.querySelector('code') && r.querySelector('code').textContent === ${JSON.stringify(slot)});
     return tr ? { text: tr.innerText, loadable: Boolean(tr.querySelector('[data-load]')) } : null; })()`);
   check(row !== null && row.loadable, 'the saved slot is listed as loadable after the restart: ' + (row ? row.text.replace(/\s+/g, ' ') : 'missing'));
+  const recovery = await evaluate(cdp, `Boolean(Array.from(document.querySelectorAll('#saves-rows tr'))
+    .find((r) => r.querySelector('code') && r.querySelector('code').textContent === ${JSON.stringify(slot)})
+    ?.querySelector('[data-recover]'))`);
+  check(!recovery, 'a slot whose primary still verifies offers no Restore backup control');
   await shot(cdp, 'saves-restarted-1280', 1280, 720);
 
   await click(cdp, `[data-load="${slot}"]`);
@@ -387,13 +435,30 @@ async function loadSlot(cdp) {
   check(old === null || loaded.source.ecologicalYear === old.year, 'the restored year is the saved year');
   check(old === null || JSON.stringify(counts(loaded)) === JSON.stringify(old.trees),
     'every tree record of both areas came back (' + JSON.stringify(counts(loaded)) + ')');
-  check(loaded.pending.length === 1, 'the pending Fell came back as a visible draft');
+  // The prune list lives in the composite Stage 4 read-out, not in the session view.
+  const composite = (await fetchJson(cdp, 'api/multi/view')).payload;
+  const draftPrunes = composite && composite.stage4 && composite.stage4.pendingPrunes
+    ? composite.stage4.pendingPrunes.length : 0;
+  check(loaded.approved === null && loaded.pending.length + draftPrunes >= 1,
+    'the plan that was approved in the file came back as an UNapproved pending draft (' + loaded.pending.length +
+    ' Fell, ' + draftPrunes + ' Prune)');
+  await click(cdp, '#view-plan');
+  await sleep(200);
+  const draftUi = await evaluate(cdp, `(() => ({ approve: !document.getElementById('approve').hidden,
+    approvedBox: document.getElementById('approved-box').hidden,
+    summary: document.getElementById('plan-summary').textContent.trim() }))()`);
+  check(draftUi.approve && draftUi.approvedBox,
+    'the page shows the draft as needing Approve, with no approved plan (so no Execute): ' + draftUi.summary);
   const yearShown = await evaluate(cdp, "document.getElementById('year-value').textContent.trim()");
   check(yearShown === String(loaded.source.ecologicalYear), 'the page shows the restored year (' + yearShown + ')');
   await shot(cdp, 'restored-map-1280', 1280, 720);
   await shot(cdp, 'restored-map-1920', 1920, 1080);
 
   // The old authority is refused: the pre-restart fence and the pre-save fence both fail at the real HTTP boundary.
+  const staleLoad = await fetchJson(cdp, 'api/multi/load', { fence: fenceOf(fresh), slot: slot });
+  check(staleLoad.status === 409 && staleLoad.payload.refusal.code === 'PlayerSessionMismatch' &&
+    staleLoad.payload.view.sessionId === loaded.sessionId && staleLoad.payload.view.source.ecologicalYear === loaded.source.ecologicalYear,
+    'a load request carrying the replaced fence is refused and returns the unchanged restored session');
   const stale = await fetchJson(cdp, 'api/multi/year/advance', { fence: fenceOf(fresh), consentToCancelWork: false });
   check(stale.status === 409 && stale.payload.refusal.code === 'PlayerSessionMismatch',
     'the replaced session fence is refused (' + stale.status + ' ' + (stale.payload?.refusal?.code ?? '?') + ')');
@@ -435,7 +500,11 @@ async function reuse(cdp) {
   const view = await currentView(cdp);
   check(view.areas.length === 2 && view.source.ecologicalYear === 0, 'the MA-1 instance starts at year 0');
   await viewport(cdp, 1280, 720);
-  await openSaves(cdp);
+  await evaluate(cdp, "document.getElementById('saves-open').focus()");
+  await press(cdp, 'Enter');
+  await waitFor(cdp, "document.getElementById('saves-dialog').open", 'the Saved games dialog opened by the keyboard');
+  await waitFor(cdp, "document.querySelectorAll('#saves-rows tr').length > 0", 'the slot list');
+  check(true, 'the Saved games dialog opens from the header button with the keyboard alone');
   // The mixed forest's slot lives in the same folder: an all-Sitka session must see it as incompatible and offer no Load.
   const mixed = await evaluate(cdp, `(() => { const tr = Array.from(document.querySelectorAll('#saves-rows tr'))
     .find((r) => r.querySelector('code') && r.querySelector('code').textContent === 'edge-demo');
@@ -457,7 +526,9 @@ async function reuse(cdp) {
   await click(cdp, `[data-load="${slot}"]`);
   await click(cdp, '#load-do');
   await waitFor(cdp, "document.getElementById('year-value').textContent.trim() === '0'", 'the MA-1 slot to load year 0 back', 30000);
-  check(true, 'the MA-1 slot loads back to its saved year in the same process');
+  const back = await currentView(cdp);
+  check(back.source.ecologicalYear === 0 && back.sessionId !== view.sessionId,
+    'the MA-1 slot loaded back to its saved year under a new session authority');
   const errorsAfter = errors();
   check(errorsAfter.length === 0, 'no console error during the MA-1 save/load' +
     (errorsAfter.length ? ': ' + JSON.stringify(errorsAfter[0]).slice(0, 200) : ''));

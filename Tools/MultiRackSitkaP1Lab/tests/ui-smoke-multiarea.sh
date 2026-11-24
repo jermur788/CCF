@@ -595,6 +595,12 @@ check(code == 200 and replaced['saved']['backupUpdated'] and replaced['saved']['
       'a confirmed replace bumps the save generation and keeps the earlier save as the backup')
 row = next(s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e')
 check(row['backupExists'] and row['backupLoadable'], 'the list reports a loadable prior-good backup')
+check(not row['recoverable'], 'a slot whose primary still verifies is NOT offered backup recovery')
+code, payload = send('api/multi/saves/recover', body={'slot': 'e2e'})
+check(code == 409 and payload['refusal']['code'] == 'SlotPrimaryValid',
+      'recovery over a verified primary is refused, so one click cannot roll a good newer save back')
+row = next(s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e')
+check(row['status'] == 'valid' and row['ecologicalYear'] == sl_year, 'the newer save is still the loaded primary')
 
 adv = ok('api/multi/year/advance', {'fence': sl_fence, 'consentToCancelWork': False}, 'Year+1 after saving')
 after = adv['view']
@@ -630,8 +636,8 @@ primary = os.path.join(slot_dir, 'e2e.ccf2d.json')
 before_backup = open(primary + '.bak', 'rb').read()
 open(primary, 'wb').write(b'\x00\x01 broken primary')
 row = next(s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e')
-check(row['status'] == 'corrupt' and row['canLoad'] is False and row['backupExists'] and row['backupLoadable'],
-      'a corrupt primary is reported as corrupt, with its verified backup still available')
+check(row['status'] == 'corrupt' and row['canLoad'] is False and row['backupExists'] and row['backupLoadable'] and
+      row['recoverable'], 'a corrupt primary is reported as corrupt, with its verified backup offered for recovery')
 code, payload = send('api/multi/load', body={'fence': fence(adv2['view']), 'slot': 'e2e'})
 check(code == 409 and payload['refusal']['code'] in
       ('JsonInvalid', 'SaveUtf8Invalid', 'SaveNotCanonical', 'SaveChecksumMismatch', 'SaveInconsistent', 'SaveTooLarge',

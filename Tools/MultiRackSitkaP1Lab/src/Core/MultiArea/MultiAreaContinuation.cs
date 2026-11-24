@@ -1203,9 +1203,12 @@ internal sealed class MultiAreaContinuation
         {
             RequireFence(fence); // a stale tab may not replace a newer session
             Phase1SaveCodec.RequireExpected(decoded.Envelope.Header, SaveExpectation());
+            RequireSameOptions(decoded.Envelope.State.Options);
             var restored = Phase1RootMapping.Restore(decoded.Envelope.State, Phase1RootMapping.VectorOf(models));
-            RequireLegalRestoredOrders(restored.Root);
+            // The saved approval's orders become pending FIRST, so the engine re-check below covers every order the restored
+            // Work Plan will actually hold — orders that were approved in the file included (independent review finding 1).
             var candidate = WithSavedApprovalAsDraft(restored.Root, restored.SavedApproval);
+            RequireLegalRestoredOrders(candidate);
             root = candidate;
             sessionId = NewSessionId();
             // The canopy and ground read-outs are cached per (AnnualRevision, WorkRevision) only, and the restored forest can
@@ -1214,6 +1217,53 @@ internal sealed class MultiAreaContinuation
             groundCache = null;
             return new MultiAreaLoadResult(ViewOf(root), DraftOrderCount(restored.SavedApproval), decoded.Checksum, null, null);
         }
+    }
+
+    // The saved deterministic options must be exactly this session's options. A forest is never continued under a different
+    // Stage 4 growth-phase table, Stage 5 grid/browse/mast seed, or Phase 2 seed/species map (review finding: the Stage 4
+    // phases used to be silently taken from the running session while the other options came from the file).
+    private void RequireSameOptions(Phase1Options saved)
+    {
+        var mine = Phase1RootMapping.OptionsOf(root, stage4Options);
+        bool same = SameStage4(mine.Stage4, saved.Stage4) && SameStage5(mine.Stage5, saved.Stage5) &&
+            SamePhase2(mine.Phase2, saved.Phase2);
+        if (!same)
+            throw new P1Refusal("SaveOptionsMismatch",
+                "this save was made with different Stage 4 growth phases, Stage 5 grid/browse/mast options or Phase 2 seeds " +
+                "than this session has; options are never substituted or re-derived on load");
+    }
+
+    private static bool SameStage4(Phase1Stage4Options? a, Phase1Stage4Options? b)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        if (!string.Equals(a.SiteProductivity, b.SiteProductivity, StringComparison.Ordinal)) return false;
+        var x = a.GrowthAgePhases;
+        var y = b.GrowthAgePhases;
+        if (x is null || y is null) return x is null && y is null;
+        if (x.Count != y.Count) return false;
+        for (int i = 0; i < x.Count; i++)
+            if (F32.Bits(x[i].StartAgeYears) != F32.Bits(y[i].StartAgeYears) ||
+                F32.Bits(x[i].DbhIncrementFactor) != F32.Bits(y[i].DbhIncrementFactor) ||
+                F32.Bits(x[i].HeightIncrementFactor) != F32.Bits(y[i].HeightIncrementFactor)) return false;
+        return true;
+    }
+
+    private static bool SameStage5(Phase1Stage5Options? a, Phase1Stage5Options? b)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        return a.GridCellM == b.GridCellM && F32.Bits(a.BackgroundBrowsePressure) == F32.Bits(b.BackgroundBrowsePressure) &&
+            a.MastSeed == b.MastSeed;
+    }
+
+    private static bool SamePhase2(Phase1Phase2Options? a, Phase1Phase2Options? b)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        if (a.OakMastSeed != b.OakMastSeed || a.BeechMastSeed != b.BeechMastSeed) return false;
+        if (a.GenesisSpecies.Count != b.GenesisSpecies.Count) return false;
+        for (int i = 0; i < a.GenesisSpecies.Count; i++)
+            if (!string.Equals(a.GenesisSpecies[i].TreeId, b.GenesisSpecies[i].TreeId, StringComparison.Ordinal) ||
+                !string.Equals(a.GenesisSpecies[i].SpeciesId, b.GenesisSpecies[i].SpeciesId, StringComparison.Ordinal)) return false;
+        return true;
     }
 
     // NB2: every restored but unexecuted order is revalidated against the candidate root with the engine's own rules,

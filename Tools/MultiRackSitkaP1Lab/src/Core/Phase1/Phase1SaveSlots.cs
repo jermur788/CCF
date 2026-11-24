@@ -204,7 +204,10 @@ public sealed class Phase1SaveSlots
 
     /// <summary>
     /// Restores the prior-good backup into the primary slot (after an interrupted or corrupt save) by the same verified temp
-    /// file and atomic rename. The backup itself is kept. Refused if the backup does not verify.
+    /// file and atomic rename. The backup itself is kept. Refused if the backup does not verify, and — because recovery
+    /// replaces the primary — also refused while the primary still holds a complete, verified save
+    /// (<c>SlotPrimaryValid</c>): recovery is a last resort for a damaged slot, never a way to roll a good save back, so one
+    /// click can never destroy a newer save (independent review finding 2).
     /// </summary>
     public Phase1SlotSaveResult RecoverFromBackup(string slotName)
     {
@@ -215,8 +218,15 @@ public sealed class Phase1SaveSlots
             string primaryName = slotName + Extension;
             string primary = Confined(primaryName);
             RequireNotLinkOrDirectory(primary);
+            // Verify the backup first (a corrupt backup is reported as such, as A0 pinned), then refuse while the primary
+            // still verifies: recovery is a last resort for a damaged slot, never a way to roll a good save back, so one
+            // click can never destroy a newer save (independent review finding 2).
             byte[] backup = ReadFile(primaryName + BackupSuffix);
             var decoded = Phase1SaveCodec.Decode(backup);
+            var inspection = Inspect(slotName);
+            if (inspection.PrimaryExists && inspection.PrimaryRefusal is null)
+                throw new P1Refusal("SlotPrimaryValid",
+                    "slot '" + slotName + "' still holds a complete, verified save; restoring a backup is only offered when its primary file is unreadable or missing");
             string temp = NewTempPath(primaryName);
             bool renamed = false;
             try
@@ -231,6 +241,21 @@ public sealed class Phase1SaveSlots
             }
             var status = TryFsyncDirectory() ? Phase1SlotCommitStatus.DurablyCommitted : Phase1SlotCommitStatus.ReplacedDurabilityUnconfirmed;
             return new Phase1SlotSaveResult(slotName, status, BackupUpdated: false, decoded.Checksum, backup.Length);
+        }
+    }
+
+    /// <summary>
+    /// Whether the slot holds a primary and, if so, the save generation the next write of that slot should carry. Read under
+    /// the same per-slot gate as every mutation, so two saves of one slot cannot both claim the same generation.
+    /// </summary>
+    public (bool Exists, long NextGeneration) NextGeneration(string slotName)
+    {
+        ValidateSlotName(slotName);
+        lock (GateFor(slotName))
+        {
+            if (!Inspect(slotName).PrimaryExists) return (false, 1);
+            try { return (true, Load(slotName, expectation: null).Envelope.Header.SaveGeneration + 1); }
+            catch (P1Refusal) { return (true, 1); } // a corrupt primary is replaced on request; its good backup survives
         }
     }
 

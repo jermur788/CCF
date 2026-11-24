@@ -185,8 +185,10 @@ internal sealed partial class PlayerApi
                     refusal = failure.Code;
                 }
             }
+            bool primaryVerifies = inspection.PrimaryExists && inspection.PrimaryRefusal is null;
+            bool backupLoadable = inspection.BackupExists && inspection.BackupRefusal is null;
             slots.Add(new MultiSlotInfo(slot, label, year, savedUtc, models, status, status == "valid",
-                inspection.BackupExists, inspection.BackupRefusal is null, refusal));
+                inspection.BackupExists, backupLoadable, !primaryVerifies && backupLoadable, refusal));
         }
         return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavesPayload(slots.AsReadOnly(), null));
     }
@@ -203,16 +205,12 @@ internal sealed partial class PlayerApi
         string label = string.IsNullOrEmpty(request.Label) ? slot : request.Label;
         try
         {
-            long generation = 1;
-            var inspection = saveSlots.Inspect(slot);
-            if (inspection.PrimaryExists)
-            {
-                if (!request.ReplaceExisting)
-                    throw new P1Refusal("SlotExists",
-                        "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
-                try { generation = saveSlots.Load(slot, expectation: null).Envelope.Header.SaveGeneration + 1; }
-                catch (P1Refusal) { generation = 1; } // a corrupt primary is replaced on request; its good backup survives
-            }
+            // Same-slot gate: the generation is read under the slot's own lock, so a concurrent save of one slot cannot
+            // claim the generation this one is about to write.
+            var (exists, generation) = saveSlots.NextGeneration(slot);
+            if (exists && !request.ReplaceExisting)
+                throw new P1Refusal("SlotExists",
+                    "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
             // Capture first (engine lock), then encode and write (no engine lock held).
             var envelope = multiSession.CaptureSave(request.Fence!, label, generation);
             byte[] bytes = Phase1SaveCodec.Encode(envelope);
@@ -254,8 +252,8 @@ internal sealed partial class PlayerApi
             MultiLabels, snapshot.Readout, snapshot.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage)));
     }
 
-    // Restore a slot's verified prior-good backup over its primary. This is a deliberate, separate player action: a failed
-    // or interrupted save is never repaired silently, and a corrupt backup is refused rather than written.
+    // Restore a slot's verified prior-good backup over its primary. This is a deliberate, separate player action and the
+    // store refuses it while the primary still verifies (SlotPrimaryValid), so it can never roll a good newer save back.
     private async Task MultiRecoverAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiSlotRequest>(context, MultiRecoverMembers);
@@ -433,7 +431,7 @@ internal sealed partial class PlayerApi
     private sealed record MultiSlotRequest(string? Slot);
 
     private sealed record MultiSlotInfo(string Slot, string? Label, int? EcologicalYear, string? SavedUtc, string? Models,
-        string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, string? RefusalCode);
+        string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, bool Recoverable, string? RefusalCode);
 
     private sealed record MultiSavesPayload(IReadOnlyList<MultiSlotInfo> Slots, Notice? Refusal);
 
@@ -1270,6 +1268,13 @@ internal static class MultiAreaPage
     </thead>
     <tbody id="saves-rows"></tbody>
   </table>
+  <div id="recover-confirm" class="save-confirm" hidden>
+    <p id="recover-confirm-text"></p>
+    <p class="actions">
+      <button type="button" id="recover-cancel" class="secondary">Cancel</button>
+      <button type="button" id="recover-do" class="danger">Restore backup</button>
+    </p>
+  </div>
   <div id="load-confirm" class="save-confirm" hidden>
     <p id="load-confirm-text"></p>
     <p class="actions">
@@ -1973,8 +1978,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     plantResult: null, // sequential Plant -> Shelter -> SpotClear queue result + partial disclosure
     spotDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
     spotResult: null,
-    saves: [], // GET api/multi/saves rows: slot, label, year, savedUtc, models, status, canLoad, backup state
+    saves: [], // GET api/multi/saves rows: slot, label, year, savedUtc, models, status, canLoad, backup state, recoverable
     loadSlot: null, // slot awaiting the player's explicit "replace the current forest" confirmation
+    recoverSlot: null, // slot awaiting the player's explicit "restore its backup" confirmation
   };
 
   const byId = (id) => document.getElementById(id);
@@ -2398,7 +2404,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         actions.push(el('button', { type: 'button', class: 'small', 'data-load': slot.slot,
           'aria-label': 'Load saved slot ' + slot.slot }, label('MultiSavesLoad') || 'Load'));
       }
-      if (slot.backupExists && slot.backupLoadable) {
+      if (slot.backupExists && slot.recoverable) {
         actions.push(el('button', { type: 'button', class: 'small', 'data-recover': slot.slot,
           'aria-label': 'Restore the verified backup of ' + slot.slot }, label('MultiSavesRecover') || 'Restore backup'));
       }
@@ -2543,15 +2549,27 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     saveStatus('Load not confirmed (' + notice.code + '): ' + notice.message + ' Re-read the current state before trying again.', 'bad');
   }
 
-  async function onRecover(slot) {
-    if (state.busy) return;
+  function askRecover(slot) {
+    const row = savedSlot(slot);
+    if (!row || !row.recoverable || state.busy) return;
+    state.recoverSlot = slot;
+    byId('recover-confirm-text').textContent = fill(label('MultiSavesRecoverConfirm'), { slot: slot });
+    byId('recover-confirm').hidden = false;
+    byId('recover-do').focus();
+  }
+
+  async function onRecoverConfirmed() {
+    const slot = state.recoverSlot;
+    if (!slot || state.busy) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
     const outcome = await jsonCall('api/multi/saves/recover', 'POST', { slot });
     state.busy = false;
     document.documentElement.classList.remove('busy');
+    byId('recover-confirm').hidden = true;
+    state.recoverSlot = null;
     if (outcome.kind === 'ok') {
-      saveStatus('Restored the verified backup of "' + slot + '" over its primary file. Load it to play that forest.', 'ok');
+      saveStatus('Restored the verified backup of "' + slot + '" over its unreadable primary file. Load it to play that forest.', 'ok');
       await refreshSaves();
       return;
     }
@@ -5691,8 +5709,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const load = event.target.closest('[data-load]');
       if (load) { askLoad(load.getAttribute('data-load')); return; }
       const recover = event.target.closest('[data-recover]');
-      if (recover) onRecover(recover.getAttribute('data-recover'));
+      if (recover) askRecover(recover.getAttribute('data-recover'));
     });
+    byId('recover-cancel').addEventListener('click', () => {
+      byId('recover-confirm').hidden = true;
+      state.recoverSlot = null;
+      byId('save-slot').focus();
+    });
+    byId('recover-do').addEventListener('click', onRecoverConfirmed);
     byId('load-cancel').addEventListener('click', () => {
       byId('load-confirm').hidden = true;
       state.loadSlot = null;

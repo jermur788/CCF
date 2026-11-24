@@ -206,6 +206,8 @@ internal static class MultiAreaLabels
     public const string MultiSavesOverwrite = "Replace the existing slot with this forest";
     public const string MultiSavesLoad = "Load";
     public const string MultiSavesRecover = "Restore backup";
+    public const string MultiSavesRecoverConfirm =
+        "Restore the verified backup of '{slot}' over its unreadable primary file? This is offered only because that slot's primary no longer verifies; a slot whose primary still verifies is never rolled back.";
     public const string MultiSavesEmpty = "No saved slots in this folder yet.";
     public const string MultiSavesLoadConfirm =
         "Load '{slot}' and replace the forest on screen now? Unsaved changes to the current forest are lost, and any previously approved but unexecuted work comes back as a pending draft you must approve again.";

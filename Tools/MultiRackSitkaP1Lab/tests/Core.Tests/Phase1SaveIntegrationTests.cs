@@ -208,6 +208,73 @@ internal static class Phase1SaveIntegrationTests
             AssertBytes(before, Canonical(session), "the illegal restored order failed the WHOLE load, unchanged");
             T.Eq(beforeSession, session.ReadView().SessionId, "no new session was minted");
         });
+        T.Add("P1-SL-07b: an illegal order that was APPROVED in the file fails the whole load too", () =>
+        {
+            // Independent review finding 1: the saved approval's orders used to be merged into pending AFTER the engine's
+            // re-validation ran, so an engine-illegal approved order could reach the restored Work Plan as a stuck draft.
+            var (session, _) = ApprovedMixedForest(); // an approved Plant plus an approved Fell, never executed
+            var state = StateOf(session);
+            var phase2 = state.Phase2!;
+            var plant = phase2.ApprovedOrders.OfType<Phase1PlantOrder>().First();
+            var moved = state with
+            {
+                Phase2 = phase2 with
+                {
+                    ApprovedOrders = Array.AsReadOnly(phase2.ApprovedOrders
+                        .Select(order => order is Phase1PlantOrder p && p.OrderId == plant.OrderId
+                            ? new Phase1PlantOrder(p.OrderId, p.AreaId, p.SpeciesId, -50f, -50f)
+                            : order).ToArray()),
+                },
+            };
+            var decoded = Phase1SaveCodec.Decode(Phase1SaveCodec.Encode(Envelope(session, moved)), session.SaveExpectation());
+            byte[] before = Canonical(session);
+            string beforeSession = session.ReadView().SessionId;
+            T.Eq("Phase2PointOutsideArea", RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)),
+                "the approved Plan order is re-checked by the engine on load");
+            AssertBytes(before, Canonical(session), "the illegal approved plan failed the WHOLE load, unchanged");
+            T.Eq(beforeSession, session.ReadView().SessionId, "no new session was minted");
+        });
+        T.Add("P1-SL-07c: an illegally targeted approved Prune fails the whole load too", () =>
+        {
+            var (session, _) = ApprovedMixedForest();
+            var state = StateOf(session);
+            var stage4 = state.Stage4!;
+            T.True(stage4.ApprovedPrunes.Count > 0, "the scripted plan holds an approved Prune");
+            var bad = stage4.ApprovedPrunes[0];
+            var moved = state with
+            {
+                Stage4 = stage4 with
+                {
+                    ApprovedPrunes = Array.AsReadOnly(new[] { bad with { TargetCrownBaseHeightM = 99f } }),
+                },
+            };
+            var decoded = Phase1SaveCodec.Decode(Phase1SaveCodec.Encode(Envelope(session, moved)), session.SaveExpectation());
+            byte[] before = Canonical(session);
+            T.True(RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)) is not null,
+                "an approved Prune whose target is not the engine's scheduled lift is refused");
+            AssertBytes(before, Canonical(session), "the session is unchanged");
+        });
+        T.Add("P1-SL-09: a save whose deterministic options differ from the session is refused", () =>
+        {
+            var (session, _) = PlayedMixedForest();
+            var state = StateOf(session);
+            var stage5 = state.Stage5!;
+            var changed = state with
+            {
+                Options = state.Options with
+                {
+                    Stage5 = state.Options.Stage5! with { BackgroundBrowsePressure = 0.05f },
+                },
+                Stage5 = stage5,
+            };
+            // A differing option is caught before any root is built; the header identity is still this forest's.
+            byte[] bytes = Phase1SaveCodec.Encode(Envelope(session, changed));
+            var decoded = Phase1SaveCodec.Decode(bytes, session.SaveExpectation());
+            byte[] before = Canonical(session);
+            T.Eq("SaveOptionsMismatch", RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)),
+                "different Stage 5 options are never substituted");
+            AssertBytes(before, Canonical(session), "the session is unchanged");
+        });
         T.Add("P1-SL-08: a stale fence cannot capture or load a save", () =>
         {
             var (session, _) = PlayedMixedForest();
@@ -274,6 +341,21 @@ internal static class Phase1SaveIntegrationTests
             var executed = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
             T.True(executed.RefusalCode is null, "scripted Execute committed");
         }
+        return (session, adapter);
+    }
+
+    // Queued and approved (a Fell, a Plant and a scheduled Prune), never executed.
+    private static (MultiAreaContinuation Session, MultiAreaWorkPlanAdapter Adapter) ApprovedMixedForest()
+    {
+        var (session, adapter) = MixedForest();
+        var v = session.ReadView();
+        var point = Phase2Support.FindPoint(session, "MA-B", 1.0f);
+        v = session.AddPlant(Fence(v), "MA-B", Phase2Species.OakId, point.X, point.Z).View;
+        string oak = OakOf(session);
+        v = session.AddScheduledPrune(Fence(v), "MA-B", oak).View;
+        v = session.AddPending(Fence(v), "MA-A", v.Areas[0].Trees.First(t => t.IsLiving).TreeId, "approved release").View;
+        v = session.Approve(Fence(v)).View;
+        T.True(v.Approved is not null, "the scripted plan is approved");
         return (session, adapter);
     }
 
