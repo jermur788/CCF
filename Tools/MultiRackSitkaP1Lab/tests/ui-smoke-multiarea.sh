@@ -157,12 +157,15 @@ m = json.load(open(sys.argv[1], encoding="utf-8"))
 ok = m.get("experimentKey") == "ma-1" and m.get("experimentBadge") == "Synthetic MA-1 (all Sitka)"
 ok = ok and m.get("models") == {"adult": 1, "mortality": 1, "crown": 1, "regeneration": 1, "species": 1}
 sys.exit(0 if ok else 1)' "$scratch/manifest.body"
-check "M11 GET api/multi/view raw JSON <= 512 KiB and ecology <= 150 KiB on ma-1" \
+check "M11 GET api/multi/view raw JSON <= 512 KiB and raw ecology span <= 150 KiB on ma-1" \
   python3 -I -B -c 'import json, sys
 raw = open(sys.argv[1], "rb").read()
-obj = json.loads(raw)
-eco = json.dumps(obj["ecology"], separators=(",", ":")).encode("utf-8")
-sys.exit(0 if len(raw) <= 524288 and len(eco) <= 153600 and obj["ecology"]["models"]["species"] == 1 else 1)' "$scratch/v0.body"
+text = raw.decode("utf-8")
+obj = json.loads(text)
+idx = text.index("\"ecology\":") + len("\"ecology\":")
+_, end = json.JSONDecoder().raw_decode(text, idx)
+eco_bytes = len(text[idx:end].encode("utf-8"))
+sys.exit(0 if len(raw) <= 524288 and eco_bytes <= 153600 and obj["ecology"]["models"]["species"] == 1 else 1)' "$scratch/v0.body"
 
 # ---- G and W: guards and the full two-area workflow through the JSON API --------------------------------------------------
 cat > "$scratch/workflow.py" << 'WORKFLOW'
@@ -372,6 +375,175 @@ refused('api/multi/plan/execute', {'fence': fence(v), 'planId': v['approved']['p
         'WorkWouldLeaveNoLivingStems', 'Execute a plan that would leave B with no living tree')
 check(view()['approved'] is not None and area(view(), 'MA-B')['stand']['livingCount'] == 72, 'nothing felled; the plan is still approved')
 ok('api/multi/plan/cancel', {'fence': fence(view())}, 'Cancel the refused plan')
+
+# ---- Pass 2 fenced biological Work Plan HTTP endpoints (6 verbs): guards, 14 refusals, commitment gate, raw payload budgets ----
+def raw_view_and_eco_bytes():
+    req = urllib.request.Request(base + 'api/multi/view', headers={'Origin': origin})
+    raw = urllib.request.urlopen(req, timeout=15).read()
+    text = raw.decode('utf-8')
+    idx = text.index('"ecology":') + len('"ecology":')
+    _, end = json.JSONDecoder().raw_decode(text, idx)
+    return len(raw), len(text[idx:end].encode('utf-8')), json.loads(text)
+
+def strictly_inside(poly, x, z):
+    n = len(poly)
+    for i in range(n):
+        a = poly[i]; b = poly[(i + 1) % n]
+        if (b['xm'] - a['xm']) * (z - a['zm']) - (b['zm'] - a['zm']) * (x - a['xm']) <= 0:
+            return False
+    return True
+
+full_p2 = send('api/multi/view')[1]
+v_p2 = full_p2['view']
+f_p2 = fence(v_p2)
+s4_p2 = full_p2['stage4']
+area_b = area(v_p2, 'MA-B')
+area_a = area(v_p2, 'MA-A')
+cells_b = next(a for a in s4_p2['areas'] if a['areaId'] == 'MA-B')['ground']
+cells_a = next(a for a in s4_p2['areas'] if a['areaId'] == 'MA-A')['ground']
+clear_cell = cells_b[0]
+other_cell_a = cells_a[0]
+adults_all = [t for a in v_p2['areas'] for t in a['trees'] if t['isLiving']]
+cell_m = full_p2['ecology']['gridCellM']
+all_cell_keys = {(g['column'], g['row']) for g in cells_a + cells_b}
+
+# Find a valid open planting point (>= 1.0 m from all living adults, inside an in-polygon cell) and a boundary sliver
+import math
+open_pt = None
+sliver_pt = None
+for a_obj in (area_b, area_a):
+    xs = [p['xm'] for p in a_obj['polygon']]; zs = [p['zm'] for p in a_obj['polygon']]
+    z = float(math.floor(min(zs))) + 0.125
+    while z < max(zs) and (open_pt is None or sliver_pt is None):
+        x = float(math.floor(min(xs))) + 0.125
+        while x < max(xs) and (open_pt is None or sliver_pt is None):
+            if strictly_inside(a_obj['polygon'], x, z) and all((t['xm'] - x) ** 2 + (t['zm'] - z) ** 2 >= 1.0 for t in adults_all):
+                has_cell = (math.floor(x / cell_m), math.floor(z / cell_m)) in all_cell_keys
+                if has_cell and a_obj['areaId'] == 'MA-B' and open_pt is None:
+                    open_pt = (x, z)
+                elif not has_cell and sliver_pt is None:
+                    sliver_pt = (a_obj['areaId'], x, z)
+            x += 0.25
+        z += 0.25
+check(open_pt is not None and sliver_pt is not None, 'Pass 2 probe found valid open MA-B point and boundary-sliver point')
+px, pz = open_pt
+sx_area, sx, sz = sliver_pt
+
+# 400 / 403 / 405 / 413 / 415 guards across the 6 Pass 2 routes
+refused('api/multi/clear/add', {'fence': f_p2, 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']},
+        'HTTP403', 'clear/add foreign Origin', headers={'Origin': 'http://example.invalid'})
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': px, 'zM': pz},
+        'HTTP405', 'GET on plant/add', method='GET')
+refused('api/multi/shelter/add', {'fence': f_p2, 'areaId': 'MA-B', 'xM': px, 'zM': pz},
+        'HTTP415', 'text/plain on shelter/add', headers={'Content-Type': 'text/plain'})
+refused('api/multi/spot-clear/add', None, 'HTTP413', 'body over 16 KiB on spot-clear/add', raw=b' ' * 17000)
+refused('api/multi/plant/add', None, 'HTTP400', 'malformed JSON on plant/add', raw=b'{"fence":')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xm': px, 'zm': pz},
+        'HTTP400', 'wrong-case xm/zm on plant/add')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': px, 'zM': pz, 'extra': 1},
+        'HTTP400', 'unknown member on plant/add')
+refused('api/multi/plant/add', None, 'HTTP400', 'duplicate member on plant/add',
+        raw=json.dumps({'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': px, 'zM': pz}).replace('"xM":', '"xM":1,"xM":').encode())
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': '10', 'zM': pz},
+        'HTTP400', 'string coordinate on plant/add')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile oak', 'xM': px, 'zM': pz},
+        'HTTP400', 'whitespace speciesId on plant/add')
+refused('api/multi/clear/add', {'fence': f_p2, 'areaId': 'MA-B', 'column': 1.5, 'row': 1},
+        'HTTP400', 'fractional column on clear/add')
+refused('api/multi/planting/remove', {'fence': f_p2, 'orderId': 'P2W 0001'},
+        'HTTP400', 'whitespace orderId on planting/remove')
+refused('api/multi/planting/remove', {'fence': f_p2}, 'HTTP400', 'missing orderId on planting/remove')
+
+# 409 Core refusals with fresh view + stage4 + ecology and zero state mutation
+r_inf = refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': 1e40, 'zM': pz},
+                'Phase2CoordinatesInvalid', 'float32 overflow (1e40) on plant/add')
+check(r_inf.get('ecology') is not None and r_inf.get('stage4') is not None, '409 Phase2CoordinatesInvalid includes fresh stage4 + ecology')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': -50.0, 'zM': -50.0},
+        'Phase2PointOutsideArea', 'point outside area on plant/add')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': sx_area, 'speciesId': 'sessile-oak', 'xM': sx, 'zM': sz},
+        'Phase2PointWithoutGroundCell', 'boundary sliver without ground cell on plant/add')
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sitka-spruce', 'xM': px, 'zM': pz},
+        'Phase2SpeciesUnknown', 'non-plantable species on plant/add')
+live_b = living(v_p2, 'MA-B')[0]
+refused('api/multi/plant/add', {'fence': f_p2, 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': live_b['xm'], 'zM': live_b['zm']},
+        'PlantTooCloseToAdult', 'point at living adult on plant/add')
+refused('api/multi/shelter/add', {'fence': f_p2, 'areaId': 'MA-B', 'xM': px, 'zM': pz},
+        'ShelterNoTarget', 'shelter with no PJ or pending Plant')
+refused('api/multi/clear/add', {'fence': f_p2, 'areaId': 'MA-B', 'column': 999, 'row': 999},
+        'ClearCellNotInArea', 'out-of-bounds cell on clear/add')
+refused('api/multi/clear/add', {'fence': f_p2, 'areaId': 'MA-B', 'column': other_cell_a['column'], 'row': other_cell_a['row']},
+        'MultiAreaWrongArea', 'MA-A cell under MA-B on clear/add')
+refused('api/multi/clear/remove', {'fence': f_p2, 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']},
+        'UnknownWorkOrder', 'remove non-pending clear')
+refused('api/multi/planting/remove', {'fence': f_p2, 'orderId': 'P2W9999'},
+        'UnknownWorkOrder', 'remove unknown planting orderId')
+
+# Queue ClearUndergrowth + Plant + Shelter + SpotClear; test duplicate, spacing, stale, remove, commitment gate, raw payload budgets
+eco_before = full_p2['ecology']
+stale_p2 = f_p2
+p_cl = ok('api/multi/clear/add', {'fence': f_p2, 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']}, 'Queue ClearUndergrowth')
+refused('api/multi/clear/add', {'fence': fence(p_cl['view']), 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']},
+        'ClearDuplicateCell', 'duplicate ClearUndergrowth cell')
+refused('api/multi/clear/add', {'fence': stale_p2, 'areaId': 'MA-B', 'column': cells_b[1]['column'], 'row': cells_b[1]['row']},
+        'PlayerPlanStateStale', 'stale fence on clear/add')
+p_cl_rm = ok('api/multi/clear/remove', {'fence': fence(p_cl['view']), 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']}, 'Remove pending ClearUndergrowth')
+check(p_cl_rm['ecology']['pendingClear'] == [], 'pending ClearUndergrowth removed cleanly')
+p_cl = ok('api/multi/clear/add', {'fence': fence(p_cl_rm['view']), 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']}, 'Re-queue ClearUndergrowth')
+
+p_pl = ok('api/multi/plant/add', {'fence': fence(p_cl['view']), 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': px, 'zM': pz}, 'Queue Plant (sessile-oak)')
+refused('api/multi/plant/add', {'fence': fence(p_pl['view']), 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': px, 'zM': pz},
+        'Phase2DuplicateOrder', 'duplicate exact Plant order')
+refused('api/multi/plant/add', {'fence': fence(p_pl['view']), 'areaId': 'MA-B', 'speciesId': 'beech', 'xM': px + 0.2, 'zM': pz},
+        'PlantSpacingTooClose', 'Plant spacing < 0.5 m from queued Plant')
+p_sh = ok('api/multi/shelter/add', {'fence': fence(p_pl['view']), 'areaId': 'MA-B', 'xM': px, 'zM': pz}, 'Queue Shelter at Plant point')
+refused('api/multi/shelter/add', {'fence': fence(p_sh['view']), 'areaId': 'MA-B', 'xM': px, 'zM': pz},
+        'Phase2DuplicateOrder', 'duplicate Shelter order')
+p_sp = ok('api/multi/spot-clear/add', {'fence': fence(p_sh['view']), 'areaId': 'MA-B', 'xM': px, 'zM': pz}, 'Queue SpotClear at Plant point')
+refused('api/multi/spot-clear/add', {'fence': fence(p_sp['view']), 'areaId': 'MA-B', 'xM': px, 'zM': pz},
+        'Phase2DuplicateOrder', 'duplicate SpotClear order')
+spot_oid = next(o['orderId'] for o in p_sp['ecology']['pendingPlanting'] if o['kind'] == 'SpotClear')
+p_sp_rm = ok('api/multi/planting/remove', {'fence': fence(p_sp['view']), 'orderId': spot_oid}, 'Remove pending SpotClear via planting/remove')
+check(len(p_sp_rm['ecology']['pendingPlanting']) == 2, 'planting/remove removed SpotClear only')
+p_sp = ok('api/multi/spot-clear/add', {'fence': fence(p_sp_rm['view']), 'areaId': 'MA-B', 'xM': px, 'zM': pz}, 'Re-queue SpotClear')
+
+# Commitment gate while Pending: ZERO ecology mutation
+check(p_sp['view']['source'] == v_p2['source'] and p_sp['ecology']['planted'] == [] and p_sp['ecology']['shelters'] == [] and
+      p_sp['ecology']['patches'] == [] and len(p_sp['ecology']['pendingClear']) == 1 and len(p_sp['ecology']['pendingPlanting']) == 3,
+      'Pass 2 pending orders mutate zero ecology (planted/shelters/patches empty, year and workRevision unchanged)')
+pend_view_b, pend_eco_b, _ = raw_view_and_eco_bytes()
+check(pend_view_b <= 524288 and pend_eco_b <= 153600,
+      'Pass 2 pending raw payload budgets hold (view=%d B <= 524288, ecology=%d B <= 153600)' % (pend_view_b, pend_eco_b))
+
+# Approve: ZERO ecology mutation + all 6 verbs refused with WorkPlanAlreadyApproved
+p_app = ok('api/multi/plan/approve', {'fence': fence(p_sp['view'])}, 'Approve Pass 2 mixed plan')
+v_app = p_app['view']; f_app = fence(v_app)
+check(v_app['source'] == v_p2['source'] and p_app['ecology']['planted'] == [] and p_app['ecology']['shelters'] == [] and
+      p_app['ecology']['patches'] == [] and len(p_app['ecology']['approvedClear']) == 1 and len(p_app['ecology']['approvedPlanting']) == 3,
+      'Approve Pass 2 mixed plan mutates zero ecology')
+refused('api/multi/clear/add', {'fence': f_app, 'areaId': 'MA-B', 'column': cells_b[1]['column'], 'row': cells_b[1]['row']}, 'WorkPlanAlreadyApproved', 'clear/add while approved')
+refused('api/multi/clear/remove', {'fence': f_app, 'areaId': 'MA-B', 'column': clear_cell['column'], 'row': clear_cell['row']}, 'WorkPlanAlreadyApproved', 'clear/remove while approved')
+refused('api/multi/plant/add', {'fence': f_app, 'areaId': 'MA-B', 'speciesId': 'beech', 'xM': px, 'zM': pz}, 'WorkPlanAlreadyApproved', 'plant/add while approved')
+refused('api/multi/shelter/add', {'fence': f_app, 'areaId': 'MA-B', 'xM': px, 'zM': pz}, 'WorkPlanAlreadyApproved', 'shelter/add while approved')
+refused('api/multi/spot-clear/add', {'fence': f_app, 'areaId': 'MA-B', 'xM': px, 'zM': pz}, 'WorkPlanAlreadyApproved', 'spot-clear/add while approved')
+refused('api/multi/planting/remove', {'fence': f_app, 'orderId': p_app['ecology']['approvedPlanting'][0]['orderId']}, 'WorkPlanAlreadyApproved', 'planting/remove while approved')
+
+# Execute: atomic commit with zero calendar advance -> PJ sapling, active 8-yr shelter, 0.564 m patch, cleared cell
+p_ex = ok('api/multi/plan/execute', {'fence': f_app, 'planId': v_app['approved']['planId'], 'executionKey': v_app['approved']['executionKey']},
+          'Execute Pass 2 mixed plan')
+ex_eco = p_ex['ecology']; ex_v = p_ex['view']
+check(ex_v['source']['ecologicalYear'] == v_p2['source']['ecologicalYear'] and
+      ex_v['source']['workRevision'] == v_p2['source']['workRevision'] + 1 and
+      len(ex_eco['planted']) == 1 and ex_eco['planted'][0]['speciesId'] == 'sessile-oak' and ex_eco['planted'][0]['isActive'] and
+      len(ex_eco['shelters']) == 1 and ex_eco['shelters'][0]['isEffective'] and
+      ex_eco['shelters'][0]['juvenileId'] == ex_eco['planted'][0]['juvenileId'] and
+      ex_eco['shelters'][0]['expiryYear'] == ex_eco['shelters'][0]['installedYear'] + 8 and
+      len(ex_eco['patches']) == 1 and abs(ex_eco['patches'][0]['radiusM'] - 0.5641896) < 0.001,
+      'Execute atomically committed PJ sapling, active 8-year shelter, and 0.564 m SpotClear patch at zero year advance')
+refused('api/multi/shelter/add', {'fence': fence(ex_v), 'areaId': 'MA-B', 'xM': ex_eco['planted'][0]['xm'], 'zM': ex_eco['planted'][0]['zm']},
+        'ShelterAlreadyPresent', 'shelter/add on already-sheltered PJ sapling')
+exec_view_b, exec_eco_b, _ = raw_view_and_eco_bytes()
+check(exec_view_b <= 524288 and exec_eco_b <= 153600,
+      'Pass 2 post-Execute raw payload budgets hold (view=%d B <= 524288, ecology=%d B <= 153600)' % (exec_view_b, exec_eco_b))
 print('INFO workflow checks: %d' % count, flush=True)
 WORKFLOW
 workflow_rc=0
@@ -408,12 +580,15 @@ check "M13 --multi-experiment=ma-1-mixed serves truthful badge, 3 species in Are
     python3 -I -B -c "import json, sys
 m = json.load(open(sys.argv[1], encoding=\"utf-8\"))
 raw = open(sys.argv[2], \"rb\").read()
-v = json.loads(raw)
-eco = json.dumps(v[\"ecology\"], separators=(\",\", \":\")).encode(\"utf-8\")
+text = raw.decode(\"utf-8\")
+v = json.loads(text)
+idx = text.index(\"\\\"ecology\\\":\") + len(\"\\\"ecology\\\":\")
+_, end = json.JSONDecoder().raw_decode(text, idx)
+eco_bytes = len(text[idx:end].encode(\"utf-8\"))
 b_sp = next(a for a in v[\"ecology\"][\"areas\"] if a[\"areaId\"] == \"MA-B\")[\"liveAdultsBySpecies\"]
 ok = m.get(\"experimentKey\") == \"ma-1-mixed\"
 ok = ok and m.get(\"experimentBadge\") == \"Synthetic MA-1-MIXED demo \u2014 Area A Sitka; Area B \u2153 Sitka / \u2153 Oak / \u2153 Beech (not a surveyed Irish forecast)\"
-ok = ok and len(raw) <= 524288 and len(eco) <= 153600
+ok = ok and len(raw) <= 524288 and eco_bytes <= 153600
 ok = ok and all(b_sp.get(sp, 0) > 0 for sp in (\"sitka-spruce\", \"sessile-oak\", \"beech\"))
 sys.exit(0 if ok else 1)" "$2" "$3"' _ "$mixed_url" "$scratch/mixed-man.json" "$scratch/mixed-view.json"
 stop_server mixed
@@ -769,14 +944,18 @@ check(['NOT A SURVEYED IRISH FOREST', 'AREAS NOT ASSESSED COMPARABLE', 'SITE UNK
   byId('flags').querySelectorAll('li').every((chip) => chip.getAttribute('title')),
   'the disclosure and the site UNKNOWN / connected woodland / no treatment transfer statements are visible');
 
-// Any living tree: competitors appear immediately, before any Crop designation, and nothing changes on the server.
+// Any living tree: competitors appear immediately, before any Crop designation, and nothing changes on the server (N-3 restored exact checks).
 const aTree = areaOf(start, 'MA-A').trees[60].treeId;
 await selectInTable(aTree);
 await until(() => competitorButtons().length > 0, 'competitors of a non-Crop tree in A');
+const compDraftIds = byId('competition-content').querySelectorAll('[data-draft]').map((el) => el.getAttribute('data-draft'));
+const rankToggleIds = byId('rank-layer').querySelectorAll('[data-rank-toggle]').map((el) => el.getAttribute('data-rank-toggle'));
 check(requests.some((r) => r.path === 'api/multi/competition' && r.body.areaId === 'MA-A' && r.body.treeId === aTree) &&
-  byId('competition-more').textContent.includes('Current total Hegyi CI') && byId('competition-content').querySelectorAll('li').length === 5,
-  'selecting a non-Crop living tree in A reads its ranked competitors at once');
-check(byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, 'the map numbers the strongest competitors');
+  byId('crop-button').textContent === 'Retain as Crop Tree' && byId('reason-release').disabled && byId('insp-chip').hidden &&
+  byId('competition-more').textContent.includes('Current total Hegyi CI') && compDraftIds.length === 5,
+  'selecting a non-Crop living tree in A reads its ranked competitors at once (confirmed non-Crop)');
+check(rankToggleIds.length === compDraftIds.length && rankToggleIds.every((id, i) => id === compDraftIds[i]),
+  'the map numbers the exact strongest competitors matching the ranked list');
 let server = await serverView();
 check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pending.length === 0 && server.planStateRevision === 0,
   'inspection created no Crop mark and no Fell order');
@@ -889,8 +1068,10 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
   await waitR2(() => !byId('cell-panel').hidden && byId('tree-panel').hidden, 'Inspect Cell swaps #cell-panel in and hides #tree-panel');
   checkR2(!byId('cell-panel').hidden && byId('tree-panel').hidden &&
     byId('mode-cell').getAttribute('aria-pressed') === 'true' && byId('mode-tree').getAttribute('aria-pressed') === 'false' &&
+    document.activeElement === byId('mode-cell') && pane.scrollTop === 0 &&
     byId('overlay-select').value === 'light' && !byId('overlay-legend').hidden,
-    'Inspect Cell explicitly swaps the right-hand inspector body (never stacks) and Light Guide overlay stays active');
+    'Inspect Cell explicitly swaps the right-hand inspector body, keeps focus on the pressed toggle without scrolling (N-4), and keeps Light Guide active',
+    [document.activeElement && document.activeElement.id, pane.scrollTop]);
   const midCell = v.stage4.areas.find((a) => a.areaId === 'MA-A').ground[Math.floor(v.stage4.areas.find((a) => a.areaId === 'MA-A').ground.length / 2)];
   mark = requests.length;
   click(byId('map'), { clientX: midCell.centreU, clientY: midCell.centreV });
@@ -900,9 +1081,10 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
     'POST api/multi/cell renders light caveat, undergrowth and cohorts read-only');
   escape();
   await waitR2(() => byId('cell-panel').hidden && !byId('tree-panel').hidden, 'Escape exits Inspect Cell mode');
-  checkR2(byId('add-button').textContent === 'Add selected 1 to Fell plan' && byId('overlay-select').value === 'light',
-    'Escape exits Inspect Cell back to Select Tree WITHOUT clearing draft Fell ticks or active overlay',
-    [byId('add-button').textContent, byId('overlay-select').value]);
+  checkR2(byId('add-button').textContent === 'Add selected 1 to Fell plan' && byId('overlay-select').value === 'light' &&
+    document.activeElement === byId('mode-tree'),
+    'Escape exits Inspect Cell back to Select Tree (focus on mode-tree) WITHOUT clearing draft Fell ticks or active overlay',
+    [byId('add-button').textContent, byId('overlay-select').value, document.activeElement && document.activeElement.id]);
   byId('overlay-select').value = 'off';
   byId('overlay-select').dispatchEvent(new FakeEvent('change'));
   click(byId('inspect-close'));
@@ -1111,12 +1293,14 @@ click(byId('crop-button'));
 await until(() => byId('crop-button').textContent === 'Remove Crop designation', 'the Crop designation');
 await until(() => competitorButtons().length > 0 && !byId('reason-release').disabled, 'the Crop competitors and release reason');
 const competitorId = competitorButtons()[0].getAttribute('data-rank-toggle');
-check(!byId('reason-release').disabled && byId('release-label').textContent.includes('retained Crop Tree ' + aTree),
-  'the release reason is offered for competitors of the inspected Crop Tree');
+check(!byId('reason-release').disabled && byId('release-label').textContent === 'Record this as competition release for retained Crop Tree ' + aTree,
+  'the release reason is offered with exact text for competitors of the inspected Crop Tree', byId('release-label').textContent);
 click(competitorButtons()[0]);
 await until(() => byId('add-button').textContent === 'Add selected 1 to Fell plan', 'one draft competitor chosen');
 byId('reason-release').checked = true;
 byId('reason-release').dispatchEvent(new FakeEvent('change'));
+check(byId('reason-preview').textContent === 'Recorded reason for each tree added here: Competition release for retained Crop Tree ' + aTree + ' (operator intent)',
+  'reason preview matches the exact Crop Tree release reason text', byId('reason-preview').textContent);
 byId('add-form').dispatchEvent(new FakeEvent('submit'));
 await until(() => pendingIds().includes(competitorId), 'the A order in the combined plan');
 check(byId('pending-total').textContent === '2 pending Fell · not felled (Area A 1 · Area B 1)', 'one Work Plan lists both area sections and the counts',
@@ -1173,6 +1357,216 @@ check(requests.length === mark, 'no request but a read can leave the page while 
 click(byId('alert').querySelector('button'));
 await until(() => !byId('advance').disabled && pendingIds().includes(lostTree), 'the re-read to lift the lock and show the committed Add');
 check(alertText() === '', 'a successful re-read lifts the lock and clears the alert');
+
+// ---- P2 (Pass 2 interactive Work Plan modes, provisional Draft previews, sequential queue partial disclosure,
+// ClearUndergrowth, Plant + Shelter + SpotClear -> Approve -> Execute, live SVG markers, PJ shelter, Escape) ----
+{
+  let p2 = 0;
+  const checkP2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    p2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'P2' + String.fromCharCode(96 + p2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitP2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkP2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+  const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+  const inPoly = (pts, u, v) => {
+    let inside = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const a = pts[i], b = pts[j];
+      if ((a.v > v) !== (b.v > v) && u < (b.u - a.u) * (v - a.v) / (b.v - a.v) + a.u) inside = !inside;
+    }
+    return inside;
+  };
+
+  // Clear the J21 pending Fell so Work Plan starts clean in MA-A.
+  let sv = await serverView();
+  for (const o of sv.pending) {
+    await send('POST', 'api/multi/pending/remove', JSON.stringify({ fence: fenceOf(sv), areaId: o.areaId, treeId: o.treeId }));
+    sv = await serverView();
+  }
+  click(byId('reread'));
+  await waitP2(() => byId('pending-total').textContent === 'No pending orders', 'clean Work Plan for Pass 2 witness');
+
+  // Pick two well-separated open points in MA-A (>= 1.2 m from all living adults, inside an in-polygon cell).
+  const fullP2 = (await send('GET', 'api/multi/view')).json;
+  const areaA = areaOf(fullP2.view, 'MA-A');
+  const s4A = fullP2.stage4.areas.find((a) => a.areaId === 'MA-A');
+  const extA = areaA.extent;
+  const liveAll = fullP2.view.areas.flatMap((a) => a.trees).filter((t) => t.isLiving);
+  const openPts = [];
+  for (const cell of s4A.ground) {
+    const x = extA.minXM + cell.centreU;
+    const z = extA.minZM + extA.sideM - cell.centreV;
+    if (liveAll.every((t) => Math.hypot(t.xm - x, t.zm - z) >= 1.2) &&
+        openPts.every((p) => Math.hypot(p.x - x, p.z - z) >= 3.0)) {
+      openPts.push({ u: cell.centreU, v: cell.centreV, x, z, cell });
+      if (openPts.length === 2) break;
+    }
+  }
+  checkP2(openPts.length === 2 && inPoly(openPts[0].cell.polygon, openPts[0].u, openPts[0].v),
+    'found two well-separated open planting points inside MA-A ground cells', openPts.length);
+  const pt1 = openPts[0], pt2 = openPts[1];
+
+  // Select a living tree in MA-A, tick 1 draft competitor, enable Light Guide overlay.
+  await selectInTable(aTree);
+  await waitP2(() => competitorButtons().length > 0, 'competitors for MA-A reference');
+  click(competitorButtons()[0]);
+  await waitP2(() => byId('add-button').textContent === 'Add selected 1 to Fell plan', '1 draft Fell tick before Plant mode');
+  byId('overlay-select').value = 'light';
+  byId('overlay-select').dispatchEvent(new FakeEvent('change'));
+
+  // Plant mode: focus on toggle, scrollTop 0, provisional Draft preview (snap OFF, zero request), Escape preserves draft Fell ticks.
+  const reqBeforePlant = requests.length;
+  click(byId('mode-plant'));
+  checkP2(!byId('plant-panel').hidden && byId('tree-panel').hidden &&
+    document.activeElement === byId('mode-plant') && byId('pane-tree').scrollTop === 0,
+    'Plant mode swaps drawer, keeps focus on mode-plant and does not scroll', [document.activeElement && document.activeElement.id, byId('pane-tree').scrollTop]);
+  click(byId('map'), { clientX: pt1.u, clientY: pt1.v });
+  byId('plant-opt-shelter').checked = true;
+  byId('plant-opt-shelter').dispatchEvent(new FakeEvent('change'));
+  byId('plant-opt-spot').checked = true;
+  byId('plant-opt-spot').dispatchEvent(new FakeEvent('change'));
+  const draftPlant = byId('draft-plant-preview');
+  const draftSpotRing = draftPlant && draftPlant.querySelector('[data-draft-spot-ring]');
+  checkP2(Boolean(draftPlant) && Boolean(draftSpotRing) && draftSpotRing.getAttribute('r') === '0.564' &&
+    !byId('plant-queue').disabled && requests.length === reqBeforePlant,
+    'Plant click places provisional Draft preview + 0.564 m ring (snap OFF) with zero HTTP request');
+  escape();
+  checkP2(byId('plant-panel').hidden && !byId('tree-panel').hidden && !byId('draft-plant-preview') &&
+    document.activeElement === byId('mode-tree') &&
+    byId('add-button').textContent === 'Add selected 1 to Fell plan' && byId('overlay-select').value === 'light',
+    'Escape exits Plant mode to Select Tree (focus on mode-tree), clears draft preview, keeps draft Fell ticks & overlay');
+
+  // Spot Clear mode: provisional seedling-free 0.564 m ring -> Queue Spot Clear (~1 m2).
+  const reqBeforeSpot = requests.length;
+  click(byId('mode-spot'));
+  checkP2(!byId('spot-panel').hidden && byId('tree-panel').hidden &&
+    document.activeElement === byId('mode-spot') && byId('pane-tree').scrollTop === 0,
+    'Spot Clear mode swaps drawer, keeps focus on mode-spot and does not scroll');
+  click(byId('map'), { clientX: pt1.u, clientY: pt1.v });
+  const spotPreview = byId('draft-spot-preview');
+  const spotPreviewRing = spotPreview && spotPreview.querySelector('[data-draft-spot-ring]');
+  checkP2(Boolean(spotPreview) && Boolean(spotPreviewRing) && spotPreviewRing.getAttribute('r') === '0.564' &&
+    requests.length === reqBeforeSpot,
+    'Spot Clear click places provisional seedling-free 0.564 m ring with zero HTTP request');
+  click(byId('spot-queue'));
+  await waitP2(() => byId('spot-patches').querySelectorAll('[data-spot-order]').length === 1, 'pending SpotClear queued');
+  const preSpotOrderId = byId('spot-patches').querySelector('[data-spot-order]').getAttribute('data-spot-order');
+  checkP2(byId('pending-areas').querySelector('[data-planting-remove="' + preSpotOrderId + '"]') !== null,
+    'Work Plan lists pending SpotClear with targeted remove button');
+
+  // Sequential fence-chained Plant -> Shelter -> SpotClear hitting step-3 409 Phase2DuplicateOrder:
+  // stops immediately, discloses both earlier queued orders with one-click remove buttons, and zero ecology mutates.
+  click(byId('mode-plant'));
+  click(byId('map'), { clientX: pt1.u, clientY: pt1.v });
+  byId('plant-species').value = 'sessile-oak';
+  byId('plant-opt-shelter').checked = true;
+  byId('plant-opt-spot').checked = true;
+  click(byId('plant-queue'));
+  await waitP2(() => !byId('plant-result').hidden && byId('plant-result').textContent.includes('Phase2DuplicateOrder'),
+    'sequential queue stops on step-3 409 Phase2DuplicateOrder');
+  const partialRemBtns = byId('plant-result').querySelectorAll('[data-planting-remove]');
+  checkP2(byId('plant-result').classList.contains('partial') && partialRemBtns.length === 2 &&
+    alertText().includes('Phase2DuplicateOrder'),
+    'step-3 409 discloses exact Phase2DuplicateOrder and offers one-click remove for both earlier pending orders',
+    [byId('plant-result').textContent, partialRemBtns.length]);
+  // Use one-click Remove buttons to clean up earlier Plant & Shelter, then remove the pre-existing SpotClear.
+  click(byId('plant-result').querySelector('[data-planting-remove]'));
+  await waitP2(() => byId('plant-result').querySelectorAll('[data-planting-remove]').length === 1, 'first one-click remove');
+  click(byId('plant-result').querySelector('[data-planting-remove]'));
+  await waitP2(() => byId('plant-result').querySelectorAll('[data-planting-remove]').length === 0, 'second one-click remove');
+  click(byId('pending-areas').querySelector('[data-planting-remove="' + preSpotOrderId + '"]'));
+  await waitP2(() => byId('pending-total').textContent === 'No pending orders', 'pre-existing SpotClear removed from Work Plan');
+  checkP2(byId('pending-total').textContent === 'No pending orders', 'one-click partial recovery and Work Plan remove restored empty plan');
+
+  // Full mixed Pass 2 workflow: Inspect Cell ClearUndergrowth + Plant (Oak) + Shelter + SpotClear -> Approve -> Execute -> live SVG DOM.
+  click(byId('mode-cell'));
+  click(byId('map'), { clientX: pt1.u, clientY: pt1.v });
+  await waitP2(() => !byId('cell-actions').hidden &&
+    byId('cell-heading').textContent.includes('cell (' + pt1.cell.column + ', ' + pt1.cell.row + ')') &&
+    !byId('cell-clear-add').hidden && !byId('cell-clear-add').disabled, 'Inspect Cell ClearUndergrowth button');
+  click(byId('cell-clear-add'));
+  await waitP2(() => byId('clear-cells').querySelectorAll('[data-clear-cell]').length === 1 && !byId('cell-clear-remove').hidden,
+    'ClearUndergrowth queued from Inspect Cell');
+  click(byId('mode-plant'));
+  click(byId('map'), { clientX: pt1.u, clientY: pt1.v });
+  byId('plant-species').value = 'sessile-oak';
+  byId('plant-opt-shelter').checked = true;
+  byId('plant-opt-spot').checked = true;
+  click(byId('plant-queue'));
+  await waitP2(() => byId('pending-areas').querySelectorAll('[data-planting-remove]').length === 3 &&
+    byId('pending-areas').querySelectorAll('[data-clear-remove]').length === 1, '4 Pass 2 orders pending');
+  const preExecState = (await send('GET', 'api/multi/view')).json;
+  checkP2(preExecState.ecology.planted.length === 0 && preExecState.ecology.shelters.length === 0 &&
+    preExecState.ecology.patches.length === 0 && !byId('pane-plan').textContent.includes('Expired Shelter'),
+    'Pending Pass 2 batch mutates zero ecology and exposes zero Expired Shelter buttons');
+
+  const yearBeforeExec = preExecState.view.source.ecologicalYear;
+  click(byId('approve'));
+  await waitP2(() => !byId('approved-box').hidden && byId('approved-total').textContent.includes('1 Clear') &&
+    byId('approved-total').textContent.includes('1 Plant') && byId('approved-total').textContent.includes('1 Shelter') &&
+    byId('approved-total').textContent.includes('1 SpotClear'), 'Approve mixed Pass 2 Work Plan');
+  const postApproveState = (await send('GET', 'api/multi/view')).json;
+  checkP2(postApproveState.ecology.planted.length === 0 && postApproveState.ecology.shelters.length === 0 &&
+    postApproveState.ecology.patches.length === 0, 'Approve Pass 2 batch mutates zero ecology');
+
+  click(byId('execute'));
+  await waitP2(() => byId('execute-dialog').open, 'Execute confirmation for Pass 2 batch');
+  checkP2(document.activeElement === byId('execute-back') && byId('execute-areas').textContent.includes('ClearUndergrowth') &&
+    byId('execute-areas').textContent.includes('SpotClear'), 'Execute confirmation lists Pass 2 orders and focuses Back first');
+  click(byId('execute-confirm'));
+  await waitP2(() => byId('planted-layer').querySelectorAll('[data-juvenile-id]').length === 1 &&
+    byId('planted-layer').querySelectorAll('[data-shelter-id]').length === 1 &&
+    byId('spot-patches').querySelectorAll('[data-patch-id]').length === 1, 'live SVG markers after Execute');
+
+  const pjNode = byId('planted-layer').querySelector('[data-juvenile-id]');
+  const shNode = byId('planted-layer').querySelector('[data-shelter-id]');
+  const patchNode = byId('spot-patches').querySelector('[data-patch-id]');
+  const svgChildren = byId('map').childNodes.map((n) => n.id);
+  const postExecState = (await send('GET', 'api/multi/view')).json;
+  checkP2(postExecState.view.source.ecologicalYear === yearBeforeExec &&
+    pjNode.querySelector('use').getAttribute('href') === '#ccf-sapling-oak' &&
+    shNode.getAttribute('data-effective') === 'true' && shNode.querySelector('use').getAttribute('href') === '#ccf-shelter-active' &&
+    patchNode.getAttribute('href') === '#ccf-spot-clear' && patchNode.getAttribute('data-radius-m') === '0.564' &&
+    svgChildren.indexOf('spot-patches') < svgChildren.indexOf('planted-layer'),
+    'post-Execute renders Oak PJ sapling, active 8-year shelter, and 0.564 m spot-clear patch beneath planted-layer at zero year advance');
+
+  // Unsheltered Beech PJ sapling -> Select Tree PJ click -> Queue 8-year Shelter -> Remove pending shelter -> Escape preserves Fell draft.
+  click(byId('mode-plant'));
+  click(byId('map'), { clientX: pt2.u, clientY: pt2.v });
+  byId('plant-species').value = 'beech';
+  byId('plant-opt-shelter').checked = false;
+  byId('plant-opt-spot').checked = false;
+  click(byId('plant-queue'));
+  await waitP2(() => byId('pending-areas').querySelectorAll('[data-planting-remove]').length === 1, 'unsheltered Beech Plant queued');
+  click(byId('approve'));
+  await waitP2(() => !byId('approved-box').hidden, 'Approve unsheltered Beech');
+  click(byId('execute'));
+  await waitP2(() => byId('execute-dialog').open, 'Execute dialog for unsheltered Beech');
+  click(byId('execute-confirm'));
+  await waitP2(() => byId('planted-layer').querySelectorAll('[data-juvenile-id]').length === 2, 'second PJ sapling rendered');
+  click(byId('mode-tree'));
+  const beechPjNode = byId('planted-layer').querySelectorAll('[data-juvenile-id]').find((n) => n.getAttribute('data-species') === 'beech');
+  click(beechPjNode.querySelector('.pj-hit'), { clientX: pt2.u, clientY: pt2.v });
+  await waitP2(() => !byId('juvenile-panel').hidden && byId('tree-panel').hidden && !byId('pj-shelter-add').hidden,
+    'clicking unsheltered Beech PJ opens #juvenile-panel with Queue 8-year Shelter');
+  click(byId('pj-shelter-add'));
+  await waitP2(() => !byId('pj-shelter-remove').hidden && byId('pending-areas').querySelectorAll('[data-planting-remove]').length === 1,
+    'Queue 8-year Shelter queued pending shelter for unsheltered PJ');
+  click(byId('pj-shelter-remove'));
+  await waitP2(() => !byId('pj-shelter-add').hidden && byId('pending-total').textContent === 'No pending orders',
+    'Remove pending shelter removed it');
+  escape();
+  checkP2(byId('juvenile-panel').hidden && !byId('tree-panel').hidden &&
+    byId('add-button').textContent === 'Add selected 1 to Fell plan',
+    'Escape closes PJ sapling inspection back to adult tree inspector preserving draft Fell ticks');
+}
+
 check(pageErrors.length === 0, 'no script error in the page', pageErrors.map(redact));
 process.exit(failures === 0 ? 0 : 1);
 WITNESS
