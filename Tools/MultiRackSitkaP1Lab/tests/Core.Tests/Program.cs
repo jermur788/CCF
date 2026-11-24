@@ -450,6 +450,7 @@ Stage4Tests.Register();
 Stage4UiCatchupTests.Register();
 Stage5Tests.Register();
 Phase2Tests.Register(manifestPath);
+MapIntegrationPass1Tests.Register();
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;

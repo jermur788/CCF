@@ -81,6 +81,7 @@ internal sealed class MultiAreaContinuation
     private readonly string areaModelVersion;
     private readonly IReadOnlyList<AreaInfo> areas; // ordinal by AreaId, the same order as root.Areas
     private readonly MultiAreaExperimentInfo experiment;
+    private readonly string experimentBadge;
     private readonly string areaIds;
     // One random identity per in-memory session. It is never part of a token, report or manifest.
     private readonly string sessionId =
@@ -141,10 +142,14 @@ internal sealed class MultiAreaContinuation
         string contentHash = definition.ContentHash();
         experiment = new MultiAreaExperimentInfo(definition.ExperimentId, MultiAreaIdentity.Format, MultiAreaIdentity.SchemaVersion,
             MultiAreaIdentity.Domain, MultiAreaIdentity.SourceClass, contentHash, definition.GeneratorId,
-            definition.GeneratorVersion, definition.GeneratorSeed, MultiAreaIdentity.ReviewStatus, MultiAreaIdentity.Disclosure,
+            definition.GeneratorVersion, definition.GeneratorSeed, MultiAreaIdentity.ReviewStatus,
+            definition.DisclosureOverride ?? MultiAreaIdentity.Disclosure,
             models.IsStage4 ? MultiAreaIdentity.EdgeModelStage4
                 : connected ? MultiAreaIdentity.EdgeModelConnectedCrownC2 : MultiAreaIdentity.EdgeModel,
             models.IsStage4 ? MultiAreaIdentity.SiteNoteStage4 : MultiAreaIdentity.SiteNote);
+        experimentBadge = string.Equals(definition.ExperimentId, MultiAreaDemoExperiments.Ma1MixedExperimentId, StringComparison.Ordinal)
+            ? MultiAreaDemoExperiments.Ma1MixedBadge
+            : MultiAreaDemoExperiments.Ma1Badge;
         areas = Array.AsReadOnly(definition.Areas.Select(InfoOf).ToArray());
         areaIds = string.Join(",", definition.Areas.Select(area => area.AreaId));
         var genesis = definition.Areas.Select(MultiAreaExperiment.GenesisTrees).ToArray();
@@ -268,11 +273,137 @@ internal sealed class MultiAreaContinuation
         }
     }
 
+    /// <summary>
+    /// Pass 1 atomic composite snapshot: <c>View</c>, <c>Stage4</c>, <c>Stage5</c>, <c>Phase2</c>, the Stage 4 UI read-out
+    /// and the compact additive <c>Ecology</c> DTO all built from ONE committed root under ONE lock acquisition, sharing
+    /// one exact <c>SessionId</c>, <c>Source</c> and <c>PlanStateRevision</c>. Read-only; zero state mutation.
+    /// </summary>
+    internal MultiAreaCompositeUiSnapshot ReadCompositeUiSnapshot()
+    {
+        lock (sync) return CompositeSnapshotOf(root);
+    }
+
+    /// <summary>
+    /// Paired Stage 4 + Ecology UI readouts of the CURRENT root only when it still matches <paramref name="source"/> and
+    /// <paramref name="planStateRevision"/>; null as a whole if anything moved concurrently (zero torn frames).
+    /// </summary>
+    internal MultiAreaCompositeUiReadout? ReadCompositeUiFor(MultiAreaSourceToken source, int planStateRevision)
+    {
+        lock (sync)
+        {
+            if (source != Token(root) || planStateRevision != root.PlanStateRevision) return null;
+            var snap = CompositeSnapshotOf(root);
+            return new MultiAreaCompositeUiReadout(snap.Readout, snap.Ecology);
+        }
+    }
+
+    /// <summary>
+    /// Strictly read-only cell detail inspection for <c>POST api/multi/cell</c>. Checks fence, area and in-polygon cell
+    /// under ONE lock acquisition and returns full cell cohorts/undergrowth/light plus a fresh composite snapshot.
+    /// </summary>
+    internal MultiAreaCellDetailResult ReadCellDetail(MultiAreaFence fence, string areaId, int column, int row)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            int areaIdx = AreaIndex(areaId);
+            var snap = CompositeSnapshotOf(root);
+            var ground = snap.Readout.Areas[areaIdx].Ground;
+            int cellIdx = -1;
+            for (int c = 0; c < ground.Count; c++)
+            {
+                if (ground[c].Column == column && ground[c].Row == row) { cellIdx = c; break; }
+            }
+            if (cellIdx < 0)
+            {
+                for (int other = 0; other < snap.Readout.Areas.Count; other++)
+                {
+                    if (other == areaIdx) continue;
+                    if (snap.Readout.Areas[other].Ground.Any(cell => cell.Column == column && cell.Row == row))
+                        throw new P1Refusal("MultiAreaWrongArea",
+                            FormattableString.Invariant($"ground cell ({column}, {row}) belongs to {snap.Readout.Areas[other].AreaId}, not {areaId}"));
+                }
+                throw new P1Refusal("CellNotInArea", "no in-polygon ground cell of this area has that column and row");
+            }
+            var gCell = ground[cellIdx];
+            float? bramble = null, bracken = null, browsePressure = null;
+            var cohorts = new List<MultiAreaCellCohort>();
+            bool hasPendingClear = false, hasApprovedClear = false;
+            if (root.Stage5 is { } s5)
+            {
+                var s5Cell = s5.Areas[areaIdx].Cells.FirstOrDefault(c => c.Column == column && c.Row == row);
+                if (s5Cell is not null)
+                {
+                    bramble = s5Cell.Bramble;
+                    bracken = s5Cell.Bracken;
+                    browsePressure = s5.Options.BackgroundBrowsePressure;
+                    foreach (var b in s5Cell.Bands)
+                    {
+                        if (b.Density <= 0f) continue;
+                        cohorts.Add(new MultiAreaCellCohort(Phase2Species.SitkaId, Phase2Band.Natural,
+                            b.EstablishYear, b.OriginYear, b.Height, b.Density, b.LastBrowsedFraction, b.LastBrowseAssessmentYear));
+                    }
+                }
+                hasPendingClear = s5.PendingClears.Any(o => o.AreaId == areaId && o.Column == column && o.Row == row);
+                hasApprovedClear = s5.ApprovedClears.Any(o => o.AreaId == areaId && o.Column == column && o.Row == row);
+            }
+            if (root.Phase2 is { } p2)
+            {
+                var p2Cell = p2.Areas[areaIdx].Cells.FirstOrDefault(c => c.Column == column && c.Row == row);
+                if (p2Cell is not null)
+                {
+                    foreach (var b in p2Cell.Bands)
+                    {
+                        if (b.Density <= 0f) continue;
+                        cohorts.Add(new MultiAreaCellCohort(b.SpeciesId, b.Origin,
+                            b.EstablishYear, b.OriginYear, b.Height, b.Density, b.LastBrowsedFraction, b.LastBrowseAssessmentYear));
+                    }
+                }
+            }
+            cohorts.Sort((a, b) =>
+            {
+                int cmp = string.CompareOrdinal(a.Species, b.Species);
+                if (cmp != 0) return cmp;
+                cmp = a.EstablishYear.CompareTo(b.EstablishYear);
+                return cmp != 0 ? cmp : a.OriginYear.CompareTo(b.OriginYear);
+            });
+            string clearState = hasPendingClear ? "PendingClear" : hasApprovedClear ? "ApprovedClear" : "None";
+            var detail = new MultiAreaCellDetail(
+                areaId, gCell.Column, gCell.Row, gCell.CentreXM, gCell.CentreZM, gCell.CentreU, gCell.CentreV,
+                gCell.ClippedAreaM2, gCell.Polygon, gCell.LightIndex, gCell.GeometricCoveredFraction,
+                gCell.CrossBorderTrees, gCell.ContributingTreeIds,
+                bramble, bracken, browsePressure, cohorts.AsReadOnly(), clearState, hasPendingClear, hasApprovedClear);
+            return new MultiAreaCellDetailResult(snap, detail, null, null);
+        }
+    }
+
+    // Caller holds sync. Builds the full composite snapshot of ONE root without reacquiring any lock.
+    private MultiAreaCompositeUiSnapshot CompositeSnapshotOf(MultiAreaRoot current)
+    {
+        var view = ViewOf(current);
+        var s4View = Stage4ViewOf(current);
+        var canopy = ReadCanopyLight(CanopyLightEvaluator.DefaultLightCellM);
+        var ground = EnsureGroundCache(view, canopy);
+        var readout = MultiAreaUiReadouts.Build(view, s4View, canopy, models, ground, current.Phase2);
+        var s5View = current.Stage5 is { } s5
+            ? new MultiAreaStage5View(sessionId, current.EcologicalYear, current.PlanStateRevision, Token(current), models,
+                s5.Options, s5.MastSeed, Stage5Evidence.All, s5.Areas, s5.PendingClears, s5.ApprovedClears, s5.ClearLog,
+                s5.Accounts, s5.Blocks)
+            : null;
+        var p2View = current.Phase2 is { } p2
+            ? new MultiAreaPhase2View(sessionId, current.EcologicalYear, current.PlanStateRevision, Token(current), models,
+                p2.Options, p2.OakMastSeed, p2.BeechMastSeed, Phase2Evidence.All,
+                new Dictionary<string, string>(p2.TreeSpecies, StringComparer.Ordinal), p2.Areas, p2.Juveniles, p2.Shelters,
+                p2.Patches, p2.PendingOrders, p2.ApprovedOrders, p2.WorkLog, p2.Accounts)
+            : null;
+        var ecology = MultiAreaEcologyBuilder.Build(view, s4View, current.Stage5, current.Phase2, canopy, models, experimentBadge);
+        return new MultiAreaCompositeUiSnapshot(view, readout, ecology, s4View, s5View, p2View);
+    }
+
     // Caller holds sync. The canopy report and the ground cells are cached per committed tree state (AnnualRevision and
     // WorkRevision), like ReadCanopyLight: Pending, Approve, Crop marks and reads reuse them.
-    private MultiAreaUiReadout ReadoutOf(MultiAreaSessionView view)
+    private IReadOnlyList<IReadOnlyList<MultiAreaGroundCell>> EnsureGroundCache(MultiAreaSessionView view, CanopyLightReport canopy)
     {
-        var canopy = ReadCanopyLight(CanopyLightEvaluator.DefaultLightCellM);
         if (groundCache is null || groundCache.Value.AnnualRevision != root.AnnualRevision ||
             groundCache.Value.WorkRevision != root.WorkRevision)
         {
@@ -280,7 +411,13 @@ internal sealed class MultiAreaContinuation
             var ground = view.Areas.Select((area, i) => MultiAreaUiReadouts.GroundOf(area, canopy.Areas[i], woodland)).ToArray();
             groundCache = (root.AnnualRevision, root.WorkRevision, Array.AsReadOnly(ground));
         }
-        return MultiAreaUiReadouts.Build(view, Stage4ViewOf(root), canopy, models, groundCache.Value.Ground);
+        return groundCache.Value.Ground;
+    }
+
+    private MultiAreaUiReadout ReadoutOf(MultiAreaSessionView view)
+    {
+        var canopy = ReadCanopyLight(CanopyLightEvaluator.DefaultLightCellM);
+        return MultiAreaUiReadouts.Build(view, Stage4ViewOf(root), canopy, models, EnsureGroundCache(view, canopy), root.Phase2);
     }
 
     // Caller holds sync. The body of ReadStage4View, unchanged, over the root passed in.

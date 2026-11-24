@@ -68,6 +68,9 @@ internal sealed record MultiAreaDefinition(string AreaId, string Label, string S
 internal sealed record MultiAreaExperiment(string ExperimentId, string GeneratorId, int GeneratorVersion, long GeneratorSeed,
     IReadOnlyList<MultiAreaDefinition> Areas)
 {
+    /// <summary>Optional disclosure override for non-MA-1 synthetic demos; null keeps <see cref="MultiAreaIdentity.Disclosure"/> byte-identical.</summary>
+    internal string? DisclosureOverride { get; init; }
+
     private static readonly Regex SafeId = new("^[A-Za-z0-9_-]{1,64}$", RegexOptions.CultureInvariant);
     private static readonly Regex AreaIdPattern = new("^MA-[A-Z0-9]{1,16}$", RegexOptions.CultureInvariant);
 
@@ -156,7 +159,7 @@ internal sealed record MultiAreaExperiment(string ExperimentId, string Generator
             .Str("domain", MultiAreaIdentity.Domain)
             .Str("sourceClass", MultiAreaIdentity.SourceClass)
             .Str("reviewStatus", MultiAreaIdentity.ReviewStatus)
-            .Str("disclosure", MultiAreaIdentity.Disclosure);
+            .Str("disclosure", DisclosureOverride ?? MultiAreaIdentity.Disclosure);
         w.BeginObject("generator")
             .Str("id", GeneratorId)
             .Int("version", GeneratorVersion)

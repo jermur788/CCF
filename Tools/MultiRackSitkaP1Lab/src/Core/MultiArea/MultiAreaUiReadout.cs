@@ -125,7 +125,8 @@ internal static class MultiAreaUiReadouts
         light.Uncertainties);
 
     internal static MultiAreaUiReadout Build(MultiAreaSessionView view, MultiAreaStage4View stage4, CanopyLightReport canopy,
-        MultiAreaModelSelection models, IReadOnlyList<IReadOnlyList<MultiAreaGroundCell>> ground)
+        MultiAreaModelSelection models, IReadOnlyList<IReadOnlyList<MultiAreaGroundCell>> ground,
+        MultiAreaPhase2State? phase2 = null)
     {
         var areas = new MultiAreaUiArea[view.Areas.Count];
         for (int i = 0; i < areas.Length; i++)
@@ -141,7 +142,8 @@ internal static class MultiAreaUiReadouts
                 report.Cover.UncoveredM2, report.Cover.OpeningCount, report.Cover.LargestOpeningAreaM2, report.Cover.LargestOpeningWidthM,
                 s4.RelativeDensity, s4.AnnualNaturalDeaths, s4.CumulativeNaturalDeaths, deadwood.Length, report.Light.MeanLightIndex,
                 report.Light.MinLightIndex, report.Light.MaxLightIndex, Array.AsReadOnly(deadwood));
-            var trees = area.Trees.Select((tree, t) => TreeOf(tree, s4.Trees[t], stage4, models.IsStage4)).ToArray();
+            var trees = area.Trees.Select((tree, t) => TreeOf(tree, s4.Trees[t], stage4, models.IsStage4,
+                phase2?.BroadleafOf(tree.TreeId))).ToArray();
             areas[i] = new MultiAreaUiArea(area.AreaId, summary, Array.AsReadOnly(trees), ground[i]);
         }
         return new MultiAreaUiReadout(view.SessionId, view.Source.EcologicalYear, view.PlanStateRevision, view.Source,
@@ -176,30 +178,17 @@ internal static class MultiAreaUiReadouts
 
     internal static double MapV(PlayerMapExtent extent, double zM) => extent.MinZM + extent.SideM - zM;
 
-    private static MultiAreaUiTree TreeOf(AnnualTree tree, MultiAreaStage4TreeView s4, MultiAreaStage4View stage4, bool isStage4)
+    private static MultiAreaUiTree TreeOf(AnnualTree tree, MultiAreaStage4TreeView s4, MultiAreaStage4View stage4, bool isStage4,
+        Phase2Species? broadleaf)
     {
         if (s4.TreeId != tree.TreeId) throw new InvalidOperationException("read-out trees are not in view order");
         string? planState = stage4.PendingPrunes.Any(o => o.TreeId == tree.TreeId) ? "PendingPrune"
             : stage4.ApprovedPrunes.Any(o => o.TreeId == tree.TreeId) ? "ApprovedPrune" : null;
-        string? code;
-        string? reason;
-        float? target = null;
-        int? nextYear = null;
-        if (!isStage4)
-        {
-            code = "Stage4ModelRequired";
-            reason = Stage4ModelRequiredReason;
-        }
-        else
-        {
-            var state = new TreePruningState(s4.PruningLifts, s4.CrownBaseHeightM, s4.LastPruningYear);
-            code = PruningRules.ScheduledRefusalCode(tree, state, stage4.EcologicalYear);
-            reason = code is null ? null : PruningRules.Message(code);
-            float next = PruningRules.NextLiftTargetM(s4.PruningLifts);
-            if (tree.IsLiving && float.IsFinite(next)) target = next;
-            if (code == "PruneIntervalTooShort") nextYear = s4.LastPruningYear + PruningRules.MinimumYearsBetweenLifts;
-        }
-        return new MultiAreaUiTree(tree.TreeId, s4.LifeState, s4.DeathCause, s4.DeathYear, s4.PruningLifts, PruningRules.MaxLifts,
-            s4.CrownBaseHeightM, s4.LastPruningYear, code is null, code, reason, target, nextYear, planState);
+        var status = MultiAreaSpeciesPruneHelper.Evaluate(tree,
+            new TreePruningState(s4.PruningLifts, s4.CrownBaseHeightM, s4.LastPruningYear),
+            stage4.EcologicalYear, broadleaf, isStage4, planState);
+        return new MultiAreaUiTree(tree.TreeId, s4.LifeState, s4.DeathCause, s4.DeathYear, s4.PruningLifts, status.MaxLifts,
+            s4.CrownBaseHeightM, s4.LastPruningYear, status.Eligible, status.RefusalCode, status.RefusalReason,
+            status.NextTargetM, status.NextEligibleYear, planState);
     }
 }

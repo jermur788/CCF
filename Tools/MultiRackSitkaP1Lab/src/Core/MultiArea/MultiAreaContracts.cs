@@ -174,4 +174,12 @@ internal static class MultiAreaLabels
     public const string MultiDeadwoodNote = "Fallen deadwood: one log per natural death, at the stem position; not to scale, no fall direction, no decay or value";
     public const string MultiNotModelledStage4 =
         "Seed, regeneration, understorey, site, money and saving: NOT MODELLED. Light is a modelled index (Unity k10a10 proxy — not calibrated PAR).";
+
+    // Pass 1 Map Integration (spec multi-map-integration-pass1-v1): truthful Phase 2 / mixed-demo labels.
+    public const string MultiLightCaveatShort = "Modelled light · not calibrated PAR";
+    public const string MultiDeadwoodSchematic = "direction schematic, not simulated";
+    public const string MultiClearUndergrowthRule = "Whole 2.5 m cell · spares seedlings";
+    public const string MultiNaturalSeedlingsNote = "Cell-level presence only — Density is abstract occupancy, not a literal stem count";
+    public const string MultiNotModelledPhase2 =
+        "Site/soil map, storms, decay, habitat score, economy/cash/prices and saving: NOT MODELLED. Light is a modelled index (Modelled light · not calibrated PAR).";
 }

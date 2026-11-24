@@ -77,21 +77,26 @@ internal static class Stage4UiCatchupTests
             T.Eq(0, done.View.Source.EcologicalYear, "control: the year did not advance");
         });
 
-        T.Add("UI U-02: /multi opens 1/1/1 by default; an explicit 0/0/0 session stays the frozen path and refuses Prune", () =>
+        T.Add("UI U-02: /multi opens Phase 2 (1/1/1/1/1) by default; explicit 1/1/1 and 0/0/0 stay intact and 0/0/0 refuses Prune", () =>
         {
             var e = MultiAreaGenerator.Generate();
-            var stage4 = MultiAreaWorkPlanAdapter.OpenSynthetic().ReadSnapshot();
-            var m = stage4.Readout.Models;
-            T.Eq((1, 1, 1), (m.CrownModelVersion, m.AdultModelVersion, m.MortalityModelVersion), "default /multi models");
+            var defaultSnap = MultiAreaWorkPlanAdapter.OpenSynthetic().ReadCompositeUiSnapshot();
+            var m = defaultSnap.Readout.Models;
+            T.Eq((1, 1, 1), (m.CrownModelVersion, m.AdultModelVersion, m.MortalityModelVersion), "default /multi Stage 4 models");
+            T.True(defaultSnap.Ecology is not null && defaultSnap.Ecology.Models == new MultiAreaEcologyModels(1, 1, 1, 1, 1),
+                "default /multi opens Phase 2 (1/1/1/1/1)");
             T.Eq("unity-k10a10-decoupled-v1", m.LightModelVersion, "light model version");
             T.Eq((2.5, 2.5), (m.LightCellM, m.ShadeBufferM), "2.5 m cells, b = 2.5 m");
             T.True(!m.CalibratedPar && m.NotCalibratedCaveat.Contains("NOT measured or calibrated PAR") &&
                 m.LightLabel == "Modelled Light Index (Unity k10a10 proxy — not calibrated PAR)", "not-calibrated-PAR caveat and label");
             T.True(m.SyntheticStandDisclaimer.Contains("Experimental Demonstration"), "synthetic stand disclaimer");
             var reference = new MultiAreaContinuation(e, MultiAreaModelSelection.Stage4).ReadView();
-            T.True(stage4.View.Areas.SelectMany(a => a.Trees).SequenceEqual(reference.Areas.SelectMany(a => a.Trees)),
-                "the default /multi trees are the Stage 4 genesis (C2 crown radii)");
-            T.Eq(MultiAreaIdentity.AreaModelVersionStage4, stage4.View.Source.AreaModelVersion, "Stage 4 area model in the token");
+            T.True(defaultSnap.View.Areas.SelectMany(a => a.Trees).SequenceEqual(reference.Areas.SelectMany(a => a.Trees)),
+                "the default /multi all-Sitka trees equal Stage 4 genesis (C2 crown radii)");
+            T.Eq(MultiAreaIdentity.AreaModelVersionStage4 + "+regeneration-v1+species-v1", defaultSnap.View.Source.AreaModelVersion,
+                "Phase 2 area model in the default /multi token");
+            var stage4 = MultiAreaWorkPlanAdapter.OpenSynthetic(MultiAreaModelSelection.Stage4).ReadSnapshot();
+            T.Eq(MultiAreaIdentity.AreaModelVersionStage4, stage4.View.Source.AreaModelVersion, "explicit Stage 4 area model in the token");
 
             var legacy = MultiAreaWorkPlanAdapter.OpenSynthetic(MultiAreaModelSelection.Legacy);
             var frozen = new MultiAreaContinuation(e).ReadView();
