@@ -562,7 +562,7 @@ internal static class Phase2Tests
             T.Refuses("Phase2ModelRequired", () => stage5.AddPlant(Fence(stage5.ReadView()), "MA-A", Oak, p.X, p.Z));
         });
 
-        T.Add("P2-04b C-03: a point strictly inside the polygon but in no in-polygon 2.5 m ground cell (boundary sliver) is refused with Phase2PointWithoutGroundCell (ratified, spec amendment 4); a refused Add changes nothing and a sliver order in an approved batch refuses the whole batch atomically", () =>
+        T.Add("P2-04b C-03: a point strictly inside the polygon but in no in-polygon 2.5 m ground cell (boundary sliver) is refused with Phase2PointWithoutGroundCell (ratified by the spec's Step B follow-up amendment record); a refused Add changes nothing and a sliver order in an approved batch refuses the whole batch atomically", () =>
         {
             var c = MixedSession();
             var v0 = c.ReadView();
