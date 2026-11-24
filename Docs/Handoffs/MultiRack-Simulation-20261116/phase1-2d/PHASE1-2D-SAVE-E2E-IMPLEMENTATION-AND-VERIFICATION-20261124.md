@@ -9,7 +9,7 @@ thread with no implementation or supervision role — see §11.
 | Label | State |
 |---|---|
 | IMPLEMENTED | **YES** — one cohesive change, Core → API → in-page UI |
-| REVIEWED | **FIRST REVIEW: NEEDS CHANGES (2 blocking, both repaired in `803bdd83`); narrow re-review of the repair requested.** Full record in §11 |
+| REVIEWED | **YES.** First review on `ca750ab` was NEEDS CHANGES (2 blocking); both were repaired and the repair re-review returned **APPROVED**. The reviewer's one required correction and its non-blocking items are dispositioned in §3.2/§11 |
 | INTEGRATED | **NO** — task-branch join only; no merge to `main` (not authorised) |
 | VERIFIED | **YES for the stated surface**: 264/264 Core, 46/46 save contract, 273/273 map smoke, 47/47 real Edge end-to-end |
 | ACCEPTED | **NO** — owner playtest has not happened; reviewer verdict is not owner acceptance |
@@ -18,7 +18,8 @@ thread with no implementation or supervision role — see §11.
 **Base (exact):** `4b6d8070fe709f8b6600baedd39bb37d0cf5322d` (owner-accepted Map Pass 2, unmerged)
 **A0 source (transplanted):** `8db5e09538474cec01374066be08d73f240de82c`
 **First implementation head (reviewed):** `ca750ab5787cad29300fd5e525583a8b00c34749`
-**Repair head (this document's code head):** `803bdd834a0181b7754e411c34381c024fa26f60`
+**Reviewed repair head:** `803bdd834a0181b7754e411c34381c024fa26f60` (re-review verdict APPROVED)
+**Final code head (this document's code head):** `a20640ae4fa5f025e68394bffa386236d02106e8` (post-approval corrections in §3.2)
 **Worktree:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-Phase1-SaveE2E-20261124`
 
 ---
@@ -132,6 +133,25 @@ with the primary unchanged, a corrupt slot is recoverable and recovers) and two 
 **Not changed, disclosed instead:** the save-folder dependency at startup and the in-process-only slot gate (§8); the
 `644 B-01` test-pin edit still needs Manager sign-off (§7).
 
+## 3.2 Re-review and post-approval corrections
+
+The narrow re-review of the repair (fresh independent thread, same model) returned **APPROVED**: it re-ran the F1 repro
+(`REFUSED Phase2PointOutsideArea`, session unchanged), probed every F2 recovery combination (valid/corrupt/missing primary,
+good/bad backup, directory and symlink at the path) against the required outcomes, confirmed the new tests fail if their
+fix is reverted, and confirmed no change outside the save/load paths. **No new blocking defect.**
+
+It also found one **false claim** and five non-blocking items. Disposition:
+
+| Item | Disposition |
+|---|---|
+| R3. `SaveGeneration` uniqueness was claimed but not guaranteed (`NextGeneration` released the slot gate before `Save` took it, with the engine capture in between) | **Fixed properly** rather than re-worded: `Phase1SaveSlots.LockSlot` holds the per-slot gate across the generation read, the engine capture and the write (the gate is re-entrant, and no path takes the engine lock and then a slot gate, so there is no lock cycle). The save handler now uses that scope. New test `NB1c` proves two scoped saves of one slot record consecutive generations. |
+| R4. Missing-primary recovery used the clobbering rename, unlike NB1's no-clobber rule | **Fixed:** recovery publishes no-clobber when the primary did not exist, so a slot another process created in that window survives (`SlotExists`). |
+| R5. Closing the dialog hid the load confirmation but not the recovery one, and the two confirmations did not hide each other | **Fixed:** closing hides both, and opening one hides the other. |
+| R6. The browser covered recovery only by the absence of the control | **Fixed:** a fourth browser phase truncates the slot's primary, then drives **Restore backup** through its confirmation and loads the recovered save (8 new assertions). |
+| R7. `P1-SL-07c` accepted any refusal code; `P1-SL-09` covered only the Stage 5 branch | **Fixed:** 07c pins `PruneBroadleafTargetInvalid` with an in-range but unscheduled 4.0 m target on an Oak; 09 also covers the Stage 4 growth-phase branch. |
+| R2b. The slot list marks a slot "valid" without the options check, so a save with different options would offer **Load** and then be refused | **Deferred and disclosed** (§8): it needs a server run with different options for the same experiment, which the supported launch cannot produce. |
+| R2c. Two server processes sharing one folder | Already disclosed (§8); unchanged. |
+
 ## 4. Load policy and the safety properties it rests on
 
 - **Capture under one lock.** `CaptureSave` takes the engine's single lock, checks the caller's full fence, and copies the
@@ -170,10 +190,10 @@ Environment: `DESKTOP-DL1BQI7`, WSL2 Ubuntu, `~/.dotnet` **SDK 8.0.134** (system
 | Solution build | `dotnet build MultiRackSitkaP1Lab.sln` | **0 warnings, 0 errors** |
 | UI build | `dotnet build src/Ui/SitkaP1.Ui.csproj` | **0 warnings, 0 errors** |
 | Core suite incl. nine anchors | `tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests` | **267/267 passed** (255 baseline + 12 new `P1-SL` cases) |
-| Save contract suite | `dotnet run --project tests/Phase1.Save.Tests/Phase1Save.Tests.csproj` | **47/47 passed** (44 A0 + 2 NB1 + 1 recovery guard) |
+| Save contract suite | `dotnet run --project tests/Phase1.Save.Tests/Phase1Save.Tests.csproj` | **48/48 passed** (44 A0 + 2 NB1 + 1 recovery guard + 1 scoped generation) |
 | Two-area map smoke | `tests/ui-smoke-multiarea.sh` | **276 passed, 0 failed** (240 baseline + 36 Save/Load) |
 | Single-area smoke | `tests/ui-smoke.sh` | **250 passed, 4 failed** — `L01`, `L02`, `L06`, `J31`; the **same four IDs fail on the unmodified base `4b6d8070`** (re-run in the Pass 2 worktree), so this is pre-existing drift, not a regression |
-| Real browser end-to-end | `tests/phase1-save-ui/run-edge-e2e.sh` | **55 passed, 0 failed** across three server processes |
+| Real browser end-to-end | `tests/phase1-save-ui/run-edge-e2e.sh` | **63 passed, 0 failed** across four server processes |
 | CLI safety | `tests/cli-safety.sh` | **PASS** (P0 tracked digest unchanged) |
 | Builder/output safety | `tests/build-output-safety.sh` | C1–C6 **PASS**, P0 digest **PASS**; **C7/C8 FAIL — pre-existing, environment-limited** (see §9); the run leaves a rebuilt `.p0ref`, which was restored to the pinned binary afterwards |
 | P0 isolation (`p0-isolation.sh`) | not run | **NOT RUN** (§9) |
@@ -201,38 +221,43 @@ identity, an engine-illegal restored order and a stale fence each leave the sess
 Runner: `tests/phase1-save-ui/run-edge-e2e.sh <evidence-dir>` (three processes, real SIGINT shutdown, no stubs).
 
 Evidence directory (outside the repository): `/mnt/c/Users/hp/AppData/Local/Temp/ccf-save-e2e-repair3`
-(`C:\Users\hp\AppData\Local\Temp\ccf-save-e2e-repair3`), **55/55 assertions**, `run.log` sha256 `3d98f2e23f54…`.
-The first run of this suite (before the repair) is kept at `…/ccf-save-e2e-run3`.
+(`C:\Users\hp\AppData\Local\Temp\ccf-save-e2e-repair3`), **63/63 assertions** across four server processes,
+`run.log` sha256 `1af8dbaf4ef3…`. Earlier runs are kept at `…/ccf-save-e2e-run3` (first head) and the repair runs before
+the post-approval corrections.
 
 | Evidence | sha256 (prefix) | What it shows |
 |---|---|---|
 | `saves-empty-1280-1280x720.png` | `fabb13981c52…` | the dialog at 1280×720: fits with no horizontal scroll (dialog 832 px, table 792 px), Save control inside the viewport |
-| `saves-saved-1280-1280x720.png` | `6d1163993716…` | slot `edge-demo`, year 1, UTC time, "Ready to load", Load button |
-| `saves-saved-1920-1920x1080.png` | `96e9b13192d3…` | the same dialog at 1920×1080 (832×473 inside 1920×1080) |
-| `saves-overwrite-1280-1280x720.png` | `65f15e71cf11…` | the confirmed overwrite of the same slot by the keyboard-set tick |
-| `saves-restarted-1280-1280x720.png` | `79b804586b70…` | after the process restart: a fresh Year 0 session lists the slot as loadable, with **no** Restore backup control |
-| `restored-map-1280-1280x720.png` | `31ee2f46db25…` | the restored mixed map at the saved year, plan visible as an unapproved draft |
+| `saves-saved-1280-1280x720.png` | `ab3307461016…` | slot `edge-demo`, year 1, UTC time, "Ready to load", Load button |
+| `saves-saved-1920-1920x1080.png` | `cbd354f8f399…` | the same dialog at 1920×1080 (832×473 inside 1920×1080) |
+| `saves-overwrite-1280-1280x720.png` | `70e6ec076073…` | the confirmed overwrite of the same slot after the explicit tick |
+| `saves-restarted-1280-1280x720.png` | `5013aae8aad2…` | after the restart: a fresh Year 0 session lists the slot as loadable, with **no** Restore backup control |
+| `restored-map-1280-1280x720.png` | `a713f8d645d3…` | the restored mixed map at the saved year, the approved plan visible as an unapproved draft |
 | `restored-map-1920-1920x1080.png` | `2147ede8bfa9…` | the same restored map at 1920×1080 |
 | `restored-consent-1280-1280x720.png` | `4d66a6d1fa76…` | the pending draft's consent dialog when continuing |
 | `continued-map-1280-1280x720.png` | `fc292bd7b2f2…` | one real year later, with growth and the new history entry |
+| `saves-corrupt-1280-1280x720.png` | `4add8931fadb…` | the damaged slot: "Corrupt — not loadable (JsonInvalid)", Load withheld, **Restore backup** offered |
+| `saves-recovered-1280-1280x720.png` | `3c6218f277a4…` | after the explicit recovery: the slot "Ready to load" again |
+| `recovered-map-1280-1280x720.png` | `22a93032154f…` | the recovered save loaded back on the map at its year |
 | `mixed-execute-confirm-1280x720.png` | `0811eb52cd0a…` | the Execute confirmation during the pre-save play |
-| `edge-demo.ccf2d.json` | `e3c09932c3e1…` | the saved file (354 KB, schema 2, `saveGeneration` 2, year 1, `mad-ma1-mixed-demo-v1`, APPROVED plan) |
-| `edge-demo-ma1.ccf2d.json` | `ed2ae6018ab3…` | the all-Sitka MA-1 save |
-| `pre-save.json` | `2713e11bd1fe…` | the pre-save session id/year/tree counts the driver compares against |
+| `edge-demo.ccf2d.json` | `cb76b02a84cd…` | the saved file (schema 2, year 1, `mad-ma1-mixed-demo-v1`); the recovery phase leaves the earlier generation as the primary |
+| `edge-demo-ma1.ccf2d.json` | `993018c8d24a…` | the all-Sitka MA-1 save |
+| `pre-save.json` | `772e6be8994a…` | the pre-save session id/year/tree counts the driver compares against |
 
 Assertions that matter (all PASS): a real pointer event on the map is handled; the Fell/Plant/Shelter batch is queued from
-the page origin; **Approve** and **Execute** are real button clicks; one real **Advance** click commits a year; the
-Saved games dialog opens from the header button **by keyboard** and a **keyboard** save commits ("Tab from the slot name
-reaches the Save control"); the page states *"Saved and durably committed to disk"*; saving the same slot without the tick
-warns and writes nothing, and the tick then commits the overwrite; the restarted server starts at Year 0, lists the slot
-and offers **no** Restore backup control because the primary verifies; **Load** demands explicit replace-play confirmation
-and restores the saved year, both tree rosters and a plan that was **approved in the file** as an **unapproved pending
-draft** with an Approve control and no approved plan; a stale-fence **load** returns 409 `PlayerSessionMismatch` with the
-unchanged restored session; the pre-restart fence and pre-save token are refused for commands; a real **Advance** click
-continues a genuine year with changed DBH/height/crown; the Results pane gains the history entry; and the all-Sitka run
-shows the other forest's slot as *"Different forest, model or engine (SaveGenesisMismatch)"* with no Load button. No
-uncaught exception, no CSP violation, no 5xx, no script error (deliberately provoked typed 4xx refusals are excluded and
-named in the driver).
+the page origin; **Approve** and **Execute** are real button clicks; one real **Advance** click commits a year; the Saved
+games dialog opens from the header button **by keyboard** and a **keyboard** save commits ("Tab from the slot name reaches
+the Save control"); the page states *"Saved and durably committed to disk"*; saving the same slot without the tick warns and
+writes nothing, and the tick then commits the overwrite; the restarted server starts at Year 0, lists the slot and offers
+**no** Restore backup control because the primary verifies; **Load** demands explicit replace-play confirmation and restores
+the saved year, both tree rosters and a plan that was **approved in the file** as an **unapproved pending draft** with an
+Approve control and no approved plan; a stale-fence **load** returns 409 `PlayerSessionMismatch` with the unchanged restored
+session; the pre-restart fence and pre-save token are refused for commands; a real **Advance** click continues a genuine year
+with changed DBH/height/crown; the Results pane gains the history entry; **a damaged primary is listed as corrupt with Load
+withheld and Restore backup offered, the confirmation names the damaged primary, the recovery commits, the slot becomes
+loadable, and the recovered save loads back at its year**; and the all-Sitka run shows the other forest's slot as *"Different
+forest, model or engine (SaveGenesisMismatch)"* with no Load button. No uncaught exception, no CSP violation, no 5xx, no
+script error (deliberately provoked typed 4xx refusals are excluded and named in the driver).
 
 ## 7. Honest disclosures
 
@@ -267,7 +292,11 @@ named in the driver).
   exception rather than a typed refusal (review observation 2).
 - **The per-slot gate is in-process only.** Two server processes sharing one folder could still lose a confirmed replace
   (the loser's file would not become the backup). This host runs one server; the store's no-clobber rename still protects a
-  slot that did not exist (review observation 3).
+  slot that did not exist, including during backup recovery (review observations R2c/R4).
+- **The slot list marks a slot loadable from its identity only.** A save whose *options* differ (for example a different
+  Stage 4 growth-phase table for the same experiment) would be listed as "Ready to load" and then refused with
+  `SaveOptionsMismatch`. The supported launch cannot produce two different option sets for one experiment, so this is a
+  latent UI wart rather than a reachable one (review observation R2b).
 - **Corrupt-file refusal codes are the store's own** (`JsonInvalid`, `SaveUtf8Invalid`, `SaveNotCanonical`,
   `SaveChecksumMismatch`, `SaveInconsistent`, `SaveTooLarge`, `SaveSchemaUnsupported`). The page shows the code, but there
   is no player-facing repair beyond *Restore backup*.
@@ -321,7 +350,30 @@ is weaker than a cross-vendor designation. Thread:
 - **Would the reviewer let a player use it?** *"For the plain flow, yes… I'm not approving it yet because of finding 2 …
   Finding 1 means the claimed NB2 fail-closed guarantee doesn't hold for approved plans."*
 
-**Disposition:** both blockers repaired in `803bdd83` (§3.1 R1/R2) with new tests at every level, the four non-blocking items
-that were cheap and safe were also repaired, and the remainder is disclosed rather than hidden. A **narrow re-review of the
-repair only** was requested from a fresh independent delegate; its verdict and the final head are appended here when it
-returns. Until then this branch is **IMPLEMENTED and REPAIRED, not yet RE-REVIEWED, not INTEGRATED, not ACCEPTED**.
+**Disposition:** both blockers repaired in `803bdd83` (§3.1 R1/R2) with new tests at every level, the four non-blocking
+items that were cheap and safe were also repaired, and the remainder is disclosed rather than hidden.
+
+### Re-review of the repair — APPROVED
+
+**Reviewer:** a second, fresh independent delegate (same model, read-only, no implementation role; separation by thread
+only). Thread:
+[Re-review — Phase 1 Save/Load repair](t3-thread://v2/030a041c-34a1-4375-b3ab-fe0ff5333ea9/thread:delegated-task:command%3Amcp%3A4df00662-3f4a-4824-b69f-45498757470e%3Adelegate-task%3Aeeb9e87d-af00-4be3-aca0-cd8d3bf71ad9).
+It reviewed `ca750ab..803bdd83`, at head `2dde7348`, clean worktree, and wrote nothing into the repository.
+
+- **VERDICT: APPROVED.**
+- **F1 closed: YES.** "Re-running the earlier repro (approved Plant at (-50,-50) …) now returns `REFUSED
+  Phase2PointOutsideArea`. The engine's `root` object and session id are unchanged afterwards." It also reasoned that the
+  validator guarantees the merged lists are exactly the approved orders, so all four kinds are checked, and that `root` is
+  assigned only after every check passes.
+- **F2 closed: YES.** It probed seven primary/backup combinations; recovery is refused for a valid primary (byte-identical
+  afterwards), still works for corrupt or missing primaries, and is refused for a directory or symlink path. The page's
+  `recoverable` gate is the only route to the control.
+- **New blocking defects: none.** Its option-equality check found that a save this engine captures always passes, and that
+  the four new tests would fail if their fix were reverted.
+- **Required correction:** one claim was false — that concurrent saves get distinct generations. Repaired properly (R3 in
+  §3.2). Five non-blocking observations were dispositioned in §3.2 (four fixed, one deferred and disclosed).
+- It noted its own limitation: "this was not a blind review, and the separation from the first reviewer is by thread only
+  (same model)".
+
+**Final state of this branch:** IMPLEMENTED, REVIEWED (APPROVED after one repair cycle), **not INTEGRATED** (no `main`
+merge, no PR) and **not ACCEPTED** (no owner playtest). The handoff's earlier overclaims are corrected in §3.1/§3.2.
