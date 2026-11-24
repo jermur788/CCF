@@ -488,6 +488,18 @@ class FakeElement extends FakeNode {
     this.childNodes = [];
     this.append(...items);
   }
+  // Standard Element.prepend / firstElementChild / scrollIntoView, which the owner UX repair R2 page uses to keep the
+  // ground panel below the inspector's primary block (the stand-in has no layout, so scrollIntoView does nothing).
+  prepend(...items) {
+    const nodes = items.map((item) => item instanceof FakeNode ? item : new FakeText(this.ownerDocument, String(item)));
+    for (const node of nodes) {
+      if (node.parentNode) node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
+      node.parentNode = this;
+    }
+    this.childNodes.unshift(...nodes);
+  }
+  get firstElementChild() { return this.childNodes.find((child) => child instanceof FakeElement) || null; }
+  scrollIntoView() {}
   matches(selector) { return compileSelector(selector).some((test) => test(this)); }
   closest(selector) {
     const tests = compileSelector(selector);
@@ -621,6 +633,9 @@ async function pageFetch(path, init = {}) {
   if (fault && fault.mode === 'hold') await fault.held;
   const answer = await send(method, relative, init.body);
   if (fault && fault.mode === 'lose') throw new TypeError('Failed to fetch (witness: the answer was lost after HTTP ' + answer.status + ')');
+  // 'unpaired': the server's answer exactly, except that its engine read-out is missing (stage4: null), as the server sends
+  // when the session moved between a command and its read-out (owner UX repair F-2).
+  if (fault && fault.mode === 'unpaired' && answer.json) answer.json.stage4 = null;
   return { status: answer.status, json: async () => answer.json };
 }
 const serverView = async () => (await send('GET', 'api/multi/view')).json.view;
@@ -681,6 +696,308 @@ check(byId('marks').querySelectorAll('.competitor-rank').length === Math.min(5, 
 let server = await serverView();
 check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pending.length === 0 && server.planStateRevision === 0,
   'inspection created no Crop mark and no Fell order');
+
+// ---- F-2 (owner UX repair Phase A, spec multi-stage4-owner-ux-20261123-v1): a view whose engine read-out could not be
+// paired (stage4: null) is shown as "unavailable", never as model 0 / legacy, and Execute is withdrawn until a paired
+// re-read; the server's stale-fence refusal stays fail-closed. Labelled F2a.. so the J numbering below is unchanged.
+{
+  let f2 = 0;
+  const checkF2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    f2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'F2' + String.fromCharCode(96 + f2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitF2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkF2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+  let v = await serverView();
+  const f2Tree = areaOf(v, 'MA-A').trees.find((t) => t.isLiving && t.treeId !== aTree).treeId;
+  const added = await send('POST', 'api/multi/pending/add', JSON.stringify({ fence: fenceOf(v), areaId: 'MA-A', treeId: f2Tree, reason: 'page witness F-2' }));
+  const staleFence = fenceOf(v);
+  v = await serverView();
+  const approved = await send('POST', 'api/multi/plan/approve', JSON.stringify({ fence: fenceOf(v) }));
+  checkF2(added.status === 200 && approved.status === 200, 'setup: one Fell order queued and approved through the API', [added.status, approved.status]);
+  const plan = (await serverView()).approved;
+  arm('GET', 'api/multi/view', 'unpaired');
+  let f2Mark = requests.length;
+  click(byId('reread'));
+  if (await waitF2(() => !byId('approved-box').hidden && !byId('readout-unavailable').hidden, 'the unpaired view with its approved plan')) {
+    const disclosure = byId('disclosure').textContent + ' | ' + byId('flags').textContent;
+    checkF2(!/EDGE NEIGHBOURS EXCLUDED|Edge neighbours excluded/i.test(disclosure) && disclosure.includes('unavailable') && !disclosure.includes('CONNECTED WOODLAND'),
+      'unavailable: the notice claims neither model 0 edge exclusion nor the Stage 4 model', disclosure);
+    const details = byId('statements').textContent + ' | ' + byId('details-note').textContent;
+    checkF2(!details.includes('Edge neighbours excluded') && !details.includes('Light, seed') && details.includes('unavailable'),
+      'unavailable: the Details pane says so and makes no legacy "Light NOT MODELLED" or edge-exclusion claim', details);
+    checkF2(byId('execute').disabled && byId('approve').disabled && byId('execute').textContent.includes('re-read needed') &&
+      byId('area-cards').textContent.includes('read-out unavailable'),
+      'unavailable: Execute and Approve are withdrawn and the rack cards say the read-out is unavailable', byId('execute').textContent);
+    click(byId('execute'));
+    await sleep(100);
+    checkF2(!byId('execute-dialog').open && alertText().includes('Execute needs a re-read') &&
+      !requests.slice(f2Mark).some((r) => r.path === 'api/multi/plan/execute'), 'unavailable: no Execute confirmation opens and no Execute is sent', alertText());
+  }
+  const stale = await send('POST', 'api/multi/plan/execute', JSON.stringify({ fence: staleFence, planId: plan.planId, executionKey: plan.executionKey }));
+  checkF2(stale.status === 409 && stale.json && stale.json.refusal && (await serverView()).events.length === 0,
+    'the server still refuses an Execute with a stale fence (409, fail-closed, nothing felled)', [stale.status, stale.json && stale.json.refusal]);
+  click(byId('readout-reread'));
+  await waitF2(() => byId('readout-unavailable').hidden && !byId('execute').disabled && byId('disclosure').textContent.includes('CONNECTED WOODLAND'),
+    'a paired re-read restoring the Stage 4 statements and Execute');
+  checkF2(byId('readout-unavailable').hidden && !byId('execute').disabled, 'after a paired re-read Execute is offered again');
+  v = await serverView();
+  const cancelled = await send('POST', 'api/multi/plan/cancel', JSON.stringify({ fence: fenceOf(v) }));
+  click(byId('reread'));
+  await waitF2(() => byId('approved-box').hidden, 'the cancelled plan to disappear');
+  checkF2(cancelled.status === 200 && (await serverView()).approved === null, 'cleanup: the F-2 plan was cancelled through the API (nothing was felled)');
+}
+
+// ---- R2 (owner UX repair Phase A, repair 2): (1) a new selection puts the inspector back at the top and, with Inspect
+// ground on, the ground panel sits below the primary block; (2) a map hit-test answer that arrives after Escape, Close or
+// a newer selection is discarded whole. Labelled R2a.. so the J numbering below is unchanged. The stand-in has no layout,
+// so (1) is checked structurally here and by pixels in the real-browser driver.
+{
+  let r2 = 0;
+  const checkR2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    r2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'R2' + String.fromCharCode(96 + r2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitR2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkR2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+  const pane = byId('pane-tree');
+  const groundPanel = byId('ground-panel');
+  const v = (await send('GET', 'api/multi/view')).json;
+  const aScene = v.scenes['MA-A'];
+  const aLiving = areaOf(v.view, 'MA-A').trees.filter((t) => t.isLiving).map((t) => t.treeId);
+  const itemOf = (id) => aScene.find((item) => item.treeId === id);
+  const crownAt = (id) => byId('crowns').querySelector('[data-tree-id="' + id + '"]').childNodes[0];
+  const firstTree = aLiving.find((id) => id !== aTree && itemOf(id));
+  const crownTree = aLiving.filter((id) => itemOf(id))[Math.floor(aLiving.length / 2)];
+  const crown = itemOf(crownTree);
+  // A newer selection far from the clicked crown, so the stale hit-test cannot name it.
+  const farTree = aLiving.filter((id) => itemOf(id) && id !== crownTree)
+    .sort((x, y) => Math.hypot(itemOf(y).u - crown.u, itemOf(y).v - crown.v) - Math.hypot(itemOf(x).u - crown.u, itemOf(x).v - crown.v))[0];
+
+  // (1) Scroll reset on a table selection and on a crown click.
+  pane.scrollTop = 420;
+  await selectInTable(firstTree);
+  checkR2(pane.scrollTop === 0, 'a new selection from the Trees table puts the inspector back at the top (scrollTop 420 → 0)', pane.scrollTop);
+  pane.scrollTop = 420;
+  let mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== firstTree, 'a crown click to select a tree');
+  checkR2(pane.scrollTop === 0 && !byId('inspector-body').hidden, 'a new selection by a crown click puts the inspector back at the top', [pane.scrollTop, byId('insp-id').textContent]);
+
+  // (1) Ground panel placement with Inspect ground on.
+  click(byId('light-toggle'));
+  click(byId('ground-mode'));
+  await waitR2(() => !groundPanel.hidden, 'Inspect ground on');
+  const body = byId('inspector-body');
+  const dock = body.querySelector('.add-dock');
+  const slot = byId('ground-slot');
+  checkR2(groundPanel.parentNode === slot && slot.parentNode === body && body.childNodes.indexOf(slot) > body.childNodes.indexOf(dock) &&
+    byId('ground-mode').getAttribute('aria-pressed') === 'true' && byId('ground-mode-text').textContent === 'Inspect ground: On',
+    'Inspect ground on with a tree inspected: the ground panel sits after the Add bar (below ranks 1-5), the mode still reads On',
+    [groundPanel.parentNode && groundPanel.parentNode.id, body.childNodes.indexOf(slot), body.childNodes.indexOf(dock)]);
+  checkR2(document.activeElement === byId('ground-mode') && pane.scrollTop === 0,
+    'turning Inspect ground on with a tree inspected keeps focus on the pressed toggle and does not scroll the inspector', [document.activeElement && document.activeElement.id, pane.scrollTop]);
+  pane.scrollTop = 420;
+  mark = requests.length;
+  click(crownAt(farTree), { clientX: itemOf(farTree).u, clientY: itemOf(farTree).v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== crownTree, 'a crown click in ground mode to select');
+  checkR2(pane.scrollTop === 0 && groundPanel.parentNode === slot && byId('ground-mode').getAttribute('aria-pressed') === 'true' &&
+    byId('light-toggle').getAttribute('aria-pressed') === 'true',
+    'a crown click in ground mode selects, resets the inspector to the top, keeps the ground panel below and keeps both modes on',
+    [pane.scrollTop, byId('insp-id').textContent]);
+  click(byId('inspect-close'));
+  await waitR2(() => byId('inspector-body').hidden, 'Close inspection');
+  checkR2(groundPanel.parentNode === pane && pane.firstElementChild === groundPanel && !groundPanel.hidden,
+    'with no tree inspected the ground panel returns to the top of the Tree pane');
+  escape();
+  click(byId('light-toggle'));
+  await waitR2(() => groundPanel.hidden && byId('light-toggle').getAttribute('aria-pressed') === 'false', 'Inspect ground and the Light Guide off');
+
+  // (2) Escape while the hit-test is in flight: the late answer must not reopen the inspection.
+  await selectInTable(firstTree);
+  let held = arm('POST', 'api/multi/hit', 'hold');
+  mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the held hit-test to be sent');
+  escape();
+  checkR2(byId('inspector-body').hidden, 'Escape closes the inspection at once while the hit-test is still in flight');
+  await sleep(80);
+  const announcedAfterEscape = byId('announce').textContent;
+  held.release();
+  await sleep(400);
+  checkR2(byId('inspector-body').hidden && !byId('inspector-empty').hidden && !byId('tree-rows').querySelector('[aria-current="true"]'),
+    'the late hit-test answer did not reselect a tree or reopen the inspection', byId('insp-id').textContent);
+  checkR2(byId('announce').textContent === announcedAfterEscape && !byId('announce').textContent.startsWith('Selected tree') &&
+    !requests.slice(mark).some((r) => r.path === 'api/multi/competition') && alertText() === '',
+    'the late answer made no announcement, no competitor read and no alert', [byId('announce').textContent, alertText()]);
+
+  // (2) A newer selection while the hit-test is in flight wins, with its draft intact.
+  await selectInTable(firstTree);
+  held = arm('POST', 'api/multi/hit', 'hold');
+  mark = requests.length;
+  click(crownAt(crownTree), { clientX: crown.u, clientY: crown.v });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the second held hit-test to be sent');
+  await selectInTable(farTree);
+  await sleep(250); // the competitor read for farTree answers while the hit-test is still held (busy), so it is dropped
+  held.release();
+  await waitR2(() => byId('rank-layer').querySelector('[data-rank-toggle]'), 'the newer selection\'s competitors (re-read after the stale answer)');
+  const rank = byId('rank-layer').querySelector('[data-rank-toggle]');
+  if (rank) click(rank);
+  await waitR2(() => byId('add-button').textContent.includes('1'), 'one draft choice for the newer selection');
+  const addText = byId('add-button').textContent;
+  await sleep(300);
+  checkR2(byId('insp-id').textContent === farTree && byId('add-button').textContent === addText && addText.includes('1') &&
+    !byId('announce').textContent.includes(crownTree),
+    'a stale hit-test answer never overwrites a newer selection or clears its draft', [byId('insp-id').textContent, farTree, addText, byId('announce').textContent]);
+  click(byId('inspect-close'));
+  await waitR2(() => byId('inspector-body').hidden, 'cleanup: close the inspection');
+  await selectInTable(aTree);
+}
+
+// ---- R3 (owner UX repair Phase A, repair 3): a LOADED session. Fell orders are queued through the page's own Add for the
+// top competitors of one reference, so its rows are blocked. The stand-in has no layout, so the fold is checked
+// structurally here (every row, blocked or not, is the same two-line grid: rank + ID + distance, then one meta line that
+// starts with the short reason) and by pixels in the real-browser driver and fold sweep. Also: the post-Add card takes the
+// Add form's place with Details and Dismiss, a draft change ends it, and an Escape that only closes a dialog leaves a
+// pending map click alone (F-05). The orders are removed again at the end so the checks below see the same session as
+// before. Labelled R3a.. so the J numbering below is unchanged.
+{
+  let r3 = 0;
+  const checkR3 = (ok, label, detail) => {
+    if (!ok) failures++;
+    r3++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'R3' + String.fromCharCode(96 + r3) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitR3 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkR3(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+  const errorsBefore = pageErrors.length;
+  const v0 = await serverView();
+  const fenceOf = (view) => ({ sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision });
+  const aIds = areaOf(v0, 'MA-A').trees.filter((t) => t.isLiving).map((t) => t.treeId);
+  let refA = null;
+  let topA = null;
+  for (const id of aIds) {
+    if (id === aTree) continue;
+    const r = await send('POST', 'api/multi/competition', JSON.stringify({ fence: fenceOf(v0), areaId: 'MA-A', treeId: id }));
+    if (r.json && r.json.competition && r.json.competition.topFive.length === 5) { refA = id; topA = r.json.competition.topFive.map((n) => n.treeId); break; }
+  }
+  const rankButton = (id) => byId('rank-layer').querySelector('[data-rank-toggle="' + id + '"]');
+  const rowsOf = () => byId('competition-content').querySelectorAll('li');
+  // Looked up by class too, so that against an older page these checks fail instead of crashing the witness.
+  const dock = byId('add-dock') || byId('inspector-body').querySelector('.add-dock');
+  const card = byId('batch-result');
+  const control = (name) => card.querySelector('[data-batch="' + name + '"]');
+  const addThrough = async (ids, what) => {
+    for (const id of ids) click(rankButton(id));
+    await waitR3(() => byId('add-button').textContent === 'Add selected ' + ids.length + ' to Fell plan', what + ': ' + ids.length + ' draft choices');
+    byId('add-form').dispatchEvent(new FakeEvent('submit'));
+    await waitR3(() => !card.hidden && !document.documentElement.classList.contains('busy'), what + ': the Add result card');
+    await rowsBack(what);
+  };
+  // After an Add the page re-reads the reference's competition; the rows and rank buttons return when it answers.
+  async function rowsBack(what) {
+    await waitR3(() => rowsOf().length === 5 && byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, what + ': the competitor rows again');
+  }
+  // The two-line row structure: exactly input, ID, distance, CI and one meta line; a blocked row puts its short reason at
+  // the start of the meta line (no extra line), with the full reason in the tooltip and in screen-reader text.
+  const rowShape = () => rowsOf().map((li) => {
+    const label = li.querySelector('label');
+    const kids = label.childNodes.filter((n) => n instanceof FakeElement);
+    const line = label.querySelector('.comp-line');
+    const why = line && line.querySelector('.comp-why');
+    const sr = line && line.querySelector('.sr-only');
+    return { blocked: li.classList.contains('blocked'), shape: kids.map((k) => k.localName === 'input' ? 'input' : (k.getAttribute('class') || '').split(' ').pop()).join(','),
+      first: line && line.firstElementChild ? line.firstElementChild.getAttribute('class') : null, why: why ? why.textContent : null,
+      whyHidden: why ? why.getAttribute('aria-hidden') : null, sr: sr ? sr.textContent : null, title: label.getAttribute('title') };
+  });
+  const shapeOk = (rows, blockedIds) => rows.length === 5 && rows.every((r) => r.shape === 'input,comp-id,comp-dist,comp-ci,comp-line') &&
+    rows.filter((r) => r.blocked).length === blockedIds &&
+    rows.every((r) => r.blocked ? r.first === 'comp-why' && r.why === 'Pending Fell' && r.whyHidden === 'true' && r.sr === 'Cannot be chosen: Already pending Fell. ' &&
+      r.title && r.title.includes('Already pending Fell') : r.why === null && r.sr === null && r.title === null);
+
+  if (!refA) checkR3(false, 'no MA-A reference with five competitors found');
+  else {
+    await selectInTable(refA);
+    await waitR3(() => byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, 'the five rank buttons of ' + refA);
+    checkR3(shapeOk(rowShape(), 0), 'clean session: all five rows of ' + refA + ' have the same two-line structure and no reason', rowShape());
+    await addThrough(topA.slice(0, 3), 'first Add');
+    let s = await serverView();
+    checkR3(topA.slice(0, 3).every((id) => s.pending.some((o) => o.areaId === 'MA-A' && o.treeId === id)) && s.pending.length === v0.pending.length + 3,
+      'three of ' + refA + '\'s competitors were queued through the page\'s Add', s.pending.map((o) => o.treeId));
+    checkR3(shapeOk(rowShape(), 3), 'loaded: the three blocked rows keep the two-line structure; "Pending Fell" opens the meta line; full reason in the tooltip and screen-reader text', rowShape());
+    const more = control('more');
+    const dismiss = control('dismiss');
+    checkR3(dock.classList.contains('showing-result') && card.querySelector('.alert-title').textContent === 'Added 3 trees to the Fell plan' && more &&
+      more.getAttribute('aria-expanded') === 'false' && more.getAttribute('aria-controls') === 'batch-body' && dismiss && byId('batch-body') &&
+      byId('batch-body').textContent.includes(topA[0]),
+      'F-02: the post-Add card is in the dock with a one-line title, Details (collapsed) and Dismiss; the dock is marked so a short desktop shows it instead of the Add form',
+      { cls: dock.getAttribute('class'), title: card.querySelector('.alert-title') && card.querySelector('.alert-title').textContent });
+    if (more) click(more);
+    const opened = Boolean(more) && card.getAttribute('class').includes('open') && control('more').getAttribute('aria-expanded') === 'true';
+    if (more) click(control('more'));
+    checkR3(opened && !card.getAttribute('class').includes('open') && control('more').getAttribute('aria-expanded') === 'false',
+      'F-02: Details opens and closes the card\'s detail lines (aria-expanded follows)');
+    click(rankButton(topA[3]));
+    await waitR3(() => card.hidden, 'a draft change to end the card');
+    checkR3(card.hidden && !dock.classList.contains('showing-result') && byId('add-button').textContent === 'Add selected 1 to Fell plan',
+      'F-02: changing the draft ends the card and brings the Add form back', [card.hidden, dock.getAttribute('class'), byId('add-button').textContent]);
+    if (byId('add-button').textContent === 'Add selected 1 to Fell plan') byId('add-form').dispatchEvent(new FakeEvent('submit'));
+    await waitR3(() => !card.hidden && !document.documentElement.classList.contains('busy'), 'second Add: the result card');
+    await rowsBack('second Add');
+    const sBefore = JSON.stringify(await serverView());
+    if (control('dismiss')) click(control('dismiss'));
+    await waitR3(() => byId('announce').textContent.startsWith('Dismissed the Add result'), 'the Dismiss announcement');
+    checkR3(card.hidden && !dock.classList.contains('showing-result') && JSON.stringify(await serverView()) === sBefore &&
+      [byId('add-button'), byId('inspector-heading')].includes(document.activeElement) && byId('announce').textContent.startsWith('Dismissed the Add result'),
+      'F-02: Dismiss ends the card, the Add form returns, focus lands on Add or the heading, nothing is sent', [document.activeElement && document.activeElement.id, byId('announce').textContent]);
+    checkR3(shapeOk(rowShape(), 4), 'loaded: four blocked rows and one free row, all the same two-line structure', rowShape());
+
+    // F-05: an Escape that only closes a dialog no longer drops a map click whose hit-test is still in flight.
+    const scene = (await send('GET', 'api/multi/view')).json.scenes['MA-A'];
+    // The living crown farthest from the reference, so the hit-test cannot answer with the reference itself.
+    const refItem = scene.find((item) => item.treeId === refA);
+    const target = scene.filter((item) => aIds.includes(item.treeId) && item.treeId !== refA)
+      .sort((x, y) => Math.hypot(y.u - refItem.u, y.v - refItem.v) - Math.hypot(x.u - refItem.u, x.v - refItem.v))[0];
+    const held = arm('POST', 'api/multi/hit', 'hold');
+    const mark = requests.length;
+    click(byId('crowns').querySelector('[data-tree-id="' + target.treeId + '"]').childNodes[0], { clientX: target.u, clientY: target.v });
+    await waitR3(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit'), 'the held hit-test (F-05)');
+    byId('consent-dialog').setAttribute('open', '');
+    escape();
+    byId('consent-dialog').removeAttribute('open');
+    held.release();
+    await waitR3(() => byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree'), 'the map click answer after a dialog-only Escape');
+    checkR3(!byId('inspector-body').hidden && byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree') && alertText() === '',
+      'F-05: an Escape that only closed a dialog leaves the pending map click alone; its answer selects ' + byId('insp-id').textContent, [byId('insp-id').textContent, byId('announce').textContent]);
+
+    // Clean-up: remove the four orders and re-read, so the rest of the witness sees the session it saw before R3.
+    click(byId('inspect-close'));
+    for (const id of topA.slice(0, 4)) {
+      const now = await serverView();
+      await send('POST', 'api/multi/pending/remove', JSON.stringify({ fence: fenceOf(now), areaId: 'MA-A', treeId: id }));
+    }
+    click(byId('reread'));
+    await waitR3(() => !document.documentElement.classList.contains('busy') && byId('pending-areas').querySelectorAll('.mono').length === 0, 'the re-read after clean-up');
+    s = await serverView();
+    checkR3(s.pending.length === v0.pending.length && pageErrors.length === errorsBefore, 'clean-up: the queued orders are gone; no page error during R3',
+      { pending: s.pending.length, errors: pageErrors.slice(errorsBefore) });
+  }
+  await selectInTable(aTree);
+}
 
 // Area B: switch, then select a tree by a click on its drawn crown.
 click(byId('area-switch').querySelector('[data-area="MA-B"]'));

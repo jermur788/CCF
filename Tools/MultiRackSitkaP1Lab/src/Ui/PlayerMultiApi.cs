@@ -242,7 +242,9 @@ internal static class MultiAreaPage
 <body>
 <!-- MA-1 two-area manual forestry page (Multi #885). Every value is filled in by multi.js from the server view. At 1024 CSS
      px and wider the map, the legend and the side panel share one screen; below that everything stacks: map, side panel,
-     legend. -->
+     legend. The documented minimum supported desktop size is 1280 x 720 CSS px (owner decision, spec 0.2): from there up a
+     selected tree's reference, ranks 1-5 and Add fit above the fold without scrolling, also when competitors are blocked.
+     Smaller windows still work, but no fold is promised there. -->
 <a class="skip-link" id="skip-trees" href="#trees-heading">Skip to the tree table</a>
 
 <header class="topbar" aria-labelledby="page-title">
@@ -277,11 +279,19 @@ internal static class MultiAreaPage
   </div>
 </section>
 
+<!-- Owner UX repair UX-04: one unobtrusive line; every existing caveat stays, verbatim, behind Details. -->
 <div class="notice" role="note" aria-label="About this experiment">
   <span class="notice-icon" aria-hidden="true">ⓘ</span>
-  <p class="notice-text"><strong id="disclosure" class="notice-lead"></strong> <span id="flags" class="flags"></span></p>
-  <button type="button" id="notice-details" class="link-button small-link">Details</button>
-  <p id="session-note" class="session-note"></p>
+  <p id="notice-line" class="notice-line"></p>
+  <details id="notice-details" class="notice-details">
+    <summary>Details</summary>
+    <div class="notice-body">
+      <p class="notice-text"><strong id="disclosure" class="notice-lead"></strong></p>
+      <p id="flags" class="flags"></p>
+      <p id="session-note" class="session-note"></p>
+      <p><button type="button" id="notice-provenance" class="link-button small-link">All experiment and model provenance</button></p>
+    </div>
+  </details>
 </div>
 
 <div class="messages">
@@ -293,6 +303,7 @@ internal static class MultiAreaPage
     <h2 id="map-heading" tabindex="-1">Stand map</h2>
     <p id="map-subtitle" class="map-subtitle"></p>
     <button type="button" id="light-toggle" class="light-toggle" aria-pressed="false" aria-controls="light-legend"><span aria-hidden="true">☀</span> <span id="light-toggle-text">Light Guide: Off</span></button>
+    <button type="button" id="ground-mode" class="ground-toggle" aria-pressed="false" aria-controls="ground-panel" hidden><span aria-hidden="true">⌖</span> <span id="ground-mode-text">Inspect ground: Off</span></button>
     <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
     <nav class="view-tabs" aria-label="Side panel views">
       <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
@@ -314,33 +325,33 @@ internal static class MultiAreaPage
         <g id="grid" class="overlay"></g>
         <rect id="ground" class="ground" x="0" y="0" width="40" height="40" clip-path="url(#area-clip)"></rect>
         <g id="grid-in" class="overlay" clip-path="url(#area-clip)"></g>
+        <g id="light-cells" class="overlay" clip-path="url(#area-clip)" shape-rendering="crispEdges"></g>
         <polygon id="area-outline" class="area-outline" points="0,0"></polygon>
         <g id="crowns"></g>
         <g id="deadwood" class="overlay"></g>
-        <g id="light-cells"></g>
+        <g id="ground-mark" class="overlay"></g>
         <g id="marks" class="overlay"></g>
         <g id="selection" class="overlay"></g>
         <g id="furniture" class="overlay"></g>
       </svg>
+      <!-- UX-02: the competitor ranks 1-5 as real buttons over the map, keyed by exact engine tree ID (never by position). -->
+      <div id="rank-layer" class="rank-layer" role="group" aria-label="Competitor ranks on the map: each button adds or removes that tree in the local Fell draft" hidden></div>
 
+      <!-- UX-05: a narrow dock. Compass N/W/E/S in a 3 x 3 grid, then one − Fit + row, then one Area A | Area B row. -->
       <div id="map-dock" class="map-dock" role="group" aria-labelledby="dock-title">
         <p class="dock-head"><span id="dock-title">Map navigation</span> <span id="zoom-state" class="zoom-state">Fit</span></p>
-        <div class="dock-nav">
-          <div class="dpad" role="group" aria-label="Pan the map">
-            <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span aria-hidden="true">↑ N</span></button>
-            <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span aria-hidden="true">W ←</span></button>
-            <span class="dpad-centre" aria-hidden="true">⌖</span>
-            <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span aria-hidden="true">→ E</span></button>
-            <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span aria-hidden="true">S ↓</span></button>
-          </div>
-          <div class="zoom" role="group" aria-label="Zoom">
-            <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">+</span></button>
-            <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
-            <button type="button" id="zoom-fit" class="icon fit" aria-label="Fit whole area" title="Fit whole area">Fit</button>
-          </div>
+        <div class="compass" role="group" aria-label="Pan the map (north up)">
+          <button type="button" id="pan-north" class="icon" aria-label="Pan north" title="Pan north"><span class="cmp cmp-n" aria-hidden="true"><span class="arr">↑</span><span>N</span></span></button>
+          <button type="button" id="pan-west" class="icon" aria-label="Pan west" title="Pan west"><span class="cmp cmp-w" aria-hidden="true"><span class="arr">←</span><span>W</span></span></button>
+          <button type="button" id="pan-east" class="icon" aria-label="Pan east" title="Pan east"><span class="cmp cmp-e" aria-hidden="true"><span>E</span><span class="arr">→</span></span></button>
+          <button type="button" id="pan-south" class="icon" aria-label="Pan south" title="Pan south"><span class="cmp cmp-s" aria-hidden="true"><span>S</span><span class="arr">↓</span></span></button>
         </div>
-        <div id="area-switch" class="dock-areas" role="group" aria-label="Choose the area shown on the map and in the tree table"></div>
-        <p class="dock-note">Two separate management areas</p>
+        <div class="zoom-row" role="group" aria-label="Zoom">
+          <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out"><span aria-hidden="true">−</span></button>
+          <button type="button" id="zoom-fit" class="icon fit" aria-label="Fit whole area" title="Fit whole area">Fit</button>
+          <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in"><span aria-hidden="true">+</span></button>
+        </div>
+        <div id="area-switch" class="dock-areas" role="group" aria-label="Choose the area shown on the map and in the tree table (two separate management areas)"></div>
       </div>
 
       <div class="map-orient">
@@ -350,10 +361,13 @@ internal static class MultiAreaPage
       <p class="scale" aria-hidden="true"><svg id="scale-bar" class="scale-bar" width="80" height="9" viewBox="0 0 80 9" focusable="false"><path id="scale-path" d="M 1 1 V 8 H 79 V 1"></path></svg> <span id="scale-text"></span></p>
       <p id="map-status" class="map-status" hidden></p>
     </div>
+    <!-- UX-06/UX-09: a short continuous ramp drawn with the same colour mapping as the map cells; no band labels. -->
     <div id="light-legend" class="light-legend" hidden>
-      <p id="light-legend-title" class="light-legend-title"></p>
-      <ol id="light-ramp" class="light-ramp" aria-label="Light bands: cell number, colour and index range"></ol>
-      <p class="light-legend-note">Cell number = band. Click a cell to inspect it; crown clicks resume when the guide is off.</p>
+      <p id="light-legend-title" class="light-legend-title">Light Guide</p>
+      <span class="ramp-end" aria-hidden="true">Shaded</span>
+      <svg id="light-ramp" class="light-ramp" viewBox="0 0 100 10" preserveAspectRatio="none" role="img" aria-label="Light Guide colour ramp: no colour where the modelled light is zero, a faint muted rose for very low light, coral in the middle and pale peach for the brightest ground"></svg>
+      <span class="ramp-end" aria-hidden="true">Bright</span>
+      <p class="light-legend-note">Inspect ground reads the value at a spot.</p>
     </div>
     <div class="map-foot">
       <p id="map-note" class="map-note"></p>
@@ -372,27 +386,73 @@ internal static class MultiAreaPage
 
   <div id="side" class="side" data-pane="tree">
     <div id="pane-tree" class="pane">
+      <!-- UX-07/UX-08: shown only while Inspect ground is on. A concise summary first; IDs and provenance on demand. -->
       <section id="ground-panel" class="panel ground-panel" aria-labelledby="ground-heading" hidden>
-        <p class="ref-top"><span class="eyebrow">Ground cell</span> <button type="button" id="ground-close" class="link-button small-link">Close</button></p>
+        <div class="ref-title">
+          <p class="eyebrow">Inspect ground</p>
+          <button type="button" id="ground-close" class="close-inspect" title="Stop inspecting ground (Esc)"><span aria-hidden="true">×</span> Stop</button>
+        </div>
         <h2 id="ground-heading" tabindex="-1"></h2>
-        <p id="ground-label" class="ground-label"></p>
-        <dl id="ground-facts" class="pairs ground-facts"></dl>
-        <p id="ground-caveat" class="small-note"></p>
+        <div id="ground-summary" class="ground-summary"></div>
+        <details id="ground-trees" class="more ground-more"><summary id="ground-trees-summary">Contributing trees</summary>
+          <p id="ground-tree-ids" class="mono ids"></p></details>
+        <details id="ground-tech" class="more ground-more"><summary>Technical details</summary>
+          <dl id="ground-facts" class="pairs ground-facts"></dl>
+          <p id="ground-caveat" class="small-note"></p></details>
       </section>
       <section class="panel tree-panel" aria-labelledby="inspector-heading">
         <div id="inspector-empty" class="inspector-empty">
           <h2 class="eyebrow-heading">Reference tree</h2>
           <p>No tree selected in this area. Click a crown on the map, use the Trees tab, or type an exact tree ID below.</p>
         </div>
+        <!-- UX-01: the primary flow first (compact reference, ranks 1-5, Add selected); pruning, Crop, reason and records below. -->
         <div id="inspector-body" hidden>
           <div class="ref-card">
-            <p class="ref-top"><span id="insp-role" class="eyebrow">Reference tree</span> <span id="insp-area" class="tag"></span></p>
-            <div class="ref-title">
-              <h2 id="inspector-heading" tabindex="-1"><span id="insp-id" class="mono"></span></h2>
-              <span id="insp-chip" class="chip"></span>
+            <div class="ref-head">
+              <div class="ref-id">
+                <p class="ref-top"><span id="insp-role" class="eyebrow">Reference tree</span> <span id="insp-area" class="tag"></span></p>
+                <div class="ref-title">
+                  <h2 id="inspector-heading" tabindex="-1"><span id="insp-id" class="mono"></span></h2>
+                  <span id="insp-chip" class="chip"></span>
+                </div>
+              </div>
+              <button type="button" id="inspect-close" class="close-inspect" aria-keyshortcuts="Escape" title="Close inspection (Esc)"><span aria-hidden="true">×</span> Close inspection</button>
             </div>
             <p id="insp-summary" class="ref-sub"></p>
             <dl id="insp-key" class="key-facts"></dl>
+          </div>
+
+          <section id="competition-panel" class="competition" aria-labelledby="competition-heading">
+            <h3 id="competition-heading">Competitors for Fell <span id="competition-sub" class="comp-sub"></span></h3>
+            <div id="competition-content"></div>
+          </section>
+
+          <div id="add-dock" class="add-dock">
+          <div id="batch-result" class="batch-result" tabindex="-1" hidden></div>
+          <form id="add-form" class="add-form" novalidate hidden>
+            <p class="draft-line"><span id="draft-count" class="draft-count"></span></p>
+            <p class="add-row"><button type="submit" id="add-button" class="add-button"></button>
+              <button type="button" id="draft-clear" class="link-button small-link" aria-label="Clear the Fell draft selection">Clear</button></p>
+            <p id="add-caption" class="small-note">Queues proposals only. Approve and Execute are separate.</p>
+          </form>
+          </div>
+
+          <!-- UX-01/UX-08: while a tree is inspected, the ground panel moves here, below the primary block, so it never pushes
+               ranks 1-5 or Add down. With no tree inspected it sits at the top of this pane. -->
+          <div id="ground-slot" class="ground-slot"></div>
+
+          <section class="tree-more" aria-label="More for this tree">
+            <details id="reason-details" class="reason-details">
+              <summary>Fell reason: <span id="reason-summary"></span> · optional note</summary>
+              <p id="release-wrap" class="release-option" hidden>
+                <label><input type="checkbox" id="reason-release"><span id="release-label"></span></label>
+              </p>
+              <label for="reason">Optional note recorded with each Fell order added here</label>
+              <textarea id="reason" rows="2" maxlength="2000"></textarea>
+              <p id="reason-help" class="small-note">Note takes precedence; otherwise the ticked release intent, otherwise Owner-selected felling.</p>
+              <p id="reason-error" class="field-error" role="alert" hidden></p>
+              <p id="reason-preview" class="small-note" aria-live="polite"></p>
+            </details>
             <div class="ref-actions">
               <p id="insp-pinned" class="small-note"></p>
               <p class="ref-links">
@@ -412,34 +472,7 @@ internal static class MultiAreaPage
             </div>
             <p id="insp-remove-wrap" class="ref-extra" hidden><button type="button" id="insp-remove" class="secondary"></button></p>
             <p id="insp-approved-note" class="note small-note" hidden>This tree is in the approved plan. Cancel the approved plan to change it.</p>
-          </div>
-
-          <section id="competition-panel" class="competition" aria-labelledby="competition-heading">
-            <h3 id="competition-heading">Choose competitors for Fell</h3>
-            <p id="competition-sub" class="small-note"></p>
-            <div id="competition-content"></div>
           </section>
-
-          <div class="add-dock">
-          <div id="batch-result" class="batch-result" tabindex="-1" hidden></div>
-          <form id="add-form" class="add-form" novalidate hidden>
-            <p class="draft-line"><span id="draft-count" class="draft-count"></span>
-              <button type="button" id="draft-clear" class="link-button small-link">Clear selection</button></p>
-            <p><button type="submit" id="add-button" class="add-button"></button></p>
-            <p id="add-caption" class="small-note">Queues proposals only. Approve and Execute are separate.</p>
-            <details id="reason-details" class="reason-details">
-              <summary>Reason: <span id="reason-summary"></span> · optional note</summary>
-              <p id="release-wrap" class="release-option" hidden>
-                <label><input type="checkbox" id="reason-release"><span id="release-label"></span></label>
-              </p>
-              <label for="reason">Optional note recorded with each Fell order added here</label>
-              <textarea id="reason" rows="2" maxlength="2000"></textarea>
-              <p id="reason-help" class="small-note">Note takes precedence; otherwise the ticked release intent, otherwise Owner-selected felling.</p>
-              <p id="reason-error" class="field-error" role="alert" hidden></p>
-              <p id="reason-preview" class="small-note" aria-live="polite"></p>
-            </details>
-          </form>
-          </div>
 
           <details id="competition-details" class="more">
             <summary>Current / planned competition details</summary>
@@ -470,6 +503,11 @@ internal static class MultiAreaPage
           <li id="step-approved">Approved</li>
           <li id="step-execute">Execute</li>
         </ol>
+        <!-- F-2: a view whose engine read-out could not be paired (stage4: null) is "unavailable", never model 0. -->
+        <div id="readout-unavailable" class="warning readout-unavailable" hidden>
+          <p>The engine read-out for this view could not be paired with it, so Prune orders cannot be shown and Approve and Execute are withdrawn until a re-read.</p>
+          <p><button type="button" id="readout-reread" class="small">Re-read current state</button></p>
+        </div>
         <div id="pending-box">
           <div class="plan-state pending-state">
             <p id="pending-total" class="plan-total"></p>
@@ -543,6 +581,7 @@ internal static class MultiAreaPage
         <dl id="facts" class="facts"></dl>
         <ul id="stage4-statements" class="list statements"></ul>
         <p id="details-note" class="note small-note">Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area's ecology uses only its own trees.</p>
+        <p id="screen-note" class="small-note">Screen size: this page is laid out for desktop browser windows of at least 1280 × 720. There, a selected tree's reference, its ranks 1–5 and Add fit without scrolling. Smaller windows still work but may need scrolling.</p>
       </section>
     </div>
   </div>
@@ -678,13 +717,20 @@ label { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .
 #view-plan { flex: none; font-size: .95rem; text-decoration: none; }
 #view-plan:hover { text-decoration: underline; }
 
-.notice { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .8rem; margin: var(--gap) var(--gutter) 0; padding: .3rem 1rem; border: 1px solid var(--notice-line); border-radius: 8px; background: var(--notice-bg); font-size: .8rem; }
-.notice-icon { color: var(--notice-text); }
-.notice-text { flex: 1 1 24rem; min-width: 0; margin: 0; color: var(--text); }
-.notice-lead { color: var(--notice-text); }
-.flags { color: var(--text); }
+/* UX-04: one quiet line; the full caveats open below it on demand. */
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .6rem; margin: var(--gap) var(--gutter) 0; padding: 0 .9rem; border: 1px solid var(--edge); border-radius: 8px; background: var(--panel); font-size: .8rem; }
+.notice-icon { color: var(--muted); }
+.notice-line { margin: 0; color: var(--muted); }
+.notice-details > summary { display: inline-flex; align-items: center; min-height: 30px; padding: 0 .3rem; color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--faint); cursor: pointer; list-style: none; }
+.notice-details > summary::-webkit-details-marker { display: none; }
+.notice-details[open] { flex-basis: 100%; padding-bottom: .4rem; }
+.notice-details[open] > summary { text-decoration-color: var(--blue-edge); }
+.notice-body { padding: .1rem 0 0; }
+.notice-text { margin: .2rem 0; color: var(--text); }
+.notice-lead { color: var(--notice-text); font-weight: 600; }
+.flags { margin: .2rem 0; color: var(--text); }
 .flags abbr { text-decoration: none; }
-.session-note { margin: 0 0 0 auto; color: var(--text); }
+.session-note { margin: .2rem 0; color: var(--text); }
 .messages { padding: 0 var(--gutter); }
 .alert.shown { margin-top: var(--gap); padding: .6rem 1rem; border: 1px solid var(--alert-line); border-radius: 8px; background: var(--alert-bg); }
 .alert-title { font-weight: 700; }
@@ -716,29 +762,39 @@ label { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .
 #map { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: manipulation; }
 .map-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem 1rem; padding: .45rem .9rem; border-top: 1px solid var(--edge); }
 .map-note { margin: 0; color: var(--muted); font-size: .76rem; }
-.map-dock { position: absolute; left: 14px; top: 14px; z-index: 3; width: 212px; padding: .55rem .7rem .5rem; border: 1px solid var(--edge); border-radius: 8px; background: rgba(21, 36, 56, .97); box-shadow: 0 6px 18px rgba(8, 20, 34, .35); }
-.dock-head { display: flex; justify-content: space-between; margin: 0 0 .45rem; color: var(--muted); font-size: .64rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+/* UX-05: three 44 px columns wide (the original pointer targets), so the dock covers far less of the stand. */
+.map-dock { position: absolute; left: 14px; top: 14px; z-index: 3; width: auto; padding: .45rem .5rem .5rem; border: 1px solid var(--edge); border-radius: 8px; background: rgba(21, 36, 56, .97); box-shadow: 0 6px 18px rgba(8, 20, 34, .35); }
+.dock-head { display: flex; justify-content: space-between; gap: .4rem; width: 140px; margin: 0 0 .35rem; color: var(--muted); font-size: .6rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .zoom-state { color: var(--text); letter-spacing: .04em; }
-.dock-nav { display: flex; justify-content: space-between; gap: 8px; }
-.dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; }
-.dpad .dpad-centre { grid-column: 2; grid-row: 2; display: grid; place-items: center; color: var(--faint); }
+.compass { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 4px 4px; }
 #pan-north { grid-column: 2; grid-row: 1; }
 #pan-west { grid-column: 1; grid-row: 2; }
 #pan-east { grid-column: 3; grid-row: 2; }
 #pan-south { grid-column: 2; grid-row: 3; }
-.zoom { display: grid; grid-template-rows: repeat(3, 44px); gap: 2px; padding-left: 8px; border-left: 1px solid var(--edge); }
+.cmp { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: .92rem; font-weight: 700; line-height: 1; }
+.cmp-w, .cmp-e { flex-direction: row; gap: 3px; }
+.cmp .arr { color: var(--muted); font-size: .72rem; font-weight: 600; }
+.zoom-row { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--edge); }
 button.icon { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-color: var(--line); background: var(--panel-2); font-size: .78rem; line-height: 1; }
-.zoom button.icon { font-size: 1.15rem; }
-.zoom button.fit { font-size: .8rem; }
+.zoom-row button.icon { font-size: 1.15rem; }
+.zoom-row button.fit { font-size: .8rem; }
 .map-dock button.icon:disabled { border-style: solid; border-color: #2b3d52; background: transparent; color: #5f7590; }
-.dock-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: .55rem; padding-top: .55rem; border-top: 1px solid var(--edge); }
-.area-tab { display: grid; justify-items: center; gap: .15rem; min-height: 68px; padding: .35rem .2rem; border-color: var(--line); background: var(--panel-2); font-weight: 500; font-size: .82rem; }
+.map-dock button.icon:disabled .arr { color: inherit; }
+.dock-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 140px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--edge); }
+.area-tab { display: grid; justify-items: center; align-content: center; gap: .1rem; min-width: 0; min-height: 52px; padding: .25rem .15rem; border-color: var(--line); background: var(--panel-2); font-weight: 500; font-size: .78rem; line-height: 1.15; }
 .area-tab[aria-pressed="true"] { border-color: var(--blue-edge); background: var(--blue); font-weight: 650; }
-.area-thumb { width: 44px; height: 26px; }
+.area-thumb { width: 30px; height: 18px; }
 .area-thumb polygon { fill: #6f8fb0; stroke: #dbe9f6; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .area-tab[aria-pressed="true"] .area-thumb polygon { fill: #a9cdef; stroke: #fff; }
-.area-plan { color: var(--pending); font-size: .7rem; }
-.dock-note { margin: .4rem 0 0; color: var(--muted); font-size: .68rem; text-align: center; }
+.area-plan { color: var(--pending); font-size: .66rem; }
+/* UX-02: rank tiles are real toggle buttons placed over the map; the tick corner and aria-pressed carry the state. */
+.rank-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.rank-toggle { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0; transform: translate(-50%, -50%); border: 2px solid #e3d3a4; border-radius: 5px; background: #10202f; color: #f1e2b6; font-size: .84rem; font-weight: 800; line-height: 1; pointer-events: auto; box-shadow: 0 1px 4px rgba(2, 8, 16, .75); }
+.rank-toggle:hover { background: #22384e; }
+.rank-toggle[aria-pressed="true"] { border-color: #fff6ec; background: var(--draft); color: #1c1708; }
+.rank-toggle[aria-pressed="true"]::after { content: "✓"; position: absolute; top: -9px; right: -9px; display: grid; place-items: center; width: 17px; height: 17px; border: 1.5px solid #fff6ec; border-radius: 50%; background: #10202f; color: #fff6ec; font-size: .62rem; font-weight: 800; }
+.rank-toggle[aria-disabled="true"] { border-style: dashed; color: var(--faint); cursor: not-allowed; }
+.rank-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .map-orient { position: absolute; top: 12px; right: 14px; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
 .north { display: grid; justify-items: center; gap: 2px; margin: 0 .35rem 0 0; color: var(--exterior-ink); font-size: .72rem; font-weight: 600; }
 .north svg { width: 12px; height: 18px; fill: var(--exterior-ink); }
@@ -776,7 +832,7 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .b-approved .badge-bg { stroke: var(--approved); } .b-approved .badge-text { fill: var(--approved); }
 .b-dead .badge-bg, .b-executed .badge-bg { fill: #1b2229; stroke: #e5e1d6; } .b-dead .badge-text, .b-executed .badge-text { fill: #eeeadd; }
 .b-rank .badge-bg { stroke: #e3d3a4; } .b-rank .badge-text { fill: #f1e2b6; }
-.b-rank.chosen .badge-bg { stroke: var(--draft); }
+.b-rank.chosen .badge-bg { stroke: #fff6ec; fill: var(--draft); } .b-rank.chosen .badge-text { fill: #1c1708; }
 .spread-leader { fill: none; stroke: #d5e2ee; stroke-opacity: .55; stroke-width: 1.2; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; pointer-events: none; }
 .spread-origin { fill: #d5e2ee; fill-opacity: .7; pointer-events: none; }
 .tick-box { fill: #10202f; stroke: var(--draft); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
@@ -804,8 +860,20 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .inspector-empty { padding: .9rem 1rem; }
 .ref-card { margin: 0; padding: .9rem 1rem .7rem; border-bottom: 1px solid var(--edge); }
 .ref-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin: 0 0 .4rem; }
-.ref-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem; }
+.ref-title { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .ref-title h2 { margin: 0; font-size: 1.55rem; font-weight: 650; letter-spacing: -.01em; }
+.ref-title .eyebrow { margin: 0; }
+.ref-head { display: flex; align-items: center; gap: .5rem; }
+.ref-id { flex: 1 1 auto; min-width: 0; }
+.ref-id .ref-top { justify-content: flex-start; white-space: nowrap; }
+/* The status chip shares the ID line and shortens with an ellipsis (full text in its tooltip and the Tree record), so a
+   Crop or Pending reference never pushes the competitor rows below the fold. */
+.ref-id .ref-title { flex-wrap: nowrap; }
+.ref-id .ref-title h2 { flex: none; }
+.ref-id .chip { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* UX-03: a prominent exit next to the reference ID; Escape does the same. */
+.close-inspect { display: inline-flex; align-items: center; gap: .3rem; min-height: 36px; margin-left: auto; padding: .2rem .65rem; border-color: var(--line); background: var(--panel-2); font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.close-inspect > span[aria-hidden] { font-size: 1.15rem; line-height: 1; }
 .chip { display: inline-flex; align-items: center; padding: .15rem .55rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); font-size: .76rem; font-weight: 600; }
 .chip.crop { border-color: var(--crop); color: var(--crop); }
 .chip.s-PendingFell { border-color: var(--pending); color: var(--pending); }
@@ -813,7 +881,7 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .chip.s-Felled { border-color: var(--stump); color: var(--stump); }
 .chip.s-NaturalDead { border-color: var(--dead); color: var(--dead); }
 .ref-sub { margin: .1rem 0 .55rem; color: var(--muted); font-size: .86rem; }
-.key-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .3rem .6rem; margin: 0; }
+.key-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .3rem .6rem; margin: 0; }
 .key-facts dt { color: var(--muted); font-size: .68rem; white-space: nowrap; }
 .key-facts dd { margin: 0; font-size: 1.12rem; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .key-facts dd small { color: var(--muted); font-size: .72rem; font-weight: 500; }
@@ -825,27 +893,47 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .ref-extra { margin: .5rem 0 0; }
 .ref-extra button { width: 100%; }
 .competition { margin: 0; padding: .75rem 1rem .2rem; }
-.competition h3 { margin: 0; }
+.competition h3 { margin: 0 0 .35rem; }
+.comp-sub { color: var(--muted); font-size: .76rem; font-weight: 500; }
 .competition .small-note { margin: .15rem 0 .45rem; }
-.comp-head { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) 3.5rem 3.3rem; gap: .35rem; padding: 0 .55rem .2rem; color: var(--muted); font-size: .68rem; }
+.tree-more { margin: .4rem 1rem 0; padding-top: .3rem; border-top: 1px solid var(--edge); }
+.tree-more .ref-actions { margin-top: .4rem; }
+.comp-head { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 3.5rem 3.9rem; gap: .35rem; padding: 0 .55rem .2rem; color: var(--muted); font-size: .68rem; white-space: nowrap; }
 .comp-head span:nth-child(n+3) { text-align: right; }
 .comp-rows { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
-.comp-row label { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) 3.5rem 3.3rem; align-items: center; gap: .35rem; min-height: 50px; margin: 0; padding: .3rem .55rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: .9rem; cursor: pointer; }
+.comp-row label { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 3.5rem 3.9rem; align-items: center; gap: .35rem; min-height: 50px; margin: 0; padding: .3rem .55rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: .9rem; cursor: pointer; }
 .comp-row label:hover { border-color: var(--faint); }
 .comp-row.chosen label { border-color: var(--gold); background: #2c2a23; }
 .comp-row.blocked label { border-style: dashed; background: var(--panel); cursor: not-allowed; }
 .comp-row input { width: 22px; height: 22px; min-height: 0; margin: 0 auto; accent-color: var(--gold); cursor: inherit; }
-.comp-id { display: block; font-weight: 650; overflow-wrap: anywhere; }
+/* Each competitor row is two lines whatever its state (UX-01 at 1280 x 720): line 1 = rank, ID, distance; line 2 = the
+   meta line, which spans the ID and distance columns. A blocked row puts a short reason at the start of that line instead
+   of adding a third line; the full reason stays in the row's tooltip and in screen-reader text (R3, F-01). */
+.comp-rows > .comp-row > label { grid-template-rows: auto auto; row-gap: 0; }
+.comp-row input { grid-row: 1 / span 2; }
+.comp-id { display: block; grid-column: 2; grid-row: 1; min-width: 0; font-weight: 650; overflow-wrap: anywhere; }
 .comp-id .rank { margin-right: .35rem; color: var(--gold-edge); font-style: italic; font-weight: 700; }
-.comp-meta { display: block; color: var(--muted); font-size: .72rem; }
-.comp-why { display: block; color: var(--pending); font-size: .72rem; font-weight: 600; }
+.comp-dist { grid-column: 3; grid-row: 1; }
+.comp-ci { grid-column: 4; grid-row: 1 / span 2; }
+.comp-line { display: block; grid-column: 2 / span 2; grid-row: 2; min-width: 0; overflow: hidden; color: var(--muted); font-size: .72rem;
+  white-space: nowrap; text-overflow: ellipsis; }
+.comp-why { color: var(--pending); font-weight: 600; }
 .comp-num { text-align: right; font-variant-numeric: tabular-nums; font-size: .84rem; }
+.comp-strength { display: block; color: var(--muted); font-size: .68rem; }
+.add-row { display: flex; align-items: center; gap: .5rem; }
+/* One line whatever the count, so the sticky Add bar never grows over rank 5 (UX-01). */
+.add-row .add-button { flex: 1 1 auto; width: auto; padding: .45rem .6rem; white-space: nowrap; }
+.add-row .link-button { flex: none; }
 .comp-empty { margin: .3rem 0; color: var(--muted); }
 .batch-result { max-height: 11rem; overflow-y: auto; margin: .5rem 1rem 0; padding: .55rem .75rem; border: 1px solid var(--line); border-left: 4px solid var(--approved); border-radius: 6px; background: var(--panel-2); font-size: .84rem; }
 .batch-result.partial { border-left-color: var(--pending); }
 .batch-result.failed { border-left-color: var(--alert-line); }
 .batch-result p { margin: .2rem 0; }
 .batch-result .alert-title { font-weight: 700; }
+.batch-head { display: flex; align-items: center; gap: .5rem; }
+.batch-head .alert-title { flex: 1 1 auto; min-width: 0; margin: 0; }
+.batch-head .link-button { flex: none; min-height: 28px; padding: .1rem .2rem; font-size: .8rem; }
+.batch-more { display: none; }
 .add-dock { position: sticky; bottom: 0; z-index: 2; margin-top: .5rem; background: var(--panel); box-shadow: 0 -8px 14px rgba(11, 21, 35, .55); }
 .add-dock:has(> :not([hidden])) { border-top: 1px solid var(--edge); }
 .add-form { margin: 0; padding: .55rem 1rem .7rem; }
@@ -855,7 +943,7 @@ button.icon { display: grid; place-items: center; width: 44px; height: 44px; pad
 .add-button { width: 100%; min-height: 48px; border-color: var(--gold-edge); background: var(--gold); color: var(--gold-text); font-size: .98rem; font-weight: 700; }
 .add-button:hover { background: #e4c475; }
 .add-button:disabled, .add-button:disabled:hover { border-color: var(--line); background: var(--panel); color: var(--faint); }
-.reason-details { margin-top: .35rem; border: 1px solid var(--line); border-radius: 6px; background: var(--page); }
+.reason-details { margin-top: .2rem; border: 1px solid var(--line); border-radius: 6px; background: var(--page); }
 .reason-details summary { min-height: 40px; padding: .6rem .65rem; color: var(--text); font-size: .8rem; line-height: 1.3; cursor: pointer; }
 .reason-details[open] { padding-bottom: .5rem; }
 .reason-details > :not(summary) { margin-left: .65rem; margin-right: .65rem; }
@@ -923,29 +1011,39 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .area-readouts dd small { color: var(--muted); font-weight: 500; }
 .model-badge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
 .model-badge abbr { padding: 0 .35rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); color: var(--text); font-size: .68rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-.light-toggle { min-height: 36px; padding: .2rem .75rem; font-size: .84rem; }
-.light-toggle[aria-pressed="true"] { border-color: var(--gold-edge); background: #3a3420; }
-.light-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .8rem; padding: .35rem .9rem; border-top: 1px solid var(--edge); font-size: .74rem; }
+.light-toggle, .ground-toggle { min-height: 36px; padding: .2rem .75rem; font-size: .84rem; }
+.light-toggle[aria-pressed="true"] { border-color: #ffd9bd; background: #3a2a2a; }
+.ground-toggle[aria-pressed="true"] { border-color: #ffd9bd; background: #4a3029; }
+/* UX-06/UX-09: one short continuous ramp. Each light cell's colour and opacity are set from its own engine value. */
+.light-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .6rem; padding: .3rem .9rem; border-top: 1px solid var(--edge); font-size: .74rem; }
 .light-legend-title { margin: 0; font-weight: 650; }
-.light-ramp { display: flex; flex-wrap: wrap; gap: .15rem .6rem; margin: 0; padding: 0; list-style: none; }
-.light-ramp li { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.light-ramp svg { width: 16px; height: 16px; }
-.light-legend-note { margin: 0; color: var(--muted); }
-.light-cell { stroke: #0b1523; stroke-opacity: .55; stroke-width: 1; vector-effect: non-scaling-stroke; fill-opacity: .62; cursor: crosshair; }
-.light-cell.inspected { stroke: #ffffff; stroke-opacity: 1; stroke-width: 3; }
-.lc-1 { fill: #2d1e63; } .lc-2 { fill: #3b5ca8; } .lc-3 { fill: #23968f; } .lc-4 { fill: #86c75e; } .lc-5 { fill: #f4e45a; }
-.lc-text { fill: #ffffff; font-weight: 700; text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: #0b1523; stroke-width: 2px; stroke-linejoin: round; pointer-events: none; }
+.light-ramp { display: block; width: 9rem; height: 12px; border: 1px solid var(--line); border-radius: 3px; }
+.ramp-end { color: var(--muted); }
+.light-legend-note { margin: 0 0 0 auto; color: var(--muted); }
+.light-cell { stroke: none; pointer-events: none; }
+/* UX-08: crowns keep the pointer (a crown click still selects); only open ground shows the crosshair. */
+.map-pane.ground-mode #map { cursor: crosshair; }
+.ground-pick { fill: none; stroke: #ffffff; stroke-width: 2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.ground-pick-halo { fill: none; stroke: #06111d; stroke-opacity: .8; stroke-width: 5; vector-effect: non-scaling-stroke; }
 .log-body { fill: #8a6a43; stroke: #2a1d0e; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
 .log-end { fill: #d9bf8c; stroke: #2a1d0e; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .log-ring { fill: none; stroke: #6e5130; stroke-width: 1; vector-effect: non-scaling-stroke; }
 .log-halo { fill: none; stroke: #06111d; stroke-opacity: .8; stroke-width: 4.5; vector-effect: non-scaling-stroke; }
-.ground-panel h2 { margin: .1rem 0 .2rem; font-size: 1.1rem; }
-.ground-label { margin: 0 0 .3rem; color: var(--notice-text); font-size: .8rem; font-weight: 600; }
+.ground-panel h2 { margin: .1rem 0 .3rem; font-size: 1rem; }
+.ground-slot > .ground-panel { margin: .5rem .8rem 0; padding: .6rem .8rem; background: var(--panel-2); }
+.ground-level { display: flex; align-items: center; gap: .5rem; margin: 0 0 .3rem; font-size: 1.05rem; font-weight: 650; }
+.ground-swatch { flex: none; width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 3px; }
+.ground-summary dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .15rem .7rem; margin: 0; }
+.ground-summary dd { font-variant-numeric: tabular-nums; }
+.ground-summary .small-note { margin: .2rem 0 0; }
+.ground-more { margin: .35rem 0 0; }
+.ground-more summary { min-height: 36px; }
 .ground-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; }
-.ground-facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: .5rem; }
+.ground-facts > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: .5rem; }
 .ground-facts dd { font-variant-numeric: tabular-nums; }
-.ground-facts .ids { overflow-wrap: normal; }
-.ground-facts .ids .id { white-space: nowrap; }
+.ids { overflow-wrap: normal; }
+.ids .id { white-space: nowrap; }
+.readout-unavailable p { margin: .2rem 0; }
 .prune-box { margin: .45rem 0 0; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
 .prune-box p { margin: .15rem 0; }
 .prune-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
@@ -973,6 +1071,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .side[data-pane="history"] #pane-history, .side[data-pane="details"] #pane-details { display: block; }
   .pane > .panel + .panel { margin-top: var(--gap); }
   .overlap { max-height: 9rem; overflow-y: auto; }
+  /* R3 (F-02): after Add, the result card takes the Add form's place in the sticky dock instead of stacking on it, so the
+     dock does not grow over ranks 1-5. Changing the draft, Dismiss or another selection ends the card; the form returns. */
+  .add-dock.showing-result .add-form { display: none; }
 }
 /* Compact desktop (about 1280 × 720): narrower columns, tighter gaps; targets stay at least 44 px. */
 @media (min-width: 1024px) and (max-width: 1599px) {
@@ -1003,30 +1104,60 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .batch-result { max-height: 7rem; margin: .4rem .8rem 0; }
   .ref-title h2 { font-size: 1.3rem; }
   .key-facts dd { font-size: .98rem; }
-  .comp-head, .comp-row label { grid-template-columns: 2.2rem minmax(0, 1fr) 3.8rem 3.3rem; gap: .3rem; }
+  .comp-head, .comp-row label { grid-template-columns: 1.7rem minmax(0, 1fr) 3.3rem 3.7rem; gap: .3rem; }
   .comp-row label { min-height: 48px; padding: .25rem .45rem; font-size: .84rem; }
   .map-dock { left: 10px; top: 10px; }
+  .close-inspect { min-height: 34px; padding: .15rem .55rem; font-size: .78rem; }
   .area-readouts { gap: 0 .6rem; padding-top: .2rem; font-size: .7rem; }
   .area-readouts dt { font-size: .66rem; }
   .light-legend { padding: .25rem .8rem; font-size: .7rem; }
   .ground-facts > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+/* Short desktop (about 1280 x 720): the reference summary, ranks 1-5 and Add selected must fit without scrolling (UX-01).
+   1280 x 720 is the documented minimum supported desktop size (owner, spec 0.2); below it no fold is promised. */
 @media (min-width: 1024px) and (max-height: 820px) {
   .topbar { padding-top: .4rem; padding-bottom: .4rem; }
   .btn-sub { font-size: .7rem; }
-  .dock-note { display: none; }
-  .area-tab { min-height: 56px; }
+  .area-tab { min-height: 46px; }
+  .area-thumb { width: 26px; height: 15px; }
   .crop-note { display: none; }
   .competition .small-note { margin-bottom: .3rem; }
   #insp-pinned { display: none; }
   #add-caption { display: none; }
-  .ref-top { margin-bottom: .2rem; }
-  .ref-title h2 { font-size: 1.2rem; }
-  .key-facts dd { font-size: .92rem; }
+  .ref-card { padding: .4rem .8rem .3rem; }
+  .ref-top { margin-bottom: .1rem; }
+  .ref-id .tag { display: none; } /* the map subtitle and the pressed Area button already name the area */
+  .ref-title h2 { font-size: 1.15rem; }
+  .key-facts { margin-top: .2rem; }
+  .key-facts > div { display: flex; align-items: baseline; gap: .25rem; min-width: 0; }
+  .key-facts dd { font-size: .9rem; }
+  /* R3 (F-09): spacing only, rows unchanged, so the Add bar keeps about 18 px of free room below it at 1280 x 720. */
+  .competition { padding: .25rem .8rem 0; }
+  .competition h3 { margin-bottom: .15rem; font-size: .92rem; }
+  .comp-head { padding-bottom: 0; }
+  .comp-rows { gap: .25rem; }
+  .comp-row label { min-height: 38px; padding: .1rem .45rem; line-height: 1.2; }
+  .add-dock { margin-top: .3rem; }
+  /* R3 (F-02): on a short desktop the result card is one line (title, Details, Dismiss), so the dock is no taller than the
+     Add form it replaces and never covers ranks 1-5; its detail lines open on request. */
+  .batch-result { max-height: none; overflow: visible; margin: .3rem .8rem; padding: .2rem .5rem; }
+  .batch-head .alert-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .batch-more { display: inline-flex; }
+  .batch-body { display: none; }
+  .batch-result.open .batch-body { display: block; max-height: 6rem; overflow-y: auto; }
+  .add-form { padding: .3rem .8rem .4rem; }
+  .add-form p { margin: 0; }
+  .draft-line { display: none; }
+  .card { padding: .35rem .8rem; }
+  .area-card-count { margin-top: 0; }
+  .area-card-count strong { font-size: 1.1rem; }
+  .area-card-side strong { font-size: 1rem; }
+  .notice-details > summary { min-height: 26px; }
+  .notice { font-size: .76rem; }
   .ref-links .link-button { min-height: 32px; }
   .add-button { min-height: 44px; }
+  .add-row .add-button { font-size: .86rem; }
   .reason-details summary { min-height: 36px; padding: .45rem .6rem; }
-  .comp-row label { min-height: 46px; }
 }
 /* Narrow / 200% zoom: map, then side panel, then the legend, which stays visible (two columns where it fits). */
 @media (max-width: 1023px) {
@@ -1063,8 +1194,13 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 //
 // Stage 1–4 catch-up (spec multi-stage4-ui-catchup-v1): every payload also carries "stage4", the engine's read-out of the
 // same committed root (life states, pruning eligibility and its reason, canopy cover, open ground, RD, natural deaths,
-// fallen deadwood and the 2.5 m modelled light cells). The page formats those values and computes none of them; banding a
-// light index into five display bands and multiplying a fraction by 100 for "%" are display formatting only.
+// fallen deadwood and the 2.5 m modelled light cells). The page formats those values and computes none of them; mapping a
+// light index to a colour and opacity, naming it with a level word and multiplying a fraction by 100 for "%" are display
+// formatting only.
+//
+// Owner UX repair, Phase A (spec multi-stage4-owner-ux-20261123-v1): compact inspector, map rank toggles on exact tree IDs,
+// Close inspection / Escape, one-line notice, narrow navigation, a continuous coral-to-peach Light Guide under the crowns,
+// an explicit Inspect ground mode, and an "unavailable" state for a view whose read-out could not be paired (F-2).
 'use strict';
 
 (function () {
@@ -1077,8 +1213,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // Server commands whose buttons a re-read lock or a running add sequence disables. The draft Add button has its own rule.
   const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
     'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove'];
-  // Display bands of the engine's light index (formatting only): band b covers [LIGHT_BANDS[b-1], LIGHT_BANDS[b]).
-  const LIGHT_BANDS = [0, 0.2, 0.4, 0.6, 0.8, 1];
+  // Light Guide presentation (a VISUAL mapping, not a simulation law). The engine's light index L in [0, 1] is eased by
+  // t = L^LIGHT_EASE, which keeps the low end visible, and then sets both the opacity (LIGHT_ALPHA_MAX * t) and the colour
+  // along muted rose -> coral -> pale peach. L = 0 draws nothing; any L > 0 gets a strictly positive opacity (no floor,
+  // no threshold: the mapping is continuous at 0, and opacityText never writes a positive value as "0"); both rise
+  // continuously and monotonically up to L = 1.
+  const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
+  const LIGHT_EASE = 0.65;
+  const LIGHT_ALPHA_MAX = 0.9;
+  // Level words for the ground inspector's text (the map itself is continuous; colour is never the only cue).
+  const LIGHT_WORDS = [[0.1, 'Very shaded'], [0.35, 'Low'], [0.65, 'Moderate'], [Infinity, 'Bright']];
   const STATEMENTS = ['MultiSyntheticStatement', 'MultiNotComparable', 'MultiSiteUnknown', 'MultiEdgeExcluded',
     'MultiNoTransfer', 'MultiSessionOnly'];
   // Notice chips: a short form shown, its full statement as the tooltip (the Details pane lists the full statements).
@@ -1102,6 +1246,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     competitionTag: null,
     competitionRequest: 0,
     busy: false,
+    // Generation of map selection attempts. A map click takes the next number; Escape, Close inspection, an area switch and
+    // any other selection advance it, so a hit-test answer that arrives after one of those is discarded unseen.
+    mapPick: 0,
+    batchResultOpen: false,
     batch: null, // the add sequence in flight, if any; one operation-wide guard for its whole duration
     batchResult: null, // the latest add sequence's outcome, shown until the area's reference changes
     lock: null, // set when the page can no longer trust what it shows; only a re-read lifts it
@@ -1116,7 +1264,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     legendHidden: false,
     stage4: null, // the engine's read-out of the same root as view (null if the server could not pair one)
     lightOn: false, // Light Guide overlay: Off by default
-    ground: null, // { areaId, column, row } of the inspected ground cell
+    groundMode: false, // Inspect ground: a click with no crown under it reads the ground (crowns still select; Light Guide on only)
+    ground: null, // { areaId, column, row } of the inspected ground cell, or { areaId, missing: true } when no sample is there
   };
 
   const byId = (id) => document.getElementById(id);
@@ -1161,6 +1310,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   // Display rounding only: the value itself always comes from the server view.
   function fixed(value, digits) {
     return typeof value === 'number' ? value.toFixed(digits) : String(value);
+  }
+
+  // The concise light index (3 decimals). A positive value too small to show there reads "< 0.001", never "0.000"; the
+  // Technical details keep 4 decimals (R3, F-07).
+  function lightIndexText(value) {
+    return typeof value === 'number' && value > 0 && value < 0.0005 ? '< 0.001' : fixed(value, 3);
   }
 
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
@@ -1230,9 +1385,27 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function pendingPrunes() { return state.stage4 ? state.stage4.pendingPrunes : []; }
   function approvedPrunes() { return state.stage4 ? state.stage4.approvedPrunes : []; }
   function isStage4() { return Boolean(state.stage4 && state.stage4.models.adultModelVersion === 1); }
-  function lightBand(index) {
-    for (let band = 1; band < LIGHT_BANDS.length - 1; band++) if (index < LIGHT_BANDS[band]) return band;
-    return LIGHT_BANDS.length - 1;
+  // F-2: 'stage4' (paired 1/1/1 read-out), 'legacy' (a paired read-out of another model) or 'unavailable' (the server sent
+  // stage4: null because the session moved between the command and its read-out). Unavailable is never shown as model 0.
+  function readoutState() { return !state.stage4 ? 'unavailable' : isStage4() ? 'stage4' : 'legacy'; }
+  // The Light Guide paint of one engine light index: null for L = 0 (nothing drawn), else a colour and an opacity string.
+  function lightPaint(index) {
+    if (!(index > 0)) return null;
+    const t = Math.pow(Math.min(1, index), LIGHT_EASE);
+    const segment = t <= 0.5 ? 0 : 1;
+    const f = segment === 0 ? t / 0.5 : (t - 0.5) / 0.5;
+    const rgb = LIGHT_STOPS[segment].map((low, i) => Math.round(low + (LIGHT_STOPS[segment + 1][i] - low) * f));
+    return { colour: '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join(''), opacity: opacityText(LIGHT_ALPHA_MAX * t) };
+  }
+  // A positive opacity as text that never reads "0": four decimals (as before) down to 0.01, then enough decimals for three
+  // significant figures, and exponent form only for values too small for fixed notation (an L far below any real cell).
+  function opacityText(opacity) {
+    const decimals = Math.max(4, 2 - Math.floor(Math.log10(opacity)));
+    return decimals <= 100 ? opacity.toFixed(decimals) : opacity.toExponential(3);
+  }
+  function lightWord(index) {
+    const word = LIGHT_WORDS.find(([below]) => index < below)[1];
+    return index > 0 ? word : word + ' · no modelled light';
   }
   function groundCell(areaId, column, row) {
     const area = s4Area(areaId);
@@ -1288,6 +1461,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return null;
   }
 
+  // The few words a competitor row has room for (R3, F-01). The full blockedReason text stays in the row's tooltip and
+  // screen-reader text, and in the map rank button's label.
+  const SHORT_BLOCKED = {
+    'Retained Crop — not offered for Fell': 'Retained Crop', 'Already pending Fell': 'Pending Fell',
+    'In the approved plan': 'Approved plan', 'In the Prune plan': 'Prune plan', 'Reference tree': 'Reference', 'Not in this area': 'Other area'
+  };
+  function shortBlockedReason(why) {
+    return SHORT_BLOCKED[why] || why;
+  }
+
   // ---- talking to the local session process ---------------------------------------------------------------------------
 
   // The fence is echoed exactly as the latest view gave it; the page never edits it.
@@ -1330,7 +1513,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.scenes = payload.scenes || {};
     state.stage4 = payload.stage4 || null;
     if (payload.labels) state.labels = payload.labels;
-    if (state.ground && !groundCell(state.ground.areaId, state.ground.column, state.ground.row)) state.ground = null;
+    if (state.ground && !state.ground.missing && !groundCell(state.ground.areaId, state.ground.column, state.ground.row)) state.ground = null;
     if (!areaView(state.areaId)) state.areaId = state.view.areas.length > 0 ? state.view.areas[0].areaId : null;
     for (const areaId of Object.keys(state.selected)) {
       if (!treeIn(areaId, state.selected[areaId])) delete state.selected[areaId];
@@ -1487,6 +1670,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function renderCommandGate() {
     const blocked = state.lock !== null || state.batch !== null;
     for (const id of COMMAND_IDS) byId(id).disabled = blocked;
+    // F-2: without a paired read-out the Prune orders of this view are unknown, so nothing may be approved or executed.
+    if (readoutState() === 'unavailable') for (const id of ['approve', 'execute', 'execute-confirm']) byId(id).disabled = true;
     for (const button of document.querySelectorAll('[data-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-prune-remove]')) button.disabled = blocked;
     if (!blocked) renderPruneGate();
@@ -1547,9 +1732,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       samePrunes(confirmation.prunes);
   }
 
-  // The approved Prune orders now shown must be exactly those the confirmation froze (no read-out: cannot confirm).
+  // The approved Prune orders now shown must be exactly those the confirmation froze. No read-out: cannot confirm at all
+  // (F-2), because the Prune orders of this view are then unknown, not absent.
   function samePrunes(frozenPrunes) {
-    if (!state.stage4) return frozenPrunes.length === 0;
+    if (!state.stage4) return false;
     const now = approvedPrunes();
     return now.length === frozenPrunes.length && now.every((order, index) => order.areaId === frozenPrunes[index].areaId &&
       order.treeId === frozenPrunes[index].treeId && order.targetCrownBaseHeightM === frozenPrunes[index].targetCrownBaseHeightM);
@@ -1559,10 +1745,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.confirmation = null;
     const dialog = byId('execute-dialog');
     if (dialog.open) dialog.close();
-    lockCommands('Confirmation withdrawn — the approved plan changed',
-      'The Execute confirmation showed ' + confirmation.orders.concat(confirmation.prunes).map((order) => order.treeId).join(', ') + '. The view that ' +
-      'has just arrived no longer shows that plan with that fence, so nothing was sent. Review the plan now shown, then ' +
-      'choose Re-read; after a successful re-read you can choose Execute again.');
+    const unpaired = readoutState() === 'unavailable';
+    lockCommands(unpaired ? 'Confirmation withdrawn — the read-out of this view is unavailable' : 'Confirmation withdrawn — the approved plan changed',
+      'The Execute confirmation showed ' + (confirmation.orders.concat(confirmation.prunes).map((order) => order.treeId).join(', ') || 'no orders') +
+      '. ' + (unpaired ? 'The view that has just arrived came without its engine read-out, so its Prune orders cannot be checked'
+        : 'The view that has just arrived no longer shows that plan with that fence') + ', so nothing was sent. Review the plan now ' +
+      'shown, then choose Re-read; after a successful re-read you can choose Execute again.');
   }
 
   // ---- rendering ------------------------------------------------------------------------------------------------------
@@ -1622,9 +1810,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         : 'No queued work';
     byId('plan-summary-sub').textContent = [approved + approvedP > 0 ? 'nothing done yet' : view.pending.length + pendingP > 0 ? 'not approved' : '',
       drafts > 0 ? plural(drafts, 'draft choice', 'draft choices') : ''].filter(Boolean).join(' · ');
-    byId('disclosure').textContent = label(isStage4() ? 'MultiDisclosureStage4' : 'MultiDisclosure');
+    byId('notice-line').textContent = 'Synthetic Sitka experiment · ' + plural(view.areas.length, 'area', 'areas') + ' · Site unknown';
+    const readout = readoutState();
+    // The full statements stay word for word behind Details. With no paired read-out the model-specific statements (edge
+    // exclusion or connected woodland) are not claimed either way: the page says the read-out is unavailable.
+    byId('disclosure').textContent = readout === 'stage4' ? label('MultiDisclosureStage4') : readout === 'legacy' ? label('MultiDisclosure') :
+      'Model read-out unavailable for this view, so the model statements are not shown. Choose Re-read. ' +
+      [label('MultiSyntheticStatement'), label('MultiNotComparable'), label('MultiSiteUnknown'), label('MultiNoTransfer')].join('. ') + '.';
     const chips = [];
-    const chipList = isStage4() ? CHIPS.map((pair) => pair[0] === 'MultiChipEdgeExcluded' ? ['MultiChipConnectedWoodland', 'MultiConnectedWoodland'] : pair) : CHIPS;
+    const chipList = readout === 'stage4' ? CHIPS.map((pair) => pair[0] === 'MultiChipEdgeExcluded' ? ['MultiChipConnectedWoodland', 'MultiConnectedWoodland'] : pair)
+      : readout === 'legacy' ? CHIPS : CHIPS.filter((pair) => pair[0] !== 'MultiChipEdgeExcluded');
     chipList.forEach(([chip, full], index) => {
       if (index > 0) chips.push(' · ');
       chips.push(el('abbr', { title: label(full) }, label(chip)));
@@ -1807,6 +2002,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const crowns = [];
     const focusCrowns = [];
     const marks = [];
+    const ranks = []; // { treeId, rank, x, y, chosen } for the rank toggle buttons (map metres)
     // The reference tree and its competitors are drawn at twice their crown size, on top, and pushed apart so each one
     // and its marks can be read. Display only: a faint line joins each moved crown to its true trunk position.
     const spread = focusIds ? spreadFocus(area.areaId, report, mpp, box) : new Map();
@@ -1864,7 +2060,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         const [x, y] = tileCentre(item, angle, mpp);
         taken.push([x, y]);
         if (chosen) taken.push([x - 23 * mpp, y]);
-        marks.push(...competitorMarks(item, rank + 1, chosen, mpp, angle));
+        // The SVG keeps the underline; the numbered tile is a real button on the rank layer, keyed by the exact tree ID.
+        marks.push(underline(item, chosen ? 'ring-draft' : 'ring-competitor', mpp, 0));
+        ranks.push({ treeId: entry.treeId, rank: rank + 1, x, y, chosen });
       });
     }
     crowns.push(...focusCrowns);
@@ -1874,8 +2072,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     // Fallen deadwood at the engine's map position of each record (a fixed-size symbol: not to scale, no fall direction).
     const s4 = s4Area(area.areaId);
     byId('deadwood').replaceChildren(...(s4 ? s4.canopy.fallenDeadwood.flatMap((record) => logMark(record.u, record.v, mpp)) : []));
-    renderLightCells(area.areaId, mpp, box.scale);
+    renderLightCells(area.areaId);
+    renderGroundMark(area.areaId);
     byId('marks').replaceChildren(...marks);
+    renderRankLayer(ranks, box);
     const chosen = selectedId() ? items.get(selectedId()) : null;
     const lit = chosen && !state.lock ? (chosen.treeId === reference ? referenceMarks(chosen, mpp, true) : inspectMarks(chosen, mpp, true)) : [];
     byId('selection').replaceChildren(...lit);
@@ -1883,10 +2083,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       'Ecological year ' + state.view.source.ecologicalYear + '. Living trees ' + area.stand.livingCount + '. ' +
       (selectedId() ? 'Selected tree ' + selectedId() + '. ' : '') + 'Use the Trees tab to select a tree by keyboard.';
     byId('map-subtitle').textContent = area.label + ' · ' + fixed(area.areaHa, 4) + ' ha';
+    // The experiment caveats live once, in the notice and its Details (UX-04/AC07); the map foot names only the view.
     byId('map-note').textContent = areaName(area.areaId) + ' · ' + (state.zoom === 1 ? 'Fit whole area' :
-      fixed(state.zoom, 2) + '× Fit · view ' + fixed(box.uw, 1) + ' × ' + fixed(box.uh, 1) + ' m') +
-      ' · site ' + area.site + (isStage4() ? ' · growth and crowns use both areas; Work Plans and summaries per area' :
-        ' · neighbours across area edges excluded');
+      fixed(state.zoom, 2) + '× Fit · view ' + fixed(box.uw, 1) + ' × ' + fixed(box.uh, 1) + ' m');
     byId('zoom-state').textContent = state.zoom === 1 ? 'Fit' : fixed(state.zoom, 2) + '×';
     renderScale(box.scale);
     renderMapStatus(reference, draft.size);
@@ -1906,7 +2105,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const box = byId('map-status');
     const view = state.view;
     let text = '';
-    if (state.batch) text = 'Adding ' + (state.batch.confirmed.length + 1) + ' of ' + state.batch.ids.length + ' to the Fell plan…';
+    if (state.groundMode && state.lightOn) text = 'Inspect ground is on: click open ground to read its light · crowns still select trees · Esc stops';
+    else if (state.batch) text = 'Adding ' + (state.batch.confirmed.length + 1) + ' of ' + state.batch.ids.length + ' to the Fell plan…';
     else if (view.approved && approvedPrunes().length > 0) text = workTotals(view.approved.orders.length, approvedPrunes().length) + ' approved · nothing done yet';
     else if (view.approved) text = plural(view.approved.orders.length, 'approved Fell', 'approved Fell') + ' · still standing';
     else if (reference) text = 'Reference ' + reference + ' · ' + plural(drafts, 'draft choice', 'draft choices');
@@ -2093,14 +2293,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return g;
   }
 
-  // A ticked draft choice: a small tick square beside the rank tile. A tick means "in my draft", never approval.
+  // A ticked draft choice (legend icon): a filled rank tile with a tick disc on its corner, as on the map's rank buttons.
+  // A tick means "in my draft", never approval.
   function tick(item, mpp, angle) {
     const [rx, ry] = tileCentre(item, angle ?? TILE.rank, mpp);
-    const cx = rx - 23 * mpp, cy = ry;
+    const cx = rx + 11 * mpp, cy = ry - 11 * mpp;
     const p = (dx, dy) => n3(cx + dx * mpp) + ' ' + n3(cy + dy * mpp);
-    return [svg('rect', { class: 'tick-box', x: n3(cx - 9 * mpp), y: n3(cy - 9 * mpp), width: n3(18 * mpp), height: n3(18 * mpp),
-      rx: n3(3 * mpp) }),
-      svg('path', { class: 'tick', d: 'M ' + p(-4, 0) + ' L ' + p(-1, 3) + ' L ' + p(5, -4) })];
+    return [svg('circle', { class: 'tick-box', cx: n3(cx), cy: n3(cy), r: n3(7 * mpp) }),
+      svg('path', { class: 'tick', d: 'M ' + p(-3, 0) + ' L ' + p(-1, 2.5) + ' L ' + p(3.5, -3) })];
   }
 
   function statusMarks(item, mpp) {
@@ -2122,11 +2322,58 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return marks;
   }
 
+  // Legend icons only: on the map the numbered tile is a rank toggle button (renderRankLayer).
   function competitorMarks(item, rank, chosen, mpp, angle) {
     const marks = [underline(item, chosen ? 'ring-draft' : 'ring-competitor', mpp, 0)];
-    if (chosen) marks.push(...tick(item, mpp, angle));
     marks.push(badge(item, angle ?? TILE.rank, String(rank), 'rank', mpp, chosen ? 'chosen' : null));
+    if (chosen) marks.push(...tick(item, mpp, angle));
     return marks;
+  }
+
+  // UX-02: the five rank tiles as real toggle buttons over the map. Each carries the exact engine tree ID of its
+  // competitor (data-rank-toggle); a click toggles only that ID in the local Fell draft, through the same toggleDraft as the
+  // inspector checkbox, so the two always agree. Positions are display only (the enlarged, spread focus layout) and are
+  // never used to find a tree. A click here never reaches the map: no hit-test, no reference change, no request.
+  function renderRankLayer(ranks, box) {
+    const layer = byId('rank-layer');
+    const active = document.activeElement;
+    const focusKey = active && layer.contains(active) ? active.getAttribute('data-focus-key') : null;
+    const planLocked = state.view.approved !== null;
+    const frozenNow = state.lock !== null || state.batch !== null;
+    const buttons = ranks.map((r) => {
+      const why = blockedReason(state.areaId, r.treeId) ||
+        (planLocked ? 'The plan is approved, so editing is locked' : frozenNow ? 'Please wait' : null);
+      const button = el('button', { type: 'button', class: 'rank-toggle', 'data-rank-toggle': r.treeId, 'data-rank': r.rank,
+        'data-focus-key': 'rank:' + r.treeId, 'aria-pressed': String(r.chosen && !why), 'aria-disabled': why ? 'true' : null,
+        'aria-label': 'Competitor ' + r.rank + ', tree ' + r.treeId + ', Fell draft' + (why ? ' (' + why + ')' : ''),
+        title: 'Competitor ' + r.rank + ' · ' + r.treeId + (why ? ' · ' + why : r.chosen ? ' · in the Fell draft (click to remove)' : ' · click to add to the Fell draft') },
+      String(r.rank));
+      // CSSOM positioning (allowed by the page's style-src policy, unlike a style attribute). Map metres to pane pixels.
+      if (button.style) {
+        button.style.left = n3((r.x - box.x) * box.scale) + 'px';
+        button.style.top = n3((r.y - box.y) * box.scale) + 'px';
+      }
+      return button;
+    });
+    layer.replaceChildren(...buttons);
+    layer.hidden = buttons.length === 0;
+    if (focusKey) {
+      const again = layer.querySelector('[data-focus-key="' + CSS.escape(focusKey) + '"]');
+      if (again) again.focus();
+    }
+  }
+
+  function onRankToggle(event) {
+    const button = event.target.closest('[data-rank-toggle]');
+    if (!button) return;
+    event.stopPropagation();
+    const treeId = button.getAttribute('data-rank-toggle');
+    if (button.getAttribute('aria-disabled') === 'true') {
+      announce('Competitor ' + button.getAttribute('data-rank') + ', ' + treeId + ', cannot be chosen: ' +
+        (blockedReason(state.areaId, treeId) || (state.view.approved ? 'the plan is approved, so editing is locked' : 'please wait')) + '.');
+      return;
+    }
+    toggleDraft(treeId, button.getAttribute('aria-pressed') !== 'true');
   }
 
   function referenceMarks(item, mpp, withTag) {
@@ -2166,88 +2413,185 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return [g];
   }
 
-  // The Light Guide: every polygon-clipped 2.5 m cell of the shown area, coloured by display band and numbered with it when
-  // the cell is large enough on screen. Values come from the engine read-out; cells take clicks only while the guide is on.
-  function renderLightCells(areaId, mpp, scale) {
+  // The Light Guide (UX-06): light on the forest floor. Every polygon-clipped 2.5 m cell of the shown area with a positive
+  // engine light index is filled with its own continuous colour and opacity (lightPaint); a cell with L = 0 is not drawn at
+  // all. The layer lies under the crowns, takes no pointer events and carries no numbers. Values come from the read-out.
+  function renderLightCells(areaId) {
     const host = byId('light-cells');
     const s4 = s4Area(areaId);
     if (!state.lightOn || !s4) { host.replaceChildren(); return; }
-    // Every cell carries its band number (never colour alone); the digit shrinks with the cell down to 6 px on screen.
-    const cellPx = state.stage4.models.lightCellM * scale;
-    const fontPx = Math.max(6, Math.min(10, cellPx * 0.62));
     const nodes = [];
     for (const cell of s4.ground) {
-      const band = lightBand(cell.lightIndex);
-      const inspected = state.ground && state.ground.areaId === areaId && state.ground.column === cell.column && state.ground.row === cell.row;
-      nodes.push(svg('polygon', { class: 'light-cell lc-' + band + (inspected ? ' inspected' : ''), 'data-cell': cell.column + ':' + cell.row,
-        points: cell.polygon.map((p) => n3(p.u) + ',' + n3(p.v)).join(' ') }));
-      nodes.push(svg('text', { class: 'lc-text', x: n3(cell.centreU), y: n3(cell.centreV), 'font-size': n3(fontPx * mpp) }, band));
+      const paint = lightPaint(cell.lightIndex);
+      if (!paint) continue;
+      nodes.push(svg('polygon', { class: 'light-cell', 'data-cell': cell.column + ':' + cell.row, 'data-light': cell.lightIndex,
+        fill: paint.colour, 'fill-opacity': paint.opacity, points: cell.polygon.map((p) => n3(p.u) + ',' + n3(p.v)).join(' ') }));
     }
     host.replaceChildren(...nodes);
   }
 
+  // The outline of the inspected ground cell, above the crowns so it can be found; display only.
+  function renderGroundMark(areaId) {
+    const g = state.ground;
+    const cell = state.lightOn && state.groundMode && g && !g.missing && g.areaId === areaId ? groundCell(areaId, g.column, g.row) : null;
+    const points = cell ? cell.polygon.map((p) => n3(p.u) + ',' + n3(p.v)).join(' ') : null;
+    byId('ground-mark').replaceChildren(...(points ? [svg('polygon', { class: 'ground-pick-halo', points }),
+      svg('polygon', { class: 'ground-pick', points })] : []));
+  }
+
+  // The legend ramp (UX-09): the same lightPaint, sampled densely at the low end, over the map's floor colour.
+  const RAMP_SAMPLES = [0, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 0.9, 1];
   function renderLightLegend() {
     const legend = byId('light-legend');
     legend.hidden = !state.lightOn;
     byId('light-toggle').setAttribute('aria-pressed', String(state.lightOn));
     byId('light-toggle-text').textContent = 'Light Guide: ' + (state.lightOn ? 'On' : 'Off');
-    if (!state.lightOn) return;
-    byId('light-legend-title').textContent = label('MultiLightGuideLabel');
-    if (byId('light-ramp').childNodes.length > 0) return;
-    const items = [];
-    for (let band = 1; band < LIGHT_BANDS.length; band++) {
-      const swatch = svg('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' });
-      swatch.append(svg('rect', { class: 'light-cell lc-' + band, x: 1, y: 1, width: 14, height: 14 }),
-        svg('text', { class: 'lc-text', x: 8, y: 8.5, 'font-size': 10 }, band));
-      items.push(el('li', null, swatch, band + ' · ' + fixed(LIGHT_BANDS[band - 1], 1) + '–' + fixed(LIGHT_BANDS[band], 1) +
-        (band === 1 ? ' darkest' : band === LIGHT_BANDS.length - 1 ? ' brightest' : '')));
+    const ground = byId('ground-mode');
+    ground.hidden = !state.lightOn;
+    ground.setAttribute('aria-pressed', String(state.lightOn && state.groundMode));
+    byId('ground-mode-text').textContent = 'Inspect ground: ' + (state.lightOn && state.groundMode ? 'On' : 'Off');
+    const ramp = byId('light-ramp');
+    if (!state.lightOn || ramp.childNodes.length > 0) return;
+    const gradient = svg('linearGradient', { id: 'light-ramp-fill', x1: 0, y1: 0, x2: 1, y2: 0 });
+    for (const value of RAMP_SAMPLES) {
+      const paint = lightPaint(value);
+      gradient.append(svg('stop', { offset: value, 'data-l': value, 'stop-color': paint ? paint.colour : '#7f3b4a',
+        'stop-opacity': paint ? paint.opacity : 0 }));
     }
-    byId('light-ramp').replaceChildren(...items);
+    const defs = svg('defs');
+    defs.append(gradient);
+    ramp.append(defs, svg('rect', { x: 0, y: 0, width: 100, height: 10, fill: 'rgb(' + SLATE.join(',') + ')' }),
+      svg('rect', { x: 0, y: 0, width: 100, height: 10, fill: 'url(#light-ramp-fill)' }));
   }
 
-  // The ground inspector: the engine's values for one cell. Inspecting a cell never changes a selection or a Fell draft.
+  // The ground inspector (UX-07): a short summary of one engine cell, with the IDs and provenance behind two disclosures.
+  // Inspecting the ground never changes a selection, a Fell draft or the Light Guide. Nothing is estimated for a spot
+  // that has no cell.
   function renderGround() {
     const panel = byId('ground-panel');
-    const g = state.ground;
-    const cell = g && state.lightOn && g.areaId === state.areaId ? groundCell(g.areaId, g.column, g.row) : null;
-    panel.hidden = !cell;
+    const on = state.lightOn && state.groundMode;
+    panel.hidden = !on;
+    byId('map-pane').classList.toggle('ground-mode', on);
+    placeGroundPanel(panel);
+    if (!on) return;
+    const g = state.ground && state.ground.areaId === state.areaId ? state.ground : null;
+    const cell = g && !g.missing ? groundCell(g.areaId, g.column, g.row) : null;
+    const summary = [];
+    if (!state.stage4) {
+      byId('ground-heading').textContent = areaName(state.areaId);
+      summary.push(el('p', null, 'The ground light read-out is unavailable for this view. Choose Re-read; nothing is estimated.'));
+    } else if (!g) {
+      byId('ground-heading').textContent = areaName(state.areaId) + ' · choose a spot';
+      summary.push(el('p', null, 'Click open ground (a spot with no crown over it) inside the area to read its modelled ground light. ' +
+        'Clicking a crown still selects that tree.'));
+    } else if (!cell) {
+      byId('ground-heading').textContent = areaName(state.areaId) + ' · no sample';
+      summary.push(el('p', null, 'No modelled ground sample at that spot (it is outside this area\'s light cells). No value is shown or estimated.'));
+    } else {
+      byId('ground-heading').textContent = areaName(g.areaId) + ' · ground at X ' + fixed(cell.centreXM, 1) + ', Z ' + fixed(cell.centreZM, 1);
+      const paint = lightPaint(cell.lightIndex);
+      const swatch = svg('svg', { class: 'ground-swatch', viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' });
+      swatch.append(svg('rect', { width: 10, height: 10, fill: 'rgb(' + SLATE.join(',') + ')' }));
+      if (paint) swatch.append(svg('rect', { width: 10, height: 10, fill: paint.colour, 'fill-opacity': paint.opacity }));
+      const n = cell.contributingTreeIds.length;
+      summary.push(el('p', { class: 'ground-level' }, swatch, lightWord(cell.lightIndex)),
+        el('dl', null,
+          el('dt', null, 'Light index'), el('dd', null, lightIndexText(cell.lightIndex) + ' on a 0–1 scale (modelled; 1 = unshaded)'),
+          el('dt', null, 'Canopy cover'), el('dd', null, pct(cell.geometricCoveredFraction) + ' of this cell under living crowns'),
+          el('dt', null, 'Shading trees'), el('dd', null, n === 0 ? 'none' : String(n))),
+        el('p', { class: 'small-note' }, 'Light and canopy cover are separate engine quantities.'));
+    }
+    byId('ground-summary').replaceChildren(...summary);
+    byId('ground-trees').hidden = !cell;
+    byId('ground-tech').hidden = !cell;
     if (!cell) return;
     const models = state.stage4.models;
-    byId('ground-heading').textContent = areaName(g.areaId) + ' · cell ' + cell.column + ', ' + cell.row;
-    byId('ground-label').textContent = label('MultiLightGuideLabel');
     const contributors = cell.contributingTreeIds;
+    byId('ground-trees-summary').textContent = 'Contributing trees (' + contributors.length + ')';
+    byId('ground-tree-ids').replaceChildren(...(contributors.length === 0 ? ['none (no living crown shades this cell centre)'] :
+      contributors.flatMap((id, i) => [i > 0 ? ', ' : null, el('span', { class: 'id' }, id)].filter((part) => part !== null))));
     byId('ground-facts').replaceChildren(
-      pair('Modelled Light Index (0–1)', fixed(cell.lightIndex, 3) + ' · band ' + lightBand(cell.lightIndex) + ' of 5'),
-      pair('Overhead cover fraction', pct(cell.geometricCoveredFraction) + ' of this cell under living crowns'),
-      pair('Contributing trees', contributors.length === 0 ? 'none (no living crown shades this cell centre)' :
-        el('span', { class: 'mono ids' }, contributors.length + ': ', ...contributors.flatMap((id, i) =>
-          [i > 0 ? ', ' : null, el('span', { class: 'id' }, id)].filter((part) => part !== null)))),
+      pair('Modelled light index', fixed(cell.lightIndex, 4) + ' (0–1)'),
+      pair('Overhead cover fraction', fixed(cell.geometricCoveredFraction, 4)),
+      pair('Cell', 'column ' + cell.column + ', row ' + cell.row),
+      pair('Grid', fixed(models.lightCellM, 1) + ' m cells · ' + fixed(cell.clippedAreaM2, 2) + ' m² of this cell inside the area'),
+      pair('Cell centre', 'X ' + fixed(cell.centreXM, 2) + ' m east, Z ' + fixed(cell.centreZM, 2) + ' m north'),
       pair('Cross-border trees', String(cell.crossBorderTrees)),
-      pair('Cell', fixed(models.lightCellM, 1) + ' m grid · ' + fixed(cell.clippedAreaM2, 2) + ' m² inside the area · centre X ' +
-        fixed(cell.centreXM, 2) + ', Z ' + fixed(cell.centreZM, 2)));
-    byId('ground-caveat').textContent = models.notCalibratedCaveat;
+      pair('Light model', models.lightLabel + ' · ' + models.lightModelVersion),
+      pair('Calibrated PAR', models.calibratedPar ? 'yes' : 'no'));
+    byId('ground-caveat').textContent = label('MultiLightGuideLabel') + '. ' + models.notCalibratedCaveat;
   }
 
+  // Where the ground panel sits (UX-01 over UX-08): while a tree is inspected in this area, directly below its primary
+  // block (reference, ranks 1-5, Add), so Inspect ground never pushes those below the fold; otherwise at the top of the
+  // Tree pane. Moving it keeps keyboard focus if focus was inside it.
+  function placeGroundPanel(panel) {
+    const id = selectedId();
+    const inspected = Boolean(id && treeIn(state.areaId, id) && itemOf(state.areaId, id));
+    const slot = byId('ground-slot');
+    const pane = byId('pane-tree');
+    const home = inspected ? slot : pane;
+    if (panel.parentNode === home && (inspected || pane.firstElementChild === panel)) return;
+    const focused = panel.contains(document.activeElement) ? document.activeElement : null;
+    if (inspected) slot.append(panel);
+    else pane.prepend(panel);
+    if (focused) focused.focus({ preventScroll: true });
+  }
+
+  // A ground action (reading a spot; turning Inspect ground on with no tree inspected) brings the ground panel into view
+  // with the smallest scroll; the next tree selection puts the inspector back at the top.
+  function focusGroundPanel() {
+    byId('ground-heading').focus({ preventScroll: true });
+    byId('ground-panel').scrollIntoView({ block: 'nearest' });
+  }
+
+  // Light Guide visibility. Turning it off also ends Inspect ground; turning it on never changes what a click does.
   function setLightGuide(on) {
     state.lightOn = on;
-    if (!on) state.ground = null;
+    if (!on) { state.groundMode = false; state.ground = null; }
     renderAll();
-    announce(on ? 'Light Guide on: map clicks now inspect ground cells; tree selection stays available from the Trees tab.' :
-      'Light Guide off: map clicks select trees again.');
+    announce(on ? 'Light Guide on. Clicking a crown still selects the tree; choose Inspect ground to read the light at a spot.' :
+      'Light Guide off.');
   }
 
-  function inspectCell(areaId, key) {
-    const [column, row] = key.split(':').map(Number);
-    const cell = groundCell(areaId, column, row);
-    if (!cell) return;
-    state.ground = { areaId, column, row };
+  // Inspect ground (UX-08): an explicit mode, only with the Light Guide on. While it is on, a map click with no crown under
+  // it reads the ground there; dialogs, rank buttons and crowns still come first (see onMapClick). Leaving it keeps the
+  // Light Guide exactly as it was.
+  function setGroundMode(on, moveFocus) {
+    if (on && !state.lightOn) return;
+    state.groundMode = on;
+    if (!on) state.ground = null;
+    renderAll();
+    // With a tree inspected the panel waits below the primary block, so focus stays on the pressed toggle (its On state,
+    // the status line and the announcement say what a click now does) and the inspector does not scroll.
+    if (moveFocus && on && byId('ground-panel').parentNode !== byId('ground-slot')) focusGroundPanel();
+    else if (moveFocus) byId('ground-mode').focus();
+    announce(on ? 'Inspect ground on: click open ground with no crown over it to read its light. Clicking a crown still selects the tree; press Escape or Stop to return.' :
+      'Inspect ground off: clicking open ground no longer reads its light. The Light Guide is still ' + (state.lightOn ? 'on' : 'off') + '.');
+  }
+
+  // Which engine light cell (if any) contains a map point. The cells are the read-out's own clipped squares; this only
+  // matches a click to one of them, like the hit-test matches a click to a crown.
+  function insidePolygon(points, u, v) {
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const a = points[i], b = points[j];
+      if ((a.v > v) !== (b.v > v) && u < (b.u - a.u) * (v - a.v) / (b.v - a.v) + a.u) inside = !inside;
+    }
+    return inside;
+  }
+
+  function inspectPoint(areaId, u, v) {
+    const s4 = s4Area(areaId);
+    const cell = s4 ? s4.ground.find((c) => insidePolygon(c.polygon, u, v)) || null : null;
+    state.ground = cell ? { areaId, column: cell.column, row: cell.row } : { areaId, missing: true };
     showPane('tree');
     renderAll();
-    // The inspector sits at the top of the Tree pane, which may be scrolled down to the Fell draft: bring it into view.
-    byId('ground-heading').focus();
-    announce('Ground cell ' + column + ', ' + row + ': modelled light index ' + fixed(cell.lightIndex, 2) + ', cover ' +
-      pct(cell.geometricCoveredFraction) + ', ' + plural(cell.contributingTreeIds.length, 'contributing tree', 'contributing trees') +
-      '. Your selection and Fell draft are unchanged.');
+    focusGroundPanel();
+    announce(cell ? 'Ground at X ' + fixed(cell.centreXM, 1) + ', Z ' + fixed(cell.centreZM, 1) + ': ' + lightWord(cell.lightIndex) +
+      ', modelled light index ' + lightIndexText(cell.lightIndex) + ', canopy cover ' + pct(cell.geometricCoveredFraction) + ', ' +
+      plural(cell.contributingTreeIds.length, 'shading tree', 'shading trees') + '. Your selection and Fell draft are unchanged.'
+      : s4 ? 'No modelled ground sample at that spot; nothing is estimated.' : 'The ground light read-out is unavailable for this view.');
   }
 
   // Grid lines every 5 m (10 m when zoomed far out) of the experiment frame across the light exterior, faintly inside the
@@ -2393,13 +2737,15 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const chip = byId('insp-chip');
     chip.textContent = item.isCrop ? 'C · ' + label('CropRetained') : baseStatusText(item);
     chip.setAttribute('class', 'chip s-' + item.status + (item.isCrop ? ' crop' : ''));
+    chip.setAttribute('title', chip.textContent);
     chip.hidden = !item.isCrop && item.status === 'Living';
     byId('insp-summary').textContent = 'Sitka spruce · ' + baseStatusText(item);
+    // Compact reference summary (UX-01); age, position and the full record stay in "Tree record" below.
     byId('insp-key').replaceChildren(
       keyFact('DBH', fixed(tree.dbhCm, 1), 'cm'),
       keyFact('Height', fixed(tree.heightM, 1), 'm'),
-      keyFact('Crown radius', fixed(tree.crownRadiusM, 2), 'm'),
-      keyFact('Age', String(tree.ageYears), 'years'));
+      keyFact('Crown r', fixed(tree.crownRadiusM, 2), 'm'));
+    byId('inspect-close').setAttribute('aria-label', 'Close inspection of ' + tree.treeId + ' (Escape)');
     byId('insp-pinned').textContent = isReference ? 'Reference stays pinned while choosing' : '';
     const facts = [
       pair('Species', 'Sitka spruce'),
@@ -2546,13 +2892,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const chosen = new Set(draftOf(areaId));
       const planLocked = state.view.approved !== null;
       const frozenNow = state.lock !== null || state.batch !== null;
-      sub = plural(report.neighbours.length, 'living neighbour', 'living neighbours') + ' within ' + report.cutoffM + ' m · strongest ' +
-        report.topFive.length;
+      // Fewer than five is shown as it is: no padding rows.
+      sub = '· ' + (report.topFive.length < 5 ? report.topFive.length + ' of 5 · ' : '') +
+        report.neighbours.length + ' within ' + report.cutoffM + ' m';
       if (report.topFive.length === 0) {
         parts.push(el('p', { class: 'comp-empty' }, 'No living competitor inside the ' + report.cutoffM + ' m cutoff.'));
       } else {
-        parts.push(el('p', { class: 'comp-head', 'aria-hidden': 'true' }, el('span', null, ''), el('span', null, 'Tree / DBH / CI share'),
-          el('span', null, 'Distance'), el('span', null, 'Competition')));
+        parts.push(el('p', { class: 'comp-head', 'aria-hidden': 'true' }, el('span', null, ''), el('span', null, 'Tree · DBH · CI share'),
+          el('span', null, 'Distance'), el('span', null, 'Hegyi CI')));
         parts.push(el('ol', { class: 'comp-rows', 'aria-label': 'Five strongest competitors of ' + report.targetTreeId },
           ...report.topFive.map((n, index) => {
             const why = blockedReason(areaId, n.treeId);
@@ -2560,14 +2907,18 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
             const disabled = Boolean(why) || planLocked || frozenNow;
             const input = el('input', { type: 'checkbox', 'data-draft': n.treeId, 'data-focus-key': 'draft:' + n.treeId,
               checked: ticked, disabled });
+            const meta = fixed(n.dbhCm, 1) + ' cm · ' + fixed(n.sharePercent, 1) + '%';
             return el('li', { class: 'comp-row' + (ticked ? ' chosen' : '') + (why ? ' blocked' : '') },
-              el('label', null, input,
-                el('span', null,
-                  el('span', { class: 'comp-id' }, el('span', { class: 'rank' }, String(index + 1)), el('span', { class: 'mono' }, n.treeId)),
-                  el('span', { class: 'comp-meta' }, fixed(n.dbhCm, 1) + ' cm · ' + fixed(n.sharePercent, 1) + '% · ' + n.strength),
-                  why ? el('span', { class: 'comp-why' }, why) : null),
-                el('span', { class: 'comp-num' }, fixed(n.distanceM, 2) + ' m'),
-                el('span', { class: 'comp-num' }, fixed(n.contribution, 4))));
+              el('label', why ? { title: 'Competitor ' + (index + 1) + ' · ' + n.treeId + ' · ' + why + ' · ' + meta } : null, input,
+                el('span', { class: 'comp-id' }, el('span', { class: 'rank' }, String(index + 1)), el('span', { class: 'mono' }, n.treeId)),
+                el('span', { class: 'comp-num comp-dist' }, fixed(n.distanceM, 2) + ' m'),
+                el('span', { class: 'comp-num comp-ci' }, fixed(n.contribution, 4), el('span', { class: 'comp-strength' }, n.strength)),
+                // One line: a blocked row's short reason first, then DBH and CI share (the end may be cut with an ellipsis).
+                el('span', { class: 'comp-line' },
+                  why ? el('span', { class: 'comp-why', 'aria-hidden': 'true' }, shortBlockedReason(why)) : null,
+                  why ? el('span', { class: 'sr-only' }, 'Cannot be chosen: ' + why + '. ') : null,
+                  why ? el('span', { 'aria-hidden': 'true' }, ' · ') : null,
+                  el('span', { class: 'comp-meta' }, meta))));
           })));
       }
       more.push(el('p', { class: 'competition-totals' }, 'Current total Hegyi CI ' + fixed(report.currentTotal, 4) +
@@ -2684,13 +3035,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function toggleDraft(treeId, on) {
     const areaId = state.areaId;
     const reference = referenceIn(areaId);
-    if (!reference || state.batch || state.lock || !currentReport()) return;
-    if (on && blockedReason(areaId, treeId)) return;
+    const report = currentReport();
+    if (!reference || state.batch || state.lock || !report) return;
+    if (on && (blockedReason(areaId, treeId) || !report.topFive.some((n) => n.treeId === treeId))) return;
     let draft = state.drafts[areaId];
     if (!draft || draft.ref !== reference) draft = state.drafts[areaId] = { ref: reference, ids: [] };
     draft.ids = draft.ids.filter((id) => id !== treeId);
     if (on) draft.ids.push(treeId);
     state.draftNotice = null;
+    // Changing the draft ends the previous Add result card, so the Add form is back for the new choice (R3, F-02).
+    if (state.batchResult && state.batchResult.areaId === areaId) { state.batchResult = null; state.batchResultOpen = false; }
     renderAll();
     const n = draft.ids.length;
     announce((on ? 'Ticked ' : 'Unticked ') + treeId + '. ' + plural(n, 'tree', 'trees') + ' selected for Fell, draft only.');
@@ -2720,6 +3074,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       guard: null, unconfirmed: null, unattempted: [] };
     state.batch = result;
     state.batchResult = null;
+    state.batchResultOpen = false;
     state.busy = true;
     document.documentElement.classList.add('busy');
     clearAlert();
@@ -2766,7 +3121,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     announce(batchSummary(result));
     if (!result.unconfirmed) {
       const add = byId('add-button');
-      if (add.disabled || add.closest('[hidden]')) byId('batch-result').focus();
+      // On a short desktop the result card stands in for the Add form (R3, F-02), so the button is not rendered.
+      const rendered = typeof add.getClientRects !== 'function' || add.getClientRects().length > 0;
+      if (add.disabled || add.closest('[hidden]') || !rendered) byId('batch-result').focus();
       else add.focus();
     }
     if (!state.lock && state.competitionTarget && state.competitionTag !== competitionTag()) refreshCompetition();
@@ -2789,12 +3146,21 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const result = state.batchResult;
     const show = result && result.areaId === state.areaId && result.ref === referenceIn(state.areaId);
     box.hidden = !show;
+    byId('add-dock').classList.toggle('showing-result', Boolean(show));
     if (!show) { box.replaceChildren(); return; }
     const n = result.ids.length;
     const complete = result.confirmed.length === n;
-    box.setAttribute('class', 'batch-result' + (complete ? '' : result.confirmed.length > 0 ? ' partial' : ' failed'));
-    const parts = [el('p', { class: 'alert-title' }, complete ? 'Added ' + plural(n, 'tree', 'trees') + ' to the Fell plan' :
-      'Stopped after ' + result.confirmed.length + ' of ' + n)];
+    box.setAttribute('class', 'batch-result' + (complete ? '' : result.confirmed.length > 0 ? ' partial' : ' failed') +
+      (state.batchResultOpen ? ' open' : ''));
+    const stopped = result.refused ? ' · refused ' + result.refused.treeId : result.guard ? ' · refused ' + result.guard.treeId :
+      result.unconfirmed ? ' · unconfirmed ' + result.unconfirmed.treeId : '';
+    const title = complete ? 'Added ' + plural(n, 'tree', 'trees') + ' to the Fell plan' : 'Stopped after ' + result.confirmed.length + ' of ' + n + stopped;
+    // The head line is all a short desktop shows (R3, F-02); Details opens the lines below. Dismiss ends the card.
+    const head = el('div', { class: 'batch-head' }, el('p', { class: 'alert-title', title }, title),
+      el('button', { type: 'button', class: 'link-button batch-more', 'data-batch': 'more', 'aria-expanded': String(Boolean(state.batchResultOpen)),
+        'aria-controls': 'batch-body' }, state.batchResultOpen ? 'Hide details' : 'Details'),
+      el('button', { type: 'button', class: 'link-button', 'data-batch': 'dismiss', 'aria-label': 'Dismiss the Add result' }, '× Dismiss'));
+    const parts = [];
     parts.push(el('p', null, 'Added as pending (not felled): ', el('span', { class: 'mono' }, listIds(result.confirmed))));
     if (result.refused) {
       parts.push(el('p', null, 'Refused: ', el('span', { class: 'mono' }, result.refused.treeId), ' — ',
@@ -2812,7 +3178,35 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       parts.push(el('p', null, 'Not attempted (still in your draft if eligible): ', el('span', { class: 'mono' }, listIds(result.unattempted))));
     }
     if (!complete) parts.push(el('p', { class: 'small-note' }, 'Orders already added stay pending; nothing was rolled back.'));
-    box.replaceChildren(...parts);
+    box.replaceChildren(head, el('div', { id: 'batch-body', class: 'batch-body' }, ...parts));
+  }
+
+  // Ends the Add result card (Dismiss, or the player changing the draft): the Add form returns in its place.
+  function dismissBatchResult(focusAdd) {
+    if (!state.batchResult) return;
+    state.batchResult = null;
+    state.batchResultOpen = false;
+    renderBatchResult();
+    if (focusAdd) {
+      const add = byId('add-button');
+      if (!add.disabled && !add.closest('[hidden]')) add.focus();
+      else byId('inspector-heading').focus();
+    }
+  }
+
+  function onBatchResultClick(event) {
+    const button = event.target.closest('[data-batch]');
+    if (!button) return;
+    if (button.getAttribute('data-batch') === 'dismiss') {
+      const added = state.batchResult ? state.batchResult.confirmed.length : 0;
+      dismissBatchResult(true);
+      announce('Dismissed the Add result.' + (added > 0 ? ' Orders already added stay pending in the Work Plan.' : ''));
+      return;
+    }
+    state.batchResultOpen = !state.batchResultOpen;
+    renderBatchResult();
+    const again = byId('batch-result').querySelector('[data-batch="more"]');
+    if (again) again.focus();
   }
 
   // ---- the combined Work Plan, the receipt and the year results ----------------------------------------------------------
@@ -2855,6 +3249,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('step-pending').className = !plan && pendingCount > 0 ? 'now' : '';
     byId('step-approved').className = plan ? 'now' : '';
     byId('plan-scope').textContent = label('MultiOnePlan') + '. ' + label('MultiLastLivingRefused') + '.';
+    byId('readout-unavailable').hidden = readoutState() !== 'unavailable';
     byId('pending-box').hidden = plan !== null && pendingCount === 0;
     byId('pending-total').textContent = view.pending.length === 0 && pendingP.length === 0 ? 'No pending Fell' :
       pendingP.length === 0 ? view.pending.length + ' pending Fell · not felled (' + perAreaCounts(view.pending) + ')' :
@@ -2894,7 +3289,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         prunes.length === 0 ? null : pruneList(prunes, true, false));
     }), technicalPlan(plan.planId, plan.executionKey));
     byId('cancel-approved').textContent = label('MultiCancelApproved');
-    byId('execute').textContent = label('MultiExecute') + ' · ' + plural(plan.orders.length + approvedP.length, 'order', 'orders');
+    byId('execute').textContent = readoutState() === 'unavailable' ? label('MultiExecute') + ' · re-read needed' :
+      label('MultiExecute') + ' · ' + plural(plan.orders.length + approvedP.length, 'order', 'orders');
   }
 
   function renderReceipt() {
@@ -2937,8 +3333,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         el('p', null, 'Latest year ' + record.yearBefore + ' → ' + record.yearAfter + (record.cancelledUnexecutedWork ?
           ' · unexecuted work in both areas was cancelled at zero Fell' : '') + (carried
           ? '. Each populated area ran the annual rules; an area with no living stems was carried forward unchanged.'
-          : isStage4() ? '. Stage 4 rules: growth and crowns over the connected woodland; density mortality from each area\'s own stems.'
-            : '. Each area ran the unchanged annual rules on its own trees.')),
+          : readoutState() === 'stage4' ? '. Stage 4 rules: growth and crowns over the connected woodland; density mortality from each area\'s own stems.'
+            : readoutState() === 'legacy' ? '. Each area ran the unchanged annual rules on its own trees.'
+              : '. The model read-out of this view is unavailable; choose Re-read for the model statement.')),
         table('Year ' + record.yearBefore + ' → ' + record.yearAfter + ' per area', ['Area', 'Living trees', 'Basal area (m²/ha)', 'Natural deaths'],
           record.areas.map((year) => [areaShort(year.areaId), year.before.livingCount + ' → ' + year.after.livingCount,
             fixed(year.before.basalAreaM2PerHa, 2) + ' → ' + fixed(year.after.basalAreaM2PerHa, 2),
@@ -2990,9 +3387,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const view = state.view;
     const e = view.experiment;
     const s = view.source;
-    const stage4 = isStage4();
-    const statements = stage4 ? STATEMENTS.map((name) => (name === 'MultiEdgeExcluded' ? 'MultiConnectedWoodland' : name)) : STATEMENTS;
-    byId('statements').replaceChildren(...[stage4 ? 'MultiDisclosureStage4' : 'MultiDisclosure'].concat(statements, ['MultiReviewStatus', 'MultiEmptyAreaRule'])
+    const readout = readoutState();
+    // F-2: legacy (model 0) statements only for a paired legacy read-out; an unavailable one claims neither model.
+    const statements = readout === 'stage4' ? STATEMENTS.map((name) => (name === 'MultiEdgeExcluded' ? 'MultiConnectedWoodland' : name))
+      : readout === 'legacy' ? STATEMENTS : STATEMENTS.filter((name) => name !== 'MultiEdgeExcluded');
+    const lead = readout === 'stage4' ? ['MultiDisclosureStage4'] : readout === 'legacy' ? ['MultiDisclosure'] : [];
+    byId('statements').replaceChildren(...(readout === 'unavailable'
+      ? [el('li', null, 'Model read-out unavailable for this view (the engine could not pair it with this view). Choose Re-read.')] : []),
+    ...lead.concat(statements, ['MultiReviewStatus', 'MultiEmptyAreaRule'])
       .map((name) => label(name)).filter((text) => text !== '').map((text) => el('li', null, text)));
     const m = state.stage4 ? state.stage4.models : null;
     byId('stage4-statements').replaceChildren(...(m ? [
@@ -3001,8 +3403,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       m.lightLabel + ': ' + m.notCalibratedCaveat,
       label('MultiDeadwoodNote'),
     ].concat(m.evidenceLabels, m.lightUncertainties) : []).map((text) => el('li', null, text)));
-    byId('details-note').textContent = stage4 ? label('MultiNotModelledStage4') :
-      'Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area\'s ecology uses only its own trees.';
+    byId('details-note').textContent = readout === 'stage4' ? label('MultiNotModelledStage4') : readout === 'legacy' ?
+      'Light, seed, regeneration, site, money and saving: NOT MODELLED. Each area\'s ecology uses only its own trees.' :
+      'Seed, regeneration, site, money and saving: NOT MODELLED. Which light and neighbourhood model this view used cannot be stated until a re-read.';
     byId('facts').replaceChildren(
       pair('Experiment', e.experimentId), pair('Format', e.format + ' v' + e.schemaVersion), pair('Domain', e.domain),
       pair('Source class', e.sourceClass), pair('Manifest content hash', expandable(e.manifestContentHash)),
@@ -3089,6 +3492,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function showArea(areaId) {
     if (!areaView(areaId) || areaId === state.areaId) return;
     if (state.batch) { waitForBatch(); return; }
+    state.mapPick += 1; // a hit-test still in flight was for the other area
     state.areaId = areaId;
     state.zoom = ZOOMS[0];
     state.centre = null;
@@ -3113,6 +3517,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function chooseTree(areaId, treeId, fromList) {
     if (!treeIn(areaId, treeId)) return;
     if (state.batch) { waitForBatch(); return; }
+    state.mapPick += 1; // this selection is newer than any map click still waiting for its hit-test
     if (areaId !== state.areaId) { state.areaId = areaId; state.zoom = ZOOMS[0]; state.centre = null; }
     let cleared = '';
     const draft = state.drafts[areaId];
@@ -3130,28 +3535,40 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     else clearCompetition();
     showPane('tree');
     renderAll();
+    // UX-01: every new selection starts the inspector at the top, so the reference, ranks 1-5 and Add are in view even if
+    // the previous inspection had been scrolled down.
+    byId('pane-tree').scrollTop = 0;
     announce('Selected tree ' + treeId + ' in ' + areaName(areaId) + '.' + cleared);
     if (state.competitionTarget) refreshCompetition();
   }
 
+  // Map click precedence (UX-08, the approved spec order, confirmed by the owner on 2026-11-23):
+  //   modal dialog > rank toggle button > tree crown selection > ground inspection (only while Inspect ground is on).
+  // An open dialog takes every click (it is modal); a rank button handles its own click and never reaches the map. Every
+  // other map click goes to the server's read-only hit-test, with Inspect ground on or off, and a crown there is selected
+  // exactly as usual. Only when Inspect ground is on and the hit-test reports no crown at that point does the click read
+  // the local ground cell (changing no selection or draft). A batch, lock, busy, refused, guarded or failed hit-test never
+  // falls through to a ground read.
+  // Stale answers: each click takes a new mapPick number. If Escape, Close inspection, an area switch or another selection
+  // happened while the hit-test was in flight, mapPick has moved on and the late answer is dropped whole: no view applied,
+  // no tree selected, no draft cleared, no ground read, no alert and no announcement.
   async function onMapClick(event) {
-    // With the Light Guide on, a click inspects the engine's ground cell under it (the browser's own hit-test on the drawn
-    // cell). It sends nothing and never changes the selection or an unsent Fell draft.
-    if (state.lightOn && state.view) {
-      const cell = event.target && event.target.closest ? event.target.closest('[data-cell]') : null;
-      if (cell) inspectCell(state.areaId, cell.getAttribute('data-cell'));
-      else announce('Light Guide is on: click a ground cell inside the area, or turn the guide off to select trees on the map.');
-      return;
-    }
     if (state.batch) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
     const area = currentArea();
     const matrix = byId('map').getScreenCTM();
     if (!area || !matrix) return;
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const pick = ++state.mapPick;
     state.busy = true;
     const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: point.x, v: point.y });
     state.busy = false;
+    if (pick !== state.mapPick) {
+      // A selection made while this hit-test was in flight may have had its competitor read dropped (refreshCompetition
+      // draws nothing while busy); read it again now, read-only, for that newer selection.
+      if (state.competitionTarget && !state.competition && !state.lock && !state.batch) refreshCompetition();
+      return;
+    }
     if (outcome.kind === 'ok') {
       clearAlert();
       const candidates = outcome.payload.candidates;
@@ -3159,9 +3576,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         // An empty click keeps the reference and its draft: only a deliberate choice of another tree replaces them.
         state.overlap = null;
         applyPayload(outcome.payload, false);
+        // Re-checked after the await: Escape or Stop may have ended Inspect ground while the hit-test was in flight.
+        if (state.lightOn && state.groundMode) { inspectPoint(area.areaId, point.x, point.y); return; }
         announce('No crown at this point — the selection is unchanged.');
         return;
       }
+      if (state.lightOn && state.groundMode) state.ground = null; // a crown hit is a selection, not a ground read
       state.overlap = candidates.length > 1 ? { areaId: area.areaId, candidates } : null;
       applyPayload(outcome.payload, true);
       chooseTree(area.areaId, candidates[0].treeId, false);
@@ -3177,6 +3597,51 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     } else {
       showAlert([el('p', { class: 'alert-title' }, 'Map selection could not be checked with the local session; nothing was selected.'), rereadButton()]);
     }
+  }
+
+  // Close inspection (UX-03): clears this area's selection, its reference's unsent draft choices and the enlarged focus
+  // drawing, so the map returns to normal. Zoom, pan, area, Light Guide, Crop designations, queued or approved orders and
+  // the year are untouched; nothing is sent. (Removing a Crop designation is a separate, explicit command.)
+  function closeInspection() {
+    state.mapPick += 1; // a map click still waiting for its hit-test must not reopen what is being closed
+    const areaId = state.areaId;
+    const id = selectedId();
+    if (!id) return false;
+    if (state.batch) { waitForBatch(); return true; }
+    const drafts = draftOf(areaId).length;
+    delete state.selected[areaId];
+    delete state.drafts[areaId];
+    if (state.batchResult && state.batchResult.areaId === areaId) state.batchResult = null;
+    state.draftNotice = null;
+    state.overlap = null;
+    clearCompetition();
+    resetReasonPicker();
+    renderAll();
+    byId('map-heading').focus();
+    announce('Closed the inspection of ' + id + '.' + (drafts ? ' Cleared ' + plural(drafts, 'unsent draft choice', 'unsent draft choices') + '.' : '') +
+      ' Zoom, area, Crop designations and the Work Plan are unchanged.');
+    return true;
+  }
+
+  // Escape precedence (UX-03/UX-08): an open dialog closes itself first (the browser's own Escape on a modal dialog), and
+  // this handler then does nothing in that same key press; a search box with text clears itself first; next, Inspect
+  // ground stops; next, the tree inspection closes. The Light Guide is never switched off by Escape.
+  function onEscape(event) {
+    if (event.key !== 'Escape') return;
+    // An Escape that only closes an open dialog leaves a pending map click alone (R3, F-05): it closes nothing else, so a
+    // late answer cannot reopen anything this key press closed.
+    if (document.querySelector('dialog[open]')) return;
+    // Every other Escape abandons a map click still waiting for its hit-test (it stays immediately responsive: nothing waits).
+    state.mapPick += 1;
+    if (event.defaultPrevented) return;
+    const target = event.target;
+    if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;
+    if (state.lightOn && state.groundMode) {
+      event.preventDefault();
+      setGroundMode(false, false);
+      return;
+    }
+    if (closeInspection()) event.preventDefault();
   }
 
   // Enter in an exact-ID box selects only an exact, case-sensitive match, in whichever area holds it.
@@ -3294,6 +3759,13 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function openExecuteDialog() {
     const view = state.view;
     if (!view || !view.approved || state.batch || refusedByLock(label('MultiExecute'))) return;
+    if (readoutState() === 'unavailable') {
+      // F-2: never offer a confirmation whose Prune orders are unknown (it would look empty or Fell-only).
+      showAlert([el('p', { class: 'alert-title' }, 'Execute needs a re-read'),
+        el('p', null, 'The engine read-out for this view could not be paired with it, so the approved plan cannot be confirmed exactly. Nothing was sent.'),
+        rereadButton()]);
+      return;
+    }
     const confirmation = confirmationOf(view);
     state.confirmation = confirmation;
     const n = confirmation.orders.length;
@@ -3448,7 +3920,13 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('reread').addEventListener('click', () => reread(true));
     byId('advance').addEventListener('click', onAdvance);
     byId('view-plan').addEventListener('click', () => { showPane('plan'); byId('plan-heading').focus(); });
-    byId('notice-details').addEventListener('click', () => { showPane('details'); byId('details-heading').focus(); });
+    byId('notice-provenance').addEventListener('click', () => { showPane('details'); byId('details-heading').focus(); });
+    byId('rank-layer').addEventListener('click', onRankToggle);
+    byId('inspect-close').addEventListener('click', closeInspection);
+    byId('ground-mode').addEventListener('click', () => setGroundMode(!state.groundMode, true));
+    byId('readout-reread').addEventListener('click', () => reread(true));
+    // On the root element (every key event bubbles to it), after the dialogs' own handling.
+    document.documentElement.addEventListener('keydown', onEscape);
     byId('legend-hide').addEventListener('click', () => setLegendHidden(true, true));
     byId('legend-show').addEventListener('click', () => setLegendHidden(false, true));
     byId('competition-content').addEventListener('change', (event) => {
@@ -3456,6 +3934,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       if (box) toggleDraft(box.getAttribute('data-draft'), box.checked);
     });
     byId('draft-clear').addEventListener('click', clearDraft);
+    byId('batch-result').addEventListener('click', onBatchResultClick);
     byId('add-reference').addEventListener('click', onAddReference);
     byId('overlap-list').addEventListener('click', (event) => {
       const button = event.target.closest('[data-pick]');
@@ -3486,7 +3965,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('prune-add').addEventListener('click', onPruneAdd);
     byId('prune-remove').addEventListener('click', () => removePrune(state.areaId, selectedId()));
     byId('light-toggle').addEventListener('click', () => setLightGuide(!state.lightOn));
-    byId('ground-close').addEventListener('click', () => { state.ground = null; renderAll(); byId('map-heading').focus(); });
+    byId('ground-close').addEventListener('click', () => setGroundMode(false, true));
     byId('approve').addEventListener('click', onApprove);
     byId('cancel-approved').addEventListener('click', onCancelApproved);
     byId('execute').addEventListener('click', openExecuteDialog);
