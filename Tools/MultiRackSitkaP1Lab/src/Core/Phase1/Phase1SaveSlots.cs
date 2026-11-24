@@ -1,0 +1,355 @@
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+
+namespace SitkaP1.Core.Phase1;
+
+/// <summary>Points inside <see cref="Phase1SaveSlots.Save"/> where the test-only fault hook is called.</summary>
+public enum Phase1SlotStage
+{
+    TempCreated,
+    TempWritten,
+    TempFlushed,
+    BeforeBackup,
+    BeforeReplace,
+}
+
+/// <summary>
+/// How far a successful save got. <see cref="DurablyCommitted"/>: the new file replaced the slot by one atomic rename and
+/// the directory entry was flushed to disk. <see cref="ReplacedDurabilityUnconfirmed"/>: the rename happened (readers
+/// see the new save) but flushing the directory failed, so a power loss could still roll the slot back to the previous
+/// file; the caller must not report it as durably saved.
+/// </summary>
+public enum Phase1SlotCommitStatus
+{
+    DurablyCommitted,
+    ReplacedDurabilityUnconfirmed,
+}
+
+public sealed record Phase1SlotSaveResult(string SlotName, Phase1SlotCommitStatus Status, bool BackupUpdated, string Checksum,
+    long Bytes);
+
+/// <summary>A read-only look at one slot: the primary and backup files' verification results and any leftover temp files.</summary>
+public sealed record Phase1SlotInspection(string SlotName, bool PrimaryExists, string? PrimaryChecksum, string? PrimaryRefusal,
+    bool BackupExists, string? BackupChecksum, string? BackupRefusal, IReadOnlyList<string> LeftoverTempFiles);
+
+/// <summary>
+/// Server-managed named 2D save slots in ONE dedicated directory (owner choice A: no browser-supplied path, no upload).
+/// <list type="bullet">
+/// <item>Slot names match <c>^[a-z0-9][a-z0-9-]{0,47}$</c> (no separator, dot, traversal, absolute path or reserved device
+/// name); every path is built from the directory and checked to stay directly inside it.</item>
+/// <item>Reads use <see cref="NoFollowRead.ReadExact"/>: no symlink in any path component, a regular single-link file, and
+/// a size bound. A symlinked slot file is refused even if it points inside the directory.</item>
+/// <item>A save is verified with <see cref="Phase1SaveCodec.Decode(ReadOnlySpan{byte})"/> before a byte is written, then written
+/// to a new temp file in the same directory (O_EXCL, mode 0600), fsynced, read back and compared, the current slot copied to
+/// the prior-good backup (only if it still verifies; never a corrupt file over a good backup), and finally swapped in with
+/// one rename(2) call, followed by a directory fsync. rename(2) within one directory is atomic on Linux: a reader or a
+/// crash sees the old file or the new one, never a mixture. There is no copy-over-original fallback: if rename fails, the
+/// save fails and the old slot is untouched.</item>
+/// <item>Writes are supported on Linux x64 only (the platform whose rename/fsync semantics this code relies on and that
+/// the tests run on). Anywhere else a write is refused with <c>PlatformUnverifiable</c> rather than attempted.</item>
+/// </list>
+/// This class moves bytes only. It never activates a save in a running forest; that is A1's job under the engine lock.
+/// </summary>
+public sealed class Phase1SaveSlots
+{
+    public const string Extension = ".ccf2d.json";
+    public const string BackupSuffix = ".bak";
+    private const string TempInfix = ".tmp-";
+
+    private static readonly Regex NamePattern = new("^[a-z0-9][a-z0-9-]{0,47}$", RegexOptions.CultureInvariant);
+    private static readonly HashSet<string> Reserved = new(StringComparer.Ordinal)
+    {
+        "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+        "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
+    };
+
+    private readonly Action<Phase1SlotStage>? faultHook;
+
+    /// <summary>The dedicated slot directory (absolute, normalized, an existing real directory).</summary>
+    public string Directory { get; }
+
+    /// <param name="directory">An existing, absolute, non-symlinked directory used for nothing but these slots.</param>
+    /// <param name="faultHook">Test-only fault seam called at each <see cref="Phase1SlotStage"/>; production passes null.</param>
+    public Phase1SaveSlots(string directory, Action<Phase1SlotStage>? faultHook = null)
+    {
+        if (string.IsNullOrEmpty(directory) || !Path.IsPathFullyQualified(directory))
+            throw new P1Refusal("SlotDirectoryInvalid", "the slot directory must be an absolute path");
+        string full = Path.GetFullPath(directory);
+        if (full.Length > 1) full = full.TrimEnd(Path.DirectorySeparatorChar);
+        var info = new DirectoryInfo(full);
+        if (info.LinkTarget is not null)
+            throw new P1Refusal("SlotDirectoryInvalid", "the slot directory must not be a symbolic link");
+        if (!info.Exists) throw new P1Refusal("SlotDirectoryInvalid", "the slot directory does not exist");
+        Directory = full;
+        this.faultHook = faultHook;
+    }
+
+    /// <summary>Refuses any slot name outside the strict allowlist pattern.</summary>
+    public static void ValidateSlotName(string? name)
+    {
+        if (name is null || !NamePattern.IsMatch(name) || Reserved.Contains(name))
+            throw new P1Refusal("SlotNameInvalid",
+                "a slot name is 1-48 characters of a-z, 0-9 and '-', starting with a letter or digit (no paths, dots or device names)");
+    }
+
+    /// <summary>The slot names present (valid names only), in ordinal order. Backup and temp files are not slots.</summary>
+    public IReadOnlyList<string> ListSlots()
+    {
+        var names = new List<string>();
+        foreach (var path in System.IO.Directory.EnumerateFiles(Directory, "*" + Extension))
+        {
+            string file = Path.GetFileName(path);
+            if (!file.EndsWith(Extension, StringComparison.Ordinal)) continue;
+            string name = file[..^Extension.Length];
+            if (NamePattern.IsMatch(name) && !Reserved.Contains(name)) names.Add(name);
+        }
+        names.Sort(StringComparer.Ordinal);
+        return names.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Saves verified bytes into a slot. An existing slot is replaced only with <paramref name="replaceExisting"/> (the
+    /// caller's explicit confirmation); otherwise <c>SlotExists</c>. Any failure before the rename leaves the slot and its
+    /// backup exactly as they were and removes this call's temp file.
+    /// </summary>
+    public Phase1SlotSaveResult Save(string slotName, byte[] saveBytes, bool replaceExisting)
+    {
+        ArgumentNullException.ThrowIfNull(saveBytes);
+        NoFollowRead.RequireSupportedPlatform();
+        ValidateSlotName(slotName);
+        var decoded = Phase1SaveCodec.Decode(saveBytes); // never write a file that would not load
+        string primaryName = slotName + Extension;
+        string primary = Confined(primaryName);
+        RequireNotLinkOrDirectory(primary);
+        RequireNotLinkOrDirectory(Confined(primaryName + BackupSuffix));
+        bool exists = File.Exists(primary);
+        if (exists && !replaceExisting)
+            throw new P1Refusal("SlotExists", "slot '" + slotName + "' already holds a save; replacing it needs explicit confirmation");
+
+        string temp = NewTempPath(primaryName);
+        bool renamed = false;
+        bool backupUpdated = false;
+        try
+        {
+            WriteDurable(temp, saveBytes, hooks: true);
+            // Read the temp back through the no-follow reader and compare, so what is renamed in is exactly what was verified.
+            byte[] back = NoFollowRead.ReadExact(Directory, Path.GetFileName(temp), saveBytes.Length);
+            if (!back.AsSpan().SequenceEqual(saveBytes))
+                throw new P1Refusal("SlotWriteVerifyFailed", "the written temp file does not match the save bytes");
+
+            if (exists)
+            {
+                faultHook?.Invoke(Phase1SlotStage.BeforeBackup);
+                backupUpdated = TryRefreshBackup(primaryName);
+            }
+            faultHook?.Invoke(Phase1SlotStage.BeforeReplace);
+            AtomicRename(temp, primary);
+            renamed = true;
+        }
+        finally
+        {
+            if (!renamed) TryDelete(temp);
+        }
+        var status = TryFsyncDirectory() ? Phase1SlotCommitStatus.DurablyCommitted : Phase1SlotCommitStatus.ReplacedDurabilityUnconfirmed;
+        return new Phase1SlotSaveResult(slotName, status, backupUpdated, decoded.Checksum, saveBytes.Length);
+    }
+
+    /// <summary>Reads and fully verifies the slot's primary file (with an exact identity requirement when given).</summary>
+    public Phase1DecodedSave Load(string slotName, Phase1SaveExpectation? expectation)
+    {
+        ValidateSlotName(slotName);
+        return Phase1SaveCodec.Decode(ReadFile(slotName + Extension), expectation);
+    }
+
+    /// <summary>Reads and fully verifies the slot's prior-good backup.</summary>
+    public Phase1DecodedSave LoadBackup(string slotName, Phase1SaveExpectation? expectation)
+    {
+        ValidateSlotName(slotName);
+        return Phase1SaveCodec.Decode(ReadFile(slotName + Extension + BackupSuffix), expectation);
+    }
+
+    /// <summary>
+    /// Restores the prior-good backup into the primary slot (after an interrupted or corrupt save) by the same verified temp
+    /// file and atomic rename. The backup itself is kept. Refused if the backup does not verify.
+    /// </summary>
+    public Phase1SlotSaveResult RecoverFromBackup(string slotName)
+    {
+        NoFollowRead.RequireSupportedPlatform();
+        ValidateSlotName(slotName);
+        string primaryName = slotName + Extension;
+        string primary = Confined(primaryName);
+        RequireNotLinkOrDirectory(primary);
+        byte[] backup = ReadFile(primaryName + BackupSuffix);
+        var decoded = Phase1SaveCodec.Decode(backup);
+        string temp = NewTempPath(primaryName);
+        bool renamed = false;
+        try
+        {
+            WriteDurable(temp, backup, hooks: false);
+            AtomicRename(temp, primary);
+            renamed = true;
+        }
+        finally
+        {
+            if (!renamed) TryDelete(temp);
+        }
+        var status = TryFsyncDirectory() ? Phase1SlotCommitStatus.DurablyCommitted : Phase1SlotCommitStatus.ReplacedDurabilityUnconfirmed;
+        return new Phase1SlotSaveResult(slotName, status, BackupUpdated: false, decoded.Checksum, backup.Length);
+    }
+
+    /// <summary>Verifies the primary and backup without changing anything, and lists leftover temp files of the slot.</summary>
+    public Phase1SlotInspection Inspect(string slotName)
+    {
+        ValidateSlotName(slotName);
+        string primaryName = slotName + Extension;
+        var (pExists, pSum, pErr) = Check(primaryName);
+        var (bExists, bSum, bErr) = Check(primaryName + BackupSuffix);
+        return new Phase1SlotInspection(slotName, pExists, pSum, pErr, bExists, bSum, bErr, LeftoverTemps(primaryName));
+    }
+
+    /// <summary>Deletes temp files an interrupted save of this slot left behind. Never touches the primary or backup.</summary>
+    public int RemoveLeftoverTemps(string slotName)
+    {
+        ValidateSlotName(slotName);
+        var temps = LeftoverTemps(slotName + Extension);
+        foreach (var file in temps) File.Delete(Confined(file));
+        return temps.Count;
+    }
+
+    // ------------------------------------------------------------------------------------------------ internals
+
+    private (bool Exists, string? Checksum, string? Refusal) Check(string fileName)
+    {
+        string path = Confined(fileName);
+        if (!File.Exists(path) && new FileInfo(path).LinkTarget is null) return (false, null, null);
+        try { return (true, Phase1SaveCodec.Decode(ReadFile(fileName)).Checksum, null); }
+        catch (P1Refusal e) { return (true, null, e.Code); }
+    }
+
+    private IReadOnlyList<string> LeftoverTemps(string primaryName) =>
+        System.IO.Directory.EnumerateFiles(Directory, primaryName + TempInfix + "*")
+            .Select(path => Path.GetFileName(path))
+            .Where(f => f.StartsWith(primaryName + TempInfix, StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal).ToArray();
+
+    // The backup is refreshed from the current primary only when that primary still verifies, by its own temp + rename.
+    private bool TryRefreshBackup(string primaryName)
+    {
+        byte[] current;
+        try
+        {
+            current = ReadFile(primaryName);
+            Phase1SaveCodec.Decode(current);
+        }
+        catch (P1Refusal)
+        {
+            return false; // keep the existing backup: a corrupt primary must never displace a good backup
+        }
+        string temp = NewTempPath(primaryName);
+        bool renamed = false;
+        try
+        {
+            WriteDurable(temp, current, hooks: false);
+            AtomicRename(temp, Confined(primaryName + BackupSuffix));
+            renamed = true;
+        }
+        finally
+        {
+            if (!renamed) TryDelete(temp);
+        }
+        return true;
+    }
+
+    private byte[] ReadFile(string fileName)
+    {
+        string path = Confined(fileName);
+        var info = new FileInfo(path);
+        if (info.LinkTarget is not null) throw new P1Refusal("SlotSymlinkRefused", "a slot file must not be a symbolic link");
+        if (System.IO.Directory.Exists(path)) throw new P1Refusal("SlotNotAFile", "the slot path is not a regular file");
+        if (!info.Exists) throw new P1Refusal("SlotMissing", "the slot file '" + fileName + "' does not exist");
+        if (info.Length > Phase1SaveFormat.MaxSaveBytes)
+            throw new P1Refusal("SaveTooLarge", "the slot file exceeds the save size limit");
+        // ReadExact re-checks on the open descriptor: no symlink anywhere in the path, regular file, one link, exact size.
+        return NoFollowRead.ReadExact(Directory, fileName, info.Length);
+    }
+
+    private void WriteDurable(string path, byte[] bytes, bool hooks)
+    {
+        // Callers already refused non-Linux platforms; this repeat is the guard the platform analyzer can see.
+        if (!OperatingSystem.IsLinux()) throw new P1Refusal("PlatformUnverifiable", "slot writes are implemented for Linux x64 only");
+        using var stream = new FileStream(path, new FileStreamOptions
+        {
+            Mode = FileMode.CreateNew, // O_CREAT|O_EXCL: never opens an existing file or follows a planted symlink
+            Access = FileAccess.Write,
+            Share = FileShare.None,
+            UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite,
+        });
+        if (hooks) faultHook?.Invoke(Phase1SlotStage.TempCreated);
+        stream.Write(bytes);
+        if (hooks) faultHook?.Invoke(Phase1SlotStage.TempWritten);
+        stream.Flush(flushToDisk: true); // fsync: the bytes are on disk before the rename can expose them
+        if (hooks) faultHook?.Invoke(Phase1SlotStage.TempFlushed);
+    }
+
+    private string Confined(string fileName)
+    {
+        string path = Path.GetFullPath(Path.Combine(Directory, fileName));
+        if (!string.Equals(Path.GetDirectoryName(path), Directory, StringComparison.Ordinal) ||
+            !string.Equals(Path.GetFileName(path), fileName, StringComparison.Ordinal))
+            throw new P1Refusal("SlotPathEscape", "a slot path must stay directly inside the slot directory");
+        return path;
+    }
+
+    private static void RequireNotLinkOrDirectory(string path)
+    {
+        if (new FileInfo(path).LinkTarget is not null) throw new P1Refusal("SlotSymlinkRefused", "a slot file must not be a symbolic link");
+        if (System.IO.Directory.Exists(path)) throw new P1Refusal("SlotNotAFile", "the slot path is not a regular file");
+    }
+
+    private string NewTempPath(string primaryName) =>
+        Confined(primaryName + TempInfix + Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant());
+
+    private static void TryDelete(string path)
+    {
+        try { File.Delete(path); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
+    // rename(2) directly, never File.Move: File.Move may fall back to copy + delete across devices, which is the unsafe
+    // copy-over-original this store must never do. Both paths are in the same directory, so EXDEV cannot apply anyway.
+    private static void AtomicRename(string from, string to)
+    {
+        if (Native.Rename(from, to) != 0)
+            throw new P1Refusal("SlotRenameFailed", FormattableString.Invariant(
+                $"atomic rename failed (errno {Marshal.GetLastPInvokeError()}); the previous slot is unchanged"));
+    }
+
+    // fsync on the directory makes the rename itself durable (the directory entry), not just the file's bytes.
+    private bool TryFsyncDirectory()
+    {
+        int fd = Native.Open(Directory, Native.O_RDONLY | Native.O_DIRECTORY | Native.O_CLOEXEC);
+        if (fd < 0) return false;
+        try { return Native.Fsync(fd) == 0; }
+        finally { Native.Close(fd); }
+    }
+
+    private static class Native
+    {
+        // Linux x64 values (same as NoFollowRead); writes are refused on any other platform before these are reached.
+        public const int O_RDONLY = 0, O_DIRECTORY = 0x10000, O_CLOEXEC = 0x80000;
+
+        [DllImport("libc", EntryPoint = "rename", SetLastError = true)]
+        public static extern int Rename([MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath);
+
+        [DllImport("libc", EntryPoint = "open", SetLastError = true)]
+        public static extern int Open([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
+
+        [DllImport("libc", EntryPoint = "fsync", SetLastError = true)]
+        public static extern int Fsync(int fd);
+
+        [DllImport("libc", EntryPoint = "close", SetLastError = true)]
+        public static extern int Close(int fd);
+    }
+}
