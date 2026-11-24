@@ -21,6 +21,23 @@ This record is appended at approval. The body of the spec is otherwise left as d
 
 **Provenance.** The spec quartet (`spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`) and the pre-flight audit were authored by **Claude Opus 5.5**. The audit facts cited in this quartet (Unity file/line references, sequence order, shelter and clearance rules, and qualification A-1) were **verified read-only by the coordinating model** against the stated commits. That verification was inspection only. It is not Unity, runtime or rendered verification. The owner's approval covers the quartet as amended here. Implementation numbers remain unverified until Step B qualification is observed.
 
+## Amendment record — Step B review follow-up 2026-11-24 (binding; documentation only)
+
+This record is appended after the Step B review of `401dab18` / handoff `b565abf0`. It records owner decisions on the review items. Like the Stage 5 amendment records, it is **documentation only**: it changes **no** rule, constant, tolerance, population, hash or production code. The engine behaviour it describes already exists in `cc67361f`. The only code-side change that goes with it is three added tests on `feat/multi-phase2-oak-beech-20261124-v1`.
+
+| # | Item | Owner resolution (binding) |
+|---|---|---|
+| F2 | Unlisted refusal `Phase2PointWithoutGroundCell` | **Ratified as an official refusal** and added to §7.2. A `Plant`, `Shelter` or `SpotClear` point that is strictly inside the area polygon but lies in **no in-polygon 2.5 m ground cell** (a boundary sliver) is refused, and so is the whole batch. **Reason:** such a point has no cell light and no bramble/bracken cover to read, so the planted-juvenile step (§7.3) and patch recovery (§7.4) are undefined there. **Measured rate:** about 3 % of otherwise-valid points (reviewer). `P2-04b` measures 1236 of 32608 points (3.79 %) in its 0.25 m scan of MA-1 (strictly inside, ≥ 0.7 m from every living adult). |
+| F1 | `P2-06` evidence at survival level | `P2-06` now also carries a **paired survival criterion**, `P2-06b`. The same planted Oak in the same full-light cell is run unweeded and spot-cleared at default pressure. The unweeded arm must record vegetation-attributable deaths, and patched survival must be strictly greater. |
+| F3 / soft spot #2 | Plant → promote never run end to end | The plant → promote lifecycle is now exercised **end to end** through the public session path, with no seeded state (`P2-07b`). |
+| F10 | Oak's low recruitment | **Acknowledged** as documented in the Step B handoff. No constant is changed. |
+
+§7.2 is to be read with this added row:
+
+| Rule | Value | Provenance |
+|---|---|---|
+| Point lies in an in-polygon ground cell (`Phase2PointWithoutGroundCell`) | refuse when the point's 2.5 m lattice cell is not an in-polygon cell of any area | **NEW OWNER RULE** (ratified at the Step B review follow-up); a consequence of the 2.5 m ground lattice, not a Unity transfer |
+
 - **Spec ID:** SPEC-multi-phase2-oak-beech-V1
 - **Owner:** Overall Manager / project owner
 - **Created:** 2026-11-24
