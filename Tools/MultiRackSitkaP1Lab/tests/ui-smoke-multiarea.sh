@@ -141,6 +141,28 @@ ok = body_hash == manifest["contentHash"] == view["source"]["manifestContentHash
 ok = ok and manifest["experimentId"] == "mad-sitka-ma1-two-area-v1" and manifest["reviewStatus"] == "PendingIndependentReview"
 ok = ok and [a["areaId"] for a in manifest["areas"]] == ["MA-A", "MA-B"] and all(a["site"] == "UNKNOWN" for a in manifest["areas"])
 sys.exit(0 if ok else 1)' "$scratch/manifest.body" "$scratch/v0.body" "$pinned_hash"
+check "M08 zero data:image/webp remains in served multi, multi.css and multi.js" bash -c \
+  '! grep -q "data:image/webp" "$1" "$2" "$3"' _ "$scratch/page.body" "$scratch/css.body" "$scratch/jsfile.body"
+check "M09 all 21 required inline SVG <defs> IDs exist in served multi HTML" \
+  python3 -I -B -c 'import sys
+html = open(sys.argv[1], encoding="utf-8").read()
+ids = ["ccf-sitka","ccf-oak","ccf-beech","ccf-standing-dead","ccf-log","ccf-crop-ring",
+       "ccf-sapling-sitka","ccf-sapling-oak","ccf-sapling-beech","ccf-shelter-active","ccf-shelter-expired",
+       "ccf-spot-clear","ccf-natural-seedlings","ccf-bramble-hatch","ccf-bracken-hatch",
+       "ccf-action-fell","ccf-action-prune","ccf-action-clear","ccf-action-plant","ccf-action-shelter","ccf-action-spot"]
+sys.exit(0 if all(f"id=\"{i}\"" in html for i in ids) else 1)' "$scratch/page.body"
+check "M10 GET api/multi/manifest reports truthful experimentBadge and 1/1/1/1/1 models for ma-1" \
+  python3 -I -B -c 'import json, sys
+m = json.load(open(sys.argv[1], encoding="utf-8"))
+ok = m.get("experimentKey") == "ma-1" and m.get("experimentBadge") == "Synthetic MA-1 (all Sitka)"
+ok = ok and m.get("models") == {"adult": 1, "mortality": 1, "crown": 1, "regeneration": 1, "species": 1}
+sys.exit(0 if ok else 1)' "$scratch/manifest.body"
+check "M11 GET api/multi/view raw JSON <= 512 KiB and ecology <= 150 KiB on ma-1" \
+  python3 -I -B -c 'import json, sys
+raw = open(sys.argv[1], "rb").read()
+obj = json.loads(raw)
+eco = json.dumps(obj["ecology"], separators=(",", ":")).encode("utf-8")
+sys.exit(0 if len(raw) <= 524288 and len(eco) <= 153600 and obj["ecology"]["models"]["species"] == 1 else 1)' "$scratch/v0.body"
 
 # ---- G and W: guards and the full two-area workflow through the JSON API --------------------------------------------------
 cat > "$scratch/workflow.py" << 'WORKFLOW'
@@ -316,6 +338,27 @@ check(code == 200 and h['candidates'] == [], 'a hit-test on bare ground selects 
 code, h = send('api/multi/hit', {'fence': stale, 'areaId': 'MA-A', 'u': 5, 'v': 5})
 check(code == 409 and h['candidates'] == [] and h['refusal']['code'] in ('PlayerSourceStale', 'PlayerPlanStateStale'), 'a stale hit-test is refused with no candidate')
 
+# Read-only POST api/multi/cell (Pass 1): 400 guards, 409 stale/OOB/unknown-area refusals, 200 valid cells with zero state change.
+v_cell_before = view()
+f_cell = fence(v_cell_before)
+refused('api/multi/cell', {'fence': f_cell, 'areaId': 'MA-A', 'column': 0}, 'HTTP400', 'cell inspect without row')
+refused('api/multi/cell', {'fence': f_cell, 'areaId': 'MA-A', 'column': 0, 'row': 0, 'extra': 1}, 'HTTP400', 'cell inspect unknown member')
+refused('api/multi/cell', None, 'HTTP400', 'cell inspect duplicate member',
+        raw=json.dumps({'fence': f_cell, 'areaId': 'MA-A', 'column': 0, 'row': 0}).replace('"row":', '"row":1,"row":').encode())
+refused('api/multi/cell', {'fence': stale, 'areaId': 'MA-A', 'column': 0, 'row': 0}, 'PlayerSourceStale', 'cell inspect stale fence')
+refused('api/multi/cell', {'fence': f_cell, 'areaId': 'MA-A', 'column': 999, 'row': 999}, 'CellNotInArea', 'cell inspect out-of-bounds cell')
+refused('api/multi/cell', {'fence': f_cell, 'areaId': 'MA-C', 'column': 0, 'row': 0}, 'MultiAreaUnknownArea', 'cell inspect unknown area')
+s4_now = send('api/multi/view')[1]['stage4']
+for area_id in ('MA-A', 'MA-B'):
+    g = next(a for a in s4_now['areas'] if a['areaId'] == area_id)['ground']
+    mid = g[len(g) // 2]
+    code, r = send('api/multi/cell', {'fence': f_cell, 'areaId': area_id, 'column': mid['column'], 'row': mid['row']})
+    cd = r.get('cell') if r else None
+    check(code == 200 and r['refusal'] is None and cd is not None and cd['areaId'] == area_id and
+          cd['column'] == mid['column'] and cd['row'] == mid['row'] and len(cd['polygon']) >= 3 and
+          isinstance(cd['cohorts'], list) and r.get('ecology') is not None and view() == v_cell_before,
+          area_id + ' POST api/multi/cell returns full cell detail + fresh composite view with zero state change')
+
 # Owner safeguard over HTTP: a plan felling every living tree of B (A keeps its own) is refused whole; the plan stays.
 v = c
 codes = []
@@ -337,6 +380,43 @@ cat "$scratch/workflow.out" | tee -a "$log"
 check "W999 the HTTP workflow witness completed without stderr" bash -c 'test "$1" == 0 && test ! -s "$2"' _ "$workflow_rc" "$scratch/workflow.err"
 if [[ $workflow_rc != 0 ]]; then fail=1; cat "$scratch/workflow.err" | tee -a "$log"; fi
 stop_server api
+
+# ---- M12-M13: --multi-experiment=ma-1-mixed truthful badge/budgets and invalid CLI exit 64 --------------------------------
+check "M12 invalid --multi-experiment flag exits non-zero (64) with usage message" bash -c '
+  set +e
+  "$1" "$2" "$3" --multi-experiment=invalid >/dev/null 2>"$4"
+  rc=$?
+  test "$rc" -eq 64 && grep -q "expected ma-1 or ma-1-mixed" "$4"' _ "$dotnet_bin" "$ui_dll" "$scratch/fixture" "$scratch/badcli.err"
+set -m
+( cd "$p1_root" && exec env ASPNETCORE_URLS="http://0.0.0.0:5187" DOTNET_URLS="http://0.0.0.0:5187" ASPNETCORE_HTTP_PORTS=5187 \
+    Kestrel__Endpoints__Lan__Url="http://0.0.0.0:5187" ASPNETCORE_ENVIRONMENT=Development \
+    "$dotnet_bin" "$ui_dll" "$scratch/fixture" --multi-experiment=ma-1-mixed ) > "$scratch/server-mixed.out" 2> "$scratch/server-mixed.err" &
+server_pid=$!
+set +m
+mixed_url=""
+for _ in $(seq 1 300); do
+  mixed_url="$(grep -oE 'http://127\.0\.0\.1:[0-9]+/s/[0-9a-f]{64}/' "$scratch/server-mixed.out" | head -1 || true)"
+  [[ -n "$mixed_url" ]] && break
+  kill -0 "$server_pid" 2> /dev/null || break
+  sleep 0.1
+done
+check "M13 --multi-experiment=ma-1-mixed serves truthful badge, 3 species in Area B and stays within payload budgets" \
+  bash -c '
+    test -n "$1" &&
+    curl -fsS --noproxy "*" "${1}api/multi/manifest" -o "$2" &&
+    curl -fsS --noproxy "*" "${1}api/multi/view" -o "$3" &&
+    python3 -I -B -c "import json, sys
+m = json.load(open(sys.argv[1], encoding=\"utf-8\"))
+raw = open(sys.argv[2], \"rb\").read()
+v = json.loads(raw)
+eco = json.dumps(v[\"ecology\"], separators=(\",\", \":\")).encode(\"utf-8\")
+b_sp = next(a for a in v[\"ecology\"][\"areas\"] if a[\"areaId\"] == \"MA-B\")[\"liveAdultsBySpecies\"]
+ok = m.get(\"experimentKey\") == \"ma-1-mixed\"
+ok = ok and m.get(\"experimentBadge\") == \"Synthetic MA-1-MIXED demo \u2014 Area A Sitka; Area B \u2153 Sitka / \u2153 Oak / \u2153 Beech (not a surveyed Irish forecast)\"
+ok = ok and len(raw) <= 524288 and len(eco) <= 153600
+ok = ok and all(b_sp.get(sp, 0) > 0 for sp in (\"sitka-spruce\", \"sessile-oak\", \"beech\"))
+sys.exit(0 if ok else 1)" "$2" "$3"' _ "$mixed_url" "$scratch/mixed-man.json" "$scratch/mixed-view.json"
+stop_server mixed
 
 # ---- J: the page's own script against a second, fresh process (a fresh session at Year 0) --------------------------------
 start_server page
@@ -644,6 +724,10 @@ const living = (view, areaId, treeId) => areaOf(view, areaId).trees.some((tree) 
 
 // ---- start the page ----------------------------------------------------------------------------------------------------
 const multiUrl = new URL('multi', pageUrl).href;
+for (let attempt = 0; attempt < 40; attempt++) {
+  try { const probe = await fetch(multiUrl); if (probe.status === 200) break; } catch { /* wait for loopback relay */ }
+  await sleep(100);
+}
 const document = new FakeDocument();
 parsePage(document, await (await fetch(multiUrl)).text());
 const multiJs = await (await fetch(new URL('multi.js', pageUrl))).text();
@@ -668,7 +752,7 @@ async function selectInTable(treeId) {
   click(byId('tree-rows').querySelector('[data-select="' + treeId + '"]'));
   await until(() => !byId('inspector-body').hidden && byId('insp-id').textContent === treeId, 'the inspector to show ' + treeId);
 }
-const competitorButtons = () => byId('competition-content').querySelectorAll('[data-competitor]');
+const competitorButtons = () => byId('rank-layer').querySelectorAll('[data-rank-toggle]');
 
 await until(() => byId('tree-rows').childNodes.length === 171, 'the first view (Area A, 171 rows)');
 const start = await serverView();
@@ -690,9 +774,9 @@ const aTree = areaOf(start, 'MA-A').trees[60].treeId;
 await selectInTable(aTree);
 await until(() => competitorButtons().length > 0, 'competitors of a non-Crop tree in A');
 check(requests.some((r) => r.path === 'api/multi/competition' && r.body.areaId === 'MA-A' && r.body.treeId === aTree) &&
-  byId('competition-content').textContent.includes('(not a Crop Tree)') && byId('competition-content').textContent.includes('Current total Hegyi CI'),
+  byId('competition-more').textContent.includes('Current total Hegyi CI') && byId('competition-content').querySelectorAll('li').length === 5,
   'selecting a non-Crop living tree in A reads its ranked competitors at once');
-check(byId('marks').querySelectorAll('.competitor-rank').length === Math.min(5, competitorButtons().length), 'the map numbers the strongest competitors');
+check(byId('rank-layer').querySelectorAll('[data-rank-toggle]').length === 5, 'the map numbers the strongest competitors');
 let server = await serverView();
 check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pending.length === 0 && server.planStateRevision === 0,
   'inspection created no Crop mark and no Fell order');
@@ -771,7 +855,6 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
   };
   const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
   const pane = byId('pane-tree');
-  const groundPanel = byId('ground-panel');
   const v = (await send('GET', 'api/multi/view')).json;
   const aScene = v.scenes['MA-A'];
   const aLiving = areaOf(v.view, 'MA-A').trees.filter((t) => t.isLiving).map((t) => t.treeId);
@@ -794,34 +877,36 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
   await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== firstTree, 'a crown click to select a tree');
   checkR2(pane.scrollTop === 0 && !byId('inspector-body').hidden, 'a new selection by a crown click puts the inspector back at the top', [pane.scrollTop, byId('insp-id').textContent]);
 
-  // (1) Ground panel placement with Inspect ground on.
-  click(byId('light-toggle'));
-  click(byId('ground-mode'));
-  await waitR2(() => !groundPanel.hidden, 'Inspect ground on');
-  const body = byId('inspector-body');
-  const dock = body.querySelector('.add-dock');
-  const slot = byId('ground-slot');
-  checkR2(groundPanel.parentNode === slot && slot.parentNode === body && body.childNodes.indexOf(slot) > body.childNodes.indexOf(dock) &&
-    byId('ground-mode').getAttribute('aria-pressed') === 'true' && byId('ground-mode-text').textContent === 'Inspect ground: On',
-    'Inspect ground on with a tree inspected: the ground panel sits after the Add bar (below ranks 1-5), the mode still reads On',
-    [groundPanel.parentNode && groundPanel.parentNode.id, body.childNodes.indexOf(slot), body.childNodes.indexOf(dock)]);
-  checkR2(document.activeElement === byId('ground-mode') && pane.scrollTop === 0,
-    'turning Inspect ground on with a tree inspected keeps focus on the pressed toggle and does not scroll the inspector', [document.activeElement && document.activeElement.id, pane.scrollTop]);
-  pane.scrollTop = 420;
+  // (1) Pass 1 Inspect Cell explicit swap (#cell-panel replaces #tree-panel), overlay selector, POST api/multi/cell,
+  // and Escape exiting cell mode WITHOUT clearing draft Fell ticks or active overlay.
+  await waitR2(() => byId('rank-layer').querySelector('[data-rank-toggle]'), 'competitor rank button before Inspect Cell');
+  const draftRank = byId('rank-layer').querySelector('[data-rank-toggle]');
+  if (draftRank) click(draftRank);
+  await waitR2(() => byId('add-button').textContent.includes('1'), 'one draft choice before entering Inspect Cell');
+  byId('overlay-select').value = 'light';
+  byId('overlay-select').dispatchEvent(new FakeEvent('change'));
+  click(byId('mode-cell'));
+  await waitR2(() => !byId('cell-panel').hidden && byId('tree-panel').hidden, 'Inspect Cell swaps #cell-panel in and hides #tree-panel');
+  checkR2(!byId('cell-panel').hidden && byId('tree-panel').hidden &&
+    byId('mode-cell').getAttribute('aria-pressed') === 'true' && byId('mode-tree').getAttribute('aria-pressed') === 'false' &&
+    byId('overlay-select').value === 'light' && !byId('overlay-legend').hidden,
+    'Inspect Cell explicitly swaps the right-hand inspector body (never stacks) and Light Guide overlay stays active');
+  const midCell = v.stage4.areas.find((a) => a.areaId === 'MA-A').ground[Math.floor(v.stage4.areas.find((a) => a.areaId === 'MA-A').ground.length / 2)];
   mark = requests.length;
-  click(crownAt(farTree), { clientX: itemOf(farTree).u, clientY: itemOf(farTree).v });
-  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/hit') && byId('insp-id').textContent !== crownTree, 'a crown click in ground mode to select');
-  checkR2(pane.scrollTop === 0 && groundPanel.parentNode === slot && byId('ground-mode').getAttribute('aria-pressed') === 'true' &&
-    byId('light-toggle').getAttribute('aria-pressed') === 'true',
-    'a crown click in ground mode selects, resets the inspector to the top, keeps the ground panel below and keeps both modes on',
-    [pane.scrollTop, byId('insp-id').textContent]);
+  click(byId('map'), { clientX: midCell.centreU, clientY: midCell.centreV });
+  await waitR2(() => requests.slice(mark).some((r) => r.path === 'api/multi/cell') && byId('cell-heading').textContent.includes('cell (' + midCell.column + ', ' + midCell.row + ')'),
+    'POST api/multi/cell to render cell detail');
+  checkR2(byId('cell-summary').textContent.includes('Modelled light · not calibrated PAR') && byId('cell-cohorts').textContent.includes('Natural regeneration cohorts'),
+    'POST api/multi/cell renders light caveat, undergrowth and cohorts read-only');
+  escape();
+  await waitR2(() => byId('cell-panel').hidden && !byId('tree-panel').hidden, 'Escape exits Inspect Cell mode');
+  checkR2(byId('add-button').textContent === 'Add selected 1 to Fell plan' && byId('overlay-select').value === 'light',
+    'Escape exits Inspect Cell back to Select Tree WITHOUT clearing draft Fell ticks or active overlay',
+    [byId('add-button').textContent, byId('overlay-select').value]);
+  byId('overlay-select').value = 'off';
+  byId('overlay-select').dispatchEvent(new FakeEvent('change'));
   click(byId('inspect-close'));
   await waitR2(() => byId('inspector-body').hidden, 'Close inspection');
-  checkR2(groundPanel.parentNode === pane && pane.firstElementChild === groundPanel && !groundPanel.hidden,
-    'with no tree inspected the ground panel returns to the top of the Tree pane');
-  escape();
-  click(byId('light-toggle'));
-  await waitR2(() => groundPanel.hidden && byId('light-toggle').getAttribute('aria-pressed') === 'false', 'Inspect ground and the Light Guide off');
 
   // (2) Escape while the hit-test is in flight: the late answer must not reopen the inspection.
   await selectInTable(firstTree);
@@ -1010,14 +1095,13 @@ click(byId('crowns').querySelector('[data-tree-id="' + bItem.treeId + '"]').chil
 await until(() => !byId('inspector-body').hidden && byId('insp-id').textContent.startsWith('MA-B-'), 'a B tree selected by map click');
 const hit = requests.slice(mark).find((r) => r.path === 'api/multi/hit');
 const bTree = byId('insp-id').textContent;
-check(hit && hit.body.areaId === 'MA-B' && hit.body.u === bItem.u && hit.body.v === bItem.v && byId('insp-area').textContent.includes('MA-B'),
+check(hit && hit.body.areaId === 'MA-B' && hit.body.u === bItem.u && hit.body.v === bItem.v && byId('insp-area').textContent.includes('Area B'),
   'the map click was hit-tested by the server in Area B and selected ' + bTree);
 await until(() => competitorButtons().length > 0, 'competitors of the B tree');
-check(byId('competition-content').textContent.includes('in Area B (MA-B)'), 'the B competitors are reported for Area B');
-byId('reason-choice').value = 'other';
-byId('reason-choice').dispatchEvent(new FakeEvent('change'));
+check(byId('competition-content').querySelectorAll('[data-draft]').every((i) => i.getAttribute('data-draft').startsWith('MA-B-')), 'the B competitors are reported for Area B');
 byId('reason').value = 'page witness: typed reason in B';
-byId('add-form').dispatchEvent(new FakeEvent('submit'));
+byId('reason').dispatchEvent(new FakeEvent('input'));
+click(byId('add-reference'));
 await until(() => pendingIds().includes(bTree), 'the B order in the combined plan');
 
 // Back to A: the selection is remembered; retain a Crop, then propose its strongest competitor with the release reason.
@@ -1025,17 +1109,17 @@ click(byId('area-switch').querySelector('[data-area="MA-A"]'));
 await until(() => byId('insp-id').textContent === aTree && competitorButtons().length > 0, 'the remembered A selection with competitors');
 click(byId('crop-button'));
 await until(() => byId('crop-button').textContent === 'Remove Crop designation', 'the Crop designation');
-await until(() => competitorButtons().length > 0 && byId('competition-content').textContent.includes('Retained Crop Tree ' + aTree), 'the Crop competitors');
-const competitorId = competitorButtons()[0].getAttribute('data-competitor');
+await until(() => competitorButtons().length > 0 && !byId('reason-release').disabled, 'the Crop competitors and release reason');
+const competitorId = competitorButtons()[0].getAttribute('data-rank-toggle');
+check(!byId('reason-release').disabled && byId('release-label').textContent.includes('retained Crop Tree ' + aTree),
+  'the release reason is offered for competitors of the inspected Crop Tree');
 click(competitorButtons()[0]);
-await until(() => byId('insp-id').textContent === competitorId, 'the listed competitor selected');
-check(!byId('reason-release').disabled && byId('reason-release').textContent === 'Competition release for retained Crop Tree ' + aTree + ' (operator intent)',
-  'the release reason is offered only for a listed competitor of the inspected Crop Tree');
-byId('reason-choice').value = 'release';
-byId('reason-choice').dispatchEvent(new FakeEvent('change'));
+await until(() => byId('add-button').textContent === 'Add selected 1 to Fell plan', 'one draft competitor chosen');
+byId('reason-release').checked = true;
+byId('reason-release').dispatchEvent(new FakeEvent('change'));
 byId('add-form').dispatchEvent(new FakeEvent('submit'));
 await until(() => pendingIds().includes(competitorId), 'the A order in the combined plan');
-check(byId('pending-total').textContent === 'Total pending: 2 (Area A 1 · Area B 1)', 'one Work Plan lists both area sections and the counts',
+check(byId('pending-total').textContent === '2 pending Fell · not felled (Area A 1 · Area B 1)', 'one Work Plan lists both area sections and the counts',
   byId('pending-total').textContent);
 server = await serverView();
 check(server.pending.map((o) => o.areaId + ':' + o.treeId).join() === 'MA-B:' + bTree + ',MA-A:' + competitorId &&
@@ -1067,7 +1151,7 @@ check(!living(server, 'MA-A', competitorId) && !living(server, 'MA-B', bTree) &&
 click(byId('advance'));
 await until(() => byId('year-latest').textContent.includes('Latest year 0 → 1'), 'the Year+1 results');
 server = await serverView();
-check(server.source.ecologicalYear === 1 && byId('year-latest').textContent.includes('A · MA-A') && byId('year-latest').textContent.includes('B · MA-B') &&
+check(server.source.ecologicalYear === 1 && byId('year-latest').textContent.includes('Area A') && byId('year-latest').textContent.includes('Area B') &&
   byId('year-latest').textContent.includes('170 →') && byId('year-latest').textContent.includes('72 →'), 'Year+1 shows each area\'s own result');
 
 // Fail closed: an Add whose answer is lost locks every command until a re-read.
@@ -1075,10 +1159,9 @@ const shown = byId('pending-total').textContent;
 arm('POST', 'api/multi/pending/add', 'lose');
 const lostTree = areaOf(server, 'MA-A').trees.find((t) => t.isLiving && t.treeId !== aTree).treeId;
 await selectInTable(lostTree);
-byId('reason-choice').value = 'other';
-byId('reason-choice').dispatchEvent(new FakeEvent('change'));
 byId('reason').value = 'page witness: lost answer';
-byId('add-form').dispatchEvent(new FakeEvent('submit'));
+byId('reason').dispatchEvent(new FakeEvent('input'));
+click(byId('add-reference'));
 await until(() => alertText().includes('Outcome unconfirmed'), 'the unconfirmed alert');
 check(byId('approve').disabled && byId('advance').disabled && byId('crop-button').disabled && byId('pending-total').textContent === shown,
   'after an unconfirmed outcome every command is disabled and the page claims nothing');

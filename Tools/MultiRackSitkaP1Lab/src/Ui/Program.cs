@@ -19,9 +19,10 @@ internal static class UiProcess
 
     internal static async Task<int> RunAsync(string[] args)
     {
-        if (args.Length != 1)
+        if (!TryParseArgs(args, out string fixtureDir, out string experimentKey, out string? error))
         {
-            Console.Error.WriteLine("usage: sitkap1-ui <derivedFixtureDir>");
+            if (error is not null) Console.Error.WriteLine(error);
+            Console.Error.WriteLine("usage: sitkap1-ui <derivedFixtureDir> [--multi-experiment=ma-1|ma-1-mixed]");
             return 64;
         }
 
@@ -30,9 +31,9 @@ internal static class UiProcess
         try
         {
             // The only file this process reads: the trusted, catalog-checked fixture, through Core's no-follow reader.
-            player = PlayerWorkPlanAdapter.Open(args[0]);
-            // MA-1: the synthetic two-area experiment is generated and validated in code; it reads no file.
-            multiArea = MultiAreaWorkPlanAdapter.OpenSynthetic();
+            player = PlayerWorkPlanAdapter.Open(fixtureDir);
+            // /multi: defaults to Phase 2 (1/1/1/1/1) on standard synthetic MA-1 (all Sitka), or MA-1-MIXED demo.
+            multiArea = MultiAreaWorkPlanAdapter.OpenExperiment(experimentKey);
         }
         catch (P1Refusal refusal)
         {
@@ -72,12 +73,56 @@ internal static class UiProcess
         api.AdmitRequestsFor(port);
         Console.WriteLine($"{PlayerLabels.Title}. {PlayerLabels.SessionOnly}.");
         Console.WriteLine($"Open http://127.0.0.1:{port}/s/{capability}/");
-        Console.WriteLine($"Two-area MA-1 simulator: http://127.0.0.1:{port}/s/{capability}/multi");
+        string multiTag = string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1MixedKey, StringComparison.Ordinal)
+            ? "MA-1-MIXED" : "MA-1";
+        Console.WriteLine($"Two-area {multiTag} simulator: http://127.0.0.1:{port}/s/{capability}/multi");
+        Console.WriteLine($"Experiment: {multiArea.ExperimentBadge}");
         Console.WriteLine("Ctrl+C ends the session; nothing is saved.");
 
         // Ctrl+C (SIGINT) or SIGTERM stops the host gracefully; then the in-memory session is simply dropped.
         await app.WaitForShutdownAsync();
         Console.WriteLine("Session ended; nothing was saved.");
         return 0;
+    }
+
+    private static bool TryParseArgs(string[] args, out string fixtureDir, out string experimentKey, out string? error)
+    {
+        const string ExperimentPrefix = "--multi-experiment=";
+        fixtureDir = "";
+        experimentKey = MultiAreaDemoExperiments.Ma1Key;
+        error = null;
+        bool seenExperiment = false;
+        foreach (string arg in args)
+        {
+            if (arg.StartsWith(ExperimentPrefix, StringComparison.Ordinal))
+            {
+                if (seenExperiment) { error = "duplicate --multi-experiment option"; return false; }
+                seenExperiment = true;
+                string value = arg[ExperimentPrefix.Length..];
+                if (!string.Equals(value, MultiAreaDemoExperiments.Ma1Key, StringComparison.Ordinal) &&
+                    !string.Equals(value, MultiAreaDemoExperiments.Ma1MixedKey, StringComparison.Ordinal))
+                {
+                    error = "invalid --multi-experiment value: " + value + " (expected ma-1 or ma-1-mixed)";
+                    return false;
+                }
+                experimentKey = value;
+            }
+            else if (arg.StartsWith("-", StringComparison.Ordinal))
+            {
+                error = "unknown option: " + arg;
+                return false;
+            }
+            else
+            {
+                if (fixtureDir.Length != 0) { error = "unexpected extra argument: " + arg; return false; }
+                fixtureDir = arg;
+            }
+        }
+        if (fixtureDir.Length == 0)
+        {
+            error = "missing <derivedFixtureDir>";
+            return false;
+        }
+        return true;
     }
 }
