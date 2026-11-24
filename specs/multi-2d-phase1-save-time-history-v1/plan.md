@@ -1,11 +1,11 @@
 # 2D Phase 1 — Plan
 
-**Status: DRAFT.** Plans describe possible execution, not permission to edit production code.
+**Status: APPROVED PLAN — owner 2026-11-24 13:53 UTC.** Execution is allowed only under phase-specific task packets, single-writer permissions and physical Ops locks; the plan itself is not an occupied source lane.
 
 ## Provenance and sequencing
 
 - Engine baseline: `feat/multi-phase2-oak-beech-20261124-v1` @ `cf6fe7a52aa096e824827c568f43fe05724dcce9`, Phase2 independent review/qualifications reported PASS, not yet merged to main.
-- Concurrent map: `feat/multi-map-integration-pass1-20261124-v1` descendant of Phase2, 5 commits ahead at this inspection. Its handoff says IMPLEMENTED, awaiting independent review, not integrated/accepted; later passes or local writes may exist outside the branches inspected. Inspect live coordination and worktree locks again at actual dispatch.
+- Concurrent map: `feat/multi-map-integration-pass1-20261124-v1` descendant of Phase2, 5 commits ahead at this inspection. Independent Opus review of `1f131826` reports APPROVED (G2/G3 PASS), still not integrated/merged; later passes or local writes may exist outside the branches inspected. Inspect live coordination and worktree locks again at actual dispatch.
 - No source writer or physical lease created by these documents. Source branch/HEAD is chosen only after owner approval and Ops admission.
 - Standard test forest / simple forest maker / finances / labour are later phases; do not pull them into this work.
 
@@ -34,4 +34,4 @@
 
 Stop only the affected task if there is an overlapping writer/file, unsigned model/save option, missing lock, changed integration baseline, hidden alteration of official ecology, incomplete stored root, corrupted save, missing annual parity or unauthorised old-save/Unity exposure. Report blocker and resume nonconflicting docs/review. No Windows build.
 
-**Current permission:** docs-only drafting. All source work is HELD pending owner approval, exact source packet, physical lane and fresh active-tasks inspection.
+**Current permission:** user-approved Phase 1 end-to-end scope and six A choices. 1A0 is eligible for admission after exact source packet, physical lane and fresh active-tasks inspection. 1A1/1B are HELD until map/shared-file ownership clears, review and separate integration approval. No source task has yet been admitted by this document.
