@@ -1,9 +1,9 @@
 # 2D Phase 1 — Proposed Task Breakdown
 
-**Status: DRAFT. Do not claim or run source tasks until quartet is APPROVED and a single source lane is formally admitted.**
+**Status: APPROVED TASK PLAN — owner 2026-11-24 13:53 UTC.** Do not claim or run source tasks until a single source lane is formally admitted, and do not overlap existing map ownership.
 
 ### P1-A0 — isolated 2D save contract (candidate parallel packet)
-- [ ] Resolve six owner decisions in `spec.md`; check effective current-milestone/decisions and latest active-tasks; inspect precise map writer grants and compile-linked scope.
+- [x] Owner approved six recommended A defaults in `spec.md` on 2026-11-24. [ ] Before source work, check current-milestone/decisions and latest active-tasks; inspect map writer grants and compile-linked scope.
 - [ ] Allocate single exclusive new worktree/branch from approved SHA, claim in live coordination with physical Ops reservation.
 - [ ] Add only new `Tools/MultiRackSitkaP1Lab/src/Core/Phase1/*.cs` files for v1 typed complete state envelope, strict codec, validation, safe slot storage.
 - [ ] Add only new, non-overlapping dedicated test/evidence files; do not modify existing harness registration if owned by map; report any unrun tests honestly.
