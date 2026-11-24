@@ -1,6 +1,6 @@
 # Requirements — MULTI Phase 2 Oak and Beech numerical quality gates (DRAFT)
 
-**Status: DRAFT — awaiting owner approval (2026-11-24).** Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
+**Status: APPROVED — owner approval 2026-11-24** (gates G03/G04 closed; qualification items below are unmarked until observed). Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
 
 - **Spec ID:** SPEC-multi-phase2-oak-beech-V1
 - **Checklist owner:** Overall Manager
@@ -11,9 +11,15 @@
 
 - [x] G01 Owner locked the six product decisions (6/6 Option A) and the `5b757d9b` base.
 - [x] G02 Stage 5 prerequisite on the record: `5b757d9b` APPROVED delta-only (`e8f47e73`); owner accepted R1 (`S5-07A` aggregate-only matched population) and R3 (`S5-02` margins) as written.
-- [ ] G03 Owner answered spec §14 Q1–Q6.
-- [ ] G04 Quartet marked `APPROVED`.
-- [ ] G05 D-091 lane receipt and baseline anchors recorded.
+- [x] G03 Owner answered spec §14 Q1–Q6 (2026-11-24; binding text in the spec amendment record):
+  - Q1 **Yes**: species version appended to `AreaModelVersion` only when `!= 0`, and all `0/0/0/0`…`1/1/1/1` tokens and hashes stay byte-identical.
+  - Q2 **Yes**: spot patches affect exact-point planted-juvenile exposure only, and Unity's area-weighted cohort dilution is an intentional non-port.
+  - Q3 **Yes**: three separate fenced orders `Plant` / `Shelter` / `SpotClear`; `Shelter` targets a living `PJ` or a same-batch `Plant`, and `SpotClear` may target any in-polygon point.
+  - Q4 **Yes**: planted juveniles read same-year stepped bramble/bracken covers (audit correction A-1).
+  - Q5 **Yes, with an owner-set share**: test-only `MA-1-MIXED-v1`; Area A pure Sitka; Area B one third Oak, one third Beech and one third Sitka, age 60.
+  - Q6 **Yes (mandatory)**: `1/1/1/1/1` on unmodified all-Sitka MA-1 equals `1/1/1/1/0` identically in trees, bands and accounts, version token aside.
+- [x] G04 Quartet marked `APPROVED — owner approval 2026-11-24` (spec amendment record; rebased onto Stage 5 docs tip `d1db81b5`).
+- [ ] G05 D-091 lane receipt and baseline anchors recorded. *(Next action: Step B.)*
 
 ## Qualification tests
 
@@ -35,7 +41,7 @@
   5. Generic removal never exceeds `0.125` of stand basal area in a year except the documented 1-stem fallback.
   6. Broadleaf pruning: 2 lifts, 3-year interval, exact 3.5 / 6.0 m targets; Sitka pruning unchanged.
   7. Fallen deadwood records carry `SpeciesId` and volume `DBH²·0.00007854·H·0.5`.
-  8. *(If Q6 accepted)* `1/1/1/1/1` on unmodified all-Sitka MA-1 equals `1/1/1/1/0` in trees, bands and accounts.
+  8. *(Q6 accepted, mandatory)* `1/1/1/1/1` on unmodified all-Sitka MA-1 equals `1/1/1/1/0` in trees, bands and accounts.
 - [ ] **P2-04 Commands.** `Plant`/`Shelter`/`SpotClear`: Pending and Approve mutate nothing; Execute never advances the year; fence and revision enforced; idempotent replay with the engine-minted key; refusal of the **whole batch** on: out-of-polygon; `< 0.5 m` from another planting (lower work-order id wins); `< 0.7 m` from a living adult stem; duplicate order; shelter with no target or a second effective shelter within 0.25 m; `Species = Off`. No economy or stock field exists or changes.
 - [ ] **P2-05 Browsing and shelters.** At `pressure = 0.2` an unprotected planted Oak loses height/survival per spec §6.2 and a sheltered one at the same point does not (`access = 0`). Shelter effective in years `installed … installed+7` and **not** in `installed+8` (strict `<`). `FailedYear` stays `-1`. Oak palatability 1.0 vs Beech 0.5 visible in `p`. `V(h)` full ≤ 1.2 m, zero ≥ 1.8 m. Cohorts ignore shelters. `pressure = 0` bit-identical to the light-only path.
 - [ ] **P2-06 Spot clearance.** Three runs of the same planting: with a 1 m² patch, unweeded, and with whole-cell `ClearUndergrowth`. The patch is a circle of radius `0.5641896 m` (area 1.0 m²), zeroes cover only inside it, recovers each year at 0.30/0.45 toward the containing cell's `T`, and changes the planted stem's `p_veg` accordingly. In all three runs, every natural cohort's density in and around the patch is unchanged by the clearance itself (selective). The divergence from Unity's destructive clearance is stated in the test name or output.

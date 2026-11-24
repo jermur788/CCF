@@ -1,6 +1,25 @@
 # MULTI Phase 2 — Sessile Oak and European Beech in the standalone 2D engine
 
-**Status: DRAFT — awaiting owner approval (2026-11-24).** This quartet is the Step A deliverable of a two-phase gated task. The six owner decisions in §1 are **locked (6/6 Option A)** and are not re-litigated here. Step B (implementation and `P2-01`…`P2-10` qualification) is **not authorised** until the owner marks this quartet `APPROVED` and answers the narrow questions in §14.
+**Status: APPROVED — owner approval 2026-11-24.** This quartet is the Step A deliverable of a two-phase gated task. The six owner decisions in §1 are **locked (6/6 Option A)** and are not re-litigated here. The owner has answered the narrow questions in §14 (recorded in the amendment record below) and authorised Step B (implementation and `P2-01`…`P2-10` qualification). Where the amendment record and the body text below differ, **the amendment record binds**.
+
+## Amendment record — owner approval 2026-11-24 (binding)
+
+This record is appended at approval. The body of the spec is otherwise left as drafted, so the proposal wording that led to each decision stays visible. Every resolution below was confirmed by the owner on 2026-11-24.
+
+**Base.** The quartet was drafted over Stage 5 code head `5b757d9b4a353d07557db95d3af9227c8d841874` and, at approval, rebased onto the Stage 5 **documentation tip** `d1db81b59248c13b4f9682ecdf68e37759b15c65`. `d1db81b5` is a documentation-only amendment over `5b757d9b` (the third Stage 5 amendment record: R1 whole-cell unit, aggregate-only limitation, R3 margin provenance). It changes no `src`, test, constant, tolerance or hash. Stage 5 is formally closed. Step B branches from `d1db81b5`.
+
+| # | Question | Owner resolution (binding) |
+|---|---|---|
+| Q1 | Version token | **Accepted as proposed.** The species version is appended to `AreaModelVersion` **only when `!= 0`**. All `0/0/0/0` through `1/1/1/1` tokens and hashes stay byte-identical. |
+| Q2 | Spot patches and cohort exposure | **Accepted as proposed.** Spot patches affect **exact-point planted-juvenile exposure only**. Natural cohorts keep reading their cell's cover. Unity's area-weighted cohort dilution (`UnderstoreyCompetition.cs`, `CompetitionExposureCache`) is an **intentional, documented non-port**. |
+| Q3 | Order shapes | **Accepted as proposed.** `Plant`, `Shelter` and `SpotClear` stay **three separate fenced Work Plan order types**. `Shelter` targets a living `PJ` or a same-batch `Plant` at that point. `SpotClear` may target any in-polygon point. |
+| Q4 | Planted-juvenile undergrowth timing | **Accepted as proposed (audit correction A-1).** Planted juveniles read the **same-year stepped** bramble/bracken covers. The packet's "pre-recovery" wording is superseded for bramble/bracken. |
+| Q5 | `MA-1-MIXED-v1` | **Accepted, with the share fixed by the owner.** It is a **test-only** fixture. Area A stays **100 % Sitka**. **Area B is split one third Oak, one third Beech and one third Sitka**, with reassigned stems set to **age 60**. This replaces §10's drafted default of "one third each of Oak and Beech" and leaves the remaining third Sitka. The deterministic assignment rule (ordinal `TreeId` based) is fixed in code before any qualification number is measured, and is documented in the Step B handoff. |
+| Q6 | Pure-Sitka equivalence | **Accepted as proposed.** `P2-03.8` is **mandatory**: `1/1/1/1/1` on unmodified all-Sitka MA-1 must equal `1/1/1/1/0` **identically** in trees, bands and accounts. The version token is the only permitted difference. |
+
+**Audit qualification A-1 (binding; adopts Q4).** Planted juveniles read the bramble/bracken covers stepped **in the same year** before regeneration growth. This matches Unity `RegenerationModel.Competition`: `PrepareCompetitionForYear` (`ScenarioOneCompetition.cs:15-41`) steps both cell and planting-patch covers in ecology step 5b, before regeneration growth. `AdvanceUnderstorey` (step 6) advances only the habitat groups, which Phase 2 does not model. It also matches the engine's Stage 5 step 5a, which natural cohorts already read. §4's A-1 bullet and §7.4's recovery rule are to be read with this resolution.
+
+**Provenance.** The spec quartet (`spec.md`, `plan.md`, `tasks.md`, `checklists/requirements.md`) and the pre-flight audit were authored by **Claude Opus 5.5**. The audit facts cited in this quartet (Unity file/line references, sequence order, shelter and clearance rules, and qualification A-1) were **verified read-only by the coordinating model** against the stated commits. That verification was inspection only. It is not Unity, runtime or rendered verification. The owner's approval covers the quartet as amended here. Implementation numbers remain unverified until Step B qualification is observed.
 
 - **Spec ID:** SPEC-multi-phase2-oak-beech-V1
 - **Owner:** Overall Manager / project owner
