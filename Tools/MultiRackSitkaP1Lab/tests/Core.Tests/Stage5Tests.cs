@@ -12,6 +12,12 @@ internal static class Stage5Tests
     /// <summary>The 1/1/1/0 full-run fingerprint (S4 R-02 recipe), measured on base e7c1a57d before any Stage 5 edit.</summary>
     internal const string PinnedStage4FullRunHash = "8a926776ffa3ca3dd1611c2e4d462f8c82b4d78f29ad5e83e5a8f8ce1d2b87fb";
 
+    /// <summary>
+    /// The 1/1/1/1 full-run fingerprint (S5-10 D-01 recipe), printed by the approved Stage 5 head 5b757d9b and pinned by MULTI
+    /// Phase 2 P2-01 (declared test change, closes reviewer nit R8).
+    /// </summary>
+    internal const string PinnedStage5FullRunHash = "c4b670ede36ef133fb7ab9b43992319b340f27827ce85025ae68444c63d2dc35";
+
     private const MultiAreaRegenerationModelVersion Off = MultiAreaRegenerationModelVersion.Off;
     private const MultiAreaRegenerationModelVersion Regen1 = MultiAreaRegenerationModelVersion.SitkaCohortCompetitionBrowse;
 
@@ -902,6 +908,7 @@ internal static class Stage5Tests
             string first = FullRun();
             T.Eq(first, FullRun(), "two 30-year runs identical");
             Console.WriteLine("  S5 1/1/1/1 full-run fingerprint " + first);
+            T.Eq(PinnedStage5FullRunHash, first, "pinned 1/1/1/1 full run (Phase 2 P2-01, R8)");
             // Before any promotion (10 years cannot grow 0.15 m to 3.5 m), the 1/1/1/0 recipe on 1/1/1/1 reproduces the
             // 1/1/1/0 hash exactly: every adult roll, growth, death and deadwood record is unchanged by Stage 5.
             T.Eq(PinnedStage4FullRunHash, Stage4BehaviourTests.RunFingerprint(Stage4Options.Default, MultiAreaModelSelection.Stage5), "adult output unchanged");
@@ -940,9 +947,11 @@ internal static class Stage5Tests
     }
 
     /// <summary>The 1/1/1/1 fingerprint: thinning in year 0, a clear in year 5, 30 years; adult reports and the Stage 5 read-out.</summary>
-    private static string FullRun()
+    internal static string FullRun() => FullRun(Session());
+
+    /// <summary>The same recipe on an already constructed session (Phase 2 P2-01 runs it on an explicit five-field selection).</summary>
+    internal static string FullRun(MultiAreaContinuation c)
     {
-        var c = Session();
         var w = new Model0FingerprintTests.Fingerprint();
         ThinEverySecond(c);
         for (int year = 0; year < 30; year++)
