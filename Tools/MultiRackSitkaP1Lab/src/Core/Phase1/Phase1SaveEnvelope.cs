@@ -8,7 +8,7 @@ namespace SitkaP1.Core.Phase1;
 /// onto another payload.
 /// </summary>
 public sealed record Phase1SaveHeader(string Label, string SavedUtc, long SaveGeneration, int EcologicalYear,
-    Phase1ModelVector Models, Phase1GenesisIdentity Genesis)
+    Phase1ModelVector Models, Phase1GenesisIdentity Genesis, Phase1EngineLineage Lineage)
 {
     /// <summary>The only accepted SavedUtc form: second precision, UTC, invariant culture, e.g. 2026-11-24T13:53:37Z.</summary>
     public const string SavedUtcFormat = "yyyy-MM-ddTHH:mm:ssZ";
@@ -24,7 +24,7 @@ public sealed record Phase1SaveHeader(string Label, string SavedUtc, long SaveGe
 public sealed record Phase1SaveEnvelope(Phase1SaveHeader Header, Phase1SaveState State);
 
 /// <summary>
-/// A save that passed every decode gate: size, strict JSON, exact schema shape, canonical bytes, checksum, consistency and
-/// (when an expectation was given) exact model and genesis identity. <see cref="Checksum"/> is the verified checksum hex.
+/// A save that passed every decode gate: size, strict UTF-8, strict JSON, exact schema shape, canonical bytes, checksum,
+/// consistency and (when an expectation was given) exact model, genesis identity and engine lineage. <see cref="Checksum"/> is the verified checksum hex.
 /// </summary>
 public sealed record Phase1DecodedSave(Phase1SaveEnvelope Envelope, string Checksum, int ByteLength);

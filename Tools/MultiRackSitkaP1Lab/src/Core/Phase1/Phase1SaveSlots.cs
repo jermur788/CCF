@@ -36,14 +36,15 @@ public sealed record Phase1SlotInspection(string SlotName, bool PrimaryExists, s
 /// <summary>
 /// Server-managed named 2D save slots in ONE dedicated directory (owner choice A: no browser-supplied path, no upload).
 /// <list type="bullet">
-/// <item>Slot names match <c>^[a-z0-9][a-z0-9-]{0,47}$</c> (no separator, dot, traversal, absolute path or reserved device
-/// name); every path is built from the directory and checked to stay directly inside it.</item>
+/// <item>Slot names match <c>\A[a-z0-9][a-z0-9-]{0,47}\z</c> (no separator, dot, newline, traversal, absolute path or
+/// reserved device name); every path is built from the directory and checked to stay directly inside it. The directory
+/// path itself may contain no symbolic link in any component.</item>
 /// <item>Reads use <see cref="NoFollowRead.ReadExact"/>: no symlink in any path component, a regular single-link file, and
 /// a size bound. A symlinked slot file is refused even if it points inside the directory.</item>
 /// <item>A save is verified with <see cref="Phase1SaveCodec.Decode(ReadOnlySpan{byte})"/> before a byte is written, then written
 /// to a new temp file in the same directory (O_EXCL, mode 0600), fsynced, read back and compared, the current slot copied to
 /// the prior-good backup (only if it still verifies; never a corrupt file over a good backup), and finally swapped in with
-/// one rename(2) call, followed by a directory fsync. rename(2) within one directory is atomic on Linux: a reader or a
+/// one rename(2) call (a confirmed replace) or one atomic no-clobber rename/link (a new slot), followed by a directory fsync. rename(2) within one directory is atomic on Linux: a reader or a
 /// crash sees the old file or the new one, never a mixture. There is no copy-over-original fallback: if rename fails, the
 /// save fails and the old slot is untouched.</item>
 /// <item>Writes are supported on Linux x64 only (the platform whose rename/fsync semantics this code relies on and that
@@ -57,7 +58,8 @@ public sealed class Phase1SaveSlots
     public const string BackupSuffix = ".bak";
     private const string TempInfix = ".tmp-";
 
-    private static readonly Regex NamePattern = new("^[a-z0-9][a-z0-9-]{0,47}$", RegexOptions.CultureInvariant);
+    // \A and \z, never ^ and $: in .NET "$" also matches before a final "\n", so "alpha\n" would pass a ^...$ pattern.
+    private static readonly Regex NamePattern = new(@"\A[a-z0-9][a-z0-9-]{0,47}\z", RegexOptions.CultureInvariant);
     private static readonly HashSet<string> Reserved = new(StringComparer.Ordinal)
     {
         "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
@@ -77,10 +79,12 @@ public sealed class Phase1SaveSlots
             throw new P1Refusal("SlotDirectoryInvalid", "the slot directory must be an absolute path");
         string full = Path.GetFullPath(directory);
         if (full.Length > 1) full = full.TrimEnd(Path.DirectorySeparatorChar);
-        var info = new DirectoryInfo(full);
-        if (info.LinkTarget is not null)
-            throw new P1Refusal("SlotDirectoryInvalid", "the slot directory must not be a symbolic link");
-        if (!info.Exists) throw new P1Refusal("SlotDirectoryInvalid", "the slot directory does not exist");
+        // Every component from the root down, not only the last: a symlinked ancestor would let the directory silently
+        // resolve somewhere else (NoFollowRead re-checks the same on every read; this refuses it up front).
+        for (string? at = full; !string.IsNullOrEmpty(at); at = Path.GetDirectoryName(at))
+            if (new DirectoryInfo(at).LinkTarget is not null)
+                throw new P1Refusal("SlotDirectoryInvalid", "the slot directory path must not contain a symbolic link (" + at + ")");
+        if (!new DirectoryInfo(full).Exists) throw new P1Refusal("SlotDirectoryInvalid", "the slot directory does not exist");
         Directory = full;
         this.faultHook = faultHook;
     }
@@ -110,8 +114,10 @@ public sealed class Phase1SaveSlots
 
     /// <summary>
     /// Saves verified bytes into a slot. An existing slot is replaced only with <paramref name="replaceExisting"/> (the
-    /// caller's explicit confirmation); otherwise <c>SlotExists</c>. Any failure before the rename leaves the slot and its
-    /// backup exactly as they were and removes this call's temp file.
+    /// caller's explicit confirmation); otherwise <c>SlotExists</c>. Without confirmation the final step is an atomic
+    /// no-clobber rename (renameat2 RENAME_NOREPLACE, or link(2) + unlink where the filesystem lacks it), so a slot created
+    /// by another writer after the existence check is never overwritten. Any failure before the rename leaves the slot and
+    /// its backup exactly as they were and removes this call's temp file.
     /// </summary>
     public Phase1SlotSaveResult Save(string slotName, byte[] saveBytes, bool replaceExisting)
     {
@@ -144,7 +150,8 @@ public sealed class Phase1SaveSlots
                 backupUpdated = TryRefreshBackup(primaryName);
             }
             faultHook?.Invoke(Phase1SlotStage.BeforeReplace);
-            AtomicRename(temp, primary);
+            if (replaceExisting) AtomicRename(temp, primary);
+            else AtomicRenameNoReplace(temp, primary, slotName);
             renamed = true;
         }
         finally
@@ -222,6 +229,7 @@ public sealed class Phase1SaveSlots
     private (bool Exists, string? Checksum, string? Refusal) Check(string fileName)
     {
         string path = Confined(fileName);
+        if (System.IO.Directory.Exists(path) && new FileInfo(path).LinkTarget is null) return (true, null, "SlotNotAFile");
         if (!File.Exists(path) && new FileInfo(path).LinkTarget is null) return (false, null, null);
         try { return (true, Phase1SaveCodec.Decode(ReadFile(fileName)).Checksum, null); }
         catch (P1Refusal e) { return (true, null, e.Code); }
@@ -326,6 +334,44 @@ public sealed class Phase1SaveSlots
                 $"atomic rename failed (errno {Marshal.GetLastPInvokeError()}); the previous slot is unchanged"));
     }
 
+    // No-clobber publish for a save without replace confirmation. renameat2(RENAME_NOREPLACE) is one atomic step that fails
+    // with EEXIST if the slot appeared meanwhile. Filesystems without it return EINVAL (or glibc lacks the symbol); then
+    // link(2) — also atomic and also EEXIST on an existing name — publishes the same inode and the temp name is unlinked.
+    // Between link and unlink the slot file briefly has two links, so a concurrent no-follow read of it may refuse
+    // (HardLinked) for that instant; it never sees partial or wrong bytes.
+    private static void AtomicRenameNoReplace(string from, string to, string slotName)
+    {
+        int result, errno;
+        try
+        {
+            result = Native.RenameAt2(Native.AT_FDCWD, from, Native.AT_FDCWD, to, Native.RENAME_NOREPLACE);
+            errno = result == 0 ? 0 : Marshal.GetLastPInvokeError();
+        }
+        catch (EntryPointNotFoundException)
+        {
+            (result, errno) = (-1, Native.ENOSYS);
+        }
+        if (result == 0) return;
+        if (errno == Native.EEXIST) throw SlotExists(slotName);
+        if (errno is not (Native.EINVAL or Native.ENOSYS))
+            throw new P1Refusal("SlotRenameFailed", FormattableString.Invariant(
+                $"atomic no-replace rename failed (errno {errno}); the slot is unchanged"));
+
+        if (Native.Link(from, to) != 0)
+        {
+            int linkErrno = Marshal.GetLastPInvokeError();
+            if (linkErrno == Native.EEXIST) throw SlotExists(slotName);
+            throw new P1Refusal("SlotRenameFailed", FormattableString.Invariant(
+                $"atomic no-replace link failed (errno {linkErrno}); the slot is unchanged"));
+        }
+        // The slot now holds the verified bytes; dropping the temp name cannot change them. A failed unlink leaves a
+        // reported, removable leftover temp file (RemoveLeftoverTemps), not a wrong slot.
+        TryDelete(from);
+    }
+
+    private static P1Refusal SlotExists(string slotName) =>
+        new("SlotExists", "slot '" + slotName + "' already holds a save; replacing it needs explicit confirmation");
+
     // fsync on the directory makes the rename itself durable (the directory entry), not just the file's bytes.
     private bool TryFsyncDirectory()
     {
@@ -339,9 +385,19 @@ public sealed class Phase1SaveSlots
     {
         // Linux x64 values (same as NoFollowRead); writes are refused on any other platform before these are reached.
         public const int O_RDONLY = 0, O_DIRECTORY = 0x10000, O_CLOEXEC = 0x80000;
+        public const int AT_FDCWD = -100;
+        public const uint RENAME_NOREPLACE = 1;
+        public const int EEXIST = 17, EINVAL = 22, ENOSYS = 38;
 
         [DllImport("libc", EntryPoint = "rename", SetLastError = true)]
         public static extern int Rename([MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath);
+
+        [DllImport("libc", EntryPoint = "renameat2", SetLastError = true)]
+        public static extern int RenameAt2(int oldDirFd, [MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, int newDirFd,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath, uint flags);
+
+        [DllImport("libc", EntryPoint = "link", SetLastError = true)]
+        public static extern int Link([MarshalAs(UnmanagedType.LPUTF8Str)] string oldPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string newPath);
 
         [DllImport("libc", EntryPoint = "open", SetLastError = true)]
         public static extern int Open([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);

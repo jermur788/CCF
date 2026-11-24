@@ -79,8 +79,10 @@ T.Add("precision: float/double bits, negative zero, subnormal, max, int64 above 
 // ------------------------------------------------------------------ version / identity refusals
 T.Add("refuse: other format marker or schema version", () =>
 {
-    T.Refuses("SaveSchemaUnsupported", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"schemaVersion\":1", "\"schemaVersion\":2")));
-    T.Refuses("SaveSchemaUnsupported", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"schemaVersion\":1", "\"schemaVersion\":0")));
+    T.Eq(2, Phase1SaveFormat.SchemaVersion, "R1 schema version");
+    T.Refuses("SaveSchemaUnsupported", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"schemaVersion\":2", "\"schemaVersion\":3")));
+    T.Refuses("SaveSchemaUnsupported", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"schemaVersion\":2", "\"schemaVersion\":1")));
+    T.Refuses("SaveSchemaUnsupported", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"schemaVersion\":2", "\"schemaVersion\":0")));
     T.Refuses("SaveFormatUnknown", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "ccf-2d-multiarea-save", "ccf-3d-save")));
     T.Refuses("SaveFormatUnknown", () => Phase1SaveCodec.Decode(Encoding.UTF8.GetBytes("[1,2]")));
 });
@@ -105,19 +107,53 @@ T.Add("refuse: unsupported or tampered model vector, and later-model state in a 
 });
 T.Add("refuse: genesis identity mismatch (content hash, area seed, experiment)", () =>
 {
+    var lineage = Phase1EngineLineage.Current(Phase1ModelVector.Phase2);
     T.Refuses("SaveGenesisMismatch", () => Phase1SaveCodec.Decode(approvedBytes,
-        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(hash: new string('f', 64)))));
+        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(hash: new string('f', 64)), lineage)));
     T.Refuses("SaveGenesisMismatch", () => Phase1SaveCodec.Decode(approvedBytes,
-        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(seedB: 8))));
+        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(seedB: 8), lineage)));
     T.Refuses("SaveGenesisMismatch", () => Phase1SaveCodec.Decode(approvedBytes,
-        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis() with { ExperimentId = "mad-other" })));
+        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis() with { ExperimentId = "mad-other" }, lineage)));
+});
+T.Add("F5 lineage: the header carries the engine lineage and a load requires every field to match exactly", () =>
+{
+    var current = Phase1EngineLineage.Current(Phase1ModelVector.Phase2);
+    // The sample lineage is the real engine lineage, built as MultiAreaContinuation builds it.
+    T.Eq("ma1-connected-woodland-stage4-adult-mortality-v1+regeneration-v1+species-v1", current.AreaModelVersion, "Phase 2 area model");
+    T.Eq("ma1-isolated-per-area-v1", Phase1EngineLineage.Current(Phase1ModelVector.Model0).AreaModelVersion, "model 0 area model");
+    T.Eq("ma1-connected-woodland-crown-c2-v1", Phase1EngineLineage.Current(Phase1ModelVector.Stage3CrownC2).AreaModelVersion, "C2 area model");
+    T.Eq(current, Phase1SaveCodec.Decode(approvedBytes).Envelope.Header.Lineage, "lineage round trip");
+    T.True(Mut.Text(approvedBytes).Contains("\"lineage\":{\"rngModelVersion\":", StringComparison.Ordinal), "lineage is in the header");
+    var older = new[]
+    {
+        current with { RngModelVersion = current.RngModelVersion + 1 },
+        current with { GrowthModelVersion = current.GrowthModelVersion - 1 },
+        current with { P1AlgorithmVersion = current.P1AlgorithmVersion + "-old" },
+        current with { AreaModelVersion = "ma1-connected-woodland-stage4-adult-mortality-v1+regeneration-v1" },
+        current with { ActionEligibleDbhThresholdMm = current.ActionEligibleDbhThresholdMm + 1 },
+    };
+    foreach (var other in older)
+    {
+        var e = T.Refuses("SaveLineageMismatch", () => Phase1SaveCodec.Decode(approvedBytes,
+            new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(), other)));
+        T.True(e.Message.Contains("never continued", StringComparison.Ordinal), "explanatory lineage refusal");
+        // A model 0 save (no receipts to cross-check) is refused the same way.
+        T.Refuses("SaveLineageMismatch", () => Phase1SaveCodec.Decode(model0Bytes,
+            new Phase1SaveExpectation(Phase1ModelVector.Model0, Samples.Genesis(), other with { AreaModelVersion = "ma1-isolated-per-area-v0" })));
+    }
+    // Tampering the header lineage of a save with receipts (resealed) is refused: receipts record the session's lineage.
+    T.RefusesRule("recorded lineage", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes,
+        "\"p1AlgorithmVersion\":\"" + current.P1AlgorithmVersion + "\",\"areaModelVersion\"",
+        "\"p1AlgorithmVersion\":\"p1-older\",\"areaModelVersion\"")));
+    T.Refuses("SaveExpectationInvalid", () => Phase1SaveCodec.Decode(approvedBytes,
+        new Phase1SaveExpectation(Phase1ModelVector.Phase2, Samples.Genesis(), null!)));
 });
 
 // ------------------------------------------------------------------ strict decoding refusals
 T.Add("refuse: duplicate JSON key", () =>
 {
     T.Refuses("DuplicateKey", () => Phase1SaveCodec.Decode(Encoding.UTF8.GetBytes(Mut.ReplaceFirst(Mut.Text(approvedBytes),
-        "\"schemaVersion\":1,", "\"schemaVersion\":1,\"schemaVersion\":1,"))));
+        "\"schemaVersion\":2,", "\"schemaVersion\":2,\"schemaVersion\":2,"))));
     T.Refuses("DuplicateKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"workRevision\":2,", "\"workRevision\":2,\"workRevision\":2,")));
 });
 T.Add("refuse: unknown enum values (work action, planting order type, work-log kind)", () =>
@@ -129,10 +165,10 @@ T.Add("refuse: unknown enum values (work action, planting order type, work-log k
 });
 T.Add("refuse: missing and unknown fields", () =>
 {
-    T.Refuses("MissingKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":9,", "")));
+    T.Refuses("MissingKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24,", "")));
     T.Refuses("MissingKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, ",\"nextPatchNumber\":2", "")));
-    T.Refuses("UnknownKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":9,",
-        "\"planStateRevision\":9,\"sessionId\":\"abc\",")));
+    T.Refuses("UnknownKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24,",
+        "\"planStateRevision\":24,\"sessionId\":\"abc\",")));
 });
 T.Add("refuse: trailing bytes, whitespace, BOM, escapes and non-canonical spelling", () =>
 {
@@ -143,7 +179,7 @@ T.Add("refuse: trailing bytes, whitespace, BOM, escapes and non-canonical spelli
     T.Refuses("SaveNotCanonical", () => Phase1SaveCodec.Decode(Encoding.UTF8.GetBytes(Mut.ReplaceFirst(Mut.Text(approvedBytes),
         "\"format\":", "\"form\\u0061t\":"))));
     T.Refuses("SaveNotCanonical", () => Phase1SaveCodec.Decode(Encoding.UTF8.GetBytes(Mut.ReplaceFirst(Mut.Text(approvedBytes), ",\"header\":", ", \"header\":"))));
-    T.Refuses("NumberNotInteger", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":9", "\"planStateRevision\":9.0")));
+    T.Refuses("NumberNotInteger", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":24.0")));
     T.Refuses("FloatBitsInvalid", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"b\":\"80000000\"", "\"b\":\"8000000\"")));
     T.Refuses("JsonInvalid", () => Phase1SaveCodec.Decode(Array.Empty<byte>()));
     T.Refuses("JsonInvalid", () => Phase1SaveCodec.Decode(approvedBytes.AsSpan(0, approvedBytes.Length / 2)));
@@ -163,8 +199,8 @@ T.Add("refuse: non-finite float32/float64 on decode and encode; overflowing inte
 {
     T.Refuses("FloatNotFinite", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"b\":\"80000000\"", "\"b\":\"7f800000\"")));
     T.Refuses("FloatNotFinite", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"b\":\"8000000000000000\"", "\"b\":\"7ff8000000000000\"")));
-    T.Refuses("NumberOutOfRange", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":9", "\"planStateRevision\":2147483648")));
-    T.Refuses("NumberOutOfRange", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":9", "\"planStateRevision\":9007199254740992")));
+    T.Refuses("NumberOutOfRange", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":2147483648")));
+    T.Refuses("NumberOutOfRange", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":9007199254740992")));
     var s = Samples.Model0();
     var badStand = s with { State = s.State with { AnnualHistory = new[] { s.State.AnnualHistory[0] with { Areas = new[] {
         s.State.AnnualHistory[0].Areas[0] with { Before = s.State.AnnualHistory[0].Areas[0].Before with { StemsPerHa = double.NaN } },
@@ -200,17 +236,28 @@ T.Add("refuse: inconsistent but well-formed saves (validator)", () =>
         s.State.Approved.Orders[0] with { Reason = "lone \ud800 surrogate" } } } } };
     T.Refuses("SaveTextInvalid", () => Phase1SaveCodec.Encode(badText));
 });
-T.Add("fail-closed: a refused decode changes neither its input nor previously loaded state", () =>
+// R1: the former "previously loaded state untouched" assertion over a pure decode could not fail (Decode takes a
+// ReadOnlySpan and returns new immutable records), so it was replaced by a slot-level fail-closed check that can fail: a
+// refused Load/LoadBackup/Inspect must not repair, recover, rewrite or delete anything on disk.
+T.Add("fail-closed: refused slot loads and inspections change no file on disk", () =>
 {
-    byte[] corrupt = Mut.EditAndReseal(approvedBytes, "\"nextDeadwoodNumber\":2", "\"nextDeadwoodNumber\":3");
-    byte[] before = corrupt.ToArray();
-    var loaded = Phase1SaveCodec.Decode(approvedBytes, phase2Expect).Envelope;
-    byte[] loadedBytes = Phase1SaveCodec.Encode(loaded);
-    T.Refuses("SaveInconsistent", () => Phase1SaveCodec.Decode(corrupt, phase2Expect));
-    T.Refuses("SaveModelMismatch", () => Phase1SaveCodec.Decode(model0Bytes, phase2Expect));
-    T.Bytes(before, corrupt, "input bytes untouched");
-    T.Bytes(loadedBytes, Phase1SaveCodec.Encode(loaded), "previously decoded state untouched");
-    Deep.Equal(approvedSave, loaded);
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    slots.Save("alpha", approvedBytes, replaceExisting: false);
+    slots.Save("alpha", model0Bytes, replaceExisting: true); // backup = approved
+    string primary = Path.Combine(slots.Directory, "alpha.ccf2d.json"), backup = primary + ".bak";
+    byte[] corrupt = Mut.EditAndReseal(model0Bytes, "\"cropTreeIds\":[\"B001\"]", "\"cropTreeIds\":[\"B002\"]");
+    File.WriteAllBytes(primary, corrupt);
+    var before = Directory.EnumerateFiles(slots.Directory).Order(StringComparer.Ordinal)
+        .Select(f => (Path.GetFileName(f), File.ReadAllBytes(f))).ToArray();
+    T.Refuses("SaveInconsistent", () => slots.Load("alpha", model0Expect));
+    T.Refuses("SaveModelMismatch", () => slots.LoadBackup("alpha", model0Expect));
+    T.Eq("SaveInconsistent", slots.Inspect("alpha").PrimaryRefusal, "inspect reports the refusal");
+    var after = Directory.EnumerateFiles(slots.Directory).Order(StringComparer.Ordinal)
+        .Select(f => (Path.GetFileName(f), File.ReadAllBytes(f))).ToArray();
+    T.Eq(string.Join(",", before.Select(f => f.Item1)), string.Join(",", after.Select(f => f.Item1)), "same files");
+    for (int i = 0; i < before.Length; i++) T.Bytes(before[i].Item2, after[i].Item2, before[i].Item1 + " unchanged");
+    T.Bytes(corrupt, File.ReadAllBytes(primary), "corrupt primary kept for inspection, not repaired");
+    T.Bytes(approvedBytes, File.ReadAllBytes(backup), "backup kept");
 });
 
 // ------------------------------------------------------------------ slot store
@@ -218,7 +265,8 @@ T.Add("slots: illegal names refused (traversal, absolute, separators, dots, case
 {
     var slots = new Phase1SaveSlots(NewSlotDir());
     foreach (var name in new[] { "", "..", ".", "../x", "a/b", "a\\b", "/etc/passwd", "C:\\x", "Upper", "a.b", "-lead", "con", "nul", "lpt1",
-                 "slot name", "slot\u00e9", new string('a', 49), "a\0b", "x.ccf2d.json" })
+                 "slot name", "slot\u00e9", new string('a', 49), "a\0b", "x.ccf2d.json", "alpha\n", "\nalpha", "al\npha", "alpha\r\n",
+                 "alpha\r" })
     {
         T.Refuses("SlotNameInvalid", () => slots.Save(name, approvedBytes, replaceExisting: true));
         T.Refuses("SlotNameInvalid", () => slots.Load(name, null));
@@ -344,6 +392,243 @@ T.Add("slots: a directory or bad backup in place of a slot file is refused", () 
     File.WriteAllBytes(Path.Combine(slots.Directory, "eps.ccf2d.json.bak"), Encoding.UTF8.GetBytes("garbage"));
     T.Refuses("JsonInvalid", () => slots.RecoverFromBackup("eps"));
     T.Bytes(approvedBytes, File.ReadAllBytes(Path.Combine(slots.Directory, "eps.ccf2d.json")), "primary untouched by a refused recovery");
+});
+
+// ------------------------------------------------------------------ R1 repairs
+T.Add("F1 slot names: trailing, leading and embedded newlines are refused everywhere a name is matched", () =>
+{
+    foreach (var name in new[] { "alpha\n", "\nalpha", "al\npha" })
+    {
+        T.Refuses("SlotNameInvalid", () => Phase1SaveSlots.ValidateSlotName(name));
+        var slots = new Phase1SaveSlots(NewSlotDir());
+        T.Refuses("SlotNameInvalid", () => slots.Save(name, approvedBytes, replaceExisting: false));
+        T.Refuses("SlotNameInvalid", () => slots.LoadBackup(name, null));
+        T.Refuses("SlotNameInvalid", () => slots.Inspect(name));
+        T.Refuses("SlotNameInvalid", () => slots.RecoverFromBackup(name));
+        T.Refuses("SlotNameInvalid", () => slots.RemoveLeftoverTemps(name));
+        T.Eq(0, Directory.EnumerateFileSystemEntries(slots.Directory).Count(), "nothing written for " + name.Replace("\n", "\\n"));
+    }
+    // ListSlots ignores a file whose name part only matches with a trailing newline.
+    var listing = new Phase1SaveSlots(NewSlotDir());
+    listing.Save("alpha", approvedBytes, replaceExisting: false);
+    File.WriteAllBytes(Path.Combine(listing.Directory, "beta\n" + Phase1SaveSlots.Extension), approvedBytes);
+    T.Eq("alpha", string.Join(",", listing.ListSlots()), "newline-named file is not listed as a slot");
+});
+T.Add("F2 invalid UTF-8: typed refusal from Decode, Inspect and Save; a corrupt primary is still replaceable", () =>
+{
+    string json = Mut.Text(approvedBytes);
+    byte[] badString = approvedBytes.ToArray();
+    badString[json.IndexOf("Spring review", StringComparison.Ordinal)] = 0xFF;            // high-bit byte inside a string value
+    byte[] badKey = approvedBytes.ToArray();
+    badKey[json.IndexOf("\"label\"", StringComparison.Ordinal) + 1] = 0xC3;               // truncated 2-byte sequence inside a key
+    byte[] overlong = approvedBytes.ToArray();
+    int at = json.IndexOf("Spring review", StringComparison.Ordinal);
+    overlong[at] = 0xC1; overlong[at + 1] = 0x81;                                          // overlong encoding of 'A'
+    foreach (var bad in new[] { badString, badKey, overlong })
+    {
+        T.Refuses("SaveUtf8Invalid", () => Phase1SaveCodec.Decode(bad));
+        T.Refuses("SaveUtf8Invalid", () => Phase1SaveCodec.Decode(bad, phase2Expect));
+    }
+    // Valid UTF-8 that is not printable ASCII inside an identifier string is still a typed refusal (StrictJson rule).
+    var asciiOnly = T.RefusesAny(() => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "Spring review", "Spring révïew")));
+    T.True(asciiOnly.Code.Length > 0, "typed: " + asciiOnly.Code);
+
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    // Invalid bytes are never written.
+    T.Refuses("SaveUtf8Invalid", () => slots.Save("alpha", badString, replaceExisting: true));
+    T.Eq(0, Directory.EnumerateFileSystemEntries(slots.Directory).Count(), "no file, no temp");
+    slots.Save("alpha", approvedBytes, replaceExisting: false);
+    slots.Save("alpha", model0Bytes, replaceExisting: true); // backup = approved
+    string primary = Path.Combine(slots.Directory, "alpha.ccf2d.json");
+    File.WriteAllBytes(primary, badString);                // bit rot in the primary
+    T.Refuses("SaveUtf8Invalid", () => slots.Load("alpha", null));
+    var inspect = slots.Inspect("alpha");
+    T.True(inspect.PrimaryExists && inspect.PrimaryRefusal == "SaveUtf8Invalid" && inspect.BackupRefusal is null,
+        "Inspect reports a typed refusal instead of throwing: " + inspect.PrimaryRefusal);
+    var replaced = slots.Save("alpha", pendingBytes, replaceExisting: true);
+    T.True(!replaced.BackupUpdated, "the corrupt primary did not become the backup");
+    T.Bytes(pendingBytes, File.ReadAllBytes(primary), "the corrupt primary was replaced by a normal save");
+    T.Bytes(approvedBytes, File.ReadAllBytes(primary + ".bak"), "good backup kept");
+    T.Eq(0, slots.Inspect("alpha").LeftoverTempFiles.Count, "no temp file left");
+});
+T.Add("F3 no-clobber: a slot created concurrently after the existence check is never overwritten", () =>
+{
+    string dir = NewSlotDir();
+    var other = new Phase1SaveSlots(dir);
+    bool raced = false;
+    // Park the first writer after its temp is written and verified, just before the publish; a second writer creates
+    // the slot in that window. The first writer must then refuse, and the second writer's save must survive intact.
+    var parked = new Phase1SaveSlots(dir, stage =>
+    {
+        if (stage != Phase1SlotStage.BeforeReplace || raced) return;
+        raced = true;
+        other.Save("alpha", pendingBytes, replaceExisting: false);
+    });
+    T.Refuses("SlotExists", () => parked.Save("alpha", approvedBytes, replaceExisting: false));
+    T.True(raced, "the concurrent writer ran inside the window");
+    T.Bytes(pendingBytes, File.ReadAllBytes(Path.Combine(dir, "alpha.ccf2d.json")), "the concurrent save was not clobbered");
+    T.True(!File.Exists(Path.Combine(dir, "alpha.ccf2d.json.bak")), "no backup invented");
+    T.Eq(0, other.Inspect("alpha").LeftoverTempFiles.Count, "the refused writer removed its temp");
+    T.Eq(1, Directory.EnumerateFileSystemEntries(dir).Count(), "only the slot file remains");
+    // The published new slot is a single-link regular file (no leftover hard link from the publish).
+    T.Bytes(pendingBytes, Phase1SaveCodec.Encode(other.Load("alpha", phase2Expect).Envelope), "loads through the single-link reader");
+    // The confirmed-replace path keeps prior-good backup semantics.
+    var replaced = other.Save("alpha", approvedBytes, replaceExisting: true);
+    T.True(replaced.BackupUpdated, "confirmed replace refreshed the backup");
+    T.Bytes(pendingBytes, File.ReadAllBytes(Path.Combine(dir, "alpha.ccf2d.json.bak")), "backup is the prior good save");
+});
+T.Add("F4a accounts: Stage 5 and Phase 2 annual accounts align to the year", () =>
+{
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    T.RefusesRule("account", () => Phase1SaveCodec.Encode(s with { State = st with { Stage5 = st.Stage5! with {
+        Accounts = Array.Empty<Phase1Stage5YearAccount>() } } }));
+    T.RefusesRule("account", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2! with {
+        Accounts = Array.Empty<Phase1Phase2YearAccount>() } } }));
+    T.RefusesRule("account", () => Phase1SaveCodec.Encode(s with { State = st with { Stage5 = st.Stage5! with {
+        Accounts = st.Stage5.Accounts.Take(2).ToArray() } } }));
+    T.RefusesRule("account", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2! with {
+        Accounts = new[] { st.Phase2.Accounts[1], st.Phase2.Accounts[0], st.Phase2.Accounts[2] } } } }));
+});
+T.Add("F4b mast seeds: Stage 5 and Phase 2 seeds are the engine's derivation from options and genesis", () =>
+{
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    T.RefusesRule("mast seed", () => Phase1SaveCodec.Encode(s with { State = st with { Stage5 = st.Stage5! with { MastSeed = 999 } } }));
+    T.RefusesRule("mast seed", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2! with { OakMastSeed = 999 } } }));
+    T.RefusesRule("mast seed", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2! with { BeechMastSeed = 42 } } }));
+    // Positive control: naming the seed in the options makes the same state value legal.
+    var named = s with { State = st with { Options = st.Options with { Stage5 = st.Options.Stage5! with { MastSeed = 999 } },
+        Stage5 = st.Stage5! with { MastSeed = 999 }, Phase2 = st.Phase2! with { BeechMastSeed = 999 } } };
+    Deep.Equal(named, Phase1SaveCodec.Decode(Phase1SaveCodec.Encode(named)).Envelope);
+});
+T.Add("F4c lattice: the Phase 2 band lattice matches the Stage 5 cells position by position", () =>
+{
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    var a = st.Phase2!.Areas[0];
+    T.RefusesRule("band lattice", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2 with { Areas = new[] {
+        a with { Cells = new[] { a.Cells[1], a.Cells[0] } }, st.Phase2.Areas[1] } } } }));
+    T.RefusesRule("band lattice", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2 with { Areas = new[] {
+        a with { Cells = new[] { a.Cells[0] } }, st.Phase2.Areas[1] } } } }));
+    T.RefusesRule("band lattice", () => Phase1SaveCodec.Encode(s with { State = st with { Phase2 = st.Phase2 with { Areas = new[] {
+        a with { Cells = new[] { a.Cells[0], a.Cells[1] with { Column = 2 } } }, st.Phase2.Areas[1] } } } }));
+});
+T.Add("F4d plan-state revision: below the proven lower bound is refused, at the bound is accepted", () =>
+{
+    T.RefusesRule("plan-state revision", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":1")));
+    T.RefusesRule("plan-state revision", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":19")));
+    T.Eq(20, Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"planStateRevision\":24", "\"planStateRevision\":20"))
+        .Envelope.State.PlanStateRevision, "the exact lower bound (20) is accepted");
+    T.RefusesRule("plan-state revision", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(pendingBytes, "\"planStateRevision\":23", "\"planStateRevision\":18")));
+    T.Eq(19, Phase1SaveCodec.Decode(Mut.EditAndReseal(pendingBytes, "\"planStateRevision\":23", "\"planStateRevision\":19"))
+        .Envelope.State.PlanStateRevision, "pending sample lower bound (19) is accepted");
+    // Model 0 with one Crop mark needs at least one MarkCrop.
+    T.RefusesRule("plan-state revision", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(model0Bytes, "\"planStateRevision\":1", "\"planStateRevision\":0")));
+});
+T.Add("F4e deaths and fells are tied: a Fell death needs its fell record, a fell needs a Fell death in its year", () =>
+{
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    Phase1SaveEnvelope WithTree(string areaId, string treeId, Func<Phase1Tree, Phase1Tree> change) => s with { State = st with {
+        Areas = st.Areas.Select(a => a.AreaId != areaId ? a : a with { Trees = a.Trees.Select(t => t.TreeId == treeId ? change(t) : t).ToArray() })
+            .ToArray() } };
+    // A Harvest death with no fell record (A003 relabelled as felled).
+    T.RefusesRule("Fell death of", () => Phase1SaveCodec.Encode(WithTree("MA-A", "A003", t => t with {
+        Death = t.Death! with { Cause = FellCause.Harvest, Mechanism = FellCause.Mechanism } })));
+    // A fell whose tree's death year differs from the event year.
+    T.RefusesRule("died by Fell", () => Phase1SaveCodec.Encode(WithTree("MA-A", "A002", t => t with { Death = t.Death! with { EcologicalYear = 2 } })));
+    // A fell whose tree died naturally.
+    T.RefusesRule("died by Fell", () => Phase1SaveCodec.Encode(WithTree("MA-B", "B002", t => t with {
+        Death = t.Death! with { Cause = "DensitySuppression", Mechanism = "density" } })));
+    // A fell record that does not carry the engine's Fell cause.
+    T.RefusesRule("Fell cause", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes,
+        "\"cause\":\"fell\",\"mechanism\":\"manual-work-plan\",\"reason\"", "\"cause\":\"felled\",\"mechanism\":\"manual-work-plan\",\"reason\"")));
+});
+T.Add("F4f provenance: receipt tokens match genesis, event and lineage; receipt orders match ledger fells", () =>
+{
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    Phase1SaveEnvelope WithReceipt(int index, Func<Phase1ExecutedWork, Phase1ExecutedWork> change) => s with { State = st with {
+        Executed = st.Executed.Select((x, i) => i == index ? change(x) : x).ToArray() } };
+    T.RefusesRule("names this experiment", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { RecordedSource = x.RecordedSource with {
+        ManifestContentHash = new string('f', 64) } })));
+    T.RefusesRule("names this experiment", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { RecordedSource = x.RecordedSource with {
+        ExperimentId = "mad-other" } })));
+    T.RefusesRule("names this experiment", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { RecordedSource = x.RecordedSource with {
+        AreaIds = "MA-A" } })));
+    T.RefusesRule("names this experiment", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { RecordedSource = x.RecordedSource with {
+        Domain = "SomethingElse" } })));
+    // Years / revisions out of range for the receipt's event.
+    T.RefusesRule("exactly as it was", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { RecordedSource = Samples.Token(0, 0, 0) })));
+    T.RefusesRule("exactly as it was", () => Phase1SaveCodec.Encode(WithReceipt(1, x => x with { RecordedSource = Samples.Token(7, 7, 1) })));
+    T.RefusesRule("exactly as it was", () => Phase1SaveCodec.Encode(WithReceipt(1, x => x with { RecordedSource = Samples.Token(2, 2, 0) })));
+    T.RefusesRule("recorded lineage", () => Phase1SaveCodec.Encode(WithReceipt(1, x => x with { RecordedSource = x.RecordedSource with {
+        GrowthModelVersion = x.RecordedSource.GrowthModelVersion + 1 } })));
+    // Receipt orders differ from the event's fells (other tree, other reason, extra order).
+    T.RefusesRule("orders are exactly", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { Orders = st.Executed[1].Orders })));
+    T.RefusesRule("orders are exactly", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { Orders = new[] { x.Orders[0] with { Reason = "other" } } })));
+    T.RefusesRule("orders are exactly", () => Phase1SaveCodec.Encode(WithReceipt(0, x => x with { Orders = x.Orders.Concat(st.Executed[1].Orders).ToArray() })));
+});
+T.Add("B1 approved plan: only orders are saved (no planId, executionKey or recordedSource)", () =>
+{
+    T.Eq("Orders", string.Join(",", typeof(Phase1ApprovedPlan).GetProperties().Select(p => p.Name)), "DTO has orders only");
+    string json = Mut.Text(approvedBytes);
+    T.True(json.Contains("\"approved\":{\"orders\":[{", StringComparison.Ordinal), "approved object holds only orders");
+    T.True(!json.Contains("key-approved", StringComparison.Ordinal) && !json.Contains("ma-plan:9", StringComparison.Ordinal), "no minted id");
+    T.Refuses("UnknownKey", () => Phase1SaveCodec.Decode(Mut.EditAndReseal(approvedBytes, "\"approved\":{\"orders\":",
+        "\"approved\":{\"planId\":\"sess:ma-plan:9\",\"orders\":")));
+    // An approval with no order of any kind cannot exist (Approve refuses an empty plan).
+    var s = Samples.Phase2Approved();
+    var st = s.State;
+    T.RefusesRule("at least one order", () => Phase1SaveCodec.Encode(s with { State = st with {
+        Approved = new Phase1ApprovedPlan(Array.Empty<Phase1WorkOrder>()), Stage4 = st.Stage4! with { ApprovedPrunes = Array.Empty<Phase1PruneOrder>() },
+        Stage5 = st.Stage5! with { ApprovedClears = Array.Empty<Phase1ClearOrder>() }, Phase2 = st.Phase2! with {
+            ApprovedOrders = Array.Empty<Phase1PlantingOrder>() } } }));
+});
+T.Add("robustness: null header parts are typed refusals, not NullReferenceException", () =>
+{
+    var s = Samples.Phase2Approved();
+    T.Refuses("SaveModelUnsupported", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { Models = null! } }));
+    T.RefusesRule("lineage", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { Lineage = null! } }));
+    T.RefusesRule("genesis identity", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { Genesis = null! } }));
+    T.RefusesRule("content hash", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { Genesis = s.Header.Genesis with {
+        ManifestContentHash = null! } } }));
+    T.Refuses("SaveTimeInvalid", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { SavedUtc = null! } }));
+    T.Refuses("SaveLabelInvalid", () => Phase1SaveCodec.Encode(s with { Header = s.Header with { Label = null! } }));
+});
+T.Add("robustness: a symlinked ancestor of the slot directory is refused at construction", () =>
+{
+    string realParent = Path.Combine(outside, "real-parent");
+    Directory.CreateDirectory(Path.Combine(realParent, "slots"));
+    string linkedParent = Path.Combine(scratch, "linked-parent");
+    Directory.CreateSymbolicLink(linkedParent, realParent);
+    var e = T.Refuses("SlotDirectoryInvalid", () => new Phase1SaveSlots(Path.Combine(linkedParent, "slots")));
+    T.True(e.Message.Contains("linked-parent", StringComparison.Ordinal), "names the symlinked component");
+    T.True(new Phase1SaveSlots(Path.Combine(realParent, "slots")).Directory.EndsWith("slots", StringComparison.Ordinal), "real path accepted");
+});
+T.Add("robustness: Inspect reports a directory at the primary path as present and not a file", () =>
+{
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    Directory.CreateDirectory(Path.Combine(slots.Directory, "delta.ccf2d.json"));
+    Directory.CreateDirectory(Path.Combine(slots.Directory, "delta.ccf2d.json.bak"));
+    var inspect = slots.Inspect("delta");
+    T.True(inspect.PrimaryExists && inspect.PrimaryRefusal == "SlotNotAFile", "primary: " + inspect.PrimaryExists + "/" + inspect.PrimaryRefusal);
+    T.True(inspect.BackupExists && inspect.BackupRefusal == "SlotNotAFile", "backup: " + inspect.BackupExists + "/" + inspect.BackupRefusal);
+    var missing = slots.Inspect("nothing");
+    T.True(!missing.PrimaryExists && missing.PrimaryRefusal is null, "a genuinely absent slot is still 'does not exist'");
+});
+T.Add("golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding", () =>
+{
+    // Pins the exact canonical bytes of schema 2. Any change to key order, spelling, tags, fixture values or the schema
+    // changes this value; update it only together with a deliberate, reviewed format change.
+    const string PinnedFileSha256 = "c0ea8a460d9ebee53dc6e2f03bd88c72032d2916fa9614f1fc370532b5b7bee7";
+    const string PinnedEmbeddedChecksum = "9629ac1648fabd85702fc4105075cebe9f69e884a816edcce4c441a3866c9086";
+    string fileSha = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(approvedBytes)).ToLowerInvariant();
+    string embedded = Phase1SaveCodec.Decode(approvedBytes).Checksum;
+    T.Eq(24703, approvedBytes.Length, "byte length");
+    T.Eq(PinnedFileSha256, fileSha, "file SHA-256");
+    T.Eq(PinnedEmbeddedChecksum, embedded, "embedded checksum");
 });
 
 int exit;

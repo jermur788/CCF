@@ -5,9 +5,9 @@ namespace SitkaP1.Core.Phase1;
 // copy. The DTO is deliberately public and engine-free: it carries values only, never behaviour.
 //
 // Deliberately NOT here (spec §3): the presentational /multi view JSON, canopy/ground read-out caches, the transient
-// session ID and any live source fence. Source tokens appear ONLY as recorded provenance inside an approved plan and an
-// executed-key receipt (the engine compares an exact retry against them); they are never accepted as a live fence, and a
-// load always creates a fresh session whose ID no old fence carries.
+// session ID, any live source fence, and the approved plan's PlanId / execution key / approval token (authority-bearing;
+// only its orders are kept). Source tokens appear ONLY as inert recorded provenance inside an executed-key receipt; they
+// are never accepted as a live fence, and a load always creates a fresh session whose ID no old fence carries.
 //
 // Mirrors (engine, read-only at cf6fe7a5): MultiAreaRoot, MultiAreaAreaState, AnnualState/AnnualTree/AnnualDeath/
 // AnnualStand, MultiAreaWorkOrder/ApprovedPlan/FellRecord/AreaChange/WorkEvent/ExecutedWork/YearRecord/AreaYear,
@@ -73,8 +73,13 @@ public sealed record Phase1SourceToken(string Domain, string ExperimentId, strin
 /// <summary>A Fell order. <see cref="Action"/> is the public engine enum WorkAction (only Fell exists).</summary>
 public sealed record Phase1WorkOrder(string AreaId, string TreeId, WorkAction Action, string Reason);
 
-public sealed record Phase1ApprovedPlan(string PlanId, string ExecutionKey, Phase1SourceToken RecordedSource,
-    IReadOnlyList<Phase1WorkOrder> Orders);
+/// <summary>
+/// The Fell orders of the plan that was approved when the save was made — orders only. The engine-minted PlanId, execution
+/// key and approval source token are authority-bearing and are deliberately NOT saved (owner load policy A, reviewer
+/// ruling B1): A1 rehydrates these orders, with the approved Prune/Clear/planting orders, as an unapproved pending draft
+/// that the player must approve again under a fresh session.
+/// </summary>
+public sealed record Phase1ApprovedPlan(IReadOnlyList<Phase1WorkOrder> Orders);
 
 public sealed record Phase1FellRecord(string AreaId, string TreeId, string Cause, string Mechanism, string Reason,
     int EcologicalYear, int WorkRevision, string ExecutionKey, string PlanId);

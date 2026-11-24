@@ -11,8 +11,13 @@ public static class Phase1SaveFormat
     /// <summary>Format marker written first in every file. Anything else is refused, never guessed.</summary>
     public const string Format = "ccf-2d-multiarea-save";
 
-    /// <summary>The only schema version this code reads or writes. No migration exists (owner choice A).</summary>
-    public const int SchemaVersion = 1;
+    /// <summary>
+    /// The only schema version this code reads or writes. No migration exists (owner choice A). Version 2 (A0 repair R1)
+    /// added the engine lineage to the header and removed planId/executionKey/recordedSource from the saved approved plan.
+    /// No version 1 file was ever produced outside A0 test scratch, but any stray A0-candidate file now gets a clear
+    /// <c>SaveSchemaUnsupported</c> instead of a confusing shape error.
+    /// </summary>
+    public const int SchemaVersion = 2;
 
     /// <summary>
     /// Largest file accepted, in bytes (64 MiB). Checked before parsing. A 100-year Phase 2 save with per-cell Stage 5
@@ -95,7 +100,36 @@ public sealed record Phase1GenesisIdentity(string ExperimentId, string ManifestC
     int GeneratorVersion, long GeneratorSeed, IReadOnlyList<Phase1GenesisArea> Areas);
 
 /// <summary>
-/// What a load requires: the exact model vector and genesis identity of the session the save would replace. Any
-/// difference is a hard, explanatory refusal; nothing is upgraded, migrated or substituted (owner choice A).
+/// The engine/algorithm lineage a save was made under: the same five values the engine stamps into every source token
+/// (MultiAreaContinuation.Token). Two engines with the same model vector but a different RNG, growth, P1 algorithm,
+/// area-model or action-threshold lineage would continue the forest differently, so a load requires every value to match.
 /// </summary>
-public sealed record Phase1SaveExpectation(Phase1ModelVector Models, Phase1GenesisIdentity Genesis);
+public sealed record Phase1EngineLineage(int RngModelVersion, int GrowthModelVersion, string P1AlgorithmVersion,
+    string AreaModelVersion, long ActionEligibleDbhThresholdMm)
+{
+    /// <summary>
+    /// The lineage THIS engine build stamps for a session with <paramref name="models"/>, built exactly as the
+    /// MultiAreaContinuation constructor builds its area-model version and as Token() fills the other four values.
+    /// </summary>
+    public static Phase1EngineLineage Current(Phase1ModelVector models)
+    {
+        ArgumentNullException.ThrowIfNull(models);
+        if (!models.IsSupported) throw new P1Refusal("SaveModelUnsupported", "model vector " + models + " is not one the engine accepts");
+        string baseVersion = models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
+            : models.Crown != 0 ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion;
+        string areaModel = Phase2Identity.AreaModelVersion(
+            Stage5Identity.AreaModelVersion(baseVersion, (MultiAreaRegenerationModelVersion)models.Regeneration),
+            (SpeciesModelVersion)models.Species);
+        return new Phase1EngineLineage(DerivedManifest.RngModelVersion, DerivedManifest.GrowthModelVersion,
+            DerivedManifest.P1AlgorithmVersion, areaModel, MultiAreaIdentity.ActionEligibleDbhThresholdMm);
+    }
+
+    public override string ToString() => FormattableString.Invariant(
+        $"rng {RngModelVersion}, growth {GrowthModelVersion}, p1 {P1AlgorithmVersion}, area {AreaModelVersion}, threshold {ActionEligibleDbhThresholdMm} mm");
+}
+
+/// <summary>
+/// What a load requires: the exact model vector, genesis identity and engine lineage of the session the save would
+/// replace. Any difference is a hard, explanatory refusal; nothing is upgraded, migrated or substituted (owner choice A).
+/// </summary>
+public sealed record Phase1SaveExpectation(Phase1ModelVector Models, Phase1GenesisIdentity Genesis, Phase1EngineLineage Lineage);

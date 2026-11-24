@@ -47,7 +47,16 @@ public static class Phase1SaveCodec
         if (bytes.Length > maxBytes)
             throw new P1Refusal("SaveTooLarge", FormattableString.Invariant($"the save is {bytes.Length} bytes; the limit is {maxBytes}"));
 
-        var root = StrictJson.Parse(bytes);
+        // Strict UTF-8 first: StrictJson's reader throws an untyped InvalidOperationException on invalid UTF-8 inside a
+        // string or key, which would escape every P1Refusal handler (slot inspection, backup refresh, API callers).
+        if (!System.Text.Unicode.Utf8.IsValid(bytes))
+            throw new P1Refusal("SaveUtf8Invalid", "the save is not valid UTF-8; it is corrupt");
+        JNode root;
+        try { root = StrictJson.Parse(bytes); }
+        catch (InvalidOperationException) // defence in depth: any other reader state error is still a typed refusal
+        {
+            throw new P1Refusal("SaveUtf8Invalid", "the save could not be read as UTF-8 JSON text; it is corrupt");
+        }
         RequireFormatAndSchema(root);
         var top = J.Keys(root, "save", "format", "schemaVersion", "header", "payload", "checksum");
         var header = ReadHeader(top["header"]);
@@ -76,13 +85,15 @@ public static class Phase1SaveCodec
     }
 
     /// <summary>
-    /// Refuses unless <paramref name="header"/> has exactly the expected model vector and genesis identity. The messages
-    /// say what differs; nothing is migrated (owner choice A).
+    /// Refuses unless <paramref name="header"/> has exactly the expected model vector, genesis identity and engine lineage.
+    /// The messages say what differs; nothing is migrated (owner choice A).
     /// </summary>
     public static void RequireExpected(Phase1SaveHeader header, Phase1SaveExpectation expectation)
     {
         ArgumentNullException.ThrowIfNull(header);
         ArgumentNullException.ThrowIfNull(expectation);
+        if (expectation.Models is null || expectation.Genesis is null || expectation.Lineage is null)
+            throw new P1Refusal("SaveExpectationInvalid", "a load expectation needs the model vector, genesis identity and engine lineage");
         if (header.Models != expectation.Models)
             throw new P1Refusal("SaveModelMismatch", "this save was made with model vector " + header.Models +
                 " and cannot be loaded into a " + expectation.Models + " session; saves are never upgraded or migrated between models");
@@ -97,6 +108,11 @@ public static class Phase1SaveCodec
             throw new P1Refusal("SaveGenesisMismatch", "this save belongs to experiment " + a.ExperimentId + " (content hash " +
                 a.ManifestContentHash + "), not to the running experiment " + b.ExperimentId + " (content hash " +
                 b.ManifestContentHash + "); no forest identity is substituted");
+        // Records compare every field exactly (ordinal strings, exact integers).
+        if (header.Lineage != expectation.Lineage)
+            throw new P1Refusal("SaveLineageMismatch", "this save was made by an engine with lineage [" + header.Lineage +
+                "], but the running engine has [" + expectation.Lineage + "]; a save is never continued by a different " +
+                "random, growth, algorithm, area-model or threshold version");
     }
 
     /// <summary>The checksum hex of an encoded header and payload: SHA-256 over their exact canonical UTF-8 bytes.</summary>
@@ -148,13 +164,18 @@ public static class Phase1SaveCodec
             .BeginArray("areas");
         foreach (var a in g.Areas)
             w.BeginObject().Str("areaId", a.AreaId).Int("simulationSeed", a.SimulationSeed).F32("areaHa", a.AreaHa).EndObject();
-        w.EndArray().EndObject().EndObject();
+        w.EndArray().EndObject();
+        var l = h.Lineage;
+        w.BeginObject("lineage").Int("rngModelVersion", l.RngModelVersion).Int("growthModelVersion", l.GrowthModelVersion)
+            .Str("p1AlgorithmVersion", l.P1AlgorithmVersion).Str("areaModelVersion", l.AreaModelVersion)
+            .I64("actionEligibleDbhThresholdMm", l.ActionEligibleDbhThresholdMm).EndObject();
+        w.EndObject();
         return w.ToString();
     }
 
     private static Phase1SaveHeader ReadHeader(JNode n)
     {
-        var o = J.Keys(n, "header", "label", "savedUtc", "saveGeneration", "ecologicalYear", "models", "genesis");
+        var o = J.Keys(n, "header", "label", "savedUtc", "saveGeneration", "ecologicalYear", "models", "genesis", "lineage");
         var m = J.Keys(o["models"], "header.models", "adult", "mortality", "crown", "regeneration", "species");
         var models = new Phase1ModelVector(R.I32(m["adult"], "models.adult"), R.I32(m["mortality"], "models.mortality"),
             R.I32(m["crown"], "models.crown"), R.I32(m["regeneration"], "models.regeneration"), R.I32(m["species"], "models.species"));
@@ -169,8 +190,13 @@ public static class Phase1SaveCodec
         var genesis = new Phase1GenesisIdentity(J.Str(g["experimentId"], "experimentId"),
             J.Str(g["manifestContentHash"], "manifestContentHash"), J.Str(g["generatorId"], "generatorId"),
             R.I32(g["generatorVersion"], "generatorVersion"), R.I64(g["generatorSeed"], "generatorSeed"), areas);
+        var l = J.Keys(o["lineage"], "header.lineage", "rngModelVersion", "growthModelVersion", "p1AlgorithmVersion", "areaModelVersion",
+            "actionEligibleDbhThresholdMm");
+        var lineage = new Phase1EngineLineage(R.I32(l["rngModelVersion"], "rngModelVersion"), R.I32(l["growthModelVersion"], "growthModelVersion"),
+            J.Str(l["p1AlgorithmVersion"], "p1AlgorithmVersion"), J.Str(l["areaModelVersion"], "areaModelVersion"),
+            R.I64(l["actionEligibleDbhThresholdMm"], "actionEligibleDbhThresholdMm"));
         return new Phase1SaveHeader(J.Str(o["label"], "label"), J.Str(o["savedUtc"], "savedUtc"),
-            R.I64(o["saveGeneration"], "saveGeneration"), R.I32(o["ecologicalYear"], "ecologicalYear"), models, genesis);
+            R.I64(o["saveGeneration"], "saveGeneration"), R.I32(o["ecologicalYear"], "ecologicalYear"), models, genesis, lineage);
     }
 
     // ------------------------------------------------------------------------------------------------ payload writer
@@ -229,8 +255,7 @@ public static class Phase1SaveCodec
         if (s.Approved is null) w.Null("approved");
         else
         {
-            w.BeginObject("approved").Str("planId", s.Approved.PlanId).Str("executionKey", s.Approved.ExecutionKey);
-            w.Key("recordedSource"); WriteToken(w, s.Approved.RecordedSource);
+            w.BeginObject("approved");
             WriteOrders(w, "orders", s.Approved.Orders);
             w.EndObject();
         }
@@ -595,9 +620,8 @@ public static class Phase1SaveCodec
         Phase1ApprovedPlan? approved = null;
         if (o["approved"] is not JNull)
         {
-            var a = J.Keys(o["approved"], "approved", "planId", "executionKey", "recordedSource", "orders");
-            approved = new Phase1ApprovedPlan(J.Str(a["planId"], "planId"), J.Str(a["executionKey"], "executionKey"),
-                ReadToken(a["recordedSource"]), ReadOrders(a["orders"], "approved.orders"));
+            var a = J.Keys(o["approved"], "approved", "orders");
+            approved = new Phase1ApprovedPlan(ReadOrders(a["orders"], "approved.orders"));
         }
         var history = R.List(o["annualHistory"], "annualHistory", x =>
         {

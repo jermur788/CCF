@@ -23,6 +23,26 @@ public static class T
         throw new Exception($"expected refusal {code}, but the call succeeded");
     }
 
+    /// <summary>
+    /// Requires <c>SaveInconsistent</c> AND a message naming the intended rule, so a mutation test cannot pass because some
+    /// other, unrelated rule happened to refuse the edited save.
+    /// </summary>
+    public static P1Refusal RefusesRule(string ruleFragment, Action a)
+    {
+        var e = Refuses("SaveInconsistent", a);
+        if (!e.Message.Contains(ruleFragment, StringComparison.Ordinal))
+            throw new Exception($"refused by the wrong rule: expected one naming '{ruleFragment}', got: {e.Message}");
+        return e;
+    }
+
+    /// <summary>Requires a typed <see cref="P1Refusal"/> of any code (never an untyped exception, never success).</summary>
+    public static P1Refusal RefusesAny(Action a)
+    {
+        try { a(); }
+        catch (P1Refusal e) { return e; }
+        throw new Exception("expected a typed refusal, but the call succeeded");
+    }
+
     public static void True(bool ok, string what) { if (!ok) throw new Exception("assertion failed: " + what); }
 
     public static void Eq<TV>(TV expected, TV actual, string what)

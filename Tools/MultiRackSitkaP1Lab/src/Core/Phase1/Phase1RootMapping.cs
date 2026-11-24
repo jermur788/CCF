@@ -1,7 +1,18 @@
 namespace SitkaP1.Core.Phase1;
 
-/// <summary>What <see cref="Phase1RootMapping.Restore"/> rebuilds: the engine root plus the session inputs held outside it.</summary>
-internal sealed record Phase1RestoredRoot(MultiAreaRoot Root, MultiAreaModelSelection Models, Stage4Options? Stage4Options);
+/// <summary>
+/// The orders of the plan that was approved at save time, handed back separately and never as an approval (reviewer ruling
+/// B1, owner load policy A). A1 decides how they re-enter the new session as an unapproved pending draft.
+/// </summary>
+internal sealed record Phase1SavedApprovalDraft(IReadOnlyList<MultiAreaWorkOrder> Fells, IReadOnlyList<MultiAreaPruneOrder> Prunes,
+    IReadOnlyList<MultiAreaClearUndergrowthOrder> Clears, IReadOnlyList<MultiAreaPlantingOrder> Planting);
+
+/// <summary>
+/// What <see cref="Phase1RootMapping.Restore"/> rebuilds: the engine root (with NO approved plan and empty approved order
+/// lists), the session inputs held outside it, and the saved approval's orders as a draft for A1 (null when none was saved).
+/// </summary>
+internal sealed record Phase1RestoredRoot(MultiAreaRoot Root, MultiAreaModelSelection Models, Stage4Options? Stage4Options,
+    Phase1SavedApprovalDraft? SavedApproval);
 
 /// <summary>
 /// INTERNAL A1 SEAM — pure field copies between the engine's commit root and the public save DTO. Nothing here locks,
@@ -61,8 +72,8 @@ internal static class Phase1RootMapping
         return new Phase1SaveState(options, root.EcologicalYear, root.AnnualRevision, root.WorkRevision, root.PlanStateRevision,
             L(root.Areas.Select(a => new Phase1AreaState(a.AreaId, a.State.EcologicalYear, L(a.State.Trees.Select(Tree)), L(a.CropTreeIds)))),
             L(root.Events.Select(Event)), L(executed), Orders(root.Pending),
-            root.Approved is null ? null
-                : new Phase1ApprovedPlan(root.Approved.PlanId, root.Approved.ExecutionKey, Token(root.Approved.Source), Orders(root.Approved.Orders)),
+            // Orders only: the engine-minted PlanId, execution key and approval token are never saved (B1).
+            root.Approved is null ? null : new Phase1ApprovedPlan(Orders(root.Approved.Orders)),
             L(root.AnnualHistory.Select(y => new Phase1YearRecord(y.YearBefore, y.YearAfter, y.AnnualRevisionAfter, y.WorkRevision,
                 L(y.Areas.Select(a => new Phase1AreaYear(a.AreaId, Stand(a.Before), Stand(a.After), L(a.NaturalDeaths.Select(Death)), a.NoLivingStems))),
                 y.CancelledUnexecutedWork))),
@@ -202,18 +213,25 @@ internal static class Phase1RootMapping
             };
         }
 
+        var stage4 = s.Stage4 is null ? null : Stage4(s.Stage4);
+        var stage5 = s.Stage5 is null ? null : Stage5(s.Stage5, s.Options.Stage5!);
+        var phase2 = s.Phase2 is null ? null : Phase2(s.Phase2, s.Options.Phase2!);
+        // B1: never rebuild an approval. The saved approval's orders go to A1 as a draft, and every approved order list in
+        // the root is emptied so the root holds no approved work without an approved plan.
+        var savedApproval = s.Approved is null ? null
+            : new Phase1SavedApprovalDraft(Orders(s.Approved.Orders), stage4?.ApprovedPrunes ?? Array.Empty<MultiAreaPruneOrder>(),
+                stage5?.ApprovedClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>(),
+                phase2?.ApprovedOrders ?? Array.Empty<MultiAreaPlantingOrder>());
         var root = new MultiAreaRoot(s.EcologicalYear, s.AnnualRevision, s.WorkRevision, s.PlanStateRevision,
             L(s.Areas.Select(a => new MultiAreaAreaState(a.AreaId, new AnnualState(a.EcologicalYear, L(a.Trees.Select(Tree))), L(a.CropTreeIds)))),
-            events, executed, Orders(s.Pending),
-            s.Approved is null ? null
-                : new MultiAreaApprovedPlan(s.Approved.PlanId, s.Approved.ExecutionKey, Token(s.Approved.RecordedSource), Orders(s.Approved.Orders)),
+            events, executed, Orders(s.Pending), Approved: null,
             L(s.AnnualHistory.Select(y => new MultiAreaYearRecord(y.YearBefore, y.YearAfter, y.AnnualRevisionAfter, y.WorkRevision,
                 L(y.Areas.Select(a => new MultiAreaAreaYear(a.AreaId, Stand(a.Before), Stand(a.After), L(a.NaturalDeaths.Select(Death)),
                     a.NoLivingStems))), y.CancelledUnexecutedWork))),
-            s.Stage4 is null ? null : Stage4(s.Stage4),
-            s.Stage5 is null ? null : Stage5(s.Stage5, s.Options.Stage5!),
-            s.Phase2 is null ? null : Phase2(s.Phase2, s.Options.Phase2!));
-        return new Phase1RestoredRoot(root, models, stage4Options);
+            stage4 is null ? null : stage4 with { ApprovedPrunes = Array.Empty<MultiAreaPruneOrder>() },
+            stage5 is null ? null : stage5 with { ApprovedClears = Array.Empty<MultiAreaClearUndergrowthOrder>() },
+            phase2 is null ? null : phase2 with { ApprovedOrders = Array.Empty<MultiAreaPlantingOrder>() });
+        return new Phase1RestoredRoot(root, models, stage4Options, savedApproval);
     }
 
     private static AnnualTree Tree(Phase1Tree t) =>
