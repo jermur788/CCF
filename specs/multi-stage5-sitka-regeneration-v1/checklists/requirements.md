@@ -1,6 +1,6 @@
 # Requirements — MULTI Stage 5 numerical quality gates (APPROVED)
 
-**Status: APPROVED — owner approval 2026-11-23; AMENDED — owner Option A, 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; Option A changes §4, Q4 and Q5 and splits `S5-07`; see the `spec.md` approval and amendment records). **AMENDED — owner final bounded-repair decisions, 2026-11-23:** the `S5-07A` population and units (D1) and the `S5-02` criterion (D2); no rule changes; see the second `spec.md` amendment record. Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
+**Status: APPROVED — owner approval 2026-11-23; AMENDED — owner Option A, 2026-11-23** (quartet, §4 `2.5 m` scaling policy and Q1–Q6 resolutions; Option A changes §4, Q4 and Q5 and splits `S5-07`; see the `spec.md` approval and amendment records). **AMENDED — owner final bounded-repair decisions, 2026-11-23:** the `S5-07A` population and units (D1) and the `S5-02` criterion (D2); no rule changes; see the second `spec.md` amendment record. **AMENDED (documentation only) — owner record, 2026-11-24:** `S5-07A` keeps the whole-cell unit (nominal matched grid area) and certifies the matched population in aggregate only; the edge limitation is owner-accepted; the `S5-02` margins are the owner's from 2026-11-24; see the third `spec.md` amendment record. Mark only from observed evidence. Words are kept separate: `IMPLEMENTED` ≠ `NUMERICALLY QUALIFIED` ≠ `REVIEWED`.
 
 ## Decision gates (before implementation)
 
@@ -13,6 +13,10 @@
 - [x] G07 Owner final bounded-repair decisions (2026-11-23):
   - D1: `S5-07A` is gated on the blocks represented on both lattices, per hectare of matched in-polygon area.
   - D2: `S5-02` is comparative suppression; the poor-light census is a diagnostic only.
+- [x] G08 Owner record (2026-11-24; documentation only, no rule, test or code change):
+  - R1: the `S5-07A` whole-cell unit is kept. The owner rejected own-clipped-area and same-true-ground blocking units.
+  - R2: the edge-block limitation is accepted. `S5-07A` is aggregate-only, and no edge-equivalence claim is made.
+  - R3: the `S5-02` margins (0.315 m, 0.8 ×, years 12 and 15) are adopted as the owner's from 2026-11-24, with their provenance disclosed.
 
 ## Qualification tests
 
@@ -25,6 +29,12 @@
   5. The gap's tallest cohort is at least 1.5 m in year 12.
 
   The poor-light census (dense cells with LR < 0.15) is **printed, never asserted**.
+
+  *Margin provenance (owner record 2026-11-24, R3).* The criterion-4 margins (0.315 m lead, 0.8 × abundance, years 12 and 15) are the **owner's binding margins from 2026-11-24**. The owner adopted them after review confirmed two things:
+  - they are spec-derived: 0.35 × 0.90 × 1.0; 1 − 0.2; 0.15 + 11 × 0.315 = 3.615 ≥ 3.5;
+  - they sit 2–5× away from the observed data.
+
+  The implementing worker first chose them after reading the prior handoff's 3.24 m gap height and 7/12 census. The 2026-11-23 text presented them as an owner record before the owner had seen them. They were not the owner's before 2026-11-24.
 - *Superseded (first approval, wording):* "**S5-02 Dark interior vs managed gap.** Same seed sources: dense unthinned interior stays suppressed; thinned gap raises the modelled light index, establishes cohorts and grows them toward promotion (non-PAR caveat stated)." *Superseded (first-pass and Option A test proxy, never owner-specified):* "every dense test cell is in the poor-light band in year 12."
 - [ ] **S5-03 Bramble/bracken.** Both initialise at `0.25·T`; track light with gain `0.30` / loss `0.45`; `p_veg` equals `0.35·max·heightVuln` exactly (full ≤ 0.3 m, zero ≥ 1.5 m).
 - [ ] **S5-04 `ClearUndergrowth`.** Pending/Approve mutate nothing; Execute zeroes bramble and bracken on targets and keeps every Sitka cohort; never advances the year; fence/revision enforced; idempotent replay; stale or invalid targets refuse the whole batch.
@@ -34,9 +44,25 @@
   - *Setup.* The same MA-1 woodland at 2.5 m and at 5.0 m: ≥ 20 seeds, 30 years, managed thinning and no work.
   - *Shared light.* Both grids read an **identical shared light field**: the regeneration-free `1/1/1/0` adult canopy, read at aligned 5 m block centres. Bit-equal light at every coincident point in every year is asserted, and the test's year loop is shown to reproduce `Advance` bit for bit under model light.
   - *Population.* The **matched-area population**: the aligned 5 m blocks represented on both lattices (5 m centre inside a polygon; 101 on MA-1). Its 1:1 correspondence with the 5.0 m cells is **asserted**.
-  - *Units.* **Per hectare of matched in-polygon area**: 2.5 m cells × 6.25 m² (1–4 per matched block) against 5.0 m cells × 25 m². Both area totals are reported and asserted > 0.
-  - *Gate.* The **pooled and mean** area-normalised ratios of cumulative accepted abundance and of cumulative promotions all lie in `[0.75, 1.33]`.
+  - *Units (owner record 2026-11-24, R1: kept as the gate).* **Whole-cell units, per hectare of nominal matched grid area**: in-polygon 2.5 m cell centres × 6.25 m² (1–4 per matched block) against 5.0 m cells × 25 m². Both area totals are reported and asserted > 0.
+    - *What the denominator is.* It counts nominal grid area, not forest area: a 5.0 m cell counts 25 m² even where it is partly outside the polygon (2525 m² nominal against 2270.06 m² clipped on MA-1). This is conservative for the promotion result, which is why the owner kept it.
+    - *Rejected alternatives.* The owner explicitly considered and rejected each grid's own clipped area, and the same true-ground area, as the blocking unit.
+    - *Superseded label (2026-11-23):* "**Per hectare of matched in-polygon area**".
+  - *Gate.* The **pooled and mean** whole-cell per-hectare ratios of cumulative accepted abundance and of cumulative promotions all lie in `[0.75, 1.33]`, for both metrics in both scenarios.
+  - *Measured comparison on three bases* (pooled; recorded verbatim from the owner record; whole-cell is the gate):
+
+    | Basis | Thinning promo | No work promo | Thinning abundance | No work abundance |
+    |---|---|---|---|---|
+    | whole-cell (gate) | 1.247 | 1.181 | 0.956 | 0.952 |
+    | own clipped area | 1.146 | 1.085 | 0.879 | 0.875 |
+    | same true ground | 1.120 | 1.061 | 0.859 | 0.855 |
   - *Also required.* Zero out-of-polygon promoted trees. `5.0 m` keeps `a = 1.0` with no edge-gate reduction (output equals the first-pass engine). No damping constant. (spec §4, §9 Q4)
+  - *Scope — owner-accepted limitation (2026-11-24, R2).* `S5-07A` certifies the matched population **in aggregate only**. Matched edge blocks are **not** equivalent under the Option A rule, and no edge-equivalence claim is made.
+    - *Edge promotions.* Matched edge promotions are 1.902 (managed thinning) and 1.841 (no work) per nominal hectare. All 40 seed-runs are above 1.33.
+    - *Edge share.* Edge blocks are 15–24 % of the gated area but carry 44–69 % of the promotions.
+    - *Mechanism.* A promotion exports only the in-polygon cells' abundance but always creates one whole tree, and the per-block credit rarely binds: `4/n × raw edge ratio = 1.745 × 1.090 = 1.902`.
+    - *No clean basis.* No area basis makes both edge metrics clean. Whole-cell units make edge abundance look exact (0.99–1.04). Ground-based units bring promotions to 1.06–1.30 but push edge abundance to 0.57–0.71.
+    - The aggregate pass must not be quoted as an edge-equivalence claim.
 - *Superseded (Option A, 2026-11-23):* "The whole-stand **pooled and mean** ratios of cumulative accepted abundance and of cumulative promotions all lie in `[0.75, 1.33]`." (raw whole-stand totals)
 - [ ] **S5-07B Grid diagnostic — MANDATORY, NON-BLOCKING (amended 2026-11-23, owner Option A; disclosure added 2026-11-23, final bounded repair D1).** The same comparison under each grid's own light field, with no threshold and no assertion. It reports:
   - real-light ratios;
