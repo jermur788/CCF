@@ -667,6 +667,40 @@ T.Add("NB1b: concurrent saves of one slot are serialized and leave one complete 
     T.True(inspect.PrimaryRefusal is null && inspect.BackupExists && inspect.BackupRefusal is null,
         "one save is the primary and the other its verified backup");
 });
+T.Add("NB1c: a generation read and written inside the slot scope is unique per save", () =>
+{
+    // Two saves of one slot that read the generation, then write, can otherwise both record the same number. The scope
+    // (Phase1SaveSlots.LockSlot) is re-entrant and is what makes the read and the write one critical section.
+    string dir = NewSlotDir();
+    var slots = new Phase1SaveSlots(dir);
+    slots.Save("gen", approvedBytes, replaceExisting: false); // next generation is 2
+    var generations = new List<long>();
+    var faults = new List<Exception>();
+    using var start = new Barrier(2);
+    void Writer(byte[] bytes) => new Thread(() =>
+    {
+        start.SignalAndWait();
+        try
+        {
+            using (slots.LockSlot("gen"))
+            {
+                var (_, generation) = slots.NextGeneration("gen");
+                lock (generations) generations.Add(generation);
+                Thread.Sleep(40); // widen the window that used to let two saves record one number
+                slots.Save("gen", bytes, replaceExisting: true);
+            }
+        }
+        catch (Exception e) { lock (faults) faults.Add(e); }
+    }).Start();
+    Writer(model0Bytes);
+    Writer(pendingBytes);
+    for (int i = 0; i < 400 && (generations.Count < 2 || faults.Count > 0); i++) Thread.Sleep(10);
+    T.Eq(0, faults.Count, "no scoped save failed" + (faults.Count == 0 ? "" : ": " + faults[0].Message));
+    T.Eq(2, generations.Count, "both scoped saves ran");
+    generations.Sort();
+    T.True(generations[0] != generations[1], "the two saves recorded different generations (" + string.Join(",", generations) + ")");
+    T.Eq(1L, generations[1] - generations[0], "the second save carries the next generation after the first");
+});
 T.Add("R2 backup recovery is refused while the primary still verifies, and is exactly what a corrupt primary gets", () =>
 {
     // Independent review finding 2: Restore backup used to replace a valid newer save with the older backup on one click.

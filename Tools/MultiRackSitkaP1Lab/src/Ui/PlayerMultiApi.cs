@@ -205,22 +205,25 @@ internal sealed partial class PlayerApi
         string label = string.IsNullOrEmpty(request.Label) ? slot : request.Label;
         try
         {
-            // Same-slot gate: the generation is read under the slot's own lock, so a concurrent save of one slot cannot
-            // claim the generation this one is about to write.
-            var (exists, generation) = saveSlots.NextGeneration(slot);
-            if (exists && !request.ReplaceExisting)
-                throw new P1Refusal("SlotExists",
-                    "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
-            // Capture first (engine lock), then encode and write (no engine lock held).
-            var envelope = multiSession.CaptureSave(request.Fence!, label, generation);
-            byte[] bytes = Phase1SaveCodec.Encode(envelope);
-            var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
-            Interlocked.Increment(ref savesWritten);
-            var header = envelope.Header;
-            await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
-                result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
-                result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
-                header.SavedUtc), null));
+            // The slot gate is held across the generation read, the engine capture and the write, so two saves of one slot
+            // can neither interleave nor record the same generation.
+            using (saveSlots.LockSlot(slot))
+            {
+                var (exists, generation) = saveSlots.NextGeneration(slot);
+                if (exists && !request.ReplaceExisting)
+                    throw new P1Refusal("SlotExists",
+                        "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
+                // Capture inside the scope (engine lock), then encode and write (no engine lock held).
+                var envelope = multiSession.CaptureSave(request.Fence!, label, generation);
+                byte[] bytes = Phase1SaveCodec.Encode(envelope);
+                var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
+                Interlocked.Increment(ref savesWritten);
+                var header = envelope.Header;
+                await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
+                    result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
+                    result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
+                    header.SavedUtc), null));
+            }
         }
         catch (P1Refusal refusal)
         {
@@ -2470,6 +2473,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function askLoad(slot) {
     const row = savedSlot(slot);
     if (!row || !row.canLoad || state.busy) return;
+    byId('recover-confirm').hidden = true;
+    state.recoverSlot = null;
     state.loadSlot = slot;
     byId('load-confirm-text').textContent =
       fill(label('MultiSavesLoadConfirm'), { slot: slot });
@@ -2552,6 +2557,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   function askRecover(slot) {
     const row = savedSlot(slot);
     if (!row || !row.recoverable || state.busy) return;
+    byId('load-confirm').hidden = true;
+    state.loadSlot = null;
     state.recoverSlot = slot;
     byId('recover-confirm-text').textContent = fill(label('MultiSavesRecoverConfirm'), { slot: slot });
     byId('recover-confirm').hidden = false;
@@ -5700,6 +5707,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('saves-close').addEventListener('click', () => byId('saves-dialog').close());
     byId('saves-dialog').addEventListener('close', () => {
       byId('load-confirm').hidden = true;
+      byId('recover-confirm').hidden = true;
+      state.loadSlot = null;
+      state.recoverSlot = null;
       returnFocus();
     });
     byId('save-slot').addEventListener('input', updateSaveControls);

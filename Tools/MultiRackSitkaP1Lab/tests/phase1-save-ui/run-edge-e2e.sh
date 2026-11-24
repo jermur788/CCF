@@ -111,6 +111,16 @@ start_server mixed-b ma-1-mixed
 run drive load "${server_url%/}/multi"
 stop_server mixed-b
 
+# ---- 2b. A damaged primary: restore the verified backup through the UI, then load it --------------------------------
+if [[ -f "$save_dir/edge-demo.ccf2d.json" ]]; then
+  printf 'truncated by the acceptance runner\n' > "$save_dir/edge-demo.ccf2d.json"
+  start_server mixed-c ma-1-mixed
+  run drive recover "${server_url%/}/multi"
+  stop_server mixed-c
+else
+  say "FAIL S02-damaged the expected slot file is missing"; fail=1
+fi
+
 # ---- 3. MA-1 (all Sitka): the same Save/Load controls ---------------------------------------------------------------
 start_server ma1 ma-1
 SLOT="edge-demo-ma1" run drive reuse "${server_url%/}/multi"

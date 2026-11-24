@@ -241,16 +241,17 @@ internal static class Phase1SaveIntegrationTests
             var stage4 = state.Stage4!;
             T.True(stage4.ApprovedPrunes.Count > 0, "the scripted plan holds an approved Prune");
             var bad = stage4.ApprovedPrunes[0];
+            // In range (so the refusal is the schedule rule, not an out-of-range value): an Oak's first lift is exactly 3.5 m.
             var moved = state with
             {
                 Stage4 = stage4 with
                 {
-                    ApprovedPrunes = Array.AsReadOnly(new[] { bad with { TargetCrownBaseHeightM = 99f } }),
+                    ApprovedPrunes = Array.AsReadOnly(new[] { bad with { TargetCrownBaseHeightM = 4.0f } }),
                 },
             };
             var decoded = Phase1SaveCodec.Decode(Phase1SaveCodec.Encode(Envelope(session, moved)), session.SaveExpectation());
             byte[] before = Canonical(session);
-            T.True(RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)) is not null,
+            T.Eq("PruneBroadleafTargetInvalid", RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)),
                 "an approved Prune whose target is not the engine's scheduled lift is refused");
             AssertBytes(before, Canonical(session), "the session is unchanged");
         });
@@ -274,6 +275,23 @@ internal static class Phase1SaveIntegrationTests
             T.Eq("SaveOptionsMismatch", RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded)),
                 "different Stage 5 options are never substituted");
             AssertBytes(before, Canonical(session), "the session is unchanged");
+
+            // The Stage 4 growth-phase branch: this session carries no growth phases, so a save that names them is a
+            // different forest even though its model vector and identity match.
+            var stage4Changed = state with
+            {
+                Options = state.Options with
+                {
+                    Stage4 = state.Options.Stage4! with
+                    {
+                        GrowthAgePhases = Array.AsReadOnly(new[] { new Phase1GrowthAgePhase(0f, 1f, 1f) }),
+                    },
+                },
+            };
+            var decoded4 = Phase1SaveCodec.Decode(Phase1SaveCodec.Encode(Envelope(session, stage4Changed)), session.SaveExpectation());
+            T.Eq("SaveOptionsMismatch", RefusalCode(() => session.Restore(Fence(session.ReadView()), decoded4)),
+                "different Stage 4 growth phases are never substituted");
+            AssertBytes(before, Canonical(session), "the session is still unchanged");
         });
         T.Add("P1-SL-08: a stale fence cannot capture or load a save", () =>
         {

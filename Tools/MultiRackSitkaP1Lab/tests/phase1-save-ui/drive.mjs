@@ -6,11 +6,13 @@
 // Windows application; the page itself is served by the WSL2 UI process on its loopback URL.
 //
 // Usage: node drive.mjs <command> --url <page url> --out <evidence dir> [--slot <name>] [--old <file>]
-//   commands: prepare-mixed | save | load | reuse
+//   commands: prepare-mixed | save | load | recover | reuse
 //     prepare-mixed : build a real mixed forest through the page's own Work Plan controls (map click, Add, Approve,
 //                     Execute, Advance) and save a pending plan; write the pre-save session id + year to --old.
 //     save          : open Saved games, type the slot, save it, screenshot at 1280x720 and 1920x1080.
 //     load          : open Saved games, load the slot, verify roster/authority/fence, advance a real year, screenshot.
+//     recover       : with the slot's primary file truncated by the runner, restore its verified backup through the
+//                     confirmation and load the recovered save.
 //     reuse         : MA-1 (all Sitka) instance: save + reload check only.
 'use strict';
 import { spawn } from 'node:child_process';
@@ -494,6 +496,52 @@ async function loadSlot(cdp) {
     (errorsAfter.length ? ': ' + JSON.stringify(errorsAfter[0]).slice(0, 200) : ''));
 }
 
+// The runner truncates the slot's primary file before this phase, so the page must show it as corrupt, offer the
+// verified backup behind an explicit confirmation, and then load that recovered save.
+async function recoverSlot(cdp) {
+  await cdp.send('Log.enable');
+  const errors = watchConsole(cdp);
+  await viewport(cdp, 1280, 720);
+  await openSaves(cdp);
+  const row = await evaluate(cdp, `(() => { const tr = Array.from(document.querySelectorAll('#saves-rows tr'))
+    .find((r) => r.querySelector('code') && r.querySelector('code').textContent === ${JSON.stringify(slot)});
+    return tr ? { text: tr.innerText, recover: Boolean(tr.querySelector('[data-recover]')),
+      load: Boolean(tr.querySelector('[data-load]')) } : null; })()`);
+  check(row !== null && /Corrupt/.test(row.text) && row.recover && !row.load,
+    'a damaged primary is listed as corrupt with Restore backup offered and Load withheld: ' +
+    (row ? row.text.replace(/\s+/g, ' ') : 'missing'));
+  await shot(cdp, 'saves-corrupt-1280', 1280, 720);
+
+  await click(cdp, `[data-recover="${slot}"]`);
+  await waitFor(cdp, "!document.getElementById('recover-confirm').hidden", 'the recovery confirmation');
+  const confirm = await evaluate(cdp, "document.getElementById('recover-confirm-text').textContent");
+  check(confirm.includes(slot) && /unreadable primary/i.test(confirm),
+    'Restore backup asks for an explicit confirmation that names the damaged primary');
+  await click(cdp, '#recover-do');
+  await waitFor(cdp, "document.getElementById('saves-status').textContent.includes('Restored')", 'the recovery to commit', 30000);
+  await waitFor(cdp, `(() => { const tr = Array.from(document.querySelectorAll('#saves-rows tr'))
+    .find((r) => r.querySelector('code') && r.querySelector('code').textContent === ${JSON.stringify(slot)});
+    return tr && /Ready to load/.test(tr.innerText) && Boolean(tr.querySelector('[data-load]')); })()`,
+    'the recovered slot to become loadable again');
+  const status = await evaluate(cdp, "document.getElementById('saves-status').textContent");
+  check(status.includes('Restored the verified backup'), 'the page reports the recovery honestly: ' + status.slice(0, 150));
+  await shot(cdp, 'saves-recovered-1280', 1280, 720);
+
+  // The recovered save is playable.
+  await click(cdp, `[data-load="${slot}"]`);
+  await click(cdp, '#load-do');
+  await waitFor(cdp, "!document.getElementById('saves-dialog').open", 'the recovered load', 30000);
+  await sleep(500);
+  const loaded = await currentView(cdp);
+  check(loaded.source.ecologicalYear >= 1, 'the recovered save loads into a real year (' + loaded.source.ecologicalYear + ')');
+  const shown = await evaluate(cdp, "document.getElementById('year-value').textContent.trim()");
+  check(shown === String(loaded.source.ecologicalYear), 'the map shows the recovered year (' + shown + ')');
+  await shot(cdp, 'recovered-map-1280', 1280, 720);
+  const errorsAfter = errors();
+  check(errorsAfter.length === 0, 'no console error or CSP violation during recovery' +
+    (errorsAfter.length ? ': ' + JSON.stringify(errorsAfter[0]).slice(0, 200) : ''));
+}
+
 async function reuse(cdp) {
   await cdp.send('Log.enable');
   const errors = watchConsole(cdp);
@@ -539,6 +587,7 @@ try {
   if (command === 'prepare-mixed') await withPage(prepareMixed);
   else if (command === 'save') await withPage(saveSlot);
   else if (command === 'load') await withPage(loadSlot);
+  else if (command === 'recover') await withPage(recoverSlot);
   else if (command === 'reuse') await withPage(reuse);
   else throw new Error('unknown command: ' + command);
 } catch (error) {

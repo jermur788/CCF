@@ -232,7 +232,10 @@ public sealed class Phase1SaveSlots
             try
             {
                 WriteDurable(temp, backup, hooks: false);
-                AtomicRename(temp, primary);
+                // Same NB1 rule as Save: a primary that did not exist is published no-clobber, so a slot another process
+                // creates in this window is never overwritten.
+                if (inspection.PrimaryExists) AtomicRename(temp, primary);
+                else AtomicRenameNoReplace(temp, primary, slotName);
                 renamed = true;
             }
             finally
@@ -245,8 +248,35 @@ public sealed class Phase1SaveSlots
     }
 
     /// <summary>
-    /// Whether the slot holds a primary and, if so, the save generation the next write of that slot should carry. Read under
-    /// the same per-slot gate as every mutation, so two saves of one slot cannot both claim the same generation.
+    /// Holds this slot's mutation gate for the caller's whole read/capture/write sequence. The gate is re-entrant, so the
+    /// <see cref="Save"/>, <see cref="NextGeneration"/> and <see cref="RecoverFromBackup"/> calls made inside the scope use
+    /// the same gate. Without the scope, a generation read here could be stale by the time the caller writes; with it, two
+    /// saves of one slot can neither interleave nor record the same generation.
+    /// </summary>
+    public IDisposable LockSlot(string slotName)
+    {
+        ValidateSlotName(slotName);
+        var gate = GateFor(slotName);
+        Monitor.Enter(gate);
+        return new SlotScope(gate);
+    }
+
+    private sealed class SlotScope : IDisposable
+    {
+        private object? gate;
+        public SlotScope(object gate) => this.gate = gate;
+        public void Dispose()
+        {
+            var held = gate;
+            gate = null;
+            if (held is not null) Monitor.Exit(held);
+        }
+    }
+
+    /// <summary>
+    /// Whether the slot holds a primary and, if so, the save generation the next write of that slot should carry. Call it
+    /// inside <see cref="LockSlot"/> together with the write it belongs to; the generation is only unique per slot when the
+    /// read and the write share one scope.
     /// </summary>
     public (bool Exists, long NextGeneration) NextGeneration(string slotName)
     {
