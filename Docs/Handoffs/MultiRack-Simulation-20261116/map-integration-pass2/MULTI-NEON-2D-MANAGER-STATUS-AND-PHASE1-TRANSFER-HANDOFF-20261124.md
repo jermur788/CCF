@@ -1,0 +1,79 @@
+# CCF 2D — Neon Manager Status and Phase 1 Transfer Handoff
+
+**Issued:** 2026-11-24 at approximately 19:03 UTC by ChatGPT CCF Overall Manager, on explicit owner request.  
+**Recipient:** **Neon 2D Manager**, coordinating the Gemini 4 Neon map integration work.  
+**Role/difficulty:** Manager-to-manager coordination and source-lane handoff, MEDIUM; downstream Phase 1 .NET/Core/save/UX implementation is HIGH.  
+**Verdict:** **MAP PASS 2 INDEPENDENT REVIEW APPROVED (G2/G3 PASS); MAP NOT YET G4-INTEGRATED OR OWNER-ACCEPTED. PHASE 1 A0 CLOSED/APPROVED; A1/B HELD.**  
+**Purpose:** close or expressly release the map's overlapping files without losing the reviewed map candidate; transfer an exact map baseline to the DeepSeek Phase 1 orchestrator. This handoff **does not** claim a worktree, order a merge, launch a writer, or transfer the Overall Manager's G4 authority.
+
+## 1. Source-verified status at this handoff
+
+| Workstream | Candidate / provenance | What is established | What is not established |
+|---|---|---|---|
+| Three-species 2D Core | `feat/multi-phase2-oak-beech-20261124-v1` @ `cf6fe7a52aa096e824827c568f43fe05724dcce9` | Sitka/Oak/Beech Phase 2 bounded Core closed; independently reviewed and delta qualified with 245/245 Core tests reported in live coordination | Not independently verified here in Unity/3D; not merged to `main` |
+| 2D map Pass 1 | `feat/multi-map-integration-pass1-20261124-v1` @ `1f13182659769f19e7c91159dd7ad475667e0d62` | Real 2D SVG map and composite readout, mixed-stand demo; independently reviewed APPROVED (G2/G3). Pass 2 source handoff identifies Pass 1 as owner-accepted | Not merged to `main` by this Manager |
+| 2D map Pass 2 | `feat/multi-map-integration-pass2-20261124-v1` @ **`4b6d8070fe709f8b6600baedd39bb37d0cf5322d`**, child of Pass 1 | Six fenced Work Plan HTTP write routes, four map modes, Plant/Shelter/SpotClear, ClearUnderstory and safe approval/Execute semantics. Independent Claude Opus 5.5 [review](https://github.com/jermur788/CCF/blob/50f2a134acc95729feb5c8b0b674d8cf643c77ab/Docs/Handoffs/MultiRack-Simulation-20261116/map-integration-pass2/MULTI-MAP-INTEGRATION-PASS2-OPUS-INDEPENDENT-REVIEW-20261124.md) @ `50f2a134acc95729feb5c8b0b674d8cf643c77ab`: **APPROVED, G2 PASS, G3 PASS, spec conformance PASS, zero blockers** | No G4 main integration, no owner acceptance of Pass 2, no formally evidenced physical source-lane release, no human desktop accessibility/cross-browser acceptance |
+| Phase 1 A0 save foundation | `feat/multi-2d-phase1-a0-20261124-v1` @ **`8db5e09538474cec01374066be08d73f240de82c`**, based on Phase 2 `cf6fe7a5` | Versioned deterministic save format/DTO/codec/validation/restricted local slots in **new files only**. [DeepSeek closure](https://github.com/jermur788/CCF/blob/5d7489e57e16a1d28e7aa210a27496b820811f95/Docs/Handoffs/MultiRack-Simulation-20261116/phase1-2d/PHASE1-A0-CLOSURE-HANDOFF-20261124.md) @ `5d7489e57e16a1d28e7aa210a27496b820811f95`: repair of five initial blockers, independent Sonnet 5.5 re-review APPROVED; 44/44 contract tests and a reviewer 83-state false-refusal probe reported. Manager GitHub compare verifies 12 added files, no existing files altered. Schema v2. | No authoritative runtime save/load; no root capture under lock; no time skip, history UI or player verification |
+| Phase 1 A1 and B | [APPROVED quartet](https://github.com/jermur788/CCF/blob/docs/multi-2d-phase1-approved-orchestration-20261124-v1/specs/multi-2d-phase1-save-time-history-v1/spec.md); [Manager A1 readiness packet](https://github.com/jermur788/CCF/blob/b4ab381e6c9013a62659e7d1e9c9249a71839847/Docs/Handoffs/MultiRack-Simulation-20261116/phase1-2d/PHASE1-A0-MANAGER-VERDICT-A1-READINESS-PACKET-20261124.md) | Owner approved the complete Phase 1 scope and six A defaults. DeepSeek orchestrates staged delivery. | **NOT ADMITTED, NO WRITER**, no shared-file G4, no physical worktree/lease and no tested end-to-end gameplay |
+
+**Review evidence, not Manager-reproduced execution:** Pass 2 independent reviewer reports clean .NET Core and UI builds (0 warnings/errors), **255/255 Core ×2**, **240/240 smoke**, a real Edge four-cell `4 × 38/38` matrix and all nine frozen anchors matching. Exact source branch head inspected at this handoff was `4b6d8070`; review branch tip `50f2a134` is one added review document. These are reviewer-run results on published GitHub evidence, not reruns in the browser Manager's environment.
+
+**Current main/coordination:** `main` @ `bacdee187b62f07182ed1ba441cf846b36edb96e` at last GitHub check; live `Docs/Project/coordination/active-tasks.md` blob `3350187033bd14dd587682fe9f44f76479a138c5` with a visible top Phase 2 closure from 08:08 UTC. This does not establish the physical map Ops lease's current state or a formal transfer. Refresh rather than assuming no lock. No `main` or board edit made in this handoff.
+
+## 2. Neon manager mandate: the next useful action
+
+**Priority 1 — Map Pass 2 closure and explicit overlapping-file release.**
+
+1. Verify current `feat/multi-map-integration-pass2-20261124-v1` HEAD equals `4b6d8070fe709f8b6600baedd39bb37d0cf5322d`; verify the independently reviewed Pass 2 review @ `50f2a134...`, clean map worktree, no uncommitted assets/tests or in-flight writer, no unreported Pass 3. Recheck actual local physical Ops/reservation ledger and [live active tasks](https://github.com/jermur788/CCF/blob/main/Docs/Project/coordination/active-tasks.md).
+2. Confirm with the current map source owner/coordinator that Pass 2 source writing has finished, and obtain an **explicit release of shared write paths and physical source lane** (or document exact files still reserved and why). A completed review is NOT itself a release. Preserve the reviewed SHA intact; do not rewrite history or force push.
+3. Publish one **permanent GitHub Markdown map closure/scope-release handoff**, noting exactly which physical worktree/lease was released (or remains locked), exact branch+SHA, reviewer verdict, outstanding owner playtest/acceptance, nine anchor results, and the six new HTTP routes. Send direct URL to Overall Manager and to DeepSeek Phase 1 orchestrator. Record ownership in the live coordination system through an authorised update; do not treat an append-only side ledger as a substitute. **Release is an ownership fact; do not falsely state `G4 INTEGRATED` or `ACCEPTED`.**
+4. If Pass 2 remains blocked by a known real owner-playtest or material map issue, state that blocker, whether the shared files can still be **released without a merge**, the cost/impact of delay, and request the minimum Manager/owner decision. Do not leave A1 blocked merely because cosmetic enhancements could be made later.
+
+**Priority 2 — Support the G4 transfer without claiming the A1 lane.**
+
+5. Provide the Overall Manager with the exact **reviewed Pass 2 map candidate SHA**, allowed integration base, latest owner acceptance state and clear yes/no shared-file release. The **proposed** A1 join base is `4b6d8070fe709f8b6600baedd39bb37d0cf5322d` plus A0's reviewed additions from `8db5e095...`. That is NOT a granted merge target until Manager inspection and explicit G4 path/worker grant.
+6. Check collisions and hand off critical map interfaces: `Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs`, `MultiAreaWorkPlanAdapter.cs`, `MultiAreaContracts.cs`, `src/Ui/PlayerApi.cs`, `PlayerMultiApi.cs`, `Program.cs`, `tests/Core.Tests/Program.cs`, and `tests/ui-smoke-multiarea.sh`. Map Pass 1 changed several Core files; Pass 2 changed UI files and test runners, **not any Core** relative to Pass 1. Only one writer may own these paths in any admitted phase.
+7. DeepSeek remains responsible for Phase 1 A1/B orchestration and appointing the local .NET/C# source writer + independent reviewer. Neon does **not** automatically inherit that source-writing responsibility, and the Overall Manager retains cross-stream grants, merges and milestone decisions. A1 worktree/branch are only **proposed**: `feat/multi-2d-phase1-a1-20261124-v1`, `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-Phase1-A1-20261124`. No branch/physical worktree has been created or claimed by the browser Manager.
+8. If Neon is later chosen to implement a bounded 2D UI task, that requires a **new task packet**, explicit separate lane and path grant; prior map authorship is not standing permission to edit Phase 1 files.
+
+**Priority 3 — Keep nonblocking map observations visible, not as a new feature sprint.**
+
+- Pass 2 NB-1: `xM:1e400` produces `409 Phase2CoordinatesInvalid` rather than the spec's `400`. Reviewer judged this nonblocking and no mutation. Manager may later approve a narrow contract consistency repair; do not delay shared-file release automatically.
+- Pass 2 NB-2: after a partial Plant→Shelter→SpotClear queue refusal, the disclosure and Remove buttons work but are below the drawer's visible region. This is a concrete UX polish candidate for a later bounded packet, not a blocking review defect.
+- Other eight nonblocking review notes and incomplete human/browser tests remain in the independent Pass 2 review. Do not conceal them or use them to authorise broad rework. Human owner playtest remains a meaningful acceptance step for the map, distinct from independent technical review.
+
+## 3. Phase 1 cross-stream requirements to respect
+
+**A0 is approved in its contract scope, not integrated.** DeepSeek's A1 writer must fix **NB1** (missing-slot overwrite race: no-replace when `!exists`, serialize same-slot operations), **NB2** (reject unsafe restored work including Fell-on-Crop and dual Fell+Prune), preserve B1/B2 new session fences and approvals→visible unapproved drafts, test complete real-engine capture/restore and save/restart/annual continuation. A0's slot-store Linux-only guarantees and untested link fallback/power-loss must be disclosed. Do not ask Neon to repair A0 without a separate authorised packet.
+
+Phase 1 time pacing is two modes: one *genuine* annual tick, or up to five *sequential genuine ticks* toward an advisory review year (4-year successful-Fell navigation anchor; no eligible anchor → no skip), stopping at real required decisions; never silently approve or cancel pending work, fabricate 3D events or skip history. History must distinguish **L1 recorded**, **L2 current**, **L3 derived**, **L4 teaching**, with paged year details and a bounded main map payload. All six A defaults were owner-approved on 2026-11-24. No new decision needed to restate them.
+
+The smallest genuine A1 demonstration: run a mixed Sitka/Oak/Beech woodland, commit work, **save its complete authoritative state**, reload it with a fresh token and an old-token refusal, advance a genuine year, and inspect the actual recorded history. A successful save DTO encode by itself is NOT that demonstration. Full player controls are then Phase B. Use source authority, no duplicate ecology.
+
+## 4. Priority after Phase 1, not now
+
+The owner chose **Option 3 hybrid forest maker** as current product direction: after save/load/time/history, provide a simple deterministic forest maker (plot size, rack count, Sitka-only or Sitka/Oak/Beech, initial age, seed), then create **one standard five-rack 0.64 ha woodland** (80×80 m) as the calibration/performance forest for owner time, contractor costs, wood sales and finance. `~1,300+` trees is a performance target, not a fixed genesis count. Small-woodland financial values are teaching/game-tuning approximations, never guaranteed profits. Do **not** preempt Phase 1 with generator, economy, custom terrain, accelerated 3D migration or broad art/UX rework. Protect all 3D Compact30, Legacy40 and frozen saves.
+
+## 5. Exact next-action packet and boundaries
+
+**Packet status:** **READY TO DISPATCH FOR READ-ONLY COORDINATION / POSSIBLE MAP SOURCE-RELEASE ADMINISTRATION, NOT SOURCE IMPLEMENTATION.**  
+**Assigned target:** Neon 2D Manager (Gemini 4 Neon map team coordinator or current authorised owner; report actual provider and local context).  
+**Source base:** `feat/multi-map-integration-pass2-20261124-v1` @ `4b6d8070fe709f8b6600baedd39bb37d0cf5322d` for map state inspection; review evidence `50f2a134...`; prior Pass1 `1f131826...`; A0 `8db5e095...`.  
+**Branch/worktree/lane:** **NO NEW SOURCE BRANCH, NO PHYSICAL LEASE OR WRITER CLAIM by this handoff**. For a documentation-only manager closure, Neon may propose a new exclusive docs branch after checking coordination; existing map task branch and physical worktree are read-only until its current owner explicitly releases/authorises a documentation write.  
+**Read scope:** canonical decision/current milestone/AgentWorkflow/context stamp, live active-tasks, map Pass1/Pass2 branches/specs/reviews, A0 closure, Phase 1 approved quartet, relevant Core/Ui/tests, local Ops/lease and repo/worktree cleanliness.  
+**Write scope:** no code writes; a **new GitHub Markdown closure/release handoff only**, under `Docs/Handoffs/MultiRack-Simulation-20261116/map-integration-pass2/`, on a separately claimed docs branch. An update to `active-tasks.md` is Manager-controlled and needs a safe coordinated board write.  
+**Explicit exclusions:** no map/engine/UI code, no `Assets/**`, `main` merge, PR, force push, shader/assets overhaul, 3D builds/Unity, saves, frozen references, P0, new generator/economics work or unauthorised test modifications.  
+**Checks:** exact SHA/branch/ancestry, compare code scope, current physical source lock, independent review, protected-anchors report, status semantics and no overlapping writer. Do not claim a local build or smoke unless actually run.  
+**Stop:** map worker still running or incomplete; dirty or reserved worktree; possible uncommitted Pass 3; unknown approval/lock; no actual authority for release/board edit. Stop ONLY the affected release/update, return to Overall Manager with precise blocker and minimal next action. Do not seize source ownership.  
+**Final reporting:** direct GitHub Markdown handoff URL; Pass 2 scope status `IMPLEMENTED/REVIEWED/INTEGRATED/VERIFIED/ACCEPTED` separately; source lock released YES/NO/UNKNOWN, A1 shared files released YES/NO/UNKNOWN, current actual physical lease proof, owner action if any, and handoff to DeepSeek with exact reviewed candidate.
+
+## 6. Useful direct links
+
+- [Pass 2 implementation handoff](https://github.com/jermur788/CCF/blob/4b6d8070fe709f8b6600baedd39bb37d0cf5322d/Docs/Handoffs/MultiRack-Simulation-20261116/map-integration-pass2/MULTI-MAP-INTEGRATION-PASS2-NEON-IMPLEMENTATION-20261124.md)
+- [Pass 2 independent review — APPROVED](https://github.com/jermur788/CCF/blob/50f2a134acc95729feb5c8b0b674d8cf643c77ab/Docs/Handoffs/MultiRack-Simulation-20261116/map-integration-pass2/MULTI-MAP-INTEGRATION-PASS2-OPUS-INDEPENDENT-REVIEW-20261124.md)
+- [A0 closure](https://github.com/jermur788/CCF/blob/5d7489e57e16a1d28e7aa210a27496b820811f95/Docs/Handoffs/MultiRack-Simulation-20261116/phase1-2d/PHASE1-A0-CLOSURE-HANDOFF-20261124.md)
+- [Overall Manager A1 held packet](https://github.com/jermur788/CCF/blob/b4ab381e6c9013a62659e7d1e9c9249a71839847/Docs/Handoffs/MultiRack-Simulation-20261116/phase1-2d/PHASE1-A0-MANAGER-VERDICT-A1-READINESS-PACKET-20261124.md)
+- [Approved Phase 1 specification](https://github.com/jermur788/CCF/blob/docs/multi-2d-phase1-approved-orchestration-20261124-v1/specs/multi-2d-phase1-save-time-history-v1/spec.md)
+- [Live active tasks](https://github.com/jermur788/CCF/blob/main/Docs/Project/coordination/active-tasks.md)
+
+**Overall Manager's recommendation:** The best immediate use of Neon is a clean, verifiable **map Pass 2 closure and shared-file release**, not new map development. Once that evidence exists, the Manager can safely grant a narrow, exact-sha A1 integration lane to DeepSeek. **No owner product decision is outstanding at this moment; any G4/merge or personal-playtest acceptance must still be granted by the proper authority.**
