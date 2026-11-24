@@ -1,6 +1,6 @@
 # 2D Phase 1 — Acceptance / Verification Checklist
 
-**Status: DRAFT — unchecked is not failed; no implementation or tests claimed.**  
+**Status: APPROVED REQUIREMENTS — owner 2026-11-24 13:53 UTC; all implementation checks untested.**  
 Qualify against an exact implementation SHA, test invocation, environment and logs. Design review does not substitute for tests.
 
 - [ ] **P1-01 Full mutable root:** Saving/restoring a genuine `1/1/1/1/1` mixed stand retains every tree/state, seed/options, revisions, marks, events, pending/approved work, executed-key receipts, history, Stage4/5/Phase2 data, juveniles, protection, clear patches, density/mast accounts and next-ID sequence. The continuation of a restored stand matches an uninterrupted control under the same commands.
