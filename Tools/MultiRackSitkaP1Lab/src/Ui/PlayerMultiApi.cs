@@ -205,8 +205,10 @@ internal sealed partial class PlayerApi
         string label = string.IsNullOrEmpty(request.Label) ? slot : request.Label;
         try
         {
-            // The slot gate is held across the generation read, the engine capture and the write, so two saves of one slot
-            // can neither interleave nor record the same generation.
+            MultiSavePayload payload;
+            // The slot gate covers the generation read, the engine capture and the write so two saves of one slot
+            // can neither interleave nor record the same generation, and is released before the response is awaited
+            // (LockSlot holds a thread-affine Monitor, which must never span an await).
             using (saveSlots.LockSlot(slot))
             {
                 var (exists, generation) = saveSlots.NextGeneration(slot);
@@ -219,11 +221,12 @@ internal sealed partial class PlayerApi
                 var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
                 Interlocked.Increment(ref savesWritten);
                 var header = envelope.Header;
-                await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
+                payload = new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
                     result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
                     result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
-                    header.SavedUtc), null));
+                    header.SavedUtc), null);
             }
+            await WriteJsonAsync(context, StatusCodes.Status200OK, payload);
         }
         catch (P1Refusal refusal)
         {

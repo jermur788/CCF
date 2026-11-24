@@ -389,3 +389,40 @@ It reviewed `ca750ab..803bdd83`, at head `2dde7348`, clean worktree, and wrote n
 
 **Final state of this branch:** IMPLEMENTED, REVIEWED (APPROVED after one repair cycle), **not INTEGRATED** (no `main`
 merge, no PR) and **not ACCEPTED** (no owner playtest). The handoff's earlier overclaims are corrected in §3.1/§3.2.
+
+---
+
+## 12. F-01 repair (slot lock released before awaiting HTTP response)
+
+**Implementer:** Gemini 4 Neon (bounded repair after final delta review finding F-01 in
+`PHASE1-2D-SAVE-E2E-FINAL-DELTA-REVIEW-20261124.md`).
+
+- **Defect:** `MultiSaveAsync` in `Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs` called `await WriteJsonAsync(...)`
+  inside `using (saveSlots.LockSlot(slot))`. Because `LockSlot` holds a thread-affine `System.Threading.Monitor`, an
+  `await` resuming on another thread would throw `SynchronizationLockException` in `Dispose`/`Monitor.Exit` and leak the
+  per-slot gate.
+- **Fix:** Declared `MultiSavePayload payload;` before `using (saveSlots.LockSlot(slot))`, kept the exact synchronous
+  sequence (`NextGeneration` → `SlotExists` refusal check → `multiSession.CaptureSave` → `Phase1SaveCodec.Encode` →
+  `saveSlots.Save` → `Interlocked.Increment(ref savesWritten)`) and assigned `payload` inside the `using` block, closed
+  the `using` block so the `Monitor` is always released on the acquiring thread, and awaited
+  `WriteJsonAsync(context, StatusCodes.Status200OK, payload)` afterwards. Any `P1Refusal` (including `SlotExists`) still
+  disposes the scope on the acquiring thread before `catch (P1Refusal refusal)` writes 409. Response JSON shape is
+  unchanged.
+- **Sibling handler audit (`PlayerMultiApi.cs`):** Inspected `ReadMultiSavesAsync`, `MultiLoadAsync`, and
+  `MultiRecoverAsync` (and searched the whole file for `LockSlot`, `Monitor`, and `lock`). None of the sibling handlers
+  holds `LockSlot` or any `Monitor`/`lock` across an `await` (`ReadMultiSavesAsync` is non-`async` and returns
+  `WriteJsonAsync`; `MultiLoadAsync` and `MultiRecoverAsync` run synchronous store/engine calls and only await
+  `WriteJsonAsync` after they return).
+- **Verification (from `Tools/MultiRackSitkaP1Lab`, all exit code 0):**
+  - `dotnet build MultiRackSitkaP1Lab.sln --disable-build-servers --no-incremental -nologo` — 0 Warning(s), 0 Error(s)
+  - `dotnet build src/Ui/SitkaP1.Ui.csproj --disable-build-servers -nologo` — 0 Warning(s), 0 Error(s)
+  - `dotnet build tests/Phase1.Save.Tests/Phase1Save.Tests.csproj --disable-build-servers -nologo` — 0 Warning(s), 0 Error(s)
+  - Core suite (`tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll`) — **267/267 passed, 0 failed**
+  - Save suite (`tests/Phase1.Save.Tests/bin/Debug/net8.0/Phase1Save.Tests.dll`) — **48/48 passed, 0 failed**
+  - Real headless Edge E2E (`tests/phase1-save-ui/run-edge-e2e.sh`) — **OVERALL: PASS (63 passed, 0 failed)**; evidence
+    at `/mnt/c/Users/hp/AppData/Local/Temp/ccf-f01-neon-e2e-20261124T234349Z`
+  - Post-run invariants: `.p0ref/SitkaLab.Core.dll` sha256 unchanged
+    (`9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`); protected listeners `:33767`, `:43649`, `:46593`
+    still LISTENING untouched; no leftover `sitkap1-ui.dll` processes from this run.
+- **Status note:** F-01 repair is implemented and verified on `feat/multi-2d-phase1-save-e2e-20261124-v1`, pending
+  delta re-check and owner acceptance; still **not INTEGRATED** and **not ACCEPTED**.
