@@ -1,5 +1,7 @@
 namespace SitkaP1.Core;
 
+using SitkaP1.Core.Phase1;
+
 /// <summary>One area's committed state inside the root: its roster (with the shared ecological year) and its Crop marks.</summary>
 internal sealed record MultiAreaAreaState(string AreaId, AnnualState State, IReadOnlyList<string> CropTreeIds);
 
@@ -78,14 +80,15 @@ internal sealed class MultiAreaContinuation
     private readonly CrownModelVersion crownModel;
     private readonly MultiAreaModelSelection models;
     private readonly Stage4Options? stage4Options; // non-null only for the full Stage 4 selection
+    private readonly MultiAreaExperiment definition; // immutable genesis inputs; a save's identity comes from here
     private readonly string areaModelVersion;
     private readonly IReadOnlyList<AreaInfo> areas; // ordinal by AreaId, the same order as root.Areas
     private readonly MultiAreaExperimentInfo experiment;
     private readonly string experimentBadge;
     private readonly string areaIds;
-    // One random identity per in-memory session. It is never part of a token, report or manifest.
-    private readonly string sessionId =
-        Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+    // One random identity per in-memory session. It is never part of a token, report or manifest. A Load mints a NEW one,
+    // so every fence a page held against the replaced session is refused from then on (Execute replay included).
+    private string sessionId = NewSessionId();
     private MultiAreaRoot root;
     // Session-only canopy/light read-outs (#900), one per light grid, valid for one committed tree state. Tree state changes
     // only on Execute (WorkRevision) or an annual step (AnnualRevision: natural death and crown growth), so Pending, Approve,
@@ -131,6 +134,7 @@ internal sealed class MultiAreaContinuation
             throw new P1Refusal("Phase2ModelRequired", "Phase 2 options need the 1/1/1/1/1 model selection");
         var crownModel = models.Crown;
         definition.Validate();
+        this.definition = definition;
         this.models = models;
         this.stage4Options = models.IsStage4 ? (stage4 ?? Stage4Options.Default).RequireValid() : null;
         this.crownModel = crownModel;
@@ -1150,6 +1154,125 @@ internal sealed class MultiAreaContinuation
         }
     }
 
+    // ------------------------------------------------------------------------------------------------ save and load
+
+    /// <summary>
+    /// One immutable capture of the whole committed root under the single lock, ready for the strict save codec. The
+    /// caller supplies the header label and generation; the year, model vector, genesis identity and engine lineage come
+    /// from this session, so a save can never claim another session's identity. A stale fence refuses (nothing is
+    /// captured); the capture itself changes nothing.
+    /// </summary>
+    internal Phase1SaveEnvelope CaptureSave(MultiAreaFence fence, string label, long saveGeneration)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var vector = Phase1RootMapping.VectorOf(models);
+            var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
+                root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
+            return new Phase1SaveEnvelope(header, Phase1RootMapping.Capture(root, models, stage4Options));
+        }
+    }
+
+    /// <summary>
+    /// What a load into THIS session requires: its exact model vector, genesis identity and engine lineage. A save made on
+    /// another experiment, another model selection or another engine build is refused with a typed code, never migrated.
+    /// </summary>
+    internal Phase1SaveExpectation SaveExpectation()
+    {
+        var vector = Phase1RootMapping.VectorOf(models);
+        return new Phase1SaveExpectation(vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
+    }
+
+    /// <summary>Mints a fresh 128-bit session id for a loaded forest (never derived from the file).</summary>
+    internal static string NewSessionId() =>
+        Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+
+    /// <summary>
+    /// Replace the whole live forest with a fully verified save, or refuse and change nothing (owner load policy A).
+    /// The sequence inside ONE lock acquisition: check the caller's fence, require the exact save identity, rebuild a
+    /// complete candidate root, revalidate every restored unexecuted order with the engine's own rules (A0 defect NB2),
+    /// convert any saved approval into an unapproved visible Pending draft, and only then publish the candidate together
+    /// with a NEW random session id and dropped read-out caches. Executed-key receipts stay as recorded history; no live
+    /// fence survives, so an old page cannot Execute or Advance the restored forest.
+    /// </summary>
+    internal MultiAreaLoadResult Restore(MultiAreaFence fence, Phase1DecodedSave decoded)
+    {
+        ArgumentNullException.ThrowIfNull(decoded);
+        lock (sync)
+        {
+            RequireFence(fence); // a stale tab may not replace a newer session
+            Phase1SaveCodec.RequireExpected(decoded.Envelope.Header, SaveExpectation());
+            var restored = Phase1RootMapping.Restore(decoded.Envelope.State, Phase1RootMapping.VectorOf(models));
+            RequireLegalRestoredOrders(restored.Root);
+            var candidate = WithSavedApprovalAsDraft(restored.Root, restored.SavedApproval);
+            root = candidate;
+            sessionId = NewSessionId();
+            // The canopy and ground read-outs are cached per (AnnualRevision, WorkRevision) only, and the restored forest can
+            // carry the same pair as the replaced one: dropping them here is what keeps a loaded map from showing the old trees.
+            canopyCache.Clear();
+            groundCache = null;
+            return new MultiAreaLoadResult(ViewOf(root), DraftOrderCount(restored.SavedApproval), decoded.Checksum, null, null);
+        }
+    }
+
+    // NB2: every restored but unexecuted order is revalidated against the candidate root with the engine's own rules,
+    // before anything is published, so an illegal restored plan fails the WHOLE load instead of being repaired or dropped.
+    private void RequireLegalRestoredOrders(MultiAreaRoot candidate)
+    {
+        foreach (var order in candidate.Pending)
+        {
+            if (order.Action != WorkAction.Fell)
+                throw new P1Refusal("WorkActionInvalid", "a restored Fell order must be a Fell action");
+            int index = AreaIndex(order.AreaId);
+            RequireLivingIn(candidate, index, order.TreeId, "WorkTreeNotLive",
+                "a restored Fell order names no living exact tree of its area");
+            if (candidate.Areas[index].CropTreeIds.Contains(order.TreeId, StringComparer.Ordinal))
+                throw new P1Refusal("CropTreeRetained", "a restored Fell order names a retained Crop Tree");
+            if (string.IsNullOrWhiteSpace(order.Reason))
+                throw new P1Refusal("WorkReasonRequired", "a restored Fell order has no recorded reason");
+        }
+        if (candidate.Stage4 is { } stage4)
+            foreach (var order in stage4.PendingPrunes)
+            {
+                int index = AreaIndex(order.AreaId);
+                RequireLivingIn(candidate, index, order.TreeId, "PruneTreeNotLiving",
+                    "a restored Prune order names no living exact tree of its area");
+                RequirePrunable(candidate, FindTreeIn(candidate, index, order.TreeId)!, stage4.PruningOf(order.TreeId),
+                    order.TargetCrownBaseHeightM);
+            }
+        if (candidate.Stage5 is { } stage5)
+            foreach (var order in stage5.PendingClears)
+                RequireClearCell(stage5, order.AreaId, order.Column, order.Row);
+        if (candidate.Phase2 is { } phase2 && phase2.PendingOrders.Count > 0)
+        {
+            var living = candidate.Areas.SelectMany(area => area.State.Trees).Where(tree => tree.IsLiving).ToArray();
+            Phase2Planting.RequireValidBatch(phase2.PendingOrders, areaId => areas[AreaIndex(areaId)].Polygon, living, phase2,
+                Phase2Annual.Locator(candidate.Stage5!), checked(candidate.EcologicalYear + 1));
+        }
+    }
+
+    // Owner load policy A / reviewer ruling B1: a saved approved plan never comes back approved. Its orders re-enter as an
+    // ordinary unapproved Pending draft the player must approve again under the fresh session; its engine-minted PlanId,
+    // execution key and approval token were never saved, so no execution authority is restored either.
+    private static MultiAreaRoot WithSavedApprovalAsDraft(MultiAreaRoot at, Phase1SavedApprovalDraft? draft)
+    {
+        if (draft is null) return at;
+        return at with
+        {
+            Pending = Array.AsReadOnly(at.Pending.Concat(draft.Fells).ToArray()),
+            Stage4 = at.Stage4 is null || draft.Prunes.Count == 0 ? at.Stage4
+                : at.Stage4 with { PendingPrunes = Array.AsReadOnly(at.Stage4.PendingPrunes.Concat(draft.Prunes).ToArray()) },
+            Stage5 = at.Stage5 is null || draft.Clears.Count == 0 ? at.Stage5
+                : at.Stage5 with { PendingClears = Array.AsReadOnly(at.Stage5.PendingClears.Concat(draft.Clears).ToArray()) },
+            Phase2 = at.Phase2 is null || draft.Planting.Count == 0 ? at.Phase2
+                : at.Phase2 with { PendingOrders = Array.AsReadOnly(at.Phase2.PendingOrders.Concat(draft.Planting).ToArray()) },
+        };
+    }
+
+    private static int DraftOrderCount(Phase1SavedApprovalDraft? draft) =>
+        draft is null ? 0 : draft.Fells.Count + draft.Prunes.Count + draft.Clears.Count + draft.Planting.Count;
+
     // ------------------------------------------------------------------------------------------------ canopy and light (#900)
 
     /// <summary>
@@ -1258,12 +1381,16 @@ internal sealed class MultiAreaContinuation
             "Oak, Beech, Plant, Shelter and SpotClear need the 1/1/1/1/1 model selection; this session is not Phase 2");
 
     // The pruning guards of one tree: the unchanged Sitka rules, or the broadleaf high-pruning rules at Phase 2.
-    private void RequirePrunable(AnnualTree tree, TreePruningState state, float target)
+    private void RequirePrunable(AnnualTree tree, TreePruningState state, float target) =>
+        RequirePrunable(root, tree, state, target);
+
+    // The same guards against an explicit root: a Load revalidates its candidate before publishing it.
+    private static void RequirePrunable(MultiAreaRoot at, AnnualTree tree, TreePruningState state, float target)
     {
-        if (root.Phase2 is { } phase2)
-            Phase2Pruning.Require(tree, state, target, root.EcologicalYear, phase2.BroadleafOf(tree.TreeId));
+        if (at.Phase2 is { } phase2)
+            Phase2Pruning.Require(tree, state, target, at.EcologicalYear, phase2.BroadleafOf(tree.TreeId));
         else
-            PruningRules.Require(tree, state, target, root.EcologicalYear);
+            PruningRules.Require(tree, state, target, at.EcologicalYear);
     }
 
     // Validates a planting batch against the current root: area polygons, every living adult stem, existing juveniles and
@@ -1303,6 +1430,20 @@ internal sealed class MultiAreaContinuation
         foreach (var tree in root.Areas[areaIndex].State.Trees)
             if (string.Equals(tree.TreeId, treeId, StringComparison.Ordinal)) return tree;
         return null;
+    }
+
+    private static AnnualTree? FindTreeIn(MultiAreaRoot at, int areaIndex, string treeId)
+    {
+        foreach (var tree in at.Areas[areaIndex].State.Trees)
+            if (string.Equals(tree.TreeId, treeId, StringComparison.Ordinal)) return tree;
+        return null;
+    }
+
+    // A Load's candidate is not reachable yet, so its refused order is reported without the wrong-area refinement.
+    private static void RequireLivingIn(MultiAreaRoot at, int areaIndex, string treeId, string code, string message)
+    {
+        var tree = string.IsNullOrEmpty(treeId) ? null : FindTreeIn(at, areaIndex, treeId);
+        if (tree is null || !tree.IsLiving) throw new P1Refusal(code, message);
     }
 
     private string? OwnerOf(string treeId)

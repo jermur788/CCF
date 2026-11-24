@@ -72,6 +72,7 @@ start_server() {
   set -m
   ( cd "$p1_root" && exec env ASPNETCORE_URLS="http://0.0.0.0:5187" DOTNET_URLS="http://0.0.0.0:5187" ASPNETCORE_HTTP_PORTS=5187 \
       Kestrel__Endpoints__Lan__Url="http://0.0.0.0:5187" ASPNETCORE_ENVIRONMENT=Development \
+      XDG_DATA_HOME="$scratch/xdg" \
       "$dotnet_bin" "$ui_dll" "$scratch/fixture" ) > "$scratch/server-$run.out" 2> "$scratch/server-$run.err" &
   server_pid=$!
   set +m
@@ -96,14 +97,19 @@ start_server() {
 
 # stop_server <run> : stops this script's own process like Ctrl+C and checks that it ended cleanly.
 stop_server() {
-  local run="$1" rc=0
+  local run="$1" saved="${2:-0}" rc=0
   kill -INT "$server_pid"
   for _ in $(seq 1 150); do kill -0 "$server_pid" 2> /dev/null || break; sleep 0.1; done
   if kill -0 "$server_pid" 2> /dev/null; then bad "Z01-$run still running 15 s after SIGINT"; kill -KILL "$server_pid" 2> /dev/null || true; fi
   wait "$server_pid" 2> /dev/null || rc=$?
   server_pid=""
-  check "Z01-$run SIGINT ends this script's own process with exit 0 and 'Session ended; nothing was saved.' (exit $rc)" \
-    bash -c 'test "$1" == 0 && grep -qx "Session ended; nothing was saved." "$2"' _ "$rc" "$scratch/server-$run.out"
+  if [[ "$saved" == 1 ]]; then
+    check "Z01-$run SIGINT ends this script's own process with exit 0 and the truthful 'saved games remain' line (exit $rc)" \
+      bash -c 'test "$1" == 0 && grep -qx "Session ended. Saved games remain in their slot files." "$2"' _ "$rc" "$scratch/server-$run.out"
+  else
+    check "Z01-$run SIGINT ends this script's own process with exit 0 and 'Session ended; nothing was saved.' (exit $rc)" \
+      bash -c 'test "$1" == 0 && grep -qx "Session ended; nothing was saved." "$2"' _ "$rc" "$scratch/server-$run.out"
+  fi
   check "Z02-$run the server wrote nothing to stderr (no unconfirmed outcome, no fault)" test ! -s "$scratch/server-$run.err"
 }
 
@@ -544,14 +550,128 @@ refused('api/multi/shelter/add', {'fence': fence(ex_v), 'areaId': 'MA-B', 'xM': 
 exec_view_b, exec_eco_b, _ = raw_view_and_eco_bytes()
 check(exec_view_b <= 524288 and exec_eco_b <= 153600,
       'Pass 2 post-Execute raw payload budgets hold (view=%d B <= 524288, ecology=%d B <= 153600)' % (exec_view_b, exec_eco_b))
+# ---- SL: Save/Load named slots (Phase 1) ------------------------------------------------------------------------------
+import os
+
+def save_slots():
+    code, payload = send('api/multi/saves', method='GET')
+    return code, payload
+
+sl_view = view()
+sl_year = sl_view['source']['ecologicalYear']
+sl_code, sl_list = save_slots()
+check(sl_code == 200 and sl_list.get('slots') == [], 'GET api/multi/saves answers an empty slot list on a fresh process')
+sl_fence = fence(sl_view)
+
+code, _ = send('api/multi/saves', body=sl_fence)
+check(code == 405, 'POST on the GET-only saves list is 405')
+code, _ = send('api/multi/load', body={'fence': sl_fence, 'slot': 'x'}, headers={'Content-Type': 'text/plain'})
+check(code == 415, 'load with text/plain is 415')
+code, _ = send('api/multi/save', body={'fence': sl_fence, 'slot': 'x'})
+check(code == 400, 'save without the explicit replaceExisting member is 400')
+
+code, payload = send('api/multi/save', body={'fence': sl_fence, 'slot': '../escape', 'replaceExisting': False})
+check(code == 409 and payload['refusal']['code'] == 'SlotNameInvalid' and view() == sl_view,
+      'a traversal slot name is refused and nothing changed')
+code, payload = send('api/multi/save', body={'fence': sl_fence, 'slot': 'Upper', 'replaceExisting': False})
+check(code == 409 and payload['refusal']['code'] == 'SlotNameInvalid', 'a non-lowercase slot name is refused')
+
+code, saved = send('api/multi/save', body={'fence': sl_fence, 'slot': 'e2e', 'replaceExisting': False})
+check(code == 200 and saved['saved']['slot'] == 'e2e' and saved['saved']['status'] == 'durablyCommitted' and
+      saved['saved']['ecologicalYear'] == sl_year and saved['saved']['saveGeneration'] == 1 and len(saved['saved']['checksum']) == 64,
+      'Save wrote slot e2e durably at year %d (HTTP %d)' % (sl_year, code))
+row = next((s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e'), None)
+check(row is not None and row['status'] == 'valid' and row['canLoad'] and row['ecologicalYear'] == sl_year and
+      row['label'] == 'e2e' and row['models'] == '1/1/1/1/1' and row['savedUtc'].endswith('Z'),
+      'the slot is listed as valid with its label, year, saved UTC and model vector, and no filesystem path')
+check(row is not None and not any(str(row.get(k) or '').startswith('/') for k in row),
+      'the slot listing carries no absolute filesystem path')
+
+code, payload = send('api/multi/save', body={'fence': sl_fence, 'slot': 'e2e', 'replaceExisting': False})
+check(code == 409 and payload['refusal']['code'] == 'SlotExists' and view() == sl_view,
+      'an existing slot is never overwritten without explicit confirmation')
+code, replaced = send('api/multi/save', body={'fence': sl_fence, 'slot': 'e2e', 'replaceExisting': True})
+check(code == 200 and replaced['saved']['backupUpdated'] and replaced['saved']['saveGeneration'] == 2,
+      'a confirmed replace bumps the save generation and keeps the earlier save as the backup')
+row = next(s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e')
+check(row['backupExists'] and row['backupLoadable'], 'the list reports a loadable prior-good backup')
+
+adv = ok('api/multi/year/advance', {'fence': sl_fence, 'consentToCancelWork': False}, 'Year+1 after saving')
+after = adv['view']
+check(after['source']['ecologicalYear'] == sl_year + 1, 'the live session moved on one year after the save')
+
+code, payload = send('api/multi/load', body={'fence': sl_fence, 'slot': 'e2e'})
+check(code == 409 and payload['refusal']['code'] == 'PlayerSourceStale' and view() == after,
+      'a load with the pre-advance fence is refused and the live session is unchanged')
+code, payload = send('api/multi/load', body={'fence': fence(after), 'slot': 'no-such-slot'})
+check(code == 409 and payload['refusal']['code'] == 'SlotMissing' and view() == after,
+      'loading a missing slot is refused and the live session is unchanged')
+
+code, loaded = send('api/multi/load', body={'fence': fence(after), 'slot': 'e2e'})
+check(code == 200 and loaded['refusal'] is None and loaded['view']['source']['ecologicalYear'] == sl_year and
+      loaded['view']['sessionId'] != after['sessionId'] and loaded['restored']['draftOrderCount'] == 0,
+      'Load restored the saved year from the slot under a NEW session id (HTTP %d)' % code)
+new_view = loaded['view']
+check([a['trees'] for a in new_view['areas']] == [a['trees'] for a in sl_view['areas']],
+      'every saved tree record came back exactly (rosters, coordinates, crowns and deaths)')
+check(new_view['source'] == sl_view['source'] and new_view['planStateRevision'] == sl_view['planStateRevision'],
+      'the source token and plan-state revision are restored exactly')
+
+code, payload = send('api/multi/year/advance', body={'fence': fence(after), 'consentToCancelWork': False})
+check(code == 409 and payload['refusal']['code'] == 'PlayerSessionMismatch',
+      'the replaced session fence cannot mutate the restored forest')
+adv2 = ok('api/multi/year/advance', {'fence': fence(new_view), 'consentToCancelWork': False}, 'the restored session advances a real year')
+check(adv2['view']['source']['ecologicalYear'] == sl_year + 1 and adv2['view']['sessionId'] == new_view['sessionId'],
+      'the restored forest keeps its new authority and continues one real year')
+
+# Corrupt the primary on disk (the smoke owns this scratch folder) and prove the honest backup path.
+slot_dir = sys.argv[2]
+primary = os.path.join(slot_dir, 'e2e.ccf2d.json')
+before_backup = open(primary + '.bak', 'rb').read()
+open(primary, 'wb').write(b'\x00\x01 broken primary')
+row = next(s for s in save_slots()[1]['slots'] if s['slot'] == 'e2e')
+check(row['status'] == 'corrupt' and row['canLoad'] is False and row['backupExists'] and row['backupLoadable'],
+      'a corrupt primary is reported as corrupt, with its verified backup still available')
+code, payload = send('api/multi/load', body={'fence': fence(adv2['view']), 'slot': 'e2e'})
+check(code == 409 and payload['refusal']['code'] in
+      ('JsonInvalid', 'SaveUtf8Invalid', 'SaveNotCanonical', 'SaveChecksumMismatch', 'SaveInconsistent', 'SaveTooLarge',
+       'SaveSchemaUnsupported') and view() == adv2['view'],
+      'a corrupt slot refuses to load as %s and the live session is unchanged' % payload['refusal']['code'])
+code, recovery = send('api/multi/saves/recover', body={'slot': 'e2e'})
+check(code == 200 and recovery['refusal'] is None and recovery['slot'] == 'e2e',
+      'Restore backup put the verified prior-good save back over the corrupt primary')
+check(open(primary + '.bak', 'rb').read() == before_backup, 'the backup itself is kept, not consumed')
+code, loaded2 = send('api/multi/load', body={'fence': fence(adv2['view']), 'slot': 'e2e'})
+check(code == 200 and loaded2['view']['source']['ecologicalYear'] == sl_year,
+      'the recovered slot loads the saved year again (HTTP %d)' % code)
+
+# A plan that was approved when the save was written comes back as an UNAPPROVED pending draft (owner load policy A).
+cur = view()
+free = next(t['treeId'] for t in cur['areas'][0]['trees']
+            if t['isLiving'] and not any(o['treeId'] == t['treeId'] for o in cur['pending']))
+queued = ok('api/multi/pending/add', {'fence': fence(cur), 'areaId': 'MA-A', 'treeId': free, 'reason': 'approved before save'},
+            'queue a plan to approve before saving')
+approved = ok('api/multi/plan/approve', {'fence': fence(queued['view'])}, 'approve it before saving')
+check(approved['view']['approved'] is not None and approved['view']['pending'] == [], 'the saved plan really is approved')
+code, _ = send('api/multi/save', body={'fence': fence(approved['view']), 'slot': 'approved-draft', 'replaceExisting': False})
+check(code == 200, 'Save accepted a session holding an approved plan (HTTP %d)' % code)
+code, reloaded = send('api/multi/load', body={'fence': fence(approved['view']), 'slot': 'approved-draft'})
+check(code == 200 and reloaded['view']['approved'] is None and len(reloaded['view']['pending']) == 1 and
+      reloaded['restored']['draftOrderCount'] == 1,
+      'the formerly approved plan returns as an unapproved pending draft that needs a fresh Approve')
+code, reapproved = send('api/multi/plan/approve', body={'fence': fence(reloaded['view'])})
+check(code == 200 and reapproved['view']['approved'] is not None and
+      reapproved['view']['approved']['planId'] != approved['view']['approved']['planId'],
+      'approving the restored draft mints a plan id for the NEW session')
+
 print('INFO workflow checks: %d' % count, flush=True)
 WORKFLOW
 workflow_rc=0
-python3 -I -B "$scratch/workflow.py" "$url" > "$scratch/workflow.out" 2> "$scratch/workflow.err" || workflow_rc=$?
+python3 -I -B "$scratch/workflow.py" "$url" "$scratch/xdg/ccf-multi-2d-saves" > "$scratch/workflow.out" 2> "$scratch/workflow.err" || workflow_rc=$?
 cat "$scratch/workflow.out" | tee -a "$log"
 check "W999 the HTTP workflow witness completed without stderr" bash -c 'test "$1" == 0 && test ! -s "$2"' _ "$workflow_rc" "$scratch/workflow.err"
 if [[ $workflow_rc != 0 ]]; then fail=1; cat "$scratch/workflow.err" | tee -a "$log"; fi
-stop_server api
+stop_server api 1
 
 # ---- M12-M13: --multi-experiment=ma-1-mixed truthful badge/budgets and invalid CLI exit 64 --------------------------------
 check "M12 invalid --multi-experiment flag exits non-zero (64) with usage message" bash -c '

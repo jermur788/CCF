@@ -4,12 +4,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using SitkaP1.Core;
+using SitkaP1.Core.Phase1;
 using SitkaP1.Ui;
 
 // #849 UI-A (spec MULTI-STANDMAP-PLAYABLE-2D-V1 §3.2, §3.5, §3.6): the playable 2D Stand Map as ONE in-memory player
 // session, served to a browser on 127.0.0.1 only. This is an HTTP server, allowed only as this single presentation
-// process (spec §0.4 Q-1): no persistence, no second listener, no CORS and no outbound network. Process exit ends the
-// session; nothing is saved. Exit codes follow the CLI: 0 ok, 2 refused (code printed), 3 listener check failed, 64 usage.
+// process (spec §0.4 Q-1): no second listener, no CORS and no outbound network. The single-area page keeps nothing; the
+// two-area page (/multi) keeps only the named saves the player writes into its own server-managed slot folder, which is
+// the only file this process writes. Process exit ends both sessions. Exit codes follow the CLI: 0 ok, 2 refused (code
+// printed), 3 listener check failed, 64 usage.
 return await UiProcess.RunAsync(args);
 
 internal static class UiProcess
@@ -29,12 +32,16 @@ internal static class UiProcess
         PlayerWorkPlanAdapter player;
         MultiAreaWorkPlanAdapter multiArea;
         MultiAreaContinuation multiSession;
+        Phase1SaveSlots saveSlots;
         try
         {
             // The only file this process reads: the trusted, catalog-checked fixture, through Core's no-follow reader.
             player = PlayerWorkPlanAdapter.Open(fixtureDir);
             // /multi: defaults to Phase 2 (1/1/1/1/1) on standard synthetic MA-1 (all Sitka), or MA-1-MIXED demo.
             (multiArea, multiSession) = OpenMultiExperiment(experimentKey);
+            // The one folder this process writes: the two-area page's named save slots, under the user's own local data
+            // directory. The player never supplies a path; the store refuses symlinks, traversal and non-regular files.
+            saveSlots = OpenSaveDirectory();
         }
         catch (P1Refusal refusal)
         {
@@ -57,7 +64,7 @@ internal static class UiProcess
         });
 
         await using var app = builder.Build();
-        var api = new PlayerApi(player, multiArea, multiSession, capability);
+        var api = new PlayerApi(player, multiArea, multiSession, saveSlots, capability);
         app.Run(api.HandleAsync); // one terminal handler: every request passes the same guards (PlayerApi)
         await app.StartAsync();
 
@@ -78,12 +85,34 @@ internal static class UiProcess
             ? "MA-1-MIXED" : "MA-1";
         Console.WriteLine($"Two-area {multiTag} simulator: http://127.0.0.1:{port}/s/{capability}/multi");
         Console.WriteLine($"Experiment: {multiArea.ExperimentBadge}");
-        Console.WriteLine("Ctrl+C ends the session; nothing is saved.");
+        Console.WriteLine($"Saved games folder (two-area page only): {saveSlots.Directory}");
+        Console.WriteLine("Ctrl+C ends the session; the two-area page's named saves stay in that folder.");
 
-        // Ctrl+C (SIGINT) or SIGTERM stops the host gracefully; then the in-memory session is simply dropped.
+        // Ctrl+C (SIGINT) or SIGTERM stops the host gracefully; then the in-memory sessions are simply dropped.
         await app.WaitForShutdownAsync();
-        Console.WriteLine("Session ended; nothing was saved.");
+        Console.WriteLine(api.SavesWritten
+            ? "Session ended. Saved games remain in their slot files."
+            : "Session ended; nothing was saved.");
         return 0;
+    }
+
+    // The single dedicated save-slot folder: <local data>/ccf-multi-2d-saves, created if absent by the store itself. No
+    // player input reaches this path, and Phase1SaveSlots refuses it if any component is a symbolic link.
+    private static Phase1SaveSlots OpenSaveDirectory() =>
+        Phase1SaveSlots.OpenOrCreate(Path.Combine(LocalDataDirectory(), "ccf-multi-2d-saves"));
+
+    // The XDG data directory of this user (XDG spec: $XDG_DATA_HOME, else $HOME/.local/share). Environment.GetFolderPath
+    // reports LocalApplicationData as empty when the directory does not exist yet, so the path is derived here instead and
+    // the store creates it (mode 0700) on first use.
+    private static string LocalDataDirectory()
+    {
+        string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? "";
+        if (Path.IsPathFullyQualified(xdg)) return xdg;
+        string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+        if (Path.IsPathFullyQualified(home)) return Path.Combine(home, ".local", "share");
+        string known = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (!string.IsNullOrEmpty(known)) return known;
+        throw new P1Refusal("SlotDirectoryInvalid", "this process has no local data directory (XDG_DATA_HOME or HOME) for saves");
     }
 
     private static (MultiAreaWorkPlanAdapter Adapter, MultiAreaContinuation Session) OpenMultiExperiment(string experimentKey)

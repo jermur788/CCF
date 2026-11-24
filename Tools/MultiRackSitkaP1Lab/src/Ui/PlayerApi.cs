@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
+using SitkaP1.Core.Phase1;
 
 namespace SitkaP1.Ui;
 
@@ -65,11 +66,12 @@ internal sealed partial class PlayerApi
     private volatile Listener? listener; // set once, after the bind is checked and before the URL is printed
 
     internal PlayerApi(PlayerWorkPlanAdapter player, MultiAreaWorkPlanAdapter multiArea,
-        MultiAreaContinuation multiSession, string capability)
+        MultiAreaContinuation multiSession, Phase1SaveSlots saveSlots, string capability)
     {
         this.player = player;
         this.multiArea = multiArea;
         this.multiSession = multiSession;
+        this.saveSlots = saveSlots;
         this.capability = capability;
         capabilityBytes = Encoding.ASCII.GetBytes(capability);
 

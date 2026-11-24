@@ -17,7 +17,7 @@ Standalone sibling of the P0 lab (`Tools/MultiRackSitkaLab`, which this tool nev
 | Manual Work Plan: pending, approve (0 Fell), execute (one typed Fell), replay, real Year+1 with consent for unexecuted work | Implemented in the in-memory session (G2/A-1 engine); reachable through the #849 player facade and UI |
 | Player session facade in Core: `PlayerSessionView`, `PlayerWorkPlanAdapter`, `PlayerMapScene` (one-lock view, fenced commands, engine-minted PlanId and key) | Implemented (#849 PM-T01–T04), with the Tier-2 repair: a first Execute must echo the minted key. The independent review of the earlier candidate returned NEEDS CHANGES; **this repair is not yet re-reviewed, not integrated** |
 | Playable 2D Stand Map: the loopback UI process `src/Ui` and its page (see below) | Implemented (#849 PM-T05–T07), with the Tier-2 repair. One in-memory session per process on `127.0.0.1` behind a capability URL. **It is an HTTP server**, allowed only as this single presentation process (spec `multirack-sitka-2d-playable-standmap-v1` §0.4 Q-1). **Not yet re-reviewed, not integrated, not user accepted** |
-| Saves, load or resume, `.p1-data/` root, persistence Host, H2, several users, remote clients | **Not implemented** (UNAVAILABLE). Ending the process ends the session |
+| Saves, load or resume, `.p1-data/` root, persistence Host, H2, several users, remote clients | **Two-area page only** (Phase 1, `specs/multi-2d-phase1-save-time-history-v1`): named save slots in the user's own local data folder, load into a fresh session. The single-area page still keeps nothing. No resume-on-launch, no `.p1-data/` root, no persistence Host, no H2, no several users, no remote clients |
 | Comparison extension (G1), proposals, representative samples | **DISABLED — Manual/NotCovered** |
 | Costs, revenue, budget | **UNAVAILABLE (not €0)** |
 | Racks, corridors, Scenario One map code, Unity | Not used. The map is a small local SVG layer (spec §4, decision B) |
@@ -56,13 +56,18 @@ The process prints:
 ```text
 Synthetic 30 m Sitka experiment. Session only — nothing is saved.
 Open http://127.0.0.1:<port>/s/<capability>/
-Ctrl+C ends the session; nothing is saved.
+Two-area MA-1 simulator: http://127.0.0.1:<port>/s/<capability>/multi
+Experiment: <experiment badge>
+Saved games folder (two-area page only): <local data dir>/ccf-multi-2d-saves
+Ctrl+C ends the session; the two-area page's named saves stay in that folder.
 ```
 
 Open the printed address exactly, for example in Microsoft Edge on Windows (WSL2 localhost forwarding lets a Windows
 browser reach it). The operating system picks the port at each launch, and it is never 5187. Any other host name,
 including `localhost`, is refused with 403, and an address without the capability gets an empty 404. Press **Ctrl+C** in
-the terminal to end the session. Nothing is saved: the next launch starts again at Year 0.
+the terminal to end the session. The single-area page (`/s/<capability>/`) keeps nothing and starts again at Year 0; the
+two-area page (`/s/<capability>/multi`) keeps only the named saves the player writes to its own slot folder (see *Saved
+games* below).
 
 The UI project is deliberately **not** in `MultiRackSitkaP1Lab.sln`, so build it by its project path as shown. Set
 `TMPDIR` outside the repository, as for the other builds. Exit codes: 0 after Ctrl+C, 2 the fixture was refused (the code
@@ -99,13 +104,52 @@ Until a re-read succeeds, every command is disabled, refused if activated anyway
 page. If the plan is still approved after the re-read, Execute echoes the same engine-minted execution key, so it can
 never fell twice; the engine accepts only that minted key for a first execution.
 
+### Saved games (two-area page only)
+
+The two-area page (`/multi`) has a **Saved games** control in its header. It opens a small dialog with a slot name, a list
+of slots and an explicit **Load** / **Restore backup** per row.
+
+- **Where.** One server-managed folder, created by the process on first use with mode 0700: `$XDG_DATA_HOME/ccf-multi-2d-saves`
+  (normally `~/.local/share/ccf-multi-2d-saves`). The player never supplies a path, and nothing is uploaded, downloaded or
+  copied to a cloud or remote service. The page shows no filesystem path.
+- **Slot names.** 1–48 characters of `a-z`, `0-9` and `-`, starting with a letter or digit. The name is also the label the
+  list shows, with the saved year and UTC time, the model vector (`1/1/1/1/1` for the mixed experiments) and a state word:
+  *Ready to load* / *Different forest, model or engine* / *Corrupt — not loadable* / *Missing file*.
+- **What a save contains.** The whole authoritative root captured under the engine's single lock: both rosters with every
+  dead stem, Crop marks, both clocks, all revisions and the plan-state revision, the event ledger and executed-key
+  receipts, the pending plan, and the Stage 4 pruning/deadwood, Stage 5 cells/bands/accounts and Phase 2
+  species/juveniles/shelters/patches/accounts records. It is not a picture of the map.
+- **What a load does.** It verifies the file (format, schema 2, canonical bytes, checksum, every structural invariant, and
+  an exact match of model vector, genesis identity and engine lineage), rebuilds the whole candidate forest, revalidates
+  every restored unexecuted order with the engine's own rules, and only then publishes it under a **new session id**. Any
+  failure — stale fence, another forest, a corrupt file, an illegal order — refuses the load and leaves the live session
+  exactly as it was. Because the session id changes, every fence and execution key the page held before the load is
+  refused afterwards.
+- **Approval is not restored.** A plan that was approved when the save was written comes back as an ordinary **pending**
+  draft that must be approved again; the engine-minted PlanId, execution key and approval token are deliberately not
+  saved. Executed receipts stay as recorded history.
+- **Write safety.** A save is verified in memory, written to a temp file in the same folder, fsynced, read back and
+  compared, then published by one atomic rename; an existing slot is replaced only through the tick-box confirmation, and a
+  slot that did not exist is published no-clobber even if the request asked to replace. The previous good slot becomes
+  `*.bak` only if it still verifies. **Restore backup** is a separate, explicit action; a corrupt primary never displaces a
+  good backup. The dialog distinguishes *durably committed* from *the slot was replaced but the folder flush was not
+  confirmed*, and never claims a save that failed.
+- **Continue.** After a load the page re-reads the restored forest in one composite snapshot, clears old selections,
+  drafts, previews and any pending confirmation, and the player continues with the same *Advance one ecological year* and
+  Work Plan controls.
+
+Limits: this is local single-user persistence on Linux/WSL2 only (the atomic rename and fsync path is verified there). It
+is not a crash-proof journal, not a remote or cloud backup, not multi-user, not save-on-quit and not a 3D/Unity save.
+
 ### Honesty boundaries
 
 - **It is an HTTP server.** It is allowed only as this single, in-memory, loopback presentation process (spec §0.4 Q-1):
   `127.0.0.1` only, an ephemeral port other than 5187, a 256-bit capability in the URL path, exact Host and Origin checks,
-  JSON-only POST bodies of at most 16 KiB, no CORS, no outbound network and no file written. The Stage 5 no-Host rule is
-  narrowed for this one process, not withdrawn.
-- Session only: no save, load or resume, no persistence Host, no H2, no several users and no remote clients.
+  JSON-only POST bodies of at most 16 KiB, no CORS and no outbound network. The only file family it writes is the two-area
+  page's named save slots in its own folder; every other P1 path, including the CLI, still writes nothing. The Stage 5
+  no-Host rule is narrowed for this one process, not withdrawn.
+- Session only for the single-area page; the two-area page additionally keeps named local save slots (Phase 1). Still no
+  resume-on-launch, no persistence Host, no H2, no several users and no remote clients.
 - Comparison extension (G1), proposals and representative samples: **DISABLED — Manual/NotCovered**. Manual exact-ID
   selection is the whole feature, so Stage 5 R-06 and X-05 are not met by this slice.
 - Costs, revenue, budget: **UNAVAILABLE (not €0)**.
@@ -136,12 +180,23 @@ cd Tools/MultiRackSitkaP1Lab
 build/build-p0-core-ref.sh              # P0 Core DLL from the pinned tree, built outside the repo -> .p0ref/ (ignored)
 dotnet build MultiRackSitkaP1Lab.sln
 dotnet tests/Core.Tests/bin/Debug/net8.0/SitkaP1.Core.Tests.dll
+dotnet run --project tests/Phase1.Save.Tests/Phase1Save.Tests.csproj   # Phase 1 save contract (schema 2, slots)
+dotnet build src/Ui/SitkaP1.Ui.csproj
+tests/ui-smoke-multiarea.sh <evidence-dir>   # incl. the Save/Load HTTP witness and the page DOM stand-in
+tests/phase1-save-ui/run-edge-e2e.sh <evidence-dir>   # real Edge: Save -> restart -> Load -> continue, 1280x720 and 1920x1080
 tests/p0-isolation.sh <evidence-dir>    # cold rebuild + tests under strace; L0–L4 proof that P0 is untouched
 tests/build-output-safety.sh <evidence-dir>  # builder vs hostile .p0ref states (symlink, file, hard link, ...) using scratch stand-ins
 tests/cli-safety.sh <evidence-dir>      # documented CLI vs hostile outputs/inputs using scratch stand-ins
 ```
 
 Set `TMPDIR` to a directory **outside** the repository. The build script refuses to run if it is inside.
+
+`tests/Core.Tests` includes the Phase 1 Save/Load integration suite (`Phase1SaveIntegrationTests.cs`): a genuinely played
+mixed forest is captured, restored into a fresh session, compared against an uninterrupted control byte for byte (through
+the canonical save encoding), continued for real years, and probed with illegal restored orders, stale fences and a
+foreign-identity save. `tests/Phase1.Save.Tests` is the public contract suite (round trip, corruption, slot races, backup
+recovery). `tests/phase1-save-ui/` holds the real-browser driver and runner used for the Save/Quit/Restart/Load/Continue
+evidence; it needs Windows Microsoft Edge and Windows Node.
 
 ## CLI
 
@@ -153,8 +208,10 @@ dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll inspect-original ../MultiRackSitkaLa
 dotnet src/Cli/bin/Debug/net8.0/sitkap1.dll annual DerivedP1ThirtyMetreExperimentV1 p1d-30m-sitka-adult-v1   # always REFUSED in F0
 ```
 
-- **No P1 command opens a file for writing.** `generate-manifest --stdout` refuses (`OutputNotStream`) unless standard
+- **No P1 CLI command opens a file for writing.** `generate-manifest --stdout` refuses (`OutputNotStream`) unless standard
   output is a pipe, socket or terminal, so redirecting it to a file is refused before any byte is written (#643 B-01).
+  The one P1 file writer is the two-area save store (`src/Core/Phase1/Phase1SaveSlots.cs`), which the `644 B-01` guard now
+  exempts by name and asserts is the only exemption.
 - Fixture commands take a **directory**. The file name and exact length come from the compiled catalog or trust table, and
   the file is read through the no-follow, descriptor-checked reader (#643 M-02).
 - `--review-evidence` lets a reviewer run the full check sequence on a pending record. Its output is labelled

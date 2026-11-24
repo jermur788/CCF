@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
+using SitkaP1.Core.Phase1;
 
 namespace SitkaP1.Ui;
 
@@ -37,6 +38,9 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiPointMembers = MultiFenceMembers.Concat(new[] { "areaId", "xM", "zM" }).ToArray();
     private static readonly string[] MultiPlantMembers = MultiFenceMembers.Concat(new[] { "areaId", "speciesId", "xM", "zM" }).ToArray();
     private static readonly string[] MultiPlantingRemoveMembers = MultiFenceMembers.Append("orderId").ToArray();
+    private static readonly string[] MultiSaveMembers = MultiFenceMembers.Concat(new[] { "slot", "replaceExisting" }).ToArray();
+    private static readonly string[] MultiLoadMembers = MultiFenceMembers.Append("slot").ToArray();
+    private static readonly string[] MultiRecoverMembers = new[] { "slot" };
 
     private static readonly byte[] MultiPageHtml = Encoding.UTF8.GetBytes(MultiAreaPage.Html);
     private static readonly byte[] MultiPageCss = Encoding.UTF8.GetBytes(MultiAreaPage.Css);
@@ -50,6 +54,11 @@ internal sealed partial class PlayerApi
 
     private readonly MultiAreaWorkPlanAdapter multiArea;
     private readonly MultiAreaContinuation multiSession;
+    private readonly Phase1SaveSlots saveSlots;
+    private int savesWritten; // successful slot writes in this process, only for the truthful shutdown line
+
+    /// <summary>True when this process wrote at least one save slot (the shutdown line must not claim nothing was saved).</summary>
+    internal bool SavesWritten => Volatile.Read(ref savesWritten) > 0;
 
     private void AddMultiAreaRoutes()
     {
@@ -58,6 +67,12 @@ internal sealed partial class PlayerApi
         routes.Add("multi.js", new("GET", context => WriteAssetAsync(context, MultiPageJs, "text/javascript; charset=utf-8")));
         routes.Add("api/multi/view", new("GET", ReadMultiViewAsync));
         routes.Add("api/multi/manifest", new("GET", WriteMultiManifestAsync));
+        // Phase 1 Save/Load: server-managed named slots only (no path, upload or download). Save captures under the engine
+        // lock and writes outside it; Load validates and publishes inside it; a refusal changes nothing.
+        routes.Add("api/multi/saves", new("GET", ReadMultiSavesAsync));
+        routes.Add("api/multi/save", new("POST", MultiSaveAsync));
+        routes.Add("api/multi/load", new("POST", MultiLoadAsync));
+        routes.Add("api/multi/saves/recover", new("POST", MultiRecoverAsync));
         routes.Add("api/multi/hit", new("POST", MultiHitTestAsync));
         routes.Add("api/multi/cell", new("POST", ReadMultiCellAsync));
         routes.Add("api/multi/competition", new("POST", ReadMultiCompetitionAsync));
@@ -129,6 +144,138 @@ internal sealed partial class PlayerApi
         return WriteJsonAsync(context, StatusCodes.Status200OK,
             new MultiViewPayload(snapshot.View, ScenesOf(snapshot.View), MultiLabels, snapshot.Readout, snapshot.Ecology));
     }
+
+    // ---- Phase 1 Save/Load ----------------------------------------------------------------------------------------------
+
+    // The slot list. Every slot is read and fully verified here, and the page is told a state word, never a filesystem
+    // path: "valid" (loadable into this exact session), "incompatible" (another forest, model or engine build), "corrupt"
+    // (failed its own verification) or "missing" (listed but no longer present). A valid backup is reported separately, so
+    // a corrupt primary with a good backup is never shown as a silent success or an empty slot.
+    private Task ReadMultiSavesAsync(HttpContext context)
+    {
+        var slots = new List<MultiSlotInfo>();
+        var expectation = multiSession.SaveExpectation();
+        foreach (string slot in saveSlots.ListSlots())
+        {
+            var inspection = saveSlots.Inspect(slot);
+            string status = "corrupt";
+            string? refusal = inspection.PrimaryRefusal;
+            string? label = null, savedUtc = null, models = null;
+            int? year = null;
+            if (!inspection.PrimaryExists)
+            {
+                status = "missing";
+                refusal = "SlotMissing";
+            }
+            else if (inspection.PrimaryRefusal is null)
+            {
+                try
+                {
+                    var header = saveSlots.Load(slot, expectation).Envelope.Header;
+                    status = "valid";
+                    refusal = null;
+                    label = header.Label;
+                    year = header.EcologicalYear;
+                    savedUtc = header.SavedUtc;
+                    models = header.Models.ToString();
+                }
+                catch (P1Refusal failure)
+                {
+                    status = IsIdentityRefusal(failure.Code) ? "incompatible" : "corrupt";
+                    refusal = failure.Code;
+                }
+            }
+            slots.Add(new MultiSlotInfo(slot, label, year, savedUtc, models, status, status == "valid",
+                inspection.BackupExists, inspection.BackupRefusal is null, refusal));
+        }
+        return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavesPayload(slots.AsReadOnly(), null));
+    }
+
+    // Save the current fenced forest into a named slot. The engine captures the whole root under its own lock; the strict
+    // codec verifies the bytes; the slot store writes outside the lock with its atomic temp/backup/rename sequence. An
+    // absent slot is always published no-clobber, and a slot that already holds a save is replaced only when the player
+    // confirmed it (replaceExisting). A failed or indeterminate write is never reported as a save.
+    private async Task MultiSaveAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiSaveRequest>(context, MultiSaveMembers);
+        if (request is null) return;
+        string slot = request.Slot!;
+        string label = string.IsNullOrEmpty(request.Label) ? slot : request.Label;
+        try
+        {
+            long generation = 1;
+            var inspection = saveSlots.Inspect(slot);
+            if (inspection.PrimaryExists)
+            {
+                if (!request.ReplaceExisting)
+                    throw new P1Refusal("SlotExists",
+                        "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
+                try { generation = saveSlots.Load(slot, expectation: null).Envelope.Header.SaveGeneration + 1; }
+                catch (P1Refusal) { generation = 1; } // a corrupt primary is replaced on request; its good backup survives
+            }
+            // Capture first (engine lock), then encode and write (no engine lock held).
+            var envelope = multiSession.CaptureSave(request.Fence!, label, generation);
+            byte[] bytes = Phase1SaveCodec.Encode(envelope);
+            var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
+            Interlocked.Increment(ref savesWritten);
+            var header = envelope.Header;
+            await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
+                result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
+                result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
+                header.SavedUtc), null));
+        }
+        catch (P1Refusal refusal)
+        {
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiSavePayload(null, new Notice(refusal.Code, refusal.Message)));
+        }
+    }
+
+    // Load a slot: the store verifies the file and the exact identity, then the engine rebuilds, revalidates and publishes
+    // the whole candidate root under one lock with a NEW session id. Any failure (stale fence, wrong forest, corrupt file,
+    // illegal restored order) answers 409 with the code and the UNCHANGED current view, so the page never loses authority
+    // over a session that was not replaced.
+    private async Task MultiLoadAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiLoadRequest>(context, MultiLoadMembers);
+        if (request is null) return;
+        MultiAreaLoadResult result;
+        try
+        {
+            result = multiSession.Restore(request.Fence!, saveSlots.Load(request.Slot!, multiSession.SaveExpectation()));
+        }
+        catch (P1Refusal refusal)
+        {
+            result = new MultiAreaLoadResult(multiSession.ReadView(), 0, null, refusal.Code, refusal.Message);
+        }
+        var snapshot = multiArea.ReadCompositeUiSnapshot();
+        var info = result.RefusalCode is null ? new MultiLoadInfo(result.DraftOrderCount, result.Checksum!) : null;
+        await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(snapshot.View, ScenesOf(snapshot.View),
+            MultiLabels, snapshot.Readout, snapshot.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage)));
+    }
+
+    // Restore a slot's verified prior-good backup over its primary. This is a deliberate, separate player action: a failed
+    // or interrupted save is never repaired silently, and a corrupt backup is refused rather than written.
+    private async Task MultiRecoverAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiSlotRequest>(context, MultiRecoverMembers);
+        if (request is null) return;
+        try
+        {
+            var result = saveSlots.RecoverFromBackup(request.Slot!);
+            await WriteJsonAsync(context, StatusCodes.Status200OK,
+                new MultiRecoverPayload(result.SlotName, result.Checksum, result.Bytes, null));
+        }
+        catch (P1Refusal refusal)
+        {
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiRecoverPayload(request.Slot!, null, null, new Notice(refusal.Code, refusal.Message)));
+        }
+    }
+
+    // A save made for another experiment, model selection or engine build is compatible-looking but not loadable here.
+    private static bool IsIdentityRefusal(string code) =>
+        code is "SaveModelMismatch" or "SaveGenesisMismatch" or "SaveLineageMismatch";
 
     // Strictly read-only cell detail inspection (spec §5.5): full cell cohorts, undergrowth, light, cover, clear state
     // plus fresh composite view/scenes/stage4/ecology. 400 on malformed JSON/unknown keys; 409 on stale fence or invalid cell.
@@ -235,7 +382,8 @@ internal sealed partial class PlayerApi
     {
         if (root.ValueKind != JsonValueKind.Object) throw new JsonException("the body must be one JSON object");
         foreach (var (name, limit) in new[] { ("areaId", MaxIdLength), ("treeId", MaxIdLength), ("speciesId", MaxIdLength),
-                     ("orderId", MaxIdLength), ("planId", MaxPlanKeyLength), ("executionKey", MaxPlanKeyLength) })
+                     ("orderId", MaxIdLength), ("planId", MaxPlanKeyLength), ("executionKey", MaxPlanKeyLength),
+                     ("slot", 48), ("label", 64) })
         {
             if (!root.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String) continue;
             string text = value.GetString()!;
@@ -275,6 +423,32 @@ internal sealed partial class PlayerApi
         [property: JsonPropertyName("zM")] double? ZM);
 
     private sealed record MultiPlantingRemoveRequest(MultiAreaFence? Fence, string? OrderId);
+
+    // Phase 1 Save/Load request and response bodies. `replaceExisting` is required on every save so the page must state
+    // whether the player confirmed replacing an existing slot.
+    private sealed record MultiSaveRequest(MultiAreaFence? Fence, string? Slot, string? Label, bool ReplaceExisting);
+
+    private sealed record MultiLoadRequest(MultiAreaFence? Fence, string? Slot);
+
+    private sealed record MultiSlotRequest(string? Slot);
+
+    private sealed record MultiSlotInfo(string Slot, string? Label, int? EcologicalYear, string? SavedUtc, string? Models,
+        string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, string? RefusalCode);
+
+    private sealed record MultiSavesPayload(IReadOnlyList<MultiSlotInfo> Slots, Notice? Refusal);
+
+    private sealed record MultiSaveOutcome(string Slot, string Status, bool BackupUpdated, string Checksum, long Bytes,
+        long SaveGeneration, string Label, int EcologicalYear, string SavedUtc);
+
+    private sealed record MultiSavePayload(MultiSaveOutcome? Saved, Notice? Refusal);
+
+    private sealed record MultiLoadInfo(int DraftOrderCount, string Checksum);
+
+    private sealed record MultiLoadPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
+        IReadOnlyDictionary<string, string> Labels, MultiAreaUiReadout? Stage4, MultiAreaEcologyDto? Ecology, MultiLoadInfo? Restored,
+        Notice? Refusal);
+
+    private sealed record MultiRecoverPayload(string Slot, string? Checksum, long? Bytes, Notice? Refusal);
 
     // Stage4 ("stage4") and Ecology ("ecology") are additive; all existing members keep their exact names and shapes.
     private sealed record MultiViewPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
@@ -333,6 +507,10 @@ internal static class MultiAreaPage
   </div>
   <div class="top-actions">
     <p class="year-chip"><span class="year-word">Year</span> <strong id="year-value">–</strong></p>
+    <button type="button" id="saves-open" class="saves-open" aria-haspopup="dialog">
+      <span aria-hidden="true">▤</span>
+      <span class="btn-title">Saved games</span>
+    </button>
     <button type="button" id="advance" class="advance">
       <span class="advance-icon" aria-hidden="true">▷</span>
       <span class="advance-text"><span id="advance-label" class="btn-title">Advance one ecological year</span>
@@ -1068,6 +1246,40 @@ internal static class MultiAreaPage
   </p>
 </dialog>
 
+<dialog id="saves-dialog" aria-labelledby="saves-title" aria-describedby="saves-intro">
+  <h2 id="saves-title">Saved games</h2>
+  <p id="saves-intro" class="note"></p>
+  <div class="save-form">
+    <label for="save-slot">Slot name</label>
+    <input id="save-slot" name="slot" type="text" autocomplete="off" spellcheck="false" maxlength="48"
+      pattern="[a-z0-9][a-z0-9\-]{0,47}" aria-describedby="save-slot-hint">
+    <p id="save-slot-hint" class="note small-note"></p>
+    <p class="save-actions">
+      <button type="button" id="save-do" class="execute">Save current forest</button>
+      <label id="save-overwrite-wrap" class="check" hidden>
+        <input type="checkbox" id="save-overwrite">
+        <span id="save-overwrite-text"></span>
+      </label>
+    </p>
+  </div>
+  <p id="saves-status" class="save-status" role="status" aria-live="polite"></p>
+  <table class="saves-table">
+    <caption class="sr-only">Saved slots in this app's own folder on this computer</caption>
+    <thead>
+      <tr><th scope="col">Slot</th><th scope="col">Year</th><th scope="col">Saved (UTC)</th><th scope="col">State</th><th scope="col">Actions</th></tr>
+    </thead>
+    <tbody id="saves-rows"></tbody>
+  </table>
+  <div id="load-confirm" class="save-confirm" hidden>
+    <p id="load-confirm-text"></p>
+    <p class="actions">
+      <button type="button" id="load-cancel" class="secondary">Cancel</button>
+      <button type="button" id="load-do" class="danger">Load this slot</button>
+    </p>
+  </div>
+  <p class="actions"><button type="button" id="saves-close" class="secondary">Close</button></p>
+</dialog>
+
 <noscript><p class="noscript">This page needs JavaScript to talk to the local session process.</p></noscript>
 </body>
 </html>
@@ -1517,6 +1729,34 @@ tr.current > * { border-top: 2px solid var(--reference); border-bottom: 2px soli
 dialog { width: min(38rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow: auto; padding: 1.2rem; border: 1px solid var(--edge); border-radius: 10px; background: var(--panel); color: var(--text); }
 dialog::backdrop { background: rgba(3, 9, 17, .72); }
 dialog .actions { justify-content: flex-end; margin-top: 1rem; }
+/* Phase 1 Save/Load: the header control and its slot dialog. Table and controls stay inside the 1280x720 fold. */
+.saves-open { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .3rem .75rem; font-weight: 600; }
+.saves-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
+#saves-dialog { width: min(52rem, calc(100vw - 2rem)); }
+.save-form { display: grid; gap: .25rem; margin: .6rem 0 .2rem; }
+.save-form label { color: var(--muted); font-size: .78rem; font-weight: 600; }
+#save-slot { min-height: 36px; max-width: 24rem; padding: .3rem .5rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--text); font: inherit; }
+#save-slot:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.save-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: .45rem 0 .2rem; }
+.save-form .check { display: inline-flex; align-items: center; gap: .4rem; color: var(--text); font-size: .86rem; }
+.save-status { min-height: 1.2rem; margin: .35rem 0 .5rem; color: var(--muted); font-size: .85rem; }
+.save-status.ok { color: var(--ok, #8fd694); }
+.save-status.warn { color: var(--pending); }
+.save-status.bad { color: var(--dead); }
+.saves-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.saves-table caption { text-align: left; }
+.saves-table th, .saves-table td { padding: .35rem .45rem; border-bottom: 1px solid var(--edge); text-align: left; vertical-align: middle; }
+.saves-table th { color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.saves-table td.num { font-variant-numeric: tabular-nums; }
+.saves-table .slot-cell code { font-size: .85rem; }
+.saves-table .state-valid { color: var(--ok, #8fd694); font-weight: 600; }
+.saves-table .state-corrupt, .saves-table .state-missing { color: var(--dead); font-weight: 600; }
+.saves-table .state-incompatible { color: var(--pending); font-weight: 600; }
+.saves-table .slot-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.saves-table .slot-actions button { min-height: 32px; padding: .15rem .6rem; font-size: .82rem; }
+.save-confirm { margin: .75rem 0 0; padding: .6rem .8rem; border: 1px solid var(--dead); border-radius: 8px; background: var(--panel-2); }
+.save-confirm p { margin: 0 0 .5rem; }
+.save-empty { color: var(--muted); font-style: italic; }
 
 /* ---- Area readouts and prune box -------------------------------------------------------------------------------- */
 .area-readouts { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: .1rem .75rem; margin: 0; padding-top: .3rem; border-top: 1px solid var(--edge); font-size: .74rem; }
@@ -1733,6 +1973,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     plantResult: null, // sequential Plant -> Shelter -> SpotClear queue result + partial disclosure
     spotDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
     spotResult: null,
+    saves: [], // GET api/multi/saves rows: slot, label, year, savedUtc, models, status, canLoad, backup state
+    loadSlot: null, // slot awaiting the player's explicit "replace the current forest" confirmation
   };
 
   const byId = (id) => document.getElementById(id);
@@ -2077,6 +2319,244 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
         what + ': no confirmed result was received. Do not assume that it happened, or that it did not.');
     }
+  }
+
+  // ---- Phase 1 Save/Load (server-managed named slots; no path, no upload, no download) --------------------------------
+
+  const SAVE_STATE = {
+    valid: ['Ready to load', 'state-valid'],
+    incompatible: ['Different forest, model or engine', 'state-incompatible'],
+    corrupt: ['Corrupt — not loadable', 'state-corrupt'],
+    missing: ['Missing file', 'state-missing'],
+  };
+
+  function savedSlot(slot) { return (state.saves || []).find((row) => row.slot === slot) || null; }
+
+  function saveStatus(text, kind) {
+    const box = byId('saves-status');
+    box.textContent = text;
+    box.className = 'save-status' + (kind ? ' ' + kind : '');
+  }
+
+  // Save/Load routes answer their own payload shapes (no composite view on a save, a composite view on a load), so they
+  // use this small JSON helper instead of call().
+  async function jsonCall(path, method, body) {
+    const init = { method, cache: 'no-store', credentials: 'omit', redirect: 'error' };
+    if (body !== undefined) {
+      init.headers = { 'Content-Type': 'application/json' };
+      init.body = JSON.stringify(body);
+    }
+    let response;
+    try { response = await fetch(path, init); } catch (failure) {
+      return { kind: 'transport', detail: String((failure && failure.message) || failure) };
+    }
+    let payload = null;
+    try { payload = await response.json(); } catch { payload = null; }
+    if (response.ok && payload) return { kind: 'ok', payload };
+    if (payload && payload.view && payload.refusal) return { kind: 'refused', payload };
+    if (payload && (payload.refusal || payload.error)) return { kind: 'guard', payload };
+    return { kind: 'transport', detail: 'HTTP ' + response.status };
+  }
+
+  function noticeOf(outcome) {
+    if (outcome.payload) {
+      if (outcome.payload.refusal) return outcome.payload.refusal;
+      if (outcome.payload.error) return outcome.payload.error;
+    }
+    return { code: 'Transport', message: outcome.detail || 'no confirmed answer from the local server' };
+  }
+
+  async function openSaves() {
+    byId('saves-title').textContent = label('MultiSavesTitle') || 'Saved games';
+    byId('saves-intro').textContent = label('MultiSavesIntro');
+    byId('save-slot-hint').textContent = label('MultiSavesNameHint');
+    byId('save-overwrite-text').textContent = label('MultiSavesOverwrite');
+    byId('save-do').textContent = label('MultiSavesSave');
+    byId('load-confirm').hidden = true;
+    byId('load-confirm-text').textContent = '';
+    saveStatus('', null);
+    openDialog(byId('saves-dialog'), byId('save-slot'));
+    await refreshSaves();
+  }
+
+  async function refreshSaves() {
+    const outcome = await jsonCall('api/multi/saves', 'GET');
+    if (outcome.kind !== 'ok' || !outcome.payload) {
+      const notice = noticeOf(outcome);
+      saveStatus('Could not read the saved games list (' + notice.code + ').', 'bad');
+      return;
+    }
+    state.saves = outcome.payload.slots || [];
+    renderSaves();
+  }
+
+  function renderSaves() {
+    const rows = (state.saves || []).map((slot) => {
+      const [word, stateClass] = SAVE_STATE[slot.status] || [slot.status, 'state-corrupt'];
+      const actions = [];
+      if (slot.canLoad) {
+        actions.push(el('button', { type: 'button', class: 'small', 'data-load': slot.slot,
+          'aria-label': 'Load saved slot ' + slot.slot }, label('MultiSavesLoad') || 'Load'));
+      }
+      if (slot.backupExists && slot.backupLoadable) {
+        actions.push(el('button', { type: 'button', class: 'small', 'data-recover': slot.slot,
+          'aria-label': 'Restore the verified backup of ' + slot.slot }, label('MultiSavesRecover') || 'Restore backup'));
+      }
+      return el('tr', null,
+        el('td', { class: 'slot-cell' }, el('code', null, slot.slot)),
+        el('td', { class: 'num' }, slot.ecologicalYear === null || slot.ecologicalYear === undefined ? '–' : String(slot.ecologicalYear)),
+        el('td', { class: 'num' }, slot.savedUtc || '–'),
+        el('td', { class: stateClass }, word,
+          slot.refusalCode ? el('span', { class: 'note' }, ' (' + slot.refusalCode + ')') : null,
+          slot.backupExists && slot.backupLoadable ? el('span', { class: 'note' }, ' · backup available') : null),
+        el('td', null, el('div', { class: 'slot-actions' }, ...actions)));
+    });
+    byId('saves-rows').replaceChildren(...(rows.length > 0 ? rows
+      : [el('tr', null, el('td', { colspan: 5, class: 'save-empty' }, label('MultiSavesEmpty') || 'No saved slots yet.'))]));
+    updateSaveControls();
+  }
+
+  function saveNameValid(name) { return /^[a-z0-9][a-z0-9-]{0,47}$/.test(name); }
+
+  function updateSaveControls() {
+    const name = byId('save-slot').value.trim();
+    const existing = saveNameValid(name) ? savedSlot(name) : null;
+    byId('save-overwrite-wrap').hidden = !existing;
+    if (!existing) byId('save-overwrite').checked = false;
+    byId('save-do').disabled = !saveNameValid(name) || state.busy;
+  }
+
+  async function onSave() {
+    if (!state.view || state.busy) return;
+    const slot = byId('save-slot').value.trim();
+    if (!saveNameValid(slot)) {
+      saveStatus('A slot name is 1–48 lowercase letters, digits or hyphens, starting with a letter or digit. Nothing was written.', 'bad');
+      return;
+    }
+    if (state.lock) {
+      saveStatus('Outcome unconfirmed — re-read the current state before saving. Nothing was written.', 'bad');
+      return;
+    }
+    const existing = savedSlot(slot);
+    if (existing && !byId('save-overwrite').checked) {
+      saveStatus('Slot "' + slot + '" already holds a save. Tick "' + label('MultiSavesOverwrite') + '" to replace it. Nothing was written.', 'warn');
+      return;
+    }
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    const outcome = await jsonCall('api/multi/save', 'POST', { fence: currentFence(), slot, replaceExisting: Boolean(existing) });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    if (outcome.kind === 'ok' && outcome.payload && outcome.payload.saved) {
+      const saved = outcome.payload.saved;
+      const durable = saved.status === 'durablyCommitted';
+      saveStatus('Saved "' + saved.slot + '" · year ' + saved.ecologicalYear + ' · ' + saved.savedUtc + ' · ' +
+        (durable ? label('MultiSavesDurable') : label('MultiSavesDurabilityUnconfirmed')), durable ? 'ok' : 'warn');
+      byId('save-overwrite').checked = false;
+      announce('Saved slot ' + saved.slot + ' in year ' + saved.ecologicalYear + '.');
+      await refreshSaves();
+      return;
+    }
+    const notice = noticeOf(outcome);
+    saveStatus('Not saved (' + notice.code + '): ' + notice.message, 'bad');
+  }
+
+  function askLoad(slot) {
+    const row = savedSlot(slot);
+    if (!row || !row.canLoad || state.busy) return;
+    state.loadSlot = slot;
+    byId('load-confirm-text').textContent =
+      fill(label('MultiSavesLoadConfirm'), { slot: slot });
+    byId('load-confirm').hidden = false;
+    byId('load-do').focus();
+  }
+
+  // A load replaces the whole live forest, so every local selection, draft, preview, in-flight request token and pending
+  // confirmation of the old session is dropped here BEFORE the new payload is applied.
+  function resetForLoad() {
+    state.selected = {};
+    state.selectedJuvenile = null;
+    state.drafts = {};
+    state.draftNotice = null;
+    state.overlap = null;
+    state.competition = null;
+    state.competitionTarget = null;
+    state.competitionTag = null;
+    state.competitionRequest += 1;
+    state.cellDetail = null;
+    state.cellLoading = false;
+    state.batch = null;
+    state.batchResult = null;
+    state.batchResultOpen = false;
+    state.plantDraft = null;
+    state.plantResult = null;
+    state.spotDraft = null;
+    state.spotResult = null;
+    state.confirmation = null;
+    state.consentWork = false;
+    state.lastExecution = null;
+    state.lastWasReplay = false;
+    state.lock = null;
+    state.lockCount = 0;
+    state.mapPick += 1;
+    state.cellPick += 1;
+    state.zoom = 1;
+    state.centre = null;
+    state.mapMode = 'tree';
+    state.overlay = 'off';
+    state.loadSlot = null;
+  }
+
+  async function onLoadConfirmed() {
+    const slot = state.loadSlot;
+    if (!slot || !state.view || state.busy) return;
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    const outcome = await jsonCall('api/multi/load', 'POST', { fence: currentFence(), slot });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    byId('load-confirm').hidden = true;
+    if (outcome.kind === 'ok' && outcome.payload && outcome.payload.view) {
+      resetForLoad();
+      applyPayload(outcome.payload, false);
+      byId('saves-dialog').close();
+      const info = outcome.payload.restored;
+      const draft = info && info.draftOrderCount > 0 ? fill(label('MultiSavesPendingDraft'), { n: info.draftOrderCount }) : null;
+      clearAlert();
+      showAlert([
+        el('p', { class: 'alert-title' }, 'Loaded "' + slot + '"'),
+        el('p', null, 'Year ' + state.view.source.ecologicalYear + ', both areas restored from the save; the session has a new authority, so every earlier token is refused.'),
+        draft ? el('p', { class: 'warning' }, draft) : null,
+        el('p', null, 'Advance or approve and execute work to continue from here.'),
+      ]);
+      announce('Loaded ' + slot + ' in year ' + state.view.source.ecologicalYear + '.' + (draft ? ' ' + draft : ''));
+      return;
+    }
+    if (outcome.kind === 'refused' && outcome.payload && outcome.payload.view) {
+      // The server replaced nothing: it answered with the unchanged live session, so the page keeps working authority.
+      applyPayload(outcome.payload, false);
+      const notice = noticeOf(outcome);
+      saveStatus('Load refused (' + notice.code + '): ' + notice.message + ' The current forest is unchanged.', 'bad');
+      return;
+    }
+    const notice = noticeOf(outcome);
+    saveStatus('Load not confirmed (' + notice.code + '): ' + notice.message + ' Re-read the current state before trying again.', 'bad');
+  }
+
+  async function onRecover(slot) {
+    if (state.busy) return;
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    const outcome = await jsonCall('api/multi/saves/recover', 'POST', { slot });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    if (outcome.kind === 'ok') {
+      saveStatus('Restored the verified backup of "' + slot + '" over its primary file. Load it to play that forest.', 'ok');
+      await refreshSaves();
+      return;
+    }
+    const notice = noticeOf(outcome);
+    saveStatus('Backup not restored (' + notice.code + '): ' + notice.message, 'bad');
   }
 
   // ---- alerts, announcements and the re-read lock ---------------------------------------------------------------------
@@ -4423,7 +4903,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     ].concat(m.evidenceLabels, m.lightUncertainties) : []).map((text) => el('li', null, text)));
     byId('details-note').textContent = readout === 'phase2' ? label('MultiNotModelledPhase2') :
       readout === 'stage4' ? label('MultiNotModelledStage4') :
-        readout === 'legacy' ? 'Light, seed, regeneration, site, money and saving: NOT MODELLED.' :
+        readout === 'legacy' ? 'Light, seed, regeneration, site and money: NOT MODELLED. Saving keeps this forest in named slots on this computer.' :
           'Model read-out unavailable for this view; choose Re-read to see what the active engine models.';
     byId('facts').replaceChildren(
       pair('Experiment', e.experimentId), pair('Badge', experimentBadgeText(), 'wide'),
@@ -5198,6 +5678,27 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('crop-button').addEventListener('click', onCrop);
     byId('reread').addEventListener('click', () => reread(true));
     byId('advance').addEventListener('click', onAdvance);
+    byId('saves-open').addEventListener('click', openSaves);
+    byId('saves-close').addEventListener('click', () => byId('saves-dialog').close());
+    byId('saves-dialog').addEventListener('close', () => {
+      byId('load-confirm').hidden = true;
+      returnFocus();
+    });
+    byId('save-slot').addEventListener('input', updateSaveControls);
+    byId('save-overwrite').addEventListener('change', updateSaveControls);
+    byId('save-do').addEventListener('click', onSave);
+    byId('saves-rows').addEventListener('click', (event) => {
+      const load = event.target.closest('[data-load]');
+      if (load) { askLoad(load.getAttribute('data-load')); return; }
+      const recover = event.target.closest('[data-recover]');
+      if (recover) onRecover(recover.getAttribute('data-recover'));
+    });
+    byId('load-cancel').addEventListener('click', () => {
+      byId('load-confirm').hidden = true;
+      state.loadSlot = null;
+      byId('save-slot').focus();
+    });
+    byId('load-do').addEventListener('click', onLoadConfirmed);
     byId('view-plan').addEventListener('click', () => { showPane('plan'); byId('plan-heading').focus(); });
     byId('notice-provenance').addEventListener('click', () => { showPane('details'); byId('details-heading').focus(); });
     byId('rank-layer').addEventListener('click', onRankToggle);

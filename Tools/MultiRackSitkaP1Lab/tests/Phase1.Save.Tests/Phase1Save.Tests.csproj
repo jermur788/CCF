@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    2D Phase 1 A0 save-foundation tests: a standalone opt-in console runner (not in the .sln, not registered in Core.Tests).
+    It uses only the public Phase1 save API of SitkaP1.Core; no InternalsVisibleTo.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Phase1Save.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Phase1Save.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Core/SitkaP1.Core.csproj" />
+  </ItemGroup>
+</Project>

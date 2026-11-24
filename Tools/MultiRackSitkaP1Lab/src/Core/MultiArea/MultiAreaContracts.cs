@@ -100,6 +100,15 @@ internal sealed record MultiAreaCommandResult(MultiAreaSessionView View, MultiAr
 internal sealed record MultiAreaCompetitionResult(MultiAreaSessionView View, string AreaId,
     PlayerCompetitionReport? Competition, string? RefusalCode, string? RefusalMessage);
 
+/// <summary>
+/// The outcome of one Load. <see cref="DraftOrderCount"/> is how many formerly approved, unexecuted orders came back as an
+/// unapproved visible Pending draft (0 when the save held no approval). With <see cref="RefusalCode"/> set nothing changed
+/// and <see cref="View"/> is the unchanged live session; otherwise the view carries the restored forest under a NEW
+/// session id.
+/// </summary>
+internal sealed record MultiAreaLoadResult(MultiAreaSessionView View, int DraftOrderCount, string? Checksum,
+    string? RefusalCode, string? RefusalMessage);
+
 /// <summary>A read-only exact-ID map hit-test in one area's map metres, topmost first.</summary>
 internal sealed record MultiAreaHitResult(MultiAreaSessionView View, string AreaId, IReadOnlyList<PlayerMapItem> Candidates,
     string? RefusalCode, string? RefusalMessage);
@@ -117,7 +126,7 @@ internal static class MultiAreaLabels
     public const string MultiSiteUnknown = "Site: UNKNOWN — no site, soil, exposure or history is modelled";
     public const string MultiEdgeExcluded = "Edge neighbours excluded — each area's competition uses only its own trees";
     public const string MultiNoTransfer = "No treatment transfer — nothing done in one area is applied to the other";
-    public const string MultiSessionOnly = "Session only — nothing is saved";
+    public const string MultiSessionOnly = "Saved games: named slots on this computer only — no cloud or remote backup";
     // Short forms for the header chips; each chip carries its full statement above as a tooltip, and the Details pane
     // lists the full statements.
     public const string MultiChipSynthetic = "Synthetic — not surveyed";
@@ -125,7 +134,7 @@ internal static class MultiAreaLabels
     public const string MultiChipSiteUnknown = "Site UNKNOWN";
     public const string MultiChipEdgeExcluded = "Edge neighbours excluded";
     public const string MultiChipNoTransfer = "No treatment transfer";
-    public const string MultiChipSessionOnly = "Session only — nothing saved";
+    public const string MultiChipSessionOnly = "Saved games: this computer only";
     public const string MultiReviewStatus = "Experiment review status: pending independent review (author-generated)";
     public const string MultiOnePlan = "One Work Plan covers both areas";
     public const string MultiApprove = "Approve whole two-area Work Plan — 0 trees felled";
@@ -173,7 +182,7 @@ internal static class MultiAreaLabels
         "Prunes exactly {n} named trees in Year {y} (one lift each; the crown is cut at once; the year does not change), or refuses all";
     public const string MultiDeadwoodNote = "Fallen deadwood: one log per natural death, at the stem position; not to scale, no fall direction, no decay or value";
     public const string MultiNotModelledStage4 =
-        "Seed, regeneration, understorey, site, money and saving: NOT MODELLED. Light is a modelled index (Unity k10a10 proxy — not calibrated PAR).";
+        "Seed, regeneration, understorey, site and money: NOT MODELLED. Saving keeps this forest in named slots on this computer. Light is a modelled index (Unity k10a10 proxy — not calibrated PAR).";
 
     // Pass 1 Map Integration (spec multi-map-integration-pass1-v1): truthful Phase 2 / mixed-demo labels.
     public const string MultiLightCaveatShort = "Modelled light · not calibrated PAR";
@@ -181,5 +190,28 @@ internal static class MultiAreaLabels
     public const string MultiClearUndergrowthRule = "Whole 2.5 m cell · spares seedlings";
     public const string MultiNaturalSeedlingsNote = "Cell-level presence only — Density is abstract occupancy, not a literal stem count";
     public const string MultiNotModelledPhase2 =
-        "Site/soil map, storms, decay, habitat score, economy/cash/prices and saving: NOT MODELLED. Light is a modelled index (Modelled light · not calibrated PAR).";
+        "Site/soil map, storms, decay, habitat score and economy/cash/prices: NOT MODELLED. Saving keeps this forest in named slots on this computer. Light is a modelled index (Modelled light · not calibrated PAR).";
+
+    // Save/Load (Phase 1, spec multi-2d-phase1-save-time-history-v1). Server-managed named slots in one folder on this
+    // machine: no path entry, no upload, no download, no cloud or remote copy, and no claim of crash-proof durability
+    // beyond what the Linux host actually did.
+    public const string MultiSavesOpen = "Saved games";
+    public const string MultiSavesTitle = "Saved games — two-area forest";
+    public const string MultiSavesIntro =
+        "Named slots in this app's own folder on this computer. Nothing is uploaded, downloaded or copied to a cloud or remote service.";
+    public const string MultiSavesNameLabel = "Slot name";
+    public const string MultiSavesNameHint =
+        "Lowercase letters, digits and '-', 1–48 characters, starting with a letter or digit. The slot name is also its label.";
+    public const string MultiSavesSave = "Save current forest";
+    public const string MultiSavesOverwrite = "Replace the existing slot with this forest";
+    public const string MultiSavesLoad = "Load";
+    public const string MultiSavesRecover = "Restore backup";
+    public const string MultiSavesEmpty = "No saved slots in this folder yet.";
+    public const string MultiSavesLoadConfirm =
+        "Load '{slot}' and replace the forest on screen now? Unsaved changes to the current forest are lost, and any previously approved but unexecuted work comes back as a pending draft you must approve again.";
+    public const string MultiSavesDurable = "Saved and durably committed to disk.";
+    public const string MultiSavesDurabilityUnconfirmed =
+        "The slot was replaced, but the folder flush was not confirmed: a power loss could still roll this slot back to the previous file. Do not treat it as durably saved.";
+    public const string MultiSavesPendingDraft =
+        "{n} previously approved order(s) came back as an unapproved pending draft; approve them again to execute.";
 }
