@@ -52,7 +52,7 @@
 - [ ] **P2-08 Seed rain and mast.** Mature Oak/Beech in rack A seed rack B and vice versa within `λ`/cutoff (Oak 4/80 m, Beech 6/50 m); zero from outer grassland; identical under reversed rack order. Oak, Beech and Sitka mast sequences are independent (changing one species' stream seed changes no other species' multipliers or any `ADULT-MORT-*` roll). A rack with 0 living adults advances, receives seed, updates undergrowth and grows/promotes cohorts.
 - [ ] **P2-09 Shared capacity and block cap.** A cell seeded by all three species never exceeds combined relative occupancy 1 (capacity `1.5·a`). At most one natural promotion per aligned 5 m block per year across all species, with Stage 5 partial edge credit. Constructed ties resolve oldest `EstablishYear` → tallest → `(Column, Row)` → ordinal `SpeciesId`. Cohort export removes only same-species, same-year sibling bands.
 - [ ] **P2-10 Determinism.** On `MA-1-MIXED-v1`, two 30-year two-rack runs give identical hashes; reversed rack processing order gives identical hashes; replaying any Execute with the same key is a no-op; a forced pre-commit failure leaves the previous root intact; Phase 2 draws never change any `ADULT-MORT-{treeId}` roll.
-- [ ] **P2-11 Independent review** by a separate reviewer on the finished branch and handoff.
+- [x] **P2-11 Independent review** by a separate reviewer on the finished branch and handoff. *(APPROVED at `4c74533e`; delta verification PASS at `35eff93c`, mutation m18 killed.)*
 
 ## Hygiene
 
@@ -64,6 +64,6 @@
 
 ## Verdict
 
-- **Spec conformance:** NOT VERIFIED (Step B not started)
-- **Implementation correctness:** NOT VERIFIED
-- **Notes:** Draft gates only.
+- **Spec conformance:** PASS (independent review at `4c74533e`; delta verification PASS at `35eff93c`, mutation m18 killed)
+- **Implementation correctness:** PASS - independently reviewed and verified at `4c74533e` and `35eff93c`; 245/245 Core tests; frozen anchors and Q6 unchanged
+- **Notes:** Engine-only (pure .NET lab; no Unity `Assets/`, `/multi` UI or save-schema change). **Not integrated - no merge to `main`, no PR.**
