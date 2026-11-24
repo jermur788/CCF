@@ -6,9 +6,16 @@
 
 **AMENDED — owner final bounded-repair decisions, 2026-11-23.** These change no rule:
 - D1: `S5-07A` is gated on the blocks represented on both lattices, per hectare of matched in-polygon area; the 12 blocks that exist only on the 2.5 m lattice are disclosed in `S5-07B`.
-- D2: `S5-02` is a comparative suppression criterion with margins fixed in advance; the poor-light census is a diagnostic only.
+- D2: `S5-02` is a comparative suppression criterion; the poor-light census is a diagnostic only. *(Superseded wording, kept for history: "with margins fixed in advance". The margins were chosen by the implementing worker after reading the prior handoff, and became the owner's only on 2026-11-24; see below.)*
 
 See spec, second amendment record and §9 Q4.
+
+**AMENDED (documentation only) — owner record, 2026-11-24.** This changes no rule, test or code:
+- R1: `S5-07A` keeps the whole-cell unit. "Per hectare" means nominal matched grid area. The owner rejected own-clipped-area and same-true-ground blocking units.
+- R2: an owner-accepted limitation. `S5-07A` certifies the matched population in aggregate only. Matched edge blocks are not equivalent (1.902 / 1.841 per nominal hectare; all 40 seed-runs above 1.33), and no edge-equivalence claim is made.
+- R3: the `S5-02` margins (0.315 m, 0.8 ×, years 12 and 15) are the owner's binding margins from 2026-11-24, with their provenance disclosed.
+
+See spec, third amendment record.
 
 ## Gate 0 — before any production edit (all must be true)
 
