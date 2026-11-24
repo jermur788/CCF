@@ -64,10 +64,12 @@ internal sealed partial class PlayerApi
     private readonly Dictionary<string, Route> routes;
     private volatile Listener? listener; // set once, after the bind is checked and before the URL is printed
 
-    internal PlayerApi(PlayerWorkPlanAdapter player, MultiAreaWorkPlanAdapter multiArea, string capability)
+    internal PlayerApi(PlayerWorkPlanAdapter player, MultiAreaWorkPlanAdapter multiArea,
+        MultiAreaContinuation multiSession, string capability)
     {
         this.player = player;
         this.multiArea = multiArea;
+        this.multiSession = multiSession;
         this.capability = capability;
         capabilityBytes = Encoding.ASCII.GetBytes(capability);
 

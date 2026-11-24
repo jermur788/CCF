@@ -28,12 +28,13 @@ internal static class UiProcess
 
         PlayerWorkPlanAdapter player;
         MultiAreaWorkPlanAdapter multiArea;
+        MultiAreaContinuation multiSession;
         try
         {
             // The only file this process reads: the trusted, catalog-checked fixture, through Core's no-follow reader.
             player = PlayerWorkPlanAdapter.Open(fixtureDir);
             // /multi: defaults to Phase 2 (1/1/1/1/1) on standard synthetic MA-1 (all Sitka), or MA-1-MIXED demo.
-            multiArea = MultiAreaWorkPlanAdapter.OpenExperiment(experimentKey);
+            (multiArea, multiSession) = OpenMultiExperiment(experimentKey);
         }
         catch (P1Refusal refusal)
         {
@@ -56,7 +57,7 @@ internal static class UiProcess
         });
 
         await using var app = builder.Build();
-        var api = new PlayerApi(player, multiArea, capability);
+        var api = new PlayerApi(player, multiArea, multiSession, capability);
         app.Run(api.HandleAsync); // one terminal handler: every request passes the same guards (PlayerApi)
         await app.StartAsync();
 
@@ -83,6 +84,24 @@ internal static class UiProcess
         await app.WaitForShutdownAsync();
         Console.WriteLine("Session ended; nothing was saved.");
         return 0;
+    }
+
+    private static (MultiAreaWorkPlanAdapter Adapter, MultiAreaContinuation Session) OpenMultiExperiment(string experimentKey)
+    {
+        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1Key, StringComparison.Ordinal))
+        {
+            var experiment = MultiAreaGenerator.Generate();
+            var session = new MultiAreaContinuation(experiment, MultiAreaModelSelection.Phase2);
+            return (new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1Key, MultiAreaDemoExperiments.Ma1Badge), session);
+        }
+        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1MixedKey, StringComparison.Ordinal))
+        {
+            var (experiment, options, badge) = MultiAreaDemoExperiments.CreateMixedDemo();
+            var session = new MultiAreaContinuation(experiment, MultiAreaModelSelection.Phase2, null, null, options);
+            return (new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1MixedKey, badge), session);
+        }
+        throw new P1Refusal("MultiAreaUnknownExperiment",
+            "supported --multi-experiment values are ma-1 and ma-1-mixed");
     }
 
     private static bool TryParseArgs(string[] args, out string fixtureDir, out string experimentKey, out string? error)

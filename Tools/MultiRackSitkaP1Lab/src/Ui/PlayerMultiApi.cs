@@ -1,13 +1,14 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
 
 namespace SitkaP1.Ui;
 
 /// <summary>
-/// The two-area simulator (<c>/multi</c>; Pass 1 Map Integration, spec <c>multi-map-integration-pass1-v1</c>): its own
+/// The two-area simulator (<c>/multi</c>; Pass 2 Map Integration, spec <c>multi-map-integration-pass2-v1</c>): its own
 /// page and JSON routes under the same <c>/s/&lt;capability&gt;/</c> prefix of the same single listener. Every request
 /// passes the unchanged guards of <see cref="HandleAsync"/> first (Host, capability, route and method, Origin), and
 /// every POST the same content-type and body-size checks. Every view/command readout is obtained atomically under one
@@ -33,6 +34,9 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiAdvanceMembers = MultiFenceMembers.Append("consentToCancelWork").ToArray();
     private static readonly string[] MultiHitMembers = MultiFenceMembers.Concat(new[] { "areaId", "u", "v" }).ToArray();
     private static readonly string[] MultiCellMembers = MultiFenceMembers.Concat(new[] { "areaId", "column", "row" }).ToArray();
+    private static readonly string[] MultiPointMembers = MultiFenceMembers.Concat(new[] { "areaId", "xM", "zM" }).ToArray();
+    private static readonly string[] MultiPlantMembers = MultiFenceMembers.Concat(new[] { "areaId", "speciesId", "xM", "zM" }).ToArray();
+    private static readonly string[] MultiPlantingRemoveMembers = MultiFenceMembers.Append("orderId").ToArray();
 
     private static readonly byte[] MultiPageHtml = Encoding.UTF8.GetBytes(MultiAreaPage.Html);
     private static readonly byte[] MultiPageCss = Encoding.UTF8.GetBytes(MultiAreaPage.Css);
@@ -45,6 +49,7 @@ internal sealed partial class PlayerApi
         .ToDictionary(field => field.Name, field => (string)field.GetRawConstantValue()!, StringComparer.Ordinal);
 
     private readonly MultiAreaWorkPlanAdapter multiArea;
+    private readonly MultiAreaContinuation multiSession;
 
     private void AddMultiAreaRoutes()
     {
@@ -76,6 +81,28 @@ internal sealed partial class PlayerApi
             request => multiArea.AddPrune(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/prune/remove", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
             request => multiArea.RemovePrune(request.Fence!, request.AreaId!, request.TreeId!))));
+        // Pass 2 fenced biological Work Plan actions (zero edits to Core biology; all under single Pending -> Approve -> Execute gate).
+        routes.Add("api/multi/clear/add", new("POST", context => MultiCommandAsync<MultiCellRequest>(context, MultiCellMembers,
+            request => RefusableMulti(() => multiSession.AddClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
+        routes.Add("api/multi/clear/remove", new("POST", context => MultiCommandAsync<MultiCellRequest>(context, MultiCellMembers,
+            request => RefusableMulti(() => multiSession.RemoveClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
+        routes.Add("api/multi/plant/add", new("POST", context => MultiCommandAsync<MultiPlantRequest>(context, MultiPlantMembers,
+            request => RefusableMulti(() => multiSession.AddPlant(request.Fence!, request.AreaId!, request.SpeciesId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+        routes.Add("api/multi/shelter/add", new("POST", context => MultiCommandAsync<MultiPointRequest>(context, MultiPointMembers,
+            request => RefusableMulti(() => multiSession.AddShelter(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+        routes.Add("api/multi/spot-clear/add", new("POST", context => MultiCommandAsync<MultiPointRequest>(context, MultiPointMembers,
+            request => RefusableMulti(() => multiSession.AddSpotClear(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+        routes.Add("api/multi/planting/remove", new("POST", context => MultiCommandAsync<MultiPlantingRemoveRequest>(context, MultiPlantingRemoveMembers,
+            request => RefusableMulti(() => multiSession.RemovePlanting(request.Fence!, request.OrderId!)))));
+    }
+
+    private MultiAreaCommandResult RefusableMulti(Func<MultiAreaCommandResult> command)
+    {
+        try { return command(); }
+        catch (P1Refusal refusal)
+        {
+            return new MultiAreaCommandResult(multiArea.Read(), null, null, refusal.Code, refusal.Message);
+        }
     }
 
     // Preserves the exact canonical manifest body and its trailing contentHash verification (M07), appending truthful
@@ -207,8 +234,8 @@ internal sealed partial class PlayerApi
     private static void RequireBoundedText(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object) throw new JsonException("the body must be one JSON object");
-        foreach (var (name, limit) in new[] { ("areaId", MaxIdLength), ("treeId", MaxIdLength), ("planId", MaxPlanKeyLength),
-                     ("executionKey", MaxPlanKeyLength) })
+        foreach (var (name, limit) in new[] { ("areaId", MaxIdLength), ("treeId", MaxIdLength), ("speciesId", MaxIdLength),
+                     ("orderId", MaxIdLength), ("planId", MaxPlanKeyLength), ("executionKey", MaxPlanKeyLength) })
         {
             if (!root.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String) continue;
             string text = value.GetString()!;
@@ -233,6 +260,21 @@ internal sealed partial class PlayerApi
     private sealed record MultiHitRequest(MultiAreaFence? Fence, string? AreaId, double? U, double? V);
 
     private sealed record MultiCellRequest(MultiAreaFence? Fence, string? AreaId, int? Column, int? Row);
+
+    private sealed record MultiPlantRequest(
+        MultiAreaFence? Fence,
+        string? AreaId,
+        string? SpeciesId,
+        [property: JsonPropertyName("xM")] double? XM,
+        [property: JsonPropertyName("zM")] double? ZM);
+
+    private sealed record MultiPointRequest(
+        MultiAreaFence? Fence,
+        string? AreaId,
+        [property: JsonPropertyName("xM")] double? XM,
+        [property: JsonPropertyName("zM")] double? ZM);
+
+    private sealed record MultiPlantingRemoveRequest(MultiAreaFence? Fence, string? OrderId);
 
     // Stage4 ("stage4") and Ecology ("ecology") are additive; all existing members keep their exact names and shapes.
     private sealed record MultiViewPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
