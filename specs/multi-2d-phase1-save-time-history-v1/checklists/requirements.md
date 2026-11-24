@@ -1,0 +1,17 @@
+# 2D Phase 1 — Acceptance / Verification Checklist
+
+**Status: DRAFT — unchecked is not failed; no implementation or tests claimed.**  
+Qualify against an exact implementation SHA, test invocation, environment and logs. Design review does not substitute for tests.
+
+- [ ] **P1-01 Full mutable root:** Saving/restoring a genuine `1/1/1/1/1` mixed stand retains every tree/state, seed/options, revisions, marks, events, pending/approved work, executed-key receipts, history, Stage4/5/Phase2 data, juveniles, protection, clear patches, density/mast accounts and next-ID sequence. The continuation of a restored stand matches an uninterrupted control under the same commands.
+- [ ] **P1-02 Strict compatibility:** Wrong schema, model vector, genesis hash, lost field, invalid enum, duplicate JSON key, nonfinite/invalid value, oversized input or corrupt checksum is rejected without changing the live session or previous valid slot. Earlier model-0 and other model states are not silently upgraded.
+- [ ] **P1-03 Durable safe writes:** Simulate interrupted write, disk/full failure, invalid replacement and backup recovery; previous valid save stays usable. No arbitrary path access. Report actual atomic durability guarantee for target platform.
+- [ ] **P1-04 Load and approval fencing:** Post-load session ID is fresh; pre-load UI fence, execution key or stale selection cannot mutate loaded state. Open approved Work Plans follow the explicitly chosen safe reapproval/load policy; no silent auto-approval.
+- [ ] **P1-05 One-year oracle:** Unmodified single-year command remains authoritative, including staged mortality, growth, Stage5/Phase2 regeneration, promotion, account/report production and any true work cancellation consent.
+- [ ] **P1-06 Multi-year parity:** From the same snapshot and allowed state, bounded skip of N years produces identical root/model results and annual history to N explicit genuine year steps, excluding only documented session/UI envelope fields. Verify pure Sitka and mixed oak/beech, multiple years and save/reload after skip.
+- [ ] **P1-07 Stop/guard rules:** Refuse work-pending/approved, unread required review, preview/lesson gate and stale commands as actually modelled. No implicit cancellation, auto-authorisation, fake outcome event or fabricated acknowledgement. Correct partial-progress and stop reason on real intervention or failure; cancel only between ticks.
+- [ ] **P1-08 History provenance:** Each recorded decision, execution and annual result is correctly labelled; present observation and derived comparison distinct; absent history shows 'not recorded' rather than made-up causes or numbers. Young-growth cohorts vs planted juveniles vs promoted adults remain separate.
+- [ ] **P1-09 UI and payload:** Save/load/advance/history controls work with current map; lazy year detail preserves size budgets, safe browser fencing and usability at supported viewports. Map pass tests remain green with attributable baseline drift, if any.
+- [ ] **P1-10 Protected boundaries:** Inspect diff for no Unity `Assets/**`, protected references, historical 3D saves, altered canonical fixtures or unintended shared math; verify frozen model-0 anchors, Phase2 parity and correct branch/writer/lock provenance; reviewer independent of writer. No Windows build before owner playtest and separate permission.
+
+**Current result:** NOT RUN. **Integration:** NOT DONE. **Owner acceptance:** NOT RECORDED.
