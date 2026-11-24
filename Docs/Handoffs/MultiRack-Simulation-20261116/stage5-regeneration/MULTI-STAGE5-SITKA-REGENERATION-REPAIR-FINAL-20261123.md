@@ -364,3 +364,14 @@ The same run prints the 40 `S5-07B model light` per-seed lines in the same forma
 ---
 
 PR none, head (this handoff commit on `feat/multi-stage5-sitka-regeneration-20261123-v1`), checks and reviews not run (delta re-review pending)
+
+---
+
+## Addendum (2026-11-24) — owner record; read before quoting this handoff
+
+This handoff is kept unchanged above as history. Three of its statements are now qualified by the owner record of 2026-11-24 (`MULTI-STAGE5-SITKA-REGENERATION-OWNER-RECORD-20261124.md`, spec third amendment record):
+- **"Per hectare of matched in-polygon area"** is a whole-cell, nominal-grid-area unit, not forest area. The owner kept it as the gate and rejected the clipped and same-true-ground alternatives.
+- **The `S5-07A` pass is aggregate-only.** It is an owner-accepted limitation that matched edge blocks are not equivalent (1.902 / 1.841; all 40 seed-runs above 1.33). The pass is not an edge-equivalence claim.
+- **"Written into the spec before this pass measured anything"** (§0 summary, §2 D2) must not be read as "owner-set in advance". The implementing worker chose the `S5-02` margins after reading the previous handoff's 3.24 m and 7/12 figures, and they became the owner's binding margins only on 2026-11-24.
+
+The "matched raw-count ratio" in the summary and §3.2 is the same-true-ground per-hectare ratio.
