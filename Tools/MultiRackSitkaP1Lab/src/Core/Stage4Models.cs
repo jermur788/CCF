@@ -39,11 +39,12 @@ internal enum LifeState
 }
 
 /// <summary>
-/// The model switches of one multi-area session (selection order Adult / Mortality / Crown / Regeneration), and the only
-/// combinations the engine accepts. Regeneration defaults to 0, so every three-switch selection is unchanged.
+/// The model switches of one multi-area session (selection order Adult / Mortality / Crown / Regeneration / Species), and the
+/// only combinations the engine accepts. Regeneration and Species default to 0, so every earlier selection is unchanged.
 /// </summary>
 internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, MortalityModelVersion Mortality, CrownModelVersion Crown,
-    MultiAreaRegenerationModelVersion Regeneration = MultiAreaRegenerationModelVersion.Off)
+    MultiAreaRegenerationModelVersion Regeneration = MultiAreaRegenerationModelVersion.Off,
+    SpeciesModelVersion Species = SpeciesModelVersion.Off)
 {
     /// <summary>The frozen MA-1 path (all three models 0).</summary>
     public static readonly MultiAreaModelSelection Legacy =
@@ -66,13 +67,22 @@ internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, Mortalit
     public bool IsStage4 => Adult == AdultModelVersion.ConnectedWoodland && Mortality == MortalityModelVersion.RecordedDeadwood &&
         Crown == CrownModelVersion.AreaScaledEquilibriumC2;
 
-    /// <summary>True for 1/1/1/1: Stage 4 plus Stage 5 natural regeneration.</summary>
+    /// <summary>The Phase 2 path (spec multi-phase2-oak-beech-v1): the Stage 5 models plus Species 1 (Oak and Beech).</summary>
+    public static readonly MultiAreaModelSelection Phase2 =
+        new(AdultModelVersion.ConnectedWoodland, MortalityModelVersion.RecordedDeadwood, CrownModelVersion.AreaScaledEquilibriumC2,
+            MultiAreaRegenerationModelVersion.SitkaCohortCompetitionBrowse, SpeciesModelVersion.ThreeSpeciesMixed);
+
+    /// <summary>True for 1/1/1/1 (with Species 0 or 1): Stage 4 plus Stage 5 natural regeneration.</summary>
     public bool IsStage5 => IsStage4 && Regeneration == MultiAreaRegenerationModelVersion.SitkaCohortCompetitionBrowse;
+
+    /// <summary>True for 1/1/1/1/1: Stage 5 plus Sessile Oak and European Beech (Phase 2).</summary>
+    public bool IsPhase2 => IsStage5 && Species == SpeciesModelVersion.ThreeSpeciesMixed;
 
     /// <summary>
     /// Refuses any unknown value and any partial combination: the approved specs define Stage 4 behaviour only with adult,
-    /// mortality and crown all at 1, and Stage 5 regeneration only on top of that (it needs the Stage 4 adult step, the
-    /// refreshed 2.5 m light and CrownModel 1). Supported: 0/0/0/0, 0/0/1/0, 1/1/1/0 and 1/1/1/1.
+    /// mortality and crown all at 1, Stage 5 regeneration only on top of that (it needs the Stage 4 adult step, the
+    /// refreshed 2.5 m light and CrownModel 1), and Phase 2 species only on top of Stage 5. Supported: 0/0/0/0/0, 0/0/1/0/0,
+    /// 1/1/1/0/0, 1/1/1/1/0 and 1/1/1/1/1.
     /// </summary>
     public MultiAreaModelSelection RequireSupported()
     {
@@ -80,7 +90,11 @@ internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, Mortalit
         if (!Enum.IsDefined(Adult)) throw new P1Refusal("AdultModelUnknown", "unknown adult model version");
         if (!Enum.IsDefined(Mortality)) throw new P1Refusal("MortalityModelUnknown", "unknown mortality model version");
         if (!Enum.IsDefined(Regeneration)) throw new P1Refusal("RegenerationModelUnknown", "unknown regeneration model version");
-        if (this == Legacy || this == Stage3CrownC2 || this == Stage4 || this == Stage5) return this;
+        if (!Enum.IsDefined(Species)) throw new P1Refusal("SpeciesModelUnknown", "unknown species model version");
+        if (this == Legacy || this == Stage3CrownC2 || this == Stage4 || this == Stage5 || this == Phase2) return this;
+        if (Species != SpeciesModelVersion.Off)
+            throw new P1Refusal("SpeciesModelIncomplete",
+                "Oak and Beech need AdultModelVersion 1, MortalityModelVersion 1, CrownModelVersion 1 and RegenerationModelVersion 1 together");
         if (Regeneration != MultiAreaRegenerationModelVersion.Off)
             throw new P1Refusal("Stage5ModelIncomplete",
                 "Stage 5 regeneration needs AdultModelVersion 1, MortalityModelVersion 1 and CrownModelVersion 1 together");
