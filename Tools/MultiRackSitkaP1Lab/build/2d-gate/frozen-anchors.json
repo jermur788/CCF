@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
+  "p0QualifiedCommit": "a7f41983c2f2f233b8fe999d1a5b10e72bdd2866",
+  "p0QualifiedTree": "f212c8f64fb28b83aa870c7b5b7c72e03051e46a",
+  "p0TrackedFilesDigest": "9e218ca7f29c73895ad4a66dc6ca90cf1a844126bd74e417e0d8cdc0489e30e8",
+  "wwwrootTreeId": "dabdbd7fa07cd01148af14464c45ceea02548378",
+  "anchors": [
+    {
+      "id": 1,
+      "name": "Single-area Model 0",
+      "sha256": "7e3a2a869ec1662458b74875cadee1e4b16cf2b87b0aaa05df2d9a0061311ece",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Model0FingerprintTests.cs",
+          "regex": "PinnedSingleAreaHash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Multi-area 0/0/0/0",
+      "sha256": "a692a6d5bc374dd0225153b3bf0e0b0e9467d3c041b0a6b03414f42d3c02233d",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Model0FingerprintTests.cs",
+          "regex": "PinnedMultiAreaHash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Multi-area 0/0/1/0 (Crown C2)",
+      "sha256": "814e81650b62428510fe60c3142b51d9055537d6014303074f08733bf8d46287",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Stage4Tests.cs",
+          "regex": "PinnedStage3CrownModel1Hash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Stage 4 1/1/1/0",
+      "sha256": "8a926776ffa3ca3dd1611c2e4d462f8c82b4d78f29ad5e83e5a8f8ce1d2b87fb",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Stage5Tests.cs",
+          "regex": "PinnedStage4FullRunHash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Stage 5 1/1/1/1",
+      "sha256": "c4b670ede36ef133fb7ab9b43992319b340f27827ce85025ae68444c63d2dc35",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Stage5Tests.cs",
+          "regex": "PinnedStage5FullRunHash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Stage 5 5.0 m purity",
+      "sha256": "c67edc6b7a8b1633b1b48d4016c3e89022fbd00393121bb9b60d083a16f653d8",
+      "kind": "source-pin",
+      "sourceChecks": [
+        {
+          "file": "tests/Core.Tests/Stage5GridStudy.cs",
+          "regex": "PinnedFiveMetrePurityHash\\s*=\\s*\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Phase 2 Q6 (1/1/1/1/1 vs 1/1/1/1/0)",
+      "sha256": "776a68df048a640c849801e743db3372d9d6d76808828d0e0623222ae35ce22d",
+      "kind": "core-stdout-pair",
+      "stdoutRegex": "P2-03 M-08 Q6 hash 1/1/1/1/0 ([0-9a-f]{64}) \\| 1/1/1/1/1 ([0-9a-f]{64})"
+    },
+    {
+      "id": 8,
+      "name": "P0 Core binary .p0ref/SitkaLab.Core.dll",
+      "sha256": "9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3",
+      "kind": "dll-and-source-pin",
+      "dllPath": ".p0ref/SitkaLab.Core.dll",
+      "sourceChecks": [
+        {
+          "file": "src/Core/SitkaP1.Core.csproj",
+          "regex": "<P0CoreExpectedSha256>([0-9a-f]{64})</P0CoreExpectedSha256>"
+        },
+        {
+          "file": "tests/Core.Tests/Phase2Tests.cs",
+          "regex": "PinnedP0CoreSha256\\s*=\\s*\"([0-9a-f]{64})\""
+        },
+        {
+          "file": "tests/build-output-safety.sh",
+          "regex": "expected_sha=\"([0-9a-f]{64})\""
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "MA-1-MIXED 30-year fingerprint",
+      "sha256": "93e9abda0670cb7a7f56fda91cc1e96e8bc931b330f57d99ec1b588600b9251f",
+      "kind": "core-stdout-single",
+      "stdoutRegex": "P2-10 MA-1-MIXED-v1 30-year fingerprint ([0-9a-f]{64})"
+    }
+  ],
+  "v2Golden": {
+    "caseName": "golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding",
+    "sourceFile": "tests/Phase1.Save.Tests/Program.cs",
+    "byteLength": 24703,
+    "fileSha256": "c0ea8a460d9ebee53dc6e2f03bd88c72032d2916fa9614f1fc370532b5b7bee7",
+    "embeddedChecksum": "9629ac1648fabd85702fc4105075cebe9f69e884a816edcce4c441a3866c9086",
+    "schemaVersionFile": "src/Core/Phase1/Phase1SaveFormat.cs",
+    "schemaVersion": 2
+  }
+}

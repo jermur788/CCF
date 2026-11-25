@@ -28,4 +28,11 @@
     <EmbeddedResource Include="wwwroot/app.css" LogicalName="SitkaP1.Ui.wwwroot.app.css" />
     <EmbeddedResource Include="wwwroot/app.js" LogicalName="SitkaP1.Ui.wwwroot.app.js" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="multi/**" />
+    <EmbeddedResource Include="multi/multi.html" LogicalName="SitkaP1.Ui.multi.multi.html" />
+    <EmbeddedResource Include="multi/multi.css" LogicalName="SitkaP1.Ui.multi.multi.css" />
+    <EmbeddedResource Include="multi/multi.js" LogicalName="SitkaP1.Ui.multi.multi.js" />
+  </ItemGroup>
 </Project>

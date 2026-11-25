@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
+  "capturedUtc": "2026-11-25T15:25:30Z",
+  "suites": {
+    "core": {
+      "minPassed": 277,
+      "maxFailed": 0,
+      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$"
+    },
+    "save": {
+      "minPassed": 50,
+      "maxFailed": 0,
+      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$"
+    },
+    "uiSmokeMultiarea": {
+      "minPassed": 363,
+      "maxFailed": 0,
+      "summaryRegex": "^OVERALL: (PASS|FAIL) \\((\\d+) passed, (\\d+) failed\\)$"
+    },
+    "uiSmokeSingleArea": {
+      "minPassed": 250,
+      "knownBaselineFailures": ["L01", "L02", "L06", "J31"],
+      "requiredPassIds": ["G11b"],
+      "summaryRegex": "^OVERALL: (PASS|FAIL) \\((\\d+) passed, (\\d+) failed\\)$",
+      "note": "Pre-existing #885 drift in frozen src/Ui/wwwroot/{app.css,app.js} vs frozen tests/ui-smoke.sh, documented at unmodified base 4b6d8070 and T0 47b27a8d; any other failure or pass drop is a hard FAIL."
+    },
+    "cliSafety": {
+      "minPassed": 23,
+      "maxFailed": 0
+    },
+    "buildOutputSafety": {
+      "requiredPassLabels": [
+        "C1-p0ref-symlink-to-dir",
+        "C2-p0ref-dangling-symlink",
+        "C3-p0ref-regular-file",
+        "C4-output-file-symlink",
+        "C5-output-file-hardlink",
+        "C6-output-name-is-directory",
+        "P0:"
+      ],
+      "hostNaLabels": [
+        "C7-cold-build",
+        "C8-rebuild"
+      ]
+    },
+    "p0Isolation": {
+      "requiredMarkers": [
+        "L0 PASS:",
+        "L1 PASS:",
+        "L4 self-test PASS:",
+        "L2 PASS:",
+        "L3 PASS:",
+        "L3+ PASS:",
+        "L4 PASS",
+        "OVERALL: PASS"
+      ],
+      "minDecoyMatched": 13,
+      "maxUnresolved": 0
+    }
+  },
+  "payloadBudgetChecks": {
+    "viewMaxBytes": 524288,
+    "ecologyMaxBytes": 153600,
+    "requiredPassIds": ["M11", "W137", "W149", "W258", "M13"]
+  }
+}
