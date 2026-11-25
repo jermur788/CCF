@@ -315,6 +315,171 @@
           "members": []
         }
       ]
+    },
+    "core": {
+      "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
+      "sourceBlobId": "a47bebfda96cee3f594b7d305d9b97417658a9b9",
+      "sourceMustBeDeleted": false,
+      "keptLineRange": [1, 1572],
+      "primaryTarget": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
+      "fileHeaders": {
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Fell.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Prune.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Clear.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Planting.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Plan.cs": [
+          "namespace SitkaP1.Core;",
+          "",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "internal sealed partial class MultiAreaContinuation",
+          "{"
+        ]
+      },
+      "fileFooters": {
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Fell.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Prune.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Clear.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Planting.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Plan.cs": ["}"]
+      },
+      "blocks": [
+        {
+          "id": "core-root-before-commands",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
+          "t0StartLine": 1,
+          "t0EndLine": 455,
+          "members": [
+            "MultiAreaAreaState",
+            "MultiAreaExecutedWork",
+            "MultiAreaRoot",
+            "MultiAreaAnnual",
+            "MultiAreaContinuation(fields,constructors,reads)"
+          ]
+        },
+        {
+          "id": "core-cmd-crop",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs",
+          "t0StartLine": 457,
+          "t0EndLine": 502,
+          "members": [
+            "MarkCrop",
+            "UnmarkCrop"
+          ]
+        },
+        {
+          "id": "core-cmd-fell",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Fell.cs",
+          "t0StartLine": 504,
+          "t0EndLine": 550,
+          "members": [
+            "AddPending",
+            "RemovePending"
+          ]
+        },
+        {
+          "id": "core-cmd-prune",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Prune.cs",
+          "t0StartLine": 552,
+          "t0EndLine": 624,
+          "members": [
+            "AddPrune",
+            "AddScheduledPrune",
+            "RemovePrune"
+          ]
+        },
+        {
+          "id": "core-cmd-clear",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Clear.cs",
+          "t0StartLine": 626,
+          "t0EndLine": 673,
+          "members": [
+            "AddClearUndergrowth",
+            "RemoveClearUndergrowth"
+          ]
+        },
+        {
+          "id": "core-cmd-planting",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Planting.cs",
+          "t0StartLine": 675,
+          "t0EndLine": 732,
+          "members": [
+            "AddPlant",
+            "AddShelter",
+            "AddSpotClear",
+            "AddPlanting",
+            "RemovePlanting"
+          ]
+        },
+        {
+          "id": "core-cmd-plan",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Plan.cs",
+          "t0StartLine": 734,
+          "t0EndLine": 983,
+          "members": [
+            "Approve",
+            "CancelApproved",
+            "Execute"
+          ]
+        },
+        {
+          "id": "core-root-after-commands",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
+          "t0StartLine": 985,
+          "t0EndLine": 1572,
+          "members": [
+            "Advance",
+            "CaptureSave",
+            "SaveExpectation",
+            "NewSessionId",
+            "RestoreSave",
+            "RequireSameOptions",
+            "DraftOrderCount",
+            "ReadCanopyLight",
+            "ReadCellDetail",
+            "Competition",
+            "HitTest",
+            "helpers"
+          ]
+        }
+      ]
     }
   }
 }
