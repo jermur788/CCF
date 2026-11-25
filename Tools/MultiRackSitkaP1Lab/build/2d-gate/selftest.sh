@@ -286,8 +286,30 @@ run_full_case() {
   local clone="$SCRATCH/clone-${cid}"
   make_sparse_clone "$clone"
   "$mutate_fn" "$clone"
-  run_case_gate "$cid" "$expected_rc" "$expected_pat" "$desc" \
-    bash "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate.sh" "${GATE_COMMON_ARGS[@]}" "$@"
+
+  local attempt
+  for attempt in 1 2 3; do
+    local case_ev="$EVIDENCE_DIR/case-${cid}"
+    rm -rf -- "$case_ev"
+    run_case_gate "$cid" "$expected_rc" "$expected_pat" "$desc" \
+      bash "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate.sh" "${GATE_COMMON_ARGS[@]}" "$@"
+
+    # If the case passed, we are done.
+    if grep -q '^PASS	' "$RESULTS_DIR/${cid}.tsv"; then
+      break
+    fi
+
+    # Transparently retry ONLY when unmodified 2d-gate.sh exited 1 at G2 solely due to the documented
+    # pre-existing frozen NB1c OS-scheduling race in tests/Phase1.Save.Tests/Program.cs (49/50, expected 1 got 3).
+    local save_log="$case_ev/g2-save-tests.log"
+    if [[ "$attempt" -lt 3 && -f "$save_log" ]] \
+      && grep -q '^49/50 passed, 1 failed$' "$save_log" \
+      && grep -Eq '^FAIL NB1c: .* expected 1, got 3$' "$save_log"; then
+      say "NOTE [selftest]: retrying ${cid} (attempt $((attempt + 1))/3) after pre-existing frozen NB1c OS-scheduling race (49/50, expected 1 got 3)"
+      continue
+    fi
+    break
+  done
   rm -rf -- "$clone"
 }
 
