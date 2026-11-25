@@ -2404,8 +2404,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .history-drawer-head-right { display: flex; align-items: center; gap: .5rem; flex: none; }
 .history-drawer-status { margin: 0; padding: .35rem .9rem 0; min-height: 1.1rem; }
 .history-drawer-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); gap: .75rem; padding: .55rem .9rem .8rem; overflow: hidden; }
-.history-index-pane { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: .35rem; border-right: 1px solid var(--edge); }
-.history-year-list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.history-index-pane { display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding-right: .35rem; border-right: 1px solid var(--edge); }
+.history-year-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: grid; align-content: start; gap: .35rem; margin: 0; padding: 0 .15rem 0 0; list-style: none; }
 .history-year-btn { width: 100%; min-height: 44px; padding: .4rem .55rem; text-align: left; display: grid; gap: .12rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
 .history-year-btn:hover { background: var(--panel-3); }
 .history-year-btn[aria-current="true"] { border-color: var(--blue-edge); background: var(--blue); }
@@ -2425,7 +2425,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .disclosure-list { display: grid; gap: .4rem; margin: .3rem 0 0; padding: 0; list-style: none; }
 .disclosure-list li { display: grid; gap: .2rem; padding: .4rem .55rem; border: 1px dashed var(--edge); border-radius: 5px; background: var(--panel); font-size: .82rem; }
 .structure-panel h2 { margin: 0; font-size: 1.02rem; }
-.structure-content { margin: .45rem 0; }
+.structure-content { margin: .45rem 0; overflow-x: auto; }
+.structure-content table { width: 100%; border-collapse: collapse; font-size: .74rem; }
+.structure-content caption { white-space: normal; font-size: .72rem; }
+.structure-content th, .structure-content td { padding: .24rem .22rem; text-align: left; }
+.structure-content th:not(:first-child), .structure-content td:not(:first-child) { text-align: right; white-space: nowrap; }
 .structure-actions { margin: .4rem 0 0; }
 .structure-metric-unavail { color: var(--pending); font-style: italic; font-weight: 600; }
 .notice-links { margin: .25rem 0 0; }
@@ -6546,11 +6550,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       : (s.anchorFellYear !== null && s.anchorFellYear !== undefined
         ? 'Anchored to last recorded Fell in Year ' + s.anchorFellYear + '.'
         : 'Management review interval.');
-    box.replaceChildren(
+    box.replaceChildren(...[
       el('p', { class: 'alert-title' }, 'Skip summary: ' + stepText + ' · Stop reason: ', el('code', null, s.stopReason)),
       s.stopDetail ? el('p', null, s.stopDetail) : null,
       el('p', { class: 'small-note' }, periodNote),
-      el('p', { class: 'small-note' }, s.calibrationNote));
+      el('p', { class: 'small-note' }, s.calibrationNote),
+    ].filter(Boolean));
   }
 
   async function onSkipReview() {
@@ -7012,8 +7017,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       formatStructureCell(s.meanDiameterDifferentiation),
     ]);
     box.replaceChildren(
-      table('Woodland spatial structure (M_i and T_i, living adult stems)',
-        ['Scope', 'Living', 'k (eff/max)', 'M_i (mingling)', 'T_i (diam. diff.)'],
+      table('M_i (species mingling) & T_i (diameter diff.), k=eff/max',
+        ['Scope', 'Live', 'k', 'M_i', 'T_i'],
         rows),
       el('p', { class: 'small-note' }, provPill(s.provenanceLabel || s.provenance || 'DERIVED'),
         ' Living adult trees across connected woodland (excludes stumps, deadwood, and unpromoted PJ saplings). Null values display as Unavailable, never 0.00.'));
