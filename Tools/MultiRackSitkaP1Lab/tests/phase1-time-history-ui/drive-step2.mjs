@@ -473,6 +473,49 @@ async function checkNb2Order2AtResolution(cdp, width, height) {
   await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2 order 2');
 }
 
+// Inspect a named tree in the real Edge Tree inspector after syncing with #reread, returning exact rendered facts.
+async function inspectTreeFactsInUi(cdp, areaId, treeId) {
+  await click(cdp, '#reread');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy')", 'reread synced before tree inspection');
+  const activeArea = await evaluate(cdp, "document.querySelector('#area-switch [aria-pressed=\"true\"]')?.getAttribute('data-area') || ''");
+  if (activeArea !== areaId) {
+    await click(cdp, `#area-switch [data-area="${areaId}"]`);
+    await waitFor(cdp, `document.querySelector('#area-switch [data-area="${areaId}"]')?.getAttribute('aria-pressed') === 'true'`, 'switched to ' + areaId);
+  }
+  await click(cdp, '[data-pane-button="trees"]');
+  await waitFor(cdp, "document.getElementById('side').getAttribute('data-pane') === 'trees'", 'Trees pane for ' + treeId);
+  await evaluate(cdp, `(() => {
+    const inp = document.getElementById('tree-search');
+    if (inp && inp.value !== '') { inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    const btn = document.querySelector('#tree-rows [data-select="${treeId}"]');
+    if (btn) btn.scrollIntoView({ block: 'center' });
+  })()`);
+  await sleep(80);
+  await click(cdp, `#tree-rows [data-select="${treeId}"]`);
+  await waitFor(cdp, `!document.getElementById('inspector-body').hidden && document.getElementById('insp-id').textContent === '${treeId}'`,
+    'inspector opened for ' + treeId);
+  return await evaluate(cdp, `(() => {
+    const dts = Array.from(document.querySelectorAll('#insp-facts dt'));
+    const dds = Array.from(document.querySelectorAll('#insp-facts dd'));
+    const map = {};
+    for (let i = 0; i < dts.length; i++) map[dts[i].textContent.trim()] = (dds[i]?.textContent || '').trim();
+    return {
+      treeId: document.getElementById('insp-id').textContent.trim(),
+      chip: document.getElementById('insp-chip').textContent.trim(),
+      summary: document.getElementById('insp-summary').textContent.trim(),
+      lifeState: map['Life state'] || null,
+      hasPruningLifts: Object.prototype.hasOwnProperty.call(map, 'Pruning lifts'),
+      pruneBoxHidden: document.getElementById('prune-box').hidden,
+      deathYear: map['Death year'] || null,
+      cause: map['Cause'] || null,
+      species: map['Species'] || null,
+      age: map['Age'] || null,
+      deadwoodId: map['Fallen deadwood'] ? map['Fallen deadwood'].split(' · ')[0] : null,
+      recordedReason: map['Recorded reason'] || null,
+    };
+  })()`);
+}
+
 // ------------------------------------------------------------------------------------------------ command 1: ma1-full
 async function runMa1Full(cdp) {
   const errors = watchConsole(cdp);
@@ -571,8 +614,11 @@ async function runMa1Full(cdp) {
 
   // Advance MA-1 year-by-year from Year 8 through Year 30 (G5 horizon), executing Fells at Years 10, 20, 30 and
   // verifying EVERY year <= 524,288 B raw, ecology <= 153,600 B, payloadBudgetExceeded=false, >=1 event & >=1 annual record!
+  // Also perform the R2-2 cross-tier dead-tree Edge check across MA-1's Tier 0 -> Tier 1 boundary (Years 28-29).
   let cur = await currentView(cdp);
   let ma1MaxRaw = 0, ma1MaxEco = 0, ma1SweepFail = 0;
+  let ma1NatDeadId = null, ma1PreProjYear = null, ma1PreNat = null, ma1PreFell = null;
+  let ma1PostProjYear = null, ma1PostNat = null, ma1PostFell = null;
   for (let yr = 9; yr <= 30; yr++) {
     const adv = await fetchJson(cdp, 'api/multi/year/advance', { fence: fenceOf(cur), consentToCancelWork: false });
     if (adv.status !== 200) { ma1SweepFail++; break; }
@@ -595,7 +641,37 @@ async function runMa1Full(cdp) {
     if (yr === 15 || yr === 26 || yr === 30) {
       log(`BUDGET MA-1 Year ${yr}: raw=${res.bytes} B (<=524288) ecology=${res.ecoBytes} B (<=153600) ev=${evC} an=${anC} trunc=${res.payload.historyTruncated} proj=${res.payload.projectionCompacted} s4c=${res.payload.stage4Compacted} over=${res.payload.payloadBudgetExceeded}`);
     }
+    // Capture unprojected (Tier 0) dead-tree inspector state at Year 27/28 before projection activates, then compare at first projected year.
+    if ((yr === 27 || yr === 28) && !res.payload.projectionCompacted) {
+      if (!ma1NatDeadId) {
+        const natScene = (res.payload.scenes['MA-A'] || []).find((s) => s.status === 'NaturalDead');
+        ma1NatDeadId = natScene ? natScene.treeId : null;
+      }
+      if (ma1NatDeadId) {
+        ma1PreProjYear = yr;
+        ma1PreNat = await inspectTreeFactsInUi(cdp, 'MA-A', ma1NatDeadId);
+        ma1PreFell = await inspectTreeFactsInUi(cdp, 'MA-A', f4Tree);
+      }
+    } else if (ma1PreNat && !ma1PostNat && res.payload.projectionCompacted) {
+      ma1PostProjYear = yr;
+      ma1PostFell = await inspectTreeFactsInUi(cdp, 'MA-A', f4Tree);
+      ma1PostNat = await inspectTreeFactsInUi(cdp, 'MA-A', ma1NatDeadId);
+      await shot(cdp, 'ma1-dead-tree-projected', 1280, 720);
+    }
   }
+  const ma1DeadConsistent = Boolean(ma1PreNat && ma1PostNat && ma1PreFell && ma1PostFell) &&
+    ma1PreNat.lifeState === ma1PostNat.lifeState &&
+    ma1PostNat.lifeState.startsWith('BiologicallyDead · ') &&
+    !ma1PostNat.lifeState.includes('DeadFallen') && !ma1PostNat.lifeState.includes('DeadStanding') &&
+    ma1PreFell.lifeState === 'FelledStump' && ma1PostFell.lifeState === 'FelledStump' &&
+    !ma1PreNat.hasPruningLifts && !ma1PostNat.hasPruningLifts &&
+    !ma1PreFell.hasPruningLifts && !ma1PostFell.hasPruningLifts &&
+    ma1PreNat.deathYear === ma1PostNat.deathYear && ma1PreNat.cause === ma1PostNat.cause &&
+    ma1PreNat.species === ma1PostNat.species && ma1PreNat.age === ma1PostNat.age &&
+    ma1PreNat.deadwoodId === ma1PostNat.deadwoodId && ma1PreFell.recordedReason === ma1PostFell.recordedReason;
+  check(ma1DeadConsistent,
+    `R2-2 MA-1 cross-tier dead-tree inspector identical across Tier 0 (Yr ${ma1PreProjYear}) -> Tier 1 (Yr ${ma1PostProjYear}): ` +
+    `natural ${ma1NatDeadId} (${ma1PostNat?.lifeState}), stump ${f4Tree} (${ma1PostFell?.lifeState}), Pruning lifts absent in both tiers`);
   const idxY30 = (await fetchJson(cdp, 'api/multi/history/index?pageSize=50')).payload;
   const detOldest = await fetchJson(cdp, 'api/multi/history/year', { fence: fenceOf(cur), year: 4 });
   check(ma1SweepFail === 0 && cur.source.ecologicalYear === 30 && idxY30.totalRecordedYears === 31 && detOldest.status === 200 && detOldest.payload.workYear === 4,
@@ -648,6 +724,25 @@ async function runMixedPlaySave(cdp) {
   await click(cdp, '#execute-confirm');
   await waitFor(cdp, "!document.getElementById('execute-dialog').open && document.getElementById('receipt').textContent.includes('" + aFell + "')",
     'Execute commit', 30000);
+
+  // R2-1: at Year 0 immediately after Execute (totalRecordedYears=1, annualHistory=[], historyTruncated=false),
+  // Results pane MUST show "No ecological year has been advanced in this session." and NEVER claim budget omission!
+  await click(cdp, '#reread');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy')", 'reread after Year 0 Execute');
+  await click(cdp, '[data-pane-button="history"]');
+  await waitFor(cdp, "document.getElementById('side').getAttribute('data-pane') === 'history'", 'Results pane at Year 0 after Execute');
+  const y0ExecView = (await fetchJson(cdp, 'api/multi/view')).payload;
+  const y0ResultsUi = await evaluate(cdp, `({
+    latest: document.getElementById('year-latest').textContent.trim(),
+    truncHidden: document.getElementById('history-truncated-note').hidden,
+    hasWorkLog: document.getElementById('history').textContent.includes('${aFell}')
+  })`);
+  check(y0ExecView.view.source.ecologicalYear === 0 && y0ExecView.totalRecordedYears === 1 &&
+    y0ExecView.historyTruncated === false && y0ExecView.view.annualHistory.length === 0 &&
+    y0ResultsUi.latest === 'No ecological year has been advanced in this session.' &&
+    !y0ResultsUi.latest.includes('Compact view omits') && !y0ResultsUi.latest.includes('payload budget') &&
+    y0ResultsUi.truncHidden === true && y0ResultsUi.hasWorkLog === true,
+    `R2-1 Year-0-after-Execute Results pane truthful (no false truncation notice): ${JSON.stringify(y0ResultsUi)}`);
 
   // Skip to Review via real page button (anchored Year 0 Fell -> Year 4), then Advance 1 year -> Year 5 budget
   await waitFor(cdp, "document.getElementById('skip-review-label').textContent === 'Skip → Yr 4'", 'Skip label Yr 4');
@@ -800,8 +895,11 @@ async function runMixedPlaySave(cdp) {
 
   // Continue MA-1-MIXED year-by-year from Year 16 through Year 30 (G5 horizon, executing work at Years 20 and 30)
   // asserting raw <= 524,288 B, ecology <= 153,600 B, payloadBudgetExceeded=false, >=1 event & >=1 annual record at EVERY year!
+  // Also perform the R2-2 cross-tier dead-tree Edge check across MA-1-MIXED Year 16 (Tier 0) -> Year 17 (Tier 1).
   let mixCur = preView;
   let mixMaxRaw = 0, mixMaxEco = 0, mixSweepFail = 0, sawMixTrunc = false;
+  let mixNatDeadId = null, mixPreProjYear = null, mixPreNat = null, mixPreFell = null;
+  let mixPostProjYear = null, mixPostNat = null, mixPostFell = null;
   for (let yr = 16; yr <= 30; yr++) {
     const adv = await fetchJson(cdp, 'api/multi/year/advance', { fence: fenceOf(mixCur), consentToCancelWork: false });
     if (adv.status !== 200) { mixSweepFail++; break; }
@@ -825,7 +923,36 @@ async function runMixedPlaySave(cdp) {
     if (yr === 20 || yr === 24 || yr === 30) {
       log(`BUDGET MA-1-MIXED Year ${yr}: raw=${res.bytes} B (<=524288) ecology=${res.ecoBytes} B (<=153600) ev=${evC} an=${anC} trunc=${res.payload.historyTruncated} proj=${res.payload.projectionCompacted} s4c=${res.payload.stage4Compacted} over=${res.payload.payloadBudgetExceeded}`);
     }
+    if (!res.payload.projectionCompacted && yr <= 17) {
+      if (!mixNatDeadId) {
+        const natScene = (res.payload.scenes['MA-A'] || []).find((s) => s.status === 'NaturalDead');
+        mixNatDeadId = natScene ? natScene.treeId : null;
+      }
+      if (mixNatDeadId) {
+        mixPreProjYear = yr;
+        mixPreNat = await inspectTreeFactsInUi(cdp, 'MA-A', mixNatDeadId);
+        mixPreFell = await inspectTreeFactsInUi(cdp, 'MA-A', aFell);
+      }
+    } else if (mixPreNat && !mixPostNat && res.payload.projectionCompacted) {
+      mixPostProjYear = yr;
+      mixPostFell = await inspectTreeFactsInUi(cdp, 'MA-A', aFell);
+      mixPostNat = await inspectTreeFactsInUi(cdp, 'MA-A', mixNatDeadId);
+      await shot(cdp, 'mixed-dead-tree-projected-yr17', 1280, 720);
+    }
   }
+  const mixDeadConsistent = Boolean(mixPreNat && mixPostNat && mixPreFell && mixPostFell) &&
+    mixPreNat.lifeState === mixPostNat.lifeState &&
+    mixPostNat.lifeState.startsWith('BiologicallyDead · ') &&
+    !mixPostNat.lifeState.includes('DeadFallen') && !mixPostNat.lifeState.includes('DeadStanding') &&
+    mixPreFell.lifeState === 'FelledStump' && mixPostFell.lifeState === 'FelledStump' &&
+    !mixPreNat.hasPruningLifts && !mixPostNat.hasPruningLifts &&
+    !mixPreFell.hasPruningLifts && !mixPostFell.hasPruningLifts &&
+    mixPreNat.deathYear === mixPostNat.deathYear && mixPreNat.cause === mixPostNat.cause &&
+    mixPreNat.species === mixPostNat.species && mixPreNat.age === mixPostNat.age &&
+    mixPreNat.deadwoodId === mixPostNat.deadwoodId && mixPreFell.recordedReason === mixPostFell.recordedReason;
+  check(mixDeadConsistent,
+    `R2-2 MA-1-MIXED cross-tier dead-tree inspector identical across Tier 0 (Yr ${mixPreProjYear}) -> Tier 1 (Yr ${mixPostProjYear}): ` +
+    `natural ${mixNatDeadId} (${mixPostNat?.lifeState}), stump ${aFell} (${mixPostFell?.lifeState}), Pruning lifts absent in both tiers`);
   const mixIdx30 = (await fetchJson(cdp, 'api/multi/history/index?pageSize=50')).payload;
   const mixDet0At30 = await fetchJson(cdp, 'api/multi/history/year', { fence: fenceOf(mixCur), year: 0 });
   check(mixSweepFail === 0 && mixCur.source.ecologicalYear === 30 && sawMixTrunc &&

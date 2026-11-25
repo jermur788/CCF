@@ -159,8 +159,7 @@ internal sealed partial class PlayerApi
         var snapshot = multiArea.ReadCompositeUiSnapshot();
         int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
         MultiReviewPreviewDto? reviewPreview = TryPreviewForView(snapshot.View);
-        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes);
-        _ = bounded;
+        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes);
         return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
     }
 
@@ -600,36 +599,25 @@ internal sealed partial class PlayerApi
             return tier2Fit!;
         }
 
-        // Tier 3: emergency fallback — never silently exceed budget.
-        object? emergencyStage4 = fullStage4 is null ? null
+        // Tier 3: explicit over-budget disclosure — never drops below minEvents/minAnnual and never returns over-budget
+        // bytes silently. Keeps at least the latest work event & latest annual record whenever present, sets
+        // payloadBudgetExceeded=true, and logs loudly to server stderr.
+        object? overStage4 = fullStage4 is null ? null
             : ProjectStage4ForBudget(fullStage4, hasEcology: projEco is not null, compactGround: true, pruneLogCap: 0);
-        if (ecoBytes <= MaxEcologyPayloadBytes)
-        {
-            var zeroView = ProjectViewForBudget(TailRaw(0, 0));
-            byte[] zeroBytes = Serialize(zeroView, projScenes, emergencyStage4, histTrunc: true, projCompact: true, s4Compact: true, exceeded: false);
-            if (zeroBytes.Length <= MaxViewPayloadBytes)
-            {
-                finalBytes = zeroBytes;
-                return new BoundedMultiSnapshot(zeroView, projScenes, emergencyStage4, projEco,
-                    HistoryTruncated: true, TotalRecordedYears: totalRecordedYears,
-                    ProjectionCompacted: true, Stage4Compacted: fullStage4 is not null, PayloadBudgetExceeded: false);
-            }
-        }
-
-        // Over budget even after all honest reductions: keep at least the latest event & annual record, flag explicitly, and log loudly.
         var overView = ProjectViewForBudget(TailRaw(minEvents, minAnnual));
         bool overTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count || (fullStage4?.PruneLog.Count ?? 0) > 0;
-        byte[] overBytes = Serialize(overView, projScenes, emergencyStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true);
+        byte[] overBytes = Serialize(overView, projScenes, overStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true);
         Console.Error.WriteLine(FormattableString.Invariant(
             $"PAYLOAD BUDGET EXCEEDED GET api/multi/view (year={fullView.Source.EcologicalYear}): raw={overBytes.Length} B (limit {MaxViewPayloadBytes}), ecology={ecoBytes} B (limit {MaxEcologyPayloadBytes})"));
         finalBytes = overBytes;
-        return new BoundedMultiSnapshot(overView, projScenes, emergencyStage4, projEco,
+        return new BoundedMultiSnapshot(overView, projScenes, overStage4, projEco,
             HistoryTruncated: overTrunc, TotalRecordedYears: totalRecordedYears,
             ProjectionCompacted: true, Stage4Compacted: fullStage4 is not null, PayloadBudgetExceeded: true);
     }
 
     // Honest projection of MultiAreaSessionView: keeps every area, living tree, stump and dead tree with exact field names;
-    // omits "death": null on living trees and redundant death.treeId on dead trees; rounds dead-tree display floats to 3 decimals.
+    // omits "death": null on living trees and redundant death.treeId on dead trees; carries Core's exact LifeStates.Of(tr)
+    // on dead trees so the inspector renders identical engine LifeState across tiers; rounds dead-tree display floats to 3 decimals.
     private static MultiProjectedSessionViewDto ProjectViewForBudget(MultiAreaSessionView view)
     {
         var areas = new MultiProjectedAreaViewDto[view.Areas.Count];
@@ -650,7 +638,7 @@ internal sealed partial class PlayerApi
                     var d = tr.Death!;
                     trees[t] = new MultiProjectedTreeDto(tr.TreeId, R3f(tr.XM), R3f(tr.ZM), tr.AgeYears, R3f(tr.DbhCm),
                         R3f(tr.HeightM), R3f(tr.CrownRadiusM), IsLiving: false,
-                        new MultiProjectedDeathDto(d.EcologicalYear, d.Cause, d.Mechanism));
+                        new MultiProjectedDeathDto(d.EcologicalYear, d.Cause, d.Mechanism, LifeStates.Of(tr)));
                 }
             }
             areas[a] = new MultiProjectedAreaViewDto(area.AreaId, area.Label, area.StockingNote, area.Site, area.SimulationSeed,
@@ -681,7 +669,7 @@ internal sealed partial class PlayerApi
     }
 
     // Honest projection of stage4 readout: keeps all living trees plus any non-living tree with pruningLifts > 0 (unpruned dead
-    // trees are omitted; UI derives Life state honestly from tree.death + fallenDeadwood), rounds deadwood floats to 3 decimals,
+    // trees are omitted; UI reads Core's exact LifeState from tree.death.lifeState), rounds deadwood floats to 3 decimals,
     // and when compactGround is true omits contributingTreeIds via null omission (NEVER fake []) while preserving { xm, zm, u, v }.
     private static MultiProjectedStage4Dto ProjectStage4ForBudget(
         MultiAreaUiReadout stage4, bool hasEcology, bool compactGround, int pruneLogCap)
@@ -1160,7 +1148,7 @@ internal sealed partial class PlayerApi
         bool HistoryTruncated = false, int TotalRecordedYears = 0, MultiReviewPreviewDto? ReviewPreview = null,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
 
-    private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism);
+    private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism, LifeState LifeState);
 
     private sealed record MultiProjectedTreeDto(
         string TreeId,
@@ -5311,10 +5299,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (s4) {
       facts.push(pair('Life state', s4.lifeState + (s4.deathCause ? ' · ' + s4.deathCause + ', year ' + s4.deathYear : '')));
     } else if (tree.death && state.stage4) {
-      const lifeState = tree.death.cause === 'fell' ? 'FelledStump' : dw ? 'DeadFallen' : 'DeadStanding';
-      facts.push(pair('Life state', lifeState + ' · ' + tree.death.cause + ', year ' + tree.death.ecologicalYear));
+      const lifeState = tree.death.lifeState || (item.status === 'Felled' ? 'FelledStump' : 'BiologicallyDead');
+      facts.push(pair('Life state', lifeState === 'BiologicallyDead'
+        ? 'BiologicallyDead · ' + tree.death.cause + ', year ' + tree.death.ecologicalYear
+        : lifeState));
     }
-    if (ps) {
+    if (tree.isLiving && ps) {
       facts.push(pair('Pruning lifts', ps.lifts + ' / ' + ps.maxLifts + ' (' + ps.minIntervalYears + '-yr wait)' +
         (s4 && s4.pruningLifts > 0 ? ' · crown base ' + fixed(s4.crownBaseHeightM, 1) + ' m · last lift year ' + s4.lastPruningYear : ''), 'wide'));
     }
@@ -5932,10 +5922,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     }
     const latest = byId('year-latest');
     if (years.length === 0) {
-      if (state.totalRecordedYears > 0 || state.historyTruncated || (view.source && view.source.ecologicalYear > 0)) {
+      const hasAdvancedYear = Boolean(view.source && view.source.ecologicalYear > 0);
+      if (state.historyTruncated && hasAdvancedYear) {
         const count = state.totalRecordedYears > 0 ? state.totalRecordedYears : (view.source.ecologicalYear + 1);
         latest.replaceChildren(el('p', { class: 'small-note' },
           'Compact view omits annual history rows to stay within payload budget; open History in the header to inspect all ' +
+          plural(count, 'recorded year', 'recorded years') + '.'));
+      } else if (hasAdvancedYear) {
+        const count = state.totalRecordedYears > 0 ? state.totalRecordedYears : (view.source.ecologicalYear + 1);
+        latest.replaceChildren(el('p', { class: 'small-note' },
+          'Annual history rows are not included in this view; open History in the header to inspect all ' +
           plural(count, 'recorded year', 'recorded years') + '.'));
       } else {
         latest.replaceChildren(el('p', { class: 'small-note' }, 'No ecological year has been advanced in this session.'));

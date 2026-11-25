@@ -1654,6 +1654,18 @@ check(!living(server, 'MA-A', competitorId) && !living(server, 'MA-B', bTree) &&
   byId('receipt').textContent.includes('171 → 170') && byId('receipt').textContent.includes('73 → 72'),
   'one event felled exactly the two trees; the receipt shows both areas before → after');
 
+// R2-1: at Year 0 immediately after Execute (totalRecordedYears === 1, annualHistory === [], historyTruncated === false),
+// Results MUST state "No ecological year has been advanced in this session." and NEVER claim budget omission!
+{
+  const y0Latest = byId('year-latest').textContent;
+  const r2Ok = y0Latest === 'No ecological year has been advanced in this session.' &&
+    !y0Latest.includes('Compact view omits') && !y0Latest.includes('payload budget') &&
+    byId('history-truncated-note').hidden === true;
+  if (!r2Ok) failures++;
+  console.log((r2Ok ? 'PASS ' : 'FAIL ') + 'R2a Year-0-after-Execute Results pane stays truthful with zero false truncation notice' +
+    (r2Ok ? '' : ' :: ' + redact(JSON.stringify({ y0Latest, truncHidden: byId('history-truncated-note').hidden }))));
+}
+
 // Year+1 from the page: results per area.
 click(byId('advance'));
 await until(() => byId('year-latest').textContent.includes('Latest year 0 → 1'), 'the Year+1 results');
