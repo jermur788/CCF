@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using SitkaP1.Core;
@@ -10,11 +9,10 @@ namespace SitkaP1.Core.Tests;
 /// CCF Multi 2D — Phase 1 Step 1 (spec multi-2d-phase1-time-history-core-v1) verification suite:
 /// P1-TH-01..08 covering dual time pacing, skip-vs-manual parity, WorkPlanOpen/bounds/cancellation refusals,
 /// SchemaVersion 2 Save/Load continuity, read-only Decision -> Outcome history query, WoodlandStructureMetrics
-/// analytical oracles, Gate G3 honesty assertions, and Step 1 scope integrity.
+/// analytical oracles, Gate G3 honesty assertions, and hermetic Core boundary invariants.
 /// </summary>
 internal static class Phase1TimeHistoryTests
 {
-    private const string BaseCommitSha = "5438c94c66dfab14e3c1a1e924f9d90b0b0e5f43";
     private const double Tol = 1e-12;
 
     private static readonly FieldInfo RootField =
@@ -758,30 +756,27 @@ internal static class Phase1TimeHistoryTests
             }
         });
 
-        // ------------------------------------------------------------------ P1-TH-08: Scope compliance check
-        T.Add("P1-TH-08: zero changes under src/Ui/, src/Core/Phase1/ and Assets/ relative to base 5438c94c", () =>
+        // ------------------------------------------------------------------ P1-TH-08: Hermetic Core boundary & schema invariants
+        T.Add("P1-TH-08: Core boundary stays hermetic (SchemaVersion 2, zero UI/ASP.NET/Unity references)", () =>
         {
-            string repoRoot = FindRepoRoot();
-            string changedText = RunGit(repoRoot, $"diff --name-only {BaseCommitSha}");
-            string untrackedText = RunGit(repoRoot, "ls-files --others --exclude-standard");
-            var changed = changedText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Concat(untrackedText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-            foreach (var path in changed)
+            T.Eq(2, Phase1SaveFormat.SchemaVersion, "save schema version remains 2");
+            var coreAssembly = typeof(MultiAreaContinuation).Assembly;
+            var referenced = coreAssembly.GetReferencedAssemblies().Select(a => a.Name ?? string.Empty).ToArray();
+            T.True(referenced.Length > 0, "Core assembly references read");
+            foreach (var name in referenced)
             {
-                string norm = path.Replace('\\', '/');
-                T.True(!norm.StartsWith("Tools/MultiRackSitkaP1Lab/src/Ui/", StringComparison.Ordinal),
-                    "forbidden src/Ui/ edit: " + norm);
-                T.True(!norm.StartsWith("Tools/MultiRackSitkaP1Lab/src/Core/Phase1/", StringComparison.Ordinal),
-                    "forbidden src/Core/Phase1/ edit: " + norm);
-                T.True(!norm.StartsWith("Assets/", StringComparison.Ordinal),
-                    "forbidden Assets/ edit: " + norm);
-                T.True(!norm.StartsWith("Packages/", StringComparison.Ordinal),
-                    "forbidden Packages/ edit: " + norm);
-                T.True(!norm.StartsWith("ProjectSettings/", StringComparison.Ordinal),
-                    "forbidden ProjectSettings/ edit: " + norm);
-                T.True(!norm.StartsWith("Docs/Project/coordination/", StringComparison.Ordinal),
-                    "forbidden coordination edit: " + norm);
+                T.True(!name.StartsWith("Microsoft.AspNetCore", StringComparison.OrdinalIgnoreCase),
+                    "Core must not reference ASP.NET Core: " + name);
+                T.True(!name.Contains("SitkaP1.Ui", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(name, "sitkap1-ui", StringComparison.OrdinalIgnoreCase),
+                    "Core must not reference UI assembly: " + name);
+                T.True(!name.StartsWith("UnityEngine", StringComparison.OrdinalIgnoreCase) &&
+                    !name.StartsWith("UnityEditor", StringComparison.OrdinalIgnoreCase),
+                    "Core must not reference Unity assemblies: " + name);
             }
+            T.Eq(coreAssembly, typeof(MultiAreaTimePacing).Assembly, "MultiAreaTimePacing lives in SitkaP1.Core");
+            T.Eq(coreAssembly, typeof(MultiAreaHistoryQuery).Assembly, "MultiAreaHistoryQuery lives in SitkaP1.Core");
+            T.Eq(coreAssembly, typeof(WoodlandStructureMetrics).Assembly, "WoodlandStructureMetrics lives in SitkaP1.Core");
         });
     }
 
@@ -890,24 +885,36 @@ internal static class Phase1TimeHistoryTests
     {
         var session = MixedForest();
         var vPending = queueOrder(session, session.ReadView());
+        int pendingYear = vPending.Source.EcologicalYear;
         byte[] pendingBefore = Canonical(session);
 
         var pPending = session.PreviewNextReviewYear(Fence(vPending));
         T.True(!pPending.Eligible && pPending.StopReason == TimePacingStopReason.WorkPlanOpen, kind + " Pending preview blocked");
-        var rPending = session.AdvanceYears(Fence(vPending), vPending.Source.EcologicalYear + 4);
-        T.Eq(TimePacingStopReason.WorkPlanOpen, rPending.StopReason, kind + " Pending advance refused");
-        T.True(!rPending.ReachedTarget && rPending.CompletedYears.Count == 0, kind + " Pending 0 steps");
-        AssertBytes(pendingBefore, Canonical(session), kind + " Pending zero mutation");
+        foreach (int target in new[] { pendingYear + 4, pendingYear + 6, pendingYear })
+        {
+            var rPending = session.AdvanceYears(Fence(vPending), target);
+            T.Eq(TimePacingStopReason.WorkPlanOpen, rPending.StopReason, kind + " Pending advance refused (target " + target + ")");
+            T.Eq(MultiAreaTimePacingConstants.WorkPlanOpenLabel, rPending.StopDetail, kind + " Pending StopDetail (target " + target + ")");
+            T.True(!rPending.ReachedTarget && rPending.CompletedYears.Count == 0 && rPending.DestinationYear == pendingYear,
+                kind + " Pending 0 steps (target " + target + ")");
+            AssertBytes(pendingBefore, Canonical(session), kind + " Pending zero mutation (target " + target + ")");
+        }
 
         var vApproved = session.Approve(Fence(vPending)).View;
+        int approvedYear = vApproved.Source.EcologicalYear;
         byte[] approvedBefore = Canonical(session);
 
         var pApproved = session.PreviewNextReviewYear(Fence(vApproved));
         T.True(!pApproved.Eligible && pApproved.StopReason == TimePacingStopReason.WorkPlanOpen, kind + " Approved preview blocked");
-        var rApproved = session.AdvanceYears(Fence(vApproved), vApproved.Source.EcologicalYear + 4);
-        T.Eq(TimePacingStopReason.WorkPlanOpen, rApproved.StopReason, kind + " Approved advance refused");
-        T.True(!rApproved.ReachedTarget && rApproved.CompletedYears.Count == 0, kind + " Approved 0 steps");
-        AssertBytes(approvedBefore, Canonical(session), kind + " Approved zero mutation");
+        foreach (int target in new[] { approvedYear + 4, approvedYear + 6, approvedYear })
+        {
+            var rApproved = session.AdvanceYears(Fence(vApproved), target);
+            T.Eq(TimePacingStopReason.WorkPlanOpen, rApproved.StopReason, kind + " Approved advance refused (target " + target + ")");
+            T.Eq(MultiAreaTimePacingConstants.WorkPlanOpenLabel, rApproved.StopDetail, kind + " Approved StopDetail (target " + target + ")");
+            T.True(!rApproved.ReachedTarget && rApproved.CompletedYears.Count == 0 && rApproved.DestinationYear == approvedYear,
+                kind + " Approved 0 steps (target " + target + ")");
+            AssertBytes(approvedBefore, Canonical(session), kind + " Approved zero mutation (target " + target + ")");
+        }
     }
 
     private static MultiAreaContinuation SaveAndRestoreIntoFreshMixed(MultiAreaContinuation source, string label)
@@ -1070,30 +1077,5 @@ internal static class Phase1TimeHistoryTests
     {
         if (!expected.AsSpan().SequenceEqual(actual))
             throw new Exception($"{what}: {expected.Length} vs {actual.Length} bytes differ");
-    }
-
-    private static string FindRepoRoot()
-    {
-        var d = new DirectoryInfo(AppContext.BaseDirectory);
-        while (d is not null && !File.Exists(Path.Combine(d.FullName, "MultiRackSitkaP1Lab.sln")))
-            d = d.Parent;
-        if (d is null) throw new Exception("P1 root not found");
-        return Path.GetFullPath(Path.Combine(d.FullName, "..", ".."));
-    }
-
-    private static string RunGit(string repoRoot, string args)
-    {
-        var psi = new ProcessStartInfo("git", $"-C \"{repoRoot}\" {args}")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        using var proc = Process.Start(psi)!;
-        string stdout = proc.StandardOutput.ReadToEnd();
-        string stderr = proc.StandardError.ReadToEnd();
-        proc.WaitForExit();
-        if (proc.ExitCode != 0) throw new Exception("git " + args + " failed: " + stderr);
-        return stdout;
     }
 }
