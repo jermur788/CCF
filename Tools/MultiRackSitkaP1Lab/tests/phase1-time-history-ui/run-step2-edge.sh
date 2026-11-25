@@ -122,6 +122,123 @@ start_server mixed-b ma-1-mixed
 run drive mixed-restart-load "${server_url%/}/multi"
 stop_server mixed-b
 
+# ---- 4. Clean per-year Year 0..30 payload & retention sweep on BOTH MA-1 and MA-1-MIXED (Owner G5 Year 30 horizon) ----
+sweep_experiment() {
+  local exp="$1"
+  start_server "sweep-${exp}" "$exp"
+  python3 -I -B - "${server_url}" "$exp" "$evidence/step2-sweep-${exp}.json" << 'SWEEP_PY' | tee -a "$log"
+import json, sys, urllib.request
+base, exp, out_json = sys.argv[1], sys.argv[2], sys.argv[3]
+origin = base.split('/s/')[0]
+
+def send(path, body=None):
+    h = {'Origin': origin}
+    data = None
+    if body is not None:
+        h['Content-Type'] = 'application/json'
+        data = json.dumps(body).encode()
+    req = urllib.request.Request(base + path, data=data, headers=h)
+    raw = urllib.request.urlopen(req, timeout=30).read()
+    return raw, json.loads(raw)
+
+def fence(v):
+    return {'sessionId': v['sessionId'], 'source': v['source'], 'planStateRevision': v['planStateRevision']}
+
+def exec_work(v, p, yr):
+    a_live = [t['treeId'] for t in v['areas'][0]['trees'] if t['isLiving']]
+    if not a_live:
+        return v
+    _, r = send('api/multi/pending/add', {'fence': fence(v), 'areaId': 'MA-A', 'treeId': a_live[0], 'reason': f'g5 sweep y{yr} fell'})
+    v = r['view']
+    if exp == 'ma-1-mixed':
+        for tid in [t['treeId'] for t in v['areas'][1]['trees'] if t['isLiving']]:
+            try:
+                _, r = send('api/multi/prune/add', {'fence': fence(v), 'areaId': 'MA-B', 'treeId': tid})
+                v = r['view']
+                break
+            except Exception:
+                pass
+        cell = p['stage4']['areas'][1]['ground'][yr % len(p['stage4']['areas'][1]['ground'])]
+        _, r = send('api/multi/clear/add', {'fence': fence(v), 'areaId': 'MA-B', 'column': cell['column'], 'row': cell['row']})
+        v = r['view']
+        extB = v['areas'][1]['extent']
+        liveAll = [t for a in v['areas'] for t in a['trees'] if t['isLiving']]
+        existing_pts = [(j['xm'], j['zm']) for j in p['ecology']['planted']] + [(pa['xm'], pa['zm']) for pa in p['ecology']['patches']]
+        for c in p['stage4']['areas'][1]['ground']:
+            x = extB['minXM'] + c['centreU']
+            z = extB['minZM'] + extB['sideM'] - c['centreV']
+            if all((t['xm'] - x) ** 2 + (t['zm'] - z) ** 2 >= 1.8 for t in liveAll) and \
+               all((px - x) ** 2 + (pz - z) ** 2 >= 1.0 for px, pz in existing_pts):
+                try:
+                    _, r = send('api/multi/plant/add', {'fence': fence(v), 'areaId': 'MA-B', 'speciesId': 'sessile-oak', 'xM': x, 'zM': z})
+                    v = r['view']
+                    _, r = send('api/multi/shelter/add', {'fence': fence(v), 'areaId': 'MA-B', 'xM': x, 'zM': z})
+                    v = r['view']
+                    _, r = send('api/multi/spot-clear/add', {'fence': fence(v), 'areaId': 'MA-B', 'xM': x, 'zM': z})
+                    v = r['view']
+                    break
+                except Exception:
+                    pass
+    _, r = send('api/multi/plan/approve', {'fence': fence(v)})
+    v = r['view']
+    _, r = send('api/multi/plan/execute', {'fence': fence(v), 'planId': v['approved']['planId'], 'executionKey': v['approved']['executionKey']})
+    return r['view']
+
+_, p0 = send('api/multi/view')
+v = exec_work(p0['view'], p0, 0)
+rows = []
+bad = 0
+for yr in range(0, 31):
+    if yr > 0:
+        _, r = send('api/multi/year/advance', {'fence': fence(v), 'consentToCancelWork': False})
+        v = r['view']
+    if yr in (10, 20, 30):
+        _, p_pre = send('api/multi/view')
+        v = exec_work(p_pre['view'], p_pre, yr)
+    raw, p = send('api/multi/view')
+    text = raw.decode('utf-8')
+    idx = text.index('"ecology":') + len('"ecology":')
+    _, end = json.JSONDecoder().raw_decode(text, idx)
+    eco_b = len(text[idx:end].encode('utf-8'))
+    ev_c = len(p['view']['events'])
+    an_c = len(p['view']['annualHistory'])
+    ok = (len(raw) <= 524288 and eco_b <= 153600 and p.get('payloadBudgetExceeded') is False and
+          ev_c >= 1 and (yr == 0 or an_c >= 1))
+    if p.get('stage4Compacted'):
+        g0 = p['stage4']['areas'][0]['ground'][0]
+        if 'contributingTreeIds' in g0 or not all(k in g0['polygon'][0] for k in ('xm', 'zm', 'u', 'v')):
+            ok = False
+    if not ok:
+        bad += 1
+    rows.append({
+        'year': yr, 'rawBytes': len(raw), 'ecologyBytes': eco_b,
+        'eventsKept': ev_c, 'annualKept': an_c,
+        'totalRecordedYears': p['totalRecordedYears'],
+        'historyTruncated': p['historyTruncated'],
+        'projectionCompacted': p['projectionCompacted'],
+        'stage4Compacted': p['stage4Compacted'],
+        'payloadBudgetExceeded': p['payloadBudgetExceeded'],
+    })
+    print(f"SWEEP {exp} Y{yr:02d} raw={len(raw)} eco={eco_b} ev={ev_c} an={an_c} trunc={p['historyTruncated']} proj={p['projectionCompacted']} s4c={p['stage4Compacted']} over={p['payloadBudgetExceeded']}")
+with open(out_json, 'w', encoding='utf-8') as f:
+    json.dump(rows, f, indent=2)
+max_raw = max(r['rawBytes'] for r in rows)
+max_eco = max(r['ecologyBytes'] for r in rows)
+if bad == 0:
+    print(f"PASS G5 Year 0..30 sweep {exp}: all 31 years <= 524288 B raw (max {max_raw}) and <= 153600 B ecology (max {max_eco}), >=1 event & >=1 annual record retained")
+    sys.exit(0)
+else:
+    print(f"FAIL G5 Year 0..30 sweep {exp}: {bad} year(s) failed budget or retention (max_raw={max_raw}, max_eco={max_eco})")
+    sys.exit(1)
+SWEEP_PY
+  local rc="${PIPESTATUS[0]}"
+  stop_server "sweep-${exp}"
+  return "$rc"
+}
+
+run sweep_experiment ma-1
+run sweep_experiment ma-1-mixed
+
 say "EVIDENCE $evidence"
 say "OVERALL: $([[ $fail == 0 ]] && echo PASS || echo FAIL) ($(grep -c '^PASS' "$log") passed, $(grep -c '^FAIL' "$log") failed)"
 exit $fail

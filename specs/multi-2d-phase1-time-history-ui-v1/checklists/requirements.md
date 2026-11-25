@@ -28,9 +28,9 @@
   - UI loads on demand inside the existing Details panel (no permanent fourth column), shows $M_i = 0.00$ on `MA-1`, $M_i > 0$ on `MA-1-MIXED`, renders `Unavailable` when `null` (never `0.00`), and displays the exact disclaimer.
   - Evidence:
 
-- [ ] **P1-UI-04 — Measured bounded multi-decade `GET api/multi/view` payload budgets:**
-  - Measured raw UTF-8 `GET api/multi/view` `<= 524288` bytes and `ecology` `<= 153600` bytes at Year 0, Year 5, and Year 15+ on both `MA-1` and `MA-1-MIXED` with executed work.
-  - Tail truncation (`historyTruncated: true`, `totalRecordedYears`) keeps `api/multi/view` bounded when `events`/`annualHistory` would breach the cap while preserving full history through `api/multi/history/*`.
+- [ ] **P1-UI-04 — Measured bounded multi-decade `GET api/multi/view` payload budgets (Owner G5 Year 30 horizon):**
+  - Measured raw UTF-8 `GET api/multi/view` `<= 524288` bytes and `ecology` `<= 153600` bytes at **every year 0..30** on both `MA-1` and `MA-1-MIXED` with executed work.
+  - At least the latest work event and latest annual record are retained whenever present (trimming `stage4.pruneLog` before dropping them); `historyTruncated` reflects `events`, `annualHistory`, and `pruneLog` trimming; `projectionCompacted` / optional `stage4Compacted` omit rather than fabricate empty lists and keep vertex field names `{xm, zm, u, v}`; over-budget responses are never silent (`payloadBudgetExceeded: true` + server log); Results pane points to History drawer instead of falsely claiming zero years advanced.
   - Evidence:
 
 - [ ] **P1-UI-05 — Real Edge End-to-End Save → Quit → Restart → Load continuity:**

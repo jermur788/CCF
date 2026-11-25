@@ -371,10 +371,106 @@ async function checkNb2AtResolution(cdp, width, height) {
   // Remove the pre-existing SpotClear so the plan is completely clean for subsequent checks.
   const v = await currentView(cdp);
   const rm = await fetchJson(cdp, 'api/multi/planting/remove', { fence: fenceOf(v), orderId: preSpotId });
-  check(rm.status === 200, `NB-2 ${width}x${height}: Remove buttons cleared partial orders and pre-SpotClear cleaned`);
+  check(rm.status === 200, `NB-2 order 3 ${width}x${height}: Remove buttons cleared partial orders and pre-SpotClear cleaned`);
   await click(cdp, '#mode-tree');
   await click(cdp, '#reread');
-  await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2');
+  await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2 order 3');
+}
+
+// NB-2 order 2 (Shelter) proof at BOTH 1280x720 and 1920x1080 (F-5):
+// Pre-queue Plant+Shelter via clickPoint(pt) so coordinates match exact SVG map projection, then remove Plant
+// leaving a pending Shelter at that exact point; pre-scroll #pane-tree; re-queue Plant+Shelter+SpotClear at pt ->
+// stops at order 2 (Shelter) with 409 Phase2DuplicateOrder, 1 queued Plant, and SpotClear unattempted.
+async function checkNb2Order2AtResolution(cdp, width, height) {
+  await viewport(cdp, width, height);
+  await sleep(180);
+  const pt = await findOpenMapPoint(cdp, 'MA-A');
+
+  // Pre-queue Plant + Shelter via the exact same map click so SVG->world coordinates match identically.
+  await click(cdp, '#mode-plant');
+  await waitFor(cdp, "!document.getElementById('plant-panel').hidden", 'Plant panel for NB-2 order 2 setup');
+  await clickPoint(cdp, pt.sx, pt.sy);
+  await evaluate(cdp, `(() => {
+    const shEl = document.getElementById('plant-opt-shelter');
+    const spEl = document.getElementById('plant-opt-spot');
+    if (!shEl.checked) shEl.click();
+    if (spEl.checked) spEl.click();
+  })()`);
+  await waitFor(cdp, "!document.getElementById('plant-queue').disabled", 'Plant Queue enabled for NB-2 order 2 setup');
+  await click(cdp, '#plant-queue');
+  await waitFor(cdp, "document.querySelectorAll('#plant-result [data-planting-remove]').length === 2", 'NB-2 order 2 setup Plant+Shelter queued');
+
+  const vSetup = await fetchJson(cdp, 'api/multi/view');
+  const plOrder = vSetup.payload.ecology.pendingPlanting.find((o) => o.kind === 'Plant');
+  const shOrder = vSetup.payload.ecology.pendingPlanting.find((o) => o.kind === 'Shelter');
+  const rmPl = await fetchJson(cdp, 'api/multi/planting/remove', { fence: fenceOf(vSetup.payload.view), orderId: plOrder.orderId });
+  const preShelterId = shOrder.orderId;
+  check(Boolean(plOrder && shOrder) && rmPl.status === 200 && rmPl.payload.ecology.pendingPlanting.length === 1,
+    `NB-2 order 2 ${width}x${height}: setup left pending Shelter (${preShelterId}) at exact clicked point`);
+
+  await click(cdp, '#mode-tree');
+  await click(cdp, '#reread');
+  await waitFor(cdp, "document.getElementById('pending-total').textContent.includes('1 Shelter')", 'reread after removing setup Plant');
+
+  await click(cdp, '#mode-plant');
+  await waitFor(cdp, "!document.getElementById('plant-panel').hidden", 'Plant panel for NB-2 order 2');
+  await clickPoint(cdp, pt.sx, pt.sy);
+  await evaluate(cdp, `(() => {
+    const shEl = document.getElementById('plant-opt-shelter');
+    const spEl = document.getElementById('plant-opt-spot');
+    if (!shEl.checked) shEl.click();
+    if (!spEl.checked) spEl.click();
+    const pane = document.getElementById('pane-tree');
+    pane.scrollTop = pane.scrollHeight;
+  })()`);
+  await waitFor(cdp, "!document.getElementById('plant-queue').disabled", 'Plant Queue enabled for NB-2 order 2');
+  await sleep(80);
+  await click(cdp, '#plant-queue');
+  await waitFor(cdp, "!document.getElementById('plant-result').hidden && document.getElementById('plant-result').textContent.includes('Phase2DuplicateOrder') && document.getElementById('plant-result').textContent.includes('Stopped at Shelter')",
+    'NB-2 order 2 partial refusal at Shelter');
+  await sleep(150);
+
+  const nb2 = await evaluate(cdp, `(() => {
+    const pane = document.getElementById('pane-tree');
+    const pr = pane.getBoundingClientRect();
+    const box = document.getElementById('plant-result');
+    const br = box.getBoundingClientRect();
+    const codeEl = box.querySelector('code');
+    const cr = codeEl ? codeEl.getBoundingClientRect() : null;
+    const btns = Array.from(box.querySelectorAll('[data-planting-remove]'));
+    const btnRects = btns.map((b) => {
+      const r = b.getBoundingClientRect();
+      return { id: b.getAttribute('data-planting-remove'), top: Math.round(r.top), bottom: Math.round(r.bottom), right: Math.round(r.right),
+        visibleInPane: r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1,
+        visibleInViewport: r.top >= 0 && r.bottom <= window.innerHeight + 1 && r.right <= window.innerWidth + 1 };
+    });
+    const text = box.textContent;
+    return {
+      scrollTop: Math.round(pane.scrollTop),
+      stoppedAtShelter: text.includes('Stopped at Shelter'),
+      hasCode: text.includes('Phase2DuplicateOrder'),
+      hasAlreadyQueued: text.includes('Already queued'),
+      hasUnattemptedSpot: text.includes('Not attempted: SpotClear'),
+      btnCount: btns.length,
+      boxTop: Math.round(br.top), boxBottom: Math.round(br.bottom),
+      codeVisible: Boolean(cr) && cr.top >= Math.max(0, pr.top) - 1 && cr.bottom <= Math.min(window.innerHeight, pr.bottom) + 1,
+      allBtnsVisible: btnRects.length === 1 && btnRects.every((b) => b.visibleInPane && b.visibleInViewport),
+      btnRects
+    };
+  })()`);
+
+  check(nb2.scrollTop === 0 && nb2.stoppedAtShelter && nb2.hasCode && nb2.hasAlreadyQueued && nb2.hasUnattemptedSpot && nb2.codeVisible && nb2.allBtnsVisible,
+    `NB-2 order 2 ${width}x${height}: Shelter Phase2DuplicateOrder + Already queued + Remove button + Not attempted SpotClear visible without scrolling (${JSON.stringify(nb2)})`);
+  await shot(cdp, 'nb2-order2-partial-refusal', width, height);
+
+  await click(cdp, '#plant-result [data-planting-remove]');
+  await waitFor(cdp, "document.querySelectorAll('#plant-result [data-planting-remove]').length === 0", 'NB-2 order 2 Remove click');
+  const vAfter = await currentView(cdp);
+  const rmSh = await fetchJson(cdp, 'api/multi/planting/remove', { fence: fenceOf(vAfter), orderId: preShelterId });
+  check(rmSh.status === 200, `NB-2 order 2 ${width}x${height}: Remove button cleared queued Plant and pre-Shelter cleaned`);
+  await click(cdp, '#mode-tree');
+  await click(cdp, '#reread');
+  await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2 order 2');
 }
 
 // ------------------------------------------------------------------------------------------------ command 1: ma1-full
@@ -384,9 +480,11 @@ async function runMa1Full(cdp) {
   await measureViewBudget(cdp, 'MA-1 Year 0');
   await checkLayoutAndR3Fold(cdp, 'ma1');
 
-  // NB-2 proof at BOTH 1280x720 and 1920x1080!
+  // NB-2 order 3 (SpotClear) AND order 2 (Shelter) proofs at BOTH 1280x720 and 1920x1080!
   await checkNb2AtResolution(cdp, 1280, 720);
   await checkNb2AtResolution(cdp, 1920, 1080);
+  await checkNb2Order2AtResolution(cdp, 1280, 720);
+  await checkNb2Order2AtResolution(cdp, 1920, 1080);
 
   // P1-UI-01: Year-0 observation skip label + GAMEPLAY CALIBRATION + WorkPlanOpen refusal without cancelling Pending or Approved work
   await viewport(cdp, 1280, 720);
@@ -471,39 +569,37 @@ async function runMa1Full(cdp) {
     `MA-1 Structure shows M_i=0.00, T_i=${stApi.meanDiameterDifferentiation.toFixed(2)}, DERIVED, exact disclaimer`);
   await shot(cdp, 'ma1-structure', 1280, 720);
 
-  // Advance MA-1 to Year 15 (measure Year 15 budget), then execute work & advance to Year 25 to actively prove tail truncation!
+  // Advance MA-1 year-by-year from Year 8 through Year 30 (G5 horizon), executing Fells at Years 10, 20, 30 and
+  // verifying EVERY year <= 524,288 B raw, ecology <= 153,600 B, payloadBudgetExceeded=false, >=1 event & >=1 annual record!
   let cur = await currentView(cdp);
-  for (const yr of [12, 15]) {
-    const sk = await fetchJson(cdp, 'api/multi/year/skip', { fence: fenceOf(cur), targetYear: yr });
-    check(sk.status === 200, `MA-1 skip to Year ${yr}`);
-    cur = sk.payload.view;
+  let ma1MaxRaw = 0, ma1MaxEco = 0, ma1SweepFail = 0;
+  for (let yr = 9; yr <= 30; yr++) {
+    const adv = await fetchJson(cdp, 'api/multi/year/advance', { fence: fenceOf(cur), consentToCancelWork: false });
+    if (adv.status !== 200) { ma1SweepFail++; break; }
+    cur = adv.payload.view;
+    if (yr === 10 || yr === 20 || yr === 30) {
+      const tId = cur.areas[0].trees.find((t) => t.isLiving)?.treeId;
+      if (tId) {
+        let w = await fetchJson(cdp, 'api/multi/pending/add', { fence: fenceOf(cur), areaId: 'MA-A', treeId: tId, reason: 'decade thin yr ' + yr });
+        w = await fetchJson(cdp, 'api/multi/plan/approve', { fence: fenceOf(w.payload.view) });
+        w = await fetchJson(cdp, 'api/multi/plan/execute', { fence: fenceOf(w.payload.view), planId: w.payload.view.approved.planId, executionKey: w.payload.view.approved.executionKey });
+        cur = w.payload.view;
+      }
+    }
+    const res = await fetchJson(cdp, 'api/multi/view');
+    ma1MaxRaw = Math.max(ma1MaxRaw, res.bytes);
+    ma1MaxEco = Math.max(ma1MaxEco, res.ecoBytes);
+    const evC = res.payload.view.events.length;
+    const anC = res.payload.view.annualHistory.length;
+    if (res.bytes > 524288 || res.ecoBytes > 153600 || res.payload.payloadBudgetExceeded || evC < 1 || anC < 1) ma1SweepFail++;
+    if (yr === 15 || yr === 26 || yr === 30) {
+      log(`BUDGET MA-1 Year ${yr}: raw=${res.bytes} B (<=524288) ecology=${res.ecoBytes} B (<=153600) ev=${evC} an=${anC} trunc=${res.payload.historyTruncated} proj=${res.payload.projectionCompacted} s4c=${res.payload.stage4Compacted} over=${res.payload.payloadBudgetExceeded}`);
+    }
   }
-  await measureViewBudget(cdp, 'MA-1 Year 15');
-
-  // Execute 2 additional small Fells and advance to Year 26 so view payload exercises tail truncation (<= 524288 B, historyTruncated === true)
-  for (const yr of [18, 22, 26]) {
-    const tId = cur.areas[0].trees.find((t) => t.isLiving).treeId;
-    let w = await fetchJson(cdp, 'api/multi/pending/add', { fence: fenceOf(cur), areaId: 'MA-A', treeId: tId, reason: 'decade thin yr ' + cur.source.ecologicalYear });
-    w = await fetchJson(cdp, 'api/multi/plan/approve', { fence: fenceOf(w.payload.view) });
-    w = await fetchJson(cdp, 'api/multi/plan/execute', { fence: fenceOf(w.payload.view), planId: w.payload.view.approved.planId, executionKey: w.payload.view.approved.executionKey });
-    cur = w.payload.view;
-    const sk = await fetchJson(cdp, 'api/multi/year/skip', { fence: fenceOf(cur), targetYear: yr });
-    check(sk.status === 200, `MA-1 multi-decade skip to Year ${yr}`);
-    cur = sk.payload.view;
-  }
-  let y26 = await measureViewBudget(cdp, 'MA-1 Year 26');
-  // If Year 26 still fits without truncating, advance a few more years until historyTruncated flips true (proving live truncation!).
-  while (!y26.payload.historyTruncated && cur.source.ecologicalYear < 45) {
-    const sk = await fetchJson(cdp, 'api/multi/year/skip', { fence: fenceOf(cur), targetYear: cur.source.ecologicalYear + 5 });
-    if (sk.status !== 200) break;
-    cur = sk.payload.view;
-    y26 = await measureViewBudget(cdp, 'MA-1 Year ' + cur.source.ecologicalYear);
-  }
-  const idxFull = (await fetchJson(cdp, 'api/multi/history/index?pageSize=50')).payload;
+  const idxY30 = (await fetchJson(cdp, 'api/multi/history/index?pageSize=50')).payload;
   const detOldest = await fetchJson(cdp, 'api/multi/history/year', { fence: fenceOf(cur), year: 4 });
-  check(y26.payload.historyTruncated === true && y26.bytes <= 524288 && y26.ecoBytes <= 153600 &&
-    idxFull.totalRecordedYears === cur.source.ecologicalYear + 1 && detOldest.status === 200 && detOldest.payload.workYear === 4,
-    `MA-1 Year ${cur.source.ecologicalYear} tail truncation verified: historyTruncated=true, raw=${y26.bytes} B <= 524288, full history preserved (totalRecordedYears=${idxFull.totalRecordedYears}, Year 4 detail readable)`);
+  check(ma1SweepFail === 0 && cur.source.ecologicalYear === 30 && idxY30.totalRecordedYears === 31 && detOldest.status === 200 && detOldest.payload.workYear === 4,
+    `MA-1 Year 9..30 per-year budget & retention verified: max_raw=${ma1MaxRaw} B <= 524288, max_eco=${ma1MaxEco} B <= 153600, >=1 event & >=1 annual record at every year, full history intact (totalRecordedYears=${idxY30.totalRecordedYears})`);
 
   const errs = errors();
   check(errs.length === 0, 'MA-1: zero console error, uncaught exception, CSP violation or 5xx' + (errs.length ? ': ' + JSON.stringify(errs[0]).slice(0, 220) : ''));
@@ -702,10 +798,39 @@ async function runMixedPlaySave(cdp) {
   check(true, `saved MA-1-MIXED Year 15 session to slot '${slot}' durably`);
   await click(cdp, '#saves-close');
 
-  // Also measure Year 20 on MA-1-MIXED (after Save) to confirm bounded view payload <= 512 KiB even with 350+ promoted broadleaf stems!
-  const sk20 = await fetchJson(cdp, 'api/multi/year/skip', { fence: fenceOf(preView), targetYear: 20 });
-  check(sk20.status === 200, 'MA-1-MIXED skip Year 15 -> Year 20');
-  await measureViewBudget(cdp, 'MA-1-MIXED Year 20');
+  // Continue MA-1-MIXED year-by-year from Year 16 through Year 30 (G5 horizon, executing work at Years 20 and 30)
+  // asserting raw <= 524,288 B, ecology <= 153,600 B, payloadBudgetExceeded=false, >=1 event & >=1 annual record at EVERY year!
+  let mixCur = preView;
+  let mixMaxRaw = 0, mixMaxEco = 0, mixSweepFail = 0, sawMixTrunc = false;
+  for (let yr = 16; yr <= 30; yr++) {
+    const adv = await fetchJson(cdp, 'api/multi/year/advance', { fence: fenceOf(mixCur), consentToCancelWork: false });
+    if (adv.status !== 200) { mixSweepFail++; break; }
+    mixCur = adv.payload.view;
+    if (yr === 20 || yr === 30) {
+      const aLive = mixCur.areas[0].trees.find((t) => t.isLiving)?.treeId;
+      if (aLive) {
+        let w = await fetchJson(cdp, 'api/multi/pending/add', { fence: fenceOf(mixCur), areaId: 'MA-A', treeId: aLive, reason: 'mixed decade fell yr ' + yr });
+        w = await fetchJson(cdp, 'api/multi/plan/approve', { fence: fenceOf(w.payload.view) });
+        w = await fetchJson(cdp, 'api/multi/plan/execute', { fence: fenceOf(w.payload.view), planId: w.payload.view.approved.planId, executionKey: w.payload.view.approved.executionKey });
+        mixCur = w.payload.view;
+      }
+    }
+    const res = await fetchJson(cdp, 'api/multi/view');
+    mixMaxRaw = Math.max(mixMaxRaw, res.bytes);
+    mixMaxEco = Math.max(mixMaxEco, res.ecoBytes);
+    const evC = res.payload.view.events.length;
+    const anC = res.payload.view.annualHistory.length;
+    if (res.payload.historyTruncated) sawMixTrunc = true;
+    if (res.bytes > 524288 || res.ecoBytes > 153600 || res.payload.payloadBudgetExceeded || evC < 1 || anC < 1) mixSweepFail++;
+    if (yr === 20 || yr === 24 || yr === 30) {
+      log(`BUDGET MA-1-MIXED Year ${yr}: raw=${res.bytes} B (<=524288) ecology=${res.ecoBytes} B (<=153600) ev=${evC} an=${anC} trunc=${res.payload.historyTruncated} proj=${res.payload.projectionCompacted} s4c=${res.payload.stage4Compacted} over=${res.payload.payloadBudgetExceeded}`);
+    }
+  }
+  const mixIdx30 = (await fetchJson(cdp, 'api/multi/history/index?pageSize=50')).payload;
+  const mixDet0At30 = await fetchJson(cdp, 'api/multi/history/year', { fence: fenceOf(mixCur), year: 0 });
+  check(mixSweepFail === 0 && mixCur.source.ecologicalYear === 30 && sawMixTrunc &&
+    mixIdx30.totalRecordedYears === 31 && mixDet0At30.status === 200 && mixDet0At30.payload.workYear === 0,
+    `MA-1-MIXED Year 16..30 per-year budget & tail-retention verified: max_raw=${mixMaxRaw} B <= 524288, max_eco=${mixMaxEco} B <= 153600, historyTruncated=true with >=1 event & >=1 annual record at every year, Year 0 detail intact at Year 30`);
 
   const errs = errors();
   check(errs.length === 0, 'MA-1-MIXED play/save: zero console error, uncaught exception, CSP violation or 5xx' + (errs.length ? ': ' + JSON.stringify(errs[0]).slice(0, 220) : ''));
@@ -771,6 +896,53 @@ async function runMixedRestartLoad(cdp) {
   await waitFor(cdp, "document.getElementById('history-detail-pane').textContent.includes('Work Executed — Year 0')", 'restored Year 0 detail UI');
   await shot(cdp, 'restored-history', 1280, 720);
   await shot(cdp, 'restored-history', 1920, 1080);
+
+  // F-5: Load over a live session with History drawer AND Structure panel simultaneously open!
+  await viewport(cdp, 1280, 720);
+  await press(cdp, 'Escape');
+  await waitFor(cdp, "document.getElementById('history-drawer').hidden", 'History drawer closed before live-session Skip');
+  await click(cdp, '#skip-review');
+  await waitFor(cdp, "document.getElementById('year-value').textContent.trim() === '19' && !document.getElementById('skip-summary').hidden",
+    'live session skipped to Year 19 with skip summary visible', 30000);
+  await click(cdp, '[data-pane-button="details"]');
+  await waitFor(cdp, "document.getElementById('structure-content').textContent.includes('Whole woodland')", 'Year 19 Structure loaded in Details');
+  const yr19Struct = (await fetchJson(cdp, 'api/multi/structure')).payload;
+  await click(cdp, '#history-open');
+  await waitFor(cdp, "!document.getElementById('history-drawer').hidden && document.getElementById('history-drawer-count').textContent.includes('20 recorded years')",
+    'History drawer open at Year 19 (20 recorded years)');
+  await click(cdp, '[data-history-year="15"]');
+  await waitFor(cdp, "document.getElementById('history-detail-pane').textContent.includes('Work Executed — Year 15')",
+    'Year 15 detail selected in open History drawer before live Load');
+
+  // Open Saved games dialog over the open History drawer & Structure panel and load Year 15 slot!
+  await evaluate(cdp, "document.getElementById('saves-open').click()");
+  await waitFor(cdp, "document.getElementById('saves-dialog').open && document.querySelector('[data-load=\"" + slot + "\"]')",
+    'Saved games dialog opened over live session');
+  await click(cdp, `[data-load="${slot}"]`);
+  await waitFor(cdp, "!document.getElementById('load-confirm').hidden", 'live-load confirmation');
+  await click(cdp, '#load-do');
+  await waitFor(cdp, "!document.getElementById('saves-dialog').open && document.getElementById('year-value').textContent.trim() === '15'",
+    'live Load restored Year 15 while History & Structure open', 30000);
+  await waitFor(cdp, "document.getElementById('history-drawer-count').textContent.includes('16 recorded years') && document.getElementById('history-detail-pane').textContent.includes('Select a recorded year on the left')",
+    'History drawer refreshed to 16 years and cleared stale detail on live Load');
+  await waitFor(cdp, "document.getElementById('structure-content').textContent.includes('" + pre.structure.focalLivingTreeCount + "')",
+    'Structure refreshed back to Year 15 stand on live Load');
+  const liveLoadState = await evaluate(cdp, `({
+    drawerOpen: !document.getElementById('history-drawer').hidden,
+    drawerCount: document.getElementById('history-drawer-count').textContent,
+    detailReset: document.getElementById('history-detail-pane').textContent.includes('Select a recorded year on the left'),
+    skipSummaryHidden: document.getElementById('skip-summary').hidden,
+    structText: document.getElementById('structure-content').textContent,
+    skipLabel: document.getElementById('skip-review-label').textContent
+  })`);
+  check(liveLoadState.drawerOpen && liveLoadState.drawerCount.includes('16 recorded years') && liveLoadState.detailReset &&
+    liveLoadState.skipSummaryHidden && liveLoadState.skipLabel === 'Skip → Yr 19' &&
+    liveLoadState.structText.includes(String(pre.structure.focalLivingTreeCount)) &&
+    yr19Struct.focalLivingTreeCount !== pre.structure.focalLivingTreeCount,
+    'F-5 Load over live session (History + Structure open): refreshed History (20->16), cleared stale detail & Skip summary, refreshed Structure (' +
+    yr19Struct.focalLivingTreeCount + '->' + pre.structure.focalLivingTreeCount + ')');
+  await press(cdp, 'Escape');
+  await waitFor(cdp, "document.getElementById('history-drawer').hidden", 'Escape closed live-refreshed History drawer');
 
   const errs = errors();
   check(errs.length === 0, 'Save/Restart/Load: zero console error, uncaught exception, CSP violation or 5xx' + (errs.length ? ': ' + JSON.stringify(errs[0]).slice(0, 220) : ''));

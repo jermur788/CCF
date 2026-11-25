@@ -785,10 +785,20 @@ for _ in range(10):
         break
 check(paged_years == list(range(15, -1, -1)), 'history/index cursor paging walks all 16 years newest-first without gaps or duplicates')
 
-# POST api/multi/history/year: 409 stale/invalid/unrecorded + 200 full Year 0 & Year 2 Decision -> Outcome details
-refused('api/multi/history/year', {'fence': s2_stale_fence, 'year': 0}, 'PlayerSessionMismatch', 'history/year stale fence')
+# POST api/multi/history/year: 409 stale (Session/Source/PlanState), invalid, int.MaxValue, int.MinValue, future + 200 full Year 0 & Year 2 details
+refused('api/multi/history/year', {'fence': s2_stale_fence, 'year': 0}, 'PlayerSessionMismatch', 'history/year stale session fence')
+refused('api/multi/history/year', {'fence': s2_app_fence, 'year': 0}, 'PlayerSourceStale', 'history/year stale source fence')
+s2_hy_tree = next(t['treeId'] for t in living(cur_s2, 'MA-A'))
+s2_hy_pend = ok('api/multi/pending/add', {'fence': fence(cur_s2), 'areaId': 'MA-A', 'treeId': s2_hy_tree, 'reason': 'planState stale probe'}, 'queue Pending Fell for history/year PlanStateStale probe')['view']
+refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': 0}, 'PlayerPlanStateStale', 'history/year stale planStateRevision fence')
+cur_s2 = ok('api/multi/pending/remove', {'fence': fence(s2_hy_pend), 'areaId': 'MA-A', 'treeId': s2_hy_tree}, 'remove Pending Fell after PlanStateStale probe')['view']
 refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': -1}, 'HistoryYearInvalid', 'history/year negative year')
+refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': -2147483648}, 'HistoryYearInvalid', 'history/year int.MinValue')
 refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': 99}, 'HistoryYearNotRecorded', 'history/year unrecorded future year')
+refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': 2147483647}, 'HistoryYearNotRecorded', 'history/year int.MaxValue returns 409 without overflow')
+code, prev_y15 = send('api/multi/year/preview-review', {'fence': fence(cur_s2)})
+check(code == 200 and prev_y15.get('isOverdue') is True and prev_y15['suggestedTargetYear'] == 19,
+      'preview-review at Year 15 (anchor 0) sets server-computed isOverdue=True')
 code, det0 = send('api/multi/history/year', {'fence': fence(cur_s2), 'year': 0})
 det0_text = json.dumps(det0)
 gloss_labels = {g['label'] for g in det0.get('provenanceGlossary', [])}
@@ -816,10 +826,12 @@ check(code == 200 and st_ma1['provenance'] == 'DERIVED' and st_ma1['provenanceLa
       st_ma1['honestyLabel'] == 'Spatial structure descriptor (up to k=3 nearest living trees) \u2014 not measured biodiversity, habitat quality, or an Irish forecast.',
       'GET api/multi/structure on MA-1 returns DERIVED M_i=0.00, T_i>0, k=3 and exact honesty disclaimer')
 
-# Year 15 bounded view payload budget on MA-1
+# Year 15 bounded view payload budget on MA-1 (retains >= 1 event & >= 1 annual record, payloadBudgetExceeded=False)
 y15_view_b, y15_eco_b, y15_obj = raw_view_and_eco_bytes()
-check(y15_view_b <= 524288 and y15_eco_b <= 153600 and y15_obj['totalRecordedYears'] == 16 and isinstance(y15_obj['historyTruncated'], bool),
-      'MA-1 Year 15 raw payload budgets hold (view=%d B <= 524288, ecology=%d B <= 153600, totalRecordedYears=16)' % (y15_view_b, y15_eco_b))
+check(y15_view_b <= 524288 and y15_eco_b <= 153600 and y15_obj['totalRecordedYears'] == 16 and
+      isinstance(y15_obj['historyTruncated'], bool) and y15_obj['payloadBudgetExceeded'] is False and
+      len(y15_obj['view']['events']) >= 1 and len(y15_obj['view']['annualHistory']) >= 1,
+      'MA-1 Year 15 raw payload budgets hold with >=1 event & >=1 annual record (view=%d B <= 524288, ecology=%d B <= 153600, totalRecordedYears=16)' % (y15_view_b, y15_eco_b))
 
 print('INFO workflow checks: %d' % count, flush=True)
 WORKFLOW
@@ -1195,6 +1207,12 @@ async function pageFetch(path, init = {}) {
     answer.json.meanMingling = null;
     answer.json.meanDiameterDifferentiation = null;
     for (const a of (answer.json.areas || [])) { a.meanMingling = null; a.meanDiameterDifferentiation = null; }
+  }
+  // 'zero-history': simulates an emergency compact view with empty annualHistory while totalRecordedYears > 0 (F-2 witness).
+  if (fault && fault.mode === 'zero-history' && answer.json && answer.json.view) {
+    answer.json.view.annualHistory = [];
+    answer.json.historyTruncated = true;
+    answer.json.totalRecordedYears = 24;
   }
   return { status: answer.status, ok: answer.status >= 200 && answer.status < 300, json: async () => answer.json };
 }
@@ -1964,6 +1982,53 @@ check(alertText() === '', 'a successful re-read lifts the lock and clears the al
     !byId('skip-summary').textContent.includes('null') &&
     byId('skip-summary').textContent.includes('GAMEPLAY CALIBRATION'),
     'Skip advances Year 1 -> Year 4 and displays stepped-years summary with stopReason and GAMEPLAY CALIBRATION', byId('skip-summary').textContent);
+
+  // S2j (F-2): zero-history compact view must NOT say "No ecological year has been advanced in this session." — must point to History.
+  arm('GET', 'api/multi/view', 'zero-history');
+  click(byId('reread'));
+  await waitS2(() => !byId('history-truncated-note').hidden && byId('history-truncated-note').textContent.includes('24 recorded years'),
+    'zero-history compact view note');
+  const zeroLatestText = byId('year-latest').textContent;
+  checkS2(!zeroLatestText.includes('No ecological year has been advanced') &&
+    zeroLatestText.includes('open History') && zeroLatestText.includes('24 recorded years'),
+    'F-2: Results pane points to History drawer instead of falsely claiming zero years advanced when annualHistory is empty',
+    zeroLatestText);
+  click(byId('reread'));
+  await waitS2(() => byId('year-latest').textContent.includes('Latest year'), 'clean view restored after F-2 witness');
+
+  // S2k (F-6): stale GET api/multi/structure response from before a tree-tag mutation is discarded and never stored as current.
+  const heldStruct = arm('GET', 'api/multi/structure', 'hold');
+  markS2 = requests.length;
+  click(byId('structure-refresh'));
+  await waitS2(() => requests.slice(markS2).some((r) => r.method === 'GET' && r.path === 'api/multi/structure'), 'held structure read');
+  click(byId('advance'));
+  await waitS2(() => byId('year-value').textContent.trim() === '5', 'Year 5 advance while structure read is in flight');
+  heldStruct.release();
+  await sleep(250);
+  checkS2(!byId('structure-content').textContent.includes('Whole woodland') &&
+    byId('structure-content').textContent.includes('Loaded on demand'),
+    'F-6: stale structure response arriving after a tree-tag change is discarded instead of stored as current',
+    byId('structure-content').textContent);
+
+  // S2l (F-6): stale POST api/multi/history/year response arriving after loadHistoryIndex resets detail is discarded.
+  click(byId('history-open'));
+  await waitS2(() => !byId('history-drawer').hidden && byId('history-year-list').querySelector('[data-history-year="0"]'),
+    'History drawer open for F-6 detail race probe');
+  const heldHist = arm('POST', 'api/multi/history/year', 'hold');
+  markS2 = requests.length;
+  click(byId('history-year-list').querySelector('[data-history-year="0"]'));
+  await waitS2(() => requests.slice(markS2).some((r) => r.method === 'POST' && r.path === 'api/multi/history/year'), 'held history/year read');
+  click(byId('reread'));
+  await waitS2(() => !document.documentElement.classList.contains('busy') &&
+    byId('history-detail-pane').textContent.includes('Select a recorded year on the left'),
+    're-read reset History index and cleared selected detail');
+  heldHist.release();
+  await sleep(250);
+  checkS2(byId('history-detail-pane').textContent.includes('Select a recorded year on the left') &&
+    !byId('history-detail-pane').textContent.includes('Work Executed — Year 0'),
+    'F-6: stale history/year response arriving after loadHistoryIndex reset is discarded cleanly',
+    byId('history-detail-pane').textContent);
+  escape();
 }
 
 check(pageErrors.length === 0, 'no script error in the page', pageErrors.map(redact));

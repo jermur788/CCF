@@ -78,6 +78,7 @@ All five endpoints are registered in `PlayerApi.AddMultiAreaRoutes()` under `/s/
   - `suggestedGapYears` (int, `4`)
   - `anchorFellYear` (int | null)
   - `isObservationPeriod` (bool)
+  - `isOverdue` (bool — server-computed from Core's overdue label; zero pacing arithmetic in the browser)
   - `maxTicksPerPress` (int, `5`)
   - `stopReason` (string | null — `"WorkPlanOpen"` | `"StandCannotAdvance"` | `null`)
   - `calibrationNote` (string — exact `MultiAreaTimePacingConstants.CalibrationNote`)
@@ -142,7 +143,8 @@ All five endpoints are registered in `PlayerApi.AddMultiAreaRoutes()` under `/s/
   - Reads the current session view read-only and validates `fence.SessionId == view.SessionId`, `fence.Source == view.Source`, and `fence.PlanStateRevision == view.PlanStateRevision` BEFORE calling `ReadHistoryYear(year)`.
   - Mismatch returns **409 Conflict** (`PlayerSessionMismatch` / `PlayerSourceStale` / `PlayerPlanStateStale`) with fresh bounded `view`, fresh `fence`, and `refusal`.
   - `year < 0` returns **409 Conflict** (`HistoryYearInvalid`) with fresh bounded `view`, fresh `fence`, and `refusal`.
-  - Calls `multiSession.ReadHistoryYear(year)`. If `!detail.HasRecordedData` (unrecorded or out-of-range year), returns **409 Conflict** (`HistoryYearNotRecorded`) with fresh bounded `view`, fresh `fence`, and `refusal`.
+  - `year > currentView.Source.EcologicalYear` returns **409 Conflict** (`HistoryYearNotRecorded`) with fresh bounded `view`, fresh `fence`, and `refusal` BEFORE calling Core (preventing integer overflow on `year = int.MaxValue`).
+  - Calls `multiSession.ReadHistoryYear(year)`. If `!detail.HasRecordedData` (unrecorded year `<= currentYear`), returns **409 Conflict** (`HistoryYearNotRecorded`) with fresh bounded `view`, fresh `fence`, and `refusal`.
 - **200 OK response:** Full `HistoryYearDetail` (`workYear`, `observedYear`, `currentEcologicalYear`, `hasRecordedData`, `workProvenance`, `totalWorkCounts`, `workByArea`, `annualOutcomeNextYear`, `annualRecordEndingInYear`, `plantedWorkFollowUp`, `laterObservedComparison`, `notRecordedDisclosures`, `provenanceGlossary`).
 
 ### 4.5 `GET api/multi/structure`
@@ -163,19 +165,27 @@ All five endpoints are registered in `PlayerApi.AddMultiAreaRoutes()` under `/s/
 
 ---
 
-## 5. Bounded Multi-Decade View Payload (`GET api/multi/view`)
+## 5. Bounded Multi-Decade View Payload (`GET api/multi/view`) — Owner G5 Horizon = Year 30
 
-- **Hard measured budgets:**
-  - Raw UTF-8 serialized body of `GET api/multi/view` MUST stay `<= 524288` bytes (512 KiB) at Year 0, Year 5, and Year 15+ on BOTH `MA-1` and `MA-1-MIXED`, including runs with executed work across action families.
-  - Raw UTF-8 serialized `ecology` JSON slice inside `GET api/multi/view` MUST stay `<= 153600` bytes (150 KiB) at Year 0, Year 5, and Year 15+ on BOTH `MA-1` and `MA-1-MIXED`.
-- **Additive metadata fields on `GET api/multi/view`:**
-  - `historyTruncated` (bool): `false` when full `view.events` and `view.annualHistory` fit within `524288` bytes; `true` when truncated in `api/multi/view`.
+- **Hard measured budgets (binding G5 Year 30 horizon):**
+  - Raw UTF-8 serialized body of `GET api/multi/view` MUST stay `<= 524288` bytes (512 KiB) at **every ecological year from Year 0 through Year 30** on BOTH `MA-1` and `MA-1-MIXED`, with executed work across action families.
+  - Raw UTF-8 serialized `ecology` JSON slice inside `GET api/multi/view` MUST stay `<= 153600` bytes (150 KiB) at **every ecological year from Year 0 through Year 30** on BOTH `MA-1` and `MA-1-MIXED`, with executed work.
+- **Additive metadata fields on `GET api/multi/view` (and composite command/skip/load responses):**
+  - `historyTruncated` (bool): `true` whenever ANY of `view.events`, `view.annualHistory`, or `stage4.pruneLog` is trimmed relative to the full committed Core root; `false` otherwise.
   - `totalRecordedYears` (int): total count of recorded years matching `GET api/multi/history/index`.
-  - `reviewPreview` (read-only preview DTO from the same committed root): seeds the initial Skip button label without adding an extra startup HTTP request before `J01`, while mutations, Load, explicit Re-read, and Skip clicks query `POST api/multi/year/preview-review`.
-- **Tail-truncation rule (projection-only):**
-  - If serializing the full `MultiViewPayload` exceeds `524288` bytes, `ReadMultiViewAsync` trims `view.events` and `view.annualHistory` (and if still over budget, `stage4.pruneLog`) from the oldest entries first, retaining the most recent tail (preserving at least the latest work event and latest annual record whenever present) until the serialized raw UTF-8 byte length is `<= 524288` bytes, and sets `historyTruncated = true`.
-  - The authoritative in-memory `MultiAreaRoot` is NEVER truncated; complete historical records remain accessible via `GET api/multi/history/index` and `POST api/multi/history/year`.
-  - All existing `view`, `scenes`, `labels`, `stage4`, and `ecology` field names and UI expectations remain unchanged.
+  - `projectionCompacted` (bool): `true` when projection-only non-living / display-precision reductions are active on `view.areas[].trees`, `scenes`, or `stage4.areas[].trees` / `fallenDeadwood`; `false` on uncompacted responses.
+  - `stage4Compacted` (bool): `true` ONLY when `stage4.areas[].ground` omits `contributingTreeIds` (via null omission — NEVER emitting a fake empty `[]`) and rounds vertex floats while preserving all vertex field names `{ xm, zm, u, v }`; `false` otherwise.
+  - `payloadBudgetExceeded` (bool): `false` whenever `raw <= 524288` and `ecology <= 153600`; if a future multi-decade state ever exceeds either budget after all honest reductions, the server MUST NEVER return over-budget bytes silently — it MUST set `payloadBudgetExceeded: true` AND write a loud `PAYLOAD BUDGET EXCEEDED` log line to server stderr.
+  - `reviewPreview` (read-only preview DTO from the same committed root, on `GET api/multi/view`): seeds the initial Skip button label without adding an extra startup HTTP request before `J01`, while mutations, Load, explicit Re-read, and Skip clicks query `POST api/multi/year/preview-review`.
+- **Ordered projection-only bounding rules (Core root is NEVER mutated or truncated):**
+  - **Ecology projection (always-on, lossless for UI):** `ecology.pruneStatusByTreeId` retains all living trees plus any non-living tree with `lifts > 0` or a non-null `planState`; unpruned dead trees cannot be pruned and are omitted from `pruneStatusByTreeId`.
+  - **Tier 0 (Full uncompacted):** full `view`, full `scenes`, full `stage4`, projected `ecology`, `historyTruncated: false`, `projectionCompacted: false`, `stage4Compacted: false`. Used whenever `raw <= 524288` and `ecology <= 153600`.
+  - **Tier 1 (History tail trim on full `stage4`):** trims `stage4.pruneLog` BEFORE dropping below 1 event / 1 annual record, and binary-searches the largest recent tail of `view.events` + `view.annualHistory` while preserving **at least the latest work event and latest annual record whenever present**. Sets `historyTruncated: true`.
+  - **Tier 2 (Honest non-living / display-precision projection compaction, full `stage4.areas[].ground` preserved):** omits unpruned dead entries from `stage4.areas[].trees` (UI falls back honestly to `tree.death` + `fallenDeadwood` for `Life state`), omits null optional tree fields and redundant `death.treeId`, omits unused `scenes` fields (`heightM`/`dbhCm`/`deathCause`, default `isCrop: false`, null `deathYear`) while preserving every living tree, stump, and dead-tree position/status, and rounds display floats (`u`, `v`, `radiusM`, dead-tree/deadwood floats) to 3 decimals. Trims `stage4.pruneLog` before dropping below 1 event / 1 annual record and retains at least the latest work event and latest annual record whenever present. Sets `projectionCompacted: true` and exact `historyTruncated`.
+  - **Tier 3 (Honest `stage4.areas[].ground` compaction — only if Tier 2 with `>= 1` event/annual record exceeds 512 KiB):** omits `contributingTreeIds` (property omitted via `JsonIgnore(WhenWritingNull)` — NEVER fabricated as `[]`; `POST api/multi/cell` always serves full `contributingTreeIds`) and rounds ground vertices while keeping ALL four field names `{ xm, zm, u, v }`. Sets `projectionCompacted: true`, `stage4Compacted: true`, and exact `historyTruncated`.
+  - **Tier 4 (Explicit over-budget disclosure):** if even Tier 3 still breaches `524288` B raw or `153600` B `ecology`, sets `payloadBudgetExceeded: true` and logs loudly to server stderr; never fails silently.
+  - **Results-pane honesty (D-030):** if `view.annualHistory` is ever empty while `totalRecordedYears > 0` or `historyTruncated` (or `ecologicalYear > 0`), the Results pane MUST NOT say `"No ecological year has been advanced in this session."`; it MUST point the player to the History drawer with the recorded year count.
+  - Complete historical records always remain accessible via `GET api/multi/history/index` and `POST api/multi/history/year`. All existing field names and map/table/inspector UI behaviours remain preserved.
 
 ---
 
@@ -229,7 +239,7 @@ All five endpoints are registered in `PlayerApi.AddMultiAreaRoutes()` under `/s/
 - **P1-UI-01:** `preview-review` and `skip` endpoints + UI for Year-0 observation (`+4`, `Obs.`) and post-Fell anchor (`Y + 4` + overdue fallback); `WorkPlanOpen` returns 409 and inline UI refusal without cancelling open work; stale fence returns 409 + fresh view; `GAMEPLAY CALIBRATION` and quiet observation period labels visible.
 - **P1-UI-02:** 15+ year keyset paging with `Load older years`; `WorkYear = Y` vs `ObservedYear = Y + 1` clearly separated; all six provenance labels (`RECORDED`, `CURRENT`, `DERIVED`, `RECONSTRUCTED`, `SESSION-ONLY`, `NOT RECORDED`); explicit `NOT RECORDED` disclosures (past canopy cover, past tree-by-tree structure, per-area planted splits); exact non-causal note with zero weather mention; zero euro/economy rows; stale fence and unrecorded/out-of-range year return 409.
 - **P1-UI-03:** `GET api/multi/structure` endpoint and Details/Structure UI on `MA-1` ($M_i = 0.00$) and `MA-1-MIXED` ($M_i > 0$); `null` renders `Unavailable` (never `0.00`); provenance `DERIVED` and exact spatial-structure-only disclaimer displayed.
-- **P1-UI-04:** Measured raw UTF-8 `GET api/multi/view` `<= 524288` bytes and `ecology <= 153600` bytes at Year 0, Year 5, and Year 15+ on both `MA-1` and `MA-1-MIXED` with executed work; tail truncation verified (`historyTruncated: true`, `totalRecordedYears`, full history preserved via history endpoints).
+- **P1-UI-04:** Measured raw UTF-8 `GET api/multi/view` `<= 524288` bytes and `ecology <= 153600` bytes at **every year 0..30** (binding G5 Year 30 horizon) on both `MA-1` and `MA-1-MIXED` with executed work; at least the latest work event and latest annual record retained whenever present; honest flagged projection (`projectionCompacted`, optional `stage4Compacted` omitting `contributingTreeIds` without fake `[]` and keeping `{xm,zm,u,v}`), `historyTruncated` including `pruneLog` trimming, explicit `payloadBudgetExceeded` + server stderr log (never silent over-budget), and truthful Results-pane zero-history text pointing to History drawer.
 - **P1-UI-05:** Real headless Microsoft Edge End-to-End: Plant/Fell → Approve → Execute → Skip to Review → Open History & Structure → Save → quit server (SIGINT) → restart fresh server → Load → restored Preview, History pages, and Structure match.
 - **P1-UI-06:** NB-2 Plant-drawer polish proved in real headless Microsoft Edge at `1280×720` and `1920×1080`: exact refusal code AND `Already queued` list + working `Remove` buttons immediately visible in viewport without scrolling (`scrollTop === 0`).
 - **P1-UI-07:** Real headless Microsoft Edge matrix (`1920×1080` and `1280×720` on both `MA-1` and `MA-1-MIXED`): zero horizontal scroll, 5-competitor R3 above-the-fold gate preserved, Escape closes History without clearing draft Fell ticks, zero console errors, zero CSP violations, zero 5xx.

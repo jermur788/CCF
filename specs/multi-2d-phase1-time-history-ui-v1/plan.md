@@ -31,18 +31,19 @@ All Step 2 server endpoints, payload bounding, and `/multi` page edits stay clea
    - Reuse `ReadMultiRequestAsync<T>` (enforces `application/json`, `<= 16 KiB` body, unique JSON members, required member paths, bounded strings, and `UnmappedMemberHandling.Disallow`).
    - Add `MultiSkipMembers = MultiFenceMembers.Append("targetYear").ToArray()` and `MultiHistoryYearMembers = MultiFenceMembers.Append("year").ToArray()`.
    - Strict query parser for `GET api/multi/history/index`: allows only `pageSize` and `beforeYear`, rejects unknown/duplicate/non-integer/negative values with `400 BadRequest`, clamps integer `pageSize` to `[1, 50]` (default `10`).
-3. **Read-only fence check for `POST api/multi/history/year`:**
+3. **Read-only fence & bounds check for `POST api/multi/history/year`:**
    - Validates `SessionId`, `Source` record equality, and `PlanStateRevision` against `multiArea.Read()` read-only BEFORE calling `multiSession.ReadHistoryYear(year)`.
-   - Returns `409` with fresh bounded view on stale fence, `year < 0` (`HistoryYearInvalid`), or `!detail.HasRecordedData` (`HistoryYearNotRecorded`).
+   - Returns `409` with fresh bounded view on stale fence, `year < 0` (`HistoryYearInvalid`), `year > currentYear` (`HistoryYearNotRecorded`, checked before calling Core so `year = int.MaxValue` never overflows), or `!detail.HasRecordedData` (`HistoryYearNotRecorded`).
 4. **Skip handler (`POST api/multi/year/skip`):**
    - Calls `multiSession.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted)` (never `consentToCancelWork = true`).
    - Returns `409` + fresh bounded `view`/`scenes`/`stage4`/`ecology` on stale fence, `WorkPlanOpen`, `InvalidTargetYear`, or zero-step refusal.
-   - Returns `200` + skip DTO (`startYear`, `destinationYear`, `requestedTargetYear`, `completedYears`, `reachedTarget`, `stopReason`, `stopDetail`, `isObservationPeriod`, `anchorFellYear`, `calibrationNote`) + fresh bounded `view`/`scenes`/`stage4`/`ecology` when target reached or `>= 1` year committed.
+   - Returns `200` + skip DTO (`startYear`, `destinationYear`, `requestedTargetYear`, `completedYears`, `reachedTarget`, `stopReason`, `stopDetail`, `isObservationPeriod`, `anchorFellYear`, `calibrationNote`) + fresh bounded `view`/`scenes`/`stage4`/`ecology` + `historyTruncated`/`totalRecordedYears`/`projectionCompacted`/`stage4Compacted`/`payloadBudgetExceeded` when target reached or `>= 1` year committed.
 5. **Structure handler (`GET api/multi/structure`):**
    - Calls `multiSession.ComputeStructure()` and serializes `MultiStructurePayload` with exact `provenance: "DERIVED"`, `provenanceLabel: "DERIVED"`, `maxNeighbourCountK: 3`, `honestyLabel`, whole-woodland and per-area `meanMingling`, `meanDiameterDifferentiation`, `focalLivingTreeCount`, `validDiameterFocalCount`, `effectiveNeighbourCount`.
-6. **Bounded `GET api/multi/view` payload (`524288` B raw / `153600` B `ecology`):**
-   - `BuildBoundedViewPayload(snapshot)` computes `totalRecordedYears` from `multiSession.ReadHistoryIndex(1).TotalRecordedYears`, attaches read-only `reviewPreview` from `multiSession.PreviewNextReviewYear(currentFence)`, and serializes to UTF-8 bytes.
-   - If raw length exceeds `524288` bytes, iteratively trims `view.Events` and `view.AnnualHistory` (keeping the newest tail, down to latest 1 entry each, and if ever still needed trims `stage4.PruneLog` tail) until raw UTF-8 bytes `<= 524288`, marking `historyTruncated: true`. Authoritative Core state is never truncated.
+6. **Bounded `GET api/multi/view` payload — Owner G5 Year 30 horizon (`524288` B raw / `153600` B `ecology`):**
+   - `ProjectEcologyForView` keeps living trees plus pruned/planned non-living trees in `ecology.pruneStatusByTreeId` (keeping `ecology <= 153600` B across Years 0..30+).
+   - `SerializeBoundedMultiView` applies ordered projection-only tiers (Tier 0 full → Tier 1 history tail trim with `stage4.pruneLog` trimmed before dropping below 1 event/annual record → Tier 2 honest non-living/display-precision projection compaction with `projectionCompacted: true` preserving all living trees, stumps, field names, and full `stage4.areas[].ground` → Tier 3 optional `stage4.areas[].ground` compaction with `stage4Compacted: true` omitting `contributingTreeIds` via null omission rather than `[]` and keeping `{xm, zm, u, v}` → Tier 4 explicit `payloadBudgetExceeded: true` + stderr log, never silent over-budget).
+   - Retains at least the latest work event and latest annual record whenever present across Tiers 0–3, includes `pruneLog` trimming in `historyTruncated`, and uses the same bounded snapshot across composite endpoints so `historyTruncated` never goes stale. Authoritative Core state is never truncated.
 
 ### 1.3 `/multi` UI & NB-2 Polish (`MultiAreaPage` in `src/Ui/PlayerMultiApi.cs`)
 1. **Topbar layout budget (1280×720 single-row safe):**
