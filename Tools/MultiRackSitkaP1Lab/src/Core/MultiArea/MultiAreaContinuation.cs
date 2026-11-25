@@ -478,151 +478,36 @@ internal sealed partial class MultiAreaContinuation
                 throw new P1Refusal("ContinuationNoLivingStems", "every area has no living stems; there is no year to advance");
 
             int year = root.EcologicalYear;
-            int revision = checked(root.AnnualRevision + 1);
-            var nextAreas = new MultiAreaAreaState[root.Areas.Count];
-            var records = new MultiAreaAreaYear[root.Areas.Count];
-            var reports = new MultiAreaAreaReport[root.Areas.Count];
-            bool lostCrop = false;
-            // CrownModel 1 only: the start-of-year connected woodland, shared read-only by every area's step.
-            AnnualTree[]? woodland = crownModel == CrownModelVersion.LegacyFrozen
-                ? null
-                : CrownModel.Woodland(root.Areas.SelectMany(area => area.State.Trees));
-            // Stage 4 only: deadwood records are numbered in area order, then in the order the rules recorded the deaths.
-            var stage4 = root.Stage4;
-            var deadwood = new List<FallenDeadwoodRecord>();
-            int nextDeadwood = stage4?.NextDeadwoodNumber ?? 1;
-            // Phase 2 only: each rack's density route (pure Sitka or two-part mixed) and the species of every adult.
-            var phase2Start = root.Phase2;
-            var density = new List<Phase2DensityRecord>();
-            for (int i = 0; i < root.Areas.Count; i++)
-            {
-                var area = root.Areas[i];
-                var info = areas[i];
-                AnnualState next;
-                if (area.State.Trees.Any(tree => tree.IsLiving))
-                {
-                    AnnualReport report;
-                    AnnualState stepped;
-                    if (phase2Start is not null)
-                    {
-                        var (mixedReport, mixedNext, record) = Phase2MixedDensity.StepRack(area.AreaId, area.State, info.Seed, info.AreaHa,
-                            woodland!, treeId => stage4!.PruningOf(treeId).Lifts, stage4Options!, phase2Start.BroadleafOf);
-                        (report, stepped) = (mixedReport, mixedNext);
-                        density.Add(record);
-                    }
-                    else
-                        (report, stepped) = stage4 is not null
-                            ? MultiAreaAnnual.StepStage4(area.State, info.Seed, info.AreaHa, woodland!,
-                                treeId => stage4.PruningOf(treeId).Lifts, stage4Options!)
-                            : crownModel == CrownModelVersion.LegacyFrozen
-                                ? MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa)
-                                : MultiAreaAnnual.Step(area.State, info.Seed, info.AreaHa, crownModel, woodland);
-                    next = stepped;
-                    if (stage4 is not null)
-                    {
-                        var byId = stepped.Trees.ToDictionary(tree => tree.TreeId, StringComparer.Ordinal);
-                        foreach (var death in report.Deaths)
-                        {
-                            var dead = byId[death.TreeId];
-                            // Every density death carries its species (Phase 2); the volume form is the same for all three.
-                            deadwood.Add(new FallenDeadwoodRecord(FallenDeadwoodRecord.IdFor(nextDeadwood++), dead.TreeId,
-                                area.AreaId, phase2Start?.SpeciesIdOf(dead.TreeId) ?? SpeciesProfile.Sitka.SpeciesId, dead.XM, dead.ZM,
-                                death.EcologicalYear, death.Cause, dead.DbhCm, dead.HeightM,
-                                FallenDeadwoodRecord.StemVolumeM3(dead.DbhCm, dead.HeightM)));
-                        }
-                    }
-                    records[i] = new MultiAreaAreaYear(area.AreaId, report.Before, report.After,
-                        Array.AsReadOnly(report.Deaths.ToArray()), NoLivingStems: false);
-                    reports[i] = new MultiAreaAreaReport(area.AreaId, report);
-                }
-                else
-                {
-                    // Naturally empty (owner D-5): the engine is not run for this area; its dead roster is carried forward.
-                    next = new AnnualState(checked(year + 1), area.State.Trees);
-                    var empty = WorkRules.Summarize(area.State.Trees, info.AreaHa);
-                    records[i] = new MultiAreaAreaYear(area.AreaId, empty, empty, Array.Empty<AnnualDeath>(), NoLivingStems: true);
-                    reports[i] = new MultiAreaAreaReport(area.AreaId, null);
-                }
-                // Crop marks are plan state: a mark on a tree that died this year is cleared in the same publish.
-                var livingIds = next.Trees.Where(tree => tree.IsLiving).Select(tree => tree.TreeId).ToHashSet(StringComparer.Ordinal);
-                var crops = area.CropTreeIds.Where(livingIds.Contains).ToArray();
-                lostCrop |= crops.Length != area.CropTreeIds.Count;
-                nextAreas[i] = new MultiAreaAreaState(area.AreaId, next, Array.AsReadOnly(crops));
-                afterArea?.Invoke(area.AreaId);
-            }
-            var yearRecord = new MultiAreaYearRecord(year, checked(year + 1), revision, root.WorkRevision,
-                Array.AsReadOnly(records), hasWork);
-
-            // Stage 5 only (spec §3 steps 5a–12): after every area's adult step (an adult-empty area included), one pure step
-            // over the start-of-year Stage 5 state and the post-adult-step woodland. Promoted adults join their area's roster
-            // in ordinal TreeId order; consented cancellation clears pending and approved ClearUndergrowth orders too.
-            MultiAreaStage5State? nextStage5 = null;
-            MultiAreaPhase2State? nextPhase2 = null;
-            if (root.Stage5 is { } phase2Stage5 && phase2Start is not null)
-            {
-                // Phase 2 (spec §4 steps 3d–5): all three species' regeneration and the planted juveniles in one pure step.
-                var stepped = Phase2Annual.Step(phase2Stage5, phase2Start, Stage5Inputs(nextAreas.Select(area => area.State.Trees).ToArray()),
-                    checked(year + 1), density);
-                for (int i = 0; i < nextAreas.Length; i++)
-                {
-                    var promoted = stepped.PromotedTrees[nextAreas[i].AreaId];
-                    if (promoted.Count == 0) continue;
-                    var roster = nextAreas[i].State.Trees.Concat(promoted).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
-                    nextAreas[i] = nextAreas[i] with { State = new AnnualState(checked(year + 1), Array.AsReadOnly(roster)) };
-                }
-                nextStage5 = stepped.NextStage5 with
-                {
-                    PendingClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.NextStage5.PendingClears,
-                    ApprovedClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.NextStage5.ApprovedClears,
-                };
-                nextPhase2 = stepped.NextPhase2 with
-                {
-                    PendingOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : stepped.NextPhase2.PendingOrders,
-                    ApprovedOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : stepped.NextPhase2.ApprovedOrders,
-                };
-            }
-            else if (root.Stage5 is { } stage5Start)
-            {
-                var stepped = Stage5Annual.Step(stage5Start, Stage5Inputs(nextAreas.Select(area => area.State.Trees).ToArray()),
-                    checked(year + 1));
-                for (int i = 0; i < nextAreas.Length; i++)
-                {
-                    var promoted = stepped.PromotedTrees[nextAreas[i].AreaId];
-                    if (promoted.Count == 0) continue;
-                    var roster = nextAreas[i].State.Trees.Concat(promoted).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
-                    nextAreas[i] = nextAreas[i] with { State = new AnnualState(checked(year + 1), Array.AsReadOnly(roster)) };
-                }
-                nextStage5 = stepped.Next with
-                {
-                    PendingClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.PendingClears,
-                    ApprovedClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.ApprovedClears,
-                };
-            }
+            var areaSpecs = areas.Select(info => new AnnualAreaSpec(info.AreaId, info.Seed, info.AreaHa)).ToArray();
+            var progress = new YearInProgress(root, hasWork, crownModel, stage4Options, areaSpecs, Stage5Inputs, afterArea);
+            foreach (var step in AnnualPipeline.Steps)
+                step.Run(progress);
 
             // Test-only fault seam: every area is calculated, nothing is published.
             beforeCommit?.Invoke();
 
+            var stage4 = progress.Stage4;
             root = root with
             {
                 EcologicalYear = checked(year + 1),
-                AnnualRevision = revision,
-                Areas = Array.AsReadOnly(nextAreas),
-                AnnualHistory = Array.AsReadOnly(root.AnnualHistory.Append(yearRecord).ToArray()),
+                AnnualRevision = progress.Revision,
+                Areas = Array.AsReadOnly(progress.NextAreas),
+                AnnualHistory = Array.AsReadOnly(root.AnnualHistory.Append(progress.YearRecord!).ToArray()),
                 Pending = hasWork ? Array.Empty<MultiAreaWorkOrder>() : root.Pending,
                 Approved = hasWork ? null : root.Approved,
-                PlanStateRevision = checked(root.PlanStateRevision + (hasWork || lostCrop ? 1 : 0)),
+                PlanStateRevision = checked(root.PlanStateRevision + (hasWork || progress.LostCrop ? 1 : 0)),
                 // Stage 4: consented cancellation clears Prune orders with the Fells; deadwood is appended, never rewritten.
                 Stage4 = stage4 is null ? null : stage4 with
                 {
                     PendingPrunes = hasWork ? Array.Empty<MultiAreaPruneOrder>() : stage4.PendingPrunes,
                     ApprovedPrunes = hasWork ? Array.Empty<MultiAreaPruneOrder>() : stage4.ApprovedPrunes,
-                    Deadwood = Array.AsReadOnly(stage4.Deadwood.Concat(deadwood).ToArray()),
-                    NextDeadwoodNumber = nextDeadwood,
+                    Deadwood = Array.AsReadOnly(stage4.Deadwood.Concat(progress.Deadwood).ToArray()),
+                    NextDeadwoodNumber = progress.NextDeadwood,
                 },
-                Stage5 = nextStage5,
-                Phase2 = nextPhase2,
+                Stage5 = progress.NextStage5,
+                Phase2 = progress.NextPhase2,
             };
-            return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(reports)));
+            return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(progress.Reports)));
         }
     }
 
