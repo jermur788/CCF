@@ -1207,6 +1207,29 @@ fmt_text = open(os.path.join(p1_root, g["schemaVersionFile"]), "r", encoding="ut
 if not re.search(rf"public const int SchemaVersion\s*=\s*{g['schemaVersion']};", fmt_text):
     sys.exit(f"{g['schemaVersionFile']} missing SchemaVersion = {g['schemaVersion']}")
 
+# S0b §6.5 / S0-08: while Save v2 is active (SchemaVersion == 2), zero types in src/ may implement
+# IFeatureBlockCodec and no SchemaVersion = 3 may exist in src/.
+if g["schemaVersion"] == 2:
+    src_dir = os.path.join(p1_root, "src")
+    codec_impls = []
+    schema3_hits = []
+    for root, dirs, files in os.walk(src_dir):
+        dirs[:] = sorted(d for d in dirs if d not in ("bin", "obj"))
+        for fn in sorted(files):
+            if not fn.endswith(".cs"):
+                continue
+            full = os.path.join(root, fn)
+            rel = os.path.relpath(full, p1_root).replace(os.sep, "/")
+            txt = open(full, "r", encoding="utf-8").read()
+            if re.search(r":\s*(?:[\w.]+,\s*)*IFeatureBlockCodec\b", txt):
+                codec_impls.append(rel)
+            if re.search(r"\bSchemaVersion\s*=\s*3\b", txt):
+                schema3_hits.append(rel)
+    if codec_impls:
+        sys.exit(f"IFeatureBlockCodec implementation forbidden under Save v2: {codec_impls}")
+    if schema3_hits:
+        sys.exit(f"SchemaVersion = 3 forbidden under Save v2: {schema3_hits}")
+
 for ref_label, ref in [("base", base_commit), ("t0", manifest["t0Commit"])]:
     # Check if ref is an ancestor or valid commit
     chk = subprocess.run(["git", "-C", repo, "cat-file", "-e", f"{ref}^{{commit}}"], capture_output=True)
