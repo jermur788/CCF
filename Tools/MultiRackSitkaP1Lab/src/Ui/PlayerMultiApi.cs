@@ -1083,9 +1083,18 @@ internal static class MultiAreaPage
   </div>
   <div class="top-actions">
     <p class="year-chip"><span class="year-word">Year</span> <strong id="year-value">–</strong></p>
+    <button type="button" id="history-open" class="history-open" aria-controls="history-drawer" aria-expanded="false">
+      <span aria-hidden="true">◷</span>
+      <span class="btn-title">History</span>
+    </button>
     <button type="button" id="saves-open" class="saves-open" aria-haspopup="dialog">
       <span aria-hidden="true">▤</span>
       <span class="btn-title">Saved games</span>
+    </button>
+    <button type="button" id="skip-review" class="skip-review">
+      <span class="skip-icon" aria-hidden="true">⏭</span>
+      <span class="skip-text"><span id="skip-review-label" class="btn-title">Skip → Yr 4 (Obs.)</span>
+        <span id="skip-review-sub" class="btn-sub">Quiet observation · GAMEPLAY CALIBRATION</span></span>
     </button>
     <button type="button" id="advance" class="advance">
       <span class="advance-icon" aria-hidden="true">▷</span>
@@ -1117,7 +1126,11 @@ internal static class MultiAreaPage
       <p class="notice-text"><strong id="disclosure" class="notice-lead"></strong></p>
       <p id="flags" class="flags"></p>
       <p id="session-note" class="session-note"></p>
-      <p><button type="button" id="notice-provenance" class="link-button small-link">All experiment and model provenance</button></p>
+      <p class="notice-links">
+        <button type="button" id="notice-provenance" class="link-button small-link">All experiment and model provenance</button>
+        <span aria-hidden="true"> · </span>
+        <button type="button" id="notice-structure" class="link-button small-link">Woodland structure (M_i, T_i)</button>
+      </p>
     </div>
   </details>
 </div>
@@ -1542,13 +1555,15 @@ internal static class MultiAreaPage
           <p id="cell-caveat" class="small-note"></p></details>
       </section>
 
-      <!-- Plant mode: provisional local Draft preview (snap OFF, zero engine order) + sequential Work Plan drawer. -->
+      <!-- Plant mode: provisional local Draft preview (snap OFF, zero engine order) + sequential Work Plan drawer.
+           NB-2 polish: #plant-result sits at the top directly below the heading so partial-refusal codes and Already queued Remove buttons stay visible without scrolling. -->
       <section id="plant-panel" class="panel drawer-panel" aria-labelledby="plant-heading" hidden>
         <div class="ref-title">
           <p class="eyebrow">Plant · provisional Draft (snap OFF)</p>
           <button type="button" id="plant-close" class="close-inspect" aria-keyshortcuts="Escape" title="Return to Select Tree mode (Esc)"><span aria-hidden="true">×</span> Exit Plant mode</button>
         </div>
         <h2 id="plant-heading" tabindex="-1">Place a planting point</h2>
+        <div id="plant-result" class="drawer-result" tabindex="-1" hidden></div>
         <p id="plant-coords" class="drawer-coords">Click anywhere on the map to place a provisional Draft preview (snap OFF; zero order sent yet).</p>
         <div class="field">
           <label for="plant-species">Species (nursery juvenile · 0.6 m, age 3)</label>
@@ -1568,7 +1583,6 @@ internal static class MultiAreaPage
           <button type="button" id="plant-clear-draft" class="link-button small-link" hidden>Clear draft point</button>
         </p>
         <p id="plant-note" class="small-note">Queues Pending orders in sequence (Plant → Shelter → SpotClear). Zero ecology change until Approved and Executed.</p>
-        <div id="plant-result" class="drawer-result" tabindex="-1" hidden></div>
       </section>
 
       <!-- Spot Clear mode: provisional seedling-free 0.564 m circular preview (snap OFF) + Work Plan drawer. -->
@@ -1578,6 +1592,7 @@ internal static class MultiAreaPage
           <button type="button" id="spot-close" class="close-inspect" aria-keyshortcuts="Escape" title="Return to Select Tree mode (Esc)"><span aria-hidden="true">×</span> Exit Spot Clear</button>
         </div>
         <h2 id="spot-heading" tabindex="-1">Place a ~1 m² spot clear</h2>
+        <div id="spot-result" class="drawer-result" tabindex="-1" hidden></div>
         <p id="spot-coords" class="drawer-coords">Click anywhere on the map to place a provisional seedling-free 0.564 m circular preview (snap OFF; zero order sent yet).</p>
         <p class="actions">
           <button type="button" id="spot-queue" class="primary wide" disabled>Queue Spot Clear (~1 m²)</button>
@@ -1586,7 +1601,6 @@ internal static class MultiAreaPage
           <button type="button" id="spot-clear-draft" class="link-button small-link" hidden>Clear draft point</button>
         </p>
         <p id="spot-note" class="small-note">Selective ~1 m² circle (r ≈ 0.564 m, no seedling inside). Queues Pending order only; Approve and Execute are separate.</p>
-        <div id="spot-result" class="drawer-result" tabindex="-1" hidden></div>
       </section>
 
       <!-- Planted sapling (PJ) inspector in Select Tree mode: shows Queue 8-year Shelter when living and unsheltered. -->
@@ -1782,12 +1796,27 @@ internal static class MultiAreaPage
     <div id="pane-history" class="pane">
       <section class="panel" aria-labelledby="year-heading">
         <h2 id="year-heading" tabindex="-1">Year results per area</h2>
+        <div id="skip-summary" class="skip-summary" hidden></div>
         <div id="year-latest"></div>
+        <p id="history-truncated-note" class="small-note" hidden></p>
         <div id="history"></div>
       </section>
     </div>
 
     <div id="pane-details" class="pane">
+      <section id="structure-section" class="panel structure-panel" aria-labelledby="structure-heading">
+        <div class="ref-top">
+          <h2 id="structure-heading" tabindex="-1">Woodland structure (M_i &amp; T_i)</h2>
+          <span class="prov-pill prov-derived">DERIVED</span>
+        </div>
+        <p id="structure-disclaimer" class="small-note">Spatial structure descriptor (up to k=3 nearest living trees) — not measured biodiversity, habitat quality, or an Irish forecast.</p>
+        <div id="structure-content" class="structure-content">
+          <p class="small-note">Loaded on demand when Details is opened. Press Refresh structure to re-read from the current committed stand.</p>
+        </div>
+        <p class="actions structure-actions">
+          <button type="button" id="structure-refresh" class="secondary small">Refresh structure</button>
+        </p>
+      </section>
       <section class="panel" aria-labelledby="details-heading">
         <h2 id="details-heading" tabindex="-1">Experiment and technical provenance</h2>
         <ul id="statements" class="list statements"></ul>
@@ -1799,6 +1828,41 @@ internal static class MultiAreaPage
     </div>
   </div>
 </main>
+
+<div id="history-backdrop" class="drawer-backdrop" hidden></div>
+<aside id="history-drawer" class="history-drawer" role="dialog" aria-modal="false" aria-labelledby="history-drawer-title" hidden>
+  <div class="history-drawer-head">
+    <div>
+      <p class="eyebrow">Read-only · 2D Decision → Outcome archive</p>
+      <h2 id="history-drawer-title" tabindex="-1">Woodland History</h2>
+    </div>
+    <div class="history-drawer-head-right">
+      <span id="history-drawer-count" class="tag">0 recorded years</span>
+      <button type="button" id="history-close" class="secondary small" aria-keyshortcuts="Escape">× Close</button>
+    </div>
+  </div>
+  <div id="history-prov-bar" class="prov-bar" aria-label="Provenance tiers">
+    <span class="prov-pill prov-recorded" title="L1 Recorded historical fact — committed at work execution or annual close">RECORDED</span>
+    <span class="prov-pill prov-current" title="L2 Current observed state — read directly from current committed root">CURRENT</span>
+    <span class="prov-pill prov-derived" title="L3 Derived comparison — computed deterministically from recorded/current state">DERIVED</span>
+    <span class="prov-pill prov-reconstructed" title="L3 Reconstructed — cross-referenced from related committed records">RECONSTRUCTED</span>
+    <span class="prov-pill prov-session-only" title="L2 Session-only — ephemeral session read-out not archived per past year">SESSION-ONLY</span>
+    <span class="prov-pill prov-not-recorded" title="Absent — not stored by the 2D engine and never fabricated from current state">NOT RECORDED</span>
+  </div>
+  <p id="history-drawer-status" class="small-note history-drawer-status" role="status" aria-live="polite"></p>
+  <div class="history-drawer-body">
+    <section id="history-index-pane" class="history-index-pane" aria-label="Recorded years (newest first)">
+      <ul id="history-year-list" class="history-year-list"></ul>
+      <p id="history-index-foot" class="small-note"></p>
+      <p class="history-index-actions">
+        <button type="button" id="history-load-older" class="secondary small wide" hidden>Load older years</button>
+      </p>
+    </section>
+    <section id="history-detail-pane" class="history-detail-pane" aria-label="Selected year detail" tabindex="-1">
+      <p class="small-note">Select a recorded year on the left to inspect Work Executed (Year Y) vs Observed Outcome (Year Y+1).</p>
+    </section>
+  </div>
+</aside>
 
 <dialog id="execute-dialog" aria-labelledby="execute-title" aria-describedby="execute-text">
   <h2 id="execute-title"></h2>
@@ -2256,7 +2320,7 @@ dd { margin: 0; overflow-wrap: anywhere; }
 .check-row { display: flex; align-items: center; gap: .55rem; margin: 0; padding: .35rem .55rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: .86rem; cursor: pointer; }
 .check-row input { flex: none; width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--blue-edge); }
 .drawer-sub-actions { margin: .2rem 0 .35rem; text-align: right; }
-.drawer-result { margin-top: .55rem; padding: .55rem .7rem; border: 1px solid var(--line); border-left: 4px solid var(--approved); border-radius: 6px; background: var(--panel-2); font-size: .84rem; }
+.drawer-result { margin: .3rem 0 .55rem; padding: .5rem .65rem; border: 1px solid var(--line); border-left: 4px solid var(--approved); border-radius: 6px; background: var(--panel-2); font-size: .84rem; }
 .drawer-result.partial { border-left-color: var(--pending); }
 .drawer-result.failed { border-left-color: var(--alert-line); }
 .drawer-result p { margin: .2rem 0; }
@@ -2313,8 +2377,62 @@ dialog { width: min(38rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); 
 dialog::backdrop { background: rgba(3, 9, 17, .72); }
 dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 /* Phase 1 Save/Load: the header control and its slot dialog. Table and controls stay inside the 1280x720 fold. */
-.saves-open { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .3rem .75rem; font-weight: 600; }
-.saves-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
+.history-open, .saves-open { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .3rem .75rem; font-weight: 600; }
+.history-open > span[aria-hidden], .saves-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
+.skip-review { display: flex; align-items: center; gap: .55rem; padding: .4rem .95rem; border-color: #7ac4bf; background: #1a414a; text-align: left; }
+.skip-review:hover { background: #22515c; }
+.skip-review.blocked { border-style: dashed; border-color: var(--pending); background: #282315; }
+.skip-review.blocked:hover { background: #332c1b; }
+.skip-text { display: grid; }
+.skip-review:disabled .btn-sub { color: var(--faint); }
+.skip-summary { margin: 0 0 .65rem; padding: .55rem .75rem; border: 1px solid #7ac4bf; border-left: 4px solid #7ac4bf; border-radius: 6px; background: #142a34; font-size: .84rem; }
+.skip-summary p { margin: .2rem 0; }
+
+/* Phase 1 Step 2: Provenance pills (non-colour-only via border pattern + explicit text), History drawer, Structure panel. */
+.prov-pill { display: inline-flex; align-items: center; padding: .08rem .48rem; border-radius: 999px; font-size: .68rem; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+.prov-recorded { border: 1.5px solid #88c5e8; background: #143045; color: #d8effc; }
+.prov-current { border: 1.5px solid #8fd694; background: #173322; color: #daf7dc; }
+.prov-derived { border: 1.5px solid #bfa6f7; background: #261e40; color: #ebe2ff; }
+.prov-reconstructed { border: 1.5px dotted #f1d58e; background: #302814; color: #fae7b6; }
+.prov-session-only { border: 1.5px dashed #7fd4e6; background: #132c33; color: #ccf2fa; }
+.prov-not-recorded { border: 1.5px dashed #e0a097; background: #331e21; color: #f6d5d0; }
+.prov-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .45rem .9rem; border-bottom: 1px solid var(--edge); background: var(--top); }
+.drawer-backdrop { position: fixed; inset: 0; z-index: 39; background: rgba(3, 9, 17, .64); }
+.history-drawer { position: fixed; top: .75rem; right: .75rem; bottom: .75rem; z-index: 40; width: min(64rem, calc(100vw - 1.5rem)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--text); box-shadow: 0 12px 32px rgba(0, 0, 0, .6); }
+.history-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem .9rem; border-bottom: 1px solid var(--edge); background: var(--top); }
+.history-drawer-head h2 { margin: .1rem 0 0; font-size: 1.15rem; }
+.history-drawer-head-right { display: flex; align-items: center; gap: .5rem; flex: none; }
+.history-drawer-status { margin: 0; padding: .35rem .9rem 0; min-height: 1.1rem; }
+.history-drawer-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); gap: .75rem; padding: .55rem .9rem .8rem; overflow: hidden; }
+.history-index-pane { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: .35rem; border-right: 1px solid var(--edge); }
+.history-year-list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.history-year-btn { width: 100%; min-height: 44px; padding: .4rem .55rem; text-align: left; display: grid; gap: .12rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); }
+.history-year-btn:hover { background: var(--panel-3); }
+.history-year-btn[aria-current="true"] { border-color: var(--blue-edge); background: var(--blue); }
+.history-year-row-top { display: flex; align-items: center; justify-content: space-between; gap: .35rem; font-weight: 700; font-size: .88rem; }
+.history-year-row-sub { color: var(--muted); font-size: .74rem; font-weight: 500; }
+.history-index-actions { margin: .45rem 0 0; }
+.history-detail-pane { min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: .25rem; display: grid; align-content: start; gap: .65rem; }
+.history-card { padding: .65rem .8rem; border: 1px solid var(--edge); border-left: 4px solid var(--line); border-radius: 7px; background: var(--panel-2); }
+.history-card-work { border-left-color: var(--pending); }
+.history-card-outcome { border-left-color: var(--approved); }
+.history-card-current { border-left-color: #8fd694; }
+.history-card-disclosures { border-left-style: dashed; border-left-color: var(--alert-line); }
+.history-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem .6rem; margin-bottom: .4rem; }
+.history-card-head h3 { margin: 0; font-size: .96rem; }
+.history-pills { display: inline-flex; flex-wrap: wrap; gap: .3rem; }
+.non-causal-box { margin: .35rem 0 .5rem; padding: .45rem .65rem; border-left: 3px solid var(--pending); border-radius: 5px; background: #262319; font-size: .82rem; }
+.disclosure-list { display: grid; gap: .4rem; margin: .3rem 0 0; padding: 0; list-style: none; }
+.disclosure-list li { display: grid; gap: .2rem; padding: .4rem .55rem; border: 1px dashed var(--edge); border-radius: 5px; background: var(--panel); font-size: .82rem; }
+.structure-panel h2 { margin: 0; font-size: 1.02rem; }
+.structure-content { margin: .45rem 0; }
+.structure-actions { margin: .4rem 0 0; }
+.structure-metric-unavail { color: var(--pending); font-style: italic; font-weight: 600; }
+.notice-links { margin: .25rem 0 0; }
+@media (max-width: 820px) {
+  .history-drawer-body { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
+  .history-index-pane { border-right: 0; border-bottom: 1px solid var(--edge); padding-right: 0; padding-bottom: .5rem; max-height: 14rem; }
+}
 #saves-dialog { width: min(52rem, calc(100vw - 2rem)); }
 .save-form { display: grid; gap: .25rem; margin: .6rem 0 .2rem; }
 .save-form label { color: var(--muted); font-size: .78rem; font-weight: 600; }
@@ -2381,10 +2499,19 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 @media (min-width: 1024px) and (max-width: 1599px) {
   :root { --gap: 8px; --gutter: 16px; --legend-w: 184px; --side-w: 310px; }
   body { font-size: .9rem; }
-  h1 { font-size: 1.22rem; }
-  .subtitle { font-size: .72rem; }
-  .topbar { padding: .48rem var(--gutter); }
-  .brand-mark { width: 1.45rem; height: 1.75rem; }
+  h1 { font-size: 1.15rem; }
+  .subtitle { font-size: .7rem; }
+  .topbar { flex-wrap: nowrap; gap: .4rem .65rem; padding: .42rem var(--gutter); }
+  .brand { flex: 1 1 8.5rem; min-width: 8.5rem; gap: .5rem; }
+  .brand-mark { width: 1.35rem; height: 1.65rem; }
+  .top-actions { flex-wrap: nowrap; gap: .36rem; }
+  .year-chip { margin: 0 .1rem 0 0; padding-right: .55rem; gap: .3rem; }
+  .year-chip strong { font-size: 1.28rem; }
+  .history-open, .saves-open { min-height: 36px; padding: .22rem .52rem; font-size: .78rem; white-space: nowrap; }
+  .skip-review, .advance { min-height: 38px; padding: .22rem .55rem; gap: .35rem; }
+  .skip-review .btn-title, .advance .btn-title { font-size: .76rem; white-space: nowrap; }
+  .skip-review .btn-sub, .advance .btn-sub { font-size: .62rem; white-space: nowrap; }
+  .reread { min-height: 36px; padding: .22rem .55rem; font-size: .78rem; white-space: nowrap; }
   .card { padding: .45rem .85rem; }
   .area-card-count strong { font-size: 1.2rem; }
   .plan-card-main strong { font-size: 1.02rem; }
@@ -2423,8 +2550,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 }
 /* Short desktop (1280 x 720): reference, ranks 1-5 and Add stay above the fold without scrolling (Stage 4 R3 gate). */
 @media (min-width: 1024px) and (max-height: 820px) {
-  .topbar { padding-top: .36rem; padding-bottom: .36rem; }
-  .btn-sub { font-size: .7rem; }
+  .topbar { padding-top: .34rem; padding-bottom: .34rem; }
+  .btn-sub { font-size: .62rem; }
+  .alert.shown { margin-top: 4px; padding: .35rem .7rem; font-size: .78rem; }
+  .alert.shown p { margin: .12rem 0; }
+  .drawer-result { margin: .25rem 0 .4rem; padding: .4rem .55rem; font-size: .8rem; }
+  .partial-list { gap: .2rem; margin: .28rem 0; }
+  .partial-list li { padding: .18rem .4rem; }
+  .partial-list button { min-height: 30px; padding: .12rem .5rem; font-size: .78rem; }
   .area-tab { min-height: 46px; }
   .area-thumb { width: 26px; height: 15px; }
   .crop-note { display: none; }
@@ -2501,7 +2634,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
   const PANE_NAMES = { tree: 'Tree', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
   const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
-    'execute-confirm', 'advance', 'consent-advance', 'prune-add', 'prune-remove',
+    'execute-confirm', 'advance', 'skip-review', 'consent-advance', 'prune-add', 'prune-remove',
     'cell-clear-add', 'cell-clear-remove', 'plant-queue', 'spot-queue', 'pj-shelter-add', 'pj-shelter-remove'];
   const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
   const LIGHT_EASE = 0.65;
@@ -2559,6 +2692,28 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     saves: [], // GET api/multi/saves rows: slot, label, year, savedUtc, models, status, canLoad, backup state, recoverable
     loadSlot: null, // slot awaiting the player's explicit "replace the current forest" confirmation
     recoverSlot: null, // slot awaiting the player's explicit "restore its backup" confirmation
+    // Phase 1 Step 2: bounded view metadata, review preview/skip, on-demand History drawer, and on-demand Structure panel.
+    historyTruncated: false,
+    totalRecordedYears: 0,
+    reviewPreview: null,
+    previewRequest: 0,
+    lastSkip: null,
+    historyOpen: false,
+    historyLoading: false,
+    historyDetailLoading: false,
+    historyItems: [],
+    historyNextCursor: null,
+    historyTotalRecorded: 0,
+    historySelectedYear: null,
+    historyDetail: null,
+    historyError: null,
+    historyRequest: 0,
+    historyDetailRequest: 0,
+    structure: null,
+    structureLoading: false,
+    structureError: null,
+    structureRequest: 0,
+    structureRootTag: null,
   };
 
   const byId = (id) => document.getElementById(id);
@@ -2849,11 +3004,20 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
 
   function applyPayload(payload, keepOverlap) {
+    const prevTreeTag = state.view ? (state.view.sessionId + ':' + state.view.source.annualRevision + ':' + state.view.source.workRevision) : null;
     state.view = payload.view;
     state.scenes = payload.scenes || {};
     state.stage4 = payload.stage4 || null;
     state.ecology = payload.ecology || null;
     if (payload.labels) state.labels = payload.labels;
+    if (typeof payload.historyTruncated === 'boolean') state.historyTruncated = payload.historyTruncated;
+    if (typeof payload.totalRecordedYears === 'number') state.totalRecordedYears = payload.totalRecordedYears;
+    if (payload.reviewPreview) state.reviewPreview = payload.reviewPreview;
+    const nextTreeTag = state.view ? (state.view.sessionId + ':' + state.view.source.annualRevision + ':' + state.view.source.workRevision) : null;
+    if (prevTreeTag && nextTreeTag !== prevTreeTag) {
+      state.structure = null;
+      state.structureRootTag = null;
+    }
     if (state.cellDetail && !state.cellDetail.missing &&
         !groundCell(state.cellDetail.areaId, state.cellDetail.column, state.cellDetail.row)) {
       state.cellDetail = null;
@@ -2876,6 +3040,10 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     if (confirmation && !byId('execute-dialog').open) state.confirmation = null;
     else if (confirmation && !confirmationStillShown(confirmation, state.view)) withdrawConfirmation(confirmation);
     if (refresh && !state.lock && !state.batch) refreshCompetition();
+    if (prevTreeTag && nextTreeTag !== prevTreeTag && !state.lock && !state.batch && !state.queueRunning &&
+        byId('side').getAttribute('data-pane') === 'details') {
+      refreshStructure();
+    }
   }
 
   async function run(path, body, what, onCommitted, focusAfter) {
@@ -2891,10 +3059,13 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       applyPayload(outcome.payload, false);
       if (onCommitted) onCommitted(outcome.payload);
       if (focusAfter) keepFocusOr(focusAfter);
+      refreshReviewPreview();
+      if (state.historyOpen) loadHistoryIndex(null, false);
     } else if (outcome.kind === 'refused') {
       applyPayload(outcome.payload, false);
       if (state.lock) showLockAlert('Refused: ' + what + ' (' + outcome.payload.refusal.code + '). Nothing changed.');
       else showRefusal(what, outcome.payload.refusal);
+      refreshReviewPreview();
     } else if (outcome.kind === 'guard') {
       showGuardRefusal(what, outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -2936,10 +3107,11 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     }
     let payload = null;
     try { payload = await response.json(); } catch { payload = null; }
-    if (response.ok && payload) return { kind: 'ok', payload };
-    if (payload && payload.view && payload.refusal) return { kind: 'refused', payload };
-    if (payload && (payload.refusal || payload.error)) return { kind: 'guard', payload };
-    return { kind: 'transport', detail: 'HTTP ' + response.status };
+    const okStatus = Boolean(response.ok) || (response.status >= 200 && response.status < 300);
+    if (okStatus && payload) return { kind: 'ok', status: response.status, payload };
+    if (payload && payload.view && payload.refusal) return { kind: 'refused', status: response.status, payload };
+    if (payload && (payload.refusal || payload.error)) return { kind: 'guard', status: response.status, payload };
+    return { kind: 'transport', status: response.status, detail: 'HTTP ' + response.status };
   }
 
   function noticeOf(outcome) {
@@ -3091,6 +3263,26 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     state.mapMode = 'tree';
     state.overlay = 'off';
     state.loadSlot = null;
+    state.historyTruncated = false;
+    state.totalRecordedYears = 0;
+    state.reviewPreview = null;
+    state.previewRequest += 1;
+    state.lastSkip = null;
+    state.historyItems = [];
+    state.historyNextCursor = null;
+    state.historyTotalRecorded = 0;
+    state.historySelectedYear = null;
+    state.historyDetail = null;
+    state.historyError = null;
+    state.historyLoading = false;
+    state.historyDetailLoading = false;
+    state.historyRequest += 1;
+    state.historyDetailRequest += 1;
+    state.structure = null;
+    state.structureLoading = false;
+    state.structureError = null;
+    state.structureRootTag = null;
+    state.structureRequest += 1;
   }
 
   async function onLoadConfirmed() {
@@ -3116,6 +3308,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         el('p', null, 'Advance or approve and execute work to continue from here.'),
       ]);
       announce('Loaded ' + slot + ' in year ' + state.view.source.ecologicalYear + '.' + (draft ? ' ' + draft : ''));
+      refreshReviewPreview();
+      if (state.historyOpen) loadHistoryIndex(null, false);
+      if (byId('side').getAttribute('data-pane') === 'details') refreshStructure();
       return;
     }
     if (outcome.kind === 'refused' && outcome.payload && outcome.payload.view) {
@@ -3191,6 +3386,15 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
         return 'Cancel the approved plan before editing the Work Plan.';
       case 'WorkPendingConsentRequired':
         return 'Choose whether to keep the orders or cancel all of them before the year advances.';
+      case 'WorkPlanOpen':
+        return 'Open Pending or Approved work exists in the Work Plan. Execute, cancel, or remove open orders first — Skip to Review never silently cancels open work.';
+      case 'InvalidTargetYear':
+        return 'Skip to Review advances between 1 and 5 ecological years per press. Re-read the preview target and try again.';
+      case 'StandCannotAdvance':
+        return 'Every area has no living stems and no juvenile regeneration remaining.';
+      case 'HistoryYearInvalid':
+      case 'HistoryYearNotRecorded':
+        return 'Select a recorded ecological year from the History index.';
       case 'WorkWouldLeaveNoLivingStems':
         return label('MultiLastLivingRefused') + '. Cancel the approved plan and approve a smaller one.';
       case 'MultiAreaWrongArea':
@@ -3402,6 +3606,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     const active = document.activeElement;
     const focusKey = active && active.getAttribute ? active.getAttribute('data-focus-key') : null;
     renderStatus();
+    renderSkipControl();
     renderModeAndOverlayControls();
     renderOverlayLegend();
     renderAreaSwitch();
@@ -3419,6 +3624,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     renderTable();
     renderHistory();
     renderDetails();
+    renderStructure();
+    if (state.historyOpen) renderHistoryDrawer();
     renderPaneButtons();
     renderCommandGate();
     renderMapControls();
@@ -4514,7 +4721,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       parts.push(el('p', null, 'Unconfirmed outcome — re-read required before further commands.'));
     }
     if (r.queued.length > 0) {
-      parts.push(el('p', { class: 'small-note' }, partial ? 'Earlier pending orders queued before stopping (one-click remove below):' : 'Pending orders in Work Plan:'));
+      parts.push(el('p', { class: 'small-note' }, partial ? 'Already queued (one-click remove below):' : 'Already queued in Work Plan:'));
       parts.push(el('ul', { class: 'partial-list' }, ...r.queued.map((o) => {
         const active = stillPending.has(o.orderId);
         return el('li', null,
@@ -5133,6 +5340,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       else add.focus();
     }
     if (!state.lock && state.competitionTarget && state.competitionTag !== competitionTag()) refreshCompetition();
+    if (!state.lock && !result.unconfirmed) refreshReviewPreview();
   }
 
   function batchSummary(result) {
@@ -5404,8 +5612,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   }
 
   function renderHistory() {
+    renderSkipSummary();
     const view = state.view;
     const years = view.annualHistory;
+    const truncNote = byId('history-truncated-note');
+    if (truncNote) {
+      truncNote.hidden = !state.historyTruncated;
+      truncNote.textContent = state.historyTruncated
+        ? 'Compact view shows the most recent tail only; open History in the header for all ' + state.totalRecordedYears + ' recorded years.'
+        : '';
+    }
     const latest = byId('year-latest');
     if (years.length === 0) {
       latest.replaceChildren(el('p', { class: 'small-note' }, 'No ecological year has been advanced in this session.'));
@@ -5542,6 +5758,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('side').setAttribute('data-pane', name);
     for (const button of document.querySelectorAll('[data-pane-button]')) {
       button.setAttribute('aria-pressed', String(button.getAttribute('data-pane-button') === name));
+    }
+    if (name === 'details' && state.view && !state.structure && !state.structureLoading && !state.lock) {
+      refreshStructure();
     }
   }
 
@@ -5781,15 +6000,21 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     return true;
   }
 
-  // Escape precedence (Pass 2 spec §4.3 + Stage 4 R3 F-05):
+  // Escape precedence (Pass 2 spec §4.3 + Stage 4 R3 F-05 + Phase 1 Step 2):
   // 1) open modal dialog closes itself (leaves pending map hit-test alone);
-  // 2) non-empty search box clears itself;
-  // 3) Plant / Spot Clear / Inspect Cell preview & mode exits to Select Tree WITHOUT clearing draft Fell ticks or overlay;
-  // 4) PJ sapling inspection closes back to adult tree inspector WITHOUT clearing draft Fell ticks;
-  // 5) adult tree selection closes. Work Plan is NEVER mutated by Escape.
+  // 2) open on-demand History drawer closes WITHOUT clearing draft Fell ticks, selection, map mode or overlay;
+  // 3) non-empty search box clears itself;
+  // 4) Plant / Spot Clear / Inspect Cell preview & mode exits to Select Tree WITHOUT clearing draft Fell ticks or overlay;
+  // 5) PJ sapling inspection closes back to adult tree inspector WITHOUT clearing draft Fell ticks;
+  // 6) adult tree selection closes. Work Plan is NEVER mutated by Escape.
   function onEscape(event) {
     if (event.key !== 'Escape') return;
     if (document.querySelector('dialog[open]')) return;
+    if (state.historyOpen) {
+      event.preventDefault();
+      closeHistoryDrawer(true);
+      return;
+    }
     state.mapPick += 1;
     state.cellPick += 1;
     if (event.defaultPrevented) return;
@@ -5923,6 +6148,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     }
     state.plantResult = result;
     renderAll();
+    // NB-2 polish: keep exact refusal code and Already queued Remove buttons immediately visible without scrolling.
+    byId('pane-tree').scrollTop = 0;
+    const plantResBox = byId('plant-result');
+    if (!plantResBox.hidden && typeof plantResBox.scrollIntoView === 'function') {
+      plantResBox.scrollIntoView({ block: 'nearest' });
+    }
     if (!result.unconfirmed) {
       if (result.refused) {
         const queuedText = result.queued.length > 0
@@ -5932,6 +6163,7 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       } else if (!result.guard) {
         announce('Queued as pending (not executed): ' + result.queued.map((o) => o.orderId + ' (' + o.kind + ')').join(', ') + '.');
       }
+      refreshReviewPreview();
     }
   }
 
@@ -5957,12 +6189,16 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       const added = pendingPlantings().find((o) => !beforeIds.has(o.orderId));
       state.spotResult = { areaId, order: added || { orderId: '(queued)', kind: 'SpotClear', areaId, xm: xM, zm: zM }, refused: null };
       renderAll();
+      byId('pane-tree').scrollTop = 0;
       announce('Queued pending SpotClear ' + (added ? added.orderId : '') + ' (not executed).');
+      refreshReviewPreview();
     } else if (outcome.kind === 'refused') {
       state.spotResult = { areaId, order: null, refused: outcome.payload.refusal };
       applyPayload(outcome.payload, false);
+      byId('pane-tree').scrollTop = 0;
       showRefusal('Queue Spot Clear', outcome.payload.refusal);
       announce('Refused SpotClear (' + outcome.payload.refusal.code + '). Nothing changed.');
+      refreshReviewPreview();
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Queue Spot Clear', outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -6221,6 +6457,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
       if (announceIt && !state.lock) {
         announce('Re-read: ecological year ' + state.view.source.ecologicalYear + ', work revision ' + state.view.source.workRevision +
           ', plan-state revision ' + state.view.planStateRevision + '.');
+        refreshReviewPreview();
+        if (state.historyOpen) loadHistoryIndex(null, false);
+        if (byId('side').getAttribute('data-pane') === 'details') refreshStructure();
       }
     } else if (state.lock) {
       showLockAlert(outcome.kind === 'guard' ? 'The re-read was refused (' + outcome.error.code + '). Try again.' :
@@ -6230,6 +6469,554 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     } else {
       showAlert([el('p', { class: 'alert-title' }, 'The local session process did not answer the read.'), rereadButton()]);
     }
+  }
+
+  // ---- Phase 1 Step 2: Skip to Review, On-Demand History Drawer, and On-Demand Structure Panel -----------------------
+
+  const PROV_META = {
+    Recorded: ['RECORDED', 'prov-recorded', 'L1 Recorded historical fact — committed when work executed or an annual step closed'],
+    Current: ['CURRENT', 'prov-current', 'L2 Current observed state — read directly from the current committed root'],
+    Derived: ['DERIVED', 'prov-derived', 'L3 Derived comparison — computed deterministically from recorded and/or current state'],
+    Reconstructed: ['RECONSTRUCTED', 'prov-reconstructed', 'L3 Reconstructed — cross-referenced from related committed records'],
+    SessionOnly: ['SESSION-ONLY', 'prov-session-only', 'L2 Session-only — ephemeral session read-out not archived per past year'],
+    NotRecorded: ['NOT RECORDED', 'prov-not-recorded', 'Absent — not stored by the 2D engine and never fabricated from current state'],
+    RECORDED: ['RECORDED', 'prov-recorded', 'L1 Recorded historical fact'],
+    CURRENT: ['CURRENT', 'prov-current', 'L2 Current observed state'],
+    DERIVED: ['DERIVED', 'prov-derived', 'L3 Derived comparison'],
+    RECONSTRUCTED: ['RECONSTRUCTED', 'prov-reconstructed', 'L3 Reconstructed'],
+    'SESSION-ONLY': ['SESSION-ONLY', 'prov-session-only', 'L2 Session-only'],
+    'NOT RECORDED': ['NOT RECORDED', 'prov-not-recorded', 'Absent (NOT RECORDED — never fabricated)'],
+  };
+
+  function provPill(value, customTitle) {
+    const [text, cls, defTitle] = PROV_META[value] || [String(value || ''), 'prov-derived', ''];
+    return el('span', { class: 'prov-pill ' + cls, title: customTitle || defTitle }, text);
+  }
+
+  function renderSkipControl() {
+    const btn = byId('skip-review');
+    const lbl = byId('skip-review-label');
+    const sub = byId('skip-review-sub');
+    if (!btn || !lbl || !sub) return;
+    const p = state.reviewPreview;
+    if (!p) {
+      lbl.textContent = 'Skip to review';
+      sub.textContent = 'GAMEPLAY CALIBRATION';
+      btn.classList.remove('blocked');
+      return;
+    }
+    const targetText = 'Skip → Yr ' + p.suggestedTargetYear + (p.isObservationPeriod ? ' (Obs.)' : '');
+    lbl.textContent = targetText;
+    if (!p.eligible && p.stopReason === 'WorkPlanOpen') {
+      sub.textContent = (p.isObservationPeriod ? 'Quiet obs. · ' : '') + 'Work plan open · GAMEPLAY CALIBRATION';
+    } else if (!p.eligible && p.stopReason === 'StandCannotAdvance') {
+      sub.textContent = 'Stand cannot advance · GAMEPLAY CALIBRATION';
+    } else if (p.isObservationPeriod) {
+      sub.textContent = 'Quiet observation · GAMEPLAY CALIBRATION';
+    } else if (p.anchorFellYear !== null && p.anchorFellYear !== undefined) {
+      const overdue = (p.anchorFellYear + (p.suggestedGapYears || 4)) <= p.currentYear;
+      sub.textContent = (overdue ? 'Review (overdue) · ' : 'Review (Fell Yr ' + p.anchorFellYear + ') · ') + 'GAMEPLAY CALIBRATION';
+    } else {
+      sub.textContent = 'GAMEPLAY CALIBRATION';
+    }
+    btn.classList.toggle('blocked', !p.eligible);
+    btn.setAttribute('title', (p.label ? p.label + ' ' : '') + (p.calibrationNote || ''));
+  }
+
+  async function refreshReviewPreview() {
+    if (!state.view || state.lock) return;
+    const req = ++state.previewRequest;
+    const outcome = await jsonCall('api/multi/year/preview-review', 'POST', { fence: currentFence() });
+    if (req !== state.previewRequest || state.lock) return;
+    if (outcome.kind === 'ok' && outcome.payload && typeof outcome.payload.suggestedTargetYear === 'number') {
+      state.reviewPreview = outcome.payload;
+      renderSkipControl();
+    }
+  }
+
+  function renderSkipSummary() {
+    const box = byId('skip-summary');
+    if (!box) return;
+    const s = state.lastSkip;
+    box.hidden = !s;
+    if (!s) { box.replaceChildren(); return; }
+    const stepText = 'Year ' + s.startYear + ' → Year ' + s.destinationYear + ' (' + plural(s.completedYearsCount, 'year stepped', 'years stepped') + ')';
+    const periodNote = s.isObservationPeriod
+      ? 'Quiet observation period (pre-first-Fell) — not a completed silvicultural thinning cycle.'
+      : (s.anchorFellYear !== null && s.anchorFellYear !== undefined
+        ? 'Anchored to last recorded Fell in Year ' + s.anchorFellYear + '.'
+        : 'Management review interval.');
+    box.replaceChildren(
+      el('p', { class: 'alert-title' }, 'Skip summary: ' + stepText + ' · Stop reason: ', el('code', null, s.stopReason)),
+      s.stopDetail ? el('p', null, s.stopDetail) : null,
+      el('p', { class: 'small-note' }, periodNote),
+      el('p', { class: 'small-note' }, s.calibrationNote));
+  }
+
+  async function onSkipReview() {
+    if (!state.view || state.busy || state.batch || state.queueRunning || refusedByLock('Skip to review')) return;
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    const previewOutcome = await jsonCall('api/multi/year/preview-review', 'POST', { fence: currentFence() });
+    if (previewOutcome.kind !== 'ok' || !previewOutcome.payload) {
+      state.busy = false;
+      document.documentElement.classList.remove('busy');
+      if (previewOutcome.kind === 'refused' && previewOutcome.payload && previewOutcome.payload.refusal) {
+        showRefusal('Skip to review (preview)', previewOutcome.payload.refusal);
+        reread(false);
+      } else if (previewOutcome.kind === 'guard') {
+        const notice = noticeOf(previewOutcome);
+        showGuardRefusal('Skip to review (preview)', previewOutcome.status || 400, notice);
+      } else {
+        lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+          'Skip preview: no confirmed result was received.');
+      }
+      return;
+    }
+
+    const preview = previewOutcome.payload;
+    state.reviewPreview = preview;
+    renderSkipControl();
+
+    if (!preview.eligible) {
+      state.busy = false;
+      document.documentElement.classList.remove('busy');
+      const code = preview.stopReason || 'WorkPlanOpen';
+      const viewPlanBtn = code === 'WorkPlanOpen' ? el('button', { type: 'button', class: 'secondary small' }, 'Open Work Plan') : null;
+      if (viewPlanBtn) viewPlanBtn.addEventListener('click', () => { showPane('plan'); byId('plan-heading').focus(); });
+      showAlert([
+        el('p', { class: 'alert-title' }, 'Refused: Skip to review (' + code + ')'),
+        el('p', null, el('code', null, code), ' — ' + (code === 'WorkPlanOpen'
+          ? 'Open Pending or Approved work must be executed, cancelled, or removed before skipping ahead. Skip never cancels open work.'
+          : (preview.label || recoveryFor(code)))),
+        el('p', { class: 'small-note' }, preview.calibrationNote),
+        el('p', null, label('MultiNothingChanged') + '. Current ecological year ' + state.view.source.ecologicalYear + '.'),
+        viewPlanBtn,
+      ]);
+      announce('Refused Skip to review (' + code + '). ' + (code === 'WorkPlanOpen' ? 'Resolve open Pending or Approved work first.' : '') + ' Nothing changed.');
+      return;
+    }
+
+    const skipOutcome = await call('api/multi/year/skip', { fence: currentFence(), targetYear: preview.suggestedTargetYear });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+
+    if (skipOutcome.kind === 'ok') {
+      const p = skipOutcome.payload;
+      clearAlert();
+      const drafts = draftTotal();
+      state.drafts = {};
+      state.draftNotice = null;
+      state.batchResult = null;
+      state.cellDetail = null;
+      state.plantDraft = null;
+      state.plantResult = null;
+      state.spotDraft = null;
+      state.spotResult = null;
+      state.lastSkip = {
+        startYear: p.startYear,
+        destinationYear: p.destinationYear,
+        requestedTargetYear: p.requestedTargetYear,
+        completedYearsCount: (p.completedYears || []).length,
+        stopReason: p.stopReason,
+        stopDetail: p.stopDetail || null,
+        isObservationPeriod: Boolean(p.isObservationPeriod),
+        anchorFellYear: p.anchorFellYear,
+        calibrationNote: p.calibrationNote || preview.calibrationNote,
+      };
+      applyPayload(p, false);
+      showPane('history');
+      byId('year-heading').focus();
+      announce('Skipped Year ' + p.startYear + ' → Year ' + p.destinationYear + ' (' +
+        plural((p.completedYears || []).length, 'year', 'years') + ', ' + p.stopReason + ').' +
+        (drafts ? ' ' + plural(drafts, 'unsent draft choice was', 'unsent draft choices were') + ' cleared.' : ''));
+      refreshReviewPreview();
+      if (state.historyOpen) loadHistoryIndex(null, false);
+    } else if (skipOutcome.kind === 'refused') {
+      applyPayload(skipOutcome.payload, false);
+      if (state.lock) showLockAlert('Refused: Skip to review (' + skipOutcome.payload.refusal.code + '). Nothing changed.');
+      else showRefusal('Skip to review', skipOutcome.payload.refusal);
+      refreshReviewPreview();
+    } else if (skipOutcome.kind === 'guard') {
+      showGuardRefusal('Skip to review', skipOutcome.status, skipOutcome.error);
+    } else if (skipOutcome.kind === 'locked') {
+      showLockAlert('Not sent: Skip to review.');
+    } else {
+      lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+        'Skip to review: no confirmed result was received. Do not assume that it happened, or that it did not.');
+    }
+  }
+
+  function openHistoryDrawer() {
+    if (!state.view) return;
+    state.historyOpen = true;
+    byId('history-backdrop').hidden = false;
+    byId('history-drawer').hidden = false;
+    byId('history-open').setAttribute('aria-expanded', 'true');
+    byId('history-drawer-title').focus();
+    loadHistoryIndex(null, false);
+  }
+
+  function closeHistoryDrawer(returnToOpener) {
+    if (!state.historyOpen) return false;
+    state.historyOpen = false;
+    byId('history-backdrop').hidden = true;
+    byId('history-drawer').hidden = true;
+    byId('history-open').setAttribute('aria-expanded', 'false');
+    if (returnToOpener) {
+      const opener = byId('history-open');
+      if (opener && opener.isConnected && !opener.disabled) opener.focus();
+    }
+    announce('Closed History drawer. Draft Fell ticks preserved.');
+    return true;
+  }
+
+  async function loadHistoryIndex(beforeYear, append) {
+    if (!state.view) return;
+    const req = ++state.historyRequest;
+    state.historyLoading = true;
+    state.historyError = null;
+    if (!append) {
+      state.historyItems = [];
+      state.historyNextCursor = null;
+      state.historySelectedYear = null;
+      state.historyDetail = null;
+    }
+    renderHistoryDrawer();
+    const qs = beforeYear === null || beforeYear === undefined
+      ? 'api/multi/history/index?pageSize=10'
+      : 'api/multi/history/index?pageSize=10&beforeYear=' + encodeURIComponent(String(beforeYear));
+    const outcome = await jsonCall(qs, 'GET');
+    if (req !== state.historyRequest) return;
+    state.historyLoading = false;
+    if (outcome.kind === 'ok' && outcome.payload && Array.isArray(outcome.payload.items)) {
+      const incoming = outcome.payload.items;
+      if (append) {
+        const seen = new Set(state.historyItems.map((item) => item.year));
+        state.historyItems = state.historyItems.concat(incoming.filter((item) => !seen.has(item.year)));
+      } else {
+        state.historyItems = incoming;
+      }
+      state.historyNextCursor = outcome.payload.nextCursorBeforeYear === undefined ? null : outcome.payload.nextCursorBeforeYear;
+      state.historyTotalRecorded = outcome.payload.totalRecordedYears || 0;
+      state.historyError = null;
+    } else {
+      const notice = noticeOf(outcome);
+      state.historyError = 'Could not load history index (' + notice.code + '): ' + notice.message;
+    }
+    renderHistoryDrawer();
+  }
+
+  async function loadHistoryYear(year) {
+    if (!state.view || state.lock) return;
+    const req = ++state.historyDetailRequest;
+    state.historySelectedYear = year;
+    state.historyDetailLoading = true;
+    state.historyDetail = null;
+    state.historyError = null;
+    renderHistoryDrawer();
+    const outcome = await jsonCall('api/multi/history/year', 'POST', { fence: currentFence(), year: Number(year) });
+    if (req !== state.historyDetailRequest) return;
+    state.historyDetailLoading = false;
+    if (outcome.kind === 'ok' && outcome.payload && typeof outcome.payload.workYear === 'number') {
+      state.historyDetail = outcome.payload;
+      state.historyError = null;
+    } else {
+      const notice = noticeOf(outcome);
+      state.historyError = 'History year ' + year + ' refused (' + notice.code + '): ' + notice.message;
+      state.historyDetail = null;
+    }
+    renderHistoryDrawer();
+  }
+
+  function formatActionSummary(counts) {
+    if (!counts) return 'No work';
+    const parts = [];
+    if (counts.fell > 0) parts.push(counts.fell + ' Fell');
+    if (counts.prune > 0) parts.push(counts.prune + ' Prune');
+    if (counts.clearUndergrowth > 0) parts.push(counts.clearUndergrowth + ' Clear');
+    if (counts.plant > 0) parts.push(counts.plant + ' Plant');
+    if (counts.shelter > 0) parts.push(counts.shelter + ' Shelter');
+    if (counts.spotClear > 0) parts.push(counts.spotClear + ' Spot');
+    return parts.length > 0 ? parts.join(' · ') : 'No work';
+  }
+
+  function renderHistoryDrawer() {
+    if (!state.historyOpen) return;
+    byId('history-drawer-count').textContent = plural(state.historyTotalRecorded, 'recorded year', 'recorded years');
+    const status = byId('history-drawer-status');
+    status.textContent = state.historyError || (state.historyLoading ? 'Loading recorded years…' :
+      state.historyDetailLoading ? 'Reading Year ' + state.historySelectedYear + ' detail…' : '');
+
+    const list = byId('history-year-list');
+    if (state.historyItems.length === 0) {
+      list.replaceChildren(el('li', { class: 'small-note' }, state.historyLoading
+        ? 'Loading…'
+        : 'No recorded work or completed annual years yet. Execute a Work Plan or advance a year to start history.'));
+    } else {
+      list.replaceChildren(...state.historyItems.map((entry) => {
+        const selected = state.historySelectedYear === entry.year;
+        const stemsNote = entry.hasAnnualOutcome && entry.liveStemsEndOfYear !== null && entry.liveStemsEndOfYear !== undefined
+          ? 'End stems: ' + entry.liveStemsEndOfYear
+          : 'No annual step ending in Yr ' + entry.year;
+        const nextNote = entry.hasObservedOutcomeNextYear ? ' · Obs. Yr ' + (entry.year + 1) : '';
+        return el('li', null, el('button', {
+          type: 'button',
+          class: 'history-year-btn',
+          'data-history-year': String(entry.year),
+          'aria-current': selected ? 'true' : null,
+        },
+          el('span', { class: 'history-year-row-top' },
+            el('span', null, 'Year ' + entry.year),
+            el('span', { class: 'tag' }, entry.hasExecutedWork ? 'Work' : 'Quiet')),
+          el('span', { class: 'history-year-row-sub' }, formatActionSummary(entry.executedActionCounts)),
+          el('span', { class: 'history-year-row-sub' }, stemsNote + nextNote)));
+      }));
+    }
+
+    byId('history-index-foot').textContent = state.historyTotalRecorded > 0
+      ? 'Showing ' + state.historyItems.length + ' of ' + state.historyTotalRecorded + ' recorded years (newest first).'
+      : '';
+    const loadOlder = byId('history-load-older');
+    loadOlder.hidden = state.historyNextCursor === null || state.historyNextCursor === undefined;
+    loadOlder.disabled = state.historyLoading;
+
+    const detailPane = byId('history-detail-pane');
+    if (state.historyDetailLoading) {
+      detailPane.replaceChildren(el('p', { class: 'small-note' }, 'Loading Decision → Outcome detail for Year ' + state.historySelectedYear + '…'));
+      return;
+    }
+    if (!state.historyDetail) {
+      detailPane.replaceChildren(el('p', { class: 'small-note' }, state.historyError
+        ? state.historyError
+        : 'Select a recorded year on the left to inspect Work Executed (Year Y) vs Observed Outcome (Year Y+1).'));
+      return;
+    }
+    detailPane.replaceChildren(...renderHistoryDetailNodes(state.historyDetail));
+  }
+
+  function renderHistoryDetailNodes(d) {
+    const cards = [];
+
+    // 1. Work Executed (WorkYear = Y) — clearly separated from Observed Outcome (Year Y + 1).
+    const workParts = [
+      el('div', { class: 'history-card-head' },
+        el('h3', null, 'Work Executed — Year ' + d.workYear),
+        el('div', { class: 'history-pills' }, provPill(d.workProvenance || 'RECORDED'))),
+      el('p', { class: 'small-note' }, '2D timing: Execute commits inside WorkYear ' + d.workYear + ' without advancing the calendar; ecological response appears in Observed Year ' + d.observedYear + '.'),
+    ];
+    const wc = d.totalWorkCounts || {};
+    const totalActions = (wc.fell || 0) + (wc.prune || 0) + (wc.clearUndergrowth || 0) + (wc.plant || 0) + (wc.shelter || 0) + (wc.spotClear || 0);
+    if (totalActions === 0) {
+      workParts.push(el('p', { class: 'small-note' }, 'No work executed in Year ' + d.workYear + '.'));
+    } else {
+      workParts.push(el('p', null, 'Total executed in Year ' + d.workYear + ': ', el('strong', null, formatActionSummary(wc))));
+      const workRows = [];
+      for (const area of (d.workByArea || [])) {
+        for (const grp of (area.actionGroups || [])) {
+          const ids = (grp.treeIds && grp.treeIds.length ? grp.treeIds : [])
+            .concat((grp.cells || []).map((c) => '(' + c.column + ',' + c.row + ')'))
+            .concat(grp.juvenileIds || [])
+            .concat(grp.shelterIds || [])
+            .concat(grp.patchIds || [])
+            .concat(grp.orderIds || []);
+          workRows.push([areaShort(area.areaId), grp.actionType, String(grp.count), ids.join(', ') || '–']);
+        }
+      }
+      if (workRows.length > 0) {
+        workParts.push(table('Work executed in Year ' + d.workYear, ['Area', 'Action', 'Count', 'Recorded IDs / cells'], workRows));
+      }
+    }
+    if (d.plantedWorkFollowUp && d.plantedWorkFollowUp.length > 0) {
+      workParts.push(el('div', { class: 'history-card-head' },
+        el('h4', null, 'Planted juvenile follow-up (planted in Year ' + d.workYear + ')'),
+        provPill('RECONSTRUCTED')));
+      workParts.push(table('Reconstructed planted juvenile follow-up', ['Juvenile', 'Area', 'Species', 'Current status'],
+        d.plantedWorkFollowUp.map((f) => [
+          f.juvenileId,
+          areaShort(f.areaId),
+          speciesLabel(f.speciesId),
+          f.promotedTreeId ? 'Promoted → ' + f.promotedTreeId
+            : f.currentlyActive ? 'Alive (active juvenile)'
+              : 'Dead (Yr ' + f.deathYear + (f.deathCause ? ', ' + f.deathCause : '') + ')',
+        ])));
+    }
+    cards.push(el('section', { class: 'history-card history-card-work', 'data-history-section': 'work-executed' }, ...workParts));
+
+    // 2. Observed Outcome (ObservedYear = Y + 1) — clearly separated from Work Executed (Year Y).
+    const outParts = [
+      el('div', { class: 'history-card-head' },
+        el('h3', null, 'Observed Outcome — Year ' + d.workYear + ' → Year ' + d.observedYear),
+        el('div', { class: 'history-pills' }, provPill('RECORDED'))),
+    ];
+    if (!d.annualOutcomeNextYear) {
+      outParts.push(el('p', { class: 'small-note' }, 'Observed Year ' + d.observedYear + ' transition (' + d.workYear + ' → ' + d.observedYear + ') has not been completed yet.'));
+    } else {
+      const out = d.annualOutcomeNextYear;
+      outParts.push(el('p', { class: 'small-note' }, 'Annual revision ' + out.annualRevisionAfter + ' · work revision ' + out.workRevision +
+        (out.cancelledUnexecutedWork ? ' · unexecuted work cancelled by consent at zero Fell.' : '.')));
+      outParts.push(table('Observed ecological outcome (Year ' + out.yearBefore + ' → Year ' + out.yearAfter + ')',
+        ['Area', 'Living stems', 'Basal area (m²/ha)', 'Natural deaths', 'Mean bramble / bracken / light'],
+        (out.areas || []).map((a) => [
+          areaShort(a.areaId),
+          a.before.livingCount + ' → ' + a.after.livingCount,
+          fixed(a.before.basalAreaM2PerHa, 2) + ' → ' + fixed(a.after.basalAreaM2PerHa, 2),
+          a.noLivingStems ? 'no living stems' : String(a.naturalDeathCount),
+          (a.meanBramble !== null && a.meanBramble !== undefined ? pct1(a.meanBramble) : '–') + ' / ' +
+          (a.meanBracken !== null && a.meanBracken !== undefined ? pct1(a.meanBracken) : '–') + ' / ' +
+          (a.meanRegenStepLightIndex !== null && a.meanRegenStepLightIndex !== undefined ? lightIndexText(a.meanRegenStepLightIndex) : '–'),
+        ])));
+      const regenRows = [];
+      for (const a of (out.areas || [])) {
+        for (const r of (a.naturalRegeneration || [])) {
+          if (r.startingAbundance > 0 || r.endingAbundance > 0 || r.promotionsCount > 0) {
+            regenRows.push([areaShort(a.areaId), speciesLabel(r.speciesId), fixed(r.startingAbundance, 3) + ' → ' + fixed(r.endingAbundance, 3), String(r.promotionsCount)]);
+          }
+        }
+      }
+      if (regenRows.length > 0) {
+        outParts.push(table('Natural regeneration accounts (Observed Year ' + out.yearAfter + ')', ['Area', 'Species', 'Occupancy', 'Promotions'], regenRows));
+      }
+      if (out.wholeWoodlandPlantedAccounts && out.wholeWoodlandPlantedAccounts.length > 0) {
+        outParts.push(el('div', { class: 'history-card-head' },
+          el('h4', null, 'Planted juvenile accounts (Whole-woodland scope)'),
+          el('div', { class: 'history-pills' }, provPill('RECORDED'), provPill('NOT RECORDED'))));
+        outParts.push(table('Whole-woodland planted accounts (per-area split NOT RECORDED)',
+          ['Species', 'Scope', 'Start', 'Remaining', 'Promoted', 'Deaths (veg/light/browse)'],
+          out.wholeWoodlandPlantedAccounts.map((p) => [
+            speciesLabel(p.speciesId),
+            p.scope,
+            String(p.starting),
+            String(p.remaining),
+            String(p.promoted),
+            p.vegetationDeaths + ' / ' + p.lightDeaths + ' / ' + p.browseDeaths,
+          ])));
+        outParts.push(el('p', { class: 'small-note' }, provPill('NOT RECORDED'), ' ', out.perAreaPlantedSplitNote));
+      }
+    }
+    if (d.annualRecordEndingInYear) {
+      const endRec = d.annualRecordEndingInYear;
+      outParts.push(el('details', { class: 'more' },
+        el('summary', null, 'Earlier annual transition closing at Year ' + endRec.yearAfter + ' (' + endRec.yearBefore + ' → ' + endRec.yearAfter + ')'),
+        table('Annual transition ' + endRec.yearBefore + ' → ' + endRec.yearAfter, ['Area', 'Living stems', 'Basal area (m²/ha)', 'Natural deaths'],
+          (endRec.areas || []).map((a) => [areaShort(a.areaId), a.before.livingCount + ' → ' + a.after.livingCount,
+            fixed(a.before.basalAreaM2PerHa, 2) + ' → ' + fixed(a.after.basalAreaM2PerHa, 2), String(a.naturalDeathCount)]))));
+    }
+    cards.push(el('section', { class: 'history-card history-card-outcome', 'data-history-section': 'observed-outcome' }, ...outParts));
+
+    // 3. Later Observed Comparison (CURRENT + DERIVED + non-causal note, no weather mention)
+    if (d.laterObservedComparison) {
+      const cmp = d.laterObservedComparison;
+      const cmpParts = [
+        el('div', { class: 'history-card-head' },
+          el('h3', null, 'Later Observed Comparison (as of Year ' + cmp.asOfEcologicalYear + ')'),
+          el('div', { class: 'history-pills' }, provPill(cmp.currentProvenance || 'CURRENT'), provPill(cmp.deltaProvenance || 'DERIVED'), provPill('SESSION-ONLY'))),
+        el('p', { class: 'non-causal-box', 'data-non-causal': 'true' }, cmp.nonCausalStatement),
+        table('Current stand vs Observed Year ' + d.observedYear,
+          ['Area', 'Current live (CURRENT)', 'Stem delta (DERIVED)', 'Current BA m²/ha', 'BA delta', 'Deadwood logs', 'Planted (act/prom/dead)'],
+          (cmp.areas || []).map((a) => [
+            areaShort(a.areaId),
+            String(a.currentLiveStems),
+            a.liveStemDeltaSinceObservedYear === null || a.liveStemDeltaSinceObservedYear === undefined ? '–'
+              : (a.liveStemDeltaSinceObservedYear >= 0 ? '+' : '') + a.liveStemDeltaSinceObservedYear,
+            a.currentBasalAreaM2PerHa === null || a.currentBasalAreaM2PerHa === undefined ? '–' : fixed(a.currentBasalAreaM2PerHa, 2),
+            a.basalAreaM2PerHaDeltaSinceObservedYear === null || a.basalAreaM2PerHaDeltaSinceObservedYear === undefined ? '–'
+              : (a.basalAreaM2PerHaDeltaSinceObservedYear >= 0 ? '+' : '') + fixed(a.basalAreaM2PerHaDeltaSinceObservedYear, 2),
+            a.currentDeadwoodCount === null || a.currentDeadwoodCount === undefined ? '–' : String(a.currentDeadwoodCount),
+            a.plantedJuvenilesAliveActive === null || a.plantedJuvenilesAliveActive === undefined ? '–'
+              : a.plantedJuvenilesAliveActive + ' / ' + a.plantedJuvenilesPromoted + ' / ' + a.plantedJuvenilesDead,
+          ])),
+        el('p', { class: 'small-note' }, provPill('SESSION-ONLY'), ' Current overhead canopy cover and modelled light are session-only live map read-outs and are never back-filled into past years.'),
+      ];
+      cards.push(el('section', { class: 'history-card history-card-current', 'data-history-section': 'later-comparison' }, ...cmpParts));
+    }
+
+    // 4. Honest NOT RECORDED disclosures + Provenance Glossary
+    const discParts = [
+      el('div', { class: 'history-card-head' },
+        el('h3', null, 'Not Recorded in 2D History'),
+        provPill('NOT RECORDED')),
+      el('ul', { class: 'disclosure-list' }, ...(d.notRecordedDisclosures || []).map((item) => el('li', null,
+        el('div', null, provPill(item.provenanceLabel || 'NOT RECORDED'), ' ', el('strong', null, item.fieldKey)),
+        el('span', null, item.explanation)))),
+    ];
+    if (d.provenanceGlossary && d.provenanceGlossary.length > 0) {
+      discParts.push(el('details', { class: 'more' },
+        el('summary', null, 'Provenance tier definitions (all 6 tiers)'),
+        el('ul', { class: 'disclosure-list' }, ...d.provenanceGlossary.map((g) => el('li', null,
+          el('div', null, provPill(g.label), ' ', el('strong', null, g.d073Tier)),
+          el('span', { class: 'small-note' }, g.description))))));
+    }
+    cards.push(el('section', { class: 'history-card history-card-disclosures', 'data-history-section': 'not-recorded' }, ...discParts));
+
+    return cards;
+  }
+
+  function formatStructureCell(value) {
+    if (value === null || value === undefined || typeof value !== 'number' || !Number.isFinite(value)) {
+      return el('span', { class: 'structure-metric-unavail' }, 'Unavailable');
+    }
+    return fixed(value, 2);
+  }
+
+  async function refreshStructure() {
+    if (!state.view) return;
+    const req = ++state.structureRequest;
+    state.structureLoading = true;
+    state.structureError = null;
+    renderStructure();
+    const outcome = await jsonCall('api/multi/structure', 'GET');
+    if (req !== state.structureRequest) return;
+    state.structureLoading = false;
+    if (outcome.kind === 'ok' && outcome.payload && typeof outcome.payload.maxNeighbourCountK === 'number') {
+      state.structure = outcome.payload;
+      state.structureRootTag = state.view ? (state.view.sessionId + ':' + state.view.source.annualRevision + ':' + state.view.source.workRevision) : null;
+      state.structureError = null;
+    } else {
+      const notice = noticeOf(outcome);
+      state.structureError = 'Could not read structure (' + notice.code + '): ' + notice.message;
+    }
+    renderStructure();
+  }
+
+  function renderStructure() {
+    const box = byId('structure-content');
+    const disc = byId('structure-disclaimer');
+    if (!box || !disc) return;
+    if (state.structureLoading) {
+      box.replaceChildren(el('p', { class: 'small-note' }, 'Computing nearest-neighbour woodland structure…'));
+      return;
+    }
+    if (state.structureError) {
+      box.replaceChildren(el('p', { class: 'warning' }, state.structureError));
+      return;
+    }
+    const s = state.structure;
+    if (!s) {
+      box.replaceChildren(el('p', { class: 'small-note' }, 'Loaded on demand when Details is opened. Press Refresh structure to compute M_i and T_i.'));
+      return;
+    }
+    if (s.honestyLabel) disc.textContent = s.honestyLabel;
+    const rows = (s.areas || []).map((a) => [
+      areaShort(a.areaId),
+      String(a.focalLivingTreeCount),
+      a.effectiveNeighbourCount + ' / ' + a.maxNeighbourCountK,
+      formatStructureCell(a.meanMingling),
+      formatStructureCell(a.meanDiameterDifferentiation),
+    ]);
+    rows.push([
+      'Whole woodland',
+      String(s.focalLivingTreeCount),
+      s.effectiveNeighbourCount + ' / ' + s.maxNeighbourCountK,
+      formatStructureCell(s.meanMingling),
+      formatStructureCell(s.meanDiameterDifferentiation),
+    ]);
+    box.replaceChildren(
+      table('Woodland spatial structure (M_i and T_i, living adult stems)',
+        ['Scope', 'Living', 'k (eff/max)', 'M_i (mingling)', 'T_i (diam. diff.)'],
+        rows),
+      el('p', { class: 'small-note' }, provPill(s.provenanceLabel || s.provenance || 'DERIVED'),
+        ' Living adult trees across connected woodland (excludes stumps, deadwood, and unpromoted PJ saplings). Null values display as Unavailable, never 0.00.'));
   }
 
   function wire() {
@@ -6278,6 +7065,25 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
     byId('crop-button').addEventListener('click', onCrop);
     byId('reread').addEventListener('click', () => reread(true));
     byId('advance').addEventListener('click', onAdvance);
+    byId('skip-review').addEventListener('click', onSkipReview);
+    byId('history-open').addEventListener('click', openHistoryDrawer);
+    byId('history-close').addEventListener('click', () => closeHistoryDrawer(true));
+    byId('history-backdrop').addEventListener('click', () => closeHistoryDrawer(true));
+    byId('history-load-older').addEventListener('click', () => {
+      if (state.historyNextCursor !== null && state.historyNextCursor !== undefined && !state.historyLoading) {
+        loadHistoryIndex(state.historyNextCursor, true);
+      }
+    });
+    byId('history-year-list').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-history-year]');
+      if (btn) loadHistoryYear(Number(btn.getAttribute('data-history-year')));
+    });
+    byId('structure-refresh').addEventListener('click', refreshStructure);
+    byId('notice-structure').addEventListener('click', () => {
+      showPane('details');
+      refreshStructure();
+      byId('structure-heading').focus();
+    });
     byId('saves-open').addEventListener('click', openSaves);
     byId('saves-close').addEventListener('click', () => byId('saves-dialog').close());
     byId('saves-dialog').addEventListener('close', () => {
