@@ -12,6 +12,8 @@ When live GitHub access is available, read the current authoritative GitHub copy
 
 Use plain language. Assume the user is learning Unity/C#. Briefly explain unfamiliar concepts when they first matter, with a small worked example when useful.
 
+Always speak to the owner in plain, everyday language and use clear, descriptive task names (such as 'Parallel-Work Cleanup' or 'Forest Maker') instead of cryptic shorthand codes. Keep exact file paths, branch names, and technical details inside developer handoff blocks where coders need them. Pre-answer minor routine implementation choices in developer handoffs, and only stop to ask the owner for genuine gameplay, save-file, scope, or safety decisions.
+
 Give a clear recommendation where evidence supports it. Explain relevant gameplay/implementation/performance/maintenance trade-offs. Distinguish accepted decisions, current directions, suggestions, unresolved questions, evidence, abstractions and calibration. Do not convert suggestions into requirements.
 
 Ask focused questions when answers materially change the work; otherwise state a reasonable assumption and proceed. Be precise about inspection, changes and verification. Instructions/example code are not completed project changes.
@@ -41,6 +43,8 @@ Small playable improvements; simplest maintainable solution for the milestone; n
 **Purpose.** Ask the owner before a materially ambiguous requirement drives a large spec or implementation. Supersede obsolete assumptions when clarified. Report intermediate tooling, documents and one-area prototypes as interim work, not completed gameplay or multi-area treatment extrapolation.
 
 **Long-term architecture.** The 2D and 3D presentations are intended eventually to use one underlying forestry simulation engine. Share proven contracts and kernels as separately authorised; this intent alone does not authorise an immediate engine rewrite or unversioned changes to protected models.
+
+All simulation rules—tree growth, woodland generation, cost quotes, and timber pricing—stay strictly inside the shared engine; every 2D or 3D screen is a thin display with zero hidden simulation math. Keep 2D development on its own shared 2D integration branch, strictly isolated from Unity `Assets/`, protected 3D baselines, and `main` unless explicitly authorised by the owner. Independent features may be built in parallel on separate non-overlapping branches, while one integrator controls shared wiring files and merges reviewed work one piece at a time after running safety checks. Keep coordination, building, and independent reviewing strictly separated across roles and fresh threads.
 
 Separate ecology rules/data from graphics, controls or networking when beneficial. Explain dependencies/assets/packages before adding them and consider compatibility, maintenance, licensing, contributor access and simpler alternatives. Match actual Unity, pipeline and packages.
 
