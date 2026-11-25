@@ -765,7 +765,10 @@ T.Add("P1-TH-04 contract: post-Fell anchor events, work logs, whole-woodland pla
     T.Eq(3, st.AnnualHistory.Count, "all annual history years preserved");
     T.True(st.Stage4!.PruneLog.Count > 0 && st.Stage5!.ClearLog.Count > 0 && st.Phase2!.WorkLog.Count > 0,
         "all typed work logs preserved for history query");
-    T.True(st.Phase2!.Accounts.All(a => a.Planted.Count > 0), "whole-woodland Phase2PlantedAccount totals preserved");
+    T.True(st.Phase2!.Accounts[1].Planted.Count == 2 &&
+        st.Phase2!.Accounts[1].Planted.Any(p => p.SpeciesId == "beech" && p.Starting == 10 && p.Remaining == 4) &&
+        st.Phase2!.Accounts[1].Planted.Any(p => p.SpeciesId == "sessile-oak" && p.Promoted == 1 && p.PromotedTreeIds.SequenceEqual(new[] { "A-PJ0001" })),
+        "whole-woodland Phase2PlantedAccount totals preserved");
     T.True(st.Phase2!.TreeSpecies.Count > 0, "broadleaf TreeSpecies map preserved for structure metrics");
     T.Bytes(approvedBytes, Phase1SaveCodec.Encode(loaded.Envelope), "canonical bytes identical");
 });
