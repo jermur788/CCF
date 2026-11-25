@@ -693,6 +693,8 @@ for req_id in cfg["requiredPassIds"]:
 fail_ids = re.findall(r"^FAIL\s+(\S+)", text, re.MULTILINE)
 if len(fail_ids) != failed:
     sys.exit(f"ui-smoke.sh FAIL line count ({len(fail_ids)}) != summary failed ({failed})")
+if len(fail_ids) != len(set(fail_ids)):
+    sys.exit(f"ui-smoke.sh duplicate FAIL IDs: {fail_ids}")
 allowed = set(cfg["knownBaselineFailures"])
 unexpected = [fid for fid in fail_ids if fid not in allowed]
 if unexpected:
