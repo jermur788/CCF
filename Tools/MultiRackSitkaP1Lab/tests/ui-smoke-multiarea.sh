@@ -670,6 +670,157 @@ check(code == 200 and reapproved['view']['approved'] is not None and
       reapproved['view']['approved']['planId'] != approved['view']['approved']['planId'],
       'approving the restored draft mints a plan id for the NEW session')
 
+# ---- S2: Phase 1 Step 2 HTTP contracts (preview-review, skip, history/index, history/year, structure, bounded view) ----
+s2_app_view = reapproved['view']
+s2_app_fence = fence(s2_app_view)
+s2_stale_fence = fence(approved['view'])
+
+# Guards across all five Step 2 routes (403, 404, 405, 415, 413, 400)
+refused('api/multi/year/preview-review', {'fence': s2_app_fence}, 'HTTP403', 'Step 2 preview-review foreign Origin', headers={'Origin': 'http://example.invalid'})
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': 4}, 'HTTP403', 'Step 2 skip foreign Origin', headers={'Origin': 'http://example.invalid'})
+refused('api/multi/history/year', {'fence': s2_app_fence, 'year': 0}, 'HTTP403', 'Step 2 history/year foreign Origin', headers={'Origin': 'http://example.invalid'})
+refused('api/multi/structure', None, 'HTTP403', 'Step 2 structure wrong Host', method='GET', headers={'Host': 'localhost:' + origin.rsplit(':', 1)[1]})
+refused('api/multi/history/index', None, 'HTTP404', 'Step 2 history/index wrong capability', method='GET', target=origin + '/s/' + '0' * 64 + '/')
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': 4}, 'HTTP404', 'Step 2 skip wrong capability', target=origin + '/s/' + '0' * 64 + '/')
+refused('api/multi/year/preview-review', None, 'HTTP405', 'GET on preview-review', method='GET')
+refused('api/multi/year/skip', None, 'HTTP405', 'GET on skip', method='GET')
+refused('api/multi/history/year', None, 'HTTP405', 'GET on history/year', method='GET')
+refused('api/multi/history/index', {'fence': s2_app_fence}, 'HTTP405', 'POST on history/index', method='POST')
+refused('api/multi/structure', {'fence': s2_app_fence}, 'HTTP405', 'POST on structure', method='POST')
+refused('api/multi/year/preview-review', {'fence': s2_app_fence}, 'HTTP415', 'text/plain on preview-review', headers={'Content-Type': 'text/plain'})
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': 4}, 'HTTP415', 'text/plain on skip', headers={'Content-Type': 'text/plain'})
+refused('api/multi/history/year', {'fence': s2_app_fence, 'year': 0}, 'HTTP415', 'text/plain on history/year', headers={'Content-Type': 'text/plain'})
+refused('api/multi/year/skip', None, 'HTTP413', 'body over 16 KiB on skip', raw=b' ' * 17000)
+refused('api/multi/year/preview-review', None, 'HTTP400', 'malformed JSON on preview-review', raw=b'{"fence":')
+refused('api/multi/year/preview-review', {'fence': s2_app_fence, 'extra': 1}, 'HTTP400', 'unknown member on preview-review')
+refused('api/multi/year/skip', {'fence': s2_app_fence}, 'HTTP400', 'skip without targetYear')
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': 4, 'extra': 1}, 'HTTP400', 'unknown member on skip')
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': '4'}, 'HTTP400', 'string targetYear on skip')
+refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': 4.5}, 'HTTP400', 'fractional targetYear on skip')
+refused('api/multi/year/skip', None, 'HTTP400', 'duplicate member on skip',
+        raw=json.dumps({'fence': s2_app_fence, 'targetYear': 4}).replace('"targetYear":', '"targetYear":3,"targetYear":').encode())
+refused('api/multi/history/year', {'fence': s2_app_fence}, 'HTTP400', 'history/year without year')
+refused('api/multi/history/year', {'fence': s2_app_fence, 'year': '0'}, 'HTTP400', 'string year on history/year')
+refused('api/multi/history/year', {'fence': s2_app_fence, 'year': 0, 'extra': 1}, 'HTTP400', 'unknown member on history/year')
+refused('api/multi/history/index?unknown=1', None, 'HTTP400', 'unknown query param on history/index', method='GET')
+refused('api/multi/history/index?pageSize=abc', None, 'HTTP400', 'non-integer pageSize on history/index', method='GET')
+refused('api/multi/history/index?pageSize=2&pageSize=3', None, 'HTTP400', 'duplicate pageSize on history/index', method='GET')
+refused('api/multi/history/index?beforeYear=-1', None, 'HTTP400', 'negative beforeYear on history/index', method='GET')
+refused('api/multi/structure?extra=1', None, 'HTTP400', 'unexpected query param on structure', method='GET')
+
+# WorkPlanOpen (Approved): preview-review reports ineligible + skip returns 409 without cancelling approved work
+code, prev_app = send('api/multi/year/preview-review', {'fence': s2_app_fence})
+check(code == 200 and prev_app['refusal'] is None and prev_app['eligible'] is False and
+      prev_app['stopReason'] == 'WorkPlanOpen' and prev_app['anchorFellYear'] == 0 and
+      prev_app['isObservationPeriod'] is False and 'GAMEPLAY CALIBRATION' in prev_app['calibrationNote'] and
+      prev_app['maxTicksPerPress'] == 5 and prev_app['fence'] == s2_app_fence,
+      'preview-review with Approved plan returns 200 ineligible WorkPlanOpen with anchorFellYear=0 and GAMEPLAY CALIBRATION')
+r_skip_app = refused('api/multi/year/skip', {'fence': s2_app_fence, 'targetYear': prev_app['suggestedTargetYear']},
+                     'WorkPlanOpen', 'skip refused while Approved plan is open')
+check(r_skip_app.get('view') is not None and r_skip_app['view']['approved'] is not None and r_skip_app.get('ecology') is not None,
+      'skip 409 WorkPlanOpen preserves open Approved plan and returns fresh composite payload')
+
+# WorkPlanOpen (Pending): cancel approved, queue 1 Pending Fell, verify skip never cancels Pending work
+s2_v = ok('api/multi/plan/cancel', {'fence': s2_app_fence}, 'cancel Approved plan for Step 2 Pending check')['view']
+s2_free = next(t['treeId'] for t in living(s2_v, 'MA-A'))
+s2_v = ok('api/multi/pending/add', {'fence': fence(s2_v), 'areaId': 'MA-A', 'treeId': s2_free, 'reason': 'step2 pending open'}, 'queue Pending Fell for Step 2')['view']
+code, prev_pend = send('api/multi/year/preview-review', {'fence': fence(s2_v)})
+check(code == 200 and prev_pend['eligible'] is False and prev_pend['stopReason'] == 'WorkPlanOpen',
+      'preview-review with Pending Fell reports ineligible WorkPlanOpen')
+r_skip_pend = refused('api/multi/year/skip', {'fence': fence(s2_v), 'targetYear': prev_pend['suggestedTargetYear']},
+                      'WorkPlanOpen', 'skip refused while Pending Fell is open')
+check(len(view()['pending']) == 1 and view()['pending'][0]['treeId'] == s2_free,
+      'skip 409 WorkPlanOpen leaves Pending Fell intact (never cancels open work)')
+s2_v = ok('api/multi/pending/remove', {'fence': fence(s2_v), 'areaId': 'MA-A', 'treeId': s2_free}, 'remove Pending Fell')['view']
+
+# Stale fence on preview-review and skip; invalid targetYear bounds on skip
+r_prev_stale = refused('api/multi/year/preview-review', {'fence': s2_stale_fence}, 'PlayerSessionMismatch', 'preview-review stale fence')
+check(r_prev_stale.get('fence') == fence(s2_v) and r_prev_stale.get('view') is not None, 'preview-review 409 returns fresh fence and view')
+refused('api/multi/year/skip', {'fence': s2_stale_fence, 'targetYear': 4}, 'PlayerSessionMismatch', 'skip stale fence')
+refused('api/multi/year/skip', {'fence': fence(s2_v), 'targetYear': s2_v['source']['ecologicalYear']}, 'InvalidTargetYear', 'skip targetYear == currentYear')
+refused('api/multi/year/skip', {'fence': fence(s2_v), 'targetYear': s2_v['source']['ecologicalYear'] + 6}, 'InvalidTargetYear', 'skip targetYear > currentYear + 5')
+
+# Valid skip to suggested review year (Year 2 -> Year 4, anchored to Fell Year 0) + overdue fallback at Year 4 -> Year 8
+code, prev_ok = send('api/multi/year/preview-review', {'fence': fence(s2_v)})
+check(code == 200 and prev_ok['eligible'] is True and prev_ok['suggestedTargetYear'] == 4 and
+      prev_ok['anchorFellYear'] == 0 and prev_ok['isObservationPeriod'] is False and view() == s2_v,
+      'preview-review at Year 2 (anchor Fell Year 0) suggests Year 4 read-only')
+skip1 = ok('api/multi/year/skip', {'fence': fence(s2_v), 'targetYear': 4}, 'skip Year 2 -> Year 4')
+check(skip1['startYear'] == 2 and skip1['destinationYear'] == 4 and skip1['requestedTargetYear'] == 4 and
+      len(skip1['completedYears']) == 2 and skip1['reachedTarget'] is True and skip1['stopReason'] == 'ReachedReviewYear' and
+      skip1['anchorFellYear'] == 0 and skip1['isObservationPeriod'] is False and
+      'GAMEPLAY CALIBRATION' in skip1['calibrationNote'] and skip1['view']['source']['ecologicalYear'] == 4 and
+      skip1.get('scenes') is not None and skip1.get('stage4') is not None and skip1.get('ecology') is not None,
+      'skip Year 2 -> 4 returns full DTO + fresh composite payload')
+code, prev_over = send('api/multi/year/preview-review', {'fence': fence(skip1['view'])})
+check(code == 200 and prev_over['eligible'] is True and prev_over['suggestedTargetYear'] == 8 and prev_over['anchorFellYear'] == 0,
+      'preview-review overdue fallback at Year 4 (anchor 0) suggests Year 8')
+
+# Advance to Year 15 via bounded skips (+5, +5, +1) for 15+ year history paging & bounded view payload verification
+cur_s2 = skip1['view']
+for target_yr in (9, 14, 15):
+    res = ok('api/multi/year/skip', {'fence': fence(cur_s2), 'targetYear': target_yr}, 'skip to Year %d' % target_yr)
+    cur_s2 = res['view']
+check(cur_s2['source']['ecologicalYear'] == 15, 'reached Year 15 via bounded skip')
+
+# GET api/multi/history/index: clamping (0 -> 1, 99 -> 50, default 10) and newest-first cursor paging over 16 recorded years
+code, idx_def = send('api/multi/history/index', method='GET')
+check(code == 200 and idx_def['pageSize'] == 10 and len(idx_def['items']) == 10 and
+      idx_def['totalRecordedYears'] == 16 and idx_def['items'][0]['year'] == 15 and idx_def['nextCursorBeforeYear'] == 6,
+      'history/index default pageSize=10 returns Years 15..6 with cursor=6 and totalRecordedYears=16')
+code, idx_lo = send('api/multi/history/index?pageSize=0', method='GET')
+code_hi, idx_hi = send('api/multi/history/index?pageSize=99', method='GET')
+check(code == 200 and idx_lo['pageSize'] == 1 and len(idx_lo['items']) == 1 and
+      code_hi == 200 and idx_hi['pageSize'] == 50 and len(idx_hi['items']) == 16,
+      'history/index clamps pageSize to [1, 50]')
+paged_years = []
+cursor = None
+for _ in range(10):
+    q = 'api/multi/history/index?pageSize=5' + ('' if cursor is None else '&beforeYear=%d' % cursor)
+    c_pg, pg = send(q, method='GET')
+    check(c_pg == 200, 'history/index page fetch (%s)' % q)
+    paged_years.extend(item['year'] for item in pg['items'])
+    cursor = pg['nextCursorBeforeYear']
+    if cursor is None:
+        break
+check(paged_years == list(range(15, -1, -1)), 'history/index cursor paging walks all 16 years newest-first without gaps or duplicates')
+
+# POST api/multi/history/year: 409 stale/invalid/unrecorded + 200 full Year 0 & Year 2 Decision -> Outcome details
+refused('api/multi/history/year', {'fence': s2_stale_fence, 'year': 0}, 'PlayerSessionMismatch', 'history/year stale fence')
+refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': -1}, 'HistoryYearInvalid', 'history/year negative year')
+refused('api/multi/history/year', {'fence': fence(cur_s2), 'year': 99}, 'HistoryYearNotRecorded', 'history/year unrecorded future year')
+code, det0 = send('api/multi/history/year', {'fence': fence(cur_s2), 'year': 0})
+det0_text = json.dumps(det0)
+gloss_labels = {g['label'] for g in det0.get('provenanceGlossary', [])}
+disc_keys = {d['fieldKey'] for d in det0.get('notRecordedDisclosures', [])}
+non_causal = (det0.get('laterObservedComparison') or {}).get('nonCausalStatement', '')
+check(code == 200 and det0['workYear'] == 0 and det0['observedYear'] == 1 and det0['hasRecordedData'] is True and
+      det0['totalWorkCounts']['fell'] == 2 and det0['annualOutcomeNextYear']['yearAfter'] == 1 and
+      gloss_labels == {'RECORDED', 'CURRENT', 'DERIVED', 'RECONSTRUCTED', 'SESSION-ONLY', 'NOT RECORDED'} and
+      len(disc_keys) >= 3 and 'not a single-cause effect' in non_causal and
+      'weather' not in non_causal.lower() and '\u20ac' not in det0_text and 'revenue' not in det0_text.lower(),
+      'history/year(0) separates WorkYear 0 vs ObservedYear 1, includes all 6 provenance labels, NOT RECORDED disclosures, exact non-causal note (no weather), zero economy')
+code, det2 = send('api/multi/history/year', {'fence': fence(cur_s2), 'year': 2})
+check(code == 200 and det2['workYear'] == 2 and det2['observedYear'] == 3 and det2['totalWorkCounts']['plant'] == 1 and
+      len(det2['plantedWorkFollowUp']) == 1 and det2['plantedWorkFollowUp'][0]['provenance'] == 'Reconstructed' and
+      len(det2['annualOutcomeNextYear']['wholeWoodlandPlantedAccounts']) >= 1 and
+      'NOT RECORDED' in det2['annualOutcomeNextYear']['perAreaPlantedSplitNote'],
+      'history/year(2) reports RECONSTRUCTED planted juvenile follow-up and whole-woodland planted accounts with NOT RECORDED per-area split')
+
+# GET api/multi/structure on MA-1 (all Sitka -> meanMingling == 0.0)
+code, st_ma1 = send('api/multi/structure', method='GET')
+check(code == 200 and st_ma1['provenance'] == 'DERIVED' and st_ma1['provenanceLabel'] == 'DERIVED' and
+      st_ma1['maxNeighbourCountK'] == 3 and st_ma1['meanMingling'] == 0.0 and
+      st_ma1['meanDiameterDifferentiation'] is not None and st_ma1['meanDiameterDifferentiation'] > 0.0 and
+      len(st_ma1['areas']) == 2 and
+      st_ma1['honestyLabel'] == 'Spatial structure descriptor (up to k=3 nearest living trees) \u2014 not measured biodiversity, habitat quality, or an Irish forecast.',
+      'GET api/multi/structure on MA-1 returns DERIVED M_i=0.00, T_i>0, k=3 and exact honesty disclaimer')
+
+# Year 15 bounded view payload budget on MA-1
+y15_view_b, y15_eco_b, y15_obj = raw_view_and_eco_bytes()
+check(y15_view_b <= 524288 and y15_eco_b <= 153600 and y15_obj['totalRecordedYears'] == 16 and isinstance(y15_obj['historyTruncated'], bool),
+      'MA-1 Year 15 raw payload budgets hold (view=%d B <= 524288, ecology=%d B <= 153600, totalRecordedYears=16)' % (y15_view_b, y15_eco_b))
+
 print('INFO workflow checks: %d' % count, flush=True)
 WORKFLOW
 workflow_rc=0
@@ -717,6 +868,27 @@ ok = ok and m.get(\"experimentBadge\") == \"Synthetic MA-1-MIXED demo \u2014 Are
 ok = ok and len(raw) <= 524288 and eco_bytes <= 153600
 ok = ok and all(b_sp.get(sp, 0) > 0 for sp in (\"sitka-spruce\", \"sessile-oak\", \"beech\"))
 sys.exit(0 if ok else 1)" "$2" "$3"' _ "$mixed_url" "$scratch/mixed-man.json" "$scratch/mixed-view.json"
+check "M14 --multi-experiment=ma-1-mixed serves GET api/multi/structure (M_i > 0, DERIVED) and Year-0 preview-review (Obs., +4)" \
+  bash -c '
+    test -n "$1" &&
+    curl -fsS --noproxy "*" "${1}api/multi/structure" -o "$2" &&
+    python3 -I -B -c "import json, sys, urllib.request
+base = sys.argv[1]; origin = base.split(\"/s/\")[0]
+st = json.load(open(sys.argv[2], encoding=\"utf-8\"))
+view_obj = json.load(open(sys.argv[3], encoding=\"utf-8\"))
+v = view_obj[\"view\"]
+fence = {\"sessionId\": v[\"sessionId\"], \"source\": v[\"source\"], \"planStateRevision\": v[\"planStateRevision\"]}
+req = urllib.request.Request(base + \"api/multi/year/preview-review\", data=json.dumps({\"fence\": fence}).encode(),
+    headers={\"Origin\": origin, \"Content-Type\": \"application/json\"}, method=\"POST\")
+prev = json.loads(urllib.request.urlopen(req, timeout=15).read())
+area_a = next(a for a in st[\"areas\"] if a[\"areaId\"] == \"MA-A\")
+area_b = next(a for a in st[\"areas\"] if a[\"areaId\"] == \"MA-B\")
+ok = st.get(\"provenance\") == \"DERIVED\" and st.get(\"maxNeighbourCountK\") == 3
+ok = ok and st.get(\"meanMingling\", 0) > 0 and area_a.get(\"meanMingling\") == 0.0 and area_b.get(\"meanMingling\", 0) > 0
+ok = ok and st.get(\"honestyLabel\") == \"Spatial structure descriptor (up to k=3 nearest living trees) \u2014 not measured biodiversity, habitat quality, or an Irish forecast.\"
+ok = ok and prev.get(\"eligible\") is True and prev.get(\"suggestedTargetYear\") == 4 and prev.get(\"isObservationPeriod\") is True
+ok = ok and prev.get(\"anchorFellYear\") is None and \"GAMEPLAY CALIBRATION\" in (prev.get(\"calibrationNote\") or \"\")
+sys.exit(0 if ok else 1)" "$1" "$2" "$3"' _ "$mixed_url" "$scratch/mixed-structure.json" "$scratch/mixed-view.json"
 stop_server mixed
 
 # ---- J: the page's own script against a second, fresh process (a fresh session at Year 0) --------------------------------
@@ -1006,7 +1178,8 @@ async function send(method, path, body) {
 }
 async function pageFetch(path, init = {}) {
   const method = init.method || 'GET';
-  const relative = new URL(path, pageUrl).pathname.replace(/^\/s\/[0-9a-f]{64}\//, '');
+  const parsedUrl = new URL(path, pageUrl);
+  const relative = parsedUrl.pathname.replace(/^\/s\/[0-9a-f]{64}\//, '') + parsedUrl.search;
   requests.push({ method, path: relative, body: init.body === undefined ? null : JSON.parse(init.body) });
   const index = faults.findIndex((fault) => fault.method === method && fault.path === relative);
   const fault = index < 0 ? null : faults.splice(index, 1)[0];
@@ -1017,7 +1190,13 @@ async function pageFetch(path, init = {}) {
   // 'unpaired': the server's answer exactly, except that its engine read-out is missing (stage4: null), as the server sends
   // when the session moved between a command and its read-out (owner UX repair F-2).
   if (fault && fault.mode === 'unpaired' && answer.json) answer.json.stage4 = null;
-  return { status: answer.status, json: async () => answer.json };
+  // 'null-structure': simulates a stand with < 2 living trees (null M_i / T_i) to witness Unavailable rendering (never 0.00).
+  if (fault && fault.mode === 'null-structure' && answer.json) {
+    answer.json.meanMingling = null;
+    answer.json.meanDiameterDifferentiation = null;
+    for (const a of (answer.json.areas || [])) { a.meanMingling = null; a.meanDiameterDifferentiation = null; }
+  }
+  return { status: answer.status, ok: answer.status >= 200 && answer.status < 300, json: async () => answer.json };
 }
 const serverView = async () => (await send('GET', 'api/multi/view')).json.view;
 const areaOf = (view, areaId) => view.areas.find((area) => area.areaId === areaId);
@@ -1691,6 +1870,100 @@ check(alertText() === '', 'a successful re-read lifts the lock and clears the al
   checkP2(byId('juvenile-panel').hidden && !byId('tree-panel').hidden &&
     byId('add-button').textContent === 'Add selected 1 to Fell plan',
     'Escape closes PJ sapling inspection back to adult tree inspector preserving draft Fell ticks');
+}
+
+// ---- S2 (Phase 1 Step 2 UI witness: Skip button + WorkPlanOpen refusal + History drawer + Escape preserves Fell draft +
+// Structure on-demand load + null -> Unavailable never 0.00 + NB-2 Plant-drawer top #plant-result layout) ----
+{
+  let s2 = 0;
+  const checkS2 = (ok, label, detail) => {
+    if (!ok) failures++;
+    s2++;
+    console.log((ok ? 'PASS ' : 'FAIL ') + 'S2' + String.fromCharCode(96 + s2) + ' ' + label + (ok || detail === undefined ? '' : ' :: ' + redact(JSON.stringify(detail))));
+  };
+  const waitS2 = async (predicate, what) => {
+    for (const end = Date.now() + 8000; Date.now() < end; await sleep(10)) if (predicate()) return true;
+    checkS2(false, 'timed out waiting for ' + what);
+    return false;
+  };
+  const escape = () => document.documentElement.dispatchEvent(new FakeEvent('keydown', { key: 'Escape' }));
+
+  // NB-2 structural check: #plant-result sits directly below #plant-heading at the top of #plant-panel.
+  const plantKids = byId('plant-panel').childNodes.filter((n) => n instanceof FakeElement).map((n) => n.id || n.getAttribute('class'));
+  checkS2(plantKids.indexOf('plant-result') === plantKids.indexOf('plant-heading') + 1,
+    'NB-2: #plant-result sits directly below the Plant heading at the top of #plant-panel', plantKids.slice(0, 4));
+
+  // Draft Fell tick is still 1 from P2; test History drawer open, index load, year detail, Escape preserves draft Fell tick.
+  let markS2 = requests.length;
+  click(byId('history-open'));
+  await waitS2(() => !byId('history-drawer').hidden && byId('history-year-list').querySelectorAll('[data-history-year]').length >= 2,
+    'History drawer open and newest-first index loaded');
+  checkS2(requests.slice(markS2).some((r) => r.method === 'GET' && r.path === 'api/multi/history/index?pageSize=10') &&
+    byId('history-prov-bar').textContent.includes('RECORDED') &&
+    byId('history-prov-bar').textContent.includes('NOT RECORDED'),
+    'History drawer loads GET api/multi/history/index?pageSize=10 on demand and displays provenance bar');
+
+  click(byId('history-year-list').querySelector('[data-history-year="0"]'));
+  await waitS2(() => byId('history-detail-pane').textContent.includes('Work Executed — Year 0') &&
+    byId('history-detail-pane').textContent.includes('Observed Outcome — Year 0 → Year 1'),
+    'History drawer renders Year 0 Work Executed vs Observed Year 1 Outcome');
+  const histText = byId('history-detail-pane').textContent;
+  checkS2(histText.includes('not a single-cause effect') && !/weather/i.test(histText) &&
+    !/\u20ac|\beuro\b|\brevenue\b/i.test(histText) && histText.includes('NOT RECORDED') &&
+    histText.includes('CURRENT') && histText.includes('DERIVED') && histText.includes('SESSION-ONLY'),
+    'History Year 0 detail shows separate Work/Outcome cards, provenance pills, NOT RECORDED disclosures, non-causal note without weather, and zero economy',
+    { nonCausal: histText.includes('not a single-cause effect'), weather: /weather/i.test(histText), econ: /\u20ac|\beuro\b|\brevenue\b/i.test(histText), notRec: histText.includes('NOT RECORDED'), cur: histText.includes('CURRENT'), der: histText.includes('DERIVED'), sess: histText.includes('SESSION-ONLY'), sample: histText.slice(0, 400) });
+
+  // Escape closes History drawer without clearing draft Fell ticks.
+  escape();
+  checkS2(byId('history-drawer').hidden && document.activeElement === byId('history-open') &&
+    byId('add-button').textContent === 'Add selected 1 to Fell plan',
+    'Escape closes History drawer, returns focus to #history-open, and preserves draft Fell ticks');
+
+  // Details / Structure on-demand load + null -> Unavailable (never 0.00).
+  markS2 = requests.length;
+  click(byId('notice-structure'));
+  await waitS2(() => byId('structure-content').textContent.includes('Whole woodland') && byId('structure-content').textContent.includes('0.00'),
+    'Structure panel loads GET api/multi/structure on demand');
+  checkS2(requests.slice(markS2).some((r) => r.method === 'GET' && r.path === 'api/multi/structure') &&
+    byId('structure-disclaimer').textContent.includes('not measured biodiversity, habitat quality, or an Irish forecast'),
+    'Structure section displays M_i / T_i, DERIVED provenance, and exact spatial-structure-only disclaimer');
+
+  arm('GET', 'api/multi/structure', 'null-structure');
+  click(byId('structure-refresh'));
+  await waitS2(() => byId('structure-content').textContent.includes('Unavailable'), 'null structure values to render Unavailable');
+  const nullTableText = byId('structure-content').querySelector('table').textContent;
+  checkS2(nullTableText.includes('Unavailable') && !nullTableText.includes('0.00'),
+    'null M_i / T_i render as Unavailable and never 0.00', nullTableText);
+
+  // Skip to Review: WorkPlanOpen inline refusal without cancelling Pending work, then valid Skip -> Year 4.
+  byId('reason-release').checked = false;
+  byId('reason').value = 'step2 open work guard';
+  byId('reason').dispatchEvent(new FakeEvent('input'));
+  byId('add-form').dispatchEvent(new FakeEvent('submit'));
+  await waitS2(() => byId('pending-areas').querySelectorAll('[data-remove]').length === 1, 'pending Fell queued before Skip refusal');
+  await waitS2(() => byId('skip-review-sub').textContent.includes('Work plan open'), 'Skip button refreshed to Work plan open');
+  markS2 = requests.length;
+  click(byId('skip-review'));
+  await waitS2(() => alertText().includes('WorkPlanOpen'), 'Skip inline WorkPlanOpen refusal');
+  checkS2(!requests.slice(markS2).some((r) => r.path === 'api/multi/year/skip') &&
+    byId('pending-areas').querySelectorAll('[data-remove]').length === 1 &&
+    alertText().includes('GAMEPLAY CALIBRATION'),
+    'Skip refuses WorkPlanOpen via preview-review without sending skip or cancelling pending work');
+
+  click(byId('pending-areas').querySelector('[data-remove]'));
+  await waitS2(() => byId('pending-total').textContent === 'No pending orders' && !byId('skip-review').classList.contains('blocked'),
+    'removing Pending Fell unblocks Skip');
+  checkS2(byId('skip-review-label').textContent === 'Skip → Yr 4' && byId('skip-review-sub').textContent.includes('GAMEPLAY CALIBRATION'),
+    'Skip label shows anchored target Yr 4 and GAMEPLAY CALIBRATION', [byId('skip-review-label').textContent, byId('skip-review-sub').textContent]);
+
+  click(byId('skip-review'));
+  await waitS2(() => byId('year-value').textContent.trim() === '4' && !byId('skip-summary').hidden, 'Skip to advance to Year 4');
+  checkS2(byId('skip-summary').textContent.includes('Year 1 → Year 4') &&
+    byId('skip-summary').textContent.includes('ReachedReviewYear') &&
+    !byId('skip-summary').textContent.includes('null') &&
+    byId('skip-summary').textContent.includes('GAMEPLAY CALIBRATION'),
+    'Skip advances Year 1 -> Year 4 and displays stepped-years summary with stopReason and GAMEPLAY CALIBRATION', byId('skip-summary').textContent);
 }
 
 check(pageErrors.length === 0, 'no script error in the page', pageErrors.map(redact));
