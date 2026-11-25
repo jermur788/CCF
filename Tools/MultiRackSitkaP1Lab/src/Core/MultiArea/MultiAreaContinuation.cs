@@ -71,7 +71,7 @@ internal static class MultiAreaAnnual
 /// owner's safeguards. Every read and command takes <c>sync</c> exactly once, so the fence it checks, the transition it
 /// performs and the view it returns all come from one root. This is NOT two composed AnnualContinuation sessions.
 /// </summary>
-internal sealed class MultiAreaContinuation
+internal sealed partial class MultiAreaContinuation
 {
     private sealed record AreaInfo(string AreaId, string Label, string StockingNote, int Seed, float AreaHa,
         string AreaM2Exact, IReadOnlyList<MultiAreaVertex> Polygon, PlayerMapExtent Extent);
