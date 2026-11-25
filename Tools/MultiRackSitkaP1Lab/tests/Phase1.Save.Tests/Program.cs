@@ -737,6 +737,39 @@ T.Add("golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding", ()
     T.Eq(PinnedEmbeddedChecksum, embedded, "embedded checksum");
 });
 
+// ------------------------------------------------------------------ Step 1 (Time/History/Structure) SchemaVersion 2 continuity
+T.Add("P1-TH-04 contract: SchemaVersion remains 2 and pre-Fell multi-year history survives Save/Load slot round trip", () =>
+{
+    T.Eq(2, Phase1SaveFormat.SchemaVersion, "Step 1 does not bump SchemaVersion");
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    var preFell = Samples.Model0();
+    byte[] preFellBytes = Phase1SaveCodec.Encode(preFell);
+    var saved = slots.Save("p1-th-prefell", preFellBytes, replaceExisting: false);
+    T.Eq(Phase1SlotCommitStatus.DurablyCommitted, saved.Status, "pre-Fell slot committed");
+    var loaded = slots.Load("p1-th-prefell", model0Expect);
+    Deep.Equal(preFell, loaded.Envelope);
+    T.Eq(0, loaded.Envelope.State.Events.Count, "zero Fell events preserved for observation pacing");
+    T.Eq(1, loaded.Envelope.State.AnnualHistory.Count, "annual history preserved");
+    T.Bytes(preFellBytes, Phase1SaveCodec.Encode(loaded.Envelope), "re-encoded bytes identical");
+});
+T.Add("P1-TH-04 contract: post-Fell anchor events, work logs, whole-woodland planted accounts and tree species survive slot round trip at SchemaVersion 2", () =>
+{
+    T.Eq(2, Phase1SaveFormat.SchemaVersion, "SchemaVersion stays 2");
+    var slots = new Phase1SaveSlots(NewSlotDir());
+    slots.Save("p1-th-postfell", approvedBytes, replaceExisting: false);
+    var loaded = slots.Load("p1-th-postfell", phase2Expect);
+    Deep.Equal(approvedSave, loaded.Envelope);
+    var st = loaded.Envelope.State;
+    int latestFellYear = st.Events.SelectMany(e => e.Areas).SelectMany(a => a.Fells).Max(f => f.EcologicalYear);
+    T.Eq(2, latestFellYear, "latest Fell anchor year preserved");
+    T.Eq(3, st.AnnualHistory.Count, "all annual history years preserved");
+    T.True(st.Stage4!.PruneLog.Count > 0 && st.Stage5!.ClearLog.Count > 0 && st.Phase2!.WorkLog.Count > 0,
+        "all typed work logs preserved for history query");
+    T.True(st.Phase2!.Accounts.All(a => a.Planted.Count > 0), "whole-woodland Phase2PlantedAccount totals preserved");
+    T.True(st.Phase2!.TreeSpecies.Count > 0, "broadleaf TreeSpecies map preserved for structure metrics");
+    T.Bytes(approvedBytes, Phase1SaveCodec.Encode(loaded.Envelope), "canonical bytes identical");
+});
+
 int exit;
 try
 {

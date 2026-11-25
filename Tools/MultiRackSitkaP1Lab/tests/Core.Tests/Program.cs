@@ -461,6 +461,7 @@ Phase2Tests.Register(manifestPath);
 MapIntegrationPass1Tests.Register();
 MapIntegrationPass2Tests.Register();
 Phase1SaveIntegrationTests.Register();
+Phase1TimeHistoryTests.Register();
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
 return result;
