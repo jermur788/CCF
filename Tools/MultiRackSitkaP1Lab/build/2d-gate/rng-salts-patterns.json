@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sourceFile": "src/Core/RngSalts.cs",
+  "note": "SPEC-multi-2d-s0-seam-extraction-V1 §6.4 / G6: every quoted RNG key-prefix, suffix or fixed key literal in src/Core/**/*.cs outside src/Core/RngSalts.cs is a hard G6 FAIL.",
+  "patterns": [
+    "ADULT-MORT-",
+    "ADULT-MORT-GENERIC-",
+    "ADULT-MORT-GENERIC-QUOTA-",
+    "PHASE2-MAST-",
+    "PHASE2-PJ-",
+    "/vegetation",
+    "/browse",
+    "STAGE5-MAST",
+    "STAGE5-PROMO-"
+  ]
+}

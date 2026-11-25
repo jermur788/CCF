@@ -4,7 +4,7 @@
   "capturedUtc": "2026-11-25T15:25:30Z",
   "suites": {
     "core": {
-      "minPassed": 277,
+      "minPassed": 282,
       "maxFailed": 0,
       "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$"
     },

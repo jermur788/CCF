@@ -8,11 +8,11 @@ namespace SitkaP1.Core;
 /// </summary>
 internal static class Stage5Random
 {
-    public const string MastKey = "STAGE5-MAST";
+    public const string MastKey = RngSalts.Stage5Mast;
 
     /// <summary>The promotion-placement stream of one cell in one year.</summary>
     public static string PromotionKey(string areaId, int column, int row, int year) => string.Create(
-        System.Globalization.CultureInfo.InvariantCulture, $"STAGE5-PROMO-{areaId}-{column}-{row}-{year}");
+        System.Globalization.CultureInfo.InvariantCulture, $"{RngSalts.Stage5Promotion}{areaId}-{column}-{row}-{year}");
 
     public static System.Random Stream(string key, int seed, int year) =>
         SimulationRandom.Create(DerivedManifest.RngModelVersion, seed, year, unchecked((int)Fnv1a(key)));

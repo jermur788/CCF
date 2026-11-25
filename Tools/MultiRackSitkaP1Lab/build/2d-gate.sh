@@ -1259,10 +1259,10 @@ PY
 # ==============================================================================
 run_stage_G6() {
   local out
-  if ! out="$(python3 - "$P1_ROOT" "$GATE_DATA_DIR/determinism-allowlist.txt" "$EVIDENCE_DIR/g6-determinism.json" <<'PY'
+  if ! out="$(python3 - "$P1_ROOT" "$GATE_DATA_DIR/determinism-allowlist.txt" "$EVIDENCE_DIR/g6-determinism.json" "$GATE_DATA_DIR/rng-salts-patterns.json" <<'PY'
 import json, os, re, sys
 
-p1_root, allowlist_path, report_path = sys.argv[1:]
+p1_root, allowlist_path, report_path, rng_patterns_path = sys.argv[1:]
 core_dir = os.path.join(p1_root, "src", "Core")
 
 allowlist = set()
@@ -1299,41 +1299,62 @@ member_decl_re = re.compile(
     r"(?:[\w<>,\[\]\?\.\s]+?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^>]+>)?\s*(?:\(|=>|=|\{)"
 )
 
-def strip_comments_keep_lines(src):
+def scan_csharp(src):
+    """Strip C# comments preserving line numbers and extract string literal contents by 1-based line."""
     out = []
+    literals = []
     i = 0
     n = len(src)
+    line_no = 1
     in_str = False
     in_verbatim = False
     in_char = False
+    str_start_line = 1
+    str_buf = []
     while i < n:
         c = src[i]
         nxt = src[i + 1] if i + 1 < n else ""
         if in_verbatim:
             if c == '"' and nxt == '"':
                 out.append('""')
+                str_buf.append('"')
                 i += 2
             elif c == '"':
                 in_verbatim = False
                 out.append(c)
+                literals.append((str_start_line, "".join(str_buf)))
+                str_buf = []
                 i += 1
             else:
                 out.append(c)
+                str_buf.append(c)
+                if c == '\n':
+                    line_no += 1
                 i += 1
         elif in_str:
             if c == '\\' and i + 1 < n:
                 out.append(src[i:i+2])
+                str_buf.append(src[i:i+2])
+                if nxt == '\n':
+                    line_no += 1
                 i += 2
             elif c == '"':
                 in_str = False
                 out.append(c)
+                literals.append((str_start_line, "".join(str_buf)))
+                str_buf = []
                 i += 1
             else:
                 out.append(c)
+                str_buf.append(c)
+                if c == '\n':
+                    line_no += 1
                 i += 1
         elif in_char:
             if c == '\\' and i + 1 < n:
                 out.append(src[i:i+2])
+                if nxt == '\n':
+                    line_no += 1
                 i += 2
             elif c == "'":
                 in_char = False
@@ -1341,6 +1362,8 @@ def strip_comments_keep_lines(src):
                 i += 1
             else:
                 out.append(c)
+                if c == '\n':
+                    line_no += 1
                 i += 1
         else:
             if c == '/' and nxt == '/':
@@ -1351,14 +1374,26 @@ def strip_comments_keep_lines(src):
                 while i < n - 1 and not (src[i] == '*' and src[i + 1] == '/'):
                     if src[i] == '\n':
                         out.append('\n')
+                        line_no += 1
                     i += 1
                 i += 2
-            elif c == '@' and nxt == '"':
+            elif (c == '@' and nxt == '"') or (c == '$' and nxt == '@' and i + 2 < n and src[i + 2] == '"') or (c == '@' and nxt == '$' and i + 2 < n and src[i + 2] == '"'):
+                step = 2 if c == '@' and nxt == '"' else 3
                 in_verbatim = True
-                out.append('@"')
+                str_start_line = line_no
+                str_buf = []
+                out.append(src[i:i+step])
+                i += step
+            elif c == '$' and nxt == '"':
+                in_str = True
+                str_start_line = line_no
+                str_buf = []
+                out.append('$"')
                 i += 2
             elif c == '"':
                 in_str = True
+                str_start_line = line_no
+                str_buf = []
                 out.append(c)
                 i += 1
             elif c == "'":
@@ -1367,8 +1402,10 @@ def strip_comments_keep_lines(src):
                 i += 1
             else:
                 out.append(c)
+                if c == '\n':
+                    line_no += 1
                 i += 1
-    return "".join(out)
+    return "".join(out), literals
 
 def find_enclosing_member(lines, line_idx):
     for j in range(line_idx, -1, -1):
@@ -1383,10 +1420,33 @@ f2_violations = []
 rng_violations = []
 
 rng_salts_file = os.path.join(core_dir, "RngSalts.cs")
-rng_literals = []
+rng_literals_from_code = []
 if os.path.isfile(rng_salts_file):
     rs_text = open(rng_salts_file, "r", encoding="utf-8").read()
-    rng_literals = sorted(set(re.findall(r'internal const string \w+\s*=\s*"([^"]+)";', rs_text)))
+    rng_literals_from_code = sorted(set(re.findall(r'internal const string \w+\s*=\s*"([^"]+)";', rs_text)))
+    if not rng_literals_from_code:
+        sys.exit("src/Core/RngSalts.cs exists but defines zero internal const string patterns")
+
+rng_literals_from_manifest = []
+if os.path.isfile(rng_patterns_path):
+    pat_doc = json.load(open(rng_patterns_path, "r", encoding="utf-8"))
+    rng_literals_from_manifest = sorted(set(pat_doc.get("patterns", [])))
+    if not rng_literals_from_manifest:
+        sys.exit(f"{rng_patterns_path} contains zero RNG patterns")
+    if not os.path.isfile(rng_salts_file):
+        sys.exit(f"{rng_patterns_path} exists but src/Core/RngSalts.cs is missing")
+    missing_in_code = [p for p in rng_literals_from_manifest if p not in rng_literals_from_code]
+    if missing_in_code:
+        sys.exit(f"src/Core/RngSalts.cs missing manifest RNG pattern(s): {missing_in_code}")
+
+rng_literals = sorted(set(rng_literals_from_code) | set(rng_literals_from_manifest))
+
+def matches_rng_literal(content, lit):
+    if lit.endswith("-"):
+        return content == lit or content.startswith(lit)
+    if lit.startswith("/"):
+        return content == lit or content.endswith(lit)
+    return content == lit or content.startswith(lit + "-") or content.startswith(lit + "{")
 
 files_scanned = 0
 for root, dirs, files in os.walk(core_dir):
@@ -1398,7 +1458,7 @@ for root, dirs, files in os.walk(core_dir):
         full = os.path.join(root, fn)
         rel = os.path.relpath(full, p1_root).replace(os.sep, "/")
         raw_text = open(full, "r", encoding="utf-8").read()
-        code_text = strip_comments_keep_lines(raw_text)
+        code_text, string_literals = scan_csharp(raw_text)
         code_lines = code_text.splitlines()
         raw_lines = raw_text.splitlines()
 
@@ -1414,13 +1474,16 @@ for root, dirs, files in os.walk(core_dir):
                         f2_allowed_hits.append(rec)
                     else:
                         f2_violations.append(rec)
-            if rng_literals and rel != "src/Core/RngSalts.cs":
+
+        if rng_literals and rel != "src/Core/RngSalts.cs":
+            for lno, content in string_literals:
                 for lit in rng_literals:
-                    if f'"{lit}"' in line or f'$"{{' not in line and f'$"{lit}' in line:
-                        rng_violations.append({"file": rel, "line": idx + 1, "literal": lit})
+                    if matches_rng_literal(content, lit):
+                        rng_violations.append({"file": rel, "line": lno, "literal": lit, "content": content})
 
 report = {
     "filesScanned": files_scanned,
+    "rngPatternsChecked": rng_literals,
     "f1Violations": f1_violations,
     "f2AllowedHits": f2_allowed_hits,
     "f2Violations": f2_violations,
@@ -1433,7 +1496,7 @@ with open(report_path, "w", encoding="utf-8") as f:
 if f1_violations or f2_violations or rng_violations:
     sys.exit(f"determinism gate failed: F1={len(f1_violations)} F2_unlisted={len(f2_violations)} RNG={len(rng_violations)} (see g6-determinism.json)")
 
-print(f"Core determinism gate PASS ({files_scanned} files scanned; F1=0, F2_allowed={len(f2_allowed_hits)}, F2_unlisted=0)")
+print(f"Core determinism gate PASS ({files_scanned} files scanned; F1=0, F2_allowed={len(f2_allowed_hits)}, F2_unlisted=0, RNG_patterns={len(rng_literals)}, RNG_violations=0)")
 PY
   )"; then
     fail_stage G6 1 "$out"
