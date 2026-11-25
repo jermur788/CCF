@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "mode": "s0a-full",
+  "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
+  "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs",
+  "sourceBlobId": "0c3f7ad9273666ce8bf751337f62ea4cb8d8e2d4",
+  "capturedUtc": "2026-11-25T16:07:10Z",
+  "tools": {
+    "dotnet": "8.0.134",
+    "python3": "Python 3.14.4",
+    "git": "git version 2.53.0"
+  },
+  "assets": {
+    "html": {
+      "route": "multi",
+      "file": "Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.html",
+      "logicalName": "SitkaP1.Ui.multi.multi.html",
+      "declLine": 1336,
+      "contentStartLine": 1337,
+      "contentEndLine": 2212,
+      "closeLine": 2213,
+      "lineCount": 876,
+      "bytes": 57612,
+      "lastByteHex": "0x3e",
+      "rSha256": "f9d72dad1d2271e6d6f26c132da93b0257e43cb11a85521c748d98d7d3821868",
+      "pSha256": "f9d72dad1d2271e6d6f26c132da93b0257e43cb11a85521c748d98d7d3821868",
+      "sSha256": "f9d72dad1d2271e6d6f26c132da93b0257e43cb11a85521c748d98d7d3821868",
+      "committedSha256": "f9d72dad1d2271e6d6f26c132da93b0257e43cb11a85521c748d98d7d3821868",
+      "headersNoDate": [
+        [
+          "cache-control",
+          "no-store"
+        ],
+        [
+          "connection",
+          "close"
+        ],
+        [
+          "content-length",
+          "57612"
+        ],
+        [
+          "content-security-policy",
+          "default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        ],
+        [
+          "content-type",
+          "text/html; charset=utf-8"
+        ],
+        [
+          "cross-origin-resource-policy",
+          "same-origin"
+        ],
+        [
+          "referrer-policy",
+          "no-referrer"
+        ],
+        [
+          "x-content-type-options",
+          "nosniff"
+        ],
+        [
+          "x-frame-options",
+          "DENY"
+        ]
+      ]
+    },
+    "css": {
+      "route": "multi.css",
+      "file": "Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css",
+      "logicalName": "SitkaP1.Ui.multi.multi.css",
+      "declLine": 2215,
+      "contentStartLine": 2216,
+      "contentEndLine": 2899,
+      "closeLine": 2900,
+      "lineCount": 684,
+      "bytes": 57702,
+      "lastByteHex": "0x7d",
+      "rSha256": "f3b2b68a7547acc78444f6389db0f9f39080589950a54417506c4aaf036f00a5",
+      "pSha256": "f3b2b68a7547acc78444f6389db0f9f39080589950a54417506c4aaf036f00a5",
+      "sSha256": "f3b2b68a7547acc78444f6389db0f9f39080589950a54417506c4aaf036f00a5",
+      "committedSha256": "f3b2b68a7547acc78444f6389db0f9f39080589950a54417506c4aaf036f00a5",
+      "headersNoDate": [
+        [
+          "cache-control",
+          "no-store"
+        ],
+        [
+          "connection",
+          "close"
+        ],
+        [
+          "content-length",
+          "57702"
+        ],
+        [
+          "content-security-policy",
+          "default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        ],
+        [
+          "content-type",
+          "text/css; charset=utf-8"
+        ],
+        [
+          "cross-origin-resource-policy",
+          "same-origin"
+        ],
+        [
+          "referrer-policy",
+          "no-referrer"
+        ],
+        [
+          "x-content-type-options",
+          "nosniff"
+        ],
+        [
+          "x-frame-options",
+          "DENY"
+        ]
+      ]
+    },
+    "js": {
+      "route": "multi.js",
+      "file": "Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js",
+      "logicalName": "SitkaP1.Ui.multi.multi.js",
+      "declLine": 2902,
+      "contentStartLine": 2903,
+      "contentEndLine": 7519,
+      "closeLine": 7520,
+      "lineCount": 4617,
+      "bytes": 247066,
+      "lastByteHex": "0x3b",
+      "rSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+      "pSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+      "sSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+      "committedSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+      "headersNoDate": [
+        [
+          "cache-control",
+          "no-store"
+        ],
+        [
+          "connection",
+          "close"
+        ],
+        [
+          "content-length",
+          "247066"
+        ],
+        [
+          "content-security-policy",
+          "default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        ],
+        [
+          "content-type",
+          "text/javascript; charset=utf-8"
+        ],
+        [
+          "cross-origin-resource-policy",
+          "same-origin"
+        ],
+        [
+          "referrer-policy",
+          "no-referrer"
+        ],
+        [
+          "x-content-type-options",
+          "nosniff"
+        ],
+        [
+          "x-frame-options",
+          "DENY"
+        ]
+      ]
+    }
+  }
+}
