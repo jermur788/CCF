@@ -65,7 +65,7 @@
     --member MultiAreaContinuation.Advance \
     --allow M1,M2
   ```
-- Full move-proof (`--part all`, invoked automatically by `build/2d-gate.sh` G2): proves all S0a UI splits (`14` blocks, `1,246` non-empty lines), all S0a Core command partials + non-`Advance` root regions (`7` blocks, `1,341` non-empty lines), and the S0b `Advance` extraction invariants simultaneously.
+- Full move-proof (`--part all`, invoked automatically by `build/2d-gate.sh` G2): proves all S0a UI splits (`14` blocks, `1,246` non-empty lines), all S0a Core command partials + non-`Advance` root regions (`8` blocks, `1,337` non-empty lines), and the S0b `Advance` extraction invariants simultaneously.
 - Raw logs archived externally under `/home/jer/Development/CCF-Multi-2D-S0b-Evidence-20261125/`.
 
 ---
