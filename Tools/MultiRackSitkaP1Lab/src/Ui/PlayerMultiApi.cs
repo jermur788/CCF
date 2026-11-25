@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -20,6 +21,10 @@ internal sealed partial class PlayerApi
     private const int MaxIdLength = 64;
     private const int MaxPlanKeyLength = 256;
     private const int MaxReasonLength = 2000;
+    private const int MaxViewPayloadBytes = 524_288;
+    private const int DefaultHistoryPageSize = 10;
+    private const int MinHistoryPageSize = 1;
+    private const int MaxHistoryPageSize = 50;
 
     private static readonly string[] MultiFenceMembers =
     {
@@ -33,6 +38,8 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiAddMembers = MultiTreeMembers.Append("reason").ToArray();
     private static readonly string[] MultiExecuteMembers = MultiFenceMembers.Concat(new[] { "planId", "executionKey" }).ToArray();
     private static readonly string[] MultiAdvanceMembers = MultiFenceMembers.Append("consentToCancelWork").ToArray();
+    private static readonly string[] MultiSkipMembers = MultiFenceMembers.Append("targetYear").ToArray();
+    private static readonly string[] MultiHistoryYearMembers = MultiFenceMembers.Append("year").ToArray();
     private static readonly string[] MultiHitMembers = MultiFenceMembers.Concat(new[] { "areaId", "u", "v" }).ToArray();
     private static readonly string[] MultiCellMembers = MultiFenceMembers.Concat(new[] { "areaId", "column", "row" }).ToArray();
     private static readonly string[] MultiPointMembers = MultiFenceMembers.Concat(new[] { "areaId", "xM", "zM" }).ToArray();
@@ -92,6 +99,12 @@ internal sealed partial class PlayerApi
             request => multiArea.Execute(request.Fence!, request.PlanId!, request.ExecutionKey!))));
         routes.Add("api/multi/year/advance", new("POST", context => MultiCommandAsync<MultiAdvanceRequest>(context, MultiAdvanceMembers,
             request => multiArea.Advance(request.Fence!, request.ConsentToCancelWork))));
+        // Phase 1 Step 2: dual time pacing (preview/skip), paged Decision -> Outcome history, and woodland spatial structure.
+        routes.Add("api/multi/year/preview-review", new("POST", PreviewMultiReviewAsync));
+        routes.Add("api/multi/year/skip", new("POST", SkipMultiYearsAsync));
+        routes.Add("api/multi/history/index", new("GET", ReadMultiHistoryIndexAsync));
+        routes.Add("api/multi/history/year", new("POST", ReadMultiHistoryYearAsync));
+        routes.Add("api/multi/structure", new("GET", ReadMultiStructureAsync));
         routes.Add("api/multi/prune/add", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
             request => multiArea.AddPrune(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/prune/remove", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
@@ -138,11 +151,460 @@ internal sealed partial class PlayerApi
     }
 
     // One atomic composite read under one Core lock: view, stage4 and ecology share one exact root.
+    // Bounded to <= MaxViewPayloadBytes (512 KiB) raw UTF-8 JSON; if events or annualHistory would breach the cap,
+    // only this HTTP projection truncates them to the most recent tail and marks historyTruncated = true while full
+    // committed history remains available through api/multi/history/*.
     private Task ReadMultiViewAsync(HttpContext context)
     {
         var snapshot = multiArea.ReadCompositeUiSnapshot();
-        return WriteJsonAsync(context, StatusCodes.Status200OK,
-            new MultiViewPayload(snapshot.View, ScenesOf(snapshot.View), MultiLabels, snapshot.Readout, snapshot.Ecology));
+        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        MultiReviewPreviewDto? reviewPreview = TryPreviewForView(snapshot.View);
+        byte[] bytes = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out _, out _, out _);
+        return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
+    }
+
+    // ---- Phase 1 Step 2: Time Pacing, Decision -> Outcome History, and Woodland Structure -------------------------------
+
+    // Read-only deterministic preview of the next suggested management review year. Zero mutation.
+    private async Task PreviewMultiReviewAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiFenceRequest>(context, MultiFenceMembers);
+        if (request is null) return;
+        try
+        {
+            var preview = multiSession.PreviewNextReviewYear(request.Fence!);
+            var view = multiArea.Read();
+            var fence = FenceOf(view);
+            var boundedView = BoundSessionViewForAux(view);
+            await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiPreviewReviewPayload(
+                preview.CurrentYear, preview.Eligible, preview.SuggestedTargetYear, preview.SuggestedGapYears,
+                preview.AnchorFellYear, preview.IsObservationPeriod, preview.MaxTicksPerPress, preview.StopReason,
+                preview.CalibrationNote, preview.Label, fence, boundedView, Refusal: null));
+        }
+        catch (P1Refusal refusal)
+        {
+            var view = multiArea.Read();
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiPreviewReviewPayload(
+                null, null, null, null, null, null, null, null, null, null,
+                FenceOf(view), BoundSessionViewForAux(view), new Notice(refusal.Code, refusal.Message)));
+        }
+    }
+
+    // Bounded multi-year advance (1..5 years per press) calling Core's AdvanceYears(fence, targetYear, ct).
+    // NEVER passes consentToCancelWork = true and never cancels open work.
+    private async Task SkipMultiYearsAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiSkipRequest>(context, MultiSkipMembers);
+        if (request is null) return;
+        AdvanceYearsResult result;
+        try
+        {
+            result = multiSession.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
+        }
+        catch (P1Refusal refusal)
+        {
+            var staleSnap = multiArea.ReadCompositeUiSnapshot();
+            int staleTotal = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            var (staleView, staleStage4, staleTruncated) = BoundSnapshotForResponse(staleSnap, staleTotal);
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
+                null, null, request.TargetYear, Array.Empty<MultiSkipStepDto>(), false, null, null, null, null, null,
+                staleView, ScenesOf(staleView), staleStage4, staleSnap.Ecology,
+                new Notice(refusal.Code, refusal.Message), staleTruncated, staleTotal));
+            return;
+        }
+
+        var snapshot = multiArea.ReadCompositeUiSnapshot();
+        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var (boundedView, boundedStage4, historyTruncated) = BoundSnapshotForResponse(snapshot, totalRecordedYears);
+        var completed = result.CompletedYears
+            .Select(step => new MultiSkipStepDto(step.YearBefore, step.YearAfter, step.YearRecord))
+            .ToArray();
+
+        bool isRefusal = result.StopReason is TimePacingStopReason.WorkPlanOpen or TimePacingStopReason.InvalidTargetYear
+            || (!result.ReachedTarget && completed.Length == 0);
+        Notice? notice = isRefusal
+            ? new Notice(result.StopReason.ToString(), result.StopDetail ?? DefaultSkipRefusalMessage(result.StopReason))
+            : null;
+        int status = isRefusal ? StatusCodes.Status409Conflict : StatusCodes.Status200OK;
+
+        await WriteJsonAsync(context, status, new MultiSkipPayload(
+            result.StartYear, result.DestinationYear, result.RequestedTargetYear,
+            Array.AsReadOnly(completed), result.ReachedTarget, result.StopReason, result.StopDetail,
+            result.IsObservationPeriod, result.AnchorFellYear, result.CalibrationNote,
+            boundedView, ScenesOf(boundedView), boundedStage4, snapshot.Ecology,
+            notice, historyTruncated, totalRecordedYears));
+    }
+
+    // Read-only newest-first paged index of recorded years. Clamps pageSize to 1..50 (default 10). 400 on invalid query params.
+    private Task ReadMultiHistoryIndexAsync(HttpContext context)
+    {
+        int pageSize = DefaultHistoryPageSize;
+        int? beforeYear = null;
+        foreach (var (key, values) in context.Request.Query)
+        {
+            if (values.Count != 1)
+                return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                    FormattableString.Invariant($"duplicate query parameter '{key}'; nothing changed"));
+            string raw = values[0] ?? "";
+            if (string.Equals(key, "pageSize", StringComparison.Ordinal))
+            {
+                if (!TryParseExactInt(raw, allowNegative: true, out int parsed))
+                    return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                        "pageSize must be a base-10 integer; nothing changed");
+                pageSize = Math.Clamp(parsed, MinHistoryPageSize, MaxHistoryPageSize);
+            }
+            else if (string.Equals(key, "beforeYear", StringComparison.Ordinal))
+            {
+                if (!TryParseExactInt(raw, allowNegative: false, out int parsed))
+                    return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                        "beforeYear must be a non-negative integer; nothing changed");
+                beforeYear = parsed;
+            }
+            else
+            {
+                return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                    FormattableString.Invariant($"unknown query parameter '{key}'; nothing changed"));
+            }
+        }
+        var page = multiSession.ReadHistoryIndex(pageSize, beforeYear);
+        return WriteJsonAsync(context, StatusCodes.Status200OK, page);
+    }
+
+    // Read-only full Decision -> Outcome detail for WorkYear = year and ObservedYear = year + 1.
+    // Validates the caller's fence read-only against the current view before querying ReadHistoryYear(year).
+    private async Task ReadMultiHistoryYearAsync(HttpContext context)
+    {
+        var request = await ReadMultiRequestAsync<MultiHistoryYearRequest>(context, MultiHistoryYearMembers);
+        if (request is null) return;
+        var currentView = multiArea.Read();
+        var fence = request.Fence!;
+        Notice? fenceRefusal =
+            !string.Equals(fence.SessionId, currentView.SessionId, StringComparison.Ordinal)
+                ? new Notice("PlayerSessionMismatch", "this request does not belong to the current multi-area session")
+                : fence.Source != currentView.Source
+                    ? new Notice("PlayerSourceStale",
+                        "the source, year or a revision changed since this view was read; nothing changed, re-read the current view")
+                    : fence.PlanStateRevision != currentView.PlanStateRevision
+                        ? new Notice("PlayerPlanStateStale",
+                            "the Work Plan changed since this view was read; nothing changed, re-read the current view")
+                        : null;
+        if (fenceRefusal is not null)
+        {
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView), fenceRefusal));
+            return;
+        }
+
+        int year = request.Year!.Value;
+        if (year < 0)
+        {
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
+                    new Notice("HistoryYearInvalid", "history year must be non-negative")));
+            return;
+        }
+
+        HistoryYearDetail detail;
+        try
+        {
+            detail = multiSession.ReadHistoryYear(year);
+        }
+        catch (P1Refusal refusal)
+        {
+            var fresh = multiArea.Read();
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
+                    new Notice(refusal.Code, refusal.Message)));
+            return;
+        }
+
+        if (!detail.HasRecordedData)
+        {
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
+                    new Notice("HistoryYearNotRecorded",
+                        FormattableString.Invariant($"year {year} has no recorded work or annual outcome in this session"))));
+            return;
+        }
+
+        await WriteJsonAsync(context, StatusCodes.Status200OK, detail);
+    }
+
+    // Read-only nearest-neighbour spatial woodland structure descriptors (M_i, T_i) over the current committed root.
+    private Task ReadMultiStructureAsync(HttpContext context)
+    {
+        if (context.Request.Query.Count > 0)
+            return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
+                "structure does not accept query parameters; nothing changed");
+        var summary = multiSession.ComputeStructure();
+        return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiStructurePayload(
+            summary.MeanMingling, summary.MeanDiameterDifferentiation, summary.FocalLivingTreeCount,
+            summary.ValidDiameterFocalCount, summary.EffectiveNeighbourCount, summary.MaxNeighbourCountK,
+            summary.Areas, summary.ProvenanceLabel, summary.ProvenanceLabel, summary.HonestyLabel));
+    }
+
+    private static MultiAreaFence FenceOf(MultiAreaSessionView view) =>
+        new(view.SessionId, view.Source, view.PlanStateRevision);
+
+    private MultiReviewPreviewDto? TryPreviewForView(MultiAreaSessionView view)
+    {
+        try
+        {
+            var p = multiSession.PreviewNextReviewYear(FenceOf(view));
+            return new MultiReviewPreviewDto(p.CurrentYear, p.Eligible, p.SuggestedTargetYear, p.SuggestedGapYears,
+                p.AnchorFellYear, p.IsObservationPeriod, p.MaxTicksPerPress, p.StopReason, p.CalibrationNote, p.Label);
+        }
+        catch (P1Refusal)
+        {
+            return null;
+        }
+    }
+
+    private static string DefaultSkipRefusalMessage(TimePacingStopReason reason) => reason switch
+    {
+        TimePacingStopReason.WorkPlanOpen => MultiAreaTimePacingConstants.WorkPlanOpenLabel,
+        TimePacingStopReason.StandCannotAdvance => MultiAreaTimePacingConstants.StandCannotAdvanceLabel,
+        TimePacingStopReason.InvalidTargetYear => "requested target year is outside [currentYear + 1, currentYear + 5]",
+        _ => "unable to advance years",
+    };
+
+    private static bool TryParseExactInt(string raw, bool allowNegative, out int value)
+    {
+        value = 0;
+        if (raw.Length == 0) return false;
+        int start = 0;
+        if (raw[0] == '-')
+        {
+            if (!allowNegative || raw.Length == 1) return false;
+            start = 1;
+        }
+        for (int i = start; i < raw.Length; i++)
+        {
+            if (raw[i] < '0' || raw[i] > '9') return false;
+        }
+        var styles = allowNegative ? NumberStyles.AllowLeadingSign : NumberStyles.None;
+        return int.TryParse(raw, styles, CultureInfo.InvariantCulture, out value);
+    }
+
+    // Projection-only tail bounding for GET api/multi/view: never mutates the committed Core root.
+    private static byte[] SerializeBoundedMultiView(
+        MultiAreaCompositeUiSnapshot snapshot,
+        int totalRecordedYears,
+        MultiReviewPreviewDto? reviewPreview,
+        out MultiAreaSessionView boundedView,
+        out object? boundedStage4,
+        out bool historyTruncated)
+    {
+        var fullView = snapshot.View;
+        var scenes = ScenesOf(fullView);
+        var fullStage4 = snapshot.Readout;
+        var ecology = snapshot.Ecology;
+
+        byte[] Serialize(MultiAreaSessionView v, object? s4, bool truncated) =>
+            JsonSerializer.SerializeToUtf8Bytes(
+                new MultiViewPayload(v, scenes, MultiLabels, s4, ecology, truncated, totalRecordedYears, reviewPreview),
+                ResponseJson);
+
+        byte[] fullBytes = Serialize(fullView, fullStage4, truncated: false);
+        if (fullBytes.Length <= MaxViewPayloadBytes)
+        {
+            boundedView = fullView;
+            boundedStage4 = fullStage4;
+            historyTruncated = false;
+            return fullBytes;
+        }
+
+        int maxHist = Math.Max(fullView.Events.Count, fullView.AnnualHistory.Count);
+        MultiAreaSessionView TailView(int keep) => fullView with
+        {
+            Events = TailOf(fullView.Events, keep),
+            AnnualHistory = TailOf(fullView.AnnualHistory, keep),
+        };
+
+        // Binary-search the largest recent tail of events + annualHistory that keeps the payload <= MaxViewPayloadBytes.
+        int lo = 0;
+        int hi = maxHist;
+        byte[]? bestBytes = null;
+        MultiAreaSessionView bestView = TailView(0);
+
+        // Prefer keeping at least 1 latest event & year if that fits.
+        if (maxHist >= 1)
+        {
+            var oneView = TailView(1);
+            byte[] oneBytes = Serialize(oneView, fullStage4, truncated: true);
+            if (oneBytes.Length <= MaxViewPayloadBytes)
+            {
+                lo = 1;
+                bestView = oneView;
+                bestBytes = oneBytes;
+            }
+        }
+
+        if (bestBytes is not null)
+        {
+            while (lo + 1 < hi)
+            {
+                int mid = lo + ((hi - lo) / 2);
+                var candidate = TailView(mid);
+                byte[] candidateBytes = Serialize(candidate, fullStage4, truncated: true);
+                if (candidateBytes.Length <= MaxViewPayloadBytes)
+                {
+                    lo = mid;
+                    bestView = candidate;
+                    bestBytes = candidateBytes;
+                }
+                else
+                {
+                    hi = mid;
+                }
+            }
+            boundedView = bestView;
+            boundedStage4 = fullStage4;
+            historyTruncated = true;
+            return bestBytes;
+        }
+
+        // Fallback if even 1 event + 1 year overflows (e.g. multi-decade MA-1-MIXED with high adult promotion count):
+        // compact redundant projection-only fields in stage4 (ground contributingTreeIds already served by POST api/multi/cell,
+        // 4-decimal vertex rounding for SVG drawing, and duplicate pruneRefusalReason when ecology.pruneStatusByTreeId carries it)
+        // while keeping every field name/type intact and preserving the newest tail of events & annualHistory.
+        var compactStage4 = fullStage4 is null ? null : CompactStage4ForBudget(fullStage4, hasEcology: ecology is not null);
+        if (compactStage4 is not null)
+        {
+            var oneView = maxHist >= 1 ? TailView(1) : fullView;
+            byte[] oneCompactBytes = Serialize(oneView, compactStage4, truncated: maxHist > 1);
+            if (oneCompactBytes.Length <= MaxViewPayloadBytes)
+            {
+                lo = maxHist >= 1 ? 1 : 0;
+                hi = maxHist + 1;
+                bestView = oneView;
+                bestBytes = oneCompactBytes;
+                while (lo + 1 < hi)
+                {
+                    int mid = lo + ((hi - lo) / 2);
+                    var candidate = TailView(mid);
+                    bool isTrunc = candidate.Events.Count < fullView.Events.Count || candidate.AnnualHistory.Count < fullView.AnnualHistory.Count;
+                    byte[] candidateBytes = Serialize(candidate, compactStage4, truncated: isTrunc);
+                    if (candidateBytes.Length <= MaxViewPayloadBytes)
+                    {
+                        lo = mid;
+                        bestView = candidate;
+                        bestBytes = candidateBytes;
+                    }
+                    else
+                    {
+                        hi = mid;
+                    }
+                }
+                boundedView = bestView;
+                boundedStage4 = compactStage4;
+                historyTruncated = bestView.Events.Count < fullView.Events.Count
+                    || bestView.AnnualHistory.Count < fullView.AnnualHistory.Count
+                    || compactStage4.PruneLog.Count < fullStage4!.PruneLog.Count;
+                return bestBytes;
+            }
+        }
+
+        var emptyHistoryView = TailView(0);
+        object? finalStage4 = (object?)compactStage4 ?? fullStage4;
+        byte[] emptyBytes = Serialize(emptyHistoryView, finalStage4, truncated: true);
+        if (emptyBytes.Length <= MaxViewPayloadBytes || compactStage4 is null || compactStage4.PruneLog.Count == 0)
+        {
+            boundedView = emptyHistoryView;
+            boundedStage4 = finalStage4;
+            historyTruncated = true;
+            return emptyBytes;
+        }
+
+        var trimmedStage4 = compactStage4 with { PruneLog = TailOf(compactStage4.PruneLog, Math.Min(1, compactStage4.PruneLog.Count)) };
+        byte[] trimmedBytes = Serialize(emptyHistoryView, trimmedStage4, truncated: true);
+        if (trimmedBytes.Length > MaxViewPayloadBytes)
+        {
+            trimmedStage4 = compactStage4 with { PruneLog = Array.Empty<MultiAreaPruneRecord>() };
+            trimmedBytes = Serialize(emptyHistoryView, trimmedStage4, truncated: true);
+        }
+        boundedView = emptyHistoryView;
+        boundedStage4 = trimmedStage4;
+        historyTruncated = true;
+        return trimmedBytes;
+    }
+
+    private static MultiCompactStage4Dto CompactStage4ForBudget(MultiAreaUiReadout stage4, bool hasEcology)
+    {
+        static double R3(double v) => double.IsFinite(v) ? Math.Round(v, 3, MidpointRounding.AwayFromZero) : v;
+        static float R3f(float v) => float.IsFinite(v) ? MathF.Round(v, 3, MidpointRounding.AwayFromZero) : v;
+        var compactAreas = new MultiCompactStage4AreaDto[stage4.Areas.Count];
+        for (int a = 0; a < stage4.Areas.Count; a++)
+        {
+            var area = stage4.Areas[a];
+            var ground = new MultiCompactGroundCellDto[area.Ground.Count];
+            for (int g = 0; g < area.Ground.Count; g++)
+            {
+                var cell = area.Ground[g];
+                var poly = new MultiCompactGroundVertexDto[cell.Polygon.Count];
+                for (int p = 0; p < cell.Polygon.Count; p++)
+                {
+                    var v = cell.Polygon[p];
+                    poly[p] = new MultiCompactGroundVertexDto(R3(v.U), R3(v.V));
+                }
+                ground[g] = new MultiCompactGroundCellDto(
+                    cell.Column, cell.Row, R3f(cell.CentreXM), R3f(cell.CentreZM),
+                    R3(cell.CentreU), R3(cell.CentreV), R3(cell.ClippedAreaM2),
+                    Array.AsReadOnly(poly), R3f(cell.LightIndex), R3(cell.GeometricCoveredFraction),
+                    cell.CrossBorderTrees, Array.Empty<string>());
+            }
+            var trees = new MultiCompactUiTreeDto[area.Trees.Count];
+            for (int t = 0; t < area.Trees.Count; t++)
+            {
+                var tr = area.Trees[t];
+                trees[t] = new MultiCompactUiTreeDto(
+                    tr.TreeId, tr.LifeState, tr.DeathCause, tr.DeathYear,
+                    tr.PruningLifts, tr.MaxPruningLifts, tr.CrownBaseHeightM, tr.LastPruningYear,
+                    tr.PruneEligible, hasEcology ? null : tr.PruneRefusalCode, hasEcology ? null : tr.PruneRefusalReason,
+                    tr.NextPruneTargetM, tr.NextPruneEligibleYear, tr.PrunePlanState);
+            }
+            compactAreas[a] = new MultiCompactStage4AreaDto(area.AreaId, area.Canopy, Array.AsReadOnly(trees), Array.AsReadOnly(ground));
+        }
+        return new MultiCompactStage4Dto(
+            stage4.SessionId, stage4.EcologicalYear, stage4.PlanStateRevision, stage4.Source, stage4.Models,
+            Array.AsReadOnly(compactAreas), stage4.PendingPrunes, stage4.ApprovedPrunes, TailOf(stage4.PruneLog, 20));
+    }
+
+    private (MultiAreaSessionView View, object? Stage4, bool HistoryTruncated) BoundSnapshotForResponse(
+        MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears)
+    {
+        _ = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null,
+            out var boundedView, out var boundedStage4, out bool truncated);
+        return (boundedView, boundedStage4, truncated);
+    }
+
+    private static MultiAreaSessionView BoundSessionViewForAux(MultiAreaSessionView view)
+    {
+        const int AuxTailCap = 20;
+        if (view.Events.Count <= AuxTailCap && view.AnnualHistory.Count <= AuxTailCap) return view;
+        return view with
+        {
+            Events = TailOf(view.Events, AuxTailCap),
+            AnnualHistory = TailOf(view.AnnualHistory, AuxTailCap),
+        };
+    }
+
+    private static IReadOnlyList<T> TailOf<T>(IReadOnlyList<T> list, int maxCount)
+    {
+        if (maxCount <= 0) return Array.Empty<T>();
+        if (list.Count <= maxCount) return list;
+        int start = list.Count - maxCount;
+        var copy = new T[maxCount];
+        for (int i = 0; i < maxCount; i++) copy[i] = list[start + i];
+        return Array.AsReadOnly(copy);
+    }
+
+    private static async Task WriteRawJsonAsync(HttpContext context, int status, byte[] bytes)
+    {
+        context.Response.StatusCode = status;
+        context.Response.ContentType = JsonContentType;
+        context.Response.ContentLength = bytes.Length;
+        await context.Response.Body.WriteAsync(bytes, context.RequestAborted);
     }
 
     // ---- Phase 1 Save/Load ----------------------------------------------------------------------------------------------
@@ -409,6 +871,10 @@ internal sealed partial class PlayerApi
 
     private sealed record MultiAdvanceRequest(MultiAreaFence? Fence, bool ConsentToCancelWork);
 
+    private sealed record MultiSkipRequest(MultiAreaFence? Fence, int? TargetYear);
+
+    private sealed record MultiHistoryYearRequest(MultiAreaFence? Fence, int? Year);
+
     private sealed record MultiHitRequest(MultiAreaFence? Fence, string? AreaId, double? U, double? V);
 
     private sealed record MultiCellRequest(MultiAreaFence? Fence, string? AreaId, int? Column, int? Row);
@@ -454,9 +920,115 @@ internal sealed partial class PlayerApi
 
     private sealed record MultiRecoverPayload(string Slot, string? Checksum, long? Bytes, Notice? Refusal);
 
-    // Stage4 ("stage4") and Ecology ("ecology") are additive; all existing members keep their exact names and shapes.
+    // Stage4 ("stage4"), Ecology ("ecology"), and Step 2 bounding/preview fields are additive; all existing members keep their exact names and shapes.
     private sealed record MultiViewPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
-        IReadOnlyDictionary<string, string> Labels, MultiAreaUiReadout? Stage4, MultiAreaEcologyDto? Ecology);
+        IReadOnlyDictionary<string, string> Labels, object? Stage4, MultiAreaEcologyDto? Ecology,
+        bool HistoryTruncated = false, int TotalRecordedYears = 0, MultiReviewPreviewDto? ReviewPreview = null);
+
+    private sealed record MultiCompactGroundVertexDto(double U, double V);
+
+    private sealed record MultiCompactGroundCellDto(
+        int Column, int Row, float CentreXM, float CentreZM, double CentreU, double CentreV, double ClippedAreaM2,
+        IReadOnlyList<MultiCompactGroundVertexDto> Polygon, float LightIndex, double GeometricCoveredFraction,
+        int CrossBorderTrees, IReadOnlyList<string> ContributingTreeIds);
+
+    private sealed record MultiCompactUiTreeDto(
+        string TreeId,
+        LifeState LifeState,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeathCause,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeathYear,
+        int PruningLifts,
+        int MaxPruningLifts,
+        float CrownBaseHeightM,
+        int LastPruningYear,
+        bool PruneEligible,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PruneRefusalCode,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PruneRefusalReason,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] float? NextPruneTargetM,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? NextPruneEligibleYear,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PrunePlanState);
+
+    private sealed record MultiCompactStage4AreaDto(
+        string AreaId,
+        MultiAreaCanopySummary Canopy,
+        IReadOnlyList<MultiCompactUiTreeDto> Trees,
+        IReadOnlyList<MultiCompactGroundCellDto> Ground);
+
+    private sealed record MultiCompactStage4Dto(
+        string SessionId,
+        int EcologicalYear,
+        int PlanStateRevision,
+        MultiAreaSourceToken Source,
+        MultiAreaUiModels Models,
+        IReadOnlyList<MultiCompactStage4AreaDto> Areas,
+        IReadOnlyList<MultiAreaPruneOrder> PendingPrunes,
+        IReadOnlyList<MultiAreaPruneOrder> ApprovedPrunes,
+        IReadOnlyList<MultiAreaPruneRecord> PruneLog);
+
+    private sealed record MultiReviewPreviewDto(
+        int CurrentYear,
+        bool Eligible,
+        int SuggestedTargetYear,
+        int SuggestedGapYears,
+        int? AnchorFellYear,
+        bool IsObservationPeriod,
+        int MaxTicksPerPress,
+        TimePacingStopReason? StopReason,
+        string CalibrationNote,
+        string Label);
+
+    private sealed record MultiPreviewReviewPayload(
+        int? CurrentYear,
+        bool? Eligible,
+        int? SuggestedTargetYear,
+        int? SuggestedGapYears,
+        int? AnchorFellYear,
+        bool? IsObservationPeriod,
+        int? MaxTicksPerPress,
+        TimePacingStopReason? StopReason,
+        string? CalibrationNote,
+        string? Label,
+        MultiAreaFence Fence,
+        MultiAreaSessionView View,
+        Notice? Refusal);
+
+    private sealed record MultiSkipStepDto(int YearBefore, int YearAfter, MultiAreaYearRecord YearRecord);
+
+    private sealed record MultiSkipPayload(
+        int? StartYear,
+        int? DestinationYear,
+        int? RequestedTargetYear,
+        IReadOnlyList<MultiSkipStepDto> CompletedYears,
+        bool ReachedTarget,
+        TimePacingStopReason? StopReason,
+        string? StopDetail,
+        bool? IsObservationPeriod,
+        int? AnchorFellYear,
+        string? CalibrationNote,
+        MultiAreaSessionView View,
+        IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
+        object? Stage4,
+        MultiAreaEcologyDto? Ecology,
+        Notice? Refusal,
+        bool HistoryTruncated = false,
+        int TotalRecordedYears = 0);
+
+    private sealed record MultiHistoryYearRefusalPayload(
+        MultiAreaFence Fence,
+        MultiAreaSessionView View,
+        Notice Refusal);
+
+    private sealed record MultiStructurePayload(
+        double? MeanMingling,
+        double? MeanDiameterDifferentiation,
+        int FocalLivingTreeCount,
+        int ValidDiameterFocalCount,
+        int EffectiveNeighbourCount,
+        int MaxNeighbourCountK,
+        IReadOnlyList<WoodlandAreaStructureSummary> Areas,
+        string Provenance,
+        string ProvenanceLabel,
+        string HonestyLabel);
 
     private sealed record MultiCommandPayload(MultiAreaSessionView View, IReadOnlyDictionary<string, IReadOnlyList<PlayerMapItem>> Scenes,
         Notice? Refusal, MultiAreaExecutionResult? Execution, MultiAreaAnnualResult? Annual, MultiAreaUiReadout? Stage4,
