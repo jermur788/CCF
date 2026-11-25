@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
+  "gateEnforce": true,
+  "parts": {
+    "ui": {
+      "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs",
+      "sourceBlobId": "0c3f7ad9273666ce8bf751337f62ea4cb8d8e2d4",
+      "sourceMustBeDeleted": true,
+      "keptLineRange": [1, 1327],
+      "removedRange": [1328, 7521],
+      "primaryTarget": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs",
+      "replacedLines": [
+        {
+          "t0Line": 53,
+          "old": "    private static readonly byte[] MultiPageHtml = Encoding.UTF8.GetBytes(MultiAreaPage.Html);",
+          "new": "    private static readonly byte[] MultiPageHtml = MultiEmbeddedAsset(\"SitkaP1.Ui.multi.multi.html\");"
+        },
+        {
+          "t0Line": 54,
+          "old": "    private static readonly byte[] MultiPageCss = Encoding.UTF8.GetBytes(MultiAreaPage.Css);",
+          "new": "    private static readonly byte[] MultiPageCss = MultiEmbeddedAsset(\"SitkaP1.Ui.multi.multi.css\");"
+        },
+        {
+          "t0Line": 55,
+          "old": "    private static readonly byte[] MultiPageJs = Encoding.UTF8.GetBytes(MultiAreaPage.Js);",
+          "new": "    private static readonly byte[] MultiPageJs = MultiEmbeddedAsset(\"SitkaP1.Ui.multi.multi.js\");"
+        }
+      ],
+      "addedHelper": {
+        "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs",
+        "afterBlockId": "ui-routes-requests",
+        "lines": [
+          "    private static byte[] MultiEmbeddedAsset(string logicalName)",
+          "    {",
+          "        using var stream = typeof(PlayerApi).Assembly.GetManifestResourceStream(logicalName)",
+          "            ?? throw new InvalidOperationException(\"the /multi page asset \" + logicalName + \" is not embedded in this build\");",
+          "        using var copy = new MemoryStream();",
+          "        stream.CopyTo(copy);",
+          "        return copy.ToArray();",
+          "    }"
+        ]
+      },
+      "fileHeaders": {
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs": [
+          "using System.Text;",
+          "using System.Text.Json;",
+          "using System.Text.Json.Serialization;",
+          "using Microsoft.AspNetCore.Http;",
+          "using SitkaP1.Core;",
+          "",
+          "namespace SitkaP1.Ui;",
+          "",
+          "internal sealed partial class PlayerApi",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Commands.cs": [
+          "using Microsoft.AspNetCore.Http;",
+          "using SitkaP1.Core;",
+          "",
+          "namespace SitkaP1.Ui;",
+          "",
+          "internal sealed partial class PlayerApi",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs": [
+          "using Microsoft.AspNetCore.Http;",
+          "using SitkaP1.Core;",
+          "using SitkaP1.Core.Phase1;",
+          "",
+          "namespace SitkaP1.Ui;",
+          "",
+          "internal sealed partial class PlayerApi",
+          "{"
+        ],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs": [
+          "using System.Globalization;",
+          "using Microsoft.AspNetCore.Http;",
+          "using SitkaP1.Core;",
+          "",
+          "namespace SitkaP1.Ui;",
+          "",
+          "internal sealed partial class PlayerApi",
+          "{"
+        ]
+      },
+      "fileFooters": {
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Commands.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs": ["}"],
+        "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs": ["}"]
+      },
+      "blocks": [
+        {
+          "id": "ui-routes-core",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs",
+          "t0StartLine": 1,
+          "t0EndLine": 135,
+          "members": [
+            "MaxIdLength",
+            "MaxPlanKeyLength",
+            "MaxReasonLength",
+            "MaxViewPayloadBytes",
+            "MaxEcologyPayloadBytes",
+            "DefaultHistoryPageSize",
+            "MinHistoryPageSize",
+            "MaxHistoryPageSize",
+            "MultiFenceMembers",
+            "MultiTreeMembers",
+            "MultiAddMembers",
+            "MultiExecuteMembers",
+            "MultiAdvanceMembers",
+            "MultiSkipMembers",
+            "MultiHistoryYearMembers",
+            "MultiHitMembers",
+            "MultiCellMembers",
+            "MultiPointMembers",
+            "MultiPlantMembers",
+            "MultiPlantingRemoveMembers",
+            "MultiSaveMembers",
+            "MultiLoadMembers",
+            "MultiRecoverMembers",
+            "MultiPageHtml",
+            "MultiPageCss",
+            "MultiPageJs",
+            "MultiLabels",
+            "multiArea",
+            "multiSession",
+            "saveSlots",
+            "savesWritten",
+            "SavesWritten",
+            "AddMultiAreaRoutes",
+            "RefusableMulti"
+          ]
+        },
+        {
+          "id": "ui-view-manifest-and-read",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs",
+          "t0StartLine": 137,
+          "t0EndLine": 164,
+          "members": [
+            "WriteMultiManifestAsync",
+            "ReadMultiViewAsync"
+          ]
+        },
+        {
+          "id": "ui-history-handlers",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs",
+          "t0StartLine": 166,
+          "t0EndLine": 399,
+          "members": [
+            "PreviewMultiReviewAsync",
+            "SkipMultiYearsAsync",
+            "ReadMultiHistoryIndexAsync",
+            "ReadMultiHistoryYearAsync",
+            "ReadMultiStructureAsync",
+            "FenceOf",
+            "TryPreviewForView",
+            "DefaultSkipRefusalMessage",
+            "TryParseExactInt"
+          ]
+        },
+        {
+          "id": "ui-view-budget-projection",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs",
+          "t0StartLine": 401,
+          "t0EndLine": 785,
+          "members": [
+            "BoundedMultiSnapshot",
+            "R3",
+            "R3f",
+            "ProjectEcologyForView",
+            "SerializeBoundedMultiView(MultiAreaCompositeUiSnapshot,...)",
+            "SerializeBoundedMultiView(MultiAreaSessionView,...)",
+            "ProjectViewForBudget",
+            "ProjectScenesForBudget",
+            "ProjectStage4ForBudget",
+            "BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot,...)",
+            "BoundSnapshotForResponse(MultiAreaSessionView,...)",
+            "BoundSessionViewForAux",
+            "TailOf",
+            "WriteRawJsonAsync"
+          ]
+        },
+        {
+          "id": "ui-saves-handlers",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs",
+          "t0StartLine": 787,
+          "t0EndLine": 925,
+          "members": [
+            "ReadMultiSavesAsync",
+            "MultiSaveAsync",
+            "MultiLoadAsync",
+            "MultiRecoverAsync",
+            "IsIdentityRefusal"
+          ]
+        },
+        {
+          "id": "ui-view-cell-competition-hit",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs",
+          "t0StartLine": 927,
+          "t0EndLine": 993,
+          "members": [
+            "ReadMultiCellAsync",
+            "ReadMultiCompetitionAsync",
+            "MultiHitTestAsync"
+          ]
+        },
+        {
+          "id": "ui-commands-dispatch",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Commands.cs",
+          "t0StartLine": 995,
+          "t0EndLine": 1017,
+          "members": [
+            "MultiCommandAsync<TRequest>"
+          ]
+        },
+        {
+          "id": "ui-routes-requests",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs",
+          "t0StartLine": 1019,
+          "t0EndLine": 1116,
+          "members": [
+            "ScenesOf",
+            "ReadMultiRequestAsync<T>",
+            "RequireMember",
+            "RequireBoundedText",
+            "MultiFenceRequest",
+            "MultiTreeRequest",
+            "MultiAddRequest",
+            "MultiExecuteRequest",
+            "MultiAdvanceRequest",
+            "MultiSkipRequest",
+            "MultiHistoryYearRequest",
+            "MultiHitRequest",
+            "MultiCellRequest",
+            "MultiPlantRequest",
+            "MultiPointRequest",
+            "MultiPlantingRemoveRequest"
+          ]
+        },
+        {
+          "id": "ui-saves-records",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs",
+          "t0StartLine": 1118,
+          "t0EndLine": 1143,
+          "members": [
+            "MultiSaveRequest",
+            "MultiLoadRequest",
+            "MultiSlotRequest",
+            "MultiSlotInfo",
+            "MultiSavesPayload",
+            "MultiSaveOutcome",
+            "MultiSavePayload",
+            "MultiLoadInfo",
+            "MultiLoadPayload",
+            "MultiRecoverPayload"
+          ]
+        },
+        {
+          "id": "ui-view-records-primary",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs",
+          "t0StartLine": 1145,
+          "t0EndLine": 1235,
+          "members": [
+            "MultiViewPayload",
+            "MultiProjectedDeathDto",
+            "MultiProjectedTreeDto",
+            "MultiProjectedAreaViewDto",
+            "MultiProjectedSessionViewDto",
+            "MultiProjectedMapItemDto",
+            "MultiProjectedStage4AreaDto",
+            "MultiProjectedStage4ViewDto"
+          ]
+        },
+        {
+          "id": "ui-history-records",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs",
+          "t0StartLine": 1237,
+          "t0EndLine": 1305,
+          "members": [
+            "MultiReviewPreviewDto",
+            "MultiPreviewReviewPayload",
+            "MultiSkipStepDto",
+            "MultiSkipPayload",
+            "MultiHistoryYearRefusalPayload",
+            "MultiStructurePayload"
+          ]
+        },
+        {
+          "id": "ui-commands-records",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Commands.cs",
+          "t0StartLine": 1307,
+          "t0EndLine": 1310,
+          "members": [
+            "MultiCommandPayload"
+          ]
+        },
+        {
+          "id": "ui-view-records-aux",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs",
+          "t0StartLine": 1312,
+          "t0EndLine": 1326,
+          "members": [
+            "MultiCompetitionPayload",
+            "MultiHitPayload",
+            "MultiCellPayload"
+          ]
+        },
+        {
+          "id": "ui-routes-close",
+          "target": "Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs",
+          "t0StartLine": 1327,
+          "t0EndLine": 1327,
+          "members": []
+        }
+      ]
+    }
+  }
+}
