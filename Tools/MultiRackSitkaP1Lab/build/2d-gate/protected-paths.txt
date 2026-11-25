@@ -1,0 +1,22 @@
+# SPEC-multi-2d-s0-seam-extraction-V1 §4.2 G7 & §4.6 — Protected-path guard rules.
+# Changing this file requires a reviewed decision.
+#
+# Allowed prefixes: every path in git diff must start with one of these.
+ALLOW_PREFIX Tools/MultiRackSitkaP1Lab/
+ALLOW_PREFIX Docs/
+ALLOW_PREFIX specs/multi-2d-
+
+# Explicit forbidden prefixes: always exit 4 (PROTECTED-PATH VIOLATION).
+FORBID_PREFIX Assets/
+FORBID_PREFIX Packages/
+FORBID_PREFIX ProjectSettings/
+FORBID_PREFIX Tools/MultiRackSitkaLab/
+
+# Deny-list inside allowed roots: always exit 4.
+DENY_PREFIX Tools/MultiRackSitkaP1Lab/src/Ui/wwwroot/
+DENY_PREFIX Tools/MultiRackSitkaP1Lab/fixtures/
+DENY_PREFIX Tools/MultiRackSitkaP1Lab/src/Core/Phase1/
+DENY_PREFIX Docs/Project/
+
+# Exact pinned git tree ID of Tools/MultiRackSitkaP1Lab/src/Ui/wwwroot at T0.
+WWWROOT_TREE_ID dabdbd7fa07cd01148af14464c45ceea02548378

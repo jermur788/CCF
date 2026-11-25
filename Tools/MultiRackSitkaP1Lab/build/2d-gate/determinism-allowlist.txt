@@ -1,0 +1,7 @@
+# SPEC-multi-2d-s0-seam-extraction-V1 §4.2 G6 — Core determinism F2 entropy/clock allow-list.
+# Keyed by relative file path under Tools/MultiRackSitkaP1Lab/ + enclosing member name (NEVER line number).
+# Format: <file> | <enclosing-member> | <F2-token> | <justification>
+src/Core/MultiArea/MultiAreaContinuation.cs | NewSessionId | RandomNumberGenerator | Mint 128-bit in-memory session id (never feeds simulation state, tokens, or anchors)
+src/Core/AnnualContinuation.cs | sessionId | RandomNumberGenerator | Mint 128-bit in-memory session id for legacy single-area session
+src/Core/MultiArea/MultiAreaContinuation.cs | CaptureSave | DateTime.UtcNow | Save header SavedUtc metadata timestamp only (never feeds simulation state or anchors)
+src/Core/Phase1/Phase1SaveSlots.cs | NewTempPath | RandomNumberGenerator | Atomic save temporary file name nonce only (never feeds simulation state or anchors)
