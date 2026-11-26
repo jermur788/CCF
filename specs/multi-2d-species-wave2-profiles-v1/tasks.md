@@ -27,7 +27,7 @@
 - **Exclusions:** no economy, save or UI use.
 - **Owner / routing:** implementation sub-agent.
 - **Dependencies:** T-01
-- **Verification:** W2-03..W2-08.
+- **Verification:** W2-03..W2-09.
 - **Stop conditions:** Sitka constant reuse required.
 - **Completion state:** tests pass.
 

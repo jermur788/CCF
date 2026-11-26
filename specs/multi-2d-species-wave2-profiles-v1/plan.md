@@ -44,7 +44,7 @@ None.
 
 ## Verification strategy
 
-- **Implementation correctness:** 8 new Core tests (W2-01..W2-08) against an independently restated expected table.
+- **Implementation correctness:** 9 new Core tests (W2-01..W2-09) against an independently restated expected table.
 - **Spec conformance:** checklist in `checklists/requirements.md`.
 - **Verification tier:** headless — build, Core tests, 2D gate `--headless-only` (G0–G7 + frozen anchors). Browser tier
   not tested (no Edge in WSL).

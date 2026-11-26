@@ -2,6 +2,20 @@ namespace SitkaP1.Core.SpeciesWave2;
 
 public enum ReadinessStatus { ReadyForInitialDesign, PartialWithAbstractions }
 
+/// <summary>
+/// How ready a species is for initial simulation design, and over what stand domain its sources hold. Numeric domains are
+/// null when the sources give no defensible domain; null never means "unbounded". Metadata only — nothing reads it at runtime.
+/// </summary>
+public sealed record ReadinessProfile(
+    ReadinessStatus Status,
+    ValueBand? AgeRangeYears,
+    ValueBand? StemsPerHectare,
+    ValueBand? BasalAreaM2PerHa,
+    double? MinimumTopHeightM,
+    int? IrishYieldClassPotential,
+    string Trajectory,
+    string Notes);
+
 /// <summary>Where new trees of a species may come from. AuthoredOnly: off-map arrival happens only when a scenario says so.</summary>
 public enum ExternalColonisation { AuthoredOnly }
 
@@ -130,8 +144,7 @@ public sealed record PowerLawCrownProfile(
 public sealed record SpeciesProfileCard(
     string SpeciesId,
     string DisplayName,
-    ReadinessStatus ReadinessStatus,
-    string ReadinessNotes,
+    ReadinessProfile Readiness,
     ColonisationProfile Colonisation,
     CrownProfile Crown,
     SilvicultureProfile Silviculture,
@@ -149,8 +162,12 @@ public static class FutureSpeciesCatalog
     public static SpeciesProfileCard ScotsPine { get; } = new(
         SpeciesMoistureTable.ScotsPine,
         "Scots pine",
-        ReadinessStatus.ReadyForInitialDesign,
-        "Crown fit transferred from Turkish open-grown stands; Irish provenance/site response is not separately fitted.",
+        new ReadinessProfile(
+            ReadinessStatus.ReadyForInitialDesign,
+            new ValueBand(10, 60), new ValueBand(100, 5000), new ValueBand(10, 100), 5.0, null,
+            "Open-grown crown fit applied to an initial-design even-aged stand within the Irish GROWFOR domain.",
+            "Domain from Irish GROWFOR: age 10-60 years, 100-5,000 stems/ha, 10-100 m2/ha basal area, top height >= 5 m. " +
+            "Crown fit transferred from Turkish open-grown stands; Irish provenance/site response is not separately fitted."),
         new ColonisationProfile(ExternalColonisation.AuthoredOnly, true, false, null),
         new ScotsPineCrownProfile(),
         new SilvicultureProfile(
@@ -172,8 +189,11 @@ public static class FutureSpeciesCatalog
     public static SpeciesProfileCard DownyBirch { get; } = new(
         SpeciesMoistureTable.DownyBirch,
         "Downy birch",
-        ReadinessStatus.PartialWithAbstractions,
-        "Crown fit borrowed from UK silver birch amenity trees (proxy species); timber value depends on a premium buyer.",
+        new ReadinessProfile(
+            ReadinessStatus.PartialWithAbstractions,
+            null, null, null, null, 8,
+            "Fast pioneer flush -> moderated competition-sensitive adult",
+            "Irish YC8 potential. Crown fit is a proxy borrowed from UK silver birch amenity trees; timber value depends on a premium buyer."),
         new ColonisationProfile(ExternalColonisation.AuthoredOnly, true, false, null),
         new PowerLawCrownProfile(
             ShadeTolerance.Light,
@@ -194,8 +214,12 @@ public static class FutureSpeciesCatalog
     public static SpeciesProfileCard CommonAlder { get; } = new(
         SpeciesMoistureTable.CommonAlder,
         "Common alder",
-        ReadinessStatus.PartialWithAbstractions,
-        "Crown fit from UK amenity alder; heart-rot onset is an inspection flag, not a mortality rule.",
+        new ReadinessProfile(
+            ReadinessStatus.PartialWithAbstractions,
+            null, null, null, null, null,
+            "Very fast early pioneer -> sharp moderation; short-lived with late heart-rot risk",
+            "Crown fit from UK amenity alder. Late heart-rot risk is expressed only through the timber heart-rot inspection flag " +
+            "(onset 50-60 years), never as a mortality rule."),
         new ColonisationProfile(ExternalColonisation.AuthoredOnly, true, true, null),
         new PowerLawCrownProfile(
             ShadeTolerance.Moderate,

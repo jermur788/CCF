@@ -71,6 +71,22 @@ HabitatProtectionCaution: StagnantPoorBog only. Biological survival never implie
 
 ## Profile cards
 
+### Readiness
+
+Structured `ReadinessProfile Readiness` on every card (replaces the earlier free-text status/notes). A null numeric
+domain means the sources give no defensible domain, not "unbounded". Metadata only; nothing reads it at runtime.
+
+| Field | Scots pine | Downy birch | Common alder |
+|---|---|---|---|
+| Status | ReadyForInitialDesign | PartialWithAbstractions | PartialWithAbstractions |
+| AgeRangeYears | 10–60 (Irish GROWFOR) | — | — |
+| StemsPerHectare | 100–5,000 (Irish GROWFOR) | — | — |
+| BasalAreaM2PerHa | 10–100 (Irish GROWFOR) | — | — |
+| MinimumTopHeightM | 5.0 (Irish GROWFOR) | — | — |
+| IrishYieldClassPotential | — | 8 | — |
+| Trajectory | Open-grown crown fit applied to an initial-design even-aged stand within the Irish GROWFOR domain | Fast pioneer flush -> moderated competition-sensitive adult | Very fast early pioneer -> sharp moderation; short-lived with late heart-rot risk |
+| Notes | Cites GROWFOR domain; crown fit is a Turkish transfer | Crown fit is a proxy (UK silver birch amenity) | Late heart-rot risk is expressed only via the timber heart-rot inspection flag (50–60 years), never mortality |
+
 ### Colonisation (all three)
 
 | Field | Scots pine | Downy birch | Common alder |
@@ -153,6 +169,9 @@ Not applicable — no I/O, no write-back, pure in-memory immutable data.
 - AC-7: AuthoredOnly colonisation; premium buyer on birch/alder only; water dispersal on alder only (W2-07).
 - AC-8: No Sitka reuse (Ci50 ≠ 5.0), crown evidence classes as specified, sortment bands non-empty (W2-08).
 - AC-9: Solution builds with 0 warnings/0 errors; Core tests ≥ 291 passed, 0 failed; 2D gate G0–G7 PASS with 9/9 frozen anchors.
+- AC-10: Readiness records match the Readiness table: pine ReadyForInitialDesign with all four GROWFOR numeric domains
+  and minimum top height 5 m; birch PartialWithAbstractions, YC 8, pioneer -> competition-sensitive trajectory; alder
+  PartialWithAbstractions, pioneer / short-lived trajectory; all three still AuthoredOnly (W2-09).
 
 ## Stop conditions
 

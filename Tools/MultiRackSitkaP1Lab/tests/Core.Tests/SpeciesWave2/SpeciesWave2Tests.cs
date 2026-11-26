@@ -4,7 +4,7 @@ using SitkaP1.Core.SpeciesWave2;
 namespace SitkaP1.Core.Tests.SpeciesWave2;
 
 /// <summary>
-/// SPEC-multi-2d-species-wave2-profiles-V1 author tests (W2-01..W2-08). Program.cs is outside this lane's file fence, so
+/// SPEC-multi-2d-species-wave2-profiles-V1 author tests (W2-01..W2-09). Program.cs is outside this lane's file fence, so
 /// the cases register themselves through a module initializer, which runs before Program's top-level statements and
 /// therefore before T.RunAll(). These are the author's feature tests, not independent qualification.
 /// </summary>
@@ -187,6 +187,36 @@ internal static class SpeciesWave2Tests
             T.Eq(0.842, FutureSpeciesCatalog.CommonAlder.Timber.GreenDensityTPerM3, "alder density");
             T.Eq(EvidenceTag.Of(EvidenceClass.Transfer), FutureSpeciesCatalog.CommonAlder.Timber.GreenDensityEvidence, "alder density evidence");
             T.Eq(3, FutureSpeciesCatalog.ScotsPine.Timber.SortmentBands.Count, "pine sortment count");
+        });
+
+        T.Add("species-wave2 W2-09: readiness records carry the GROWFOR pine domain, birch YC8 pioneer trajectory and alder short-lived trajectory", () =>
+        {
+            var pine = FutureSpeciesCatalog.ScotsPine.Readiness;
+            T.Eq(ReadinessStatus.ReadyForInitialDesign, pine.Status, "pine status");
+            T.Eq<ValueBand?>(new ValueBand(10, 60), pine.AgeRangeYears, "pine GROWFOR age range");
+            T.Eq<ValueBand?>(new ValueBand(100, 5000), pine.StemsPerHectare, "pine GROWFOR stems/ha");
+            T.Eq<ValueBand?>(new ValueBand(10, 100), pine.BasalAreaM2PerHa, "pine GROWFOR basal area");
+            T.Eq<double?>(5.0, pine.MinimumTopHeightM, "pine GROWFOR minimum top height");
+            T.True(pine.IrishYieldClassPotential is null, "pine has no YC on its readiness record");
+            T.True(pine.Notes.Contains("GROWFOR"), "pine readiness note cites GROWFOR");
+
+            var birch = FutureSpeciesCatalog.DownyBirch.Readiness;
+            T.Eq(ReadinessStatus.PartialWithAbstractions, birch.Status, "birch status");
+            T.Eq<int?>(8, birch.IrishYieldClassPotential, "birch Irish YC potential");
+            T.True(birch.Trajectory.Contains("pioneer", StringComparison.OrdinalIgnoreCase)
+                && birch.Trajectory.Contains("competition", StringComparison.OrdinalIgnoreCase), "birch pioneer -> competition trajectory");
+            T.True(birch.AgeRangeYears is null && birch.StemsPerHectare is null && birch.BasalAreaM2PerHa is null
+                && birch.MinimumTopHeightM is null, "birch numeric domains are null");
+
+            var alder = FutureSpeciesCatalog.CommonAlder.Readiness;
+            T.Eq(ReadinessStatus.PartialWithAbstractions, alder.Status, "alder status");
+            T.True(alder.Trajectory.Contains("pioneer", StringComparison.OrdinalIgnoreCase)
+                && alder.Trajectory.Contains("short-lived", StringComparison.OrdinalIgnoreCase), "alder pioneer / short-lived trajectory");
+            T.True(alder.IrishYieldClassPotential is null && alder.AgeRangeYears is null && alder.StemsPerHectare is null
+                && alder.BasalAreaM2PerHa is null && alder.MinimumTopHeightM is null, "alder numeric domains and YC are null");
+
+            foreach (var card in FutureSpeciesCatalog.All)
+                T.Eq(ExternalColonisation.AuthoredOnly, card.Colonisation.ExternalColonisation, $"{card.SpeciesId} still AuthoredOnly");
         });
     }
 }
