@@ -23,6 +23,10 @@ internal static class RngSalts
     internal const string Stage5Mast = "STAGE5-MAST";
     internal const string Stage5Promotion = "STAGE5-PROMO-";
 
+    // Phase 2A Forest Maker deterministic generation key prefix (independent of SimulationRandom mortality keys;
+    // registered here for centralised prefix-freedom and G6 enforcement).
+    internal const string ForestMaker = "FOREST-MAKER-";
+
     /// <summary>Ordered registry of every RNG salt constant for automated uniqueness/prefix checks and G6.</summary>
     internal static readonly IReadOnlyList<string> Families = Array.AsReadOnly(new[]
     {
@@ -35,5 +39,6 @@ internal static class RngSalts
         Phase2JuvenileBrowseSuffix,
         Stage5Mast,
         Stage5Promotion,
+        ForestMaker,
     });
 }
