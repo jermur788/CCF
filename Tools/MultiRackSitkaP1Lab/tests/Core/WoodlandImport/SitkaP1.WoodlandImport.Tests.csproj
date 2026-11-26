@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.WoodlandImport.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.WoodlandImport.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../../src/Core/WoodlandImport/**/*.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,105 @@
+{
+  "datasetTitle": "Spatially explicit database of tree related microhabitats (TreMs)",
+  "publisher": "Institut national de recherche pour l'agriculture, l'alimentation et l'environnement (INRAE)",
+  "doi": "10.15468/ocof3v",
+  "gbifDatasetKey": "2e102194-f384-4712-89a4-5db7a3fc409a",
+  "licence": "CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/legalcode)",
+  "citation": "Kraus D, Schuck A, Bebi P, Blaschke M, B\u00fctler R, Flade M, Heintz W, Krumm F, Lachat T, Larrieu L, Lehnerova L, Levin M, Mergner U, Pach M, Paillet Y, Pyttel P, Rydkvist T, Santopuoli G, Sever K, Sturm K, Vandekerkhove K, Winter S, Witz M, Winnock M, Marcandella M, Roth I, Jakob A, Dickele R, Hofmann G, Ruis-Eckhardt D, Boschen S, Sch\u00f6lmerich U, Leder B, Guericke M, Merkel H, L\u00f6ffler D, Schusser S, Runkel M, Steinmetz A, Marx K H, Mongelluzzi A, Wilshusen F, Boutteaux J, Duchamp L, Dericbourg N, Rouyer E, Csikos V, Sweeny K, Steichen D, Leytem M, Konczal S, Stere\u0144czak K, Kazimirovic M, \u0160ebe\u0148 V, Baiges Zapater T, van der Maaten-Theunissen M, Pommer A, Nord-Larsen T, Fuhr M, Delebeque L, Navarro L M, Lasala D, Waez-Mousavi S, Sefidi K, Abellanas B, Zudin S (2022). Spatially explicit database of tree related microhabitats (TreMs). Version 1.26. Institut national de recherche pour l'agriculture, l'alimentation et l'environnement (INRAE). Occurrence dataset https://doi.org/10.15468/ocof3v accessed via GBIF.org on 2026-11-26.",
+  "retrievalDateUtc": "2026-11-26",
+  "gbifLastCrawledUtc": "2026-10-30T23:26:12.556+00:00",
+  "gbifCrawlId": 420,
+  "publisherArchiveDownloadStatus": "PENDING REAL ARCHIVE DOWNLOAD \u2014 publisher IPT endpoint http://dynids.toulouse.inra.fr:8180/ipt/archive.do?r=trems_integrate timed out (curl exit 28 after 60001 ms; GBIF weekly crawls on 2026-11-11, 2026-11-18, and 2026-11-25 also ABORTed). Tree records and MeasurementOrFact rows below are genuine verbatim CC BY 4.0 records retrieved via api.gbif.org/v1/occurrence/{key}/verbatim and packaged into a standard DwC-A envelope; original publisher meta.xml byte-level verification remains pending IPT availability.",
+  "fixtures": [
+    {
+      "fileName": "ie-donadea-mhf-subset.dwca.zip",
+      "byteLength": 2137,
+      "sha256": "4ee2f4a125d1a06474d7086ccf5a6ca96735e16124ad3e4f9a11647ddcee853d",
+      "plotTotalRecordsInGbif": 271,
+      "subsetRecordCount": 20,
+      "speciesCounts": {
+        "Fagus sylvatica": 12,
+        "Picea abies": 1,
+        "Fraxinus excelsior": 3,
+        "Ulmus glabra": 1,
+        "Sorbus aucuparia": 1,
+        "Quercus robur": 1,
+        "Crataegus monogyna": 1
+      },
+      "statusCounts": {
+        "1": 18,
+        "0": 2
+      },
+      "localCoordinateRangeM": {
+        "minX": 2.97,
+        "maxX": 47.73,
+        "minY": 0.0,
+        "maxY": 98.35
+      },
+      "gbifOccurrenceKeys": [
+        3714470359,
+        3714470255,
+        3714459812,
+        3714455972,
+        3714476432,
+        3714471389,
+        3714471588,
+        3714463997,
+        3714464865,
+        3714457535,
+        3714457250,
+        3714477395,
+        3714459840,
+        3714461992,
+        3714468422,
+        3714477447,
+        3714469888,
+        3714454821,
+        3714472021,
+        3714475652
+      ]
+    },
+    {
+      "fileName": "lu-mersch-oak-beech-subset.dwca.zip",
+      "byteLength": 2145,
+      "sha256": "3c275b0115b6330ebabdad422ea9a25451489c93949dd5d80be1fb5e8b57b1ae",
+      "plotTotalRecordsInGbif": 134,
+      "subsetRecordCount": 20,
+      "speciesCounts": {
+        "Fagus sylvatica": 9,
+        "Quercus petraea": 11
+      },
+      "statusCounts": {
+        "1": 17,
+        "0": 3
+      },
+      "localCoordinateRangeM": {
+        "minX": 7.17,
+        "maxX": 98.56,
+        "minY": 6.18,
+        "maxY": 92.65
+      },
+      "gbifOccurrenceKeys": [
+        3714457104,
+        3714474635,
+        3714459717,
+        3714472105,
+        3714467691,
+        3714467642,
+        3714470367,
+        3714467321,
+        3714473857,
+        3714474015,
+        3714455736,
+        3714469953,
+        3714454832,
+        3714453049,
+        3714459421,
+        3714466294,
+        3714460904,
+        3714467109,
+        3714469129,
+        3714454121
+      ]
+    }
+  ]
+}

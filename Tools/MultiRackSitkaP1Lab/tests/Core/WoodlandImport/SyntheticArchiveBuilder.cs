@@ -1,0 +1,164 @@
+using System.IO.Compression;
+using System.Text;
+
+namespace SitkaP1.Core.WoodlandImport.Tests;
+
+internal static class SyntheticArchiveBuilder
+{
+    public sealed record SyntheticTreeSpec(
+        string OccurrenceId,
+        string ScientificName,
+        string VerbatimCoordinates,
+        string? DbhCm,
+        string? HeightM,
+        string? StatusCode,
+        string CountryCode = "IE",
+        string Habitat = "Synthetic woodland",
+        string? MeasurementMethodNote = null,
+        string? ExtraMicrohabitat = null);
+
+    public static byte[] BuildTreMsArchive(
+        IReadOnlyList<SyntheticTreeSpec> trees,
+        string fieldDelimiter = "\t",
+        string? quoteChar = null,
+        string? customMetaXml = null,
+        bool includeExtension = true,
+        IReadOnlyList<(string EntryName, byte[] RawBytes)>? extraEntries = null)
+    {
+        string delimAttr = fieldDelimiter == "\t" ? "\\t" : fieldDelimiter;
+        string quoteAttr = (quoteChar ?? string.Empty).Replace("\"", "&quot;", StringComparison.Ordinal);
+
+        string metaXml = customMetaXml ?? BuildDefaultMetaXml(delimAttr, quoteAttr, includeExtension);
+
+        var occSb = new StringBuilder();
+        occSb.Append(JoinCols(fieldDelimiter, quoteChar,
+            "occurrenceID", "scientificName", "verbatimCoordinates", "countryCode", "habitat", "datasetID", "datasetName"));
+        occSb.Append('\n');
+
+        var mofSb = new StringBuilder();
+        mofSb.Append(JoinCols(fieldDelimiter, quoteChar,
+            "occurrenceID", "measurementType", "measurementRemarks", "measurementValue", "measurementUnit", "measurementMethod"));
+        mofSb.Append('\n');
+
+        foreach (SyntheticTreeSpec t in trees)
+        {
+            occSb.Append(JoinCols(fieldDelimiter, quoteChar,
+                t.OccurrenceId, t.ScientificName, t.VerbatimCoordinates, t.CountryCode, t.Habitat,
+                "https://doi.org/10.15468/ocof3v", "trems dataset"));
+            occSb.Append('\n');
+
+            if (includeExtension)
+            {
+                string method = t.MeasurementMethodNote ?? "field measurement";
+                if (t.DbhCm is not null)
+                {
+                    mofSb.Append(JoinCols(fieldDelimiter, quoteChar,
+                        t.OccurrenceId, "Tree diameter", "diameter", t.DbhCm, "cm", method));
+                    mofSb.Append('\n');
+                }
+                if (t.HeightM is not null)
+                {
+                    mofSb.Append(JoinCols(fieldDelimiter, quoteChar,
+                        t.OccurrenceId, "tree height", "height", t.HeightM, "m", method));
+                    mofSb.Append('\n');
+                }
+                if (t.StatusCode is not null)
+                {
+                    mofSb.Append(JoinCols(fieldDelimiter, quoteChar,
+                        t.OccurrenceId, "Tree status (dead or living)", "status", t.StatusCode, "", method));
+                    mofSb.Append('\n');
+                }
+                if (t.ExtraMicrohabitat is not null)
+                {
+                    mofSb.Append(JoinCols(fieldDelimiter, quoteChar,
+                        t.OccurrenceId, "Tree related micro-habitat", t.ExtraMicrohabitat, "1", "", method));
+                    mofSb.Append('\n');
+                }
+            }
+        }
+
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            WriteUtf8Entry(zip, "meta.xml", metaXml);
+            WriteUtf8Entry(zip, "occurrence.txt", occSb.ToString());
+            if (includeExtension)
+            {
+                WriteUtf8Entry(zip, "measurementorfact.txt", mofSb.ToString());
+            }
+            if (extraEntries is not null)
+            {
+                foreach (var (entryName, rawBytes) in extraEntries)
+                {
+                    WriteRawEntry(zip, entryName, rawBytes);
+                }
+            }
+        }
+        return ms.ToArray();
+    }
+
+    public static byte[] BuildRawZip(params (string EntryName, byte[] Content)[] entries)
+    {
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var (name, content) in entries)
+            {
+                WriteRawEntry(zip, name, content);
+            }
+        }
+        return ms.ToArray();
+    }
+
+    public static string BuildDefaultMetaXml(string delimAttr, string quoteAttr, bool includeExtension)
+    {
+        string extBlock = includeExtension
+            ? $@"  <extension encoding=""UTF-8"" fieldsTerminatedBy=""{delimAttr}"" linesTerminatedBy=""\n"" fieldsEnclosedBy=""{quoteAttr}"" ignoreHeaderLines=""1"" rowType=""http://rs.tdwg.org/dwc/terms/MeasurementOrFact"">
+    <files><location>measurementorfact.txt</location></files>
+    <coreid index=""0"" />
+    <field index=""1"" term=""http://rs.tdwg.org/dwc/terms/measurementType"" />
+    <field index=""2"" term=""http://rs.tdwg.org/dwc/terms/measurementRemarks"" />
+    <field index=""3"" term=""http://rs.tdwg.org/dwc/terms/measurementValue"" />
+    <field index=""4"" term=""http://rs.tdwg.org/dwc/terms/measurementUnit"" />
+    <field index=""5"" term=""http://rs.tdwg.org/dwc/terms/measurementMethod"" />
+  </extension>
+"
+            : string.Empty;
+
+        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<archive xmlns=""http://rs.tdwg.org/dwc/text/"">
+  <core encoding=""UTF-8"" fieldsTerminatedBy=""{delimAttr}"" linesTerminatedBy=""\n"" fieldsEnclosedBy=""{quoteAttr}"" ignoreHeaderLines=""1"" rowType=""http://rs.tdwg.org/dwc/terms/Occurrence"">
+    <files><location>occurrence.txt</location></files>
+    <id index=""0"" />
+    <field index=""0"" term=""http://rs.tdwg.org/dwc/terms/occurrenceID"" />
+    <field index=""1"" term=""http://rs.tdwg.org/dwc/terms/scientificName"" />
+    <field index=""2"" term=""http://rs.tdwg.org/dwc/terms/verbatimCoordinates"" />
+    <field index=""3"" term=""http://rs.tdwg.org/dwc/terms/countryCode"" />
+    <field index=""4"" term=""http://rs.tdwg.org/dwc/terms/habitat"" />
+    <field index=""5"" term=""http://rs.tdwg.org/dwc/terms/datasetID"" />
+    <field index=""6"" term=""http://rs.tdwg.org/dwc/terms/datasetName"" />
+  </core>
+{extBlock}</archive>";
+    }
+
+    private static string JoinCols(string delimiter, string? quote, params string[] cols)
+    {
+        if (string.IsNullOrEmpty(quote))
+        {
+            return string.Join(delimiter, cols);
+        }
+        return string.Join(delimiter, cols.Select(c => quote + c.Replace(quote, quote + quote, StringComparison.Ordinal) + quote));
+    }
+
+    private static void WriteUtf8Entry(ZipArchive zip, string name, string content) =>
+        WriteRawEntry(zip, name, Encoding.UTF8.GetBytes(content));
+
+    private static void WriteRawEntry(ZipArchive zip, string name, byte[] bytes)
+    {
+        ZipArchiveEntry entry = zip.CreateEntry(name, CompressionLevel.Optimal);
+        // Fixed deterministic timestamp so even raw ZIP bytes are reproducible.
+        entry.LastWriteTime = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        using Stream s = entry.Open();
+        s.Write(bytes, 0, bytes.Length);
+    }
+}
