@@ -4,6 +4,11 @@ namespace SitkaP1.Core.WoodlandImport;
 /// Deterministic, exact-match species mapper for Woodland Importer V1.
 /// Performs case-insensitive matching on scientific names and documented common synonyms.
 /// Never performs fuzzy or near-match substitution.
+/// Bare genus names, genus-with-author forms (e.g. "Quercus L.", "Tilia L."), and higher taxonomic ranks
+/// (e.g. "Fagaceae", "Pinaceae", "PLANTAE") are classified as <see cref="SpeciesSupportCategory.UnidentifiedSpecies"/>.
+/// Regional calibration note (F-15): bare common names "Beech" and "Alder" map to Fagus sylvatica and
+/// Alnus glutinosa as an explicit UK/Irish forestry calibration assumption (not a global taxonomic equivalence;
+/// carries substitution risk if an external dataset uses bare "Alder" for Alnus incana).
 /// </summary>
 public static class WoodlandSpeciesMapper
 {
@@ -41,6 +46,16 @@ public static class WoodlandSpeciesMapper
         "incertae sedis",
     };
 
+    private static readonly string[] HigherRankSuffixes =
+    [
+        "aceae",
+        "ales",
+        "opsida",
+        "phyta",
+        "oideae",
+        "ineae",
+    ];
+
     private static readonly HashSet<string> KnownBinomialsWithAuthors = new(StringComparer.OrdinalIgnoreCase)
     {
         "picea sitchensis",
@@ -70,6 +85,7 @@ public static class WoodlandSpeciesMapper
             "sitka spruce", "sitka-spruce");
         Add("sessile-oak", SpeciesSupportCategory.ModelledAtBase, "Quercus petraea",
             "sessile oak", "sessile-oak", "durmast oak", "quercus sessiliflora");
+        // Regional UK/Irish calibration: bare "Beech" -> Fagus sylvatica (see F-15).
         Add("beech", SpeciesSupportCategory.ModelledAtBase, "Fagus sylvatica",
             "european beech", "common beech", "beech");
 
@@ -78,6 +94,7 @@ public static class WoodlandSpeciesMapper
             "scots pine", "scots-pine", "scotch pine");
         Add("downy-birch", SpeciesSupportCategory.PendingModelSupport, "Betula pubescens",
             "downy birch", "downy-birch", "moor birch", "hairy birch");
+        // Regional UK/Irish calibration: bare "Alder" -> Alnus glutinosa (see F-15).
         Add("common-alder", SpeciesSupportCategory.PendingModelSupport, "Alnus glutinosa",
             "common alder", "common-alder", "black alder", "european alder", "alder");
 
@@ -91,15 +108,10 @@ public static class WoodlandSpeciesMapper
 
         if (string.IsNullOrEmpty(normalized))
         {
-            return new SpeciesMappingResult(
-                CanonicalSpeciesId: null,
-                Category: SpeciesSupportCategory.UnidentifiedSpecies,
-                RawName: raw,
-                NormalizedInput: string.Empty,
-                MatchedScientificName: null);
+            return Unidentified(raw, string.Empty);
         }
 
-        // Direct exact match on full normalized string (scientific binomial or common synonym).
+        // Direct exact match on full normalized string (scientific binomial or documented common synonym).
         if (ExactLookup.TryGetValue(normalized, out var direct))
         {
             return new SpeciesMappingResult(
@@ -113,36 +125,40 @@ public static class WoodlandSpeciesMapper
         // Reject known unidentified/placeholder/higher-rank tokens.
         if (UnidentifiedTokens.Contains(normalized))
         {
-            return new SpeciesMappingResult(
-                CanonicalSpeciesId: null,
-                Category: SpeciesSupportCategory.UnidentifiedSpecies,
-                RawName: raw,
-                NormalizedInput: normalized,
-                MatchedScientificName: null);
+            return Unidentified(raw, normalized);
         }
 
         // Check for unparsable strings (no alphabetic letters at all, e.g., numeric codes or punctuation).
-        if (!ContainsLetter(normalized))
+        if (!ContainsLetter(normalized) || !HasPlausibleTaxonCharacters(normalized))
         {
-            return new SpeciesMappingResult(
-                CanonicalSpeciesId: null,
-                Category: SpeciesSupportCategory.UnidentifiedSpecies,
-                RawName: raw,
-                NormalizedInput: normalized,
-                MatchedScientificName: null);
+            return Unidentified(raw, normalized);
         }
 
         string[] tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        // Genus-only unidentified forms like "Quercus sp.", "Betula spp.", "Pinus indet."
-        if (tokens.Length >= 2 && IsUnidentifiedEpithet(tokens[1]))
+        // Single-word input not in ExactLookup is a bare genus (e.g. "Quercus", "Fagus", "Betula"),
+        // higher taxonomic rank (e.g. "Fagaceae", "Pinaceae"), or unrecognised single token -> UnidentifiedSpecies.
+        if (tokens.Length == 1)
         {
-            return new SpeciesMappingResult(
-                CanonicalSpeciesId: null,
-                Category: SpeciesSupportCategory.UnidentifiedSpecies,
-                RawName: raw,
-                NormalizedInput: normalized,
-                MatchedScientificName: null);
+            return Unidentified(raw, normalized);
+        }
+
+        // Higher taxonomic rank with optional authority (e.g. "Fagaceae Dumort.", "Pinaceae Spreng.").
+        if (HasHigherRankSuffix(tokens[0]))
+        {
+            return Unidentified(raw, normalized);
+        }
+
+        // Genus-only unidentified forms like "Quercus sp.", "Betula spp.", "Pinus indet."
+        if (IsUnidentifiedEpithet(tokens[1]))
+        {
+            return Unidentified(raw, normalized);
+        }
+
+        // Genus with taxonomic authority only (e.g. "Quercus L.", "Tilia L.", "Betula (L.)") -> UnidentifiedSpecies.
+        if (LooksLikeGenusWithAuthorityOnly(tokens))
+        {
+            return Unidentified(raw, normalized);
         }
 
         // Scientific name with taxonomic authority suffix (e.g., "Fagus sylvatica L.",
@@ -164,19 +180,6 @@ public static class WoodlandSpeciesMapper
             }
         }
 
-        // Any single unrecognised non-binomial word that is not a known common name is checked:
-        // If it contains only valid taxon characters and at least 2 letters, treat named genus/taxon
-        // as UnmodelledSpecies unless it is a placeholder; otherwise UnidentifiedSpecies.
-        if (!HasPlausibleTaxonCharacters(normalized))
-        {
-            return new SpeciesMappingResult(
-                CanonicalSpeciesId: null,
-                Category: SpeciesSupportCategory.UnidentifiedSpecies,
-                RawName: raw,
-                NormalizedInput: normalized,
-                MatchedScientificName: null);
-        }
-
         return new SpeciesMappingResult(
             CanonicalSpeciesId: null,
             Category: SpeciesSupportCategory.UnmodelledSpecies,
@@ -184,6 +187,14 @@ public static class WoodlandSpeciesMapper
             NormalizedInput: normalized,
             MatchedScientificName: null);
     }
+
+    private static SpeciesMappingResult Unidentified(string raw, string normalized) =>
+        new(
+            CanonicalSpeciesId: null,
+            Category: SpeciesSupportCategory.UnidentifiedSpecies,
+            RawName: raw,
+            NormalizedInput: normalized,
+            MatchedScientificName: null);
 
     private static string NormalizeWhitespace(string input)
     {
@@ -217,6 +228,32 @@ public static class WoodlandSpeciesMapper
         {
             if (char.IsLetter(c)) return true;
         }
+        return false;
+    }
+
+    private static bool HasHigherRankSuffix(string token)
+    {
+        for (int i = 0; i < HigherRankSuffixes.Length; i++)
+        {
+            string suffix = HigherRankSuffixes[i];
+            if (token.Length > suffix.Length + 1 &&
+                token.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool LooksLikeGenusWithAuthorityOnly(string[] tokens)
+    {
+        // E.g. "Quercus L.", "Tilia L.", "Fagus (L.)" where second token is an abbreviated or parenthesized authority,
+        // never a lowercase specific epithet.
+        if (tokens.Length < 2) return false;
+        string second = tokens[1];
+        if (second.Length == 0) return false;
+        if (second[0] == '(') return true;
+        if (second.EndsWith('.') && char.IsUpper(second[0])) return true;
         return false;
     }
 

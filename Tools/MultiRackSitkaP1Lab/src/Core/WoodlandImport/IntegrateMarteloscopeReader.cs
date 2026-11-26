@@ -6,7 +6,7 @@ namespace SitkaP1.Core.WoodlandImport;
 /// <summary>
 /// Reads Integrate+ / TreMs Darwin Core Archives into deterministic <see cref="WoodlandImportStand"/>
 /// snapshots and validates readiness under Option A rules (zero silent deletion, zero species substitution,
-/// zero allometric estimation, no inferred boundaries).
+/// zero allometric estimation, no inferred boundaries, zero silent row overwrite).
 /// </summary>
 public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
 {
@@ -76,8 +76,9 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             }
         }
 
-        // Filter records by optional TargetPlotId (or use all archive records for single-plot archives).
+        // Filter records by optional TargetPlotId; refuse multi-plot archives when TargetPlotId is omitted.
         var selected = new List<DwcJoinedRecord>();
+        var distinctPlots = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
         string? detectedPlotName = null;
         string? detectedCountry = null;
 
@@ -93,6 +94,10 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                     continue;
                 }
             }
+            else
+            {
+                distinctPlots.Add(plotId);
+            }
 
             selected.Add(rec);
             detectedPlotName ??= plotId;
@@ -104,6 +109,23 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                     detectedCountry = cc.Trim();
                 }
             }
+        }
+
+        if (string.IsNullOrWhiteSpace(request.TargetPlotId) && distinctPlots.Count > 1)
+        {
+            string listed = string.Join(", ", distinctPlots.Take(10));
+            if (distinctPlots.Count > 10) listed += ", ...";
+            priorIssues.Add(new ImportValidationIssue(
+                "MultiplePlotsRequireTargetPlotId",
+                IssueSeverity.Refusal,
+                $"Archive contains {distinctPlots.Count} distinct plots ({listed}); specify TargetPlotId to avoid merging separate local coordinate frames."));
+            priorIssues.Sort(WoodlandImportValidator.CompareIssues);
+            return new WoodlandImportResult
+            {
+                Readiness = WoodlandReadiness.Refused,
+                Stand = null,
+                Issues = priorIssues.AsReadOnly(),
+            };
         }
 
         if (!string.IsNullOrWhiteSpace(request.TargetPlotId) && selected.Count == 0)
@@ -126,11 +148,17 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         int livingCount = 0;
         int deadCount = 0;
         int unknownCount = 0;
+        bool anyTreeHasLocalPosition = false;
 
         for (int i = 0; i < selected.Count; i++)
         {
             DwcJoinedRecord rec = selected[i];
             ImportedTreeRecord tree = MapTreeRecord(rec, priorIssues);
+
+            if (!tree.PositionLocalM.IsMissing)
+            {
+                anyTreeHasLocalPosition = true;
+            }
 
             if (tree.IsConservativelyLiving)
             {
@@ -161,6 +189,21 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             }
 
             trees.Add(tree);
+        }
+
+        // F-05: A geographic tangent-plane boundary is centred at the polygon's WGS-84 centroid and is NOT
+        // registered to plot-local tree coordinates (which carry no per-tree georeference). Never run cross-frame
+        // containment or admit such a stand; withhold the unregistered boundary and keep the stand InventoryOnly.
+        if (surveyedBoundary is not null &&
+            surveyedBoundary.CoordinateSource == BoundaryCoordinateSource.GeographicTangentPlane &&
+            anyTreeHasLocalPosition)
+        {
+            priorIssues.Add(new ImportValidationIssue(
+                "BoundaryTreeFrameMismatch",
+                IssueSeverity.InventoryOnlyBlocker,
+                "Geographic tangent-plane boundary cannot be registered to non-georeferenced plot-local tree coordinates. Supply a boundary in the plot-local metre frame; stand retained as InventoryOnly.",
+                FieldName: "Boundary"));
+            surveyedBoundary = null;
         }
 
         // Ensure canonical ordinal ordering on SourceTreeId.
@@ -205,24 +248,35 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
     {
         string sourceId = rec.CoreId;
 
+        // Parse core-level provenance FIRST so it applies honestly to species, position, and fallback measurements.
+        FieldProvenance coreProvenance = ParseDeclaredProvenance(GetTerm(rec.CoreTerms, "provenance"));
+
         // 1. Species (never substituted; raw value retained verbatim alongside exact mapping).
         string? rawSci = GetTerm(rec.CoreTerms, "scientificName")
             ?? GetTerm(rec.CoreTerms, "species");
         ImportField<string> rawSpeciesField = string.IsNullOrWhiteSpace(rawSci)
             ? ImportField<string>.Missing(new FieldEvidence("scientificName", rawSci))
-            : ImportField<string>.Observed(rawSci.Trim(), new FieldEvidence("scientificName", rawSci));
+            : new ImportField<string>
+            {
+                Provenance = coreProvenance,
+                HasValue = true,
+                Value = rawSci.Trim(),
+                Evidence = new FieldEvidence("scientificName", rawSci),
+            };
         SpeciesMappingResult speciesMapping = WoodlandSpeciesMapper.Map(rawSci);
 
         // 2. Local coordinates (verbatimCoordinates e.g. "34 , 48.82", or explicit localX/localY).
-        ImportField<LocalPoint2D> positionField = ParseLocalPosition(rec.CoreTerms, sourceId, issues);
+        ImportField<LocalPoint2D> positionField = ParseLocalPosition(rec.CoreTerms, sourceId, coreProvenance, issues);
 
         // 3. Measurements & vital status from MeasurementOrFact extension rows (plus core fallbacks).
+        // Detect repeated/conflicting rows for any single-valued field per tree deterministically (order-independent).
         ImportField<TreeVitalStatus> vitalField = ImportField<TreeVitalStatus>.Missing(new FieldEvidence("status", null));
         ImportField<double> dbhField = ImportField<double>.Missing(new FieldEvidence("diameter", null));
         ImportField<double> heightField = ImportField<double>.Missing(new FieldEvidence("height", null));
         ImportField<double> crownField = ImportField<double>.Missing(new FieldEvidence("crownRadius", null));
         ImportField<int> ageField = ImportField<int>.Missing(new FieldEvidence("age", null));
 
+        var seenValues = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var extra = new SortedDictionary<string, string>(StringComparer.Ordinal);
 
         // Preserve plot-level context terms without confusing them for per-tree local coordinates.
@@ -231,9 +285,6 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         CopyExtraIfPresent(rec.CoreTerms, extra, "decimalLatitude", "plotDecimalLatitude");
         CopyExtraIfPresent(rec.CoreTerms, extra, "decimalLongitude", "plotDecimalLongitude");
         CopyExtraIfPresent(rec.CoreTerms, extra, "verbatimElevation", "verbatimElevation");
-
-        // Check core provenance marker if present (explicit Year-0 Simulated rejection testability).
-        FieldProvenance coreProvenance = ParseDeclaredProvenance(GetTerm(rec.CoreTerms, "provenance"));
 
         for (int i = 0; i < rec.ExtensionRows.Count; i++)
         {
@@ -252,28 +303,33 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
 
             if (IsStatusRow(mType, mRemarks))
             {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.VitalStatus), mValue);
                 vitalField = ParseVitalStatus(mValue, mRemarks.Length > 0 ? mRemarks : mType, rowProv);
             }
             else if (IsDiameterRow(mType, mRemarks))
             {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.DbhCm), FormatValueWithUnit(mValue, mUnit));
                 dbhField = ParseDoubleMeasurement(
                     mValue, mUnit, "cm", sourceId, nameof(ImportedTreeRecord.DbhCm),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
             }
             else if (IsHeightRow(mType, mRemarks))
             {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.HeightM), FormatValueWithUnit(mValue, mUnit));
                 heightField = ParseDoubleMeasurement(
                     mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.HeightM),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
             }
             else if (IsCrownRadiusRow(mType, mRemarks))
             {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.CrownRadiusM), FormatValueWithUnit(mValue, mUnit));
                 crownField = ParseDoubleMeasurement(
                     mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.CrownRadiusM),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
             }
             else if (IsAgeRow(mType, mRemarks))
             {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.AgeYears), mValue);
                 ageField = ParseIntMeasurement(
                     mValue, sourceId, nameof(ImportedTreeRecord.AgeYears),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
@@ -283,13 +339,31 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             {
                 if (!string.IsNullOrWhiteSpace(mRemarks) && !string.IsNullOrWhiteSpace(mValue))
                 {
-                    extra["trem:" + mRemarks] = mValue;
+                    string tremKey = "trem:" + mRemarks;
+                    RecordFieldOccurrence(seenValues, tremKey, mValue);
+                    extra[tremKey] = mValue;
                 }
             }
         }
 
+        // Emit deterministic, row-order-independent refusal issues for any repeated single-valued field on this tree.
+        foreach (var kv in seenValues)
+        {
+            if (kv.Value.Count > 1)
+            {
+                kv.Value.Sort(StringComparer.Ordinal);
+                string joinedValues = string.Join(", ", kv.Value);
+                issues.Add(new ImportValidationIssue(
+                    "DuplicateMeasurementRow",
+                    IssueSeverity.Refusal,
+                    $"Tree '{sourceId}' has {kv.Value.Count} rows for single-valued field '{kv.Key}' (values: [{joinedValues}]); refusing silent overwrite.",
+                    SourceTreeId: sourceId,
+                    FieldName: kv.Key));
+            }
+        }
+
         // Core-table fallback for vital status if not provided via MeasurementOrFact extension.
-        if (vitalField.IsMissing)
+        if (vitalField.IsMissing && !seenValues.ContainsKey(nameof(ImportedTreeRecord.VitalStatus)))
         {
             string? coreVitality = GetTerm(rec.CoreTerms, "vitality") ?? GetTerm(rec.CoreTerms, "treeStatus");
             if (!string.IsNullOrWhiteSpace(coreVitality))
@@ -299,7 +373,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         }
 
         // Core-table fallback for DBH / height if a simple core-only DwC-A supplies them directly.
-        if (dbhField.IsMissing)
+        if (dbhField.IsMissing && !seenValues.ContainsKey(nameof(ImportedTreeRecord.DbhCm)))
         {
             string? coreDbh = GetTerm(rec.CoreTerms, "dbhCm") ?? GetTerm(rec.CoreTerms, "diameterCm");
             if (!string.IsNullOrWhiteSpace(coreDbh))
@@ -308,7 +382,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             }
         }
 
-        if (heightField.IsMissing)
+        if (heightField.IsMissing && !seenValues.ContainsKey(nameof(ImportedTreeRecord.HeightM)))
         {
             string? coreHeight = GetTerm(rec.CoreTerms, "heightM");
             if (!string.IsNullOrWhiteSpace(coreHeight))
@@ -334,9 +408,23 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         };
     }
 
+    private static void RecordFieldOccurrence(Dictionary<string, List<string>> seenValues, string fieldKey, string rawValue)
+    {
+        if (!seenValues.TryGetValue(fieldKey, out var list))
+        {
+            list = new List<string>(1);
+            seenValues[fieldKey] = list;
+        }
+        list.Add(rawValue);
+    }
+
+    private static string FormatValueWithUnit(string value, string unit) =>
+        string.IsNullOrEmpty(unit) ? value : $"{value} {unit}";
+
     private static ImportField<LocalPoint2D> ParseLocalPosition(
         IReadOnlyDictionary<string, string> coreTerms,
         string sourceId,
+        FieldProvenance provenance,
         List<ImportValidationIssue> issues)
     {
         string? verbatim = GetTerm(coreTerms, "verbatimCoordinates");
@@ -353,9 +441,13 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                 double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
                 double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
             {
-                return ImportField<LocalPoint2D>.Observed(
-                    new LocalPoint2D(x, y),
-                    new FieldEvidence("verbatimCoordinates", verbatim));
+                return new ImportField<LocalPoint2D>
+                {
+                    Provenance = provenance,
+                    HasValue = true,
+                    Value = new LocalPoint2D(x, y),
+                    Evidence = new FieldEvidence("verbatimCoordinates", verbatim),
+                };
             }
 
             issues.Add(new ImportValidationIssue(
@@ -374,9 +466,13 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             if (double.TryParse(xRaw?.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
                 double.TryParse(yRaw?.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
             {
-                return ImportField<LocalPoint2D>.Observed(
-                    new LocalPoint2D(x, y),
-                    new FieldEvidence("localXM/localYM", $"{xRaw},{yRaw}"));
+                return new ImportField<LocalPoint2D>
+                {
+                    Provenance = provenance,
+                    HasValue = true,
+                    Value = new LocalPoint2D(x, y),
+                    Evidence = new FieldEvidence("localXM/localYM", $"{xRaw},{yRaw}"),
+                };
             }
 
             issues.Add(new ImportValidationIssue(
@@ -410,9 +506,10 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
 
         if (parsed is null)
         {
+            // Preserve declared provenance honestly (never launder Inferred or Simulated into Observed).
             return new ImportField<TreeVitalStatus>
             {
-                Provenance = provenance == FieldProvenance.Simulated ? FieldProvenance.Simulated : FieldProvenance.Observed,
+                Provenance = provenance,
                 HasValue = true,
                 Value = TreeVitalStatus.Unknown,
                 Evidence = new FieldEvidence(sourceCol, rawValue, "Unrecognized status code; counted conservatively as living."),
@@ -455,15 +552,40 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         }
 
         string unit = rawUnit.Trim().ToLowerInvariant();
-        if (targetUnit == "cm")
+        if (unit.Length > 0)
         {
-            if (unit == "mm") val /= 10.0;
-            else if (unit == "m") val *= 100.0;
-        }
-        else if (targetUnit == "m")
-        {
-            if (unit == "cm") val /= 100.0;
-            else if (unit == "mm") val /= 1000.0;
+            if (targetUnit == "cm")
+            {
+                if (unit == "cm") { }
+                else if (unit == "mm") val /= 10.0;
+                else if (unit == "m") val *= 100.0;
+                else
+                {
+                    issues.Add(new ImportValidationIssue(
+                        "UnsupportedMeasurementUnit",
+                        IssueSeverity.Refusal,
+                        $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected cm, mm, or m.",
+                        SourceTreeId: sourceId,
+                        FieldName: fieldName));
+                    return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
+                }
+            }
+            else if (targetUnit == "m")
+            {
+                if (unit == "m") { }
+                else if (unit == "cm") val /= 100.0;
+                else if (unit == "mm") val /= 1000.0;
+                else
+                {
+                    issues.Add(new ImportValidationIssue(
+                        "UnsupportedMeasurementUnit",
+                        IssueSeverity.Refusal,
+                        $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected m, cm, or mm.",
+                        SourceTreeId: sourceId,
+                        FieldName: fieldName));
+                    return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
+                }
+            }
         }
 
         return new ImportField<double>

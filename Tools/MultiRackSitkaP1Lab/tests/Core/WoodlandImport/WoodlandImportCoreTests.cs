@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text;
 using SitkaP1.Core.WoodlandImport;
 
@@ -101,21 +102,21 @@ internal static class WoodlandImportCoreTests
             // Duplicate ID
             byte[] dupZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("dup_1", "Fagus sylvatica", "10 , 10", "25", "18", "1"),
-                new("dup_1", "Fagus sylvatica", "20 , 20", "26", "19", "1"),
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "25", "18", "1"),
+                new("1_PlotA", "Fagus sylvatica", "20 , 20", "26", "19", "1"),
             ]);
             var rDup = reader.Read(new WoodlandImportRequest { ArchiveBytes = dupZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.Refused, rDup.Readiness, "duplicate refused");
             TestRunner.True(rDup.Issues.Any(i => i.Code == "DuplicateSourceTreeId"), "DuplicateSourceTreeId");
 
             // Non-positive DBH
-            byte[] negDbhZip = SyntheticArchiveBuilder.BuildTreMsArchive([new("t1", "Fagus sylvatica", "10 , 10", "0", "18", "1")]);
+            byte[] negDbhZip = SyntheticArchiveBuilder.BuildTreMsArchive([new("1_PlotA", "Fagus sylvatica", "10 , 10", "0", "18", "1")]);
             var rNegDbh = reader.Read(new WoodlandImportRequest { ArchiveBytes = negDbhZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.Refused, rNegDbh.Readiness, "zero dbh refused");
             TestRunner.True(rNegDbh.Issues.Any(i => i.Code == "InvalidDbhValue"), "InvalidDbhValue");
 
             // Malformed coordinates
-            byte[] badCoordZip = SyntheticArchiveBuilder.BuildTreMsArchive([new("t1", "Fagus sylvatica", "not-a-coord", "25", "18", "1")]);
+            byte[] badCoordZip = SyntheticArchiveBuilder.BuildTreMsArchive([new("1_PlotA", "Fagus sylvatica", "not-a-coord", "25", "18", "1")]);
             var rBadCoord = reader.Read(new WoodlandImportRequest { ArchiveBytes = badCoordZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.Refused, rBadCoord.Readiness, "bad coord refused");
             TestRunner.True(rBadCoord.Issues.Any(i => i.Code == "MalformedTreeCoordinates"), "MalformedTreeCoordinates");
@@ -123,12 +124,12 @@ internal static class WoodlandImportCoreTests
             // Year-0 Simulated provenance via archive reader
             byte[] simZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t_sim", "Fagus sylvatica", "10 , 10", "25", "18", "1", MeasurementMethodNote: "provenance=simulated"),
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "25", "18", "1", MeasurementMethodNote: "provenance=simulated"),
             ]);
             var rSim = reader.Read(new WoodlandImportRequest { ArchiveBytes = simZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.Refused, rSim.Readiness, "Year-0 simulated refused");
             TestRunner.True(rSim.Stand is null, "simulated refused stand is null");
-            TestRunner.True(rSim.Issues.Any(i => i.Code == "SimulatedFieldAtYearZero" && i.SourceTreeId == "t_sim"), "SimulatedFieldAtYearZero emitted");
+            TestRunner.True(rSim.Issues.Any(i => i.Code == "SimulatedFieldAtYearZero" && i.SourceTreeId == "1_PlotA"), "SimulatedFieldAtYearZero emitted");
 
             // Direct validator refusal of Year-0 Simulated even if stand is otherwise valid
             WoodlandBoundary.TryCreateLocal(Square100m, out var validBoundary, out _);
@@ -174,22 +175,22 @@ internal static class WoodlandImportCoreTests
             // 4a. Unsupported living species -> InventoryOnly, all trees retained
             byte[] unsupZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t1", "Fagus sylvatica", "10 , 10", "30", "22", "1"),
-                new("t2", "Fraxinus excelsior", "20 , 20", "25", "19", "1"),
-                new("t3", "Pinus sylvestris", "30 , 30", "28", "20", "1"),
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "22", "1"),
+                new("2_PlotA", "Fraxinus excelsior", "20 , 20", "25", "19", "1"),
+                new("3_PlotA", "Pinus sylvestris", "30 , 30", "28", "20", "1"),
             ]);
             var rUnsup = reader.Read(new WoodlandImportRequest { ArchiveBytes = unsupZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.InventoryOnly, rUnsup.Readiness, "unsupported living -> InventoryOnly");
             TestRunner.True(!rUnsup.IsAdmissibleForSimulation, "not admissible");
             TestRunner.Eq(3, rUnsup.Stand!.Trees.Count, "zero silent deletion: all 3 retained");
             TestRunner.Eq("Fraxinus excelsior", rUnsup.Stand.Trees[1].RawSpeciesName.Value, "no species substitution");
-            TestRunner.True(rUnsup.Issues.Any(i => i.Code == "UnsupportedLivingSpecies" && i.SourceTreeId == "t2"), "t2 unsupported blocker");
-            TestRunner.True(rUnsup.Issues.Any(i => i.Code == "PendingModelSupportLivingSpecies" && i.SourceTreeId == "t3"), "t3 pending blocker");
+            TestRunner.True(rUnsup.Issues.Any(i => i.Code == "UnsupportedLivingSpecies" && i.SourceTreeId == "2_PlotA"), "2_PlotA unsupported blocker");
+            TestRunner.True(rUnsup.Issues.Any(i => i.Code == "PendingModelSupportLivingSpecies" && i.SourceTreeId == "3_PlotA"), "3_PlotA pending blocker");
 
             // 4b. Missing measurements (height missing) -> FieldProvenance.Missing, InventoryOnly, no allometric fill
             byte[] missZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t1", "Fagus sylvatica", "10 , 10", "30", null, "1"),
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", null, "1"),
             ]);
             var rMiss = reader.Read(new WoodlandImportRequest { ArchiveBytes = missZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.InventoryOnly, rMiss.Readiness, "missing height -> InventoryOnly");
@@ -200,7 +201,7 @@ internal static class WoodlandImportCoreTests
             // 4c. Missing boundary -> InventoryOnly, Boundary stays null (no convex-hull/bbox inference)
             byte[] okTreeZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t1", "Picea sitchensis", "10 , 10", "30", "22", "1"),
+                new("1_PlotA", "Picea sitchensis", "10 , 10", "30", "22", "1"),
             ]);
             var rNoBoundary = reader.Read(new WoodlandImportRequest { ArchiveBytes = okTreeZip });
             TestRunner.Eq(WoodlandReadiness.InventoryOnly, rNoBoundary.Readiness, "missing boundary -> InventoryOnly");
@@ -215,8 +216,8 @@ internal static class WoodlandImportCoreTests
             TestRunner.True(rBadBoundary.Issues.Any(i => i.Code == "BoundarySelfIntersecting"), "BoundarySelfIntersecting recorded");
         });
 
-        // 5. Species mapper (all 6 target species + unmodelled + PLANTAE/unidentified + no fuzzy matching)
-        TestRunner.Add(Suite, "species: all 6 target species, synonyms, authors, unmodelled taxa, PLANTAE/unidentified, and zero fuzzy matching", () =>
+        // 5. Species mapper (all 6 target species + unmodelled + PLANTAE/genus/higher-rank/unidentified + zero fuzzy matching; F-08)
+        TestRunner.Add(Suite, "species: all 6 target species, synonyms, authors, unmodelled taxa, genus/higher-rank/PLANTAE unidentified, zero fuzzy matching", () =>
         {
             void AssertMap(string input, SpeciesSupportCategory expectedCat, string? expectedId)
             {
@@ -257,13 +258,22 @@ internal static class WoodlandImportCoreTests
             AssertMap("Picea abies (L.) H.Karst.", SpeciesSupportCategory.UnmodelledSpecies, null);
             AssertMap("Quercus robur L.", SpeciesSupportCategory.UnmodelledSpecies, null);
             AssertMap("Fraxinus excelsior", SpeciesSupportCategory.UnmodelledSpecies, null);
+            AssertMap("Norway spruce", SpeciesSupportCategory.UnmodelledSpecies, null);
             AssertMap("Quercus petraea x robur", SpeciesSupportCategory.UnmodelledSpecies, null);
             AssertMap("Quercus petrae", SpeciesSupportCategory.UnmodelledSpecies, null); // typo must NOT fuzzy-match sessile-oak
             AssertMap("Fagus sylvatic", SpeciesSupportCategory.UnmodelledSpecies, null); // typo must NOT fuzzy-match beech
 
-            // Unidentified
+            // Unidentified (F-08: bare genus, genus+author, higher taxonomic ranks, PLANTAE, placeholders)
             AssertMap("PLANTAE", SpeciesSupportCategory.UnidentifiedSpecies, null);
             AssertMap("Plantae", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Quercus", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Fagus", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Betula", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Fagaceae", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Pinaceae", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Fagaceae Dumort.", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Quercus L.", SpeciesSupportCategory.UnidentifiedSpecies, null);
+            AssertMap("Tilia L.", SpeciesSupportCategory.UnidentifiedSpecies, null);
             AssertMap("", SpeciesSupportCategory.UnidentifiedSpecies, null);
             AssertMap("   ", SpeciesSupportCategory.UnidentifiedSpecies, null);
             AssertMap("unknown", SpeciesSupportCategory.UnidentifiedSpecies, null);
@@ -302,21 +312,20 @@ internal static class WoodlandImportCoreTests
             TestRunner.True(b.Contains(new LocalPoint2D(30, 20)), "horizontal edge boundary-inclusive");
             TestRunner.True(!b.Contains(new LocalPoint2D(-0.001, 10)), "outside west");
 
-            // Invalid polygons refused
-            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0)], out _, out var tooFew), "<3 vertices refused");
+            // Invalid polygons rejected
+            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0)], out _, out var tooFew), "<3 vertices rejected");
             TestRunner.True(tooFew.Any(i => i.Code == "BoundaryTooFewVertices"), "BoundaryTooFewVertices");
 
-            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0), new(double.NaN, 10)], out _, out var nonFin), "NaN refused");
+            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0), new(double.NaN, 10)], out _, out var nonFin), "NaN rejected");
             TestRunner.True(nonFin.Any(i => i.Code == "BoundaryNonFiniteVertex"), "BoundaryNonFiniteVertex");
 
-            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0), new(20, 0)], out _, out var colin), "zero area collinear refused");
+            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 0), new(20, 0)], out _, out var colin), "zero area collinear rejected");
             TestRunner.True(colin.Any(i => i.Code == "BoundaryZeroArea"), "BoundaryZeroArea");
 
-            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 10), new(10, 0), new(0, 10)], out _, out var bowtie), "self-intersecting refused");
+            TestRunner.True(!WoodlandBoundary.TryCreateLocal([new(0, 0), new(10, 10), new(10, 0), new(0, 10)], out _, out var bowtie), "self-intersecting rejected");
             TestRunner.True(bowtie.Any(i => i.Code == "BoundarySelfIntersecting"), "BoundarySelfIntersecting");
 
             // Geographic tangent-plane projection around 53.324°N, -6.745°E
-            // Delta lat = 0.0009° (~100.075 m), Delta lon = 0.0015° (~99.64 m at cos(53.3245°))
             double lat0 = 53.3240;
             double lat1 = 53.3249;
             double lon0 = -6.7450;
@@ -342,8 +351,8 @@ internal static class WoodlandImportCoreTests
             LocalPoint2D[] shiftedBoundary = [new(120, 250), new(170, 250), new(170, 300), new(120, 300)];
             byte[] inBoundsZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t1", "Fagus sylvatica", "130.25 , 265.50", "30", "22", "1"),
-                new("t2", "Quercus petraea", "158.75 , 289.00", "35", "24", "1"),
+                new("1_PlotA", "Fagus sylvatica", "130.25 , 265.50", "30", "22", "1"),
+                new("2_PlotA", "Quercus petraea", "158.75 , 289.00", "35", "24", "1"),
             ]);
 
             var rOk = reader.Read(new WoodlandImportRequest { ArchiveBytes = inBoundsZip, RawLocalBoundaryVertices = shiftedBoundary });
@@ -352,8 +361,8 @@ internal static class WoodlandImportCoreTests
             TestRunner.ApproxEq(250.0, rOk.Stand.CoordinateOrigin.OriginYM, 1e-12, "origin Y");
             LocalPoint2D p1 = rOk.Stand.Trees[0].PositionLocalM.Value;
             LocalPoint2D p2 = rOk.Stand.Trees[1].PositionLocalM.Value;
-            TestRunner.ApproxEq(10.25, p1.XM, 1e-12, "t1 normalized X");
-            TestRunner.ApproxEq(15.50, p1.YM, 1e-12, "t1 normalized Y");
+            TestRunner.ApproxEq(10.25, p1.XM, 1e-12, "1_PlotA normalized X");
+            TestRunner.ApproxEq(15.50, p1.YM, 1e-12, "1_PlotA normalized Y");
             double rawDist = double.Hypot(158.75 - 130.25, 289.00 - 265.50);
             double normDist = double.Hypot(p2.XM - p1.XM, p2.YM - p1.YM);
             TestRunner.ApproxEq(rawDist, normDist, 1e-12, "pairwise distance preserved identically");
@@ -361,17 +370,17 @@ internal static class WoodlandImportCoreTests
             // Two out-of-bounds trees -> Refused with exactly one stable TreeOutOfBounds issue per out-of-bounds tree
             byte[] oobZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t_in", "Fagus sylvatica", "140 , 270", "30", "22", "1"),
-                new("t_oob_1", "Fagus sylvatica", "175 , 270", "30", "22", "1"),
-                new("t_oob_2", "Quercus petraea", "110 , 240", "35", "24", "1"),
+                new("1_PlotA", "Fagus sylvatica", "140 , 270", "30", "22", "1"),
+                new("2_PlotA", "Fagus sylvatica", "175 , 270", "30", "22", "1"),
+                new("3_PlotA", "Quercus petraea", "110 , 240", "35", "24", "1"),
             ]);
             var rOob = reader.Read(new WoodlandImportRequest { ArchiveBytes = oobZip, RawLocalBoundaryVertices = shiftedBoundary });
             TestRunner.Eq(WoodlandReadiness.Refused, rOob.Readiness, "out-of-bounds refused without clamping");
             TestRunner.True(rOob.Stand is null, "refused stand is null");
             var oobIssues = rOob.Issues.Where(i => i.Code == "TreeOutOfBounds").ToList();
             TestRunner.Eq(2, oobIssues.Count, "exactly 2 TreeOutOfBounds issues");
-            TestRunner.Eq("t_oob_1", oobIssues[0].SourceTreeId, "stable sorted first oob id");
-            TestRunner.Eq("t_oob_2", oobIssues[1].SourceTreeId, "stable sorted second oob id");
+            TestRunner.Eq("2_PlotA", oobIssues[0].SourceTreeId, "stable sorted first oob id");
+            TestRunner.Eq("3_PlotA", oobIssues[1].SourceTreeId, "stable sorted second oob id");
         });
 
         // 8. All four hard caps (living stems incl. unknown status, total records, measurement rows, uncompressed bytes)
@@ -382,11 +391,11 @@ internal static class WoodlandImportCoreTests
             // 8a. MaxLivingStems=2 with 2 alive + 1 unknown + 2 dead -> 3 conservatively living > 2 -> Refused
             byte[] capLivingZip = SyntheticArchiveBuilder.BuildTreMsArchive(
             [
-                new("t1", "Fagus sylvatica", "10 , 10", "20", "15", "1"),
-                new("t2", "Fagus sylvatica", "20 , 10", "20", "15", "1"),
-                new("t3", "Fagus sylvatica", "30 , 10", "20", "15", null), // unknown status -> conservatively living!
-                new("t4", "Fagus sylvatica", "40 , 10", "20", "15", "0"),  // dead
-                new("t5", "Fagus sylvatica", "50 , 10", "20", "15", "0"),  // dead
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "20", "15", "1"),
+                new("2_PlotA", "Fagus sylvatica", "20 , 10", "20", "15", "1"),
+                new("3_PlotA", "Fagus sylvatica", "30 , 10", "20", "15", null), // unknown status -> conservatively living!
+                new("4_PlotA", "Fagus sylvatica", "40 , 10", "20", "15", "0"),  // dead
+                new("5_PlotA", "Fagus sylvatica", "50 , 10", "20", "15", "0"),  // dead
             ]);
             var rCapLiving = reader.Read(new WoodlandImportRequest
             {
@@ -397,7 +406,7 @@ internal static class WoodlandImportCoreTests
             TestRunner.Eq(WoodlandReadiness.Refused, rCapLiving.Readiness, "living cap refused");
             TestRunner.True(rCapLiving.Issues.Any(i => i.Code == "CapLivingStemsExceeded"), "CapLivingStemsExceeded");
 
-            // Control: same archive with MaxLivingStems=3 succeeds past the cap (still InventoryOnly due to unknown status on t3)
+            // Control: same archive with MaxLivingStems=3 succeeds past the cap (still InventoryOnly due to unknown status on 3_PlotA)
             var rCapLivingOk = reader.Read(new WoodlandImportRequest
             {
                 ArchiveBytes = capLivingZip,
@@ -429,11 +438,12 @@ internal static class WoodlandImportCoreTests
             TestRunner.Eq(WoodlandReadiness.Refused, rCapMeas.Readiness, "measurement rows cap refused");
             TestRunner.True(rCapMeas.Issues.Any(i => i.Code == "CapMeasurementRowsExceeded"), "CapMeasurementRowsExceeded");
 
-            // 8d. MaxUncompressedBytes cap (highly compressible payload exceeding byte cap)
+            // 8d. MaxUncompressedBytes cap (declared size exceeds byte cap)
             byte[] bigPayload = Encoding.ASCII.GetBytes(new string('A', 4096));
             byte[] zipBig = SyntheticArchiveBuilder.BuildTreMsArchive(
-                [new("t1", "Fagus sylvatica", "10 , 10", "20", "15", "1")],
-                extraEntries: [("padding.txt", bigPayload)]);
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "20", "15", "1")],
+                extraEntries: [("padding.txt", bigPayload)],
+                compression: CompressionLevel.Optimal);
             var rCapBytes = reader.Read(new WoodlandImportRequest
             {
                 ArchiveBytes = zipBig,
@@ -462,7 +472,7 @@ internal static class WoodlandImportCoreTests
                 """;
 
             byte[] xxeZip = SyntheticArchiveBuilder.BuildTreMsArchive(
-                [new("t1", "Fagus sylvatica", "10 , 10", "20", "15", "1")],
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "20", "15", "1")],
                 customMetaXml: xxeMeta);
 
             var reader = new IntegrateMarteloscopeReader();
@@ -530,6 +540,232 @@ internal static class WoodlandImportCoreTests
                     TestRunner.True(!content.Contains(b, StringComparison.Ordinal), $"{Path.GetFileName(file)} must not reference '{b}'");
                 }
             }
+        });
+
+        // ------------------------------------------------------------------
+        // Repair Cycle 1 Regression Tests (F-01 .. F-07, F-11, F-16)
+        // ------------------------------------------------------------------
+
+        // F-01: Orphan extension rows & blank extension coreid refused (never silently dropped)
+        TestRunner.Add(Suite, "F-01: orphan extension rows and blank coreid extension rows are refused deterministically", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // Orphan coreid "GHOST_PlotA" with 3 measurement rows
+            byte[] orphanZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")],
+                extraMofRows:
+                [
+                    new("GHOST_PlotA", "Tree diameter", "diameter", "40", "cm", "field"),
+                    new("GHOST_PlotA", "tree height", "height", "25", "m", "field"),
+                    new("GHOST_PlotA", "Tree status (dead or living)", "status", "1", "", "field"),
+                ]);
+            var rOrphan = reader.Read(new WoodlandImportRequest { ArchiveBytes = orphanZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rOrphan.Readiness, "orphan extension refused");
+            TestRunner.True(rOrphan.Stand is null, "orphan stand null");
+            var orphanIssue = rOrphan.Issues.FirstOrDefault(i => i.Code == "ArchiveOrphanExtensionRow");
+            TestRunner.True(orphanIssue is not null, "ArchiveOrphanExtensionRow emitted");
+            TestRunner.Eq("GHOST_PlotA", orphanIssue!.SourceTreeId, "orphan SourceTreeId recorded");
+            TestRunner.True(orphanIssue.Message.Contains("3 extension row(s)", StringComparison.Ordinal), "orphan count recorded");
+
+            // Blank coreid extension row
+            byte[] blankKeyZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")],
+                extraMofRows:
+                [
+                    new("", "Tree diameter", "diameter", "77", "cm", "field"),
+                ]);
+            var rBlank = reader.Read(new WoodlandImportRequest { ArchiveBytes = blankKeyZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rBlank.Readiness, "blank coreid extension refused");
+            TestRunner.True(rBlank.Issues.Any(i => i.Code == "ArchiveBlankExtensionCoreId"), "ArchiveBlankExtensionCoreId emitted");
+        });
+
+        // F-02: Repeated/conflicting measurement rows refused deterministically (order-independent)
+        TestRunner.Add(Suite, "F-02: repeated/conflicting measurement rows for same tree refused identically regardless of row order", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            byte[] zipOrder1 = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")],
+                extraMofRows: [new("1_PlotA", "Tree diameter", "diameter", "55", "cm", "field")]);
+
+            byte[] zipOrder2 = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "55", "20", "1")],
+                extraMofRows: [new("1_PlotA", "Tree diameter", "diameter", "30", "cm", "field")]);
+
+            var r1 = reader.Read(new WoodlandImportRequest { ArchiveBytes = zipOrder1, RawLocalBoundaryVertices = Square100m });
+            var r2 = reader.Read(new WoodlandImportRequest { ArchiveBytes = zipOrder2, RawLocalBoundaryVertices = Square100m });
+
+            TestRunner.Eq(WoodlandReadiness.Refused, r1.Readiness, "order 1 refused");
+            TestRunner.Eq(WoodlandReadiness.Refused, r2.Readiness, "order 2 refused");
+            TestRunner.True(r1.Issues.Any(i => i.Code == "DuplicateMeasurementRow" && i.FieldName == "DbhCm"), "DuplicateMeasurementRow on DbhCm");
+            TestRunner.Eq(
+                WoodlandImportSerializer.ComputeResultSha256Hex(r1),
+                WoodlandImportSerializer.ComputeResultSha256Hex(r2),
+                "conflict refusal JSON identical regardless of row order");
+
+            // Duplicate TreM code also refused
+            byte[] dupTremZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1", ExtraMicrohabitat: "CV21")],
+                extraMofRows: [new("1_PlotA", "Tree related micro-habitat", "CV21", "2", "", "field")]);
+            var rTrem = reader.Read(new WoodlandImportRequest { ArchiveBytes = dupTremZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rTrem.Readiness, "duplicate TreM refused");
+            TestRunner.True(rTrem.Issues.Any(i => i.Code == "DuplicateMeasurementRow" && i.FieldName == "trem:CV21"), "DuplicateMeasurementRow on trem:CV21");
+        });
+
+        // F-03: Lying ZIP uncompressed-size header triggers streamed-bytes cap OR size-mismatch refusal (never silently truncates)
+        TestRunner.Add(Suite, "F-03: lying ZIP uncompressed-size header refused via streamed cap or ArchiveEntrySizeMismatch without silent truncation", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // Build a deflated archive whose occurrence.txt is ~10 KB (150 rows), then patch occurrence.txt's declared size to 100 bytes.
+            var manyTrees = new List<SyntheticArchiveBuilder.SyntheticTreeSpec>();
+            for (int i = 1; i <= 150; i++)
+            {
+                manyTrees.Add(new($"{i}_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1"));
+            }
+            byte[] honestZip = SyntheticArchiveBuilder.BuildTreMsArchive(manyTrees, compression: CompressionLevel.Optimal);
+            byte[] lyingZip = SyntheticArchiveBuilder.PatchZipDeclaredUncompressedSize(honestZip, "occurrence.txt", fakeUncompressedSize: 100u);
+
+            // Case A: cap is above actual decompressed size -> streamed decompression completes and catches ArchiveEntrySizeMismatch!
+            var rMismatch = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = lyingZip,
+                RawLocalBoundaryVertices = Square100m,
+                Options = WoodlandImportOptions.Default with { MaxUncompressedBytes = 200_000 },
+            });
+            TestRunner.Eq(WoodlandReadiness.Refused, rMismatch.Readiness, "lying header refused (not truncated)");
+            TestRunner.True(rMismatch.Stand is null, "lying header stand null");
+            TestRunner.True(rMismatch.Issues.Any(i => i.Code == "ArchiveEntrySizeMismatch"), "ArchiveEntrySizeMismatch emitted");
+
+            // Case B: cap is below actual decompressed size (4096 B) while declared header lies (100 B) -> streamed-bytes cap triggers!
+            var rStreamCap = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = lyingZip,
+                RawLocalBoundaryVertices = Square100m,
+                Options = WoodlandImportOptions.Default with { MaxUncompressedBytes = 4096 },
+            });
+            TestRunner.Eq(WoodlandReadiness.Refused, rStreamCap.Readiness, "lying header exceeding streamed cap refused");
+            TestRunner.True(rStreamCap.Issues.Any(i => i.Code == "CapUncompressedBytesExceeded"), "streamed CapUncompressedBytesExceeded emitted");
+        });
+
+        // F-04: Multi-plot archive without TargetPlotId is refused; with TargetPlotId selects one plot cleanly
+        TestRunner.Add(Suite, "F-04: multi-plot archive without TargetPlotId is refused; specifying TargetPlotId succeeds for that plot", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] multiPlotZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("2_PlotB", "Quercus petraea", "10 , 10", "35", "22", "1"),
+            ]);
+
+            var rNoTarget = reader.Read(new WoodlandImportRequest { ArchiveBytes = multiPlotZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rNoTarget.Readiness, "multi-plot without target refused");
+            TestRunner.True(rNoTarget.Stand is null, "multi-plot stand null");
+            TestRunner.True(rNoTarget.Issues.Any(i => i.Code == "MultiplePlotsRequireTargetPlotId"), "MultiplePlotsRequireTargetPlotId emitted");
+
+            var rPlotA = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = multiPlotZip,
+                TargetPlotId = "PlotA",
+                RawLocalBoundaryVertices = Square100m,
+            });
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, rPlotA.Readiness, "targeted PlotA succeeds");
+            TestRunner.Eq(1, rPlotA.Stand!.Trees.Count, "only PlotA tree selected");
+            TestRunner.Eq("1_PlotA", rPlotA.Stand.Trees[0].SourceTreeId, "selected PlotA tree id");
+        });
+
+        // F-05: Geographic boundary combined with non-georeferenced plot-local trees is NOT silently admitted
+        TestRunner.Add(Suite, "F-05: geographic boundary combined with non-georeferenced local trees yields InventoryOnly with BoundaryTreeFrameMismatch", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] zip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("2_PlotA", "Quercus petraea", "20 , 20", "35", "22", "1"),
+            ]);
+
+            GeoPoint2D[] geoRect =
+            [
+                new(53.3240, -6.7450),
+                new(53.3240, -6.7435),
+                new(53.3249, -6.7435),
+                new(53.3249, -6.7450),
+            ];
+
+            var res = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = zip,
+                RawGeoBoundaryVertices = geoRect,
+            });
+
+            TestRunner.Eq(WoodlandReadiness.InventoryOnly, res.Readiness, "unregistered geo boundary + local trees -> InventoryOnly");
+            TestRunner.True(!res.IsAdmissibleForSimulation, "not admissible");
+            TestRunner.True(res.Stand!.Boundary is null, "unregistered boundary withheld");
+            TestRunner.Eq(2, res.Stand.Trees.Count, "all trees retained in inventory");
+            TestRunner.True(res.Issues.Any(i => i.Code == "BoundaryTreeFrameMismatch"), "BoundaryTreeFrameMismatch emitted");
+        });
+
+        // F-06: Provenance preserved honestly (no Inferred->Observed laundering; core Simulated applies to species/position)
+        TestRunner.Add(Suite, "F-06: unknown status preserves Inferred provenance; core provenance=simulated applies to species and position and refuses", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // F-06a: unrecognized status "7" with provenance=inferred stays FieldProvenance.Inferred
+            byte[] inferredStatusZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "7", MeasurementMethodNote: "provenance=inferred")]);
+            var rInf = reader.Read(new WoodlandImportRequest { ArchiveBytes = inferredStatusZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.InventoryOnly, rInf.Readiness, "unknown inferred status -> InventoryOnly");
+            TestRunner.Eq(FieldProvenance.Inferred, rInf.Stand!.Trees[0].VitalStatus.Provenance, "Inferred provenance NOT laundered to Observed");
+            TestRunner.Eq(TreeVitalStatus.Unknown, rInf.Stand.Trees[0].VitalStatus.Value, "status value Unknown");
+
+            // F-06b: core-only row with provenance=simulated applies to RawSpeciesName and PositionLocalM -> Refused!
+            byte[] coreSimZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, null, null, CoreProvenance: "simulated")],
+                includeExtension: false,
+                includeCoreProvenanceColumn: true);
+            var rCoreSim = reader.Read(new WoodlandImportRequest { ArchiveBytes = coreSimZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rCoreSim.Readiness, "core provenance=simulated refused");
+            TestRunner.True(rCoreSim.Stand is null, "core simulated stand null");
+            TestRunner.True(rCoreSim.Issues.Any(i => i.Code == "SimulatedFieldAtYearZero" && i.FieldName == "RawSpeciesName"), "RawSpeciesName SimulatedFieldAtYearZero");
+            TestRunner.True(rCoreSim.Issues.Any(i => i.Code == "SimulatedFieldAtYearZero" && i.FieldName == "PositionLocalM"), "PositionLocalM SimulatedFieldAtYearZero");
+        });
+
+        // F-07: Unknown measurement units refused (never silently passed through as cm/m)
+        TestRunner.Add(Suite, "F-07: unknown measurement unit (inch) refused with UnsupportedMeasurementUnit", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] inchZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows: [new("1_PlotA", "Tree diameter", "diameter", "12", "inch", "field")]);
+
+            var res = reader.Read(new WoodlandImportRequest { ArchiveBytes = inchZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, res.Readiness, "unsupported unit refused");
+            TestRunner.True(res.Stand is null, "stand null on unsupported unit");
+            TestRunner.True(res.Issues.Any(i => i.Code == "UnsupportedMeasurementUnit" && i.FieldName == "DbhCm"), "UnsupportedMeasurementUnit on DbhCm");
+        });
+
+        // F-11: Negative ignoreHeaderLines and leading blank lines before header refused explicitly
+        TestRunner.Add(Suite, "F-11: negative ignoreHeaderLines and leading blank line before header refused with format codes", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // Negative ignoreHeaderLines
+            string negMeta = SyntheticArchiveBuilder.BuildDefaultMetaXml("\\t", "", includeExtension: true, ignoreHeaderLines: "-1");
+            byte[] negZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")],
+                customMetaXml: negMeta);
+            var rNeg = reader.Read(new WoodlandImportRequest { ArchiveBytes = negZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rNeg.Readiness, "negative ignoreHeaderLines refused");
+            TestRunner.True(rNeg.Issues.Any(i => i.Code == "ArchiveMalformedMetaXml"), "ArchiveMalformedMetaXml emitted");
+
+            // Leading blank line in occurrence.txt
+            byte[] blankLeadZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")],
+                corePrefix: "\n");
+            var rLead = reader.Read(new WoodlandImportRequest { ArchiveBytes = blankLeadZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rLead.Readiness, "leading blank line refused");
+            TestRunner.True(rLead.Issues.Any(i => i.Code == "ArchiveMalformedHeader"), "ArchiveMalformedHeader emitted");
         });
     }
 

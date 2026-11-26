@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text;
@@ -55,11 +56,22 @@ public sealed record DwcArchiveReadResult
 
 /// <summary>
 /// Bounded, deterministic, XXE-hardened Darwin Core Archive (DwC-A) reader built purely on BCL types.
-/// Enforces per-entry and cumulative uncompressed byte caps, core record caps, and extension row caps
-/// before allocating unbounded memory. Prohibits DTD/DOCTYPE and external XML entity resolution.
+/// Enforces per-entry and cumulative uncompressed byte caps (declared and streamed), verifies ZIP entry
+/// byte counts and IEEE CRC-32, refuses orphaned or blank-key extension rows, and prohibits DTD/DOCTYPE
+/// and external XML entity resolution.
+/// Note on delimiter support: only single-character <c>fieldsTerminatedBy</c> and <c>fieldsEnclosedBy</c>
+/// (after unescaping <c>\t</c>, <c>\r</c>, <c>\n</c>) are supported; CR, LF, and CRLF are always treated as
+/// row endings regardless of <c>linesTerminatedBy</c>.
 /// </summary>
 public static class DarwinCoreArchiveReader
 {
+    private static readonly uint[] Crc32Table = BuildCrc32Table();
+
+    private readonly record struct ZipEntryRawLocator(
+        ushort CompressionMethod,
+        int DataOffset,
+        int CompressedLength);
+
     public static DwcArchiveReadResult Read(ReadOnlyMemory<byte> archiveBytes, WoodlandImportOptions options)
     {
         var issues = new List<ImportValidationIssue>();
@@ -134,6 +146,7 @@ public static class DarwinCoreArchiveReader
                 }
             }
 
+            Dictionary<string, ZipEntryRawLocator> rawLocators = IndexRawZipEntries(rawArray);
             long actualBytesRead = 0;
 
             ZipArchiveEntry? metaEntry = FindEntry(archive, "meta.xml");
@@ -146,7 +159,7 @@ public static class DarwinCoreArchiveReader
                 return Failed(issues, archiveSha256, 0, 0, actualBytesRead);
             }
 
-            if (!TryReadEntryBounded(metaEntry, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] metaBytes, issues))
+            if (!TryReadEntryBounded(metaEntry, rawArray, rawLocators, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] metaBytes, issues))
             {
                 return Failed(issues, archiveSha256, 0, 0, actualBytesRead);
             }
@@ -167,7 +180,7 @@ public static class DarwinCoreArchiveReader
                 return Failed(issues, archiveSha256, 0, 0, actualBytesRead);
             }
 
-            if (!TryReadEntryBounded(coreEntry, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] coreBytes, issues))
+            if (!TryReadEntryBounded(coreEntry, rawArray, rawLocators, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] coreBytes, issues))
             {
                 return Failed(issues, archiveSha256, 0, 0, actualBytesRead);
             }
@@ -213,7 +226,11 @@ public static class DarwinCoreArchiveReader
             }
 
             // Read extension tables and join on declared coreid.
+            // Every extension row MUST match an existing core row; blank keys and orphan keys are refused deterministically.
             int extRowsRead = 0;
+            int blankExtKeyCount = 0;
+            var orphanExtCountsByKey = new SortedDictionary<string, int>(StringComparer.Ordinal);
+
             foreach (DwcTableDescriptor extDesc in extDescs)
             {
                 ZipArchiveEntry? extEntry = FindEntry(archive, extDesc.Location);
@@ -226,7 +243,7 @@ public static class DarwinCoreArchiveReader
                     return Failed(issues, archiveSha256, coreRowsRead, extRowsRead, actualBytesRead);
                 }
 
-                if (!TryReadEntryBounded(extEntry, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] extBytes, issues))
+                if (!TryReadEntryBounded(extEntry, rawArray, rawLocators, options.MaxUncompressedBytes, ref actualBytesRead, out byte[] extBytes, issues))
                 {
                     return Failed(issues, archiveSha256, coreRowsRead, extRowsRead, actualBytesRead);
                 }
@@ -241,6 +258,17 @@ public static class DarwinCoreArchiveReader
                         onRow: (key, terms) =>
                         {
                             extRowsRead++;
+                            if (string.IsNullOrWhiteSpace(key))
+                            {
+                                blankExtKeyCount++;
+                                return true;
+                            }
+                            if (!coreRowsById.ContainsKey(key))
+                            {
+                                orphanExtCountsByKey.TryGetValue(key, out int prev);
+                                orphanExtCountsByKey[key] = prev + 1;
+                                return true;
+                            }
                             if (!extRowsById.TryGetValue(key, out var list))
                             {
                                 list = new List<DwcExtensionRow>();
@@ -253,6 +281,31 @@ public static class DarwinCoreArchiveReader
                 {
                     return Failed(issues, archiveSha256, coreRowsRead, extRowsRead, actualBytesRead);
                 }
+            }
+
+            if (blankExtKeyCount > 0)
+            {
+                issues.Add(new ImportValidationIssue(
+                    "ArchiveBlankExtensionCoreId",
+                    IssueSeverity.Refusal,
+                    $"{blankExtKeyCount} extension row(s) have a blank coreid and cannot be joined to any core tree record."));
+            }
+
+            if (orphanExtCountsByKey.Count > 0)
+            {
+                foreach (var kv in orphanExtCountsByKey)
+                {
+                    issues.Add(new ImportValidationIssue(
+                        "ArchiveOrphanExtensionRow",
+                        IssueSeverity.Refusal,
+                        $"{kv.Value} extension row(s) reference coreid '{kv.Key}' which does not exist in core table '{coreDesc.Location}'.",
+                        SourceTreeId: kv.Key));
+                }
+            }
+
+            if (blankExtKeyCount > 0 || orphanExtCountsByKey.Count > 0)
+            {
+                return Failed(issues, archiveSha256, coreRowsRead, extRowsRead, actualBytesRead);
             }
 
             // Assemble joined records in canonical ordinal sort order on CoreId.
@@ -325,6 +378,8 @@ public static class DarwinCoreArchiveReader
 
     private static bool TryReadEntryBounded(
         ZipArchiveEntry entry,
+        byte[] rawArchiveBytes,
+        Dictionary<string, ZipEntryRawLocator> rawLocators,
         long maxUncompressedBytes,
         ref long cumulativeBytesRead,
         out byte[] data,
@@ -333,7 +388,7 @@ public static class DarwinCoreArchiveReader
         data = Array.Empty<byte>();
         try
         {
-            using Stream s = entry.Open();
+            using Stream s = OpenEntryForVerifiedRead(entry, rawArchiveBytes, rawLocators);
             using var ms = new MemoryStream();
             byte[] buffer = new byte[16384];
             long entryBytes = 0;
@@ -352,7 +407,28 @@ public static class DarwinCoreArchiveReader
                 }
                 ms.Write(buffer, 0, read);
             }
-            data = ms.ToArray();
+
+            if (entryBytes != entry.Length)
+            {
+                issues.Add(new ImportValidationIssue(
+                    "ArchiveEntrySizeMismatch",
+                    IssueSeverity.Refusal,
+                    $"Archive entry '{entry.FullName}' decompressed to {entryBytes} bytes, which disagrees with its declared ZIP header size ({entry.Length} bytes)."));
+                return false;
+            }
+
+            byte[] result = ms.ToArray();
+            uint actualCrc = ComputeCrc32(result);
+            if (actualCrc != entry.Crc32)
+            {
+                issues.Add(new ImportValidationIssue(
+                    "ArchiveEntryCrcMismatch",
+                    IssueSeverity.Refusal,
+                    $"Archive entry '{entry.FullName}' failed CRC-32 verification (expected 0x{entry.Crc32:x8}, computed 0x{actualCrc:x8})."));
+                return false;
+            }
+
+            data = result;
             return true;
         }
         catch (InvalidDataException ex)
@@ -365,6 +441,123 @@ public static class DarwinCoreArchiveReader
         }
     }
 
+    /// <summary>
+    /// Opens the raw compressed stream directly for Deflate (method 8) and Store (method 0) entries so that
+    /// a lying ZIP uncompressed-size header cannot silently truncate decompression before the streamed cap
+    /// or size-mismatch check runs.
+    /// </summary>
+    private static Stream OpenEntryForVerifiedRead(
+        ZipArchiveEntry entry,
+        byte[] rawArchiveBytes,
+        Dictionary<string, ZipEntryRawLocator> rawLocators)
+    {
+        if (rawLocators.TryGetValue(entry.FullName, out ZipEntryRawLocator loc) &&
+            loc.DataOffset >= 0 &&
+            loc.CompressedLength >= 0 &&
+            loc.DataOffset + loc.CompressedLength <= rawArchiveBytes.Length)
+        {
+            if (loc.CompressionMethod == 8)
+            {
+                var compressedSlice = new MemoryStream(rawArchiveBytes, loc.DataOffset, loc.CompressedLength, writable: false);
+                return new DeflateStream(compressedSlice, CompressionMode.Decompress, leaveOpen: false);
+            }
+            if (loc.CompressionMethod == 0)
+            {
+                return new MemoryStream(rawArchiveBytes, loc.DataOffset, loc.CompressedLength, writable: false);
+            }
+        }
+
+        return entry.Open();
+    }
+
+    private static Dictionary<string, ZipEntryRawLocator> IndexRawZipEntries(byte[] raw)
+    {
+        var map = new Dictionary<string, ZipEntryRawLocator>(StringComparer.Ordinal);
+        if (raw.Length < 22) return map;
+
+        // Locate End of Central Directory record (PK\x05\x06) scanning backward up to 65,557 bytes.
+        int minStart = Math.Max(0, raw.Length - 22 - 65535);
+        int eocdOffset = -1;
+        for (int i = raw.Length - 22; i >= minStart; i--)
+        {
+            if (raw[i] == 0x50 && raw[i + 1] == 0x4B && raw[i + 2] == 0x05 && raw[i + 3] == 0x06)
+            {
+                eocdOffset = i;
+                break;
+            }
+        }
+        if (eocdOffset < 0) return map;
+
+        ushort entryCount = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(eocdOffset + 10, 2));
+        uint cdOffsetU = BinaryPrimitives.ReadUInt32LittleEndian(raw.AsSpan(eocdOffset + 16, 4));
+        if (cdOffsetU == 0xFFFFFFFFu || entryCount == 0xFFFF || cdOffsetU > (uint)raw.Length)
+        {
+            return map; // ZIP64 falls back to entry.Open() + size/CRC check.
+        }
+
+        int pos = (int)cdOffsetU;
+        for (int e = 0; e < entryCount; e++)
+        {
+            if (pos + 46 > raw.Length) break;
+            if (BinaryPrimitives.ReadUInt32LittleEndian(raw.AsSpan(pos, 4)) != 0x02014B50u) break;
+
+            ushort method = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(pos + 10, 2));
+            uint compSizeU = BinaryPrimitives.ReadUInt32LittleEndian(raw.AsSpan(pos + 20, 4));
+            ushort nameLen = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(pos + 28, 2));
+            ushort extraLen = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(pos + 30, 2));
+            ushort commentLen = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(pos + 32, 2));
+            uint localHeaderOffsetU = BinaryPrimitives.ReadUInt32LittleEndian(raw.AsSpan(pos + 42, 4));
+
+            if (pos + 46 + nameLen > raw.Length) break;
+            string name = Encoding.UTF8.GetString(raw, pos + 46, nameLen);
+
+            if (compSizeU != 0xFFFFFFFFu && localHeaderOffsetU != 0xFFFFFFFFu &&
+                localHeaderOffsetU <= (uint)(raw.Length - 30))
+            {
+                int lh = (int)localHeaderOffsetU;
+                if (BinaryPrimitives.ReadUInt32LittleEndian(raw.AsSpan(lh, 4)) == 0x04034B50u)
+                {
+                    ushort lhNameLen = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(lh + 26, 2));
+                    ushort lhExtraLen = BinaryPrimitives.ReadUInt16LittleEndian(raw.AsSpan(lh + 28, 2));
+                    int dataOffset = lh + 30 + lhNameLen + lhExtraLen;
+                    if (compSizeU <= int.MaxValue && dataOffset >= 0 && dataOffset + (int)compSizeU <= raw.Length)
+                    {
+                        map[name] = new ZipEntryRawLocator(method, dataOffset, (int)compSizeU);
+                    }
+                }
+            }
+
+            pos += 46 + nameLen + extraLen + commentLen;
+        }
+
+        return map;
+    }
+
+    private static uint[] BuildCrc32Table()
+    {
+        var table = new uint[256];
+        for (uint i = 0; i < 256; i++)
+        {
+            uint c = i;
+            for (int bit = 0; bit < 8; bit++)
+            {
+                c = (c & 1u) != 0u ? (0xEDB88320u ^ (c >> 1)) : (c >> 1);
+            }
+            table[i] = c;
+        }
+        return table;
+    }
+
+    private static uint ComputeCrc32(ReadOnlySpan<byte> bytes)
+    {
+        uint crc = 0xFFFFFFFFu;
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            crc = Crc32Table[(crc ^ bytes[i]) & 0xFFu] ^ (crc >> 8);
+        }
+        return crc ^ 0xFFFFFFFFu;
+    }
+
     private static bool TryParseMetaXml(
         byte[] metaBytes,
         long maxXmlChars,
@@ -375,13 +568,15 @@ public static class DarwinCoreArchiveReader
         core = null;
         extensions = new List<DwcTableDescriptor>();
 
+        // DtdProcessing.Prohibit + XmlResolver = null is the primary XXE / DOCTYPE defence.
+        // MaxCharactersFromEntities is set to a small positive bound (in .NET, 0 means unlimited).
         var settings = new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null,
             IgnoreComments = true,
             IgnoreWhitespace = true,
-            MaxCharactersFromEntities = 0,
+            MaxCharactersFromEntities = 1024,
             MaxCharactersInDocument = maxXmlChars,
         };
 
@@ -420,7 +615,9 @@ public static class DarwinCoreArchiveReader
         }
         catch (XmlException ex)
         {
-            bool isDtd = ex.Message.Contains("DTD", StringComparison.OrdinalIgnoreCase) ||
+            bool hasDoctypeMarker = ContainsDoctypeToken(metaBytes);
+            bool isDtd = hasDoctypeMarker ||
+                         ex.Message.Contains("DTD", StringComparison.OrdinalIgnoreCase) ||
                          ex.Message.Contains("DOCTYPE", StringComparison.OrdinalIgnoreCase);
             issues.Add(new ImportValidationIssue(
                 isDtd ? "ArchiveXmlDtdProhibited" : "ArchiveMalformedMetaXml",
@@ -441,6 +638,13 @@ public static class DarwinCoreArchiveReader
         return true;
     }
 
+    private static bool ContainsDoctypeToken(byte[] bytes)
+    {
+        string sample = Encoding.UTF8.GetString(bytes);
+        return sample.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) ||
+               sample.Contains("<!ENTITY", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static DwcTableDescriptor? ParseTableElement(
         XmlReader reader,
         bool isCore,
@@ -454,14 +658,17 @@ public static class DarwinCoreArchiveReader
         char? quoteChar = string.IsNullOrEmpty(enclosedByRaw) ? null : enclosedByRaw[0];
         int ignoreHeaderLines = 0;
         string? ignoreRaw = reader.GetAttribute("ignoreHeaderLines");
-        if (!string.IsNullOrWhiteSpace(ignoreRaw) &&
-            !int.TryParse(ignoreRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out ignoreHeaderLines))
+        if (!string.IsNullOrWhiteSpace(ignoreRaw))
         {
-            issues.Add(new ImportValidationIssue(
-                "ArchiveMalformedMetaXml",
-                IssueSeverity.Refusal,
-                $"Invalid ignoreHeaderLines attribute '{ignoreRaw}' in meta.xml."));
-            return null;
+            if (!int.TryParse(ignoreRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out ignoreHeaderLines) ||
+                ignoreHeaderLines < 0)
+            {
+                issues.Add(new ImportValidationIssue(
+                    "ArchiveMalformedMetaXml",
+                    IssueSeverity.Refusal,
+                    $"Invalid ignoreHeaderLines attribute '{ignoreRaw}' in meta.xml; must be a non-negative integer."));
+                return null;
+            }
         }
 
         string? location = null;
@@ -565,7 +772,7 @@ public static class DarwinCoreArchiveReader
             FieldDelimiter = fieldDelim,
             LineDelimiter = lineDelim,
             QuoteChar = quoteChar,
-            IgnoreHeaderLines = Math.Max(0, ignoreHeaderLines),
+            IgnoreHeaderLines = ignoreHeaderLines,
             KeyColumnIndex = keyIndex.Value,
             Fields = fields.AsReadOnly(),
         };
@@ -608,6 +815,7 @@ public static class DarwinCoreArchiveReader
             text = text[1..];
         }
 
+        // Single-character delimiter/quote supported; CR, LF, and CRLF are treated as row endings.
         char delimiter = desc.FieldDelimiter[0];
         char? quote = desc.QuoteChar;
 
@@ -620,13 +828,24 @@ public static class DarwinCoreArchiveReader
             List<string> cols = ReadNextRow(text, ref pos, delimiter, quote);
             lineNumber++;
 
-            // Skip completely blank trailing lines.
-            if (cols.Count == 1 && string.IsNullOrEmpty(cols[0]))
+            bool isBlankLine = cols.Count == 1 && string.IsNullOrWhiteSpace(cols[0]);
+
+            // Leading blank lines inside the declared header region would shift the real header into data rows; refuse explicitly.
+            if (lineNumber <= desc.IgnoreHeaderLines)
             {
+                if (isBlankLine)
+                {
+                    issues.Add(new ImportValidationIssue(
+                        "ArchiveMalformedHeader",
+                        IssueSeverity.Refusal,
+                        $"Table '{desc.Location}' has a blank line at header line {lineNumber} (ignoreHeaderLines={desc.IgnoreHeaderLines}); refusing to shift header into data."));
+                    return false;
+                }
                 continue;
             }
 
-            if (lineNumber <= desc.IgnoreHeaderLines)
+            // Skip completely blank trailing/separator lines after headers are consumed.
+            if (isBlankLine)
             {
                 continue;
             }

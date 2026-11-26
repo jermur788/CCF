@@ -62,9 +62,12 @@ All caps are enforced **before** unbounded memory allocation:
 | `MaxMeasurementRows` | `250,000` | Enforced cumulatively across all extension tables. |
 | `MaxUncompressedBytes` | `67,108,864` (64 MiB) | Checked on both declared ZIP entry sizes and actual streamed decompressed bytes (per-entry and cumulative total). |
 
-### XML / XXE Hardening (`DarwinCoreArchiveReader`)
-- `meta.xml` is parsed using `XmlReaderSettings` with `DtdProcessing = DtdProcessing.Prohibit`, `XmlResolver = null`, `MaxCharactersFromEntities = 0`, and `MaxCharactersInDocument = options.MaxUncompressedBytes`.
+### XML / XXE Hardening & Archive Integrity (`DarwinCoreArchiveReader`)
+- `meta.xml` is parsed using `XmlReaderSettings` with **`DtdProcessing = DtdProcessing.Prohibit`** and **`XmlResolver = null`** as the primary XXE / DTD / entity-expansion defence, plus `MaxCharactersInDocument = options.MaxUncompressedBytes` and a small positive secondary `MaxCharactersFromEntities = 1024` bound (note: `0` means *unlimited* in .NET, so `DtdProcessing.Prohibit` is the actual entity defence).
 - Any `<!DOCTYPE` or entity declaration is refused deterministically (`ArchiveXmlDtdProhibited`) with zero external network fetches.
+- **ZIP integrity & streamed-cap enforcement:** every read entry verifies actual decompressed bytes against both `options.MaxUncompressedBytes` (streamed directly from the raw Deflate/Store payload so lying uncompressed-size headers cannot truncate decompression) and the declared `entry.Length` (`ArchiveEntrySizeMismatch`), and verifies IEEE CRC-32 (`ArchiveEntryCrcMismatch`).
+- **Extension join & row accounting:** every extension row MUST match a non-blank core id present in the core table. Blank extension `coreid`s (`ArchiveBlankExtensionCoreId`) and orphaned extension rows referencing missing core ids (`ArchiveOrphanExtensionRow`, with count and missing id) are refused deterministically; zero rows are silently dropped.
+- **Header & delimiter rules:** negative `ignoreHeaderLines` is refused (`ArchiveMalformedMetaXml`); blank lines inside the declared header region are refused (`ArchiveMalformedHeader`) rather than shifting the header into data rows. Only single-character `fieldsTerminatedBy` and `fieldsEnclosedBy` (first character after unescaping `\t`/`\r`/`\n`) are supported; CR, LF, and CRLF are always treated as row endings regardless of `linesTerminatedBy`.
 
 ---
 
@@ -77,7 +80,8 @@ All caps are enforced **before** unbounded memory allocation:
   - `yM = (lat - lat0) * (R * pi / 180)`
   - `R = 6,371,008.8 m` (WGS-84 mean spherical Earth radius).
   - Approximation boundary: valid for stand-scale woodland plots (tens to hundreds of metres); does not claim ellipsoidal UTM distortion correction.
-- Polygons with `< 3` distinct vertices, any non-finite coordinate, zero-length/degenerate edges, self-intersections, or zero area (`<= 1e-9 m²`) are refused.
+- Polygons with `< 3` distinct vertices, any non-finite coordinate, zero-length/degenerate edges, self-intersections, or zero area (`<= 1e-9 m²`) are rejected by `WoodlandBoundary.TryCreateLocal` / `TryCreateFromGeographic` (returning no boundary object). Per Option A #3 and §5.3, when a stand lacks a valid boundary (whether omitted or rejected), `WoodlandImportValidator` keeps the stand at `WoodlandReadiness.InventoryOnly` with `Boundary = null` and the boundary issue recorded.
+- **Frame registration guard:** a `GeographicTangentPlane` boundary (centred at the polygon's WGS-84 centroid) is NOT registered to plot-local tree coordinates lacking per-tree georeferencing. When combined with non-georeferenced plot-local trees, `IntegrateMarteloscopeReader` withholds the unregistered boundary (`Boundary = null`), records `BoundaryTreeFrameMismatch`, and keeps the stand at `InventoryOnly` rather than computing cross-frame containment.
 - Point-in-polygon uses ray casting with one documented edge rule: **boundary-inclusive** (points within `1e-9 m` of any edge or vertex are inside; strictly interior points are inside; exterior or non-finite points are outside).
 - Trees outside a valid surveyed boundary are **refused without clamping**, emitting one stable `TreeOutOfBounds` refusal issue per out-of-bounds tree.
 
@@ -88,8 +92,8 @@ All caps are enforced **before** unbounded memory allocation:
 - **Translation only:** pairwise Euclidean distances are preserved identically; zero scale, zero rotation, zero snapping, zero clamping.
 
 ### 5.3 Validation Readiness Precedence (`WoodlandImportValidator`)
-1. **`Refused`** (highest precedence — structurally untrustworthy): malformed ZIP/XML, DTD/XXE payload, cap exceeded, `FieldProvenance.Simulated` at Year 0, inconsistent provenance/value flags, blank or duplicate `SourceTreeId`, non-finite coordinates, non-finite/non-positive observed DBH or height, negative crown radius or age, or any tree outside a valid surveyed boundary. `Stand` is returned as `null`.
-2. **`InventoryOnly`** (structurally sound inventory retained in full, blocked from simulation admission): missing or invalid surveyed boundary, zero living trees, any living (or unknown-status) tree whose species is not simulation-supported, or any living (or unknown-status) tree missing a simulation-required field (`VitalStatus`, `PositionLocalM`, `DbhCm`, or `HeightM` when required).
+1. **`Refused`** (highest precedence — structurally untrustworthy): malformed ZIP/XML/header, ZIP entry size or CRC-32 mismatch, DTD/XXE payload, cap exceeded, orphaned or blank-key extension rows, repeated/conflicting single-valued measurement or TreM rows for the same tree (`DuplicateMeasurementRow`, reported order-independently), multi-plot archive without `TargetPlotId` (`MultiplePlotsRequireTargetPlotId`), unsupported measurement unit (`UnsupportedMeasurementUnit`), `FieldProvenance.Simulated` at Year 0 (including core-level `provenance=simulated` on species/position), inconsistent provenance/value flags, blank or duplicate `SourceTreeId`, non-finite coordinates, non-finite/non-positive observed DBH or height, negative crown radius or age, or any tree outside a valid surveyed boundary. `Stand` is returned as `null`.
+2. **`InventoryOnly`** (structurally sound inventory retained in full, blocked from simulation admission): missing, invalid, or frame-unregistered (`BoundaryTreeFrameMismatch`) boundary, zero living trees, any living (or unknown-status) tree whose species is not simulation-supported, or any living (or unknown-status) tree missing a simulation-required field (`VitalStatus`, `PositionLocalM`, `DbhCm`, or `HeightM` when required).
 3. **`CandidateForSimulationIntegration`**: zero refusal issues and zero inventory-only blockers.
 
 ---
@@ -100,10 +104,12 @@ Case-insensitive exact matching on scientific names (including standard taxonomi
 
 | Category | Canonical IDs | Scientific Names & Synonyms |
 |---|---|---|
-| `ModelledAtBase` | `sitka-spruce`, `sessile-oak`, `beech` | `Picea sitchensis` (`Sitka spruce`), `Quercus petraea` (`Sessile oak`, `Durmast oak`, `Quercus sessiliflora`), `Fagus sylvatica` (`European beech`, `Common beech`, `Beech`) |
-| `PendingModelSupport` | `scots-pine`, `downy-birch`, `common-alder` | `Pinus sylvestris` (`Scots pine`, `Scotch pine`), `Betula pubescens` (`Downy birch`, `Moor birch`, `Hairy birch`), `Alnus glutinosa` (`Common alder`, `Black alder`, `European alder`, `Alder`) |
-| `UnmodelledSpecies` | `null` | Any other named taxon (e.g., `Picea abies`, `Fraxinus excelsior`, `Quercus robur`, `Ulmus glabra`, `Acer pseudoplatanus`, hybrids). |
-| `UnidentifiedSpecies` | `null` | `PLANTAE`, blank/whitespace, `unknown`, `indet.`, `sp.`/`spp.`, genus-only `Genus sp.`, higher taxonomic ranks, or unparsable non-taxon tokens. |
+| `ModelledAtBase` | `sitka-spruce`, `sessile-oak`, `beech` | `Picea sitchensis` (`Sitka spruce`), `Quercus petraea` (`Sessile oak`, `Durmast oak`, `Quercus sessiliflora`), `Fagus sylvatica` (`European beech`, `Common beech`, `Beech`*) |
+| `PendingModelSupport` | `scots-pine`, `downy-birch`, `common-alder` | `Pinus sylvestris` (`Scots pine`, `Scotch pine`), `Betula pubescens` (`Downy birch`, `Moor birch`, `Hairy birch`), `Alnus glutinosa` (`Common alder`, `Black alder`, `European alder`, `Alder`*) |
+| `UnmodelledSpecies` | `null` | Any other named species/binomial taxon or hybrid (e.g., `Picea abies`, `Fraxinus excelsior`, `Quercus robur`, `Ulmus glabra`, `Acer pseudoplatanus`, `Quercus petraea x robur`). |
+| `UnidentifiedSpecies` | `null` | `PLANTAE`, blank/whitespace, `unknown`, `indet.`, `sp.`/`spp.`, bare genus (`Quercus`, `Fagus`, `Betula`), genus-with-authority (`Quercus L.`, `Tilia L.`), genus `sp.`, higher taxonomic ranks (`Fagaceae`, `Pinaceae`, `-ales`, `-opsida`, `-phyta`), or unparsable non-taxon tokens. |
+
+*\*Deliberate regional calibration/assumption (F-15):* Mapping bare common names `Beech` → *Fagus sylvatica* and `Alder` → *Alnus glutinosa* is an explicit UK/Irish forestry calibration choice, not a universal global taxonomic equivalence; if an external dataset uses bare `"Alder"` for *Alnus incana* (grey alder), this creates a substitution risk and scientific binomials should be preferred whenever present.
 
 ---
 

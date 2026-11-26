@@ -10,7 +10,9 @@ internal static class FixtureQualificationTests
     private const string ExpectedIeSha256 = "4ee2f4a125d1a06474d7086ccf5a6ca96735e16124ad3e4f9a11647ddcee853d";
     private const string ExpectedLuSha256 = "3c275b0115b6330ebabdad422ea9a25451489c93949dd5d80be1fb5e8b57b1ae";
 
-    private static readonly LocalPoint2D[] Marteloscope50x100 =
+    // Constructed test-harness boundary constants (no cited survey source for Donadea or Mersch plot boundaries; see F-09).
+    // Used solely to exercise in-bounds validation on the assumed local-metre tree frame.
+    private static readonly LocalPoint2D[] ConstructedTestBoundary50x100 =
     [
         new(0.0, 0.0),
         new(50.0, 0.0),
@@ -18,7 +20,7 @@ internal static class FixtureQualificationTests
         new(0.0, 100.0),
     ];
 
-    private static readonly LocalPoint2D[] Marteloscope100x100 =
+    private static readonly LocalPoint2D[] ConstructedTestBoundary100x100 =
     [
         new(0.0, 0.0),
         new(100.0, 0.0),
@@ -28,7 +30,7 @@ internal static class FixtureQualificationTests
 
     public static void Register()
     {
-        TestRunner.Add(Suite, "qualified-attribution: ATTRIBUTION.json and both CC BY 4.0 fixture ZIPs match pinned SHA-256 offline", () =>
+        TestRunner.Add(Suite, "qualified-attribution: ATTRIBUTION.json (incl. CC BY 4.0 changesMade) and both fixture ZIPs match pinned SHA-256 offline", () =>
         {
             string dir = FindQualifiedFixturesDir();
             string attrPath = Path.Combine(dir, "ATTRIBUTION.json");
@@ -39,6 +41,7 @@ internal static class FixtureQualificationTests
             TestRunner.Eq("10.15468/ocof3v", root.GetProperty("doi").GetString(), "DOI");
             TestRunner.Eq("2e102194-f384-4712-89a4-5db7a3fc409a", root.GetProperty("gbifDatasetKey").GetString(), "GBIF dataset key");
             TestRunner.True(root.GetProperty("licence").GetString()!.Contains("CC BY 4.0", StringComparison.Ordinal), "CC BY 4.0 licence");
+            TestRunner.True(root.TryGetProperty("changesMade", out JsonElement changes) && !string.IsNullOrWhiteSpace(changes.GetString()), "CC BY 4.0 changesMade disclosure present");
 
             byte[] ieBytes = File.ReadAllBytes(Path.Combine(dir, "ie-donadea-mhf-subset.dwca.zip"));
             byte[] luBytes = File.ReadAllBytes(Path.Combine(dir, "lu-mersch-oak-beech-subset.dwca.zip"));
@@ -64,17 +67,17 @@ internal static class FixtureQualificationTests
             TestRunner.True(noBoundary.Issues.Any(i => i.Code == "BoundaryMissing"), "BoundaryMissing present");
             TestRunner.True(noBoundary.Issues.Any(i => i.Code == "UnsupportedLivingSpecies"), "UnsupportedLivingSpecies present");
 
-            // 2. With 50x100 m boundary -> STILL InventoryOnly because unsupported living Irish species block simulation (Option A #1)
+            // 2. With constructed 50x100 m test boundary -> STILL InventoryOnly because unsupported living Irish species block simulation (Option A #1)
             WoodlandImportResult withBoundary = reader.Read(new WoodlandImportRequest
             {
                 ArchiveBytes = ieBytes,
-                RawLocalBoundaryVertices = Marteloscope50x100,
+                RawLocalBoundaryVertices = ConstructedTestBoundary50x100,
             });
-            TestRunner.Eq(WoodlandReadiness.InventoryOnly, withBoundary.Readiness, "IE with-boundary still InventoryOnly");
+            TestRunner.Eq(WoodlandReadiness.InventoryOnly, withBoundary.Readiness, "IE with constructed boundary still InventoryOnly");
             TestRunner.Eq(20, withBoundary.Stand!.Trees.Count, "zero silent deletion");
-            TestRunner.ApproxEq(5000.0, withBoundary.Stand.Boundary!.AreaM2, 1e-9, "0.5 ha boundary");
+            TestRunner.ApproxEq(5000.0, withBoundary.Stand.Boundary!.AreaM2, 1e-9, "0.5 ha test boundary");
             TestRunner.True(!withBoundary.Issues.Any(i => i.Code == "BoundaryMissing"), "boundary resolved");
-            TestRunner.True(!withBoundary.Issues.Any(i => i.Code == "TreeOutOfBounds"), "all 20 trees inside 50x100 m");
+            TestRunner.True(!withBoundary.Issues.Any(i => i.Code == "TreeOutOfBounds"), "all 20 trees inside 50x100 m test polygon");
             TestRunner.True(withBoundary.Issues.Any(i => i.Code == "UnsupportedLivingSpecies"), "unsupported living species still block admission");
 
             // Verify beech trees mapped to ModelledAtBase while ash/spruce/elm/oak/rowan/hawthorn are preserved unmodelled
@@ -84,7 +87,7 @@ internal static class FixtureQualificationTests
             TestRunner.Eq(8, unmodelledCount, "8 unmodelled Irish species preserved verbatim");
         });
 
-        TestRunner.Add(Suite, "qualified-lu-mersch: compatible European Oak-Beech plot is InventoryOnly without boundary and CandidateForSimulationIntegration with boundary", () =>
+        TestRunner.Add(Suite, "qualified-lu-mersch: European Oak-Beech subset is InventoryOnly without boundary and Candidate only under constructed 100x100 m test boundary", () =>
         {
             string dir = FindQualifiedFixturesDir();
             byte[] luBytes = File.ReadAllBytes(Path.Combine(dir, "lu-mersch-oak-beech-subset.dwca.zip"));
@@ -96,20 +99,20 @@ internal static class FixtureQualificationTests
             TestRunner.Eq(1, noBoundary.Issues.Count, "only BoundaryMissing blocker");
             TestRunner.Eq("BoundaryMissing", noBoundary.Issues[0].Code, "BoundaryMissing");
 
-            // 2. With surveyed 100x100 m boundary -> CandidateForSimulationIntegration
+            // 2. With constructed 100x100 m test polygon -> CandidateForSimulationIntegration (demonstrates gate behaviour once a valid local polygon is supplied)
             WoodlandImportResult withBoundary = reader.Read(new WoodlandImportRequest
             {
                 ArchiveBytes = luBytes,
-                RawLocalBoundaryVertices = Marteloscope100x100,
+                RawLocalBoundaryVertices = ConstructedTestBoundary100x100,
             });
-            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, withBoundary.Readiness, "LU with boundary -> CandidateForSimulationIntegration");
-            TestRunner.True(withBoundary.IsAdmissibleForSimulation, "admissible for future simulation integration");
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, withBoundary.Readiness, "LU with constructed boundary -> CandidateForSimulationIntegration");
+            TestRunner.True(withBoundary.IsAdmissibleForSimulation, "admissible under supplied boundary");
             TestRunner.Eq(0, withBoundary.Issues.Count, "zero validation issues");
             TestRunner.Eq(20, withBoundary.Stand!.Trees.Count, "all 20 trees retained");
             TestRunner.Eq(17, withBoundary.Stand.LivingStemCount, "17 living stems");
             TestRunner.Eq(3, withBoundary.Stand.DeadStemCount, "3 dead stems");
             TestRunner.Eq("LU", withBoundary.Stand.CountryCode, "country LU");
-            TestRunner.ApproxEq(10000.0, withBoundary.Stand.Boundary!.AreaM2, 1e-9, "1.0 ha marteloscope");
+            TestRunner.ApproxEq(10000.0, withBoundary.Stand.Boundary!.AreaM2, 1e-9, "1.0 ha constructed test polygon");
             TestRunner.Eq(9, withBoundary.Stand.Trees.Count(t => t.SpeciesMapping.CanonicalSpeciesId == "beech"), "9 beech");
             TestRunner.Eq(11, withBoundary.Stand.Trees.Count(t => t.SpeciesMapping.CanonicalSpeciesId == "sessile-oak"), "11 sessile oak");
         });
@@ -120,7 +123,7 @@ internal static class FixtureQualificationTests
             var reader = new IntegrateMarteloscopeReader();
 
             byte[] ieBytes = File.ReadAllBytes(Path.Combine(dir, "ie-donadea-mhf-subset.dwca.zip"));
-            var ieReq = new WoodlandImportRequest { ArchiveBytes = ieBytes, RawLocalBoundaryVertices = Marteloscope50x100 };
+            var ieReq = new WoodlandImportRequest { ArchiveBytes = ieBytes, RawLocalBoundaryVertices = ConstructedTestBoundary50x100 };
             var ie1 = reader.Read(ieReq);
             var ie2 = reader.Read(ieReq);
             byte[] ieJson1 = WoodlandImportSerializer.SerializeResultUtf8(ie1);
@@ -132,7 +135,7 @@ internal static class FixtureQualificationTests
             Console.WriteLine($"  [determinism] ie-donadea-canonical-sha256={ieHash1} ({ieJson1.Length} bytes)");
 
             byte[] luBytes = File.ReadAllBytes(Path.Combine(dir, "lu-mersch-oak-beech-subset.dwca.zip"));
-            var luReq = new WoodlandImportRequest { ArchiveBytes = luBytes, RawLocalBoundaryVertices = Marteloscope100x100 };
+            var luReq = new WoodlandImportRequest { ArchiveBytes = luBytes, RawLocalBoundaryVertices = ConstructedTestBoundary100x100 };
             var lu1 = reader.Read(luReq);
             var lu2 = reader.Read(luReq);
             byte[] luJson1 = WoodlandImportSerializer.SerializeResultUtf8(lu1);

@@ -125,3 +125,85 @@ Every determinism test ran two independent imports and verified `SequenceEqual` 
 2. **`SitkaP1.Core.csproj` not built in this worktree:** `.p0ref/SitkaLab.Core.dll` is git-ignored and absent by design; warning-free pure-BCL compilation under the shared `Directory.Build.props` and zero `#644 B-01` banned file APIs were verified directly by the standalone test executable.
 3. **Not integrated into simulation runtime:** Per D-030 and Lane 4 boundaries, this branch is **NOT** merged to `integration/2d-sim`, **NOT** wired into `MultiAreaContinuation`, `/multi`, Save v2/v3, UI, or Unity, and does **NOT** add `MultiRackSitkaP1Lab.sln` entries.
 4. **Protected local listeners:** Verified down (`:33767`, `:43649`, `:46593` have zero listeners).
+
+---
+
+## 5. Repair Cycle 1 (Response to Independent Review `origin/review/multi-2d-woodland-importer-v1`)
+
+Addresses every finding (`F-01` through `F-16`) raised against candidate `e51b1e20625e51240a770211f42e1bec70c54c5c`:
+
+| Finding | Severity | Status | Change Made |
+|---|---|---|---|
+| **F-01** | Blocking | **Fixed** | `DarwinCoreArchiveReader.Read` refuses blank extension `coreid`s (`ArchiveBlankExtensionCoreId`) and orphaned extension rows with no matching core record (`ArchiveOrphanExtensionRow`, sorted per missing id with row counts). Zero extension rows can be silently dropped. Covered by synthetic test `F-01`. |
+| **F-02** | Blocking | **Fixed** | `IntegrateMarteloscopeReader.MapTreeRecord` tracks all single-valued measurement fields (`VitalStatus`, `DbhCm`, `HeightM`, `CrownRadiusM`, `AgeYears`) and `trem:{code}` microhabitat keys per tree and refuses `>1` row for the same field (`DuplicateMeasurementRow`) with canonically sorted values (row-order-independent SHA-256). Covered by synthetic test `F-02`. |
+| **F-03** | Major | **Fixed** | `DarwinCoreArchiveReader.TryReadEntryBounded` indexes ZIP Central Directory/Local File Header raw payloads for Deflate (method 8) and Store (method 0) entries, streams decompression directly against `MaxUncompressedBytes` so lying headers cannot truncate decompression, refuses actual-vs-declared byte mismatches (`ArchiveEntrySizeMismatch`), and verifies IEEE CRC-32 (`ArchiveEntryCrcMismatch`). Covered by synthetic test `F-03` (both size-mismatch and streamed-bytes cap paths). |
+| **F-04** | Major | **Fixed** | `IntegrateMarteloscopeReader.Read` tracks all distinct plot IDs when `TargetPlotId` is omitted and refuses multi-plot archives (`MultiplePlotsRequireTargetPlotId`) rather than merging separate local frames. Covered by synthetic test `F-04`. |
+| **F-05** | Major | **Fixed** | `IntegrateMarteloscopeReader.Read` detects `BoundaryCoordinateSource.GeographicTangentPlane` combined with non-georeferenced plot-local tree coordinates, withholds the unregistered boundary (`Boundary = null`), emits `BoundaryTreeFrameMismatch`, and keeps the stand at `InventoryOnly`. Covered by synthetic test `F-05`. |
+| **F-06** | Major | **Fixed** | (a) `ParseVitalStatus` preserves declared provenance (`Inferred`/`Simulated`/`Observed`) on unrecognised status codes instead of laundering to `Observed`; (b) core-level `provenance` is parsed first and applied to `RawSpeciesName` and `PositionLocalM` (so core `provenance=simulated` triggers `SimulatedFieldAtYearZero`). Covered by synthetic test `F-06`. |
+| **F-07** | Major | **Fixed** | `ParseDoubleMeasurement` explicitly validates units (`cm`/`mm`/`m` only) and refuses unrecognised units (e.g., `inch`) with `UnsupportedMeasurementUnit` (`Refused`). Covered by synthetic test `F-07`. |
+| **F-08** | Major | **Fixed** | `WoodlandSpeciesMapper.Map` classifies single-word unmapped names (bare genera `Quercus`, `Fagus`, `Betula`), genus-with-authority (`Quercus L.`, `Tilia L.`), and higher taxonomic ranks (`Fagaceae`, `Pinaceae`, `-ales`/`-opsida`/`-phyta`) as `UnidentifiedSpecies`. Covered by expanded `species` test. |
+| **F-09** | Major | **Fixed** | Updated `SOURCE-DATA-QUALIFICATION.md`, `Fixtures/Qualified/ATTRIBUTION.json`, and `FixtureQualificationTests.cs` to: label local-metres `verbatimCoordinates` as an unverified inference contradicting `verbatimCoordinateSystem = decimal degrees` (axis order unverified); mark `countryCode` as GBIF-interpreted; list dropped verbatim columns (e.g. `measurementAccuracy`); add CC BY 4.0 §3(a)(1)(B) `changesMade` disclosure; and describe the 50×100 m / 100×100 m test polygons plainly as constructed test constants with no cited survey source (stating plainly that `IPlus_Mersch` reaches `CandidateForSimulationIntegration` only under that constructed test polygon). |
+| **F-10** | Minor | **Fixed & Documented** | Switched `SyntheticArchiveBuilder` default compression to `CompressionLevel.NoCompression` so synthetic ZIP bytes do not vary across zlib builds, corrected the recorded synthetic hash below (`471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af`), and explicitly note that runtime-generated synthetic ZIP hashes are within-run checks only — the two committed qualified fixture hashes (`72cec3ba…` and `7fd8b963…`) are the portable cross-machine pins. |
+| **F-11** | Minor | **Fixed** | `DarwinCoreArchiveReader` refuses negative `ignoreHeaderLines` (`ArchiveMalformedMetaXml`) and refuses blank lines inside the declared header region (`ArchiveMalformedHeader`) instead of shifting headers into data rows. Covered by synthetic test `F-11`. |
+| **F-12** | Minor | **Fixed** | Replaced `MaxCharactersFromEntities = 0` with positive secondary bound `1024` and corrected `spec.md` §4 + code comments to state `DtdProcessing.Prohibit` + `XmlResolver = null` are the primary defence (noting `0` means unlimited in .NET). |
+| **F-13** | Minor | **Fixed** | Aligned `spec.md` §5.1 wording with §5.3 and Option A #3: invalid polygons are rejected by `WoodlandBoundary.TryCreate*` (returning no boundary), leaving the stand at `InventoryOnly`. |
+| **F-14** | Minor | **Documented** | Documented single-character `fieldsTerminatedBy`/`fieldsEnclosedBy` support and universal CR/LF/CRLF row-ending handling in `spec.md` §4 and `DarwinCoreArchiveReader` XML docs. |
+| **F-15** | Minor | **Documented** | Documented bare `Beech` → *Fagus sylvatica* and `Alder` → *Alnus glutinosa* as explicit UK/Irish regional calibration assumptions (with *Alnus incana* substitution risk noted) in `spec.md` §6 and `WoodlandSpeciesMapper`. |
+| **F-16** | Major | **Fixed** | Added 8 dedicated regression tests (`F-01`..`F-07`, `F-11`) plus expanded `species` (`F-08`) and `qualified-attribution` (`F-09`) checks; suite expanded from `15/15` to `23/23`. |
+
+### Repair Cycle 1 Gate Verification (Pinned SDK `8.0.133`, WSL Ubuntu)
+
+```text
+=== DOTNET VERSION ===
+8.0.133
+=== RESTORE ===
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+=== BUILD ===
+MSBuild version 17.8.60+293f66545 for .NET
+  SitkaP1.WoodlandImport.Tests -> .../Tools/MultiRackSitkaP1Lab/tests/Core/WoodlandImport/bin/Debug/net8.0/SitkaP1.Core.WoodlandImport.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:05.01
+=== RUN ===
+PASS [synthetic] positive: supported mixed stand with surveyed boundary yields CandidateForSimulationIntegration
+PASS [synthetic] malformed: empty, non-zip, missing meta.xml, broken XML, missing core/ext files refused
+PASS [synthetic] refusal: duplicate ID, non-positive DBH, malformed coords, and Year-0 Simulated provenance refused
+PASS [synthetic] inventory-only: unsupported living species retained without deletion, missing measurements never estimated, missing boundary never inferred
+PASS [synthetic] species: all 6 target species, synonyms, authors, unmodelled taxa, genus/higher-rank/PLANTAE unidentified, zero fuzzy matching
+PASS [synthetic] boundary: non-rectangular shoelace area vs hand value, geographic tangent plane, invalid polygons refused, edge-inclusive ray casting
+PASS [synthetic] bounds-and-coords: out-of-bounds trees refused without clamping; translation preserves distances exactly
+PASS [synthetic] caps: MaxLivingStems (unknown counted as living), MaxTotalRecords, MaxMeasurementRows, MaxUncompressedBytes
+PASS [synthetic] security: XXE / DOCTYPE declaration in meta.xml prohibited with zero external fetch
+  [determinism] synthetic-canonical-sha256=471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af (5203 bytes)
+PASS [synthetic] determinism: two imports produce byte-identical canonical JSON and identical SHA-256
+PASS [synthetic] hygiene: src/Core/WoodlandImport contains zero banned file APIs and zero wall-clock calls
+PASS [synthetic] F-01: orphan extension rows and blank coreid extension rows are refused deterministically
+PASS [synthetic] F-02: repeated/conflicting measurement rows for same tree refused identically regardless of row order
+PASS [synthetic] F-03: lying ZIP uncompressed-size header refused via streamed cap or ArchiveEntrySizeMismatch without silent truncation
+PASS [synthetic] F-04: multi-plot archive without TargetPlotId is refused; specifying TargetPlotId succeeds for that plot
+PASS [synthetic] F-05: geographic boundary combined with non-georeferenced local trees yields InventoryOnly with BoundaryTreeFrameMismatch
+PASS [synthetic] F-06: unknown status preserves Inferred provenance; core provenance=simulated applies to species and position and refuses
+PASS [synthetic] F-07: unknown measurement unit (inch) refused with UnsupportedMeasurementUnit
+PASS [synthetic] F-11: negative ignoreHeaderLines and leading blank line before header refused with format codes
+PASS [qualified] qualified-attribution: ATTRIBUTION.json (incl. CC BY 4.0 changesMade) and both fixture ZIPs match pinned SHA-256 offline
+PASS [qualified] qualified-ie-donadea: real Irish plot imports cleanly as InventoryOnly with all 20 verbatim trees retained
+PASS [qualified] qualified-lu-mersch: European Oak-Beech subset is InventoryOnly without boundary and Candidate only under constructed 100x100 m test boundary
+  [determinism] ie-donadea-canonical-sha256=72cec3badfc4878e5e1166dec8e02d90ef5bf8bd257f3ff258a78ffe29601a63 (31903 bytes)
+  [determinism] lu-mersch-canonical-sha256=7fd8b96308c15b101a74ffd1ae019db3f24ea0ce2abece2302fad0061d2425bf (29876 bytes)
+PASS [qualified] qualified-determinism: two independent offline imports of both CC BY 4.0 fixtures yield byte-identical JSON and SHA-256
+---
+SUITE qualified: 4/4 passed, 0 failed
+SUITE synthetic: 19/19 passed, 0 failed
+TOTAL: 23/23 passed, 0 failed
+=== EXIT_CODE=0 ===
+```
+
+- **Repair Cycle 1 Totals:** `0 Warning(s)`, `0 Error(s)`, exit code `0`; **Synthetic `19/19` passed, Qualified `4/4` passed, Total `23/23` passed (`0` failed)**.
+- **Portable Cross-Machine Determinism Pins (committed fixtures):**
+  - `ie-donadea-mhf-subset.dwca.zip` (under constructed `50×100 m` test boundary): `72cec3badfc4878e5e1166dec8e02d90ef5bf8bd257f3ff258a78ffe29601a63` (`31,903` bytes — unchanged from initial submission)
+  - `lu-mersch-oak-beech-subset.dwca.zip` (under constructed `100×100 m` test boundary): `7fd8b96308c15b101a74ffd1ae019db3f24ea0ce2abece2302fad0061d2425bf` (`29,876` bytes — unchanged from initial submission)
+- **Within-run synthetic determinism check (non-portable runtime ZIP, F-10):** `471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af` (`5,203` bytes).
