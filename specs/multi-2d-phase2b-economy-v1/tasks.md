@@ -5,7 +5,7 @@
 - [x] **T-02** Author concise spec quartet under `specs/multi-2d-phase2b-economy-v1/`.
 - [x] **T-03** Implement `src/Core/MultiArea/Economy/` (`EconomyModels`, `D062TimberAssortment`, `EconomyRecords`, `EconomyQuoteCalculator`, `EconomyCalibrationFixture`, `MultiAreaContinuation.Commands.Economy`).
 - [x] **T-04** Apply minimal additive Core wiring (`Stage4Models`, `MultiAreaContracts`, `AnnualPipeline`, `MultiAreaContinuation`, `Commands.Plan`, `Commands.{Fell,Prune,Clear,Planting}`, `MultiAreaHistoryQuery`).
-- [x] **T-05** Add `tests/Core.Tests/Phase2BEconomyTests.cs` (exact 8 cases) and single registration line in `tests/Core.Tests/Program.cs`.
-- [x] **T-06** Verify Core tests (`>= 290`, 0 failed), Save tests (`>= 50`, 0 failed), 9/9 frozen anchors, and `2d-gate.sh --headless-only`.
+- [x] **T-05** Add `tests/Core.Tests/Phase2BEconomyTests.cs` (~~exact 8 cases~~ **SUPERSEDED by C5/C6:** 9 cases) and single registration line in `tests/Core.Tests/Program.cs`.
+- [x] **T-06** Verify Core tests (~~>= 290~~ **SUPERSEDED by C5:** `291/291`, 0 failed), Save tests (`50/50`, 0 failed), 9/9 frozen anchors, and `2d-gate.sh --headless-only`.
 - [x] **T-07** Write implementation handoff under `Docs/Handoffs/MultiRack-Simulation-20261116/phase2b-economy/PHASE2B1-IMPLEMENTATION-HANDOFF-20261126.md`.
 - [x] **T-08** Commit and push feature branch `feat/multi-2d-phase2b-economy-core-20261126-v1` only (no merge, no PR).

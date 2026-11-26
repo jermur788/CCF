@@ -5,7 +5,7 @@ using SitkaP1.Core.Phase1;
 namespace SitkaP1.Core.Tests;
 
 /// <summary>
-/// CCF Multi 2D — Phase 2B-1 Economy, Labour & D-062 Timber Engine verification suite (8 core + 1 C5 CCF thinning case).
+/// CCF Multi 2D — Phase 2B-1 Economy, Labour & D-062 Timber Engine verification suite (9 cases: 8 core + 1 C5/C6 CCF thinning case).
 /// </summary>
 internal static class Phase2BEconomyTests
 {
@@ -303,13 +303,13 @@ internal static class Phase2BEconomyTests
         {
             var session = MixedEconomySession();
 
-            // First felling plan (small 1-tree harvest): FirstThinning €20/t, variable < €2,500 -> floor charges €2,500.
+            // First felling plan (small 1-tree harvest): FirstThinning €21/t (3D selected reference), variable < €2,500 -> floor charges €2,500.
             var v = session.ReadView();
             var liveA = v.Areas[0].Trees.Where(t => t.IsLiving).Take(2).ToArray();
             v = session.AddPending(Fence(v), "MA-A", liveA[0].TreeId, "small harvest 1").View;
             var q1 = session.QuoteWorkPlan(Fence(v));
             T.Eq(HarvestThinningStage.FirstThinning, q1.HarvestJob!.Stage, "first felling plan is FirstThinning");
-            T.Eq(2_000L, q1.HarvestJob.StageRateCentsPerTonne, "FirstThinning rate = €20/t");
+            T.Eq(2_100L, q1.HarvestJob.StageRateCentsPerTonne, "FirstThinning rate = €21/t (3D selected reference)");
             T.True(q1.HarvestJob.VariableHarvestCostCents < 250_000L, "small harvest variable cost below floor");
             T.Eq(250_000L, q1.HarvestJob.TotalHarvestContractorCostCents, "small harvest charged exact €2,500 floor");
             T.Eq(250_000L - q1.HarvestJob.VariableHarvestCostCents, q1.HarvestJob.MinimumJobAdjustmentCents, "floor adjustment exact");
@@ -490,7 +490,7 @@ internal static class Phase2BEconomyTests
                 HarvestThinningStage.LaterThinning,
                 HarvestThinningStage.LaterThinning,
             };
-            long[] expectedRates = { 2_000L, 2_300L, 2_000L, 2_000L };
+            long[] expectedRates = { 2_100L, 2_300L, 2_000L, 2_000L };
 
             for (int i = 0; i < 4; i++)
             {
@@ -502,10 +502,22 @@ internal static class Phase2BEconomyTests
                 {
                     v = session.Approve(Fence(v)).View;
                     var exec = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
-                    T.Eq(expectedStages[i], exec.Execution!.Settlement!.HarvestJob!.Stage, "settled plan " + (i + 1) + " matches derived stage");
+                    var settlement = exec.Execution!.Settlement!;
+                    T.Eq(expectedStages[i], settlement.HarvestJob!.Stage, "settled plan " + (i + 1) + " matches derived stage");
+                    T.Eq(expectedRates[i], settlement.HarvestJob.StageRateCentsPerTonne, "settled plan " + (i + 1) + " uses verified 3D rate");
+                    T.True(settlement.HarvestJob.TotalHarvestContractorCostCents >= EconomyDefaults.MinimumHarvestJobCents,
+                        "settled felling plan " + (i + 1) + " enforces >= €2,500 harvest floor");
+                    T.True(settlement.TotalExternalCostCents >= EconomyDefaults.MinimumHarvestJobCents,
+                        "settled felling plan " + (i + 1) + " total external cost is >= €2,500");
                     v = exec.View;
                 }
             }
+            var econAfter = session.ReadEconomyView();
+            T.Eq(3, econAfter.ExecutedHarvestPlansCount, "three executed felling plans recorded");
+            T.True(econAfter.Settlements.Where(s => s.HarvestJob is not null).All(s =>
+                s.HarvestJob!.TotalHarvestContractorCostCents >= EconomyDefaults.MinimumHarvestJobCents &&
+                s.TotalExternalCostCents >= EconomyDefaults.MinimumHarvestJobCents),
+                "every executed felling plan settles at least €2,500");
         });
     }
 

@@ -124,7 +124,7 @@ internal static class EconomyDefaults
     internal const long OakSaplingMaterialCents = 550L;                     // €5.50 [GAMEPLAY CALIBRATION]
 
     // ---- Grouped harvest contractor rates (selective CCF thinning; combined harvest + forward) ----
-    internal const long FirstThinningCentsPerTonne = 2_000L;                // €20/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
+    internal const long FirstThinningCentsPerTonne = 2_100L;                // €21/t (3D selected reference within €20–22 IFA range; calibration tier) [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
     internal const long SecondThinningCentsPerTonne = 2_300L;               // €23/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
     internal const long LaterThinningCentsPerTonne = 2_000L;                // €20/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
 
@@ -199,7 +199,7 @@ internal static class EconomyEvidence
     internal const string LandownerAllowance =
         "[GAMEPLAY CALIBRATION] Annual 40.0 h (2,400 min) landowner allowance is a physical time resource at €0 cash wage; commercial production felling is contractor-only [MANAGEMENT GUIDANCE].";
     internal const string HarvestPricing =
-        "[EMPIRICAL / GAMEPLAY CALIBRATION] Grouped contractor selective CCF thinning harvest by engine-derived stage (first €20/t, second €23/t, later €20/t) with a €2,500 minimum job floor per executed felling Work Plan.";
+        "[EMPIRICAL / GAMEPLAY CALIBRATION] Grouped contractor selective CCF thinning harvest by engine-derived stage (first €21/t [3D selected reference within €20–22 range], second €23/t, later €20/t; calibration tiers from a single published IFA range, not an empirical national tariff) with a €2,500 minimum job floor per executed felling Work Plan.";
     internal const string MaterialsAndManualLabour =
         "[GAMEPLAY CALIBRATION] Non-harvest contractor labour €45/hr and on-demand Work Plan materials (shelter €5.00, beech €4.50, oak €5.50) are gameplay calibrations; no separate nursery inventory is modelled.";
     internal const string BroadleafD062 =

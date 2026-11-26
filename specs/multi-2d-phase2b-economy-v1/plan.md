@@ -12,7 +12,7 @@
 3. `EconomyRecords.cs` — Immutable `MultiAreaEconomyState`, quote/approval/settlement/ledger/year-end/view DTOs, and `EconomyHistoryQuery` (`NOT RECORDED` when Off).
 4. `EconomyQuoteCalculator.cs` — Pure quote engine, upfront-cash/allowance/contractor-Fell validation, atomic settlement builder, and year-end summary + allowance reset builder.
 5. `EconomyCalibrationFixture.cs` — Deterministic 80×80 m / 5-lane / 1,344-stem 0.64 ha calibration fixture.
-6. `MultiAreaContinuation.Commands.Economy.cs` — Fenced economy read/quote/history/executor/harvest-stage commands on `MultiAreaContinuation`.
+6. `MultiAreaContinuation.Commands.Economy.cs` — Fenced economy read/quote/history/executor commands on `MultiAreaContinuation` (~~harvest-stage~~ override command **SUPERSEDED / REMOVED by C5**).
 
 ### Minimal Additive Wiring (Shared Core Files)
 1. `src/Core/Stage4Models.cs` — Trailing default `EconomyModelVersion Economy = EconomyModelVersion.Off` on `MultiAreaModelSelection` + `IsEconomyEnabled` + `Phase2WithEconomy`.
@@ -24,11 +24,11 @@
 7. `src/Core/MultiArea/MultiAreaHistoryQuery.cs` — Include `FinancialLedger` `NOT RECORDED` disclosure in `ReadYear` when `root.Economy is null` (zero new properties on existing `History*` DTOs).
 
 ### Tests (Minimum Required Set)
-1. `tests/Core.Tests/Phase2BEconomyTests.cs` — Exactly 8 test cases.
+1. `tests/Core.Tests/Phase2BEconomyTests.cs` — ~~Exactly 8 test cases~~ **SUPERSEDED by C5/C6:** 9 test cases (8 core + 1 C5/C6 CCF selective thinning case).
 2. `tests/Core.Tests/Program.cs` — Single registration line `Phase2BEconomyTests.Register();`.
 
 ## 2. Verification Strategy
 1. Seed `.p0ref` from the verified read-only seed in the integration worktree (git-ignored, never committed).
-2. Build and run `SitkaP1.Core.Tests` (`>= 290` passed, `0` failed; all 9/9 frozen anchors intact).
+2. Build and run `SitkaP1.Core.Tests` (`291/291` passed, `0` failed; ~~>= 290~~ **SUPERSEDED by C5**; all 9/9 frozen anchors intact).
 3. Build and run `Phase1Save.Tests` (`>= 50` passed, `0` failed).
 4. Commit cleanly and run `build/2d-gate.sh --base 5648813d9ccbe8d38e9fbe5df38d62c810af4a22 --p0ref-dir ... --headless-only` to observe and report every gate stage truthfully.
