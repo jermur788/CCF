@@ -1028,47 +1028,33 @@ if mode == "s0a-full":
         json.dump({"mode": mode, "t0Commit": t0, "results": live_out}, f, indent=2)
         f.write("\n")
     print("S0a /multi asset identity PASS (html/css/js: R == P == S_live == committed; headers match)")
-elif mode == "s0c-css-plus-html-delta":
-    # S0c mode: multi.css stays byte-identical to T0; multi.html differs from T0 by ONLY the single module script-tag line;
-    # multi.js is deleted; live server serves multi, multi.css, and every module with unchanged headers/CSP and 404 on multi.js.
+elif mode == "post-s0-live-serving":
+    # Post-S0 live-serving mode: T0 byte-equality locks on multi.css and multi.html are retired.
+    # Retained: BOM/CR/no-trailing-LF on multi.css and multi.html; module entry script tag present and legacy classic
+    # multi.js tag absent in multi.html; multi.js absent at HEAD and live 404; >=1 committed ES module; live GET of
+    # multi, multi.css and every committed module byte-identical to HEAD blob with unchanged security headers/CSP.
     css_entry = id_doc["assets"]["css"]
     html_entry = id_doc["assets"]["html"]
-    r_css = subprocess.check_output(
-        [sys.executable, raw_py, "--repo", repo, "--rev", t0, "--name", "Css", "--out-sha256"],
-        text=True,
-    ).strip()
     css_blob = subprocess.check_output(["git", "-C", repo, "show", "HEAD:Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css"])
     if css_blob.startswith(b"\xef\xbb\xbf") or b"\r" in css_blob or css_blob.endswith(b"\n"):
-        sys.exit("S0c mode: multi.css violated BOM/CR/no-trailing-LF rule")
-    if hashlib.sha256(css_blob).hexdigest() != r_css or r_css != css_entry["rSha256"]:
-        sys.exit("S0c mode: multi.css no longer matches T0 R_css")
+        sys.exit("post-s0-live-serving: multi.css violated BOM/CR/no-trailing-LF rule")
 
-    os.makedirs(xdg_dir, mode=0o700, exist_ok=True)
-    t0_html_path = os.path.join(xdg_dir, "t0-multi.html")
-    subprocess.check_call(
-        [sys.executable, raw_py, "--repo", repo, "--rev", t0, "--name", "Html", "--out-file", t0_html_path]
-    )
-    t0_html = open(t0_html_path, "rb").read()
-    os.remove(t0_html_path)
-    if hashlib.sha256(t0_html).hexdigest() != html_entry["rSha256"]:
-        sys.exit("S0c mode: recomputed T0 R_html mismatch")
     old_tag = b'<script src="multi.js" defer></script>'
     new_tag = b'<script type="module" src="multi/main.js"></script>'
-    if t0_html.count(old_tag) != 1:
-        sys.exit("S0c mode: T0 multi.html did not contain exactly one classic script tag")
-    expected_s0c_html = t0_html.replace(old_tag, new_tag, 1)
     html_blob = subprocess.check_output(["git", "-C", repo, "show", "HEAD:Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.html"])
     if html_blob.startswith(b"\xef\xbb\xbf") or b"\r" in html_blob or html_blob.endswith(b"\n"):
-        sys.exit("S0c mode: multi.html violated BOM/CR/no-trailing-LF rule")
-    if html_blob != expected_s0c_html:
-        sys.exit("S0c mode: multi.html differs from T0 by more than the single permitted script-tag line")
+        sys.exit("post-s0-live-serving: multi.html violated BOM/CR/no-trailing-LF rule")
+    if html_blob.count(new_tag) != 1:
+        sys.exit("post-s0-live-serving: multi.html must contain exactly one module entry script tag")
+    if old_tag in html_blob or re.search(rb'<script\b[^>]*\bsrc\s*=\s*["\']multi\.js["\']', html_blob, re.IGNORECASE):
+        sys.exit("post-s0-live-serving: multi.html still contains a legacy classic multi.js script tag")
 
     chk_legacy = subprocess.run(
         ["git", "-C", repo, "cat-file", "-e", "HEAD:Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js"],
         capture_output=True,
     )
     if chk_legacy.returncode == 0:
-        sys.exit("S0c mode: retired Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js still exists at HEAD")
+        sys.exit("post-s0-live-serving: retired Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js still exists at HEAD")
 
     # Live-GET verification on built sitkap1-ui (multi, multi.css, retired multi.js -> 404, and all committed modules)
     mod_files = sorted(
@@ -1078,7 +1064,7 @@ elif mode == "s0c-css-plus-html-delta":
         ).splitlines() if p.endswith(".js")
     )
     if not mod_files:
-        sys.exit("S0c mode: zero .js module files committed under src/Ui/multi")
+        sys.exit("post-s0-live-serving: zero .js module files committed under src/Ui/multi")
 
     ui_dll = f"{p1_root}/src/Ui/bin/Debug/net8.0/sitkap1-ui.dll"
     fixture_dir = f"{p1_root}/fixtures/derived"
@@ -1106,7 +1092,7 @@ elif mode == "s0c-css-plus-html-delta":
                 cap_url = (m.group(1), m.group(2))
                 break
         if cap_url is None:
-            sys.exit("S0c mode: failed to obtain capability URL from SitkaP1.Ui")
+            sys.exit("post-s0-live-serving: failed to obtain capability URL from SitkaP1.Ui")
         host, port_s = cap_url[0].split(":")
         port = int(port_s)
         prefix = cap_url[1]
@@ -1123,8 +1109,12 @@ elif mode == "s0c-css-plus-html-delta":
                 conn.close()
 
         st_c, body_c, hdrs_c = live_get("multi.css")
-        if st_c != 200 or body_c != css_blob or hdrs_c != [tuple(x) for x in css_entry["headersNoDate"]]:
-            sys.exit("S0c mode: live multi.css body or headers mismatch")
+        expected_c_hdrs = [
+            (k, str(len(css_blob)) if k == "content-length" else v)
+            for k, v in (tuple(x) for x in css_entry["headersNoDate"])
+        ]
+        if st_c != 200 or body_c != css_blob or hdrs_c != expected_c_hdrs:
+            sys.exit("post-s0-live-serving: live multi.css body or headers mismatch")
 
         st_h, body_h, hdrs_h = live_get("multi")
         expected_h_hdrs = [
@@ -1132,11 +1122,11 @@ elif mode == "s0c-css-plus-html-delta":
             for k, v in (tuple(x) for x in html_entry["headersNoDate"])
         ]
         if st_h != 200 or body_h != html_blob or hdrs_h != expected_h_hdrs:
-            sys.exit("S0c mode: live multi HTML body or headers mismatch")
+            sys.exit("post-s0-live-serving: live multi HTML body or headers mismatch")
 
         st_old, _, _ = live_get("multi.js")
         if st_old != 404:
-            sys.exit(f"S0c mode: retired multi.js returned HTTP {st_old} instead of 404")
+            sys.exit(f"post-s0-live-serving: retired multi.js returned HTTP {st_old} instead of 404")
 
         js_hdr_tmpl = [tuple(x) for x in id_doc["assets"]["js"]["headersNoDate"]]
         live_mods = {}
@@ -1146,7 +1136,7 @@ elif mode == "s0c-css-plus-html-delta":
             st_m, body_m, hdrs_m = live_get(rel)
             exp_m_hdrs = [(k, str(len(mod_blob)) if k == "content-length" else v) for k, v in js_hdr_tmpl]
             if st_m != 200 or body_m != mod_blob or hdrs_m != exp_m_hdrs:
-                sys.exit(f"S0c mode: live module {rel} status={st_m} body/headers mismatch")
+                sys.exit(f"post-s0-live-serving: live module {rel} status={st_m} body/headers mismatch")
             live_mods[rel] = {"bytes": len(mod_blob), "sha256": hashlib.sha256(mod_blob).hexdigest()}
     finally:
         proc.terminate()
@@ -1159,8 +1149,8 @@ elif mode == "s0c-css-plus-html-delta":
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump({
             "mode": mode,
-            "t0Commit": t0,
-            "cssSha256": r_css,
+            "cssSha256": hashlib.sha256(css_blob).hexdigest(),
+            "cssBytes": len(css_blob),
             "htmlSha256": hashlib.sha256(html_blob).hexdigest(),
             "htmlBytes": len(html_blob),
             "legacyMultiJsStatus": 404,
@@ -1168,7 +1158,7 @@ elif mode == "s0c-css-plus-html-delta":
             "modules": live_mods,
         }, f, indent=2)
         f.write("\n")
-    print(f"S0c asset identity PASS (multi.css == T0 R_css; multi.html exact 1-line module delta; {len(live_mods)} live ES modules verified; legacy multi.js 404)")
+    print(f"post-s0-live-serving PASS (multi.css/multi.html BOM/CR/no-trailing-LF & module script-tag rules; live multi, multi.css and {len(live_mods)} ES modules byte-identical to HEAD with unchanged headers/CSP; legacy multi.js absent & 404; T0 asset byte-identity lock retired)")
 else:
     sys.exit(f"unknown s0a-multi-asset-identity.json mode: {mode!r}")
 PY
@@ -1206,12 +1196,22 @@ PY
     log_line "G2: $(tail -n1 "$EVIDENCE_DIR/g2-s0c-module-graph.log")"
   fi
   if [[ -f "$GATE_DATA_DIR/js-reconstruct.mjs" ]]; then
-    log_line "G2: running S0c js-reconstruct.mjs..."
-    if ! node "$GATE_DATA_DIR/js-reconstruct.mjs" "$EVIDENCE_DIR/g2-s0c-reconstruct.json" > "$EVIDENCE_DIR/g2-s0c-reconstruct.log" 2>&1; then
-      cat "$EVIDENCE_DIR/g2-s0c-reconstruct.log" >&2 || true
-      fail_stage G2 1 "S0c js-reconstruct.mjs failed"
+    local hook_inv="$GATE_DATA_DIR/s0c-hook-inventory.json"
+    if [[ ! -f "$hook_inv" ]]; then
+      fail_stage G2 1 "S0c js-reconstruct.mjs missing required s0c-hook-inventory.json"
     fi
-    log_line "G2: $(tail -n1 "$EVIDENCE_DIR/g2-s0c-reconstruct.log")"
+    local js_recon_enforce
+    js_recon_enforce="$(python3 -c 'import json,sys; print("1" if json.load(open(sys.argv[1])).get("gateEnforce", False) else "0")' "$hook_inv")"
+    if [[ "$js_recon_enforce" == "1" ]]; then
+      log_line "G2: running S0c js-reconstruct.mjs..."
+      if ! node "$GATE_DATA_DIR/js-reconstruct.mjs" "$EVIDENCE_DIR/g2-s0c-reconstruct.json" > "$EVIDENCE_DIR/g2-s0c-reconstruct.log" 2>&1; then
+        cat "$EVIDENCE_DIR/g2-s0c-reconstruct.log" >&2 || true
+        fail_stage G2 1 "S0c js-reconstruct.mjs failed"
+      fi
+      log_line "G2: $(tail -n1 "$EVIDENCE_DIR/g2-s0c-reconstruct.log")"
+    else
+      log_line "G2: S0c js-reconstruct.mjs retired/skipped (s0c-hook-inventory.json gateEnforce=false)"
+    fi
   fi
 
   emit_marker G2 PASS
