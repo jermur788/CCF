@@ -5,8 +5,8 @@
   "retirement": {
     "retiredUtc": "2026-11-26",
     "authority": "SPEC-multi-2d-s0-seam-extraction-V1 integration duty C1, owner-approved 2026-11-26",
-    "reason": "The S0a/S0b zero-behaviour move-proof completed its purpose (S0a aa5f1850, S0b 742bd904, S0c 158cdd69 all reviewed and merged). Post-S0 feature work legitimately extends the mechanically moved blocks: Phase 2B-1 adds economy bookkeeping lines inside core-cmd-clear, core-cmd-fell, core-cmd-prune, core-cmd-planting and core-cmd-plan, so byte-identical reconstruction is no longer a valid trunk invariant.",
-    "retained": "move-proof.py and this table remain in the tree. selftest.sh case C22 force-enables gateEnforce inside its disposable clone so the mechanism stays covered."
+    "reason": "The S0a/S0b zero-behaviour move-proof completed its purpose: the reviewed S0a, S0b and S0c work is merged on integration/2d-sim (merge commits 2af3fb1c S0a, 5648813d S0b, 00dcd196 S0c; reviews aa5f1850, 742bd904, 158cdd69). Post-S0 feature work legitimately extends the mechanically moved blocks: Phase 2B-1 adds economy bookkeeping lines inside core-cmd-clear, core-cmd-fell, core-cmd-prune, core-cmd-planting and core-cmd-plan, so byte-identical reconstruction is no longer a valid trunk invariant.",
+    "retained": "move-proof.py and this table remain in the tree. selftest.sh case C22 force-enables gateEnforce inside its disposable clone and asserts the gate still runs the sub-check and surfaces \"S0a move-proof failed\". That is a gate-wiring check, NOT a tamper-discrimination test: the trunk HEAD already drifts from T0 inside core-cmd-clear, so the case would fail with or without the planted tamper. move-proof.py's own tamper discrimination was demonstrated independently against 00dcd196 (clean run PASS, the same tamper FAIL on core-cmd-crop)."
   },
   "parts": {
     "ui": {
