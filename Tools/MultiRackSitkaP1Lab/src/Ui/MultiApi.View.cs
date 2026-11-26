@@ -31,12 +31,21 @@ internal sealed partial class PlayerApi
     // (150 KiB) ecology slice via projection-only reductions while keeping the authoritative Core root untouched.
     private Task ReadMultiViewAsync(HttpContext context)
     {
-        var pair = CurrentMulti;
-        var snapshot = pair.Adapter.ReadCompositeUiSnapshot();
-        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        MultiReviewPreviewDto? reviewPreview = TryPreviewForView(pair, snapshot.View);
-        MultiEconomySnapshotDto? economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
-        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes, economy);
+        MultiAreaCompositeUiSnapshot snapshot;
+        int totalRecordedYears;
+        MultiReviewPreviewDto? reviewPreview;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
+        {
+            var pair = CurrentMulti;
+            snapshot = pair.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            reviewPreview = TryPreviewForView(pair, snapshot.View);
+            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
+        }
+        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes, economyEnabled, economy);
         return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
     }
 
@@ -88,8 +97,9 @@ internal sealed partial class PlayerApi
         int totalRecordedYears,
         MultiReviewPreviewDto? reviewPreview,
         out byte[] finalBytes,
+        bool economyEnabled = false,
         MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview, out finalBytes, economy);
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview, out finalBytes, economyEnabled, economy);
 
     private static BoundedMultiSnapshot SerializeBoundedMultiView(
         MultiAreaSessionView fullView,
@@ -98,6 +108,7 @@ internal sealed partial class PlayerApi
         int totalRecordedYears,
         MultiReviewPreviewDto? reviewPreview,
         out byte[] finalBytes,
+        bool economyEnabled = false,
         MultiEconomySnapshotDto? economy = null)
     {
         var fullScenes = ScenesOf(fullView);
@@ -111,7 +122,7 @@ internal sealed partial class PlayerApi
         byte[] Serialize(object v, object sc, object? s4, bool histTrunc, bool projCompact, bool s4Compact, bool exceeded) =>
             JsonSerializer.SerializeToUtf8Bytes(
                 new MultiViewPayload(v, sc, MultiLabels, s4, projEco, histTrunc, totalRecordedYears, reviewPreview,
-                    projCompact, s4Compact, exceeded, economy),
+                    projCompact, s4Compact, exceeded, economyEnabled, economy),
                 ResponseJson);
 
         MultiAreaSessionView TailRaw(int keepEvents, int keepAnnual) => fullView with
@@ -383,13 +394,13 @@ internal sealed partial class PlayerApi
     }
 
     private static BoundedMultiSnapshot BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears,
-        MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null, out _, economy);
+        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null) =>
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null, out _, economyEnabled, economy);
 
     private static BoundedMultiSnapshot BoundSnapshotForResponse(
         MultiAreaSessionView view, MultiAreaUiReadout? stage4, MultiAreaEcologyDto? ecology, int totalRecordedYears,
-        MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null, out _, economy);
+        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null) =>
+        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null, out _, economyEnabled, economy);
 
     private static object BoundSessionViewForAux(MultiAreaSessionView view)
     {
@@ -442,40 +453,56 @@ internal sealed partial class PlayerApi
                 "cell inspection requires integer column and row; nothing changed");
             return;
         }
-        var pair = CurrentMulti;
-        var result = pair.Adapter.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
-        var snap = result.Snapshot;
-        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var economy = TryBuildEconomySnapshot(pair.Session, snap.View);
-        var bounded = BoundSnapshotForResponse(snap, totalRecordedYears, economy);
+        MultiAreaCellDetailResult result;
+        int totalRecordedYears;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
+        {
+            var pair = CurrentMulti;
+            result = pair.Adapter.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
+            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(pair.Session, result.Snapshot.View);
+        }
+        var bounded = BoundSnapshotForResponse(result.Snapshot, totalRecordedYears, economyEnabled, economy);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
             result.Cell, NoticeOf(result.RefusalCode, result.RefusalMessage), bounded.Stage4, bounded.Ecology,
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economy));
+            bounded.PayloadBudgetExceeded, economyEnabled, economy));
     }
 
     private async Task ReadMultiCompetitionAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiTreeRequest>(context, MultiTreeMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        var result = pair.Adapter.Competition(request.Fence!, request.AreaId!, request.TreeId!);
-        var composite = pair.Adapter.CompositeFor(result.View);
-        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var economy = TryBuildEconomySnapshot(pair.Session, result.View);
+        MultiAreaCompetitionResult result;
+        MultiAreaCompositeUiReadout? composite;
+        int totalRecordedYears;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
+        {
+            var pair = CurrentMulti;
+            result = pair.Adapter.Competition(request.Fence!, request.AreaId!, request.TreeId!);
+            composite = pair.Adapter.CompositeFor(result.View);
+            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(pair.Session, result.View);
+        }
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economy);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economy));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
         }
         else
         {
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears, Economy: economy));
+                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy));
         }
     }
 
@@ -483,32 +510,41 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiHitRequest>(context, MultiHitMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        var result = pair.Adapter.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
-        var composite = pair.Adapter.CompositeFor(result.View);
-        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var economy = TryBuildEconomySnapshot(pair.Session, result.View);
+        MultiAreaHitResult result;
+        MultiAreaCompositeUiReadout? composite;
+        int totalRecordedYears;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
+        {
+            var pair = CurrentMulti;
+            result = pair.Adapter.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
+            composite = pair.Adapter.CompositeFor(result.View);
+            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(pair.Session, result.View);
+        }
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economy);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economy));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
         }
         else
         {
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears, Economy: economy));
+                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy));
         }
     }
 
     // ---- Phase 2B-2a Economy Server-Authoritative Projection & Formatting (zero JS math; omitted when Off) -------------
 
-    private const string EconomyHonestDisclaimer =
+    private static string FormatEconomyDisclaimer(EconomyOptions options) =>
         "Calibrated teaching estimates (ex VAT; not an empirical national tariff or farm-forestry balance sheet). " +
-        "Small cuts on small woods can net a loss under the €2,500 contractor harvest minimum floor. " +
+        $"Small cuts on small woods can net a loss under the {EconomyDefaults.FormatEuros(options.MinimumHarvestJobCents)} contractor harvest minimum floor. " +
         "No automatic grants are modelled. Felled timber is priced and settled through the sell-and-extract engine path; " +
         "retaining timber for own use (dispositions) is deferred.";
 
@@ -559,8 +595,11 @@ internal sealed partial class PlayerApi
                 kv.Key.Kind.ToString(), kv.Key.AreaId, kv.Key.TargetKey, kv.Value.ToString()))
             .ToArray();
         var latestSettlement = econView.Settlements.Count > 0
-            ? ProjectEconomySettlement(econView.Settlements[^1])
+            ? ProjectEconomySettlement(econView.Settlements[^1], econView.Options)
             : null;
+        string annualAllowanceHours = FormatHoursValue(econView.Options.AnnualLandownerAllowanceMinutes) + " hrs";
+        string allowanceTooltip = FormattableString.Invariant(
+            $"Remaining annual landowner hours ({annualAllowanceHours}/yr at {EconomyDefaults.FormatEuros(0L)} cash wage; resets on Advance 1 Year)");
         return new MultiEconomySnapshotDto(
             Enabled: true,
             CashBalanceCents: econView.CashBalanceCents,
@@ -570,6 +609,8 @@ internal sealed partial class PlayerApi
             UsedLandownerMinutesThisYear: econView.UsedLandownerMinutesThisYear,
             RemainingLandownerMinutes: econView.RemainingLandownerMinutes,
             AnnualLandownerAllowanceMinutes: econView.Options.AnnualLandownerAllowanceMinutes,
+            AnnualLandownerAllowanceDisplay: annualAllowanceHours,
+            LandownerAllowanceTooltip: allowanceTooltip,
             LandownerHoursDisplay: FormatHoursOfAllowance(econView.RemainingLandownerMinutes, econView.Options.AnnualLandownerAllowanceMinutes),
             UsedLandownerHoursDisplay: FormatMinutesAndHours(econView.UsedLandownerMinutesThisYear),
             RemainingLandownerHoursDisplay: FormatMinutesAndHours(econView.RemainingLandownerMinutes),
@@ -580,20 +621,20 @@ internal sealed partial class PlayerApi
             MinimumHarvestFloorDisplay: EconomyDefaults.FormatEuros(econView.Options.MinimumHarvestJobCents),
             ContractorHourlyRateDisplay: EconomyDefaults.FormatEuros(econView.Options.ContractorHourlyRateCents) + "/hr",
             PendingOrderExecutors: Array.AsReadOnly(executors),
-            ActiveQuote: activeQuote is null ? null : ProjectEconomyQuote(activeQuote),
+            ActiveQuote: activeQuote is null ? null : ProjectEconomyQuote(activeQuote, econView.Options),
             ApprovedQuoteFrozen: approvedQuoteFrozen,
             LatestSettlement: latestSettlement,
             FellContractorTooltip: EconomyFellContractorTooltip,
             SaveBlockedCode: "SaveEconomyRequiresV3",
             SaveBlockedNote: EconomySaveBlockedNote,
-            Disclaimer: EconomyHonestDisclaimer,
+            Disclaimer: FormatEconomyDisclaimer(econView.Options),
             EvidenceLabels: econView.EvidenceLabels);
     }
 
-    private static MultiEconomyQuoteDto ProjectEconomyQuote(EconomyWorkPlanQuote quote)
+    private static MultiEconomyQuoteDto ProjectEconomyQuote(EconomyWorkPlanQuote quote, EconomyOptions? options = null)
     {
         var issues = quote.Issues.Select(issue => new MultiEconomyIssueDto(
-            issue.Code, issue.Message, PlainIssueExplanation(issue, quote), issue.Required, issue.Available)).ToArray();
+            issue.Code, issue.Message, PlainIssueExplanation(issue, quote, options), issue.Required, issue.Available)).ToArray();
         bool upfrontCashBlocked = quote.Issues.Any(i => string.Equals(i.Code, "EconomyInsufficientCash", StringComparison.Ordinal));
         string verdict = quote.IsEligible
             ? $"Upfront cash covered: {EconomyDefaults.FormatEuros(quote.AvailableCashBeforeCents)} available for {EconomyDefaults.FormatEuros(quote.UpfrontCashRequiredCents)} required external costs."
@@ -610,7 +651,7 @@ internal sealed partial class PlayerApi
             ContractorLabourCents: line.ContractorLabourCents,
             ContractorLabourDisplay: EconomyDefaults.FormatEuros(line.ContractorLabourCents),
             MaterialId: line.MaterialId,
-            MaterialLabel: FormatMaterialLabel(line.MaterialId),
+            MaterialLabel: FormatMaterialLabel(line.MaterialId, line.MaterialCostCents),
             MaterialCostCents: line.MaterialCostCents,
             MaterialCostDisplay: EconomyDefaults.FormatEuros(line.MaterialCostCents),
             TotalExternalCostCents: line.TotalExternalCostCents,
@@ -654,7 +695,7 @@ internal sealed partial class PlayerApi
     {
         bool floorApplied = h.MinimumJobAdjustmentCents > 0L;
         string floorHighlight = floorApplied
-            ? $"€2,500 minimum contractor job floor applied (variable {EconomyDefaults.FormatEuros(h.VariableHarvestCostCents)} + {EconomyDefaults.FormatEuros(h.MinimumJobAdjustmentCents)} adjustment = {EconomyDefaults.FormatEuros(h.TotalHarvestContractorCostCents)})."
+            ? $"{EconomyDefaults.FormatEuros(h.MinimumJobFloorCents)} minimum contractor job floor applied (variable {EconomyDefaults.FormatEuros(h.VariableHarvestCostCents)} + {EconomyDefaults.FormatEuros(h.MinimumJobAdjustmentCents)} adjustment = {EconomyDefaults.FormatEuros(h.TotalHarvestContractorCostCents)})."
             : $"Variable harvest fee ({EconomyDefaults.FormatEuros(h.VariableHarvestCostCents)}) exceeds the {EconomyDefaults.FormatEuros(h.MinimumJobFloorCents)} minimum job floor.";
         var assortments = h.Assortments.Select(a => new MultiEconomyAssortmentDto(
             SpeciesId: a.SpeciesId,
@@ -695,9 +736,9 @@ internal sealed partial class PlayerApi
             Assortments: Array.AsReadOnly(assortments));
     }
 
-    private static MultiEconomySettlementDto ProjectEconomySettlement(EconomySettlementReceipt r)
+    private static MultiEconomySettlementDto ProjectEconomySettlement(EconomySettlementReceipt r, EconomyOptions? options = null)
     {
-        var entries = r.LedgerEntries.Select(ProjectEconomyLedgerEntry).ToArray();
+        var entries = r.LedgerEntries.Select(e => ProjectEconomyLedgerEntry(e, options)).ToArray();
         return new MultiEconomySettlementDto(
             ExecutionKey: r.ExecutionKey,
             PlanId: r.PlanId,
@@ -723,9 +764,9 @@ internal sealed partial class PlayerApi
             LedgerEntries: Array.AsReadOnly(entries));
     }
 
-    private static MultiEconomyLedgerEntryDto ProjectEconomyLedgerEntry(EconomyLedgerEntry e) => new(
+    private static MultiEconomyLedgerEntryDto ProjectEconomyLedgerEntry(EconomyLedgerEntry e, EconomyOptions? options = null) => new(
         Category: e.Category.ToString(),
-        CategoryLabel: FormatLedgerCategoryLabel(e.Category),
+        CategoryLabel: FormatLedgerCategoryLabel(e.Category, options),
         ReferenceId: e.ReferenceId,
         CashDeltaCents: e.CashDeltaCents,
         CashDeltaDisplay: FormatSignedEuros(e.CashDeltaCents),
@@ -734,7 +775,7 @@ internal sealed partial class PlayerApi
         ExecutionKey: e.ExecutionKey,
         PlanId: e.PlanId);
 
-    private static MultiEconomyHistoryYearDto ProjectEconomyHistoryYear(EconomyYearHistory h) => new(
+    private static MultiEconomyHistoryYearDto ProjectEconomyHistoryYear(EconomyYearHistory h, EconomyOptions? options = null) => new(
         Year: h.Year,
         EconomyActive: h.EconomyActive,
         Provenance: h.Provenance.ToString(),
@@ -751,8 +792,8 @@ internal sealed partial class PlayerApi
         TotalTimberRevenueDisplay: h.TotalTimberRevenueDisplay,
         NetCashDeltaDisplay: h.NetCashDeltaCents is long net ? FormatSignedEuros(net) : h.NetCashDeltaDisplay,
         LandownerMinutesUsedDisplay: h.LandownerMinutesUsed is int m ? FormatMinutesAndHours(m) : h.LandownerMinutesUsedDisplay,
-        Settlements: Array.AsReadOnly(h.Settlements.Select(ProjectEconomySettlement).ToArray()),
-        Ledger: Array.AsReadOnly(h.Ledger.Select(ProjectEconomyLedgerEntry).ToArray()),
+        Settlements: Array.AsReadOnly(h.Settlements.Select(s => ProjectEconomySettlement(s, options)).ToArray()),
+        Ledger: Array.AsReadOnly(h.Ledger.Select(e => ProjectEconomyLedgerEntry(e, options)).ToArray()),
         Disclosure: h.Disclosure);
 
     private static string FormatSignedEuros(long cents) =>
@@ -805,26 +846,36 @@ internal sealed partial class PlayerApi
         _ => kind.ToString(),
     };
 
-    private static string FormatMaterialLabel(string? materialId) => materialId switch
+    private static string FormatMaterialLabel(string? materialId, long materialCostCents)
     {
-        null => "None",
-        EconomyDefaults.ShelterMaterialId => "Tree shelter (€5.00)",
-        EconomyDefaults.BeechSaplingMaterialId => "Beech sapling (€4.50)",
-        EconomyDefaults.OakSaplingMaterialId => "Oak sapling (€5.50)",
-        _ => materialId,
-    };
+        string name = materialId switch
+        {
+            null => "None",
+            EconomyDefaults.ShelterMaterialId => "Tree shelter",
+            EconomyDefaults.BeechSaplingMaterialId => "Beech sapling",
+            EconomyDefaults.OakSaplingMaterialId => "Oak sapling",
+            _ => materialId,
+        };
+        return materialId is null || materialCostCents <= 0L
+            ? name
+            : $"{name} ({EconomyDefaults.FormatEuros(materialCostCents)})";
+    }
 
-    private static string FormatLedgerCategoryLabel(EconomyLedgerCategory category) => category switch
+    private static string FormatLedgerCategoryLabel(EconomyLedgerCategory category, EconomyOptions? options = null) => category switch
     {
         EconomyLedgerCategory.HarvestingAndForwarding => "Harvesting & forwarding",
-        EconomyLedgerCategory.MinimumJobAdjustment => "Minimum job floor (€2,500)",
-        EconomyLedgerCategory.ContractorLabour => "Contractor labour (€45/hr)",
+        EconomyLedgerCategory.MinimumJobAdjustment => options is not null
+            ? $"Minimum job floor ({EconomyDefaults.FormatEuros(options.MinimumHarvestJobCents)})"
+            : "Minimum job floor",
+        EconomyLedgerCategory.ContractorLabour => options is not null
+            ? $"Contractor labour ({EconomyDefaults.FormatEuros(options.ContractorHourlyRateCents)}/hr)"
+            : "Contractor labour",
         EconomyLedgerCategory.Materials => "Materials & saplings",
         EconomyLedgerCategory.TimberSale => "Timber sale (roadside)",
         _ => category.ToString(),
     };
 
-    private static string PlainIssueExplanation(EconomyQuoteIssue issue, EconomyWorkPlanQuote quote) => issue.Code switch
+    private static string PlainIssueExplanation(EconomyQuoteIssue issue, EconomyWorkPlanQuote quote, EconomyOptions? options = null) => issue.Code switch
     {
         "EconomyInsufficientCash" =>
             $"Blocked — Insufficient upfront cash: {EconomyDefaults.FormatEuros(quote.AvailableCashBeforeCents)} available, " +
@@ -832,18 +883,20 @@ internal sealed partial class PlayerApi
             $"Expected timber revenue ({EconomyDefaults.FormatEuros(quote.TimberSaleRevenueCents)}) cannot pre-pay work, and no borrowing or overdraft is allowed.",
         "EconomyInsufficientLandownerAllowance" =>
             $"Blocked — Insufficient landowner hours: {FormatMinutesAndHours(quote.AvailableLandownerMinutesBefore)} remaining this year, " +
-            $"but {FormatMinutesAndHours(quote.TotalOwnerMinutesRequired)} assigned to Landowner. Switch tasks to Contractor or advance to next year to reset the 40-hour allowance.",
+            $"but {FormatMinutesAndHours(quote.TotalOwnerMinutesRequired)} assigned to Landowner. Switch tasks to Contractor or advance to next year to reset the " +
+            (options is not null ? $"{FormatHoursValue(options.AnnualLandownerAllowanceMinutes)}-hour annual allowance." : "annual allowance."),
         "EconomyFellContractorOnly" =>
             "Blocked — Commercial production felling is contractor-only and cannot be assigned to Landowner.",
         _ => issue.Message,
     };
 
     // Stage4 ("stage4"), Ecology ("ecology"), and Step 2 bounding/preview fields are additive; all existing members keep their exact names and shapes.
-    // Economy ("economy") is emitted ONLY when Economy is Enabled so Off payloads remain byte-comparable.
+    // EconomyEnabled ("economyEnabled") is explicit server truth from SelectedModels.IsEconomyEnabled; Economy ("economy") is omitted when Off.
     private sealed record MultiViewPayload(object View, object Scenes,
         IReadOnlyDictionary<string, string> Labels, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0, MultiReviewPreviewDto? ReviewPreview = null,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism, LifeState LifeState);
@@ -937,18 +990,21 @@ internal sealed partial class PlayerApi
         Notice? Refusal, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiHitPayload(object View, object Scenes,
         string AreaId, IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal, object? Stage4,
         MultiAreaEcologyDto? Ecology, bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiCellPayload(object View, object Scenes,
         MultiAreaCellDetail? Cell, Notice? Refusal, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiEconomyExecutorEntryDto(string Kind, string AreaId, string TargetKey, string Executor);
@@ -1090,6 +1146,8 @@ internal sealed partial class PlayerApi
         int UsedLandownerMinutesThisYear,
         int RemainingLandownerMinutes,
         int AnnualLandownerAllowanceMinutes,
+        string AnnualLandownerAllowanceDisplay,
+        string LandownerAllowanceTooltip,
         string LandownerHoursDisplay,
         string UsedLandownerHoursDisplay,
         string RemainingLandownerHoursDisplay,

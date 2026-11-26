@@ -67,6 +67,7 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     badgeEl.setAttribute('title', badgeText);
     byId('year-value').textContent = String(view.source.ecologicalYear);
     const econOn = isEconomyEnabled();
+    const econ = state.economy;
     const econToggle = byId('economy-toggle');
     if (econToggle) econToggle.setAttribute('aria-pressed', String(econOn));
     const econToggleLabel = byId('economy-toggle-label');
@@ -75,9 +76,15 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     if (econStrip) {
       econStrip.hidden = !econOn;
       if (econOn) {
-        byId('economy-cash').textContent = state.economy.cashBalanceDisplay;
-        byId('economy-hours').textContent = state.economy.landownerHoursDisplay;
-        byId('economy-stage').textContent = state.economy.nextHarvestStageLabel + ' · ' + state.economy.minimumHarvestFloorDisplay + ' floor';
+        byId('economy-cash').textContent = econ ? econ.cashBalanceDisplay : 'Unavailable — Re-read';
+        byId('economy-hours').textContent = econ ? econ.landownerHoursDisplay : '–';
+        byId('economy-stage').textContent = econ
+          ? (econ.nextHarvestStageLabel + ' · ' + econ.minimumHarvestFloorDisplay + ' floor')
+          : 'Economy read-out unavailable';
+        const hoursWrap = byId('economy-hours-wrap');
+        if (hoursWrap && econ && econ.landownerAllowanceTooltip) {
+          hoursWrap.setAttribute('title', econ.landownerAllowanceTooltip);
+        }
       }
     }
     byId('advance-label').textContent = label('MultiAdvanceYear');

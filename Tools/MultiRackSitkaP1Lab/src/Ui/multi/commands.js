@@ -255,7 +255,7 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     const dirty = dirtyParts.length > 0;
     byId('economy-toggle-title').textContent = targetEnabled ? 'Turn Money On (fresh Year-0 session)' : 'Turn Money Off (fresh Year-0 session)';
     byId('economy-toggle-text').textContent = targetEnabled
-      ? 'Money is a launch-time opt-in. Starting with Money On opens a fresh Year-0 session of this stand with €12,000.00 opening cash and 40 hrs/year landowner allowance.'
+      ? 'Money is a launch-time opt-in. Starting with Money On opens a fresh Year-0 session of this stand with the engine\'s opening cash balance and annual landowner hour allowance.'
       : 'Turning Money Off opens a fresh Year-0 session of this stand with Economy disabled (financial history reads NOT RECORDED and Save v2 slots are available).';
     const warn = byId('economy-toggle-warning');
     warn.hidden = !dirty;
@@ -364,7 +364,7 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     byId('execute-text').textContent = [fellText, pruneText, ecoText].filter(Boolean).join(' ');
     const econBox = byId('execute-economy-summary');
     if (econBox) {
-      const q = isEconomyEnabled() ? state.economy.activeQuote : null;
+      const q = isEconomyEnabled() && state.economy ? state.economy.activeQuote : null;
       econBox.hidden = !q;
       if (q) {
         econBox.replaceChildren(

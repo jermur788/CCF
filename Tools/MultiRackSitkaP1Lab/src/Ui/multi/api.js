@@ -38,7 +38,8 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     state.scenes = payload.scenes || {};
     state.stage4 = payload.stage4 || null;
     state.ecology = payload.ecology || null;
-    state.economy = payload.economy || null;
+    if (typeof payload.economyEnabled === 'boolean') state.economyEnabled = payload.economyEnabled;
+    state.economy = state.economyEnabled ? (payload.economy || null) : null;
     if (payload.labels) state.labels = payload.labels;
     if (typeof payload.historyTruncated === 'boolean') state.historyTruncated = payload.historyTruncated;
     if (typeof payload.payloadBudgetExceeded === 'boolean') state.payloadBudgetExceeded = payload.payloadBudgetExceeded;
@@ -185,7 +186,9 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       case 'EconomyInsufficientCash':
         return 'Upfront cash must cover all external contractor and material costs before approval or execution. Expected timber revenue cannot pre-pay work and no borrowing is allowed.';
       case 'EconomyInsufficientLandownerAllowance':
-        return 'Remaining annual landowner hours cannot cover the assigned tasks. Switch some tasks to Contractor or advance to next year to reset the 40-hour allowance.';
+        return 'Remaining annual landowner hours cannot cover the assigned tasks. Switch some tasks to Contractor or advance to next year to reset the ' +
+          (state.economy && state.economy.annualLandownerAllowanceDisplay ? state.economy.annualLandownerAllowanceDisplay + ' ' : '') +
+          'annual landowner allowance.';
       case 'EconomyFellContractorOnly':
         return 'Commercial production felling is contractor-only and cannot be assigned to Landowner.';
       case 'EconomyLandownerTaskIneligible':
@@ -265,7 +268,7 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       if (node) node.disabled = blocked;
     }
     if (readoutState() === 'unavailable') for (const id of ['approve', 'execute', 'execute-confirm']) byId(id).disabled = true;
-    const econBlocked = isEconomyEnabled() && state.economy.activeQuote && !state.economy.activeQuote.isEligible;
+    const econBlocked = isEconomyEnabled() && (!state.economy || (state.economy.activeQuote && !state.economy.activeQuote.isEligible));
     if (econBlocked) {
       if (!planLocked) byId('approve').disabled = true;
       else {

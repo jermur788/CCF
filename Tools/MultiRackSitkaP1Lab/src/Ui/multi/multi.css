@@ -68,12 +68,12 @@ label { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .
 .wp-completed { border: 1px solid #637991; background: #233345; color: #d8e5f2; }
 
 /* ---- top bar, summaries, notice --------------------------------------------------------------------------------- */
-.topbar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem; padding: .75rem var(--gutter); border-bottom: 1px solid var(--edge); background: var(--top); }
-.brand { display: flex; align-items: center; gap: .85rem; min-width: 0; flex: 1 1 20rem; }
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1rem; padding: .55rem var(--gutter); border-bottom: 1px solid var(--edge); background: var(--top); }
+.brand { display: flex; align-items: center; gap: .7rem; min-width: 0; flex: 0 1 auto; }
 .brand-text { min-width: 0; }
 .brand-mark { flex: none; width: 1.75rem; height: 2.1rem; fill: #9cc8ee; }
-.subtitle { margin: .15rem 0 0; color: var(--notice-text); font-size: .78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.top-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; flex: none; }
+.subtitle { flex: 1 0 100%; margin: 0; color: var(--notice-text); font-size: .78rem; font-weight: 500; line-height: 1.25; white-space: normal; overflow: visible; }
+.top-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; flex: none; margin-left: auto; }
 .year-chip { display: flex; align-items: baseline; gap: .5rem; margin: 0 .4rem 0 0; padding-right: 1rem; border-right: 1px solid var(--edge); }
 .year-word { color: var(--muted); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
 .year-chip strong { font-size: 1.55rem; font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -448,12 +448,12 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .history-open > span[aria-hidden], .saves-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
 
 /* Phase 2B-2a Economy top strip, quote panel, per-order executor controls, and History financial card */
-.economy-strip { display: flex; flex-wrap: nowrap; align-items: center; gap: .45rem 1.2rem; padding: .32rem var(--gutter); border-bottom: 1px solid var(--edge); background: #132234; font-size: .82rem; overflow: hidden; }
+.economy-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1.2rem; padding: .32rem var(--gutter); border-bottom: 1px solid var(--edge); background: #132234; font-size: .82rem; }
 .economy-strip-item { display: inline-flex; align-items: baseline; gap: .4rem; flex: none; white-space: nowrap; }
 .economy-strip-label { color: var(--muted); font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 .economy-strip-val { color: var(--gold-edge); font-size: .96rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .economy-strip-text { color: var(--text); font-weight: 500; }
-.economy-strip-note { margin: 0 0 0 auto; color: var(--muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.economy-strip-note { margin: 0 0 0 auto; color: var(--muted); font-size: .74rem; white-space: normal; min-width: 0; }
 .economy-quote { margin: .45rem 0 .65rem; padding: .65rem .8rem; border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 7px; background: var(--panel-2); }
 .economy-quote h3 { margin: 0; font-size: .96rem; }
 .econ-verdict { margin: .4rem 0; padding: .45rem .65rem; border-radius: 6px; font-size: .82rem; font-weight: 600; }
@@ -606,9 +606,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   :root { --gap: 8px; --gutter: 16px; --legend-w: 184px; --side-w: 310px; }
   body { font-size: .9rem; }
   h1 { font-size: 1.15rem; }
-  .subtitle { font-size: .7rem; }
-  .topbar { flex-wrap: nowrap; gap: .35rem .5rem; padding: .42rem var(--gutter); }
-  .brand { flex: 1 1 7rem; min-width: 7rem; gap: .45rem; }
+  .subtitle { font-size: .7rem; line-height: 1.2; }
+  .topbar { flex-wrap: wrap; gap: .18rem .5rem; padding: .3rem var(--gutter); }
+  .brand { flex: 0 1 auto; min-width: 0; gap: .45rem; }
   .brand-mark { width: 1.3rem; height: 1.6rem; }
   .top-actions { flex-wrap: nowrap; gap: .28rem; }
   .year-chip { margin: 0 .08rem 0 0; padding-right: .45rem; gap: .28rem; }
@@ -659,14 +659,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 }
 /* Short desktop (1280 x 720): reference, ranks 1-5 and Add stay above the fold without scrolling (Stage 4 R3 gate). */
 @media (min-width: 1024px) and (max-height: 820px) {
-  .topbar { padding-top: .34rem; padding-bottom: .34rem; }
+  .topbar { padding-top: .22rem; padding-bottom: .22rem; gap: .1rem .5rem; }
   .btn-sub { font-size: .62rem; }
-  .alert.shown { margin-top: 4px; padding: .35rem .7rem; font-size: .78rem; }
-  .alert.shown p { margin: .12rem 0; }
-  .drawer-result { margin: .25rem 0 .4rem; padding: .4rem .55rem; font-size: .8rem; }
-  .partial-list { gap: .2rem; margin: .28rem 0; }
-  .partial-list li { padding: .18rem .4rem; }
-  .partial-list button { min-height: 30px; padding: .12rem .5rem; font-size: .78rem; }
+  .alert.shown { margin-top: 4px; padding: .3rem .7rem; font-size: .78rem; }
+  .alert.shown p { margin: .1rem 0; }
+  .drawer-result { margin: .18rem 0 .3rem; padding: .3rem .5rem; font-size: .78rem; }
+  .partial-list { gap: .14rem; margin: .2rem 0; }
+  .partial-list li { padding: .14rem .4rem; }
+  .partial-list button { min-height: 28px; padding: .1rem .5rem; font-size: .76rem; }
   .area-tab { min-height: 46px; }
   .area-thumb { width: 26px; height: 15px; }
   .crop-note { display: none; }

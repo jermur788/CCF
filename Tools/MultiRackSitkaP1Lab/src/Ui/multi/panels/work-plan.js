@@ -28,8 +28,10 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
 
   function fellExecutorRow() {
     if (!isEconomyEnabled()) return null;
+    const tip = (state.economy && state.economy.fellContractorTooltip)
+      || 'Commercial production felling is contractor-only — not ordinary owner DIY.';
     return el('span', { class: 'exec-row' },
-      el('span', { class: 'exec-pill exec-locked', title: state.economy.fellContractorTooltip }, 'Contractor only'));
+      el('span', { class: 'exec-pill exec-locked', title: tip }, 'Contractor only'));
   }
 
   function nonHarvestExecutorRow(kind, areaId, targetKey, approved) {
@@ -144,6 +146,14 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
     const verdict = byId('economy-verdict');
     const body = byId('economy-quote-body');
     const disc = byId('economy-disclaimer');
+    if (!econ) {
+      badge.textContent = 'Re-read needed';
+      verdict.hidden = true;
+      verdict.textContent = '';
+      disc.textContent = '';
+      body.replaceChildren(el('p', { class: 'small-note' }, 'Economy snapshot unavailable for this view — choose Re-read.'));
+      return;
+    }
     disc.textContent = econ.disclaimer;
     const q = econ.activeQuote;
     if (!q) {
@@ -196,9 +206,9 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
             a.speciesLabel + ' · ' + a.assortmentLabel + ' (' + a.pieceCount + ')',
             a.volumeDisplay, a.unitPriceDisplay, a.revenueDisplay]))));
       } else {
-        parts.push(el('p', { class: 'small-note' }, 'No merchantable assortments allocated for these felled stems (residual volume only; €0.00 expected timber income).'));
+        parts.push(el('p', { class: 'small-note' }, 'No merchantable assortments allocated for these felled stems (residual volume only; ' + h.timberSaleRevenueDisplay + ' expected timber income).'));
       }
-      parts.push(el('p', { class: 'small-note' }, 'Felled timber is priced and settled through the sell-and-extract engine path (890 kg/m³ work-equivalent proxy). Dispositions are deferred.'));
+      parts.push(el('p', { class: 'small-note' }, 'Felled timber is priced and settled through the sell-and-extract engine path. Dispositions are deferred.'));
     }
 
     if (Array.isArray(q.nonHarvestLines) && q.nonHarvestLines.length > 0) {
@@ -330,7 +340,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
           plural(activeSh, 'active shelter', 'active shelters') + ' · ' +
           plural(state.ecology.patches.length, 'spot-clear patch', 'spot-clear patches') + '.'));
       }
-      if (isEconomyEnabled() && state.economy.latestSettlement && state.economy.latestSettlement.executionKey === event.executionKey) {
+      if (isEconomyEnabled() && state.economy && state.economy.latestSettlement && state.economy.latestSettlement.executionKey === event.executionKey) {
         const s = state.economy.latestSettlement;
         parts.push(table('Financial settlement (atomic with Execute)', ['Item', 'Amount / Time'], [
           ['Cash before → after', s.cashBeforeDisplay + ' → ' + s.cashAfterDisplay],
@@ -466,7 +476,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
         .map((name) => label(name)).filter((text) => text !== '').map((text) => el('li', null, text)));
     const m = state.stage4 ? state.stage4.models : null;
     const em = state.ecology ? state.ecology.models : null;
-    const econStatements = isEconomyEnabled() && Array.isArray(state.economy.evidenceLabels) ? state.economy.evidenceLabels : [];
+    const econStatements = isEconomyEnabled() && state.economy && Array.isArray(state.economy.evidenceLabels) ? state.economy.evidenceLabels : [];
     byId('stage4-statements').replaceChildren(...(m ? [
       'Models: ' + (em ? [em.adult, em.mortality, em.crown, em.regeneration, em.species].join('/') : [m.adultModelVersion, m.mortalityModelVersion, m.crownModelVersion].join('/')) +
         ' · light ' + m.lightModelVersion + ' (' + fixed(m.lightCellM, 1) + ' m cells, shade buffer b = ' + fixed(m.shadeBufferM, 1) + ' m)',

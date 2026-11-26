@@ -14,26 +14,34 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiFenceRequest>(context, MultiFenceMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        try
+        int status;
+        MultiPreviewReviewPayload payload;
+        lock (multiSwapSync)
         {
-            var preview = pair.Session.PreviewNextReviewYear(request.Fence!);
-            var view = pair.Adapter.Read();
-            var fence = FenceOf(view);
-            var boundedView = BoundSessionViewForAux(view);
-            bool isOverdue = string.Equals(preview.Label, MultiAreaTimePacingConstants.OverdueReviewPeriodLabel, StringComparison.Ordinal);
-            await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiPreviewReviewPayload(
-                preview.CurrentYear, preview.Eligible, preview.SuggestedTargetYear, preview.SuggestedGapYears,
-                preview.AnchorFellYear, preview.IsObservationPeriod, isOverdue, preview.MaxTicksPerPress, preview.StopReason,
-                preview.CalibrationNote, preview.Label, fence, boundedView, Refusal: null));
+            var pair = CurrentMulti;
+            try
+            {
+                var preview = pair.Session.PreviewNextReviewYear(request.Fence!);
+                var view = pair.Adapter.Read();
+                var fence = FenceOf(view);
+                var boundedView = BoundSessionViewForAux(view);
+                bool isOverdue = string.Equals(preview.Label, MultiAreaTimePacingConstants.OverdueReviewPeriodLabel, StringComparison.Ordinal);
+                status = StatusCodes.Status200OK;
+                payload = new MultiPreviewReviewPayload(
+                    preview.CurrentYear, preview.Eligible, preview.SuggestedTargetYear, preview.SuggestedGapYears,
+                    preview.AnchorFellYear, preview.IsObservationPeriod, isOverdue, preview.MaxTicksPerPress, preview.StopReason,
+                    preview.CalibrationNote, preview.Label, fence, boundedView, Refusal: null);
+            }
+            catch (P1Refusal refusal)
+            {
+                var view = pair.Adapter.Read();
+                status = StatusCodes.Status409Conflict;
+                payload = new MultiPreviewReviewPayload(
+                    null, null, null, null, null, null, null, null, null, null, null,
+                    FenceOf(view), BoundSessionViewForAux(view), new Notice(refusal.Code, refusal.Message));
+            }
         }
-        catch (P1Refusal refusal)
-        {
-            var view = pair.Adapter.Read();
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiPreviewReviewPayload(
-                null, null, null, null, null, null, null, null, null, null, null,
-                FenceOf(view), BoundSessionViewForAux(view), new Notice(refusal.Code, refusal.Message)));
-        }
+        await WriteJsonAsync(context, status, payload);
     }
 
     // Bounded multi-year advance (1..5 years per press) calling Core's AdvanceYears(fence, targetYear, ct).
@@ -42,31 +50,41 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiSkipRequest>(context, MultiSkipMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        AdvanceYearsResult result;
-        try
+        AdvanceYearsResult? result = null;
+        Notice? refusalNotice = null;
+        MultiAreaCompositeUiSnapshot snapshot;
+        int totalRecordedYears;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
         {
-            result = pair.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
+            var pair = CurrentMulti;
+            try
+            {
+                result = pair.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
+            }
+            catch (P1Refusal refusal)
+            {
+                refusalNotice = new Notice(refusal.Code, refusal.Message);
+            }
+            snapshot = pair.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
         }
-        catch (P1Refusal refusal)
+
+        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy);
+        if (refusalNotice is not null)
         {
-            var staleSnap = pair.Adapter.ReadCompositeUiSnapshot();
-            int staleTotal = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            var staleEcon = TryBuildEconomySnapshot(pair.Session, staleSnap.View);
-            var staleBounded = BoundSnapshotForResponse(staleSnap, staleTotal, staleEcon);
             await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
                 null, null, request.TargetYear, Array.Empty<MultiSkipStepDto>(), false, null, null, null, null, null,
-                staleBounded.View, staleBounded.Scenes, staleBounded.Stage4, staleBounded.Ecology,
-                new Notice(refusal.Code, refusal.Message), staleBounded.HistoryTruncated, staleBounded.TotalRecordedYears,
-                staleBounded.ProjectionCompacted, staleBounded.Stage4Compacted, staleBounded.PayloadBudgetExceeded, staleEcon));
+                bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
+                refusalNotice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
             return;
         }
 
-        var snapshot = pair.Adapter.ReadCompositeUiSnapshot();
-        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
-        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economy);
-        var completed = result.CompletedYears
+        var completed = result!.CompletedYears
             .Select(step => new MultiSkipStepDto(step.YearBefore, step.YearAfter, step.YearRecord))
             .ToArray();
 
@@ -83,7 +101,7 @@ internal sealed partial class PlayerApi
             result.IsObservationPeriod, result.AnchorFellYear, result.CalibrationNote,
             bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
             notice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economy));
+            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
     }
 
     // Read-only newest-first paged index of recorded years. Clamps pageSize to 1..50 (default 10). 400 on invalid query params.
@@ -197,45 +215,50 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiHistoryYearRequest>(context, MultiHistoryYearMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        var currentView = pair.Adapter.Read();
-        Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
-        if (fenceRefusal is not null)
+        int status;
+        object payload;
+        lock (multiSwapSync)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView), fenceRefusal));
-            return;
-        }
-
-        int year = request.Year!.Value;
-        if (year < 0)
-        {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
-                    new Notice("HistoryYearInvalid", "history year must be non-negative")));
-            return;
-        }
-        if (year > currentView.Source.EcologicalYear)
-        {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
+            var pair = CurrentMulti;
+            var currentView = pair.Adapter.Read();
+            Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
+            if (fenceRefusal is not null)
+            {
+                status = StatusCodes.Status409Conflict;
+                payload = new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView), fenceRefusal);
+            }
+            else if (request.Year!.Value < 0)
+            {
+                status = StatusCodes.Status409Conflict;
+                payload = new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
+                    new Notice("HistoryYearInvalid", "history year must be non-negative"));
+            }
+            else if (request.Year!.Value > currentView.Source.EcologicalYear)
+            {
+                status = StatusCodes.Status409Conflict;
+                payload = new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
                     new Notice("HistoryYearNotRecorded",
-                        FormattableString.Invariant($"year {year} exceeds the current ecological year ({currentView.Source.EcologicalYear}) and has no recorded data"))));
-            return;
+                        FormattableString.Invariant($"year {request.Year.Value} exceeds the current ecological year ({currentView.Source.EcologicalYear}) and has no recorded data")));
+            }
+            else
+            {
+                try
+                {
+                    var econHistory = pair.Session.ReadEconomyHistoryYear(request.Year.Value);
+                    var options = pair.Session.SelectedModels.IsEconomyEnabled ? pair.Session.ReadEconomyView().Options : null;
+                    status = StatusCodes.Status200OK;
+                    payload = ProjectEconomyHistoryYear(econHistory, options);
+                }
+                catch (P1Refusal refusal)
+                {
+                    var fresh = pair.Adapter.Read();
+                    status = StatusCodes.Status409Conflict;
+                    payload = new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
+                        new Notice(refusal.Code, refusal.Message));
+                }
+            }
         }
-
-        try
-        {
-            var econHistory = pair.Session.ReadEconomyHistoryYear(year);
-            await WriteJsonAsync(context, StatusCodes.Status200OK, ProjectEconomyHistoryYear(econHistory));
-        }
-        catch (P1Refusal refusal)
-        {
-            var fresh = pair.Adapter.Read();
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
-                    new Notice(refusal.Code, refusal.Message)));
-        }
+        await WriteJsonAsync(context, status, payload);
     }
 
     // Read-only nearest-neighbour spatial woodland structure descriptors (M_i, T_i) over the current committed root.
@@ -347,6 +370,7 @@ internal sealed partial class PlayerApi
         bool ProjectionCompacted = false,
         bool Stage4Compacted = false,
         bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiHistoryYearRefusalPayload(

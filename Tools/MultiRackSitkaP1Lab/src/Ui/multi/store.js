@@ -92,7 +92,8 @@
     structureError: null,
     structureRequest: 0,
     structureRootTag: null,
-    // Phase 2B-2a Economy UI state (strictly null when Economy is Off; zero JS economy arithmetic).
+    // Phase 2B-2a Economy UI state (economyEnabled is explicit server truth; economy is null when Off; zero JS math).
+    economyEnabled: false,
     economy: null,
     economyToggleTarget: null,
     historyEconomyDetail: null,
@@ -100,7 +101,7 @@
   };
 
   export function isEconomyEnabled() {
-    return Boolean(state.economy && state.economy.enabled);
+    return state.economyEnabled === true;
   }
 
   // Drops every local selection, draft, preview, in-flight request token and cached panel state when the server
@@ -159,6 +160,7 @@
     state.structureError = null;
     state.structureRootTag = null;
     state.structureRequest += 1;
+    state.economyEnabled = false;
     state.economy = null;
     state.economyToggleTarget = null;
   }

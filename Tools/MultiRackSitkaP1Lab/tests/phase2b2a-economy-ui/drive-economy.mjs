@@ -162,15 +162,25 @@ async function checkLayout(cdp, label) {
     const rects = actions.map((b) => { const r = b.getBoundingClientRect(); return { id: b.id, top: Math.round(r.top), right: Math.round(r.right) }; });
     const maxTopDelta = rects.length ? Math.max(...rects.map((r) => r.top)) - Math.min(...rects.map((r) => r.top)) : 0;
     const allInWidth = rects.every((r) => r.right <= window.innerWidth + 1);
+    const badge = document.getElementById('experiment-badge');
+    const badgeRect = badge ? badge.getBoundingClientRect() : null;
+    const badgeUnclipped = Boolean(badge && badgeRect && badgeRect.width > 0 && badge.scrollWidth <= badge.clientWidth + 1 && badgeRect.right <= window.innerWidth + 1);
+    const badgeText = badge ? badge.textContent.trim() : '';
     const wsCols = getComputedStyle(document.getElementById('workspace')).gridTemplateColumns.split(' ').filter(Boolean).length;
     const histBtns = document.querySelectorAll('#history-open').length;
     const strip = document.getElementById('economy-strip');
     const stripRect = strip && !strip.hidden ? strip.getBoundingClientRect() : null;
-    const stripFits = !stripRect || stripRect.right <= window.innerWidth + 1;
-    return { noHScroll, scrollW: document.documentElement.scrollWidth, innerW: window.innerWidth, topbarH: Math.round(topbar.getBoundingClientRect().height), maxTopDelta, allInWidth, wsCols, histBtns, stripFits };
+    const stripItemsUnclipped = !stripRect || Array.from(strip.children).every((ch) => {
+      const r = ch.getBoundingClientRect();
+      return r.right <= window.innerWidth + 1 && ch.scrollWidth <= ch.clientWidth + 1;
+    });
+    const stripFits = !stripRect || (stripRect.right <= window.innerWidth + 1 && stripItemsUnclipped);
+    return { noHScroll, scrollW: document.documentElement.scrollWidth, innerW: window.innerWidth, topbarH: Math.round(topbar.getBoundingClientRect().height), maxTopDelta, allInWidth, badgeUnclipped, badgeText, wsCols, histBtns, stripFits };
   })()`);
-  check(geom.noHScroll && geom.maxTopDelta <= 10 && geom.allInWidth && geom.wsCols <= 3 && geom.histBtns === 1 && geom.stripFits,
-    `layout (${label}): zero h-scroll (${geom.scrollW}<=${geom.innerW}), single-row topbar (delta=${geom.maxTopDelta}px), ${geom.wsCols} cols (<=3), 1 History button`);
+  const needsCaveat = experiment === 'ma-1-mixed';
+  const caveatOk = !needsCaveat || geom.badgeText.includes('not a surveyed Irish forecast');
+  check(geom.noHScroll && geom.maxTopDelta <= 10 && geom.allInWidth && geom.badgeUnclipped && caveatOk && geom.wsCols <= 3 && geom.histBtns === 1 && geom.stripFits,
+    `layout (${label}): zero h-scroll (${geom.scrollW}<=${geom.innerW}), single-row topbar (delta=${geom.maxTopDelta}px), badge unclipped (${geom.badgeUnclipped}), ${geom.wsCols} cols (<=3), 1 History button`);
 }
 
 const deliberateRefusal = (entry) => entry.source === 'network' && /status of (400|409)/.test(entry.text || '');
@@ -179,9 +189,9 @@ async function runSuite(cdp) {
   const badNetwork = [];
   const consoleIssues = [];
   const cspViolations = [];
+  let initialAssetOkCount = 0;
 
-  await cdp.send('Network.enable');
-  const collectEvents = () => {
+  const collectEvents = (isInitial = false) => {
     for (const e of cdp.events) {
       if (e.method === 'Runtime.exceptionThrown') consoleIssues.push(e.params.exceptionDetails?.text || 'exception');
       if (e.method === 'Runtime.consoleAPICalled' && e.params.type === 'error') consoleIssues.push(JSON.stringify(e.params.args));
@@ -193,10 +203,19 @@ async function runSuite(cdp) {
       if (e.method === 'Network.responseReceived') {
         const st = e.params.response?.status;
         if (st === 404 || st >= 500) badNetwork.push(`${st} ${e.params.response?.url}`);
+        else if (isInitial && st === 200) initialAssetOkCount++;
+      }
+      if (e.method === 'Network.loadingFailed' && !e.params.canceled) {
+        badNetwork.push(`LOAD_FAIL ${e.params.errorText || 'unknown'}`);
       }
     }
     cdp.events.length = 0;
   };
+
+  // Capture initial page-load network/console events recorded since BEFORE Page.navigate
+  collectEvents(true);
+  check(initialAssetOkCount >= 16 && badNetwork.length === 0 && consoleIssues.length === 0 && cspViolations.length === 0,
+    `Initial page load captured before navigation (${initialAssetOkCount} HTTP 200 assets/modules, console=${consoleIssues.length}, csp=${cspViolations.length}, net=${badNetwork.length})`);
 
   // ---- 1. Money Off default: unchanged, economy omitted, History drawer FinancialLedger: NOT RECORDED ----
   await setViewport(cdp, width, height);
@@ -212,8 +231,8 @@ async function runSuite(cdp) {
     `Money defaults to Off (strip & quote hidden: ${JSON.stringify(offState)})`);
 
   const offViewRes = await fetchJson(cdp, 'api/multi/view');
-  check(offViewRes.status === 200 && !('economy' in offViewRes.payload),
-    'GET api/multi/view omits "economy" completely when Money is Off');
+  check(offViewRes.status === 200 && offViewRes.payload?.economyEnabled === false && !('economy' in offViewRes.payload),
+    'GET api/multi/view emits explicit economyEnabled=false and omits "economy" when Money is Off');
 
   const offEconViewRes = await fetchJson(cdp, 'api/multi/economy/view');
   check(offEconViewRes.status === 409 && offEconViewRes.payload?.refusal?.code === 'EconomyModelRequired',
@@ -297,8 +316,8 @@ async function runSuite(cdp) {
   // ---- 3. Queue Fell + non-harvest orders, verify quote, €2,500 floor, D1b honesty, Contractor-only Fell, Landowner toggle ----
   const v0Res = await fetchJson(cdp, 'api/multi/view');
   const v0 = v0Res.payload.view;
-  check(v0.source.areaModelVersion.includes('+economy-v1'),
-    `AreaModelVersion carries +economy-v1 (${v0.source.areaModelVersion})`);
+  check(v0Res.payload?.economyEnabled === true && v0.source.areaModelVersion.includes('+economy-v1'),
+    `Server emits economyEnabled=true and AreaModelVersion carries +economy-v1 (${v0.source.areaModelVersion})`);
 
   // Queue 1 living tree in MA-A for Fell + 1 ClearUndergrowth cell (and on ma-1-mixed, a Plant + Shelter!)
   const livingA = v0.areas[0].trees.filter((t) => t.isLiving);
@@ -451,7 +470,15 @@ async function runSuite(cdp) {
   await click(cdp, '#advance');
   await waitFor(cdp, "document.getElementById('year-value').textContent.trim() === '1' && document.getElementById('economy-hours').textContent.trim() === '40 / 40 hrs'",
     'Advance 1 Year reset Landowner hours to 40 / 40 hrs');
-  check(true, 'Advance 1 Year reset Landowner allowance back to 40 / 40 hrs');
+  const afterAdv = await evaluate(cdp, `({
+    year: document.getElementById('year-value').textContent.trim(),
+    hours: document.getElementById('economy-hours').textContent.trim(),
+  })`);
+  const afterAdvEcon = (await fetchJson(cdp, 'api/multi/economy/view')).payload?.economy;
+  check(afterAdv.year === '1' && afterAdv.hours === '40 / 40 hrs' &&
+    afterAdvEcon?.remainingLandownerMinutes === afterAdvEcon?.annualLandownerAllowanceMinutes &&
+    afterAdvEcon?.usedLandownerMinutesThisYear === 0,
+    `Advance 1 Year reset Landowner allowance back to 40 / 40 hrs (ui=${afterAdv.hours}, server=${afterAdvEcon?.remainingLandownerMinutes}/${afterAdvEcon?.annualLandownerAllowanceMinutes} min)`);
 
   // Open single History drawer -> Year 0 -> verify Financial Ledger card + rows
   await click(cdp, '#history-open');
@@ -548,6 +575,7 @@ async function main() {
     await cdp.send('Page.enable');
     await cdp.send('Runtime.enable');
     await cdp.send('Log.enable');
+    await cdp.send('Network.enable');
     await setViewport(cdp, width, height);
     await cdp.send('Page.navigate', { url });
     await waitFor(cdp, "document.getElementById('year-value') && document.getElementById('year-value').textContent.trim() !== '–'",
