@@ -34,6 +34,10 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
 
         var priorIssues = new List<ImportValidationIssue>(archive.Issues);
 
+        // R5: Always record the computed archive SHA-256. If a caller supplies a declared hash
+        // (via DeclaredArchiveSha256 or legacy AttributionOverride.ArchiveSha256), verify it and refuse on mismatch.
+        string? verifiedDeclaredSha256 = VerifyDeclaredArchiveSha256(request.AttributionOverride, archive.ArchiveSha256, priorIssues);
+
         // Resolve optional surveyed boundary polygon (never inferred from tree positions).
         WoodlandBoundary? surveyedBoundary = null;
         if (request.SurveyedBoundary is not null)
@@ -77,30 +81,50 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         }
 
         // Filter records by optional TargetPlotId; refuse multi-plot archives when TargetPlotId is omitted.
+        // NF-01 / N3 / NF-02:
+        // - Plot-survey IDs are derived ONLY from explicit columns (locationID/eventID/locality) or from the
+        //   Integrate+ "{digits}_{plotName}[_{surveyIndex}]" pattern (retaining any survey suffix so distinct
+        //   survey epochs are never merged into one Year-0 stand).
+        // - Archives whose records carry unpatterned tree IDs (e.g., "t1", "t2", "tree_1", "tree_2") and no
+        //   explicit plot column are treated as a single unnamed plot rather than inventing one plot per tree.
+        // - Distinctness uses StringComparer.Ordinal so plot IDs differing only by case (e.g., PlotA vs plota)
+        //   are never silently merged.
         var selected = new List<DwcJoinedRecord>();
-        var distinctPlots = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        var distinctPlots = new SortedSet<string>(StringComparer.Ordinal);
+        bool hasUnpatternedRecord = false;
         string? detectedPlotName = null;
         string? detectedCountry = null;
 
         for (int i = 0; i < archive.Records.Count; i++)
         {
             DwcJoinedRecord rec = archive.Records[i];
-            string plotId = ExtractPlotId(rec);
+            string? plotId = TryExtractPlotSurveyId(rec);
 
             if (!string.IsNullOrWhiteSpace(request.TargetPlotId))
             {
-                if (!plotId.Equals(request.TargetPlotId.Trim(), StringComparison.OrdinalIgnoreCase))
+                string target = request.TargetPlotId.Trim();
+                if (plotId is null || !plotId.Equals(target, StringComparison.Ordinal))
                 {
                     continue;
                 }
             }
             else
             {
-                distinctPlots.Add(plotId);
+                if (plotId is not null)
+                {
+                    distinctPlots.Add(plotId);
+                }
+                else
+                {
+                    hasUnpatternedRecord = true;
+                }
             }
 
             selected.Add(rec);
-            detectedPlotName ??= plotId;
+            if (detectedPlotName is null && plotId is not null)
+            {
+                detectedPlotName = plotId;
+            }
             if (detectedCountry is null)
             {
                 string? cc = GetTerm(rec.CoreTerms, "countryCode") ?? GetTerm(rec.CoreTerms, "country");
@@ -111,21 +135,31 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             }
         }
 
-        if (string.IsNullOrWhiteSpace(request.TargetPlotId) && distinctPlots.Count > 1)
+        if (string.IsNullOrWhiteSpace(request.TargetPlotId))
         {
-            string listed = string.Join(", ", distinctPlots.Take(10));
-            if (distinctPlots.Count > 10) listed += ", ...";
-            priorIssues.Add(new ImportValidationIssue(
-                "MultiplePlotsRequireTargetPlotId",
-                IssueSeverity.Refusal,
-                $"Archive contains {distinctPlots.Count} distinct plots ({listed}); specify TargetPlotId to avoid merging separate local coordinate frames."));
-            priorIssues.Sort(WoodlandImportValidator.CompareIssues);
-            return new WoodlandImportResult
+            bool mixedPatternedAndUnpatterned = distinctPlots.Count > 0 && hasUnpatternedRecord;
+            if (distinctPlots.Count > 1 || mixedPatternedAndUnpatterned)
             {
-                Readiness = WoodlandReadiness.Refused,
-                Stand = null,
-                Issues = priorIssues.AsReadOnly(),
-            };
+                var plotLabels = new List<string>(distinctPlots.Take(10));
+                if (hasUnpatternedRecord)
+                {
+                    plotLabels.Add("<unpatterned>");
+                }
+                string listed = string.Join(", ", plotLabels);
+                if (distinctPlots.Count > 10) listed += ", ...";
+                int count = distinctPlots.Count + (hasUnpatternedRecord ? 1 : 0);
+                priorIssues.Add(new ImportValidationIssue(
+                    "MultiplePlotsRequireTargetPlotId",
+                    IssueSeverity.Refusal,
+                    $"Archive contains {count} distinct plots/surveys ({listed}); specify TargetPlotId to avoid merging separate local coordinate frames or survey epochs."));
+                priorIssues.Sort(WoodlandImportValidator.CompareIssues);
+                return new WoodlandImportResult
+                {
+                    Readiness = WoodlandReadiness.Refused,
+                    Stand = null,
+                    Issues = priorIssues.AsReadOnly(),
+                };
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.TargetPlotId) && selected.Count == 0)
@@ -219,7 +253,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
 
         string standId = BuildStandId(plotName, archive.ArchiveSha256);
 
-        ImportSourceAttribution attribution = ResolveAttribution(request, archive, plotName);
+        ImportSourceAttribution attribution = ResolveAttribution(request, archive, plotName, verifiedDeclaredSha256);
 
         var stand = new WoodlandImportStand
         {
@@ -240,6 +274,54 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         };
 
         return WoodlandImportValidator.Validate(stand, options, priorIssues);
+    }
+
+    private static string? VerifyDeclaredArchiveSha256(
+        ImportSourceAttribution? attributionOverride,
+        string? computedArchiveSha256,
+        List<ImportValidationIssue> issues)
+    {
+        if (attributionOverride is null)
+        {
+            return null;
+        }
+
+        string? declared = !string.IsNullOrWhiteSpace(attributionOverride.DeclaredArchiveSha256)
+            ? attributionOverride.DeclaredArchiveSha256.Trim()
+            : (!string.IsNullOrWhiteSpace(attributionOverride.ArchiveSha256)
+                ? attributionOverride.ArchiveSha256.Trim()
+                : null);
+
+        if (declared is null)
+        {
+            return null;
+        }
+
+        // If both DeclaredArchiveSha256 and ArchiveSha256 were set and disagree, refuse explicitly.
+        if (!string.IsNullOrWhiteSpace(attributionOverride.DeclaredArchiveSha256) &&
+            !string.IsNullOrWhiteSpace(attributionOverride.ArchiveSha256) &&
+            !attributionOverride.DeclaredArchiveSha256.Trim().Equals(attributionOverride.ArchiveSha256.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            issues.Add(new ImportValidationIssue(
+                "ArchiveSha256Mismatch",
+                IssueSeverity.Refusal,
+                $"AttributionOverride specifies conflicting ArchiveSha256 ('{attributionOverride.ArchiveSha256.Trim()}') and DeclaredArchiveSha256 ('{attributionOverride.DeclaredArchiveSha256.Trim()}').",
+                FieldName: nameof(ImportSourceAttribution.ArchiveSha256)));
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(computedArchiveSha256) ||
+            !declared.Equals(computedArchiveSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            issues.Add(new ImportValidationIssue(
+                "ArchiveSha256Mismatch",
+                IssueSeverity.Refusal,
+                $"Declared archive SHA-256 '{declared}' does not match computed archive SHA-256 '{computedArchiveSha256 ?? "<none>"}'.",
+                FieldName: nameof(ImportSourceAttribution.ArchiveSha256)));
+            return null;
+        }
+
+        return declared.ToLowerInvariant();
     }
 
     private static ImportedTreeRecord MapTreeRecord(
@@ -301,10 +383,44 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                 rowProv = coreProvenance;
             }
 
+            // R3.1: Classify measurement types by exact documented values.
+            // Check crown rows BEFORE stem diameter so "Crown diameter" can never satisfy DBH.
             if (IsStatusRow(mType, mRemarks))
             {
                 RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.VitalStatus), mValue);
                 vitalField = ParseVitalStatus(mValue, mRemarks.Length > 0 ? mRemarks : mType, rowProv);
+            }
+            else if (IsCrownRadiusRow(mType, mRemarks))
+            {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.CrownRadiusM), FormatValueWithUnit(mValue, mUnit));
+                crownField = ParseDoubleMeasurement(
+                    mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.CrownRadiusM),
+                    mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
+            }
+            else if (IsCrownDiameterRow(mType, mRemarks))
+            {
+                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.CrownRadiusM), FormatValueWithUnit(mValue, mUnit));
+                ImportField<double> parsedCrownDiam = ParseDoubleMeasurement(
+                    mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.CrownRadiusM),
+                    mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
+                if (!parsedCrownDiam.IsMissing)
+                {
+                    string note = parsedCrownDiam.Evidence?.Note is not null
+                        ? $"crown radius = crown diameter / 2; {parsedCrownDiam.Evidence.Note}"
+                        : "crown radius = crown diameter / 2";
+                    crownField = parsedCrownDiam with
+                    {
+                        Value = parsedCrownDiam.Value * 0.5,
+                        Evidence = new FieldEvidence(
+                            parsedCrownDiam.Evidence?.SourceColumn ?? (mRemarks.Length > 0 ? mRemarks : mType),
+                            mValue,
+                            note),
+                    };
+                }
+                else
+                {
+                    crownField = parsedCrownDiam;
+                }
             }
             else if (IsDiameterRow(mType, mRemarks))
             {
@@ -320,13 +436,6 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                     mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.HeightM),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
             }
-            else if (IsCrownRadiusRow(mType, mRemarks))
-            {
-                RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.CrownRadiusM), FormatValueWithUnit(mValue, mUnit));
-                crownField = ParseDoubleMeasurement(
-                    mValue, mUnit, "m", sourceId, nameof(ImportedTreeRecord.CrownRadiusM),
-                    mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
-            }
             else if (IsAgeRow(mType, mRemarks))
             {
                 RecordFieldOccurrence(seenValues, nameof(ImportedTreeRecord.AgeYears), mValue);
@@ -334,8 +443,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                     mValue, sourceId, nameof(ImportedTreeRecord.AgeYears),
                     mRemarks.Length > 0 ? mRemarks : mType, rowProv, issues);
             }
-            else if (mType.Contains("micro-habitat", StringComparison.OrdinalIgnoreCase) ||
-                     mType.Contains("microhabitat", StringComparison.OrdinalIgnoreCase))
+            else if (IsMicrohabitatRow(mType))
             {
                 if (!string.IsNullOrWhiteSpace(mRemarks) && !string.IsNullOrWhiteSpace(mValue))
                 {
@@ -347,6 +455,8 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         }
 
         // Emit deterministic, row-order-independent refusal issues for any repeated single-valued field on this tree.
+        // NF-03: Reset any duplicated field deterministically to Missing so subsequent validator checks do not depend
+        // on whether a valid or malformed duplicate row appeared last.
         foreach (var kv in seenValues)
         {
             if (kv.Value.Count > 1)
@@ -359,6 +469,25 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
                     $"Tree '{sourceId}' has {kv.Value.Count} rows for single-valued field '{kv.Key}' (values: [{joinedValues}]); refusing silent overwrite.",
                     SourceTreeId: sourceId,
                     FieldName: kv.Key));
+
+                switch (kv.Key)
+                {
+                    case nameof(ImportedTreeRecord.VitalStatus):
+                        vitalField = ImportField<TreeVitalStatus>.Missing(new FieldEvidence(kv.Key, null, "Conflicting duplicate rows"));
+                        break;
+                    case nameof(ImportedTreeRecord.DbhCm):
+                        dbhField = ImportField<double>.Missing(new FieldEvidence(kv.Key, null, "Conflicting duplicate rows"));
+                        break;
+                    case nameof(ImportedTreeRecord.HeightM):
+                        heightField = ImportField<double>.Missing(new FieldEvidence(kv.Key, null, "Conflicting duplicate rows"));
+                        break;
+                    case nameof(ImportedTreeRecord.CrownRadiusM):
+                        crownField = ImportField<double>.Missing(new FieldEvidence(kv.Key, null, "Conflicting duplicate rows"));
+                        break;
+                    case nameof(ImportedTreeRecord.AgeYears):
+                        ageField = ImportField<int>.Missing(new FieldEvidence(kv.Key, null, "Conflicting duplicate rows"));
+                        break;
+                }
             }
         }
 
@@ -372,7 +501,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             }
         }
 
-        // Core-table fallback for DBH / height if a simple core-only DwC-A supplies them directly.
+        // Core-table fallback for DBH / height if a simple core-only DwC-A supplies them directly (units encoded in column names).
         if (dbhField.IsMissing && !seenValues.ContainsKey(nameof(ImportedTreeRecord.DbhCm)))
         {
             string? coreDbh = GetTerm(rec.CoreTerms, "dbhCm") ?? GetTerm(rec.CoreTerms, "diameterCm");
@@ -551,40 +680,50 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, "Malformed numeric value"));
         }
 
+        // NF-05 / F-07: Dimensional measurements require an explicit supported length unit (cm, mm, or m).
+        // Empty or unknown units are refused rather than silently assuming the target unit.
         string unit = rawUnit.Trim().ToLowerInvariant();
-        if (unit.Length > 0)
+        if (unit.Length == 0)
         {
-            if (targetUnit == "cm")
+            issues.Add(new ImportValidationIssue(
+                "MissingMeasurementUnit",
+                IssueSeverity.Refusal,
+                $"Tree '{sourceId}' field '{fieldName}' is missing a measurement unit; expected cm, mm, or m.",
+                SourceTreeId: sourceId,
+                FieldName: fieldName));
+            return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, "Missing measurement unit"));
+        }
+
+        if (targetUnit == "cm")
+        {
+            if (unit == "cm") { }
+            else if (unit == "mm") val /= 10.0;
+            else if (unit == "m") val *= 100.0;
+            else
             {
-                if (unit == "cm") { }
-                else if (unit == "mm") val /= 10.0;
-                else if (unit == "m") val *= 100.0;
-                else
-                {
-                    issues.Add(new ImportValidationIssue(
-                        "UnsupportedMeasurementUnit",
-                        IssueSeverity.Refusal,
-                        $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected cm, mm, or m.",
-                        SourceTreeId: sourceId,
-                        FieldName: fieldName));
-                    return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
-                }
+                issues.Add(new ImportValidationIssue(
+                    "UnsupportedMeasurementUnit",
+                    IssueSeverity.Refusal,
+                    $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected cm, mm, or m.",
+                    SourceTreeId: sourceId,
+                    FieldName: fieldName));
+                return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
             }
-            else if (targetUnit == "m")
+        }
+        else if (targetUnit == "m")
+        {
+            if (unit == "m") { }
+            else if (unit == "cm") val /= 100.0;
+            else if (unit == "mm") val /= 1000.0;
+            else
             {
-                if (unit == "m") { }
-                else if (unit == "cm") val /= 100.0;
-                else if (unit == "mm") val /= 1000.0;
-                else
-                {
-                    issues.Add(new ImportValidationIssue(
-                        "UnsupportedMeasurementUnit",
-                        IssueSeverity.Refusal,
-                        $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected m, cm, or mm.",
-                        SourceTreeId: sourceId,
-                        FieldName: fieldName));
-                    return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
-                }
+                issues.Add(new ImportValidationIssue(
+                    "UnsupportedMeasurementUnit",
+                    IssueSeverity.Refusal,
+                    $"Tree '{sourceId}' field '{fieldName}' specifies unsupported unit '{rawUnit}'; expected m, cm, or mm.",
+                    SourceTreeId: sourceId,
+                    FieldName: fieldName));
+                return ImportField<double>.Missing(new FieldEvidence(sourceCol, rawValue, $"Unsupported unit '{rawUnit}'"));
             }
         }
 
@@ -593,7 +732,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             Provenance = provenance,
             HasValue = true,
             Value = val,
-            Evidence = new FieldEvidence(sourceCol, rawValue, string.IsNullOrEmpty(rawUnit) ? null : $"unit={rawUnit}"),
+            Evidence = new FieldEvidence(sourceCol, rawValue, $"unit={rawUnit.Trim()}"),
         };
     }
 
@@ -647,31 +786,85 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
         return FieldProvenance.Observed;
     }
 
+    // R3.1: Exact, documented measurement-type classifiers (no loose substring matching).
     private static bool IsStatusRow(string type, string remarks) =>
         remarks.Equals("status", StringComparison.OrdinalIgnoreCase) ||
-        type.Contains("status", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsDiameterRow(string type, string remarks) =>
-        remarks.Equals("diameter", StringComparison.OrdinalIgnoreCase) ||
-        remarks.Equals("dbh", StringComparison.OrdinalIgnoreCase) ||
-        type.Contains("diameter", StringComparison.OrdinalIgnoreCase) ||
-        type.Contains("dbh", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsHeightRow(string type, string remarks) =>
-        remarks.Equals("height", StringComparison.OrdinalIgnoreCase) ||
-        type.Equals("tree height", StringComparison.OrdinalIgnoreCase) ||
-        type.Equals("height", StringComparison.OrdinalIgnoreCase);
+        remarks.Equals("tree status", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("tree status (dead or living)", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("tree status", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("vital status", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("status", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsCrownRadiusRow(string type, string remarks) =>
         remarks.Equals("crownRadius", StringComparison.OrdinalIgnoreCase) ||
-        type.Contains("crown radius", StringComparison.OrdinalIgnoreCase);
+        remarks.Equals("crown_radius", StringComparison.OrdinalIgnoreCase) ||
+        remarks.Equals("crown radius", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("crown radius", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("crown_radius", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsCrownDiameterRow(string type, string remarks) =>
+        remarks.Equals("crownDiameter", StringComparison.OrdinalIgnoreCase) ||
+        remarks.Equals("crown_diameter", StringComparison.OrdinalIgnoreCase) ||
+        remarks.Equals("crown diameter", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("crown diameter", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("crown_diameter", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsDiameterRow(string type, string remarks)
+    {
+        // Guard explicitly against any crown measurement ever matching stem DBH.
+        if (type.Contains("crown", StringComparison.OrdinalIgnoreCase) ||
+            remarks.Contains("crown", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return remarks.Equals("diameter", StringComparison.OrdinalIgnoreCase) ||
+               remarks.Equals("dbh", StringComparison.OrdinalIgnoreCase) ||
+               remarks.Equals("tree diameter", StringComparison.OrdinalIgnoreCase) ||
+               remarks.Equals("stem diameter", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("tree diameter", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("stem diameter", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("diameter", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("dbh", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("diameter at breast height", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsHeightRow(string type, string remarks)
+    {
+        if (type.Contains("crown", StringComparison.OrdinalIgnoreCase) ||
+            remarks.Contains("crown", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return remarks.Equals("height", StringComparison.OrdinalIgnoreCase) ||
+               remarks.Equals("tree height", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("tree height", StringComparison.OrdinalIgnoreCase) ||
+               type.Equals("height", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool IsAgeRow(string type, string remarks) =>
         remarks.Equals("age", StringComparison.OrdinalIgnoreCase) ||
+        remarks.Equals("tree age", StringComparison.OrdinalIgnoreCase) ||
         type.Equals("tree age", StringComparison.OrdinalIgnoreCase) ||
         type.Equals("age", StringComparison.OrdinalIgnoreCase);
 
-    internal static string ExtractPlotId(DwcJoinedRecord rec)
+    private static bool IsMicrohabitatRow(string type) =>
+        type.Equals("Tree related micro-habitat", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("Tree related microhabitat", StringComparison.OrdinalIgnoreCase) ||
+        type.Equals("Tree-related microhabitat", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Extracts a plot-survey identifier only when explicitly declared via <c>locationID</c>/<c>eventID</c>/<c>locality</c>
+    /// or when <see cref="DwcJoinedRecord.CoreId"/> follows the Integrate+ <c>{numericId}_{plotName}[_{surveyIndex}]</c>
+    /// pattern (all-digit prefix before the first underscore, suffix containing at least one ASCII letter).
+    /// Note (N3): any trailing survey index (e.g. <c>_2</c> in <c>24839_IPlus_Donadea_MHF_2</c>) is retained
+    /// intentionally as part of the plot-survey key so distinct survey epochs of the same physical plot are not
+    /// silently merged into one Year-0 stand.
+    /// Returns <c>null</c> for unpatterned tree IDs (e.g. <c>t1</c>, <c>t2</c>, <c>tree_1</c>) so single-plot
+    /// archives without an explicit plot column are not falsely rejected as multi-plot (NF-01).
+    /// </summary>
+    internal static string? TryExtractPlotSurveyId(DwcJoinedRecord rec)
     {
         string? explicitPlot = GetTerm(rec.CoreTerms, "locationID")
             ?? GetTerm(rec.CoreTerms, "eventID")
@@ -681,15 +874,35 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             return explicitPlot.Trim();
         }
 
-        // Integrate+ occurrenceID pattern: "{numericId}_{plotName}" or "{numericId}_{plotName}_{surveyNum}"
-        // Examples: "24839_IPlus_Donadea_MHF_2", "11290_IPlus_DE-Bensheim"
         string id = rec.CoreId;
         int firstUnderscore = id.IndexOf('_');
-        if (firstUnderscore > 0 && firstUnderscore + 1 < id.Length)
+        if (firstUnderscore <= 0 || firstUnderscore + 1 >= id.Length)
         {
-            return id[(firstUnderscore + 1)..];
+            return null;
         }
-        return id;
+
+        // Prefix before first '_' must be non-empty ASCII digits (Integrate+ identification/tree number).
+        for (int i = 0; i < firstUnderscore; i++)
+        {
+            if (id[i] < '0' || id[i] > '9')
+            {
+                return null;
+            }
+        }
+
+        string suffix = id[(firstUnderscore + 1)..];
+        bool hasLetter = false;
+        for (int i = 0; i < suffix.Length; i++)
+        {
+            char c = suffix[i];
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+            {
+                hasLetter = true;
+                break;
+            }
+        }
+
+        return hasLetter ? suffix : null;
     }
 
     private static string BuildStandId(string plotName, string? archiveSha256)
@@ -708,13 +921,16 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
     private static ImportSourceAttribution ResolveAttribution(
         WoodlandImportRequest request,
         DwcArchiveReadResult archive,
-        string plotName)
+        string plotName,
+        string? verifiedDeclaredSha256)
     {
         if (request.AttributionOverride is not null)
         {
+            // R5: ArchiveSha256 is ALWAYS the computed hash of the imported bytes; never replaced by caller input.
             return request.AttributionOverride with
             {
-                ArchiveSha256 = request.AttributionOverride.ArchiveSha256 ?? archive.ArchiveSha256,
+                ArchiveSha256 = archive.ArchiveSha256,
+                DeclaredArchiveSha256 = verifiedDeclaredSha256,
                 SourcePlotId = request.AttributionOverride.SourcePlotId ?? plotName,
             };
         }
@@ -736,6 +952,7 @@ public sealed class IntegrateMarteloscopeReader : IWoodlandImportReader
             Doi = string.IsNullOrWhiteSpace(datasetId) ? DefaultDoi : datasetId.Trim(),
             DatasetKey = DefaultDatasetKey,
             ArchiveSha256 = archive.ArchiveSha256,
+            DeclaredArchiveSha256 = null,
             RetrievalDateUtc = null,
             SourcePlotId = plotName,
         };

@@ -220,7 +220,7 @@ internal static class SyntheticArchiveBuilder
 "
             : string.Empty;
 
-        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+        string xml = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <archive xmlns=""http://rs.tdwg.org/dwc/text/"">
   <core encoding=""UTF-8"" fieldsTerminatedBy=""{delimAttr}"" linesTerminatedBy=""\n"" fieldsEnclosedBy=""{quoteAttr}"" ignoreHeaderLines=""{ignoreHeaderLines}"" rowType=""http://rs.tdwg.org/dwc/terms/Occurrence"">
     <files><location>occurrence.txt</location></files>
@@ -234,6 +234,8 @@ internal static class SyntheticArchiveBuilder
     <field index=""6"" term=""http://rs.tdwg.org/dwc/terms/datasetName"" />
 {provField}  </core>
 {extBlock}</archive>";
+        // Normalize verbatim-string EOLs to LF so synthetic ZIP bytes do not vary across CRLF vs LF checkouts (F-10).
+        return xml.Replace("\r\n", "\n", StringComparison.Ordinal);
     }
 
     private static string JoinCols(string delimiter, string? quote, params string[] cols)

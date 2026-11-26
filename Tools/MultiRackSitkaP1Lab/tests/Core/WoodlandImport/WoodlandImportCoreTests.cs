@@ -638,15 +638,27 @@ internal static class WoodlandImportCoreTests
             TestRunner.True(rMismatch.Stand is null, "lying header stand null");
             TestRunner.True(rMismatch.Issues.Any(i => i.Code == "ArchiveEntrySizeMismatch"), "ArchiveEntrySizeMismatch emitted");
 
-            // Case B: cap is below actual decompressed size (4096 B) while declared header lies (100 B) -> streamed-bytes cap triggers!
+            // Case B (NF-04): build a core-only deflated archive whose total declared ZIP size (< 1 KB) is well BELOW the
+            // 4096 B cap (so the declared-size pre-check passes), while the patched occurrence.txt actually decompresses to
+            // ~12 KB and genuinely triggers the streamed-bytes cap!
+            byte[] honestCoreOnlyZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                manyTrees,
+                includeExtension: false,
+                compression: CompressionLevel.Optimal);
+            byte[] lyingStreamBombZip = SyntheticArchiveBuilder.PatchZipDeclaredUncompressedSize(
+                honestCoreOnlyZip, "occurrence.txt", fakeUncompressedSize: 100u);
             var rStreamCap = reader.Read(new WoodlandImportRequest
             {
-                ArchiveBytes = lyingZip,
+                ArchiveBytes = lyingStreamBombZip,
                 RawLocalBoundaryVertices = Square100m,
                 Options = WoodlandImportOptions.Default with { MaxUncompressedBytes = 4096 },
             });
             TestRunner.Eq(WoodlandReadiness.Refused, rStreamCap.Readiness, "lying header exceeding streamed cap refused");
-            TestRunner.True(rStreamCap.Issues.Any(i => i.Code == "CapUncompressedBytesExceeded"), "streamed CapUncompressedBytesExceeded emitted");
+            var streamCapIssue = rStreamCap.Issues.FirstOrDefault(i => i.Code == "CapUncompressedBytesExceeded");
+            TestRunner.True(streamCapIssue is not null, "streamed CapUncompressedBytesExceeded emitted");
+            TestRunner.True(
+                streamCapIssue!.Message.Contains("Decompressed byte count while reading 'occurrence.txt' exceeded cap", StringComparison.Ordinal),
+                "proved streamed-bytes cap path (not declared-size pre-check)");
         });
 
         // F-04: Multi-plot archive without TargetPlotId is refused; with TargetPlotId selects one plot cleanly
@@ -766,6 +778,190 @@ internal static class WoodlandImportCoreTests
             var rLead = reader.Read(new WoodlandImportRequest { ArchiveBytes = blankLeadZip, RawLocalBoundaryVertices = Square100m });
             TestRunner.Eq(WoodlandReadiness.Refused, rLead.Readiness, "leading blank line refused");
             TestRunner.True(rLead.Issues.Any(i => i.Code == "ArchiveMalformedHeader"), "ArchiveMalformedHeader emitted");
+        });
+
+        // ------------------------------------------------------------------
+        // Repair Cycle 2 Regression Tests (R3.1, R5, NF-01/N3, NF-02, NF-03, NF-05)
+        // ------------------------------------------------------------------
+
+        // R3.1: Crown diameter (m and cm) maps to CrownRadiusM (never DBH)
+        TestRunner.Add(Suite, "R3.1: Crown diameter in m and cm maps to CrownRadiusM and never satisfies DBH", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // Crown diameter = 8 m alone (no DBH) -> CrownRadiusM = 4.0 m, DbhCm = Missing, InventoryOnly (MissingRequiredDbh)
+            byte[] crownMetersOnlyZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows: [new("1_PlotA", "Crown diameter", "crown", "8", "m", "field")]);
+            var rMeters = reader.Read(new WoodlandImportRequest { ArchiveBytes = crownMetersOnlyZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.InventoryOnly, rMeters.Readiness, "crown diameter alone must NOT yield Candidate");
+            TestRunner.True(rMeters.Stand!.Trees[0].DbhCm.IsMissing, "DbhCm remains Missing (never 800 cm)");
+            TestRunner.True(!rMeters.Stand.Trees[0].CrownRadiusM.IsMissing, "CrownRadiusM populated from crown diameter");
+            TestRunner.ApproxEq(4.0, rMeters.Stand.Trees[0].CrownRadiusM.Value, 1e-12, "8 m crown diameter -> 4.0 m radius");
+            TestRunner.True(rMeters.Issues.Any(i => i.Code == "MissingRequiredDbh"), "MissingRequiredDbh blocker emitted");
+
+            // Crown diameter = 600 cm alone (no DBH) -> CrownRadiusM = 3.0 m, DbhCm = Missing
+            byte[] crownCmOnlyZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows: [new("1_PlotA", "Crown diameter", "crownDiameter", "600", "cm", "field")]);
+            var rCm = reader.Read(new WoodlandImportRequest { ArchiveBytes = crownCmOnlyZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.InventoryOnly, rCm.Readiness, "crown diameter cm alone -> InventoryOnly");
+            TestRunner.True(rCm.Stand!.Trees[0].DbhCm.IsMissing, "DbhCm remains Missing");
+            TestRunner.ApproxEq(3.0, rCm.Stand.Trees[0].CrownRadiusM.Value, 1e-12, "600 cm crown diameter -> 3.0 m radius");
+
+            // Control: genuine Tree diameter + Crown diameter together -> Candidate with both populated cleanly
+            byte[] bothZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "32", "20", "1")],
+                extraMofRows: [new("1_PlotA", "Crown diameter", "crown", "7.5", "m", "field")]);
+            var rBoth = reader.Read(new WoodlandImportRequest { ArchiveBytes = bothZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, rBoth.Readiness, "DBH + crown diameter -> Candidate");
+            TestRunner.ApproxEq(32.0, rBoth.Stand!.Trees[0].DbhCm.Value, 1e-12, "DBH preserved");
+            TestRunner.ApproxEq(3.75, rBoth.Stand.Trees[0].CrownRadiusM.Value, 1e-12, "7.5 m crown diameter -> 3.75 m radius");
+        });
+
+        // R5: AttributionOverride never replaces computed archive SHA-256; wrong declared hash refused; matching declared hash recorded separately
+        TestRunner.Add(Suite, "R5: computed ArchiveSha256 is never replaced; wrong declared hash refused; matching declared hash recorded separately", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] zip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1")]);
+            string actualSha = WoodlandImportSerializer.ComputeSha256Hex(zip);
+
+            var baseAttr = new ImportSourceAttribution
+            {
+                DatasetTitle = "Test Dataset",
+                Publisher = "Test Publisher",
+                Licence = "CC BY 4.0",
+                Citation = "Test Citation",
+            };
+
+            // Wrong hash supplied via legacy ArchiveSha256 override -> Refused
+            var rBadLegacy = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = zip,
+                RawLocalBoundaryVertices = Square100m,
+                AttributionOverride = baseAttr with { ArchiveSha256 = "0000-not-the-real-hash" },
+            });
+            TestRunner.Eq(WoodlandReadiness.Refused, rBadLegacy.Readiness, "wrong ArchiveSha256 override refused");
+            TestRunner.True(rBadLegacy.Stand is null, "stand null on hash mismatch");
+            TestRunner.True(rBadLegacy.Issues.Any(i => i.Code == "ArchiveSha256Mismatch"), "ArchiveSha256Mismatch emitted");
+
+            // Wrong hash supplied via DeclaredArchiveSha256 -> Refused
+            var rBadDeclared = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = zip,
+                RawLocalBoundaryVertices = Square100m,
+                AttributionOverride = baseAttr with { DeclaredArchiveSha256 = new string('f', 64) },
+            });
+            TestRunner.Eq(WoodlandReadiness.Refused, rBadDeclared.Readiness, "wrong DeclaredArchiveSha256 refused");
+            TestRunner.True(rBadDeclared.Issues.Any(i => i.Code == "ArchiveSha256Mismatch"), "ArchiveSha256Mismatch emitted");
+
+            // Correct hash supplied via DeclaredArchiveSha256 -> Candidate with both computed and declared recorded
+            var rGood = reader.Read(new WoodlandImportRequest
+            {
+                ArchiveBytes = zip,
+                RawLocalBoundaryVertices = Square100m,
+                AttributionOverride = baseAttr with { DeclaredArchiveSha256 = actualSha.ToUpperInvariant() },
+            });
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, rGood.Readiness, "matching declared hash accepted");
+            TestRunner.Eq(actualSha, rGood.Stand!.Attribution.ArchiveSha256, "computed ArchiveSha256 preserved");
+            TestRunner.Eq(actualSha, rGood.Stand.Attribution.DeclaredArchiveSha256, "DeclaredArchiveSha256 recorded normalized");
+        });
+
+        // NF-01 & N3: Plain unpatterned single-plot tree IDs import cleanly; multi-survey Integrate+ archive refused fail-closed
+        TestRunner.Add(Suite, "NF-01/N3: plain-ID single-plot archives import cleanly; multi-survey Integrate+ epochs without TargetPlotId are refused", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            // Plain IDs: t1, t2
+            byte[] plainZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("t1", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("t2", "Quercus petraea", "25 , 35", "35", "22", "1"),
+            ]);
+            var rPlain = reader.Read(new WoodlandImportRequest { ArchiveBytes = plainZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, rPlain.Readiness, "plain t1/t2 single-plot succeeds");
+            TestRunner.Eq(2, rPlain.Stand!.Trees.Count, "both plain-ID trees imported");
+
+            // Underscore non-Integrate+ IDs: tree_1, tree_2
+            byte[] treeUnderscoreZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("tree_1", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("tree_2", "Quercus petraea", "25 , 35", "35", "22", "1"),
+            ]);
+            var rTreeU = reader.Read(new WoodlandImportRequest { ArchiveBytes = treeUnderscoreZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, rTreeU.Readiness, "tree_1/tree_2 single-plot succeeds");
+            TestRunner.Eq(2, rTreeU.Stand!.Trees.Count, "both tree_N trees imported");
+
+            // N3: Distinct survey epochs of same physical plot (IPlus_Donadea_MHF_1 vs IPlus_Donadea_MHF_2) refused fail-closed without TargetPlotId
+            byte[] multiSurveyZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("100_IPlus_Donadea_MHF_1", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("101_IPlus_Donadea_MHF_2", "Fagus sylvatica", "10 , 10", "31", "20.5", "1"),
+            ]);
+            var rMultiSurvey = reader.Read(new WoodlandImportRequest { ArchiveBytes = multiSurveyZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, rMultiSurvey.Readiness, "multi-survey epochs without target refused");
+            TestRunner.True(rMultiSurvey.Issues.Any(i => i.Code == "MultiplePlotsRequireTargetPlotId"), "MultiplePlotsRequireTargetPlotId emitted");
+        });
+
+        // NF-02: Plot IDs differing only by case are never silently merged
+        TestRunner.Add(Suite, "NF-02: plot IDs differing only by case (PlotA vs plota) are refused as distinct plots", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] casePlotZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+            [
+                new("1_PlotA", "Fagus sylvatica", "10 , 10", "30", "20", "1"),
+                new("2_plota", "Quercus petraea", "20 , 20", "35", "22", "1"),
+            ]);
+            var res = reader.Read(new WoodlandImportRequest { ArchiveBytes = casePlotZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, res.Readiness, "case-differing plot IDs refused");
+            TestRunner.True(res.Issues.Any(i => i.Code == "MultiplePlotsRequireTargetPlotId"), "MultiplePlotsRequireTargetPlotId emitted");
+        });
+
+        // NF-03: Duplicate measurement with one malformed row produces identical refusal JSON regardless of row order
+        TestRunner.Add(Suite, "NF-03: duplicate measurement with one malformed row yields byte-identical refusal JSON in both row orders", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+
+            byte[] zipBadFirst = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows:
+                [
+                    new("1_PlotA", "Tree diameter", "diameter", "abc", "cm", "field"),
+                    new("1_PlotA", "Tree diameter", "diameter", "30", "cm", "field"),
+                ]);
+
+            byte[] zipBadLast = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows:
+                [
+                    new("1_PlotA", "Tree diameter", "diameter", "30", "cm", "field"),
+                    new("1_PlotA", "Tree diameter", "diameter", "abc", "cm", "field"),
+                ]);
+
+            var r1 = reader.Read(new WoodlandImportRequest { ArchiveBytes = zipBadFirst, RawLocalBoundaryVertices = Square100m });
+            var r2 = reader.Read(new WoodlandImportRequest { ArchiveBytes = zipBadLast, RawLocalBoundaryVertices = Square100m });
+
+            TestRunner.Eq(WoodlandReadiness.Refused, r1.Readiness, "bad-first refused");
+            TestRunner.Eq(WoodlandReadiness.Refused, r2.Readiness, "bad-last refused");
+            TestRunner.Eq(
+                WoodlandImportSerializer.ComputeResultSha256Hex(r1),
+                WoodlandImportSerializer.ComputeResultSha256Hex(r2),
+                "refusal JSON and SHA-256 identical regardless of malformed duplicate row order");
+        });
+
+        // NF-05: Empty measurement unit on a dimensional measurement is refused (never silently assumed)
+        TestRunner.Add(Suite, "NF-05: empty measurementUnit on DBH or height row is refused with MissingMeasurementUnit", () =>
+        {
+            var reader = new IntegrateMarteloscopeReader();
+            byte[] emptyUnitZip = SyntheticArchiveBuilder.BuildTreMsArchive(
+                [new("1_PlotA", "Fagus sylvatica", "10 , 10", null, "20", "1")],
+                extraMofRows: [new("1_PlotA", "Tree diameter", "diameter", "28", "", "field")]);
+
+            var res = reader.Read(new WoodlandImportRequest { ArchiveBytes = emptyUnitZip, RawLocalBoundaryVertices = Square100m });
+            TestRunner.Eq(WoodlandReadiness.Refused, res.Readiness, "empty dimensional unit refused");
+            TestRunner.True(res.Stand is null, "stand null on missing dimensional unit");
+            TestRunner.True(res.Issues.Any(i => i.Code == "MissingMeasurementUnit" && i.FieldName == "DbhCm"), "MissingMeasurementUnit emitted on DbhCm");
         });
     }
 

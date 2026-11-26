@@ -43,7 +43,9 @@
 
 ---
 
-## 2. Exact Verification Commands & Verbatim Captured Output
+## 2. Exact Verification Commands & Verbatim Captured Output *(Initial Cycle 1 Baseline — Superseded by §5 Repair Cycle 1 and §6 Repair Cycle 2)*
+
+> **Superseded historical record (NF-06):** The Cycle 1 output and test names below (15/15, `dd0f6cb9…`) are preserved as historical baseline evidence only. Authoritative current totals (`29/29`), updated test names, and current determinism hashes are in **§6 Repair Cycle 2** below.
 
 Executed from `Tools/MultiRackSitkaP1Lab` inside WSL Ubuntu with pinned SDK `/home/jer/.dotnet-8.0.133` first on `PATH`:
 
@@ -104,7 +106,7 @@ TOTAL: 15/15 passed, 0 failed
 
 ---
 
-## 3. Determinism Evidence (Two-Run Byte Identity & SHA-256)
+## 3. Determinism Evidence *(Initial Cycle 1 Baseline — Synthetic Hash Superseded by §6; Qualified Pins Unchanged)*
 
 Every determinism test ran two independent imports and verified `SequenceEqual` on the canonical UTF-8 JSON bytes and equality of SHA-256 digests:
 
@@ -206,4 +208,91 @@ TOTAL: 23/23 passed, 0 failed
 - **Portable Cross-Machine Determinism Pins (committed fixtures):**
   - `ie-donadea-mhf-subset.dwca.zip` (under constructed `50×100 m` test boundary): `72cec3badfc4878e5e1166dec8e02d90ef5bf8bd257f3ff258a78ffe29601a63` (`31,903` bytes — unchanged from initial submission)
   - `lu-mersch-oak-beech-subset.dwca.zip` (under constructed `100×100 m` test boundary): `7fd8b96308c15b101a74ffd1ae019db3f24ea0ce2abece2302fad0061d2425bf` (`29,876` bytes — unchanged from initial submission)
-- **Within-run synthetic determinism check (non-portable runtime ZIP, F-10):** `471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af` (`5,203` bytes).
+- **Within-run synthetic determinism check (non-portable runtime ZIP, F-10):** `471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af` (`5,203` bytes). *(Note from R2: the earlier `471f61e8…` vs `395962d1…` split was caused by CRLF vs LF line endings in C# verbatim string literals inside `BuildDefaultMetaXml`, not zlib; resolved in Repair Cycle 2 below.)*
+
+---
+
+## 6. Repair Cycle 2 (Final Cycle — Response to R2 Verification & Opus Cycle-1 Review)
+
+Addresses every remaining blocking and minor finding from `REVIEW-R2-REPAIR-VERIFICATION.md` and `OPUS-INDEPENDENT-REVIEW-20261126.md` against candidate `add375a4135387daf16e9ff506066bae6bd28a62`:
+
+| Finding | Severity | Status | Change Made |
+|---|---|---|---|
+| **R3.1** | Blocking | **Fixed** | Replaced loose substring matching in `IntegrateMarteloscopeReader` with exact documented `measurementType`/`measurementRemarks` classifiers. Checked crown measurements before stem diameter; explicitly excluded `"crown"` from DBH and height classifiers; mapped `Crown diameter` (`m`/`cm`/`mm`) to `CrownRadiusM` (`radius = diameter / 2`) while leaving `DbhCm` `Missing` when no stem DBH row is present. Covered by new test `R3.1` (both `m` and `cm` cases + combined DBH/crown control). |
+| **R5** | Blocking | **Fixed** | Added optional additive `DeclaredArchiveSha256` on `ImportSourceAttribution` (`WoodlandImportContracts.cs` & `WoodlandImportSerializer.cs`). `IntegrateMarteloscopeReader` ALWAYS records the computed archive SHA-256 in `ArchiveSha256` (never overwritten by caller overrides), verifies any caller-declared hash (`DeclaredArchiveSha256` or legacy `AttributionOverride.ArchiveSha256`), and refuses mismatches with `ArchiveSha256Mismatch` (`Stand = null`). Covered by new test `R5`. |
+| **NF-01 / N3** | Blocking / Minor | **Fixed & Documented** | Replaced `ExtractPlotId` with `TryExtractPlotSurveyId`: extracts a plot-survey key ONLY from explicit columns (`locationID`/`eventID`/`locality`) or the Integrate+ `{digits}_{plotName}[_{surveyIndex}]` pattern (all-digit prefix + letter-containing suffix), retaining any trailing `_{surveyIndex}` (N3) intentionally so distinct survey epochs are never merged into one Year-0 stand. Unpatterned single-plot archives (`t1`/`t2`, `tree_1`/`tree_2`) return `null` and import cleanly as one stand. Covered by new test `NF-01/N3` and documented in `spec.md` §5.3 & `SOURCE-DATA-QUALIFICATION.md`. |
+| **NF-02** | Minor | **Fixed** | Changed `distinctPlots` and `TargetPlotId` matching to `StringComparer.Ordinal` so plot IDs differing only by case (`PlotA` vs `plota`) are refused as distinct plots (`MultiplePlotsRequireTargetPlotId`) and never silently merged. Covered by new test `NF-02`. |
+| **NF-03** | Minor | **Fixed** | When `>1` row exists for any single-valued measurement field on a tree, `MapTreeRecord` resets that field deterministically to `Missing` regardless of row order, so duplicate rows where one row is malformed (`abc` + `30` vs `30` + `abc`) yield byte-identical refusal JSON and SHA-256. Covered by new test `NF-03`. |
+| **NF-04** | Minor (test) | **Fixed** | Fixed `F-03` Case B to use a core-only deflated archive (`includeExtension: false`) whose total declared ZIP size (< 1 KB) passes the 4,096 B declared pre-check and genuinely triggers the streamed-bytes cap while decompressing `occurrence.txt` (asserting the exact streamed-cap message). |
+| **NF-05** | Minor | **Fixed** | `ParseDoubleMeasurement` now refuses empty `measurementUnit` on dimensional `MeasurementOrFact` rows with `MissingMeasurementUnit` (`Refused`) instead of silently assuming `cm`/`m` (real TreMs fixtures carry explicit `cm`/`m` units and are unaffected). Covered by new test `NF-05`. |
+| **NF-06** | Minor (docs) | **Fixed** | Marked Cycle 1 §2/§3 explicitly as superseded historical baseline records and corrected the F-10 root-cause explanation. |
+| **F-10 residual** | Minor | **Fixed & Documented** | Normalized verbatim-string `\r\n` to `\n` inside `SyntheticArchiveBuilder.BuildDefaultMetaXml` so synthetic `meta.xml` bytes no longer vary between CRLF and LF checkouts. Explicitly note that the runtime-built synthetic hash is still a within-run check only; the two committed qualified fixture hashes (`72cec3ba…` and `7fd8b963…`) remain the authoritative portable cross-machine pins. |
+
+### Repair Cycle 2 Gate Verification (Pinned SDK `8.0.133`, WSL Ubuntu)
+
+```text
+=== DOTNET VERSION ===
+8.0.133
+=== RESTORE ===
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+=== BUILD ===
+MSBuild version 17.8.60+293f66545 for .NET
+  SitkaP1.WoodlandImport.Tests -> .../Tools/MultiRackSitkaP1Lab/tests/Core/WoodlandImport/bin/Debug/net8.0/SitkaP1.Core.WoodlandImport.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.75
+=== RUN ===
+PASS [synthetic] positive: supported mixed stand with surveyed boundary yields CandidateForSimulationIntegration
+PASS [synthetic] malformed: empty, non-zip, missing meta.xml, broken XML, missing core/ext files refused
+PASS [synthetic] refusal: duplicate ID, non-positive DBH, malformed coords, and Year-0 Simulated provenance refused
+PASS [synthetic] inventory-only: unsupported living species retained without deletion, missing measurements never estimated, missing boundary never inferred
+PASS [synthetic] species: all 6 target species, synonyms, authors, unmodelled taxa, genus/higher-rank/PLANTAE unidentified, zero fuzzy matching
+PASS [synthetic] boundary: non-rectangular shoelace area vs hand value, geographic tangent plane, invalid polygons refused, edge-inclusive ray casting
+PASS [synthetic] bounds-and-coords: out-of-bounds trees refused without clamping; translation preserves distances exactly
+PASS [synthetic] caps: MaxLivingStems (unknown counted as living), MaxTotalRecords, MaxMeasurementRows, MaxUncompressedBytes
+PASS [synthetic] security: XXE / DOCTYPE declaration in meta.xml prohibited with zero external fetch
+  [determinism] synthetic-canonical-sha256=471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af (5203 bytes)
+PASS [synthetic] determinism: two imports produce byte-identical canonical JSON and identical SHA-256
+PASS [synthetic] hygiene: src/Core/WoodlandImport contains zero banned file APIs and zero wall-clock calls
+PASS [synthetic] F-01: orphan extension rows and blank coreid extension rows are refused deterministically
+PASS [synthetic] F-02: repeated/conflicting measurement rows for same tree refused identically regardless of row order
+PASS [synthetic] F-03: lying ZIP uncompressed-size header refused via streamed cap or ArchiveEntrySizeMismatch without silent truncation
+PASS [synthetic] F-04: multi-plot archive without TargetPlotId is refused; specifying TargetPlotId succeeds for that plot
+PASS [synthetic] F-05: geographic boundary combined with non-georeferenced local trees yields InventoryOnly with BoundaryTreeFrameMismatch
+PASS [synthetic] F-06: unknown status preserves Inferred provenance; core provenance=simulated applies to species and position and refuses
+PASS [synthetic] F-07: unknown measurement unit (inch) refused with UnsupportedMeasurementUnit
+PASS [synthetic] F-11: negative ignoreHeaderLines and leading blank line before header refused with format codes
+PASS [synthetic] R3.1: Crown diameter in m and cm maps to CrownRadiusM and never satisfies DBH
+PASS [synthetic] R5: computed ArchiveSha256 is never replaced; wrong declared hash refused; matching declared hash recorded separately
+PASS [synthetic] NF-01/N3: plain-ID single-plot archives import cleanly; multi-survey Integrate+ epochs without TargetPlotId are refused
+PASS [synthetic] NF-02: plot IDs differing only by case (PlotA vs plota) are refused as distinct plots
+PASS [synthetic] NF-03: duplicate measurement with one malformed row yields byte-identical refusal JSON in both row orders
+PASS [synthetic] NF-05: empty measurementUnit on DBH or height row is refused with MissingMeasurementUnit
+PASS [qualified] qualified-attribution: ATTRIBUTION.json (incl. CC BY 4.0 changesMade) and both fixture ZIPs match pinned SHA-256 offline
+PASS [qualified] qualified-ie-donadea: real Irish plot imports cleanly as InventoryOnly with all 20 verbatim trees retained
+PASS [qualified] qualified-lu-mersch: European Oak-Beech subset is InventoryOnly without boundary and Candidate only under constructed 100x100 m test boundary
+  [determinism] ie-donadea-canonical-sha256=72cec3badfc4878e5e1166dec8e02d90ef5bf8bd257f3ff258a78ffe29601a63 (31903 bytes)
+  [determinism] lu-mersch-canonical-sha256=7fd8b96308c15b101a74ffd1ae019db3f24ea0ce2abece2302fad0061d2425bf (29876 bytes)
+PASS [qualified] qualified-determinism: two independent offline imports of both CC BY 4.0 fixtures yield byte-identical JSON and SHA-256
+---
+SUITE qualified: 4/4 passed, 0 failed
+SUITE synthetic: 25/25 passed, 0 failed
+TOTAL: 29/29 passed, 0 failed
+=== EXIT_CODE=0 ===
+```
+
+- **Repair Cycle 2 Totals:** `0 Warning(s)`, `0 Error(s)`, exit code `0`; **Synthetic `25/25` passed, Qualified `4/4` passed, Total `29/29` passed (`0` failed)**.
+- **Authoritative Portable Determinism Pins (committed CC BY 4.0 fixtures — unchanged across all cycles):**
+  - `ie-donadea-mhf-subset.dwca.zip`: `72cec3badfc4878e5e1166dec8e02d90ef5bf8bd257f3ff258a78ffe29601a63` (`31,903` bytes)
+  - `lu-mersch-oak-beech-subset.dwca.zip`: `7fd8b96308c15b101a74ffd1ae019db3f24ea0ce2abece2302fad0061d2425bf` (`29,876` bytes)
+- **Within-run synthetic determinism hash (LF-normalized `meta.xml`, not a cross-machine pin):** `471f61e86bdb8700ec4d5695763dc2d4ce3827fa3b7ee56281e3936ab09b88af` (`5,203` bytes).
+- **Exact Residual Risk List (honest boundary):**
+  1. Original INRAE publisher IPT ZIP & `meta.xml` remain `PENDING REAL ARCHIVE DOWNLOAD` (`dynids.toulouse.inra.fr:8180` timed out; unauthenticated GBIF bulk download returned `HTTP 403`).
+  2. `verbatimCoordinates` local-metres reading (contradicting `verbatimCoordinateSystem = decimal degrees`) and X/Y axis orientation remain unverified assumptions pending publisher documentation.
+  3. Constructed `50×100 m` / `100×100 m` test polygons in `FixtureQualificationTests.cs` have no cited survey source for Donadea or Mersch; without a real surveyed polygon both plots remain `InventoryOnly`.
+  4. Full `MultiRackSitkaP1Lab.sln` / `SitkaP1.Core.csproj` / `Core.Tests` rebuild was not run in this worktree because `.p0ref/SitkaLab.Core.dll` is git-ignored and absent by design.
+  5. Pure-BCL importer is compiled into `SitkaP1.Core.dll` by default globbing once merged, and remains **NOT** wired into `MultiAreaContinuation`, `/multi`, Save v2/v3, UI, or Unity (D-030).

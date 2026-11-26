@@ -38,7 +38,7 @@
 ### Core Terms in the Subset Fixtures
 | Column / DwC Term | Source Provenance | Observed Example | Notes & Assumptions |
 |---|---|---|---|
-| `occurrenceID` | Verbatim (`/verbatim`) | `24839_IPlus_Donadea_MHF_2`, `33321_IPlus_Mersch` | Unique tree key: `{identificationID}_{plotName}[_{surveyIndex}]`. |
+| `occurrenceID` | Verbatim (`/verbatim`) | `24839_IPlus_Donadea_MHF_2`, `33321_IPlus_Mersch` | Unique tree key: `{identificationID}_{plotName}[_{surveyIndex}]`. Note (N3): `IntegrateMarteloscopeReader` intentionally retains any trailing `_{surveyIndex}` (e.g. `_2` in `IPlus_Donadea_MHF_2`) as part of the plot-survey key so distinct survey epochs of the same physical plot are never silently merged into one Year-0 stand. |
 | `scientificName` | Verbatim (`/verbatim`) | `Picea abies`, `Fagus sylvatica`, `Quercus petraea` | Verbatim binomial (GBIF interpreted view appends taxonomic authors; `WoodlandSpeciesMapper` handles both). |
 | `verbatimCoordinates` | Verbatim (`/verbatim`) | `"34 , 48.82"`, `"18.62 , 83.47"`, `"71.28 , 16.07"` | **INFERENCE / ASSUMPTION (not verified publisher schema):** the importer treats these two numbers as plot-local Cartesian metres `(X, Y)` because their range (`0–100`) matches typical Integrate+ marteloscope plot dimensions. **Contradiction to note:** the verbatim records themselves carry `verbatimCoordinateSystem = "decimal degrees"` (likely a publisher mapping artefact, since 48.82/83.47 cannot be WGS-84 degrees for Ireland/Luxembourg), and **X/Y axis order and compass orientation are unverified** without the publisher's field schema. |
 | `country` | Verbatim (`/verbatim`) | `Ireland`, `Luxembourg` | Verbatim country name. |

@@ -125,6 +125,10 @@ public static class WoodlandImportSerializer
         WriteNullableString(w, "doi", attr.Doi);
         WriteNullableString(w, "datasetKey", attr.DatasetKey);
         WriteNullableString(w, "archiveSha256", attr.ArchiveSha256);
+        if (attr.DeclaredArchiveSha256 is not null)
+        {
+            w.WriteString("declaredArchiveSha256", attr.DeclaredArchiveSha256);
+        }
         WriteNullableString(w, "retrievalDateUtc", attr.RetrievalDateUtc);
         WriteNullableString(w, "sourcePlotId", attr.SourcePlotId);
         w.WriteEndObject();

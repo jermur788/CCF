@@ -133,7 +133,10 @@ public sealed record ImportSourceAttribution
     public required string Citation { get; init; }
     public string? Doi { get; init; }
     public string? DatasetKey { get; init; }
+    /// <summary>SHA-256 hex digest computed directly from the imported archive bytes (never overwritten by caller overrides).</summary>
     public string? ArchiveSha256 { get; init; }
+    /// <summary>Optional caller/publisher-declared archive SHA-256 verified against <see cref="ArchiveSha256"/>.</summary>
+    public string? DeclaredArchiveSha256 { get; init; }
     public string? RetrievalDateUtc { get; init; }
     public string? SourcePlotId { get; init; }
 }
