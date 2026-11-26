@@ -1,7 +1,13 @@
 {
   "schemaVersion": 1,
   "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
-  "gateEnforce": true,
+  "gateEnforce": false,
+  "retirement": {
+    "retiredUtc": "2026-11-26",
+    "authority": "SPEC-multi-2d-s0-seam-extraction-V1 integration duty C1, owner-approved 2026-11-26",
+    "reason": "The S0a/S0b zero-behaviour move-proof completed its purpose (S0a aa5f1850, S0b 742bd904, S0c 158cdd69 all reviewed and merged). Post-S0 feature work legitimately extends the mechanically moved blocks: Phase 2B-1 adds economy bookkeeping lines inside core-cmd-clear, core-cmd-fell, core-cmd-prune, core-cmd-planting and core-cmd-plan, so byte-identical reconstruction is no longer a valid trunk invariant.",
+    "retained": "move-proof.py and this table remain in the tree. selftest.sh case C22 force-enables gateEnforce inside its disposable clone so the mechanism stays covered."
+  },
   "parts": {
     "ui": {
       "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs",

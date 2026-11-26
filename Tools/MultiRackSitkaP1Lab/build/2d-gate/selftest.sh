@@ -408,8 +408,18 @@ assert target in s
 s = s.replace(target, target + "            // selftest move-proof block tamper\n", 1)
 open(p, "w", encoding="utf-8", newline="\n").write(s)
 PY
-  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs
-  git -C "$clone" commit --quiet -m "selftest: tamper moved block in Commands.Crop.cs"
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate/s0a-move-table.json" <<'PY'
+import json, sys
+p = sys.argv[1]
+with open(p, "r", encoding="utf-8") as f:
+    d = json.load(f)
+d["gateEnforce"] = True
+with open(p, "w", encoding="utf-8", newline="\n") as f:
+    json.dump(d, f, indent=2)
+    f.write("\n")
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs Tools/MultiRackSitkaP1Lab/build/2d-gate/s0a-move-table.json
+  git -C "$clone" commit --quiet -m "selftest: tamper moved block in Commands.Crop.cs with gateEnforce force-enabled"
 }
 
 mut_g5_budget() {
@@ -467,7 +477,7 @@ run_full_case "C14-missing-marker" 1 "fail-closed marker check failed" "suppress
 run_full_case "C15-headless-only" 5 "VERDICT: PARTIAL" "--headless-only partial mode -> exit 5" mut_noop --headless-only
 run_full_case "C20-g2-uismoke-5th-fail" 1 "ui-smoke\.sh unexpected failure IDs: \['Z99'\]" "planted 5th ui-smoke failure Z99 -> exit 1" mut_uismoke_5th_fail
 run_full_case "C21-g2-asset-identity" 1 "S0a /multi asset identity failed" "tampered src/Ui/multi/multi.js -> exit 1" mut_asset_identity
-run_full_case "C22-g2-move-proof" 1 "S0a move-proof failed" "tampered moved block in Commands.Crop.cs -> exit 1" mut_move_proof
+run_full_case "C22-g2-move-proof" 1 "S0a move-proof failed" "tampered moved block in Commands.Crop.cs with gateEnforce force-enabled in the clone -> exit 1" mut_move_proof
 run_full_case "C23-g5-budget" 1 "GATE G5 FAIL" "planted G5 payload budget regression (M11) -> exit 1" mut_g5_budget
 run_full_case "C24-g6-rng-literal" 1 "GATE G6 FAIL" "planted RNG key-prefix literal outside RngSalts.cs -> exit 1" mut_g6_rng_literal
 run_full_case "C25-g7-denylist" 4 "DENY_PREFIX" "planted file under denied Docs/Project/ -> exit 4" mut_g7_denylist

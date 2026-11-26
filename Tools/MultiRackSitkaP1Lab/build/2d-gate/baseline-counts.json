@@ -4,9 +4,10 @@
   "capturedUtc": "2026-11-25T15:25:30Z",
   "suites": {
     "core": {
-      "minPassed": 282,
+      "minPassed": 291,
       "maxFailed": 0,
-      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$"
+      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$",
+      "note": "Re-baselined 2026-11-26 (C1) from 282 to 291: Phase 2B-1 added 9 Core cases (Phase2BEconomyTests.cs); 291/291 was independently reproduced at e97b3780 by the Phase 2B-1 reviewer. Floor only, never exact-count."
     },
     "save": {
       "minPassed": 50,
