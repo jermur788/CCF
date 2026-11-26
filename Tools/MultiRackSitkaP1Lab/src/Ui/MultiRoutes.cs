@@ -52,7 +52,23 @@ internal sealed partial class PlayerApi
 
     private static readonly byte[] MultiPageHtml = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.html");
     private static readonly byte[] MultiPageCss = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.css");
-    private static readonly byte[] MultiPageJs = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.js");
+    private static readonly (string Route, byte[] Asset)[] MultiPageModules =
+    {
+        ("multi/api.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.api.js")),
+        ("multi/commands.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.commands.js")),
+        ("multi/dialogs/execute-confirm.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.execute-confirm.js")),
+        ("multi/dialogs/saves.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.saves.js")),
+        ("multi/dom.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dom.js")),
+        ("multi/main.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.main.js")),
+        ("multi/map/contract.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.contract.js")),
+        ("multi/map/renderer-svg.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.renderer-svg.js")),
+        ("multi/modes/interactive.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.modes.interactive.js")),
+        ("multi/panels/fell-draft.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.panels.fell-draft.js")),
+        ("multi/panels/inspector.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.panels.inspector.js")),
+        ("multi/panels/time-history.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.panels.time-history.js")),
+        ("multi/panels/work-plan.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.panels.work-plan.js")),
+        ("multi/store.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.store.js")),
+    };
 
     // Fixed page text from Core only: the single-area status words and Crop labels, and the MA-1 / Pass 1 labels.
     private static readonly IReadOnlyDictionary<string, string> MultiLabels = new[] { typeof(PlayerLabels), typeof(CropLabels), typeof(MultiAreaLabels) }
@@ -72,7 +88,8 @@ internal sealed partial class PlayerApi
     {
         routes.Add("multi", new("GET", context => WriteAssetAsync(context, MultiPageHtml, "text/html; charset=utf-8")));
         routes.Add("multi.css", new("GET", context => WriteAssetAsync(context, MultiPageCss, "text/css; charset=utf-8")));
-        routes.Add("multi.js", new("GET", context => WriteAssetAsync(context, MultiPageJs, "text/javascript; charset=utf-8")));
+        foreach (var (route, asset) in MultiPageModules)
+            routes.Add(route, new("GET", context => WriteAssetAsync(context, asset, "text/javascript; charset=utf-8")));
         routes.Add("api/multi/view", new("GET", ReadMultiViewAsync));
         routes.Add("api/multi/manifest", new("GET", WriteMultiManifestAsync));
         // Phase 1 Save/Load: server-managed named slots only (no path, upload or download). Save captures under the engine
