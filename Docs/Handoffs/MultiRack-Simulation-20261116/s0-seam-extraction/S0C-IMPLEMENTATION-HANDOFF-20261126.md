@@ -28,7 +28,10 @@
 | 2 (T-C2) | `fa607aee2f65f30064bd97240d394417a3488a35` | `docs(2d-gate): S0c commit hook and renderer call-site inventories (T-C2)` | `build/2d-gate/s0c-hook-inventory.json` (19 hooks, 49 rewritten sites), `build/2d-gate/s0c-renderer-callsite-map.json` (22 external sites: 8 P5-rewritten + 14 direct L3 helpers) |
 | 3 (T-C3) | `be254dfc690c8e8a8d82e3900f929b9a32f9217d` | `refactor(multi): S0c split multi.js into 14 native ES modules with map/contract.js (T-C3)` | 14 ES modules under `src/Ui/multi/`, deletion of `src/Ui/multi/multi.js`, exact 1-line `<script type="module" src="multi/main.js"></script>` delta in `src/Ui/multi/multi.html`, `src/Ui/MultiRoutes.cs` (14 explicit module routes, `multi.js` removed), `src/Ui/SitkaP1.Ui.csproj` (14 explicit `EmbeddedResource` entries) |
 | 4 (T-C4) | `707f0677c72c709398a07a0c10fd4856e98216c4` | `build(2d-gate): S0c add module-graph, js-reconstruct, gate wiring and vm.SourceTextModule harness (T-C4)` | `build/2d-gate/module-graph.mjs`, `build/2d-gate/js-reconstruct.mjs`, `build/2d-gate/s0a-multi-asset-identity.json` (`mode` → `s0c-css-plus-html-delta`), `build/2d-gate/s0a-move-table.json` + `move-proof.py` (S0c P6 `MultiRoutes.cs` route lines), `build/2d-gate.sh` (S0c live CSS/HTML/module identity + log surfacing), `tests/ui-smoke-multiarea.sh` (M-series 14-module route/parse checks + `vm.SourceTextModule` loader + `assertMapRenderer(svgRenderer)`) |
-| 5 (T-C5) | *(final pushed HEAD — reported in final reply)* | `docs(handoff): publish S0c implementation handoff (T-C5)` | `Docs/Handoffs/MultiRack-Simulation-20261116/s0-seam-extraction/S0C-IMPLEMENTATION-HANDOFF-20261126.md` |
+| 5 (T-C5) | `8bebbdbe5e6fb179a382984b25f0c07bebc964c3` | `docs(handoff): publish S0c implementation handoff (T-C5)` | `Docs/Handoffs/MultiRack-Simulation-20261116/s0-seam-extraction/S0C-IMPLEMENTATION-HANDOFF-20261126.md` |
+| 6 (RP1-1) | `36834d69eca486dc00631221b7e770ee43b817a7` | `fix(2d-gate): S0c repair selftest.sh for Stage B browser requirement and S0c tamper cases` | `Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh` (D-1/D-2 fix: C14 `--headless-only`, C21 `multi.css` tamper, C26 `--browser` with `S0C_PARITY_REF` unset, new cases C27 `main.js` tamper, C28 retired `multi.js` re-add, C29 `s0c-hook-inventory.json` tamper) |
+| 7 (RP1-2) | `0615a677819659f5342a0ac39ffc5c331117cfe5` | `fix(2d-gate): transparently retry transient WSL2 loopback ERR_CONNECTION_REFUSED in selftest` | `Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh` (tightly scoped transparent retry for transient WSL2→Windows loopback relay `net::ERR_CONNECTION_REFUSED` on initial `/multi` navigate in Stage B parity) |
+| 8 (RP1-3) | *(final pushed HEAD — reported in final reply)* | `docs(handoff): record S0c Repair Pass 1 selftest fix and verification` | `Docs/Handoffs/MultiRack-Simulation-20261116/s0-seam-extraction/S0C-IMPLEMENTATION-HANDOFF-20261126.md` |
 
 ---
 
@@ -211,4 +214,43 @@ git diff --name-only 5648813d9ccbe8d38e9fbe5df38d62c810af4a22..HEAD -- \
 
 ---
 
-**INTEGRATION STATUS:** **NOT REVIEWED, NOT INTEGRATED.** Ready for independent non-author review (`RG-S0c`) on the exact pushed HEAD of `feat/multi-2d-s0c-js-modules-20261126-v1`.
+## 8. Repair Pass 1 (RG-S0c Gate Selftest Fix — `selftest.sh` Only)
+
+Following independent review `RG-S0c` (**NEEDS CHANGES** on `8bebbdbe5e6fb179a382984b25f0c07bebc964c3`, product change ruled correct; single blocking defect in `build/2d-gate/selftest.sh`):
+
+### 8.1 Findings Addressed
+
+- **D-1 (blocking):** Because S0c activates `BROWSER_REQUIRED=1` in unmodified `build/2d-gate.sh`, selftest cases invoked without `--browser` or `--headless-only` stopped at Stage B policy (`exit 1`) before reaching `VERDICT: PASS` (`C26`) or the final fail-closed marker check (`C14`), producing `24/26` with `missingCodes=[0]`.
+- **D-2 (minor):** `C21` (`mut_asset_identity`) still appended to retired `src/Ui/multi/multi.js`, proving only that re-adding retired `multi.js` fails rather than proving tampering a committed served asset or ES module is caught.
+
+### 8.2 Exact Changes (`Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh` Only)
+
+`build/2d-gate.sh` and all product/parity/inventory files remain **byte-for-byte unchanged** from `8bebbdbe`. Changes strictly inside `Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh`:
+
+1. **`unset S0C_PARITY_REF`** at script start so selftest's Stage B parity check always executes the self-contained single-argument `run-parity-edge.sh` self-check regardless of caller environment.
+2. **`C14-missing-marker`:** passes `--headless-only` so Stage B browser-required policy does not short-circuit before the final marker check; proves suppressing `GATE G7 PASS` still fails closed with `exit 1` and `fail-closed marker check failed: missing=['G7'], failed=[]` (not `exit 5` PARTIAL).
+3. **`C26-clean-uismoke-exact-four`:** passes `--browser` (with `S0C_PARITY_REF` unset) so Stage B executes Save Edge, Step 2 Edge, and S0c parity self-check and proves a genuine `VERDICT: PASS (exit=0)` alongside the exact-four `ui-smoke.sh` allowance.
+4. **`C21-g2-asset-identity`:** updated `mut_asset_identity` to append a comment (no trailing LF) to committed served `src/Ui/multi/multi.css` and assert `S0c mode: multi.css no longer matches T0 R_css` (`exit 1`) inside `S0a /multi asset identity`.
+5. **New S0c tamper cases (`C27`–`C29`; total cases `26 → 29`, zero existing cases weakened):**
+   - **`C27-g2-s0c-module-tamper`:** appends a comment to committed ES module `src/Ui/multi/main.js` → proves `S0c js-reconstruct.mjs failed` (`exit 1`). *(Note: under `s0c-css-plus-html-delta` mode, `S0a /multi asset identity` verifies live-served module bytes against `HEAD` + headers/CSP while `js-reconstruct.mjs` enforces byte-identity of all 13 split ES modules against `5648813d:multi.js`; pairing `C21` + `C27` proves both guards fail closed.)*
+   - **`C28-g2-legacy-multi-js`:** preserves the retired-`src/Ui/multi/multi.js`-re-added check (`retired Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js still exists at HEAD`, `exit 1`).
+   - **`C29-g2-s0c-hook-inventory`:** increments `hooks[0].callSites[0].originalLine` in `build/2d-gate/s0c-hook-inventory.json` → proves `S0c js-reconstruct.mjs failed` (`exit 1`).
+6. **Transparent transient WSL2 loopback retry in `run_full_case`:** mirrors the existing pre-existing frozen `NB1c` retry, retrying up to 3 attempts ONLY when `stage-b-s0c-parity.log` shows a single-element `net::ERR_CONNECTION_REFUSED` on initial `http://127.0.0.1:<port>/s/<capability>/multi` navigate with all 9 states still captured, 0 console/CSP errors, and 0 HTML diffs.
+
+### 8.3 Repair Pass 1 Verification Evidence
+
+- **Selftest (`build/2d-gate/selftest.sh`):**
+  - Tested HEAD: `0615a677819659f5342a0ac39ffc5c331117cfe5` (exact `selftest.sh` code; subsequent commit adds only this handoff section)
+  - Evidence directory: `/home/jer/Development/CCF-Multi-2D-S0c-Evidence-20261126/repair-selftest-2/`
+  - Final line: `OVERALL: PASS (29/29 passed, 0 failed; all exit codes 0,1,2,3,4,5,64 proven)` (`missingCodes=[]`, exit `0`, `C26` passed on attempt 1)
+- **Full fail-closed gate (`build/2d-gate.sh --browser`) on final pushed HEAD:**
+  - Evidence directory: `/home/jer/Development/CCF-Multi-2D-S0c-Evidence-20261126/repair-gate/`
+  - Exact final HEAD SHA, gate exit code, stage/Edge/parity counts, and listener checks reported in the Repair Pass 1 completion reply.
+
+### 8.4 Residual Note
+
+- During Repair Pass 1 selftest run 1 (`repair-selftest/`, commit `36834d69`), `C26` passed G0–G7, Save Edge `63/63`, and Step 2 Edge `67/67`, then encountered a transient WSL2→Windows localhost-forwarding `net::ERR_CONNECTION_REFUSED` on the very first Edge `Page.navigate` in `stage-b-s0c-parity` (Edge immediately auto-reloaded and captured all 9/9 states with 0 console/CSP errors). Because `tests/s0c-parity/` is outside Repair Pass 1 hard scope, `selftest.sh` handles this via the narrow transparent retry guard above; a future S1 polish may add a brief Windows-side loopback readiness probe in `drive-parity.mjs` before enabling CDP network failure recording.
+
+---
+
+**INTEGRATION STATUS:** **NOT REVIEWED, NOT INTEGRATED.** Repair Pass 1 complete and ready for `RG-S0c` re-verification on the exact pushed HEAD of `feat/multi-2d-s0c-js-modules-20261126-v1`.
