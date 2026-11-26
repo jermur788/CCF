@@ -26,6 +26,21 @@ internal sealed partial class MultiAreaContinuation
             string planId = FormattableString.Invariant($"{sessionId}:ma-plan:{planState}");
             var plan = new MultiAreaApprovedPlan(planId, MintedExecutionKey(planId), Token(root),
                 Array.AsReadOnly(root.Pending.ToArray()));
+            var economy = root.Economy;
+            EconomyApprovedQuote? approvedQuote = null;
+            if (economy is not null)
+            {
+                var pendingQuote = EconomyQuoteCalculator.ComputePending(root, Token(root));
+                EconomyQuoteCalculator.RequireEligible(pendingQuote);
+                approvedQuote = new EconomyApprovedQuote(
+                    planId,
+                    plan.ExecutionKey,
+                    QuotedAtPlanStateRevision: root.PlanStateRevision,
+                    ApprovedAtPlanStateRevision: planState,
+                    HarvestStageOverride: economy.PendingHarvestStageOverride,
+                    FrozenOrderExecutors: new Dictionary<EconomyOrderKey, WorkExecutor>(economy.PendingOrderExecutors),
+                    Quote: pendingQuote);
+            }
             root = root with
             {
                 Approved = plan,
@@ -45,6 +60,12 @@ internal sealed partial class MultiAreaContinuation
                 {
                     ApprovedOrders = Array.AsReadOnly(phase2.PendingOrders.ToArray()),
                     PendingOrders = Array.Empty<MultiAreaPlantingOrder>(),
+                },
+                Economy = economy is null ? null : economy with
+                {
+                    PendingOrderExecutors = new Dictionary<EconomyOrderKey, WorkExecutor>(),
+                    PendingHarvestStageOverride = null,
+                    ApprovedQuote = approvedQuote,
                 },
             };
             return WithView(null, null);
@@ -66,6 +87,7 @@ internal sealed partial class MultiAreaContinuation
                 Stage4 = root.Stage4 is null ? null : root.Stage4 with { ApprovedPrunes = Array.Empty<MultiAreaPruneOrder>() },
                 Stage5 = root.Stage5 is null ? null : root.Stage5 with { ApprovedClears = Array.Empty<MultiAreaClearUndergrowthOrder>() },
                 Phase2 = root.Phase2 is null ? null : root.Phase2 with { ApprovedOrders = Array.Empty<MultiAreaPlantingOrder>() },
+                Economy = root.Economy is null ? null : root.Economy with { ApprovedQuote = null },
             };
             return WithView(null, null);
         }
@@ -92,7 +114,7 @@ internal sealed partial class MultiAreaContinuation
             {
                 if (string.Equals(executed.Event.PlanId, planId, StringComparison.Ordinal) && executed.Source == fence.Source)
                     return WithView(new MultiAreaExecutionResult(executionKey, executed.Event.EcologicalYear,
-                        executed.Event.WorkRevision, executed.Event, Replayed: true), null);
+                        executed.Event.WorkRevision, executed.Event, Replayed: true, executed.Settlement), null);
                 throw new P1Refusal("WorkExecutionKeyConflict", "this execution key was already used for a different plan or source");
             }
             RequireFence(fence);
@@ -227,17 +249,22 @@ internal sealed partial class MultiAreaContinuation
                 {
                     ApprovedClears = Array.Empty<MultiAreaClearUndergrowthOrder>(),
                 };
-            // Phase 2: SpotClear → Plant → Shelter; zero calendar advance, zero economy, zero stock.
+            // Phase 2: SpotClear → Plant → Shelter; zero calendar advance, zero stock.
             var nextPhase2 = root.Phase2 is null || approvedPlanting.Count == 0 ? root.Phase2
                 : Phase2Planting.Apply(root.Phase2, approvedPlanting, year, workRevision, executionKey, plan.PlanId);
+            // Phase 2B (C-ECON): settle atomically inside the same sync lock and single root assignment.
+            EconomySettlementReceipt? settlement = null;
+            MultiAreaEconomyState? nextEconomy = root.Economy;
+            if (root.Economy is not null)
+                (settlement, nextEconomy) = EconomyQuoteCalculator.BuildSettlement(root, Token(root), plan, workRevision);
 
-            // Test-only fault seam: rosters, event and revisions are complete, but nothing has been published.
+            // Test-only fault seam: rosters, event, settlement and revisions are complete, but nothing has been published.
             beforePublish?.Invoke();
 
-            // 4. ONE reference assignment publishes every area, the event, the work revision, the key and the cleared plan.
+            // 4. ONE reference assignment publishes every area, the event, the work revision, the key, settlement and the cleared plan.
             var executedMap = new Dictionary<string, MultiAreaExecutedWork>(root.Executed, StringComparer.Ordinal)
             {
-                [executionKey] = new MultiAreaExecutedWork(plan.Source, Array.AsReadOnly(plan.Orders.ToArray()), committed),
+                [executionKey] = new MultiAreaExecutedWork(plan.Source, Array.AsReadOnly(plan.Orders.ToArray()), committed, settlement),
             };
             root = root with
             {
@@ -250,8 +277,9 @@ internal sealed partial class MultiAreaContinuation
                 Stage4 = nextStage4,
                 Stage5 = nextStage5,
                 Phase2 = nextPhase2,
+                Economy = nextEconomy,
             };
-            return WithView(new MultiAreaExecutionResult(executionKey, year, workRevision, committed, Replayed: false), null);
+            return WithView(new MultiAreaExecutionResult(executionKey, year, workRevision, committed, Replayed: false, settlement), null);
         }
     }
 }

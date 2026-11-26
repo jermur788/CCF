@@ -47,7 +47,7 @@ internal sealed record MultiAreaWorkEvent(string ExecutionKey, string PlanId, in
 
 /// <summary>The recorded result of an execution key. <see cref="Replayed"/> is true for an identical retry.</summary>
 internal sealed record MultiAreaExecutionResult(string ExecutionKey, int EcologicalYear, int WorkRevision,
-    MultiAreaWorkEvent Event, bool Replayed);
+    MultiAreaWorkEvent Event, bool Replayed, EconomySettlementReceipt? Settlement = null);
 
 /// <summary>
 /// One area's committed ecological year. <see cref="NoLivingStems"/> is true when the area had no living tree, so the

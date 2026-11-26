@@ -47,7 +47,12 @@ internal sealed partial class MultiAreaContinuation
             if (match.AreaId != areaId)
                 throw new P1Refusal("MultiAreaWrongArea", "the pending order for " + treeId + " belongs to " + match.AreaId + ", not " + areaId);
             var pending = root.Pending.Where(order => !ReferenceEquals(order, match)).ToArray();
-            root = root with { Pending = Array.AsReadOnly(pending), PlanStateRevision = checked(root.PlanStateRevision + 1) };
+            root = root with
+            {
+                Pending = Array.AsReadOnly(pending),
+                Economy = WithoutPendingExecutor(root.Economy, EconomyOrderKey.ForFell(areaId, treeId)),
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
             return WithView(null, null);
         }
     }

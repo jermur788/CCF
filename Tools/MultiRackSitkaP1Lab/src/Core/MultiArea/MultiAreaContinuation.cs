@@ -7,7 +7,7 @@ internal sealed record MultiAreaAreaState(string AreaId, AnnualState State, IRea
 
 /// <summary>An executed key, kept so an identical retry is answered with its receipt instead of another Fell.</summary>
 internal sealed record MultiAreaExecutedWork(MultiAreaSourceToken Source, IReadOnlyList<MultiAreaWorkOrder> Orders,
-    MultiAreaWorkEvent Event);
+    MultiAreaWorkEvent Event, EconomySettlementReceipt? Settlement = null);
 
 /// <summary>
 /// The ONE immutable commit root of the whole experiment (MA-1 spec §3). Every area's roster and Crop marks, the shared
@@ -28,11 +28,12 @@ internal sealed record MultiAreaRoot(
     IReadOnlyList<MultiAreaYearRecord> AnnualHistory,
     MultiAreaStage4State? Stage4 = null, // Stage 4 sessions only (D-095); null on every model 0 / Stage 1–3 root
     MultiAreaStage5State? Stage5 = null, // Stage 5 (1/1/1/1) sessions only; null on every Stage 1–4 root
-    MultiAreaPhase2State? Phase2 = null) // Phase 2 (1/1/1/1/1) sessions only; null whenever Species is 0
+    MultiAreaPhase2State? Phase2 = null, // Phase 2 (1/1/1/1/1) sessions only; null whenever Species is 0
+    MultiAreaEconomyState? Economy = null) // Phase 2B Economy sessions only; null whenever Economy is Off
 {
-    /// <summary>True when any Fell, Prune, ClearUndergrowth or planting order is pending or approved and not yet executed.</summary>
+    /// <summary>True when any Fell, Prune, ClearUndergrowth, planting or Economy-approved order is pending or approved and not yet executed.</summary>
     internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0 ||
-        (Stage5?.PendingClears.Count ?? 0) > 0 || (Phase2?.PendingOrders.Count ?? 0) > 0;
+        (Stage5?.PendingClears.Count ?? 0) > 0 || (Phase2?.PendingOrders.Count ?? 0) > 0 || Economy?.ApprovedQuote is not null;
 }
 
 /// <summary>The per-area annual step: the unchanged AnnualRules.Calculate and the same next-state construction as AnnualContinuation.</summary>
@@ -80,6 +81,7 @@ internal sealed partial class MultiAreaContinuation
     private readonly CrownModelVersion crownModel;
     private readonly MultiAreaModelSelection models;
     private readonly Stage4Options? stage4Options; // non-null only for the full Stage 4 selection
+    private readonly EconomyOptions? economyOptions; // non-null only when EconomyModelVersion is Enabled
     private readonly MultiAreaExperiment definition; // immutable genesis inputs; a save's identity comes from here
     private readonly string areaModelVersion;
     private readonly IReadOnlyList<AreaInfo> areas; // ordinal by AreaId, the same order as root.Areas
@@ -121,7 +123,7 @@ internal sealed partial class MultiAreaContinuation
     /// null unless the selection is 1/1/1/1.
     /// </summary>
     internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null,
-        Stage5Options? stage5 = null, Phase2Options? phase2 = null)
+        Stage5Options? stage5 = null, Phase2Options? phase2 = null, EconomyOptions? economy = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(models);
@@ -132,17 +134,22 @@ internal sealed partial class MultiAreaContinuation
             throw new P1Refusal("Stage5ModelRequired", "Stage 5 options need the 1/1/1/1 model selection");
         if (phase2 is not null && !models.IsPhase2)
             throw new P1Refusal("Phase2ModelRequired", "Phase 2 options need the 1/1/1/1/1 model selection");
+        if (economy is not null && !models.IsEconomyEnabled)
+            throw new P1Refusal("EconomyModelRequired", "Economy options need EconomyModelVersion.Enabled");
         var crownModel = models.Crown;
         definition.Validate();
         this.definition = definition;
         this.models = models;
         this.stage4Options = models.IsStage4 ? (stage4 ?? Stage4Options.Default).RequireValid() : null;
+        this.economyOptions = models.IsEconomyEnabled ? (economy ?? EconomyOptions.Default).RequireValid() : null;
         this.crownModel = crownModel;
         bool connected = crownModel != CrownModelVersion.LegacyFrozen;
-        // Phase 2 appends its species version ONLY when it is not 0 (owner Q1), so every earlier token is unchanged.
-        areaModelVersion = Phase2Identity.AreaModelVersion(Stage5Identity.AreaModelVersion(models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
-            : connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion, models.Regeneration),
-            models.Species);
+        // Phase 2 and Phase 2B append their versions ONLY when active, so every earlier token stays byte-identical.
+        areaModelVersion = EconomyIdentity.AreaModelVersion(
+            Phase2Identity.AreaModelVersion(Stage5Identity.AreaModelVersion(models.IsStage4 ? MultiAreaIdentity.AreaModelVersionStage4
+                : connected ? MultiAreaIdentity.AreaModelVersionConnectedCrownC2 : MultiAreaIdentity.AreaModelVersion, models.Regeneration),
+                models.Species),
+            models.Economy);
         string contentHash = definition.ContentHash();
         experiment = new MultiAreaExperimentInfo(definition.ExperimentId, MultiAreaIdentity.Format, MultiAreaIdentity.SchemaVersion,
             MultiAreaIdentity.Domain, MultiAreaIdentity.SourceClass, contentHash, definition.GeneratorId,
@@ -185,9 +192,11 @@ internal sealed partial class MultiAreaContinuation
                 throw new P1Refusal("Phase2GenesisSpeciesInvalid", "genesis species name a tree that is not in the experiment");
             phase2State = Phase2Annual.Genesis(options, stage5State!.MastSeed, stage5State, options.GenesisSpecies);
         }
+        var economyState = economyOptions is null ? null : MultiAreaEconomyState.CreateInitial(economyOptions);
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
-            Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null, stage5State, phase2State);
+            Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null, stage5State, phase2State,
+            economyState);
     }
 
     // Phase 2 genesis crowns: every living Oak/Beech of one area gets its species' C2 equilibrium; Sitka is returned unchanged.
@@ -506,6 +515,7 @@ internal sealed partial class MultiAreaContinuation
                 },
                 Stage5 = progress.NextStage5,
                 Phase2 = progress.NextPhase2,
+                Economy = progress.NextEconomy,
             };
             return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(progress.Reports)));
         }
@@ -524,6 +534,9 @@ internal sealed partial class MultiAreaContinuation
         lock (sync)
         {
             RequireFence(fence);
+            if (models.IsEconomyEnabled || root.Economy is not null)
+                throw new P1Refusal("SaveEconomyRequiresV3",
+                    "sessions with Economy enabled cannot be saved under Save v2; persistence requires Save v3 (C-V3, deferred to Phase 2A) and economy state is never silently dropped");
             var vector = Phase1RootMapping.VectorOf(models);
             var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
                 root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
@@ -537,6 +550,9 @@ internal sealed partial class MultiAreaContinuation
     /// </summary>
     internal Phase1SaveExpectation SaveExpectation()
     {
+        if (models.IsEconomyEnabled)
+            throw new P1Refusal("SaveEconomyRequiresV3",
+                "sessions with Economy enabled require Save v3 (C-V3, deferred to Phase 2A) and cannot use Save v2");
         var vector = Phase1RootMapping.VectorOf(models);
         return new Phase1SaveExpectation(vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
     }
@@ -559,6 +575,9 @@ internal sealed partial class MultiAreaContinuation
         lock (sync)
         {
             RequireFence(fence); // a stale tab may not replace a newer session
+            if (models.IsEconomyEnabled || root.Economy is not null)
+                throw new P1Refusal("SaveEconomyRequiresV3",
+                    "a Save v2 file cannot be restored into an Economy-enabled session; persistence requires Save v3 (C-V3, deferred to Phase 2A)");
             Phase1SaveCodec.RequireExpected(decoded.Envelope.Header, SaveExpectation());
             RequireSameOptions(decoded.Envelope.State.Options);
             var restored = Phase1RootMapping.Restore(decoded.Envelope.State, Phase1RootMapping.VectorOf(models));
@@ -583,7 +602,7 @@ internal sealed partial class MultiAreaContinuation
     {
         var mine = Phase1RootMapping.OptionsOf(root, stage4Options);
         bool same = SameStage4(mine.Stage4, saved.Stage4) && SameStage5(mine.Stage5, saved.Stage5) &&
-            SamePhase2(mine.Phase2, saved.Phase2);
+            SamePhase2(mine.Phase2, saved.Phase2) && SameEconomy(economyOptions, null);
         if (!same)
             throw new P1Refusal("SaveOptionsMismatch",
                 "this save was made with different Stage 4 growth phases, Stage 5 grid/browse/mast options or Phase 2 seeds " +
@@ -621,6 +640,15 @@ internal sealed partial class MultiAreaContinuation
             if (!string.Equals(a.GenesisSpecies[i].TreeId, b.GenesisSpecies[i].TreeId, StringComparison.Ordinal) ||
                 !string.Equals(a.GenesisSpecies[i].SpeciesId, b.GenesisSpecies[i].SpeciesId, StringComparison.Ordinal)) return false;
         return true;
+    }
+
+    private static bool SameEconomy(EconomyOptions? a, EconomyOptions? b)
+    {
+        if (a is null || b is null) return a is null && b is null;
+        return a.OpeningCashCents == b.OpeningCashCents &&
+            a.AnnualLandownerAllowanceMinutes == b.AnnualLandownerAllowanceMinutes &&
+            a.ContractorHourlyRateCents == b.ContractorHourlyRateCents &&
+            a.MinimumHarvestJobCents == b.MinimumHarvestJobCents;
     }
 
     // NB2: every restored but unexecuted order is revalidated against the candidate root with the engine's own rules,

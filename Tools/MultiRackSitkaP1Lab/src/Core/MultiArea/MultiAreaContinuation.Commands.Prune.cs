@@ -72,6 +72,7 @@ internal sealed partial class MultiAreaContinuation
             root = root with
             {
                 Stage4 = stage4 with { PendingPrunes = Array.AsReadOnly(pending) },
+                Economy = WithoutPendingExecutor(root.Economy, EconomyOrderKey.ForPrune(areaId, treeId)),
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
             };
             return WithView(null, null);

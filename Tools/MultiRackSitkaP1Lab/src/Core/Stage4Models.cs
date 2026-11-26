@@ -44,7 +44,8 @@ internal enum LifeState
 /// </summary>
 internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, MortalityModelVersion Mortality, CrownModelVersion Crown,
     MultiAreaRegenerationModelVersion Regeneration = MultiAreaRegenerationModelVersion.Off,
-    SpeciesModelVersion Species = SpeciesModelVersion.Off)
+    SpeciesModelVersion Species = SpeciesModelVersion.Off,
+    EconomyModelVersion Economy = EconomyModelVersion.Off)
 {
     /// <summary>The frozen MA-1 path (all three models 0).</summary>
     public static readonly MultiAreaModelSelection Legacy =
@@ -78,11 +79,18 @@ internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, Mortalit
     /// <summary>True for 1/1/1/1/1: Stage 5 plus Sessile Oak and European Beech (Phase 2).</summary>
     public bool IsPhase2 => IsStage5 && Species == SpeciesModelVersion.ThreeSpeciesMixed;
 
+    /// <summary>Phase 2 (1/1/1/1/1) with Phase 2B Economy enabled.</summary>
+    public static readonly MultiAreaModelSelection Phase2WithEconomy =
+        Phase2 with { Economy = EconomyModelVersion.Enabled };
+
+    /// <summary>True when the opt-in Phase 2B Economy engine is active.</summary>
+    public bool IsEconomyEnabled => Economy == EconomyModelVersion.Enabled;
+
     /// <summary>
     /// Refuses any unknown value and any partial combination: the approved specs define Stage 4 behaviour only with adult,
     /// mortality and crown all at 1, Stage 5 regeneration only on top of that (it needs the Stage 4 adult step, the
     /// refreshed 2.5 m light and CrownModel 1), and Phase 2 species only on top of Stage 5. Supported: 0/0/0/0/0, 0/0/1/0/0,
-    /// 1/1/1/0/0, 1/1/1/1/0 and 1/1/1/1/1.
+    /// 1/1/1/0/0, 1/1/1/1/0 and 1/1/1/1/1 (each with Economy Off by default, or opt-in Economy Enabled).
     /// </summary>
     public MultiAreaModelSelection RequireSupported()
     {
@@ -91,7 +99,9 @@ internal sealed record MultiAreaModelSelection(AdultModelVersion Adult, Mortalit
         if (!Enum.IsDefined(Mortality)) throw new P1Refusal("MortalityModelUnknown", "unknown mortality model version");
         if (!Enum.IsDefined(Regeneration)) throw new P1Refusal("RegenerationModelUnknown", "unknown regeneration model version");
         if (!Enum.IsDefined(Species)) throw new P1Refusal("SpeciesModelUnknown", "unknown species model version");
-        if (this == Legacy || this == Stage3CrownC2 || this == Stage4 || this == Stage5 || this == Phase2) return this;
+        if (!Enum.IsDefined(Economy)) throw new P1Refusal("EconomyModelUnknown", "unknown economy model version");
+        var baseSelection = Economy == EconomyModelVersion.Off ? this : this with { Economy = EconomyModelVersion.Off };
+        if (baseSelection == Legacy || baseSelection == Stage3CrownC2 || baseSelection == Stage4 || baseSelection == Stage5 || baseSelection == Phase2) return this;
         if (Species != SpeciesModelVersion.Off)
             throw new P1Refusal("SpeciesModelIncomplete",
                 "Oak and Beech need AdultModelVersion 1, MortalityModelVersion 1, CrownModelVersion 1 and RegenerationModelVersion 1 together");
