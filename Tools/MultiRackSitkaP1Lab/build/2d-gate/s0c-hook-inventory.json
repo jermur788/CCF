@@ -1,0 +1,653 @@
+{
+  "schemaVersion": 1,
+  "sourceBaseCommit": "5648813d9ccbe8d38e9fbe5df38d62c810af4a22",
+  "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js",
+  "sourceSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+  "hookCount": 19,
+  "maxAllowedHooks": 20,
+  "totalRewrittenCallSites": 49,
+  "hooks": [
+    {
+      "function": "clearCompetition",
+      "ownerModule": "panels/fell-draft.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2474,
+      "callSites": [
+        {
+          "function": "clearCompetition",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/fell-draft.js",
+          "toLayer": 4,
+          "originalLine": 420,
+          "column": 60,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "competitionTag",
+      "ownerModule": "panels/fell-draft.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2473,
+      "callSites": [
+        {
+          "function": "competitionTag",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/fell-draft.js",
+          "toLayer": 4,
+          "originalLine": 421,
+          "column": 82,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "confirmationStillShown",
+      "ownerModule": "dialogs/execute-confirm.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 942,
+      "callSites": [
+        {
+          "function": "confirmationStillShown",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "dialogs/execute-confirm.js",
+          "toLayer": 4,
+          "originalLine": 427,
+          "column": 31,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "experimentBadgeText",
+      "ownerModule": "main.js",
+      "ownerLayer": 5,
+      "ownerOriginalLine": 1024,
+      "callSites": [
+        {
+          "function": "experimentBadgeText",
+          "fromModule": "panels/work-plan.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3116,
+          "column": 22,
+          "reason": "upward"
+        },
+        {
+          "function": "experimentBadgeText",
+          "fromModule": "panels/work-plan.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3134,
+          "column": 57,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "fill",
+      "ownerModule": "dom.js",
+      "ownerLayer": 1,
+      "ownerOriginalLine": 143,
+      "callSites": [
+        {
+          "function": "fill",
+          "fromModule": "store.js",
+          "fromLayer": 0,
+          "toModule": "dom.js",
+          "toLayer": 1,
+          "originalLine": 313,
+          "column": 23,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "fixed",
+      "ownerModule": "dom.js",
+      "ownerLayer": 1,
+      "ownerOriginalLine": 147,
+      "callSites": [
+        {
+          "function": "fixed",
+          "fromModule": "store.js",
+          "fromLayer": 0,
+          "toModule": "dom.js",
+          "toLayer": 1,
+          "originalLine": 309,
+          "column": 35,
+          "reason": "upward"
+        },
+        {
+          "function": "fixed",
+          "fromModule": "store.js",
+          "fromLayer": 0,
+          "toModule": "dom.js",
+          "toLayer": 1,
+          "originalLine": 310,
+          "column": 36,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "label",
+      "ownerModule": "dom.js",
+      "ownerLayer": 1,
+      "ownerOriginalLine": 139,
+      "callSites": [
+        {
+          "function": "label",
+          "fromModule": "store.js",
+          "fromLayer": 0,
+          "toModule": "dom.js",
+          "toLayer": 1,
+          "originalLine": 312,
+          "column": 22,
+          "reason": "upward"
+        },
+        {
+          "function": "label",
+          "fromModule": "store.js",
+          "fromLayer": 0,
+          "toModule": "dom.js",
+          "toLayer": 1,
+          "originalLine": 315,
+          "column": 52,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "loadHistoryIndex",
+      "ownerModule": "panels/time-history.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 4083,
+      "callSites": [
+        {
+          "function": "loadHistoryIndex",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 449,
+          "column": 30,
+          "reason": "upward"
+        },
+        {
+          "function": "loadHistoryIndex",
+          "fromModule": "dialogs/saves.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 698,
+          "column": 30,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "loadHistoryIndex",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3870,
+          "column": 32,
+          "reason": "cycle-break"
+        }
+      ]
+    },
+    {
+      "function": "reconcileDrafts",
+      "ownerModule": "panels/fell-draft.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2632,
+      "callSites": [
+        {
+          "function": "reconcileDrafts",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/fell-draft.js",
+          "toLayer": 4,
+          "originalLine": 423,
+          "column": 5,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "refreshCompetition",
+      "ownerModule": "panels/fell-draft.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2481,
+      "callSites": [
+        {
+          "function": "refreshCompetition",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/fell-draft.js",
+          "toLayer": 4,
+          "originalLine": 428,
+          "column": 49,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "refreshReviewPreview",
+      "ownerModule": "panels/time-history.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 3934,
+      "callSites": [
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 448,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 454,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "dialogs/saves.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 697,
+          "column": 7,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 2734,
+          "column": 45,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3575,
+          "column": 7,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3603,
+          "column": 7,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3610,
+          "column": 7,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshReviewPreview",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3869,
+          "column": 9,
+          "reason": "cycle-break"
+        }
+      ]
+    },
+    {
+      "function": "refreshStructure",
+      "ownerModule": "panels/time-history.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 4374,
+      "callSites": [
+        {
+          "function": "refreshStructure",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 431,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "refreshStructure",
+          "fromModule": "dialogs/saves.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 699,
+          "column": 65,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshStructure",
+          "fromModule": "panels/work-plan.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3172,
+          "column": 7,
+          "reason": "cycle-break"
+        },
+        {
+          "function": "refreshStructure",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3871,
+          "column": 67,
+          "reason": "cycle-break"
+        }
+      ]
+    },
+    {
+      "function": "renderAll",
+      "ownerModule": "main.js",
+      "ownerLayer": 5,
+      "ownerOriginalLine": 990,
+      "callSites": [
+        {
+          "function": "renderAll",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 424,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 842,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "modes/interactive.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 1891,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "modes/interactive.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 1907,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "modes/interactive.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 1930,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2487,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2494,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2499,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2665,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2677,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2688,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "panels/fell-draft.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 2724,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3559,
+          "column": 5,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3600,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3805,
+          "column": 7,
+          "reason": "upward"
+        },
+        {
+          "function": "renderAll",
+          "fromModule": "commands.js",
+          "fromLayer": 4,
+          "toModule": "main.js",
+          "toLayer": 5,
+          "originalLine": 3863,
+          "column": 9,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "renderPruneGate",
+      "ownerModule": "panels/inspector.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2464,
+      "callSites": [
+        {
+          "function": "renderPruneGate",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "panels/inspector.js",
+          "toLayer": 4,
+          "originalLine": 887,
+          "column": 7,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "renderSkipSummary",
+      "ownerModule": "panels/time-history.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 3945,
+      "callSites": [
+        {
+          "function": "renderSkipSummary",
+          "fromModule": "panels/work-plan.js",
+          "fromLayer": 4,
+          "toModule": "panels/time-history.js",
+          "toLayer": 4,
+          "originalLine": 3006,
+          "column": 5,
+          "reason": "cycle-break"
+        }
+      ]
+    },
+    {
+      "function": "reread",
+      "ownerModule": "commands.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 3851,
+      "callSites": [
+        {
+          "function": "reread",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "commands.js",
+          "toLayer": 4,
+          "originalLine": 759,
+          "column": 44,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "toggleDraft",
+      "ownerModule": "panels/fell-draft.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2653,
+      "callSites": [
+        {
+          "function": "toggleDraft",
+          "fromModule": "map/renderer-svg.js",
+          "fromLayer": 3,
+          "toModule": "panels/fell-draft.js",
+          "toLayer": 4,
+          "originalLine": 1854,
+          "column": 5,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "withdrawConfirmation",
+      "ownerModule": "dialogs/execute-confirm.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 973,
+      "callSites": [
+        {
+          "function": "withdrawConfirmation",
+          "fromModule": "api.js",
+          "fromLayer": 2,
+          "toModule": "dialogs/execute-confirm.js",
+          "toLayer": 4,
+          "originalLine": 427,
+          "column": 81,
+          "reason": "upward"
+        }
+      ]
+    },
+    {
+      "function": "workTotals",
+      "ownerModule": "panels/work-plan.js",
+      "ownerLayer": 4,
+      "ownerOriginalLine": 2870,
+      "callSites": [
+        {
+          "function": "workTotals",
+          "fromModule": "map/renderer-svg.js",
+          "fromLayer": 3,
+          "toModule": "panels/work-plan.js",
+          "toLayer": 4,
+          "originalLine": 1715,
+          "column": 23,
+          "reason": "upward"
+        }
+      ]
+    }
+  ]
+}
