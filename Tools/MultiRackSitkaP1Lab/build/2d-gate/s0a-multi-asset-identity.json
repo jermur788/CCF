@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "mode": "s0a-full",
+  "mode": "s0c-css-plus-html-delta",
   "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
   "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs",
   "sourceBlobId": "0c3f7ad9273666ce8bf751337f62ea4cb8d8e2d4",
