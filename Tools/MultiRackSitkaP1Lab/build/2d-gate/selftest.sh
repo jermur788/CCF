@@ -16,6 +16,8 @@ REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
 
 P0REF_DIR="${CCF_P0REF_DIR:-}"
 EVIDENCE_DIR=""
+# Ensure S0c browser parity in selftest always runs its self-contained single-arg self-check.
+unset S0C_PARITY_REF
 
 usage() {
   echo "Usage: build/2d-gate/selftest.sh [--p0ref-dir <dir>] <evidence-dir>" >&2
@@ -148,7 +150,7 @@ run_case_gate() {
   run_case_raw "$cid" "$expected_rc" "$expected_pat" "$desc" "$@" "$case_ev"
 }
 
-say "=== 2d-gate.sh fail-closed selftest (26 cases) ==="
+say "=== 2d-gate.sh fail-closed selftest (29 cases) ==="
 say "HEAD=${HEAD_SHA} BASE=${BASE_SHA} P0REF_DIR=${P0REF_DIR:-<none>}"
 
 # ------------------------------------------------------------------------------
@@ -273,7 +275,7 @@ git -C "$FAST_CLONE" reset --quiet --hard "$HEAD_SHA"
 git -C "$FAST_CLONE" clean --quiet -fdx
 rm -rf -- "$FAST_CLONE" "$SCRATCH/tmp"/*
 
-say "Fast cases C01-C09 and C16-C19 completed; running full end-to-end stage cases C10-C15 and C20-C26 sequentially (foreground, zero CPU contention)..."
+say "Fast cases C01-C09 and C16-C19 completed; running full end-to-end stage cases C10-C15 and C20-C29 sequentially (foreground, zero CPU contention)..."
 
 # ------------------------------------------------------------------------------
 # Full end-to-end cases past G2 (each gets its own isolated sparse clone, run sequentially in foreground)
@@ -392,9 +394,37 @@ PY
 
 mut_asset_identity() {
   local clone="$1"
-  printf '\n// selftest multi.js asset-identity tamper' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js"
+  # Tamper a committed served asset pinned by s0a-multi-asset-identity (no trailing LF so T0 SHA check fires).
+  printf ' /* selftest multi.css asset-identity tamper */' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css"
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css
+  git -C "$clone" commit --quiet -m "selftest: tamper committed src/Ui/multi/multi.css"
+}
+
+mut_s0c_module_tamper() {
+  local clone="$1"
+  printf '\n// selftest main.js tamper' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/main.js"
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/main.js
+  git -C "$clone" commit --quiet -m "selftest: tamper committed ES module src/Ui/multi/main.js"
+}
+
+mut_legacy_multi_js() {
+  local clone="$1"
+  printf '// selftest re-added retired multi.js' > "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js"
   git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js
-  git -C "$clone" commit --quiet -m "selftest: tamper committed src/Ui/multi/multi.js"
+  git -C "$clone" commit --quiet -m "selftest: re-add retired src/Ui/multi/multi.js"
+}
+
+mut_s0c_hook_inventory() {
+  local clone="$1"
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate/s0c-hook-inventory.json" <<'PY'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p, "r", encoding="utf-8"))
+d["hooks"][0]["callSites"][0]["originalLine"] += 1
+json.dump(d, open(p, "w", encoding="utf-8"), indent=2)
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/build/2d-gate/s0c-hook-inventory.json
+  git -C "$clone" commit --quiet -m "selftest: tamper build/2d-gate/s0c-hook-inventory.json"
 }
 
 mut_move_proof() {
@@ -463,15 +493,20 @@ run_full_case "C10-g3-anchor" 1 "GATE G3 FAIL" "tampered anchor manifest -> exit
 run_full_case "C11-g4-phase1" 1 "GATE G4 FAIL" "frozen src/Core/Phase1 edit -> exit 1" mut_g4_phase1
 run_full_case "C12-g6-f1-random" 1 "GATE G6 FAIL" "planted F1 new Random() in Core -> exit 1" mut_g6_f1_token
 run_full_case "C13-g7-assets" 4 "GATE G7 FAIL" "planted file under Assets/ -> exit 4" mut_g7_assets
-run_full_case "C14-missing-marker" 1 "fail-closed marker check failed" "suppressed GATE G7 PASS marker -> exit 1" mut_missing_marker
+# Pass --headless-only on C14 so Stage B browser-required policy does not short-circuit before the final marker check (must fail closed with exit 1, not exit 5 PARTIAL).
+run_full_case "C14-missing-marker" 1 "fail-closed marker check failed" "suppressed GATE G7 PASS marker -> exit 1" mut_missing_marker --headless-only
 run_full_case "C15-headless-only" 5 "VERDICT: PARTIAL" "--headless-only partial mode -> exit 5" mut_noop --headless-only
 run_full_case "C20-g2-uismoke-5th-fail" 1 "ui-smoke\.sh unexpected failure IDs: \['Z99'\]" "planted 5th ui-smoke failure Z99 -> exit 1" mut_uismoke_5th_fail
-run_full_case "C21-g2-asset-identity" 1 "S0a /multi asset identity failed" "tampered src/Ui/multi/multi.js -> exit 1" mut_asset_identity
+run_full_case "C21-g2-asset-identity" 1 "S0c mode: multi\.css no longer matches T0 R_css" "tampered served src/Ui/multi/multi.css -> exit 1" mut_asset_identity
 run_full_case "C22-g2-move-proof" 1 "S0a move-proof failed" "tampered moved block in Commands.Crop.cs -> exit 1" mut_move_proof
 run_full_case "C23-g5-budget" 1 "GATE G5 FAIL" "planted G5 payload budget regression (M11) -> exit 1" mut_g5_budget
 run_full_case "C24-g6-rng-literal" 1 "GATE G6 FAIL" "planted RNG key-prefix literal outside RngSalts.cs -> exit 1" mut_g6_rng_literal
 run_full_case "C25-g7-denylist" 4 "DENY_PREFIX" "planted file under denied Docs/Project/ -> exit 4" mut_g7_denylist
-run_full_case "C26-clean-uismoke-exact-four" 0 "ui-smoke\.sh PASS-BASELINE-DRIFT \(250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS\)" "clean exact-four ui-smoke allowance -> exit 0" mut_noop
+# Run C26 with --browser (S0C_PARITY_REF unset) so Stage B runs self-contained parity self-check and proves genuine VERDICT: PASS exit 0.
+run_full_case "C26-clean-uismoke-exact-four" 0 "ui-smoke\.sh PASS-BASELINE-DRIFT \(250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS\)" "clean exact-four ui-smoke allowance (--browser) -> exit 0" mut_noop --browser
+run_full_case "C27-g2-s0c-module-tamper" 1 "S0c js-reconstruct\.mjs failed" "tampered committed ES module src/Ui/multi/main.js -> exit 1" mut_s0c_module_tamper
+run_full_case "C28-g2-legacy-multi-js" 1 "retired Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi\.js still exists at HEAD" "re-added retired src/Ui/multi/multi.js -> exit 1" mut_legacy_multi_js
+run_full_case "C29-g2-s0c-hook-inventory" 1 "S0c js-reconstruct\.mjs failed" "tampered build/2d-gate/s0c-hook-inventory.json -> exit 1" mut_s0c_hook_inventory
 
 # Verify real working tree was never touched.
 REAL_STATUS_AFTER="$(git -C "$REPO_ROOT" status --porcelain)"
@@ -519,7 +554,7 @@ with open(out_json, "w", encoding="utf-8") as f:
     f.write("\n")
 
 print(f"Covered exit codes: {covered_codes}")
-if failed > 0 or missing_codes or len(rows) != 26:
+if failed > 0 or missing_codes or len(rows) != 29:
     print(f"OVERALL: FAIL ({passed}/{len(rows)} passed, {failed} failed, missingCodes={missing_codes})")
     sys.exit(1)
 print(f"OVERALL: PASS ({passed}/{len(rows)} passed, 0 failed; all exit codes 0,1,2,3,4,5,64 proven)")
