@@ -313,6 +313,19 @@ run_full_case() {
       say "NOTE [selftest]: retrying ${cid} (attempt $((attempt + 1))/3) after pre-existing frozen NB1c OS-scheduling race (49/50, expected 1 got 3)"
       continue
     fi
+    # Transparently retry ONLY when unmodified 2d-gate.sh exited 1 at Stage B solely due to a transient
+    # WSL2->Windows loopback relay ERR_CONNECTION_REFUSED on initial /multi navigate (single-element error, all 9 states captured, 0 console/CSP/HTML failures).
+    local parity_log="$case_ev/stage-b-s0c-parity.log"
+    if [[ "$attempt" -lt 3 && -f "$parity_log" && -f "$case_ev/gate.log" ]] \
+      && grep -q '^ERROR \[B\]: tests/s0c-parity/run-parity-edge\.sh failed$' "$case_ev/gate.log" \
+      && grep -Eq 'zero HTTP 4xx/5xx or failed requests: \[\{"method":"GET","url":"http://127\.0\.0\.1:[0-9]+/s/<capability>/multi","errorText":"net::ERR_CONNECTION_REFUSED"\}\]$' "$parity_log" \
+      && grep -Eq '^PASS .*: captured all 9 required parity states$' "$parity_log" \
+      && grep -Eq '^PASS .*: zero console errors or uncaught exceptions$' "$parity_log" \
+      && grep -Eq '^PASS .*: zero CSP violations$' "$parity_log" \
+      && ! grep -q '^FAIL HTML DIFF ' "$parity_log"; then
+      say "NOTE [selftest]: retrying ${cid} (attempt $((attempt + 1))/3) after transient WSL2 loopback ERR_CONNECTION_REFUSED on initial /multi navigate"
+      continue
+    fi
     break
   done
   rm -rf -- "$clone" "$SCRATCH/tmp"/*
