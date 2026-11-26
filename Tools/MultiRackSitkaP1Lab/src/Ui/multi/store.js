@@ -1,0 +1,300 @@
+// S0c provenance: store.js [L0] — section(s) 0, 2 from multi.js
+  export const SVG_NS = 'http://www.w3.org/2000/svg';
+  export const SPOT_PREVIEW_RADIUS_M = Math.sqrt(1 / Math.PI); // visual radius (~0.564 m) for ~1 m2 Spot Clear circle preview
+  const STATUS_LABEL = { Living: 'StatusLiving', PendingFell: 'StatusPendingFell', ApprovedFell: 'StatusApprovedFell',
+    Felled: 'StatusFelled', NaturalDead: 'StatusNaturalDead' };
+  const SPECIES_NAME = { 'sitka-spruce': 'Sitka spruce', 'sessile-oak': 'Sessile oak', beech: 'European beech' };
+  export const SPECIES_SHORT = { 'sitka-spruce': 'S', 'sessile-oak': 'O', beech: 'B' };
+  export const SPECIES_SYMBOL = { 'sitka-spruce': 'ccf-sitka', 'sessile-oak': 'ccf-oak', beech: 'ccf-beech' };
+  export const SAPLING_SYMBOL = { 'sitka-spruce': 'ccf-sapling-sitka', 'sessile-oak': 'ccf-sapling-oak', beech: 'ccf-sapling-beech' };
+  export const ZOOMS = Array.from({ length: 11 }, (_, i) => Math.pow(4, i / 10));
+  export const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
+  export const PANE_NAMES = { tree: 'Tree', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
+  export const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
+    'execute-confirm', 'advance', 'skip-review', 'consent-advance', 'prune-add', 'prune-remove',
+    'cell-clear-add', 'cell-clear-remove', 'plant-queue', 'spot-queue', 'pj-shelter-add', 'pj-shelter-remove'];
+  const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
+  const LIGHT_EASE = 0.65;
+  const LIGHT_ALPHA_MAX = 0.9;
+  const LIGHT_WORDS = [[0.1, 'Very shaded'], [0.35, 'Low'], [0.65, 'Moderate'], [Infinity, 'Bright']];
+  export const SLATE = [0x1b, 0x24, 0x30];
+  export const STATEMENTS = ['MultiSyntheticStatement', 'MultiNotComparable', 'MultiSiteUnknown', 'MultiEdgeExcluded',
+    'MultiNoTransfer', 'MultiSessionOnly'];
+  export const CHIPS = [['MultiChipSynthetic', 'MultiSyntheticStatement'], ['MultiChipNotComparable', 'MultiNotComparable'],
+    ['MultiChipSiteUnknown', 'MultiSiteUnknown'], ['MultiChipEdgeExcluded', 'MultiEdgeExcluded'],
+    ['MultiChipNoTransfer', 'MultiNoTransfer']];
+  export const DEFAULT_REASON = 'Owner-selected felling';
+
+  export const state = {
+    view: null,
+    scenes: {},
+    labels: null,
+    stage4: null,
+    ecology: null,
+    areaId: null,
+    selected: {},
+    selectedJuvenile: null, // { areaId, juvenileId } when inspecting a planted sapling in Select Tree mode
+    drafts: {},
+    draftNotice: null,
+    overlap: null,
+    competition: null,
+    competitionTarget: null,
+    competitionTag: null,
+    competitionRequest: 0,
+    busy: false,
+    queueRunning: false,
+    mapPick: 0,
+    cellPick: 0,
+    batchResultOpen: false,
+    batch: null,
+    batchResult: null,
+    lock: null,
+    lockCount: 0,
+    confirmation: null,
+    consentWork: false,
+    opener: null,
+    lastExecution: null,
+    lastWasReplay: false,
+    zoom: 1,
+    centre: null,
+    legendHidden: false,
+    mapMode: 'tree', // 'tree' | 'cell' | 'plant' | 'spot'
+    overlay: 'off', // 'off' | 'light' | 'undergrowth' | 'seedlings'
+    cellDetail: null, // server cell detail from POST api/multi/cell, or { areaId, missing: true }
+    cellLoading: false,
+    plantDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
+    plantResult: null, // sequential Plant -> Shelter -> SpotClear queue result + partial disclosure
+    spotDraft: null, // provisional local preview { areaId, u, v, xM, zM } (snap OFF, zero engine order)
+    spotResult: null,
+    saves: [], // GET api/multi/saves rows: slot, label, year, savedUtc, models, status, canLoad, backup state, recoverable
+    loadSlot: null, // slot awaiting the player's explicit "replace the current forest" confirmation
+    recoverSlot: null, // slot awaiting the player's explicit "restore its backup" confirmation
+    // Phase 1 Step 2: bounded view metadata, review preview/skip, on-demand History drawer, and on-demand Structure panel.
+    historyTruncated: false,
+    payloadBudgetExceeded: false,
+    totalRecordedYears: 0,
+    reviewPreview: null,
+    previewRequest: 0,
+    lastSkip: null,
+    historyOpen: false,
+    historyLoading: false,
+    historyDetailLoading: false,
+    historyItems: [],
+    historyNextCursor: null,
+    historyTotalRecorded: 0,
+    historySelectedYear: null,
+    historyDetail: null,
+    historyError: null,
+    historyRequest: 0,
+    historyDetailRequest: 0,
+    structure: null,
+    structureLoading: false,
+    structureError: null,
+    structureRequest: 0,
+    structureRootTag: null,
+  };
+
+  export const byId = (id) => document.getElementById(id);
+
+  // ---- lookups in the latest atomic composite payload -----------------------------------------------------------------
+
+  export function areaView(areaId) {
+    return state.view && areaId ? state.view.areas.find((area) => area.areaId === areaId) || null : null;
+  }
+  export function currentArea() { return areaView(state.areaId); }
+  export function treeIn(areaId, treeId) {
+    const area = areaView(areaId);
+    return area && treeId ? area.trees.find((tree) => tree.treeId === treeId) || null : null;
+  }
+  export function livingIn(areaId, treeId) {
+    const tree = treeIn(areaId, treeId);
+    return Boolean(tree && tree.isLiving);
+  }
+  export function areaOfTree(treeId) {
+    return state.view ? (state.view.areas.find((area) => area.trees.some((tree) => tree.treeId === treeId)) || null) : null;
+  }
+  export function sceneOf(areaId) { return (state.scenes && state.scenes[areaId]) || []; }
+  export function itemOf(areaId, treeId) { return sceneOf(areaId).find((item) => item.treeId === treeId) || null; }
+  export function areaName(areaId) { const area = areaView(areaId); return area ? area.label : String(areaId); }
+  export function areaShort(areaId) { const area = areaView(areaId); return area ? area.label : String(areaId); }
+  export function selectedId() { return state.areaId ? state.selected[state.areaId] || null : null; }
+  export function ordersIn(orders, areaId) { return orders.filter((order) => order.areaId === areaId); }
+
+  export function speciesOf(treeId) {
+    if (state.ecology && state.ecology.speciesByTreeId && state.ecology.speciesByTreeId[treeId]) {
+      return state.ecology.speciesByTreeId[treeId];
+    }
+    return 'sitka-spruce';
+  }
+  export function speciesLabel(speciesId) { return SPECIES_NAME[speciesId] || speciesId; }
+
+  export function s4Area(areaId) {
+    const readout = state.stage4;
+    return readout && areaId ? readout.areas.find((area) => area.areaId === areaId) || null : null;
+  }
+  export function s4Tree(areaId, treeId) {
+    const area = s4Area(areaId);
+    return area && treeId ? area.trees.find((tree) => tree.treeId === treeId) || null : null;
+  }
+  export function ecoArea(areaId) {
+    const eco = state.ecology;
+    return eco && areaId ? eco.areas.find((area) => area.areaId === areaId) || null : null;
+  }
+  // Engine-authoritative species-aware prune status (prefers ecology.pruneStatusByTreeId, falls back to stage4).
+  export function pruneStatusOf(areaId, treeId) {
+    if (state.ecology && state.ecology.pruneStatusByTreeId && state.ecology.pruneStatusByTreeId[treeId]) {
+      return state.ecology.pruneStatusByTreeId[treeId];
+    }
+    const s4 = s4Tree(areaId, treeId);
+    if (!s4) return null;
+    return {
+      speciesId: speciesOf(treeId),
+      eligible: s4.pruneEligible,
+      lifts: s4.pruningLifts,
+      maxLifts: s4.maxPruningLifts,
+      minIntervalYears: 5,
+      nextTargetM: s4.nextPruneTargetM,
+      nextEligibleYear: s4.nextPruneEligibleYear,
+      refusalCode: s4.pruneRefusalCode,
+      refusalReason: s4.pruneRefusalReason,
+      planState: s4.prunePlanState,
+    };
+  }
+  export function pendingPrunes() { return state.stage4 ? state.stage4.pendingPrunes : []; }
+  export function approvedPrunes() { return state.stage4 ? state.stage4.approvedPrunes : []; }
+  export function pendingClears() { return state.ecology ? (state.ecology.pendingClear || []) : []; }
+  export function approvedClears() { return state.ecology ? (state.ecology.approvedClear || []) : []; }
+  export function pendingPlantings() { return state.ecology ? (state.ecology.pendingPlanting || []) : []; }
+  export function approvedPlantings() { return state.ecology ? (state.ecology.approvedPlanting || []) : []; }
+  export function worldFromMap(area, u, v) {
+    return { xM: area.extent.minXM + u, zM: area.extent.minZM + area.extent.sideM - v };
+  }
+  export function plantedIn(areaId) {
+    return state.ecology ? (state.ecology.planted || []).filter((j) => j.areaId === areaId) : [];
+  }
+  export function juvenileById(juvenileId) {
+    return state.ecology && juvenileId ? (state.ecology.planted || []).find((j) => j.juvenileId === juvenileId) || null : null;
+  }
+  export function currentJuvenile() {
+    const sel = state.selectedJuvenile;
+    if (!sel || sel.areaId !== state.areaId) return null;
+    const j = juvenileById(sel.juvenileId);
+    return j && j.areaId === state.areaId ? j : null;
+  }
+  export function shelterForJuvenile(j) {
+    if (!state.ecology || !j) return null;
+    const list = (state.ecology.shelters || []).filter((s) => s.juvenileId === j.juvenileId);
+    return list.find((s) => s.isEffective) || list[list.length - 1] || null;
+  }
+  export function matchingShelterOrder(orders, j) {
+    if (!j) return null;
+    return orders.find((o) => o.kind === 'Shelter' && o.areaId === j.areaId &&
+      Math.abs(o.xm - j.xm) < 1e-4 && Math.abs(o.zm - j.zm) < 1e-4) || null;
+  }
+  export function isStage4() { return Boolean(state.stage4 && state.stage4.models.adultModelVersion === 1); }
+  export function isPhase2() { return Boolean(state.ecology && state.ecology.models && state.ecology.models.species === 1); }
+  export function readoutState() { return !state.stage4 ? 'unavailable' : isPhase2() ? 'phase2' : isStage4() ? 'stage4' : 'legacy'; }
+
+  export function compactCellsFor(areaId) {
+    if (!state.ecology || !state.view) return new Map();
+    const areaIdx = state.view.areas.findIndex((a) => a.areaId === areaId);
+    if (areaIdx < 0) return new Map();
+    const map = new Map();
+    for (const row of state.ecology.cellsCompact) {
+      if (row[0] === areaIdx) map.set(row[1] + ':' + row[2], row);
+    }
+    return map;
+  }
+
+  export function lightPaint(index) {
+    if (!(index > 0)) return null;
+    const t = Math.pow(Math.min(1, index), LIGHT_EASE);
+    const segment = t <= 0.5 ? 0 : 1;
+    const f = segment === 0 ? t / 0.5 : (t - 0.5) / 0.5;
+    const rgb = LIGHT_STOPS[segment].map((low, i) => Math.round(low + (LIGHT_STOPS[segment + 1][i] - low) * f));
+    return { colour: '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join(''), opacity: opacityText(LIGHT_ALPHA_MAX * t) };
+  }
+  export function opacityText(opacity) {
+    const decimals = Math.max(4, 2 - Math.floor(Math.log10(opacity)));
+    return decimals <= 100 ? opacity.toFixed(decimals) : opacity.toExponential(3);
+  }
+  export function lightWord(index) {
+    const word = LIGHT_WORDS.find(([below]) => index < below)[1];
+    return index > 0 ? word : word + ' · no modelled light';
+  }
+  export function groundCell(areaId, column, row) {
+    const area = s4Area(areaId);
+    return area ? area.ground.find((cell) => cell.column === column && cell.row === row) || null : null;
+  }
+  export function pct(fraction) { return hooks.fixed(fraction * 100, 0) + '%'; }
+  export function pct1(fraction) { return hooks.fixed(fraction * 100, 1) + '%'; }
+  export function baseStatusText(item) {
+    const template = hooks.label(STATUS_LABEL[item.status]);
+    return template ? hooks.fill(template, { y: item.deathYear }) : String(item.status);
+  }
+  export function statusText(item) { return item.isCrop ? hooks.label('CropRetained') : baseStatusText(item); }
+
+  export function referenceIn(areaId) {
+    const id = state.selected[areaId];
+    return id && livingIn(areaId, id) ? id : null;
+  }
+  export function draftOf(areaId) {
+    const draft = state.drafts[areaId];
+    const reference = referenceIn(areaId);
+    return draft && reference && draft.ref === reference ? draft.ids : [];
+  }
+  export function draftTotal() {
+    return state.view ? state.view.areas.reduce((sum, area) => sum + draftOf(area.areaId).length, 0) : 0;
+  }
+  export function currentReport() {
+    const comp = state.competition;
+    if (!comp || state.lock || comp.areaId !== state.areaId) return null;
+    return comp.report && comp.report.targetTreeId === referenceIn(state.areaId) ? comp.report : null;
+  }
+
+  export function blockedReason(areaId, treeId) {
+    const item = itemOf(areaId, treeId);
+    if (!item) return 'Not in this area';
+    if (item.isCrop) return 'Retained Crop — not offered for Fell';
+    switch (item.status) {
+      case 'PendingFell': return 'Already pending Fell';
+      case 'ApprovedFell': return 'In the approved plan';
+      case 'Felled': return 'Felled';
+      case 'NaturalDead': return 'Dead';
+      default: break;
+    }
+    const ps = pruneStatusOf(areaId, treeId);
+    if (ps && ps.planState) return 'In the Prune plan';
+    if (treeId === referenceIn(areaId)) return 'Reference tree';
+    return null;
+  }
+
+  const SHORT_BLOCKED = {
+    'Retained Crop — not offered for Fell': 'Retained Crop', 'Already pending Fell': 'Pending Fell',
+    'In the approved plan': 'Approved plan', 'In the Prune plan': 'Prune plan', 'Reference tree': 'Reference', 'Not in this area': 'Other area'
+  };
+  export function shortBlockedReason(why) { return SHORT_BLOCKED[why] || why; }
+
+
+  // S0c P4 hooks registry
+  export const hooks = Object.seal({
+    clearCompetition: null,
+    competitionTag: null,
+    confirmationStillShown: null,
+    experimentBadgeText: null,
+    fill: null,
+    fixed: null,
+    label: null,
+    loadHistoryIndex: null,
+    reconcileDrafts: null,
+    refreshCompetition: null,
+    refreshReviewPreview: null,
+    refreshStructure: null,
+    renderAll: null,
+    renderPruneGate: null,
+    renderSkipSummary: null,
+    reread: null,
+    toggleDraft: null,
+    withdrawConfirmation: null,
+    workTotals: null,
+  });

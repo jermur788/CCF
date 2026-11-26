@@ -320,7 +320,37 @@
           "t0EndLine": 1327,
           "members": []
         }
-      ]
+      ],
+      "s0cModuleRoutes": {
+        "mode": "s0c-module-routes",
+        "staticFieldT0Line": 55,
+        "routeAddT0Line": 75,
+        "oldStaticFieldName": "MultiPageJs",
+        "newStaticFieldName": "MultiPageModules",
+        "newStaticFieldLines": [
+          "    private static readonly (string Route, byte[] Asset)[] MultiPageModules =",
+          "    {",
+          "        (\"multi/api.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.api.js\")),",
+          "        (\"multi/commands.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.commands.js\")),",
+          "        (\"multi/dialogs/execute-confirm.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.dialogs.execute-confirm.js\")),",
+          "        (\"multi/dialogs/saves.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.dialogs.saves.js\")),",
+          "        (\"multi/dom.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.dom.js\")),",
+          "        (\"multi/main.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.main.js\")),",
+          "        (\"multi/map/contract.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.map.contract.js\")),",
+          "        (\"multi/map/renderer-svg.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.map.renderer-svg.js\")),",
+          "        (\"multi/modes/interactive.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.modes.interactive.js\")),",
+          "        (\"multi/panels/fell-draft.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.panels.fell-draft.js\")),",
+          "        (\"multi/panels/inspector.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.panels.inspector.js\")),",
+          "        (\"multi/panels/time-history.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.panels.time-history.js\")),",
+          "        (\"multi/panels/work-plan.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.panels.work-plan.js\")),",
+          "        (\"multi/store.js\", MultiEmbeddedAsset(\"SitkaP1.Ui.multi.store.js\")),",
+          "    };"
+        ],
+        "newRouteAddLines": [
+          "        foreach (var (route, asset) in MultiPageModules)",
+          "            routes.Add(route, new(\"GET\", context => WriteAssetAsync(context, asset, \"text/javascript; charset=utf-8\")));"
+        ]
+      }
     },
     "core": {
       "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
