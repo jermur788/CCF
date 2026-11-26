@@ -28,9 +28,11 @@
 | 4 (MIN-2) | `1c662ae3e90f4983db6fb0d62089fd6bd319b98b` | `build(2d-gate): cover G5, asset identity, move-proof, ui-smoke allowance, deny-list and seed edges` | `build/2d-gate/selftest.sh` (15 → 26 fail-closed & clean-control cases); duplicate `ui-smoke` FAIL-ID guard in `build/2d-gate.sh` |
 | 5 (D4 / MIN-1) | `c10c58065e83c62e5e7cacc94990f2ac121d8084` | `docs(spec): freeze S0b contracts and reconcile MIN-1 wording` | `specs/multi-2d-s0-seam-extraction-v1/frozen-contracts-s0b.md`; wording-only MIN-1 reconciliation in `specs/multi-2d-s0-seam-extraction-v1/spec.md` (zero semantic drift, zero section renumbering, §6.6 untouched) |
 | 6 (MIN-2) | `1685207591a9efaa80248102fb2d225c0248b442` | `build(2d-gate): guard selftest full cases against frozen NB1c scheduling race` | `build/2d-gate/selftest.sh` narrow transparent retry solely for the documented pre-existing frozen `NB1c` OS-scheduling race (`49/50`, `expected 1, got 3`); `2d-gate.sh` unchanged |
-| 7 (T-B4) | *(this commit — exact pushed HEAD reported in handoff reply)* | `docs(handoff): publish S0b decision update and implementation handoff` | `S0B-IMPLEMENTATION-HANDOFF-20261125.md` + move-proof count alignment in `S0B-SAFETY-VALVE-DECISION-20261125.md` |
+| 7 (T-B4) | `f6467f70156c3e68a448d47c3ab1cc8dd3beb8e7` | `docs(handoff): publish S0b decision update and implementation handoff` | Initial `S0B-IMPLEMENTATION-HANDOFF-20261125.md` + move-proof count alignment in `S0B-SAFETY-VALVE-DECISION-20261125.md` |
+| 8 (MIN-2 fix) | `a564812245c5d4ebe60f67ce40ab5c2016d55ac1` | `build(2d-gate): scope child TMPDIR inside gate scratch to prevent temp leak` | Genuine defect revealed by MIN-2 selftest: `2d-gate.sh` and `selftest.sh` now scope child `TMPDIR` inside `$SCRATCH_DIR/tmp` (cleaned on exit) so frozen `tests/cli-safety.sh` no longer leaks 65 MB `/tmp/ccf-p1-clisafety.*` directories per run |
+| 9 (T-B4) | *(this commit — exact pushed HEAD reported in handoff reply)* | `docs(handoff): record TMPDIR leak fix commit in S0b handoff` | Updated commit table and MIN-2 defect note in `S0B-IMPLEMENTATION-HANDOFF-20261125.md` |
 
-*(Note: final `build/2d-gate.sh --base 2af3fb1ca3c97fe85735522ca4a4aa6d7b60cb88` and full 26-case `build/2d-gate/selftest.sh` are executed on Commit 7's exact pushed HEAD before pushing; raw logs reside under `/home/jer/Development/CCF-Multi-2D-S0b-Evidence-20261125/final-gate/` and `/home/jer/Development/CCF-Multi-2D-S0b-Evidence-20261125/final-selftest/`.)*
+*(Note: final `build/2d-gate.sh --base 2af3fb1ca3c97fe85735522ca4a4aa6d7b60cb88` and full 26-case `build/2d-gate/selftest.sh` are executed on Commit 9's exact pushed HEAD before pushing; raw logs reside under `/home/jer/Development/CCF-Multi-2D-S0b-Evidence-20261125/final-gate/` and `/home/jer/Development/CCF-Multi-2D-S0b-Evidence-20261125/final-selftest/`.)*
 
 ---
 
@@ -179,7 +181,10 @@ All 15 S0a cases (`C01`–`C15`) remain intact with their original exit codes, p
 | `C25-g7-denylist` | Planted file under denied `Docs/Project/` inside allowed `Docs/` root | 4 | `DENY_PREFIX` |
 | `C26-clean-uismoke-exact-four` | Unmodified HEAD control (only `{L01,L02,L06,J31}` fail in `ui-smoke.sh`) | 0 | `ui-smoke.sh PASS-BASELINE-DRIFT (250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS)` |
 
-Gate hardening alongside MIN-2: added duplicate-FAIL-ID rejection in `build/2d-gate.sh` `ui-smoke.sh` validation so repeated allowed IDs cannot spoof extra failures; added a narrow transparent retry in `selftest.sh` `run_full_case` strictly for the pre-existing frozen `NB1c` OS-scheduling race (`49/50`, `expected 1, got 3`), leaving `2d-gate.sh` itself 100% strict and unweakened.
+Gate hardening alongside MIN-2:
+- Added duplicate-FAIL-ID rejection in `build/2d-gate.sh` `ui-smoke.sh` validation so repeated allowed IDs cannot spoof extra failures.
+- Fixed a genuine defect in `build/2d-gate.sh` and `build/2d-gate/selftest.sh` revealed when running the expanded 26-case selftest on a bounded `/tmp` tmpfs: child suites (notably frozen `tests/cli-safety.sh`, which leaves ~65 MB per run in `$TMPDIR`) leaked temporary directories into `/tmp` until `/tmp` filled up. Both scripts now validate the caller's `TMPDIR` strictly outside the repo first, then scope child `TMPDIR` inside their own `$SCRATCH_DIR/tmp` / `$SCRATCH/tmp` directories (cleaned on exit and between selftest cases), preventing temp accumulation with zero weakening of any check.
+- Added a narrow transparent retry in `selftest.sh` `run_full_case` strictly for the pre-existing frozen `NB1c` OS-scheduling race (`49/50`, `expected 1, got 3`), leaving `2d-gate.sh` itself 100% strict and unweakened.
 
 ---
 
