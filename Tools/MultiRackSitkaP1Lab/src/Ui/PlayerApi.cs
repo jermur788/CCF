@@ -69,8 +69,7 @@ internal sealed partial class PlayerApi
         MultiAreaContinuation multiSession, Phase1SaveSlots saveSlots, string capability)
     {
         this.player = player;
-        this.multiArea = multiArea;
-        this.multiSession = multiSession;
+        this.multiCurrent = new MultiSessionPair(multiArea, multiSession);
         this.saveSlots = saveSlots;
         this.capability = capability;
         capabilityBytes = Encoding.ASCII.GetBytes(capability);

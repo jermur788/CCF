@@ -3,7 +3,7 @@
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 // S0c provenance: main.js [L5] — sections 7, 15, 17b(wire), 17b(bootstrap) from multi.js
 import { announce, applyPayload, call, clearAlert, currentFence, refusedByLock, renderCommandGate, rereadButton, showAlert, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
-import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSpotQueue, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
+import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
 import { el, fill, fixed, label, n3, pair, plural, svg } from './dom.js';
@@ -13,7 +13,7 @@ import { clearCompetition, clearDraft, competitionTag, onBatchResultClick, recon
 import { renderInspector, renderOverlap, renderPruneGate } from './panels/inspector.js';
 import { closeHistoryDrawer, loadHistoryIndex, loadHistoryYear, onSkipReview, openHistoryDrawer, refreshReviewPreview, refreshStructure, renderHistoryDrawer, renderSkipControl, renderSkipSummary, renderStructure } from './panels/time-history.js';
 import { panMap, renderDetails, renderHistory, renderMapControls, renderPaneButtons, renderPlan, renderReceipt, renderTable, showPane, workTotals, zoomMap } from './panels/work-plan.js';
-import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, juvenileById, livingIn, ordersIn, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
+import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, juvenileById, livingIn, ordersIn, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
   // ---- rendering ------------------------------------------------------------------------------------------------------
 
   function renderAll() {
@@ -66,6 +66,20 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     badgeEl.textContent = badgeText;
     badgeEl.setAttribute('title', badgeText);
     byId('year-value').textContent = String(view.source.ecologicalYear);
+    const econOn = isEconomyEnabled();
+    const econToggle = byId('economy-toggle');
+    if (econToggle) econToggle.setAttribute('aria-pressed', String(econOn));
+    const econToggleLabel = byId('economy-toggle-label');
+    if (econToggleLabel) econToggleLabel.textContent = econOn ? 'Money: On' : 'Money: Off';
+    const econStrip = byId('economy-strip');
+    if (econStrip) {
+      econStrip.hidden = !econOn;
+      if (econOn) {
+        byId('economy-cash').textContent = state.economy.cashBalanceDisplay;
+        byId('economy-hours').textContent = state.economy.landownerHoursDisplay;
+        byId('economy-stage').textContent = state.economy.nextHarvestStageLabel + ' · ' + state.economy.minimumHarvestFloorDisplay + ' floor';
+      }
+    }
     byId('advance-label').textContent = label('MultiAdvanceYear');
     byId('area-cards').replaceChildren(...view.areas.map((area) => el('div', {
       class: 'card area-card' + (area.areaId === state.areaId ? ' current' : '') },
@@ -489,6 +503,14 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     byId('overlay-select').addEventListener('change', (event) => setOverlay(event.target.value));
     byId('crop-button').addEventListener('click', onCrop);
     byId('reread').addEventListener('click', () => reread(true));
+    byId('economy-toggle').addEventListener('click', openEconomyToggleDialog);
+    byId('economy-toggle-cancel').addEventListener('click', () => {
+      state.economyToggleTarget = null;
+      byId('economy-toggle-dialog').close();
+    });
+    byId('economy-toggle-confirm').addEventListener('click', onEconomyToggleConfirmed);
+    byId('economy-toggle-dialog').addEventListener('cancel', () => { state.economyToggleTarget = null; });
+    byId('economy-toggle-dialog').addEventListener('close', returnFocus);
     byId('advance').addEventListener('click', onAdvance);
     byId('skip-review').addEventListener('click', onSkipReview);
     byId('history-open').addEventListener('click', openHistoryDrawer);
@@ -573,6 +595,15 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     byId('add-form').addEventListener('submit', onAdd);
     byId('insp-remove').addEventListener('click', () => removePending(state.areaId, selectedId()));
     byId('pending-areas').addEventListener('click', (event) => {
+      const execBtn = event.target.closest('[data-executor-value]');
+      if (execBtn) {
+        onSetOrderExecutor(
+          execBtn.getAttribute('data-executor-kind'),
+          execBtn.getAttribute('data-executor-area'),
+          execBtn.getAttribute('data-executor-target'),
+          execBtn.getAttribute('data-executor-value'));
+        return;
+      }
       const rm = event.target.closest('[data-remove]');
       if (rm) { removePending(rm.getAttribute('data-area'), rm.getAttribute('data-remove')); return; }
       const pr = event.target.closest('[data-prune-remove]');

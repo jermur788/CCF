@@ -1,7 +1,7 @@
 // S0c provenance: panels/work-plan.js [L4] — section(s) 14 from multi.js
 import { el, expandable, fixed, label, pair, plural, table, technicalPlan, useIcon } from '../dom.js';
 import { svgRenderer, usableCentre, viewBox } from '../map/renderer-svg.js';
-import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, byId, currentArea, currentJuvenile, hooks, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText } from '../store.js';
+import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, byId, currentArea, currentJuvenile, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText } from '../store.js';
   // ---- Work Plan, Receipt, Results, Trees, Details --------------------------------------------------------------------
 
   function statePill(approved, actionIconId, actionWord) {
@@ -10,11 +10,59 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
       approved ? ('✓ Approved ' + actionWord) : ('◷ Pending ' + actionWord));
   }
 
+  function executorForOrder(kind, areaId, targetKey) {
+    const econ = state.economy;
+    if (!econ) return 'Contractor';
+    if (econ.activeQuote && Array.isArray(econ.activeQuote.nonHarvestLines)) {
+      const line = econ.activeQuote.nonHarvestLines.find((l) =>
+        l.kind === kind && l.areaId === areaId && l.targetKey === targetKey);
+      if (line) return line.executor;
+    }
+    if (Array.isArray(econ.pendingOrderExecutors)) {
+      const entry = econ.pendingOrderExecutors.find((e) =>
+        e.kind === kind && e.areaId === areaId && e.targetKey === targetKey);
+      if (entry) return entry.executor;
+    }
+    return 'Contractor';
+  }
+
+  function fellExecutorRow() {
+    if (!isEconomyEnabled()) return null;
+    return el('span', { class: 'exec-row' },
+      el('span', { class: 'exec-pill exec-locked', title: state.economy.fellContractorTooltip }, 'Contractor only'));
+  }
+
+  function nonHarvestExecutorRow(kind, areaId, targetKey, approved) {
+    if (!isEconomyEnabled()) return null;
+    const current = executorForOrder(kind, areaId, targetKey);
+    if (approved) {
+      return el('span', { class: 'exec-row' }, el('span', { class: 'exec-pill' }, 'Executor: ' + current));
+    }
+    return el('span', { class: 'exec-row' },
+      el('span', { class: 'small-note' }, 'Executor:'),
+      el('span', { class: 'exec-group', role: 'group', 'aria-label': 'Executor for ' + kind + ' ' + targetKey },
+        el('button', {
+          type: 'button', class: 'exec-btn',
+          'data-executor-kind': kind, 'data-executor-area': areaId, 'data-executor-target': targetKey,
+          'data-executor-value': 'Contractor',
+          'data-focus-key': 'exec:' + kind + ':' + areaId + ':' + targetKey + ':Contractor',
+          'aria-pressed': String(current === 'Contractor'),
+        }, 'Contractor'),
+        el('button', {
+          type: 'button', class: 'exec-btn',
+          'data-executor-kind': kind, 'data-executor-area': areaId, 'data-executor-target': targetKey,
+          'data-executor-value': 'Landowner',
+          'data-focus-key': 'exec:' + kind + ':' + areaId + ':' + targetKey + ':Landowner',
+          'aria-pressed': String(current === 'Landowner'),
+        }, 'Landowner')));
+  }
+
   export function orderList(orders, approved, removable) {
     return el('ul', { class: 'list orders ' + (approved ? 'approved-orders' : 'pending-orders') }, ...orders.map((order) => el('li', null,
       el('span', { class: 'order-head' }, statePill(approved, 'ccf-action-fell', 'Fell'),
         el('span', { class: 'mono' }, order.treeId)),
       el('span', { class: 'order-reason' }, order.reason),
+      fellExecutorRow(),
       removable ? el('button', { type: 'button', class: 'small', 'data-remove': order.treeId, 'data-area': order.areaId,
         'data-focus-key': 'remove:' + order.treeId, 'aria-label': label('MultiRemoveFromPlan') + ': ' + order.treeId },
       label('MultiRemoveFromPlan')) : null)));
@@ -26,6 +74,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
         el('span', { class: 'mono' }, order.treeId)),
       el('span', { class: 'order-reason' }, 'one lift · crown base to ' + fixed(order.targetCrownBaseHeightM, 1) + ' m' +
         (approved ? ' · cut on Execute' : ' · not cut')),
+      nonHarvestExecutorRow('Prune', order.areaId, order.treeId, approved),
       removable ? el('button', { type: 'button', class: 'small', 'data-prune-remove': order.treeId, 'data-area': order.areaId,
         'data-focus-key': 'prune-remove:' + order.treeId, 'aria-label': 'Remove the pending Prune of ' + order.treeId },
       label('MultiRemoveFromPlan')) : null)));
@@ -40,6 +89,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
         el('span', { class: 'order-head' }, statePill(approved, 'ccf-action-clear', 'ClearUndergrowth'),
           el('span', { class: 'mono' }, 'Cell (' + c.column + ', ' + c.row + ')')),
         el('span', { class: 'order-reason' }, 'Whole 2.5 m cell · spares seedlings' + (approved ? ' · cleared on Execute' : ' · pending')),
+        nonHarvestExecutorRow('ClearUndergrowth', c.areaId, c.column + ',' + c.row, approved),
         removable ? el('button', { type: 'button', class: 'small', 'data-clear-remove': c.column + ':' + c.row,
           'data-clear-col': String(c.column), 'data-clear-row': String(c.row), 'data-area': c.areaId,
           'data-focus-key': 'clear-remove:' + c.areaId + ':' + c.column + ':' + c.row,
@@ -53,6 +103,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
           el('span', { class: 'mono' }, p.orderId)),
         el('span', { class: 'order-reason' }, (p.speciesId ? speciesLabel(p.speciesId) + ' · ' : '') +
           'X ' + fixed(p.xm, 2) + ', Z ' + fixed(p.zm, 2) + (approved ? ' · commits on Execute' : ' · pending')),
+        nonHarvestExecutorRow(p.kind, p.areaId, p.orderId, approved),
         removable ? el('button', { type: 'button', class: 'small', 'data-planting-remove': p.orderId,
           'data-focus-key': 'planting-remove:' + p.orderId,
           'aria-label': 'Remove pending ' + p.kind + ' order ' + p.orderId },
@@ -80,6 +131,93 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
     return state.view.areas.map((area) => area.label + ' ' + ordersIn(orders, area.areaId).length).join(' · ');
   }
 
+  function renderEconomyQuote() {
+    const panel = byId('economy-quote-panel');
+    if (!panel) return;
+    if (!isEconomyEnabled()) {
+      panel.hidden = true;
+      return;
+    }
+    const econ = state.economy;
+    panel.hidden = false;
+    const badge = byId('economy-quote-badge');
+    const verdict = byId('economy-verdict');
+    const body = byId('economy-quote-body');
+    const disc = byId('economy-disclaimer');
+    disc.textContent = econ.disclaimer;
+    const q = econ.activeQuote;
+    if (!q) {
+      badge.textContent = 'Money On';
+      verdict.hidden = true;
+      verdict.textContent = '';
+      body.replaceChildren(
+        el('p', { class: 'small-note' }, 'Queue pending orders to preview a server-calculated quote. Nothing settles until Execute.'),
+        el('dl', { class: 'econ-summary' },
+          pair('Available cash', econ.cashBalanceDisplay),
+          pair('Landowner allowance', econ.landownerHoursDisplay),
+          pair('Next thinning stage', econ.nextHarvestStageLabel),
+          pair('Harvest minimum floor', econ.minimumHarvestFloorDisplay)));
+      return;
+    }
+    badge.textContent = econ.approvedQuoteFrozen ? 'Frozen at approval' : 'Live server quote';
+    verdict.hidden = false;
+    verdict.className = 'econ-verdict ' + (q.isEligible ? 'econ-verdict-ok' : 'econ-verdict-blocked');
+    verdict.textContent = q.upfrontCashVerdict;
+
+    const parts = [];
+    if (!q.isEligible && Array.isArray(q.issues) && q.issues.length > 1) {
+      parts.push(el('ul', { class: 'list' }, ...q.issues.slice(1).map((iss) => el('li', { class: 'small-note' }, iss.plainExplanation))));
+    }
+    parts.push(el('dl', { class: 'econ-summary' },
+      pair('Contractor harvest fee', q.contractorHarvestCostDisplay),
+      pair('Non-harvest contractor labour', q.contractorNonHarvestLabourDisplay),
+      pair('Materials & saplings', q.materialCostDisplay),
+      pair('Upfront cash required', q.upfrontCashRequiredDisplay),
+      pair('Expected timber income', q.timberSaleRevenueDisplay),
+      el('div', null, el('dt', null, 'Net cash impact'),
+        el('dd', { class: q.netCashIsLoss ? 'econ-loss' : 'econ-gain' }, q.netCashDeltaDisplay)),
+      pair('Landowner hours', q.totalOwnerHoursRequiredDisplay),
+      pair('Contractor hours (non-harvest)', q.totalContractorHoursDisplay)));
+
+    if (q.harvestJob) {
+      const h = q.harvestJob;
+      parts.push(el('p', { class: 'small-note' },
+        'Grouped contractor harvest (' + h.stageLabel + ' · ' + plural(h.felledStemCount, 'stem', 'stems') +
+        ' · ' + h.totalStemVolumeDisplay + ' total, ' + h.saleVolumeDisplay + ' merchantable, ' + h.harvestedTonnesDisplay + ').'));
+      parts.push(el('p', {
+        class: h.minimumJobFloorApplied ? 'econ-floor-highlight' : 'small-note',
+        'data-floor-applied': String(Boolean(h.minimumJobFloorApplied)),
+      }, h.minimumJobFloorHighlight));
+      if (Array.isArray(h.assortments) && h.assortments.length > 0) {
+        parts.push(el('div', { class: 'econ-table-wrap' }, table(
+          'Expected timber income by species & grade (sell-and-extract path)',
+          ['Species / Grade', 'Vol', 'Rate', 'Income'],
+          h.assortments.map((a) => [
+            a.speciesLabel + ' · ' + a.assortmentLabel + ' (' + a.pieceCount + ')',
+            a.volumeDisplay, a.unitPriceDisplay, a.revenueDisplay]))));
+      } else {
+        parts.push(el('p', { class: 'small-note' }, 'No merchantable assortments allocated for these felled stems (residual volume only; €0.00 expected timber income).'));
+      }
+      parts.push(el('p', { class: 'small-note' }, 'Felled timber is priced and settled through the sell-and-extract engine path (890 kg/m³ work-equivalent proxy). Dispositions are deferred.'));
+    }
+
+    if (Array.isArray(q.nonHarvestLines) && q.nonHarvestLines.length > 0) {
+      parts.push(el('div', { class: 'econ-table-wrap' }, table(
+        'Non-harvest labour & on-demand materials',
+        ['Order', 'Exec', 'Time', 'External'],
+        q.nonHarvestLines.map((l) => [
+          l.kind + ' ' + l.targetKey + (l.materialCostCents > 0 ? ' · ' + l.materialLabel : ''),
+          l.executor, l.timeDisplay, l.totalExternalCostDisplay]))));
+    }
+
+    if (Array.isArray(q.evidenceLabels) && q.evidenceLabels.length > 0) {
+      parts.push(el('details', { class: 'more' },
+        el('summary', null, 'Calibration & evidence notes'),
+        el('ul', { class: 'list statements' }, ...q.evidenceLabels.map((txt) => el('li', null, txt)))));
+    }
+    body.replaceChildren(...parts);
+  }
+
   export function renderPlan() {
     const view = state.view;
     const plan = view.approved;
@@ -95,6 +233,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
     byId('step-approved').className = plan ? 'now' : '';
     byId('plan-scope').textContent = label('MultiOnePlan') + '. ' + label('MultiLastLivingRefused') + '.';
     byId('readout-unavailable').hidden = readoutState() !== 'unavailable';
+    renderEconomyQuote();
     byId('pending-box').hidden = plan !== null && pendingCount === 0;
     byId('pending-total').textContent = pendingCount === 0 ? 'No pending orders' :
       pendingP.length === 0 && pendingC.length === 0 && pendingPl.length === 0
@@ -190,6 +329,19 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
           plural(activePj, 'active PJ sapling', 'active PJ saplings') + ' · ' +
           plural(activeSh, 'active shelter', 'active shelters') + ' · ' +
           plural(state.ecology.patches.length, 'spot-clear patch', 'spot-clear patches') + '.'));
+      }
+      if (isEconomyEnabled() && state.economy.latestSettlement && state.economy.latestSettlement.executionKey === event.executionKey) {
+        const s = state.economy.latestSettlement;
+        parts.push(table('Financial settlement (atomic with Execute)', ['Item', 'Amount / Time'], [
+          ['Cash before → after', s.cashBeforeDisplay + ' → ' + s.cashAfterDisplay],
+          ['External costs paid', s.totalExternalCostDisplay],
+          ['Timber income credited', s.timberSaleRevenueDisplay],
+          ['Net cash delta', s.netCashDeltaDisplay],
+          ['Landowner time', s.ownerHoursBeforeDisplay + ' → ' + s.ownerHoursAfterDisplay + ' (used ' + s.ownerHoursConsumedDisplay + ')'],
+        ]));
+        if (state.lastWasReplay) {
+          parts.push(el('p', { class: 'small-note' }, 'Atomic settlement returned from stored receipt — zero double charge.'));
+        }
       }
       parts.push(technicalPlan(event.planId, event.executionKey));
     }
@@ -314,12 +466,13 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
         .map((name) => label(name)).filter((text) => text !== '').map((text) => el('li', null, text)));
     const m = state.stage4 ? state.stage4.models : null;
     const em = state.ecology ? state.ecology.models : null;
+    const econStatements = isEconomyEnabled() && Array.isArray(state.economy.evidenceLabels) ? state.economy.evidenceLabels : [];
     byId('stage4-statements').replaceChildren(...(m ? [
       'Models: ' + (em ? [em.adult, em.mortality, em.crown, em.regeneration, em.species].join('/') : [m.adultModelVersion, m.mortalityModelVersion, m.crownModelVersion].join('/')) +
         ' · light ' + m.lightModelVersion + ' (' + fixed(m.lightCellM, 1) + ' m cells, shade buffer b = ' + fixed(m.shadeBufferM, 1) + ' m)',
       'Modelled light · not calibrated PAR — ' + m.notCalibratedCaveat,
       'Fallen deadwood: ' + label('MultiDeadwoodNote') + ' (direction schematic, not simulated).',
-    ].concat(m.evidenceLabels, m.lightUncertainties) : []).map((text) => el('li', null, text)));
+    ].concat(m.evidenceLabels, m.lightUncertainties, econStatements) : []).map((text) => el('li', null, text)));
     byId('details-note').textContent = readout === 'phase2' ? label('MultiNotModelledPhase2') :
       readout === 'stage4' ? label('MultiNotModelledStage4') :
         readout === 'legacy' ? 'Light, seed, regeneration, site and money: NOT MODELLED. Saving keeps this forest in named slots on this computer.' :

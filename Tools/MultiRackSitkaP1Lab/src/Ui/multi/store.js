@@ -92,7 +92,76 @@
     structureError: null,
     structureRequest: 0,
     structureRootTag: null,
+    // Phase 2B-2a Economy UI state (strictly null when Economy is Off; zero JS economy arithmetic).
+    economy: null,
+    economyToggleTarget: null,
+    historyEconomyDetail: null,
+    historyEconomyError: null,
   };
+
+  export function isEconomyEnabled() {
+    return Boolean(state.economy && state.economy.enabled);
+  }
+
+  // Drops every local selection, draft, preview, in-flight request token and cached panel state when the server
+  // replaces the active session (Save/Load restore or launch-time Money On/Off fresh Year-0 session).
+  export function resetSessionUiState() {
+    state.selected = {};
+    state.selectedJuvenile = null;
+    state.drafts = {};
+    state.draftNotice = null;
+    state.overlap = null;
+    state.competition = null;
+    state.competitionTarget = null;
+    state.competitionTag = null;
+    state.competitionRequest += 1;
+    state.cellDetail = null;
+    state.cellLoading = false;
+    state.batch = null;
+    state.batchResult = null;
+    state.batchResultOpen = false;
+    state.plantDraft = null;
+    state.plantResult = null;
+    state.spotDraft = null;
+    state.spotResult = null;
+    state.confirmation = null;
+    state.consentWork = false;
+    state.lastExecution = null;
+    state.lastWasReplay = false;
+    state.lock = null;
+    state.lockCount = 0;
+    state.mapPick += 1;
+    state.cellPick += 1;
+    state.zoom = 1;
+    state.centre = null;
+    state.mapMode = 'tree';
+    state.overlay = 'off';
+    state.loadSlot = null;
+    state.historyTruncated = false;
+    state.totalRecordedYears = 0;
+    state.reviewPreview = null;
+    state.previewRequest += 1;
+    state.lastSkip = null;
+    state.historyItems = [];
+    state.historyNextCursor = null;
+    state.historyTotalRecorded = 0;
+    state.historySelectedYear = null;
+    state.historyDetail = null;
+    state.historyError = null;
+    state.historyEconomyDetail = null;
+    state.historyEconomyError = null;
+    state.historyLoading = false;
+    state.historyDetailLoading = false;
+    state.historyRequest += 1;
+    state.historyDetailRequest += 1;
+    state.structure = null;
+    state.structureLoading = false;
+    state.structureError = null;
+    state.structureRootTag = null;
+    state.structureRequest += 1;
+    state.economy = null;
+    state.economyToggleTarget = null;
+  }
 
   export const byId = (id) => document.getElementById(id);
 

@@ -442,8 +442,45 @@ dialog { width: min(38rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); 
 dialog::backdrop { background: rgba(3, 9, 17, .72); }
 dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 /* Phase 1 Save/Load: the header control and its slot dialog. Table and controls stay inside the 1280x720 fold. */
-.history-open, .saves-open { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .3rem .75rem; font-weight: 600; }
+.economy-toggle, .history-open, .saves-open { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .3rem .75rem; font-weight: 600; white-space: nowrap; }
+.economy-toggle[aria-pressed="true"] { border-color: var(--gold-edge); background: #2c2717; color: var(--gold-edge); }
+.economy-toggle[aria-pressed="true"]:hover { background: #38311d; }
 .history-open > span[aria-hidden], .saves-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
+
+/* Phase 2B-2a Economy top strip, quote panel, per-order executor controls, and History financial card */
+.economy-strip { display: flex; flex-wrap: nowrap; align-items: center; gap: .45rem 1.2rem; padding: .32rem var(--gutter); border-bottom: 1px solid var(--edge); background: #132234; font-size: .82rem; overflow: hidden; }
+.economy-strip-item { display: inline-flex; align-items: baseline; gap: .4rem; flex: none; white-space: nowrap; }
+.economy-strip-label { color: var(--muted); font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.economy-strip-val { color: var(--gold-edge); font-size: .96rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.economy-strip-text { color: var(--text); font-weight: 500; }
+.economy-strip-note { margin: 0 0 0 auto; color: var(--muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.economy-quote { margin: .45rem 0 .65rem; padding: .65rem .8rem; border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 7px; background: var(--panel-2); }
+.economy-quote h3 { margin: 0; font-size: .96rem; }
+.econ-verdict { margin: .4rem 0; padding: .45rem .65rem; border-radius: 6px; font-size: .82rem; font-weight: 600; }
+.econ-verdict-ok { border: 1px solid #6ba874; background: #162e20; color: #d9f5dd; }
+.econ-verdict-blocked { border: 1px solid var(--alert-line); background: var(--alert-bg); color: #fce3df; }
+.econ-floor-highlight { margin: .4rem 0; padding: .42rem .6rem; border: 1.5px solid var(--pending); border-radius: 6px; background: #2c2514; color: #f6e1a8; font-size: .8rem; font-weight: 600; }
+.econ-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3rem .75rem; margin: .45rem 0; }
+.econ-summary > div { min-width: 0; }
+.econ-summary dt { color: var(--muted); font-size: .7rem; }
+.econ-summary dd { margin: 0; font-size: .9rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.econ-summary dd.econ-loss { color: #f0b2a8; }
+.econ-summary dd.econ-gain { color: #9ce0a4; }
+.econ-disclaimer { margin: .5rem 0 0; padding-top: .4rem; border-top: 1px solid var(--edge); color: var(--muted); font-size: .74rem; line-height: 1.35; }
+.econ-table-wrap { margin: .45rem 0; }
+.econ-table-wrap table { font-size: .74rem; }
+.econ-table-wrap th, .econ-table-wrap td { padding: .2rem .28rem; }
+.exec-row { grid-column: 1 / -1; grid-row: 3; display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .22rem; font-size: .74rem; }
+.exec-pill { display: inline-flex; align-items: center; padding: .08rem .45rem; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--text); font-size: .7rem; font-weight: 600; white-space: nowrap; }
+.exec-locked { border-style: dashed; border-color: var(--pending); background: #252014; color: var(--pending); }
+.exec-group { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.exec-btn { min-width: 0; min-height: 28px; padding: .12rem .55rem; border: 0; border-radius: 0; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 600; white-space: nowrap; }
+.exec-btn + .exec-btn { border-left: 1px solid var(--line); }
+.exec-btn[aria-pressed="true"] { background: var(--blue); color: #ffffff; }
+.exec-btn:disabled { cursor: not-allowed; opacity: .6; }
+.economy-exec-summary { margin: .45rem 0 .6rem; padding: .5rem .7rem; border: 1px solid var(--gold); border-radius: 6px; background: #222018; font-size: .84rem; }
+.economy-exec-summary p { margin: .18rem 0; }
+.history-card-finance { border-left-color: var(--gold); }
 .skip-review { display: flex; align-items: center; gap: .55rem; padding: .4rem .95rem; border-color: #7ac4bf; background: #1a414a; text-align: left; }
 .skip-review:hover { background: #22515c; }
 .skip-review.blocked { border-style: dashed; border-color: var(--pending); background: #282315; }
@@ -570,17 +607,20 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   body { font-size: .9rem; }
   h1 { font-size: 1.15rem; }
   .subtitle { font-size: .7rem; }
-  .topbar { flex-wrap: nowrap; gap: .4rem .65rem; padding: .42rem var(--gutter); }
-  .brand { flex: 1 1 8.5rem; min-width: 8.5rem; gap: .5rem; }
-  .brand-mark { width: 1.35rem; height: 1.65rem; }
-  .top-actions { flex-wrap: nowrap; gap: .36rem; }
-  .year-chip { margin: 0 .1rem 0 0; padding-right: .55rem; gap: .3rem; }
-  .year-chip strong { font-size: 1.28rem; }
-  .history-open, .saves-open { min-height: 36px; padding: .22rem .52rem; font-size: .78rem; white-space: nowrap; }
-  .skip-review, .advance { min-height: 38px; padding: .22rem .55rem; gap: .35rem; }
-  .skip-review .btn-title, .advance .btn-title { font-size: .76rem; white-space: nowrap; }
-  .skip-review .btn-sub, .advance .btn-sub { font-size: .62rem; white-space: nowrap; }
-  .reread { min-height: 36px; padding: .22rem .55rem; font-size: .78rem; white-space: nowrap; }
+  .topbar { flex-wrap: nowrap; gap: .35rem .5rem; padding: .42rem var(--gutter); }
+  .brand { flex: 1 1 7rem; min-width: 7rem; gap: .45rem; }
+  .brand-mark { width: 1.3rem; height: 1.6rem; }
+  .top-actions { flex-wrap: nowrap; gap: .28rem; }
+  .year-chip { margin: 0 .08rem 0 0; padding-right: .45rem; gap: .28rem; }
+  .year-chip strong { font-size: 1.24rem; }
+  .economy-toggle, .history-open, .saves-open { min-height: 36px; padding: .2rem .46rem; font-size: .76rem; white-space: nowrap; }
+  .skip-review, .advance { min-height: 38px; padding: .2rem .48rem; gap: .3rem; }
+  .skip-review .btn-title, .advance .btn-title { font-size: .74rem; white-space: nowrap; }
+  .skip-review .btn-sub, .advance .btn-sub { font-size: .6rem; white-space: nowrap; }
+  .reread { min-height: 36px; padding: .2rem .48rem; font-size: .76rem; white-space: nowrap; }
+  .economy-strip { padding: .22rem var(--gutter); gap: .35rem .85rem; font-size: .75rem; }
+  .economy-strip-val { font-size: .86rem; }
+  .economy-strip-note { font-size: .68rem; }
   .card { padding: .45rem .85rem; }
   .area-card-count strong { font-size: 1.2rem; }
   .plan-card-main strong { font-size: 1.02rem; }
@@ -670,6 +710,8 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   :root { --gap: 10px; --gutter: 12px; }
   .summary { grid-template-columns: minmax(0, 1fr); }
   .top-actions { width: 100%; }
+  .economy-strip { flex-wrap: wrap; }
+  .economy-strip-note { margin-left: 0; }
   .year-chip { margin-right: auto; }
   .view-tabs { width: 100%; margin-left: 0; }
   .legend { grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); column-gap: 1rem; }

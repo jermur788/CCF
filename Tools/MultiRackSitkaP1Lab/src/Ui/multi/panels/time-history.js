@@ -3,7 +3,7 @@ import { announce, applyPayload, call, clearAlert, currentFence, lockCommands, r
 import { reread } from '../commands.js';
 import { jsonCall, noticeOf } from '../dialogs/saves.js';
 import { el, fixed, label, lightIndexText, plural, table } from '../dom.js';
-import { areaShort, byId, draftTotal, pct1, speciesLabel, state } from '../store.js';
+import { areaShort, byId, draftTotal, isEconomyEnabled, pct1, speciesLabel, state } from '../store.js';
 import { showPane } from './work-plan.js';
   // ---- Phase 1 Step 2: Skip to Review, On-Demand History Drawer, and On-Demand Structure Panel -----------------------
 
@@ -217,6 +217,8 @@ import { showPane } from './work-plan.js';
       state.historyNextCursor = null;
       state.historySelectedYear = null;
       state.historyDetail = null;
+      state.historyEconomyDetail = null;
+      state.historyEconomyError = null;
     }
     renderHistoryDrawer();
     const qs = beforeYear === null || beforeYear === undefined
@@ -251,13 +253,27 @@ import { showPane } from './work-plan.js';
     state.historyDetailLoading = true;
     state.historyDetail = null;
     state.historyError = null;
+    state.historyEconomyDetail = null;
+    state.historyEconomyError = null;
     renderHistoryDrawer();
-    const outcome = await jsonCall('api/multi/history/year', 'POST', { fence: currentFence(), year: Number(year) });
+    const fence = currentFence();
+    const econEnabled = isEconomyEnabled();
+    const calls = [jsonCall('api/multi/history/year', 'POST', { fence, year: Number(year) })];
+    if (econEnabled) calls.push(jsonCall('api/multi/economy/history/year', 'POST', { fence, year: Number(year) }));
+    const [outcome, econOutcome] = await Promise.all(calls);
     if (req !== state.historyDetailRequest || !state.view || state.view.sessionId !== reqSession) return;
     state.historyDetailLoading = false;
     if (outcome.kind === 'ok' && outcome.payload && typeof outcome.payload.workYear === 'number') {
       state.historyDetail = outcome.payload;
       state.historyError = null;
+      if (econEnabled && econOutcome) {
+        if (econOutcome.kind === 'ok' && econOutcome.payload && typeof econOutcome.payload.year === 'number') {
+          state.historyEconomyDetail = econOutcome.payload;
+        } else {
+          const eNotice = noticeOf(econOutcome);
+          state.historyEconomyError = 'Financial ledger unavailable (' + eNotice.code + '): ' + eNotice.message;
+        }
+      }
     } else {
       const notice = noticeOf(outcome);
       state.historyError = 'History year ' + year + ' refused (' + notice.code + '): ' + notice.message;
@@ -466,6 +482,39 @@ import { showPane } from './work-plan.js';
         el('p', { class: 'small-note' }, provPill('SESSION-ONLY'), ' Current overhead canopy cover and modelled light are session-only live map read-outs and are never back-filled into past years.'),
       ];
       cards.push(el('section', { class: 'history-card history-card-current', 'data-history-section': 'later-comparison' }, ...cmpParts));
+    }
+
+    // 3b. Recorded Financial Ledger (folded into the SAME History drawer ONLY when Money is On; untouched when Off).
+    if (isEconomyEnabled()) {
+      const eh = state.historyEconomyDetail;
+      if (eh && eh.year === d.workYear && eh.economyActive) {
+        const finParts = [
+          el('div', { class: 'history-card-head' },
+            el('h3', null, 'Financial Ledger — Year ' + eh.year),
+            el('div', { class: 'history-pills' }, provPill(eh.provenanceLabel || 'RECORDED'))),
+          table('Year ' + eh.year + ' financial summary', ['Metric', 'Value'], [
+            ['Opening cash', eh.openingCashDisplay],
+            ['Closing cash', eh.closingCashDisplay],
+            ['External costs paid', eh.totalExternalCostDisplay],
+            ['Timber revenue credited', eh.totalTimberRevenueDisplay],
+            ['Net cash delta', eh.netCashDeltaDisplay],
+            ['Landowner time used', eh.landownerMinutesUsedDisplay],
+          ]),
+        ];
+        if (Array.isArray(eh.ledger) && eh.ledger.length > 0) {
+          finParts.push(table('Recorded ledger entries — Year ' + eh.year,
+            ['Category', 'Reference', 'Cash delta', 'Work rev'],
+            eh.ledger.map((row) => [row.categoryLabel, row.referenceId, row.cashDeltaDisplay, String(row.workRevision)])));
+        } else {
+          finParts.push(el('p', { class: 'small-note' }, 'No financial settlements recorded in Year ' + eh.year + '.'));
+        }
+        if (eh.disclosure) finParts.push(el('p', { class: 'small-note' }, eh.disclosure));
+        cards.push(el('section', { class: 'history-card history-card-finance', 'data-history-section': 'financial-ledger' }, ...finParts));
+      } else if (state.historyEconomyError) {
+        cards.push(el('section', { class: 'history-card history-card-finance', 'data-history-section': 'financial-ledger' },
+          el('div', { class: 'history-card-head' }, el('h3', null, 'Financial Ledger — Year ' + d.workYear)),
+          el('p', { class: 'warning' }, state.historyEconomyError)));
+      }
     }
 
     // 4. Honest NOT RECORDED disclosures + Provenance Glossary

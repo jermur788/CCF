@@ -12,12 +12,13 @@ internal sealed partial class PlayerApi
     // Pass 1 experiment badge and active model tuple metadata in pure ASCII JSON after contentHash.
     private Task WriteMultiManifestAsync(HttpContext context)
     {
-        byte[] raw = multiArea.ManifestBytes();
-        var snap = multiArea.ReadCompositeUiSnapshot();
+        var pair = CurrentMulti;
+        byte[] raw = pair.Adapter.ManifestBytes();
+        var snap = pair.Adapter.ReadCompositeUiSnapshot();
         var m = snap.Ecology?.Models ?? new MultiAreaEcologyModels(
             snap.Readout.Models.AdultModelVersion, snap.Readout.Models.MortalityModelVersion, snap.Readout.Models.CrownModelVersion, 0, 0);
         string suffix = FormattableString.Invariant(
-            $",\"experimentKey\":\"{JsonEncodedText.Encode(multiArea.ExperimentKey)}\",\"experimentBadge\":\"{JsonEncodedText.Encode(multiArea.ExperimentBadge)}\",\"models\":{{\"adult\":{m.Adult},\"mortality\":{m.Mortality},\"crown\":{m.Crown},\"regeneration\":{m.Regeneration},\"species\":{m.Species}}}}}");
+            $",\"experimentKey\":\"{JsonEncodedText.Encode(pair.Adapter.ExperimentKey)}\",\"experimentBadge\":\"{JsonEncodedText.Encode(pair.Adapter.ExperimentBadge)}\",\"models\":{{\"adult\":{m.Adult},\"mortality\":{m.Mortality},\"crown\":{m.Crown},\"regeneration\":{m.Regeneration},\"species\":{m.Species}}}}}");
         byte[] suffixBytes = Encoding.ASCII.GetBytes(suffix);
         var combined = new byte[raw.Length - 1 + suffixBytes.Length];
         Buffer.BlockCopy(raw, 0, combined, 0, raw.Length - 1);
@@ -30,10 +31,12 @@ internal sealed partial class PlayerApi
     // (150 KiB) ecology slice via projection-only reductions while keeping the authoritative Core root untouched.
     private Task ReadMultiViewAsync(HttpContext context)
     {
-        var snapshot = multiArea.ReadCompositeUiSnapshot();
-        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        MultiReviewPreviewDto? reviewPreview = TryPreviewForView(snapshot.View);
-        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes);
+        var pair = CurrentMulti;
+        var snapshot = pair.Adapter.ReadCompositeUiSnapshot();
+        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        MultiReviewPreviewDto? reviewPreview = TryPreviewForView(pair, snapshot.View);
+        MultiEconomySnapshotDto? economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
+        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes, economy);
         return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
     }
 
@@ -84,8 +87,9 @@ internal sealed partial class PlayerApi
         MultiAreaCompositeUiSnapshot snapshot,
         int totalRecordedYears,
         MultiReviewPreviewDto? reviewPreview,
-        out byte[] finalBytes) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview, out finalBytes);
+        out byte[] finalBytes,
+        MultiEconomySnapshotDto? economy = null) =>
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview, out finalBytes, economy);
 
     private static BoundedMultiSnapshot SerializeBoundedMultiView(
         MultiAreaSessionView fullView,
@@ -93,7 +97,8 @@ internal sealed partial class PlayerApi
         MultiAreaEcologyDto? fullEcology,
         int totalRecordedYears,
         MultiReviewPreviewDto? reviewPreview,
-        out byte[] finalBytes)
+        out byte[] finalBytes,
+        MultiEconomySnapshotDto? economy = null)
     {
         var fullScenes = ScenesOf(fullView);
         var projEco = ProjectEcologyForView(fullEcology, fullView);
@@ -106,7 +111,7 @@ internal sealed partial class PlayerApi
         byte[] Serialize(object v, object sc, object? s4, bool histTrunc, bool projCompact, bool s4Compact, bool exceeded) =>
             JsonSerializer.SerializeToUtf8Bytes(
                 new MultiViewPayload(v, sc, MultiLabels, s4, projEco, histTrunc, totalRecordedYears, reviewPreview,
-                    projCompact, s4Compact, exceeded),
+                    projCompact, s4Compact, exceeded, economy),
                 ResponseJson);
 
         MultiAreaSessionView TailRaw(int keepEvents, int keepAnnual) => fullView with
@@ -377,12 +382,14 @@ internal sealed partial class PlayerApi
             Array.AsReadOnly(compactAreas), stage4.PendingPrunes, stage4.ApprovedPrunes, TailOf(stage4.PruneLog, pruneLogCap));
     }
 
-    private static BoundedMultiSnapshot BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null, out _);
+    private static BoundedMultiSnapshot BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears,
+        MultiEconomySnapshotDto? economy = null) =>
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null, out _, economy);
 
     private static BoundedMultiSnapshot BoundSnapshotForResponse(
-        MultiAreaSessionView view, MultiAreaUiReadout? stage4, MultiAreaEcologyDto? ecology, int totalRecordedYears) =>
-        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null, out _);
+        MultiAreaSessionView view, MultiAreaUiReadout? stage4, MultiAreaEcologyDto? ecology, int totalRecordedYears,
+        MultiEconomySnapshotDto? economy = null) =>
+        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null, out _, economy);
 
     private static object BoundSessionViewForAux(MultiAreaSessionView view)
     {
@@ -435,36 +442,40 @@ internal sealed partial class PlayerApi
                 "cell inspection requires integer column and row; nothing changed");
             return;
         }
-        var result = multiArea.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
+        var pair = CurrentMulti;
+        var result = pair.Adapter.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
         var snap = result.Snapshot;
-        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var bounded = BoundSnapshotForResponse(snap, totalRecordedYears);
+        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var economy = TryBuildEconomySnapshot(pair.Session, snap.View);
+        var bounded = BoundSnapshotForResponse(snap, totalRecordedYears, economy);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
             result.Cell, NoticeOf(result.RefusalCode, result.RefusalMessage), bounded.Stage4, bounded.Ecology,
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded));
+            bounded.PayloadBudgetExceeded, economy));
     }
 
     private async Task ReadMultiCompetitionAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiTreeRequest>(context, MultiTreeMembers);
         if (request is null) return;
-        var result = multiArea.Competition(request.Fence!, request.AreaId!, request.TreeId!);
-        var composite = multiArea.CompositeFor(result.View);
-        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var pair = CurrentMulti;
+        var result = pair.Adapter.Competition(request.Fence!, request.AreaId!, request.TreeId!);
+        var composite = pair.Adapter.CompositeFor(result.View);
+        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var economy = TryBuildEconomySnapshot(pair.Session, result.View);
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economy);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economy));
         }
         else
         {
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears));
+                null, null, false, totalRecordedYears, Economy: economy));
         }
     }
 
@@ -472,30 +483,368 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiHitRequest>(context, MultiHitMembers);
         if (request is null) return;
-        var result = multiArea.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
-        var composite = multiArea.CompositeFor(result.View);
-        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var pair = CurrentMulti;
+        var result = pair.Adapter.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
+        var composite = pair.Adapter.CompositeFor(result.View);
+        int totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+        var economy = TryBuildEconomySnapshot(pair.Session, result.View);
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economy);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economy));
         }
         else
         {
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears));
+                null, null, false, totalRecordedYears, Economy: economy));
         }
     }
 
+    // ---- Phase 2B-2a Economy Server-Authoritative Projection & Formatting (zero JS math; omitted when Off) -------------
+
+    private const string EconomyHonestDisclaimer =
+        "Calibrated teaching estimates (ex VAT; not an empirical national tariff or farm-forestry balance sheet). " +
+        "Small cuts on small woods can net a loss under the €2,500 contractor harvest minimum floor. " +
+        "No automatic grants are modelled. Felled timber is priced and settled through the sell-and-extract engine path; " +
+        "retaining timber for own use (dispositions) is deferred.";
+
+    private const string EconomySaveBlockedNote =
+        "Saving and loading Economy sessions require Save v3 (deferred to Phase 2B-2b). Switch Money Off to use Save v2 slots.";
+
+    private const string EconomyFellContractorTooltip =
+        "Commercial production felling is contractor-only — not ordinary owner DIY. " +
+        "Felled timber is priced and settled through the sell-and-extract path (dispositions deferred).";
+
+    private static MultiEconomySnapshotDto? TryBuildEconomySnapshot(MultiAreaContinuation session, MultiAreaSessionView view)
+    {
+        if (!session.SelectedModels.IsEconomyEnabled) return null;
+        try
+        {
+            var econView = session.ReadEconomyView();
+            if (econView.Source != view.Source || econView.PlanStateRevision != view.PlanStateRevision)
+                return null;
+            EconomyWorkPlanQuote? quote = null;
+            bool frozen = false;
+            if (econView.ApprovedQuote is not null)
+            {
+                quote = econView.ApprovedQuote.Quote;
+                frozen = true;
+            }
+            else
+            {
+                var pendingQuote = session.QuoteWorkPlan(FenceOf(view));
+                bool hasPending = pendingQuote.HarvestJob is not null || pendingQuote.NonHarvestLines.Count > 0;
+                if (hasPending) quote = pendingQuote;
+            }
+            return BuildEconomySnapshot(econView, quote, frozen);
+        }
+        catch (P1Refusal)
+        {
+            return null;
+        }
+    }
+
+    private static MultiEconomySnapshotDto BuildEconomySnapshot(
+        MultiAreaEconomyView econView, EconomyWorkPlanQuote? activeQuote, bool approvedQuoteFrozen)
+    {
+        var nextStage = EconomyDefaults.AutoHarvestStage(econView.ExecutedHarvestPlansCount);
+        long nextRate = EconomyDefaults.HarvestRateCentsPerTonne(nextStage);
+        var executors = econView.PendingOrderExecutors
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new MultiEconomyExecutorEntryDto(
+                kv.Key.Kind.ToString(), kv.Key.AreaId, kv.Key.TargetKey, kv.Value.ToString()))
+            .ToArray();
+        var latestSettlement = econView.Settlements.Count > 0
+            ? ProjectEconomySettlement(econView.Settlements[^1])
+            : null;
+        return new MultiEconomySnapshotDto(
+            Enabled: true,
+            CashBalanceCents: econView.CashBalanceCents,
+            CashBalanceDisplay: EconomyDefaults.FormatEuros(econView.CashBalanceCents),
+            OpeningCashCents: econView.Options.OpeningCashCents,
+            OpeningCashDisplay: EconomyDefaults.FormatEuros(econView.Options.OpeningCashCents),
+            UsedLandownerMinutesThisYear: econView.UsedLandownerMinutesThisYear,
+            RemainingLandownerMinutes: econView.RemainingLandownerMinutes,
+            AnnualLandownerAllowanceMinutes: econView.Options.AnnualLandownerAllowanceMinutes,
+            LandownerHoursDisplay: FormatHoursOfAllowance(econView.RemainingLandownerMinutes, econView.Options.AnnualLandownerAllowanceMinutes),
+            UsedLandownerHoursDisplay: FormatMinutesAndHours(econView.UsedLandownerMinutesThisYear),
+            RemainingLandownerHoursDisplay: FormatMinutesAndHours(econView.RemainingLandownerMinutes),
+            ExecutedHarvestPlansCount: econView.ExecutedHarvestPlansCount,
+            NextHarvestStage: nextStage.ToString(),
+            NextHarvestStageLabel: FormatStageLabel(nextStage, nextRate),
+            MinimumHarvestFloorCents: econView.Options.MinimumHarvestJobCents,
+            MinimumHarvestFloorDisplay: EconomyDefaults.FormatEuros(econView.Options.MinimumHarvestJobCents),
+            ContractorHourlyRateDisplay: EconomyDefaults.FormatEuros(econView.Options.ContractorHourlyRateCents) + "/hr",
+            PendingOrderExecutors: Array.AsReadOnly(executors),
+            ActiveQuote: activeQuote is null ? null : ProjectEconomyQuote(activeQuote),
+            ApprovedQuoteFrozen: approvedQuoteFrozen,
+            LatestSettlement: latestSettlement,
+            FellContractorTooltip: EconomyFellContractorTooltip,
+            SaveBlockedCode: "SaveEconomyRequiresV3",
+            SaveBlockedNote: EconomySaveBlockedNote,
+            Disclaimer: EconomyHonestDisclaimer,
+            EvidenceLabels: econView.EvidenceLabels);
+    }
+
+    private static MultiEconomyQuoteDto ProjectEconomyQuote(EconomyWorkPlanQuote quote)
+    {
+        var issues = quote.Issues.Select(issue => new MultiEconomyIssueDto(
+            issue.Code, issue.Message, PlainIssueExplanation(issue, quote), issue.Required, issue.Available)).ToArray();
+        bool upfrontCashBlocked = quote.Issues.Any(i => string.Equals(i.Code, "EconomyInsufficientCash", StringComparison.Ordinal));
+        string verdict = quote.IsEligible
+            ? $"Upfront cash covered: {EconomyDefaults.FormatEuros(quote.AvailableCashBeforeCents)} available for {EconomyDefaults.FormatEuros(quote.UpfrontCashRequiredCents)} required external costs."
+            : issues[0].PlainExplanation;
+        var lines = quote.NonHarvestLines.Select(line => new MultiEconomyNonHarvestLineDto(
+            Kind: line.OrderKey.Kind.ToString(),
+            AreaId: line.OrderKey.AreaId,
+            TargetKey: line.OrderKey.TargetKey,
+            Executor: line.Executor.ToString(),
+            PersonMinutes: line.PersonMinutes,
+            TimeDisplay: FormatMinutesAndHours(line.PersonMinutes),
+            OwnerMinutes: line.OwnerMinutes,
+            ContractorMinutes: line.ContractorMinutes,
+            ContractorLabourCents: line.ContractorLabourCents,
+            ContractorLabourDisplay: EconomyDefaults.FormatEuros(line.ContractorLabourCents),
+            MaterialId: line.MaterialId,
+            MaterialLabel: FormatMaterialLabel(line.MaterialId),
+            MaterialCostCents: line.MaterialCostCents,
+            MaterialCostDisplay: EconomyDefaults.FormatEuros(line.MaterialCostCents),
+            TotalExternalCostCents: line.TotalExternalCostCents,
+            TotalExternalCostDisplay: EconomyDefaults.FormatEuros(line.TotalExternalCostCents))).ToArray();
+        return new MultiEconomyQuoteDto(
+            PlanStateRevision: quote.PlanStateRevision,
+            EcologicalYear: quote.EcologicalYear,
+            IsEligible: quote.IsEligible,
+            UpfrontCashBlocked: upfrontCashBlocked,
+            UpfrontCashVerdict: verdict,
+            AvailableCashBeforeCents: quote.AvailableCashBeforeCents,
+            AvailableCashBeforeDisplay: EconomyDefaults.FormatEuros(quote.AvailableCashBeforeCents),
+            AvailableLandownerMinutesBefore: quote.AvailableLandownerMinutesBefore,
+            AvailableLandownerHoursBeforeDisplay: FormatMinutesAndHours(quote.AvailableLandownerMinutesBefore),
+            HarvestJob: quote.HarvestJob is null ? null : ProjectEconomyHarvestQuote(quote.HarvestJob),
+            NonHarvestLines: Array.AsReadOnly(lines),
+            ContractorHarvestCostCents: quote.ContractorHarvestCostCents,
+            ContractorHarvestCostDisplay: EconomyDefaults.FormatEuros(quote.ContractorHarvestCostCents),
+            ContractorNonHarvestLabourCents: quote.ContractorNonHarvestLabourCents,
+            ContractorNonHarvestLabourDisplay: EconomyDefaults.FormatEuros(quote.ContractorNonHarvestLabourCents),
+            MaterialCostCents: quote.MaterialCostCents,
+            MaterialCostDisplay: EconomyDefaults.FormatEuros(quote.MaterialCostCents),
+            TotalExternalCostCents: quote.TotalExternalCostCents,
+            TotalExternalCostDisplay: EconomyDefaults.FormatEuros(quote.TotalExternalCostCents),
+            UpfrontCashRequiredCents: quote.UpfrontCashRequiredCents,
+            UpfrontCashRequiredDisplay: EconomyDefaults.FormatEuros(quote.UpfrontCashRequiredCents),
+            TimberSaleRevenueCents: quote.TimberSaleRevenueCents,
+            TimberSaleRevenueDisplay: EconomyDefaults.FormatEuros(quote.TimberSaleRevenueCents),
+            NetCashDeltaCents: quote.NetCashDeltaCents,
+            NetCashDeltaDisplay: FormatSignedEuros(quote.NetCashDeltaCents),
+            NetCashIsLoss: quote.NetCashDeltaCents < 0L,
+            TotalOwnerMinutesRequired: quote.TotalOwnerMinutesRequired,
+            TotalOwnerHoursRequiredDisplay: FormatMinutesAndHours(quote.TotalOwnerMinutesRequired),
+            TotalContractorMinutes: quote.TotalContractorMinutes,
+            TotalContractorHoursDisplay: FormatMinutesAndHours(quote.TotalContractorMinutes),
+            Issues: Array.AsReadOnly(issues),
+            EvidenceLabels: quote.EvidenceLabels);
+    }
+
+    private static MultiEconomyHarvestQuoteDto ProjectEconomyHarvestQuote(EconomyHarvestQuote h)
+    {
+        bool floorApplied = h.MinimumJobAdjustmentCents > 0L;
+        string floorHighlight = floorApplied
+            ? $"€2,500 minimum contractor job floor applied (variable {EconomyDefaults.FormatEuros(h.VariableHarvestCostCents)} + {EconomyDefaults.FormatEuros(h.MinimumJobAdjustmentCents)} adjustment = {EconomyDefaults.FormatEuros(h.TotalHarvestContractorCostCents)})."
+            : $"Variable harvest fee ({EconomyDefaults.FormatEuros(h.VariableHarvestCostCents)}) exceeds the {EconomyDefaults.FormatEuros(h.MinimumJobFloorCents)} minimum job floor.";
+        var assortments = h.Assortments.Select(a => new MultiEconomyAssortmentDto(
+            SpeciesId: a.SpeciesId,
+            SpeciesLabel: FormatSpeciesLabel(a.SpeciesId),
+            Assortment: a.Assortment.ToString(),
+            AssortmentLabel: FormatAssortmentLabel(a.Assortment),
+            PieceCount: a.PieceCount,
+            VolumeCm3: a.VolumeCm3,
+            VolumeDisplay: FormatVolumeM3(a.VolumeCm3),
+            GreenGrams: a.GreenGrams,
+            TonnesDisplay: FormatTonnes(a.GreenGrams),
+            UnitPriceCentsPerTonne: a.UnitPriceCentsPerTonne,
+            UnitPriceDisplay: EconomyDefaults.FormatEuros(a.UnitPriceCentsPerTonne) + "/t",
+            RevenueCents: a.RevenueCents,
+            RevenueDisplay: EconomyDefaults.FormatEuros(a.RevenueCents))).ToArray();
+        return new MultiEconomyHarvestQuoteDto(
+            Stage: h.Stage.ToString(),
+            StageLabel: FormatStageLabel(h.Stage, h.StageRateCentsPerTonne),
+            StageRateCentsPerTonne: h.StageRateCentsPerTonne,
+            StageRateDisplay: EconomyDefaults.FormatEuros(h.StageRateCentsPerTonne) + "/t",
+            FelledStemCount: h.FelledStemCount,
+            TotalStemVolumeDisplay: FormatVolumeM3(h.TotalStemVolumeCm3),
+            SaleVolumeDisplay: FormatVolumeM3(h.SaleVolumeCm3),
+            ResidualVolumeDisplay: FormatVolumeM3(h.ResidualVolumeCm3),
+            HarvestedTonnesDisplay: FormatTonnes(h.HarvestedGreenGrams),
+            VariableHarvestCostCents: h.VariableHarvestCostCents,
+            VariableHarvestCostDisplay: EconomyDefaults.FormatEuros(h.VariableHarvestCostCents),
+            MinimumJobFloorCents: h.MinimumJobFloorCents,
+            MinimumJobFloorDisplay: EconomyDefaults.FormatEuros(h.MinimumJobFloorCents),
+            MinimumJobAdjustmentCents: h.MinimumJobAdjustmentCents,
+            MinimumJobAdjustmentDisplay: EconomyDefaults.FormatEuros(h.MinimumJobAdjustmentCents),
+            MinimumJobFloorApplied: floorApplied,
+            MinimumJobFloorHighlight: floorHighlight,
+            TotalHarvestContractorCostCents: h.TotalHarvestContractorCostCents,
+            TotalHarvestContractorCostDisplay: EconomyDefaults.FormatEuros(h.TotalHarvestContractorCostCents),
+            TimberSaleRevenueCents: h.TimberSaleRevenueCents,
+            TimberSaleRevenueDisplay: EconomyDefaults.FormatEuros(h.TimberSaleRevenueCents),
+            Assortments: Array.AsReadOnly(assortments));
+    }
+
+    private static MultiEconomySettlementDto ProjectEconomySettlement(EconomySettlementReceipt r)
+    {
+        var entries = r.LedgerEntries.Select(ProjectEconomyLedgerEntry).ToArray();
+        return new MultiEconomySettlementDto(
+            ExecutionKey: r.ExecutionKey,
+            PlanId: r.PlanId,
+            EcologicalYear: r.EcologicalYear,
+            WorkRevision: r.WorkRevision,
+            CashBeforeCents: r.CashBeforeCents,
+            CashBeforeDisplay: EconomyDefaults.FormatEuros(r.CashBeforeCents),
+            TotalExternalCostCents: r.TotalExternalCostCents,
+            TotalExternalCostDisplay: EconomyDefaults.FormatEuros(r.TotalExternalCostCents),
+            TimberSaleRevenueCents: r.TimberSaleRevenueCents,
+            TimberSaleRevenueDisplay: EconomyDefaults.FormatEuros(r.TimberSaleRevenueCents),
+            NetCashDeltaCents: r.NetCashDeltaCents,
+            NetCashDeltaDisplay: FormatSignedEuros(r.NetCashDeltaCents),
+            CashAfterCents: r.CashAfterCents,
+            CashAfterDisplay: EconomyDefaults.FormatEuros(r.CashAfterCents),
+            OwnerMinutesBefore: r.OwnerMinutesBefore,
+            OwnerMinutesConsumed: r.OwnerMinutesConsumed,
+            OwnerMinutesAfter: r.OwnerMinutesAfter,
+            OwnerHoursBeforeDisplay: FormatMinutesAndHours(r.OwnerMinutesBefore),
+            OwnerHoursConsumedDisplay: FormatMinutesAndHours(r.OwnerMinutesConsumed),
+            OwnerHoursAfterDisplay: FormatMinutesAndHours(r.OwnerMinutesAfter),
+            HarvestJob: r.HarvestJob is null ? null : ProjectEconomyHarvestQuote(r.HarvestJob),
+            LedgerEntries: Array.AsReadOnly(entries));
+    }
+
+    private static MultiEconomyLedgerEntryDto ProjectEconomyLedgerEntry(EconomyLedgerEntry e) => new(
+        Category: e.Category.ToString(),
+        CategoryLabel: FormatLedgerCategoryLabel(e.Category),
+        ReferenceId: e.ReferenceId,
+        CashDeltaCents: e.CashDeltaCents,
+        CashDeltaDisplay: FormatSignedEuros(e.CashDeltaCents),
+        EcologicalYear: e.EcologicalYear,
+        WorkRevision: e.WorkRevision,
+        ExecutionKey: e.ExecutionKey,
+        PlanId: e.PlanId);
+
+    private static MultiEconomyHistoryYearDto ProjectEconomyHistoryYear(EconomyYearHistory h) => new(
+        Year: h.Year,
+        EconomyActive: h.EconomyActive,
+        Provenance: h.Provenance.ToString(),
+        ProvenanceLabel: h.ProvenanceLabel,
+        OpeningCashCents: h.OpeningCashCents,
+        ClosingCashCents: h.ClosingCashCents,
+        TotalExternalCostCents: h.TotalExternalCostCents,
+        TotalTimberRevenueCents: h.TotalTimberRevenueCents,
+        NetCashDeltaCents: h.NetCashDeltaCents,
+        LandownerMinutesUsed: h.LandownerMinutesUsed,
+        OpeningCashDisplay: h.OpeningCashDisplay,
+        ClosingCashDisplay: h.ClosingCashDisplay,
+        TotalExternalCostDisplay: h.TotalExternalCostDisplay,
+        TotalTimberRevenueDisplay: h.TotalTimberRevenueDisplay,
+        NetCashDeltaDisplay: h.NetCashDeltaCents is long net ? FormatSignedEuros(net) : h.NetCashDeltaDisplay,
+        LandownerMinutesUsedDisplay: h.LandownerMinutesUsed is int m ? FormatMinutesAndHours(m) : h.LandownerMinutesUsedDisplay,
+        Settlements: Array.AsReadOnly(h.Settlements.Select(ProjectEconomySettlement).ToArray()),
+        Ledger: Array.AsReadOnly(h.Ledger.Select(ProjectEconomyLedgerEntry).ToArray()),
+        Disclosure: h.Disclosure);
+
+    private static string FormatSignedEuros(long cents) =>
+        cents > 0L ? "+" + EconomyDefaults.FormatEuros(cents) : EconomyDefaults.FormatEuros(cents);
+
+    private static string FormatHoursValue(int minutes) =>
+        minutes % 60 == 0
+            ? FormattableString.Invariant($"{minutes / 60}")
+            : FormattableString.Invariant($"{minutes / 60m:0.##}");
+
+    private static string FormatHoursOfAllowance(int remainingMinutes, int annualMinutes) =>
+        FormattableString.Invariant($"{FormatHoursValue(remainingMinutes)} / {FormatHoursValue(annualMinutes)} hrs");
+
+    private static string FormatMinutesAndHours(int minutes) =>
+        FormattableString.Invariant($"{FormatHoursValue(minutes)} hrs ({minutes} min)");
+
+    private static string FormatVolumeM3(long volumeCm3) =>
+        FormattableString.Invariant($"{volumeCm3 / 1_000_000m:0.000} m³");
+
+    private static string FormatTonnes(long greenGrams) =>
+        FormattableString.Invariant($"{greenGrams / 1_000_000m:0.00} t");
+
+    private static string FormatStageLabel(HarvestThinningStage stage, long rateCentsPerTonne) => stage switch
+    {
+        HarvestThinningStage.FirstThinning => $"First thinning ({EconomyDefaults.FormatEuros(rateCentsPerTonne)}/t)",
+        HarvestThinningStage.SecondThinning => $"Second thinning ({EconomyDefaults.FormatEuros(rateCentsPerTonne)}/t)",
+        HarvestThinningStage.LaterThinning => $"Later thinning ({EconomyDefaults.FormatEuros(rateCentsPerTonne)}/t)",
+        _ => $"{stage} ({EconomyDefaults.FormatEuros(rateCentsPerTonne)}/t)",
+    };
+
+    private static string FormatSpeciesLabel(string speciesId) => speciesId switch
+    {
+        Phase2Species.SitkaId => "Sitka spruce",
+        Phase2Species.OakId => "Sessile oak",
+        Phase2Species.BeechId => "European beech",
+        _ => speciesId,
+    };
+
+    private static string FormatAssortmentLabel(TimberAssortmentKind kind) => kind switch
+    {
+        TimberAssortmentKind.Sawlog => "Sawlog",
+        TimberAssortmentKind.Pallet => "Pallet",
+        TimberAssortmentKind.Stake => "Stake",
+        TimberAssortmentKind.Pulp => "Pulp",
+        TimberAssortmentKind.VeneerPlanking => "Veneer planking",
+        TimberAssortmentKind.Beam => "Beam",
+        TimberAssortmentKind.Fencing => "Fencing",
+        TimberAssortmentKind.SecondPlanking => "Second planking",
+        TimberAssortmentKind.Firewood => "Firewood",
+        _ => kind.ToString(),
+    };
+
+    private static string FormatMaterialLabel(string? materialId) => materialId switch
+    {
+        null => "None",
+        EconomyDefaults.ShelterMaterialId => "Tree shelter (€5.00)",
+        EconomyDefaults.BeechSaplingMaterialId => "Beech sapling (€4.50)",
+        EconomyDefaults.OakSaplingMaterialId => "Oak sapling (€5.50)",
+        _ => materialId,
+    };
+
+    private static string FormatLedgerCategoryLabel(EconomyLedgerCategory category) => category switch
+    {
+        EconomyLedgerCategory.HarvestingAndForwarding => "Harvesting & forwarding",
+        EconomyLedgerCategory.MinimumJobAdjustment => "Minimum job floor (€2,500)",
+        EconomyLedgerCategory.ContractorLabour => "Contractor labour (€45/hr)",
+        EconomyLedgerCategory.Materials => "Materials & saplings",
+        EconomyLedgerCategory.TimberSale => "Timber sale (roadside)",
+        _ => category.ToString(),
+    };
+
+    private static string PlainIssueExplanation(EconomyQuoteIssue issue, EconomyWorkPlanQuote quote) => issue.Code switch
+    {
+        "EconomyInsufficientCash" =>
+            $"Blocked — Insufficient upfront cash: {EconomyDefaults.FormatEuros(quote.AvailableCashBeforeCents)} available, " +
+            $"but {EconomyDefaults.FormatEuros(quote.UpfrontCashRequiredCents)} upfront external cost is required before approval or execution. " +
+            $"Expected timber revenue ({EconomyDefaults.FormatEuros(quote.TimberSaleRevenueCents)}) cannot pre-pay work, and no borrowing or overdraft is allowed.",
+        "EconomyInsufficientLandownerAllowance" =>
+            $"Blocked — Insufficient landowner hours: {FormatMinutesAndHours(quote.AvailableLandownerMinutesBefore)} remaining this year, " +
+            $"but {FormatMinutesAndHours(quote.TotalOwnerMinutesRequired)} assigned to Landowner. Switch tasks to Contractor or advance to next year to reset the 40-hour allowance.",
+        "EconomyFellContractorOnly" =>
+            "Blocked — Commercial production felling is contractor-only and cannot be assigned to Landowner.",
+        _ => issue.Message,
+    };
+
     // Stage4 ("stage4"), Ecology ("ecology"), and Step 2 bounding/preview fields are additive; all existing members keep their exact names and shapes.
+    // Economy ("economy") is emitted ONLY when Economy is Enabled so Off payloads remain byte-comparable.
     private sealed record MultiViewPayload(object View, object Scenes,
         IReadOnlyDictionary<string, string> Labels, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0, MultiReviewPreviewDto? ReviewPreview = null,
-        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
+        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism, LifeState LifeState);
 
@@ -587,15 +936,197 @@ internal sealed partial class PlayerApi
         object Scenes, string AreaId, PlayerCompetitionReport? Competition,
         Notice? Refusal, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
-        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
+        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiHitPayload(object View, object Scenes,
         string AreaId, IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal, object? Stage4,
         MultiAreaEcologyDto? Ecology, bool HistoryTruncated = false, int TotalRecordedYears = 0,
-        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
+        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiCellPayload(object View, object Scenes,
         MultiAreaCellDetail? Cell, Notice? Refusal, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
-        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
+        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+
+    private sealed record MultiEconomyExecutorEntryDto(string Kind, string AreaId, string TargetKey, string Executor);
+
+    private sealed record MultiEconomyIssueDto(string Code, string Message, string PlainExplanation, long Required, long Available);
+
+    private sealed record MultiEconomyAssortmentDto(
+        string SpeciesId,
+        string SpeciesLabel,
+        string Assortment,
+        string AssortmentLabel,
+        int PieceCount,
+        long VolumeCm3,
+        string VolumeDisplay,
+        long GreenGrams,
+        string TonnesDisplay,
+        long UnitPriceCentsPerTonne,
+        string UnitPriceDisplay,
+        long RevenueCents,
+        string RevenueDisplay);
+
+    private sealed record MultiEconomyHarvestQuoteDto(
+        string Stage,
+        string StageLabel,
+        long StageRateCentsPerTonne,
+        string StageRateDisplay,
+        int FelledStemCount,
+        string TotalStemVolumeDisplay,
+        string SaleVolumeDisplay,
+        string ResidualVolumeDisplay,
+        string HarvestedTonnesDisplay,
+        long VariableHarvestCostCents,
+        string VariableHarvestCostDisplay,
+        long MinimumJobFloorCents,
+        string MinimumJobFloorDisplay,
+        long MinimumJobAdjustmentCents,
+        string MinimumJobAdjustmentDisplay,
+        bool MinimumJobFloorApplied,
+        string MinimumJobFloorHighlight,
+        long TotalHarvestContractorCostCents,
+        string TotalHarvestContractorCostDisplay,
+        long TimberSaleRevenueCents,
+        string TimberSaleRevenueDisplay,
+        IReadOnlyList<MultiEconomyAssortmentDto> Assortments);
+
+    private sealed record MultiEconomyNonHarvestLineDto(
+        string Kind,
+        string AreaId,
+        string TargetKey,
+        string Executor,
+        int PersonMinutes,
+        string TimeDisplay,
+        int OwnerMinutes,
+        int ContractorMinutes,
+        long ContractorLabourCents,
+        string ContractorLabourDisplay,
+        string? MaterialId,
+        string MaterialLabel,
+        long MaterialCostCents,
+        string MaterialCostDisplay,
+        long TotalExternalCostCents,
+        string TotalExternalCostDisplay);
+
+    private sealed record MultiEconomyQuoteDto(
+        int PlanStateRevision,
+        int EcologicalYear,
+        bool IsEligible,
+        bool UpfrontCashBlocked,
+        string UpfrontCashVerdict,
+        long AvailableCashBeforeCents,
+        string AvailableCashBeforeDisplay,
+        int AvailableLandownerMinutesBefore,
+        string AvailableLandownerHoursBeforeDisplay,
+        MultiEconomyHarvestQuoteDto? HarvestJob,
+        IReadOnlyList<MultiEconomyNonHarvestLineDto> NonHarvestLines,
+        long ContractorHarvestCostCents,
+        string ContractorHarvestCostDisplay,
+        long ContractorNonHarvestLabourCents,
+        string ContractorNonHarvestLabourDisplay,
+        long MaterialCostCents,
+        string MaterialCostDisplay,
+        long TotalExternalCostCents,
+        string TotalExternalCostDisplay,
+        long UpfrontCashRequiredCents,
+        string UpfrontCashRequiredDisplay,
+        long TimberSaleRevenueCents,
+        string TimberSaleRevenueDisplay,
+        long NetCashDeltaCents,
+        string NetCashDeltaDisplay,
+        bool NetCashIsLoss,
+        int TotalOwnerMinutesRequired,
+        string TotalOwnerHoursRequiredDisplay,
+        int TotalContractorMinutes,
+        string TotalContractorHoursDisplay,
+        IReadOnlyList<MultiEconomyIssueDto> Issues,
+        IReadOnlyList<string> EvidenceLabels);
+
+    private sealed record MultiEconomyLedgerEntryDto(
+        string Category,
+        string CategoryLabel,
+        string ReferenceId,
+        long CashDeltaCents,
+        string CashDeltaDisplay,
+        int EcologicalYear,
+        int WorkRevision,
+        string ExecutionKey,
+        string PlanId);
+
+    private sealed record MultiEconomySettlementDto(
+        string ExecutionKey,
+        string PlanId,
+        int EcologicalYear,
+        int WorkRevision,
+        long CashBeforeCents,
+        string CashBeforeDisplay,
+        long TotalExternalCostCents,
+        string TotalExternalCostDisplay,
+        long TimberSaleRevenueCents,
+        string TimberSaleRevenueDisplay,
+        long NetCashDeltaCents,
+        string NetCashDeltaDisplay,
+        long CashAfterCents,
+        string CashAfterDisplay,
+        int OwnerMinutesBefore,
+        int OwnerMinutesConsumed,
+        int OwnerMinutesAfter,
+        string OwnerHoursBeforeDisplay,
+        string OwnerHoursConsumedDisplay,
+        string OwnerHoursAfterDisplay,
+        MultiEconomyHarvestQuoteDto? HarvestJob,
+        IReadOnlyList<MultiEconomyLedgerEntryDto> LedgerEntries);
+
+    private sealed record MultiEconomySnapshotDto(
+        bool Enabled,
+        long CashBalanceCents,
+        string CashBalanceDisplay,
+        long OpeningCashCents,
+        string OpeningCashDisplay,
+        int UsedLandownerMinutesThisYear,
+        int RemainingLandownerMinutes,
+        int AnnualLandownerAllowanceMinutes,
+        string LandownerHoursDisplay,
+        string UsedLandownerHoursDisplay,
+        string RemainingLandownerHoursDisplay,
+        int ExecutedHarvestPlansCount,
+        string NextHarvestStage,
+        string NextHarvestStageLabel,
+        long MinimumHarvestFloorCents,
+        string MinimumHarvestFloorDisplay,
+        string ContractorHourlyRateDisplay,
+        IReadOnlyList<MultiEconomyExecutorEntryDto> PendingOrderExecutors,
+        MultiEconomyQuoteDto? ActiveQuote,
+        bool ApprovedQuoteFrozen,
+        MultiEconomySettlementDto? LatestSettlement,
+        string FellContractorTooltip,
+        string SaveBlockedCode,
+        string SaveBlockedNote,
+        string Disclaimer,
+        IReadOnlyList<string> EvidenceLabels);
+
+    private sealed record MultiEconomyHistoryYearDto(
+        int Year,
+        bool EconomyActive,
+        string Provenance,
+        string ProvenanceLabel,
+        long? OpeningCashCents,
+        long? ClosingCashCents,
+        long? TotalExternalCostCents,
+        long? TotalTimberRevenueCents,
+        long? NetCashDeltaCents,
+        int? LandownerMinutesUsed,
+        string OpeningCashDisplay,
+        string ClosingCashDisplay,
+        string TotalExternalCostDisplay,
+        string TotalTimberRevenueDisplay,
+        string NetCashDeltaDisplay,
+        string LandownerMinutesUsedDisplay,
+        IReadOnlyList<MultiEconomySettlementDto> Settlements,
+        IReadOnlyList<MultiEconomyLedgerEntryDto> Ledger,
+        string Disclosure);
 }
