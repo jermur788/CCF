@@ -1,0 +1,58 @@
+GATE G0 PASS
+Running G1-G2 inside isolated Linux network namespace (unshare -rn)...
+G1: validated P0 seed: SEED_VALID sha256=9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3
+GATE G1 PASS (P0 REFERENCE: PRE-SEEDED VERIFIED 9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3)
+GATE G1 PASS
+G2: running Core.Tests...
+G2: Core.Tests PASS (299/299 passed, 0 failed)
+G2: running Phase1.Save.Tests...
+PASS refuse: missing and unknown fields
+PASS refuse: trailing bytes, whitespace, BOM, escapes and non-canonical spelling
+PASS refuse: over-deep nesting
+PASS refuse: oversized input before parsing
+PASS refuse: non-finite float32/float64 on decode and encode; overflowing integer
+PASS refuse: corrupt checksum and edited content
+PASS refuse: inconsistent but well-formed saves (validator)
+PASS fail-closed: refused slot loads and inspections change no file on disk
+PASS slots: illegal names refused (traversal, absolute, separators, dots, case, device, length, empty)
+PASS slots: directory must be absolute, existing and not a symlink
+PASS slots: save, list, load, explicit replace and prior-good backup
+PASS slots: invalid bytes are never written
+PASS slots: symlink escape refused for load, save and backup, outside file untouched
+PASS slots: a fault at every write stage leaves the previous good slot and backup intact, no temp left
+PASS slots: a temp file left by a killed process is ignored, reported and removable
+PASS slots: missing primary → refused, then recovered from the prior-good backup
+PASS slots: corrupt primary is refused, never promoted over a good backup, and recoverable
+PASS slots: a directory or bad backup in place of a slot file is refused
+PASS F1 slot names: trailing, leading and embedded newlines are refused everywhere a name is matched
+PASS F2 invalid UTF-8: typed refusal from Decode, Inspect and Save; a corrupt primary is still replaceable
+PASS F3 no-clobber: a slot created concurrently after the existence check is never overwritten
+PASS F4a accounts: Stage 5 and Phase 2 annual accounts align to the year
+PASS F4b mast seeds: Stage 5 and Phase 2 seeds are the engine's derivation from options and genesis
+PASS F4c lattice: the Phase 2 band lattice matches the Stage 5 cells position by position
+PASS F4d plan-state revision: below the proven lower bound is refused, at the bound is accepted
+PASS F4e deaths and fells are tied: a Fell death needs its fell record, a fell needs a Fell death in its year
+PASS F4f provenance: receipt tokens match genesis, event and lineage; receipt orders match ledger fells
+PASS B1 approved plan: only orders are saved (no planId, executionKey or recordedSource)
+PASS robustness: null header parts are typed refusals, not NullReferenceException
+PASS robustness: a symlinked ancestor of the slot directory is refused at construction
+PASS robustness: Inspect reports a directory at the primary path as present and not a file
+PASS NB1a: an absent slot is published no-clobber even when replaceExisting is true
+PASS NB1b: concurrent saves of one slot are serialized and leave one complete verified slot
+FAIL NB1c: a generation read and written inside the slot scope is unique per save — the second save carries the next generation after the first: expected 1, got 3
+PASS R2 backup recovery is refused while the primary still verifies, and is exactly what a corrupt primary gets
+PASS golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding
+PASS P1-TH-04 contract: SchemaVersion remains 2 and pre-Fell multi-year history survives Save/Load slot round trip
+PASS P1-TH-04 contract: post-Fell anchor events, work logs, whole-woodland planted accounts and tree species survive slot round trip at SchemaVersion 2
+49/50 passed, 1 failed
+scratch removed: True
+ERROR [G2]: Phase1.Save.Tests exited non-zero (see g2-save-tests.log)
+GATE G2 FAIL
+GATE G3 NOT RUN
+GATE G4 NOT RUN
+GATE G5 NOT RUN
+GATE G6 NOT RUN
+GATE G7 NOT RUN
+GATE B NOT RUN
+NETWORK ISOLATION: PROVEN
+VERDICT: FAIL (exit=1)

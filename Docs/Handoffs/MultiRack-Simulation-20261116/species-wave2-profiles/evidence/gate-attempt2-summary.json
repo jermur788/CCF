@@ -1,0 +1,28 @@
+{
+  "timestampUtc": "2026-11-26T18:40:33Z",
+  "exitCode": 5,
+  "verdict": "PARTIAL",
+  "repoRoot": "/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-SpeciesWave2-20261126",
+  "headCommit": "f2aceeda4e8845f65b674b2be222c65de11e3e93",
+  "baseRef": "6d72c30538b1fbe30d3cbcf083b5b368733662b8",
+  "baseCommit": "6d72c30538b1fbe30d3cbcf083b5b368733662b8",
+  "networkIsolation": "PROVEN",
+  "p0ReferenceMode": "PRE-SEEDED VERIFIED 9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3",
+  "withBrowser": false,
+  "headlessOnly": true,
+  "stages": {
+    "G0": "PASS",
+    "G1": "PASS",
+    "G2": "PASS",
+    "G3": "PASS",
+    "G4": "PASS",
+    "G5": "PASS",
+    "G6": "PASS",
+    "G7": "PASS",
+    "B": "NOT RUN"
+  },
+  "hostNa": [
+    "build-output-safety.sh C7-cold-build & C8-rebuild (frozen 8.0.133 pin not cold-reproducible on this host)",
+    "p0-isolation.sh cold-rebuild step (verified seed shim in disposable clone; L0/L1/L2/L3/L3+/L4/decoy/trace PASS)"
+  ]
+}
