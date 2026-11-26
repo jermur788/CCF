@@ -1,0 +1,25 @@
+{
+  "timestampUtc": "2026-11-26T18:26:27Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
+  "repoRoot": "/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-SpeciesWave2-20261126",
+  "headCommit": "8490c218155db139367a46a04a3da94215a9d685",
+  "baseRef": "6d72c30538b1fbe30d3cbcf083b5b368733662b8",
+  "baseCommit": "6d72c30538b1fbe30d3cbcf083b5b368733662b8",
+  "networkIsolation": "NOT PROVEN",
+  "p0ReferenceMode": "UNKNOWN",
+  "withBrowser": false,
+  "headlessOnly": true,
+  "stages": {
+    "G0": "PASS",
+    "G1": "PASS",
+    "G2": "FAIL",
+    "G3": "NOT RUN",
+    "G4": "NOT RUN",
+    "G5": "NOT RUN",
+    "G6": "NOT RUN",
+    "G7": "NOT RUN",
+    "B": "NOT RUN"
+  },
+  "hostNa": []
+}
