@@ -15,11 +15,11 @@ internal static class EconomyQuoteCalculator
         var pendingClears = root.Stage5?.PendingClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>();
         var pendingPlanting = root.Phase2?.PendingOrders ?? Array.Empty<MultiAreaPlantingOrder>();
         return ComputeCore(root, token, econ, root.Pending, pendingPrunes, pendingClears, pendingPlanting,
-            econ.PendingOrderExecutors, econ.PendingHarvestStageOverride,
+            econ.PendingOrderExecutors,
             executionKey: string.Empty, planId: string.Empty, workRevision: root.WorkRevision);
     }
 
-    /// <summary>Recomputes a verification quote over the currently approved orders using the frozen executor/stage choices.</summary>
+    /// <summary>Recomputes a verification quote over the currently approved orders using the frozen executor choices.</summary>
     internal static EconomyWorkPlanQuote ComputeForApproved(
         MultiAreaRoot root,
         MultiAreaSourceToken token,
@@ -35,7 +35,7 @@ internal static class EconomyQuoteCalculator
         var approvedClears = root.Stage5?.ApprovedClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>();
         var approvedPlanting = root.Phase2?.ApprovedOrders ?? Array.Empty<MultiAreaPlantingOrder>();
         return ComputeCore(root, token, econ, approvedPlan.Orders, approvedPrunes, approvedClears, approvedPlanting,
-            frozen.FrozenOrderExecutors, frozen.HarvestStageOverride,
+            frozen.FrozenOrderExecutors,
             executionKey: approvedPlan.ExecutionKey, planId: approvedPlan.PlanId, workRevision: workRevision);
     }
 
@@ -158,7 +158,6 @@ internal static class EconomyQuoteCalculator
         IReadOnlyList<MultiAreaClearUndergrowthOrder> clears,
         IReadOnlyList<MultiAreaPlantingOrder> plantingOrders,
         IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> orderExecutors,
-        HarvestThinningStage? harvestStageOverride,
         string executionKey,
         string planId,
         int workRevision)
@@ -194,7 +193,7 @@ internal static class EconomyQuoteCalculator
                     }
                 }
 
-                var stage = harvestStageOverride ?? EconomyDefaults.AutoHarvestStage(econ.ExecutedHarvestPlansCount);
+                var stage = EconomyDefaults.AutoHarvestStage(econ.ExecutedHarvestPlansCount);
                 long stageRate = EconomyDefaults.HarvestRateCentsPerTonne(stage);
                 var stemYields = new List<D062StemYield>(fells.Count);
                 long totalStemVol = 0L;
@@ -429,7 +428,6 @@ internal static class EconomyAnnualSummary
                 PendingOrderExecutors = cancelledWork
                     ? new Dictionary<EconomyOrderKey, WorkExecutor>()
                     : current.PendingOrderExecutors,
-                PendingHarvestStageOverride = cancelledWork ? null : current.PendingHarvestStageOverride,
                 ApprovedQuote = cancelledWork ? null : current.ApprovedQuote,
                 YearEndSummaries = Array.AsReadOnly(current.YearEndSummaries.Append(summary).ToArray()),
             };

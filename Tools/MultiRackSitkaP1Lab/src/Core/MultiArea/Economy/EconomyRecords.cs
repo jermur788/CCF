@@ -86,7 +86,6 @@ internal sealed record EconomyApprovedQuote(
     string ExecutionKey,
     int QuotedAtPlanStateRevision,
     int ApprovedAtPlanStateRevision,
-    HarvestThinningStage? HarvestStageOverride,
     IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> FrozenOrderExecutors,
     EconomyWorkPlanQuote Quote);
 
@@ -134,7 +133,6 @@ internal sealed record MultiAreaEconomyState(
     int RemainingLandownerMinutes,
     int ExecutedHarvestPlansCount,
     IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> PendingOrderExecutors,
-    HarvestThinningStage? PendingHarvestStageOverride,
     EconomyApprovedQuote? ApprovedQuote,
     IReadOnlyList<EconomySettlementReceipt> Settlements,
     IReadOnlyList<EconomyLedgerEntry> Ledger,
@@ -150,7 +148,6 @@ internal sealed record MultiAreaEconomyState(
             RemainingLandownerMinutes: valid.AnnualLandownerAllowanceMinutes,
             ExecutedHarvestPlansCount: 0,
             PendingOrderExecutors: new Dictionary<EconomyOrderKey, WorkExecutor>(),
-            PendingHarvestStageOverride: null,
             ApprovedQuote: null,
             Settlements: Array.Empty<EconomySettlementReceipt>(),
             Ledger: Array.Empty<EconomyLedgerEntry>(),
@@ -170,7 +167,6 @@ internal sealed record MultiAreaEconomyView(
     int RemainingLandownerMinutes,
     int ExecutedHarvestPlansCount,
     IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> PendingOrderExecutors,
-    HarvestThinningStage? PendingHarvestStageOverride,
     EconomyApprovedQuote? ApprovedQuote,
     IReadOnlyList<EconomySettlementReceipt> Settlements,
     IReadOnlyList<EconomyLedgerEntry> Ledger,

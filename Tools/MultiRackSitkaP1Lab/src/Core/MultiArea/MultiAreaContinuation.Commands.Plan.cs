@@ -37,7 +37,6 @@ internal sealed partial class MultiAreaContinuation
                     plan.ExecutionKey,
                     QuotedAtPlanStateRevision: root.PlanStateRevision,
                     ApprovedAtPlanStateRevision: planState,
-                    HarvestStageOverride: economy.PendingHarvestStageOverride,
                     FrozenOrderExecutors: new Dictionary<EconomyOrderKey, WorkExecutor>(economy.PendingOrderExecutors),
                     Quote: pendingQuote);
             }
@@ -64,7 +63,6 @@ internal sealed partial class MultiAreaContinuation
                 Economy = economy is null ? null : economy with
                 {
                     PendingOrderExecutors = new Dictionary<EconomyOrderKey, WorkExecutor>(),
-                    PendingHarvestStageOverride = null,
                     ApprovedQuote = approvedQuote,
                 },
             };

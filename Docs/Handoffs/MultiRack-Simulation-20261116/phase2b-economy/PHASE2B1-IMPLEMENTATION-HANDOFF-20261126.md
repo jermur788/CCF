@@ -137,3 +137,29 @@ Tools/MultiRackSitkaP1Lab/build/2d-gate.sh   --base 5648813d9ccbe8d38e9fbe5df38d
      - Non-harvest orders default to `Contractor` until explicitly assigned to `Landowner`.
 3. **Save test project filename in packet §10:**
    - Packet §10 listed `tests/Phase1.Save.Tests/Phase1.Save.Tests.csproj` / `Phase1.Save.Tests.dll`; the actual tracked filename is `tests/Phase1.Save.Tests/Phase1Save.Tests.csproj` / `Phase1Save.Tests.dll`.
+
+---
+
+## 7. Bounded Delta — Owner Rulings C3, C4, C5 Closure (Remove Clearfell + Player Stage Override)
+
+### Owner Rulings Recorded
+- **C3 — Accepted as-is:** `EconomyModelVersion` stays `Off (0)` by default everywhere; opting in (`EconomyModelVersion.Enabled`) on the frozen `Legacy` (`0/0/0/0`) base is explicitly permitted with no restriction added.
+- **C4 — Accepted as-is:** Keep the `FinancialLedger: NOT RECORDED` disclosure in `MultiAreaHistoryQuery` history readouts when Economy is `Off` (alongside `EconomyHistoryQuery` returning `NOT RECORDED` and `null` cents).
+- **C5 — Change applied:** CCF is a Continuous-Cover Forestry simulator; clearfelling is not allowed or modelled, and no player-controlled harvest-stage override is permitted. The `€2,500` per-plan minimum harvest job floor is preserved.
+
+### What Was Removed
+- `HarvestThinningStage.Clearfell`, `EconomyDefaults.ClearfellCentsPerTonne`, its `HarvestRateCentsPerTonne` switch arm, and all clearfell wording/labels in `EconomyModels.cs` (`EconomyEvidence.HarvestPricing` updated to selective CCF thinning only).
+- `MultiAreaContinuation.SetHarvestStageOverride` (`MultiAreaContinuation.Commands.Economy.cs`).
+- `EconomyApprovedQuote.HarvestStageOverride`, `MultiAreaEconomyState.PendingHarvestStageOverride`, `MultiAreaEconomyView.PendingHarvestStageOverride` (`EconomyRecords.cs`), and every constructor/call/reset site in `MultiAreaContinuation.Commands.Plan.cs`, `MultiAreaContinuation.Commands.Economy.cs`, and `EconomyQuoteCalculator.cs` (`ComputePending`, `ComputeForApproved`, `ComputeCore`, `EconomyAnnualSummary.BuildYearEnd`).
+- All test assertions exercising `SetHarvestStageOverride` or `Clearfell` in `tests/Core.Tests/Phase2BEconomyTests.cs` (replaced with reflection/enum boundary checks and pure auto-derivation checks).
+
+### Authoritative Stage Derivation Rule
+- Derived strictly by `EconomyDefaults.AutoHarvestStage(econ.ExecutedHarvestPlansCount)` from authoritative recorded executed felling history on the stand, with zero caller input:
+  - `0` prior executed harvest plans → `HarvestThinningStage.FirstThinning` (`2_000L` cents/t = `€20/t`)
+  - `1` prior executed harvest plan → `HarvestThinningStage.SecondThinning` (`2_300L` cents/t = `€23/t`)
+  - `>= 2` prior executed harvest plans → `HarvestThinningStage.LaterThinning` (`2_000L` cents/t = `€20/t`)
+- The `€2,500` (`250_000L` cents) minimum harvest job floor per executed felling Work Plan is preserved unchanged.
+
+### Numeric Rate Reconciliation Note (For Owner Confirmation at Integration)
+- The C5 ruling's illustrative parenthetical mentions `"€23/t first / €19/t subsequent"`, which conflicts with **both** the existing Phase 2B-1 code and the verified 3D sources (`ScenarioOneEconomyAdapter.cs` / `Stage1EconomyDefaults.cs`). The same ruling's operative clause instructs keeping "the exact non-clearfell CCF thinning tiers already verified from 3D".
+- Following the operative clause, this delta preserves the existing 3D-aligned non-clearfell tier constants unchanged (`FirstThinning = €20/t`, `SecondThinning = €23/t`, `LaterThinning = €20/t`) and records this discrepancy here and in `specs/multi-2d-phase2b-economy-v1/spec.md` §7 for explicit owner confirmation at integration.

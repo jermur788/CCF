@@ -5,7 +5,7 @@ using SitkaP1.Core.Phase1;
 namespace SitkaP1.Core.Tests;
 
 /// <summary>
-/// CCF Multi 2D — Phase 2B-1 Economy, Labour & D-062 Timber Engine verification suite (exact 8-case minimum set).
+/// CCF Multi 2D — Phase 2B-1 Economy, Labour & D-062 Timber Engine verification suite (8 core + 1 C5 CCF thinning case).
 /// </summary>
 internal static class Phase2BEconomyTests
 {
@@ -138,8 +138,8 @@ internal static class Phase2BEconomyTests
             T.Eq(preApproveQuote.TimberSaleRevenueCents, econAfterRequote.ApprovedQuote!.Quote.TimberSaleRevenueCents,
                 "frozen revenue unchanged by later re-quote");
 
-            // Edits to harvest stage or executors are refused while approved.
-            T.Refuses("WorkPlanAlreadyApproved", () => session.SetHarvestStageOverride(Fence(v), HarvestThinningStage.Clearfell));
+            // Edits to executors are refused while approved.
+            T.Refuses("WorkPlanAlreadyApproved", () => session.SetOrderExecutor(Fence(v), EconomyOrderKey.ForFell("MA-A", treeId), WorkExecutor.Contractor));
 
             // Executing settles the exact frozen amounts.
             var exec = session.Execute(Fence(v), v.Approved.PlanId, v.Approved.ExecutionKey);
@@ -331,17 +331,12 @@ internal static class Phase2BEconomyTests
             T.Eq(2, econ.ExecutedHarvestPlansCount, "two executed harvest plans");
             T.Eq(500_000L, econ.Settlements.Sum(s => s.TotalExternalCostCents), "two separate plans paid €5,000 total floors");
 
-            // Third felling plan auto-progresses to LaterThinning (€20/t), and explicit override reaches Clearfell (€15/t).
+            // Third felling plan auto-progresses to LaterThinning (€20/t) strictly from recorded felling history.
             string thirdTree = v.Areas[0].Trees.First(t => t.IsLiving).TreeId;
             v = session.AddPending(Fence(v), "MA-A", thirdTree, "stage rate check").View;
             var q3 = session.QuoteWorkPlan(Fence(v));
             T.Eq(HarvestThinningStage.LaterThinning, q3.HarvestJob!.Stage, "third harvest auto-selects LaterThinning");
             T.Eq(2_000L, q3.HarvestJob.StageRateCentsPerTonne, "LaterThinning rate = €20/t");
-
-            v = session.SetHarvestStageOverride(Fence(v), HarvestThinningStage.Clearfell).View;
-            var qClear = session.QuoteWorkPlan(Fence(v));
-            T.Eq(HarvestThinningStage.Clearfell, qClear.HarvestJob!.Stage, "explicit Clearfell stage");
-            T.Eq(1_500L, qClear.HarvestJob.StageRateCentsPerTonne, "Clearfell rate = €15/t");
         });
 
         // 8. 0.64 ha calibration and D-062 assortment
@@ -409,6 +404,108 @@ internal static class Phase2BEconomyTests
                 "Sitka uses Sitka-only assortments");
             T.Eq(sitkaUnpruned.TimberRevenueCents, sitkaPruned.TimberRevenueCents, "Sitka timber valuation unchanged by pruning");
             T.Eq(sitkaUnpruned.Logs.Count, sitkaPruned.Logs.Count, "Sitka log allocation unchanged by pruning");
+        });
+
+        // 9. CCF selective thinning only: no non-CCF stage, no player override, engine-derived stage progression
+        T.Add("economy: CCF selective thinning only (no override, auto-derived stage)", () =>
+        {
+            // (a) Enum surface: strictly FirstThinning, SecondThinning, LaterThinning; no fourth stage exists.
+            var stages = Enum.GetValues<HarvestThinningStage>();
+            T.Eq(3, stages.Length, "exactly three selective CCF thinning stages exist");
+            T.Eq(HarvestThinningStage.FirstThinning, stages[0], "stage 0 is FirstThinning");
+            T.Eq(HarvestThinningStage.SecondThinning, stages[1], "stage 1 is SecondThinning");
+            T.Eq(HarvestThinningStage.LaterThinning, stages[2], "stage 2 is LaterThinning");
+            foreach (var name in Enum.GetNames<HarvestThinningStage>())
+                T.True(!name.Contains("clear", StringComparison.OrdinalIgnoreCase), "no clear-felling enum member exists");
+            T.True(!Enum.IsDefined((HarvestThinningStage)3), "ordinal 3 is not a defined stage");
+            T.Refuses("EconomyHarvestStageUnknown", () => EconomyDefaults.HarvestRateCentsPerTonne((HarvestThinningStage)3));
+
+            // (b) Reflection over command/state/quote surface: zero caller-supplied harvest stage override reachable.
+            const BindingFlags allMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+            Type[] guardedTypes =
+            {
+                typeof(MultiAreaContinuation),
+                typeof(MultiAreaEconomyState),
+                typeof(MultiAreaEconomyView),
+                typeof(EconomyApprovedQuote),
+                typeof(EconomyOptions),
+                typeof(EconomyQuoteCalculator),
+                typeof(EconomyDefaults),
+            };
+            foreach (var type in guardedTypes)
+            {
+                foreach (var member in type.GetMembers(allMembers))
+                {
+                    T.True(!member.Name.Contains("StageOverride", StringComparison.OrdinalIgnoreCase),
+                        type.Name + "." + member.Name + " must not expose a stage override");
+                    if (type != typeof(EconomyDefaults))
+                    {
+                        T.True(!member.Name.Contains("HarvestStage", StringComparison.OrdinalIgnoreCase),
+                            type.Name + "." + member.Name + " must not expose a harvest-stage setter/member");
+                    }
+                    T.True(!member.Name.Contains("Clearf", StringComparison.OrdinalIgnoreCase),
+                        type.Name + "." + member.Name + " must not expose clear-felling");
+                }
+            }
+
+            static bool IsStageType(Type t) => t == typeof(HarvestThinningStage) || t == typeof(HarvestThinningStage?);
+            Type[] noStageInputTypes =
+            {
+                typeof(MultiAreaContinuation),
+                typeof(MultiAreaEconomyState),
+                typeof(MultiAreaEconomyView),
+                typeof(EconomyApprovedQuote),
+                typeof(EconomyOptions),
+                typeof(EconomyQuoteCalculator),
+            };
+            foreach (var type in noStageInputTypes)
+            {
+                foreach (var method in type.GetMethods(allMembers))
+                {
+                    foreach (var p in method.GetParameters())
+                        T.True(!IsStageType(p.ParameterType), type.Name + "." + method.Name + " must not accept HarvestThinningStage");
+                }
+                foreach (var ctor in type.GetConstructors(allMembers))
+                {
+                    foreach (var p in ctor.GetParameters())
+                        T.True(!IsStageType(p.ParameterType), type.Name + " ctor must not accept HarvestThinningStage");
+                }
+                foreach (var prop in type.GetProperties(allMembers))
+                    T.True(!IsStageType(prop.PropertyType), type.Name + "." + prop.Name + " must not store a HarvestThinningStage override");
+                foreach (var field in type.GetFields(allMembers))
+                    T.True(!IsStageType(field.FieldType), type.Name + "." + field.Name + " must not store a HarvestThinningStage override");
+            }
+            foreach (var label in EconomyEvidence.All)
+                T.True(!label.Contains("clearf", StringComparison.OrdinalIgnoreCase), "evidence disclosures omit clear-felling");
+
+            // (c) Engine derives FirstThinning -> SecondThinning -> LaterThinning strictly from executed felling history.
+            var session = MixedEconomySession();
+            var v = session.ReadView();
+            var liveTrees = v.Areas[0].Trees.Where(t => t.IsLiving).Take(4).ToArray();
+
+            HarvestThinningStage[] expectedStages =
+            {
+                HarvestThinningStage.FirstThinning,
+                HarvestThinningStage.SecondThinning,
+                HarvestThinningStage.LaterThinning,
+                HarvestThinningStage.LaterThinning,
+            };
+            long[] expectedRates = { 2_000L, 2_300L, 2_000L, 2_000L };
+
+            for (int i = 0; i < 4; i++)
+            {
+                v = session.AddPending(Fence(v), "MA-A", liveTrees[i].TreeId, "auto stage plan " + (i + 1)).View;
+                var q = session.QuoteWorkPlan(Fence(v));
+                T.Eq(expectedStages[i], q.HarvestJob!.Stage, "plan " + (i + 1) + " auto-derives stage");
+                T.Eq(expectedRates[i], q.HarvestJob.StageRateCentsPerTonne, "plan " + (i + 1) + " uses verified 3D rate");
+                if (i < 3)
+                {
+                    v = session.Approve(Fence(v)).View;
+                    var exec = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
+                    T.Eq(expectedStages[i], exec.Execution!.Settlement!.HarvestJob!.Stage, "settled plan " + (i + 1) + " matches derived stage");
+                    v = exec.View;
+                }
+            }
         });
     }
 

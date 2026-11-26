@@ -22,7 +22,6 @@ internal sealed partial class MultiAreaContinuation
                 econ.RemainingLandownerMinutes,
                 econ.ExecutedHarvestPlansCount,
                 new Dictionary<EconomyOrderKey, WorkExecutor>(econ.PendingOrderExecutors),
-                econ.PendingHarvestStageOverride,
                 econ.ApprovedQuote,
                 econ.Settlements,
                 econ.Ledger,
@@ -94,30 +93,6 @@ internal sealed partial class MultiAreaContinuation
     /// <summary>Convenience fenced command for Fell executor assignment; always refuses <see cref="WorkExecutor.Landowner"/>.</summary>
     internal MultiAreaCommandResult SetFellExecutor(MultiAreaFence fence, string areaId, string treeId, WorkExecutor executor) =>
         SetOrderExecutor(fence, EconomyOrderKey.ForFell(areaId, treeId), executor);
-
-    /// <summary>
-    /// Explicitly selects the thinning/harvest stage (e.g. Clearfell, FirstThinning, SecondThinning, LaterThinning) for
-    /// the pending felling Work Plan, or <c>null</c> to restore automatic stage progression.
-    /// </summary>
-    internal MultiAreaCommandResult SetHarvestStageOverride(MultiAreaFence fence, HarvestThinningStage? stage)
-    {
-        lock (sync)
-        {
-            RequireFence(fence);
-            var econ = RequireEconomy();
-            if (root.Approved is not null)
-                throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is awaiting execution; cancel it before editing");
-            if (stage is { } s && !Enum.IsDefined(s))
-                throw new P1Refusal("EconomyHarvestStageUnknown", "unknown harvest thinning stage");
-
-            root = root with
-            {
-                Economy = econ with { PendingHarvestStageOverride = stage },
-                PlanStateRevision = checked(root.PlanStateRevision + 1),
-            };
-            return WithView(null, null);
-        }
-    }
 
     // Caller holds sync.
     private MultiAreaEconomyState RequireEconomy() => root.Economy ??

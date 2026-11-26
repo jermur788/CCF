@@ -31,13 +31,12 @@ internal enum WorkExecutor
     Landowner = 1,
 }
 
-/// <summary>Thinning/harvest stage for grouped contractor harvest pricing (€15–€23/t).</summary>
+/// <summary>Engine-derived selective CCF thinning stage for grouped contractor harvest pricing (€20–€23/t).</summary>
 internal enum HarvestThinningStage
 {
     FirstThinning = 0,
     SecondThinning = 1,
     LaterThinning = 2,
-    Clearfell = 3,
 }
 
 /// <summary>Work Plan order family priced by the Economy engine.</summary>
@@ -124,11 +123,10 @@ internal static class EconomyDefaults
     internal const long BeechSaplingMaterialCents = 450L;                   // €4.50 [GAMEPLAY CALIBRATION]
     internal const long OakSaplingMaterialCents = 550L;                     // €5.50 [GAMEPLAY CALIBRATION]
 
-    // ---- Grouped harvest contractor rates (€15–€23/t combined harvest + forward) ----
+    // ---- Grouped harvest contractor rates (selective CCF thinning; combined harvest + forward) ----
     internal const long FirstThinningCentsPerTonne = 2_000L;                // €20/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
     internal const long SecondThinningCentsPerTonne = 2_300L;               // €23/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
     internal const long LaterThinningCentsPerTonne = 2_000L;                // €20/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
-    internal const long ClearfellCentsPerTonne = 1_500L;                    // €15/t [EMPIRICAL range / GAMEPLAY CALIBRATION selection]
 
     // ---- Low-risk non-harvest task durations (integer minutes) ----
     internal const int PlantMinutesPerSapling = 10;                         // [GAMEPLAY CALIBRATION] ScenarioOneDefinition.cs
@@ -147,7 +145,6 @@ internal static class EconomyDefaults
         HarvestThinningStage.FirstThinning => FirstThinningCentsPerTonne,
         HarvestThinningStage.SecondThinning => SecondThinningCentsPerTonne,
         HarvestThinningStage.LaterThinning => LaterThinningCentsPerTonne,
-        HarvestThinningStage.Clearfell => ClearfellCentsPerTonne,
         _ => throw new P1Refusal("EconomyHarvestStageUnknown", "unknown harvest thinning stage"),
     };
 
@@ -202,7 +199,7 @@ internal static class EconomyEvidence
     internal const string LandownerAllowance =
         "[GAMEPLAY CALIBRATION] Annual 40.0 h (2,400 min) landowner allowance is a physical time resource at €0 cash wage; commercial production felling is contractor-only [MANAGEMENT GUIDANCE].";
     internal const string HarvestPricing =
-        "[EMPIRICAL / GAMEPLAY CALIBRATION] Grouped contractor harvest €15–€23/t by thinning stage (first €20/t, second €23/t, later €20/t, clearfell €15/t) with a €2,500 minimum job floor per executed felling Work Plan.";
+        "[EMPIRICAL / GAMEPLAY CALIBRATION] Grouped contractor selective CCF thinning harvest by engine-derived stage (first €20/t, second €23/t, later €20/t) with a €2,500 minimum job floor per executed felling Work Plan.";
     internal const string MaterialsAndManualLabour =
         "[GAMEPLAY CALIBRATION] Non-harvest contractor labour €45/hr and on-demand Work Plan materials (shelter €5.00, beech €4.50, oak €5.50) are gameplay calibrations; no separate nursery inventory is modelled.";
     internal const string BroadleafD062 =
