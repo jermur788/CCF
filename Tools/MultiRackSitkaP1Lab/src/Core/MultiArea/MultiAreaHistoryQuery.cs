@@ -348,6 +348,7 @@ internal static class MultiAreaHistoryQuery
     internal const string KeyPastOverheadCanopyCover = "PastOverheadCanopyCover";
     internal const string KeyPastTreeByTreeStructure = "PastTreeByTreeStructure";
     internal const string KeyPerAreaPlantedAccountSplits = "PerAreaPlantedAccountSplits";
+    internal const string KeyFinancialLedger = "FinancialLedger";
 
     private static readonly IReadOnlyList<HistoryNotRecordedDisclosure> StandardNotRecorded = Array.AsReadOnly(new[]
     {
@@ -703,7 +704,13 @@ internal static class MultiAreaHistoryQuery
             AnnualRecordEndingInYear: annualRecordEndingInYear,
             PlantedWorkFollowUp: Array.AsReadOnly(followUps.ToArray()),
             LaterObservedComparison: comparison,
-            NotRecordedDisclosures: StandardNotRecorded,
+            NotRecordedDisclosures: root.Economy is null
+                ? Array.AsReadOnly(StandardNotRecorded.Append(new HistoryNotRecordedDisclosure(
+                    KeyFinancialLedger,
+                    HistoryProvenance.NotRecorded,
+                    HistoryProvenanceCatalog.LabelOf(HistoryProvenance.NotRecorded),
+                    "Economy model is Off; cash balance, contractor charges, timber receipts, and landowner hours are NOT RECORDED.")).ToArray())
+                : StandardNotRecorded,
             ProvenanceGlossary: HistoryProvenanceCatalog.All);
     }
 

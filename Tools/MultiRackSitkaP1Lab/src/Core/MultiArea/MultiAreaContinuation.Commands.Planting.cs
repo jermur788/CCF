@@ -57,6 +57,7 @@ internal sealed partial class MultiAreaContinuation
             root = root with
             {
                 Phase2 = phase2 with { PendingOrders = Array.AsReadOnly(pending) },
+                Economy = WithoutPendingExecutor(root.Economy, EconomyOrderKey.ForPlanting(match)),
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
             };
             return WithView(null, null);

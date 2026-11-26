@@ -458,6 +458,7 @@ Stage4Tests.Register();
 Stage4UiCatchupTests.Register();
 Stage5Tests.Register();
 Phase2Tests.Register(manifestPath);
+Phase2BEconomyTests.Register();
 MapIntegrationPass1Tests.Register();
 MapIntegrationPass2Tests.Register();
 Phase1SaveIntegrationTests.Register();

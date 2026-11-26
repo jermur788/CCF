@@ -47,6 +47,7 @@ internal sealed partial class MultiAreaContinuation
             root = root with
             {
                 Stage5 = stage5 with { PendingClears = Array.AsReadOnly(pending) },
+                Economy = WithoutPendingExecutor(root.Economy, EconomyOrderKey.ForClear(areaId, column, row)),
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
             };
             return WithView(null, null);

@@ -78,6 +78,7 @@ internal sealed class YearInProgress
     internal MultiAreaYearRecord? YearRecord { get; set; }
     internal MultiAreaStage5State? NextStage5 { get; set; }
     internal MultiAreaPhase2State? NextPhase2 { get; set; }
+    internal MultiAreaEconomyState? NextEconomy { get; set; }
 }
 
 /// <summary>
@@ -294,8 +295,9 @@ internal sealed class YearRecordStep : IAnnualStep
 }
 
 /// <summary>
-/// Step 6 (RESERVED, EMPTY in S0b): read-only year-end summary slot reserved for Phase 2B Economy.
-/// Provably a true no-op: computes nothing and touches no field.
+/// Step 6 (Phase 2B Economy annual hook): strict no-op when Economy is Off (<c>Start.Economy is null</c>).
+/// When Economy is Enabled, records the year-end summary, resets the 40.0 h annual landowner allowance,
+/// and clears any cancelled pending/approved economy state on consented work cancellation.
 /// </summary>
 internal sealed class ReservedPhase2BYearEndSummaryStep : IAnnualStep
 {
@@ -304,5 +306,10 @@ internal sealed class ReservedPhase2BYearEndSummaryStep : IAnnualStep
 
     public string Name => "ReservedPhase2BYearEndSummary";
 
-    public void Run(YearInProgress year) { }
+    public void Run(YearInProgress progress)
+    {
+        if (progress.Start.Economy is null) return;
+        progress.NextEconomy = EconomyAnnualSummary.BuildYearEnd(
+            progress.Start.Economy, progress.Year, checked(progress.Year + 1), progress.HasWork);
+    }
 }
