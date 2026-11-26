@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# CCF Multi 2D — Fail-closed self-test for build/2d-gate.sh (SPEC-multi-2d-s0-seam-extraction-V1 §4.5).
+# CCF Multi 2D — Fail-closed self-test for build/2d-gate.sh (SPEC-multi-2d-s0-seam-extraction-V1 §4.5, S0b MIN-2).
 #
 # Clones the repository locally into an external temporary directory using
 # `git clone --shared --no-checkout` + sparse checkout (NEVER touches the real working tree).
-# Plants one violation per stage/exit-code class and asserts the exact non-zero exit code
-# (1, 2, 3, 4, 5, 64) for every case.
+# Plants violations across every stage and exit-code class (0, 1, 2, 3, 4, 5, 64) and asserts
+# the exact expected exit code and diagnostic marker for every case.
 #
 # Usage:
 #   Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh [--p0ref-dir <dir>] <evidence-dir>
@@ -63,6 +63,8 @@ LOG="$EVIDENCE_DIR/selftest.log"
 say() { printf '%s\n' "$*" | tee -a "$LOG"; }
 
 SCRATCH="$(mktemp -d "${TMP_BASE}/ccf-2d-gate-selftest.XXXXXXXX")"
+mkdir -p -- "$SCRATCH/tmp"
+export TMPDIR="$SCRATCH/tmp"
 cleanup() {
   rm -rf -- "$SCRATCH"
 }
@@ -99,6 +101,8 @@ GATE_COMMON_ARGS=()
 if [[ -n "$P0REF_DIR" ]]; then
   GATE_COMMON_ARGS+=(--p0ref-dir "$P0REF_DIR")
 fi
+
+SEED_SRC="${P0REF_DIR:-$P1_ROOT/.p0ref}"
 
 RESULTS_DIR="$SCRATCH/results"
 mkdir -p -- "$RESULTS_DIR"
@@ -144,7 +148,7 @@ run_case_gate() {
   run_case_raw "$cid" "$expected_rc" "$expected_pat" "$desc" "$@" "$case_ev"
 }
 
-say "=== 2d-gate.sh fail-closed selftest ==="
+say "=== 2d-gate.sh fail-closed selftest (26 cases) ==="
 say "HEAD=${HEAD_SHA} BASE=${BASE_SHA} P0REF_DIR=${P0REF_DIR:-<none>}"
 
 # ------------------------------------------------------------------------------
@@ -187,7 +191,7 @@ done
 run_case_gate "C06-g0-missing-tool" 3 "required tool missing on PATH: strace" "missing strace on PATH -> exit 3" \
   env PATH="$NO_STRACE_BIN" bash "$FAST_GATE" "${GATE_COMMON_ARGS[@]}"
 
-# C07: Invalid .p0ref seed (tampered DLL) -> exit 3 (G1 PREREQUISITE MISSING)
+# C07: Invalid .p0ref seed (tampered DLL + sha + provenance) -> exit 3 (G1 PREREQUISITE MISSING)
 BAD_SEED="$SCRATCH/bad-seed"
 mkdir -p -- "$BAD_SEED"
 printf 'not-a-valid-dll' > "$BAD_SEED/SitkaLab.Core.dll"
@@ -195,6 +199,51 @@ printf '0000000000000000000000000000000000000000000000000000000000000000  SitkaL
 printf 'p0QualifiedCommit=bad\n' > "$BAD_SEED/provenance.txt"
 run_case_gate "C07-g1-bad-seed" 3 "GATE G1 FAIL" "invalid .p0ref seed -> exit 3" \
   bash "$FAST_GATE" --p0ref-dir "$BAD_SEED"
+
+# C16 (MIN-2): Seed edge case — symlinked SitkaLab.Core.dll (other seed files valid) -> exit 3
+SEED_SYMLINK_TARGET="$SCRATCH/seed-symlink-target"
+SEED_SYMLINK="$SCRATCH/seed-symlink"
+mkdir -p -- "$SEED_SYMLINK_TARGET" "$SEED_SYMLINK"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll" "$SEED_SYMLINK_TARGET/SitkaLab.Core.dll"
+ln -s "$SEED_SYMLINK_TARGET/SitkaLab.Core.dll" "$SEED_SYMLINK/SitkaLab.Core.dll"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll.sha256" "$SEED_SYMLINK/SitkaLab.Core.dll.sha256"
+cp --no-dereference "$SEED_SRC/provenance.txt" "$SEED_SYMLINK/provenance.txt"
+run_case_gate "C16-g1-seed-symlink" 3 "seed file is a symlink" "symlinked seed file -> exit 3" \
+  bash "$FAST_GATE" --p0ref-dir "$SEED_SYMLINK"
+
+# C17 (MIN-2): Seed edge case — wrong-SHA regular SitkaLab.Core.dll (sha256 file & provenance valid) -> exit 3
+SEED_WRONG_SHA="$SCRATCH/seed-wrong-sha"
+mkdir -p -- "$SEED_WRONG_SHA"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll" "$SEED_WRONG_SHA/SitkaLab.Core.dll"
+chmod u+w "$SEED_WRONG_SHA/SitkaLab.Core.dll"
+python3 - "$SEED_WRONG_SHA/SitkaLab.Core.dll" <<'PY'
+import sys
+p = sys.argv[1]
+data = bytearray(open(p, "rb").read())
+data[-1] ^= 0xFF
+open(p, "wb").write(data)
+PY
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll.sha256" "$SEED_WRONG_SHA/SitkaLab.Core.dll.sha256"
+cp --no-dereference "$SEED_SRC/provenance.txt" "$SEED_WRONG_SHA/provenance.txt"
+run_case_gate "C17-g1-seed-wrong-sha" 3 "SitkaLab\.Core\.dll sha256=.* != expected" "wrong-SHA seed DLL -> exit 3" \
+  bash "$FAST_GATE" --p0ref-dir "$SEED_WRONG_SHA"
+
+# C18 (MIN-2): Seed edge case — missing provenance.txt (DLL & sha256 valid) -> exit 3
+SEED_MISSING_PROV="$SCRATCH/seed-missing-prov"
+mkdir -p -- "$SEED_MISSING_PROV"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll" "$SEED_MISSING_PROV/SitkaLab.Core.dll"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll.sha256" "$SEED_MISSING_PROV/SitkaLab.Core.dll.sha256"
+run_case_gate "C18-g1-seed-missing-provenance" 3 "seed missing file: .*provenance\.txt" "missing seed provenance.txt -> exit 3" \
+  bash "$FAST_GATE" --p0ref-dir "$SEED_MISSING_PROV"
+
+# C19 (MIN-2): Seed edge case — invalid provenance.txt (DLL & sha256 valid) -> exit 3
+SEED_INVALID_PROV="$SCRATCH/seed-invalid-prov"
+mkdir -p -- "$SEED_INVALID_PROV"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll" "$SEED_INVALID_PROV/SitkaLab.Core.dll"
+cp --no-dereference "$SEED_SRC/SitkaLab.Core.dll.sha256" "$SEED_INVALID_PROV/SitkaLab.Core.dll.sha256"
+sed 's/^p0QualifiedTree=.*/p0QualifiedTree=0000000000000000000000000000000000000000/' "$SEED_SRC/provenance.txt" > "$SEED_INVALID_PROV/provenance.txt"
+run_case_gate "C19-g1-seed-invalid-provenance" 3 "seed provenance\.txt missing exact line" "invalid seed provenance.txt -> exit 3" \
+  bash "$FAST_GATE" --p0ref-dir "$SEED_INVALID_PROV"
 
 # C08: Compile error in Core -> exit 1 (G1 FAIL)
 printf '\n#error selftest planted G1 compile failure\n' >> "$FAST_CLONE/Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs"
@@ -222,8 +271,9 @@ run_case_gate "C09-g2-dropped-test" 1 "GATE G2 FAIL" "dropped Core test below ba
   bash "$FAST_GATE" "${GATE_COMMON_ARGS[@]}"
 git -C "$FAST_CLONE" reset --quiet --hard "$HEAD_SHA"
 git -C "$FAST_CLONE" clean --quiet -fdx
+rm -rf -- "$FAST_CLONE" "$SCRATCH/tmp"/*
 
-say "Fast cases C01-C09 completed; running full end-to-end stage cases C10-C15 sequentially (foreground, zero CPU contention)..."
+say "Fast cases C01-C09 and C16-C19 completed; running full end-to-end stage cases C10-C15 and C20-C26 sequentially (foreground, zero CPU contention)..."
 
 # ------------------------------------------------------------------------------
 # Full end-to-end cases past G2 (each gets its own isolated sparse clone, run sequentially in foreground)
@@ -239,9 +289,31 @@ run_full_case() {
   local clone="$SCRATCH/clone-${cid}"
   make_sparse_clone "$clone"
   "$mutate_fn" "$clone"
-  run_case_gate "$cid" "$expected_rc" "$expected_pat" "$desc" \
-    bash "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate.sh" "${GATE_COMMON_ARGS[@]}" "$@"
-  rm -rf -- "$clone"
+
+  local attempt
+  for attempt in 1 2 3; do
+    local case_ev="$EVIDENCE_DIR/case-${cid}"
+    rm -rf -- "$case_ev"
+    run_case_gate "$cid" "$expected_rc" "$expected_pat" "$desc" \
+      bash "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate.sh" "${GATE_COMMON_ARGS[@]}" "$@"
+
+    # If the case passed, we are done.
+    if grep -q '^PASS	' "$RESULTS_DIR/${cid}.tsv"; then
+      break
+    fi
+
+    # Transparently retry ONLY when unmodified 2d-gate.sh exited 1 at G2 solely due to the documented
+    # pre-existing frozen NB1c OS-scheduling race in tests/Phase1.Save.Tests/Program.cs (49/50, expected 1 got 3).
+    local save_log="$case_ev/g2-save-tests.log"
+    if [[ "$attempt" -lt 3 && -f "$save_log" ]] \
+      && grep -q '^49/50 passed, 1 failed$' "$save_log" \
+      && grep -Eq '^FAIL NB1c: .* expected 1, got 3$' "$save_log"; then
+      say "NOTE [selftest]: retrying ${cid} (attempt $((attempt + 1))/3) after pre-existing frozen NB1c OS-scheduling race (49/50, expected 1 got 3)"
+      continue
+    fi
+    break
+  done
+  rm -rf -- "$clone" "$SCRATCH/tmp"/*
 }
 
 mut_g3_anchor() {
@@ -301,6 +373,88 @@ PY
   git -C "$clone" commit --quiet -m "selftest: suppress GATE G7 PASS marker"
 }
 
+mut_uismoke_5th_fail() {
+  local clone="$1"
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/tests/ui-smoke.sh" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p, "r", encoding="utf-8").read()
+target = 'say "OVERALL:'
+idx = s.rfind(target)
+assert idx != -1
+inject = 'bad "Z99 selftest planted 5th ui-smoke failure"\n'
+s = s[:idx] + inject + s[idx:]
+open(p, "w", encoding="utf-8", newline="\n").write(s)
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/tests/ui-smoke.sh
+  git -C "$clone" commit --quiet -m "selftest: plant 5th ui-smoke failure Z99"
+}
+
+mut_asset_identity() {
+  local clone="$1"
+  printf '\n// selftest multi.js asset-identity tamper' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js"
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js
+  git -C "$clone" commit --quiet -m "selftest: tamper committed src/Ui/multi/multi.js"
+}
+
+mut_move_proof() {
+  local clone="$1"
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p, "r", encoding="utf-8").read()
+target = "        lock (sync)\n"
+assert target in s
+s = s.replace(target, target + "            // selftest move-proof block tamper\n", 1)
+open(p, "w", encoding="utf-8", newline="\n").write(s)
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.Commands.Crop.cs
+  git -C "$clone" commit --quiet -m "selftest: tamper moved block in Commands.Crop.cs"
+}
+
+mut_g5_budget() {
+  local clone="$1"
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/tests/ui-smoke-multiarea.sh" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p, "r", encoding="utf-8").read()
+old = 'check "M11 GET api/multi/view raw JSON <= 512 KiB and raw ecology span <= 150 KiB on ma-1"'
+new = 'check "M11_REPLACED GET api/multi/view raw JSON <= 512 KiB and raw ecology span <= 150 KiB on ma-1"'
+assert old in s
+s = s.replace(old, new, 1)
+tail = 'exit "$fail"'
+idx = s.rfind(tail)
+assert idx != -1
+inject = 'echo "FAIL M11 selftest planted payload budget regression" >> "$log"\n'
+s = s[:idx] + inject + s[idx:]
+open(p, "w", encoding="utf-8", newline="\n").write(s)
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/tests/ui-smoke-multiarea.sh
+  git -C "$clone" commit --quiet -m "selftest: plant G5 M11 budget regression"
+}
+
+mut_g6_rng_literal() {
+  local clone="$1"
+  cat > "$clone/Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/SelftestRngLiteral.cs" <<'CS'
+namespace SitkaP1.Core;
+
+internal static class SelftestRngLiteral
+{
+    internal static string Bad(string id) => "ADULT-MORT-" + id;
+}
+CS
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/SelftestRngLiteral.cs
+  git -C "$clone" commit --quiet -m "selftest: plant stray RNG key-prefix literal outside RngSalts.cs"
+}
+
+mut_g7_denylist() {
+  local clone="$1"
+  mkdir -p -- "$clone/Docs/Project"
+  printf 'selftest G7 deny-list violation under allowed Docs/ root\n' > "$clone/Docs/Project/selftest-denylist-violation.txt"
+  git -C "$clone" add Docs/Project/selftest-denylist-violation.txt
+  git -C "$clone" commit --quiet -m "selftest: plant file under denied Docs/Project/"
+}
+
 mut_noop() {
   :
 }
@@ -311,6 +465,13 @@ run_full_case "C12-g6-f1-random" 1 "GATE G6 FAIL" "planted F1 new Random() in Co
 run_full_case "C13-g7-assets" 4 "GATE G7 FAIL" "planted file under Assets/ -> exit 4" mut_g7_assets
 run_full_case "C14-missing-marker" 1 "fail-closed marker check failed" "suppressed GATE G7 PASS marker -> exit 1" mut_missing_marker
 run_full_case "C15-headless-only" 5 "VERDICT: PARTIAL" "--headless-only partial mode -> exit 5" mut_noop --headless-only
+run_full_case "C20-g2-uismoke-5th-fail" 1 "ui-smoke\.sh unexpected failure IDs: \['Z99'\]" "planted 5th ui-smoke failure Z99 -> exit 1" mut_uismoke_5th_fail
+run_full_case "C21-g2-asset-identity" 1 "S0a /multi asset identity failed" "tampered src/Ui/multi/multi.js -> exit 1" mut_asset_identity
+run_full_case "C22-g2-move-proof" 1 "S0a move-proof failed" "tampered moved block in Commands.Crop.cs -> exit 1" mut_move_proof
+run_full_case "C23-g5-budget" 1 "GATE G5 FAIL" "planted G5 payload budget regression (M11) -> exit 1" mut_g5_budget
+run_full_case "C24-g6-rng-literal" 1 "GATE G6 FAIL" "planted RNG key-prefix literal outside RngSalts.cs -> exit 1" mut_g6_rng_literal
+run_full_case "C25-g7-denylist" 4 "DENY_PREFIX" "planted file under denied Docs/Project/ -> exit 4" mut_g7_denylist
+run_full_case "C26-clean-uismoke-exact-four" 0 "ui-smoke\.sh PASS-BASELINE-DRIFT \(250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS\)" "clean exact-four ui-smoke allowance -> exit 0" mut_noop
 
 # Verify real working tree was never touched.
 REAL_STATUS_AFTER="$(git -C "$REPO_ROOT" status --porcelain)"
@@ -320,7 +481,7 @@ if [[ "$REAL_STATUS_AFTER" != "$REAL_STATUS_BEFORE" || "$REAL_HEAD_AFTER" != "$R
   exit 1
 fi
 
-# Collate results and check coverage of exit codes {1, 2, 3, 4, 5, 64}.
+# Collate results and check coverage of exit codes {0, 1, 2, 3, 4, 5, 64}.
 python3 - "$RESULTS_DIR" "$EVIDENCE_DIR/selftest-summary.json" <<'PY' | tee -a "$LOG"
 import glob, json, os, sys
 
@@ -339,7 +500,7 @@ for path in sorted(glob.glob(os.path.join(res_dir, "*.tsv"))):
 passed = sum(1 for r in rows if r["status"] == "PASS")
 failed = sum(1 for r in rows if r["status"] != "PASS")
 covered_codes = sorted({r["actualExit"] for r in rows if r["status"] == "PASS"})
-required_codes = [1, 2, 3, 4, 5, 64]
+required_codes = [0, 1, 2, 3, 4, 5, 64]
 missing_codes = [c for c in required_codes if c not in covered_codes]
 
 for r in rows:
@@ -358,8 +519,8 @@ with open(out_json, "w", encoding="utf-8") as f:
     f.write("\n")
 
 print(f"Covered exit codes: {covered_codes}")
-if failed > 0 or missing_codes or len(rows) != 15:
+if failed > 0 or missing_codes or len(rows) != 26:
     print(f"OVERALL: FAIL ({passed}/{len(rows)} passed, {failed} failed, missingCodes={missing_codes})")
     sys.exit(1)
-print(f"OVERALL: PASS ({passed}/{len(rows)} passed, 0 failed; all exit codes 1,2,3,4,5,64 proven)")
+print(f"OVERALL: PASS ({passed}/{len(rows)} passed, 0 failed; all exit codes 0,1,2,3,4,5,64 proven)")
 PY

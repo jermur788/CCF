@@ -155,12 +155,12 @@ internal static class Phase2Juvenile
 /// <summary>The Phase 2 random keys (spec §8). All are new; none is drawn when Species is 0.</summary>
 internal static class Phase2Random
 {
-    public static string MastKey(string speciesId) => "PHASE2-MAST-" + speciesId;
-    public static string GenericTreeKey(string treeId) => "ADULT-MORT-GENERIC-" + treeId;
-    public static string GenericQuotaKey(string areaId) => "ADULT-MORT-GENERIC-QUOTA-" + areaId;
-    public static string JuvenileKey(string juvenileId) => "PHASE2-PJ-" + juvenileId;
-    public static string JuvenileVegetationKey(string juvenileId) => JuvenileKey(juvenileId) + "/vegetation";
-    public static string JuvenileBrowseKey(string juvenileId) => JuvenileKey(juvenileId) + "/browse";
+    public static string MastKey(string speciesId) => RngSalts.Phase2Mast + speciesId;
+    public static string GenericTreeKey(string treeId) => RngSalts.AdultMortalityGeneric + treeId;
+    public static string GenericQuotaKey(string areaId) => RngSalts.AdultMortalityGenericQuota + areaId;
+    public static string JuvenileKey(string juvenileId) => RngSalts.Phase2Juvenile + juvenileId;
+    public static string JuvenileVegetationKey(string juvenileId) => JuvenileKey(juvenileId) + RngSalts.Phase2JuvenileVegetationSuffix;
+    public static string JuvenileBrowseKey(string juvenileId) => JuvenileKey(juvenileId) + RngSalts.Phase2JuvenileBrowseSuffix;
 
     /// <summary>The stateless keyed roll (SimulationRandom model 1); drawing one key can never move another key's value.</summary>
     public static float Roll(string key, int year, int seed)

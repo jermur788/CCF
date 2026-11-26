@@ -460,12 +460,11 @@
           ]
         },
         {
-          "id": "core-root-after-commands",
+          "id": "core-root-after-advance",
           "target": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs",
-          "t0StartLine": 985,
+          "t0StartLine": 1157,
           "t0EndLine": 1572,
           "members": [
-            "Advance",
             "CaptureSave",
             "SaveExpectation",
             "NewSessionId",
@@ -479,7 +478,32 @@
             "helpers"
           ]
         }
-      ]
+      ],
+      "advanceExtraction": {
+        "mode": "extracted-m1-m2",
+        "member": "MultiAreaContinuation.Advance",
+        "t0StartLine": 985,
+        "t0EndLine": 1155,
+        "startMarker": "    // ------------------------------------------------------------------------------------------------ the shared year",
+        "endMarker": "    // ------------------------------------------------------------------------------------------------ save and load",
+        "pipelineFile": "Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/AnnualPipeline.cs",
+        "allowedRelocations": [
+          "M1",
+          "M2"
+        ],
+        "expectedSteps": [
+          "AdultGrowthStep.Instance",
+          "ReservedPhase3DisturbanceStep.Instance",
+          "DeadwoodStep.Instance",
+          "RegenerationStep.Instance",
+          "YearRecordStep.Instance",
+          "ReservedPhase2BYearEndSummaryStep.Instance"
+        ],
+        "reservedNoOpSteps": [
+          "ReservedPhase3DisturbanceStep",
+          "ReservedPhase2BYearEndSummaryStep"
+        ]
+      }
     }
   }
 }

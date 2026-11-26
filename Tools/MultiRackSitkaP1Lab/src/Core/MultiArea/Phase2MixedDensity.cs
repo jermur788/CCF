@@ -105,7 +105,7 @@ internal static class Phase2MixedDensity
             double? probability = s is double sv ? SitkaGrowthModel.AnnualDeathProbability(pressure, sv, meanVulnerability!.Value) : null;
             float? roll = null;
             if (probability > 0.0)
-                roll = SimulationRandom.Roll(DerivedManifest.RngModelVersion, "ADULT-MORT-" + before[i].TreeId, year, simulationSeed);
+                roll = SimulationRandom.Roll(DerivedManifest.RngModelVersion, RngSalts.AdultMortality + before[i].TreeId, year, simulationSeed);
             if (roll < probability)
             {
                 var death = new AnnualDeath(grown[i].TreeId, year, LifeStates.DensitySuppression, "hazard");

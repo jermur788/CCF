@@ -84,7 +84,7 @@ internal static class AnnualRules
                 ? SitkaGrowthModel.AnnualDeathProbability(pressure, value, meanVulnerability!.Value) : null;
             float? roll = null;
             if (probability > 0.0)
-                roll = SimulationRandom.Roll(DerivedManifest.RngModelVersion, "ADULT-MORT-" + before[i].TreeId,
+                roll = SimulationRandom.Roll(DerivedManifest.RngModelVersion, RngSalts.AdultMortality + before[i].TreeId,
                     year, simulationSeed);
 
             var after = grown[i];
