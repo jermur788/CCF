@@ -2,11 +2,11 @@
 
 - **Date:** 2026-11-26
 - **Task:** `CCF-2D-PHASE2B2A-20261126` (`T-2B2A-R1:20261126T1710Z`, amended by owner decisions D1b, D2a, D3, D4)
-- **Branch:** `feat/multi-2d-phase2b2a-economy-ui-20261126-v1` *(LOCAL ONLY — stopped before push per Stop Condition #3; see §3)*
+- **Branch:** `feat/multi-2d-phase2b2a-economy-ui-20261126-v1` *(pushed to `origin/feat/multi-2d-phase2b2a-economy-ui-20261126-v1` — reviewed commit `559c0690b910075d243ca17c9737c16a9cc49241`, repaired code commit `cf7e559a7f6734bdb3c0302cc8765c053e0f217f`, plus this repair handoff commit; see §3 & §7)*
 - **Base Commit:** `6d72c30538b1fbe30d3cbcf083b5b368733662b8` (`origin/integration/2d-sim`)
-- **Implementation Commit:** `e0d5938217f0bf3a3c886594730e2a5348bba0a4` *(followed by this handoff commit on the same feature branch)*
+- **Implementation Commits:** `e0d5938217f0bf3a3c886594730e2a5348bba0a4` (initial implementation), `559c0690b910075d243ca17c9737c16a9cc49241` (initial handoff), `cf7e559a7f6734bdb3c0302cc8765c053e0f217f` (Repair Pass R2–R6 code & test fixes), followed by this R1–R6 handoff/spec repair commit.
 - **Worktree:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-Phase2B2a-20261126`
-- **Evidence Root:** `/home/jer/Development/CCF-Multi-2D-Phase2B2a-Evidence-20261126/implementer-gate`
+- **Evidence Root:** `/home/jer/Development/CCF-Multi-2D-Phase2B2a-Evidence-20261126/implementer-repair` *(initial pre-repair run preserved at `.../implementer-gate`)*
 - **Authority Scope:** Build + verify only on feature branch. Zero merges to `integration/2d-sim` or `main`; zero PRs; zero force pushes; zero tags; zero edits to `/home/jer/Development/CCF-HP`.
 
 ---
@@ -61,7 +61,7 @@ All builds and tests ran in WSL Ubuntu with pinned `$HOME/.dotnet-8.0.133/dotnet
 | Economy Edge (new) | `DOTNET=$DOTNET tests/phase2b2a-economy-ui/run-economy-edge.sh $EV/implementer-gate/economy-edge` | `VIEWPORT 1920x1080: 24 passed, 0 failed` / `VIEWPORT 1280x720: 41 passed, 0 failed` / `OVERALL: PASS (71 passed, 0 failed)` (exit 0) |
 | Canonical gate | `build/2d-gate.sh --base 6d72c30538b1fbe30d3cbcf083b5b368733662b8 --p0ref-dir $SEED --headless-only $EV/implementer-gate/2d-gate` | **`VERDICT: FAIL (exit=1)`** at G2 sub-check #8 (`S0c mode: multi.css no longer matches T0 R_css`) — see §3 |
 | Forbidden paths | `git diff --name-only 6d72c30538b1fbe30d3cbcf083b5b368733662b8..HEAD` | Only §1 allowed paths (0 lines changed in `src/Core`, `tests/Core.Tests`, `SitkaP1.Ui.csproj`, `wwwroot`, `build`, `Assets`, `Packages`, `ProjectSettings`, `Docs/Project`) |
-| Capability tokens | `git diff 6d72c30538b1fbe30d3cbcf083b5b368733662b8..HEAD \| grep -oE '[0-9a-f]{64}'` | `NONE` |
+| Capability tokens | `git diff 6d72c30538b1fbe30d3cbcf083b5b368733662b8..HEAD \| grep -oE '[0-9a-f]{64}'` | Only the public P0 seed provenance hash `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3` in this handoff; zero `/s/<capability>/` tokens |
 | JS module count | `find Tools/MultiRackSitkaP1Lab/src/Ui/multi -name '*.js' \| wc -l` | `14` (unchanged per D4) |
 
 ---
@@ -87,15 +87,15 @@ build/2d-gate.sh --base 6d72c30538b1fbe30d3cbcf083b5b368733662b8 \
   - `G2: cli-safety.sh PASS (23 passed, 0 failed)`
   - `G2: build-output-safety.sh PASS (C1-C6+P0 PASS; HOST-NA: C7-cold-build,C8-rebuild; .p0ref restored & re-verified)`
   - `G2: p0-isolation.sh PASS (decoy=13/13, protected hits=0, unresolved=0)`
-- **Exact Blocker (G2 Sub-Check #8):**
+- **Exact Blocker (G2 Sub-Check #8):** Verbatim from `/home/jer/Development/CCF-Multi-2D-Phase2B2a-Evidence-20261126/implementer-repair/2d-gate-console.log:20-23` (stdout+stderr captured during the repaired commit `cf7e559a` gate run; `implementer-gate/2d-gate/gate.log` only captured stdout where the S0c stderr reason line was omitted):
   ```text
-  G2: running S0a /multi asset identity sub-check...
-  S0c mode: multi.css no longer matches T0 R_css
-  ERROR [G2]: S0a /multi asset identity failed:
-  GATE G2 FAIL
+  20: G2: running S0a /multi asset identity sub-check...
+  21: S0c mode: multi.css no longer matches T0 R_css
+  22: ERROR [G2]: S0a /multi asset identity failed: 
+  23: GATE G2 FAIL
   ```
 - **Root Cause:** When integration duty C1 retired `build/2d-gate/s0a-move-table.json` (`"gateEnforce": false`), **`build/2d-gate/s0a-multi-asset-identity.json` remained active with `"mode": "s0c-css-plus-html-delta"`**. In `build/2d-gate.sh:1031-1060`, that S0c mode requires `Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css` to remain byte-identical to T0 (`f3b2b68a...00a5`) and `multi.html` to differ from T0 by only the single `<script>` module tag line. Any feature change to `multi.html` or `multi.css` (explicitly required by Phase 2B-2a) trips this unretired S0c lock.
-- **Stop Condition #3 Action Taken:** Because `build/2d-gate/**` is a **forbidden path** outside the Phase 2B-2a file fence, this lane made **zero edits** to `build/2d-gate/**`, weakened zero tests, left the worktree clean, and **stopped before pushing** so the integrator/owner can either retire `s0a-multi-asset-identity.json` on `integration/2d-sim` (parallel to C1) or authorize pushing the feature branch with this documented S0c lock.
+- **Boundary Discipline & Integrator Condition:** Because `build/2d-gate/**` is a **forbidden path** outside the Phase 2B-2a file fence, this lane made **zero edits** to `build/2d-gate/**` and weakened zero tests. The feature branch is pushed to `origin/feat/multi-2d-phase2b2a-economy-ui-20261126-v1` (fast-forward, zero merges, zero PRs) with `tasks.md` T-06 unticked and the S0c asset-identity retirement recorded as a carried integrator condition on `integration/2d-sim`.
 
 | Stage | Status | Notes |
 |---|---|---|
@@ -134,7 +134,41 @@ All displayed economic evidence labels come verbatim from `SitkaP1.Core.EconomyE
 
 - `build/2d-gate.sh` stages **G3, G4, G5, G6, G7** inside the gate script itself (did not execute because G2 halted at S0c asset-identity sub-check #8; G5 Year 0..30 sweeps were verified directly via `run-step2-edge.sh`, and forbidden paths/tokens were verified directly via `git diff`).
 - `build/2d-gate.sh --browser` tier (headless-only requested; Edge suites ran directly via `run-edge-e2e.sh`, `run-step2-edge.sh`, and `run-economy-edge.sh`).
-- Push to `origin` (held per Stop Condition #3 pending resolution of `s0a-multi-asset-identity.json`).
 - Save v3 economy persistence (`SaveEconomyRequiresV3` deferred to Phase 2B-2b).
 - Timber felling dispositions / `KeepForUse` m³ (deferred per owner decision D1b).
 - Unity Editor / 3D project (`Assets/` untouched).
+
+---
+
+## 7. Repair Pass R1–R6 (Post Independent Review `PHASE2B2A-INDEPENDENT-REVIEW-20261126.md`)
+
+Following independent review verdict **APPROVED WITH CONDITIONS** (0 blockers, 2 major, 6 minor; review branch `origin/review/multi-2d-phase2b2a-economy-ui-20261126-v1`), this single pre-authorized bounded repair pass addressed R1–R6 on branch `feat/multi-2d-phase2b2a-economy-ui-20261126-v1` (repaired code commit `cf7e559a7f6734bdb3c0302cc8765c053e0f217f` + this spec/handoff repair commit).
+
+### R1–R6 Summary Table
+
+| ID | Review Finding | Fix Applied | Evidence |
+|---|---|---|---|
+| **R1** | M2 / m6: `tasks.md` ticked T-06 (`2d-gate.sh` exit 0) despite S0c FAIL; handoff said "LOCAL ONLY / not pushed" while branch was pushed at `559c0690`; S0c gate message was quoted without an implementer artefact path+line; token scan omitted note on public P0 hash. | Unticked `tasks.md` T-06 with exact status (G0/G1 PASS, G2 #1–#7 PASS, G2 #8 S0c FAIL, G3–G7 NOT RUN, carried integrator condition to retire `build/2d-gate/s0a-multi-asset-identity.json`); updated T-08 and handoff header/§3/§6 with pushed branch + SHAs; captured full stdout+stderr of `2d-gate.sh` in `implementer-repair/2d-gate-console.log` and cited line 20–23; clarified 64-hex scan result. | `specs/multi-2d-phase2b-economy-ui-v1/tasks.md`, this handoff §2/§3/§6/§7, `implementer-repair/2d-gate-console.log:20-23` |
+| **R2** | m1: Client inferred Money On/Off from presence of `payload.economy`, so an On session could misrender as `Money: Off` if `TryBuildEconomySnapshot` returned `null`. | Emitted explicit server-truth `bool EconomyEnabled` (derived strictly from `pair.Session.SelectedModels.IsEconomyEnabled`) on all `/multi` view, session, command, skip, load, economy-view, quote, hit, cell, and competition payloads (`MultiApi.{View,Commands,History,Saves}.cs`). Updated `store.js` (`state.economyEnabled`, `isEconomyEnabled()`) and `api.js` (`applyPayload`, fail-safe `renderCommandGate`), plus null-safe `state.economy` guards in `main.js`, `commands.js`, `panels/work-plan.js`. | `implementer-repair/economy-edge.log` (`GET api/multi/view emits explicit economyEnabled=false and omits "economy"` + `Server emits economyEnabled=true`), `ui-smoke-multiarea` `363/0`, `step2-edge` `67/67` (G5 budgets intact) |
+| **R3** | m2: Hardcoded economy constants (`€2,500`, `€45/hr`, `€12,000`, `40 h`, material prices, `€0.00`, `890 kg/m³`) appeared in UI copy/formatters. | Formatted disclaimer (`FormatEconomyDisclaimer(options)`), floor highlight (`h.MinimumJobFloorCents`), material labels (`FormatMaterialLabel(id, materialCostCents)`), ledger category labels (`FormatLedgerCategoryLabel(category, options)`), allowance refusal copy (`PlainIssueExplanation(..., options)`), and `LandownerAllowanceTooltip` / `AnnualLandownerAllowanceDisplay` directly from `EconomyOptions`/quote values in `MultiApi.View.cs` + `MultiApi.Commands.cs` + `MultiApi.History.cs`. Removed hardcoded numbers from `multi.html`, `commands.js`, `api.js`, and `panels/work-plan.js` (using server `h.timberSaleRevenueDisplay` and omitting unavailable numeric claims). | Grep for `€|2,500|45/hr|12,000|40-hour|40.0 h|40 hrs|890 kg` across `src/Ui/{MultiApi.*.cs,MultiRoutes.cs,multi/**}` returned 0 hits; `economy-edge` `74/74` PASS |
+| **R4** | m3: `SwitchMultiEconomySessionAsync` swapped `multiCurrent` under `multiSwapSync`, while mutating commands captured `CurrentMulti` outside the lock. | Serialized capture + invocation + synchronous snapshot capture under `lock (multiSwapSync)` in `MultiCommandAsync`, `SwitchMultiEconomySessionAsync`, `SkipMultiYearsAsync`, `MultiSaveAsync` (`CaptureSave` only, inside `LockSlot` and released before disk write), `MultiLoadAsync` (pair-current check returning typed 409 `PlayerSessionMismatch` with nothing changed if swapped during disk read), and read-only view/economy snapshot handlers. Lock is never held across `await`, HTTP read/write, or disk I/O; zero Core changes. | `MultiApi.{Commands,View,History,Saves}.cs`; `build-ui` 0W/0E, `ui-smoke-multiarea` `363/0`, `save-edge` `63/63`, `step2-edge` `67/67`, `economy-edge` `74/74` |
+| **R5** | m4: `drive-economy.mjs` contained an unconditional `check(true, ...)` at line 454 and enabled `Network.enable` only after initial `Page.navigate`. | Moved `await cdp.send('Network.enable')` into `main()` before `Page.navigate` alongside `Page/Runtime/Log.enable` and added an explicit initial-load assertion verifying `>= 16` HTTP 200 assets/modules with 0 console/CSP/network errors; replaced `check(true, ...)` with a real DOM + server `GET api/multi/economy/view` check verifying `year === '1'`, `40 / 40 hrs`, `remainingLandownerMinutes === annualLandownerAllowanceMinutes`, and `usedLandownerMinutesThisYear === 0`. | `grep -c 'check(true' drive-economy.mjs` = `0`; `economy-edge` increased from 71 to **74 real assertions** (`OVERALL: PASS (74 passed, 0 failed)`), capturing `17 HTTP 200 assets/modules` on initial load at all 3 runs |
+| **R6** | m5: `#experiment-badge` (`...not a surveyed Irish forecast`) was truncated with ellipsis at 1280×720 (and clipped at 1920×1080). | Moved `<p id="experiment-badge" class="subtitle">` to span full width below the single-row brand + `.top-actions` bar in `multi.html` / `multi.css`, removed nowrap/ellipsis clipping on `.subtitle` and `.economy-strip-note`, tightened short-desktop (`max-height: 820px`) drawer spacing by ~16 px to preserve Stage 4 R3 fold + NB-2 partial-refusal fold, and added unclipped `#experiment-badge` + `"not a surveyed Irish forecast"` assertions to `checkLayout` in `drive-economy.mjs`. | `implementer-repair/economy-edge/{vp1280,vp1920}-work-plan-quote-pending-*.png` (`badge unclipped (true)` at both 1280×720 and 1920×1080, zero h-scroll, `<= 3` cols); `implementer-repair/step2-edge/mixed-r3-fold-1280x720.png` (`67/67` PASS including R3 fold & NB-2 1280×720) |
+
+### Full Re-Verification Results (Repaired Code Commit `cf7e559a7f6734bdb3c0302cc8765c053e0f217f`)
+
+All gates re-run under pinned `$HOME/.dotnet-8.0.133/dotnet` (`8.0.133`) with evidence under `/home/jer/Development/CCF-Multi-2D-Phase2B2a-Evidence-20261126/implementer-repair/`:
+
+| Gate | Observed Verbatim Summary Line | Exit | Evidence File |
+|---|---|---|---|
+| Solution build | `Build succeeded.` / `0 Warning(s)` / `0 Error(s)` | `0` | `implementer-repair/build-sln.log` |
+| UI build | `Build succeeded.` / `0 Warning(s)` / `0 Error(s)` | `0` | `implementer-repair/build-ui.log` |
+| Core tests | `291/291 passed, 0 failed` | `0` | `implementer-repair/core-tests.log` |
+| Save tests | `50/50 passed, 0 failed` *(no NB1c flake on this run)* | `0` | `implementer-repair/save-tests.log` |
+| Multiarea smoke | `OVERALL: PASS (363 passed, 0 failed)` | `0` | `implementer-repair/ui-smoke-multiarea.log` |
+| Single-area smoke | `OVERALL: FAIL (250 passed, 4 failed)` — exact `{L01, L02, L06, J31}` only | `1` *(baseline)* | `implementer-repair/ui-smoke.log` |
+| Save Edge | `OVERALL: PASS (63 passed, 0 failed)` | `0` | `implementer-repair/save-edge.log` |
+| Step 2 Edge | `OVERALL: PASS (67 passed, 0 failed)` (`ma-1` max raw `516984 B`, eco `43320 B`; `ma-1-mixed` max raw `523398 B`, eco `49685 B`) | `0` | `implementer-repair/step2-edge.log` |
+| Economy Edge | `VIEWPORT 1920x1080: 25 passed, 0 failed` / `VIEWPORT 1280x720: 43 passed, 0 failed` / `OVERALL: PASS (74 passed, 0 failed)` | `0` | `implementer-repair/economy-edge.log` |
+| Canonical `2d-gate.sh --headless-only` | `G0 PASS`, `G1 PASS`, `G2` #1–#7 PASS, then `S0c mode: multi.css no longer matches T0 R_css` → `GATE G2 FAIL`, `G3–G7 NOT RUN`, `GATE B NOT RUN`, `NETWORK ISOLATION: PROVEN`, `VERDICT: FAIL (exit=1)` | `1` *(S0c lock only)* | `implementer-repair/2d-gate-console.log:1-31` |
+| Static checks | 0 forbidden paths; JS module count = `14`; `check(true)` count = `0`; 64-hex scan = public P0 seed hash only (`9a99f781...34b3`) | `0` | `implementer-repair/summary.txt` |

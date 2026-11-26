@@ -25,7 +25,8 @@
 
 - JavaScript computes **zero** economic arithmetic: no euro sums, no cent-to-euro conversions, no harvest rate calculations, no minimum-floor checks, no hour deductions, no net cash deltas, and no assortment pricing in the browser.
 - Every euro figure, signed delta, landowner hour readout (`X / 40 hrs`), harvest stage label, minimum-floor highlight flag, upfront-cash eligibility verdict, assortment breakdown, and ledger entry is formatted and serialized by the C# server from authoritative `SitkaP1.Core` engine calls (`ReadEconomyView`, `QuoteWorkPlan`, `ReadEconomyHistoryYear`, `SetOrderExecutor`, `Approve`, `Execute`, `Advance`).
-- When Economy is **Off**, no `"economy"` property is emitted on `/multi` view or command payloads (`JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)`), keeping the Off JSON payload byte-comparable and preserving all G5 transport budgets (`<= 524,288 B` raw view, `<= 153,600 B` ecology).
+- When Economy is **Off**, no `"economy"` property is emitted on `/multi` view or command payloads (`JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)`), while every `/multi` view, session, and command payload emits an explicit server-truth `"economyEnabled"` boolean derived from `SelectedModels.IsEconomyEnabled` (never client inference) while preserving all G5 transport budgets (`<= 524,288 B` raw view, `<= 153,600 B` ecology).
+- All `/multi` mutating commands and session swaps serialize under the shared `multiSwapSync` lock (never held across HTTP reads/writes or disk I/O), preventing in-flight commands from executing against a discarded session.
 
 ---
 
