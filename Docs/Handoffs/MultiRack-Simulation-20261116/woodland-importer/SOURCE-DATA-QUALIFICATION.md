@@ -12,18 +12,20 @@
 
 ## 1. Publisher DwC-A Archive Retrieval Status (`WI-T00` / `WI-T01`)
 
-### Original Publisher IPT DwC-A Download — `PENDING REAL ARCHIVE DOWNLOAD` (Fallback Triggered Honestly)
-- **Registered `DWC_ARCHIVE` endpoint (from `api.gbif.org/v1/dataset/2e102194-f384-4712-89a4-5db7a3fc409a`):**
-  `http://dynids.toulouse.inra.fr:8180/ipt/archive.do?r=trems_integrate`
-- **Observed network result (2026-11-26):**
-  - `curl -fsSL --max-time 60 -o /tmp/trems_integrate.zip 'http://dynids.toulouse.inra.fr:8180/ipt/archive.do?r=trems_integrate'` → **`curl: (28) Connection timed out after 60001 milliseconds`** (`HTTP_CODE=000`, `SIZE=0`).
-  - Alternate probes (`https://dynids.toulouse.inra.fr/ipt/archive.do?r=trems_integrate`, `http://dynids.toulouse.inrae.fr:8180/...`, `https://dynids.toulouse.inrae.fr/...`) all returned **`URLError: <urlopen error timed out>`**.
-  - **Independent corroboration from GBIF's own crawl history (`api.gbif.org/v1/dataset/2e102194-f384-4712-89a4-5db7a3fc409a/process?limit=3`):**
-    - `2026-11-25T20:11:40.149+00:00` → `finishReason: ABORT`
-    - `2026-11-18T20:05:09.633+00:00` → `finishReason: ABORT`
-    - `2026-11-11T19:10:37.125+00:00` → `finishReason: ABORT`
-    - Last successful GBIF crawl recorded on verbatim records: **`2026-10-30T23:26:12.556+00:00` (`crawlId: 420`)**.
-- **Consequence (honest boundary):** Because the publisher IPT ZIP was unreachable at qualification time, we do **NOT** have an original publisher ZIP SHA-256 or byte-level copy of the original publisher `meta.xml`. Original publisher ZIP SHA-256 and publisher `meta.xml` header/delimiter/encoding verification remain **`PENDING REAL ARCHIVE DOWNLOAD`**.
+### Original Publisher IPT DwC-A & GBIF-Mediated Bulk Download — `PENDING REAL ARCHIVE DOWNLOAD` (Fallback Triggered Honestly)
+1. **Registered publisher `DWC_ARCHIVE` endpoint (`api.gbif.org/v1/dataset/2e102194-f384-4712-89a4-5db7a3fc409a`):**
+   - `http://dynids.toulouse.inra.fr:8180/ipt/archive.do?r=trems_integrate` → **`curl: (28) Connection timed out after 60001 milliseconds`** (`HTTP_CODE=000`, `SIZE=0`).
+   - Alternate probes (`https://dynids.toulouse.inra.fr/ipt/archive.do?r=trems_integrate`, `http://dynids.toulouse.inrae.fr:8180/ipt/archive.do?r=trems_integrate`, `https://dynids.toulouse.inrae.fr/ipt/archive.do?r=trems_integrate`) all returned **`URLError: <urlopen error timed out>`**.
+   - **Independent corroboration from GBIF's own crawl history (`api.gbif.org/v1/dataset/2e102194-f384-4712-89a4-5db7a3fc409a/process?limit=3`):**
+     - `2026-11-25T20:11:40.149+00:00` → `finishReason: ABORT`
+     - `2026-11-18T20:05:09.633+00:00` → `finishReason: ABORT`
+     - `2026-11-11T19:10:37.125+00:00` → `finishReason: ABORT`
+     - Last successful GBIF crawl recorded on verbatim records: **`2026-10-30T23:26:12.556+00:00` (`crawlId: 420`)**.
+2. **GBIF-mediated DwC-A occurrence download API (per Track B correction order):**
+   - `POST https://api.gbif.org/v1/occurrence/download/request` (`format: "DWCA"`, `DATASET_KEY = 2e102194-f384-4712-89a4-5db7a3fc409a`, unauthenticated) → **`HTTP 403`** with body **`Access is denied`** (GBIF bulk download creation requires authenticated GBIF user credentials, which are not present in this lane).
+   - `GET https://www.gbif.org/dataset/2e102194-f384-4712-89a4-5db7a3fc409a` → **`curl: (28) Operation timed out after 15001 milliseconds with 0 bytes received`** (`HTTP_CODE=000`).
+   - `GET https://api.gbif.org/v1/occurrence/download/dataset/2e102194-f384-4712-89a4-5db7a3fc409a?limit=100` → **`curl: (28) Operation timed out after 20001 milliseconds with 475136 bytes received`**.
+- **Consequence (honest boundary):** Neither the original publisher IPT ZIP nor a freshly generated GBIF-mediated bulk DwC-A ZIP could be downloaded without credentials on `2026-11-26`. Original publisher ZIP SHA-256 and byte-level publisher `meta.xml` verification remain **`PENDING REAL ARCHIVE DOWNLOAD`**.
 
 ### Real CC BY 4.0 Verbatim Record Retrieval via GBIF API — `SUCCEEDED`
 - `https://api.gbif.org/v1/dataset/2e102194-f384-4712-89a4-5db7a3fc409a` (HTTP 200), `/document` EML (`77,489` bytes, HTTP 200), `/v1/occurrence/search`, and `/v1/occurrence/{key}/verbatim` (HTTP 200) were all directly reachable and queried on `2026-11-26`.
