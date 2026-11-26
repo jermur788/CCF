@@ -17,7 +17,9 @@
 | Review worktree | `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-S0c-Review-20261126` (clean at HEAD before and after every run) |
 | Reviewer evidence (external, mode 700) | `/home/jer/Development/CCF-Multi-2D-S0c-Evidence-20261126/` → `reviewer-gate/`, `reviewer-gate.log`, `rv-base-ref/`, `rv-base-ref.log`, `rv-static/`, `rv-static.log`, `rv-extract.log`, `rv-selftest/`, `rv-selftest.log`, `reviewer-ss-{before,after}.txt`, `rv-scripts/` |
 
-**Verdict: `NEEDS CHANGES`.** The product change is correct. The ES-module split, the contract, serving and parity all pass on my own runs, and I found **no product defect**. One gate-integrity defect blocks approval: the gate's fail-closed **`selftest.sh` fails 24/26 at this HEAD** (`OVERALL: FAIL … missingCodes=[0]`). S0c-REG requires selftest PASS, and spec S0-02 requires every exit code to be proven. The fix is bounded and harness-only (D-1, plus the recommended D-2). Three non-blocking observations follow.
+> **Update 2026-11-26 (R2):** the `NEEDS CHANGES` verdict below is **superseded** by the R2 delta re-review of repair HEAD `ee3f92b4b003f61f8d33d972732d4f4c1632d9f3`. Its result is **`APPROVED`**. See [Delta Re-review R2 (repair 1)](#delta-re-review-r2-repair-1) at the end of this file.
+
+**Verdict (R1, superseded): `NEEDS CHANGES`.** The product change is correct. The ES-module split, the contract, serving and parity all pass on my own runs, and I found **no product defect**. One gate-integrity defect blocks approval: the gate's fail-closed **`selftest.sh` fails 24/26 at this HEAD** (`OVERALL: FAIL … missingCodes=[0]`). S0c-REG requires selftest PASS, and spec S0-02 requires every exit code to be proven. The fix is bounded and harness-only (D-1, plus the recommended D-2). Three non-blocking observations follow.
 
 ---
 
@@ -142,9 +144,11 @@ I viewed the archived diff PNGs. Every changed pixel lies on a dashed-border edg
 
 ---
 
+> **SUPERSEDED (history).** The R1 decision block below was replaced on 2026-11-26 by the R2 `INTEGRATION DECISION` (`APPROVED`) in [Delta Re-review R2 (repair 1)](#delta-re-review-r2-repair-1).
+
 ```text
 INTEGRATION DECISION
-Status: NEEDS CHANGES
+Status: NEEDS CHANGES   [SUPERSEDED 2026-11-26 by R2 — APPROVED]
 Gate: G2 (acceptance) — RG-S0c independent review of packet S0c, incl. 2d-gate.sh G0–G7 + browser tier B + gate selftest
 Reviewed branch: feat/multi-2d-s0c-js-modules-20261126-v1
 Reviewed HEAD: 8bebbdbe5e6fb179a382984b25f0c07bebc964c3
@@ -173,4 +177,121 @@ Integration target: origin/integration/2d-sim
 Integrated HEAD: <only after integration>
 Post-integration verification:
 - Integrator to run build/2d-gate.sh --browser --base <pre-merge trunk> on the merge commit.
+```
+
+---
+
+## Delta Re-review R2 (repair 1)
+
+| Field | Value |
+|---|---|
+| Delta | `8bebbdbe5e6fb179a382984b25f0c07bebc964c3..ee3f92b4b003f61f8d33d972732d4f4c1632d9f3` (3 commits: `36834d69`, `0615a677`, `ee3f92b4`) |
+| **Re-reviewed HEAD** | **`ee3f92b4b003f61f8d33d972732d4f4c1632d9f3`** |
+| Date | 2026-11-26 |
+| Reviewer | Same independent non-author reviewer as R1 — Claude Opus 5.5 (`claude-opus-5-5`) |
+| Effort | **medium**, no escalation |
+| Verification worktree | `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-S0c-R2Verify-20261126` (detached at `ee3f92b4`; clean before and after) |
+| Reviewer evidence (external, mode 700, capability URLs redacted) | `/home/jer/Development/CCF-Multi-2D-S0c-Evidence-20261126/r2/` → `selftest/`, `selftest.log`, `gate/` + `gate.log` (run 1), `gate2/` + `gate2.log` (run 2), `ss-*.txt`, `pre.txt`, `post.txt`, `scripts/`; aborted attempt kept as `r2-attempt1-sigint-ignored/` |
+| Repair count | **1** |
+
+**R2 verdict: `APPROVED`.** Both selftest defects are fixed without weakening the gate. I accept the new transient-retry guard. My own selftest is 29/29 PASS with every exit code proven, and my own `--browser` gate run exits 0.
+
+### R2.1 The delta is product-free
+
+- `git diff --name-status 8bebbdbe..ee3f92b4` lists exactly 2 files: `M Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh` (`--numstat` +56/−8; the brief said "+46/−10") and `M Docs/Handoffs/…/S0C-IMPLEMENTATION-HANDOFF-20261126.md` (+44/−2).
+- `git diff --stat 8bebbdbe ee3f92b4 -- src tests build/2d-gate.sh build/2d-gate/*.{json,mjs,py} Assets Packages ProjectSettings Docs/Project` → **empty**. `2d-gate.sh`, every module, route, csproj, parity driver, inventory, identity JSON, the move-proof, Core, wwwroot, Assets, Packages, ProjectSettings and Docs/Project are all unchanged. The R1 product verdict therefore stands as written.
+- `git log -p 8bebbdbe..ee3f92b4` contains **0** capability tokens.
+- `git ls-remote` before and after my runs: `main` = `bdeb6a324acaf4129c10fb0846faac8b64974360`, `integration/2d-sim` = `5648813d9ccbe8d38e9fbe5df38d62c810af4a22` (both unchanged), feature = `ee3f92b4…`.
+
+### R2.2 D-1: **FIXED**
+
+- **C26** now runs `mut_noop --browser`, with `S0C_PARITY_REF` explicitly `unset` at the top of `selftest.sh`, so parity runs its single-argument self-check. Observed `case-C26…stdout.log`: `GATE G7 PASS`, `GATE B PASS`, `VERDICT: PASS (exit=0; NETWORK ISOLATION: PROVEN; P0 REFERENCE: PRE-SEEDED VERIFIED 9a99f781…)`, ui-smoke `PASS-BASELINE-DRIFT (250 passed, 4 known … L01,L02,L06,J31; G11b PASS)`. Stage B in that case: Save Edge `63 passed, 0 failed`; Step 2 Edge `67 passed, 0 failed`; parity `36/36 outerHTML byte-identical`. Exit 0 is again genuinely proven by a full clean run.
+- **C14** now runs `mut_missing_marker --headless-only`. In `2d-gate.sh` the final marker check runs **before** the `--headless-only` exit 5, so the suppressed marker is what produces exit 1. Observed: `GATE B NOT RUN` → `fail-closed marker check failed: missing=['G7'], failed=[]` → `VERDICT: FAIL (exit=1)`. **C15** (the same flag, no mutation) gives `VERDICT: PARTIAL (exit=5)`. This control shows C14's exit 1 comes only from the missing marker, not from the Stage B policy.
+- `BROWSER_REQUIRED`, the B-required failure and all expected exit codes are untouched, since `2d-gate.sh` has a 0-line diff.
+
+### R2.3 D-2: **FIXED**
+
+Every new case reaches the check it names, and the observed failure is the specific enforcement message, not a generic crash:
+
+| Case | Mutation | Observed failure (my run) | Genuine? |
+|---|---|---|---|
+| C21 | appends ` /* … */` (no trailing LF) to committed `multi.css` | `S0c mode: multi.css no longer matches T0 R_css` → `ERROR [G2]: S0a /multi asset identity failed` → exit 1 | Yes. Because no LF is added, the earlier BOM/CR/LF rule passes and the T0 SHA comparison is what fires. |
+| C27 | appends `\n// selftest main.js tamper` to committed `main.js` | asset identity PASS (live == committed, as designed), then `JS-RECONSTRUCT FAIL: byte mismatch at line 4617 (reconstructed 247094 B vs expected 247066 B)` → `S0c js-reconstruct.mjs failed` → exit 1 | Yes. The +28 B is exactly the appended text, so the byte proof is the check that catches a served-module tamper. |
+| C28 | re-adds retired `multi.js` | `S0c mode: retired …/multi.js still exists at HEAD` → exit 1 | Yes. This keeps R1's surviving check as its own case. |
+| C29 | `hooks[0].callSites[0].originalLine += 1` in `s0c-hook-inventory.json` | `JS-RECONSTRUCT FAIL: P4 reverse mismatch at line 421: expected "hooks.clearCompetition" in "…hooks.competitionTag();"` → exit 1 | Yes. It fails on the targeted P4 rewrite, not on a JSON parse error. |
+
+No pre-existing case was weakened. The diff changes only C14 (adds `--headless-only`), C21 (target and pattern), C26 (adds `--browser`) and the case banner text, and adds C27–C29. C01–C13, C15–C20 and C22–C25 are byte-unchanged. The collation now requires `len(rows) != 29` → FAIL, and missing exit codes still fail.
+
+### R2.4 Transient-retry guard (`run_full_case`): **ACCEPTED**
+
+Reasons:
+1. **It never accepts a failure.** On a match it runs `continue`, which deletes `case_ev` and re-runs the **whole** unmodified `2d-gate.sh` case on the same mutated clone. A case passes only when a later complete attempt meets its expected exit code and pattern on its own. After the last attempt the final FAIL row stands.
+2. **It is bounded.** The guard shares one `attempt` counter (1..3) with the pre-existing NB1c retry, so the combined maximum is 3 runs per case and no extra loop is added.
+3. **It can hide only non-determinism, never a deterministic regression.** A real defect that reproduces would fail all 3 attempts. The guard's signature is also narrow. It needs the B-stage parity failure line in `gate.log`, a failed-request list that is exactly one element (`GET …/multi` `net::ERR_CONNECTION_REFUSED`; the `: [{` anchor right after the label rules out a multi-element list), 9/9 states, 0 console errors, 0 CSP violations and no `FAIL HTML DIFF`. A server that never listens would capture no states. A regression that makes the page or modules fail would show module 404s, console errors or HTML diffs. The refused-first-navigation pattern matches a known machine fact: Windows-side Edge reaching a WSL `127.0.0.1` listener is refused for ~0.3–0.7 s after bind, and `run-parity-edge.sh` waits only for the URL to be printed, not for Windows-side reachability.
+4. **It lives only in `selftest.sh`.** The gate itself still fails closed on this transient, which is the safe direction.
+5. **Did it fire in my run? No.** `ERR_CONNECTION_REFUSED` appears 0 times in my `selftest.log`. The pre-existing NB1c retry fired once (`retrying C13-g7-assets (attempt 2/3) … NB1c`), and C13 then passed with exit 4.
+
+Non-blocking observations on the guard (no action needed for S0c):
+- **O-4 (Nit).** The positive greps (`captured all 9`, `zero console errors`, `zero CSP`) are not scoped to the cell that had the refusal. A run where cell A had the transient refusal while cell B failed for another reason (for example a console error) would also be retried. That costs at most a re-run, so it can only reduce flake detection, never pass a defect. Tightening it to "no `^FAIL ` line other than the one refused-request line" would make it exact.
+- **O-5 (Minor, future hardening).** The root fix belongs in the parity harness: a Windows-side reachability retry with a timeout before `Page.navigate` in `drive-parity.mjs` / `run-parity-edge.sh`. That would also remove the flake from real gate runs. Out of scope for this harness-only repair.
+
+### R2.5 My independent re-run (same machine, no concurrent load, external `TMPDIR`)
+
+**Selftest:** `TMPDIR=<ev>/r2/tmp-selftest Tools/MultiRackSitkaP1Lab/build/2d-gate/selftest.sh --p0ref-dir <9a99f781 seed> <ev>/r2/selftest`, 11:39:13Z → 12:39:49Z (~61 min, including one NB1c retry):
+
+```text
+PASS C01 … C29 (every case expected == actual)
+OVERALL: PASS (29/29 passed, 0 failed; all exit codes 0,1,2,3,4,5,64 proven)
+EXIT=0
+```
+`selftest-summary.json`: `missingCodes=[]`.
+
+**Gate:** `Tools/MultiRackSitkaP1Lab/build/2d-gate.sh --browser --p0ref-dir <seed> --base 5648813d9ccbe8d38e9fbe5df38d62c810af4a22 <ev>` (no `S0C_PARITY_REF`, so self-check parity):
+- **Run 1, exit 1:** G2 `Phase1.Save.Tests` 49/50, `FAIL NB1c: … expected 1, got 3`. This is the exact signature of the documented frozen NB1c order race (~7.5% at T0 and HEAD alike). It is not caused by the delta, which touches no product or test code. Log kept as `r2/gate.log`.
+- **Run 2, exit 0:** `VERDICT: PASS (exit=0; NETWORK ISOLATION: PROVEN; P0 REFERENCE: PRE-SEEDED VERIFIED 9a99f78131a3…)`. G0–G7 + B PASS. Core 282/282, Save 50/50, multiarea 363/0, ui-smoke 250/4 `{L01,L02,L06,J31}` G11b PASS, CLI 23/0, build-output-safety C1–C6+P0 PASS (C7/C8 HOST-NA), `.p0ref restored & re-verified`, asset identity PASS, MOVE-PROOF PASS, MODULE-GRAPH PASS (14 modules), JS-RECONSTRUCT PASS (247,066 B, sha256 `fbc7c817…`), G3 9/9 anchors, G4 v2 golden 24,703 B, G5 5/5 budgets, G6 F1=0 / RNG violations 0, G7 PASS. **Save Edge 63/63; Step 2 Edge 67/67; parity 36/36 outerHTML byte-identical.** All 8 parity drives had 0 console errors, 0 CSP violations, 0 failed or 4xx/5xx requests, and 34 loopback-only requests each.
+- Run 2 parity was self-check mode (the same build twice). It noted 6 PNG diffs (3–22 px), all on the dashed border of the "Skip → Yr 4" button or the bottom viewport edge, the same artefact class accepted in R1 §4. One new bbox is the 5-px `[1448,12,1450,13]` at 1920×1080 `03-fell-draft-pending`, at the same button. Because they are build-vs-same-build, they are non-semantic by construction.
+
+**Hygiene:** `ss -tln` was identical before, during and after every run. `:33767`, `:43649` and `:46593` were never bound. No `sitkap1-ui`, `msedge`, parity or gate process was left over (none existed before either). `git status --porcelain` was empty for the verification worktree and the real feature worktree (still at `ee3f92b4`) before and after. `/home/jer/Development/CCF-HP` was not touched. Capability URLs in 12 external evidence logs (pre-existing `run-edge-e2e.sh` behaviour) were redacted to `/s/<capability>`.
+
+**Reviewer-side incident (disclosed):** my first selftest launch (`setsid nohup … &`) inherited SIGINT/SIGQUIT/SIGHUP as ignored (`SigIgn=0x7`). As a result, every full case failed `ui-smoke-multiarea` Z01 ("still running 15 s after SIGINT", exit 137). That was my launch environment, not the repair. I stopped only that process session, kept its logs as `r2-attempt1-sigint-ignored/`, and re-ran from scratch with SIGINT/HUP/PIPE/XFSZ reset to default. Only SIGQUIT stayed ignored, and nothing in the suite sends SIGQUIT. The result above is from that clean re-run (multiarea 363/0 in every full case).
+
+### R2.6 Checklist
+
+- [x] Delta = 2 files, product-free; `2d-gate.sh` unchanged; protected refs unchanged
+- [x] D-1: C26 real exit 0 with `--browser`; C14 fails on the marker (exit 1), with C15 as the exit-5 control
+- [x] D-2: C21 / C27 / C28 / C29 each hit their specific enforcement message; no case weakened; count = 29
+- [x] Retry guard: re-runs only, bounded to 3 shared attempts, narrow signature; did not fire in my run
+- [x] Own selftest `OVERALL: PASS (29/29 …)`, exit 0, `missingCodes=[]`
+- [x] Own gate `--browser` exit 0; Save Edge 63/63; Step 2 Edge 67/67; parity 36/36
+- [x] Listeners untouched; no leftover processes; worktrees clean
+
+```text
+INTEGRATION DECISION
+Status: APPROVED
+Supersedes: the RG-S0c R1 INTEGRATION DECISION "NEEDS CHANGES" of 2026-11-26 for HEAD 8bebbdbe5e6fb179a382984b25f0c07bebc964c3 (kept above as history)
+Date: 2026-11-26
+Gate: G2 (acceptance) — RG-S0c delta re-review R2 of packet S0c repair 1, incl. own 2d-gate.sh --browser run and own gate selftest
+Reviewed branch: feat/multi-2d-s0c-js-modules-20261126-v1
+Reviewed HEAD: ee3f92b4b003f61f8d33d972732d4f4c1632d9f3
+Delta reviewed: 8bebbdbe5e6fb179a382984b25f0c07bebc964c3..ee3f92b4b003f61f8d33d972732d4f4c1632d9f3 (build/2d-gate/selftest.sh + S0c implementation handoff only)
+Context commit: 5648813d9ccbe8d38e9fbe5df38d62c810af4a22 (origin/integration/2d-sim, S0b tip)
+Repair count: 1
+SPEC (SPEC REQUIRED only):
+- ID / status: SPEC-multi-2d-s0-seam-extraction-V1 / APPROVED (+ Post-Adoption Amendment 1)
+- Conformance: PASS on S0-02 / S0c-REG (selftest 29/29, all exit codes proven) and, unchanged from R1, PASS on S0-09, §7.1–§7.5, D-020 and every other regression gate
+Reasons:
+- D-1 FIXED: C26 --browser reaches VERDICT: PASS exit 0; C14 --headless-only fails on "fail-closed marker check failed: missing=['G7']" (exit 1; C15 control exit 5). 2d-gate.sh BROWSER_REQUIRED policy unchanged (0-line diff).
+- D-2 FIXED: C21 multi.css → "no longer matches T0 R_css"; C27 main.js → js-reconstruct byte mismatch; C28 legacy multi.js re-add; C29 inventory → P4 reverse mismatch. No case weakened; collation requires 29 rows.
+- Transient ERR_CONNECTION_REFUSED retry ACCEPTED: selftest-only, re-runs the full case (never accepts a failure), bounded to 3 attempts shared with NB1c, narrow single-request signature; it did not fire in the reviewer run.
+- Reviewer selftest: OVERALL: PASS (29/29 passed, 0 failed; all exit codes 0,1,2,3,4,5,64 proven), exit 0, missingCodes=[].
+- Reviewer gate --browser --base 5648813d: exit 0, G0–G7 + B PASS; Core 282/282, Save 50/50, multiarea 363/0, ui-smoke 250/4 {L01,L02,L06,J31}, CLI 23/0, 9/9 anchors, 5/5 budgets; Save Edge 63/63, Step 2 Edge 67/67, parity 36/36 outerHTML identical (first attempt hit the documented frozen NB1c flake, exact signature; second attempt clean).
+- Product files byte-unchanged since R1, so the R1 product findings (no product defect; harness deviations and PNG diffs accepted) carry forward.
+Required fixes / remaining gates:
+- None for S0c review.
+- Non-blocking, later: O-2 and O-3 (from R1); O-4 (scope the retry guard's PASS greps per cell); O-5 (Windows-side reachability retry before Page.navigate in the parity harness).
+- Next: T-C6 integrator merge (--no-ff) into origin/integration/2d-sim with a green build/2d-gate.sh --browser on the rebased HEAD and on the merge commit. Record the O-1 file-set deviation in the merge record.
+Integration target: origin/integration/2d-sim
+Integrated HEAD: <only after integration>
+Post-integration verification:
+- Integrator to run build/2d-gate.sh --browser --base <pre-merge trunk> on the merge commit (and selftest.sh if the merge changes any gate file).
 ```
