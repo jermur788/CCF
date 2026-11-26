@@ -98,3 +98,55 @@ The scratch clone was removed, and the review worktree's `git status --porcelain
 - I made no Unity, runtime or rendered verification; none is applicable to this delta.
 
 INTEGRATION DECISION: APPROVED WITH CONDITIONS — (1) the integrator must not record C22 as proving move-proof tamper detection: at HEAD, C22 is satisfied by the pre-existing `core-cmd-clear` drift (F1). Either accept and document it as a gate-wiring check, or fix C22 to run against `00dcd196` in a follow-up bounded change, and correct the `retained`/`reason` wording (F1/F2) at the same time. (2) The full `2d-gate.sh` and `selftest.sh` must pass green (including C22 = PASS and Core ≥ 291/291) as the integrator's post-merge duty before anyone calls this integrated.
+
+## R2 — F1/F2 wording remediation re-review (2026-11-26)
+
+Fresh independent reviewer. I did not write the C1 delta, the first review, or the remediation. Effort: medium, with no escalation.
+
+| Item | Value |
+|---|---|
+| Remediation parent (C1 delta head reviewed above) | `f890ba8df364f88e8724b423b0289a61f35b0348` |
+| Remediation commit (not checked out; read via shared objects) | `4541778940a6a7c1db5bda3523e264c9094c9b41` on `integrator/2d-phase2b-c1-gate-retirement-20261126-v1` |
+| Review worktree HEAD at start | `46fd0d289f304dc0618e662c6895f279b7a828cb` (clean) |
+| `origin/main` after fetch | `bdeb6a324acaf4129c10fb0846faac8b64974360` |
+
+GUARD OK: `git status --porcelain` was empty, HEAD was `46fd0d28…`, and `origin/main` was `bdeb6a32…`.
+
+### Method (what was actually run)
+
+1. `git diff --name-only f890ba8d..45417789` and `git diff f890ba8d..45417789`, read in full. I also checked that `git rev-parse 45417789^` = `f890ba8d…`.
+2. I counted `run_full_case` invocations at both SHAs with `grep -c '^run_full_case '`, which gives 16, and with an invocation-only pattern that skips the `run_full_case() {` definition (line 283). Both give 16 at both SHAs. I also listed every invocation line at `45417789`.
+3. `git log --first-parent --format='%H %s' origin/integration/2d-sim`, a per-SHA check of membership in that first-parent list, and `git branch -a --contains` for `aa5f1850`, `742bd904`, `158cdd69`, `2af3fb1c`, `5648813d` and `00dcd196`.
+4. `git show 45417789:…/s0a-move-table.json | python3 -m json.tool` and `git show 45417789:…/selftest.sh | bash -n /dev/stdin`.
+5. `git diff --stat 00dcd196..45417789 -- Tools/MultiRackSitkaP1Lab/build/`, plus diffs of `build/2d-gate.sh`, `build/2d-gate/move-proof.py`, `baseline-counts.json` and `src/Ui/`. I also ran a key-by-key JSON comparison of `s0a-move-table.json` at `00dcd196` vs `45417789`, and checked the `payloadBudgetChecks` lines in `2d-gate.sh` and `baseline-counts.json`.
+6. R3: in a scratch `git clone --shared` at `$HOME/tmp/c1r2/scratch-clone` (outside the repo), I forced `gateEnforce=true`, optionally applied the exact C22 tamper (`// selftest move-proof block tamper` after the first `        lock (sync)` in `Commands.Crop.cs`), committed, and ran `move-proof.py --repo <clone> --base <t0Commit> --head HEAD --table <table>`. That is the same invocation as `2d-gate.sh:1191`. I then removed the clone. The review worktree's `git status --porcelain` was still empty afterwards.
+
+| Run | Rev | Tamper | rc | First FAIL/PASS line |
+|---|---|---|---|---|
+| A | `45417789` | no | 1 | `FAIL [core]: contiguous block core-cmd-clear (T0 lines 626..673) not found in order in …Commands.Clear.cs from line 7` |
+| B | `45417789` | yes | 1 | same `core-cmd-clear` failure (the Crop tamper is never reached) |
+| C | `00dcd196` | no | 0 | `MOVE-PROOF PASS: ui(5 files, 14 blocks, 1263 non-empty lines); core(7 files, 8 blocks, 1337 non-empty lines)` |
+| D | `00dcd196` | yes | 1 | `FAIL [core]: contiguous block core-cmd-crop (T0 lines 457..502) not found in order in …Commands.Crop.cs from line 7` |
+
+### R1–R8
+
+| Check | Result | Evidence |
+|---|---|---|
+| R1 Scope | **PASS** | `--name-only f890ba8d..45417789` = exactly `build/2d-gate/s0a-move-table.json` and `build/2d-gate/selftest.sh`. |
+| R2 Text-only | **PASS** | The diff changes only the `retirement.reason`/`retained` JSON strings, the `git commit -m` message string inside `mut_move_proof()` (it is a git commit message, not a Python string; the Python heredocs are unchanged), the C22 description argument, and 2 added `#` comment lines. Case ID, expected exit `1`, marker regex `S0a move-proof failed`, mutator name, function bodies and `gateEnforce` are unchanged. There are 16 `run_full_case` invocations at both SHAs. |
+| R3 F1 accurate | **PASS** | Runs A/B: at the remediated HEAD, `move-proof.py` fails on `core-cmd-clear` whether or not the tamper is applied. So the new text ("gate-wiring check, NOT a tamper-discrimination test… HEAD already drifts from T0 inside core-cmd-clear") is true. Runs C/D independently reproduce the claimed `00dcd196` pair (clean PASS, tamper FAIL on `core-cmd-crop`). |
+| R4 F2 accurate | **PASS** | `2af3fb1c` (S0a), `5648813d` (S0b) and `00dcd196` (S0c) are each on the `origin/integration/2d-sim` first-parent chain, with matching `merge(2d-sim): S0a/S0b/S0c …` subjects. `aa5f1850`, `742bd904` and `158cdd69` are not on it; each is contained only by its `review/multi-2d-s0{a,b,c}-…` branch. The note now labels them "merge commits" and "reviews" respectively. |
+| R5 No new overclaim | **PASS (one wording nit, non-blocking)** | `reason`, `retained`, the C22 comment and the C22 description promise no tamper detection and no green gate. The `00dcd196` demonstration they cite is real (runs C/D). No secrets, tokens or URLs were added. Nit: "the case would fail" / "what makes this case fail" means "the gate run inside the case exits 1". In selftest terms, C22 *passes* when that happens. A reader can work this out from the context, and it does not change any claim. |
+| R6 Valid JSON and shell | **PASS** | `json.tool` on the `45417789` blob → OK. `bash -n` on the `45417789` `selftest.sh` blob → OK. |
+| R7 Nothing else weakened | **PASS** | `00dcd196..45417789 -- build/` = the same 3 files as the C1 delta (`baseline-counts.json`, `s0a-move-table.json`, `selftest.sh`). `gateEnforce: false` (`s0a-move-table.json:4`), and the JSON key comparison shows only `gateEnforce` changed and `retirement` added. In `baseline-counts.json`, only `core.minPassed` 282→291 plus a `note` changed (identical at `f890ba8d` and `45417789`), and no `payloadBudgetChecks` line changed. `2d-gate.sh` and `move-proof.py` have a 0-line diff. `src/Ui/` has a 0-line diff. |
+| R8 Residual condition | **Only the post-merge gate run remains** | With F1/F2 closed, the only open item is condition (2) from the first review. The integrator must run `2d-gate.sh --browser` and `selftest.sh` green after the merge (including C22 = PASS as a wiring check, and Core ≥ 291/291). I did not, and should not, run it here. |
+
+### LIMITS (not executed)
+
+- `2d-gate.sh` and `selftest.sh` were not run (prohibited by the brief; there is no `.p0ref` here). C22's end-to-end behaviour and every other case are **NOT TESTED**. The R3 conclusion rests on direct `move-proof.py` runs that use the gate's own invocation.
+- No `dotnet` or test suite was run, so Core 291/291 is **NOT TESTED**.
+- Browser/Stage B and S0c node checks were not run, so they are **NOT TESTED**.
+- No Unity, runtime or rendered verification was done; none applies to this delta.
+- The remediation branch was never checked out, merged or cherry-picked. It was read only through `git diff`/`git show` and a disposable scratch clone, which has been removed.
+
+R2 INTEGRATION DECISION: F1/F2 REMEDIATION ACCEPTED — wording now matches what the checks prove (C22 = gate wiring only; correct merge SHAs), the change is text-only, and the only open item is the integrator's post-merge green `2d-gate.sh --browser` + `selftest.sh` run.
