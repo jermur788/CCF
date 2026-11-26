@@ -264,6 +264,24 @@ def verify_part(repo: str, base_rev: str, head_rev: str, part_name: str, cfg: di
             )
         adjusted_t0[ln - 1] = rep["new"]
 
+    # S0c P6: when s0cModuleRoutes is active on part=ui, expand the two single-line T0 placeholders
+    # (MultiPageJs field at staticFieldT0Line and routes.Add("multi.js", ...) at routeAddT0Line) into
+    # their exact permitted P6 multi-line replacements, keeping every other line of MultiRoutes.cs & MultiApi.*.cs verbatim.
+    s0c_routes_cfg = cfg.get("s0cModuleRoutes")
+    expanded_t0_lines: dict[int, list[str]] = {}
+    if s0c_routes_cfg and s0c_routes_cfg.get("mode") == "s0c-module-routes":
+        expanded_t0_lines[s0c_routes_cfg["staticFieldT0Line"]] = s0c_routes_cfg["newStaticFieldLines"]
+        expanded_t0_lines[s0c_routes_cfg["routeAddT0Line"]] = s0c_routes_cfg["newRouteAddLines"]
+
+    def effective_lines(start_ln: int, end_ln: int) -> list[str]:
+        out: list[str] = []
+        for ln in range(start_ln, end_ln + 1):
+            if ln in expanded_t0_lines:
+                out.extend(expanded_t0_lines[ln])
+            else:
+                out.append(adjusted_t0[ln - 1])
+        return out
+
     # Verify blocks partition every non-empty line in keptLineRange (excluding S0b extracted Advance span) without overlap or gap.
     blocks = cfg["blocks"]
     covered = set()
@@ -298,9 +316,9 @@ def verify_part(repo: str, base_rev: str, head_rev: str, part_name: str, cfg: di
     for ln in range(kept_start, kept_end + 1):
         if ln in excluded_t0_lines:
             continue
-        line = adjusted_t0[ln - 1]
-        if line != "":
-            expected_multiset[line] += 1
+        for line in (expanded_t0_lines[ln] if ln in expanded_t0_lines else [adjusted_t0[ln - 1]]):
+            if line != "":
+                expected_multiset[line] += 1
 
     added_helper = cfg.get("addedHelper")
     if added_helper:
@@ -350,7 +368,7 @@ def verify_part(repo: str, base_rev: str, head_rev: str, part_name: str, cfg: di
             if s <= prev_t0_start:
                 sys.exit(f"FAIL [{part_name}]: blocks for {target} not in increasing T0 order at {b['id']}")
             prev_t0_start = s
-            needle = adjusted_t0[s - 1 : e]
+            needle = effective_lines(s, e)
             found_at = find_subsequence(t_lines, needle, pos)
             if found_at == -1:
                 sys.exit(
@@ -395,7 +413,8 @@ def verify_part(repo: str, base_rev: str, head_rev: str, part_name: str, cfg: di
         t0_statics = [
             m.group(1)
             for ln in range(kept_start, kept_end + 1)
-            if (m := static_re.match(adjusted_t0[ln - 1]))
+            for line in (expanded_t0_lines[ln] if ln in expanded_t0_lines else [adjusted_t0[ln - 1]])
+            if (m := static_re.match(line))
         ]
         routes_path = cfg["primaryTarget"]
         routes_statics = [

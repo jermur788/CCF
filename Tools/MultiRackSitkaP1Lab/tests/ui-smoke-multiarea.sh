@@ -124,16 +124,47 @@ header() { grep -i "^$2:" "$scratch/$1.head" | head -1 | cut -d: -f2- | tr -d '\
 
 # ---- M: page assets and manifest provenance --------------------------------------------------------------------------
 code="$(req page GET "/s/$cap/multi")"
-check "M01 GET multi: 200 text/html with only its own external script and style" bash -c \
-  'test "$1" == 200 && grep -q "<script src=\"multi.js\" defer></script>" "$2" && grep -q "<link rel=\"stylesheet\" href=\"multi.css\">" "$2" && ! grep -qi "<script>" "$2" && ! grep -qi " style=" "$2"' _ "$code" "$scratch/page.body"
+check "M01 GET multi: 200 text/html with only its own external module script and style" bash -c \
+  'test "$1" == 200 && grep -q "<script type=\"module\" src=\"multi/main.js\"></script>" "$2" && grep -q "<link rel=\"stylesheet\" href=\"multi.css\">" "$2" && ! grep -qi "<script>" "$2" && ! grep -qi " style=" "$2"' _ "$code" "$scratch/page.body"
 check "M02 the page answer has the strict headers: CSP self only, no-store, nosniff, no-referrer, DENY framing, no CORS, no Server" bash -c '
   h="$1"; ! grep -qi "^access-control-" "$h" && ! grep -qi "^server:" "$h" && grep -qi "^cache-control: no-store" "$h" &&
   grep -qi "^content-security-policy: default-src .none.; script-src .self.; style-src .self." "$h" && grep -qi "^x-content-type-options: nosniff" "$h" &&
   grep -qi "^referrer-policy: no-referrer" "$h" && grep -qi "^x-frame-options: DENY" "$h" && grep -qi "^content-type: text/html" "$h"' _ "$scratch/page.head"
 code="$(req css GET "/s/$cap/multi.css")"; check "M03 multi.css: 200 text/css" test "$code" == 200 -a "$(header css content-type)" == "text/css; charset=utf-8"
-code="$(req jsfile GET "/s/$cap/multi.js")"; check "M04 multi.js: 200 text/javascript" test "$code" == 200 -a "$(header jsfile content-type)" == "text/javascript; charset=utf-8"
-cp "$scratch/jsfile.body" "$scratch/multi.js"
-check "M05 the served multi.js passes node --check" "$node_bin" --check "$scratch/multi.js"
+multi_modules=(
+  multi/api.js
+  multi/commands.js
+  multi/dialogs/execute-confirm.js
+  multi/dialogs/saves.js
+  multi/dom.js
+  multi/main.js
+  multi/map/contract.js
+  multi/map/renderer-svg.js
+  multi/modes/interactive.js
+  multi/panels/fell-draft.js
+  multi/panels/inspector.js
+  multi/panels/time-history.js
+  multi/panels/work-plan.js
+  multi/store.js
+)
+mkdir -p "$scratch/modules"
+m04_ok=1
+for mod in "${multi_modules[@]}"; do
+  mkey="mod_$(echo "$mod" | tr '/.-' '___')"
+  mcode="$(req "$mkey" GET "/s/$cap/$mod")"
+  if [[ "$mcode" != 200 || "$(header "$mkey" content-type)" != "text/javascript; charset=utf-8" ]]; then
+    m04_ok=0
+  fi
+  cp "$scratch/$mkey.body" "$scratch/modules/$(echo "$mod" | tr '/' '_').mjs"
+done
+legacy_js_code="$(req legacyjs GET "/s/$cap/multi.js")"
+if [[ "$legacy_js_code" != 404 ]]; then m04_ok=0; fi
+check "M04 all 14 ES module routes return 200 text/javascript and retired multi.js returns 404" test "$m04_ok" == 1
+m05_ok=1
+for mjs in "$scratch/modules/"*.mjs; do
+  if ! "$node_bin" --check "$mjs"; then m05_ok=0; fi
+done
+check "M05 all 14 served ES modules pass node --check" test "$m05_ok" == 1
 code="$(req manifest GET "/s/$cap/api/multi/manifest")"
 code_view="$(req v0 GET "/s/$cap/api/multi/view")"
 check "M06 GET api/multi/manifest and api/multi/view: 200 and 200" test "$code" == 200 -a "$code_view" == 200
@@ -147,8 +178,8 @@ ok = body_hash == manifest["contentHash"] == view["source"]["manifestContentHash
 ok = ok and manifest["experimentId"] == "mad-sitka-ma1-two-area-v1" and manifest["reviewStatus"] == "PendingIndependentReview"
 ok = ok and [a["areaId"] for a in manifest["areas"]] == ["MA-A", "MA-B"] and all(a["site"] == "UNKNOWN" for a in manifest["areas"])
 sys.exit(0 if ok else 1)' "$scratch/manifest.body" "$scratch/v0.body" "$pinned_hash"
-check "M08 zero data:image/webp remains in served multi, multi.css and multi.js" bash -c \
-  '! grep -q "data:image/webp" "$1" "$2" "$3"' _ "$scratch/page.body" "$scratch/css.body" "$scratch/jsfile.body"
+check "M08 zero data:image/webp remains in served multi, multi.css and all 14 ES modules" bash -c \
+  '! grep -q "data:image/webp" "$1" "$2" "$3"/*.mjs' _ "$scratch/page.body" "$scratch/css.body" "$scratch/modules"
 check "M09 all 21 required inline SVG <defs> IDs exist in served multi HTML" \
   python3 -I -B -c 'import sys
 html = open(sys.argv[1], encoding="utf-8").read()
@@ -1228,7 +1259,6 @@ for (let attempt = 0; attempt < 40; attempt++) {
 }
 const document = new FakeDocument();
 parsePage(document, await (await fetch(multiUrl)).text());
-const multiJs = await (await fetch(new URL('multi.js', pageUrl))).text();
 const sandbox = {
   document, fetch: pageFetch, setTimeout, clearTimeout,
   CSS: { escape: (value) => String(value).replace(/[^a-zA-Z0-9_ -￿-]/g, (c) => '\\' + c) },
@@ -1237,8 +1267,49 @@ const sandbox = {
   devicePixelRatio: 1, addEventListener() {},
 };
 sandbox.window = sandbox;
-// The page's relative URLs resolve against .../multi, which is the same /s/<capability>/ directory as the API.
-vm.runInContext(multiJs, vm.createContext(sandbox), { filename: 'multi.js' });
+// Load the served ES module graph from multi/main.js via vm.SourceTextModule (same-origin module routes only).
+const vmContext = vm.createContext(sandbox);
+const moduleCache = new Map();
+const multiBaseUrl = new URL('multi/', pageUrl);
+async function loadServedModule(specifier, parentUrl) {
+  if (parentUrl && !((specifier.startsWith('./') || specifier.startsWith('../')) && specifier.endsWith('.js'))) {
+    throw new Error('forbidden module specifier: ' + specifier);
+  }
+  const resolved = new URL(specifier, parentUrl || pageUrl);
+  if (resolved.origin !== origin || !resolved.pathname.startsWith(multiBaseUrl.pathname) || !resolved.pathname.endsWith('.js')) {
+    throw new Error('non-same-origin or out-of-tree module request blocked: ' + resolved.href);
+  }
+  const key = resolved.pathname;
+  if (moduleCache.has(key)) return moduleCache.get(key);
+  const pending = (async () => {
+    const resp = await fetch(resolved, { redirect: 'error' });
+    if (resp.status !== 200) throw new Error('module fetch failed (' + resp.status + '): ' + resolved.pathname);
+    const source = await resp.text();
+    return new vm.SourceTextModule(source, { identifier: resolved.href, context: vmContext });
+  })();
+  moduleCache.set(key, pending);
+  return pending;
+}
+const entryModule = await loadServedModule('multi/main.js', null);
+await entryModule.link((specifier, referencingModule) => loadServedModule(specifier, referencingModule.identifier));
+await entryModule.evaluate();
+// Verify S0c map/contract.js assertMapRenderer(svgRenderer) against the served modules.
+{
+  const contractMod = await moduleCache.get(new URL('multi/map/contract.js', pageUrl).pathname);
+  const rendererMod = await moduleCache.get(new URL('multi/map/renderer-svg.js', pageUrl).pathname);
+  if (!contractMod || !rendererMod) throw new Error('missing served map/contract.js or map/renderer-svg.js in module graph');
+  const { assertMapRenderer, MAP_RENDERER_METHODS } = contractMod.namespace;
+  const { svgRenderer } = rendererMod.namespace;
+  if (JSON.stringify(MAP_RENDERER_METHODS) !== JSON.stringify(['mount', 'render', 'setSelection', 'focusArea', 'destroy'])) {
+    throw new Error('unexpected MAP_RENDERER_METHODS: ' + JSON.stringify(MAP_RENDERER_METHODS));
+  }
+  if (assertMapRenderer(svgRenderer) !== svgRenderer) {
+    throw new Error('assertMapRenderer(svgRenderer) did not return svgRenderer');
+  }
+  let threwOnBad = false;
+  try { assertMapRenderer({}); } catch (err) { threwOnBad = Boolean(err && err.name === 'TypeError'); }
+  if (!threwOnBad) throw new Error('assertMapRenderer({}) did not throw TypeError');
+}
 
 const byId = (id) => document.getElementById(id);
 const click = (element, init) => element.dispatchEvent(new FakeEvent('click', init));
@@ -2047,7 +2118,7 @@ check(pageErrors.length === 0, 'no script error in the page', pageErrors.map(red
 process.exit(failures === 0 ? 0 : 1);
 WITNESS
 witness_rc=0
-(cd "$scratch" && "$node_bin" page-witness.mjs "$url") > "$scratch/witness.out" 2> "$scratch/witness.err" || witness_rc=$?
+(cd "$scratch" && "$node_bin" --experimental-vm-modules --disable-warning=ExperimentalWarning page-witness.mjs "$url") > "$scratch/witness.out" 2> "$scratch/witness.err" || witness_rc=$?
 sed -E 's#/s/[0-9a-f]{64}/#/s/<capability>/#g' "$scratch/witness.out" | tee -a "$log"
 if grep -q '^FAIL' "$scratch/witness.out"; then fail=1; fi
 check "J99 the page witness ran to the end (exit $witness_rc) with nothing on stderr" \
