@@ -63,6 +63,8 @@ LOG="$EVIDENCE_DIR/selftest.log"
 say() { printf '%s\n' "$*" | tee -a "$LOG"; }
 
 SCRATCH="$(mktemp -d "${TMP_BASE}/ccf-2d-gate-selftest.XXXXXXXX")"
+mkdir -p -- "$SCRATCH/tmp"
+export TMPDIR="$SCRATCH/tmp"
 cleanup() {
   rm -rf -- "$SCRATCH"
 }
@@ -269,6 +271,7 @@ run_case_gate "C09-g2-dropped-test" 1 "GATE G2 FAIL" "dropped Core test below ba
   bash "$FAST_GATE" "${GATE_COMMON_ARGS[@]}"
 git -C "$FAST_CLONE" reset --quiet --hard "$HEAD_SHA"
 git -C "$FAST_CLONE" clean --quiet -fdx
+rm -rf -- "$FAST_CLONE" "$SCRATCH/tmp"/*
 
 say "Fast cases C01-C09 and C16-C19 completed; running full end-to-end stage cases C10-C15 and C20-C26 sequentially (foreground, zero CPU contention)..."
 
@@ -310,7 +313,7 @@ run_full_case() {
     fi
     break
   done
-  rm -rf -- "$clone"
+  rm -rf -- "$clone" "$SCRATCH/tmp"/*
 }
 
 mut_g3_anchor() {

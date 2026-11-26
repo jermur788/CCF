@@ -352,6 +352,8 @@ PY
   : > "$GATE_LOG"
 
   SCRATCH_DIR="$(mktemp -d "${tmp_base}/ccf-2d-gate.XXXXXXXX")"
+  mkdir -p -- "$SCRATCH_DIR/tmp"
+  export TMPDIR="$SCRATCH_DIR/tmp"
 
   # Check dirty working tree (G0 precondition -> exit 2).
   local dirty
@@ -1091,6 +1093,8 @@ if [[ "$INTERNAL_MODE" -eq 1 ]]; then
   EVIDENCE_DIR="$(cd "$EVIDENCE_DIR" && pwd -P)"
   GATE_LOG="$EVIDENCE_DIR/gate.log"
   SCRATCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ccf-2d-gate-netns.XXXXXXXX")"
+  mkdir -p -- "$SCRATCH_DIR/tmp"
+  export TMPDIR="$SCRATCH_DIR/tmp"
   ip link set lo up
   run_stage_G1
   run_stage_G2
