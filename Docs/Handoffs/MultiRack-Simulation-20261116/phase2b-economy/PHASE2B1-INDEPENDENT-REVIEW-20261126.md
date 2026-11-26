@@ -108,3 +108,87 @@ This is an independent review opinion and **not a merge authorisation**.
 - I did not check the 282 baseline test count at `5648813d` by running the base. 290 − 8 = 282 is consistent with the handoff.
 - I made no ecological or research judgement on the calibration values beyond checking them against the in-repo 3D sources.
 - The probe code lived only in a scratch clone under `/tmp/rv2b/probe` and was never committed. No implementation, spec, test or handoff file was edited. This file is the only one written to the review branch.
+
+---
+---
+
+# Delta Re-Review (C5) — 2026-11-26
+
+> Appended section. The findings above (first review of `d514f6bb`) stay as written. This section judges only the bounded delta, plus the invariants the delta must not have broken. It is an independent opinion and **not a merge authorisation**.
+
+- **Reviewed SHA:** `dcba31ca3bd51e0d3f23046cf3da121908529d24` (`origin/feat/multi-2d-phase2b-economy-core-20261126-v1`, single delta commit `dcba31ca`)
+- **Delta range:** `d514f6bb..dcba31ca`, 9 files, +149 / −55
+- **Base:** `5648813d…` (unchanged). `origin/integration/2d-sim` = `5648813d` (unchanged). `origin/main` = `bdeb6a32…` (not touched by this lane).
+- **Guard:** `GUARD OK`, review worktree at `882dd17f`, root checkout on `main`.
+
+## Method
+
+1. Read the whole delta diff, then grepped the candidate tree (`git grep` at `dcba31ca`) for every clearfell and override spelling, every `HarvestThinningStage` and `ExecutedHarvestPlansCount` use, and the floor code.
+2. Compared the retained rate constants against the 3D sources at the same SHA: `Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs:31-37,184-189`, `ForestryWorkCalculator.cs:171`, `ScenarioOneEconomyAdapter.cs:164`.
+3. Ran `git clone --shared` of the candidate into `/tmp/rv5/probe`, outside the repo, seeded `.p0ref`, and ran the suites with SDK 8.0.134:
+   - Core: **`291/291 passed, 0 failed`**. All 9 `PASS economy:` lines are present. Anchor #7 `776a68df…` and anchor #9 `93e9abda…` each appear exactly once.
+   - Save: **`50/50 passed, 0 failed`**, including the pinned v2 golden.
+4. Added a probe file `ProbeC5Tests.cs` in the scratch clone only (never committed). It ran three cases. Result `294/294`:
+   - approve then cancel leaves the count at 0 and the next quote at `FirstThinning`;
+   - replaying an `Execute` does not advance the count, `Advance` neither resets nor advances it, the next year's felling plan is `SecondThinning`, and each plan pays ≥ €2,500;
+   - an executed non-fell plan (clear undergrowth) has no harvest job and leaves the count at 0.
+
+## D1–D8
+
+| Q | Result | One-line evidence |
+|---|---|---|
+| **D1. Clearfell removed** | **PASS** | `git grep -i -E 'clear[ _-]?fell\|clearf\|clear-cut\|clearcut\|1_500L'` over `src/Core/**` and `tests/Core.Tests/**` finds only the test-9 negative assertions (`Phase2BEconomyTests.cs:419,446-447,479`). It also finds one pre-existing string, `"clear-fell probe"` in `PlayerSessionTests.cs:422`, which is identical at base `5648813d` and is a test label, not pricing. The enum has 3 members, there is no `ClearfellCentsPerTonne`, and the switch arm is gone. |
+| **D2. Override removed, no back door** | **PASS** | `SetHarvestStageOverride`, `EconomyApprovedQuote.HarvestStageOverride`, and `PendingHarvestStageOverride` on the State and the View are deleted from the records' positional parameters, not just left unused. `ComputeCore` has lost its `harvestStageOverride` parameter. The only `src` uses of `HarvestThinningStage` are the enum, `HarvestRateCentsPerTonne`, `AutoHarvestStage`, and the output field `EconomyHarvestQuote.Stage` (`EconomyRecords.cs:31`). No method, constructor, property or field on the continuation, the state, the view, the approved quote or the options accepts or stores a stage. Test 9 checks this by reflection, and I confirmed it by grep. |
+| **D3. Derivation automatic, from history** | **PASS** | `EconomyQuoteCalculator.cs:196`: `stage = EconomyDefaults.AutoHarvestStage(econ.ExecutedHarvestPlansCount)`, with `≤0 → First`, `1 → Second`, `_ → Later` (`EconomyModels.cs:151-156`). The count is written in only one place, `BuildSettlement` (`EconomyQuoteCalculator.cs:136-142`, `+1` only when the frozen quote has a `HarvestJob`), and that is called only from `Execute` (`Commands.Plan.cs:257`). It starts at 0 in genesis, `BuildYearEnd` never touches it, and the probe shows cancel, replay, Advance and non-fell plans do not move it. No caller input reaches it. |
+| **D4. Rates = verified non-clearfell 3D tiers** | **FAIL** (one constant; see F-1) | No €19/t tier was invented, and the constants were left unchanged by the delta. But the 3D selected value for first thinning is **€21/t** (`Stage1EconomyDefaults.cs:33` `Harvest(FirstThinning, 2000, 2100, 2200)`, and `Parameter` sets `Selected = reference`, `:187`, which `ForestryWorkCalculator.cs:171` uses). 2D uses `FirstThinningCentsPerTonne = 2_000L` (`EconomyModels.cs:127`), which is the 3D **low** bound. Second (€23) and later (€20) match 3D selected. The reconciliation note honestly records the €23/€19 parenthetical conflict and the choice of the operative clause, but its claim that €20/€23/€20 are the "verified 3D-aligned" tiers is **false for `FirstThinning`**. |
+| **D5. €2,500 floor per plan** | **PASS** | `EconomyQuoteCalculator.cs:219-221`: `minAdj = max(0, floor − variable)` inside each `ComputeCore`, which runs once per approved plan. Test 7 still asserts two plans in one year = €5,000 in floors, and my probe asserted ≥ €2,500 on two plans across years. The removed override never touched the floor, and no bypass opened. A pre-existing note (O-11): `EconomyOptions.MinimumHarvestJobCents` is set at session construction and accepts any value ≥ 0. It is not a player command and the delta did not change it. |
+| **D6. Prior invariants intact** | **PASS** | The delta touches only `EconomyModels/QuoteCalculator/Records`, `Commands.Economy`, `Commands.Plan` (override lines only), the tests, the spec, the checklist and the handoff. `git diff d514f6bb..dcba31ca` on `MultiAreaContinuation.cs`, `AnnualPipeline.cs`, `src/Core/Phase1/**`, `D062TimberAssortment.cs`, `EconomyCalibrationFixture.cs`, `Commands.Fell.cs`, `MultiAreaHistoryQuery.cs` is empty, and `MultiAreaContracts.cs`/`Stage4Models.cs` are not in the delta. Tests 1–8 pass unchanged except for one swapped line in test 3 (see D7). That covers upfront cash and no debt, contractor-only `Fell`, 40 h and reset, the D-062 ladders, 890 kg/m³, Off-inertness, `SaveEconomyRequiresV3` and the anchors. |
+| **D7. Tests non-vacuous** | **PASS** (with notes) | Test 9 drives the real engine: 3 Approve+Execute cycles then a 4th quote, asserting First→Second→Later→Later and rates 2000/2300/2000/2000 on both quotes and settlements. That proves (b). (a) is proved structurally: the enum has 3 members, ordinal 3 is refused, and reflection checks names and types on 7 types. Not tautological. Test 3's replacement `SetOrderExecutor(...)→WorkPlanAlreadyApproved` is a real refusal path, so it keeps the frozen-approval guard covered. **Notes:** (i) the reflection scan does not cover `MultiAreaRoot`, `MultiAreaModelSelection` or `MultiAreaWorkPlanAdapter`, though the grep did. (ii) The message `"uses verified 3D rate"` (`:500`) is wrong for plan 1 (F-1). (iii) The one assertion I would call must-have and missing: **the count does not advance on cancel, replay or a non-fell plan**. My probe proves the code is correct, so this is not blocking. |
+| **D8. Documentation accuracy** | **FAIL** (non-blocking except F-1) | Accurate: spec §2 row and §7, checklist P2B-08 and handoff §7 record C3, C4, C5, the removals and the derivation rule correctly, and no restriction was added for C3. Inaccurate: (1) the "verified 3D-aligned FirstThinning = €20/t" claim (spec `:88`, handoff `:165`) is wrong (F-1). (2) The handoff body above §7 still says `SetHarvestStageOverride` exists (`:26`), `Clearfell (€15/t)` is selectable (`:117`), and stage selections are `€20/€23/€20/€15/t` (`:108`), with no "superseded by §7" marker. (3) The handoff still says "Exact 8-case" (`:38`) and `290/290` (`:51`). §7 gives no new count (291/291) and no evidence line for the delta. |
+
+**Counts:** PASS 6 (D1, D2, D3, D5, D6, D7) · FAIL 2 (D4, D8) · NOT TESTED 0.
+
+## Findings
+
+- **F-1: the `FirstThinning` rate is not the 3D-selected tier.** This blocks full C5 closure.
+  - **Where:** `Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/Economy/EconomyModels.cs:127` (`2_000L`), against `Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs:33,187`, where 3D selects `2100`.
+  - **What the ruling said:** the owner's operative clause asks for "the exact non-clearfell CCF thinning tiers already verified from 3D".
+  - **Why it went unnoticed:** the value predates this delta. My first review checked only that the rates fell inside the €15–€23 range, so it missed this too. The new reconciliation note then asserts alignment that does not exist.
+  - **Fix (either one):**
+    - (a) set `FirstThinningCentsPerTonne = 2_100L`, and update test 9's `expectedRates[0]`, the test 7/8 values that depend on it, and the spec/handoff/evidence strings (`EconomyModels.cs:202`); or
+    - (b) the owner explicitly records €20/t as a deliberate gameplay calibration below the 3D reference, and the "3D-aligned" wording is corrected.
+  - **Effect on tests:** none of tests 1–8 or 9 hard-codes a first-thinning *cost* I could see. They assert stage, rate and floor, and small fells sit on the €2,500 floor. I have not run option (a), so its test impact is **not tested**.
+- **O-11 (pre-existing, non-blocking):** `EconomyOptions.MinimumHarvestJobCents` can be configured to 0 at construction. If the floor must be fixed, the integrator or owner should pin it. It is not a player path.
+- **O-12 (observation, owner question):** `ExecutedHarvestPlansCount` counts across the whole session, not per area. A felling plan in MA-B moves MA-A's next plan to `SecondThinning`. The spec says "on the stand". That is consistent if the session is one stand, but the owner should confirm it for multi-area use. 3D counts `previousInterventions` per scenario stand.
+- The D8 items (2) and (3) are documentation-only. The integrator or implementer should add a "superseded by §7" marker and the 291/291 evidence line.
+
+## Status of prior conditions
+
+- **C1: OPEN** (integrator duty). Retire or re-baseline the S0a/S0b move-proof, then get a full green `2d-gate.sh`.
+- **C2: OPEN** (integrator duty). Integrator review and ownership of the integrator-owned or locked hunks. The delta adds two removal-only hunks in `Commands.Plan.cs` (`:37-40`, `:63-66`) to that set.
+- **C3: CLOSED.** The owner accepted it as-is and the ruling is recorded (spec §7, handoff §7). No restriction was added: `RequireSupported` and `Stage4Models.cs` are unchanged in the delta.
+- **C4: CLOSED.** The owner accepted it as-is and it is recorded. The `FinancialLedger: NOT RECORDED` disclosure is retained (`MultiAreaHistoryQuery.cs` is unchanged in the delta, and the `NOT RECORDED` strings are present). The original C4 tail, "G2 UI smoke and G5 budgets pass with it", now falls under C1's green gate.
+- **C5: NOT FULLY CLOSED.**
+  - **Closed:** no clearfell (D1), no override and no back door (D2), automatic derivation from history (D3), and the per-plan floor (D5).
+  - **Open:** the rate-exactness part (D4/F-1), carried below as **C6**.
+
+## INTEGRATION DECISION (delta re-review)
+
+**`APPROVED WITH CONDITIONS`** — C1, C2, C6, C7
+
+- **C1** (integrator): green canonical gate after a reviewed move-proof decision.
+- **C2** (integrator): ownership of the integrator-owned hunks, now including the two `Commands.Plan.cs` removal hunks from this delta.
+- **C6** (**pre-integration, blocking**): resolve F-1. Either set `FirstThinningCentsPerTonne` to the 3D-selected `2_100L` and update the dependent tests and strings, with Core and Save re-run green, or get an explicit owner record that €20/t is a deliberate calibration and correct the "3D-aligned" wording in spec §7 and handoff §7.
+- **C7** (doc, non-blocking): mark the handoff's pre-§7 override and clearfell lines (`:26`, `:108`, `:117`) as superseded, and add the 291/291 delta evidence.
+
+This is an independent review opinion and **not a merge authorisation**.
+
+## LIMITS (delta re-review)
+
+- **The canonical `2d-gate.sh` was not run.** G0–G7 and B are **NOT TESTED**. I did not re-run the move-proof. IP-1 still applies because the delta does not touch `Commands.Clear.cs` or `build/2d-gate/**`.
+- **NOT TESTED:** UI smoke, `cli-safety.sh`, `build-output-safety.sh`, `p0-isolation.sh`, G5 payload budgets, browser tier B, and any HTTP/UI/runtime execution.
+- I ran only Core and Save outside the gate, plus three probe cases in a scratch clone. Anchors #1–#6 and #8 were not separately recomputed.
+- I did not run the F-1 fix (option a) or measure its test impact.
+- No Unity, Blender or rendered verification. None applies to this Core-only change.
+- I made no ecological or market judgement on which first-thinning rate is "right". I only compared against the in-repo 3D source.
+- The probe lived only in `/tmp/rv5/probe` and was never committed. No implementation, spec, test or handoff file was edited. This review file is the only file written to the review branch.
