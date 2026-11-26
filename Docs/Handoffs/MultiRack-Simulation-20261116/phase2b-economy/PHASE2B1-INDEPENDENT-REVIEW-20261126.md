@@ -192,3 +192,83 @@ This is an independent review opinion and **not a merge authorisation**.
 - No Unity, Blender or rendered verification. None applies to this Core-only change.
 - I made no ecological or market judgement on which first-thinning rate is "right". I only compared against the in-repo 3D source.
 - The probe lived only in `/tmp/rv5/probe` and was never committed. No implementation, spec, test or handoff file was edited. This review file is the only file written to the review branch.
+
+---
+
+# C6 Repair Re-Review — 2026-11-26
+
+- **Reviewer:** the same independent reviewer as the two sections above. This is a focused re-review of the C6/C7 repair, not a fresh full review.
+- **Reviewed candidate:** `e97b378072c988c4f1b8157ff0486ddc21349283` on `origin/feat/multi-2d-phase2b-economy-core-20261126-v1`. The base is still `5648813d`.
+- **Repair range:** `dcba31ca..e97b3780`: 7 files, +84/−29.
+- **Guard:** review worktree on `review/multi-2d-phase2b-economy-core-20261126-v1` at `3fdc0c4d`. The fetched candidate matched `e97b3780`. GUARD OK.
+
+## Method
+
+1. Read the full `dcba31ca..e97b3780` diff and confirmed which files it touches (`git diff --name-only`).
+2. Read the 3D source at the candidate SHA: `Assets/ForestPrototype/WorkEconomy/Stage1EconomyDefaults.cs:33-36` (`Harvest(...)` rows), `:156-160` (`Harvest` → `Parameter`) and `:184-188` (`Parameter` sets `Selected = reference`). Also read `ForestryWorkCalculator.cs:171`, which consumes `CombinedCentsPerTonne.Selected`. `git diff 5648813d e97b3780 -- Assets` is empty, so the 3D source is unchanged on this branch.
+3. Ran `git grep` at `e97b3780` for `€19`, `1_900`, `1900L` and `19/t` across Lab `src`/`tests`, `specs/` and the 3D `WorkEconomy/`. I also grepped `Clearfell|HarvestStageOverride` across `Tools/MultiRackSitkaP1Lab` (non-Markdown files).
+4. Read the current handoff, spec, plan, tasks and checklist at `e97b3780` for stale `8-case`, `290`, override, clearfell, `€15` and "3D-aligned" lines.
+5. Made a scratch `--shared` clone outside the repo (`/home/jer/tmp/rr-c6-scratch-*`, removed afterwards) at `e97b3780`, with `.p0ref` copied from the implementer worktree (`SitkaLab.Core.dll` SHA-256 `9a99f781…34b3`, matching the pinned value). Built and ran Core and Save with `/home/jer/.dotnet/dotnet`.
+6. **Mutation check:** in the scratch clone only, reverted `FirstThinningCentsPerTonne` to `2_000L`, then rebuilt and re-ran Core.
+
+### Observed results (my own runs)
+
+| Check | Result |
+|---|---|
+| Core build | `0 Warning(s) 0 Error(s)` |
+| Core run | **`291/291 passed, 0 failed`** (rc 0); `PASS economy:` = **9**, `FAIL` = 0 |
+| Anchor #7 hash `776a68df…e22d` in Core stdout | **1** |
+| Anchor #9 hash `93e9abda…251f` in Core stdout | **1** |
+| Save build / run | `0 Warning(s) 0 Error(s)`; **`50/50 passed, 0 failed`** (rc 0) |
+| Mutation `2_100L → 2_000L` | **`289/291 passed, 2 failed`** (rc 1): Test 7 `expected 2100, got 2000` and Test 9 `plan 1 uses verified 3D rate: expected 2100, got 2000`. The new rate assertions are non-vacuous. |
+
+## R1–R8
+
+| # | Result | Evidence |
+|---|---|---|
+| **R1. F-1 rate fixed** | **PASS** | `EconomyModels.cs:127` `FirstThinningCentsPerTonne = 2_100L`. In the 3D source, `Stage1EconomyDefaults.cs:33` `Harvest(FirstThinning, 2000, 2100, 2200)` → `Parameter(low, reference, high, …)`, and `:187` sets `Selected = reference`. So **2100 is the selected value**, not just a value inside the range, and `ForestryWorkCalculator.cs:171` prices with `.Selected`. Second is `2_300L` (`:128`), matching 3D `:34` `(2200, 2300, 2400)`. Later is `2_000L` (`:129`), matching 3D `:35` `(2000, 2000, 2000)`. Both are unchanged in the diff. |
+| **R2. No invented tier** | **PASS** | The only `€19` hit at `e97b3780` is the spec §7 note quoting the owner parenthetical and saying it was not adopted (the handoff §7/§8 has the same note). There is no `1_900`/`1900L` in any Lab `src`/`tests` file or the 3D `WorkEconomy/`, and no €19 in any pricing table (spec §2, checklist P2B-08, handoff tables). |
+| **R3. Note is now true** | **PASS** | Clause by clause, quoting spec `:88` / handoff §7 below. |
+| **R4. No silent history rewrite (C7)** | **PASS** | Handoff `:26` strikes ~~`SetHarvestStageOverride`~~ and marks it **[SUPERSEDED / REMOVED by C5 delta]**. `:107`/`:109` strike ~~€15–€23/t~~ and ~~€20/€23/€20/€15/t~~ with SUPERSEDED markers and state the current `€21/€23/€20/t`. `:118` keeps the original item 3 struck through, followed by **[SUPERSEDED / REMOVED by C5 & C6]** and the current rule. `:135` strikes the old €20 rationale and marks it [SUPERSEDED by C6]. plan.md `:15`, `:27`, `:32` and tasks.md `:8-9` carry the same markers. Nothing was deleted, and nothing presents the override or Clearfell-€15/t as current. |
+| **R5. Evidence currency** | **PASS** | Handoff `:38`, `:51`, `:65`, `:93`, plan `:27`/`:32` and tasks `:8-9` all show "8-case"/`290` struck through as SUPERSEDED, with current **9 cases** and **`291/291`**. §8 adds a C6 evidence table that matches my own runs. No unmarked "8-case" or `290` remains. |
+| **R6. Floor assertion, no new case** | **PASS** | The assertions are inside the existing Test 9 (`Phase2BEconomyTests.cs:410`). For each of the 3 executed plans they check `settlement.HarvestJob.TotalHarvestContractorCostCents >= MinimumHarvestJobCents` and `settlement.TotalExternalCostCents >= MinimumHarvestJobCents`. A post-loop check asserts `ExecutedHarvestPlansCount == 3` and that every `HarvestJob`-bearing settlement is ≥ €2,500. `T.Add("economy: …")` count = **9**, and the run shows `PASS economy:` = 9. |
+| **R7. No regression** | **PASS** | The repair changes only two `src` lines: one constant and one evidence string (`git diff dcba31ca e97b3780 --stat -- Tools/MultiRackSitkaP1Lab/src` = `EconomyModels.cs` 2+/2−). `Clearfell`/`HarvestStageOverride` = 0 across Lab non-Markdown files. `AutoHarvestStage` (`EconomyModels.cs:151-156`) is unchanged, so stage is still derived from history only. Test 9's enum/reflection guards are unchanged, and the per-plan floor is still asserted in Test 7. Upfront cash, contractor-only Fell, 40 h, D-062, the 890 proxy, Off-inertness, save refusal, root append-last and pipeline order are in files the repair does not touch. Their covering Tests 1–6 and 8 pass, and Save is 50/50. |
+| **R8. Change confinement** | **PASS** | The 7 changed files are the handoff, `EconomyModels.cs`, `Phase2BEconomyTests.cs`, and spec/plan/tasks/checklist, all within the C6/C7 permit. There is no ecological or arithmetic change and no other rate constant changed (`MinimumHarvestJobCents`, the second/later rates and the material/labour constants are untouched). The test-case count stays at 9. `Assets/` is untouched. |
+
+### R3: clause-by-clause judgement
+
+Quoted from spec §7 `:88` (handoff §7 `:164-171` is equivalent):
+
+- (a) *"**First thinning = €21/t** (`2,100` cents/t; 3D selected reference within the €20–22 range)"*. **True.** It matches `Stage1EconomyDefaults.cs:33`/`:187`.
+- (b) *"**€19/t appears in no source** and was not adopted."* **True** per the R2 grep.
+- (c) *"Prior Phase 2B-1 revisions (commits `204fcdeb` and `dcba31ca`) used €20/t (the low bound of the €20–22 first-thinning range) and **incorrectly** described `€20/€23/€20` as the "3D-aligned" tiers; this C6 repair corrects both the value and the wording."* **True and explicit.** It names the commits, the value and the incorrect wording.
+- (d) *"Provenance note: these are calibration tiers derived from a single published IFA combined harvest+forward range, not an empirical national tariff."* **Does not overstate.** It is if anything more conservative than the 3D source, which tags `SelectedEvidence` as `Empirical` (`:160`). Making a conservative relabel is acceptable.
+- The note no longer contains the false "3D-aligned €20" claim.
+
+### Non-blocking observations (no action required for integration)
+
+- **N-1:** Handoff §8 cites `Stage1EconomyDefaults.cs:33` as the place where "`Parameter(...)` sets `Selected = reference`". The `Harvest` row is `:33`, but the `Selected = reference` assignment is at `:187`. This is a cosmetic citation slip and the substance is correct.
+- **N-2:** The handoff EMPIRICAL row (`:107`) now calls €20–€24/t "the single published IFA combined harvesting+forwarding range". That is the union of the three tier ranges in the 3D source. The wording is acceptable, but a reader should not take it to mean a single IFA quote of €20–24.
+- **N-3 (carried, unchanged):** the D7 notes from the C5 re-review (reflection scope excludes `MultiAreaRoot`/`MultiAreaModelSelection`/`MultiAreaWorkPlanAdapter`, and there is no assertion that the count does not advance on cancel, replay or a non-fell plan) remain optional hardening. The repair corrected the "uses verified 3D rate" message (D7 note ii), which is now true for plan 1.
+
+## Condition status
+
+- **C6: CLOSED.** `FirstThinning = 2_100L` equals the 3D selected value. Dependent tests and strings were updated, and Core 291/291 and Save 50/50 reproduced independently. The mutation proves the rate is pinned by the tests, and the rate note is now accurate.
+- **C7: CLOSED.** The `:26`, `:108`, `:117` region lines (now `:26`, `:107`, `:109`, `:118`) and the 8-case/`290` lines are marked SUPERSEDED without deleting history, and 291/291 delta evidence is present (§8).
+- **C1: OPEN, integrator duty, unchanged.** Canonical gate stages must still be run on the integration tree.
+- **C2: OPEN, integrator duty, unchanged.** The integrator owns the shared-file hunks, including the `Commands.Plan.cs` removal hunks from C5.
+
+## INTEGRATION DECISION (C6 repair re-review)
+
+**`INTEGRATION DECISION: APPROVED WITH CONDITIONS — C1, C2 (integrator duties; no remaining implementer-side blocking condition)`**
+
+This is an independent review opinion and **not a merge authorisation**. Integration remains the integrator's and owner's decision, subject to C1 and C2.
+
+## LIMITS (C6 repair re-review)
+
+- **The canonical `build/2d-gate.sh` was not run.** G0–G7 and browser tier B are **NOT TESTED** (still blocked by the missing Linux `node` on the WSL PATH, per the handoff). IP-1 from earlier sections still applies.
+- **NOT TESTED:** UI smoke, `cli-safety.sh`, `build-output-safety.sh`, `p0-isolation.sh`, G5 payload budgets, and any HTTP/UI/runtime/browser execution.
+- I ran only Core and Save outside the gate, plus one mutation, in a scratch clone outside the repo that was removed afterwards. **Anchors #1–#6 and #8 were not recomputed.** Only #7 and #9 were checked, by hash count in Core stdout.
+- No Unity Editor, Blender or rendered verification. None applies, and `Assets/` is untouched.
+- I made no ecological or market judgement on whether €21/t is the "right" first-thinning rate. I only checked it against the in-repo 3D source's selected value.
+- No merge, rebase, cherry-pick or force push. No implementation, spec, test or handoff file was edited. This review file is the only file written to the review branch.
