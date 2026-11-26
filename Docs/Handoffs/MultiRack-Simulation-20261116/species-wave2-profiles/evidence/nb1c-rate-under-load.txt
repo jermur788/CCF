@@ -1,0 +1,15 @@
+Phase1Save.Tests direct runs at HEAD 8490c218 (no gate, same build output), 2026-11-26 18:26 local, 6 cores, load average ~6 (other lanes active)
+run 1: 50/50 passed, 0 failed
+run 2: 49/50 passed, 1 failed :: FAIL NB1c
+run 3: 50/50 passed, 0 failed
+run 4: 50/50 passed, 0 failed
+run 5: 50/50 passed, 0 failed
+run 6: 50/50 passed, 0 failed
+run 7: 50/50 passed, 0 failed
+run 8: 50/50 passed, 0 failed
+run 9: 49/50 passed, 1 failed :: FAIL NB1c
+run 10: 49/50 passed, 1 failed :: FAIL NB1c
+run 11: 50/50 passed, 0 failed
+run 12: 49/50 passed, 1 failed :: FAIL NB1c
+NB1c failures: 4/12. Every failure was NB1c with "expected 1, got 3"; no other Save case failed.
+Base 6d72c305 NOT measured in this session (would need a second build outside the lane fence).

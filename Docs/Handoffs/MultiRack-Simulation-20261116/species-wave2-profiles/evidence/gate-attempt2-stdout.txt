@@ -1,0 +1,39 @@
+GATE G0 PASS
+Running G1-G2 inside isolated Linux network namespace (unshare -rn)...
+G1: validated P0 seed: SEED_VALID sha256=9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3
+GATE G1 PASS (P0 REFERENCE: PRE-SEEDED VERIFIED 9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3)
+GATE G1 PASS
+G2: running Core.Tests...
+G2: Core.Tests PASS (300/300 passed, 0 failed)
+G2: running Phase1.Save.Tests...
+G2: Phase1.Save.Tests PASS (50/50 passed, 0 failed)
+G2: running tests/ui-smoke-multiarea.sh...
+G2: ui-smoke-multiarea.sh PASS (363 passed, 0 failed)
+G2: running tests/ui-smoke.sh...
+G2: ui-smoke.sh PASS-BASELINE-DRIFT (250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS)
+G2: running tests/cli-safety.sh...
+G2: cli-safety.sh PASS (23 passed, 0 failed)
+G2: running tests/build-output-safety.sh...
+G2: build-output-safety.sh PASS (C1-C6+P0 PASS; HOST-NA: C7-cold-build,C8-rebuild; .p0ref restored & re-verified)
+G2: running tests/p0-isolation.sh...
+G2: p0-isolation.sh PASS (decoy=13/13, protected hits=0, unresolved=0)
+G2: running S0a /multi asset identity sub-check...
+G2: S0c asset identity PASS (multi.css == T0 R_css; multi.html exact 1-line module delta; 14 live ES modules verified; legacy multi.js 404)
+G2: running S0c module-graph.mjs...
+G2: MODULE-GRAPH PASS: 14 modules, acyclic, all reachable from main.js, 1 module script tag; topo=[store.js, dom.js, api.js, dialogs/execute-confirm.js, panels/fell-draft.js, panels/inspector.js, map/contract.js, map/renderer-svg.js, panels/work-plan.js, commands.js, dialogs/saves.js, modes/interactive.js, panels/time-history.js, main.js]
+G2: running S0c js-reconstruct.mjs...
+G2: JS-RECONSTRUCT PASS: byte-identical to 5648813d9ccbe8d38e9fbe5df38d62c810af4a22:Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js (247066 B, 4617 lines, sha256=fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520, P4=49 sites across 19 hooks, P5=8 sites)
+GATE G2 PASS
+NETWORK ISOLATION: PROVEN
+G3: 9/9 frozen SHA-256 anchors verified
+GATE G3 PASS
+G4: v2 golden verified (bytes=24703, fileSha=c0ea8a460d9e..., checksum=9629ac1648fa..., SchemaVersion=2, src/Core/Phase1 unchanged)
+GATE G4 PASS
+G5: payload budget checks verified (5/5 PASS: M11, W137, W149, W258, M13)
+GATE G5 PASS
+G6: Core determinism gate PASS (77 files scanned; F1=0, F2_allowed=4, F2_unlisted=0, RNG_patterns=9, RNG_violations=0)
+GATE G6 PASS
+G7: protected-path guard PASS (99 paths checked; wwwroot tree=dabdbd7fa07c...; P0 tree=f212c8f64fb2...)
+GATE G7 PASS
+GATE B NOT RUN
+VERDICT: PARTIAL (exit=5; --headless-only browser tier skipped)
