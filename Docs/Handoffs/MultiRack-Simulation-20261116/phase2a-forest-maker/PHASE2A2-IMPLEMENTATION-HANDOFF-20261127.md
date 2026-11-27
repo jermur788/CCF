@@ -245,6 +245,52 @@ Recipe: `widthM=120, lengthM=120, laneCount=5, startAgeYears=20, stemsPerHa=2000
 
 ### 8.5 Still open / not verified in this repair lane
 
-1. **Near-cap 5-lane 2/3-lane 512 KiB overflow** (§8.3 above): a 2,880-stem 5-lane stand fits `/view` (2.5 MiB) and 1-lane (512 KiB) at Y0/Y15, but 2-lane and 3-lane `/stand?lanes=` reads exceed 512 KiB and return 503. Left unraised per spec §8 for owner/coordinator decision.
+1. **Near-cap 5-lane 2/3-lane 512 KiB overflow** (§8.3 above): resolved in follow-up §8.6 below (`6bd2e675`).
 2. **Deferred items outside this bounded repair lane:** full `build/2d-gate.sh --browser`, `build/2d-gate/selftest.sh` + G4 mutation cases (Review Condition 4), and Manager decision-log entry for the C-V3 vs spec §6.2 reconciliation (Review Condition 5) were not run or edited in this lane.
 3. **Not re-run:** legacy `ui-smoke.sh`, `ui-smoke-multiarea.sh`, `cli-safety.sh`, `build-output-safety.sh`, `p0-isolation.sh`, and Unity/Windows/3D checks were outside the proportionate repair verification scope.
+
+### 8.6 Follow-up: align lane-filtered budget with scaled stand budget for `>=3`-area stands (2026-11-27)
+
+- **Verified code head:** `6bd2e675e12ff1576810ccc50a5e6d9e1d3c7558` (on `fix/multi-2d-phase2a2-review-conditions-20261127-v1`)
+- **Evidence root (outside the repo):** `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/repair2`
+
+#### Corrected budget rule (no ceiling raised)
+
+- `MultiViewBudget.ForLaneFiltered(requestedLaneCount, totalAreaCount, genesisStems, testMaxViewBytesOverride)` now delegates directly to `MultiViewBudget.ForStand(totalAreaCount, genesisStems, testMaxViewBytesOverride)`.
+- **No ceiling was raised and no new constants were added:**
+  - Two-area stands (`MA-1`, `MA-1-MIXED`, `totalAreaCount <= 2`) remain **byte-for-byte unchanged** at the frozen **512 KiB / 150 KiB** caps (`524,288 B` / `153,600 B`).
+  - For `>=3`-area stands, the existing spec §8 scaled formula (`min(2,621,440, 524,288 × ceil(genesisStems / 300))`, hard ceiling **2.5 MiB / 2,621,440 B**) is the single governing limit for both whole-stand `/view` and lane-filtered `/api/multi/stand?lanes=...` reads. A per-lane read can no longer be stricter than the whole-stand read it replaces.
+  - The 0.64 ha presets still stay under **512 KiB** on 3-lane reads (**490,909 B** GET / **495,026 B** POST / **495,027 B** player-path max) and the Edge suite keeps the unchanged `< 524,288 B` assertion on the preset.
+  - `CCF_TEST_MAX_VIEW_BYTES` continues to clamp strictly downward (`min(computed, override)`), verified on both whole-view routes and `GET api/multi/stand?lanes=MA-B,MA-C,MA-D` (`bytes=495026, budget=400000` -> HTTP 503).
+
+#### Corrected near-cap custom woodland measurement (`120 × 120 m`, `2,000 stems/ha` = `2,880` living stems, 5 lanes, Pure Sitka)
+
+Evidence: `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/repair2/nearcap-report.json`. Active scaled budget for 5 areas / 2,880 stems: `2,621,440 B` (2.5 MiB).
+
+| Route | Active budget | Year 0 (2,880 living) | Year 15 (2,710 living) | Fits budget? |
+|---|---|---|---|---|
+| `GET api/multi/stand` (overview) | 2,621,440 B | **149,563 B** (HTTP **200**; fetch 21.7 ms, parse 0.6 ms) | **186,727 B** (HTTP **200**; fetch 7.2 ms, parse 0.8 ms) | **Yes** |
+| `GET api/multi/stand?lanes=MA-A` (1 lane) | 2,621,440 B | **356,864 B** (HTTP **200**; fetch 44.7 ms, parse 1.5 ms) | **410,031 B** (HTTP **200**; fetch 12.9 ms, parse 1.2 ms) | **Yes** |
+| `GET api/multi/stand?lanes=MA-A,MA-B` (2 lanes) | 2,621,440 B | **702,933 B** (HTTP **200**; fetch 26.0 ms, parse 2.1 ms) | **761,309 B** (HTTP **200**; fetch 14.1 ms, parse 2.5 ms) | **Yes** (1,860–1,919 KB headroom) |
+| `GET api/multi/stand?lanes=MA-B,MA-C,MA-D` (3 lanes) | 2,621,440 B | **1,049,710 B** (HTTP **200**; fetch 43.9 ms, parse 3.7 ms) | **1,113,193 B** (HTTP **200**; fetch 27.0 ms, parse 3.8 ms) | **Yes** (1,508–1,572 KB headroom) |
+| `GET api/multi/view` (whole woodland, Tier-2 compacted) | 2,621,440 B | **2,352,243 B** (HTTP **200**; fetch 153.4 ms, parse 7.9 ms) | **2,426,490 B** (HTTP **200**; fetch 109.5 ms, parse 10.0 ms) | **Yes** (269.2 KB Y0 / 195.0 KB Y15 headroom) |
+
+*(Note: Y15 2-lane and 3-lane payloads are `761,309 B` and `1,113,193 B` vs the earlier truncated overflow probes `719,548 B` and `1,071,432 B` because they now fit within 2.5 MiB on the first pass with full untruncated `Events`/`AnnualHistory`.)*
+
+- **Live `/multi` browser render (no overflow banner):**
+  - Year 0: outer 2-lane page load (`MA-A,MA-B`, 1,152 crowns) **523 ms** (`alertShown=false`); interior 3-lane mini-map switch (`MA-B,MA-C,MA-D`, 1,728 crowns) **721 ms** (`alertShown=false`).
+  - Year 15: outer 2-lane page load (`MA-A,MA-B`, 1,152 crowns) **441 ms** (`alertShown=false`); interior 3-lane mini-map switch (`MA-B,MA-C,MA-D`, 1,728 crowns) **709 ms** (`alertShown=false`).
+- **SVG DOM build & 2×rAF first-paint benchmarks (headless Edge 1920×1080):**
+  - Year 0: 1-lane (576 trees) DOM 3.4 ms / first paint **114.0 ms**; 2-lane (1,152 trees) DOM 7.2 ms / first paint **463.1 ms**; 3-lane (1,728 trees) DOM 7.9 ms / first paint **702.3 ms**.
+  - Year 15: 1-lane (576 trees) DOM 2.9 ms / first paint **112.8 ms**; 2-lane (1,152 trees) DOM 5.3 ms / first paint **392.2 ms**; 3-lane (1,728 trees) DOM 8.6 ms / first paint **799.2 ms**.
+- **Advance timing (2,880 stems):** three 5-year skips to Year 15 took `5,793 ms`, `5,607 ms`, and `5,426 ms` (HTTP 200).
+
+#### Verification run on follow-up code head (`6bd2e675`)
+
+- Clean builds (`.sln`, `SitkaP1.Ui.csproj`, `Phase1Save.Tests.csproj`): **0 warnings / 0 errors** (`repair2/build-*.log`).
+- `Core.Tests`: **312/312 passed, 0 failed** (`repair2/core-tests.log`; 9/9 frozen anchors + 10–11 preset anchors).
+- `Phase1.Save.Tests`: **50/50 passed, 0 failed** (`repair2/save-tests.log`; v2 golden 24,703 B unchanged).
+- Module graph (`module-graph.mjs`): **PASS** (16 modules, acyclic).
+- Edge E2E — 1920×1080 (`repair2/edge-1920/run.log`): **PASS (60 passed, 0 failed)** — includes unchanged preset `< 524,288 B` assertions (`490,909 B` GET / `495,026 B` POST / `495,027 B` player max), forced-503 on 3-lane read under `CCF_TEST_MAX_VIEW_BYTES=400000`, and live near-cap 2-lane/3-lane render without overflow banner.
+- Edge E2E — 1280×720 (`repair2/edge-1280/run.log`): **PASS (60 passed, 0 failed)** — identical coverage at 1280×720.
+- Forbidden paths diff: empty; `.p0ref/SitkaLab.Core.dll` SHA-256 unchanged (`9a99f781…34b3`); zero leftover `sitkap1-ui` or Edge processes; protected listeners untouched.
