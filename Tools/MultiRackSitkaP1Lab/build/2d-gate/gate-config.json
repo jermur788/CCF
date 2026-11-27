@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "saveV3": {
+    "enabled": true,
+    "authority": "Phase 2A-2 approved spec §6 / S0b frozen-contracts-s0b.md §4 item 4 (mirroring S0c lock retirement precedent 6a4a1a5a)",
+    "allowedCodecDir": "src/Core/Saves/",
+    "registryFile": "src/Core/Saves/FeatureBlockRegistry.cs",
+    "formatFile": "src/Core/Saves/SaveV3Format.cs",
+    "requiredCodecs": [
+      {
+        "blockKey": "genesisRecipe",
+        "keyConstant": "GenesisRecipeBlockKey",
+        "minBlockVersion": 1
+      }
+    ],
+    "reservedOnlyBlockKeys": [
+      {
+        "blockKey": "economy",
+        "keyConstant": "EconomyBlockKey"
+      }
+    ]
+  }
+}
