@@ -10,6 +10,7 @@ namespace SitkaP1.Core.NaturalProcesses;
 ///
 /// No microsite bias, no browse immunity, no instant seedlings: every delivered acorn is a candidate for the caller's
 /// ordinary establishment rules. When OFF, or in a non-mast year, the engine makes zero draws and returns empty results.
+/// On-map candidate IDs and source tree IDs must not start with "NEARBY-OAK-WOODLAND-" (reserved for external acorns).
 /// </summary>
 public static class JayAcornDispersal
 {
@@ -120,6 +121,11 @@ public static class JayAcornDispersal
             if (!string.Equals(c.SpeciesId, OakSpeciesId, StringComparison.Ordinal))
                 return new(NaturalProcessRefusalCode.NonOakSeedCandidate,
                     string.Create(CultureInfo.InvariantCulture, $"candidate {c.CandidateId} is {c.SpeciesId}, not {OakSpeciesId}"));
+            // The Nearby Oak Woodland namespace is reserved for external candidates. Refusing it here keeps on-map and
+            // external candidate IDs and JAY-ACORN transport keys disjoint (an on-map key is built from SourceTreeId).
+            if (NearbyOakWoodland.UsesReservedNamespace(c.CandidateId) || NearbyOakWoodland.UsesReservedNamespace(c.SourceTreeId))
+                return new(NaturalProcessRefusalCode.ReservedCandidateNamespace,
+                    NaturalProcessText.RefusalReservedCandidateNamespace + ": " + c.CandidateId);
             if (!seen.Add(c.CandidateId))
                 return new(NaturalProcessRefusalCode.DuplicateCandidateId, "duplicate candidate ID " + c.CandidateId);
         }

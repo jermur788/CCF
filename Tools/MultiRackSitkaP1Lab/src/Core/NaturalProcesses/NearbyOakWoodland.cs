@@ -16,6 +16,13 @@ internal static class NearbyOakWoodland
     /// <summary>Authored offset of the virtual source line outside the edge (metres). Presentation geometry, not ecology.</summary>
     public const double SourceLineOffsetM = 1.0;
 
+    /// <summary>
+    /// True when an ID starts with the reserved Nearby Oak Woodland prefix. External candidate IDs and transport keys
+    /// always start with it, so refusing on-map IDs that do keeps the two origins collision-free.
+    /// </summary>
+    public static bool UsesReservedNamespace(string id) =>
+        id.StartsWith(NaturalProcessStreams.NearbySourcePrefix, StringComparison.Ordinal);
+
     public static string SourceKey(OuterEdge edge) =>
         NaturalProcessStreams.NearbySourcePrefix + edge.ToString();
 

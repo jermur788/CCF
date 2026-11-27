@@ -11,6 +11,15 @@ public static class SalvageAccounting
 {
     public const decimal PriceMultiplier = 1.00m;
 
+    /// <summary>
+    /// Largest accepted unit price or contractor minimum. With volumes capped at 1,000 m³ per order, one line is at most
+    /// 1e12 and even int.MaxValue orders total under 2.2e21, far below decimal's 7.9e28, so revenue can never overflow.
+    /// A representability bound only, not a price calibration.
+    /// </summary>
+    public const decimal MaxMoneyAmount = 1_000_000_000m;
+
+    public const double MaxRecoverableVolumeM3 = 1_000.0;
+
     public static SalvageResult Apply(SalvageRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -57,19 +66,24 @@ public static class SalvageAccounting
     }
 
     /// <summary>
-    /// Adds new windthrow deadwood to an existing stock. Refuses an ID already present or already extracted, so a salvaged
-    /// stem can never reappear as deadwood and no victim is counted twice.
+    /// Adds new windthrow deadwood to an existing stock. Refuses an ID already present or already extracted (in the existing
+    /// stock or in the additions), so a salvaged stem can never reappear as deadwood and no victim is counted twice.
+    /// A refusal returns the existing stock unchanged.
     /// </summary>
     public static DeadwoodMergeResult MergeWindthrowDeadwood(
         IReadOnlyList<FallenDeadwoodRecord> existing,
         IReadOnlyList<string> extractedDeadwoodIds,
         IReadOnlyList<FallenDeadwoodRecord> added)
     {
+        var extracted = new HashSet<string>(extractedDeadwoodIds ?? Array.Empty<string>(), StringComparer.Ordinal);
         var present = new HashSet<string>(StringComparer.Ordinal);
         foreach (FallenDeadwoodRecord d in existing ?? Array.Empty<FallenDeadwoodRecord>())
+        {
+            if (extracted.Contains(d.DeadwoodId))
+                return MergeRefused(existing, NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, d.DeadwoodId);
             if (!present.Add(d.DeadwoodId))
                 return MergeRefused(existing, NaturalProcessRefusalCode.DuplicateDeadwoodId, d.DeadwoodId);
-        var extracted = new HashSet<string>(extractedDeadwoodIds ?? Array.Empty<string>(), StringComparer.Ordinal);
+        }
         foreach (FallenDeadwoodRecord d in added ?? Array.Empty<FallenDeadwoodRecord>())
         {
             if (extracted.Contains(d.DeadwoodId))
@@ -85,8 +99,9 @@ public static class SalvageAccounting
     private static NaturalProcessRefusal? Validate(
         IReadOnlyList<FallenDeadwoodRecord> deadwood, HashSet<string> extracted, IReadOnlyList<SalvageOrder> orders, SalvagePricing? pricing)
     {
-        if (pricing is null || pricing.UnitSaleValuePerM3 < 0m || pricing.ContractorMinimum < 0m)
-            return new(NaturalProcessRefusalCode.InvalidSalvagePricing, "pricing must be supplied and non-negative");
+        if (pricing is null || pricing.UnitSaleValuePerM3 < 0m || pricing.ContractorMinimum < 0m ||
+            pricing.UnitSaleValuePerM3 > MaxMoneyAmount || pricing.ContractorMinimum > MaxMoneyAmount)
+            return new(NaturalProcessRefusalCode.InvalidSalvagePricing, NaturalProcessText.RefusalPricingOutOfRange);
 
         var byId = new Dictionary<string, FallenDeadwoodRecord>(StringComparer.Ordinal);
         foreach (FallenDeadwoodRecord d in deadwood)
@@ -117,7 +132,7 @@ public static class SalvageAccounting
                 return new(NaturalProcessRefusalCode.SalvageTargetNotWindthrow, "salvage is only for windthrow deadwood: " + o.DeadwoodId);
             if (string.IsNullOrWhiteSpace(o.ApprovedWorkPlanId))
                 return new(NaturalProcessRefusalCode.SalvageRequiresApprovedWorkPlan, NaturalProcessText.RefusalNeedsWorkPlan);
-            if (!double.IsFinite(o.RecoverableVolumeM3) || o.RecoverableVolumeM3 <= 0.0 || o.RecoverableVolumeM3 > 1_000.0)
+            if (!double.IsFinite(o.RecoverableVolumeM3) || o.RecoverableVolumeM3 <= 0.0 || o.RecoverableVolumeM3 > MaxRecoverableVolumeM3)
                 return new(NaturalProcessRefusalCode.InvalidSalvageVolume, "recoverable volume must be finite and positive: " + o.DeadwoodId);
         }
         return null;

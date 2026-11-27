@@ -49,9 +49,9 @@ public static class StormAdapter
 
     /// <summary>Qualitative bands for the given trees, sorted by ID. Makes no draws; never exposes the index or p.</summary>
     public static IReadOnlyList<TreeExposureFeedback> ExposureBands(IEnumerable<StormTreeInput> trees) =>
-        trees.OrderBy(t => t.TreeId, StringComparer.Ordinal)
+        Array.AsReadOnly(trees.OrderBy(t => t.TreeId, StringComparer.Ordinal)
             .Select(t => Feedback(t.TreeId, StormVulnerability.Index(t)))
-            .ToArray();
+            .ToArray());
 
     /// <summary>
     /// The UI fall-glyph orientation: equal to the storm's blow-towards bearing. A visual convention for the event

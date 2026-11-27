@@ -112,11 +112,78 @@ internal static class SalvageAccountingTests
                 Apply(new[] { new SalvageOrder("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", double.NaN) }).Refusal?.Code ?? default, "volume");
         });
 
-        TestRunner.Add(Suite, "JW-T47 dated non-causal teaching note covers Darragh, Eowyn and the 2026 windblow market", () =>
+        TestRunner.Add(Suite, "JW-T47 dated non-causal teaching note covers Darragh and Eowyn and makes no unsourced market claim", () =>
         {
             string note = NaturalProcessText.WindblowMarketTeachingNote;
-            foreach (string needle in new[] { "Storm Darragh", "December 2024", "Storm Eowyn", "January 2025", "2026", "not a forecast or causal model", "written November 2026" })
+            foreach (string needle in new[] { "Storm Darragh", "December 2024", "Storm Eowyn", "January 2025", "not a forecast or causal model",
+                         "written November 2026", "does not model", "makes no claim" })
                 TestRunner.True(note.Contains(needle, StringComparison.Ordinal), "note mentions: " + needle);
+            foreach (string banned in new[] { "2026 timber market", "was part of the" })
+                TestRunner.True(!note.Contains(banned, StringComparison.Ordinal), "note must not assert: " + banned);
+        });
+
+        TestRunner.Add(Suite, "JW-T48 merge refuses an extracted ID already in the existing stock, even with a valid new addition", () =>
+        {
+            var d1 = new FallenDeadwoodRecord("D1", "T1", "windthrow", 108, DeadwoodForm.Fallen, 20f, 25f);
+            var d2 = new FallenDeadwoodRecord("D2", "T2", "windthrow", 109, DeadwoodForm.Fallen, 21f, 26f);
+            var r = SalvageAccounting.MergeWindthrowDeadwood(new[] { d1 }, new[] { "D1" }, new[] { d2 });
+            TestRunner.Eq(NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, r.Refusal?.Code ?? default, "code");
+            TestRunner.Eq("D1", string.Join(",", r.Deadwood.Select(d => d.DeadwoodId)), "atomic: existing stock returned unchanged, D2 not added");
+            var ok = SalvageAccounting.MergeWindthrowDeadwood(Array.Empty<FallenDeadwoodRecord>(), new[] { "D1" }, new[] { d2 });
+            TestRunner.True(ok.Refusal is null, "same extracted list with a clean stock merges");
+            TestRunner.Eq("D2", string.Join(",", ok.Deadwood.Select(d => d.DeadwoodId)), "D1 never reappears");
+        });
+
+        TestRunner.Add(Suite, "JW-T49 pricing beyond the representable bound is refused atomically (no decimal overflow)", () =>
+        {
+            var sell = new[] { new SalvageOrder("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", 2.0) };
+            foreach (var pricing in new[]
+            {
+                new SalvagePricing(decimal.MaxValue, 2500m), new SalvagePricing(SalvageAccounting.MaxMoneyAmount + 0.01m, 2500m),
+                new SalvagePricing(42.50m, decimal.MaxValue), new SalvagePricing(-0.01m, 2500m),
+            })
+            {
+                var r = SalvageAccounting.Apply(new SalvageRequest(Stock(), Array.Empty<string>(), sell, pricing));
+                TestRunner.Eq(NaturalProcessRefusalCode.InvalidSalvagePricing, r.Refusal?.Code ?? default, "code for " + pricing);
+                TestRunner.Eq(3, r.RemainingDeadwood.Count, "unchanged stock");
+                TestRunner.Eq(0, r.ExtractedDeadwoodIds.Count + r.Lines.Count, "nothing extracted, no lines");
+                TestRunner.Eq(0m, r.GrossSaleRevenue, "no revenue");
+            }
+            var stock = Enumerable.Range(0, 50).Select(i => new FallenDeadwoodRecord("DW-" + i, "T" + i, "windthrow", 108, DeadwoodForm.Fallen, 20f, 25f)).ToList();
+            var orders = stock.Select(d => new SalvageOrder(d.DeadwoodId, SalvageChoice.SellAndExtract, "WP-1", SalvageAccounting.MaxRecoverableVolumeM3)).ToArray();
+            var max = SalvageAccounting.Apply(new SalvageRequest(stock, Array.Empty<string>(), orders,
+                new SalvagePricing(SalvageAccounting.MaxMoneyAmount, SalvageAccounting.MaxMoneyAmount)));
+            TestRunner.True(max.Refusal is null, "bound itself accepted");
+            TestRunner.Eq(50m * 1_000m * 1_000_000_000m, max.GrossSaleRevenue, "maximal total is exact");
+        });
+
+        TestRunner.Add(Suite, "JW-T50 salvage request/result/merge collections are snapshots: input mutation and output writes change nothing", () =>
+        {
+            var stock = Stock().ToArray();
+            var extracted = new[] { "DW-OTHER" };
+            var orders = new[] { new SalvageOrder("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", 1.0) };
+            var request = new SalvageRequest(stock, extracted, orders, Pricing);
+            stock[0] = stock[2];
+            extracted[0] = "DW-WINDTHROW-108-T0001";
+            orders[0] = new SalvageOrder("DW-WINDTHROW-108-T0002", SalvageChoice.KeepForUse, "WP-9", 5.0);
+            Fixtures.AssertReadOnly(request.Deadwood, "request.Deadwood");
+            Fixtures.AssertReadOnly(request.PreviouslyExtractedDeadwoodIds, "request.PreviouslyExtractedDeadwoodIds");
+            Fixtures.AssertReadOnly(request.Orders, "request.Orders");
+            var r = SalvageAccounting.Apply(request);
+            TestRunner.True(r.Refusal is null, "snapshot request still valid");
+            TestRunner.Eq(42.50m, r.GrossSaleRevenue, "original order applied");
+            TestRunner.Eq("DW-OTHER,DW-WINDTHROW-108-T0001", string.Join(",", r.ExtractedDeadwoodIds), "original extracted list used");
+            Fixtures.AssertReadOnly(r.RemainingDeadwood, "RemainingDeadwood");
+            Fixtures.AssertReadOnly(r.Lines, "Lines");
+            Fixtures.AssertReadOnly(r.ExtractedDeadwoodIds, "ExtractedDeadwoodIds");
+            TestRunner.True(r.ExtractedDeadwoodIds as string[] is null, "extracted IDs cannot be cast to string[]");
+            TestRunner.Eq(2, r.RemainingDeadwood.Count, "remaining unchanged by write attempts");
+
+            var added = new[] { new FallenDeadwoodRecord("DW-NEW", "TN", "windthrow", 110, DeadwoodForm.Fallen, 20f, 25f) };
+            var merged = SalvageAccounting.MergeWindthrowDeadwood(r.RemainingDeadwood, r.ExtractedDeadwoodIds, added);
+            added[0] = added[0] with { DeadwoodId = "DW-MUTATED" };
+            Fixtures.AssertReadOnly(merged.Deadwood, "merge Deadwood");
+            TestRunner.True(merged.Deadwood.Any(d => d.DeadwoodId == "DW-NEW") && merged.Deadwood.All(d => d.DeadwoodId != "DW-MUTATED"), "merge result snapshot");
         });
     }
 }

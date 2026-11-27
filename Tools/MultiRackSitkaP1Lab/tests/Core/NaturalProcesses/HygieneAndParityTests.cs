@@ -48,8 +48,14 @@ internal static class HygieneAndParityTests
             TestRunner.Eq("STORM-SEVERITY-v1", NaturalProcessStreams.StormSeverity, "severity");
             TestRunner.Eq("STORM-DIRECTION-v1", NaturalProcessStreams.StormDirection, "direction");
             TestRunner.Eq("WINDTHROW-v1-", NaturalProcessStreams.WindthrowTreePrefix, "windthrow");
-            // Copied from src/Core/RngSalts.cs at base c82e4e75 (not compiled in: this test exe is standalone).
-            string[] existing = { "ADULT-MORT-", "PHASE2-MAST-", "PHASE2-PJ-", "STAGE5-MAST", "STAGE5-PROMO-" };
+            // All nine RngSalts.Families entries, copied in registry order from src/Core/RngSalts.cs at base c82e4e75
+            // (not compiled in: this test exe is standalone).
+            string[] existing =
+            {
+                "ADULT-MORT-", "ADULT-MORT-GENERIC-", "ADULT-MORT-GENERIC-QUOTA-", "PHASE2-MAST-", "PHASE2-PJ-",
+                "/vegetation", "/browse", "STAGE5-MAST", "STAGE5-PROMO-",
+            };
+            TestRunner.Eq(9, existing.Length, "all nine existing registry entries");
             foreach (string ours in NaturalProcessStreams.All)
             foreach (string theirs in existing)
                 TestRunner.True(!ours.StartsWith(theirs, StringComparison.Ordinal) && !theirs.StartsWith(ours, StringComparison.Ordinal),

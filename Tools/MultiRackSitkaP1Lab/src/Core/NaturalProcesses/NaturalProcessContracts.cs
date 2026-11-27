@@ -30,6 +30,20 @@ public enum NaturalProcessRefusalCode
     InvalidSalvageVolume = 20,
     InvalidSalvagePricing = 21,
     UnknownSalvageChoice = 22,
+    /// <summary>An on-map candidate ID or source tree ID uses the reserved Nearby Oak Woodland namespace.</summary>
+    ReservedCandidateNamespace = 23,
+}
+
+/// <summary>
+/// Defensive snapshots for every collection crossing the contract boundary. The caller's collection is copied into a
+/// private array and exposed only through a read-only wrapper, so mutating the original input, or casting a returned
+/// list and writing to it, can never change a request or a result after construction.
+/// </summary>
+internal static class ContractSnapshot
+{
+    /// <summary>A read-only copy; null stays null so engines can still refuse a missing request list.</summary>
+    public static IReadOnlyList<T> Of<T>(IEnumerable<T>? source) =>
+        source is null ? null! : Array.AsReadOnly(source.ToArray());
 }
 
 /// <summary>A refusal: nothing was changed and no partial result is returned.</summary>
@@ -73,7 +87,11 @@ public sealed record JayDispersalRequest(
     JayAcornDispersalSettings Settings,
     OakMastYearOutcome OakMast,
     WoodlandFootprint Woodland,
-    IReadOnlyList<OnMapOakSeedCandidate> OnMapOakCandidates);
+    IReadOnlyList<OnMapOakSeedCandidate> OnMapOakCandidates)
+{
+    private readonly IReadOnlyList<OnMapOakSeedCandidate> _onMapOakCandidates = ContractSnapshot.Of(OnMapOakCandidates);
+    public IReadOnlyList<OnMapOakSeedCandidate> OnMapOakCandidates { get => _onMapOakCandidates; init => _onMapOakCandidates = ContractSnapshot.Of(value); }
+}
 
 public enum JayCandidateOrigin { OnMapOakTree = 0, NearbyOakWoodland = 1 }
 
@@ -106,6 +124,13 @@ public sealed record JayDispersalResult(
     IReadOnlyList<JayAcornCandidate> Exported,
     int RngDrawCount)
 {
+    private readonly IReadOnlyList<string> _divertedOnMapCandidateIds = ContractSnapshot.Of(DivertedOnMapCandidateIds);
+    private readonly IReadOnlyList<JayAcornCandidate> _delivered = ContractSnapshot.Of(Delivered);
+    private readonly IReadOnlyList<JayAcornCandidate> _exported = ContractSnapshot.Of(Exported);
+    public IReadOnlyList<string> DivertedOnMapCandidateIds { get => _divertedOnMapCandidateIds; init => _divertedOnMapCandidateIds = ContractSnapshot.Of(value); }
+    public IReadOnlyList<JayAcornCandidate> Delivered { get => _delivered; init => _delivered = ContractSnapshot.Of(value); }
+    public IReadOnlyList<JayAcornCandidate> Exported { get => _exported; init => _exported = ContractSnapshot.Of(value); }
+
     /// <summary>Every delivered candidate still faces ordinary establishment rules; jays grant no shortcut.</summary>
     public const bool RequiresOrdinaryEstablishmentEvaluation = true;
     public const double MicrositeBonus = 0.0;
@@ -142,7 +167,11 @@ public sealed record StormRequest(
     int Year,
     int Seed,
     IReadOnlyList<StormTreeInput> Trees,
-    int? LastResolvedStormYear = null);
+    int? LastResolvedStormYear = null)
+{
+    private readonly IReadOnlyList<StormTreeInput> _trees = ContractSnapshot.Of(Trees);
+    public IReadOnlyList<StormTreeInput> Trees { get => _trees; init => _trees = ContractSnapshot.Of(value); }
+}
 
 /// <summary>
 /// The single woodland-wide storm of a year. <see cref="DirectionDegrees"/> is the bearing the storm blows towards
@@ -187,7 +216,13 @@ public sealed record StormResult(
     StormEvent? Event,
     IReadOnlyList<WindthrowVictim> Victims,
     IReadOnlyList<TreeExposureFeedback> Exposure,
-    int RngDrawCount);
+    int RngDrawCount)
+{
+    private readonly IReadOnlyList<WindthrowVictim> _victims = ContractSnapshot.Of(Victims);
+    private readonly IReadOnlyList<TreeExposureFeedback> _exposure = ContractSnapshot.Of(Exposure);
+    public IReadOnlyList<WindthrowVictim> Victims { get => _victims; init => _victims = ContractSnapshot.Of(value); }
+    public IReadOnlyList<TreeExposureFeedback> Exposure { get => _exposure; init => _exposure = ContractSnapshot.Of(value); }
+}
 
 // ---------------------------------------------------------------- Salvage accounting
 
@@ -199,14 +234,25 @@ public enum SalvageChoice { LeaveAsFallenDeadwood = 0, SellAndExtract = 1, KeepF
 /// </summary>
 public sealed record SalvageOrder(string DeadwoodId, SalvageChoice Choice, string? ApprovedWorkPlanId, double RecoverableVolumeM3);
 
-/// <summary>The existing price and contractor minimum, passed through unchanged (multiplier 1.00).</summary>
+/// <summary>
+/// The existing price and contractor minimum, passed through unchanged (multiplier 1.00). Each must be between 0 and
+/// <see cref="SalvageAccounting.MaxMoneyAmount"/>; anything else is refused as InvalidSalvagePricing.
+/// </summary>
 public sealed record SalvagePricing(decimal UnitSaleValuePerM3, decimal ContractorMinimum);
 
 public sealed record SalvageRequest(
     IReadOnlyList<FallenDeadwoodRecord> Deadwood,
     IReadOnlyList<string> PreviouslyExtractedDeadwoodIds,
     IReadOnlyList<SalvageOrder> Orders,
-    SalvagePricing Pricing);
+    SalvagePricing Pricing)
+{
+    private readonly IReadOnlyList<FallenDeadwoodRecord> _deadwood = ContractSnapshot.Of(Deadwood);
+    private readonly IReadOnlyList<string> _previouslyExtracted = ContractSnapshot.Of(PreviouslyExtractedDeadwoodIds);
+    private readonly IReadOnlyList<SalvageOrder> _orders = ContractSnapshot.Of(Orders);
+    public IReadOnlyList<FallenDeadwoodRecord> Deadwood { get => _deadwood; init => _deadwood = ContractSnapshot.Of(value); }
+    public IReadOnlyList<string> PreviouslyExtractedDeadwoodIds { get => _previouslyExtracted; init => _previouslyExtracted = ContractSnapshot.Of(value); }
+    public IReadOnlyList<SalvageOrder> Orders { get => _orders; init => _orders = ContractSnapshot.Of(value); }
+}
 
 public sealed record SalvageLine(
     string DeadwoodId,
@@ -224,6 +270,18 @@ public sealed record SalvageResult(
     double SoldVolumeM3,
     decimal GrossSaleRevenue,
     double RetainedTimberM3,
-    SalvagePricing PricingApplied);
+    SalvagePricing PricingApplied)
+{
+    private readonly IReadOnlyList<FallenDeadwoodRecord> _remaining = ContractSnapshot.Of(RemainingDeadwood);
+    private readonly IReadOnlyList<SalvageLine> _lines = ContractSnapshot.Of(Lines);
+    private readonly IReadOnlyList<string> _extracted = ContractSnapshot.Of(ExtractedDeadwoodIds);
+    public IReadOnlyList<FallenDeadwoodRecord> RemainingDeadwood { get => _remaining; init => _remaining = ContractSnapshot.Of(value); }
+    public IReadOnlyList<SalvageLine> Lines { get => _lines; init => _lines = ContractSnapshot.Of(value); }
+    public IReadOnlyList<string> ExtractedDeadwoodIds { get => _extracted; init => _extracted = ContractSnapshot.Of(value); }
+}
 
-public sealed record DeadwoodMergeResult(NaturalProcessRefusal? Refusal, IReadOnlyList<FallenDeadwoodRecord> Deadwood);
+public sealed record DeadwoodMergeResult(NaturalProcessRefusal? Refusal, IReadOnlyList<FallenDeadwoodRecord> Deadwood)
+{
+    private readonly IReadOnlyList<FallenDeadwoodRecord> _deadwood = ContractSnapshot.Of(Deadwood);
+    public IReadOnlyList<FallenDeadwoodRecord> Deadwood { get => _deadwood; init => _deadwood = ContractSnapshot.Of(value); }
+}

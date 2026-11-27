@@ -8,8 +8,8 @@ Part 1 only. Test names are the exact `TestRunner` names (prefix `JW-Txx`).
 | **JW-REQ-02** | Jay runs only in a caller-supplied existing oak mast year; non-mast years give zero input and zero draws. No second mast schedule. | `JW-T03` |
 | **JW-REQ-03** | Pure Sitka with Nearby OFF produces zero jay input. | `JW-T04` |
 | **JW-REQ-04** | Nearby ON: ≤ 4 external candidates on 0.64 ha, all attributed to NearbyOakWoodland and its edge, no fabricated source tree ID, source line just outside the chosen edge (all four edges). | `JW-T05` (×4), `JW-T14` |
-| **JW-REQ-05** | On-map cap ≤ 6 on 0.64 ha; candidates diverted from the supplied list (never added on top), zero double counting, source tree ID retained, `min(cap, supplied)`; delivered + exported == supplied below cap. | `JW-T06`, `JW-T07`, `JW-T14` |
-| **JW-REQ-06** | Transport `r = 5 + 195u²` (5–200 m), uniform bearing, dedicated keyed stream `(year, source, candidateIndex)`. | `JW-T09`, `JW-T60` |
+| **JW-REQ-05** | On-map cap ≤ 6 on 0.64 ha; candidates diverted from the supplied list (never added on top), zero double counting, source tree ID retained, `min(cap, supplied)`; delivered + exported == supplied below cap. | `JW-T06`, `JW-T07`, `JW-T14`, `JW-T15`, `JW-T16` |
+| **JW-REQ-06** | Transport `r = 5 + 195u²` (5–200 m), uniform bearing, dedicated keyed stream `(year, source, candidateIndex)`; on-map and Nearby transport keys and candidate IDs are disjoint (reserved `NEARBY-OAK-WOODLAND-` namespace). | `JW-T09`, `JW-T15`, `JW-T16`, `JW-T60` |
 | **JW-REQ-07** | Out-of-bounds acorns are exported seed: never redrawn, clamped or retried; stable count across runs. | `JW-T08` |
 | **JW-REQ-08** | No microsite bias, no browse immunity, no instant seedlings; delivered candidates require ordinary evaluation by the caller. | `JW-T12` |
 | **JW-REQ-09** | Deterministic nearest-integer caps (6.4 → 6, 3.84 → 4). | `JW-T11` |
@@ -22,8 +22,10 @@ Part 1 only. Test names are the exact `TestRunner` names (prefix `JW-Txx`).
 | **JW-REQ-16** | Determinism across repeated runs; shuffled input ordering yields the same victim set and jay output. | `JW-T28`, `JW-T29`, `JW-T10`, `JW-T08` |
 | **JW-REQ-17** | No automatic salvage; Sell/Keep need `ApprovedWorkPlanId`. | `JW-T40`, `JW-T41`, `JW-T46` |
 | **JW-REQ-18** | Revenue only for SellAndExtract at unchanged price/contractor minimum; KeepForUse retained timber, no revenue. | `JW-T42`, `JW-T43` |
-| **JW-REQ-19** | No duplicate deadwood after extraction (deadwood-ID guard on orders and merges). | `JW-T44`, `JW-T45` |
-| **JW-REQ-20** | Dated, non-causal teaching note: Darragh (Dec 2024), Éowyn (Jan 2025), 2026 windblow market. | `JW-T47` |
+| **JW-REQ-19** | No duplicate deadwood after extraction (deadwood-ID guard on orders and merges). | `JW-T44`, `JW-T45`, `JW-T48` |
+| **JW-REQ-20** | Dated, non-causal teaching note: Darragh (Dec 2024), Éowyn (Jan 2025); no unsourced market claim (market effects unmodelled and uncited). | `JW-T47` |
 | **JW-REQ-21** | Stream IDs fixed, versioned and prefix-free against existing RngSalts families. | `JW-T62` |
 | **JW-REQ-22** | Static hygiene: no file, network, clock, machine-state or culture-dependent API in `src/Core/NaturalProcesses/**`. | `JW-T63` |
 | **JW-REQ-23** | Standalone test exe (single Compile glob, zero references); 0 warnings / 0 errors on SDK 8.0.133; exit code 0; fence diff within four prefixes. | `JW-T64`, restore/build/run, `git diff --name-only` |
+| **JW-REQ-24** | Contract collections are defensive read-only snapshots (requests, results, footprint vertices, exposure output). | `JW-T17`, `JW-T31`, `JW-T50` |
+| **JW-REQ-25** | Salvage pricing beyond the representable bound is refused atomically; no `decimal` overflow. | `JW-T49` |

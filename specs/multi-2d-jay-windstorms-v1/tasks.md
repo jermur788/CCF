@@ -19,7 +19,7 @@
 | **JW-T08** | Storm adapter (`StormAdapter.cs`) | Model 0 zero draws; one woodland-wide event; u·360 blow-towards (D-050); glyph = direction; two-pass victims; one deadwood + one opening | `DONE` |
 | **JW-T09** | Salvage accounting (`SalvageAccounting.cs`) | Default leave; Work Plan gate; revenue only for Sell; Keep = retained, no revenue; duplicate-deadwood guards | `DONE` |
 | **JW-T10** | Text constants (`NaturalProcessText.cs`) | Qualitative labels; glyph convention; dated non-causal teaching note | `DONE` |
-| **JW-T11** | Standalone offline tests | 41 named tests across jay/storm/salvage/hygiene-parity; non-zero exit on failure | `DONE` |
+| **JW-T11** | Standalone offline tests | 48 named tests across jay/storm/salvage/hygiene-parity (41 at handoff, +7 in Repair 2); non-zero exit on failure | `DONE` |
 | **JW-T12** | Verification gates + fence proof | restore/build/run on 8.0.133: 0 warnings, 0 errors, exit 0; fence diff within four prefixes | `DONE` |
 | **JW-T13** | Handoff + push | `IMPLEMENTATION-HANDOFF-PART1.md`; commit and push `feat/multi-2d-jay-windstorms-engine-v1` only (no review branch) | `DONE` |
 

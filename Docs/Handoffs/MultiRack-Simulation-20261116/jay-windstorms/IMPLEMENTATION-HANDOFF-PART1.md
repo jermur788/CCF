@@ -2,7 +2,15 @@
 
 > **Part 1 only. Not wired. Not merged.** Pure .NET 8 BCL engine and standalone offline tests in
 > `SitkaP1.Core.NaturalProcesses`. Nothing calls this code yet: no `AnnualPipeline`, `MultiAreaContinuation`,
-> `RngSalts`, ForestMaker, Save v3 or `/multi` UI change. No Unity was opened or required. Independent review pending.
+> `RngSalts`, ForestMaker, Save v3 or `/multi` UI change. No Unity was opened or required.
+
+> **Current status (read first).** Lineage: `7b5c2a07` (Part 1) → `cc59918f` (Repair 1, direction) → Repair 2 (this
+> file's commit; independent review R1-01..R1-09). The independent review of `cc59918f` returned NEEDS CHANGES; Repair 2
+> addresses it and needs a delta re-check by a non-Claude reviewer. **Settled owner rulings:** (1) failure transform is
+> **BoundedRational** `p = S·V/(1+S·V)` (frozen D-050), not `1 − exp(−S·V)`; (2) storm direction is **`u · 360`
+> blow-towards** (frozen D-050), glyph = direction; the `225 ± 45°` *from* proposal is rejected. The current test
+> transcript is in **Repair 2** at the end of this file (48/48). Sections 2–4 below are the **parent-only** record for
+> `7b5c2a07` and are superseded where they differ.
 
 - **Branch:** `feat/multi-2d-jay-windstorms-engine-v1` (pushed; no `review/*` branch created)
 - **Base:** `c82e4e759c2ceef1c13ddb6a033e034097aef77e` (`origin/integration/2d-sim`, unchanged after `git fetch origin`)
@@ -33,7 +41,10 @@ Tests (`tests/Core/NaturalProcesses/`): `SitkaP1.NaturalProcesses.Tests.csproj` 
 Spec quartet: `specs/multi-2d-jay-windstorms-v1/{spec.md, plan.md, tasks.md, checklists/requirements.md}`
 (JW-REQ-01..23 mapped to named tests).
 
-## 2. Commands and captured output (from `Tools/MultiRackSitkaP1Lab`, clean `bin/obj`)
+## 2. Commands and captured output — PARENT-ONLY (`7b5c2a07`; superseded by Repair 1 and Repair 2)
+
+> Historical transcript of the original Part 1 commit. Its JW-T25 line ("225 +/- 45 (FROM) … (direction + 180) mod 360")
+> describes the **rejected** direction convention, replaced in Repair 1. Current output: see Repair 2.
 
 ```
 $ dotnet --version
@@ -146,15 +157,15 @@ specs/multi-2d-jay-windstorms-v1/tasks.md
 
 All 23 paths sit under the four allowed prefixes. The coordination anchor `/media/jer/Files/CCF-Primary` was not modified.
 
-## 5. Decisions and flags for the reviewer
+## 5. Decisions (both owner rulings SETTLED)
 
-1. **BoundedRational vs `1 − exp(−S·V)` (flag).** The packet locks "D-050 verbatim … BoundedRational" and also
-   quotes the exponential design form. The frozen integrated code uses BoundedRational `p = SV/(1+SV)` (cap 0.999999).
-   I implemented BoundedRational and proved bit parity (JW-T61). If the owner meant the exponential, that is a new
-   StormModel (D-050 rule: material recalibration → StormModel 2), not a Part 1 edit.
-2. **Direction convention — RESOLVED by owner, see Repair 1.** The frozen Unity code samples 0–360° *towards*; this task locks `225 ± 45°` *from*. The
-   draw and stream ID are the same; with neutral site/edge, direction never affects victims, so victim parity holds.
-3. Engineering choices ENG-01..ENG-14 are listed in `spec.md` §4 (diversion selection, stream keys, 1 m source-line
+1. **BoundedRational — SETTLED (owner ruling).** The failure transform is frozen D-050 BoundedRational
+   `p = SV/(1+SV)` (cap 0.999999), bit parity proven by JW-T61. The packet's exponential `1 − exp(−S·V)` is not
+   implemented; adopting it would need StormModel 2 (D-050 material-recalibration rule), not a Part 1 edit.
+2. **Direction — SETTLED (owner ruling, Repair 1).** `DirectionDegrees = u · 360`, the bearing the storm blows
+   **towards** (frozen D-050), and the fall glyph equals the direction. The `225 ± 45°` *from* proposal is rejected and
+   no longer open. Same draw and stream ID; with neutral site/edge, direction never affects victims.
+3. Engineering choices ENG-01..ENG-17 are listed in `spec.md` §4 (diversion selection, stream keys, 1 m source-line
    offset, default West edge, cap rounding, Nearby-needs-Jay refusal, neutral site/edge refusal, year guard, deadwood IDs).
 
 ## 6. Residual gaps (not done in Part 1)
@@ -168,9 +179,8 @@ All 23 paths sit under the four allowed prefixes. The coordination anchor `/medi
   minimum stay in the existing harvest settlement (SalvageDesign §3); Part 1 only passes the price through unchanged.
 - Jay rates (10/ha, 6/ha), the 5–200 m kernel and the band thresholds are **gameplay calibration [C]**, not measured
   jay caching or Irish storm hazard. No ecological research claim is made.
-- The teaching note's market sentence ("salvage of that windblown timber was part of the 2026 timber market") is
-  general context and has not been source-checked against a cited market report; it should be checked before
-  player-facing use in Part 2.
+- Teaching note: the unsourced 2026 market sentence was **removed in Repair 2** (R1-08). The note keeps the dated
+  Darragh/Eowyn context and states that market effects are unmodelled and uncited.
 - Unity was not run and is not required for this lane. No browser suite or `build/2d-gate.sh` was run (out of scope).
 
 ## Repair 1 — restore frozen D-050 storm direction (2026-11-27)
@@ -207,3 +217,43 @@ TOTAL: 41/41 passed, 0 failed   (exit 0)
 ```
 
 Unity not run.
+
+## Repair 2 — independent review R1-01..R1-09 (2026-11-27)
+
+Parent `cc59918f`; base `c82e4e75` unchanged. Addresses `INDEPENDENT-REVIEW-PART1.md` on
+`review/multi-2d-jay-windstorms-engine-v1` (NEEDS CHANGES, 3 blocking).
+
+| Finding | Resolution |
+|---|---|
+| R1-01 (blocking) | Reserved namespace `NEARBY-OAK-WOODLAND-`: an on-map candidate whose `CandidateId` or `SourceTreeId` starts with it is refused with new append-only code `ReservedCandidateNamespace = 23`, zero draws, whatever the Nearby setting. External IDs and keys always start with the prefix and on-map keys are `JAY-ACORN-v1-<SourceTreeId>-<index>`, so the two origins are disjoint. No key contract changed (JW-T60 unchanged). Tests JW-T15 (review collision case + each ID alone, Nearby ON/OFF), JW-T16 (combined origins, all four edges: unique candidate IDs, unique observed keys, external never matches a supplied/diverted ID). |
+| R1-02 (blocking) | `ContractSnapshot.Of` copies each incoming collection into a private array exposed as `ReadOnlyCollection<T>`, in the constructor **and** `init` accessor (so `with` also snapshots), for `JayDispersalRequest/Result`, `StormRequest/Result`, `SalvageRequest/Result`, `DeadwoodMergeResult`. `WoodlandFootprint.Vertices` is a read-only wrapper over a private copy; `StormAdapter.ExposureBands` returns read-only. Tests JW-T17, JW-T31, JW-T50: input arrays mutated after construction, returned collections cast/written (set/add/clear, array casts), footprint area stays 6,400 m². |
+| R1-03 (blocking) | `MergeWindthrowDeadwood` now checks extracted IDs against the existing stock as well as additions before success; refusal returns the existing stock unchanged. Test JW-T48 (existing [D1], extracted [D1], additions [D2] → `DeadwoodAlreadyExtracted`, stock still [D1]). |
+| R1-04 | `SalvageAccounting.MaxMoneyAmount = 1,000,000,000`; price or contractor minimum above it (or negative) → existing `InvalidSalvagePricing`, atomic. With volume ≤ 1,000 m³/order the total cannot overflow `decimal`. Test JW-T49 (incl. `decimal.MaxValue`, and 50 orders at the bound summing exactly). |
+| R1-05 | Header "Current status" block; §2 transcript labelled parent-only/superseded; §5 records BoundedRational and `u·360` blow-towards as SETTLED owner rulings. |
+| R1-06 | JW-T06 exact set equality/uniqueness and supplied partition; JW-T09 literal key vector checked against the observed draw log (no implementation key helper); JW-T23 observed split-lane counts (403 draws, 200 per lane, 1 in a calm year); JW-T24 earlier-year refusal (`last: 200`, year 108); JW-T27 two frozen victim vectors (years 108/229, 60 trees) computed from the frozen Unity `StormModel.cs`/`SimulationRandom.cs` at `origin/main` in a `/tmp` harness, not runtime helpers; JW-T62 all nine `RngSalts.Families` entries. |
+| R1-07 | Recorded in `spec.md` §5 item 10 (double vs float bearing to be decided at the Part 2 persistence boundary). Direction behaviour unchanged. |
+| R1-08 | Teaching note keeps Darragh (Dec 2024) / Eowyn (Jan 2025); the 2026 market sentence is removed and replaced by "does not model, and this note makes no claim about" market effects. JW-T47 asserts the claim is absent. |
+| R1-09 | `spec.md` §5 items 7–9: discrete candidate derivation and debit (including exported), storm once per year from woodland seed + pre-storm context with persisted year guard, salvage reference from the authoritative approved Work Plan. |
+
+**Mutant checks (temporary copy in `/tmp`, discarded):** reserved-namespace guard disabled → JW-T15 fails; snapshot
+helper aliasing input + raw vertex array → JW-T17/T31/T50 fail; merge without the existing-stock extracted check →
+JW-T48 fails; price bound removed → JW-T49 fails (OverflowException). Clean copy 48/48.
+
+**Verification (SDK 8.0.133, `Tools/MultiRackSitkaP1Lab`, clean `bin/obj`):**
+
+```
+dotnet restore tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj            -> restored
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore   -> 0 Warning(s), 0 Error(s)
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+---
+SUITE hygiene-parity: 5/5 passed, 0 failed
+SUITE jay: 20/20 passed, 0 failed
+SUITE salvage: 11/11 passed, 0 failed
+SUITE storm: 12/12 passed, 0 failed
+TOTAL: 48/48 passed, 0 failed
+exit=0
+```
+
+Two runs gave byte-identical stdout (SHA-256 `21400be17e79268b74e487ee83f20b414b3f539d443203835b5cecd78a912b21`).
+New tests: JW-T15, JW-T16, JW-T17, JW-T31, JW-T48, JW-T49, JW-T50. Strengthened: JW-T06, JW-T09, JW-T23, JW-T24,
+JW-T27, JW-T47, JW-T62. JW-T61 (frozen D-050 parity) unchanged and passing. Unity not run; not wired; not merged.

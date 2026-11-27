@@ -57,11 +57,17 @@ Evidence labels used below: **[D-050]** frozen accepted decision; **[C]** gamepl
 2. `SellAndExtract` and `KeepForUse` only through an approved Work Plan reference (`ApprovedWorkPlanId`).
 3. After extraction, no duplicate deadwood (guard on deadwood ID, both for re-orders and for re-merging deadwood).
 4. Revenue only for `SellAndExtract`. `KeepForUse` yields retained timber and **no revenue**. Prices and contractor minimum unchanged (multiplier 1.00); the contractor minimum is applied by the existing grouped harvest settlement in Part 2.
-5. A dated, explicitly non-causal teaching note constant covers Storm Darragh (December 2024), Storm Éowyn (January 2025, written "Eowyn" in ASCII) and the 2026 windblow market. It is market context, not a forecast or causal model.
+5. A dated, explicitly non-causal teaching note constant covers Storm Darragh (December 2024) and Storm Éowyn (January 2025, written "Eowyn" in ASCII). It makes **no factual claim about the 2026 (or any) timber market**: market effects are stated as unmodelled and uncited context. It is not a forecast or causal model (independent review R1-08).
+6. Sale prices and the contractor minimum must each lie in `[0, 1,000,000,000]` (`SalvageAccounting.MaxMoneyAmount`); otherwise the request is refused atomically with `InvalidSalvagePricing`. With per-order volume ≤ 1,000 m³ this bound makes line and total revenue provably representable in `decimal` (R1-04). It is a representability bound, not a price calibration.
+7. `MergeWindthrowDeadwood` refuses (atomically, returning the existing stock unchanged) when any ID in the existing stock **or** in the additions is already extracted (R1-03).
 
 ### 1.5 Contracts and determinism [OWNER]
 
 Immutable request/result records, enums, stable append-only refusal codes and text constants for Part 2. No wall clock, no machine state, no culture-dependent formatting, no file or network I/O in `src/Core/NaturalProcesses/**`.
+
+**Snapshot rule (R1-02).** Every collection that enters a request or result (including `with` expressions and `init`) is copied into a private array and exposed only as a `ReadOnlyCollection<T>`. `WoodlandFootprint` copies its vertices and exposes them read-only; `StormAdapter.ExposureBands` returns a read-only collection. Mutating a caller's input after construction, or casting a returned collection and writing to it, changes nothing (JW-T17, JW-T31, JW-T50).
+
+**Origin namespaces (R1-01).** The prefix `NEARBY-OAK-WOODLAND-` is reserved for Nearby Oak Woodland candidates. An on-map candidate whose `CandidateId` or `SourceTreeId` starts with it (ordinal) is refused with `ReservedCandidateNamespace` (23) before any draw, whatever the Nearby setting. Because on-map transport keys are `JAY-ACORN-v1-<SourceTreeId>-<index>` and external keys are `JAY-ACORN-v1-NEARBY-OAK-WOODLAND-<Edge>-<index>`, this keeps candidate IDs and transport keys of the two origins disjoint without changing either key contract (JW-T15, JW-T16).
 
 ---
 
@@ -109,6 +115,9 @@ All results report `RngDrawCount`. Every refusal is all-or-nothing: no partial r
 | ENG-12 | Deadwood ID `DW-WINDTHROW-<year>-<TreeId>`; `MergeWindthrowDeadwood` refuses IDs already present or already extracted. | Stable ID guard against duplicates. |
 | ENG-13 | Salvage revenue = `round(volume × unit price × 1.00, 2, away from zero)` in `decimal`; recoverable volume comes from the caller's existing yield calculators. | No new pricing or grading. |
 | ENG-14 | Storm tree inputs are `float`, mirroring the frozen `StormTreeContext`. | Bit parity with D-050. |
+| ENG-15 | Reserved on-map namespace `NEARBY-OAK-WOODLAND-` (refusal 23, zero draws) rather than origin-qualified keys. | Least invasive provably collision-free fix for R1-01; frozen key contracts and JW-T60 vectors unchanged. |
+| ENG-16 | Defensive collection snapshots in every contract record and in `WoodlandFootprint`. | Spec §1.5 immutability (R1-02). |
+| ENG-17 | Money bound `MaxMoneyAmount = 1,000,000,000` on unit price and contractor minimum (existing refusal `InvalidSalvagePricing`). | Removes `decimal` overflow (R1-04) without a new pricing rule. |
 
 ---
 
@@ -122,5 +131,12 @@ Part 2 integrates Part 1 **without rewriting it**: the contracts, stream IDs, fo
 4. **ForestMaker:** world-creation controls for `JayAcornDispersal`, `NearbyOakWoodland` + edge, and StormModel (default 0 / OFF).
 5. **Save v3:** persist world options, storm model, resolved storm events `{year, severityLevel, directionDegrees}`, extracted deadwood IDs; older saves load as OFF / StormModel 0.
 6. **`/multi` UI:** Stable/Watch/Exposed readout, storm event notice with fall glyph (visual convention), jay/nearby explanations, salvage choices, teaching note.
+
+Part 2 requirements recorded from the Part 1 independent review (R1-07, R1-09):
+
+7. **Discrete oak candidates.** The existing 2D oak seed rain sums continuous source potentials per cell and has no per-tree candidates. Part 2 must specify how discrete on-map `OnMapOakSeedCandidate`s (stable `CandidateId`, `SourceTreeId`, position) are derived from mature oaks under the existing maturity and mast rules, and how every diverted candidate — delivered **or exported** — is **debited** from ordinary seed input so jay dispersal never increases total oak seed input. Exported candidates are a loss to the woodland, not a refund to ordinary rain.
+8. **Storm once per year.** Part 2 resolves the storm once per simulated year from the woodland seed and the pre-storm tree context (after approved management, before competition/growth), and persists `LastResolvedStormYear` so the year guard holds across save/load and multi-area continuation (no re-roll on resume).
+9. **Authoritative salvage approval.** `ApprovedWorkPlanId` must come from the authoritative approved Work Plan (looked up and verified as approved and covering that deadwood) before `SalvageAccounting.Apply` is called; Part 1 only checks that a reference is present. Grouped settlement (contractor minimum) is verified in Part 2.
+10. **Bearing precision (R1-07).** `StormAdapter` computes `u · 360.0` in `double`; frozen Unity computes `Roll · 360f` in `float` (observed difference ≤ 1.34e-5°, no effect on victims). Part 2 must choose and record the precision at the persistence boundary; use the frozen float product before widening if bit-identical persisted bearings are required. Current Part 1 direction behaviour is unchanged.
 
 Part 2 needs its own packet, owner lock state and review.

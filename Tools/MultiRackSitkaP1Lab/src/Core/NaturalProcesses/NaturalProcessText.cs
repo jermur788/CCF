@@ -29,14 +29,14 @@ public static class NaturalProcessText
         "A nearby oak woodland lies beyond one edge of this forest. In oak mast years jays may bring a few of its acorns in.";
 
     /// <summary>
-    /// Dated teaching note (written 2026-11-27). Market context only: it is not a forecast, not a price model and not a
-    /// causal explanation of any simulated outcome.
+    /// Dated teaching note (written 2026-11-27). The storm dates are context only. No market claim is made: timber-market
+    /// effects are unmodelled and uncited. Not a forecast, not a price model and not a causal explanation of any outcome.
     /// </summary>
     public const string WindblowMarketTeachingNote =
         "Teaching note (written November 2026; market context, not a forecast or causal model): Storm Darragh " +
         "(December 2024) and Storm Eowyn (January 2025) caused widespread windblow in Irish and British forests. " +
-        "Salvage of that windblown timber was part of the 2026 timber market. In this game, salvage prices and the " +
-        "contractor minimum are not changed by storms; the note explains real-world context only.";
+        "This game does not model, and this note makes no claim about, how that windblown timber affected later timber " +
+        "markets. In this game, salvage prices and the contractor minimum are not changed by storms.";
 
     public const string RefusalInvalidYear = "year must be 1 or later";
     public const string RefusalInvalidWoodland = "woodland boundary needs at least three finite vertices and a positive area";
@@ -48,6 +48,8 @@ public static class NaturalProcessText
     public const string RefusalEdgeNotNeutral = "StormModel 1 requires a neutral or absent external edge (D-050)";
     public const string RefusalNeedsWorkPlan = "salvage by sale or for use needs an approved Work Plan";
     public const string RefusalAlreadyExtracted = "this deadwood has already been extracted";
+    public const string RefusalReservedCandidateNamespace = "on-map oak candidate uses the reserved NEARBY-OAK-WOODLAND- namespace";
+    public const string RefusalPricingOutOfRange = "pricing must be supplied, non-negative and at most 1,000,000,000 per unit";
 
     public static string BandLabel(StormExposureBand band) => band switch
     {

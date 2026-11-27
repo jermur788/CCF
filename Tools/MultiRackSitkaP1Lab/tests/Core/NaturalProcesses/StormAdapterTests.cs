@@ -66,6 +66,26 @@ internal static class StormAdapterTests
             TestRunner.Eq(a.Event, b.Event, "event independent of lanes");
             TestRunner.Eq(a.Event, c.Event, "event independent of trees");
             TestRunner.Eq(string.Join(",", a.Victims.Select(v => v.TreeId)), string.Join(",", b.Victims.Select(v => v.TreeId)), "victims independent of lanes");
+            // Observed draws: one event (occurs + severity + direction) and exactly one roll per tree in each lane.
+            var laneOf = twoLanes.ToDictionary(t => "WINDTHROW-v1-" + t.TreeId, t => t.LaneId, StringComparer.Ordinal);
+            foreach (var (trees, name) in new[] { (twoLanes, "two lanes"), (oneLane, "one lane") })
+            {
+                var log = new List<string>();
+                NaturalProcessRandom.DrawLog = log;
+                try { StormAdapter.Resolve(Model1(108, trees)); }
+                finally { NaturalProcessRandom.DrawLog = null; }
+                TestRunner.Eq(403, log.Count, name + " observed draws in a storm year");
+                TestRunner.Eq("STORM-OCCURS-v1,STORM-SEVERITY-v1,STORM-DIRECTION-v1", string.Join(",", log.Take(3)), name + " single event draws");
+                TestRunner.Eq(0, log.Skip(3).Count(k => k.StartsWith("STORM-", StringComparison.Ordinal)), name + " no per-lane event draws");
+                TestRunner.Eq(200, log.Count(k => laneOf.TryGetValue(k, out var lane) && lane == "LANE-A"), name + " LANE-A tree rolls");
+                TestRunner.Eq(200, log.Count(k => laneOf.TryGetValue(k, out var lane) && lane == "LANE-B"), name + " LANE-B tree rolls");
+                TestRunner.Eq(400, log.Distinct(StringComparer.Ordinal).Count() - 3, name + " one roll per tree");
+            }
+            var calmLog = new List<string>();
+            NaturalProcessRandom.DrawLog = calmLog;
+            try { StormAdapter.Resolve(Model1(107, twoLanes)); }
+            finally { NaturalProcessRandom.DrawLog = null; }
+            TestRunner.Eq("STORM-OCCURS-v1", string.Join(",", calmLog), "calm year: one occurrence draw, no tree rolls in either lane");
             TestRunner.True(a.Victims.Select(v => v.LaneId).Distinct().Count() == 2, "victims reported in both lanes from the single event");
             // The result type carries exactly one nullable event: there is no per-lane event collection.
             TestRunner.True(typeof(StormResult).GetProperties().Count(p => p.PropertyType == typeof(StormEvent)) == 1, "single event slot");
@@ -76,6 +96,10 @@ internal static class StormAdapterTests
             var r = StormAdapter.Resolve(Model1(108, Fixtures.StormTrees(10), last: 108));
             TestRunner.Eq(NaturalProcessRefusalCode.StormYearAlreadyResolved, r.Refusal?.Code ?? NaturalProcessRefusalCode.None, "code");
             TestRunner.Eq(0, r.RngDrawCount, "draws");
+            var earlier = StormAdapter.Resolve(Model1(108, Fixtures.StormTrees(10), last: 200));
+            TestRunner.Eq(NaturalProcessRefusalCode.StormYearAlreadyResolved, earlier.Refusal?.Code ?? NaturalProcessRefusalCode.None, "earlier year code");
+            TestRunner.Eq(0, earlier.RngDrawCount, "earlier year draws");
+            TestRunner.True(earlier.Event is null && earlier.Victims.Count == 0 && earlier.Exposure.Count == 0, "earlier year: no partial result");
             TestRunner.True(StormAdapter.Resolve(Model1(109, Fixtures.StormTrees(10), last: 108)).Refusal is null, "next year allowed");
         });
 
@@ -147,6 +171,33 @@ internal static class StormAdapterTests
             }
             TestRunner.Eq(r.Victims.Count, r.Victims.Select(v => v.Deadwood.DeadwoodId).Distinct().Count(), "one deadwood per victim");
             TestRunner.Eq(1, Enum.GetValues<DeadwoodForm>().Length, "no snag/snapped form exists");
+
+            // Frozen victim vectors computed outside this code base: Assets/ForestPrototype/StormModel.cs +
+            // SimulationRandom.cs at origin/main, ReducedProposal + BoundedRational, key "WINDTHROW-v1-" + id
+            // (ForestEcologyController.Storms.cs), seed 12345, Fixtures.StormTrees(60).
+            var sixty = Fixtures.StormTrees(60);
+            TestRunner.Eq("T0017,T0018,T0022,T0034,T0037,T0038,T0039,T0041,T0042,T0044",
+                string.Join(",", StormAdapter.Resolve(Model1(108, sixty)).Victims.Select(v => v.TreeId)), "frozen victims year 108");
+            TestRunner.Eq("T0017,T0018,T0019,T0020,T0021,T0022,T0034,T0037,T0038,T0039,T0043,T0044,T0045,T0056,T0058",
+                string.Join(",", StormAdapter.Resolve(Model1(229, sixty)).Victims.Select(v => v.TreeId)), "frozen victims year 229");
+        });
+
+        TestRunner.Add(Suite, "JW-T31 storm request/result/exposure collections are snapshots: input mutation and output writes change nothing", () =>
+        {
+            var trees = Fixtures.StormTrees(60).ToArray();
+            var request = Model1(108, trees);
+            string baseline = Fixtures.Describe(StormAdapter.Resolve(request));
+            for (int i = 0; i < trees.Length; i++)
+                trees[i] = new StormTreeInput("X" + i, "LANE-X", "CX", 40f, 10f, 40f, 1f, 2f);
+            Fixtures.AssertReadOnly(request.Trees, "request.Trees");
+            var result = StormAdapter.Resolve(request);
+            TestRunner.Eq(baseline, Fixtures.Describe(result), "request unchanged by input mutation");
+            TestRunner.True(result.Victims.Count > 0, "fixture has victims");
+            Fixtures.AssertReadOnly(result.Victims, "Victims");
+            Fixtures.AssertReadOnly(result.Exposure, "Exposure");
+            var bands = StormAdapter.ExposureBands(Fixtures.StormTrees(5));
+            Fixtures.AssertReadOnly(bands, "ExposureBands output");
+            TestRunner.Eq(baseline, Fixtures.Describe(result), "result unchanged by write attempts");
         });
 
         TestRunner.Add(Suite, "JW-T28 shuffled input ordering yields the same victim set (5 shuffles)", () =>

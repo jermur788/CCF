@@ -92,6 +92,14 @@ internal static class JayDispersalTests
             TestRunner.Eq(6, r.Delivered.Count + r.Exported.Count, "carried == diverted, nothing added on top");
             var byId = supplied.ToDictionary(c => c.CandidateId, StringComparer.Ordinal);
             TestRunner.Eq(6, r.DivertedOnMapCandidateIds.Distinct(StringComparer.Ordinal).Count(), "distinct");
+            var carriedIds = r.Delivered.Concat(r.Exported).Select(c => c.CandidateId).ToArray();
+            TestRunner.Eq(carriedIds.Length, carriedIds.Distinct(StringComparer.Ordinal).Count(), "each carried ID appears exactly once");
+            TestRunner.True(new HashSet<string>(carriedIds, StringComparer.Ordinal).SetEquals(r.DivertedOnMapCandidateIds),
+                "carried ID set == diverted ID set");
+            var ordinaryIds = supplied.Select(c => c.CandidateId).Where(id => !r.DivertedOnMapCandidateIds.Contains(id)).ToArray();
+            TestRunner.True(!ordinaryIds.Intersect(carriedIds, StringComparer.Ordinal).Any(), "ordinary and carried sets are disjoint");
+            TestRunner.True(new HashSet<string>(ordinaryIds.Concat(carriedIds), StringComparer.Ordinal)
+                .SetEquals(supplied.Select(c => c.CandidateId)), "ordinary + carried == supplied exactly");
             foreach (var c in r.Delivered.Concat(r.Exported))
             {
                 TestRunner.True(byId.ContainsKey(c.CandidateId), "taken from the supplied list");
@@ -138,22 +146,29 @@ internal static class JayDispersalTests
             TestRunner.True(totalExported > 40, "corner sources export many acorns");
         });
 
-        TestRunner.Add(Suite, "JW-T09 transport is r = 5 + 195u^2 (5-200 m) with uniform bearing from the keyed stream", () =>
+        TestRunner.Add(Suite, "JW-T09 transport is r = 5 + 195u^2 (5-200 m) with uniform bearing from literal keyed streams", () =>
         {
-            var supplied = Fixtures.OakCandidates(1, 3);
-            var r = JayAcornDispersal.Disperse(Fixtures.JayRequest(Fixtures.JayOn, Fixtures.Mast, supplied, year: 11));
-            foreach (var c in r.Delivered.Concat(r.Exported))
+            var supplied = Fixtures.OakCandidates(1, 3); // OAK-000-C00..C02, below the cap: no selection draws
+            var r = WithDrawLog(() => JayAcornDispersal.Disperse(Fixtures.JayRequest(Fixtures.JayOn, Fixtures.Mast, supplied, year: 11)), out var log);
+            // Literal key vector (spec ENG-03), written out by hand rather than built with the implementation helper.
+            string[] expectedKeys =
             {
-                int index = int.Parse(c.CandidateId[^2..], System.Globalization.CultureInfo.InvariantCulture);
-                string key = JayAcornTransport.StreamKey(c.SourceTreeId!, index);
-                double u = NaturalProcessRandom.RollModel1(key + "/distance", 11, Fixtures.Seed);
-                double v = NaturalProcessRandom.RollModel1(key + "/bearing", 11, Fixtures.Seed);
+                "JAY-ACORN-v1-OAK-000-0/distance", "JAY-ACORN-v1-OAK-000-0/bearing",
+                "JAY-ACORN-v1-OAK-000-1/distance", "JAY-ACORN-v1-OAK-000-1/bearing",
+                "JAY-ACORN-v1-OAK-000-2/distance", "JAY-ACORN-v1-OAK-000-2/bearing",
+            };
+            TestRunner.Eq(string.Join(",", expectedKeys), string.Join(",", log), "observed key vector");
+            var byId = r.Delivered.Concat(r.Exported).ToDictionary(c => c.CandidateId, StringComparer.Ordinal);
+            for (int i = 0; i < 3; i++)
+            {
+                var c = byId["OAK-000-C0" + i];
+                double u = NaturalProcessRandom.RollModel1(expectedKeys[2 * i], 11, Fixtures.Seed);
+                double v = NaturalProcessRandom.RollModel1(expectedKeys[2 * i + 1], 11, Fixtures.Seed);
                 TestRunner.Eq(5.0 + 195.0 * u * u, c.DistanceM, "distance formula");
                 TestRunner.Eq(2.0 * Math.PI * v, c.BearingRadians, "bearing formula");
                 TestRunner.True(c.DistanceM >= 5.0 && c.DistanceM <= 200.0, "range");
                 TestRunner.True(c.BearingRadians >= 0 && c.BearingRadians < 2 * Math.PI, "bearing range");
             }
-            TestRunner.True(JayAcornTransport.StreamKey("OAK-1", 2).StartsWith("JAY-ACORN-v1-", StringComparison.Ordinal), "dedicated stream");
         });
 
         TestRunner.Add(Suite, "JW-T10 shuffled on-map input gives the identical diversion and transport", () =>
@@ -209,6 +224,103 @@ internal static class JayDispersalTests
             var all = r.Delivered.Concat(r.Exported).ToList();
             TestRunner.Eq(6, all.Count(c => c.Origin == JayCandidateOrigin.OnMapOakTree), "on-map");
             TestRunner.Eq(4, all.Count(c => c.Origin == JayCandidateOrigin.NearbyOakWoodland), "external");
+        });
+
+        TestRunner.Add(Suite, "JW-T15 on-map IDs in the reserved NEARBY-OAK-WOODLAND- namespace are refused with zero draws", () =>
+        {
+            var cases = new (string Name, OnMapOakSeedCandidate Candidate)[]
+            {
+                ("review collision case", new("NEARBY-OAK-WOODLAND-West-0", "NEARBY-OAK-WOODLAND-West", "sessile-oak", new LocalPoint(5, 5))),
+                ("reserved candidate ID only", new("NEARBY-OAK-WOODLAND-East-3", "OAK-001", "sessile-oak", new LocalPoint(5, 5))),
+                ("reserved source tree ID only", new("OAK-001-C00", "NEARBY-OAK-WOODLAND-North", "sessile-oak", new LocalPoint(5, 5))),
+            };
+            foreach (var settings in new[] { Fixtures.JayAndNearby(OuterEdge.West), Fixtures.JayOn })
+            foreach (var (name, candidate) in cases)
+            {
+                var supplied = Fixtures.OakCandidates(2, 2);
+                supplied.Add(candidate);
+                var r = WithDrawLog(() => JayAcornDispersal.Disperse(Fixtures.JayRequest(settings, Fixtures.Mast, supplied)), out var log);
+                TestRunner.Eq(NaturalProcessRefusalCode.ReservedCandidateNamespace, r.Refusal?.Code ?? NaturalProcessRefusalCode.None, name);
+                TestRunner.Eq(23, (int)NaturalProcessRefusalCode.ReservedCandidateNamespace, "stable code value");
+                TestRunner.Eq(0, log.Count, name + " observed draws");
+                TestRunner.Eq(0, r.RngDrawCount, name + " reported draws");
+                TestRunner.True(!r.Ran, name + " not run");
+                TestRunner.Eq(0, r.DivertedOnMapCandidateIds.Count + r.Delivered.Count + r.Exported.Count, name + " no partial result");
+            }
+            // Look-alikes outside the reserved prefix are ordinary IDs.
+            var lookAlike = new List<OnMapOakSeedCandidate>
+            {
+                new("NEARBY-OAK-0", "NEARBY-OAK", "sessile-oak", new LocalPoint(5, 5)),
+                new("nearby-oak-woodland-West-0", "nearby-oak-woodland-West", "sessile-oak", new LocalPoint(6, 6)),
+            };
+            TestRunner.True(JayAcornDispersal.Disperse(Fixtures.JayRequest(Fixtures.JayAndNearby(OuterEdge.West), Fixtures.Mast, lookAlike)).Refusal is null,
+                "look-alike IDs accepted (ordinal prefix match)");
+        });
+
+        TestRunner.Add(Suite, "JW-T16 combined origins: unique candidate IDs and unique observed transport keys across on-map and Nearby", () =>
+        {
+            foreach (OuterEdge edge in Enum.GetValues<OuterEdge>())
+            {
+                // Adversarial but legal on-map IDs that resemble the external pattern, plus an over-cap set so selection draws run.
+                var supplied = Fixtures.OakCandidates(5, 4);
+                supplied.Add(new("NEARBY-OAK-" + edge + "-0", "NEARBY-OAK-" + edge, "sessile-oak", new LocalPoint(1, 1)));
+                supplied.Add(new("OAK-WOODLAND-" + edge + "-0", "OAK-WOODLAND-" + edge, "sessile-oak", new LocalPoint(2, 2)));
+                var r = WithDrawLog(() => JayAcornDispersal.Disperse(Fixtures.JayRequest(Fixtures.JayAndNearby(edge), Fixtures.Mast, supplied)), out var log);
+                TestRunner.True(r.Refusal is null && r.Ran, edge + " ran");
+                var all = r.Delivered.Concat(r.Exported).ToArray();
+                var ids = all.Select(c => c.CandidateId).ToArray();
+                TestRunner.Eq(ids.Length, ids.Distinct(StringComparer.Ordinal).Count(), edge + " unique candidate IDs");
+                TestRunner.Eq(10, ids.Length, edge + " 6 on-map + 4 external");
+                var onMapIds = all.Where(c => c.Origin == JayCandidateOrigin.OnMapOakTree).Select(c => c.CandidateId);
+                var externalIds = all.Where(c => c.Origin == JayCandidateOrigin.NearbyOakWoodland).Select(c => c.CandidateId).ToArray();
+                TestRunner.True(new HashSet<string>(onMapIds, StringComparer.Ordinal).SetEquals(r.DivertedOnMapCandidateIds), edge + " on-map set == diverted set");
+                TestRunner.True(!externalIds.Intersect(r.DivertedOnMapCandidateIds, StringComparer.Ordinal).Any(), edge + " external never matches a diverted ID");
+                TestRunner.True(!externalIds.Intersect(supplied.Select(c => c.CandidateId), StringComparer.Ordinal).Any(), edge + " external never matches a supplied ID");
+                TestRunner.Eq(log.Count, log.Distinct(StringComparer.Ordinal).Count(), edge + " every observed draw key is unique");
+                TestRunner.Eq(log.Count, r.RngDrawCount, edge + " observed == reported draws");
+                var transportKeys = log.Where(k => k.StartsWith("JAY-ACORN-v1-", StringComparison.Ordinal)).ToArray();
+                TestRunner.Eq(6 * 2 + 4 * 3, transportKeys.Length, edge + " two draws per on-map acorn, three per external acorn");
+                TestRunner.Eq(4 * 3, transportKeys.Count(k => k.StartsWith("JAY-ACORN-v1-NEARBY-OAK-WOODLAND-" + edge + "-", StringComparison.Ordinal)),
+                    edge + " external keys all in the reserved namespace");
+            }
+        });
+
+        TestRunner.Add(Suite, "JW-T17 request/result/footprint collections are snapshots: input mutation and output writes change nothing", () =>
+        {
+            var vertices = new[] { new LocalPoint(0, 0), new LocalPoint(80, 0), new LocalPoint(80, 80), new LocalPoint(0, 80) };
+            var footprint = new WoodlandFootprint(vertices);
+            vertices[2] = new LocalPoint(80, 40); // would make 4,800 m² if the footprint aliased the array
+            TestRunner.Eq(6400.0, footprint.AreaSquareMetres, "footprint area after input mutation");
+            TestRunner.True(footprint.Vertices as LocalPoint[] is null, "Vertices cannot be cast to the backing array");
+            Fixtures.AssertReadOnly(footprint.Vertices, "Vertices");
+            TestRunner.Eq(6400.0, footprint.AreaSquareMetres, "footprint area after write attempts");
+
+            var supplied = Fixtures.OakCandidates(5, 4).ToArray();
+            var request = new JayDispersalRequest(7, Fixtures.Seed, Fixtures.JayAndNearby(OuterEdge.South), Fixtures.Mast, footprint, supplied);
+            string baseline = Fixtures.Describe(JayAcornDispersal.Disperse(request));
+            for (int i = 0; i < supplied.Length; i++)
+                supplied[i] = new OnMapOakSeedCandidate("SWAPPED-" + i, "SWAPPED", "sessile-oak", new LocalPoint(1, 1));
+            Array.Reverse(supplied);
+            Fixtures.AssertReadOnly(request.OnMapOakCandidates, "request.OnMapOakCandidates");
+            TestRunner.Eq(baseline, Fixtures.Describe(JayAcornDispersal.Disperse(request)), "request unchanged by input mutation");
+            var copied = request with { OnMapOakCandidates = supplied };
+            supplied[0] = new OnMapOakSeedCandidate("LATE", "LATE", "sessile-oak", new LocalPoint(1, 1));
+            TestRunner.Eq("SWAPPED-19", copied.OnMapOakCandidates[0].CandidateId, "with-expression also snapshots");
+
+            var result = JayAcornDispersal.Disperse(request);
+            Fixtures.AssertReadOnly(result.DivertedOnMapCandidateIds, "DivertedOnMapCandidateIds");
+            Fixtures.AssertReadOnly(result.Delivered, "Delivered");
+            Fixtures.AssertReadOnly(result.Exported, "Exported");
+            TestRunner.True(result.DivertedOnMapCandidateIds as string[] is null, "diverted IDs cannot be cast to string[]");
+            TestRunner.Eq(baseline, Fixtures.Describe(result), "result unchanged by write attempts");
+
+            var ids = new[] { "A", "B" };
+            var delivered = new List<JayAcornCandidate>();
+            var built = new JayDispersalResult(null, true, 1, 1, 0, ids, delivered, Array.Empty<JayAcornCandidate>(), 0);
+            ids[0] = "Z";
+            delivered.Add(result.Delivered.Concat(result.Exported).First());
+            TestRunner.Eq("A,B", string.Join(",", built.DivertedOnMapCandidateIds), "result constructor snapshots IDs");
+            TestRunner.Eq(0, built.Delivered.Count, "result constructor snapshots delivered");
         });
     }
 }

@@ -59,6 +59,37 @@ internal static class Fixtures
         (955, .06f),
     };
 
+    /// <summary>
+    /// Proves a returned collection is a read-only snapshot: it is not a writable array or list, and writing through
+    /// IList/ICollection (set, add, clear) throws without changing anything.
+    /// </summary>
+    public static void AssertReadOnly<T>(IReadOnlyList<T> list, string name)
+    {
+        TestRunner.True(list is not T[], name + " is not a raw array");
+        TestRunner.True(list is not List<T>, name + " is not a List");
+        int before = list.Count;
+        if (list is ICollection<T> collection)
+        {
+            TestRunner.True(collection.IsReadOnly, name + " reports read-only");
+            Throws<NotSupportedException>(() => collection.Clear(), name + " Clear");
+            if (before > 0) Throws<NotSupportedException>(() => collection.Add(list[0]), name + " Add");
+        }
+        if (list is IList<T> writable && before > 0)
+        {
+            T first = list[0];
+            Throws<NotSupportedException>(() => writable[0] = list[before - 1], name + " indexer set");
+            TestRunner.True(EqualityComparer<T>.Default.Equals(first, list[0]), name + " element unchanged");
+        }
+        TestRunner.Eq(before, list.Count, name + " count unchanged");
+    }
+
+    public static void Throws<TException>(Action action, string message) where TException : Exception
+    {
+        try { action(); }
+        catch (TException) { return; }
+        throw new InvalidOperationException("Assertion failed: expected " + typeof(TException).Name + " from " + message);
+    }
+
     public static List<T> Shuffled<T>(IEnumerable<T> items, int shuffleSeed)
     {
         var list = items.ToList();

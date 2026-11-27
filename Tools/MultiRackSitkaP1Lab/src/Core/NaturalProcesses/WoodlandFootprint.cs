@@ -7,16 +7,19 @@ namespace SitkaP1.Core.NaturalProcesses;
 public sealed class WoodlandFootprint
 {
     private readonly LocalPoint[] _vertices;
+    private readonly IReadOnlyList<LocalPoint> _readOnlyVertices;
 
+    /// <summary>Copies <paramref name="vertices"/>: changing the caller's collection afterwards never moves the outline.</summary>
     public WoodlandFootprint(IReadOnlyList<LocalPoint> vertices)
     {
         _vertices = (vertices ?? Array.Empty<LocalPoint>()).ToArray();
+        _readOnlyVertices = Array.AsReadOnly(_vertices);
     }
 
     public static WoodlandFootprint Rectangle(double minX, double minY, double maxX, double maxY) =>
         new(new[] { new LocalPoint(minX, minY), new LocalPoint(maxX, minY), new LocalPoint(maxX, maxY), new LocalPoint(minX, maxY) });
 
-    public IReadOnlyList<LocalPoint> Vertices => _vertices;
+    public IReadOnlyList<LocalPoint> Vertices => _readOnlyVertices;
 
     /// <summary>True when the outline has at least three finite vertices and a positive area.</summary>
     public bool IsValid =>
