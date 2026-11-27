@@ -8,8 +8,139 @@
   export const SPECIES_SYMBOL = { 'sitka-spruce': 'ccf-sitka', 'sessile-oak': 'ccf-oak', beech: 'ccf-beech' };
   export const SAPLING_SYMBOL = { 'sitka-spruce': 'ccf-sapling-sitka', 'sessile-oak': 'ccf-sapling-oak', beech: 'ccf-sapling-beech' };
   export const ZOOMS = Array.from({ length: 11 }, (_, i) => Math.pow(4, i / 10));
-  export const PANES = ['tree', 'plan', 'trees', 'history', 'details'];
-  export const PANE_NAMES = { tree: 'Tree', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
+  export const PANES = ['tree', 'navigator', 'plan', 'trees', 'history', 'details'];
+  export const PANE_NAMES = { tree: 'Tree', navigator: 'Navigator', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
+  export const LENS_IDS = ['woodland', 'trees', 'regeneration', 'harvesting', 'habitat'];
+  export const LENSES = Object.freeze({
+    woodland: Object.freeze({
+      id: 'woodland',
+      key: '1',
+      icon: '◈',
+      label: 'Woodland',
+      shortDesc: 'Overview · canopy, living stems & lane orientation',
+      defaultOverlay: 'off',
+      tools: ['tree', 'cell'],
+      legendKeys: ['sitka', 'oak', 'beech', 'crop', 'pending', 'approved', 'boundary'],
+      extensionSlots: [],
+    }),
+    trees: Object.freeze({
+      id: 'trees',
+      key: '2',
+      icon: '◎',
+      label: 'Trees',
+      shortDesc: 'Dimensions, competition, crop-tree marking, pruning & timber quality',
+      defaultOverlay: 'off',
+      tools: ['tree'],
+      legendKeys: ['sitka', 'oak', 'beech', 'crop', 'reference', 'pending', 'approved'],
+      extensionSlots: [
+        { id: 'scots-pine-profile', feature: 'Scots Pine & Soil Moisture', label: 'Scots pine crown, growth & pruning eligibility' },
+        { id: 'birch-alder-profiles', feature: 'Downy Birch & Common Alder', label: 'Downy birch & common alder crown/stem traits' },
+        { id: 'real-woodland-measurements', feature: 'Real-World Woodland Inspection', label: 'Year-0 measured survey stem provenance' },
+      ],
+    }),
+    regeneration: Object.freeze({
+      id: 'regeneration',
+      key: '3',
+      icon: '❖',
+      label: 'Regeneration',
+      shortDesc: 'Light, soil moisture, seedlings, planting, shelters & undergrowth',
+      defaultOverlay: 'light',
+      tools: ['tree', 'cell', 'plant', 'spot'],
+      legendKeys: ['seedlings', 'shelter-active', 'shelter-expired', 'spot-clear', 'clear-undergrowth'],
+      extensionSlots: [
+        { id: 'soil-moisture-overlay', feature: 'Scots Pine & Soil Moisture', label: '5-level soil moisture suitability layer' },
+        { id: 'jay-acorn-dispersal', feature: 'Jay Acorn Dispersal & 2D Windstorms', label: 'Mast-year oak acorn landings & nearby oak edge' },
+        { id: 'birch-alder-planting', feature: 'Downy Birch & Common Alder', label: 'Additional native nursery planting species' },
+      ],
+    }),
+    harvesting: Object.freeze({
+      id: 'harvesting',
+      key: '4',
+      icon: '◧',
+      label: 'Harvesting',
+      shortDesc: 'Proposed felling, timber grades, 3-way destinations, quotes & salvage',
+      defaultOverlay: 'off',
+      tools: ['tree'],
+      legendKeys: ['pending', 'approved', 'felled', 'crop', 'reference'],
+      extensionSlots: [
+        { id: 'scots-pine-timber-grader', feature: 'Scots Pine & Soil Moisture', label: 'Scots pine Sawlog / SRW / Pulp timber grades' },
+        { id: 'windstorm-salvage', feature: 'Jay Acorn Dispersal & 2D Windstorms', label: 'Fallen storm-stem salvage & windblow market note' },
+      ],
+    }),
+    habitat: Object.freeze({
+      id: 'habitat',
+      key: '5',
+      icon: '◐',
+      label: 'Habitat',
+      shortDesc: 'Deadwood, diversity, microhabitats, sensitive ground & resilience',
+      defaultOverlay: 'undergrowth',
+      tools: ['tree', 'cell'],
+      legendKeys: ['standing-dead', 'fallen-log', 'sitka', 'oak', 'beech', 'clear-undergrowth'],
+      extensionSlots: [
+        { id: 'real-woodland-microhabitats', feature: 'Real-World Woodland Inspection', label: 'TreMs microhabitats & survey provenance' },
+        { id: 'windstorm-deadwood-resilience', feature: 'Jay Acorn Dispersal & 2D Windstorms', label: 'Wind-aligned fallen deadwood & resilience' },
+        { id: 'sensitive-wet-ground', feature: 'Scots Pine & Soil Moisture', label: 'Sensitive / wet-ground suitability markers' },
+      ],
+    }),
+  });
+  export const ALERT_TIERS = Object.freeze({
+    blocking: Object.freeze({ rank: 1, icon: '⛔', label: 'Blocking', badge: 'BLOCKING' }),
+    attention: Object.freeze({ rank: 2, icon: '▲', label: 'Attention Required', badge: 'ATTENTION' }),
+    event: Object.freeze({ rank: 3, icon: '◆', label: 'Significant Event', badge: 'EVENT' }),
+    info: Object.freeze({ rank: 4, icon: 'ⓘ', label: 'Information', badge: 'INFO' }),
+    historical: Object.freeze({ rank: 5, icon: '◷', label: 'Historical', badge: 'HISTORY' }),
+  });
+  export const EXPLANATIONS = Object.freeze({
+    'lenses-tools': Object.freeze({
+      title: 'Lenses vs active tools',
+      body: 'Lenses change map emphasis, default overlay, and available tools only. Switching a lens never changes the forest, never approves or executes work, and always returns to safe Select Tree inspection.',
+      tag: 'SAFE PRESENTATION',
+    }),
+    'hegyi-ci': Object.freeze({
+      title: 'Hegyi Competition Index (CI)',
+      body: 'Server-computed local crowding score from living neighbours inside the 8 m cutoff, weighted by neighbour DBH and distance. Higher CI means stronger local competition on the reference tree.',
+      tag: 'ENGINE READOUT',
+    }),
+    'crop-tree': Object.freeze({
+      title: 'Retained Crop Tree (C)',
+      body: 'A living tree designated for long-term retention (double gold ring + C badge). Retained Crop Trees cannot be queued for felling unless unmarked first.',
+      tag: 'CCF MARKING',
+    }),
+    'work-plan-gate': Object.freeze({
+      title: 'Work Plan commitment gate',
+      body: 'Every action follows Mark → Quote → Approve → Execute → Advance Time. Pending and approved orders change zero ecology until Execute is explicitly confirmed.',
+      tag: 'SAFETY GATE',
+    }),
+    'harvest-floor': Object.freeze({
+      title: '€2,500 minimum contractor harvest floor',
+      body: 'Commercial contractor felling applies a calibrated €2,500 minimum job fee. Small cuts on small woods can net a loss when variable tonnage falls below the floor.',
+      tag: 'GAMEPLAY CALIBRATION',
+    }),
+    'felling-choices': Object.freeze({
+      title: '3-way felling destinations',
+      body: 'Each pending Fell stem can be set to Sell & Extract (roadside timber sale), Keep for Own Use (engine-graded retained timber, non-cash), or Leave as Deadwood (fallen habitat log).',
+      tag: 'WORK PLAN',
+    }),
+    'modelled-light': Object.freeze({
+      title: 'Modelled light (not calibrated PAR)',
+      body: 'Relative 0–1 canopy-gap light estimate on 2.5 m ground cells computed by the engine. It compares shade and openings inside this simulator rather than measured field PAR.',
+      tag: 'MODEL CAVEAT',
+    }),
+    'navigator-scope': Object.freeze({
+      title: 'Visible lanes vs whole-woodland scope',
+      body: 'Multi-lane woodlands load 1–3 detailed lanes at a time for fast display. Lanes and Work Plan counts cover the whole woodland; Marked Crop Tree rows list trees in currently loaded visible lanes.',
+      tag: 'COUNT SCOPE',
+    }),
+  });
+  export const SHORTCUTS = Object.freeze([
+    ['1 – 5', 'Switch presentation lens (Woodland, Trees, Regeneration, Harvesting, Habitat)'],
+    ['[ / ]', 'Switch to previous / next lane or area'],
+    ['H', 'Open or close the Woodland History drawer'],
+    ['W', 'Open the Work Plan tab in the right-hand panel'],
+    ['M', 'Toggle 1-lane precision vs adjacent-lanes view (multi-lane stands)'],
+    ['?', 'Open or close this keyboard shortcuts guide'],
+    ['Esc', 'Dismiss topmost layer (Dialog → Pinned explanation → Full legend → History → Tool → Selection)'],
+  ]);
   export const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
     'execute-confirm', 'advance', 'skip-review', 'consent-advance', 'prune-add', 'prune-remove',
     'cell-clear-add', 'cell-clear-remove', 'plant-queue', 'spot-queue', 'pj-shelter-add', 'pj-shelter-remove'];
@@ -106,6 +237,14 @@
     hasUnsavedProgress: false,
     recipe: null,
     experimentBadge: null,
+    // Map-First Menu & Lenses UI state (strictly presentation/navigation only; zero forestry math).
+    lens: 'woodland',
+    legendExpanded: false,
+    alertsExpanded: false,
+    dismissedAlerts: {},
+    manualAlert: null,
+    extensionAlerts: [],
+    navigatorCursor: { crops: -1, work: -1 },
   };
 
   export function isEconomyEnabled() {
@@ -130,14 +269,30 @@
     return Boolean(state.view && state.view.source && Array.isArray(state.view.source.areaIds) && state.view.source.areaIds.length >= 3);
   }
 
-  export function visibleLaneIds(areas, activeAreaId, singleLaneMode) {
+  export function maxAdjacentLanes(viewportWidth) {
+    const w = typeof viewportWidth === 'number' && viewportWidth > 0
+      ? viewportWidth
+      : (typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1920);
+    return w >= 1440 ? 3 : 2;
+  }
+
+  export function visibleLaneIds(areas, activeAreaId, singleLaneMode, viewportWidth) {
     if (!areas || areas.length === 0) return [];
     const active = areas.some((a) => a.areaId === activeAreaId) ? activeAreaId : areas[0].areaId;
     if (areas.length <= 2 || singleLaneMode) return [active];
     const idx = areas.findIndex((a) => a.areaId === active);
+    const maxLanes = maxAdjacentLanes(viewportWidth);
+    if (maxLanes <= 2) {
+      if (idx < areas.length - 1) return [areas[idx].areaId, areas[idx + 1].areaId];
+      return [areas[idx - 1].areaId, areas[idx].areaId];
+    }
     const lo = Math.max(0, idx - 1);
     const hi = Math.min(areas.length - 1, idx + 1);
     return areas.slice(lo, hi + 1).map((a) => a.areaId);
+  }
+
+  export function currentLens() {
+    return LENSES[state.lens] || LENSES.woodland;
   }
 
   // Drops every local selection, draft, preview, in-flight request token and cached panel state when the server
@@ -205,6 +360,13 @@
     state.hasUnsavedProgress = false;
     state.recipe = null;
     state.experimentBadge = null;
+    state.lens = 'woodland';
+    state.legendExpanded = false;
+    state.alertsExpanded = false;
+    state.dismissedAlerts = {};
+    state.manualAlert = null;
+    state.extensionAlerts = [];
+    state.navigatorCursor = { crops: -1, work: -1 };
   }
 
   export const byId = (id) => document.getElementById(id);

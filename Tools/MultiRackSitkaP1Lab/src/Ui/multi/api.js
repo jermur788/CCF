@@ -1,6 +1,6 @@
 // S0c provenance: api.js [L2] — section(s) 3, 5 from multi.js
-import { el, label } from './dom.js';
-import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isMultiLaneStand, isPhase2, juvenileById, livingIn, readoutState, state, treeIn, visibleLaneIds } from './store.js';
+import { el, label, plural } from './dom.js';
+import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isMultiLaneStand, isPhase2, juvenileById, livingIn, pendingClears, pendingPlantings, pendingPrunes, readoutState, state, treeIn, visibleLaneIds } from './store.js';
   // ---- talking to the local session process ---------------------------------------------------------------------------
 
   export function currentFence() {
@@ -125,7 +125,7 @@ import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, dr
         return { kind: 'two-area', overview };
       }
 
-      const lanesList = visibleLaneIds(overview.areas, activeAreaId, Boolean(singleLaneMode));
+      const lanesList = visibleLaneIds(overview.areas, activeAreaId, Boolean(singleLaneMode), window.innerWidth);
       const f = overview.fence;
       const qs = 'lanes=' + encodeURIComponent(lanesList.join(',')) +
         '&sessionId=' + encodeURIComponent(f.sessionId) +
@@ -333,22 +333,252 @@ import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, dr
     }
   }
 
-  // ---- alerts, announcements and the re-read lock ---------------------------------------------------------------------
+  // ---- priority-ranked grouped non-blocking alerts, announcements and the re-read lock --------------------------------
 
-  export function clearAlert() { const box = byId('alert'); box.replaceChildren(); box.classList.remove('shown'); }
-  export function showAlert(parts, focusTarget) {
-    const box = byId('alert');
-    box.replaceChildren(...parts.filter((part) => part !== null));
-    box.classList.add('shown');
-    (focusTarget || box).focus();
+  export function buildAlertItems() {
+    const items = [];
+    const view = state.view;
+    const dismissed = state.dismissedAlerts || {};
+
+    // 1. Blocking (persistent explanation + corrective action)
+    if (state.lock) {
+      items.push({
+        id: 'lock',
+        tier: 'blocking',
+        title: state.lock.title,
+        text: state.lock.detail + ' Every command stays unavailable until a re-read of the current state succeeds.',
+        action: { label: 'Re-read current state', kind: 'reread' },
+        dismissible: false,
+      });
+    }
+    if (view && readoutState() === 'unavailable') {
+      items.push({
+        id: 'readout-unavailable',
+        tier: 'blocking',
+        title: 'Engine read-out unavailable',
+        text: 'Approve and Execute are withdrawn until a fresh re-read succeeds.',
+        action: { label: 'Re-read current state', kind: 'reread' },
+        dismissible: false,
+      });
+    }
+    if (state.manualAlert && state.manualAlert.tier === 'blocking') {
+      items.push(state.manualAlert);
+    }
+
+    // 2. Attention Required (warning + direct Work Plan link)
+    if (view) {
+      if (isEconomyEnabled() && state.economy && state.economy.activeQuote && !state.economy.activeQuote.isEligible) {
+        items.push({
+          id: 'economy-ineligible',
+          tier: 'attention',
+          title: 'Work Plan blocked: cash or landowner hours',
+          text: state.economy.activeQuote.upfrontCashVerdict || 'Review Work Plan costs or switch tasks before approving.',
+          action: { label: 'Open Work Plan', kind: 'plan' },
+          dismissible: false,
+        });
+      }
+      const nApproved = (view.approved ? view.approved.orders.length : 0) +
+        approvedPrunes().length + approvedClears().length + approvedPlantings().length;
+      const nPending = view.pending.length +
+        pendingPrunes().length + pendingClears().length + pendingPlantings().length;
+      if (nApproved > 0) {
+        items.push({
+          id: 'unfinished-approved',
+          tier: 'attention',
+          title: plural(nApproved, 'approved order', 'approved orders') + ' awaiting Execute',
+          text: 'Nothing executed yet — open Work Plan to confirm execution or cancel approval.',
+          action: { label: 'Open Work Plan', kind: 'plan' },
+          dismissible: false,
+        });
+      } else if (nPending > 0) {
+        items.push({
+          id: 'unfinished-pending',
+          tier: 'attention',
+          title: plural(nPending, 'pending order', 'pending orders') + ' in Work Plan',
+          text: 'Not approved yet (zero ecology changed) — review and approve in Work Plan.',
+          action: { label: 'Open Work Plan', kind: 'plan' },
+          dismissible: false,
+        });
+      }
+    }
+
+    // 3. Significant Event (grouped notice with direct map navigation; never one popup per stem)
+    if (view && Array.isArray(view.annualHistory) && view.annualHistory.length > 0) {
+      const latest = view.annualHistory[view.annualHistory.length - 1];
+      if (latest && latest.yearAfter === view.source.ecologicalYear) {
+        const affected = (latest.areas || []).filter((a) => Array.isArray(a.naturalDeaths) && a.naturalDeaths.length > 0);
+        const totalDeaths = affected.reduce((sum, a) => sum + a.naturalDeaths.length, 0);
+        const evId = 'event-deaths-y' + latest.yearAfter + '-r' + view.source.annualRevision;
+        if (totalDeaths > 0 && !dismissed[evId]) {
+          items.push({
+            id: evId,
+            tier: 'event',
+            title: 'Year ' + latest.yearBefore + ' → ' + latest.yearAfter + ': ' + plural(totalDeaths, 'natural death', 'natural deaths') + ' across ' + plural(affected.length, 'area', 'areas'),
+            text: 'Grouped annual mortality notice (' + affected.map((a) => areaName(a.areaId) + ': ' + a.naturalDeaths.length).join(', ') + ').',
+            action: { label: 'Focus ' + areaName(affected[0].areaId), kind: 'focus-area', areaId: affected[0].areaId },
+            dismissible: true,
+          });
+        }
+      }
+    }
+
+    // 4. Information (quiet non-blocking notices)
+    if (state.manualAlert && state.manualAlert.tier === 'info') {
+      items.push(state.manualAlert);
+    }
+    if (view && state.lastSkip && state.lastSkip.destinationYear === view.source.ecologicalYear) {
+      const skipId = 'info-skip-y' + state.lastSkip.destinationYear + '-r' + view.source.annualRevision;
+      if (!dismissed[skipId]) {
+        items.push({
+          id: skipId,
+          tier: 'info',
+          title: 'Skipped Year ' + state.lastSkip.startYear + ' → ' + state.lastSkip.destinationYear,
+          text: (state.lastSkip.isObservationPeriod ? 'Quiet observation period' : 'Review interval') + ' (' + state.lastSkip.stopReason + ').',
+          action: { label: 'View History', kind: 'history' },
+          dismissible: true,
+        });
+      }
+    }
+
+    // Clean extension slot for upcoming Part 2 features (inspection-only blocking, grouped windstorms, mast years).
+    for (const ext of (state.extensionAlerts || [])) {
+      if (!ext || !ext.id || dismissed[ext.id]) continue;
+      if (ext.tier in ALERT_TIERS) items.push(ext);
+    }
+
+    items.sort((a, b) => (ALERT_TIERS[a.tier]?.rank || 99) - (ALERT_TIERS[b.tier]?.rank || 99));
+    return items;
   }
+
+  function renderAlertAction(action) {
+    if (!action) return null;
+    return el('button', {
+      type: 'button',
+      class: 'small secondary alert-action-btn',
+      'data-alert-action': action.kind,
+      'data-area-id': action.areaId || null,
+    }, action.label);
+  }
+
+  function renderAlertRow(item, isPrimary) {
+    const meta = ALERT_TIERS[item.tier] || ALERT_TIERS.info;
+    const body = item.parts && item.parts.length > 0
+      ? el('div', { class: 'alert-custom-parts' }, ...item.parts.map((p) => p.cloneNode ? p.cloneNode(true) : p))
+      : el('span', { class: 'alert-msg' },
+        el('strong', { class: 'alert-title' }, item.title),
+        item.text ? ' — ' + item.text : '');
+    const controls = el('div', { class: 'alert-controls' },
+      renderAlertAction(item.action),
+      item.dismissible ? el('button', {
+        type: 'button',
+        class: 'link-button small-link alert-dismiss',
+        'data-alert-action': 'dismiss',
+        'data-alert-id': item.id,
+        'aria-label': 'Dismiss ' + meta.label + ' notice',
+      }, '× Dismiss') : null);
+    return el('div', {
+      class: 'alert-item alert-tier-' + item.tier + (isPrimary ? ' alert-primary' : ''),
+      'data-alert-tier': item.tier,
+      'data-alert-id': item.id,
+    },
+    el('span', { class: 'alert-tier-pill alert-pill-' + item.tier },
+      el('span', { 'aria-hidden': 'true' }, meta.icon), ' ', meta.badge),
+    body,
+    controls);
+  }
+
+  export function renderAlertStrip() {
+    const box = byId('alert');
+    if (!box) return;
+    const items = buildAlertItems();
+    if (items.length === 0) {
+      box.replaceChildren();
+      box.classList.remove('shown');
+      box.removeAttribute('data-top-tier');
+      state.alertsExpanded = false;
+      return;
+    }
+    const top = items[0];
+    box.classList.add('shown');
+    box.setAttribute('data-top-tier', top.tier);
+
+    // Group counts by priority tier so players see everything at a glance without modal chains.
+    const counts = { blocking: 0, attention: 0, event: 0, info: 0 };
+    for (const it of items) {
+      if (it.tier in counts) counts[it.tier] += 1;
+    }
+    const summaryChips = [];
+    for (const tierKey of ['blocking', 'attention', 'event', 'info']) {
+      if (counts[tierKey] > 0) {
+        const meta = ALERT_TIERS[tierKey];
+        summaryChips.push(el('span', { class: 'alert-group-chip alert-pill-' + tierKey, 'data-alert-group': tierKey },
+          el('span', { 'aria-hidden': 'true' }, meta.icon), ' ' + meta.label + ' (' + counts[tierKey] + ')'));
+      }
+    }
+
+    const headerBar = el('div', { class: 'alert-bar-top' },
+      renderAlertRow(top, true),
+      el('div', { class: 'alert-bar-meta' },
+        items.length > 1 ? el('span', { class: 'alert-group-summary', 'aria-label': 'Grouped alert counts' }, ...summaryChips) : null,
+        items.length > 1 ? el('button', {
+          type: 'button',
+          id: 'alerts-expand',
+          class: 'link-button small-link',
+          'data-alert-action': 'toggle-expand',
+          'aria-expanded': String(Boolean(state.alertsExpanded)),
+        }, state.alertsExpanded ? 'Hide alerts ▴' : 'All alerts (' + items.length + ') ▾') : null,
+        el('button', {
+          type: 'button',
+          class: 'link-button small-link alert-history-link',
+          'data-alert-action': 'history',
+        }, '◷ History')));
+
+    const children = [headerBar];
+    if (state.alertsExpanded && items.length > 1) {
+      children.push(el('div', { class: 'alert-expanded-list', role: 'list', 'aria-label': 'All active alerts in priority order' },
+        ...items.slice(1).map((item) => renderAlertRow(item, false))));
+    }
+    box.replaceChildren(...children);
+  }
+
+  export function dismissAlert(alertId) {
+    if (!alertId) return;
+    if (state.manualAlert && state.manualAlert.id === alertId) {
+      state.manualAlert = null;
+    } else {
+      state.dismissedAlerts[alertId] = true;
+    }
+    renderAlertStrip();
+  }
+
+  export function clearAlert() {
+    state.manualAlert = null;
+    renderAlertStrip();
+  }
+
+  export function showAlert(parts, focusTarget, options) {
+    const opts = options || {};
+    const tier = opts.tier && opts.tier in ALERT_TIERS ? opts.tier : 'blocking';
+    const cleanParts = (parts || []).filter((part) => part !== null && part !== undefined);
+    const dismissible = opts.dismissible !== undefined ? Boolean(opts.dismissible) : (state.lock === null);
+    state.manualAlert = {
+      id: opts.id || ('manual-' + Date.now()),
+      tier,
+      parts: cleanParts,
+      dismissible,
+    };
+    renderAlertStrip();
+    const box = byId('alert');
+    if (box) (focusTarget || box).focus();
+  }
+
   export function announce(message) {
     const region = byId('announce');
     region.textContent = '';
     window.setTimeout(() => { region.textContent = message; }, 50);
   }
   export function rereadButton() {
-    const button = el('button', { type: 'button' }, 'Re-read current state');
+    const button = el('button', { type: 'button', class: 'small secondary', 'data-alert-action': 'reread' }, 'Re-read current state');
     button.addEventListener('click', () => hooks.reread(true));
     return button;
   }

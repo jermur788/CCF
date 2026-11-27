@@ -1,7 +1,7 @@
 // S0c provenance: map/renderer-svg.js [L3] — section(s) 8, 9, 11 from multi.js
 import { announce } from '../api.js';
 import { el, fixed, label, n3, plural, setAttributes, svg } from '../dom.js';
-import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
+import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentLens, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
 import { MAP_RENDERER_METHODS } from './contract.js';
   // ---- the map: 1 SVG user unit = 1 metre; U east, V south ------------------------------------------------------------
 
@@ -9,7 +9,7 @@ import { MAP_RENDERER_METHODS } from './contract.js';
 
   function visibleAreasNow() {
     if (!state.view || !isMultiLaneStand()) return null;
-    const ids = visibleLaneIds(allAreas(), state.areaId, state.singleLaneMode);
+    const ids = visibleLaneIds(allAreas(), state.areaId, state.singleLaneMode, window.innerWidth);
     const list = ids.map((id) => areaView(id)).filter(Boolean);
     return list.length > 0 ? list : null;
   }
@@ -211,8 +211,11 @@ import { MAP_RENDERER_METHODS } from './contract.js';
   function renderMap() {
     const area = currentArea();
     if (!area) return;
+    const ws = byId('workspace');
+    if (ws) ws.setAttribute('data-lens', state.lens);
     const visAreas = visibleAreasNow();
     const mapPane = byId('map-pane');
+    if (mapPane) mapPane.setAttribute('data-lens', state.lens);
     if (visAreas) {
       if (mapPane) mapPane.classList.add('multi-lane-exterior');
       renderMultiLaneMap(area, visAreas);
@@ -1070,47 +1073,96 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     return [svg('use', { href: '#' + symbolId, x: -s, y: -s, width: 2 * s, height: 2 * s })];
   }
 
-  export function renderLegend() {
-    const rows = [
-      ['Sitka spruce', 'Radial conifer crown', () => legendUse('ccf-sitka', 1.25)],
-      ['Sessile oak', 'Lobed broadleaf crown', () => legendUse('ccf-oak', 1.25)],
-      ['European beech', 'Dense rounded broadleaf', () => legendUse('ccf-beech', 1.25)],
-      ['Retained Crop · C', 'Double gold ring + C badge', (item, mpp) => [...legendUse('ccf-sitka', 1.05),
-        ...statusMarks(Object.assign({}, item, { isCrop: true }), mpp)]],
-      ['Reference · R / Comp. 1–5', 'Pinned reference & top 5', (item, mpp) => [...legendUse('ccf-sitka', 1.0), ...referenceMarks(item, mpp, false)]],
-      ['Pending · ◷', 'Dashed gold outline; queued', (item, mpp) => [...legendUse('ccf-sitka', 1.0),
-        ...statusMarks(Object.assign({}, item, { status: 'PendingFell' }), mpp)]],
-      ['Approved · ✓', 'Solid pale-blue; awaiting Execute', (item, mpp) => [...legendUse('ccf-sitka', 1.0),
-        ...statusMarks(Object.assign({}, item, { status: 'ApprovedFell' }), mpp)]],
-      ['Felled stump · X', 'Executed work (History Log)', (item, mpp) => [...crownDecoration(Object.assign({}, item, { status: 'Felled' }), 'sitka-spruce'),
-        ...statusMarks(Object.assign({}, item, { status: 'Felled' }), mpp)]],
-      ['Standing dead · D', 'Natural mortality crown', (item, mpp) => [...legendUse('ccf-standing-dead', 1.15),
-        ...statusMarks(Object.assign({}, item, { status: 'NaturalDead' }), mpp)]],
-      ['Fallen log (schematic)', 'Direction schematic, not simulated', () => [svg('use', { href: '#ccf-log', x: -1.45, y: -0.55, width: 2.9, height: 1.1 })]],
-      ['Active shelter (< 8 yr)', 'Cyan mesh tube protecting PJ', () => legendUse('ccf-shelter-active', 1.35)],
-      ['Expired shelter (8+ yr)', 'Dashed grey + X · map state only', () => legendUse('ccf-shelter-expired', 1.35)],
-      ['SpotClear (~1 m²)', 'Cleared soil + twigs, no seedling', () => legendUse('ccf-spot-clear', 1.25)],
-      ['ClearUndergrowth', 'Whole 2.5 m cell · spares seedlings', () => legendUse('ccf-action-clear', 1.35)],
-      ['Natural seedlings', 'Cell-level presence glyph only', () => legendUse('ccf-natural-seedlings', 1.35)],
+  function legendEntries() {
+    return [
+      { key: 'sitka', name: 'Sitka spruce', short: 'Sitka', description: 'Radial conifer crown', draw: () => legendUse('ccf-sitka', 1.25) },
+      { key: 'oak', name: 'Sessile oak', short: 'Oak', description: 'Lobed broadleaf crown', draw: () => legendUse('ccf-oak', 1.25) },
+      { key: 'beech', name: 'European beech', short: 'Beech', description: 'Dense rounded broadleaf', draw: () => legendUse('ccf-beech', 1.25) },
+      { key: 'crop', name: 'Retained Crop · C', short: 'Crop · C', description: 'Double gold ring + C badge', draw: (item, mpp) => [...legendUse('ccf-sitka', 1.05),
+        ...statusMarks(Object.assign({}, item, { isCrop: true }), mpp)] },
+      { key: 'reference', name: 'Reference · R / Comp. 1–5', short: 'Ref · R', description: 'Pinned reference & top 5', draw: (item, mpp) => [...legendUse('ccf-sitka', 1.0), ...referenceMarks(item, mpp, false)] },
+      { key: 'pending', name: 'Pending · ◷', short: 'Pending · ◷', description: 'Dashed gold outline; queued', draw: (item, mpp) => [...legendUse('ccf-sitka', 1.0),
+        ...statusMarks(Object.assign({}, item, { status: 'PendingFell' }), mpp)] },
+      { key: 'approved', name: 'Approved · ✓', short: 'Approved · ✓', description: 'Solid pale-blue; awaiting Execute', draw: (item, mpp) => [...legendUse('ccf-sitka', 1.0),
+        ...statusMarks(Object.assign({}, item, { status: 'ApprovedFell' }), mpp)] },
+      { key: 'felled', name: 'Felled stump · X', short: 'Stump · X', description: 'Executed work (History Log)', draw: (item, mpp) => [...crownDecoration(Object.assign({}, item, { status: 'Felled' }), 'sitka-spruce'),
+        ...statusMarks(Object.assign({}, item, { status: 'Felled' }), mpp)] },
+      { key: 'standing-dead', name: 'Standing dead · D', short: 'Dead · D', description: 'Natural mortality crown', draw: (item, mpp) => [...legendUse('ccf-standing-dead', 1.15),
+        ...statusMarks(Object.assign({}, item, { status: 'NaturalDead' }), mpp)] },
+      { key: 'fallen-log', name: 'Fallen log (schematic)', short: 'Fallen log', description: 'Direction schematic, not simulated', draw: () => [svg('use', { href: '#ccf-log', x: -1.45, y: -0.55, width: 2.9, height: 1.1 })] },
+      { key: 'shelter-active', name: 'Active shelter (< 8 yr)', short: 'Shelter <8yr', description: 'Cyan mesh tube protecting PJ', draw: () => legendUse('ccf-shelter-active', 1.35) },
+      { key: 'shelter-expired', name: 'Expired shelter (8+ yr)', short: 'Expired ×', description: 'Dashed grey + X · map state only', draw: () => legendUse('ccf-shelter-expired', 1.35) },
+      { key: 'spot-clear', name: 'SpotClear (~1 m²)', short: 'SpotClear', description: 'Cleared soil + twigs, no seedling', draw: () => legendUse('ccf-spot-clear', 1.25) },
+      { key: 'clear-undergrowth', name: 'ClearUndergrowth', short: 'Clear cell', description: 'Whole 2.5 m cell · spares seedlings', draw: () => legendUse('ccf-action-clear', 1.35) },
+      { key: 'seedlings', name: 'Natural seedlings', short: 'Seedlings', description: 'Cell-level presence glyph only', draw: () => legendUse('ccf-natural-seedlings', 1.35) },
+      { key: 'boundary', name: 'Area boundary', short: 'Boundary', description: 'Actual management extent', draw: null },
     ];
-    const items = rows.map(([name, description, draw]) => el('li', null, legendIcon(draw),
-      el('span', null, el('span', { class: 'legend-name' }, name), el('span', { class: 'legend-desc' }, description))));
+  }
+
+  function boundarySwatch() {
     const boundary = svg('svg', { viewBox: '-1.9 -1.9 3.8 3.8', 'aria-hidden': 'true', focusable: 'false' });
     boundary.append(svg('rect', { class: 'legend-exterior', x: -1.85, y: -1.85, width: 3.7, height: 3.7, rx: .3 }),
       svg('polygon', { class: 'legend-area', points: '-1.3,-1 1.2,-1.35 1.35,1.2 -1.2,1.3' }));
-    items.push(el('li', null, boundary, el('span', null, el('span', { class: 'legend-name' }, 'Area boundary'),
-      el('span', { class: 'legend-desc' }, 'Actual management extent'))));
+    return boundary;
+  }
+
+  export function renderLegend() {
+    const items = legendEntries().map((entry) => el('li', { 'data-legend-key': entry.key },
+      entry.draw ? legendIcon(entry.draw) : boundarySwatch(),
+      el('span', null, el('span', { class: 'legend-name' }, entry.name), el('span', { class: 'legend-desc' }, entry.description))));
     byId('legend').replaceChildren(...items);
   }
 
+  export function renderCompactLegend() {
+    const host = byId('legend-compact-items');
+    if (!host) return;
+    const lens = currentLens();
+    const byKey = new Map(legendEntries().map((e) => [e.key, e]));
+    const keys = lens.legendKeys.slice();
+    if (state.overlay === 'seedlings' && !keys.includes('seedlings')) keys.unshift('seedlings');
+    if (state.overlay === 'undergrowth' && !keys.includes('clear-undergrowth')) keys.push('clear-undergrowth');
+    const chips = keys.map((key) => {
+      const entry = byKey.get(key);
+      if (!entry) return null;
+      return el('span', { class: 'legend-chip', 'data-legend-chip': key, title: entry.name + ' — ' + entry.description },
+        entry.draw ? legendIcon(entry.draw) : boundarySwatch(),
+        el('span', { class: 'legend-chip-label' }, entry.short));
+    }).filter(Boolean);
+    host.replaceChildren(...chips);
+    const ctx = byId('legend-context-label');
+    if (ctx) ctx.textContent = lens.label + ' key:';
+    const toggle = byId('legend-toggle');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(Boolean(state.legendExpanded)));
+      toggle.textContent = state.legendExpanded ? 'Hide full legend ▴' : 'Full legend ▾';
+    }
+    const panel = byId('legend-panel');
+    if (panel) panel.hidden = !state.legendExpanded;
+  }
+
+  export function setLegendExpanded(expanded, moveFocus) {
+    state.legendExpanded = Boolean(expanded);
+    state.legendHidden = !state.legendExpanded;
+    const ws = byId('workspace');
+    if (ws) ws.setAttribute('data-legend', state.legendExpanded ? 'expanded' : 'compact');
+    const panel = byId('legend-panel');
+    if (panel) panel.hidden = !state.legendExpanded;
+    const toggle = byId('legend-toggle');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(state.legendExpanded));
+      toggle.textContent = state.legendExpanded ? 'Hide full legend ▴' : 'Full legend ▾';
+    }
+    const hideBtn = byId('legend-hide');
+    if (hideBtn) hideBtn.setAttribute('aria-expanded', String(state.legendExpanded));
+    if (moveFocus) {
+      const target = state.legendExpanded ? hideBtn : toggle;
+      if (target && !target.hidden) target.focus();
+    }
+    announce(state.legendExpanded ? 'Full map legend expanded (16 symbols). Press Escape to collapse.' : 'Full map legend collapsed to compact contextual key.');
+  }
+
   export function setLegendHidden(hidden, moveFocus) {
-    state.legendHidden = hidden;
-    byId('workspace').setAttribute('data-legend', hidden ? 'hidden' : 'shown');
-    byId('legend-show').hidden = !hidden;
-    byId('legend-show').setAttribute('aria-expanded', String(!hidden));
-    byId('legend-hide').setAttribute('aria-expanded', String(!hidden));
-    if (moveFocus) byId(hidden ? 'legend-show' : 'legend-hide').focus();
-    announce(hidden ? 'Legend hidden. Show legend is at the top right of the map.' : 'Legend shown.');
+    setLegendExpanded(!hidden, moveFocus);
   }
 
 

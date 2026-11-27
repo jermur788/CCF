@@ -1,7 +1,7 @@
 // S0c provenance: panels/work-plan.js [L4] — section(s) 14 from multi.js
 import { el, expandable, fixed, label, pair, plural, table, technicalPlan, useIcon } from '../dom.js';
 import { svgRenderer, usableCentre, viewBox } from '../map/renderer-svg.js';
-import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, areaView, byId, currentArea, currentJuvenile, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText } from '../store.js';
+import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, areaView, byId, currentArea, currentJuvenile, hooks, isEconomyEnabled, isMultiLaneStand, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText, visibleLaneIds } from '../store.js';
   // ---- Work Plan, Receipt, Results, Trees, Details --------------------------------------------------------------------
 
   function statePill(approved, actionIconId, actionWord) {
@@ -572,6 +572,176 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
       pair('Ecological year', s.ecologicalYear), pair('Annual revision', s.annualRevision),
       pair('Work revision', s.workRevision), pair('Plan-state revision', view.planStateRevision),
       pair('Session', expandable(view.sessionId)));
+  }
+
+  export function navigatorSnapshot() {
+    const view = state.view;
+    const areas = allAreas();
+    const visibleSet = new Set(visibleLaneIds(areas, state.areaId, state.singleLaneMode, window.innerWidth));
+    const pendingP = pendingPrunes();
+    const approvedP = approvedPrunes();
+    const pendingC = pendingClears();
+    const approvedC = approvedClears();
+    const pendingPl = pendingPlantings();
+    const approvedPl = approvedPlantings();
+
+    const lanes = areas.map((area) => {
+      const workCount = (view ? ordersIn(view.pending, area.areaId).length +
+        (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0) : 0) +
+        ordersIn(pendingP, area.areaId).length + ordersIn(approvedP, area.areaId).length +
+        ordersIn(pendingC, area.areaId).length + ordersIn(approvedC, area.areaId).length +
+        ordersIn(pendingPl, area.areaId).length + ordersIn(approvedPl, area.areaId).length;
+      return {
+        areaId: area.areaId,
+        label: area.label,
+        livingCount: area.stand ? area.stand.livingCount : 0,
+        isActive: area.areaId === state.areaId,
+        isVisible: visibleSet.has(area.areaId),
+        workCount,
+      };
+    });
+
+    const loadedAreas = view && Array.isArray(view.areas) ? view.areas : [];
+    const crops = [];
+    for (const area of loadedAreas) {
+      for (const treeId of (area.cropTreeIds || [])) {
+        const tree = (area.trees || []).find((t) => t.treeId === treeId);
+        crops.push({
+          areaId: area.areaId,
+          areaLabel: area.label,
+          treeId,
+          species: speciesLabel(speciesOf(treeId)),
+          dbhCm: tree ? tree.dbhCm : null,
+        });
+      }
+    }
+    const allLanesLoaded = !isMultiLaneStand() || loadedAreas.length >= areas.length;
+    const cropScope = {
+      kind: allLanesLoaded ? 'whole' : 'visible',
+      label: allLanesLoaded
+        ? 'Whole woodland'
+        : 'Visible lanes (' + loadedAreas.length + ' of ' + areas.length + ')',
+    };
+
+    const work = [];
+    const pushWork = (list, kind, approved, getTarget, getTreeId) => {
+      for (const item of list) {
+        work.push({
+          kind,
+          approved,
+          areaId: item.areaId,
+          areaLabel: areaShort(item.areaId),
+          target: getTarget(item),
+          treeId: getTreeId ? getTreeId(item) : null,
+        });
+      }
+    };
+    if (view) {
+      pushWork(view.pending, 'Fell', false, (o) => o.treeId, (o) => o.treeId);
+      if (view.approved) pushWork(view.approved.orders, 'Fell', true, (o) => o.treeId, (o) => o.treeId);
+    }
+    pushWork(pendingP, 'Prune', false, (o) => o.treeId, (o) => o.treeId);
+    pushWork(approvedP, 'Prune', true, (o) => o.treeId, (o) => o.treeId);
+    pushWork(pendingC, 'Clear', false, (c) => 'Cell (' + c.column + ',' + c.row + ')', null);
+    pushWork(approvedC, 'Clear', true, (c) => 'Cell (' + c.column + ',' + c.row + ')', null);
+    pushWork(pendingPl, 'Planting', false, (p) => p.kind + ' ' + p.orderId, null);
+    pushWork(approvedPl, 'Planting', true, (p) => p.kind + ' ' + p.orderId, null);
+
+    return { lanes, crops, cropScope, work, visibleCount: visibleSet.size, totalLanes: areas.length };
+  }
+
+  export function renderNavigator() {
+    if (!state.view || !byId('pane-navigator')) return;
+    const snap = navigatorSnapshot();
+    const scopeEl = byId('nav-scope-summary');
+    if (scopeEl) {
+      scopeEl.textContent = isMultiLaneStand()
+        ? 'Showing ' + snap.visibleCount + ' of ' + snap.totalLanes + ' lanes on map · Lanes & Work Plan are whole-woodland; Marked Crops reflect visible loaded lanes.'
+        : 'Whole woodland (' + snap.totalLanes + ' areas) loaded in view.';
+    }
+
+    const lanesCount = byId('nav-lanes-count');
+    if (lanesCount) lanesCount.textContent = String(snap.lanes.length);
+    const lanesBody = byId('nav-lanes-body');
+    if (lanesBody) {
+      lanesBody.replaceChildren(el('ul', { class: 'list nav-list' }, ...snap.lanes.map((ln) => {
+        const badgeText = ln.isActive ? '● Active' : ln.isVisible ? '◐ Visible' : '○ Off-screen';
+        const badgeCls = ln.isActive ? 'nav-state active' : ln.isVisible ? 'nav-state visible' : 'nav-state';
+        return el('li', null, el('button', {
+          type: 'button',
+          class: 'nav-item-btn' + (ln.isActive ? ' current' : ''),
+          'data-nav-area': ln.areaId,
+          'aria-pressed': String(ln.isActive),
+        },
+        el('span', { class: 'nav-item-main' },
+          el('strong', null, ln.label),
+          el('span', { class: badgeCls }, badgeText)),
+        el('span', { class: 'nav-item-sub' },
+          ln.livingCount + ' living' + (ln.workCount > 0 ? ' · ' + ln.workCount + ' in plan' : ''))));
+      })));
+    }
+
+    const cropsCount = byId('nav-crops-count');
+    if (cropsCount) cropsCount.textContent = String(snap.crops.length);
+    const cropsScope = byId('nav-crops-scope');
+    if (cropsScope) {
+      cropsScope.textContent = snap.cropScope.label;
+      cropsScope.setAttribute('data-scope-kind', snap.cropScope.kind);
+    }
+    const cropsBody = byId('nav-crops-body');
+    if (cropsBody) {
+      if (snap.crops.length === 0) {
+        cropsBody.replaceChildren(el('p', { class: 'small-note' },
+          snap.cropScope.kind === 'visible'
+            ? 'No marked Crop Trees in currently visible lanes. Switch lanes to check off-screen lanes, or mark a living tree in Select Tree mode.'
+            : 'No marked Crop Trees yet. Select any living tree to designate a retained Crop Tree (C).'));
+      } else {
+        cropsBody.replaceChildren(el('ul', { class: 'list nav-list' }, ...snap.crops.map((c) => {
+          const isSel = c.areaId === state.areaId && c.treeId === selectedId();
+          return el('li', null, el('button', {
+            type: 'button',
+            class: 'nav-item-btn' + (isSel ? ' current' : ''),
+            'data-nav-area': c.areaId,
+            'data-nav-tree': c.treeId,
+            'aria-pressed': String(isSel),
+          },
+          el('span', { class: 'nav-item-main' },
+            el('span', { class: 'mono' }, c.treeId),
+            el('span', { class: 'chip crop' }, 'C · ' + c.areaLabel)),
+          el('span', { class: 'nav-item-sub' },
+            c.species + (c.dbhCm !== null ? ' · DBH ' + fixed(c.dbhCm, 1) + ' cm' : ''))));
+        })));
+      }
+    }
+    for (const btn of document.querySelectorAll('[data-nav-cycle="crops"]')) {
+      btn.disabled = snap.crops.length === 0;
+    }
+
+    const workCount = byId('nav-work-count');
+    if (workCount) workCount.textContent = String(snap.work.length);
+    const workBody = byId('nav-work-body');
+    if (workBody) {
+      if (snap.work.length === 0) {
+        workBody.replaceChildren(el('p', { class: 'small-note' }, 'No unfinished Pending or Approved orders across the woodland.'));
+      } else {
+        workBody.replaceChildren(el('ul', { class: 'list nav-list' }, ...snap.work.map((w, idx) => el('li', null,
+          el('button', {
+            type: 'button',
+            class: 'nav-item-btn',
+            'data-nav-work-index': String(idx),
+            'data-nav-work-area': w.areaId,
+            'data-nav-work-tree': w.treeId || null,
+          },
+          el('span', { class: 'nav-item-main' },
+            el('span', { class: 'wp-pill ' + (w.approved ? 'wp-approved' : 'wp-pending') },
+              (w.approved ? '✓ Approved ' : '◷ Pending ') + w.kind),
+            el('span', { class: 'mono' }, w.target)),
+          el('span', { class: 'nav-item-sub' }, w.areaLabel))))));
+      }
+    }
+    for (const btn of document.querySelectorAll('[data-nav-cycle="work"]')) {
+      btn.disabled = snap.work.length === 0;
+    }
   }
 
   export function renderPaneButtons() {

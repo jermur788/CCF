@@ -1,6 +1,6 @@
 // S0c provenance: panels/inspector.js [L4] — section(s) 12 from multi.js
 import { el, fill, fixed, label, pair } from '../dom.js';
-import { areaName, baseStatusText, byId, itemOf, pruneStatusOf, referenceIn, s4Area, s4Tree, selectedId, speciesLabel, speciesOf, state, statusText, treeIn } from '../store.js';
+import { areaName, baseStatusText, byId, currentLens, itemOf, pruneStatusOf, referenceIn, s4Area, s4Tree, selectedId, speciesLabel, speciesOf, state, statusText, treeIn } from '../store.js';
   // ---- Tree inspector, Prune box (species-aware) and Competition ------------------------------------------------------
 
   export function renderOverlap() {
@@ -154,5 +154,24 @@ import { areaName, baseStatusText, byId, itemOf, pruneStatusOf, referenceIn, s4A
     const id = selectedId();
     const ps = id ? pruneStatusOf(areaId, id) : null;
     byId('prune-add').disabled = !pruneAvailability(areaId, id ? itemOf(areaId, id) : null, ps).ok;
+  }
+
+  export function renderLensSlots() {
+    const host = byId('lens-slots-list');
+    const summary = byId('lens-slots-summary');
+    if (!host || !summary) return;
+    const lens = currentLens();
+    const slots = lens.extensionSlots || [];
+    summary.textContent = lens.label + ' lens · Part 2 slots (' + slots.length + ')';
+    if (slots.length === 0) {
+      host.replaceChildren(el('li', { class: 'small-note' },
+        'Woodland overview combines active layers. Switch to Trees, Regeneration, Harvesting, or Habitat to see their Part 2 feature slots.'));
+      return;
+    }
+    host.replaceChildren(...slots.map((slot) => el('li', { 'data-extension-slot': slot.id, 'data-extension-lens': lens.id },
+      el('div', { class: 'slot-row-head' },
+        el('strong', null, slot.feature),
+        el('span', { class: 'tag' }, 'Part 2 slot')),
+      el('p', { class: 'small-note' }, slot.label))));
   }
 
