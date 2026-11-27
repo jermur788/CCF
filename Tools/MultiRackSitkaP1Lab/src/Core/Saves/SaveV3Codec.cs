@@ -47,6 +47,10 @@ internal static class SaveV3Codec
 
         if (root.Economy is not null || (root.GenesisRecipe?.EconomyEnabled ?? false))
         {
+            if (root.GenesisRecipe is { EconomyEnabled: true } && root.Economy is null)
+                throw new P1Refusal("SaveInconsistent", "genesisRecipe selects Economy enabled but root has no Economy state");
+            if (root.GenesisRecipe is { EconomyEnabled: false } && root.Economy is not null)
+                throw new P1Refusal("SaveInconsistent", "genesisRecipe selects Economy disabled but root has Economy state");
             if (reg.TryGetReserved(SaveV3Format.EconomyBlockKey, out var slot))
                 throw new P1Refusal(slot!.RefusalCode, slot.RefusalMessage);
             if (!reg.TryGetCodec(SaveV3Format.EconomyBlockKey, out _))
@@ -217,6 +221,12 @@ internal static class SaveV3Codec
                 "this v3 save selects Economy enabled but is missing the required 'economy' block; economy state is never defaulted");
         }
 
+        if (genesisRecipe is { EconomyEnabled: false } && decodedBlocks.ContainsKey(SaveV3Format.EconomyBlockKey))
+        {
+            throw new P1Refusal("SaveInconsistent",
+                "this v3 save selects Economy disabled but contains an 'economy' block");
+        }
+
         if (requiredBlockKeys is not null)
         {
             foreach (string req in requiredBlockKeys)
@@ -241,9 +251,9 @@ internal static class SaveV3Codec
         if (decoded.GenesisRecipe is not { } genesis)
             throw new P1Refusal("SaveRequiredBlockMissing", "a forest-maker v3 load requires the 'genesisRecipe' block");
 
-        if (genesis.EconomyEnabled)
+        if (genesis.EconomyEnabled && !decoded.Envelope.Blocks.ContainsKey(SaveV3Format.EconomyBlockKey))
             throw new P1Refusal("SaveRequiredBlockMissing",
-                "this forest-maker v3 save requires the 'economy' block, which is reserved for Phase 2B");
+                "this forest-maker v3 save selects Economy enabled but is missing the required 'economy' block");
 
         var header = decoded.Envelope.Header;
         if (header.Models != Phase1ModelVector.Phase2)
@@ -252,7 +262,9 @@ internal static class SaveV3Codec
                 " and cannot be loaded into a " + Phase1ModelVector.Phase2 +
                 " session; saves are never upgraded or migrated between models");
 
-        var expectedLineage = Phase1EngineLineage.Current(Phase1ModelVector.Phase2);
+        var expectedLineage = Phase1EngineLineage.Current(
+            Phase1ModelVector.Phase2,
+            genesis.EconomyEnabled ? EconomyModelVersion.Enabled : EconomyModelVersion.Off);
         if (header.Lineage != expectedLineage)
             throw new P1Refusal("SaveLineageMismatch",
                 "this save was made by an engine with lineage [" + header.Lineage +

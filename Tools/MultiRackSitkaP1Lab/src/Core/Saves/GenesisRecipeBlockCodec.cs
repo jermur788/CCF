@@ -28,9 +28,6 @@ internal sealed class GenesisRecipeBlockCodec : IFeatureBlockCodec
         ArgumentNullException.ThrowIfNull(root);
         if (root.GenesisRecipe is not { } genesis)
             throw new P1Refusal("SaveRequiredBlockMissing", "cannot encode genesisRecipe block: root has no forest-maker recipe");
-        if (root.Economy is not null || genesis.EconomyEnabled)
-            throw new P1Refusal("SaveEconomyRequiresV3",
-                "sessions with Economy enabled cannot be saved until the Phase 2B economy feature block is implemented; economy state is never silently dropped");
 
         genesis.Recipe.RequireValid();
         string expectedHash = genesis.Recipe.RecipeHash();

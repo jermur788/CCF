@@ -572,20 +572,21 @@ internal sealed partial class MultiAreaContinuation
         lock (sync)
         {
             RequireFence(fence);
-            if (models.IsEconomyEnabled || root.Economy is not null)
+            if ((models.IsEconomyEnabled || root.Economy is not null) && root.GenesisRecipe is null)
                 throw new P1Refusal("SaveEconomyRequiresV3",
-                    "sessions with Economy enabled cannot be saved under Save v2; persistence requires Save v3 (C-V3, deferred to Phase 2A) and economy state is never silently dropped");
+                    "built-in stands use Save v2 and cannot persist Economy state; saving with Economy enabled requires a Forest Maker Save v3 session");
             var vector = Phase1RootMapping.VectorOf(models);
             var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
-                root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
+                root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition),
+                Phase1EngineLineage.Current(vector, models.Economy));
             return new Phase1SaveEnvelope(header, Phase1RootMapping.Capture(root, models, stage4Options));
         }
     }
 
     /// <summary>
     /// Captures and encodes the session into canonical save bytes under ONE lock acquisition:
-    /// frozen Save v2 for built-in stands (<c>MA-1</c>, <c>MA-1-MIXED</c>) and strict Save v3 (C-V3 with
-    /// <c>blocks.genesisRecipe</c>) for Forest Maker stands. Never mutates state.
+    /// frozen Save v2 for built-in stands (<c>MA-1</c>, <c>MA-1-MIXED</c>) with Economy Off, and strict Save v3 (C-V3
+    /// with <c>blocks.genesisRecipe</c> and optional <c>blocks.economy</c>) for Forest Maker stands. Never mutates state.
     /// </summary>
     internal (int SchemaVersion, byte[] Bytes) CaptureSaveBytes(
         MultiAreaFence fence,
@@ -604,32 +605,53 @@ internal sealed partial class MultiAreaContinuation
 
     /// <summary>
     /// Self-contained Save v3 restore (spec §6.3 steps 2–5): verifies recipe/genesis/model/lineage, regenerates the
-    /// stand from its embedded recipe, builds a fresh session, verifies deterministic options, restores state and
-    /// feature blocks through <see cref="IFeatureBlockCodec"/>, converts any saved approval into a Pending draft,
-    /// revalidates every unexecuted order, and mints a fresh session ID.
+    /// stand from its embedded recipe, builds a fresh session (with matching EconomyOptions when Economy is enabled),
+    /// verifies deterministic options, restores state and feature blocks through <see cref="IFeatureBlockCodec"/>,
+    /// converts any saved approval into a Pending draft, revalidates every unexecuted order, and mints a fresh session ID.
     /// </summary>
     internal static (MultiAreaContinuation Session, MultiAreaExperiment Experiment, MultiAreaLoadResult Result)
         RestoreFromV3(SaveV3Decoded decoded, FeatureBlockRegistry? registry = null)
     {
         ArgumentNullException.ThrowIfNull(decoded);
+        var reg = registry ?? FeatureBlockRegistry.Default;
         var generated = SaveV3Codec.VerifyRecipeGenesis(decoded);
+        bool economyEnabled = decoded.GenesisRecipe!.EconomyEnabled;
+        var selection = economyEnabled ? MultiAreaModelSelection.Phase2WithEconomy : MultiAreaModelSelection.Phase2;
+        EconomyOptions? restoredEconomyOptions = null;
+        if (economyEnabled)
+        {
+            if (!decoded.Envelope.Blocks.TryGetValue(SaveV3Format.EconomyBlockKey, out var econBlock))
+                throw new P1Refusal("SaveRequiredBlockMissing",
+                    "this v3 save selects Economy enabled but is missing the required 'economy' block");
+            var econCodec = reg.RequireCodecForDecode(SaveV3Format.EconomyBlockKey, econBlock.BlockVersion);
+            if (econCodec is EconomyFeatureBlockCodec typedEconCodec)
+            {
+                restoredEconomyOptions = typedEconCodec.DecodeState(econBlock.CanonicalDataJson, econBlock.BlockVersion).Options;
+            }
+            else
+            {
+                var probeBase = Phase1RootMapping.Restore(decoded.Envelope.State, decoded.Envelope.Header.Models).Root;
+                var probed = econCodec.Decode(econBlock.CanonicalDataJson, econBlock.BlockVersion, probeBase);
+                restoredEconomyOptions = probed.Economy?.Options
+                    ?? throw new P1Refusal("SaveInconsistent", "economy block codec did not attach Economy state");
+            }
+        }
         var session = new MultiAreaContinuation(
             generated.Experiment,
-            MultiAreaModelSelection.Phase2,
+            selection,
             stage4: null,
             stage5: null,
             phase2: generated.Options,
-            economy: null,
+            economy: restoredEconomyOptions,
             genesisRecipe: generated.Recipe);
-        var result = session.RestoreVerifiedV3IntoFreshSession(decoded, registry ?? FeatureBlockRegistry.Default);
+        var result = session.RestoreVerifiedV3IntoFreshSession(decoded, reg);
         return (session, generated.Experiment, result);
     }
 
-    private MultiAreaLoadResult RestoreVerifiedV3IntoFreshSession(SaveV3Decoded decoded, FeatureBlockRegistry registry)
+    internal MultiAreaLoadResult RestoreVerifiedV3IntoFreshSession(SaveV3Decoded decoded, FeatureBlockRegistry registry)
     {
         lock (sync)
         {
-            RequireSameOptions(decoded.Envelope.State.Options);
             var restored = Phase1RootMapping.Restore(decoded.Envelope.State, Phase1RootMapping.VectorOf(models));
             var candidateRoot = restored.Root;
             foreach (var (key, block) in decoded.Envelope.Blocks)
@@ -637,6 +659,7 @@ internal sealed partial class MultiAreaContinuation
                 var codec = registry.RequireCodecForDecode(key, block.BlockVersion);
                 candidateRoot = codec.Decode(block.CanonicalDataJson, block.BlockVersion, candidateRoot);
             }
+            RequireSameOptions(decoded.Envelope.State.Options, candidateRoot.Economy?.Options);
             var candidate = WithSavedApprovalAsDraft(candidateRoot, restored.SavedApproval);
             RequireLegalRestoredOrders(candidate);
             root = candidate;
@@ -701,15 +724,15 @@ internal sealed partial class MultiAreaContinuation
     // The saved deterministic options must be exactly this session's options. A forest is never continued under a different
     // Stage 4 growth-phase table, Stage 5 grid/browse/mast seed, or Phase 2 seed/species map (review finding: the Stage 4
     // phases used to be silently taken from the running session while the other options came from the file).
-    private void RequireSameOptions(Phase1Options saved)
+    private void RequireSameOptions(Phase1Options saved, EconomyOptions? savedEconomy = null)
     {
         var mine = Phase1RootMapping.OptionsOf(root, stage4Options);
         bool same = SameStage4(mine.Stage4, saved.Stage4) && SameStage5(mine.Stage5, saved.Stage5) &&
-            SamePhase2(mine.Phase2, saved.Phase2) && SameEconomy(economyOptions, null);
+            SamePhase2(mine.Phase2, saved.Phase2) && SameEconomy(economyOptions, savedEconomy);
         if (!same)
             throw new P1Refusal("SaveOptionsMismatch",
-                "this save was made with different Stage 4 growth phases, Stage 5 grid/browse/mast options or Phase 2 seeds " +
-                "than this session has; options are never substituted or re-derived on load");
+                "this save was made with different Stage 4 growth phases, Stage 5 grid/browse/mast options, Phase 2 seeds " +
+                "or Economy options than this session has; options are never substituted or re-derived on load");
     }
 
     private static bool SameStage4(Phase1Stage4Options? a, Phase1Stage4Options? b)
