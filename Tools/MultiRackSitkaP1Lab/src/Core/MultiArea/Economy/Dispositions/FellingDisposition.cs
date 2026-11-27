@@ -63,11 +63,19 @@ internal static class FellingDispositionEvidence
 /// <summary>Pure helpers that resolve which disposition applies to each Fell order.</summary>
 internal static class FellingDispositionRules
 {
+    // Every disposition map this engine publishes (quote, approved quote, state, view and these shared defaults) is a
+    // ReadOnlyDictionary over a privately owned backing map: a caller that casts it to IDictionary gets
+    // NotSupportedException instead of silently changing a frozen or authoritative value. Enumeration order is the
+    // backing map's own order, so wrapping never changes determinism.
     internal static readonly IReadOnlyDictionary<EconomyOrderKey, FellingDispositionChoice> EmptyChoices =
-        new Dictionary<EconomyOrderKey, FellingDispositionChoice>();
+        ReadOnly(new Dictionary<EconomyOrderKey, FellingDispositionChoice>());
 
     internal static readonly IReadOnlyDictionary<EconomyOrderKey, FellingDisposition> EmptyResolved =
-        new SortedDictionary<EconomyOrderKey, FellingDisposition>();
+        ReadOnly(new SortedDictionary<EconomyOrderKey, FellingDisposition>());
+
+    /// <summary>Read-only wrapper over a map the caller has just built and will not keep or mutate afterwards.</summary>
+    internal static IReadOnlyDictionary<TKey, TValue> ReadOnly<TKey, TValue>(IDictionary<TKey, TValue> owned)
+        where TKey : notnull => new System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>(owned);
 
     /// <summary>
     /// Resolves the disposition of every Fell order in <paramref name="orders"/>: an explicit choice applies only when it
@@ -88,7 +96,7 @@ internal static class FellingDispositionRules
                 ? choice.Disposition
                 : FellingDisposition.SellAndExtract;
         }
-        return resolved;
+        return ReadOnly(resolved);
     }
 
     /// <summary>Only the explicitly chosen, non-default dispositions that still belong to a current pending order.</summary>
@@ -102,7 +110,7 @@ internal static class FellingDispositionRules
             if (disposition != FellingDisposition.SellAndExtract)
                 result[key] = disposition;
         }
-        return result;
+        return ReadOnly(result);
     }
 
     /// <summary>True when two resolved maps assign exactly the same disposition to exactly the same orders.</summary>

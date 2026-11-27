@@ -129,7 +129,7 @@ internal sealed partial class MultiAreaContinuation
 
             root = root with
             {
-                Economy = econ with { PendingFellDispositions = next },
+                Economy = econ with { PendingFellDispositions = FellingDispositionRules.ReadOnly(next) },
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
             };
             return WithView(null, null);
@@ -192,7 +192,7 @@ internal sealed partial class MultiAreaContinuation
         {
             var nextDispositions = new Dictionary<EconomyOrderKey, FellingDispositionChoice>(econ.PendingFellDispositions);
             nextDispositions.Remove(key);
-            econ = econ with { PendingFellDispositions = nextDispositions };
+            econ = econ with { PendingFellDispositions = FellingDispositionRules.ReadOnly(nextDispositions) };
         }
         if (!econ.PendingOrderExecutors.ContainsKey(key)) return econ;
         var next = new Dictionary<EconomyOrderKey, WorkExecutor>(econ.PendingOrderExecutors);

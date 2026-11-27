@@ -27,7 +27,8 @@ internal sealed record RetainedTimberAmount(string SpeciesId, long RetainedTimbe
 /// A retained-timber tally: a settlement's delta, a quote's expected delta, or the session's cumulative balance.
 /// <see cref="RetainedTimberCm3"/> is the exact sum of the listed stems; <see cref="BySpecies"/> is keyed by species id
 /// (ordinal order). Built only by the engine from graded stems — there is no constructor path that accepts a volume
-/// from a player command.
+/// from a player command. <see cref="BySpecies"/> is published as a ReadOnlyDictionary over a privately owned ordinal
+/// SortedDictionary, so the authoritative balance cannot be changed through a cast to IDictionary.
 /// </summary>
 internal sealed record RetainedTimberTally(
     long RetainedTimberCm3,
@@ -38,7 +39,8 @@ internal sealed record RetainedTimberTally(
 
     public static readonly RetainedTimberTally Empty = new(
         0L,
-        new SortedDictionary<string, RetainedTimberAmount>(StringComparer.Ordinal),
+        new System.Collections.ObjectModel.ReadOnlyDictionary<string, RetainedTimberAmount>(
+            new SortedDictionary<string, RetainedTimberAmount>(StringComparer.Ordinal)),
         Array.Empty<RetainedTimberStem>());
 
     /// <summary>Exact tally of <paramref name="stems"/> in the given order.</summary>
@@ -62,7 +64,8 @@ internal sealed record RetainedTimberTally(
         var amounts = new SortedDictionary<string, RetainedTimberAmount>(StringComparer.Ordinal);
         foreach (var (species, cm3) in bySpecies)
             amounts[species] = new RetainedTimberAmount(species, cm3);
-        return new RetainedTimberTally(total, amounts, Array.AsReadOnly(list));
+        return new RetainedTimberTally(total,
+            new System.Collections.ObjectModel.ReadOnlyDictionary<string, RetainedTimberAmount>(amounts), Array.AsReadOnly(list));
     }
 
     /// <summary>This tally followed by <paramref name="delta"/> (cumulative balance update).</summary>

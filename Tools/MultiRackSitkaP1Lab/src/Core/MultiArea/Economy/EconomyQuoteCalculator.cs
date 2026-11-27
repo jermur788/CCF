@@ -456,7 +456,7 @@ internal static class EconomyQuoteCalculator
                 Issues: Array.AsReadOnly(issues.ToArray()),
                 EvidenceLabels: EconomyEvidence.All)
             {
-                FellDispositions = resolvedDispositions,
+                FellDispositions = FellingDispositionRules.ReadOnly(resolvedDispositions),
             };
         }
     }
