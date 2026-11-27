@@ -308,8 +308,20 @@ internal static class DispositionTests
                 T.Eq(r.ExecutionKey, intent.ExecutionKey, "intent execution key");
                 T.Eq(r.PlanId, intent.PlanId, "intent plan id");
             }
-            // Engine half: Execute does NOT append to Stage 4 yet (follow-up wiring step).
-            T.Eq(deadwoodBefore, Root(session).Stage4?.Deadwood.Count ?? 0, "Stage 4 deadwood unchanged in the engine half");
+            // Phase 2B-2b final wiring: Execute materialises settled LeaveAsDeadwood intents directly into Stage 4 Deadwood.
+            var stage4After = Root(session).Stage4!;
+            T.Eq(deadwoodBefore + 3, stage4After.Deadwood.Count, "Stage 4 deadwood appended 3 felled records on Execute");
+            T.Eq(nextBefore + 3, stage4After.NextDeadwoodNumber, "Stage 4 NextDeadwoodNumber advanced by 3");
+            var appended = stage4After.Deadwood.Skip(deadwoodBefore).ToArray();
+            for (int i = 0; i < 3; i++)
+            {
+                var d = appended[i];
+                var intent = r.DeadwoodIntents[i];
+                T.Eq(FallenDeadwoodRecord.IdFor(nextBefore + i), d.DeadwoodId, "materialised DW id");
+                T.Eq(intent.TreeId, d.TreeId, "materialised treeId");
+                T.Eq(FellCause.Harvest, d.Cause, "materialised cause");
+                T.Eq(BitConverter.SingleToInt32Bits(intent.VolumeM3), BitConverter.SingleToInt32Bits(d.EstimatedVolumeM3), "materialised volume bits");
+            }
 
             var (records, next) = FelledStemDeadwood.Materialise(r.DeadwoodIntents, 7);
             T.Eq(10, next, "next number after three records");

@@ -496,6 +496,9 @@ import { showPane } from './work-plan.js';
     if (isEconomyEnabled()) {
       const eh = state.historyEconomyDetail;
       if (eh && eh.year === d.workYear && eh.economyActive) {
+        const spRetained = Array.isArray(eh.retainedTimberBySpecies) && eh.retainedTimberBySpecies.length > 0
+          ? ' (' + eh.retainedTimberBySpecies.map((sp) => sp.speciesLabel + ': ' + sp.volumeDisplay).join(', ') + ')'
+          : '';
         const finParts = [
           el('div', { class: 'history-card-head' },
             el('h3', null, 'Financial Ledger — Year ' + eh.year),
@@ -506,9 +509,20 @@ import { showPane } from './work-plan.js';
             ['External costs paid', eh.totalExternalCostDisplay],
             ['Timber revenue credited', eh.totalTimberRevenueDisplay],
             ['Net cash delta', eh.netCashDeltaDisplay],
+            ['Retained timber added', (eh.retainedTimberAddedDisplay || '0.000 m³') + spRetained],
             ['Landowner time used', eh.landownerMinutesUsedDisplay],
           ]),
         ];
+        if (Array.isArray(eh.stemDispositions) && eh.stemDispositions.length > 0) {
+          finParts.push(table('Felling dispositions — Year ' + eh.year,
+            ['Tree', 'Species', 'Disposition', 'Retained', 'Income'],
+            eh.stemDispositions.map((row) => [
+              row.treeId,
+              row.speciesLabel,
+              row.dispositionLabel,
+              row.disposition === 'KeepForUse' ? row.retainedTimberDisplay : (row.emitsDeadwoodIntent ? 'Deadwood' : '–'),
+              row.creditedTimberRevenueDisplay])));
+        }
         if (Array.isArray(eh.ledger) && eh.ledger.length > 0) {
           finParts.push(table('Recorded ledger entries — Year ' + eh.year,
             ['Category', 'Reference', 'Cash delta', 'Work rev'],

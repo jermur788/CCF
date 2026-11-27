@@ -246,6 +246,14 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
       'plan-heading');
   }
 
+  export function onSetFellingDisposition(areaId, treeId, disposition) {
+    if (!areaId || !treeId || !disposition || !state.view || state.batch || state.queueRunning) return;
+    run('api/multi/economy/disposition', { fence: currentFence(), areaId, treeId, disposition },
+      'Set felling disposition for ' + treeId + ' to ' + disposition,
+      () => announce('Updated felling disposition for ' + treeId + '. Fresh server quote loaded.'),
+      'plan-heading');
+  }
+
   export function openEconomyToggleDialog() {
     const view = state.view;
     if (!view || state.busy || state.batch || state.queueRunning || refusedByLock('Switch Money mode')) return;
@@ -272,7 +280,9 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
       ? 'Unsaved progress will be discarded: ' + dirtyParts.join(', ') + '. Confirm to reset to a fresh Year-0 session.'
       : '';
     byId('economy-toggle-note').textContent = targetEnabled
-      ? 'Note: Economy sessions require Save v3 (deferred to Phase 2B-2b), so Save v2 slots cannot be saved or loaded while Money is On. Earlier session tokens will be invalidated.'
+      ? (state.recipe
+        ? 'Note: Forest Maker woodlands save and load Economy state in Save v3 slots. Earlier session tokens will be invalidated.'
+        : 'Note: Built-in stands (MA-1 / MA-1-MIXED) use frozen Save v2 and cannot save while Money is On; start a Forest Maker woodland for Save v3. Earlier session tokens will be invalidated.')
       : 'Earlier session tokens will be invalidated and local selections will reset to Year 0.';
     byId('economy-toggle-confirm').textContent = dirty
       ? (targetEnabled ? 'Discard progress and turn Money On' : 'Discard progress and turn Money Off')
@@ -381,14 +391,21 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
       const q = isEconomyEnabled() && state.economy ? state.economy.activeQuote : null;
       econBox.hidden = !q;
       if (q) {
-        econBox.replaceChildren(
+        const h = q.harvestJob;
+        const dispLine = h
+          ? ('Retained timber added: ' + (h.retainedTimber ? h.retainedTimber.volumeDisplay : '0.000 m³') +
+            ' · Fallen deadwood created: ' + plural(h.deadwoodIntentCount || 0, 'stem', 'stems') + '.')
+          : null;
+        econBox.replaceChildren(...[
           el('p', null, el('strong', null, 'Frozen financial settlement: '),
             'Upfront external cost ' + q.upfrontCashRequiredDisplay +
             ' · Expected timber income ' + q.timberSaleRevenueDisplay +
             ' · Net cash impact ' + q.netCashDeltaDisplay + '.'),
+          dispLine ? el('p', { class: 'small-note' }, dispLine) : null,
           el('p', { class: 'small-note' },
             'Landowner time: ' + q.totalOwnerHoursRequiredDisplay +
-            '. Settles atomically with physical forestry work; replaying never double-charges.'));
+            '. Settles atomically with physical forestry work; replaying never double-charges.'),
+        ].filter(Boolean));
       } else {
         econBox.replaceChildren();
       }

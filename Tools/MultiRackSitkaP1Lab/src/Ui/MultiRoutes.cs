@@ -52,6 +52,7 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiRecoverMembers = new[] { "slot" };
     private static readonly string[] MultiEconomySessionMembers = MultiFenceMembers.Concat(new[] { "enabled", "confirmReset" }).ToArray();
     private static readonly string[] MultiEconomyExecutorMembers = MultiFenceMembers.Concat(new[] { "kind", "areaId", "targetKey", "executor" }).ToArray();
+    private static readonly string[] MultiEconomyDispositionMembers = MultiFenceMembers.Concat(new[] { "areaId", "treeId", "disposition" }).ToArray();
     private static readonly string[] MultiStandPostMembers = MultiFenceMembers.Append("lanes").ToArray();
     private static readonly string[] MultiWoodlandPreviewMembers = { "recipe" };
     private static readonly string[] MultiWoodlandNewMembers = MultiFenceMembers
@@ -156,11 +157,12 @@ internal sealed partial class PlayerApi
             (pair, request) => RefusableMulti(pair, () => pair.Session.AddSpotClear(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
         routes.Add("api/multi/planting/remove", new("POST", context => MultiCommandAsync<MultiPlantingRemoveRequest>(context, MultiPlantingRemoveMembers,
             (pair, request) => RefusableMulti(pair, () => pair.Session.RemovePlanting(request.Fence!, request.OrderId!)))));
-        // Phase 2B-2a Economy UI endpoints (server-authoritative; zero JS economy math; Off payloads stay byte-comparable).
+        // Phase 2B-2a / 2B-2b Economy UI endpoints (server-authoritative; zero JS economy math; Off payloads stay byte-comparable).
         routes.Add("api/multi/economy/view", new("GET", ReadMultiEconomyViewAsync));
         routes.Add("api/multi/economy/session", new("POST", SwitchMultiEconomySessionAsync));
         routes.Add("api/multi/economy/quote", new("POST", QuoteMultiEconomyAsync));
         routes.Add("api/multi/economy/executor", new("POST", SetMultiOrderExecutorAsync));
+        routes.Add("api/multi/economy/disposition", new("POST", SetMultiFellingDispositionAsync));
         routes.Add("api/multi/economy/history/year", new("POST", ReadMultiEconomyHistoryYearAsync));
         // Phase 2A-2 Forest Maker woodland creation & C-FENCE lane-filtered stand reads.
         routes.Add("api/multi/stand", new("GET", ReadMultiStandAsync, ReadMultiStandPostAsync));
@@ -232,7 +234,7 @@ internal sealed partial class PlayerApi
         if (root.ValueKind != JsonValueKind.Object) throw new JsonException("the body must be one JSON object");
         foreach (var (name, limit) in new[] { ("areaId", MaxIdLength), ("treeId", MaxIdLength), ("speciesId", MaxIdLength),
                      ("orderId", MaxIdLength), ("planId", MaxPlanKeyLength), ("executionKey", MaxPlanKeyLength),
-                     ("kind", MaxIdLength), ("targetKey", MaxIdLength), ("executor", MaxIdLength),
+                     ("kind", MaxIdLength), ("targetKey", MaxIdLength), ("executor", MaxIdLength), ("disposition", MaxIdLength),
                      ("slot", 48), ("label", 64) })
         {
             if (!root.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String) continue;
@@ -286,6 +288,12 @@ internal sealed partial class PlayerApi
         string? AreaId,
         string? TargetKey,
         string? Executor);
+
+    private sealed record MultiEconomyDispositionRequest(
+        MultiAreaFence? Fence,
+        string? AreaId,
+        string? TreeId,
+        string? Disposition);
 
     private static byte[] MultiEmbeddedAsset(string logicalName)
     {

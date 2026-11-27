@@ -421,7 +421,11 @@ import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, dr
       case 'EconomyResetConfirmationRequired':
         return 'Confirm discarding unsaved progress before starting a fresh Year-0 session.';
       case 'SaveEconomyRequiresV3':
-        return 'Saving and loading Economy sessions require Save v3 (deferred to Phase 2B-2b). Switch Money Off to use Save v2 slots.';
+        return 'Built-in stands (MA-1 / MA-1-MIXED) use frozen Save v2 and cannot be saved while Money is On. Start a Forest Maker woodland for Save v3, or switch Money Off for Save v2.';
+      case 'EconomyDispositionUnknown':
+        return 'Choose Sell & Extract, Keep for Own Use, or Leave as Deadwood and try again.';
+      case 'EconomyDeadwoodRequiresStage4':
+        return 'Leave as Deadwood requires Stage 4 fallen-deadwood tracking, which is unavailable on this legacy stand.';
       case 'EconomyQuoteDrift':
       case 'EconomyApprovedQuoteMissing':
         return 'Cancel the approved plan, review the updated quote, and approve again.';
@@ -510,6 +514,7 @@ import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, dr
     for (const button of document.querySelectorAll('[data-clear-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-planting-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-executor-value]')) button.disabled = blocked || planLocked;
+    for (const button of document.querySelectorAll('[data-disposition-value]')) button.disabled = blocked || planLocked;
     if (!blocked) {
       hooks.renderPruneGate();
       byId('cell-clear-add').disabled = planLocked || !isPhase2();

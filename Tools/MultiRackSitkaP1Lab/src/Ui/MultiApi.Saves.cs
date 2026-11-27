@@ -10,22 +10,23 @@ internal sealed partial class PlayerApi
 {
     // ---- Phase 1 Save v2 & Phase 2A-2 Save v3 (C-V3) -------------------------------------------------------------------
 
-    // Lists every server-managed slot (v2 and v3). Valid self-contained v3 Forest Maker saves show status="valid" and
-    // canLoad=true even when another stand is currently open (loading swaps the host atomically); v2 saves require an
-    // exact identity match with the active built-in stand. Economy-enabled sessions surface SaveEconomyRequiresV3 cleanly.
+    // Lists every server-managed slot (v2 and v3). Valid self-contained v3 Forest Maker saves (Money On or Off) show
+    // status="valid" and canLoad=true even when another stand is currently open (loading swaps the host atomically);
+    // v2 saves require an exact identity match with the active built-in Money-Off stand. Built-in Economy sessions
+    // surface SaveEconomyRequiresV3 while still listing loadable v3 Forest Maker slots.
     private Task ReadMultiSavesAsync(HttpContext context)
     {
         var slots = new List<MultiSlotInfo>();
-        Phase1SaveExpectation expectation;
-        try
+        Phase1SaveExpectation? expectation = null;
+        bool economyEnabled;
+        bool isForestMaker;
+        lock (multiHost.SyncLock)
         {
-            expectation = multiHost.Current.Session.SaveExpectation();
-        }
-        catch (P1Refusal refusal)
-        {
-            // Economy-enabled sessions refuse Save v2/v3 until Phase 2B-2b economy block exists; surface cleanly without 500/stderr.
-            return WriteJsonAsync(context, StatusCodes.Status200OK,
-                new MultiSavesPayload(Array.Empty<MultiSlotInfo>(), new Notice(refusal.Code, refusal.Message)));
+            var active = multiHost.Current;
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            isForestMaker = active.Session.IsForestMaker;
+            if (!economyEnabled)
+                expectation = active.Session.SaveExpectation();
         }
         foreach (string slot in saveV3Slots.ListSlots())
         {
@@ -35,6 +36,7 @@ internal sealed partial class PlayerApi
             string? label = null, savedUtc = null, models = null, experimentId = null;
             int? year = null;
             int? schemaVersion = inspection.PrimarySchemaVersion;
+            bool? slotEconomyEnabled = null;
             if (!inspection.PrimaryExists)
             {
                 status = "missing";
@@ -51,6 +53,19 @@ internal sealed partial class PlayerApi
                         var header = loadedV3.Header;
                         status = "valid";
                         refusal = null;
+                        label = header.Label;
+                        year = header.EcologicalYear;
+                        savedUtc = header.SavedUtc;
+                        models = header.Models.ToString();
+                        experimentId = header.Genesis.ExperimentId;
+                        slotEconomyEnabled = loadedV3.V3!.GenesisRecipe?.EconomyEnabled;
+                    }
+                    else if (expectation is null)
+                    {
+                        var loadedV2 = saveV3Slots.Load(slot, v2Expectation: null);
+                        var header = loadedV2.Header;
+                        status = "incompatible";
+                        refusal = "SaveEconomyRequiresV3";
                         label = header.Label;
                         year = header.EcologicalYear;
                         savedUtc = header.SavedUtc;
@@ -80,9 +95,12 @@ internal sealed partial class PlayerApi
             bool backupLoadable = inspection.BackupExists && inspection.BackupRefusal is null;
             slots.Add(new MultiSlotInfo(slot, label, year, savedUtc, models, status, status == "valid",
                 inspection.BackupExists, backupLoadable, !primaryVerifies && backupLoadable, refusal,
-                schemaVersion, experimentId));
+                schemaVersion, experimentId, slotEconomyEnabled));
         }
-        return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavesPayload(slots.AsReadOnly(), null));
+        Notice? topRefusal = economyEnabled && !isForestMaker
+            ? new Notice("SaveEconomyRequiresV3", EconomyBuiltInSaveBlockedNote)
+            : null;
+        return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavesPayload(slots.AsReadOnly(), topRefusal));
     }
 
     // Saves the current fenced session into a named slot: v2 for MA-1 / MA-1-MIXED, C-V3 for Forest Maker stands.
@@ -256,7 +274,8 @@ internal sealed partial class PlayerApi
     private sealed record MultiSlotInfo(string Slot, string? Label, int? EcologicalYear, string? SavedUtc, string? Models,
         string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, bool Recoverable, string? RefusalCode,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SchemaVersion = null,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ExperimentId = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ExperimentId = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? EconomyEnabled = null);
 
     private sealed record MultiSavesPayload(IReadOnlyList<MultiSlotInfo> Slots, Notice? Refusal);
 

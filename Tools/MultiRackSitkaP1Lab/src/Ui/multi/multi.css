@@ -478,6 +478,14 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .exec-btn + .exec-btn { border-left: 1px solid var(--line); }
 .exec-btn[aria-pressed="true"] { background: var(--blue); color: #ffffff; }
 .exec-btn:disabled { cursor: not-allowed; opacity: .6; }
+.disp-row { grid-column: 1 / -1; grid-row: 4; display: grid; gap: .22rem; margin-top: .2rem; font-size: .73rem; }
+.disp-group { display: flex; flex-wrap: wrap; gap: .22rem; }
+.disp-btn { min-width: 0; min-height: 28px; padding: .12rem .42rem; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--muted); font-size: .7rem; font-weight: 600; white-space: nowrap; }
+.disp-btn:hover:not(:disabled) { background: var(--panel-2); color: var(--text); }
+.disp-btn[aria-pressed="true"] { border-color: var(--gold-edge); background: #2c2717; color: var(--gold-edge); }
+.disp-btn:disabled { cursor: not-allowed; opacity: .6; }
+.disp-meta { color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
+.disp-pill { display: inline-flex; align-items: center; padding: .08rem .45rem; border: 1px solid var(--gold); border-radius: 999px; background: #252014; color: var(--gold-edge); font-size: .7rem; font-weight: 600; white-space: nowrap; }
 .economy-exec-summary { margin: .45rem 0 .6rem; padding: .5rem .7rem; border: 1px solid var(--gold); border-radius: 6px; background: #222018; font-size: .84rem; }
 .economy-exec-summary p { margin: .18rem 0; }
 .history-card-finance { border-left-color: var(--gold); }
@@ -618,9 +626,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
   .skip-review .btn-title, .advance .btn-title { font-size: .7rem; white-space: nowrap; }
   .skip-review .btn-sub, .advance .btn-sub { font-size: .56rem; white-space: nowrap; }
   .reread { min-width: 0; min-height: 36px; padding: .2rem .36rem; font-size: .71rem; white-space: nowrap; }
-  .economy-strip { padding: .22rem var(--gutter); gap: .35rem .85rem; font-size: .75rem; }
-  .economy-strip-val { font-size: .86rem; }
-  .economy-strip-note { font-size: .68rem; }
+  .economy-strip { padding: .2rem var(--gutter); gap: .25rem .72rem; font-size: .74rem; }
+  .economy-strip-val { font-size: .84rem; }
+  .economy-strip-note { font-size: .66rem; }
   .card { padding: .45rem .85rem; }
   .area-card-count strong { font-size: 1.2rem; }
   .plan-card-main strong { font-size: 1.02rem; }

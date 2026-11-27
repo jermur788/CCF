@@ -73,7 +73,7 @@ internal sealed partial class PlayerApi
                     var pending = active.Session.QuoteWorkPlan(fence);
                     if (pending.HarvestJob is not null || pending.NonHarvestLines.Count > 0) quote = pending;
                 }
-                var dto = BuildEconomySnapshot(econView, quote, frozen);
+                var dto = BuildEconomySnapshot(econView, quote, frozen, active.Session.IsForestMaker);
                 status = StatusCodes.Status200OK;
                 payload = new MultiEconomyViewPayload(
                     econView.SessionId, econView.PlanStateRevision, econView.Source, economyEnabled, dto, Refusal: null);
@@ -203,6 +203,17 @@ internal sealed partial class PlayerApi
                     throw new P1Refusal("EconomyExecutorUnknown", "unknown work executor: " + request.Executor);
                 var key = new EconomyOrderKey(kind, request.AreaId!, request.TargetKey!);
                 return active.Session.SetOrderExecutor(request.Fence!, key, executor);
+            }));
+
+    // Per-Fell-order felling disposition (POST api/multi/economy/disposition). Refuses unknown enum, edits while approved
+    // (WorkPlanAlreadyApproved), or LeaveAsDeadwood without Stage 4 (EconomyDeadwoodRequiresStage4); state unchanged on refusal.
+    private Task SetMultiFellingDispositionAsync(HttpContext context) =>
+        MultiCommandAsync<MultiEconomyDispositionRequest>(context, MultiEconomyDispositionMembers, (active, request) =>
+            RefusableMulti(active, () =>
+            {
+                if (!Enum.TryParse<FellingDisposition>(request.Disposition, ignoreCase: false, out var disposition) || !Enum.IsDefined(disposition))
+                    throw new P1Refusal("EconomyDispositionUnknown", "unknown felling disposition: " + request.Disposition);
+                return active.Session.SetFellingDisposition(request.Fence!, request.AreaId!, request.TreeId!, disposition);
             }));
 
     private sealed record MultiCommandPayload(object View, object Scenes,

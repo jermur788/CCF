@@ -34,6 +34,58 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
       el('span', { class: 'exec-pill exec-locked', title: tip }, 'Contractor only'));
   }
 
+  const DISPOSITION_OPTIONS = [
+    ['SellAndExtract', 'Sell & Extract'],
+    ['KeepForUse', 'Keep for Own Use'],
+    ['LeaveAsDeadwood', 'Leave as Deadwood'],
+  ];
+
+  function stemDispositionInfo(areaId, treeId) {
+    const econ = state.economy;
+    if (econ && econ.activeQuote && econ.activeQuote.harvestJob && Array.isArray(econ.activeQuote.harvestJob.stemDispositions)) {
+      const line = econ.activeQuote.harvestJob.stemDispositions.find((d) =>
+        d.areaId === areaId && d.treeId === treeId);
+      if (line) return { disposition: line.disposition, label: line.dispositionLabel, line };
+    }
+    if (econ && Array.isArray(econ.pendingFellDispositions)) {
+      const pending = econ.pendingFellDispositions.find((d) =>
+        d.areaId === areaId && d.treeId === treeId);
+      if (pending) return { disposition: pending.disposition, label: pending.dispositionLabel, line: null };
+    }
+    return { disposition: 'SellAndExtract', label: 'Sell & Extract', line: null };
+  }
+
+  function fellDispositionRow(order, approved) {
+    if (!isEconomyEnabled()) return null;
+    const info = stemDispositionInfo(order.areaId, order.treeId);
+    const line = info.line;
+    let metaText = '';
+    if (info.disposition === 'KeepForUse') {
+      metaText = 'Retained (engine-graded, non-cash): ' + (line ? line.retainedTimberDisplay : '–') + ' · ' + (line ? line.creditedTimberRevenueDisplay : '€0.00');
+    } else if (info.disposition === 'LeaveAsDeadwood') {
+      metaText = 'Left on site as fallen deadwood' + (line ? ' (' + line.stemVolumeDisplay + ')' : '') + ' · ' + (line ? line.creditedTimberRevenueDisplay : '€0.00');
+    } else if (line) {
+      metaText = 'Roadside sale: ' + line.creditedTimberRevenueDisplay + ' (' + line.stemVolumeDisplay + ')';
+    }
+    if (approved) {
+      return el('span', { class: 'disp-row', 'data-disposition-row': order.treeId },
+        el('span', { class: 'disp-pill' }, 'Disposition: ' + info.label),
+        metaText ? el('span', { class: 'disp-meta' }, metaText) : null);
+    }
+    return el('span', { class: 'disp-row', 'data-disposition-row': order.treeId },
+      el('span', { class: 'disp-group', role: 'group', 'aria-label': 'Felling disposition for ' + order.treeId },
+        ...DISPOSITION_OPTIONS.map(([val, text]) => el('button', {
+          type: 'button',
+          class: 'disp-btn',
+          'data-disposition-area': order.areaId,
+          'data-disposition-tree': order.treeId,
+          'data-disposition-value': val,
+          'data-focus-key': 'disp:' + order.areaId + ':' + order.treeId + ':' + val,
+          'aria-pressed': String(info.disposition === val),
+        }, text))),
+      metaText ? el('span', { class: 'disp-meta', 'data-disposition-readout': order.treeId }, metaText) : null);
+  }
+
   function nonHarvestExecutorRow(kind, areaId, targetKey, approved) {
     if (!isEconomyEnabled()) return null;
     const current = executorForOrder(kind, areaId, targetKey);
@@ -65,6 +117,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
         el('span', { class: 'mono' }, order.treeId)),
       el('span', { class: 'order-reason' }, order.reason),
       fellExecutorRow(),
+      fellDispositionRow(order, approved),
       removable ? el('button', { type: 'button', class: 'small', 'data-remove': order.treeId, 'data-area': order.areaId,
         'data-focus-key': 'remove:' + order.treeId, 'aria-label': label('MultiRemoveFromPlan') + ': ' + order.treeId },
       label('MultiRemoveFromPlan')) : null)));
@@ -165,6 +218,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
         el('dl', { class: 'econ-summary' },
           pair('Available cash', econ.cashBalanceDisplay),
           pair('Landowner allowance', econ.landownerHoursDisplay),
+          pair('Retained timber (cumulative)', econ.retainedTimber ? econ.retainedTimber.volumeDisplay : '0.000 m³'),
           pair('Next thinning stage', econ.nextHarvestStageLabel),
           pair('Harvest minimum floor', econ.minimumHarvestFloorDisplay)));
       return;
@@ -186,6 +240,8 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
       pair('Expected timber income', q.timberSaleRevenueDisplay),
       el('div', null, el('dt', null, 'Net cash impact'),
         el('dd', { class: q.netCashIsLoss ? 'econ-loss' : 'econ-gain' }, q.netCashDeltaDisplay)),
+      q.harvestJob ? pair('Retained timber (this plan)', q.harvestJob.retainedTimber ? q.harvestJob.retainedTimber.volumeDisplay : '0.000 m³') : null,
+      q.harvestJob ? pair('Fallen deadwood stems', String(q.harvestJob.deadwoodIntentCount || 0)) : null,
       pair('Landowner hours', q.totalOwnerHoursRequiredDisplay),
       pair('Contractor hours (non-harvest)', q.totalContractorHoursDisplay)));
 
@@ -193,22 +249,32 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
       const h = q.harvestJob;
       parts.push(el('p', { class: 'small-note' },
         'Grouped contractor harvest (' + h.stageLabel + ' · ' + plural(h.felledStemCount, 'stem', 'stems') +
-        ' · ' + h.totalStemVolumeDisplay + ' total, ' + h.saleVolumeDisplay + ' merchantable, ' + h.harvestedTonnesDisplay + ').'));
+        ' · ' + h.totalStemVolumeDisplay + ' total, ' + h.saleVolumeDisplay + ' sold, ' +
+        h.retainedStemVolumeDisplay + ' kept, ' + h.deadwoodStemVolumeDisplay + ' deadwood, ' + h.harvestedTonnesDisplay + ').'));
       parts.push(el('p', {
         class: h.minimumJobFloorApplied ? 'econ-floor-highlight' : 'small-note',
         'data-floor-applied': String(Boolean(h.minimumJobFloorApplied)),
       }, h.minimumJobFloorHighlight));
+      if (Array.isArray(h.stemDispositions) && h.stemDispositions.length > 0) {
+        parts.push(el('div', { class: 'econ-table-wrap' }, table(
+          'Felling dispositions (server-calculated)',
+          ['Tree', 'Disposition', 'Retained', 'Income'],
+          h.stemDispositions.map((d) => [
+            d.treeId,
+            d.dispositionLabel,
+            d.disposition === 'KeepForUse' ? d.retainedTimberDisplay : (d.emitsDeadwoodIntent ? 'Deadwood' : '–'),
+            d.creditedTimberRevenueDisplay]))));
+      }
       if (Array.isArray(h.assortments) && h.assortments.length > 0) {
         parts.push(el('div', { class: 'econ-table-wrap' }, table(
-          'Expected timber income by species & grade (sell-and-extract path)',
+          'Expected timber income by species & grade (Sell & Extract stems)',
           ['Species / Grade', 'Vol', 'Rate', 'Income'],
           h.assortments.map((a) => [
             a.speciesLabel + ' · ' + a.assortmentLabel + ' (' + a.pieceCount + ')',
             a.volumeDisplay, a.unitPriceDisplay, a.revenueDisplay]))));
       } else {
-        parts.push(el('p', { class: 'small-note' }, 'No merchantable assortments allocated for these felled stems (residual volume only; ' + h.timberSaleRevenueDisplay + ' expected timber income).'));
+        parts.push(el('p', { class: 'small-note' }, 'No Sell & Extract merchantable assortments in this plan (' + h.timberSaleRevenueDisplay + ' expected timber income).'));
       }
-      parts.push(el('p', { class: 'small-note' }, 'Felled timber is priced and settled through the sell-and-extract engine path. Dispositions are deferred.'));
     }
 
     if (Array.isArray(q.nonHarvestLines) && q.nonHarvestLines.length > 0) {
@@ -347,6 +413,8 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approve
           ['External costs paid', s.totalExternalCostDisplay],
           ['Timber income credited', s.timberSaleRevenueDisplay],
           ['Net cash delta', s.netCashDeltaDisplay],
+          ['Retained timber added', s.retainedTimberDelta ? s.retainedTimberDelta.volumeDisplay : '0.000 m³'],
+          ['Fallen deadwood created', plural(s.deadwoodIntentCount || 0, 'stem', 'stems')],
           ['Landowner time', s.ownerHoursBeforeDisplay + ' → ' + s.ownerHoursAfterDisplay + ' (used ' + s.ownerHoursConsumedDisplay + ')'],
         ]));
         if (state.lastWasReplay) {

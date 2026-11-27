@@ -105,32 +105,123 @@ internal static class Phase2A2Tests
             }
         });
 
-        T.Add("P2A-2: C-V3 reserved economy slot refuses save, refuses economy block decode, and refuses missing economy block", () =>
+        T.Add("P2B-2b: C-V3 economy block registered, Forest Maker Economy saves & restores deterministically, built-in refuses, tampered/missing economy block fails closed", () =>
         {
             var reg = FeatureBlockRegistry.Default;
             T.True(reg.TryGetCodec("genesisRecipe", out _), "genesisRecipe codec registered");
-            T.True(reg.TryGetReserved("economy", out _), "economy block reserved");
+            T.True(reg.TryGetCodec("economy", out var econCodec) && econCodec is not null && econCodec.CurrentBlockVersion == 1, "economy v1 codec registered");
+            T.True(!reg.TryGetReserved("economy", out _), "economy is no longer reserved in default registry");
 
-            // Saving an Economy-enabled Forest Maker session refuses fail-closed.
+            // Reserved-slot mechanism still fails closed on a custom registry that reserves economy.
+            var customReg = new FeatureBlockRegistry();
+            customReg.Register(new GenesisRecipeBlockCodec());
+            customReg.Reserve(new ReservedFeatureBlockSlot("economy", "SaveEconomyRequiresV3", "reserved in custom registry"));
+            T.True(customReg.TryGetReserved("economy", out _), "custom reserved slot still works");
+
+            // Built-in stand (MA-1-MIXED) + Economy still refuses Save v2/v3 with SaveEconomyRequiresV3.
             var econModels = MultiAreaModelSelection.Phase2 with { Economy = EconomyModelVersion.Enabled };
-            var (_, econSession) = ForestMakerGenerator.CreateSession(ForestMakerPresets.PureSitka064, econModels);
-            var ev = econSession.ReadView();
-            T.Refuses("SaveEconomyRequiresV3", () => econSession.CaptureSaveBytes(Fence(ev), "Econ FM", 1));
+            var (mixedExp, mixedP2, _) = MultiAreaDemoExperiments.CreateMixedDemo();
+            var builtInEcon = new MultiAreaContinuation(mixedExp, econModels, null, null, mixedP2);
+            T.Refuses("SaveEconomyRequiresV3", () => builtInEcon.CaptureSaveBytes(Fence(builtInEcon.ReadView()), "BuiltIn Econ", 1));
 
-            // Build a valid v3 save and tamper it with economy block or economyEnabled=true (recomputing outer checksum).
+            // Forest Maker + Economy: execute mixed Sell + Keep + Leave plan + Landowner Clear + Advance, then Save v3 -> RestoreFromV3.
+            var (_, econSession) = ForestMakerGenerator.CreateSession(ForestMakerPresets.SitkaEdgeBroadleaves064, econModels);
+            var ev = econSession.ReadView();
+            var area0 = ev.Areas[0];
+            var live = area0.Trees.Where(t => t.IsLiving).Take(3).ToArray();
+            ev = econSession.AddPending(Fence(ev), area0.AreaId, live[0].TreeId, "sell stem").View;
+            ev = econSession.AddPending(Fence(ev), area0.AreaId, live[1].TreeId, "keep stem").View;
+            ev = econSession.AddPending(Fence(ev), area0.AreaId, live[2].TreeId, "deadwood stem").View;
+            ev = econSession.SetFellingDisposition(Fence(ev), area0.AreaId, live[1].TreeId, FellingDisposition.KeepForUse).View;
+            ev = econSession.SetFellingDisposition(Fence(ev), area0.AreaId, live[2].TreeId, FellingDisposition.LeaveAsDeadwood).View;
+            ev = econSession.AddClearUndergrowth(Fence(ev), area0.AreaId, 0, 0).View;
+            ev = econSession.SetOrderExecutor(Fence(ev), EconomyOrderKey.ForClear(area0.AreaId, 0, 0), WorkExecutor.Landowner).View;
+            ev = econSession.Approve(Fence(ev)).View;
+            var exec = econSession.Execute(Fence(ev), ev.Approved!.PlanId, ev.Approved.ExecutionKey);
+            T.True(exec.RefusalCode is null, "mixed economy plan executed: " + exec.RefusalCode);
+            ev = econSession.Advance(Fence(exec.View), consentToCancelWork: false).View;
+
+            // Add a pending Fell with a non-default disposition AND approve to verify Policy A (approval dropped, PendingFellDispositions empty on load).
+            var nextLive = ev.Areas[0].Trees.First(t => t.IsLiving);
+            ev = econSession.AddPending(Fence(ev), area0.AreaId, nextLive.TreeId, "pending across save").View;
+            ev = econSession.SetFellingDisposition(Fence(ev), area0.AreaId, nextLive.TreeId, FellingDisposition.KeepForUse).View;
+            ev = econSession.Approve(Fence(ev)).View;
+
+            var econBefore = econSession.ReadEconomyView();
+            var (schemaVer, econV3Bytes) = econSession.CaptureSaveBytes(Fence(ev), "FM Econ Y1", 1);
+            T.Eq(3, schemaVer, "Forest Maker Economy saves as schema v3");
+            var decoded = SaveV3Codec.Decode(econV3Bytes);
+            T.True(decoded.GenesisRecipe is not null && decoded.GenesisRecipe.EconomyEnabled, "genesisRecipe records economyEnabled=true");
+            T.True(decoded.Envelope.Blocks.ContainsKey("economy"), "v3 save contains blocks.economy");
+
+            var (restoredEcon, _, loadResult) = MultiAreaContinuation.RestoreFromV3(decoded);
+            T.True(loadResult.RefusalCode is null, "v3 economy restore succeeded: " + loadResult.RefusalCode);
+            T.True(restoredEcon.SelectedModels.IsEconomyEnabled, "restored session has Economy enabled");
+            T.True(loadResult.View.Approved is null, "Policy A: approved plan is dropped to pending on load");
+            var econAfter = restoredEcon.ReadEconomyView();
+            T.Eq(econBefore.CashBalanceCents, econAfter.CashBalanceCents, "cash balance restored");
+            T.Eq(econBefore.UsedLandownerMinutesThisYear, econAfter.UsedLandownerMinutesThisYear, "used landowner minutes restored");
+            T.Eq(econBefore.RemainingLandownerMinutes, econAfter.RemainingLandownerMinutes, "remaining landowner minutes restored");
+            T.Eq(econBefore.ExecutedHarvestPlansCount, econAfter.ExecutedHarvestPlansCount, "thinning stage count restored");
+            T.Eq(econBefore.RetainedTimber.RetainedTimberCm3, econAfter.RetainedTimber.RetainedTimberCm3, "retained timber cm3 restored");
+            T.Eq(econBefore.RetainedTimber.BySpecies.Count, econAfter.RetainedTimber.BySpecies.Count, "retained species count restored");
+            T.Eq(econBefore.Settlements.Count, econAfter.Settlements.Count, "settlements restored");
+            T.Eq(econBefore.Ledger.Count, econAfter.Ledger.Count, "ledger restored");
+            T.Eq(econBefore.YearEndSummaries.Count, econAfter.YearEndSummaries.Count, "year-end summaries restored");
+            T.Eq(0, econAfter.PendingFellDispositions.Count, "pending fell dispositions start empty on restored orders");
+            T.True(restoredEcon.ReadUiSnapshot().Readout.Areas[0].Canopy.FallenDeadwood.Any(d => d.TreeId == live[2].TreeId && d.Cause == FellCause.Harvest),
+                "felled LeaveAsDeadwood DW record survived Save v3 -> Restore");
+
+            // Continue both sessions deterministically for 2 more years.
+            var oStep = econSession.Advance(Fence(ev), consentToCancelWork: true);
+            var rStep = restoredEcon.Advance(Fence(loadResult.View), consentToCancelWork: true);
+            oStep = econSession.Advance(Fence(oStep.View), consentToCancelWork: false);
+            rStep = restoredEcon.Advance(Fence(rStep.View), consentToCancelWork: false);
+            T.Eq(econSession.ReadEconomyView().CashBalanceCents, restoredEcon.ReadEconomyView().CashBalanceCents, "cash identical after 2 years");
+            T.Eq(econSession.ReadEconomyView().YearEndSummaries.Count, restoredEcon.ReadEconomyView().YearEndSummaries.Count, "year-end count identical");
+
+            // Mismatched EconomyOptions must refuse with SaveOptionsMismatch.
+            var otherOpts = EconomyOptions.Default with { OpeningCashCents = 500_000L };
+            var generated = ForestMakerGenerator.Generate(ForestMakerPresets.SitkaEdgeBroadleaves064);
+            var otherSession = new MultiAreaContinuation(generated.Experiment, econModels, stage4: null, stage5: null, phase2: generated.Options, economy: otherOpts, genesisRecipe: generated.Recipe);
+            T.Refuses("SaveOptionsMismatch", () => otherSession.RestoreVerifiedV3IntoFreshSession(decoded, FeatureBlockRegistry.Default));
+
+            // Tampered / fail-closed economy v3 saves.
+            string econJson = Encoding.UTF8.GetString(econV3Bytes);
+            string badEconVer = ResignV3(econJson.Replace("\"economy\":{\"blockVersion\":1,", "\"economy\":{\"blockVersion\":2,", StringComparison.Ordinal));
+            T.Refuses("SaveBlockVersionUnsupported", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(badEconVer)));
+
+            string badCash = ResignV3(econJson.Replace("\"cashBalanceCents\":{\"k\":\"i64\",\"b\":\"", "\"cashBalanceCents\":{\"k\":\"i64\",\"b\":\"0000000000000001\"}\"x\":\"", StringComparison.Ordinal));
+            T.True(badCash != econJson, "mutated json");
+            string tamperedCashHex = econJson;
+            int cashIdx = tamperedCashHex.IndexOf("\"cashBalanceCents\":{\"k\":\"i64\",\"b\":\"", StringComparison.Ordinal);
+            int hexStart = cashIdx + "\"cashBalanceCents\":{\"k\":\"i64\",\"b\":\"".Length;
+            char flipped = tamperedCashHex[hexStart + 15] == '0' ? '1' : '0';
+            string cashMismatch = ResignV3(tamperedCashHex[..(hexStart + 15)] + flipped + tamperedCashHex[(hexStart + 16)..]);
+            T.Refuses("SaveInconsistent", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(cashMismatch)));
+
+            string extraKey = ResignV3(econJson.Replace("\"yearEndSummaries\":[", "\"extraKey\":1,\"yearEndSummaries\":[", StringComparison.Ordinal));
+            T.Refuses("UnknownKey", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(extraKey)));
+
+            // Flipping economyEnabled=false on an economy-block save -> SaveInconsistent
+            string econFlagFalseWithBlock = ResignV3(econJson.Replace(
+                "\"economyEnabled\":true",
+                "\"economyEnabled\":false",
+                StringComparison.Ordinal));
+            T.Refuses("SaveInconsistent", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(econFlagFalseWithBlock)));
+
+            // Money-Off v3 save tampered with empty economy block -> SaveEconomyRequiresV3 on custom reserved registry, MissingKey on default codec
             var (_, baseSession) = ForestMakerGenerator.CreateSession(ForestMakerPresets.PureSitka064);
-            var bv = baseSession.ReadView();
-            var (_, v3Bytes) = baseSession.CaptureSaveBytes(Fence(bv), "Pure FM", 1);
+            var (_, v3Bytes) = baseSession.CaptureSaveBytes(Fence(baseSession.ReadView()), "Pure FM", 1);
             string json = Encoding.UTF8.GetString(v3Bytes);
 
-            // 1. Presence of reserved "economy" block (in ordinal order before "genesisRecipe") -> SaveEconomyRequiresV3
             string withEconBlock = ResignV3(json.Replace(
                 "\"blocks\":{\"genesisRecipe\":",
                 "\"blocks\":{\"economy\":{\"blockVersion\":1,\"data\":{}},\"genesisRecipe\":",
                 StringComparison.Ordinal));
-            T.Refuses("SaveEconomyRequiresV3", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(withEconBlock)));
+            T.Refuses("SaveEconomyRequiresV3", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(withEconBlock), customReg));
+            T.Refuses("MissingKey", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(withEconBlock)));
 
-            // 2. genesisRecipe.data.economyEnabled = true without economy block -> SaveRequiredBlockMissing
             string econFlagNoBlock = ResignV3(json.Replace(
                 "\"economyEnabled\":false",
                 "\"economyEnabled\":true",
