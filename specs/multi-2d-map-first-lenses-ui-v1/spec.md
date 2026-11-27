@@ -66,11 +66,11 @@ Every lens is defined in a single data-driven `LENSES` registry in `store.js`. O
   - `Esc`: Dismiss topmost layer in strict order:
     1. Open native `<dialog open>` (including `#shortcuts-dialog`)
     2. Open `#explain-popover` (pinned or revealed explanation)
-    3. Expanded `#legend-panel` full-legend popove
+    3. Expanded `#legend-panel` full-legend popover
     4. Open `#history-drawer` (preserving selection, drafts, lens, mode, overlay)
     5. Non-empty `<input type="search">` (native clear)
     6. Active non-inspection tool (`plant` / `spot` / `cell`) → `Select Tree` (preserving Fell drafts & overlay)
-    7. Active planted-sapling (`PJ`) inspection → adult tree inspecto
+    7. Active planted-sapling (`PJ`) inspection → adult tree inspector
     8. Selected adult tree inspection
 - **Forbidden hotkeys (hard safety rule):** Zero unguarded hotkeys for `Approve`, `Cancel Approved`, `Execute`, `Advance Year`, `Skip Year`, `New Woodland`, `Load Save`, or `Money Reset`.
 
