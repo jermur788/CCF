@@ -121,6 +121,7 @@ internal static class ForestMakerGenerator
             laneSummaries[i] = new ForestMakerLaneSummary(lane.AreaId, lane.Label, areaDef.AreaHa, trees.Count, sitkaCount, oakCount, beechCount);
         }
 
+        double totalAreaHa = areas.Sum(a => (double)a.AreaHa);
         var experiment = new MultiAreaExperiment(
             experimentId,
             recipe.GeneratorId,
@@ -130,6 +131,7 @@ internal static class ForestMakerGenerator
         {
             DisclosureOverride = ForestMakerBounds.Disclosure,
             GeneratorNoteOverride = ForestMakerBounds.GeneratorNote,
+            BadgeOverride = ForestMakerPresets.BadgeFor(recipe, totalAreaHa),
         };
         experiment.Validate();
 
@@ -139,7 +141,6 @@ internal static class ForestMakerGenerator
         }).RequireValid();
 
         string contentHash = experiment.ContentHash();
-        double totalAreaHa = areas.Sum(a => (double)a.AreaHa);
 
         return new ForestMakerResult(
             recipe,
@@ -168,7 +169,8 @@ internal static class ForestMakerGenerator
             stage4,
             stage5,
             selected.IsPhase2 ? generated.Options : null,
-            economy);
+            economy,
+            genesisRecipe: generated.Recipe);
         return (generated, session);
     }
 

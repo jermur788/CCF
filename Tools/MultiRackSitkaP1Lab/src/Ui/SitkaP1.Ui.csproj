@@ -37,9 +37,11 @@
     <EmbeddedResource Include="multi/commands.js" LogicalName="SitkaP1.Ui.multi.commands.js" />
     <EmbeddedResource Include="multi/dialogs/execute-confirm.js" LogicalName="SitkaP1.Ui.multi.dialogs.execute-confirm.js" />
     <EmbeddedResource Include="multi/dialogs/saves.js" LogicalName="SitkaP1.Ui.multi.dialogs.saves.js" />
+    <EmbeddedResource Include="multi/dialogs/woodland.js" LogicalName="SitkaP1.Ui.multi.dialogs.woodland.js" />
     <EmbeddedResource Include="multi/dom.js" LogicalName="SitkaP1.Ui.multi.dom.js" />
     <EmbeddedResource Include="multi/main.js" LogicalName="SitkaP1.Ui.multi.main.js" />
     <EmbeddedResource Include="multi/map/contract.js" LogicalName="SitkaP1.Ui.multi.map.contract.js" />
+    <EmbeddedResource Include="multi/map/minimap.js" LogicalName="SitkaP1.Ui.multi.map.minimap.js" />
     <EmbeddedResource Include="multi/map/renderer-svg.js" LogicalName="SitkaP1.Ui.multi.map.renderer-svg.js" />
     <EmbeddedResource Include="multi/modes/interactive.js" LogicalName="SitkaP1.Ui.multi.modes.interactive.js" />
     <EmbeddedResource Include="multi/panels/fell-draft.js" LogicalName="SitkaP1.Ui.multi.panels.fell-draft.js" />

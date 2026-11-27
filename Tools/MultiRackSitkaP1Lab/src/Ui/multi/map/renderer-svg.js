@@ -1,11 +1,47 @@
 // S0c provenance: map/renderer-svg.js [L3] — section(s) 8, 9, 11 from multi.js
 import { announce } from '../api.js';
 import { el, fixed, label, n3, plural, setAttributes, svg } from '../dom.js';
-import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, approvedClears, approvedPlantings, approvedPrunes, areaName, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentReport, draftOf, groundCell, hooks, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state } from '../store.js';
+import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
 import { MAP_RENDERER_METHODS } from './contract.js';
   // ---- the map: 1 SVG user unit = 1 metre; U east, V south ------------------------------------------------------------
 
+  let lastMultiFrame = null;
+
+  function visibleAreasNow() {
+    if (!state.view || !isMultiLaneStand()) return null;
+    const ids = visibleLaneIds(state.view.areas, state.areaId, state.singleLaneMode);
+    const list = ids.map((id) => areaView(id)).filter(Boolean);
+    return list.length > 0 ? list : null;
+  }
+
+  function multiLaneBounds(visAreas) {
+    const pts = visAreas.flatMap((a) => a.polygon || []);
+    const minX = Math.min(...pts.map((p) => p.xm));
+    const maxX = Math.max(...pts.map((p) => p.xm));
+    const minZ = Math.min(...pts.map((p) => p.zm));
+    const maxZ = Math.max(...pts.map((p) => p.zm));
+    return { minX, maxX, minZ, maxZ, w: Math.max(1, maxX - minX), h: Math.max(1, maxZ - minZ) };
+  }
+
+  export function resolveMapPoint(svgX, svgY) {
+    if (!lastMultiFrame) {
+      return { area: currentArea(), u: svgX, v: svgY };
+    }
+    const worldX = svgX;
+    const worldZ = lastMultiFrame.maxZ - svgY;
+    const hit = lastMultiFrame.entries.find((e) =>
+      worldX >= e.minX - 1e-6 && worldX <= e.maxX + 1e-6 && worldZ >= e.minZ - 1e-6 && worldZ <= e.maxZ + 1e-6)
+      || lastMultiFrame.entries.find((e) => e.area.areaId === state.areaId)
+      || lastMultiFrame.entries[0];
+    return { area: hit.area, u: svgX - hit.offX, v: svgY - hit.offY };
+  }
+
   function fullBox(area) {
+    const vis = visibleAreasNow();
+    if (vis) {
+      const b = multiLaneBounds(vis);
+      return { x: b.minX - 3.6, y: -5.2, w: b.w + 7.2, h: b.h + 9.2 };
+    }
     const side = area.extent.sideM;
     return { x: -3.4, y: -2.2, w: side + 6.0, h: side + 5.4 };
   }
@@ -175,6 +211,17 @@ import { MAP_RENDERER_METHODS } from './contract.js';
   function renderMap() {
     const area = currentArea();
     if (!area) return;
+    const visAreas = visibleAreasNow();
+    const mapPane = byId('map-pane');
+    if (visAreas) {
+      if (mapPane) mapPane.classList.add('multi-lane-exterior');
+      renderMultiLaneMap(area, visAreas);
+      return;
+    }
+    lastMultiFrame = null;
+    if (mapPane) mapPane.classList.remove('multi-lane-exterior');
+    const laneBorders = byId('lane-borders');
+    if (laneBorders) laneBorders.replaceChildren();
     const side = area.extent.sideM;
     const box = viewBox(area);
     const mpp = 1 / box.scale;
@@ -282,10 +329,253 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     renderMapStatus(reference, draft.size);
   }
 
-  function renderOverlayCells(areaId, mpp) {
-    const host = byId('overlay-cells');
+  // Phase 2A-2 multi-lane view (>=3 lanes): renders active lane + visible neighbours (2 at outer edges, 3 in interior,
+  // or 1 when singleLaneMode is active) in a unified world-metre SVG frame with drawn/labelled lane borders and open
+  // grassland outside the woodland perimeter (zero fabricated outside trees).
+  function renderMultiLaneMap(activeArea, visAreas) {
+    const b = multiLaneBounds(visAreas);
+    const box = viewBox(activeArea);
+    const mpp = 1 / box.scale;
+    byId('map').setAttribute('viewBox', [box.x, box.y, box.w, box.h].map((n) => n.toFixed(4)).join(' '));
+
+    const entries = visAreas.map((a) => {
+      const xs = a.polygon.map((p) => p.xm);
+      const zs = a.polygon.map((p) => p.zm);
+      return {
+        area: a,
+        offX: a.extent.minXM,
+        offY: b.maxZ - (a.extent.minZM + a.extent.sideM),
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minZ: Math.min(...zs),
+        maxZ: Math.max(...zs),
+      };
+    });
+    lastMultiFrame = { maxZ: b.maxZ, entries };
+
+    // Union polygon of visible lanes for ground fill and clipping.
+    const unionPts = [
+      n3(b.minX) + ',0',
+      n3(b.maxX) + ',0',
+      n3(b.maxX) + ',' + n3(b.h),
+      n3(b.minX) + ',' + n3(b.h),
+    ].join(' ');
+    setAttributes(byId('ground'), { x: n3(b.minX), y: 0, width: n3(b.w), height: n3(b.h) });
+    byId('area-outline').setAttribute('points', unionPts);
+    byId('area-clip-shape').setAttribute('points', unionPts);
+
+    // Draw open-grassland exterior surround + world-metre grid + axis labels.
+    drawMultiLaneGrid(b, mpp, box.scale);
+
+    // Draw lane borders and lane labels (active lane emphasized).
+    const borderNodes = [];
+    for (const e of entries) {
+      const isActive = e.area.areaId === state.areaId;
+      const pts = e.area.polygon.map((p) => n3(p.xm) + ',' + n3(b.maxZ - p.zm)).join(' ');
+      borderNodes.push(svg('polygon', {
+        class: 'lane-border' + (isActive ? ' lane-border-active' : ' lane-border-neighbour'),
+        'data-lane-border': e.area.areaId,
+        points: pts,
+      }));
+      const cx = (e.minX + e.maxX) / 2;
+      const lbl = e.area.label + (isActive ? ' (active)' : '');
+      const pillW = (lbl.length * 6.4 + 14) * mpp;
+      const pillH = 18 * mpp;
+      const py = -14 * mpp;
+      const lg = svg('g', { class: 'lane-label-pill' + (isActive ? ' active' : ''), 'data-lane-label': e.area.areaId });
+      lg.append(
+        svg('rect', { x: n3(cx - pillW / 2), y: n3(py - pillH / 2), width: n3(pillW), height: n3(pillH), rx: n3(4 * mpp) }),
+        svg('text', { x: n3(cx), y: n3(py + 0.5 * mpp), 'font-size': n3(10.5 * mpp) }, lbl));
+      borderNodes.push(lg);
+    }
+    const laneBordersHost = byId('lane-borders');
+    if (laneBordersHost) laneBordersHost.replaceChildren(...borderNodes);
+
+    const inTreeMode = state.mapMode === 'tree';
+    const report = inTreeMode ? currentReport() : null;
+    const reference = referenceIn(activeArea.areaId);
+    const draft = new Set(draftOf(activeArea.areaId));
+    const focusIds = report ? new Set([report.targetTreeId, ...report.topFive.map((n) => n.treeId)]) : null;
+
+    const crownGroups = [];
+    const marksGroups = [];
+    const ranks = [];
+    let activeItems = null;
+    let activeEntry = entries.find((e) => e.area.areaId === activeArea.areaId) || entries[0];
+
+    for (const e of entries) {
+      const aid = e.area.areaId;
+      const isActive = aid === activeArea.areaId;
+      const spread = (isActive && focusIds) ? spreadFocus(aid, report, mpp, {
+        x: box.x - e.offX, y: box.y - e.offY, w: box.w, h: box.h, rl: box.rl, rt: box.rt,
+      }) : new Map();
+      const items = new Map(sceneOf(aid).map((item) => [item.treeId, spread.get(item.treeId) || item]));
+      if (isActive) activeItems = items;
+
+      const laneCrowns = [];
+      const laneFocusCrowns = [];
+      const laneMarks = [];
+
+      if (isActive) {
+        for (const [treeId, shown] of spread) {
+          const real = items.get(treeId) === shown ? itemOf(aid, treeId) : null;
+          if (real && Math.hypot(shown.u - real.u, shown.v - real.v) > 2 * mpp) {
+            laneMarks.push(
+              svg('path', { class: 'spread-leader', d: 'M ' + n3(real.u) + ' ' + n3(real.v) + ' L ' + n3(shown.u) + ' ' + n3(shown.v) }),
+              svg('circle', { class: 'spread-origin', cx: n3(real.u), cy: n3(real.v), r: n3(2.5 * mpp) }));
+          }
+        }
+      }
+
+      for (const raw of sceneOf(aid).slice().sort((a, c) => a.paintOrder - c.paintOrder)) {
+        const item = items.get(raw.treeId);
+        const sp = speciesOf(item.treeId);
+        const focused = isActive && item !== raw;
+        const dimmed = (isActive && focusIds && !focused) || (!isActive && focusIds !== null);
+        const cacheKey = aid + '|' + item.treeId;
+        const drawKey = [item.status, sp, n3(item.u), n3(item.v), n3(item.radiusM)].join('|');
+        let cached = crownCache.get(cacheKey);
+        if (!cached || cached.drawKey !== drawKey) {
+          const group = svg('g', { 'data-tree-id': item.treeId, 'data-area-id': aid, 'data-species': sp });
+          group.append(svg('circle', { class: 'crown', cx: n3(item.u), cy: n3(item.v), r: n3(item.radiusM) }));
+          group.append(...crownDecoration(item, sp));
+          cached = { drawKey, node: group };
+          crownCache.set(cacheKey, cached);
+        }
+        const className = 'tree s-' + item.status + (dimmed ? ' dimmed' : '') + (isActive ? '' : ' neighbour-tree');
+        if (cached.node.getAttribute('class') !== className) cached.node.setAttribute('class', className);
+        (focused ? laneFocusCrowns : laneCrowns).push(cached.node);
+        laneMarks.push(...statusMarks(item, mpp), ...pruneMarks(aid, item, mpp));
+      }
+
+      if (isActive && report) {
+        const taken = [];
+        const focus = [...spread.values()];
+        for (const f of focus) {
+          if (f.isCrop) taken.push(tileCentre(f, TILE.crop, mpp));
+          if (f.status === 'PendingFell' || f.status === 'ApprovedFell') taken.push(tileCentre(f, TILE.status, mpp));
+        }
+        const target = items.get(report.targetTreeId);
+        if (target) {
+          taken.push(tileCentre(target, TILE.reference, mpp));
+          for (const dx of [-30, -10, 10, 30]) taken.push([target.u + dx * mpp, target.v - target.radiusM - 22 * mpp]);
+        }
+        const free = (x, y) => taken.every(([tx, ty]) => Math.hypot(tx - x, ty - y) >= 34 * mpp) &&
+          focus.every((f) => Math.hypot(f.u - x, f.v - y) >= f.radiusM * 0.55);
+        report.topFive.forEach((entry, rank) => {
+          const item = items.get(entry.treeId);
+          if (!item) return;
+          const chosen = draft.has(entry.treeId);
+          const fits = (a) => { const [x, y] = tileCentre(item, a, mpp); return free(x, y) && (!chosen || free(x - 23 * mpp, y)); };
+          const angle = RANK_ANGLES.find(fits) ?? TILE.rank;
+          const [x, y] = tileCentre(item, angle, mpp);
+          taken.push([x, y]);
+          if (chosen) taken.push([x - 23 * mpp, y]);
+          laneMarks.push(underline(item, chosen ? 'ring-draft' : 'ring-competitor', mpp, 0));
+          ranks.push({ treeId: entry.treeId, rank: rank + 1, x: x + e.offX, y: y + e.offY, chosen });
+        });
+      }
+
+      laneCrowns.push(...laneFocusCrowns);
+      const tx = 'translate(' + n3(e.offX) + ' ' + n3(e.offY) + ')';
+      const cg = svg('g', { 'data-lane-crowns': aid, transform: tx });
+      cg.append(...laneCrowns);
+      crownGroups.push(cg);
+
+      const mg = svg('g', { 'data-lane-marks': aid, transform: tx });
+      mg.append(...laneMarks);
+      marksGroups.push(mg);
+    }
+
+    byId('crowns').replaceChildren(...crownGroups);
+    byId('marks').replaceChildren(...marksGroups);
+
+    // Multi-lane translated ground/ecology layers (overlay, clears, spot patches, deadwood, planted, draft, ground mark).
+    renderTranslatedLayer('overlay-cells', entries, (aid) => buildOverlayCellNodes(aid, mpp));
+    renderTranslatedLayer('clear-cells', entries, (aid) => buildClearCellNodes(aid));
+    renderTranslatedLayer('spot-patches', entries, (aid) => buildSpotPatchNodes(aid));
+    renderTranslatedLayer('deadwood', entries, (aid) => buildDeadwoodNodes(aid, mpp));
+    renderTranslatedLayer('planted-layer', entries, (aid) => buildPlantedNodes(aid, mpp));
+    renderTranslatedLayer('draft-preview', entries, (aid) => buildDraftPreviewNodes(aid, mpp));
+    renderTranslatedLayer('ground-mark', entries, (aid) => buildGroundMarkNodes(aid));
+
+    renderRankLayer(ranks, box);
+
+    const chosen = inTreeMode && !currentJuvenile() && selectedId() && activeItems ? activeItems.get(selectedId()) : null;
+    const lit = chosen && !state.lock
+      ? (chosen.treeId === reference ? referenceMarks(chosen, mpp, true) : inspectMarks(chosen, mpp, true))
+      : [];
+    if (lit.length > 0 && activeEntry) {
+      const sg = svg('g', { transform: 'translate(' + n3(activeEntry.offX) + ' ' + n3(activeEntry.offY) + ')' });
+      sg.append(...lit);
+      byId('selection').replaceChildren(sg);
+    } else {
+      byId('selection').replaceChildren();
+    }
+
+    const visNames = visAreas.map((a) => a.label).join(', ');
+    byId('map-desc').textContent = 'North-up multi-lane map showing ' + visNames + ' (active: ' + areaName(activeArea.areaId) + '). ' +
+      'Ecological year ' + state.view.source.ecologicalYear + '. Open grassland outside perimeter.';
+    byId('map-subtitle').textContent = activeArea.label + ' · ' + (visAreas.length > 1 ? visAreas.length + ' lanes visible' : '1 lane') +
+      ' · ' + fixed(activeArea.areaHa, 4) + ' ha';
+    byId('map-note').textContent = visNames + ' · ' + (state.zoom === 1 ? 'Fit visible lanes' :
+      fixed(state.zoom, 2) + '× Fit · view ' + fixed(box.uw, 1) + ' × ' + fixed(box.uh, 1) + ' m');
+    byId('zoom-state').textContent = state.zoom === 1 ? 'Fit' : fixed(state.zoom, 2) + '×';
+    renderScale(box.scale);
+    renderMapStatus(reference, draft.size);
+  }
+
+  function renderTranslatedLayer(hostId, entries, buildFn) {
+    const host = byId(hostId);
+    if (!host) return;
+    const groups = [];
+    for (const e of entries) {
+      const nodes = buildFn(e.area.areaId);
+      if (!nodes || nodes.length === 0) continue;
+      const g = svg('g', { transform: 'translate(' + n3(e.offX) + ' ' + n3(e.offY) + ')' });
+      g.append(...nodes);
+      groups.push(g);
+    }
+    host.replaceChildren(...groups);
+  }
+
+  function drawMultiLaneGrid(b, mpp, scale) {
+    const step = 5 * scale >= 26 ? 5 : 10;
+    const reach = 120;
+    const lines = [];
+    const labels = [];
+    const font = n3(10 * mpp);
+    // Open grassland surround outside the outer stand perimeter (zero fabricated trees).
+    lines.push(svg('rect', {
+      class: 'grassland-exterior',
+      x: n3(b.minX - reach),
+      y: n3(-reach),
+      width: n3(b.w + 2 * reach),
+      height: n3(b.h + 2 * reach),
+    }));
+    for (let x = Math.ceil((b.minX - reach) / step) * step; x <= b.maxX + reach; x += step) {
+      lines.push(svg('line', { class: 'grid-line', x1: n3(x), y1: -reach, x2: n3(x), y2: n3(b.h + reach) }));
+      if (x >= b.minX - 1e-9 && x <= b.maxX + 1e-9) {
+        labels.push(svg('text', { class: 'grid-label', x: n3(x), y: n3(b.h + 14 * mpp), 'text-anchor': 'middle', 'font-size': font }, x));
+      }
+    }
+    for (let z = Math.ceil((b.minZ - reach) / step) * step; z <= b.maxZ + reach; z += step) {
+      const y = b.maxZ - z;
+      lines.push(svg('line', { class: 'grid-line', x1: n3(b.minX - reach), y1: n3(y), x2: n3(b.maxX + reach), y2: n3(y) }));
+      if (z >= b.minZ - 1e-9 && z <= b.maxZ + 1e-9) {
+        labels.push(svg('text', { class: 'grid-label', x: n3(b.minX - 7 * mpp), y: n3(y + 3.5 * mpp), 'text-anchor': 'end', 'font-size': font }, z));
+      }
+    }
+    labels.push(svg('text', { class: 'grid-label', x: n3((b.minX + b.maxX) / 2), y: n3(b.h + 30 * mpp), 'text-anchor': 'middle', 'font-size': font },
+      'X metres east · Z metres north · Open grassland outside perimeter'));
+    byId('grid').replaceChildren(...lines);
+    byId('grid-in').replaceChildren(...lines.slice(1).map((line) => line.cloneNode(false)));
+    byId('furniture').replaceChildren(...labels);
+  }
+
+  function buildOverlayCellNodes(areaId, mpp) {
     const s4 = s4Area(areaId);
-    if (state.overlay === 'off' || !s4) { host.replaceChildren(); return; }
+    if (state.overlay === 'off' || !s4) return [];
     const nodes = [];
     if (state.overlay === 'light') {
       for (const cell of s4.ground) {
@@ -311,7 +601,6 @@ import { MAP_RENDERER_METHODS } from './contract.js';
         }
       }
     } else if (state.overlay === 'seedlings') {
-      // Cell-level presence glyph only: never fabricated individual stem dots; never treats Density as a literal stem count.
       const compact = compactCellsFor(areaId);
       for (const cell of s4.ground) {
         const row = compact.get(cell.column + ':' + cell.row);
@@ -332,13 +621,16 @@ import { MAP_RENDERER_METHODS } from './contract.js';
         }
       }
     }
-    host.replaceChildren(...nodes);
+    return nodes;
+  }
+
+  function renderOverlayCells(areaId, mpp) {
+    byId('overlay-cells').replaceChildren(...buildOverlayCellNodes(areaId, mpp));
   }
 
   // Rule 1: ClearUndergrowth highlights the whole 2.5 m cell (sparing seedlings inside), never a tree-crown badge.
-  function renderClearCells(areaId) {
-    const host = byId('clear-cells');
-    if (!state.ecology || !s4Area(areaId)) { host.replaceChildren(); return; }
+  function buildClearCellNodes(areaId) {
+    if (!state.ecology || !s4Area(areaId)) return [];
     const nodes = [];
     const drawClear = (orders, cls) => {
       for (const o of orders) {
@@ -351,14 +643,17 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     };
     drawClear(state.ecology.pendingClear || [], 'clear-cell-pending');
     drawClear(state.ecology.approvedClear || [], 'clear-cell-approved');
-    host.replaceChildren(...nodes);
+    return nodes;
+  }
+
+  function renderClearCells(areaId) {
+    byId('clear-cells').replaceChildren(...buildClearCellNodes(areaId));
   }
 
   // Rule 2: SpotClear (~1 m2): circular dashed ring drawn to exact world scale r = patch.radiusM (~0.564 m)
   // over bare soil/twigs with NO seedling inside, rendered in its own layer BENEATH planted PJ saplings.
-  function renderSpotPatches(areaId) {
-    const host = byId('spot-patches');
-    if (!state.ecology) { host.replaceChildren(); return; }
+  function buildSpotPatchNodes(areaId) {
+    if (!state.ecology) return [];
     const nodes = [];
     for (const p of (state.ecology.patches || [])) {
       if (p.areaId !== areaId) continue;
@@ -378,35 +673,40 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     };
     drawQueuedSpot(pendingPlantings(), 'spot-order-pending', 'Pending');
     drawQueuedSpot(approvedPlantings(), 'spot-order-approved', 'Approved');
-    host.replaceChildren(...nodes);
+    return nodes;
   }
 
-  function renderDeadwoodLayer(areaId, mpp) {
-    const host = byId('deadwood');
+  function renderSpotPatches(areaId) {
+    byId('spot-patches').replaceChildren(...buildSpotPatchNodes(areaId));
+  }
+
+  function buildDeadwoodNodes(areaId, mpp) {
     const s4 = s4Area(areaId);
-    if (!s4) { host.replaceChildren(); return; }
+    if (!s4) return [];
     const w = 26 * mpp, h = 10 * mpp;
-    const nodes = s4.canopy.fallenDeadwood.map((record) => {
+    return s4.canopy.fallenDeadwood.map((record) => {
       const sp = speciesLabel(speciesOf(record.treeId));
       const g = svg('g', { class: 'log', 'data-deadwood-id': record.deadwoodId, 'data-species': speciesOf(record.treeId) });
       g.append(svg('title', null, record.deadwoodId + ' · ' + sp + ' fallen log (year ' + record.deathYear + ', direction schematic, not simulated)'));
       g.append(svg('use', { href: '#ccf-log', x: n3(record.u - w / 2), y: n3(record.v - h / 2), width: n3(w), height: n3(h) }));
       return g;
     });
-    host.replaceChildren(...nodes);
+  }
+
+  function renderDeadwoodLayer(areaId, mpp) {
+    byId('deadwood').replaceChildren(...buildDeadwoodNodes(areaId, mpp));
   }
 
   // Planted juveniles (PJ), active/expired shelters, and queued Plant/Shelter orders ABOVE SpotClear patches.
-  function renderPlantedLayer(areaId, mpp) {
-    const host = byId('planted-layer');
-    if (!state.ecology) { host.replaceChildren(); return; }
+  function buildPlantedNodes(areaId, mpp) {
+    if (!state.ecology) return [];
     const nodes = [];
     const sSize = Math.max(0.75, 18 * mpp);
     const selectedPj = currentJuvenile();
     for (const j of (state.ecology.planted || [])) {
       if (j.areaId !== areaId || !j.isActive) continue;
       const sym = SAPLING_SYMBOL[j.speciesId] || 'ccf-sapling-oak';
-      const g = svg('g', { class: 'planted-pj', 'data-juvenile-id': j.juvenileId, 'data-species': j.speciesId });
+      const g = svg('g', { class: 'planted-pj', 'data-juvenile-id': j.juvenileId, 'data-area-id': areaId, 'data-species': j.speciesId });
       g.append(svg('title', null, j.juvenileId + ' · ' + speciesLabel(j.speciesId) + ' planted sapling, H ' + fixed(j.heightM, 2) + ' m (click to inspect)'));
       g.append(svg('circle', { class: 'pj-hit', cx: n3(j.u), cy: n3(j.v), r: n3(Math.max(0.45, sSize * 0.6)) }));
       g.append(svg('use', { href: '#' + sym, x: n3(j.u - sSize / 2), y: n3(j.v - sSize / 2), width: n3(sSize), height: n3(sSize) }));
@@ -445,12 +745,15 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     };
     drawQueuedPlanting(pendingPlantings(), false);
     drawQueuedPlanting(approvedPlantings(), true);
-    host.replaceChildren(...nodes);
+    return nodes;
+  }
+
+  function renderPlantedLayer(areaId, mpp) {
+    byId('planted-layer').replaceChildren(...buildPlantedNodes(areaId, mpp));
   }
 
   // Provisional local Draft previews (dashed slate outline, snap OFF, zero engine order).
-  function renderDraftPreview(areaId, mpp) {
-    const host = byId('draft-preview');
+  function buildDraftPreviewNodes(areaId, mpp) {
     const nodes = [];
     const arm = Math.max(0.32, 7 * mpp);
     if (state.mapMode === 'plant' && state.plantDraft && state.plantDraft.areaId === areaId) {
@@ -470,22 +773,28 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     } else if (state.mapMode === 'spot' && state.spotDraft && state.spotDraft.areaId === areaId) {
       const d = state.spotDraft;
       const g = svg('g', { id: 'draft-spot-preview', 'data-draft-kind': 'spot' });
-      // Seedling-free 0.564 m circular preview at exact (X, Z)
       g.append(svg('circle', { class: 'draft-ring', 'data-draft-spot-ring': 'true', cx: n3(d.u), cy: n3(d.v), r: n3(SPOT_PREVIEW_RADIUS_M) }));
       g.append(svg('path', { class: 'draft-cross', d: 'M ' + n3(d.u - arm * 0.6) + ' ' + n3(d.v) + ' L ' + n3(d.u + arm * 0.6) + ' ' + n3(d.v) +
         ' M ' + n3(d.u) + ' ' + n3(d.v - arm * 0.6) + ' L ' + n3(d.u) + ' ' + n3(d.v + arm * 0.6) }));
       g.append(svg('text', { class: 'draft-label', x: n3(d.u), y: n3(d.v - Math.max(0.75, 15 * mpp)), 'font-size': n3(Math.max(0.45, 10 * mpp)) }, 'Draft Spot Clear (~1 m²)'));
       nodes.push(g);
     }
-    host.replaceChildren(...nodes);
+    return nodes;
   }
 
-  function renderGroundMark(areaId) {
+  function renderDraftPreview(areaId, mpp) {
+    byId('draft-preview').replaceChildren(...buildDraftPreviewNodes(areaId, mpp));
+  }
+
+  function buildGroundMarkNodes(areaId) {
     const c = state.cellDetail;
     const poly = state.mapMode === 'cell' && c && !c.missing && c.areaId === areaId ? c.polygon : null;
     const points = poly ? poly.map((p) => n3(p.u) + ',' + n3(p.v)).join(' ') : null;
-    byId('ground-mark').replaceChildren(...(points ? [svg('polygon', { class: 'ground-pick-halo', points }),
-      svg('polygon', { class: 'ground-pick', points })] : []));
+    return points ? [svg('polygon', { class: 'ground-pick-halo', points }), svg('polygon', { class: 'ground-pick', points })] : [];
+  }
+
+  function renderGroundMark(areaId) {
+    byId('ground-mark').replaceChildren(...buildGroundMarkNodes(areaId));
   }
 
   const RAMP_SAMPLES = [0, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 0.9, 1];

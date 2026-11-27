@@ -364,7 +364,7 @@ PY
   fi
 
   # Check required data files exist.
-  for req_data in frozen-anchors.json protected-paths.txt determinism-allowlist.txt baseline-counts.json; do
+  for req_data in frozen-anchors.json protected-paths.txt determinism-allowlist.txt baseline-counts.json gate-config.json; do
     if [[ ! -f "$GATE_DATA_DIR/$req_data" ]]; then
       fail_stage G0 2 "missing gate data file: $GATE_DATA_DIR/$req_data"
     fi
@@ -1320,14 +1320,16 @@ PY
 # ==============================================================================
 run_stage_G4() {
   local out
-  if ! out="$(python3 - "$REPO_ROOT" "$P1_ROOT" "$GATE_DATA_DIR/frozen-anchors.json" "$EVIDENCE_DIR/g2-save-tests.log" "$BASE_COMMIT" <<'PY'
+  if ! out="$(python3 - "$REPO_ROOT" "$P1_ROOT" "$GATE_DATA_DIR/frozen-anchors.json" "$GATE_DATA_DIR/gate-config.json" "$EVIDENCE_DIR/g2-save-tests.log" "$BASE_COMMIT" <<'PY'
 import json, os, re, subprocess, sys
 
-repo, p1_root, manifest_path, save_log_path, base_commit = sys.argv[1:]
+repo, p1_root, manifest_path, gate_cfg_path, save_log_path, base_commit = sys.argv[1:]
 manifest = json.load(open(manifest_path, "r", encoding="utf-8"))
+gate_cfg = json.load(open(gate_cfg_path, "r", encoding="utf-8"))
 g = manifest["v2Golden"]
 save_log = open(save_log_path, "r", encoding="utf-8", errors="replace").read()
 
+# (1) v2 golden still byte-exact (unchanged assertions).
 expected_pass_line = f"PASS {g['caseName']}"
 if not re.search(rf"^{re.escape(expected_pass_line)}$", save_log, re.MULTILINE):
     sys.exit(f"Save tests log missing exact line: {expected_pass_line!r}")
@@ -1347,13 +1349,144 @@ fmt_text = open(os.path.join(p1_root, g["schemaVersionFile"]), "r", encoding="ut
 if not re.search(rf"public const int SchemaVersion\s*=\s*{g['schemaVersion']};", fmt_text):
     sys.exit(f"{g['schemaVersionFile']} missing SchemaVersion = {g['schemaVersion']}")
 
-# S0b §6.5 / S0-08: while Save v2 is active (SchemaVersion == 2), zero types in src/ may implement
-# IFeatureBlockCodec and no SchemaVersion = 3 may exist in src/.
-if g["schemaVersion"] == 2:
-    src_dir = os.path.join(p1_root, "src")
-    codec_impls = []
-    schema3_hits = []
-    for root, dirs, files in os.walk(src_dir):
+# S0b temporal lock retirement authorised by Phase 2A-2 approved spec §6 / S0b frozen-contracts-s0b.md §4 item 4
+# (mirroring the S0c lock retirement precedent in 6a4a1a5a): driven explicitly by build/2d-gate/gate-config.json.
+v3_cfg = gate_cfg.get("saveV3")
+if not isinstance(v3_cfg, dict) or not isinstance(v3_cfg.get("enabled"), bool):
+    sys.exit("gate-config.json missing boolean saveV3.enabled")
+
+src_dir = os.path.join(p1_root, "src")
+codec_impls = []  # list of (rel_path, class_name, text)
+schema3_hits = []
+for root, dirs, files in os.walk(src_dir):
+    dirs[:] = sorted(d for d in dirs if d not in ("bin", "obj"))
+    for fn in sorted(files):
+        if not fn.endswith(".cs"):
+            continue
+        full = os.path.join(root, fn)
+        rel = os.path.relpath(full, p1_root).replace(os.sep, "/")
+        txt = open(full, "r", encoding="utf-8").read()
+        if re.search(r":\s*(?:[\w.]+,\s*)*IFeatureBlockCodec\b", txt):
+            decl_matches = re.findall(
+                r"\b(?:class|struct|record)\s+([A-Za-z_]\w*)\b[^;{]*:\s*(?:[\w.<>,\s]+,\s*)*IFeatureBlockCodec\b",
+                txt,
+            )
+            if not decl_matches:
+                sys.exit(f"Unable to parse IFeatureBlockCodec type declaration in {rel}")
+            for cls in decl_matches:
+                codec_impls.append((rel, cls, txt))
+        if re.search(r"\bSchemaVersion\s*=\s*3\b", txt):
+            schema3_hits.append(rel)
+
+v3_summary = "SaveV3=disabled"
+if not v3_cfg["enabled"]:
+    if g["schemaVersion"] == 2:
+        if codec_impls:
+            sys.exit(f"IFeatureBlockCodec implementation forbidden under Save v2: {[r for r, _, _ in codec_impls]}")
+        if schema3_hits:
+            sys.exit(f"SchemaVersion = 3 forbidden under Save v2: {schema3_hits}")
+else:
+    if schema3_hits:
+        sys.exit(f"SchemaVersion = 3 must not overwrite v2 SchemaVersion (use SaveV3Format.SchemaVersionV3 = 3): {schema3_hits}")
+
+    allowed_dir = v3_cfg["allowedCodecDir"]
+    registry_rel = v3_cfg["registryFile"]
+    format_rel = v3_cfg["formatFile"]
+    required_codecs = v3_cfg.get("requiredCodecs", [])
+    reserved_only = v3_cfg.get("reservedOnlyBlockKeys", [])
+
+    # (3) IFeatureBlockCodec implementations may exist ONLY under src/Core/Saves/.
+    if not codec_impls:
+        sys.exit("Save v3 enabled in gate-config.json but zero IFeatureBlockCodec implementations found")
+    bad_locations = [rel for rel, _, _ in codec_impls if not rel.startswith(allowed_dir)]
+    if bad_locations:
+        sys.exit(f"IFeatureBlockCodec implementation outside {allowed_dir}: {bad_locations}")
+
+    format_path = os.path.join(p1_root, format_rel)
+    if not os.path.isfile(format_path):
+        sys.exit(f"missing Save v3 format file: {format_rel}")
+    format_text = open(format_path, "r", encoding="utf-8").read()
+    if not re.search(r"\bconst int SchemaVersionV3\s*=\s*3\s*;", format_text):
+        sys.exit(f"{format_rel} missing const int SchemaVersionV3 = 3;")
+
+    registry_path = os.path.join(p1_root, registry_rel)
+    if not os.path.isfile(registry_path):
+        sys.exit(f"missing FeatureBlockRegistry file: {registry_rel}")
+    registry_text = open(registry_path, "r", encoding="utf-8").read()
+    m_create = re.search(r"CreateDefault\s*\(\s*\)\s*\{(?P<body>.*?)\n    \}", registry_text, re.DOTALL)
+    if not m_create:
+        sys.exit(f"{registry_rel} missing FeatureBlockRegistry.CreateDefault() body")
+    create_body = m_create.group("body")
+
+    # (4) Every IFeatureBlockCodec implementation must be registered in FeatureBlockRegistry.CreateDefault().
+    unregistered = []
+    for rel, cls, _ in codec_impls:
+        if not re.search(rf"\bRegister\s*\(\s*new\s+{re.escape(cls)}\s*\(", create_body):
+            unregistered.append(f"{cls} ({rel})")
+    if unregistered:
+        sys.exit(f"IFeatureBlockCodec implementation(s) not registered in {registry_rel}: {unregistered}")
+
+    # Extract declared BlockKey expression and positive CurrentBlockVersion for each codec.
+    codec_info = []
+    for rel, cls, txt in codec_impls:
+        m_key = re.search(
+            r"public\s+string\s+BlockKey\s*(?:=>\s*([^;]+);|\{\s*get\s*=>\s*([^;]+);|\{\s*get\s*\{\s*return\s+([^;]+);\s*\}\s*\})",
+            txt,
+        )
+        if not m_key:
+            sys.exit(f"{cls} ({rel}) missing deterministic BlockKey property")
+        key_expr = next(x.strip() for x in m_key.groups() if x is not None)
+
+        m_ver = re.search(
+            r"public\s+int\s+CurrentBlockVersion\s*(?:=>\s*(\d+)\s*;|\{\s*get\s*=>\s*(\d+)\s*;|\{\s*get\s*\{\s*return\s+(\d+)\s*;\s*\}\s*\})",
+            txt,
+        )
+        if not m_ver:
+            sys.exit(f"{cls} ({rel}) missing integer literal CurrentBlockVersion")
+        block_ver = int(next(x for x in m_ver.groups() if x is not None))
+        if block_ver < 1:
+            sys.exit(f"{cls} ({rel}) CurrentBlockVersion must be >= 1, got {block_ver}")
+        codec_info.append((rel, cls, key_expr, block_ver))
+
+    # (5) Reserved-only block keys (e.g. "economy") must have NO codec implementation and MUST be reserved.
+    for rspec in reserved_only:
+        rkey = rspec["blockKey"]
+        rconst = rspec["keyConstant"]
+        if not re.search(rf'\bconst string {re.escape(rconst)}\s*=\s*"{re.escape(rkey)}"\s*;', format_text):
+            sys.exit(f"{format_rel} missing reserved block key constant {rconst} = \"{rkey}\"")
+        allowed_exprs = {f'"{rkey}"', rconst, f"SaveV3Format.{rconst}"}
+        impl_hits = [
+            f"{cls} ({rel})" for rel, cls, expr, _ in codec_info if expr in allowed_exprs or rkey.lower() in cls.lower()
+        ]
+        if impl_hits:
+            sys.exit(f"Reserved-only block key '{rkey}' must have NO IFeatureBlockCodec implementation: {impl_hits}")
+        if not re.search(rf"\bReserve\s*\(\s*new\s+ReservedFeatureBlockSlot\s*\(\s*(?:SaveV3Format\.{re.escape(rconst)}|\"{re.escape(rkey)}\")", create_body):
+            sys.exit(f"Reserved-only block key '{rkey}' is not reserved in {registry_rel} CreateDefault()")
+
+    # (6) Required codecs (e.g. "genesisRecipe") must be implemented with a positive blockVersion and registered.
+    verified_req = []
+    for req in required_codecs:
+        qkey = req["blockKey"]
+        qconst = req["keyConstant"]
+        min_ver = int(req.get("minBlockVersion", 1))
+        if not re.search(rf'\bconst string {re.escape(qconst)}\s*=\s*"{re.escape(qkey)}"\s*;', format_text):
+            sys.exit(f"{format_rel} missing required block key constant {qconst} = \"{qkey}\"")
+        allowed_exprs = {f'"{qkey}"', qconst, f"SaveV3Format.{qconst}"}
+        matches = [(rel, cls, ver) for rel, cls, expr, ver in codec_info if expr in allowed_exprs]
+        if len(matches) != 1:
+            sys.exit(f"Required block key '{qkey}' must have exactly 1 IFeatureBlockCodec implementation, found {len(matches)}: {matches}")
+        rel, cls, ver = matches[0]
+        if ver < min_ver:
+            sys.exit(f"Required codec {cls} ({rel}) blockVersion={ver} < minBlockVersion={min_ver}")
+        verified_req.append(f"{qkey}:v{ver}({cls})")
+
+    # (7) No v3 reference from the frozen v2 decode path (src/Core/Phase1/**).
+    phase1_dir = os.path.join(p1_root, "src", "Core", "Phase1")
+    v3_ref_pat = re.compile(
+        r"\b(?:SitkaP1\.Core\.Saves|SaveV3\w*|IFeatureBlockCodec|FeatureBlockRegistry|GenesisRecipeBlockCodec|SchemaVersionV3|genesisRecipe)\b|\bSchemaVersion\s*=\s*3\b"
+    )
+    phase1_v3_refs = []
+    for root, dirs, files in os.walk(phase1_dir):
         dirs[:] = sorted(d for d in dirs if d not in ("bin", "obj"))
         for fn in sorted(files):
             if not fn.endswith(".cs"):
@@ -1361,15 +1494,16 @@ if g["schemaVersion"] == 2:
             full = os.path.join(root, fn)
             rel = os.path.relpath(full, p1_root).replace(os.sep, "/")
             txt = open(full, "r", encoding="utf-8").read()
-            if re.search(r":\s*(?:[\w.]+,\s*)*IFeatureBlockCodec\b", txt):
-                codec_impls.append(rel)
-            if re.search(r"\bSchemaVersion\s*=\s*3\b", txt):
-                schema3_hits.append(rel)
-    if codec_impls:
-        sys.exit(f"IFeatureBlockCodec implementation forbidden under Save v2: {codec_impls}")
-    if schema3_hits:
-        sys.exit(f"SchemaVersion = 3 forbidden under Save v2: {schema3_hits}")
+            m = v3_ref_pat.search(txt)
+            if m:
+                phase1_v3_refs.append(f"{rel}:{m.group(0)}")
+    if phase1_v3_refs:
+        sys.exit(f"Forbidden Save v3 reference(s) in frozen v2 decode path src/Core/Phase1/: {phase1_v3_refs}")
 
+    reserved_names = ",".join(r["blockKey"] for r in reserved_only)
+    v3_summary = f"SaveV3=enabled(codecs=[{','.join(verified_req)}], reserved=[{reserved_names}], phase1V3Refs=0)"
+
+# (2) src/Core/Phase1/** still unmodified vs base and t0.
 for ref_label, ref in [("base", base_commit), ("t0", manifest["t0Commit"])]:
     # Check if ref is an ancestor or valid commit
     chk = subprocess.run(["git", "-C", repo, "cat-file", "-e", f"{ref}^{{commit}}"], capture_output=True)
@@ -1381,7 +1515,7 @@ for ref_label, ref in [("base", base_commit), ("t0", manifest["t0Commit"])]:
         if diff:
             sys.exit(f"src/Core/Phase1/ modified vs {ref_label} ({ref}): {diff}")
 
-print(f"v2 golden verified (bytes={g['byteLength']}, fileSha={g['fileSha256'][:12]}..., checksum={g['embeddedChecksum'][:12]}..., SchemaVersion={g['schemaVersion']}, src/Core/Phase1 unchanged)")
+print(f"v2 golden verified (bytes={g['byteLength']}, fileSha={g['fileSha256'][:12]}..., checksum={g['embeddedChecksum'][:12]}..., SchemaVersion={g['schemaVersion']}, src/Core/Phase1 unchanged; {v3_summary})")
 PY
   )"; then
     fail_stage G4 1 "$out"

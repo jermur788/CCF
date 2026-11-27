@@ -4,10 +4,10 @@
   "capturedUtc": "2026-11-25T15:25:30Z",
   "suites": {
     "core": {
-      "minPassed": 307,
+      "minPassed": 312,
       "maxFailed": 0,
       "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$",
-      "note": "Re-baselined 2026-11-27 on the Phase 2A-1 integration merge; Species Wave 2 (trunk merge 6a003a30) added 9 Core cases 291 to 300 and Phase 2A-1 added 7 to 307; exact floor required so selftest C09 (single-test drop) fails G2 as intended; floor tightened upward only, never weakened."
+      "note": "Re-baselined 2026-11-27 for Phase 2A-2 (added 5 Core Save v3 / C-V3 / SaveV3Slots test groups: 307 to 312); exact floor required so selftest C09 (single-test drop) fails G2 as intended; floor tightened upward only, never weakened."
     },
     "save": {
       "minPassed": 50,

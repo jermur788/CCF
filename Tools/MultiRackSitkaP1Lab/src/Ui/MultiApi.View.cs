@@ -12,13 +12,13 @@ internal sealed partial class PlayerApi
     // Pass 1 experiment badge and active model tuple metadata in pure ASCII JSON after contentHash.
     private Task WriteMultiManifestAsync(HttpContext context)
     {
-        var pair = CurrentMulti;
-        byte[] raw = pair.Adapter.ManifestBytes();
-        var snap = pair.Adapter.ReadCompositeUiSnapshot();
+        var active = multiHost.Current;
+        byte[] raw = active.Adapter.ManifestBytes();
+        var snap = active.Adapter.ReadCompositeUiSnapshot();
         var m = snap.Ecology?.Models ?? new MultiAreaEcologyModels(
             snap.Readout.Models.AdultModelVersion, snap.Readout.Models.MortalityModelVersion, snap.Readout.Models.CrownModelVersion, 0, 0);
         string suffix = FormattableString.Invariant(
-            $",\"experimentKey\":\"{JsonEncodedText.Encode(pair.Adapter.ExperimentKey)}\",\"experimentBadge\":\"{JsonEncodedText.Encode(pair.Adapter.ExperimentBadge)}\",\"models\":{{\"adult\":{m.Adult},\"mortality\":{m.Mortality},\"crown\":{m.Crown},\"regeneration\":{m.Regeneration},\"species\":{m.Species}}}}}");
+            $",\"experimentKey\":\"{JsonEncodedText.Encode(active.ExperimentKey)}\",\"experimentBadge\":\"{JsonEncodedText.Encode(active.Badge)}\",\"models\":{{\"adult\":{m.Adult},\"mortality\":{m.Mortality},\"crown\":{m.Crown},\"regeneration\":{m.Regeneration},\"species\":{m.Species}}}}}");
         byte[] suffixBytes = Encoding.ASCII.GetBytes(suffix);
         var combined = new byte[raw.Length - 1 + suffixBytes.Length];
         Buffer.BlockCopy(raw, 0, combined, 0, raw.Length - 1);
@@ -26,9 +26,19 @@ internal sealed partial class PlayerApi
         return WriteAssetAsync(context, combined, JsonContentType);
     }
 
+    // Explicit HTTP 503 refusal whenever a view or lane-filtered payload cannot fit within its active byte budget.
+    // Closes the silent-overflow gap (spec §8.1 / T-2A2-07): over-budget bytes are NEVER returned as HTTP 200.
+    private static Task WritePayloadBudgetExceededAsync(HttpContext context, int actualBytes, int budgetBytes)
+    {
+        Console.Error.WriteLine(FormattableString.Invariant(
+            $"PAYLOAD BUDGET EXCEEDED (HTTP 503): bytes={actualBytes}, budget={budgetBytes}"));
+        return WriteJsonAsync(context, StatusCodes.Status503ServiceUnavailable,
+            new MultiPayloadBudgetExceededDto("MultiViewPayloadBudgetExceeded", actualBytes, budgetBytes));
+    }
+
     // Composite read: view, stage4 and ecology share one exact Core snapshot lock; totalRecordedYears and reviewPreview
-    // are read-only metadata queries. Bounded to <= MaxViewPayloadBytes (512 KiB) raw UTF-8 and <= MaxEcologyPayloadBytes
-    // (150 KiB) ecology slice via projection-only reductions while keeping the authoritative Core root untouched.
+    // are read-only metadata queries. Bounded to ActiveStandBudget (512 KiB for <=2 areas; scaled up to 2.5 MiB for >=3
+    // areas). Never returns an over-budget body: returns HTTP 503 MultiViewPayloadBudgetExceeded instead.
     private Task ReadMultiViewAsync(HttpContext context)
     {
         MultiAreaCompositeUiSnapshot snapshot;
@@ -36,16 +46,26 @@ internal sealed partial class PlayerApi
         MultiReviewPreviewDto? reviewPreview;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        bool hasUnsavedProgress;
+        MultiWoodlandRecipeDto? recipeDto;
+        int genesisStems;
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
-            snapshot = pair.Adapter.ReadCompositeUiSnapshot();
-            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            reviewPreview = TryPreviewForView(pair, snapshot.View);
-            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
+            var active = multiHost.Current;
+            snapshot = active.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            reviewPreview = TryPreviewForView(active, snapshot.View);
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(active.Session, snapshot.View);
+            hasUnsavedProgress = active.HasUnsavedProgress;
+            recipeDto = active.Recipe is null ? null : ProjectRecipeDto(active.Recipe);
+            genesisStems = active.Session.GenesisStemCount;
         }
-        SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes, economyEnabled, economy);
+        var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
+        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes,
+            economyEnabled, economy, budget, hasUnsavedProgress, recipeDto);
+        if (bounded.PayloadBudgetExceeded)
+            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
         return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
     }
 
@@ -98,8 +118,12 @@ internal sealed partial class PlayerApi
         MultiReviewPreviewDto? reviewPreview,
         out byte[] finalBytes,
         bool economyEnabled = false,
-        MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview, out finalBytes, economyEnabled, economy);
+        MultiEconomySnapshotDto? economy = null,
+        MultiViewBudgetLimit? budgetOverride = null,
+        bool hasUnsavedProgress = false,
+        MultiWoodlandRecipeDto? recipe = null) =>
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview,
+            out finalBytes, economyEnabled, economy, budgetOverride, hasUnsavedProgress, recipe);
 
     private static BoundedMultiSnapshot SerializeBoundedMultiView(
         MultiAreaSessionView fullView,
@@ -109,8 +133,13 @@ internal sealed partial class PlayerApi
         MultiReviewPreviewDto? reviewPreview,
         out byte[] finalBytes,
         bool economyEnabled = false,
-        MultiEconomySnapshotDto? economy = null)
+        MultiEconomySnapshotDto? economy = null,
+        MultiViewBudgetLimit? budgetOverride = null,
+        bool hasUnsavedProgress = false,
+        MultiWoodlandRecipeDto? recipe = null)
     {
+        int maxViewBytes = budgetOverride?.MaxViewBytes ?? MaxViewPayloadBytes;
+        int maxEcoBytes = budgetOverride?.MaxEcologyBytes ?? MaxEcologyPayloadBytes;
         var fullScenes = ScenesOf(fullView);
         var projEco = ProjectEcologyForView(fullEcology, fullView);
         int ecoBytes = projEco is null ? 0 : JsonSerializer.SerializeToUtf8Bytes(projEco, ResponseJson).Length;
@@ -122,7 +151,7 @@ internal sealed partial class PlayerApi
         byte[] Serialize(object v, object sc, object? s4, bool histTrunc, bool projCompact, bool s4Compact, bool exceeded) =>
             JsonSerializer.SerializeToUtf8Bytes(
                 new MultiViewPayload(v, sc, MultiLabels, s4, projEco, histTrunc, totalRecordedYears, reviewPreview,
-                    projCompact, s4Compact, exceeded, economyEnabled, economy),
+                    projCompact, s4Compact, exceeded, economyEnabled, economy, hasUnsavedProgress, recipe),
                 ResponseJson);
 
         MultiAreaSessionView TailRaw(int keepEvents, int keepAnnual) => fullView with
@@ -131,8 +160,6 @@ internal sealed partial class PlayerApi
             AnnualHistory = TailOf(fullView.AnnualHistory, keepAnnual),
         };
 
-        // Helper: given fixed scenes and a stage4 builder over pruneLog cap, search the largest history tail >= (minEvents, minAnnual)
-        // that fits within MaxViewPayloadBytes. Trims stage4.pruneLog BEFORE dropping below 1 event / 1 annual record.
         bool TryFitTier(
             bool projectView,
             object scenesObj,
@@ -144,10 +171,9 @@ internal sealed partial class PlayerApi
         {
             fit = null;
             fitBytes = null;
-            if (ecoBytes > MaxEcologyPayloadBytes) return false;
+            if (ecoBytes > maxEcoBytes) return false;
 
             int fullPruneCount = fullStage4?.PruneLog.Count ?? 0;
-            // Try full pruneLog first, then capped pruneLog (10 -> 1 -> 0) before giving up on keeping >= 1 event & annual record.
             var pruneCaps = new List<int> { fullPruneCount };
             if (fullPruneCount > 10) pruneCaps.Add(10);
             if (fullPruneCount > 1) pruneCaps.Add(1);
@@ -166,23 +192,20 @@ internal sealed partial class PlayerApi
                 object? s4Obj = fullStage4 is null ? null : stage4WithPruneCap(pruneCap);
                 bool pruneTrimmed = pruneCap < fullPruneCount;
 
-                // Check if full history fits under this pruneCap.
                 object fullV = MakeView(fullView.Events.Count, fullView.AnnualHistory.Count);
                 byte[] fullB = Serialize(fullV, scenesObj, s4Obj, pruneTrimmed, projCompact, s4Compact, exceeded: false);
-                if (fullB.Length <= MaxViewPayloadBytes)
+                if (fullB.Length <= maxViewBytes)
                 {
                     fit = new BoundedMultiSnapshot(fullV, scenesObj, s4Obj, projEco, pruneTrimmed, totalRecordedYears, projCompact, s4Compact, false);
                     fitBytes = fullB;
                     return true;
                 }
 
-                // Check if minimum guaranteed tail (at least 1 event & 1 annual record whenever present) fits under this pruneCap.
                 object minV = MakeView(minEvents, minAnnual);
                 bool minTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count || pruneTrimmed;
                 byte[] minB = Serialize(minV, scenesObj, s4Obj, minTrunc, projCompact, s4Compact, exceeded: false);
-                if (minB.Length > MaxViewPayloadBytes) continue;
+                if (minB.Length > maxViewBytes) continue;
 
-                // Binary-search largest tail keep in [1, maxHist) that fits <= MaxViewPayloadBytes.
                 int lo = 1;
                 int hi = Math.Max(2, maxHist);
                 object bestV = minV;
@@ -196,7 +219,7 @@ internal sealed partial class PlayerApi
                     object candV = MakeView(kEv, kAn);
                     bool candTrunc = kEv < fullView.Events.Count || kAn < fullView.AnnualHistory.Count || pruneTrimmed;
                     byte[] candB = Serialize(candV, scenesObj, s4Obj, candTrunc, projCompact, s4Compact, exceeded: false);
-                    if (candB.Length <= MaxViewPayloadBytes)
+                    if (candB.Length <= maxViewBytes)
                     {
                         lo = mid;
                         bestV = candV;
@@ -216,11 +239,11 @@ internal sealed partial class PlayerApi
             return false;
         }
 
-        // Tier 0: full uncompacted view/scenes/stage4 with full history (used whenever raw <= 512 KiB and ecology <= 150 KiB).
-        if (ecoBytes <= MaxEcologyPayloadBytes)
+        // Tier 0: full uncompacted view/scenes/stage4 with full history when within budget.
+        if (ecoBytes <= maxEcoBytes)
         {
             byte[] tier0Bytes = Serialize(fullView, fullScenes, fullStage4, histTrunc: false, projCompact: false, s4Compact: false, exceeded: false);
-            if (tier0Bytes.Length <= MaxViewPayloadBytes)
+            if (tier0Bytes.Length <= maxViewBytes)
             {
                 finalBytes = tier0Bytes;
                 return new BoundedMultiSnapshot(fullView, fullScenes, fullStage4, projEco,
@@ -229,10 +252,7 @@ internal sealed partial class PlayerApi
             }
         }
 
-        // Tier 1: honest non-living/display-precision projection compaction on view/scenes/stage4.trees/fallenDeadwood,
-        // keeping FULL untouched stage4.areas[].ground. Preserves full history first, then trims stage4.pruneLog before
-        // dropping below 1 latest event & 1 latest annual record (monotonic: history is never dropped while dead-tree
-        // compaction alone keeps full history within budget).
+        // Tier 1: non-living/display-precision compaction keeping full stage4.ground.
         var projScenes = ProjectScenesForBudget(fullScenes);
         if (TryFitTier(projectView: true, projScenes, projCompact: true, s4Compact: false,
             pruneCap => fullStage4 is null ? null
@@ -243,8 +263,7 @@ internal sealed partial class PlayerApi
             return tier1Fit!;
         }
 
-        // Tier 2: honest stage4.areas[].ground compaction (omits contributingTreeIds via null omission — never [] — and
-        // preserves all four vertex field names { xm, zm, u, v } rounded to 3 decimals; explicitly sets stage4Compacted=true).
+        // Tier 2: stage4.ground compaction.
         if (TryFitTier(projectView: true, projScenes, projCompact: true, s4Compact: true,
             pruneCap => fullStage4 is null ? null
                 : ProjectStage4ForBudget(fullStage4, hasEcology: projEco is not null, compactGround: true, pruneLogCap: pruneCap),
@@ -254,16 +273,12 @@ internal sealed partial class PlayerApi
             return tier2Fit!;
         }
 
-        // Tier 3: explicit over-budget disclosure — never drops below minEvents/minAnnual and never returns over-budget
-        // bytes silently. Keeps at least the latest work event & latest annual record whenever present, sets
-        // payloadBudgetExceeded=true, and logs loudly to server stderr.
+        // Tier 3: over-budget sentinel — callers refuse with HTTP 503 MultiViewPayloadBudgetExceeded (never HTTP 200).
         object? overStage4 = fullStage4 is null ? null
             : ProjectStage4ForBudget(fullStage4, hasEcology: projEco is not null, compactGround: true, pruneLogCap: 0);
         var overView = ProjectViewForBudget(TailRaw(minEvents, minAnnual));
         bool overTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count || (fullStage4?.PruneLog.Count ?? 0) > 0;
         byte[] overBytes = Serialize(overView, projScenes, overStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true);
-        Console.Error.WriteLine(FormattableString.Invariant(
-            $"PAYLOAD BUDGET EXCEEDED GET api/multi/view (year={fullView.Source.EcologicalYear}): raw={overBytes.Length} B (limit {MaxViewPayloadBytes}), ecology={ecoBytes} B (limit {MaxEcologyPayloadBytes})"));
         finalBytes = overBytes;
         return new BoundedMultiSnapshot(overView, projScenes, overStage4, projEco,
             HistoryTruncated: overTrunc, TotalRecordedYears: totalRecordedYears,
@@ -394,13 +409,15 @@ internal sealed partial class PlayerApi
     }
 
     private static BoundedMultiSnapshot BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears,
-        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null, out _, economyEnabled, economy);
+        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null, MultiViewBudgetLimit? budget = null) =>
+        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null,
+            out _, economyEnabled, economy, budget);
 
     private static BoundedMultiSnapshot BoundSnapshotForResponse(
         MultiAreaSessionView view, MultiAreaUiReadout? stage4, MultiAreaEcologyDto? ecology, int totalRecordedYears,
-        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null) =>
-        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null, out _, economyEnabled, economy);
+        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null, MultiViewBudgetLimit? budget = null) =>
+        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null,
+            out _, economyEnabled, economy, budget);
 
     private static object BoundSessionViewForAux(MultiAreaSessionView view)
     {
@@ -457,15 +474,18 @@ internal sealed partial class PlayerApi
         int totalRecordedYears;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        int genesisStems;
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
-            result = pair.Adapter.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
-            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(pair.Session, result.Snapshot.View);
+            var active = multiHost.Current;
+            result = active.Adapter.ReadCellDetail(request.Fence!, request.AreaId!, column, row);
+            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(active.Session, result.Snapshot.View);
+            genesisStems = active.Session.GenesisStemCount;
         }
-        var bounded = BoundSnapshotForResponse(result.Snapshot, totalRecordedYears, economyEnabled, economy);
+        var budget = ActiveStandBudget(result.Snapshot.View.Areas.Count, genesisStems);
+        var bounded = BoundSnapshotForResponse(result.Snapshot, totalRecordedYears, economyEnabled, economy, budget);
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
             result.Cell, NoticeOf(result.RefusalCode, result.RefusalMessage), bounded.Stage4, bounded.Ecology,
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
@@ -481,18 +501,21 @@ internal sealed partial class PlayerApi
         int totalRecordedYears;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        int genesisStems;
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
-            result = pair.Adapter.Competition(request.Fence!, request.AreaId!, request.TreeId!);
-            composite = pair.Adapter.CompositeFor(result.View);
-            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(pair.Session, result.View);
+            var active = multiHost.Current;
+            result = active.Adapter.Competition(request.Fence!, request.AreaId!, request.TreeId!);
+            composite = active.Adapter.CompositeFor(result.View);
+            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(active.Session, result.View);
+            genesisStems = active.Session.GenesisStemCount;
         }
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy);
+            var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy, budget);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
@@ -515,18 +538,21 @@ internal sealed partial class PlayerApi
         int totalRecordedYears;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        int genesisStems;
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
-            result = pair.Adapter.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
-            composite = pair.Adapter.CompositeFor(result.View);
-            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(pair.Session, result.View);
+            var active = multiHost.Current;
+            result = active.Adapter.HitTest(request.Fence!, request.AreaId!, request.U!.Value, request.V!.Value);
+            composite = active.Adapter.CompositeFor(result.View);
+            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(active.Session, result.View);
+            genesisStems = active.Session.GenesisStemCount;
         }
         if (composite is not null)
         {
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy);
+            var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
+            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy, budget);
             await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
@@ -890,6 +916,8 @@ internal sealed partial class PlayerApi
         _ => issue.Message,
     };
 
+    private sealed record MultiPayloadBudgetExceededDto(string Code, int Bytes, int Budget);
+
     // Stage4 ("stage4"), Ecology ("ecology"), and Step 2 bounding/preview fields are additive; all existing members keep their exact names and shapes.
     // EconomyEnabled ("economyEnabled") is explicit server truth from SelectedModels.IsEconomyEnabled; Economy ("economy") is omitted when Off.
     private sealed record MultiViewPayload(object View, object Scenes,
@@ -897,7 +925,9 @@ internal sealed partial class PlayerApi
         bool HistoryTruncated = false, int TotalRecordedYears = 0, MultiReviewPreviewDto? ReviewPreview = null,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        bool HasUnsavedProgress = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null);
 
     private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism, LifeState LifeState);
 

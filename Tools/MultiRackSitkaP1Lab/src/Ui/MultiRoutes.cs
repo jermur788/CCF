@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
 using SitkaP1.Core.Phase1;
+using SitkaP1.Core.Saves;
 
 namespace SitkaP1.Ui;
 
@@ -51,6 +52,11 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiRecoverMembers = new[] { "slot" };
     private static readonly string[] MultiEconomySessionMembers = MultiFenceMembers.Concat(new[] { "enabled", "confirmReset" }).ToArray();
     private static readonly string[] MultiEconomyExecutorMembers = MultiFenceMembers.Concat(new[] { "kind", "areaId", "targetKey", "executor" }).ToArray();
+    private static readonly string[] MultiStandPostMembers = MultiFenceMembers.Append("lanes").ToArray();
+    private static readonly string[] MultiWoodlandPreviewMembers = { "recipe" };
+    private static readonly string[] MultiWoodlandNewMembers = MultiFenceMembers
+        .Concat(new[] { "choice", "economyEnabled", "confirmDiscardUnsaved" })
+        .ToArray();
 
     private static readonly byte[] MultiPageHtml = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.html");
     private static readonly byte[] MultiPageCss = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.css");
@@ -60,9 +66,11 @@ internal sealed partial class PlayerApi
         ("multi/commands.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.commands.js")),
         ("multi/dialogs/execute-confirm.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.execute-confirm.js")),
         ("multi/dialogs/saves.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.saves.js")),
+        ("multi/dialogs/woodland.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.woodland.js")),
         ("multi/dom.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dom.js")),
         ("multi/main.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.main.js")),
         ("multi/map/contract.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.contract.js")),
+        ("multi/map/minimap.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.minimap.js")),
         ("multi/map/renderer-svg.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.renderer-svg.js")),
         ("multi/modes/interactive.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.modes.interactive.js")),
         ("multi/panels/fell-draft.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.panels.fell-draft.js")),
@@ -78,38 +86,19 @@ internal sealed partial class PlayerApi
         .Where(field => field.IsLiteral && field.FieldType == typeof(string))
         .ToDictionary(field => field.Name, field => (string)field.GetRawConstantValue()!, StringComparer.Ordinal);
 
-    private sealed record MultiSessionPair(MultiAreaWorkPlanAdapter Adapter, MultiAreaContinuation Session);
-
-    private readonly object multiSwapSync = new();
-    private MultiSessionPair multiCurrent = null!;
-    private MultiSessionPair CurrentMulti => Volatile.Read(ref multiCurrent);
-    private readonly Phase1SaveSlots saveSlots;
+    private readonly MultiSessionHost multiHost = null!;
+    private readonly SaveV3Slots saveV3Slots = null!;
+    private readonly int? testMaxViewBytesOverride;
     private int savesWritten; // successful slot writes in this process, only for the truthful shutdown line
 
     /// <summary>True when this process wrote at least one save slot (the shutdown line must not claim nothing was saved).</summary>
     internal bool SavesWritten => Volatile.Read(ref savesWritten) > 0;
 
-    private static MultiSessionPair OpenFreshMultiSession(string experimentKey, bool economyEnabled)
-    {
-        var selection = economyEnabled ? MultiAreaModelSelection.Phase2WithEconomy : MultiAreaModelSelection.Phase2;
-        var economyOptions = economyEnabled ? EconomyOptions.Default : null;
-        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1Key, StringComparison.Ordinal))
-        {
-            var experiment = MultiAreaGenerator.Generate();
-            var session = new MultiAreaContinuation(experiment, selection, null, null, null, economyOptions);
-            var adapter = new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1Key, MultiAreaDemoExperiments.Ma1Badge);
-            return new MultiSessionPair(adapter, session);
-        }
-        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1MixedKey, StringComparison.Ordinal))
-        {
-            var (experiment, phase2Options, badge) = MultiAreaDemoExperiments.CreateMixedDemo();
-            var session = new MultiAreaContinuation(experiment, selection, null, null, phase2Options, economyOptions);
-            var adapter = new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1MixedKey, badge);
-            return new MultiSessionPair(adapter, session);
-        }
-        throw new P1Refusal("MultiAreaUnknownExperiment",
-            "supported --multi-experiment values are ma-1 and ma-1-mixed");
-    }
+    private MultiViewBudgetLimit ActiveStandBudget(int areaCount, int genesisStems) =>
+        MultiViewBudget.ForStand(areaCount, genesisStems, testMaxViewBytesOverride);
+
+    private MultiViewBudgetLimit ActiveLaneBudget(int requestedLaneCount, int totalAreaCount, int genesisStems) =>
+        MultiViewBudget.ForLaneFiltered(requestedLaneCount, totalAreaCount, genesisStems, testMaxViewBytesOverride);
 
     private void AddMultiAreaRoutes()
     {
@@ -173,14 +162,19 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/economy/quote", new("POST", QuoteMultiEconomyAsync));
         routes.Add("api/multi/economy/executor", new("POST", SetMultiOrderExecutorAsync));
         routes.Add("api/multi/economy/history/year", new("POST", ReadMultiEconomyHistoryYearAsync));
+        // Phase 2A-2 Forest Maker woodland creation & C-FENCE lane-filtered stand reads.
+        routes.Add("api/multi/stand", new("GET", ReadMultiStandAsync, ReadMultiStandPostAsync));
+        routes.Add("api/multi/woodland/options", new("GET", ReadMultiWoodlandOptionsAsync));
+        routes.Add("api/multi/woodland/preview", new("POST", PreviewMultiWoodlandAsync));
+        routes.Add("api/multi/woodland/new", new("POST", NewMultiWoodlandAsync));
     }
 
-    private static MultiAreaCommandResult RefusableMulti(MultiSessionPair pair, Func<MultiAreaCommandResult> command)
+    private static MultiAreaCommandResult RefusableMulti(MultiSessionState state, Func<MultiAreaCommandResult> command)
     {
         try { return command(); }
         catch (P1Refusal refusal)
         {
-            return new MultiAreaCommandResult(pair.Adapter.Read(), null, null, refusal.Code, refusal.Message);
+            return new MultiAreaCommandResult(state.Adapter.Read(), null, null, refusal.Code, refusal.Message);
         }
     }
 

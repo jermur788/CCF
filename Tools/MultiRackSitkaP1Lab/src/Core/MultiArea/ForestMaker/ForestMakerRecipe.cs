@@ -372,4 +372,22 @@ internal static class ForestMakerPresets
         null => "mad-fm-custom-" + recipeHash[..16],
         _ => throw new P1Refusal("ForestMakerPresetUnknown", "unknown forest-maker presetId: " + recipe.PresetId),
     };
+
+    internal static string BadgeFor(ForestMakerRecipe recipe, double totalAreaHa) => recipe.PresetId switch
+    {
+        PrimaryPresetId => PrimaryBadge,
+        PureSitkaPresetId => PureSitkaBadge,
+        null => string.Create(CultureInfo.InvariantCulture,
+            $"Forest maker \u2014 {totalAreaHa:0.00} ha, {recipe.LaneCount} lanes, {MixBadgeLabel(recipe)} (synthetic, not a surveyed Irish forecast)"),
+        _ => throw new P1Refusal("ForestMakerPresetUnknown", "unknown forest-maker presetId: " + recipe.PresetId),
+    };
+
+    private static string MixBadgeLabel(ForestMakerRecipe recipe) => recipe.SpeciesMix switch
+    {
+        ForestMakerSpeciesMix.PureSitka => "pure Sitka",
+        ForestMakerSpeciesMix.SitkaPlusEdgeBroadleaves => "Sitka + edge broadleaves",
+        ForestMakerSpeciesMix.CustomSplit => string.Create(CultureInfo.InvariantCulture,
+            $"custom {100 - recipe.OakPercent - recipe.BeechPercent}% Sitka / {recipe.OakPercent}% Oak / {recipe.BeechPercent}% Beech"),
+        _ => recipe.SpeciesMix.ToString(),
+    };
 }

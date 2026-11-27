@@ -1,5 +1,5 @@
 // S0c provenance: dialogs/saves.js [L4] — section(s) 4 from multi.js
-import { announce, applyPayload, clearAlert, currentFence, showAlert } from '../api.js';
+import { announce, applyPayload, clearAlert, currentFence, showAlert, syncStandOverview } from '../api.js';
 import { openDialog } from '../commands.js';
 import { el, fill, label } from '../dom.js';
 import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../store.js';
@@ -90,7 +90,8 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
           'aria-label': 'Restore the verified backup of ' + slot.slot }, label('MultiSavesRecover') || 'Restore backup'));
       }
       return el('tr', null,
-        el('td', { class: 'slot-cell' }, el('code', null, slot.slot)),
+        el('td', { class: 'slot-cell' }, el('code', null, slot.slot),
+          slot.schemaVersion === 3 ? el('span', { class: 'tag slot-ver' }, 'v3') : null),
         el('td', { class: 'num' }, slot.ecologicalYear === null || slot.ecologicalYear === undefined ? '–' : String(slot.ecologicalYear)),
         el('td', { class: 'num' }, slot.savedUtc || '–'),
         el('td', { class: stateClass }, word,
@@ -142,6 +143,7 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
       const durable = saved.status === 'durablyCommitted';
       saveStatus('Saved "' + saved.slot + '" · year ' + saved.ecologicalYear + ' · ' + saved.savedUtc + ' · ' +
         (durable ? label('MultiSavesDurable') : label('MultiSavesDurabilityUnconfirmed')), durable ? 'ok' : 'warn');
+      state.hasUnsavedProgress = false;
       byId('save-overwrite').checked = false;
       announce('Saved slot ' + saved.slot + ' in year ' + saved.ecologicalYear + '.');
       await refreshSaves();
@@ -174,7 +176,7 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
     if (!slot || !state.view || state.busy) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
-    const outcome = await jsonCall('api/multi/load', 'POST', { fence: currentFence(), slot });
+    const outcome = await jsonCall('api/multi/load', 'POST', { fence: currentFence(), slot, confirmDiscardUnsaved: true });
     state.busy = false;
     document.documentElement.classList.remove('busy');
     byId('load-confirm').hidden = true;
@@ -182,12 +184,16 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
       resetForLoad();
       applyPayload(outcome.payload, false);
       byId('saves-dialog').close();
+      if (state.view && state.view.areas && state.view.areas.length >= 3) {
+        await syncStandOverview();
+      }
       const info = outcome.payload.restored;
       const draft = info && info.draftOrderCount > 0 ? fill(label('MultiSavesPendingDraft'), { n: info.draftOrderCount }) : null;
+      const areaScopeText = state.view.areas.length >= 3 ? ('all ' + state.view.areas.length + ' lanes') : 'both areas';
       clearAlert();
       showAlert([
         el('p', { class: 'alert-title' }, 'Loaded "' + slot + '"'),
-        el('p', null, 'Year ' + state.view.source.ecologicalYear + ', both areas restored from the save; the session has a new authority, so every earlier token is refused.'),
+        el('p', null, 'Year ' + state.view.source.ecologicalYear + ', ' + areaScopeText + ' restored from the save; the session has a new authority, so every earlier token is refused.'),
         draft ? el('p', { class: 'warning' }, draft) : null,
         el('p', null, 'Advance or approve and execute work to continue from here.'),
       ]);

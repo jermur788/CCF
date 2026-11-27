@@ -1,6 +1,7 @@
 namespace SitkaP1.Core;
 
 using SitkaP1.Core.Phase1;
+using SitkaP1.Core.Saves;
 
 /// <summary>One area's committed state inside the root: its roster (with the shared ecological year) and its Crop marks.</summary>
 internal sealed record MultiAreaAreaState(string AreaId, AnnualState State, IReadOnlyList<string> CropTreeIds);
@@ -29,7 +30,8 @@ internal sealed record MultiAreaRoot(
     MultiAreaStage4State? Stage4 = null, // Stage 4 sessions only (D-095); null on every model 0 / Stage 1–3 root
     MultiAreaStage5State? Stage5 = null, // Stage 5 (1/1/1/1) sessions only; null on every Stage 1–4 root
     MultiAreaPhase2State? Phase2 = null, // Phase 2 (1/1/1/1/1) sessions only; null whenever Species is 0
-    MultiAreaEconomyState? Economy = null) // Phase 2B Economy sessions only; null whenever Economy is Off
+    MultiAreaEconomyState? Economy = null, // Phase 2B Economy sessions only; null whenever Economy is Off
+    ForestMakerGenesisState? GenesisRecipe = null) // Phase 2A Forest Maker sessions only; null on MA-1 / MA-1-MIXED
 {
     /// <summary>True when any Fell, Prune, ClearUndergrowth, planting or Economy-approved order is pending or approved and not yet executed.</summary>
     internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0 ||
@@ -88,6 +90,7 @@ internal sealed partial class MultiAreaContinuation
     private readonly MultiAreaExperimentInfo experiment;
     private readonly string experimentBadge;
     private readonly string areaIds;
+    private readonly int genesisStemCount;
     // One random identity per in-memory session. It is never part of a token, report or manifest. A Load mints a NEW one,
     // so every fence a page held against the replaced session is refused from then on (Execute replay included).
     private string sessionId = NewSessionId();
@@ -123,7 +126,8 @@ internal sealed partial class MultiAreaContinuation
     /// null unless the selection is 1/1/1/1.
     /// </summary>
     internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null,
-        Stage5Options? stage5 = null, Phase2Options? phase2 = null, EconomyOptions? economy = null)
+        Stage5Options? stage5 = null, Phase2Options? phase2 = null, EconomyOptions? economy = null,
+        ForestMakerRecipe? genesisRecipe = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(models);
@@ -158,12 +162,14 @@ internal sealed partial class MultiAreaContinuation
             models.IsStage4 ? MultiAreaIdentity.EdgeModelStage4
                 : connected ? MultiAreaIdentity.EdgeModelConnectedCrownC2 : MultiAreaIdentity.EdgeModel,
             models.IsStage4 ? MultiAreaIdentity.SiteNoteStage4 : MultiAreaIdentity.SiteNote);
-        experimentBadge = string.Equals(definition.ExperimentId, MultiAreaDemoExperiments.Ma1MixedExperimentId, StringComparison.Ordinal)
-            ? MultiAreaDemoExperiments.Ma1MixedBadge
-            : MultiAreaDemoExperiments.Ma1Badge;
+        experimentBadge = definition.BadgeOverride ?? (
+            string.Equals(definition.ExperimentId, MultiAreaDemoExperiments.Ma1MixedExperimentId, StringComparison.Ordinal)
+                ? MultiAreaDemoExperiments.Ma1MixedBadge
+                : MultiAreaDemoExperiments.Ma1Badge);
         areas = Array.AsReadOnly(definition.Areas.Select(InfoOf).ToArray());
         areaIds = string.Join(",", definition.Areas.Select(area => area.AreaId));
         var genesis = definition.Areas.Select(MultiAreaExperiment.GenesisTrees).ToArray();
+        genesisStemCount = genesis.Sum(trees => trees.Count);
         if (connected)
         {
             var woodland = CrownModel.Woodland(genesis.SelectMany(trees => trees));
@@ -193,10 +199,17 @@ internal sealed partial class MultiAreaContinuation
             phase2State = Phase2Annual.Genesis(options, stage5State!.MastSeed, stage5State, options.GenesisSpecies);
         }
         var economyState = economyOptions is null ? null : MultiAreaEconomyState.CreateInitial(economyOptions);
+        ForestMakerGenesisState? genesisRecipeState = genesisRecipe is null
+            ? null
+            : new ForestMakerGenesisState(
+                genesisRecipe,
+                genesisRecipe.RecipeHash(),
+                SaveV3Format.RecipeGeneratorNote,
+                models.IsEconomyEnabled);
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
             Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null, stage5State, phase2State,
-            economyState);
+            economyState, genesisRecipeState);
     }
 
     // Phase 2 genesis crowns: every living Oak/Beech of one area gets its species' C2 equilibrium; Sitka is returned unchanged.
@@ -211,6 +224,31 @@ internal sealed partial class MultiAreaContinuation
     internal CrownModelVersion SelectedCrownModel => crownModel;
 
     internal MultiAreaModelSelection SelectedModels => models;
+
+    internal string ExperimentBadge => experimentBadge;
+
+    internal MultiAreaExperiment Definition => definition;
+
+    internal int GenesisStemCount => genesisStemCount;
+
+    internal ForestMakerGenesisState? GenesisRecipe
+    {
+        get { lock (sync) return root.GenesisRecipe; }
+    }
+
+    internal bool IsForestMaker => GenesisRecipe is not null;
+
+    /// <summary>Current session progress marker used by the UI host to detect unsaved work before replacing a woodland.</summary>
+    internal (int AnnualRevision, int WorkRevision, int PlanStateRevision) ProgressMarker()
+    {
+        lock (sync) return (root.AnnualRevision, root.WorkRevision, root.PlanStateRevision);
+    }
+
+    /// <summary>Checks the caller's fence under the session lock without mutating anything.</summary>
+    internal void RequireCurrentFence(MultiAreaFence fence)
+    {
+        lock (sync) RequireFence(fence);
+    }
 
     /// <summary>The whole view, built from ONE root reference under ONE lock acquisition.</summary>
     internal MultiAreaSessionView ReadView()
@@ -541,6 +579,71 @@ internal sealed partial class MultiAreaContinuation
             var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
                 root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition), Phase1EngineLineage.Current(vector));
             return new Phase1SaveEnvelope(header, Phase1RootMapping.Capture(root, models, stage4Options));
+        }
+    }
+
+    /// <summary>
+    /// Captures and encodes the session into canonical save bytes under ONE lock acquisition:
+    /// frozen Save v2 for built-in stands (<c>MA-1</c>, <c>MA-1-MIXED</c>) and strict Save v3 (C-V3 with
+    /// <c>blocks.genesisRecipe</c>) for Forest Maker stands. Never mutates state.
+    /// </summary>
+    internal (int SchemaVersion, byte[] Bytes) CaptureSaveBytes(
+        MultiAreaFence fence,
+        string label,
+        long saveGeneration,
+        FeatureBlockRegistry? registry = null)
+    {
+        lock (sync)
+        {
+            var inner = CaptureSave(fence, label, saveGeneration);
+            if (root.GenesisRecipe is null)
+                return (Phase1SaveFormat.SchemaVersion, Phase1SaveCodec.Encode(inner));
+            return (SaveV3Format.SchemaVersionV3, SaveV3Codec.Encode(inner, root, registry));
+        }
+    }
+
+    /// <summary>
+    /// Self-contained Save v3 restore (spec §6.3 steps 2–5): verifies recipe/genesis/model/lineage, regenerates the
+    /// stand from its embedded recipe, builds a fresh session, verifies deterministic options, restores state and
+    /// feature blocks through <see cref="IFeatureBlockCodec"/>, converts any saved approval into a Pending draft,
+    /// revalidates every unexecuted order, and mints a fresh session ID.
+    /// </summary>
+    internal static (MultiAreaContinuation Session, MultiAreaExperiment Experiment, MultiAreaLoadResult Result)
+        RestoreFromV3(SaveV3Decoded decoded, FeatureBlockRegistry? registry = null)
+    {
+        ArgumentNullException.ThrowIfNull(decoded);
+        var generated = SaveV3Codec.VerifyRecipeGenesis(decoded);
+        var session = new MultiAreaContinuation(
+            generated.Experiment,
+            MultiAreaModelSelection.Phase2,
+            stage4: null,
+            stage5: null,
+            phase2: generated.Options,
+            economy: null,
+            genesisRecipe: generated.Recipe);
+        var result = session.RestoreVerifiedV3IntoFreshSession(decoded, registry ?? FeatureBlockRegistry.Default);
+        return (session, generated.Experiment, result);
+    }
+
+    private MultiAreaLoadResult RestoreVerifiedV3IntoFreshSession(SaveV3Decoded decoded, FeatureBlockRegistry registry)
+    {
+        lock (sync)
+        {
+            RequireSameOptions(decoded.Envelope.State.Options);
+            var restored = Phase1RootMapping.Restore(decoded.Envelope.State, Phase1RootMapping.VectorOf(models));
+            var candidateRoot = restored.Root;
+            foreach (var (key, block) in decoded.Envelope.Blocks)
+            {
+                var codec = registry.RequireCodecForDecode(key, block.BlockVersion);
+                candidateRoot = codec.Decode(block.CanonicalDataJson, block.BlockVersion, candidateRoot);
+            }
+            var candidate = WithSavedApprovalAsDraft(candidateRoot, restored.SavedApproval);
+            RequireLegalRestoredOrders(candidate);
+            root = candidate;
+            sessionId = NewSessionId();
+            canopyCache.Clear();
+            groundCache = null;
+            return new MultiAreaLoadResult(ViewOf(root), DraftOrderCount(restored.SavedApproval), decoded.Checksum, null, null);
         }
     }
 

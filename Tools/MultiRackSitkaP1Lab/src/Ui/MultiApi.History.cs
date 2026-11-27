@@ -16,13 +16,13 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         int status;
         MultiPreviewReviewPayload payload;
-        lock (multiSwapSync)
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
+            var active = multiHost.Current;
             try
             {
-                var preview = pair.Session.PreviewNextReviewYear(request.Fence!);
-                var view = pair.Adapter.Read();
+                var preview = active.Session.PreviewNextReviewYear(request.Fence!);
+                var view = active.Adapter.Read();
                 var fence = FenceOf(view);
                 var boundedView = BoundSessionViewForAux(view);
                 bool isOverdue = string.Equals(preview.Label, MultiAreaTimePacingConstants.OverdueReviewPeriodLabel, StringComparison.Ordinal);
@@ -34,7 +34,7 @@ internal sealed partial class PlayerApi
             }
             catch (P1Refusal refusal)
             {
-                var view = pair.Adapter.Read();
+                var view = active.Adapter.Read();
                 status = StatusCodes.Status409Conflict;
                 payload = new MultiPreviewReviewPayload(
                     null, null, null, null, null, null, null, null, null, null, null,
@@ -56,24 +56,27 @@ internal sealed partial class PlayerApi
         int totalRecordedYears;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        int genesisStems;
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
+            var active = multiHost.Current;
             try
             {
-                result = pair.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
+                result = active.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
             }
             catch (P1Refusal refusal)
             {
                 refusalNotice = new Notice(refusal.Code, refusal.Message);
             }
-            snapshot = pair.Adapter.ReadCompositeUiSnapshot();
-            totalRecordedYears = pair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = pair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(pair.Session, snapshot.View);
+            snapshot = active.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(active.Session, snapshot.View);
+            genesisStems = active.Session.GenesisStemCount;
         }
 
-        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy);
+        var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
+        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy, budget);
         if (refusalNotice is not null)
         {
             await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
@@ -135,7 +138,7 @@ internal sealed partial class PlayerApi
                     FormattableString.Invariant($"unknown query parameter '{key}'; nothing changed"));
             }
         }
-        var page = CurrentMulti.Session.ReadHistoryIndex(pageSize, beforeYear);
+        var page = multiHost.Current.Session.ReadHistoryIndex(pageSize, beforeYear);
         return WriteJsonAsync(context, StatusCodes.Status200OK, page);
     }
 
@@ -156,8 +159,8 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiHistoryYearRequest>(context, MultiHistoryYearMembers);
         if (request is null) return;
-        var pair = CurrentMulti;
-        var currentView = pair.Adapter.Read();
+        var active = multiHost.Current;
+        var currentView = active.Adapter.Read();
         Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
         if (fenceRefusal is not null)
         {
@@ -186,11 +189,11 @@ internal sealed partial class PlayerApi
         HistoryYearDetail detail;
         try
         {
-            detail = pair.Session.ReadHistoryYear(year);
+            detail = active.Session.ReadHistoryYear(year);
         }
         catch (P1Refusal refusal)
         {
-            var fresh = pair.Adapter.Read();
+            var fresh = active.Adapter.Read();
             await WriteJsonAsync(context, StatusCodes.Status409Conflict,
                 new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
                     new Notice(refusal.Code, refusal.Message)));
@@ -217,10 +220,10 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         int status;
         object payload;
-        lock (multiSwapSync)
+        lock (multiHost.SyncLock)
         {
-            var pair = CurrentMulti;
-            var currentView = pair.Adapter.Read();
+            var active = multiHost.Current;
+            var currentView = active.Adapter.Read();
             Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
             if (fenceRefusal is not null)
             {
@@ -244,14 +247,14 @@ internal sealed partial class PlayerApi
             {
                 try
                 {
-                    var econHistory = pair.Session.ReadEconomyHistoryYear(request.Year.Value);
-                    var options = pair.Session.SelectedModels.IsEconomyEnabled ? pair.Session.ReadEconomyView().Options : null;
+                    var econHistory = active.Session.ReadEconomyHistoryYear(request.Year.Value);
+                    var options = active.Session.SelectedModels.IsEconomyEnabled ? active.Session.ReadEconomyView().Options : null;
                     status = StatusCodes.Status200OK;
                     payload = ProjectEconomyHistoryYear(econHistory, options);
                 }
                 catch (P1Refusal refusal)
                 {
-                    var fresh = pair.Adapter.Read();
+                    var fresh = active.Adapter.Read();
                     status = StatusCodes.Status409Conflict;
                     payload = new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
                         new Notice(refusal.Code, refusal.Message));
@@ -267,7 +270,7 @@ internal sealed partial class PlayerApi
         if (context.Request.Query.Count > 0)
             return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
                 "structure does not accept query parameters; nothing changed");
-        var summary = CurrentMulti.Session.ComputeStructure();
+        var summary = multiHost.Current.Session.ComputeStructure();
         return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiStructurePayload(
             summary.MeanMingling, summary.MeanDiameterDifferentiation, summary.FocalLivingTreeCount,
             summary.ValidDiameterFocalCount, summary.EffectiveNeighbourCount, summary.MaxNeighbourCountK,
@@ -277,11 +280,11 @@ internal sealed partial class PlayerApi
     private static MultiAreaFence FenceOf(MultiAreaSessionView view) =>
         new(view.SessionId, view.Source, view.PlanStateRevision);
 
-    private static MultiReviewPreviewDto? TryPreviewForView(MultiSessionPair pair, MultiAreaSessionView view)
+    private static MultiReviewPreviewDto? TryPreviewForView(MultiSessionState active, MultiAreaSessionView view)
     {
         try
         {
-            var p = pair.Session.PreviewNextReviewYear(FenceOf(view));
+            var p = active.Session.PreviewNextReviewYear(FenceOf(view));
             bool isOverdue = string.Equals(p.Label, MultiAreaTimePacingConstants.OverdueReviewPeriodLabel, StringComparison.Ordinal);
             return new MultiReviewPreviewDto(p.CurrentYear, p.Eligible, p.SuggestedTargetYear, p.SuggestedGapYears,
                 p.AnchorFellYear, p.IsObservationPeriod, isOverdue, p.MaxTicksPerPress, p.StopReason, p.CalibrationNote, p.Label);
