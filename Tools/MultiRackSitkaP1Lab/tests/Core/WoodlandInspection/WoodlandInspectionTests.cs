@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Text;
+using System.Text.RegularExpressions;
 using SitkaP1.Core.WoodlandImport;
 using SitkaP1.Core.WoodlandImport.Inspection;
 
@@ -15,10 +17,13 @@ internal static class WoodlandInspectionTests
     private const string DonadeaPlotId = "IPlus_Donadea_MHF_2";
     private const string MerschPlotId = "IPlus_Mersch";
 
-    // Golden SHA-256 of the canonical inspection JSON for each built-in stand (no boundary, as shipped).
-    // Observed on SDK 8.0.133 on 2026-11-27 and pinned; any change to the view shape or fixture data changes them.
-    private const string GoldenDonadeaViewSha256 = "2649a7128a8463b78aed89c7a9aa1f28486278523f073935614bcf481ce8661f";
-    private const string GoldenMerschViewSha256 = "00d9f7603118262ef4c03c9991a5cd81447275ecdfd41b8dd2f5204ff41ee589";
+    // Golden SHA-256 of the canonical JSON of each built-in stand's InspectionView (no boundary, as shipped,
+    // with its source disclosures). Observed on SDK 8.0.133 on 2026-11-27 and pinned; any change to the view
+    // shape, wording or fixture data changes them.
+    // Repair R1 re-pin: Donadea 2649a712... -> b53c6339..., Mersch 00d9f760... -> e01bbfad..., because the JSON
+    // gained the "disclosures" object (WI-02) and the BoundaryMissing title/explanation were reworded (WI-05).
+    private const string GoldenDonadeaViewSha256 = "b53c6339242f6a0abc22a5292a042920fd0dee17d595f3a567782abd99babeb6";
+    private const string GoldenMerschViewSha256 = "e01bbfada73ab2260300ff4f5e092b1d537e76ac96a72ecab3df1d9ef1d0b9a4";
 
     public static void Register()
     {
@@ -115,6 +120,16 @@ internal static class WoodlandInspectionTests
                 {
                     TestRunner.True(view.BlockerChecklist.Any(b => b.Code == "ArchiveSha256Mismatch"), "header-byte flip refused by the pinned SHA-256 check");
                 }
+                else
+                {
+                    // Offset 1000 lies inside compressed entry data, so decompression itself fails.
+                    Console.WriteLine($"  [tamper] offset {offset} codes={string.Join(",", view.BlockerChecklist.Select(b => b.Code))}");
+                    TestRunner.True(view.BlockerChecklist.Any(b => b.Code == "ArchiveCorruptEntry"), "data-byte flip refused as ArchiveCorruptEntry");
+                    BlockerChecklistItem corrupt = view.BlockerChecklist.Single(b => b.Code == "ArchiveCorruptEntry");
+                    TestRunner.True(BlockerExplanations.IsKnown("ArchiveCorruptEntry"), "ArchiveCorruptEntry has plain-English text");
+                    TestRunner.Eq("Archive contains a damaged file", corrupt.Title, "ArchiveCorruptEntry title is not the raw code");
+                    TestRunner.True(!corrupt.Explanation.Contains("failed decompression", StringComparison.Ordinal), "explanation is not the raw importer message");
+                }
 
                 TestRunner.Eq(WoodlandReadiness.InventoryOnly, entries[1].Readiness, $"offset {offset}: untouched Mersch unaffected");
             }
@@ -145,6 +160,61 @@ internal static class WoodlandInspectionTests
             }
             TestRunner.True(threw, "InvalidDataException for mismatched ATTRIBUTION SHA-256");
         });
+
+        TestRunner.Add(Catalogue, "T1b built-in view and its JSON carry the CC BY 4.0 modifications disclosure and the verbatimCoordinates caveat; importer fields unchanged", () =>
+        {
+            string attributionJson = Encoding.UTF8.GetString(TestFixtures.ReadFixture(BuiltInWoodlandCatalogue.AttributionFileName));
+            using var attribution = System.Text.Json.JsonDocument.Parse(attributionJson);
+            string changesMade = attribution.RootElement.GetProperty("changesMade").GetString()!;
+            string expectedCaveat = changesMade.Substring(changesMade.IndexOf("Note:", StringComparison.Ordinal)).Trim();
+
+            foreach (BuiltInWoodlandEntry e in TestFixtures.LoadCatalogue())
+            {
+                WoodlandInspectionView view = e.InspectionView;
+                TestRunner.True(view.Disclosures is not null, $"{e.PlotId} view has disclosures");
+                TestRunner.Eq(changesMade, view.Disclosures!.ModificationsDisclosure, $"{e.PlotId} modifications disclosure verbatim on the view");
+                TestRunner.Eq(expectedCaveat, view.Disclosures.CoordinateInterpretationCaveat, $"{e.PlotId} coordinate caveat on the view");
+                TestRunner.True(view.Disclosures.CoordinateInterpretationCaveat.Contains("verbatimCoordinates", StringComparison.Ordinal) &&
+                    view.Disclosures.CoordinateInterpretationCaveat.Contains("unverified inference", StringComparison.Ordinal), $"{e.PlotId} caveat names the unverified verbatimCoordinates inference");
+                TestRunner.Eq(e.Disclosures, view.Disclosures, $"{e.PlotId} entry and view disclosures agree");
+
+                // A reader of the JSON alone sees both disclosures.
+                using var json = System.Text.Json.JsonDocument.Parse(WoodlandInspectionSerializer.SerializeUtf8(view));
+                System.Text.Json.JsonElement d = json.RootElement.GetProperty("disclosures");
+                TestRunner.Eq(changesMade, d.GetProperty("modificationsDisclosure").GetString(), $"{e.PlotId} JSON modificationsDisclosure");
+                TestRunner.Eq(expectedCaveat, d.GetProperty("coordinateInterpretationCaveat").GetString(), $"{e.PlotId} JSON coordinateInterpretationCaveat");
+
+                // Provenance labels and raw evidence stay exactly as the importer produced them.
+                System.Text.Json.JsonElement firstTree = json.RootElement.GetProperty("observedYear0").GetProperty("trees")[0];
+                ImportedTreeRecord src = e.ImportResult.Stand!.Trees[0];
+                TestRunner.Eq(src.PositionLocalM.Provenance.ToString(), firstTree.GetProperty("positionLocalM").GetProperty("provenance").GetString(), $"{e.PlotId} position provenance not relabelled");
+                TestRunner.Eq(src.PositionLocalM.Evidence?.RawValue, firstTree.GetProperty("positionLocalM").GetProperty("rawValue").GetString(), $"{e.PlotId} raw position evidence unchanged");
+
+                // The plain projection of the same result is identical apart from the disclosures it was given.
+                byte[] withDisclosures = WoodlandInspectionSerializer.SerializeUtf8(WoodlandInspectionProjector.Project(e.ImportResult, e.Disclosures));
+                TestRunner.True(withDisclosures.AsSpan().SequenceEqual(WoodlandInspectionSerializer.SerializeUtf8(view)), $"{e.PlotId} Project(result, disclosures) reproduces the built-in view");
+                TestRunner.True(WoodlandInspectionProjector.Project(e.ImportResult).Disclosures is null, $"{e.PlotId} no disclosures unless supplied");
+            }
+
+            // A built-in catalogue without the coordinate caveat is rejected rather than shown without it.
+            byte[] ReadWithoutNote(string name)
+            {
+                byte[] bytes = TestFixtures.ReadFixture(name);
+                return name == BuiltInWoodlandCatalogue.AttributionFileName
+                    ? Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(bytes).Replace(" Note: interpreting", " interpreting", StringComparison.Ordinal))
+                    : bytes;
+            }
+            bool threw = false;
+            try
+            {
+                BuiltInWoodlandCatalogue.Load(ReadWithoutNote);
+            }
+            catch (InvalidDataException)
+            {
+                threw = true;
+            }
+            TestRunner.True(threw, "InvalidDataException when ATTRIBUTION.json lacks the coordinate caveat");
+        });
     }
 
     // ------------------------------------------------------------------
@@ -167,7 +237,8 @@ internal static class WoodlandInspectionTests
 
             BlockerChecklistItem boundary = ie.BlockerChecklist[0];
             TestRunner.Eq(IssueSeverity.InventoryOnlyBlocker, boundary.Severity, "BoundaryMissing severity");
-            TestRunner.Eq("No surveyed boundary", boundary.Title, "BoundaryMissing title");
+            TestRunner.Eq("No boundary supplied", boundary.Title, "BoundaryMissing title");
+            TestRunner.True(boundary.Explanation.StartsWith("No boundary polygon was supplied", StringComparison.Ordinal), "BoundaryMissing says none was supplied");
             TestRunner.Eq(0, boundary.AffectedTreeCount, "BoundaryMissing affects the stand, not trees");
 
             BlockerChecklistItem species = ie.BlockerChecklist[1];
@@ -324,14 +395,15 @@ internal static class WoodlandInspectionTests
 
             for (int i = 0; i < 2; i++)
             {
-                byte[] a1 = WoodlandInspectionSerializer.SerializeUtf8(WoodlandInspectionProjector.Project(loadA[i].ImportResult));
-                byte[] a2 = WoodlandInspectionSerializer.SerializeUtf8(WoodlandInspectionProjector.Project(loadA[i].ImportResult));
-                byte[] b1 = WoodlandInspectionSerializer.SerializeUtf8(WoodlandInspectionProjector.Project(loadB[i].ImportResult));
+                // The golden is the built-in view (with its disclosures), as a UI would receive it from the catalogue.
+                byte[] a1 = WoodlandInspectionSerializer.SerializeUtf8(loadA[i].InspectionView);
+                byte[] a2 = WoodlandInspectionSerializer.SerializeUtf8(WoodlandInspectionProjector.Project(loadA[i].ImportResult, loadA[i].Disclosures));
+                byte[] b1 = WoodlandInspectionSerializer.SerializeUtf8(loadB[i].InspectionView);
                 TestRunner.True(a1.AsSpan().SequenceEqual(a2), $"{labels[i]} same-load JSON identical");
                 TestRunner.True(a1.AsSpan().SequenceEqual(b1), $"{labels[i]} cross-load JSON identical");
 
-                string hashA = WoodlandInspectionSerializer.ComputeSha256Hex(WoodlandInspectionProjector.Project(loadA[i].ImportResult));
-                string hashB = WoodlandInspectionSerializer.ComputeSha256Hex(WoodlandInspectionProjector.Project(loadB[i].ImportResult));
+                string hashA = WoodlandInspectionSerializer.ComputeSha256Hex(loadA[i].InspectionView);
+                string hashB = WoodlandInspectionSerializer.ComputeSha256Hex(WoodlandInspectionProjector.Project(loadB[i].ImportResult, loadB[i].Disclosures));
                 TestRunner.Eq(hashA, hashB, $"{labels[i]} SHA-256 identical");
                 Console.WriteLine($"  [determinism] {labels[i]}-inspection-sha256={hashA} ({a1.Length} bytes)");
                 TestRunner.Eq(golden[i], hashA, $"{labels[i]} golden SHA-256");
@@ -410,9 +482,10 @@ internal static class WoodlandInspectionTests
             TestRunner.True(json.Contains("\"heightM\":{\"provenance\":\"Missing\",\"value\":null", StringComparison.Ordinal), "JSON writes null height");
         });
 
-        TestRunner.Add(Synthetic, "T8b a Simulated field at Year 0 can never advance time (validator Refused, and defensive guard on a hand-built Candidate result)", () =>
+        TestRunner.Add(Synthetic, "T8b a Simulated field at Year 0 never reaches the view (validator Refused; a hand-built Candidate is withheld with a renderable refusal)", () =>
         {
-            ImportedTreeRecord simulated = TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10, heightProvenance: FieldProvenance.Simulated);
+            const double simulatedHeight = 123.45;
+            ImportedTreeRecord simulated = TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10, heightM: simulatedHeight, heightProvenance: FieldProvenance.Simulated);
             WoodlandImportStand stand = TestFixtures.Stand([simulated], TestFixtures.ConstructedBoundary());
 
             WoodlandInspectionView validated = WoodlandInspectionProjector.Project(TestFixtures.Validate(stand));
@@ -429,15 +502,87 @@ internal static class WoodlandInspectionTests
             };
             WoodlandInspectionView guarded = WoodlandInspectionProjector.Project(forged);
             TestRunner.True(!guarded.CanAdvanceTime, "Candidate with a Simulated field still cannot advance");
+            TestRunner.Eq(WoodlandReadiness.Refused, guarded.Readiness, "contaminated Candidate reported as Refused");
             TestRunner.Eq(1, guarded.ProvenanceBoundary.SimulatedValueCount, "simulated value counted");
             TestRunner.True(!guarded.ProvenanceBoundary.SimulatedFutureAvailable, "no simulated future");
-            TestRunner.Eq(FieldProvenance.Simulated, guarded.ObservedYear0.Trees[0].HeightM.Provenance, "provenance reported honestly, not hidden");
+
+            // The contaminated stand is withheld from the Year-0 payload.
+            TestRunner.Eq(0, guarded.ObservedYear0.Trees.Count, "no trees in the Year-0 payload");
+            TestRunner.True(guarded.Stand is null, "no stand identity");
+            TestRunner.True(guarded.Attribution is null, "no attribution");
+            TestRunner.True(guarded.ObservedYear0.CoordinateOrigin is null, "no coordinate origin");
+            TestRunner.True(!guarded.ObservedYear0.Boundary.Observed, "no boundary");
+            TestRunner.Eq(0, guarded.SpeciesBreakdown.Categories.Sum(c => c.TotalTrees), "no species counts");
+
+            // ... with a renderable refusal reason.
+            TestRunner.Eq(1, guarded.BlockerChecklist.Count, "one checklist item");
+            BlockerChecklistItem reason = guarded.BlockerChecklist[0];
+            TestRunner.Eq(WoodlandInspectionProjector.SimulatedFieldAtYearZeroCode, reason.Code, "SimulatedFieldAtYearZero listed");
+            TestRunner.Eq(IssueSeverity.Refusal, reason.Severity, "as a Refusal");
+            TestRunner.Eq("Simulated value found in Year-0 data", reason.Title, "plain-English title");
+            TestRunner.True(BlockerExplanations.IsKnown(reason.Code) && reason.Explanation.Length > 0, "plain-English explanation");
+            TestRunner.Eq("t1", string.Join(",", reason.AffectedTreeIds), "affected tree named");
+            TestRunner.Eq(0, reason.AffectedRawSpeciesNames.Count, "no withheld stand data in the checklist");
+            TestRunner.True(guarded.AdvanceTimeStatement.Contains("simulated", StringComparison.Ordinal), "statement explains the withheld stand");
+
+            // The simulated measurement is absent from both the view and its JSON.
+            string guardedJson = WoodlandInspectionSerializer.SerializeJson(guarded);
+            string simulatedText = simulatedHeight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            TestRunner.True(!guardedJson.Contains(simulatedText, StringComparison.Ordinal), "simulated height absent from JSON");
+            TestRunner.True(!guardedJson.Contains("\"provenance\":\"Simulated\"", StringComparison.Ordinal), "no Simulated provenance in JSON");
+            TestRunner.True(!guardedJson.Contains("synthetic simulated value", StringComparison.Ordinal), "simulated evidence note absent from JSON");
+            TestRunner.True(guarded.ObservedYear0.Trees.All(t => t.HeightM.Value != simulatedHeight), "simulated height absent from the view");
+
+            // A result that already lists the refusal is not listed twice.
+            WoodlandInspectionView listed = WoodlandInspectionProjector.Project(forged with
+            {
+                Issues = new[] { new ImportValidationIssue(WoodlandInspectionProjector.SimulatedFieldAtYearZeroCode, IssueSeverity.Refusal, "already listed", "t1", nameof(ImportedTreeRecord.HeightM)) },
+            });
+            TestRunner.Eq(1, listed.BlockerChecklist.Count, "existing refusal reused");
+            TestRunner.Eq("t1", string.Join(",", listed.BlockerChecklist[0].AffectedTreeIds), "existing refusal tree");
 
             // A clean synthetic Candidate does advance.
             WoodlandInspectionView clean = WoodlandInspectionProjector.Project(
                 TestFixtures.Validate(TestFixtures.Stand([TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10)], TestFixtures.ConstructedBoundary())));
             TestRunner.Eq(WoodlandReadiness.CandidateForSimulationIntegration, clean.Readiness, "clean candidate");
             TestRunner.True(clean.CanAdvanceTime, "clean candidate can advance");
+        });
+
+        TestRunner.Add(Synthetic, "T8c a Refused result that still carries a stand projects no stand data", () =>
+        {
+            BuiltInWoodlandEntry donadea = TestFixtures.LoadCatalogue()[0];
+            WoodlandImportStand stand = donadea.ImportResult.Stand!;
+            var refused = new WoodlandImportResult
+            {
+                Readiness = WoodlandReadiness.Refused,
+                Stand = stand,
+                // A stand-level refusal: source tree ids embed the plot name, so none is named here.
+                Issues = new[] { new ImportValidationIssue("ArchiveSha256Mismatch", IssueSeverity.Refusal, "hand-built refusal") },
+            };
+            WoodlandInspectionView view = WoodlandInspectionProjector.Project(refused);
+
+            TestRunner.Eq(WoodlandReadiness.Refused, view.Readiness, "Refused");
+            TestRunner.True(!view.CanAdvanceTime, "cannot advance");
+            TestRunner.True(view.Stand is null, "no stand identity");
+            TestRunner.True(view.Attribution is null, "no attribution");
+            TestRunner.Eq(0, view.ObservedYear0.Trees.Count, "no trees");
+            TestRunner.True(view.ObservedYear0.CoordinateOrigin is null, "no coordinate origin");
+            TestRunner.True(!view.ObservedYear0.Boundary.Observed, "no boundary");
+            TestRunner.Eq(0, view.Microhabitats.Count, "no microhabitats");
+            TestRunner.Eq(0, view.SpeciesBreakdown.Species.Count, "no species rows");
+            TestRunner.Eq(0, view.SpeciesBreakdown.Categories.Sum(c => c.TotalTrees), "no species counts");
+            TestRunner.Eq(0, view.ProvenanceBoundary.ObservationDates.Count, "no observation dates");
+            TestRunner.Eq("ArchiveSha256Mismatch", string.Join(",", view.BlockerChecklist.Select(b => b.Code)), "refusal reason listed");
+            TestRunner.Eq(0, view.BlockerChecklist[0].AffectedRawSpeciesNames.Count, "no species names from the refused stand");
+            TestRunner.True(view.AdvanceTimeStatement.Contains("refused", StringComparison.Ordinal), "statement explains refusal");
+
+            string json = WoodlandInspectionSerializer.SerializeJson(view);
+            TestRunner.True(!json.Contains(stand.PlotName, StringComparison.Ordinal), "plot name (and every tree id, which embeds it) absent from JSON");
+            TestRunner.True(stand.Trees.All(t => !json.Contains(t.SourceTreeId, StringComparison.Ordinal)), "no tree id in JSON");
+            TestRunner.True(!json.Contains(stand.StandId, StringComparison.Ordinal), "stand id absent from JSON");
+            TestRunner.True(!json.Contains(stand.Attribution.Citation, StringComparison.Ordinal), "citation absent from JSON");
+            TestRunner.True(!json.Contains("Fagus sylvatica", StringComparison.Ordinal), "species absent from JSON");
+            TestRunner.True(!json.Contains("\"provenance\":", StringComparison.Ordinal), "no tree fields in JSON");
         });
 
         TestRunner.Add(Synthetic, "T10b species breakdown covers all four categories; synthetic trem: microhabitats projected; collections read-only", () =>
@@ -515,6 +660,84 @@ internal static class WoodlandInspectionTests
             TestRunner.Eq(0, view.BlockerChecklist[1].AffectedRawSpeciesNames.Count, "no species without a stand");
             TestRunner.Eq("SomeInfo", string.Join(",", view.Notes.Select(n => n.Code)), "info goes to notes");
         });
+
+        TestRunner.Add(Synthetic, "T10d every blocker and refusal code the closed importer can emit has plain-English text", () =>
+        {
+            IReadOnlyList<string> codes = ImporterIssueCodes();
+            Console.WriteLine($"  [codes] importer emits {codes.Count} distinct blocker/refusal codes");
+            // Guards the source scan itself: R1 counted 57 distinct codes in src/Core/WoodlandImport/*.cs.
+            TestRunner.Eq(57, codes.Count, "distinct importer codes found by the source scan");
+            foreach (string code in codes)
+            {
+                TestRunner.True(BlockerExplanations.IsKnown(code), $"{code} has plain-English text");
+                TestRunner.True(BlockerExplanations.TitleFor(code) != code, $"{code} title is not the raw code");
+            }
+        });
+
+        TestRunner.Add(Synthetic, "T10e no backing collection reachable through ICollection.SyncRoot can reorder the catalogue or alter a view or its hash", () =>
+        {
+            // The probe must detect the old leak: a ReadOnlyCollection exposes its List through SyncRoot.
+            TestRunner.True(TryMutateThroughSyncRoot(new List<int> { 1, 2 }.AsReadOnly()), "probe detects a ReadOnlyCollection backing list");
+            TestRunner.True(TryMutateThroughSyncRoot(Array.AsReadOnly(new[] { 1, 2 })), "probe detects a ReadOnlyCollection backing array");
+            TestRunner.True(TryMutateThroughSyncRoot(new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string, string> { ["a"] = "b" })), "probe detects a ReadOnlyDictionary backing dictionary");
+
+            IReadOnlyList<BuiltInWoodlandEntry> entries = TestFixtures.LoadCatalogue();
+            string[] hashesBefore = entries.Select(e => WoodlandInspectionSerializer.ComputeSha256Hex(e.InspectionView)).ToArray();
+            string[] goldens = [GoldenDonadeaViewSha256, GoldenMerschViewSha256];
+
+            // A caller-built view is just as closed: its collections are immutable too.
+            WoodlandInspectionView synthetic = WoodlandInspectionProjector.Project(TestFixtures.Validate(TestFixtures.Stand(
+                [TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10), TestFixtures.Tree("t2", "Fagus sylvatica", 20, 20)], TestFixtures.ConstructedBoundary())));
+            string syntheticBefore = WoodlandInspectionSerializer.ComputeSha256Hex(synthetic);
+
+            var probes = new List<(string Label, object Collection)>
+            {
+                ("catalogue definitions", BuiltInWoodlandCatalogue.Definitions),
+                ("loaded entries", entries),
+            };
+            foreach (BuiltInWoodlandEntry e in entries)
+            {
+                probes.Add(($"{e.PlotId} caveats", e.Caveats));
+                probes.Add(($"{e.PlotId} observation dates", e.ObservationDates));
+                AddViewProbes(probes, e.PlotId, e.InspectionView);
+
+                WoodlandImportResult nested = e.ImportResult;
+                probes.Add(($"{e.PlotId} nested issues", nested.Issues));
+                probes.Add(($"{e.PlotId} nested trees", nested.Stand!.Trees));
+                foreach (ImportedTreeRecord tree in nested.Stand.Trees)
+                {
+                    probes.Add(($"{e.PlotId} nested {tree.SourceTreeId} attributes", tree.ExtraAttributes));
+                }
+            }
+            AddViewProbes(probes, "synthetic", synthetic);
+
+            foreach ((string label, object collection) in probes)
+            {
+                TestRunner.True(!TryMutateThroughSyncRoot(collection), $"{label}: no mutable backing collection");
+            }
+
+            TestRunner.Eq($"{DonadeaPlotId},{MerschPlotId}", string.Join(",", BuiltInWoodlandCatalogue.Definitions.Select(d => d.PlotId)), "catalogue order unchanged");
+            TestRunner.Eq($"{DonadeaPlotId},{MerschPlotId}", string.Join(",", entries.Select(e => e.PlotId)), "entry order unchanged");
+            for (int i = 0; i < entries.Count; i++)
+            {
+                TestRunner.Eq(hashesBefore[i], WoodlandInspectionSerializer.ComputeSha256Hex(entries[i].InspectionView), $"{entries[i].PlotId} view hash unchanged");
+                TestRunner.Eq(goldens[i], WoodlandInspectionSerializer.ComputeSha256Hex(WoodlandInspectionProjector.Project(entries[i].ImportResult, entries[i].Disclosures)), $"{entries[i].PlotId} re-projected nested result still matches golden");
+                TestRunner.Eq(20, entries[i].ImportResult.Stand!.Trees.Count, $"{entries[i].PlotId} nested trees intact");
+            }
+            TestRunner.Eq(syntheticBefore, WoodlandInspectionSerializer.ComputeSha256Hex(synthetic), "synthetic view hash unchanged");
+
+            // Changing the caller's own input after projection cannot reach the view either.
+            var callerTrees = new List<ImportedTreeRecord> { TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10), TestFixtures.Tree("t2", "Fagus sylvatica", 20, 20) };
+            WoodlandImportResult callerResult = TestFixtures.Validate(TestFixtures.Stand(callerTrees, TestFixtures.ConstructedBoundary()));
+            var mutableTrees = new List<ImportedTreeRecord>(callerResult.Stand!.Trees);
+            WoodlandImportResult callerOwned = callerResult with { Stand = callerResult.Stand with { Trees = mutableTrees } };
+            WoodlandInspectionView callerView = WoodlandInspectionProjector.Project(callerOwned);
+            string callerBefore = WoodlandInspectionSerializer.ComputeSha256Hex(callerView);
+            mutableTrees.Reverse();
+            mutableTrees.RemoveAt(0);
+            TestRunner.Eq(callerBefore, WoodlandInspectionSerializer.ComputeSha256Hex(callerView), "caller input changes do not reach the projected view");
+            TestRunner.Eq("t1,t2", string.Join(",", callerView.ObservedYear0.Trees.Select(t => t.SourceTreeId)), "projected tree order unchanged");
+        });
     }
 
     // ------------------------------------------------------------------
@@ -581,6 +804,98 @@ internal static class WoodlandInspectionTests
     {
         TestRunner.True(list is ICollection<T> c && c.IsReadOnly, label + " is read-only");
         TestRunner.True(list is not List<T>, label + " is not a mutable List");
+    }
+
+    private static void AddViewProbes(List<(string Label, object Collection)> probes, string label, WoodlandInspectionView view)
+    {
+        probes.Add(($"{label} view trees", view.ObservedYear0.Trees));
+        probes.Add(($"{label} view boundary vertices", view.ObservedYear0.Boundary.VerticesLocalM));
+        probes.Add(($"{label} view categories", view.SpeciesBreakdown.Categories));
+        probes.Add(($"{label} view species", view.SpeciesBreakdown.Species));
+        probes.Add(($"{label} view microhabitats", view.Microhabitats));
+        probes.Add(($"{label} view checklist", view.BlockerChecklist));
+        probes.Add(($"{label} view notes", view.Notes));
+        probes.Add(($"{label} view observation dates", view.ProvenanceBoundary.ObservationDates));
+        if (view.Attribution is not null)
+        {
+            probes.Add(($"{label} view attribution dates", view.Attribution.ObservationDates));
+        }
+        foreach (BlockerChecklistItem item in view.BlockerChecklist)
+        {
+            probes.Add(($"{label} {item.Code} tree ids", item.AffectedTreeIds));
+            probes.Add(($"{label} {item.Code} species names", item.AffectedRawSpeciesNames));
+        }
+    }
+
+    /// <summary>
+    /// Tries to change a collection through the object its ICollection.SyncRoot returns (a ReadOnlyCollection
+    /// or ReadOnlyDictionary hands back its mutable backing store there). Returns true when a change succeeded.
+    /// </summary>
+    private static bool TryMutateThroughSyncRoot(object collection)
+    {
+        if (collection is not ICollection c)
+        {
+            return false;
+        }
+
+        switch (c.SyncRoot)
+        {
+            case Array array:
+                Array.Reverse(array);
+                return true;
+            case IList list when !list.IsReadOnly:
+                if (list.Count > 0)
+                {
+                    object? first = list[0];
+                    list.RemoveAt(0);
+                    list.Add(first);
+                }
+                return true;
+            case IDictionary dictionary when !dictionary.IsReadOnly:
+                dictionary.Clear();
+                return true;
+            case IList list:
+                try { list.Clear(); return true; } catch (NotSupportedException) { return false; }
+            case IDictionary dictionary:
+                try { dictionary.Clear(); return true; } catch (NotSupportedException) { return false; }
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>Distinct InventoryOnlyBlocker/Refusal codes in the closed importer sources (src/Core/WoodlandImport/*.cs).</summary>
+    private static IReadOnlyList<string> ImporterIssueCodes()
+    {
+        string dir = Path.GetFullPath(Path.Combine(TestFixtures.QualifiedFixturesDir(), "..", "..", "..", "..", "..", "src", "Core", "WoodlandImport"));
+        var codes = new SortedSet<string>(StringComparer.Ordinal);
+        var literal = new Regex("\"([A-Z][A-Za-z0-9]+)\"");
+        foreach (string file in Directory.GetFiles(dir, "*.cs", SearchOption.TopDirectoryOnly))
+        {
+            string[] lines = File.ReadAllLines(file);
+            for (int i = 1; i < lines.Length; i++)
+            {
+                // Every issue is built as new ImportValidationIssue(code, IssueSeverity.X, ...): the code is on the line before.
+                if (Regex.IsMatch(lines[i], "^\\s*IssueSeverity\\.(InventoryOnlyBlocker|Refusal),"))
+                {
+                    foreach (Match m in literal.Matches(lines[i - 1]))
+                    {
+                        codes.Add(m.Groups[1].Value);
+                    }
+                }
+            }
+
+            // Codes passed through a variable: the cap code argument and the living-species switch.
+            string text = string.Join("\n", lines);
+            foreach (Match m in Regex.Matches(text, "capIssueCode:\\s*\"([A-Za-z0-9]+)\""))
+            {
+                codes.Add(m.Groups[1].Value);
+            }
+            foreach (Match m in Regex.Matches(text, "=>\\s*\"([A-Za-z]+LivingSpecies)\""))
+            {
+                codes.Add(m.Groups[1].Value);
+            }
+        }
+        return codes.ToList();
     }
 
     private static void AssertSortedOrdinal(IReadOnlyList<string> values, string label)

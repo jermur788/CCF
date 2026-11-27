@@ -1,49 +1,71 @@
+using System.Collections.Immutable;
+
 namespace SitkaP1.Core.WoodlandImport.Inspection;
 
 /// <summary>
 /// Turns a <see cref="WoodlandImportResult"/> into a read-only Year-0 <see cref="WoodlandInspectionView"/>.
 /// The projector only copies and counts: it never estimates, rounds, re-normalises or fills in a value.
 /// </summary>
+/// <remarks>
+/// Two rules hold at this public boundary even for a result that was assembled by hand without the validator:
+/// a Refused result projects no stand data, and a stand holding any Simulated field is withheld entirely
+/// (reported as Refused with a <see cref="SimulatedFieldAtYearZeroCode"/> checklist item).
+/// </remarks>
 public static class WoodlandInspectionProjector
 {
     public const string ProvenanceStatement =
         "Everything shown is the woodland as observed at Year 0. No simulated future is shown: nothing past Year 0 has been calculated.";
 
+    /// <summary>The importer's issue code for a Simulated field at Year 0; reused when the projector withholds a stand.</summary>
+    public const string SimulatedFieldAtYearZeroCode = "SimulatedFieldAtYearZero";
+
     private const string MicrohabitatKeyPrefix = "trem:";
     private const string EventDateKey = "eventDate";
 
-    public static WoodlandInspectionView Project(WoodlandImportResult result)
+    public static WoodlandInspectionView Project(WoodlandImportResult result) => Project(result, disclosures: null);
+
+    /// <param name="result">The importer's result. It is read, never modified.</param>
+    /// <param name="disclosures">Source disclosures to carry into the view and its JSON (built-in stands supply them).</param>
+    public static WoodlandInspectionView Project(WoodlandImportResult result, InspectionDisclosures? disclosures)
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        WoodlandImportStand? stand = result.Stand;
+        IReadOnlyList<ImportedTreeRecord> sourceTrees = result.Stand?.Trees ?? Array.Empty<ImportedTreeRecord>();
+        int simulatedValueCount = CountSimulatedFields(sourceTrees);
+
+        // Year 0 must be observed data only. The validator already refuses a Simulated field; this guard covers
+        // a result built without it, so a simulated measurement can never reach the Year-0 payload.
+        bool holdsSimulatedValue = simulatedValueCount > 0;
+        bool importRefused = result.Readiness == WoodlandReadiness.Refused;
+
+        // Refused => no stand data, whatever the result object carries.
+        WoodlandImportStand? stand = importRefused || holdsSimulatedValue ? null : result.Stand;
         IReadOnlyList<ImportedTreeRecord> trees = stand?.Trees ?? Array.Empty<ImportedTreeRecord>();
 
-        int simulatedValueCount = CountSimulatedFields(trees);
-        IReadOnlyList<string> observationDates = CollectObservationDates(trees);
+        WoodlandReadiness readiness = holdsSimulatedValue ? WoodlandReadiness.Refused : result.Readiness;
+        IReadOnlyList<ImportValidationIssue> issues = holdsSimulatedValue
+            ? AddSimulatedFieldRefusals(result.Issues, sourceTrees)
+            : result.Issues;
 
-        // A stand may only advance time when the importer admitted it AND it holds no simulated value.
-        // The second check is a defensive guard in case a result was assembled without the validator.
-        bool canAdvanceTime =
-            result.Readiness == WoodlandReadiness.CandidateForSimulationIntegration &&
-            stand is not null &&
-            simulatedValueCount == 0;
+        ImmutableList<string> observationDates = CollectObservationDates(trees);
+        bool canAdvanceTime = readiness == WoodlandReadiness.CandidateForSimulationIntegration && stand is not null;
 
         return new WoodlandInspectionView
         {
-            Readiness = result.Readiness,
+            Readiness = readiness,
             CanAdvanceTime = canAdvanceTime,
-            AdvanceTimeStatement = DescribeAdvanceTime(result.Readiness, canAdvanceTime, stand is not null),
+            AdvanceTimeStatement = DescribeAdvanceTime(readiness, canAdvanceTime, stand is not null, holdsSimulatedValue),
             Stand = stand is null ? null : ProjectIdentity(stand),
             ObservedYear0 = new ObservedYear0Section
             {
-                Trees = trees.Select(ProjectTree).ToList().AsReadOnly(),
+                Trees = trees.Select(ProjectTree).ToImmutableList(),
                 CoordinateOrigin = stand?.CoordinateOrigin,
                 Boundary = ProjectBoundary(stand?.Boundary),
             },
             SpeciesBreakdown = BuildSpeciesBreakdown(trees),
             Microhabitats = CollectMicrohabitats(trees),
             Attribution = stand is null ? null : ProjectAttribution(stand.Attribution, observationDates),
+            Disclosures = disclosures,
             ProvenanceBoundary = new ProvenanceBoundarySection
             {
                 ObservedStateYear = ProvenanceBoundarySection.ObservedYear,
@@ -53,20 +75,24 @@ public static class WoodlandInspectionProjector
                 SimulatedValueCount = simulatedValueCount,
                 Statement = ProvenanceStatement,
             },
-            BlockerChecklist = BuildBlockerChecklist(result.Issues, trees),
-            Notes = result.Issues
+            BlockerChecklist = BuildBlockerChecklist(issues, trees),
+            Notes = issues
                 .Where(i => !IsBlocking(i.Severity))
                 .Select(i => new InspectionNote(i.Code, i.Severity, i.Message, i.SourceTreeId, i.FieldName))
-                .ToList()
-                .AsReadOnly(),
+                .ToImmutableList(),
         };
     }
 
-    private static string DescribeAdvanceTime(WoodlandReadiness readiness, bool canAdvanceTime, bool hasStand)
+    private static string DescribeAdvanceTime(WoodlandReadiness readiness, bool canAdvanceTime, bool hasStand, bool holdsSimulatedValue)
     {
         if (canAdvanceTime)
         {
             return "This stand meets the import requirements for simulation. Advancing time is not part of this read-only inspection.";
+        }
+
+        if (holdsSimulatedValue)
+        {
+            return "The Year-0 data contains a value marked as simulated, so the stand is withheld from this inspection and cannot be simulated. See the checklist for the reason.";
         }
 
         return readiness switch
@@ -78,8 +104,37 @@ public static class WoodlandInspectionProjector
             _ when !hasStand =>
                 "There is no stand to simulate.",
             _ =>
-                "Time cannot advance because the Year-0 data contains a value marked as simulated.",
+                "Time cannot advance.",
         };
+    }
+
+    // One Refusal issue per Simulated field (unless the result already lists it), so the withheld stand
+    // still gets a renderable checklist reason that names the affected trees but none of their values.
+    private static IReadOnlyList<ImportValidationIssue> AddSimulatedFieldRefusals(
+        IReadOnlyList<ImportValidationIssue> issues,
+        IReadOnlyList<ImportedTreeRecord> trees)
+    {
+        var combined = new List<ImportValidationIssue>(issues);
+        var alreadyListed = new HashSet<(string?, string?)>(
+            issues.Where(i => i.Code == SimulatedFieldAtYearZeroCode).Select(i => (i.SourceTreeId, i.FieldName)));
+
+        foreach (ImportedTreeRecord tree in trees)
+        {
+            foreach ((string fieldName, FieldProvenance provenance) in FieldProvenances(tree))
+            {
+                if (provenance == FieldProvenance.Simulated && alreadyListed.Add((tree.SourceTreeId, fieldName)))
+                {
+                    combined.Add(new ImportValidationIssue(
+                        SimulatedFieldAtYearZeroCode,
+                        IssueSeverity.Refusal,
+                        $"Tree '{tree.SourceTreeId}' field '{fieldName}' carries FieldProvenance.Simulated, which is forbidden at Year 0; the inspection withheld the stand.",
+                        SourceTreeId: tree.SourceTreeId,
+                        FieldName: fieldName));
+                }
+            }
+        }
+
+        return combined;
     }
 
     private static InspectedStandIdentity ProjectIdentity(WoodlandImportStand stand) => new()
@@ -135,14 +190,14 @@ public static class WoodlandInspectionProjector
             return new InspectedBoundary
             {
                 Observed = false,
-                VerticesLocalM = Array.Empty<LocalPoint2D>(),
+                VerticesLocalM = ImmutableList<LocalPoint2D>.Empty,
             };
         }
 
         return new InspectedBoundary
         {
             Observed = true,
-            VerticesLocalM = boundary.VerticesLocalM.ToList().AsReadOnly(),
+            VerticesLocalM = boundary.VerticesLocalM.ToImmutableList(),
             AreaM2 = boundary.AreaM2,
             AreaHa = boundary.AreaHa,
             CoordinateSource = boundary.CoordinateSource,
@@ -159,8 +214,7 @@ public static class WoodlandInspectionProjector
                 c,
                 trees.Count(t => t.SpeciesMapping.Category == c),
                 trees.Count(t => t.SpeciesMapping.Category == c && t.IsConservativelyLiving)))
-            .ToList()
-            .AsReadOnly();
+            .ToImmutableList();
 
         var rows = trees
             .GroupBy(t => t.SpeciesMapping.RawName, StringComparer.Ordinal)
@@ -176,13 +230,12 @@ public static class WoodlandInspectionProjector
             })
             .OrderBy(r => (int)r.Category)
             .ThenBy(r => r.RawName, StringComparer.Ordinal)
-            .ToList()
-            .AsReadOnly();
+            .ToImmutableList();
 
         return new SpeciesBreakdown { Categories = categories, Species = rows };
     }
 
-    private static IReadOnlyList<InspectedMicrohabitat> CollectMicrohabitats(IReadOnlyList<ImportedTreeRecord> trees)
+    private static ImmutableList<InspectedMicrohabitat> CollectMicrohabitats(IReadOnlyList<ImportedTreeRecord> trees)
     {
         var list = new List<InspectedMicrohabitat>();
         foreach (ImportedTreeRecord tree in trees)
@@ -203,21 +256,19 @@ public static class WoodlandInspectionProjector
             .OrderBy(m => m.SourceTreeId, StringComparer.Ordinal)
             .ThenBy(m => m.Code, StringComparer.Ordinal)
             .ThenBy(m => m.Value, StringComparer.Ordinal)
-            .ToList()
-            .AsReadOnly();
+            .ToImmutableList();
     }
 
-    private static IReadOnlyList<string> CollectObservationDates(IReadOnlyList<ImportedTreeRecord> trees) =>
+    private static ImmutableList<string> CollectObservationDates(IReadOnlyList<ImportedTreeRecord> trees) =>
         trees
             .Select(t => t.ExtraAttributes.TryGetValue(EventDateKey, out string? date) ? date : null)
             .Where(d => !string.IsNullOrWhiteSpace(d))
             .Select(d => d!)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(d => d, StringComparer.Ordinal)
-            .ToList()
-            .AsReadOnly();
+            .ToImmutableList();
 
-    private static InspectedAttribution ProjectAttribution(ImportSourceAttribution attribution, IReadOnlyList<string> observationDates) => new()
+    private static InspectedAttribution ProjectAttribution(ImportSourceAttribution attribution, ImmutableList<string> observationDates) => new()
     {
         DatasetTitle = attribution.DatasetTitle,
         Publisher = attribution.Publisher,
@@ -232,30 +283,25 @@ public static class WoodlandInspectionProjector
         ObservationDates = observationDates,
     };
 
-    private static int CountSimulatedFields(IReadOnlyList<ImportedTreeRecord> trees)
-    {
-        int count = 0;
-        foreach (ImportedTreeRecord t in trees)
-        {
-            FieldProvenance[] provenances =
-            [
-                t.RawSpeciesName.Provenance,
-                t.VitalStatus.Provenance,
-                t.PositionLocalM.Provenance,
-                t.DbhCm.Provenance,
-                t.HeightM.Provenance,
-                t.CrownRadiusM.Provenance,
-                t.AgeYears.Provenance,
-            ];
-            count += provenances.Count(p => p == FieldProvenance.Simulated);
-        }
-        return count;
-    }
+    private static int CountSimulatedFields(IReadOnlyList<ImportedTreeRecord> trees) =>
+        trees.Sum(t => FieldProvenances(t).Count(f => f.Provenance == FieldProvenance.Simulated));
+
+    // Field names match the validator's (nameof on the importer record).
+    private static (string FieldName, FieldProvenance Provenance)[] FieldProvenances(ImportedTreeRecord t) =>
+    [
+        (nameof(ImportedTreeRecord.RawSpeciesName), t.RawSpeciesName.Provenance),
+        (nameof(ImportedTreeRecord.VitalStatus), t.VitalStatus.Provenance),
+        (nameof(ImportedTreeRecord.PositionLocalM), t.PositionLocalM.Provenance),
+        (nameof(ImportedTreeRecord.DbhCm), t.DbhCm.Provenance),
+        (nameof(ImportedTreeRecord.HeightM), t.HeightM.Provenance),
+        (nameof(ImportedTreeRecord.CrownRadiusM), t.CrownRadiusM.Provenance),
+        (nameof(ImportedTreeRecord.AgeYears), t.AgeYears.Provenance),
+    ];
 
     private static bool IsBlocking(IssueSeverity severity) =>
         severity == IssueSeverity.InventoryOnlyBlocker || severity == IssueSeverity.Refusal;
 
-    private static IReadOnlyList<BlockerChecklistItem> BuildBlockerChecklist(
+    private static ImmutableList<BlockerChecklistItem> BuildBlockerChecklist(
         IReadOnlyList<ImportValidationIssue> issues,
         IReadOnlyList<ImportedTreeRecord> trees)
     {
@@ -281,14 +327,14 @@ public static class WoodlandInspectionProjector
                     .Select(id => id!)
                     .Distinct(StringComparer.Ordinal)
                     .OrderBy(id => id, StringComparer.Ordinal)
-                    .ToList();
+                    .ToImmutableList();
 
                 var speciesNames = treeIds
                     .Where(speciesByTreeId.ContainsKey)
                     .Select(id => speciesByTreeId[id])
                     .Distinct(StringComparer.Ordinal)
                     .OrderBy(n => n, StringComparer.Ordinal)
-                    .ToList();
+                    .ToImmutableList();
 
                 return new BlockerChecklistItem
                 {
@@ -297,13 +343,12 @@ public static class WoodlandInspectionProjector
                     Title = BlockerExplanations.TitleFor(group.Key),
                     Explanation = BlockerExplanations.ExplanationFor(group.Key, first.Message),
                     AffectedTreeCount = treeIds.Count,
-                    AffectedTreeIds = treeIds.AsReadOnly(),
-                    AffectedRawSpeciesNames = speciesNames.AsReadOnly(),
+                    AffectedTreeIds = treeIds,
+                    AffectedRawSpeciesNames = speciesNames,
                 };
             })
             .OrderBy(item => item.Severity == IssueSeverity.Refusal ? 0 : 1)
             .ThenBy(item => item.Code, StringComparer.Ordinal)
-            .ToList()
-            .AsReadOnly();
+            .ToImmutableList();
     }
 }

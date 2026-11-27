@@ -36,7 +36,7 @@ Production code under `src/Core/WoodlandImport/Inspection/**` is pure BCL (`net8
 
 ### 4.1 `BuiltInWoodlandCatalogue`
 
-- `Definitions` — read-only, fixed order:
+- `Definitions` — immutable (`ImmutableList`), fixed order:
 
 | # | PlotId | Display name | Country | Fixture | Pinned SHA-256 | Subset / GBIF plot total |
 |---|---|---|---|---|---|---|
@@ -44,26 +44,29 @@ Production code under `src/Core/WoodlandImport/Inspection/**` is pure BCL (`net8
 | 1 | `IPlus_Mersch` | Mersch oak-beech plot (Luxembourg) | LU | `lu-mersch-oak-beech-subset.dwca.zip` | `3c275b0115b6330ebabdad422ea9a25451489c93949dd5d80be1fb5e8b57b1ae` | 20 / 134 |
 
 - `Load(Func<string, byte[]> readFixtureFile)` reads `ATTRIBUTION.json` (the single source of truth for citation, licence, DOI, dataset key, retrieval date, `changesMade` disclosure and caveats), checks that each fixture's ATTRIBUTION SHA-256 and record counts equal the pinned values (otherwise `InvalidDataException`), then imports each ZIP through the existing `IntegrateMarteloscopeReader` with `TargetPlotId = PlotId`, an `AttributionOverride` carrying the ATTRIBUTION values, and `DeclaredArchiveSha256 = pinned hash`. A tampered ZIP is therefore `Refused` by the existing reader. **No boundary is ever passed.**
-- Each `BuiltInWoodlandEntry` carries: plot id, display name, country code, tree count, living stem count, "N of M GBIF records" text, readiness, licence summary `CC BY 4.0` and licence URL, dataset title, publisher, full citation, DOI, dataset key, retrieval date, pinned archive SHA-256, observation date(s), the verbatim modifications disclosure, caveats, and the full `WoodlandImportResult`.
+- Each `BuiltInWoodlandEntry` carries: plot id, display name, country code, tree count, living stem count, "N of M GBIF records" text, readiness, licence summary `CC BY 4.0` and licence URL, dataset title, publisher, full citation, DOI, dataset key, retrieval date, pinned archive SHA-256, observation date(s), the verbatim modifications disclosure, caveats, `Disclosures`, the built-in `InspectionView` (projected with those disclosures), and the `WoodlandImportResult` as an immutable snapshot (every list and dictionary copied into an immutable collection, so no backing collection is reachable). *(Repair R1: WI-02, WI-03.)*
+- `Load` throws `InvalidDataException` when `changesMade` has no `Note:` caveat about `verbatimCoordinates`, so a built-in stand is never shown without it. *(Repair R1: WI-02.)*
 - **Deviation from the task packet:** the directory convenience loader (`LoadFromDirectory`) lives in the test project (`TestFixtures.LoadFromDirectory`), not in production code. Path-based file APIs in `src/Core/WoodlandImport/**` would break P1 `#644 B-01` and the existing Importer V1 hygiene test, which may not be edited. Part 2 supplies its own `readFixtureFile` function.
 
-### 4.2 `WoodlandInspectionProjector.Project(WoodlandImportResult)` → `WoodlandInspectionView`
+### 4.2 `WoodlandInspectionProjector.Project(WoodlandImportResult[, InspectionDisclosures?])` → `WoodlandInspectionView`
 
-Immutable records; every collection is a read-only wrapper.
+Immutable records; every collection is an `ImmutableList` (no mutable backing store reachable through `ICollection.SyncRoot`). *(Repair R1: WI-03.)*
 
 - `Readiness`, `CanAdvanceTime` (rule in §2.2), `AdvanceTimeStatement` (plain English).
 - `Stand` identity — `null` when the import was Refused.
+- Projection-boundary rules that hold even for a hand-built result *(Repair R1: WI-01, WI-04)*: a `Refused` result projects no stand data (no identity, attribution, trees, origin, boundary, species, microhabitats or observation dates), whatever the result object carries; a stand holding any `Simulated` field is withheld the same way, reported as `Refused`, with a `SimulatedFieldAtYearZero` Refusal checklist item naming the affected trees but none of their values. `SimulatedValueCount` still reports how many such fields were found.
+- `Disclosures` — `{ModificationsDisclosure, CoordinateInterpretationCaveat}` when supplied (built-in stands), else `null`. They are additional fields; no provenance label is changed. *(Repair R1: WI-02.)*
 - `ObservedYear0`: trees with local-metre positions **exactly as stored on the stand** (no re-normalisation or rounding); the stand's `LocalCoordinateOrigin` (origin + derivation rule); boundary `{Observed, VerticesLocalM, AreaM2, AreaHa, CoordinateSource, ProjectionNote}` or `Observed = false` with no vertices and null area.
 - Every measurement (species name, vital status, position, DBH, height, crown radius, age) as `InspectedField<T>` = `{Provenance, Value (null when Missing), SourceColumn, RawValue, Note}` copied verbatim. No value is ever estimated.
 - `SpeciesBreakdown`: all four `SpeciesSupportCategory` values always listed (total + living), and one row per raw species name (raw name, canonical id, category, total, living) sorted by category then ordinal raw name. "Living" uses the importer's conservative rule (unknown status counts as living).
 - `Microhabitats`: `{SourceTreeId, Code, Value}` from importer `trem:<code>` attributes, sorted ordinal.
 - `Attribution`: licence, citation, DOI, dataset key, publisher, archive SHA-256, declared SHA-256, retrieval date, source plot id, observation date(s) from `eventDate`.
 - `ProvenanceBoundary`: observed state year 0, observation date(s), simulated future starts at year 1, `SimulatedFutureAvailable = false`, `SimulatedValueCount`, and a statement that nothing past Year 0 is shown.
-- `BlockerChecklist`: one item per distinct blocking code (severity `InventoryOnlyBlocker` or `Refusal`) with code, severity, short title, plain-English explanation (written per known code; unknown codes fall back to the importer's message and use the code as title), affected tree count, sorted tree ids and sorted raw species names. Ordered Refusal first, then ordinal code. `Info`/`Warning` issues go to `Notes` verbatim. Part 2 needs no logic to render it.
+- `BlockerChecklist`: one item per distinct blocking code (severity `InventoryOnlyBlocker` or `Refusal`) with code, severity, short title, plain-English explanation (written for every blocker and refusal code the importer can emit — Repair R1: WI-05; unknown codes fall back to the importer's message and use the code as title), affected tree count, sorted tree ids and sorted raw species names. Ordered Refusal first, then ordinal code. `Info`/`Warning` issues go to `Notes` verbatim. Part 2 needs no logic to render it.
 
 ### 4.3 `WoodlandInspectionSerializer`
 
-`SerializeUtf8`, `SerializeJson`, `ComputeSha256Hex`: canonical UTF-8 JSON via `Utf8JsonWriter`, fixed key order, invariant numbers, `-0.0` written as `0`, non-finite doubles as invariant strings, no clock or machine values.
+`SerializeUtf8`, `SerializeJson`, `ComputeSha256Hex`: canonical UTF-8 JSON via `Utf8JsonWriter`, fixed key order (including a top-level `disclosures` object or `null` after `attribution`), invariant numbers, `-0.0` written as `0`, non-finite doubles as invariant strings, no clock or machine values.
 
 ## 5. Facts vs Assumptions
 

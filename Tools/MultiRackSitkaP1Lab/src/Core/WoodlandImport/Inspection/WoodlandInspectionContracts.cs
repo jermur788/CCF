@@ -1,4 +1,9 @@
+using System.Collections.Immutable;
+
 namespace SitkaP1.Core.WoodlandImport.Inspection;
+
+// Every collection on these records is an ImmutableList: unlike a ReadOnlyCollection wrapper, it has no
+// mutable backing list that a caller could reach (for example through ICollection.SyncRoot).
 
 /// <summary>
 /// One imported measurement as shown to the player: its provenance, its value (null when Missing),
@@ -31,7 +36,7 @@ public sealed record InspectedTree
     public required bool IsConservativelyLiving { get; init; }
 }
 
-/// <summary>Stand identity. Absent (null on the view) when the import was Refused.</summary>
+/// <summary>Stand identity. Absent (null on the view) when the import was Refused or the stand was withheld.</summary>
 public sealed record InspectedStandIdentity
 {
     public required int StandSchemaVersion { get; init; }
@@ -51,7 +56,7 @@ public sealed record InspectedStandIdentity
 public sealed record InspectedBoundary
 {
     public required bool Observed { get; init; }
-    public required IReadOnlyList<LocalPoint2D> VerticesLocalM { get; init; }
+    public required ImmutableList<LocalPoint2D> VerticesLocalM { get; init; }
     public double? AreaM2 { get; init; }
     public double? AreaHa { get; init; }
     public BoundaryCoordinateSource? CoordinateSource { get; init; }
@@ -61,7 +66,7 @@ public sealed record InspectedBoundary
 /// <summary>Everything observed at Year 0: trees in the stand's local metre frame, the origin rule, and the boundary.</summary>
 public sealed record ObservedYear0Section
 {
-    public required IReadOnlyList<InspectedTree> Trees { get; init; }
+    public required ImmutableList<InspectedTree> Trees { get; init; }
     public LocalCoordinateOrigin? CoordinateOrigin { get; init; }
     public required InspectedBoundary Boundary { get; init; }
 }
@@ -80,8 +85,8 @@ public sealed record SpeciesRow(
 /// <summary>Species counts. <see cref="Categories"/> always lists all four categories in enum order.</summary>
 public sealed record SpeciesBreakdown
 {
-    public required IReadOnlyList<SpeciesCategoryCount> Categories { get; init; }
-    public required IReadOnlyList<SpeciesRow> Species { get; init; }
+    public required ImmutableList<SpeciesCategoryCount> Categories { get; init; }
+    public required ImmutableList<SpeciesRow> Species { get; init; }
 }
 
 /// <summary>One tree-related microhabitat record taken from an importer "trem:" attribute.</summary>
@@ -100,7 +105,7 @@ public sealed record InspectedAttribution
     public string? DeclaredArchiveSha256 { get; init; }
     public string? RetrievalDateUtc { get; init; }
     public string? SourcePlotId { get; init; }
-    public required IReadOnlyList<string> ObservationDates { get; init; }
+    public required ImmutableList<string> ObservationDates { get; init; }
 }
 
 /// <summary>
@@ -112,11 +117,14 @@ public sealed record ProvenanceBoundarySection
     public const int FirstSimulatedYear = 1;
 
     public required int ObservedStateYear { get; init; }
-    public required IReadOnlyList<string> ObservationDates { get; init; }
+    public required ImmutableList<string> ObservationDates { get; init; }
     public required int SimulatedFutureStartsAtYear { get; init; }
     public required bool SimulatedFutureAvailable { get; init; }
 
-    /// <summary>Number of imported tree fields carrying <see cref="FieldProvenance.Simulated"/>. Expected to be 0.</summary>
+    /// <summary>
+    /// Number of tree fields in the import result carrying <see cref="FieldProvenance.Simulated"/>. Expected to be 0.
+    /// When it is not 0 the projector withholds the whole stand, so the simulated values themselves are never shown.
+    /// </summary>
     public required int SimulatedValueCount { get; init; }
     public required string Statement { get; init; }
 }
@@ -131,8 +139,8 @@ public sealed record BlockerChecklistItem
     public required string Title { get; init; }
     public required string Explanation { get; init; }
     public required int AffectedTreeCount { get; init; }
-    public required IReadOnlyList<string> AffectedTreeIds { get; init; }
-    public required IReadOnlyList<string> AffectedRawSpeciesNames { get; init; }
+    public required ImmutableList<string> AffectedTreeIds { get; init; }
+    public required ImmutableList<string> AffectedRawSpeciesNames { get; init; }
 }
 
 /// <summary>A non-blocking (Info or Warning) importer issue, copied verbatim.</summary>
@@ -144,6 +152,22 @@ public sealed record InspectionNote(
     string? FieldName);
 
 /// <summary>
+/// Source disclosures that must travel with a built-in stand's inspection, so that a reader of the
+/// inspection JSON alone sees them. They do not change any field's provenance label.
+/// </summary>
+public sealed record InspectionDisclosures
+{
+    /// <summary>The CC BY 4.0 section 3(a)(1)(B) disclosure of modifications, verbatim from ATTRIBUTION.json <c>changesMade</c>.</summary>
+    public required string ModificationsDisclosure { get; init; }
+
+    /// <summary>
+    /// The ATTRIBUTION.json caveat that reading <c>verbatimCoordinates</c> as plot-local metres is an unverified
+    /// inference. Tree positions labelled Observed are observed source values read under this inference.
+    /// </summary>
+    public required string CoordinateInterpretationCaveat { get; init; }
+}
+
+/// <summary>
 /// Immutable, read-only Year-0 inspection of one imported woodland stand.
 /// Built only by <see cref="WoodlandInspectionProjector"/>; it never contains simulated future values.
 /// </summary>
@@ -152,15 +176,22 @@ public sealed record WoodlandInspectionView
     public const int CurrentSchemaVersion = 1;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
+    /// <summary>
+    /// The importer's readiness, except that it is <see cref="WoodlandReadiness.Refused"/> when the projector
+    /// withholds a stand because the stand holds a simulated value.
+    /// </summary>
     public required WoodlandReadiness Readiness { get; init; }
     public required bool CanAdvanceTime { get; init; }
     public required string AdvanceTimeStatement { get; init; }
     public InspectedStandIdentity? Stand { get; init; }
     public required ObservedYear0Section ObservedYear0 { get; init; }
     public required SpeciesBreakdown SpeciesBreakdown { get; init; }
-    public required IReadOnlyList<InspectedMicrohabitat> Microhabitats { get; init; }
+    public required ImmutableList<InspectedMicrohabitat> Microhabitats { get; init; }
     public InspectedAttribution? Attribution { get; init; }
+
+    /// <summary>Source disclosures for a built-in stand; null when the caller supplied none.</summary>
+    public InspectionDisclosures? Disclosures { get; init; }
     public required ProvenanceBoundarySection ProvenanceBoundary { get; init; }
-    public required IReadOnlyList<BlockerChecklistItem> BlockerChecklist { get; init; }
-    public required IReadOnlyList<InspectionNote> Notes { get; init; }
+    public required ImmutableList<BlockerChecklistItem> BlockerChecklist { get; init; }
+    public required ImmutableList<InspectionNote> Notes { get; init; }
 }

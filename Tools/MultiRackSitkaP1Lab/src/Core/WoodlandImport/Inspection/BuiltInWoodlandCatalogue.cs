@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 
 namespace SitkaP1.Core.WoodlandImport.Inspection;
@@ -15,6 +16,12 @@ public sealed record BuiltInWoodlandDefinition(
 /// <summary>One loaded built-in woodland: its pinned definition, attribution metadata and the real import result.</summary>
 public sealed record BuiltInWoodlandEntry
 {
+    internal BuiltInWoodlandEntry(WoodlandImportResult importResult)
+    {
+        // The importer's read-only wrappers expose mutable backing collections, so keep an immutable snapshot.
+        ImportResult = WoodlandImportResultCopier.ToImmutableSnapshot(importResult);
+    }
+
     public required BuiltInWoodlandDefinition Definition { get; init; }
     public string PlotId => Definition.PlotId;
     public string DisplayName => Definition.DisplayName;
@@ -38,13 +45,23 @@ public sealed record BuiltInWoodlandEntry
 
     /// <summary>The pinned SHA-256 of the fixture ZIP (the importer refuses the archive if its bytes differ).</summary>
     public required string ArchiveSha256 { get; init; }
-    public required IReadOnlyList<string> ObservationDates { get; init; }
+    public required ImmutableList<string> ObservationDates { get; init; }
 
     /// <summary>The CC BY 4.0 section 3(a)(1)(B) disclosure of modifications, verbatim from ATTRIBUTION.json.</summary>
     public required string ModificationsDisclosure { get; init; }
-    public required IReadOnlyList<string> Caveats { get; init; }
+    public required ImmutableList<string> Caveats { get; init; }
 
-    public required WoodlandImportResult ImportResult { get; init; }
+    /// <summary>The disclosures carried into <see cref="InspectionView"/> and its canonical JSON.</summary>
+    public required InspectionDisclosures Disclosures { get; init; }
+
+    /// <summary>The built-in Year-0 inspection, including <see cref="Disclosures"/>. Fully immutable.</summary>
+    public required WoodlandInspectionView InspectionView { get; init; }
+
+    /// <summary>
+    /// An immutable snapshot of the importer's result: every list and dictionary in it is an immutable collection,
+    /// so no caller can change this entry, its <see cref="InspectionView"/> or the catalogue through it.
+    /// </summary>
+    public WoodlandImportResult ImportResult { get; }
 }
 
 /// <summary>
@@ -61,9 +78,9 @@ public static class BuiltInWoodlandCatalogue
     public const string NoBoundaryCaveat =
         "No surveyed boundary is available for this plot, so CCF imports it without one and it cannot be simulated.";
 
-    public static IReadOnlyList<BuiltInWoodlandDefinition> Definitions { get; } = new List<BuiltInWoodlandDefinition>
-    {
-        new(
+    public static ImmutableList<BuiltInWoodlandDefinition> Definitions { get; } = ImmutableList.Create(
+
+        new BuiltInWoodlandDefinition(
             PlotId: "IPlus_Donadea_MHF_2",
             DisplayName: "Donadea MHF 2 plot (Ireland)",
             CountryCode: "IE",
@@ -71,22 +88,21 @@ public static class BuiltInWoodlandCatalogue
             ArchiveSha256: "4ee2f4a125d1a06474d7086ccf5a6ca96735e16124ad3e4f9a11647ddcee853d",
             SubsetRecordCount: 20,
             GbifPlotTotalRecords: 271),
-        new(
+        new BuiltInWoodlandDefinition(
             PlotId: "IPlus_Mersch",
             DisplayName: "Mersch oak-beech plot (Luxembourg)",
             CountryCode: "LU",
             FixtureFileName: "lu-mersch-oak-beech-subset.dwca.zip",
             ArchiveSha256: "3c275b0115b6330ebabdad422ea9a25451489c93949dd5d80be1fb5e8b57b1ae",
             SubsetRecordCount: 20,
-            GbifPlotTotalRecords: 134),
-    }.AsReadOnly();
+            GbifPlotTotalRecords: 134));
 
     /// <summary>
     /// Loads every built-in woodland in catalogue order.
     /// </summary>
     /// <param name="readFixtureFile">Returns the bytes of a file in the qualified fixtures folder, given its file name.</param>
     /// <exception cref="InvalidDataException">ATTRIBUTION.json is missing a field or disagrees with a pinned value.</exception>
-    public static IReadOnlyList<BuiltInWoodlandEntry> Load(Func<string, byte[]> readFixtureFile)
+    public static ImmutableList<BuiltInWoodlandEntry> Load(Func<string, byte[]> readFixtureFile)
     {
         ArgumentNullException.ThrowIfNull(readFixtureFile);
 
@@ -104,22 +120,24 @@ public static class BuiltInWoodlandCatalogue
         string? downloadStatus = OptionalString(root, "publisherArchiveDownloadStatus");
         (string licenceSummary, string licenceUrl) = SplitLicence(licence);
 
-        var caveats = new List<string>();
-        // ATTRIBUTION.json keeps its coordinate/test-polygon caveat in a "Note:" sentence inside changesMade.
-        int noteIndex = changesMade.IndexOf("Note:", StringComparison.Ordinal);
-        if (noteIndex >= 0)
+        string coordinateCaveat = ExtractCoordinateCaveat(changesMade);
+        var disclosures = new InspectionDisclosures
         {
-            caveats.Add(changesMade.Substring(noteIndex).Trim());
-        }
+            ModificationsDisclosure = changesMade,
+            CoordinateInterpretationCaveat = coordinateCaveat,
+        };
+
+        var caveats = ImmutableList.CreateBuilder<string>();
+        caveats.Add(coordinateCaveat);
         if (downloadStatus is not null)
         {
             caveats.Add(downloadStatus);
         }
         caveats.Add(NoBoundaryCaveat);
-        IReadOnlyList<string> sharedCaveats = caveats.AsReadOnly();
+        ImmutableList<string> sharedCaveats = caveats.ToImmutable();
 
         var reader = new IntegrateMarteloscopeReader();
-        var entries = new List<BuiltInWoodlandEntry>(Definitions.Count);
+        var entries = ImmutableList.CreateBuilder<BuiltInWoodlandEntry>();
 
         foreach (BuiltInWoodlandDefinition definition in Definitions)
         {
@@ -146,9 +164,9 @@ public static class BuiltInWoodlandCatalogue
                 // Deliberately no SurveyedBoundary / RawLocalBoundaryVertices / RawGeoBoundaryVertices.
             });
 
-            WoodlandInspectionView view = WoodlandInspectionProjector.Project(result);
+            WoodlandInspectionView view = WoodlandInspectionProjector.Project(result, disclosures);
 
-            entries.Add(new BuiltInWoodlandEntry
+            entries.Add(new BuiltInWoodlandEntry(result)
             {
                 Definition = definition,
                 TreeCount = result.Stand?.Trees.Count ?? 0,
@@ -167,11 +185,26 @@ public static class BuiltInWoodlandCatalogue
                 ObservationDates = view.ProvenanceBoundary.ObservationDates,
                 ModificationsDisclosure = changesMade,
                 Caveats = sharedCaveats,
-                ImportResult = result,
+                Disclosures = disclosures,
+                InspectionView = view,
             });
         }
 
-        return entries.AsReadOnly();
+        return entries.ToImmutable();
+    }
+
+    // ATTRIBUTION.json keeps its coordinate/test-polygon caveat in a "Note:" sentence at the end of changesMade.
+    // A built-in stand must not be shown without it, so its absence is an error.
+    private static string ExtractCoordinateCaveat(string changesMade)
+    {
+        int noteIndex = changesMade.IndexOf("Note:", StringComparison.Ordinal);
+        string? note = noteIndex >= 0 ? changesMade.Substring(noteIndex).Trim() : null;
+        if (note is null || !note.Contains("verbatimCoordinates", StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                "ATTRIBUTION.json changesMade has no 'Note:' caveat about interpreting verbatimCoordinates as plot-local metres.");
+        }
+        return note;
     }
 
     private static void VerifyFixtureRecord(JsonElement root, BuiltInWoodlandDefinition definition)
@@ -247,4 +280,37 @@ public static class BuiltInWoodlandCatalogue
         }
         throw new InvalidDataException($"ATTRIBUTION.json is missing required integer '{name}'.");
     }
+}
+
+/// <summary>
+/// Copies an importer result into immutable collections. The importer's records are immutable, but their
+/// read-only list and dictionary wrappers expose the mutable collections behind them (ICollection.SyncRoot).
+/// </summary>
+internal static class WoodlandImportResultCopier
+{
+    public static WoodlandImportResult ToImmutableSnapshot(WoodlandImportResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return result with
+        {
+            Stand = result.Stand is null ? null : CopyStand(result.Stand),
+            Issues = result.Issues.ToImmutableList(),
+        };
+    }
+
+    private static WoodlandImportStand CopyStand(WoodlandImportStand stand) => stand with
+    {
+        Boundary = stand.Boundary is null
+            ? null
+            : stand.Boundary with { VerticesLocalM = stand.Boundary.VerticesLocalM.ToImmutableList() },
+        Trees = stand.Trees.Select(CopyTree).ToImmutableList(),
+    };
+
+    // ImportField, SpeciesMappingResult and attribution records hold only immutable values, so a record copy is
+    // enough for them; only the attribute dictionary needs new storage. The importer keeps attributes in an
+    // ordinal sorted dictionary, so an ordinal ImmutableSortedDictionary preserves both order and comparer.
+    private static ImportedTreeRecord CopyTree(ImportedTreeRecord tree) => tree with
+    {
+        ExtraAttributes = tree.ExtraAttributes.ToImmutableSortedDictionary(StringComparer.Ordinal),
+    };
 }

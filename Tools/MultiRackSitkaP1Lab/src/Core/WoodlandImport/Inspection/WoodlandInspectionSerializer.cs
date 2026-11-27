@@ -47,6 +47,9 @@ public static class WoodlandInspectionSerializer
             w.WritePropertyName("attribution");
             WriteAttribution(w, view.Attribution);
 
+            w.WritePropertyName("disclosures");
+            WriteDisclosures(w, view.Disclosures);
+
             w.WritePropertyName("provenanceBoundary");
             WriteProvenanceBoundary(w, view.ProvenanceBoundary);
 
@@ -247,6 +250,20 @@ public static class WoodlandInspectionSerializer
         WriteNullableString(w, "retrievalDateUtc", a.RetrievalDateUtc);
         WriteNullableString(w, "sourcePlotId", a.SourcePlotId);
         WriteStringArray(w, "observationDates", a.ObservationDates);
+        w.WriteEndObject();
+    }
+
+    private static void WriteDisclosures(Utf8JsonWriter w, InspectionDisclosures? d)
+    {
+        if (d is null)
+        {
+            w.WriteNullValue();
+            return;
+        }
+
+        w.WriteStartObject();
+        w.WriteString("modificationsDisclosure", d.ModificationsDisclosure);
+        w.WriteString("coordinateInterpretationCaveat", d.CoordinateInterpretationCaveat);
         w.WriteEndObject();
     }
 
