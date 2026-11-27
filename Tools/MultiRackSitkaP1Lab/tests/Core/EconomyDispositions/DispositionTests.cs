@@ -567,6 +567,147 @@ internal static class DispositionTests
             T.Eq(0, Root(session).Economy!.PendingFellDispositions.Count, "cleared on cancelled work");
             T.Eq(0L, session.ReadEconomyView().RetainedTimber.RetainedTimberCm3, "cancel never creates retained timber");
         });
+
+        // ---- Repair after independent review (B1, B2): published maps are genuinely read-only ----
+
+        // 19
+        T.Add("dispositions: approved frozen dispositions cannot be mutated through a cast (B1)", () =>
+        {
+            var (session, v) = MixedSession();
+            v = session.Approve(Fence(v)).View;
+            var oakKey = EconomyOrderKey.ForFell(Area, OakTree);
+            var frozen = session.ReadEconomyView().ApprovedQuote!;
+            AssertWriteRefused(frozen.FrozenFellDispositions, oakKey, FellingDisposition.LeaveAsDeadwood, "approved frozen map");
+            AssertWriteRefused(frozen.Quote.FellDispositions, oakKey, FellingDisposition.SellAndExtract, "approved quote map");
+            AssertWriteRefused(session.QuoteWorkPlan(Fence(v)).FellDispositions, oakKey, FellingDisposition.SellAndExtract, "pending quote map");
+
+            var fresh = session.ReadEconomyView().ApprovedQuote!.FrozenFellDispositions;
+            T.Eq(3, fresh.Count, "fresh read still has three frozen entries");
+            T.Eq(FellingDisposition.SellAndExtract, fresh[EconomyOrderKey.ForFell(Area, SitkaTree)], "fresh read: Sitka still Sell");
+            T.Eq(FellingDisposition.KeepForUse, fresh[oakKey], "fresh read: oak still Keep");
+            T.Eq(FellingDisposition.LeaveAsDeadwood, fresh[EconomyOrderKey.ForFell(Area, BeechTree)], "fresh read: beech still Leave");
+
+            var result = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
+            T.True(result.Execution is not null && !result.Execution.Replayed, "the approved plan still executes");
+            T.Eq(OakStemCm3, result.Execution!.Settlement!.RetainedTimberDelta.RetainedTimberCm3, "settled the frozen Keep");
+            T.Eq(1, result.Execution.Settlement.DeadwoodIntents.Count, "settled the frozen Leave");
+        });
+
+        // 20
+        T.Add("dispositions: pending dispositions on state, view and Empty defaults cannot be mutated (B1)", () =>
+        {
+            var (session, v) = MixedSession();
+            var oakKey = EconomyOrderKey.ForFell(Area, OakTree);
+            var beechKey = EconomyOrderKey.ForFell(Area, BeechTree);
+            var state = Root(session).Economy!.PendingFellDispositions;
+            var oakChoice = state[oakKey];
+            AssertWriteRefused(state, oakKey, oakChoice with { Disposition = FellingDisposition.SellAndExtract }, "state choices map");
+            AssertWriteRefused(session.ReadEconomyView().PendingFellDispositions, oakKey, FellingDisposition.SellAndExtract, "view map");
+            AssertWriteRefused(FellingDispositionRules.EmptyChoices, oakKey, oakChoice, "shared EmptyChoices");
+            AssertWriteRefused(FellingDispositionRules.EmptyResolved, oakKey, FellingDisposition.KeepForUse, "shared EmptyResolved");
+            T.Eq(0, FellingDispositionRules.EmptyChoices.Count, "EmptyChoices still empty");
+            T.Eq(0, FellingDispositionRules.EmptyResolved.Count, "EmptyResolved still empty");
+
+            T.Eq(2, Root(session).Economy!.PendingFellDispositions.Count, "state still holds two explicit choices");
+            T.Eq(FellingDisposition.KeepForUse, Root(session).Economy!.PendingFellDispositions[oakKey].Disposition, "state oak still Keep");
+            var view = session.ReadEconomyView().PendingFellDispositions;
+            T.Eq(2, view.Count, "view still shows two explicit choices");
+            T.Eq(FellingDisposition.KeepForUse, view[oakKey], "view oak still Keep");
+            T.Eq(FellingDisposition.LeaveAsDeadwood, view[beechKey], "view beech still Leave");
+
+            // After a command (RemovePending) the rebuilt state map is read-only too.
+            v = session.RemovePending(Fence(v), Area, SitkaTree).View;
+            AssertWriteRefused(Root(session).Economy!.PendingFellDispositions, oakKey, oakChoice, "state map after RemovePending");
+            var fresh = NewEconomySession();
+            AssertWriteRefused(fresh.ReadEconomyView().PendingFellDispositions, oakKey, FellingDisposition.KeepForUse, "fresh-session view map");
+            AssertWriteRefused(Root(fresh).Economy!.PendingFellDispositions, oakKey, oakChoice, "fresh-session state map");
+        });
+
+        // 21
+        T.Add("dispositions: retained BySpecies on the cumulative tally and the shared Empty cannot be mutated (B2)", () =>
+        {
+            var empty = RetainedTimberTally.Empty;
+            AssertWriteRefused(empty.BySpecies, "sessile-oak", new RetainedTimberAmount("sessile-oak", 1L), "shared Empty tally");
+            T.Eq(0, RetainedTimberTally.Empty.BySpecies.Count, "Empty BySpecies still empty");
+            T.Eq(0L, RetainedTimberTally.Empty.RetainedTimberCm3, "Empty total still 0");
+
+            var (session, v) = SessionWith(new[] { OakTree });
+            AssertWriteRefused(session.ReadEconomyView().RetainedTimber.BySpecies, "sessile-oak",
+                new RetainedTimberAmount("sessile-oak", 1L), "fresh-session view tally");
+            v = SetAll(session, v, FellingDisposition.KeepForUse);
+            var (receipt, _) = ApproveAndExecute(session, v);
+            string species = receipt.RetainedTimberDelta.BySpecies.Keys.Single();
+            var tampered = new RetainedTimberAmount(species, 1L);
+            AssertWriteRefused(session.ReadEconomyView().RetainedTimber.BySpecies, species, tampered, "view cumulative tally");
+            AssertWriteRefused(Root(session).Economy!.RetainedTimber.BySpecies, species, tampered, "state cumulative tally");
+            AssertWriteRefused(receipt.RetainedTimberDelta.BySpecies, species, tampered, "settlement delta tally");
+
+            foreach (var (tag, tally) in new[]
+            {
+                ("view", session.ReadEconomyView().RetainedTimber),
+                ("state", Root(session).Economy!.RetainedTimber),
+                ("receipt", session.ReadEconomyView().Settlements.Single().RetainedTimberDelta),
+            })
+            {
+                T.Eq(OakStemCm3, tally.RetainedTimberCm3, tag + " total unchanged");
+                T.Eq(OakStemCm3, tally.BySpecies.Values.Sum(a => a.RetainedTimberCm3), tag + " species sum unchanged");
+                T.Eq(OakStemCm3, tally.BySpecies[species].RetainedTimberCm3, tag + " oak amount unchanged");
+                T.Eq(1, tally.BySpecies.Count, tag + " species count unchanged");
+            }
+        });
+
+        // 22
+        T.Add("dispositions: read-only wrappers keep ordinal ascending enumeration (hash-neutral)", () =>
+        {
+            // Frozen disposition map, built with stems added in reverse order and a second area, must enumerate by key.
+            var session = NewEconomySession();
+            var v = session.ReadView();
+            var otherArea = Root(session).Areas.Select(a => a.AreaId).First(id => id != Area);
+            var otherTree = Root(session).Areas.Single(a => a.AreaId == otherArea).State.Trees.First(t => t.IsLiving).TreeId;
+            foreach (var id in ThreeStems.Reverse())
+                v = session.AddPending(Fence(v), Area, id, "order test").View;
+            v = session.AddPending(Fence(v), otherArea, otherTree, "order test").View;
+            v = session.SetFellingDisposition(Fence(v), Area, OakTree, FellingDisposition.KeepForUse).View;
+            v = session.SetFellingDisposition(Fence(v), Area, BeechTree, FellingDisposition.KeepForUse).View;
+            v = session.SetFellingDisposition(Fence(v), Area, SitkaTree, FellingDisposition.KeepForUse).View;
+            v = session.Approve(Fence(v)).View;
+            var frozenKeys = session.ReadEconomyView().ApprovedQuote!.FrozenFellDispositions.Keys.ToArray();
+            var expectedKeys = frozenKeys.OrderBy(k => k).ToArray();
+            T.True(frozenKeys.SequenceEqual(expectedKeys), "frozen map enumerates in EconomyOrderKey (ordinal) order");
+            T.True(frozenKeys.Select(k => k.AreaId + "/" + k.TargetKey).SequenceEqual(
+                new[] { otherArea + "/" + otherTree }.Concat(ThreeStems.Select(id => Area + "/" + id))
+                    .OrderBy(x => x, StringComparer.Ordinal)), "frozen keys are ordinal ascending by area then tree");
+            var viewKeys = session.ReadEconomyView().ApprovedQuote!.Quote.FellDispositions.Keys.ToArray();
+            T.True(viewKeys.SequenceEqual(expectedKeys), "fresh read enumerates identically");
+
+            var r = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey).Execution!.Settlement!;
+            foreach (var (tag, tally) in new[] { ("receipt", r.RetainedTimberDelta), ("balance", session.ReadEconomyView().RetainedTimber) })
+            {
+                var speciesKeys = tally.BySpecies.Keys.ToArray();
+                T.Eq(3, speciesKeys.Length, tag + " three species retained");
+                T.True(speciesKeys.SequenceEqual(speciesKeys.OrderBy(x => x, StringComparer.Ordinal)), tag + " BySpecies is ordinal ascending");
+                T.True(speciesKeys.SequenceEqual(new[] { "beech", "sessile-oak", "sitka-spruce" }), tag + " BySpecies exact order");
+                T.True(tally.BySpecies.Values.Select(a => a.SpeciesId).SequenceEqual(speciesKeys), tag + " values follow key order");
+            }
+        });
+    }
+
+    // Casts a published map to both dictionary interfaces and proves every write path throws NotSupportedException
+    // and leaves the map unchanged.
+    private static void AssertWriteRefused<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> published, TKey key, TValue value, string what)
+        where TKey : notnull
+    {
+        var before = published.ToArray();
+        T.True(published is IDictionary<TKey, TValue>, what + " is castable to IDictionary (so the test exercises the cast)");
+        var generic = (IDictionary<TKey, TValue>)published;
+        T.True(generic.IsReadOnly, what + " reports IsReadOnly");
+        T.True(Throws<NotSupportedException>(() => generic[key] = value), what + ": indexer set throws NotSupportedException");
+        T.True(Throws<NotSupportedException>(() => generic.Add(key, value)), what + ": Add throws NotSupportedException");
+        T.True(Throws<NotSupportedException>(() => generic.Remove(key)), what + ": Remove throws NotSupportedException");
+        T.True(Throws<NotSupportedException>(() => generic.Clear()), what + ": Clear throws NotSupportedException");
+        var nonGeneric = (System.Collections.IDictionary)published;
+        T.True(Throws<NotSupportedException>(() => nonGeneric[key] = value), what + ": non-generic indexer set throws NotSupportedException");
+        T.True(published.ToArray().SequenceEqual(before), what + " unchanged after the write attempts");
     }
 
     // ------------------------------------------------------------------------------------------------ helpers
