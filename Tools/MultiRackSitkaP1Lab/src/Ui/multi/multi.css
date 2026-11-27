@@ -605,19 +605,19 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 @media (min-width: 1024px) and (max-width: 1599px) {
   :root { --gap: 8px; --gutter: 16px; --legend-w: 184px; --side-w: 310px; }
   body { font-size: .9rem; }
-  h1 { font-size: 1.04rem; }
+  h1 { font-size: 1rem; }
   .subtitle { font-size: .7rem; line-height: 1.2; }
-  .topbar { flex-wrap: wrap; gap: .16rem .35rem; padding: .28rem var(--gutter); }
-  .brand { flex: 0 1 auto; min-width: 0; gap: .38rem; }
-  .brand-mark { width: 1.2rem; height: 1.5rem; }
-  .top-actions { flex-wrap: nowrap; gap: .22rem; }
-  .year-chip { margin: 0 .04rem 0 0; padding-right: .38rem; gap: .24rem; }
-  .year-chip strong { font-size: 1.2rem; }
-  .economy-toggle, .history-open, .woodland-open, .saves-open { min-width: 0; min-height: 36px; padding: .2rem .4rem; font-size: .73rem; white-space: nowrap; }
-  .skip-review, .advance { min-width: 0; min-height: 38px; padding: .2rem .42rem; gap: .26rem; }
-  .skip-review .btn-title, .advance .btn-title { font-size: .72rem; white-space: nowrap; }
-  .skip-review .btn-sub, .advance .btn-sub { font-size: .58rem; white-space: nowrap; }
-  .reread { min-width: 0; min-height: 36px; padding: .2rem .42rem; font-size: .73rem; white-space: nowrap; }
+  .topbar { flex-wrap: wrap; gap: .16rem .28rem; padding: .28rem 12px; }
+  .brand { flex: 0 1 auto; min-width: 0; gap: .3rem; }
+  .brand-mark { width: 1.15rem; height: 1.45rem; }
+  .top-actions { flex-wrap: nowrap; gap: .18rem; }
+  .year-chip { margin: 0 .02rem 0 0; padding-right: .32rem; gap: .2rem; }
+  .year-chip strong { font-size: 1.18rem; }
+  .economy-toggle, .history-open, .woodland-open, .saves-open { min-width: 0; min-height: 36px; padding: .2rem .34rem; font-size: .71rem; white-space: nowrap; }
+  .skip-review, .advance { min-width: 0; min-height: 38px; padding: .2rem .36rem; gap: .22rem; }
+  .skip-review .btn-title, .advance .btn-title { font-size: .7rem; white-space: nowrap; }
+  .skip-review .btn-sub, .advance .btn-sub { font-size: .56rem; white-space: nowrap; }
+  .reread { min-width: 0; min-height: 36px; padding: .2rem .36rem; font-size: .71rem; white-space: nowrap; }
   .economy-strip { padding: .22rem var(--gutter); gap: .35rem .85rem; font-size: .75rem; }
   .economy-strip-val { font-size: .86rem; }
   .economy-strip-note { font-size: .68rem; }
