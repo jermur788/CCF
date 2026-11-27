@@ -4,15 +4,16 @@
   "capturedUtc": "2026-11-25T15:25:30Z",
   "suites": {
     "core": {
-      "minPassed": 312,
+      "minPassed": 314,
       "maxFailed": 0,
       "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$",
-      "note": "Re-baselined 2026-11-27 for Phase 2A-2 (added 5 Core Save v3 / C-V3 / SaveV3Slots test groups: 307 to 312); exact floor required so selftest C09 (single-test drop) fails G2 as intended; floor tightened upward only, never weakened."
+      "note": "Re-baselined 2026-11-27 at Playable Milestone 1 closeout for Phase 2B-2b (added Save v3 economy block, deadwood materialisation and S1 guard test groups: 312 to 314); exact floor required so selftest C09 (single-test drop) fails G2 as intended; floor tightened upward only, never weakened."
     },
     "save": {
-      "minPassed": 50,
+      "minPassed": 52,
       "maxFailed": 0,
-      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$"
+      "summaryRegex": "^(\\d+)/(\\d+) passed, (\\d+) failed$",
+      "note": "Re-baselined 2026-11-27 at Playable Milestone 1 closeout for Phase 2B-2b (added v3 economy Save/Restore and built-in refusal groups: 50 to 52); tightened upward only."
     },
     "uiSmokeMultiarea": {
       "minPassed": 363,

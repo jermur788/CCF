@@ -16,6 +16,19 @@ namespace SitkaP1.Core.Saves;
 /// </summary>
 internal static class SaveV3Codec
 {
+    /// <summary>
+    /// Header lineage of a Save v3 session. Economy On appends its area-model version exactly as the live session does
+    /// (<see cref="MultiAreaContinuation"/>) without touching the frozen v2 path in <c>src/Core/Phase1/**</c>, which the
+    /// 2D gate keeps byte-identical to the base commit.
+    /// </summary>
+    internal static Phase1EngineLineage LineageFor(Phase1ModelVector models, EconomyModelVersion economy)
+    {
+        var baseLineage = Phase1EngineLineage.Current(models);
+        return economy == EconomyModelVersion.Off
+            ? baseLineage
+            : baseLineage with { AreaModelVersion = EconomyIdentity.AreaModelVersion(baseLineage.AreaModelVersion, economy) };
+    }
+
     private static readonly string[] TopLevelKeys =
     {
         "format",
@@ -262,7 +275,7 @@ internal static class SaveV3Codec
                 " and cannot be loaded into a " + Phase1ModelVector.Phase2 +
                 " session; saves are never upgraded or migrated between models");
 
-        var expectedLineage = Phase1EngineLineage.Current(
+        var expectedLineage = LineageFor(
             Phase1ModelVector.Phase2,
             genesis.EconomyEnabled ? EconomyModelVersion.Enabled : EconomyModelVersion.Off);
         if (header.Lineage != expectedLineage)

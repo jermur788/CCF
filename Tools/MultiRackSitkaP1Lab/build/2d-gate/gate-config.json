@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "saveV3": {
     "enabled": true,
-    "authority": "Phase 2A-2 approved spec §6 / S0b frozen-contracts-s0b.md §4 item 4 (mirroring S0c lock retirement precedent 6a4a1a5a)",
+    "authority": "Phase 2A-2 approved spec §6 / S0b frozen-contracts-s0b.md §4 item 4 (mirroring S0c lock retirement precedent 6a4a1a5a); Phase 2B-2b adds the economy codec per its approved implementation handoff (PHASE2B2B-UI-V3SAVE-HANDOFF-20261127.md)",
     "allowedCodecDir": "src/Core/Saves/",
     "registryFile": "src/Core/Saves/FeatureBlockRegistry.cs",
     "formatFile": "src/Core/Saves/SaveV3Format.cs",
@@ -11,13 +11,13 @@
         "blockKey": "genesisRecipe",
         "keyConstant": "GenesisRecipeBlockKey",
         "minBlockVersion": 1
-      }
-    ],
-    "reservedOnlyBlockKeys": [
+      },
       {
         "blockKey": "economy",
-        "keyConstant": "EconomyBlockKey"
+        "keyConstant": "EconomyBlockKey",
+        "minBlockVersion": 1
       }
-    ]
+    ],
+    "reservedOnlyBlockKeys": []
   }
 }

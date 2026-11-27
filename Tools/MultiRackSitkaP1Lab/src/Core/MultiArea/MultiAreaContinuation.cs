@@ -578,7 +578,7 @@ internal sealed partial class MultiAreaContinuation
             var vector = Phase1RootMapping.VectorOf(models);
             var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
                 root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition),
-                Phase1EngineLineage.Current(vector, models.Economy));
+                SaveV3Codec.LineageFor(vector, models.Economy));
             return new Phase1SaveEnvelope(header, Phase1RootMapping.Capture(root, models, stage4Options));
         }
     }
