@@ -297,9 +297,9 @@ async function runFull(cdp, collectEvents, auditErrors, netTracker) {
   check(pickedNeighbour.startsWith('MA-D-'), `Visible neighbour tree click routed with exact area ID (${pickedNeighbour})`);
 
   // Verify Work Plan / verb routes work against the active lane in the lane-filtered 5-lane view (Crop mark + unmark).
-  await waitFor(cdp, "!document.documentElement.classList.contains('busy')", 'idle before Crop mark');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && !document.getElementById('competition-content').textContent.includes('Reading competition')", 'idle before Crop mark');
   await click(cdp, '#crop-button');
-  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop mark committed on active lane MA-D');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && document.getElementById('crop-button').textContent.toLowerCase().includes('remove') && !document.getElementById('competition-content').textContent.includes('Reading competition')", 'Crop mark committed on active lane MA-D');
   await click(cdp, '#crop-button');
   await waitFor(cdp, "!document.documentElement.classList.contains('busy') && !document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop unmark committed on active lane MA-D');
   check(true, `Work Plan / Crop verb succeeded against active lane MA-D (${pickedNeighbour}) under lane-filtered reads`);
