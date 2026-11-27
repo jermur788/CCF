@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
 using SitkaP1.Core.Phase1;
+using SitkaP1.Core.Saves;
 
 namespace SitkaP1.Ui;
 
@@ -66,11 +67,13 @@ internal sealed partial class PlayerApi
     private volatile Listener? listener; // set once, after the bind is checked and before the URL is printed
 
     internal PlayerApi(PlayerWorkPlanAdapter player, MultiAreaWorkPlanAdapter multiArea,
-        MultiAreaContinuation multiSession, Phase1SaveSlots saveSlots, string capability)
+        MultiAreaContinuation multiSession, Phase1SaveSlots saveSlots, string capability,
+        int? testMaxViewBytesOverride = null)
     {
         this.player = player;
-        this.multiCurrent = new MultiSessionPair(multiArea, multiSession);
-        this.saveSlots = saveSlots;
+        this.multiHost = new MultiSessionHost(multiArea, multiSession);
+        this.saveV3Slots = new SaveV3Slots(saveSlots);
+        this.testMaxViewBytesOverride = testMaxViewBytesOverride ?? MultiViewBudget.ReadTestOverrideFromEnvironment();
         this.capability = capability;
         capabilityBytes = Encoding.ASCII.GetBytes(capability);
 
@@ -152,18 +155,26 @@ internal sealed partial class PlayerApi
             await WriteErrorAsync(context, StatusCodes.Status404NotFound, "NotFound", "no such page or endpoint");
             return;
         }
-        if (!string.Equals(request.Method, route.Method, StringComparison.Ordinal))
+        Func<HttpContext, Task>? handler = null;
+        if (string.Equals(request.Method, route.Method, StringComparison.Ordinal))
+            handler = route.Handle;
+        else if (route.PostHandle is not null && string.Equals(request.Method, "POST", StringComparison.Ordinal))
+            handler = route.PostHandle;
+
+        if (handler is null)
         {
-            response.Headers.Allow = route.Method;
+            string allow = route.PostHandle is null ? route.Method : route.Method + ", POST";
+            response.Headers.Allow = allow;
             await WriteErrorAsync(context, StatusCodes.Status405MethodNotAllowed, "MethodNotAllowed",
-                "use " + route.Method + " for this endpoint; nothing changed");
+                "use " + allow + " for this endpoint; nothing changed");
             return;
         }
 
         // Cross-origin guard: every POST must come from this page's own origin, and any request that names an origin must
         // name this one. No CORS header is ever sent.
         string? origin = request.Headers.Origin.Count == 0 ? null : request.Headers.Origin.ToString();
-        if ((origin is not null || route.Method == "POST") && !string.Equals(origin, admitted.Origin, StringComparison.Ordinal))
+        if ((origin is not null || string.Equals(request.Method, "POST", StringComparison.Ordinal)) &&
+            !string.Equals(origin, admitted.Origin, StringComparison.Ordinal))
         {
             await WriteErrorAsync(context, StatusCodes.Status403Forbidden, "OriginRefused",
                 "this request did not come from the Stand Map page; nothing changed");
@@ -172,7 +183,7 @@ internal sealed partial class PlayerApi
 
         try
         {
-            await route.Handle(context);
+            await handler(context);
         }
         catch (BadHttpRequestException bad) when (!response.HasStarted)
         {
@@ -412,7 +423,7 @@ internal sealed partial class PlayerApi
         return copy.ToArray();
     }
 
-    private sealed record Route(string Method, Func<HttpContext, Task> Handle);
+    private sealed record Route(string Method, Func<HttpContext, Task> Handle, Func<HttpContext, Task>? PostHandle = null);
 
     private sealed record Listener(string Host, string Origin);
 

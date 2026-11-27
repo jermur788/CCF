@@ -2,38 +2,39 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
 using SitkaP1.Core.Phase1;
+using SitkaP1.Core.Saves;
 
 namespace SitkaP1.Ui;
 
 internal sealed partial class PlayerApi
 {
-    // ---- Phase 1 Save/Load ----------------------------------------------------------------------------------------------
+    // ---- Phase 1 Save v2 & Phase 2A-2 Save v3 (C-V3) -------------------------------------------------------------------
 
-    // The slot list. Every slot is read and fully verified here, and the page is told a state word, never a filesystem
-    // path: "valid" (loadable into this exact session), "incompatible" (another forest, model or engine build), "corrupt"
-    // (failed its own verification) or "missing" (listed but no longer present). A valid backup is reported separately, so
-    // a corrupt primary with a good backup is never shown as a silent success or an empty slot.
+    // Lists every server-managed slot (v2 and v3). Valid self-contained v3 Forest Maker saves show status="valid" and
+    // canLoad=true even when another stand is currently open (loading swaps the host atomically); v2 saves require an
+    // exact identity match with the active built-in stand. Economy-enabled sessions surface SaveEconomyRequiresV3 cleanly.
     private Task ReadMultiSavesAsync(HttpContext context)
     {
         var slots = new List<MultiSlotInfo>();
         Phase1SaveExpectation expectation;
         try
         {
-            expectation = CurrentMulti.Session.SaveExpectation();
+            expectation = multiHost.Current.Session.SaveExpectation();
         }
         catch (P1Refusal refusal)
         {
-            // Economy-enabled sessions refuse Save v2 with SaveEconomyRequiresV3; surface cleanly without 500/stderr.
+            // Economy-enabled sessions refuse Save v2/v3 until Phase 2B-2b economy block exists; surface cleanly without 500/stderr.
             return WriteJsonAsync(context, StatusCodes.Status200OK,
                 new MultiSavesPayload(Array.Empty<MultiSlotInfo>(), new Notice(refusal.Code, refusal.Message)));
         }
-        foreach (string slot in saveSlots.ListSlots())
+        foreach (string slot in saveV3Slots.ListSlots())
         {
-            var inspection = saveSlots.Inspect(slot);
+            var inspection = saveV3Slots.Inspect(slot);
             string status = "corrupt";
             string? refusal = inspection.PrimaryRefusal;
-            string? label = null, savedUtc = null, models = null;
+            string? label = null, savedUtc = null, models = null, experimentId = null;
             int? year = null;
+            int? schemaVersion = inspection.PrimarySchemaVersion;
             if (!inspection.PrimaryExists)
             {
                 status = "missing";
@@ -43,13 +44,31 @@ internal sealed partial class PlayerApi
             {
                 try
                 {
-                    var header = saveSlots.Load(slot, expectation).Envelope.Header;
-                    status = "valid";
-                    refusal = null;
-                    label = header.Label;
-                    year = header.EcologicalYear;
-                    savedUtc = header.SavedUtc;
-                    models = header.Models.ToString();
+                    if (inspection.PrimarySchemaVersion == SaveV3Format.SchemaVersionV3)
+                    {
+                        var loadedV3 = saveV3Slots.Load(slot, v2Expectation: null);
+                        _ = SaveV3Codec.VerifyRecipeGenesis(loadedV3.V3!);
+                        var header = loadedV3.Header;
+                        status = "valid";
+                        refusal = null;
+                        label = header.Label;
+                        year = header.EcologicalYear;
+                        savedUtc = header.SavedUtc;
+                        models = header.Models.ToString();
+                        experimentId = header.Genesis.ExperimentId;
+                    }
+                    else
+                    {
+                        var loadedV2 = saveV3Slots.Load(slot, expectation);
+                        var header = loadedV2.Header;
+                        status = "valid";
+                        refusal = null;
+                        label = header.Label;
+                        year = header.EcologicalYear;
+                        savedUtc = header.SavedUtc;
+                        models = header.Models.ToString();
+                        experimentId = header.Genesis.ExperimentId;
+                    }
                 }
                 catch (P1Refusal failure)
                 {
@@ -60,15 +79,13 @@ internal sealed partial class PlayerApi
             bool primaryVerifies = inspection.PrimaryExists && inspection.PrimaryRefusal is null;
             bool backupLoadable = inspection.BackupExists && inspection.BackupRefusal is null;
             slots.Add(new MultiSlotInfo(slot, label, year, savedUtc, models, status, status == "valid",
-                inspection.BackupExists, backupLoadable, !primaryVerifies && backupLoadable, refusal));
+                inspection.BackupExists, backupLoadable, !primaryVerifies && backupLoadable, refusal,
+                schemaVersion, experimentId));
         }
         return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavesPayload(slots.AsReadOnly(), null));
     }
 
-    // Save the current fenced forest into a named slot. The engine captures the whole root under its own lock; the strict
-    // codec verifies the bytes; the slot store writes outside the lock with its atomic temp/backup/rename sequence. An
-    // absent slot is always published no-clobber, and a slot that already holds a save is replaced only when the player
-    // confirmed it (replaceExisting). A failed or indeterminate write is never reported as a save.
+    // Saves the current fenced session into a named slot: v2 for MA-1 / MA-1-MIXED, C-V3 for Forest Maker stands.
     private async Task MultiSaveAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiSaveRequest>(context, MultiSaveMembers);
@@ -78,30 +95,34 @@ internal sealed partial class PlayerApi
         try
         {
             MultiSavePayload payload;
-            // The slot gate covers the generation read, the engine capture and the write so two saves of one slot
-            // can neither interleave nor record the same generation, and is released before the response is awaited
-            // (LockSlot holds a thread-affine Monitor, which must never span an await).
-            using (saveSlots.LockSlot(slot))
+            using (saveV3Slots.LockSlot(slot))
             {
-                var (exists, generation) = saveSlots.NextGeneration(slot);
+                var (exists, generation) = saveV3Slots.NextGeneration(slot);
                 if (exists && !request.ReplaceExisting)
                     throw new P1Refusal("SlotExists",
                         "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
-                // Capture under multiSwapSync (so session swap cannot race with CaptureSave), then encode and write outside it.
-                Phase1SaveEnvelope envelope;
-                lock (multiSwapSync)
+
+                MultiSessionState capturedState;
+                (int AnnualRevision, int WorkRevision, int PlanStateRevision) marker;
+                int schemaVersion;
+                byte[] bytes;
+                lock (multiHost.SyncLock)
                 {
-                    var pair = CurrentMulti;
-                    envelope = pair.Session.CaptureSave(request.Fence!, label, generation);
+                    capturedState = multiHost.Current;
+                    (schemaVersion, bytes) = capturedState.Session.CaptureSaveBytes(request.Fence!, label, generation);
+                    marker = capturedState.Session.ProgressMarker();
                 }
-                byte[] bytes = Phase1SaveCodec.Encode(envelope);
-                var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
+
+                var result = saveV3Slots.Save(slot, bytes, request.ReplaceExisting);
                 Interlocked.Increment(ref savesWritten);
-                var header = envelope.Header;
+                multiHost.MarkPersisted(capturedState, marker);
+
+                var decoded = SaveV3Codec.DecodeAny(bytes);
+                var header = decoded.Header;
                 payload = new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
                     result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
                     result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
-                    header.SavedUtc), null);
+                    header.SavedUtc, schemaVersion), null);
             }
             await WriteJsonAsync(context, StatusCodes.Status200OK, payload);
         }
@@ -112,75 +133,111 @@ internal sealed partial class PlayerApi
         }
     }
 
-    // Load a slot: the store verifies the file and the exact identity, then the engine rebuilds, revalidates and publishes
-    // the whole candidate root under one lock with a NEW session id. Any failure (stale fence, wrong forest, corrupt file,
-    // illegal restored order) answers 409 with the code and the UNCHANGED current view, so the page never loses authority
-    // over a session that was not replaced.
+    // Loads either a frozen Save v2 slot (into the matching built-in session) or a self-contained C-V3 Save v3 slot
+    // (regenerating the stand from its embedded recipe, restoring all state + blocks, and atomically swapping the host).
     private async Task MultiLoadAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiLoadRequest>(context, MultiLoadMembers);
         if (request is null) return;
-        var capturedPair = CurrentMulti;
-        Phase1DecodedSave? loaded = null;
+        var capturedState = multiHost.Current;
+        MultiDecodedSave? loaded = null;
         P1Refusal? loadFailure = null;
         try
         {
-            loaded = saveSlots.Load(request.Slot!, capturedPair.Session.SaveExpectation());
+            loaded = saveV3Slots.Load(request.Slot!, v2Expectation: null);
         }
         catch (P1Refusal refusal)
         {
             loadFailure = refusal;
         }
+
         MultiAreaLoadResult result;
         MultiAreaCompositeUiSnapshot snapshot;
         int totalRecordedYears;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
-        lock (multiSwapSync)
+        bool hasUnsavedProgress;
+        string experimentBadge;
+        MultiWoodlandRecipeDto? recipeDto;
+        int genesisStems;
+
+        lock (multiHost.SyncLock)
         {
-            var activePair = CurrentMulti;
-            if (!ReferenceEquals(activePair, capturedPair))
+            var activeState = multiHost.Current;
+            if (!ReferenceEquals(activeState, capturedState))
             {
-                result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null,
+                result = new MultiAreaLoadResult(activeState.Session.ReadView(), 0, null,
                     "PlayerSessionMismatch", "the active session changed before load could commit; nothing changed");
             }
             else if (loadFailure is not null)
             {
-                result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null, loadFailure.Code, loadFailure.Message);
+                result = new MultiAreaLoadResult(activeState.Session.ReadView(), 0, null, loadFailure.Code, loadFailure.Message);
             }
-            else
+            else if (loaded!.SchemaVersion == Phase1SaveFormat.SchemaVersion)
             {
                 try
                 {
-                    result = activePair.Session.Restore(request.Fence!, loaded!);
+                    result = activeState.Session.Restore(request.Fence!, loaded.V2!);
+                    multiHost.MarkPersisted(activeState, activeState.Session.ProgressMarker());
                 }
                 catch (P1Refusal refusal)
                 {
-                    result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null, refusal.Code, refusal.Message);
+                    result = new MultiAreaLoadResult(activeState.Session.ReadView(), 0, null, refusal.Code, refusal.Message);
                 }
             }
-            snapshot = activePair.Adapter.ReadCompositeUiSnapshot();
-            totalRecordedYears = activePair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = activePair.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(activePair.Session, snapshot.View);
+            else
+            {
+                // Self-contained Save v3 load: check fence + optional unsaved confirmation, build complete candidate, then swap.
+                try
+                {
+                    activeState.Session.RequireCurrentFence(request.Fence!);
+                    if (activeState.HasUnsavedProgress && request.ConfirmDiscardUnsaved == false)
+                        throw new P1Refusal("WoodlandUnsavedProgress", "Discard unsaved progress and load this saved woodland?");
+                    var (restoredSession, restoredExperiment, loadResult) = MultiAreaContinuation.RestoreFromV3(loaded.V3!);
+                    var candidate = MultiSessionHost.WrapRestoredV3(restoredSession, restoredExperiment);
+                    multiHost.SwapLocked(candidate);
+                    result = loadResult;
+                }
+                catch (P1Refusal refusal)
+                {
+                    result = new MultiAreaLoadResult(activeState.Session.ReadView(), 0, null, refusal.Code, refusal.Message);
+                }
+            }
+
+            var current = multiHost.Current;
+            snapshot = current.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = current.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = current.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(current.Session, snapshot.View);
+            hasUnsavedProgress = current.HasUnsavedProgress;
+            experimentBadge = current.Badge;
+            recipeDto = current.Recipe is null ? null : ProjectRecipeDto(current.Recipe);
+            genesisStems = current.Session.GenesisStemCount;
         }
-        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy);
+
+        var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
+        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
+            economyEnabled, economy, budget, hasUnsavedProgress, recipeDto);
+        if (bounded.PayloadBudgetExceeded)
+        {
+            await WritePayloadBudgetExceededAsync(context, rawBytes.Length, budget.MaxViewBytes);
+            return;
+        }
+
         var info = result.RefusalCode is null ? new MultiLoadInfo(result.DraftOrderCount, result.Checksum!) : null;
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(bounded.View, bounded.Scenes,
             MultiLabels, bounded.Stage4, bounded.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage),
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economyEnabled, economy));
+            bounded.PayloadBudgetExceeded, economyEnabled, economy, hasUnsavedProgress, experimentBadge, recipeDto));
     }
 
-    // Restore a slot's verified prior-good backup over its primary. This is a deliberate, separate player action and the
-    // store refuses it while the primary still verifies (SlotPrimaryValid), so it can never roll a good newer save back.
     private async Task MultiRecoverAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiSlotRequest>(context, MultiRecoverMembers);
         if (request is null) return;
         try
         {
-            var result = saveSlots.RecoverFromBackup(request.Slot!);
+            var result = saveV3Slots.RecoverFromBackup(request.Slot!);
             await WriteJsonAsync(context, StatusCodes.Status200OK,
                 new MultiRecoverPayload(result.SlotName, result.Checksum, result.Bytes, null));
         }
@@ -191,25 +248,25 @@ internal sealed partial class PlayerApi
         }
     }
 
-    // A save made for another experiment, model selection or engine build is compatible-looking but not loadable here.
     private static bool IsIdentityRefusal(string code) =>
-        code is "SaveModelMismatch" or "SaveGenesisMismatch" or "SaveLineageMismatch";
+        code is "SaveModelMismatch" or "SaveGenesisMismatch" or "SaveLineageMismatch"
+            or "SaveEconomyRequiresV3" or "SaveRequiredBlockMissing" or "SaveRecipeUnsupported";
 
-    // Phase 1 Save/Load request and response bodies. `replaceExisting` is required on every save so the page must state
-    // whether the player confirmed replacing an existing slot.
     private sealed record MultiSaveRequest(MultiAreaFence? Fence, string? Slot, string? Label, bool ReplaceExisting);
 
-    private sealed record MultiLoadRequest(MultiAreaFence? Fence, string? Slot);
+    private sealed record MultiLoadRequest(MultiAreaFence? Fence, string? Slot, bool? ConfirmDiscardUnsaved = null);
 
     private sealed record MultiSlotRequest(string? Slot);
 
     private sealed record MultiSlotInfo(string Slot, string? Label, int? EcologicalYear, string? SavedUtc, string? Models,
-        string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, bool Recoverable, string? RefusalCode);
+        string Status, bool CanLoad, bool BackupExists, bool BackupLoadable, bool Recoverable, string? RefusalCode,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SchemaVersion = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ExperimentId = null);
 
     private sealed record MultiSavesPayload(IReadOnlyList<MultiSlotInfo> Slots, Notice? Refusal);
 
     private sealed record MultiSaveOutcome(string Slot, string Status, bool BackupUpdated, string Checksum, long Bytes,
-        long SaveGeneration, string Label, int EcologicalYear, string SavedUtc);
+        long SaveGeneration, string Label, int EcologicalYear, string SavedUtc, int SchemaVersion = 2);
 
     private sealed record MultiSavePayload(MultiSaveOutcome? Saved, Notice? Refusal);
 
@@ -220,7 +277,10 @@ internal sealed partial class PlayerApi
         Notice? Refusal, bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        bool HasUnsavedProgress = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ExperimentBadge = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null);
 
     private sealed record MultiRecoverPayload(string Slot, string? Checksum, long? Bytes, Notice? Refusal);
 }
