@@ -279,35 +279,45 @@ import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, dr
     if (!state.view || refusedByLock(what) || state.busy) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
-    const outcome = await call(path, body);
-    state.busy = false;
-    document.documentElement.classList.remove('busy');
-    if (outcome.kind === 'ok') {
-      clearAlert();
-      state.lastWasReplay = Boolean(outcome.payload.execution && outcome.payload.execution.replayed);
-      const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
-      if (useLaneReads) {
-        const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
-        if (frame.kind !== 'ok') {
-          if (frame.kind !== 'budget' && frame.kind !== 'superseded') {
-            showAlert([el('p', { class: 'alert-title' }, 'Lane frame refresh failed after ' + what + '.'), rereadButton()]);
+    let outcome;
+    let postAction = null;
+    try {
+      outcome = await call(path, body);
+      if (outcome.kind === 'ok') {
+        clearAlert();
+        state.lastWasReplay = Boolean(outcome.payload.execution && outcome.payload.execution.replayed);
+        const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
+        if (useLaneReads) {
+          const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
+          if (frame.kind !== 'ok') {
+            if (frame.kind !== 'budget' && frame.kind !== 'superseded') {
+              showAlert([el('p', { class: 'alert-title' }, 'Lane frame refresh failed after ' + what + '.'), rereadButton()]);
+            }
+            return;
           }
-          return;
+        } else {
+          applyPayload(outcome.payload, false);
         }
-      } else {
-        applyPayload(outcome.payload, false);
+        postAction = 'ok';
+      } else if (outcome.kind === 'refused') {
+        const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
+        if (useLaneReads) {
+          await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
+        } else {
+          applyPayload(outcome.payload, false);
+        }
+        postAction = 'refused';
       }
+    } finally {
+      state.busy = false;
+      document.documentElement.classList.remove('busy');
+    }
+    if (postAction === 'ok') {
       if (onCommitted) onCommitted(outcome.payload);
       if (focusAfter) keepFocusOr(focusAfter);
       hooks.refreshReviewPreview();
       if (state.historyOpen) hooks.loadHistoryIndex(null, false);
-    } else if (outcome.kind === 'refused') {
-      const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
-      if (useLaneReads) {
-        await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
-      } else {
-        applyPayload(outcome.payload, false);
-      }
+    } else if (postAction === 'refused') {
       if (state.lock) showLockAlert('Refused: ' + what + ' (' + outcome.payload.refusal.code + '). Nothing changed.');
       else showRefusal(what, outcome.payload.refusal);
       hooks.refreshReviewPreview();

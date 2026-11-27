@@ -118,8 +118,17 @@ async function rectOf(cdp, selector) {
 }
 
 async function click(cdp, selector) {
-  await evaluate(cdp, `(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (e && e.scrollIntoView) e.scrollIntoView({ block: 'center', inline: 'nearest' }); })()`);
-  await sleep(60);
+  await evaluate(cdp, `(() => {
+    const e = document.querySelector(${JSON.stringify(selector)});
+    if (!e || !e.scrollIntoView) return;
+    e.scrollIntoView({ block: 'center', inline: 'nearest' });
+    const r = e.getBoundingClientRect();
+    const topEl = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (topEl && topEl !== e && !e.contains(topEl)) {
+      e.scrollIntoView({ block: 'start', inline: 'nearest' });
+    }
+  })()`);
+  await sleep(80);
   const rect = await rectOf(cdp, selector);
   if (!rect || !rect.visible) throw new Error('cannot click ' + selector + ' (not visible)');
   const base = { x: rect.x, y: rect.y, button: 'left', clickCount: 1, pointerType: 'mouse' };
@@ -288,10 +297,11 @@ async function runFull(cdp, collectEvents, auditErrors, netTracker) {
   check(pickedNeighbour.startsWith('MA-D-'), `Visible neighbour tree click routed with exact area ID (${pickedNeighbour})`);
 
   // Verify Work Plan / verb routes work against the active lane in the lane-filtered 5-lane view (Crop mark + unmark).
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy')", 'idle before Crop mark');
   await click(cdp, '#crop-button');
-  await waitFor(cdp, "document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop mark committed on active lane MA-D');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop mark committed on active lane MA-D');
   await click(cdp, '#crop-button');
-  await waitFor(cdp, "!document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop unmark committed on active lane MA-D');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && !document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop unmark committed on active lane MA-D');
   check(true, `Work Plan / Crop verb succeeded against active lane MA-D (${pickedNeighbour}) under lane-filtered reads`);
 
   // Verify Re-read button on >=3-area stand uses lane-filtered reads, NOT /view!
