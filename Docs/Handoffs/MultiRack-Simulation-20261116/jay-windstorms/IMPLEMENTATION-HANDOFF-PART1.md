@@ -4,16 +4,23 @@
 > `SitkaP1.Core.NaturalProcesses`. Nothing calls this code yet: no `AnnualPipeline`, `MultiAreaContinuation`,
 > `RngSalts`, ForestMaker, Save v3 or `/multi` UI change. No Unity was opened or required.
 
-> **Current status (read first).** Lineage: `7b5c2a07` (Part 1) → `cc59918f` (Repair 1, direction) → `3170cd2c`
-> (Repair 2; independent review R1-01..R1-09) → Repair 3 (this file's commit; delta review R2-01..R2-03). The delta
-> re-review of `3170cd2c` returned NEEDS CHANGES (R2-01 blocking); Repair 3 addresses it and needs a delta re-check by a
-> non-Claude reviewer. **Settled owner rulings:** (1) failure transform is
-> **BoundedRational** `p = S·V/(1+S·V)` (frozen D-050), not `1 − exp(−S·V)`; (2) storm direction is **`u · 360`
-> blow-towards** (frozen D-050), glyph = direction; the `225 ± 45°` *from* proposal is rejected. The current test
-> transcript is in **Repair 3** at the end of this file (48/48). Sections 2–4 below are the **parent-only** record for
-> `7b5c2a07` and are superseded where they differ.
+> **Current status (read first).** Candidate **`923634c62f18444af1b57206d7ee87981958b7b4`** (Repair 4), base
+> `c82e4e75`. Lineage: `7b5c2a07` (Part 1) → `cc59918f` (Repair 1, direction) → `3170cd2c` (Repair 2; review
+> R1-01..R1-09) → `ca601d8d` (Repair 3; delta review R2-01..R2-03) → `923634c6` (Repair 4; final delta R3-01) → this
+> docs-only close-out commit. Tests **49/49** passed (jay 20, storm 12, salvage 11, hygiene-parity 6; 0 warnings,
+> 0 errors; exit 0) — transcript in **Repair 4** at the end of this file. **Independent review: APPROVED FOR
+> INTEGRATION** for standalone Part 1 at `923634c6` (review branch `review/multi-2d-jay-windstorms-engine-v1` at
+> `17ba65acbe738b0006c5ae5e93f5c393bf10daa6`). **Part 1 standalone only: not wired, not merged.**
+> **Settled owner rulings:** (1) failure transform is **BoundedRational** `p = S·V/(1+S·V)` (frozen D-050), not
+> `1 − exp(−S·V)`; (2) storm direction is **`u · 360` blow-towards** (frozen D-050), glyph = direction; the
+> `225 ± 45°` *from* proposal is rejected. Sections 2–4 below are the **parent-only** record for `7b5c2a07` and are
+> superseded where they differ.
 
-- **Branch:** `feat/multi-2d-jay-windstorms-engine-v1` (pushed; no `review/*` branch created)
+- **Branch:** `feat/multi-2d-jay-windstorms-engine-v1` (pushed; candidate `923634c6`)
+- **Review branch:** `review/multi-2d-jay-windstorms-engine-v1` (written by the independent reviewer, not this writer):
+  initial review `a5789d4c` (+ `ff77654b`, NEEDS CHANGES R1-01..R1-09) → delta re-review `48b50fe6` (of `3170cd2c`,
+  NEEDS CHANGES R2-01) → final delta re-review `5f618479` (of `ca601d8d`, NEEDS CHANGES R3-01) → final re-review
+  `17ba65acbe738b0006c5ae5e93f5c393bf10daa6` (of `923634c6`, **APPROVED FOR INTEGRATION**)
 - **Base:** `c82e4e759c2ceef1c13ddb6a033e034097aef77e` (`origin/integration/2d-sim`, unchanged after `git fetch origin`)
 - **Context:** `origin/main` = `bdeb6a324acaf4129c10fb0846faac8b64974360` (verified; untouched)
 - **SDK:** `8.0.133` via `Tools/MultiRackSitkaP1Lab/global.json` (`/usr/bin/dotnet`)
@@ -184,6 +191,24 @@ All 23 paths sit under the four allowed prefixes. The coordination anchor `/medi
   Darragh/Eowyn context and states that market effects are unmodelled and uncited.
 - Unity was not run and is not required for this lane. No browser suite or `build/2d-gate.sh` was run (out of scope).
 
+## 7. Residual for Part 2 / follow-up (non-blocking; recorded by the final re-review at `17ba65ac`)
+
+- **R4-01 (low).** `SalvageAccounting.MergeWindthrowDeadwood` snapshots (enumerates) the additions list before it
+  refuses an extracted ID found in existing stock; the parent short-circuited without touching additions. Refusal and
+  unchanged stock are the same, but a throwing additions iterator could mask the refusal. Fix by deferring the
+  additions snapshot until after existing-stock validation.
+- **R4-02 (low).** `StormAdapter.ExposureBands(null!)` now returns an empty snapshot instead of throwing
+  `ArgumentNullException`. The parameter is non-nullable, so only out-of-contract callers see this; an explicit null
+  guard would restore the prior failure.
+- **R1-07 (observation).** Bearing is `u · 360` in `double`; frozen Unity uses `float`. The double-vs-float precision
+  choice is to be decided at the Part 2 persistence boundary (`spec.md` §5 item 10).
+- **Teaching note.** The 2026 market sentence was removed (R1-08); the note now carries no factual market claim, only
+  the dated Darragh/Eowyn context and an explicit "not modelled, no claim" statement.
+- **R1-09 (Part 2).** `spec.md` §5 items 7–9: on-map candidate derivation and debit (including exported), storm once
+  per year from woodland seed + pre-storm context with a persisted year guard, and salvage reference from the
+  authoritative approved Work Plan with grouped settlement. Plus the §6 wiring items (AnnualPipeline,
+  MultiAreaContinuation, RngSalts registration, ForestMaker, Save v3, `/multi` UI).
+
 ## Repair 1 — restore frozen D-050 storm direction (2026-11-27)
 
 **Owner ruling (flag 2):** the `225 ± 45°` *from* convention is rejected; Part 1 follows the frozen D-050 code literally.
@@ -308,3 +333,43 @@ exit=0
 Two runs gave byte-identical stdout (SHA-256 `21400be17e79268b74e487ee83f20b414b3f539d443203835b5cecd78a912b21`,
 identical to Repair 2 because stdout lists only test names and totals, which did not change).
 JW-T61 (frozen D-050 parity) and JW-T60/T62 unchanged and passing. Unity not run; not wired; not merged.
+
+## Repair 4 — final delta review R3-01 (2026-11-27)
+
+Parent `ca601d8d`; base `c82e4e75` unchanged. Commit `923634c62f18444af1b57206d7ee87981958b7b4`. Addresses R3-01
+(blocking) from the final delta re-review on `review/multi-2d-jay-windstorms-engine-v1` (`5f618479`): on SDK 8.0.133,
+LINQ `ToArray()` hands its newly allocated destination to a source that implements `ICollection<T>.CopyTo`, so a
+hostile caller collection could retain that array and overwrite a snapshot after construction (requests, `with`
+copies, init replacements, results, and footprint geometry 6,400 → 4,800 m² while `Vertices` still showed the old
+outline). No dispersal, storm or salvage rule, stream key, refusal code, signature or property type changed.
+
+| Area | Change |
+|---|---|
+| `SnapshotCopy.ToArray` (new, `NaturalProcessContracts.cs`) | The single way caller collections are copied: plain `foreach` enumeration into a private `List<T>`, then that list's own `ToArray`. No caller-reachable destination is ever passed to `CopyTo`; LINQ `ToArray()` and `new List<T>(source)` are not used on caller input. Null → empty array. |
+| `SnapshotList<T>` | Constructor copies via `SnapshotCopy.ToArray` (so every `ContractSnapshot.Of` record constructor and `init` setter is covered). |
+| `WoodlandFootprint` | One enumeration-only snapshot feeds both the geometry and the exposed `Vertices`, so they cannot diverge. |
+| `StormAdapter.ExposureBands` | Snapshots the input by enumeration before sorting. |
+| `SalvageAccounting.MergeWindthrowDeadwood` | Snapshots existing stock, additions and extracted IDs once each; all validation, refusal stock and the merge read only those private copies. |
+
+**New test JW-T65** (hygiene-parity): a `CopyTo`-retaining hostile collection (`IReadOnlyList<T>` + `ICollection<T>`)
+records any destination array and later overwrites it; requests, plain `with` copies, init replacements, results,
+salvage merge and the footprint (vertices, containment, 6,400 m²) are asserted unchanged.
+
+**Verification (SDK 8.0.133, `Tools/MultiRackSitkaP1Lab`; re-run on `923634c6` for this close-out):**
+
+```
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore   -> 0 Warning(s), 0 Error(s)
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+---
+SUITE hygiene-parity: 6/6 passed, 0 failed
+SUITE jay: 20/20 passed, 0 failed
+SUITE salvage: 11/11 passed, 0 failed
+SUITE storm: 12/12 passed, 0 failed
+TOTAL: 49/49 passed, 0 failed
+exit=0
+```
+
+Stdout SHA-256 `2ebae835a9a2f3ace8bd3ad8cb684c269ee1c6507d663f7caa94568f91554819`. The independent final re-review
+(`17ba65ac`) reproduced 49/49 with 0 warnings and found the candidate called caller `CopyTo` zero times; it returned
+**APPROVED FOR INTEGRATION** with R4-01/R4-02 as low, non-blocking residuals (see §7). Unity not run; not wired; not
+merged.
