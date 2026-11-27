@@ -114,4 +114,80 @@ Verified by inspection at HEAD:
 
 The file fence, module rule, build, module graph, the lens/tool safety property and the implementer's own 56-check Edge suite all reproduce. However, the change breaks the mandatory G2 gate suite, which passes at base. With the crash bypassed, that suite still fails 10 checks: existing Plant/Spot Clear flows, lock-alert clearing and the Execute-re-read alert. Two alert-strip defects (dead cloned buttons and lost refusal announcements) are real behaviour regressions. This cannot be integrated until the gate is green again.
 
+## 6. Second independent pass (time-boxed, 30 min, read-only), 2026-11-27
+
+- **Reviewer:** Claude Opus 5.5, in a separate session from §1–§5, against the same feature HEAD `78dd6432`. The review branch HEAD was `4fe0a18f` (§1–§5 above) when this pass began.
+- **Scope:** code reading, grep and git only. No build, no Edge/CDP suite, no server, no harness, no clone. Everything in this section is **inspection evidence**, not runtime evidence. I did **not** re-run the G2 or Edge results in §2; I cite them as the first pass's evidence.
+- **Why this is an addendum:** the brief allows creating only this file. A file with this name had already been committed in `4fe0a18f`. I added this section instead of overwriting, so the first pass's gate evidence is kept.
+
+### 6.1 What I directly inspected
+
+- `modes/interactive.js:11-29` `setLens`
+- `modes/interactive.js:31-37` `setMapMode` lens guard
+- `store.js:14-92` `LENSES`/`ALERT_TIERS`, `store.js:240-248` lens state, `store.js:294`, `store.js:363-369` `resetSessionUiState`
+- `main.js:21-57` `renderAll` and its focus restore
+- `main.js:563-569` `isTypingContext`
+- `main.js:667-760` Escape stack and hotkeys
+- `main.js:806-822` lens-bar and alert click delegation
+- `api.js:338-451` `buildAlertItems`
+- `api.js:453-488` `renderAlertRow`
+- `api.js:490-573` `renderAlertStrip`/`showAlert`
+- `api.js:671-705` refusal and lock alerts
+- `panels/time-history.js:117-128`
+- `dialogs/saves.js:200-209`
+- `dom.js:80-215` explanation popover
+- `panels/work-plan.js:579-623`
+- `multi.html` diff (`#alert` role change, `#explain-popover` at `multi.html:1065`)
+- `multi.css:149` workspace grid
+- Base `api.js:339-344` (`git show 674c7c9e:…/api.js`)
+
+### 6.2 Results table (this pass)
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 1 | Lens/tool safety | **PASS (inspection)** | `setLens` makes no `call()`/`fetch`, no approve or execute, and forces `mapMode='tree'`. It leaves `selected`, `drafts`, marks, `areaId`, `zoom`/`centre` and `singleLaneMode` untouched. Regeneration has `tools` containing `plant`, but `setLens` still lands on `tree` (`interactive.js:16`), so opening Regeneration does not activate Plant. |
+| 2 | Hotkeys and guard | **PASS (inspection)** | `main.js:713-760`: the guard skips modifier keys, any open `dialog[open]`, `isTypingContext` (input/textarea/select/option/contenteditable, including ancestors) and a missing `view`. The only keys handled are 1–5, `[ ]`, H, W, M and ?. There is no binding for Approve, Execute, Advance, Skip, reset or Load. `M` issues only GET lane reads. |
+| 3a | Escape closes only the topmost layer | **PASS (inspection)** | `main.js:680-711`: dialog (native close) → explanation popover → expanded legend → History drawer → search clear → tool exit → sapling → tree. Each branch returns after closing one layer, and none touches the Work Plan. |
+| 3b | Alert strip ranked, grouped, non-modal, Work Plan link | **PASS with defects** | Items are ranked by `ALERT_TIERS.rank` (`api.js:449`), shown with group chips, rendered inline in `#alert` (no dialog), and `data-alert-action="plan"` routes to the Work Plan (`main.js:816`). The defects are listed in 6.3. |
+| 3c | Focus after an alert re-render | **FAIL (inspection; runtime NOT TESTED by this pass)** | See **M-3**. |
+| 4 | Legend/layout above the fold | **NOT TESTED BY REVIEWER** | The workspace grid is `map` / `side` (`multi.css:149`), with no third or fourth column added. Implementer evidence reports 624 px ≤ 720 px at 1280×720 and 24/24 per viewport. I did not view the screenshots. |
+| 5 | Navigator | **PASS with caveat** | It has an explicit scope label: `Whole woodland` vs `Visible lanes (n of N)` (`work-plan.js:622-623`). The first pass's N-2 still stands: per-area work counts read `view.pending` (`work-plan.js:589-590`), and `view` is lane-filtered on ≥3-lane stands. |
+| 6 | Explanation popover | **PASS (inspection), runtime NOT TESTED** | Single shared `#explain-popover` (no nesting possible). Hover opens it, hovering the popover keeps it open, pin is supported, and Escape closes it with focus returned to the trigger (`dom.js:110-195`). It uses `role="region"`, not `tooltip`, which is acceptable for pinnable content. There is still the G2 crash at `dom.js:203` (B-1) in the non-browser stand-in. |
+| 7 | Preservation (no forestry/financial math, encode-twice, palette) | **PASS (inspection)** | New JS only counts and labels server values. Pills carry icon + badge text + colour. B-1 still applies: Plant/Spot Clear can no longer be reached outside the Regeneration lens, so existing gate flows break. |
+| 8 | Edge suite | **NOT TESTED BY REVIEWER** (this pass) | Implementer `run.log`: `OVERALL: PASS (56 passed, 0 failed)`. The first pass (§2 item 7) reproduced 56/0. |
+
+### 6.3 Additional findings
+
+**M-3 MAJOR: keyboard focus is lost whenever the alert strip re-renders. Also, `showAlert(…, focusTarget)` can never focus a caller node, because only clones are inserted.**
+
+- **Re-render destroys focused controls.** `renderAlertStrip()` rebuilds every child of `#alert` with `box.replaceChildren(...)` (`api.js:541`), and `renderAll()` calls it on every render (`main.js:26`).
+  - `renderAll`'s focus restore only works for elements with a `data-focus-key` (`main.js:24,54-57`). No alert control has one: `alerts-expand`, Dismiss, the action buttons, `◷ History` and the cloned parts all lack it (`api.js:453-488, 519-534`).
+  - Any control inside the strip that has focus is therefore detached on the next render, and focus falls back to `<body>`.
+- **Deterministic case.** A keyboard user presses Enter on **All alerts (n) ▾**. The handler runs `renderAlertStrip()` (`main.js:821`), which replaces that same button with a new `#alerts-expand`. Focus leaves the strip, and the next Tab starts from the top of the document. Dismiss has the same problem and moves focus nowhere.
+- **`focusTarget` is dead.** `showAlert` inserts `p.cloneNode(true)` (`api.js:466`) and then calls `(focusTarget || box).focus()` (`api.js:572`). The original `focusTarget` is never inserted, so focusing it is a no-op.
+  - At base, the real nodes were inserted (`api.js:339-344` at `674c7c9e`).
+  - No current caller passes `focusTarget`, so this is latent, but the parameter is now misleading.
+- **The first pass's dead-button finding (M-1) is confirmed independently.** The Skip refusal's **Open Work Plan** button gets its click listener directly (`panels/time-history.js:118-119`) and has no `data-alert-action`, so the clone in the strip does nothing.
+- **Required:**
+  - Insert the caller's own nodes (or render from data), not clones.
+  - Give the alert controls stable `data-focus-key` values, or skip the rebuild when nothing changed.
+  - After toggle or dismiss, return focus to a sensible target: the new toggle, or `#alert`.
+
+**m-3 MINOR: there is only one manual-alert slot.**
+
+- `showAlert` overwrites `state.manualAlert` (`api.js:564`). Two quick refusals therefore show only the last one, and there is no history.
+- That is acceptable for "no popup chains". However, it means the "grouped" counts never include more than one manual message, so the grouping is mostly built-in states.
+
+### 6.4 Handoff honesty (this pass)
+
+- The safety claims (lens/tool separation, guarded hotkeys, Escape precedence) match the code.
+- These claims overreach:
+  - The accessibility/WCAG framing ignores the `role="alert"` → `role="region"` live-region loss (M-2) and the focus loss above (M-3).
+  - The core-flows "directly verified" wording does not mention the G2 regression (B-1, m-2).
+- I found no fabricated evidence. The implementer's 56/0 result was reproduced by the first pass.
+
+### 6.5 Decision (this pass)
+
+I concur with §5. B-1 (G2 regression, first-pass runtime evidence) remains the blocker. M-1/M-3 (alert-strip cloning and focus) and M-2 (live region) must be fixed with it.
+
 INTEGRATION DECISION: NEEDS CHANGES
