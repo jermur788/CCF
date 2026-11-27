@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.ScotsPine.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.ScotsPine.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Compiles only the Species Wave 2 sources (including ScotsPine/) plus these tests: no Unity, P0 or other Core code. -->
+  <ItemGroup>
+    <Compile Include="../../../src/Core/SpeciesWave2/**/*.cs" />
+  </ItemGroup>
+</Project>
