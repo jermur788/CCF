@@ -12,7 +12,7 @@
 
 ## 1. Summary of Changes & Locked Owner Decisions Implemented
 
-All nine locked owner decisions (Option B on items 1–4, Safe Hybrid on item 5, plus structural guardrails and Part 2 readiness) are implemented strictly within the existing 16 plain ES modules under `Tools/MultiRackSitkaP1Lab/src/Ui/multi/` (0 new JS modules, zero Core/Assets/`csproj`/`MultiRoutes.cs`/roadmap edits):
+Items 1–8 of the locked owner decisions (Option B on items 1–4, Safe Hybrid on item 5, plus structural guardrails and Part 2 readiness; see Section 6 for Item 9 deferral) are implemented strictly within the existing 16 plain ES modules under `Tools/MultiRackSitkaP1Lab/src/Ui/multi/` (0 new JS modules, zero Core/Assets/`csproj`/`MultiRoutes.cs`/roadmap edits):
 
 1. **Binding 4-File Spec Quartet (Commit 1):**
    - `specs/multi-2d-map-first-lenses-ui-v1/spec.md`
@@ -117,3 +117,9 @@ All checks below were executed on the final implementation commit (`e17ca43a937f
   - `Docs/Handoffs/MultiRack-Simulation-20261116/map-first-lenses-ui/**`
 - Zero edits to `Assets/**`, `Packages/**`, `ProjectSettings/**`, `src/Core/**`, `src/Ui/*.cs`, `SitkaP1.Ui.csproj`, `src/Ui/wwwroot/**`, `build/2d-gate/**`, `Docs/Project/**`, or `Docs/Handoffs/MultiRack-Simulation-20261116/2D_Simulator_Strategic_Roadmap.md`.
 - Branch `feat/multi-2d-map-first-lenses-ui-20261127-v1` is **NOT merged** to `integration/2d-sim`; `origin/main` is untouched.
+
+---
+
+## 6. Deferred / not done
+
+- Item 9 (Strategic Roadmap v1.21 single-writer sync) = NOT DONE / DEFERRED by owner decision 2026-11-27, because the verbatim payload supplied to the lane was truncated mid-document; the file is unchanged at v1.18 on this branch.
