@@ -62,7 +62,7 @@
 - Core-side post-change table (`m0-post/results.jsonl`, Y0 / Y15):
   - primary preset: overview 78,607 / 112,829 B; 3-lane 495,027 / 508,505 B; 1-lane 167,370 / 214,648 B; raw whole-view 1,586,502 / 1,691,399 B
   - pure Sitka: overview 78,543 / 110,447 B; 3-lane 494,905 / 506,768 B; 1-lane 167,244 / 211,942 B; raw whole-view 1,586,011 / 1,683,357 B
-  - **The raw whole-woodland view exceeds 512 KiB; the lane-filtered read is what brings it under.** Y15 3-lane headroom against 524,288 B is ~15.8 KB — reported honestly.
+  - **The raw whole-woodland view exceeds 512 KiB; the lane-filtered read is what brings it under.** Y15 3-lane headroom against 524,288 B is ~15.8 KB — reported honestly. *(Superseded 2026-11-27: since `6bd2e675` the server enforces the scaled stand budget on `>=3`-area lane reads, not 512 KiB. 512 KiB is now only a test assertion on the presets. See §8.6 and §8.7.)*
 - Budgets: 524,288 B for ≤2 areas; `min(2,621,440, 524,288 × ceil(genesisStems/300))` above that. The silent-overflow fallback is gone: over-budget now returns typed HTTP 503 `MultiViewPayloadBudgetExceeded` and the page keeps the last good view (proven with a forced 400,000 B test budget: `bytes=1084530, budget=400000`, crowns 171 → 171).
 
 ### 2.5 M0 / speed (environment: .NET 8.0.133, Linux 6.18, 6 CPUs, headless Edge)
@@ -192,22 +192,24 @@ Per the owner directive, the combine onto `origin/integration/2d-sim` used only 
 | `66cd591e` | Review Minor-8 (Budget override clamp) | `MultiViewBudget.ForStand` and `ForLaneFiltered` clamp `CCF_TEST_MAX_VIEW_BYTES` to `min(computed, override)` for both view and ecology caps so the test variable can only lower a budget, never raise it. |
 | `8525d5bd` | Review Minor-1 (v3 load unsaved guard) | `MultiApi.Saves.cs` changes `request.ConfirmDiscardUnsaved == false` to `request.ConfirmDiscardUnsaved != true`, refusing a v3 load with HTTP 409 `WoodlandUnsavedProgress` when unsaved progress exists and the confirmation field is omitted or `false` (leaving v2 loads and the shipped UI unchanged). |
 | `3a4a0c9a` | Review Major-1 (Typed 503 on all routes) | Added `WriteBoundedJsonAsync` in `MultiApi.View.cs` and wired every view-returning handler (`skip`, `cell`, `competition`, `hit`, `economy/session`, `command`, `load`, `woodland/new`, plus aux view-carrying responses in `preview-review`, `economy/quote`, `history/year`, `economy/history/year`) so no route can return an over-budget 200 or 409 body — all refuse with typed HTTP 503 `{"code":"MultiViewPayloadBudgetExceeded","bytes":n,"budget":b}`. |
-| `23593916` | Review Minor-3 (Player page wired to C-FENCE lane reads) | Wired `src/Ui/multi/{store,api,commands,main}.js`, `map/renderer-svg.js`, `dialogs/{woodland,saves}.js`, `modes/interactive.js`, and `panels/{work-plan,time-history,fell-draft}.js` so `>=3`-area stands render exclusively from C-FENCE `GET api/multi/stand` (overview for mini-map/lane strip/all-lanes Work Plan) + `GET api/multi/stand?lanes=<active+neighbours>` (2 lanes at outer A/last, 3 in interior, 1 when 1-lane toggle is on), composing frames only from byte-identical fences and retrying on mismatch. Two-area stands (`MA-1`, `MA-1-MIXED`) remain on `GET api/multi/view` unchanged. |
-| `03c49848`, `1317971d`, `30565088` | Tests & 720p stability | Held `state.busy` across lane refresh in `api.js:run`; extended `drive-phase2a.mjs` and `run-phase2a-edge.sh` with player-path network audit (`/view GETs = 0`, `/stand?lanes=` observed for 1/2/3 lanes all `<= 524,288 B`), active-lane Crop verb check, negative v3-load omitted-field test, forced-503 checks on `advance`, `skip` (valid+stale), `hit` (valid+stale), `cell`, `competition`, and `economy/session`, plus raise-clamp proof (`CCF_TEST_MAX_VIEW_BYTES=9999999`). |
+| `23593916` | Review Minor-3 (Player page wired to C-FENCE lane reads) | Wired `src/Ui/multi/{store,api,commands,main}.js`, `map/renderer-svg.js`, `dialogs/{woodland,saves}.js`, `modes/interactive.js`, and `panels/{work-plan,time-history,fell-draft}.js` so `>=3`-area stands render in-session from C-FENCE `GET api/multi/stand` *(corrected 2026-11-27, see §8.7: at `23593916` the first page load and every reload still fetched whole `GET api/multi/view`; since `20ec1833` load and reload also use C-FENCE, and the remaining `/view` dependencies are listed in §8.7)* (overview for mini-map/lane strip/all-lanes Work Plan) + `GET api/multi/stand?lanes=<active+neighbours>` (2 lanes at outer A/last, 3 in interior, 1 when 1-lane toggle is on), composing frames only from byte-identical fences and retrying on mismatch. Two-area stands (`MA-1`, `MA-1-MIXED`) remain on `GET api/multi/view` unchanged. |
+| `03c49848`, `1317971d`, `30565088` | Tests & 720p stability | Held `state.busy` across lane refresh in `api.js:run`; extended `drive-phase2a.mjs` and `run-phase2a-edge.sh` with player-path network audit (`/view GETs = 0`, `/stand?lanes=` observed for 1/2/3 lanes all `<= 524,288 B`), active-lane Crop verb check, negative v3-load omitted-field test, forced-503 checks on `advance`, `skip` (valid+stale), `hit` (valid+stale), `cell`, `competition`, and `economy/session`, plus a raise-clamp mode (`CCF_TEST_MAX_VIEW_BYTES=9999999`). *(Corrected 2026-11-27, §8.7: that mode never asserted the server-reported budget, so it was not a direct proof. It is strengthened in `0a698aeb`.)* |
 
 ### 8.2 Player-path payload numbers (0.64 ha primary preset, measured via CDP network audit)
 
 Observed on the live `/multi` player page (`vp1920` and `vp1280`, `edge-1920/run.log` & `edge-1280/run.log`) during a full `>=3`-area session (Lane A → Lane C → Lane E → 1-lane toggle ON/OFF → visible neighbour tree click in MA-D → Crop mark/unmark → Re-read):
 
-| Player-path request | Observed max bytes | Active budget | Result |
-|---|---|---|---|
-| `GET api/multi/view` (during `>=3`-area session) | **0 requests** | — | PASS (not used for `>=3`-area frames) |
-| `GET api/multi/stand` (overview, all 5 lanes + 1,344 minimap stems) | **78,617 B** | 524,288 B (512 KiB) | PASS |
-| `GET api/multi/stand?lanes=MA-E` (1-lane toggle ON) | **166,877 B** | 524,288 B (512 KiB) | PASS |
-| `GET api/multi/stand?lanes=MA-A,MA-B` / `MA-D,MA-E` (2-lane outer) | **330,854 B** | 524,288 B (512 KiB) | PASS |
-| `GET api/multi/stand?lanes=MA-B,MA-C,MA-D` / `MA-C,MA-D,MA-E` (3-lane interior) | **495,027 B** | 524,288 B (512 KiB) | PASS |
-| Restored Save v3 5-lane load (`restart-load`) | `viewGets=0`, overview + `MA-A,MA-B` `<= 524,288 B` | 524,288 B | PASS |
-| Two-area `MA-1` re-read | `GET api/multi/view` (`viewGets=1`) | 524,288 B | PASS (unchanged) |
+*Budget column refreshed 2026-11-27 (§8.7).* At `30565088` the server enforced 512 KiB on these `>=3`-area reads. Since `6bd2e675` (§8.6) it enforces the scaled stand budget. For the 1,344-stem preset that is `min(2,621,440, 524,288 × ceil(1344/300))` = **2,621,440 B**. The 512 KiB figure is now only an Edge-suite assertion on the preset, not a server limit. The byte counts were measured at `30565088` and were unchanged at `0a698aeb`.
+
+| Player-path request | Observed max bytes | Server-enforced budget (since `6bd2e675`) | Edge-suite assertion | Result |
+|---|---|---|---|---|
+| `GET api/multi/view` (during `>=3`-area session) | **0 requests** | — | must be 0 | PASS (not used for `>=3`-area frames) |
+| `GET api/multi/stand` (overview, all 5 lanes + 1,344 minimap stems) | **78,617 B** | 2,621,440 B (scaled) | `<= 524,288 B` | PASS |
+| `GET api/multi/stand?lanes=MA-E` (1-lane toggle ON) | **166,877 B** | 2,621,440 B (scaled) | `<= 524,288 B` | PASS |
+| `GET api/multi/stand?lanes=MA-A,MA-B` / `MA-D,MA-E` (2-lane outer) | **330,854 B** | 2,621,440 B (scaled) | `<= 524,288 B` | PASS |
+| `GET api/multi/stand?lanes=MA-B,MA-C,MA-D` / `MA-C,MA-D,MA-E` (3-lane interior) | **495,027 B** | 2,621,440 B (scaled) | `<= 524,288 B` | PASS |
+| Restored Save v3 5-lane load (`restart-load`) | `viewGets=0`, overview + `MA-A,MA-B` `<= 524,288 B` | 2,621,440 B (scaled) | `<= 524,288 B` | PASS |
+| Two-area `MA-1` re-read | `GET api/multi/view` (`viewGets=1`) | 524,288 B (frozen, unchanged) | uses `/view` | PASS (unchanged) |
 
 ### 8.3 Near-cap custom woodland measurement (120 × 120 m, 2,000 stems/ha = 2,880 living stems, 5 lanes, age 20, pure Sitka)
 
@@ -262,6 +264,7 @@ Recipe: `widthM=120, lengthM=120, laneCount=5, startAgeYears=20, stemsPerHa=2000
   - For `>=3`-area stands, the existing spec §8 scaled formula (`min(2,621,440, 524,288 × ceil(genesisStems / 300))`, hard ceiling **2.5 MiB / 2,621,440 B**) is the single governing limit for both whole-stand `/view` and lane-filtered `/api/multi/stand?lanes=...` reads. A per-lane read can no longer be stricter than the whole-stand read it replaces.
   - The 0.64 ha presets still stay under **512 KiB** on 3-lane reads (**490,909 B** GET / **495,026 B** POST / **495,027 B** player-path max) and the Edge suite keeps the unchanged `< 524,288 B` assertion on the preset.
   - `CCF_TEST_MAX_VIEW_BYTES` continues to clamp strictly downward (`min(computed, override)`), verified on both whole-view routes and `GET api/multi/stand?lanes=MA-B,MA-C,MA-D` (`bytes=495026, budget=400000` -> HTTP 503).
+  - **Disclosure added 2026-11-27 (re-review Minor-R3, §8.7):** "No ceiling was raised" is literally true, but for `>=3`-area stands the server-enforced **lane-read budget did rise**. It went from the shipped 512 KiB to the scaled stand budget, which is 2,621,440 B (5×) for the 1,344-stem presets. The 2.5 MiB ceiling, the constants and the two-area caps did not change. The preset 3-lane read is still about 495 KB. The original handoff said "the lane-filtered read is what brings it under 512 KiB". That no longer describes a server limit; 512 KiB is now only a test assertion on the presets. Spec §8 sets no separate lane cap, so the spec allows this. It is a product trade-off for the owner to acknowledge.
 
 #### Corrected near-cap custom woodland measurement (`120 × 120 m`, `2,000 stems/ha` = `2,880` living stems, 5 lanes, Pure Sitka)
 
@@ -283,6 +286,7 @@ Evidence: `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/repair2
 - **SVG DOM build & 2×rAF first-paint benchmarks (headless Edge 1920×1080):**
   - Year 0: 1-lane (576 trees) DOM 3.4 ms / first paint **114.0 ms**; 2-lane (1,152 trees) DOM 7.2 ms / first paint **463.1 ms**; 3-lane (1,728 trees) DOM 7.9 ms / first paint **702.3 ms**.
   - Year 15: 1-lane (576 trees) DOM 2.9 ms / first paint **112.8 ms**; 2-lane (1,152 trees) DOM 5.3 ms / first paint **392.2 ms**; 3-lane (1,728 trees) DOM 8.6 ms / first paint **799.2 ms**.
+  - **Speed target missed (flagged 2026-11-27, §8.7):** the near-cap 3-lane first paint of **702–799 ms** misses the **500 ms** target. So do the 3-lane mini-map switches (721 / 709 ms). The Year-0 2-lane page load (523 ms) also went over, but that figure included the whole-`/view` bootstrap fetch that `20ec1833` removes. It has not been re-measured.
 - **Advance timing (2,880 stems):** three 5-year skips to Year 15 took `5,793 ms`, `5,607 ms`, and `5,426 ms` (HTTP 200).
 
 #### Verification run on follow-up code head (`6bd2e675`)
@@ -294,3 +298,82 @@ Evidence: `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/repair2
 - Edge E2E — 1920×1080 (`repair2/edge-1920/run.log`): **PASS (60 passed, 0 failed)** — includes unchanged preset `< 524,288 B` assertions (`490,909 B` GET / `495,026 B` POST / `495,027 B` player max), forced-503 on 3-lane read under `CCF_TEST_MAX_VIEW_BYTES=400000`, and live near-cap 2-lane/3-lane render without overflow banner.
 - Edge E2E — 1280×720 (`repair2/edge-1280/run.log`): **PASS (60 passed, 0 failed)** — identical coverage at 1280×720.
 - Forbidden paths diff: empty; `.p0ref/SitkaLab.Core.dll` SHA-256 unchanged (`9a99f781…34b3`); zero leftover `sitkap1-ui` or Edge processes; protected listeners untouched.
+
+### 8.7 Re-review follow-up: page load through C-FENCE, discriminating clamp test, handoff corrections (2026-11-27)
+
+- **Re-review:** `review/multi-2d-phase2a2-repair-20261127-v1` @ `e5d7c692`, `PHASE2A2-REPAIR-RE-REVIEW-20261127.md`. Outcome: APPROVED WITH CONDITIONS (0 Critical, 0 Major, 5 Minor including one residual, 3 Nit).
+- **Branch:** `fix/multi-2d-phase2a2-rereview-20261127-v1`, based on `83f8f402` (the `integration/2d-sim` combine of §8.6).
+- **Commits:** `20ec1833` (source), `0a698aeb` (Edge driver/runner), then this handoff commit.
+- **Worktree:** `/home/jer/Development/CCF-HP-Worktrees/CCF-Multi-2D-Phase2A2-LoadFix-20261127`
+- **Evidence (outside the repo):** `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/loadfix2`
+- **Implementers:** Gemini 4 Neon wrote the source fix and a first driver draft, then hit its provider quota before committing. Claude Opus 5.5 reviewed that work, adopted it, tightened the driver and ran every check below.
+
+#### Combine verification at `83f8f402` (previously unrecorded, re-review Minor-R4 e)
+
+`combine2-fast` on `83f8f402`: three clean builds (`.sln`, `SitkaP1.Ui.csproj`, `Phase1Save.Tests.csproj`) with 0 warnings / 0 errors. `Core.Tests` **312/312**. `Phase1.Save.Tests` **50/50**. Phase 2A Edge suite **60 passed / 0 failed** at both 1920×1080 and 1280×720. Evidence: `/home/jer/Development/CCF-Multi-2D-Phase2A2-Evidence-20261127/combine2-fast`.
+
+#### Changes
+
+| Commit | Re-review item | Change |
+|---|---|---|
+| `20ec1833` | Minor-R1 | `multi/commands.js` `reread()`: when `state.view` is still `null` (page load or reload), the page first asks `refreshMultiStandFrame` (C-FENCE overview, then the lane-filtered read). It falls through to `GET api/multi/view` only when the overview reports a two-area stand. A `>=3`-area stand therefore never downloads the whole stand on load or reload. |
+| `20ec1833` | Nit-R2 | The overview budget uses `GenesisStemCount`, as every other call site does, instead of `view.Areas.Sum(a => a.Trees.Count)`. |
+| `20ec1833` | Nit-R3 | `ForLaneFiltered` drops its dead `requestedLaneCount` parameter. Budget constants, the two-area caps and the 2.5 MiB ceiling are unchanged. |
+| `20ec1833` | (expectation) | `tests/ui-smoke-multiarea.sh` J01: the served 2-area page now starts with `GET api/multi/stand`, then `GET api/multi/view`. No other smoke request-count or armed-`/view` assertion needed a change, because in-session two-area re-reads are unchanged. |
+| `0a698aeb` | Minor-R1 audit | See the load/reload proof below. |
+| `0a698aeb` | Minor-R2 | See the clamp proof below. The runner allows stderr on the clamp server because that mode now forces deliberate 503s. |
+
+#### Load / reload proof (Minor-R1): `GET api/multi/view` = 0 across the whole load and reload
+
+The driver resets the network tracker **once**, before `Page.navigate`, and does not reset it again until the `Page.reload` has rendered. The final snapshot therefore covers both. Identical at 1920×1080 and 1280×720 (`loadfix2/edge-1920/run.log`, `loadfix2/edge-1280/run.log`):
+
+| Check | Result |
+|---|---|
+| 5-lane preset, first load (`Page.navigate`) | `/view` GETs **0**. 1 overview (78,606 B), 1 lane read (`MA-A,MA-B` 330,374 B). Overview and lane fences byte-identical. |
+| Same 5-lane preset, load **plus** full reload, cumulative | `/view` GETs **0**. Overviews 1→2, lane reads 1→2. Same session fence on load and reload. |
+| Near-cap 2,880-stem stand, bootstrap load | `/view` GETs **0**. Overview 149,563 B, lane read `MA-A,MA-B` 702,933 B (≤ 2,621,440 B). Fences identical. 1,152 crowns, no banner. |
+| Restored Save v3 5-lane load (`restart-load`) | `viewGets=0` (unchanged) |
+| 2-area MA-1 first load | Requests in order **[overview, view]**: overview 25,846 B, then `/view` 389,912 B. No lane reads. |
+| 2-area MA-1 full reload | Same: [overview, view], 25,846 B + 389,912 B, no lane reads. |
+| 2-area MA-1 in-session re-read | Still uses `/view` (`viewGets=1`). |
+
+Two-area UX is otherwise unchanged. The only difference is one extra ~25 KB overview GET before `/view` on page load and reload.
+
+#### Raise-clamp proof (Minor-R2)
+
+The clamp-mode server runs with `CCF_TEST_MAX_VIEW_BYTES=9999999`. Every check below passed at both viewports.
+
+- A ≥3-area stand: 120×50 m, 3 lanes, 500 stems/ha, 300 genesis stems. Its computed budget is `min(2,621,440, 524,288 × ceil(300/300))` = 524,288 B. Both `woodland/new` and `GET /view` answer HTTP 503 and report **`budget=524288`**, not 9,999,999 (bytes 526,886 and 526,759).
+- A 2-area stand: 80×80 m, 1,280 stems. It answers 503 with the frozen **`budget=524288`** (bytes 1,050,582 and 1,050,455).
+- Lowering direction (overflow server, override 400,000): the preset 3-lane read reports `budget=400000`. Without the override its computed budget would be 2,621,440 B, which would admit the 495,026 B read.
+- **Mutation run** (`loadfix2/mutation-noclamp/run.log`): both `Math.Min` clamps in `MultiViewBudget.ForStand` were replaced by the raw override and only `SitkaP1.Ui` was rebuilt. **4 checks failed**: both new raise-clamp checks, plus the near-cap `woodland/new` and `/view` size checks. Unclamped, the server skips compaction and sends a 3,436,655 B Tier-0 body. The source was then restored (`git checkout`) and rebuilt, and every verification below ran on the restored tree.
+- **Correction to the record:** the re-review classed the old mode as non-discriminating. The mutation run shows that was only partly true. The old near-cap size checks do fail without the clamp, but only indirectly, through compaction, and nothing asserted the budget the server reported. The mode now asserts that budget directly.
+
+#### Verification on `0a698aeb` (all on the final source tree; this handoff commit changes only this file)
+
+| Check | Result | Evidence |
+|---|---|---|
+| Clean builds: `MultiRackSitkaP1Lab.sln`, `src/Ui/SitkaP1.Ui.csproj` (built explicitly: `/multi` is embedded and the Ui project is not in the `.sln`), `tests/Phase1.Save.Tests/Phase1Save.Tests.csproj` | **0 warnings / 0 errors** each (.NET 8.0.133, `--no-incremental`) | `loadfix2/build-*.log` |
+| `Core.Tests` | **312/312** passed (frozen anchors are in the unchanged suite) | `loadfix2/core-tests.log` |
+| `Phase1.Save.Tests` | **50/50** passed, including the pinned golden SHA (v2 golden 24,703 B unchanged) | `loadfix2/save-tests.log` |
+| `tests/ui-smoke-multiarea.sh` (OS-assigned 127.0.0.1 port) | **363 passed / 0 failed** (J01 now expects overview, then `/view`) | `loadfix2/ui-smoke-multiarea.log` |
+| Module graph | PASS (16 modules, acyclic) | `loadfix2/module-graph.log` |
+| Phase 2A Edge suite, 1920×1080 | **68 passed / 0 failed**: full 28, restart 7, overflow 14, clamp 10; 0 console/CSP/404/5xx | `loadfix2/edge-1920/run.log` |
+| Phase 2A Edge suite, 1280×720 (`PHASE2A_FULL_W=1280 PHASE2A_FULL_H=720 PHASE2A_FULL_TAG=vp1280`) | **68 passed / 0 failed**, same breakdown | `loadfix2/edge-1280/run.log` |
+| Scope | `git diff --name-only 83f8f402..0a698aeb` touches 4 Ui source files and 3 test files. 0 files under the forbidden paths. No gate script, config or spec change. No biology or economy math. | verified |
+| `.p0ref/SitkaLab.Core.dll` | `9a99f781…34b3` unchanged | verified |
+| Processes | 0 leftover test servers or Edge instances. Listeners `:33767`, `:43649`, `:46593` never touched. | verified |
+
+#### Disclosed residuals (not conditions)
+
+1. **Minor-R5: state-changing actions still return the whole bounded view.** Advance, skip, the Work Plan verbs, hit, cell, competition, Money switch, load and `woodland/new` all serialise the **whole-stand** bounded view, which the `>=3`-area client discards before re-reading lanes. The whole-stand body is therefore still the real capacity limit. A stand whose whole view exceeds 2.5 MiB would get a 503 after commit on those routes, even though its lane reads fit. The fix would be a slimmer command response for `>=3`-area stands (fence plus notice). Not done here.
+2. **One remaining whole-`/view` GET path.** If a page is showing a two-area stand and the session is replaced out of band with a `>=3`-area stand (for example from another tab), that page's next Re-read still GETs `/view` once, sees ≥3 areas, discards the body and reads lanes. This is unchanged from `83f8f402` and was left alone so that in-session two-area re-reads stay unchanged.
+3. **Minor-R3** (lane budget 512 KiB → scaled for `>=3`-area stands): disclosed in §8.6. The owner still needs to acknowledge it.
+4. **Speed:** near-cap 3-lane first paint (702–799 ms) misses the 500 ms target (§8.6). It was not re-measured on this branch.
+5. **Nit-R1** (whole-response 503 check versus payload-only tier trimming) is unchanged. It errs on the safe side.
+
+#### Still open (carried forward, unchanged by this lane)
+
+- Original condition 4: `build/2d-gate/selftest.sh` plus G4 mutation cases. Not run here.
+- Original condition 5: the decision-log entry for C-V3 versus spec §6.2. Not edited here (`Docs/Project/` is out of scope).
+- Not run: `build/2d-gate.sh --browser`, legacy `ui-smoke.sh`, `cli-safety.sh`, `build-output-safety.sh`, `p0-isolation.sh`, and any Unity, Windows-player or 3D check.
