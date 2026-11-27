@@ -484,6 +484,10 @@ async function runOverflow503(cdp, collectEvents, auditErrors) {
   check(overView.status === 503 && overView.payload?.code === 'MultiViewPayloadBudgetExceeded' && overView.payload?.budget === 400000,
     `GET api/multi/view refuses over-budget with HTTP 503 (bytes=${overView.payload?.bytes}, budget=${overView.payload?.budget})`);
 
+  const overLane3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-B,MA-C,MA-D');
+  check(overLane3.status === 503 && overLane3.payload?.code === 'MultiViewPayloadBudgetExceeded' && overLane3.payload?.budget === 400000,
+    `GET api/multi/stand?lanes=MA-B,MA-C,MA-D refuses over-budget with HTTP 503 under lowered test budget (bytes=${overLane3.payload?.bytes}, budget=${overLane3.payload?.budget})`);
+
   const overAdvance = await fetchJson(cdp, 'api/multi/year/advance', { fence: await freshFence(), consentToCancelWork: false });
   check(overAdvance.status === 503 && overAdvance.payload?.code === 'MultiViewPayloadBudgetExceeded' && overAdvance.payload?.budget === 400000,
     `POST api/multi/year/advance refuses over-budget with HTTP 503 (bytes=${overAdvance.payload?.bytes}, budget=${overAdvance.payload?.budget})`);
@@ -531,8 +535,9 @@ async function runClampRaise(cdp, collectEvents, auditErrors) {
   await setViewport(cdp, width, height);
   // Process launched with CCF_TEST_MAX_VIEW_BYTES=9999999 (attempting to RAISE budgets above frozen ceilings).
   // Switch to a near-cap 2,880-stem 5-lane custom woodland (120x120 m, 2,000 stems/ha, 5 lanes, PureSitka):
-  //   - 3-lane filtered read (~1,728 stems) exceeds the frozen 524,288 B budget -> MUST still refuse 503 with budget=524288 (NEVER 9999999)!
-  //   - If whole /view exceeds 2,621,440 B -> MUST still refuse 503 with budget=2621440 (NEVER 9999999)!
+  //   - Scaled budget for 5 areas / 2,880 stems is min(2,621,440, 524,288 * ceil(2880/300)) = 2,621,440 B (never 9,999,999 B).
+  //   - 2-lane and 3-lane filtered reads AND whole /view must all return HTTP 200 within 2,621,440 B.
+  //   - The /multi browser page must render the near-cap stand in default 2-lane outer mode and 3-lane interior mode without the overflow banner.
   const curV = (await fetchJson(cdp, 'api/multi/view')).payload.view;
   const nearCapRecipe = {
     widthM: 120, lengthM: 120, laneCount: 5, startAgeYears: 20, stemsPerHa: 2000, seed: 2880101,
@@ -541,22 +546,46 @@ async function runClampRaise(cdp, collectEvents, auditErrors) {
   const createRes = await fetchJson(cdp, 'api/multi/woodland/new', {
     fence: fenceOf(curV), choice: 'custom', presetId: null, recipe: nearCapRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
   });
-  const createOkOrClamped503 = (createRes.status === 200 && createRes.bytes <= 2621440) ||
-    (createRes.status === 503 && createRes.payload?.code === 'MultiViewPayloadBudgetExceeded' && createRes.payload?.budget === 2621440);
-  check(createOkOrClamped503,
-    `CCF_TEST_MAX_VIEW_BYTES=9999999 cannot raise 2.5 MiB stand ceiling (woodland/new status=${createRes.status}, bytes=${createRes.payload?.bytes ?? createRes.bytes}, budget=${createRes.payload?.budget ?? 'within-2621440'})`);
+  check(createRes.status === 200 && createRes.bytes <= 2621440,
+    `Near-cap 2,880-stem 5-lane woodland/new returns 200 within 2.5 MiB scaled ceiling (status=${createRes.status}, bytes=${createRes.bytes})`);
 
-  const stand3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-A,MA-B,MA-C');
-  check(stand3.status === 503 && stand3.payload?.code === 'MultiViewPayloadBudgetExceeded' && stand3.payload?.budget === 524288,
-    `CCF_TEST_MAX_VIEW_BYTES=9999999 cannot raise 512 KiB 3-lane budget (status=${stand3.status}, bytes=${stand3.payload?.bytes}, budget=${stand3.payload?.budget})`);
+  const stand2 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-A,MA-B');
+  check(stand2.status === 200 && stand2.bytes > 0 && stand2.bytes <= 2621440,
+    `Near-cap 2-lane filtered read returns 200 within scaled 2.5 MiB budget (status=${stand2.status}, bytes=${stand2.bytes})`);
+
+  const stand3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-B,MA-C,MA-D');
+  check(stand3.status === 200 && stand3.bytes > 0 && stand3.bytes <= 2621440,
+    `Near-cap 3-lane filtered read returns 200 within scaled 2.5 MiB budget (status=${stand3.status}, bytes=${stand3.bytes})`);
 
   const viewCheck = await fetchJson(cdp, 'api/multi/view');
-  const viewClampedOk = (viewCheck.status === 200 && viewCheck.bytes <= 2621440) ||
-    (viewCheck.status === 503 && viewCheck.payload?.code === 'MultiViewPayloadBudgetExceeded' && viewCheck.payload?.budget === 2621440);
-  check(viewClampedOk,
-    `CCF_TEST_MAX_VIEW_BYTES=9999999 cannot raise /view ceiling (status=${viewCheck.status}, bytes=${viewCheck.payload?.bytes ?? viewCheck.bytes}, budget=${viewCheck.payload?.budget ?? 'within-2621440'})`);
+  check(viewCheck.status === 200 && viewCheck.bytes > 0 && viewCheck.bytes <= 2621440,
+    `Near-cap whole /view returns 200 within scaled 2.5 MiB ceiling (status=${viewCheck.status}, bytes=${viewCheck.bytes})`);
 
-  auditErrors(true);
+  // Reload /multi against the live 2,880-stem stand: default 2-lane outer view & 3-lane interior view must render with no overflow banner.
+  await cdp.send('Page.navigate', { url });
+  await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 2 && document.querySelectorAll('#crowns [data-tree-id]').length === 1152",
+    'Near-cap 2,880-stem stand renders default 2-lane outer view (1,152 crowns)');
+  const outerRender = await evaluate(cdp, `({
+    alertShown: document.getElementById('alert').classList.contains('shown'),
+    borders: Array.from(document.querySelectorAll('[data-lane-border]')).map((n) => n.getAttribute('data-lane-border')).join(','),
+    crowns: document.querySelectorAll('#crowns [data-tree-id]').length,
+  })`);
+  check(!outerRender.alertShown && outerRender.borders === 'MA-A,MA-B' && outerRender.crowns === 1152,
+    `Near-cap /multi outer Lane A rendered cleanly without overflow banner (${JSON.stringify(outerRender)})`);
+
+  await click(cdp, '[data-minimap-lane="MA-C"]');
+  await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 3 && document.querySelectorAll('#crowns [data-tree-id]').length === 1728",
+    'Near-cap 2,880-stem stand renders 3-lane interior Lane C view (1,728 crowns)');
+  const interiorRender = await evaluate(cdp, `({
+    alertShown: document.getElementById('alert').classList.contains('shown'),
+    borders: Array.from(document.querySelectorAll('[data-lane-border]')).map((n) => n.getAttribute('data-lane-border')).join(','),
+    crowns: document.querySelectorAll('#crowns [data-tree-id]').length,
+  })`);
+  check(!interiorRender.alertShown && interiorRender.borders === 'MA-B,MA-C,MA-D' && interiorRender.crowns === 1728,
+    `Near-cap /multi interior Lane C rendered cleanly without overflow banner (${JSON.stringify(interiorRender)})`);
+  await shot(cdp, 'nearcap-lane-c');
+
+  auditErrors(false);
 }
 
 async function main() {

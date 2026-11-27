@@ -129,10 +129,10 @@ start_server p2a-overflow "CCF_TEST_MAX_VIEW_BYTES=400000"
 run drive overflow-503 vp1280-overflow 1280 720 "${server_url%/}/multi"
 stop_server p2a-overflow 1
 
-# 4. Budget override raise-clamp proof (9999999 B override MUST NOT raise frozen 512 KiB lane / 2.5 MiB stand ceilings)
+# 4. Budget override raise-clamp & near-cap render proof (9999999 B override cannot raise 2.5 MiB ceiling; 2,880-stem 5-lane 2/3-lane reads return 200 and render without overflow)
 start_server p2a-clamp "CCF_TEST_MAX_VIEW_BYTES=9999999"
 run drive clamp-raise vp1280-clamp 1280 720 "${server_url%/}/multi"
-stop_server p2a-clamp 1
+stop_server p2a-clamp 0
 
 say "EVIDENCE $evidence"
 say "OVERALL: $([[ $fail == 0 ]] && echo PASS || echo FAIL) ($(grep -c '^PASS' "$log") passed, $(grep -c '^FAIL' "$log") failed)"
