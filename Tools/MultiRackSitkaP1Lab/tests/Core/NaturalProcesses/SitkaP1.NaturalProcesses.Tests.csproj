@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.NaturalProcesses.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.NaturalProcesses.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../../src/Core/NaturalProcesses/**/*.cs" />
+  </ItemGroup>
+</Project>

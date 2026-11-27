@@ -1,0 +1,229 @@
+namespace SitkaP1.Core.NaturalProcesses;
+
+// Immutable request/result contracts for the Jay Acorn Dispersal, Nearby Oak Woodland, StormModel 1 adapter and salvage
+// accounting engines (SPEC-multi-2d-jay-windstorms-V1, Part 1). Part 2 wires these into the annual pipeline; it must not
+// need to change them. Coordinates are local metres: +X east, +Y north.
+
+/// <summary>Stable refusal codes. Values are append-only so Part 2 can persist or display them.</summary>
+public enum NaturalProcessRefusalCode
+{
+    None = 0,
+    InvalidYear = 1,
+    InvalidWoodlandBoundary = 2,
+    DuplicateCandidateId = 3,
+    NonOakSeedCandidate = 4,
+    InvalidCandidate = 5,
+    NearbyOakWoodlandRequiresJayDispersal = 6,
+    InvalidOuterEdge = 7,
+    UnknownStormModel = 8,
+    StormYearAlreadyResolved = 9,
+    DuplicateTreeId = 10,
+    InvalidTreeInput = 11,
+    StormSiteHazardNotNeutral = 12,
+    StormExternalEdgeNotNeutral = 13,
+    DuplicateDeadwoodId = 14,
+    DeadwoodAlreadyExtracted = 15,
+    UnknownDeadwood = 16,
+    DuplicateSalvageOrder = 17,
+    SalvageRequiresApprovedWorkPlan = 18,
+    SalvageTargetNotWindthrow = 19,
+    InvalidSalvageVolume = 20,
+    InvalidSalvagePricing = 21,
+    UnknownSalvageChoice = 22,
+}
+
+/// <summary>A refusal: nothing was changed and no partial result is returned.</summary>
+public sealed record NaturalProcessRefusal(NaturalProcessRefusalCode Code, string Detail);
+
+/// <summary>A point in local woodland metres (+X east, +Y north).</summary>
+public readonly record struct LocalPoint(double X, double Y);
+
+/// <summary>The four outer edges of the woodland's axis-aligned extent.</summary>
+public enum OuterEdge { North = 0, South = 1, East = 2, West = 3 }
+
+// ---------------------------------------------------------------- Jay Acorn Dispersal / Nearby Oak Woodland
+
+/// <summary>
+/// World options. Both are OFF by default. NearbyOakWoodland adds an authored off-map oak source on one outer edge and
+/// needs JayAcornDispersal ON, because jays are the only transport in this feature.
+/// </summary>
+public sealed record JayAcornDispersalSettings(
+    bool JayAcornDispersal = false,
+    bool NearbyOakWoodland = false,
+    OuterEdge NearbyOakWoodlandEdge = OuterEdge.West)
+{
+    public static JayAcornDispersalSettings Default { get; } = new();
+}
+
+/// <summary>
+/// The existing engine's oak mast outcome for this year, passed in by the caller. This feature never rolls its own mast.
+/// <paramref name="EngineMastLabel"/> is the engine's label (for example "good") kept only for reporting.
+/// </summary>
+public sealed record OakMastYearOutcome(bool IsOakMastYear, string EngineMastLabel);
+
+/// <summary>
+/// One on-map oak seed candidate the existing engine already produced this year from a mature oak under its existing
+/// maturity rules. Jay dispersal may divert some of these; it never creates extra on-map candidates.
+/// </summary>
+public sealed record OnMapOakSeedCandidate(string CandidateId, string SourceTreeId, string SpeciesId, LocalPoint SourcePosition);
+
+public sealed record JayDispersalRequest(
+    int Year,
+    int Seed,
+    JayAcornDispersalSettings Settings,
+    OakMastYearOutcome OakMast,
+    WoodlandFootprint Woodland,
+    IReadOnlyList<OnMapOakSeedCandidate> OnMapOakCandidates);
+
+public enum JayCandidateOrigin { OnMapOakTree = 0, NearbyOakWoodland = 1 }
+
+public enum JayCandidateFate { DeliveredInsideWoodland = 0, ExportedOutsideWoodland = 1 }
+
+/// <summary>
+/// One jay-carried acorn. On-map candidates keep their source tree ID; Nearby Oak Woodland candidates have no source tree
+/// (<see cref="SourceTreeId"/> is null) and name the edge instead. A delivered acorn is only a candidate: the caller must
+/// pass it through ordinary ground-suitability, light, bramble/bracken and deer-browsing evaluation.
+/// </summary>
+public sealed record JayAcornCandidate(
+    string CandidateId,
+    JayCandidateOrigin Origin,
+    string? SourceTreeId,
+    OuterEdge? SourceEdge,
+    LocalPoint Source,
+    double DistanceM,
+    double BearingRadians,
+    LocalPoint Destination,
+    JayCandidateFate Fate);
+
+public sealed record JayDispersalResult(
+    NaturalProcessRefusal? Refusal,
+    bool Ran,
+    double WoodlandHectares,
+    int OnMapCap,
+    int OffMapCap,
+    IReadOnlyList<string> DivertedOnMapCandidateIds,
+    IReadOnlyList<JayAcornCandidate> Delivered,
+    IReadOnlyList<JayAcornCandidate> Exported,
+    int RngDrawCount)
+{
+    /// <summary>Every delivered candidate still faces ordinary establishment rules; jays grant no shortcut.</summary>
+    public const bool RequiresOrdinaryEstablishmentEvaluation = true;
+    public const double MicrositeBonus = 0.0;
+    public const bool BrowseImmune = false;
+    public const bool CreatesInstantSeedlings = false;
+}
+
+// ---------------------------------------------------------------- StormModel 1 adapter
+
+/// <summary>StormModel 0 is storm-free and draws nothing. StormModel 1 is frozen D-050 WindthrowV1.</summary>
+public enum StormModelVersion { StormFree = 0, WindthrowV1 = 1 }
+
+/// <summary>Qualitative player feedback. Never a probability.</summary>
+public enum StormExposureBand { Stable = 0, Watch = 1, Exposed = 2 }
+
+/// <summary>
+/// Caller-supplied state of one living tree at storm time. Lane is carried for reporting only: it never changes
+/// occurrence, severity, direction or vulnerability. Under StormModel 1 site hazard must be 1 and edge facing 0 (D-050).
+/// </summary>
+public sealed record StormTreeInput(
+    string TreeId,
+    string LaneId,
+    string CellId,
+    float HeightM,
+    float DbhCm,
+    float LocalTopHeightM,
+    float CellLight,
+    float RecentOpening,
+    float SiteHazard = 1f,
+    float EdgeFacing = 0f);
+
+public sealed record StormRequest(
+    StormModelVersion Model,
+    int Year,
+    int Seed,
+    IReadOnlyList<StormTreeInput> Trees,
+    int? LastResolvedStormYear = null);
+
+/// <summary>
+/// The single woodland-wide storm of a year. <see cref="DirectionDegrees"/> is the bearing the storm comes FROM
+/// (0 north, 90 east). <see cref="FallGlyphOrientationDegrees"/> is a UI visual convention only, never a persisted
+/// per-tree fall bearing.
+/// </summary>
+public sealed record StormEvent(
+    int Year,
+    int SeverityLevel,
+    float Severity,
+    double DirectionDegrees,
+    double FallGlyphOrientationDegrees);
+
+public enum DeadwoodForm { Fallen = 0 }
+
+/// <summary>Lying deadwood left by a windthrown tree (one per victim).</summary>
+public sealed record FallenDeadwoodRecord(
+    string DeadwoodId,
+    string OriginTreeId,
+    string MortalityCause,
+    int FallenYear,
+    DeadwoodForm Form,
+    float HeightM,
+    float DbhCm);
+
+/// <summary>One canopy opening at the victim's cell; the caller adds it to the cell's recent opening (existing cap).</summary>
+public sealed record CanopyOpening(string CellId, string CausedByTreeId, float RecentOpeningIncrement);
+
+public sealed record WindthrowVictim(
+    string TreeId,
+    string LaneId,
+    string MortalityCause,
+    FallenDeadwoodRecord Deadwood,
+    CanopyOpening Opening);
+
+public sealed record TreeExposureFeedback(string TreeId, StormExposureBand Band, string Label);
+
+public sealed record StormResult(
+    NaturalProcessRefusal? Refusal,
+    StormModelVersion Model,
+    bool StormsOff,
+    StormEvent? Event,
+    IReadOnlyList<WindthrowVictim> Victims,
+    IReadOnlyList<TreeExposureFeedback> Exposure,
+    int RngDrawCount);
+
+// ---------------------------------------------------------------- Salvage accounting
+
+public enum SalvageChoice { LeaveAsFallenDeadwood = 0, SellAndExtract = 1, KeepForUse = 2 }
+
+/// <summary>
+/// One salvage instruction. SellAndExtract and KeepForUse need an approved Work Plan reference. The recoverable volume
+/// comes from the existing stem/yield calculators; this feature does not price or grade timber itself.
+/// </summary>
+public sealed record SalvageOrder(string DeadwoodId, SalvageChoice Choice, string? ApprovedWorkPlanId, double RecoverableVolumeM3);
+
+/// <summary>The existing price and contractor minimum, passed through unchanged (multiplier 1.00).</summary>
+public sealed record SalvagePricing(decimal UnitSaleValuePerM3, decimal ContractorMinimum);
+
+public sealed record SalvageRequest(
+    IReadOnlyList<FallenDeadwoodRecord> Deadwood,
+    IReadOnlyList<string> PreviouslyExtractedDeadwoodIds,
+    IReadOnlyList<SalvageOrder> Orders,
+    SalvagePricing Pricing);
+
+public sealed record SalvageLine(
+    string DeadwoodId,
+    SalvageChoice Choice,
+    string? ApprovedWorkPlanId,
+    double VolumeM3,
+    decimal SaleRevenue,
+    double RetainedTimberM3);
+
+public sealed record SalvageResult(
+    NaturalProcessRefusal? Refusal,
+    IReadOnlyList<FallenDeadwoodRecord> RemainingDeadwood,
+    IReadOnlyList<SalvageLine> Lines,
+    IReadOnlyList<string> ExtractedDeadwoodIds,
+    double SoldVolumeM3,
+    decimal GrossSaleRevenue,
+    double RetainedTimberM3,
+    SalvagePricing PricingApplied);
+
+public sealed record DeadwoodMergeResult(NaturalProcessRefusal? Refusal, IReadOnlyList<FallenDeadwoodRecord> Deadwood);
