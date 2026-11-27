@@ -10,9 +10,9 @@ Role: Sole implementation writer (Option A, owner-approved 2026-11-27)
 Branch: feat/multi-2d-scots-pine-engine-v1
 Base: c82e4e759c2ceef1c13ddb6a033e034097aef77e (origin/integration/2d-sim)
 Context commit: bdeb6a324acaf4129c10fb0846faac8b64974360 (origin/main)
-HEAD: the commit that adds this file. Code under test is 576cafde (tests), on top of 08b26003 (module) and 5b453e30 (spec).
+HEAD: the latest commit touching this file. Code under test is 576cafde (tests), on top of 08b26003 (module) and 5b453e30 (spec).
 GITHUB HANDOFF PATH: Docs/Handoffs/MultiRack-Simulation-20261116/scots-pine-moisture/IMPLEMENTATION-HANDOFF-PART1.md
-GITHUB HANDOFF COMMIT: the commit that adds this file on feat/multi-2d-scots-pine-engine-v1
+GITHUB HANDOFF COMMIT: the latest commit touching this file on feat/multi-2d-scots-pine-engine-v1
 EXTERNAL EVIDENCE ARCHIVE: /tmp/scotspine-gate/{version,restore,build,run1,run2}.txt (local, volatile; summarised below)
 ```
 
@@ -27,6 +27,7 @@ EXTERNAL EVIDENCE ARCHIVE: /tmp/scotspine-gate/{version,restore,build,run1,run2}
     - area-weighted dominant-class selection, with ties resolved by declaration order and empty input giving `NeutralLegacy`;
     - the `DryRidgeAndMoistSlopeMap`, split on the x-axis midpoint: x below the midpoint is `DryFreeDraining`, and the midpoint itself plus everything above is `FreshMoistMineral`;
     - `MoistureSelection.HabitatProtectionCaution`.
+  - **Leader note (wording correction):** Scots pine is the *sole* leader on `DryFreeDraining`. On `FreshMoistMineral`, Sitka spruce is only a *joint* leader. All six species are G/G there in the existing `SpeciesMoistureTable`, so no species leads on its own. Saying "Sitka leading" on fresh moist mineral soil overstates the table. MOISTURE-02b asserts the six-way tie exactly.
   - `ScotsPineEngine.EvaluateGrowth`: a provisional [Calibration] DBH increment inside the GROWFOR domain from the card. It returns null outside that domain.
   - `ScotsPineEngine.EvaluateRegeneration` / `IsGoodSeedYear`:
     - local seed only, from a seed tree at least 18 years old;
