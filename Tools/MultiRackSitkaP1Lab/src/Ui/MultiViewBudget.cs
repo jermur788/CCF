@@ -49,12 +49,11 @@ internal static class MultiViewBudget
         return computed;
     }
 
-    internal static MultiViewBudgetLimit ForLaneFiltered(int requestedLaneCount, int totalAreaCount, int genesisStems, int? testMaxViewBytesOverride = null)
+    internal static MultiViewBudgetLimit ForLaneFiltered(int totalAreaCount, int genesisStems, int? testMaxViewBytesOverride = null)
     {
         // 512 KiB remains the frozen cap for two-area stands (MA-1 / MA-1-MIXED); for >=3-area stands
         // the spec §8 scaled budget governs both whole-stand and lane-filtered reads so a per-lane read
         // is never stricter than the whole-stand read it replaces.
-        _ = requestedLaneCount;
         return ForStand(totalAreaCount, genesisStems, testMaxViewBytesOverride);
     }
 
