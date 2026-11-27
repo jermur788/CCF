@@ -74,6 +74,9 @@ internal sealed record MultiAreaExperiment(string ExperimentId, string Generator
     /// <summary>Optional generator note override for non-MA-1 synthetic generators; null keeps the MA-1 manifest bytes identical.</summary>
     internal string? GeneratorNoteOverride { get; init; }
 
+    /// <summary>Optional UI badge override for non-MA-1 stands (never written to canonical manifest bytes); null keeps existing badge selection.</summary>
+    internal string? BadgeOverride { get; init; }
+
     private static readonly Regex SafeId = new("^[A-Za-z0-9_-]{1,64}$", RegexOptions.CultureInvariant);
     private static readonly Regex AreaIdPattern = new("^MA-[A-Z0-9]{1,16}$", RegexOptions.CultureInvariant);
 
