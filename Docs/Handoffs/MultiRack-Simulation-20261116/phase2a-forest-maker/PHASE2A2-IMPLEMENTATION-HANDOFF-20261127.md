@@ -43,7 +43,7 @@
 ### 2.2 New Woodland
 
 - `New woodland` button beside `Saved games`; accessible dialog (`role=dialog`, focus trap, Esc, focus return), same dark woodland styling.
-- Choices: MA-1, MA-1-MIXED, both 0.64 ha presets, Custom rectangle; Money On/Off at Year 0 carried into the session and round-tripped through v3.
+- Choices: MA-1, MA-1-MIXED, both 0.64 ha presets, Custom rectangle; Money On/Off at Year 0 carried into the session. **Money Off round-trips through v3; a Money On forest-maker stand refuses to save** (`SaveEconomyRequiresV3`) until the Phase 2B economy block lands, so "Money On round-trips through v3" is **not** true today.
 - `POST api/multi/woodland/preview` returns Core-exact numbers (`1,344` stems, `1,024` cells) and Core refusals verbatim (`ForestMakerStemCapExceeded` for >3,000). No client-side bounds, counting or geometry math.
 - Unsaved-progress guard: unconfirmed replacement returns 409 `WoodlandUnsavedProgress` and leaves the active stand untouched; a pre-swap fence is refused with 409 `PlayerSessionMismatch`.
 
@@ -57,7 +57,8 @@
 
 - `GET api/multi/stand?lanes=MA-A,MA-B,MA-C` (+ a POST form) returns a fenced, lane-filtered detail read under one `sync` lock, carrying the identical `MultiFenceMembers` fence. Stale fence → 409; unknown lane → 409.
 - Browser composes a frame only from byte-identical fences.
-- Measured (Edge, 1280×720): overview `78,607 B`; 3-lane GET `490,910 B`; 3-lane POST `495,027 B`; all `< 524,288 B`.
+- Measured by the Edge suite (the cited line is tagged 1920×1080 in `run.log`; the separate 1280×720 suite reported the same figures): overview `78,607 B`; 3-lane GET `490,910 B`; 3-lane POST `495,027 B`; all `< 524,288 B`.
+- **Material gap:** the shipped page does **not** currently use the lane-filtered read for its own frame — it loads the whole-woodland `/view` (about 1.6–1.7 MB). The 490–508 KB figures describe the `/stand?lanes=` API, which today is exercised by the test suite, not by the player path.
 - Core-side post-change table (`m0-post/results.jsonl`, Y0 / Y15):
   - primary preset: overview 78,607 / 112,829 B; 3-lane 495,027 / 508,505 B; 1-lane 167,370 / 214,648 B; raw whole-view 1,586,502 / 1,691,399 B
   - pure Sitka: overview 78,543 / 110,447 B; 3-lane 494,905 / 506,768 B; 1-lane 167,244 / 211,942 B; raw whole-view 1,586,011 / 1,683,357 B
@@ -115,7 +116,8 @@ Observed G4 line: `v2 golden verified (bytes=24703 … SchemaVersion=2, src/Core
 | **Full `2d-gate.sh --browser`** | **VERDICT: PASS (exit 0)** | `gate-final/gate-summary.json` |
 | Phase 2A-2 Edge E2E, 1920×1080 | 36 passed / 0 failed overall (20 full + 4 restart + 5 overflow, plus 1280 restart/overflow) | `phase2a-edge-final/` |
 | Phase 2A-2 Edge E2E, 1280×720 | 20 passed / 0 failed | `phase2a-edge-final-vp1280/` |
-| v3 save → **genuine process restart** → load → continue to Year 3 | PASS at both viewports | Edge logs + screenshots |
+| v3 save → **genuine process restart** → load → continue to Year 3 | PASS at 1280×720 (restart leg); the full suite ran at 1920×1080. It was **not** run as a restart at 1920 | Edge logs + screenshots |
+| First combine-time Edge attempt | **9 passed / 2 failed** — stale `SitkaP1.Ui.dll` (the Ui project is not in `MultiRackSitkaP1Lab.sln`); after an explicit Ui build the rerun passed 36/0 | `combine-fast/edge-merge` (stale) vs `edge-merge-2` (valid) |
 | Console / CSP / 404 / 5xx | 0 | Edge logs |
 | `.p0ref` | `9a99f781…34b3` unchanged | gate log |
 | Forbidden-path diff (`Assets/`, `Packages/`, `ProjectSettings/`, `Docs/Project/`, `src/Ui/wwwroot/`, `SpeciesWave2`, `WoodlandImport`, `NaturalProcesses`, `src/Core/Phase1`, `.p0ref`) | **empty** | `git diff --name-only` |
@@ -132,7 +134,22 @@ Observed G4 line: `v2 golden verified (bytes=24703 … SchemaVersion=2, src/Core
 4. Two pre-existing 2A-1 review minors (Minor-1 seed-source attribution, Minor-2 corner-matrix code assertion) remain unaddressed; they are test-strength items, not defects.
 5. Preset anchors 10–11 remain test-pinned, not in `frozen-anchors.json`.
 6. No Unity, no Windows build, no 3D verification (out of scope).
-7. Independent review of this lane is **not** part of this handoff; it is a separate read-only thread.
+7. **Independent review outcome:** performed after this handoff was written and after the combine was pushed (see §7). It found one Major and eight Minor items, all reproduced below; the Major is not fixed.
+
+### 4.1 Findings carried from the independent review (2026-11-27)
+
+1. **Major — the "never an over-budget reply" guarantee is only partly met.** Five routes can still return an over-budget body with HTTP 200 or 409: skip/advance-years, cell, competition, hit-test and the Money switch (`MultiApi.History.cs:79–107`, `MultiApi.View.cs:487–559`, `MultiApi.Commands.cs:153–159`). The forced-overflow test covers only New Woodland and the main view. The two 0.64 ha presets cannot trigger it; a large custom woodland could.
+2. **A large custom woodland has never been measured.** Near the 3,000-stem cap it may not fit the 2.5 MiB view budget, in which case the page cannot display it. Measure one before Playable Milestone 1 closeout.
+3. **v3 load can skip the unsaved-progress check** when the request omits `confirmDiscardUnsaved` (`MultiApi.Saves.cs:194`). The shipped page always sends `true`, so players are unaffected today.
+4. **`CCF_TEST_MAX_VIEW_BYTES` is honoured by the shipped program and can *raise* the frozen budgets**; it should be clamped so it can only lower them.
+5. **The page does not use the lane-filtered reads** (see §2.4) — player-facing payload is the ~1.6–1.7 MB whole-woodland view.
+6. **Handoff overclaims** previously in this document (Money On round-trip, restart at both viewports, the 1280×720 tag on the stand byte figures, and the undisclosed first combine Edge attempt) — corrected inline above.
+7. **The save format departs from spec §6.2** (recipe lives in the frozen C-V3 `blocks` section, not the v2-style header). This is the correct reading of the frozen contract, but it belongs in the project decision log (Manager-owned, not edited here).
+8. **`selftest.sh` remains incomplete and has no mutation case for the new G4 assertions.**
+
+---
+
+The earlier item "Independent review of this lane is not part of this handoff" is superseded: the review ran and is recorded in §7.
 
 ---
 
@@ -145,3 +162,14 @@ Observed G4 line: `v2 golden verified (bytes=24703 … SchemaVersion=2, src/Core
 ## 6. Proportionate combine (owner override 2026-11-27)
 
 Per the owner directive, the combine onto `origin/integration/2d-sim` used only the fast proportionate check: clean `--no-ff` merge onto the current green tip, forbidden-path fence, clean .NET 8 build, `Core.Tests` (floor + 9 anchors), `Phase1.Save.Tests` (persistence was touched), and this feature's own targeted browser suite. The full legacy Edge sweep and `selftest.sh` were skipped as instructed; see §9 of the coordination report and item 4.1 above.
+
+---
+
+## 7. Independent review
+
+- **Reviewer:** Claude Opus 5.5, separate fresh read-only thread (no implementation or supervision role).
+- **Candidate reviewed:** `afcc2ba089543face9bbffa0d20f9184d1667e99` (`origin/integration/2d-sim`), feature `2f3ab616`, code `9100c0b9`.
+- **Report:** `review/multi-2d-phase2a2-forest-maker-ui-v3-20261127-v1` @ `7f139c6480d9df4f72e5597f6211230b434b817c`, `Docs/Handoffs/MultiRack-Simulation-20261116/phase2a-forest-maker/PHASE2A2-INDEPENDENT-REVIEW-20261127.md`.
+- **Outcome:** **INTEGRATION DECISION: APPROVED WITH CONDITIONS** — 0 Critical, 1 Major, 8 Minor, 2 Nit.
+- **Confirmed by the reviewer:** Save v3 matches the frozen contract and refuses unknown/missing/edited input; `src/Core/Phase1/**` untouched and the 24,703 B golden unchanged; atomic session replacement with old fences refused; server-side lane-filtered reads correct; zero changes under every fenced path and `specs/**`; the G4 lock change is a legitimate retirement, not a weakening.
+- **Conditions requiring follow-up commits on `integration/2d-sim`:** the Major in §4.1 item 1, the budget-variable clamp (item 4), the v3-load confirmation bypass (item 3), the large-custom measurement (item 2), and the decision-log entry for the §6.2 departure (item 7). The reviewer ran no builds, tests or browser suites; it read the existing evidence on the same trees.
