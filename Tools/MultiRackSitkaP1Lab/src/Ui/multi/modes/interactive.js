@@ -1,8 +1,8 @@
 // S0c provenance: modes/interactive.js [L4] — section(s) 10 from multi.js
-import { announce, applyPayload, call, clearAlert, currentFence, rereadButton, showAlert, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
+import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
 import { el, fixed, lightIndexText, pair, plural, svg, table } from '../dom.js';
 import { showPane } from '../panels/work-plan.js';
-import { SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, hooks, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, shelterForJuvenile, speciesLabel, state } from '../store.js';
+import { SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, hooks, isMultiLaneStand, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, shelterForJuvenile, speciesLabel, state } from '../store.js';
   // ---- Interactive modes: Inspect Cell, Plant, Spot Clear, and PJ Sapling inspection ----------------------------------
 
   export function setMapMode(mode, moveFocus) {
@@ -68,16 +68,28 @@ import { SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsF
     if (outcome.kind === 'ok') {
       clearAlert();
       state.cellDetail = outcome.payload.cell;
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) {
+        const cv = outcome.payload.view;
+        const fenceMoved = cv && JSON.stringify(currentFence()) !== JSON.stringify({
+          sessionId: cv.sessionId, source: cv.source, planStateRevision: cv.planStateRevision,
+        });
+        if (fenceMoved) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Inspect cell');
+        else hooks.renderAll();
+      } else {
+        applyPayload(outcome.payload, false);
+      }
       byId('cell-heading').focus();
       const d = outcome.payload.cell;
       announce('Inspected cell (' + d.column + ', ' + d.row + ') in ' + areaName(d.areaId) + ': light ' + lightIndexText(d.lightIndex) +
         ', cohorts ' + d.cohorts.length + '. Read-only; draft Fell ticks unchanged.');
     } else if (outcome.kind === 'refused') {
       state.cellDetail = null;
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Inspect cell');
+      else applyPayload(outcome.payload, false);
       if (state.lock) showLockAlert('Refused: Inspect cell (' + outcome.payload.refusal.code + ').');
       else showRefusal('Inspect cell', outcome.payload.refusal);
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded('Inspect cell', outcome.budget);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Inspect cell', outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {

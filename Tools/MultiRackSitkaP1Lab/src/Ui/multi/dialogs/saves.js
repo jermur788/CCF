@@ -1,8 +1,8 @@
 // S0c provenance: dialogs/saves.js [L4] — section(s) 4 from multi.js
-import { announce, applyPayload, clearAlert, currentFence, showAlert, syncStandOverview } from '../api.js';
+import { announce, applyPayload, clearAlert, currentFence, refreshMultiStandFrame, showAlert, showBudgetExceeded } from '../api.js';
 import { openDialog } from '../commands.js';
 import { el, fill, label } from '../dom.js';
-import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../store.js';
+import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSessionUiState, state } from '../store.js';
   // ---- Phase 1 Save/Load (server-managed named slots; no path, no upload, no download) --------------------------------
 
   const SAVE_STATE = {
@@ -36,6 +36,9 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
     try { payload = await response.json(); } catch { payload = null; }
     const okStatus = Boolean(response.ok) || (response.status >= 200 && response.status < 300);
     if (okStatus && payload) return { kind: 'ok', status: response.status, payload };
+    if (response.status === 503 && payload && payload.code === 'MultiViewPayloadBudgetExceeded') {
+      return { kind: 'budget', status: 503, budget: payload, payload };
+    }
     if (payload && payload.view && payload.refusal) return { kind: 'refused', status: response.status, payload };
     if (payload && (payload.refusal || payload.error)) return { kind: 'guard', status: response.status, payload };
     return { kind: 'transport', status: response.status, detail: 'HTTP ' + response.status };
@@ -181,15 +184,18 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
     document.documentElement.classList.remove('busy');
     byId('load-confirm').hidden = true;
     if (outcome.kind === 'ok' && outcome.payload && outcome.payload.view) {
+      const useLaneReads = outcome.payload.view.areas && outcome.payload.view.areas.length >= 3;
       resetForLoad();
-      applyPayload(outcome.payload, false);
       byId('saves-dialog').close();
-      if (state.view && state.view.areas && state.view.areas.length >= 3) {
-        await syncStandOverview();
+      if (useLaneReads) {
+        const frame = await refreshMultiStandFrame(null, false, 'Load saved woodland');
+        if (frame.kind !== 'ok') return;
+      } else {
+        applyPayload(outcome.payload, false);
       }
       const info = outcome.payload.restored;
       const draft = info && info.draftOrderCount > 0 ? fill(label('MultiSavesPendingDraft'), { n: info.draftOrderCount }) : null;
-      const areaScopeText = state.view.areas.length >= 3 ? ('all ' + state.view.areas.length + ' lanes') : 'both areas';
+      const areaScopeText = isMultiLaneStand() ? ('all ' + allAreas().length + ' lanes') : 'both areas';
       clearAlert();
       showAlert([
         el('p', { class: 'alert-title' }, 'Loaded "' + slot + '"'),
@@ -203,9 +209,15 @@ import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../st
       if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
       return;
     }
+    if (outcome.kind === 'budget') {
+      byId('saves-dialog').close();
+      showBudgetExceeded('Load saved woodland', outcome.budget);
+      return;
+    }
     if (outcome.kind === 'refused' && outcome.payload && outcome.payload.view) {
       // The server replaced nothing: it answered with the unchanged live session, so the page keeps working authority.
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Load saved woodland');
+      else applyPayload(outcome.payload, false);
       const notice = noticeOf(outcome);
       saveStatus('Load refused (' + notice.code + '): ' + notice.message + ' The current forest is unchanged.', 'bad');
       return;

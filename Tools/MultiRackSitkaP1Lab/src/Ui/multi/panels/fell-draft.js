@@ -1,7 +1,7 @@
 // S0c provenance: panels/fell-draft.js [L4] — section(s) 13 from multi.js
-import { addAvailability, announce, applyPayload, call, currentFence, lockCommands } from '../api.js';
+import { addAvailability, announce, applyPayload, call, currentFence, lockCommands, refreshMultiStandFrame, showBudgetExceeded } from '../api.js';
 import { el, fixed, label, listIds, plural } from '../dom.js';
-import { DEFAULT_REASON, SPECIES_SHORT, areaName, areaView, blockedReason, byId, currentReport, draftOf, hooks, isStage4, livingIn, referenceIn, selectedId, shortBlockedReason, speciesOf, state } from '../store.js';
+import { DEFAULT_REASON, SPECIES_SHORT, areaName, areaView, blockedReason, byId, currentReport, draftOf, hooks, isMultiLaneStand, isStage4, livingIn, referenceIn, selectedId, shortBlockedReason, speciesOf, state } from '../store.js';
   // ---- Competition and Fell draft -------------------------------------------------------------------------------------
 
   export function competitionTag() { return JSON.stringify([state.view ? currentFence() : null, state.competitionTarget]); }
@@ -29,7 +29,12 @@ import { DEFAULT_REASON, SPECIES_SHORT, areaName, areaView, blockedReason, byId,
       if (dropped) announce(dropped);
     } else {
       clearCompetition();
-      if (outcome.kind === 'refused') applyPayload(outcome.payload, false);
+      if (outcome.kind === 'budget') {
+        showBudgetExceeded('Competition', outcome.budget);
+      } else if (outcome.kind === 'refused') {
+        if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Competition');
+        else applyPayload(outcome.payload, false);
+      }
       hooks.renderAll();
       byId('competition-content').append(el('p', { class: 'note' }, 'Competition unavailable or the view changed. Select the tree again.'));
     }
@@ -168,6 +173,7 @@ import { DEFAULT_REASON, SPECIES_SHORT, areaName, areaView, blockedReason, byId,
     for (const areaId of Object.keys(state.drafts)) {
       const draft = state.drafts[areaId];
       if (!draft) continue;
+      if (!areaView(areaId)) continue;
       if (!livingIn(areaId, draft.ref)) {
         if (draft.ids.length > 0) notes.push('Cleared draft for ' + draft.ref + ' (no longer living).');
         delete state.drafts[areaId];
@@ -229,13 +235,18 @@ import { DEFAULT_REASON, SPECIES_SHORT, areaName, areaView, blockedReason, byId,
         if (state.drafts[areaId] && state.drafts[areaId].ref === ref) {
           state.drafts[areaId].ids = state.drafts[areaId].ids.filter((id) => id !== treeId);
         }
-        applyPayload(outcome.payload, false);
+        if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Add to Fell plan');
+        else applyPayload(outcome.payload, false);
         continue;
       }
       firstNotSent = index + 1;
       if (outcome.kind === 'refused') {
         result.refused = { treeId, code: outcome.payload.refusal.code, message: outcome.payload.refusal.message };
-        applyPayload(outcome.payload, false);
+        if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Add to Fell plan');
+        else applyPayload(outcome.payload, false);
+      } else if (outcome.kind === 'budget') {
+        result.guard = { treeId, status: 503, code: 'MultiViewPayloadBudgetExceeded', message: 'response exceeded active payload budget' };
+        showBudgetExceeded('Add to Fell plan', outcome.budget);
       } else if (outcome.kind === 'guard') {
         result.guard = { treeId, status: outcome.status, code: outcome.error.code, message: outcome.error.message };
       } else if (outcome.kind === 'locked') {

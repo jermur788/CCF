@@ -1,11 +1,11 @@
 // S0c provenance: commands.js [L4] — section(s) 16 from multi.js
-import { addAvailability, announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refusedByLock, renderCommandGate, rereadButton, run, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal, syncStandOverview } from './api.js';
+import { addAvailability, announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refreshMultiStandFrame, refusedByLock, renderCommandGate, rereadButton, run, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
 import { confirmationOf, confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { el, fill, fixed, label, plural, technicalPlan } from './dom.js';
 import { addSequence, reasonToSend, refreshCompetition } from './panels/fell-draft.js';
 import { pruneAvailability } from './panels/inspector.js';
 import { ecoOrderList, orderList, pruneList, renderReceipt, showPane } from './panels/work-plan.js';
-import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentJuvenile, currentReport, draftOf, draftTotal, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, pruneStatusOf, readoutState, referenceIn, resetSessionUiState, selectedId, state } from './store.js';
+import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentJuvenile, currentReport, draftOf, draftTotal, hooks, isEconomyEnabled, isMultiLaneStand, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, pruneStatusOf, readoutState, referenceIn, resetSessionUiState, selectedId, state } from './store.js';
   // ---- Work Plan commands (Fell, Prune, ClearUndergrowth, Plant, Shelter, SpotClear, Crop, Approve, Cancel, Execute, Year +1) ----
 
   export function onCellClearAdd() {
@@ -64,7 +64,8 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       const outcome = await call(step.path, step.body(currentFence()));
       if (outcome.kind === 'ok') {
         clearAlert();
-        applyPayload(outcome.payload, false);
+        if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Queue ' + step.kind);
+        else applyPayload(outcome.payload, false);
         const added = pendingPlantings().find((o) => !beforeIds.has(o.orderId));
         result.queued.push(added || { orderId: '(queued)', kind: step.kind, areaId, speciesId: step.kind === 'Plant' ? speciesId : null, xm: xM, zm: zM });
         continue;
@@ -72,8 +73,12 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       result.unattempted = steps.slice(i + 1).map((s) => s.kind);
       if (outcome.kind === 'refused') {
         result.refused = { kind: step.kind, code: outcome.payload.refusal.code, message: outcome.payload.refusal.message };
-        applyPayload(outcome.payload, false);
+        if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Queue ' + step.kind);
+        else applyPayload(outcome.payload, false);
         showRefusal('Queue ' + step.kind, outcome.payload.refusal);
+      } else if (outcome.kind === 'budget') {
+        result.guard = { kind: step.kind, status: 503, code: 'MultiViewPayloadBudgetExceeded', message: 'response exceeded active payload budget' };
+        showBudgetExceeded('Queue ' + step.kind, outcome.budget);
       } else if (outcome.kind === 'guard') {
         result.guard = { kind: step.kind, status: outcome.status, code: outcome.error.code, message: outcome.error.message };
         showGuardRefusal('Queue ' + step.kind, outcome.status, outcome.error);
@@ -133,7 +138,8 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     if (outcome.kind === 'ok') {
       clearAlert();
       state.spotDraft = null;
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Queue Spot Clear');
+      else applyPayload(outcome.payload, false);
       const added = pendingPlantings().find((o) => !beforeIds.has(o.orderId));
       state.spotResult = { areaId, order: added || { orderId: '(queued)', kind: 'SpotClear', areaId, xm: xM, zm: zM }, refused: null };
       hooks.renderAll();
@@ -142,11 +148,14 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       hooks.refreshReviewPreview();
     } else if (outcome.kind === 'refused') {
       state.spotResult = { areaId, order: null, refused: outcome.payload.refusal };
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Queue Spot Clear');
+      else applyPayload(outcome.payload, false);
       byId('pane-tree').scrollTop = 0;
       showRefusal('Queue Spot Clear', outcome.payload.refusal);
       announce('Refused SpotClear (' + outcome.payload.refusal.code + '). Nothing changed.');
       hooks.refreshReviewPreview();
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded('Queue Spot Clear', outcome.budget);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Queue Spot Clear', outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -288,8 +297,10 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     document.documentElement.classList.remove('busy');
     if (outcome.kind === 'ok') {
       clearAlert();
+      const useLaneReads = outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3;
       resetSessionUiState();
-      applyPayload(outcome.payload, false);
+      if (useLaneReads) await refreshMultiStandFrame(null, false, 'Switch Money mode');
+      else applyPayload(outcome.payload, false);
       announce(targetEnabled
         ? 'Started fresh Year-0 session with Money On (' + (state.economy ? state.economy.cashBalanceDisplay + ', ' + state.economy.landownerHoursDisplay : 'active') + ').'
         : 'Started fresh Year-0 session with Money Off.');
@@ -297,9 +308,12 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       if (state.historyOpen) hooks.loadHistoryIndex(null, false);
       if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
     } else if (outcome.kind === 'refused') {
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Switch Money mode');
+      else applyPayload(outcome.payload, false);
       showRefusal('Switch Money mode', outcome.payload.refusal);
       hooks.refreshReviewPreview();
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded('Switch Money mode', outcome.budget);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Switch Money mode', outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -381,7 +395,7 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     }
     byId('execute-confirm').textContent = (c > 0 || p > 0) ? 'Confirm Work Plan execution'
       : n > 0 && m > 0 ? 'Confirm felling and pruning' : m > 0 ? 'Confirm pruning' : 'Confirm felling';
-    byId('execute-areas').replaceChildren(...view.areas.map((area) => {
+    byId('execute-areas').replaceChildren(...allAreas().map((area) => {
       const orders = confirmation.orders.filter((order) => order.areaId === area.areaId);
       const prunes = confirmation.prunes.filter((order) => order.areaId === area.areaId);
       const clears = confirmation.clears.filter((order) => order.areaId === area.areaId);
@@ -462,8 +476,8 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     state.consentWork = work;
     byId('consent-title').textContent = label('MultiAdvanceYear');
     byId('consent-text').textContent = work ? 'The Work Plan has unexecuted work. Advancing the year needs your explicit choice; cancelling ' +
-      'removes ALL pending and approved orders in ' + (view.areas.length >= 3 ? 'ALL lanes' : 'BOTH areas') + ' and executes nothing.' : 'The Work Plan has no unexecuted work. Advancing the year executes nothing.';
-    byId('consent-areas').replaceChildren(...(work ? view.areas.map((area) => {
+      'removes ALL pending and approved orders in ' + (isMultiLaneStand() ? 'ALL lanes' : 'BOTH areas') + ' and executes nothing.' : 'The Work Plan has no unexecuted work. Advancing the year executes nothing.';
+    byId('consent-areas').replaceChildren(...(work ? allAreas().map((area) => {
       const pending = ordersIn(view.pending, area.areaId).map((order) => order.treeId)
         .concat(ordersIn(pendingPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'))
         .concat(ordersIn(pendingClears(), area.areaId).map((c) => 'Cell(' + c.column + ',' + c.row + ') (Clear)'))
@@ -489,14 +503,56 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     if (state.busy) return;
     const lockCountAtStart = state.lockCount;
     state.busy = true;
-    const outcome = await call('api/multi/view');
+    // For >=3-area stands, re-read exclusively through C-FENCE overview + lane-filtered GET api/multi/stand?lanes=...
+    // (never api/multi/view). If the server switched back to a 2-area stand, fall through to api/multi/view.
+    let outcome = null;
+    if (state.view && isMultiLaneStand()) {
+      const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Re-read', { silentBudget: true });
+      if (frame.kind === 'ok') {
+        state.busy = false;
+        clearAlert();
+        state.lastWasReplay = false;
+        if (state.lock && state.lockCount === lockCountAtStart) {
+          state.lock = null;
+          hooks.renderAll();
+          if (state.competitionTarget && !state.competition) refreshCompetition();
+        }
+        if (announceIt && !state.lock) {
+          announce('Re-read: ecological year ' + state.view.source.ecologicalYear + ', work revision ' + state.view.source.workRevision +
+            ', plan-state revision ' + state.view.planStateRevision + '.');
+          hooks.refreshReviewPreview();
+          if (state.historyOpen) hooks.loadHistoryIndex(null, false);
+          if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
+        }
+        return;
+      }
+      if (frame.kind === 'budget') {
+        state.busy = false;
+        showBudgetExceeded('Re-read', frame.budget);
+        return;
+      }
+      if (frame.kind === 'superseded') {
+        state.busy = false;
+        return;
+      }
+      if (frame.kind !== 'two-area') {
+        state.busy = false;
+        if (state.lock) showLockAlert('The re-read got no answer from the local session process. Try again.');
+        else showAlert([el('p', { class: 'alert-title' }, 'The local session process did not answer the read.'), rereadButton()]);
+        return;
+      }
+    }
+
+    outcome = await call('api/multi/view');
     state.busy = false;
     if (outcome.kind === 'ok') {
       clearAlert();
       state.lastWasReplay = false;
-      applyPayload(outcome.payload, false);
-      if (state.view && state.view.areas && state.view.areas.length >= 3) {
-        await syncStandOverview();
+      if (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3) {
+        const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Re-read');
+        if (frame.kind !== 'ok') return;
+      } else {
+        applyPayload(outcome.payload, false);
       }
       if (state.lock && state.lockCount === lockCountAtStart) {
         state.lock = null;

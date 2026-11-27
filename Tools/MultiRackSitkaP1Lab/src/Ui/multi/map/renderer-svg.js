@@ -1,7 +1,7 @@
 // S0c provenance: map/renderer-svg.js [L3] — section(s) 8, 9, 11 from multi.js
 import { announce } from '../api.js';
 import { el, fixed, label, n3, plural, setAttributes, svg } from '../dom.js';
-import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
+import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
 import { MAP_RENDERER_METHODS } from './contract.js';
   // ---- the map: 1 SVG user unit = 1 metre; U east, V south ------------------------------------------------------------
 
@@ -9,7 +9,7 @@ import { MAP_RENDERER_METHODS } from './contract.js';
 
   function visibleAreasNow() {
     if (!state.view || !isMultiLaneStand()) return null;
-    const ids = visibleLaneIds(state.view.areas, state.areaId, state.singleLaneMode);
+    const ids = visibleLaneIds(allAreas(), state.areaId, state.singleLaneMode);
     const list = ids.map((id) => areaView(id)).filter(Boolean);
     return list.length > 0 ? list : null;
   }

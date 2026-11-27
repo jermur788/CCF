@@ -2,7 +2,7 @@
 // Presentation authority (D-020): this script computes zero forestry, spacing, canopy, light, RD, DBH->radius or pruning rules.
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 // S0c provenance: main.js [L5] — sections 7, 15, 17b(wire), 17b(bootstrap) from multi.js
-import { announce, applyPayload, call, clearAlert, currentFence, refusedByLock, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
+import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, refusedByLock, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
 import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
@@ -15,7 +15,7 @@ import { clearCompetition, clearDraft, competitionTag, onBatchResultClick, recon
 import { renderInspector, renderOverlap, renderPruneGate } from './panels/inspector.js';
 import { closeHistoryDrawer, loadHistoryIndex, loadHistoryYear, onSkipReview, openHistoryDrawer, refreshReviewPreview, refreshStructure, renderHistoryDrawer, renderSkipControl, renderSkipSummary, renderStructure } from './panels/time-history.js';
 import { panMap, renderDetails, renderHistory, renderMapControls, renderPaneButtons, renderPlan, renderReceipt, renderTable, showPane, workTotals, zoomMap } from './panels/work-plan.js';
-import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, isMultiLaneStand, juvenileById, livingIn, ordersIn, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
+import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, isMultiLaneStand, juvenileById, livingIn, ordersIn, overviewArea, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
   // ---- rendering ------------------------------------------------------------------------------------------------------
 
   function renderAll() {
@@ -110,10 +110,11 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     if (summaryEl) summaryEl.classList.toggle('multi-lane', isMulti);
 
     if (isMulti) {
-      byId('area-cards').replaceChildren(...view.areas.map((area) => {
+      byId('area-cards').replaceChildren(...allAreas().map((area) => {
         const s4 = s4Area(area.areaId);
-        const cov = s4 ? pct(s4.canopy.geometricCoverFraction) : '–';
-        const rd = s4 ? fixed(s4.canopy.relativeDensity, 2) : '–';
+        const canopy = s4 ? s4.canopy : area.canopy;
+        const cov = canopy ? pct(canopy.geometricCoverFraction) : '–';
+        const rd = canopy ? fixed(canopy.relativeDensity, 2) : '–';
         const isCurrent = area.areaId === state.areaId;
         const shortName = area.areaId.startsWith('MA-') ? area.areaId.slice(3) : area.label;
         return el('button', {
@@ -241,7 +242,7 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
 
   function renderAreaSwitch() {
     const view = state.view;
-    byId('area-switch').replaceChildren(...view.areas.map((area) => {
+    byId('area-switch').replaceChildren(...allAreas().map((area) => {
       const inPlan = ordersIn(view.pending, area.areaId).length + (view.approved ? ordersIn(view.approved.orders, area.areaId).length : 0) +
         ordersIn(pendingPrunes(), area.areaId).length + ordersIn(approvedPrunes(), area.areaId).length +
         ordersIn(pendingClears(), area.areaId).length + ordersIn(approvedClears(), area.areaId).length +
@@ -259,9 +260,55 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
 
   function waitForBatch() { announce('Please wait: the selected trees are still being added to the Fell plan.'); }
 
-  function showArea(areaId) {
-    if (!areaView(areaId) || areaId === state.areaId) return;
+  async function showArea(areaId) {
+    if (!overviewArea(areaId) || areaId === state.areaId) return;
     if (state.batch || state.queueRunning) { waitForBatch(); return; }
+    if (isMultiLaneStand()) {
+      if (state.busy) return;
+      const prevAreaId = state.areaId;
+      state.mapPick += 1;
+      state.cellPick += 1;
+      state.areaId = areaId;
+      state.zoom = ZOOMS[0];
+      state.centre = null;
+      state.overlap = null;
+      state.selectedJuvenile = null;
+      state.cellDetail = null;
+      state.cellLoading = false;
+      state.plantDraft = null;
+      state.spotDraft = null;
+      resetReasonPicker();
+      clearCompetition();
+      state.busy = true;
+      document.documentElement.classList.add('busy');
+      let frame;
+      try {
+        frame = await refreshMultiStandFrame(areaId, state.singleLaneMode, 'Switch to ' + areaName(areaId));
+      } finally {
+        state.busy = false;
+        document.documentElement.classList.remove('busy');
+      }
+      if (!frame || frame.kind === 'superseded') return;
+      if (frame.kind !== 'ok') {
+        state.areaId = prevAreaId;
+        renderAll();
+        if (frame.kind !== 'budget') {
+          showAlert([el('p', { class: 'alert-title' }, 'Could not load lanes for ' + areaName(areaId) + '.'), rereadButton()]);
+        }
+        return;
+      }
+      const id = selectedId();
+      if (id && livingIn(areaId, id)) {
+        state.competitionTarget = { areaId, treeId: id };
+        renderAll();
+        refreshCompetition();
+      }
+      const drafts = draftOf(areaId).length;
+      announce('Showing ' + areaName(areaId) + '.' + (id ? ' Selected tree ' + id + '.' : '') +
+        (drafts ? ' ' + plural(drafts, 'draft choice', 'draft choices') + ' kept for this reference.' : ''));
+      return;
+    }
+
     state.mapPick += 1;
     state.cellPick += 1;
     state.areaId = areaId;
@@ -412,6 +459,29 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     if (outcome.kind === 'ok') {
       clearAlert();
       const candidates = outcome.payload.candidates;
+      if (isMultiLaneStand()) {
+        const hitView = outcome.payload.view;
+        const fenceMoved = hitView && JSON.stringify(currentFence()) !== JSON.stringify({
+          sessionId: hitView.sessionId,
+          source: hitView.source,
+          planStateRevision: hitView.planStateRevision,
+        });
+        if (candidates.length === 0) {
+          state.overlap = null;
+          if (fenceMoved) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Map selection');
+          else renderAll();
+          announce('No crown at this point — the selection is unchanged.');
+          return;
+        }
+        const switchedLane = area.areaId !== state.areaId;
+        state.overlap = candidates.length > 1 ? { areaId: area.areaId, candidates } : null;
+        chooseTree(area.areaId, candidates[0].treeId, false);
+        if (switchedLane || fenceMoved) {
+          await refreshMultiStandFrame(area.areaId, state.singleLaneMode, 'Focus lane ' + area.areaId, { keepOverlap: true });
+        }
+        if (candidates.length > 1) announce('Selected tree ' + candidates[0].treeId + '. ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.');
+        return;
+      }
       if (candidates.length === 0) {
         state.overlap = null;
         applyPayload(outcome.payload, false);
@@ -423,7 +493,8 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
       chooseTree(area.areaId, candidates[0].treeId, false);
       if (candidates.length > 1) announce('Selected tree ' + candidates[0].treeId + '. ' + fill(label('CrownsOverlap'), { n: candidates.length }) + '.');
     } else if (outcome.kind === 'refused') {
-      applyPayload(outcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Map selection');
+      else applyPayload(outcome.payload, false);
       if (state.lock) showLockAlert('Refused: Map selection (' + outcome.payload.refusal.code + '). Nothing was selected.');
       else showRefusal('Map selection', outcome.payload.refusal);
     } else if (outcome.kind === 'budget') {
@@ -493,11 +564,23 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
   }
 
   function exactIdKey(inputId) {
-    return (event) => {
+    return async (event) => {
       if (event.key !== 'Enter') return;
       event.preventDefault();
       const typed = byId(inputId).value;
-      const area = state.view ? areaOfTree(typed) : null;
+      let area = state.view ? areaOfTree(typed) : null;
+      if (!area && state.view && isMultiLaneStand()) {
+        const lane = allAreas().find((a) => typed.startsWith(a.areaId + '-'));
+        if (lane && !areaView(lane.areaId) && !state.busy) {
+          state.busy = true;
+          try {
+            await refreshMultiStandFrame(lane.areaId, state.singleLaneMode, 'Find tree ' + typed);
+          } finally {
+            state.busy = false;
+          }
+          area = areaOfTree(typed);
+        }
+      }
       if (area) {
         clearAlert();
         chooseTree(area.areaId, typed, true);
@@ -511,7 +594,7 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
         return;
       }
       showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
-        el('p', null, 'No tree or planted sapling in either area has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
+        el('p', null, 'No tree or planted sapling in the woodland has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
     };
   }
 
@@ -524,11 +607,32 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
       const pill = event.target.closest('[data-strip-lane]');
       if (pill) showArea(pill.getAttribute('data-strip-lane'));
     });
-    byId('lane-mode-toggle').addEventListener('click', () => {
-      state.singleLaneMode = !state.singleLaneMode;
+    byId('lane-mode-toggle').addEventListener('click', async () => {
+      if (!state.view || state.busy || state.batch || state.queueRunning) return;
+      const prevSingle = state.singleLaneMode;
+      const nextSingle = !prevSingle;
+      state.singleLaneMode = nextSingle;
       state.zoom = ZOOMS[0];
       state.centre = null;
-      renderAll();
+      if (isMultiLaneStand()) {
+        state.busy = true;
+        document.documentElement.classList.add('busy');
+        let frame;
+        try {
+          frame = await refreshMultiStandFrame(state.areaId, nextSingle, 'Toggle lane view');
+        } finally {
+          state.busy = false;
+          document.documentElement.classList.remove('busy');
+        }
+        if (!frame || frame.kind === 'superseded') return;
+        if (frame.kind !== 'ok') {
+          state.singleLaneMode = prevSingle;
+          renderAll();
+          return;
+        }
+      } else {
+        renderAll();
+      }
       announce(state.singleLaneMode ? 'Showing 1 active lane only.' : 'Showing active lane and visible neighbours.');
     });
     byId('woodland-open').addEventListener('click', openWoodlandDialog);

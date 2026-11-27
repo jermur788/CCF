@@ -101,6 +101,7 @@
     // Phase 2A-2 Forest Maker & Multi-Lane UI state (presentation only; all forestry data from Core).
     singleLaneMode: false,
     standOverview: null,
+    laneRequest: 0,
     woodlandOptions: null,
     hasUnsavedProgress: false,
     recipe: null,
@@ -111,8 +112,22 @@
     return state.economyEnabled === true;
   }
 
+  // Whole-woodland area list: for >=3-area stands rendered via C-FENCE lane-filtered reads,
+  // state.standOverview holds all lanes while state.view.areas holds only the 1-3 loaded detail lanes.
+  export function allAreas() {
+    if (state.standOverview && Array.isArray(state.standOverview.areas) && state.standOverview.areas.length > 0) {
+      return state.standOverview.areas;
+    }
+    return state.view && Array.isArray(state.view.areas) ? state.view.areas : [];
+  }
+
+  export function overviewArea(areaId) {
+    return areaId ? allAreas().find((area) => area.areaId === areaId) || null : null;
+  }
+
   export function isMultiLaneStand() {
-    return Boolean(state.view && state.view.areas && state.view.areas.length >= 3);
+    if (allAreas().length >= 3) return true;
+    return Boolean(state.view && state.view.source && Array.isArray(state.view.source.areaIds) && state.view.source.areaIds.length >= 3);
   }
 
   export function visibleLaneIds(areas, activeAreaId, singleLaneMode) {
@@ -186,6 +201,7 @@
     state.economyToggleTarget = null;
     state.singleLaneMode = false;
     state.standOverview = null;
+    state.laneRequest += 1;
     state.hasUnsavedProgress = false;
     state.recipe = null;
     state.experimentBadge = null;
@@ -212,8 +228,8 @@
   }
   export function sceneOf(areaId) { return (state.scenes && state.scenes[areaId]) || []; }
   export function itemOf(areaId, treeId) { return sceneOf(areaId).find((item) => item.treeId === treeId) || null; }
-  export function areaName(areaId) { const area = areaView(areaId); return area ? area.label : String(areaId); }
-  export function areaShort(areaId) { const area = areaView(areaId); return area ? area.label : String(areaId); }
+  export function areaName(areaId) { const area = areaView(areaId) || overviewArea(areaId); return area ? area.label : String(areaId); }
+  export function areaShort(areaId) { const area = areaView(areaId) || overviewArea(areaId); return area ? area.label : String(areaId); }
   export function selectedId() { return state.areaId ? state.selected[state.areaId] || null : null; }
   export function ordersIn(orders, areaId) { return orders.filter((order) => order.areaId === areaId); }
 
@@ -341,7 +357,7 @@
     return draft && reference && draft.ref === reference ? draft.ids : [];
   }
   export function draftTotal() {
-    return state.view ? state.view.areas.reduce((sum, area) => sum + draftOf(area.areaId).length, 0) : 0;
+    return allAreas().reduce((sum, area) => sum + draftOf(area.areaId).length, 0);
   }
   export function currentReport() {
     const comp = state.competition;
