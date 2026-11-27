@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
 using SitkaP1.Core.Phase1;
@@ -15,7 +16,17 @@ internal sealed partial class PlayerApi
     private Task ReadMultiSavesAsync(HttpContext context)
     {
         var slots = new List<MultiSlotInfo>();
-        var expectation = multiSession.SaveExpectation();
+        Phase1SaveExpectation expectation;
+        try
+        {
+            expectation = CurrentMulti.Session.SaveExpectation();
+        }
+        catch (P1Refusal refusal)
+        {
+            // Economy-enabled sessions refuse Save v2 with SaveEconomyRequiresV3; surface cleanly without 500/stderr.
+            return WriteJsonAsync(context, StatusCodes.Status200OK,
+                new MultiSavesPayload(Array.Empty<MultiSlotInfo>(), new Notice(refusal.Code, refusal.Message)));
+        }
         foreach (string slot in saveSlots.ListSlots())
         {
             var inspection = saveSlots.Inspect(slot);
@@ -76,8 +87,13 @@ internal sealed partial class PlayerApi
                 if (exists && !request.ReplaceExisting)
                     throw new P1Refusal("SlotExists",
                         "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
-                // Capture inside the scope (engine lock), then encode and write (no engine lock held).
-                var envelope = multiSession.CaptureSave(request.Fence!, label, generation);
+                // Capture under multiSwapSync (so session swap cannot race with CaptureSave), then encode and write outside it.
+                Phase1SaveEnvelope envelope;
+                lock (multiSwapSync)
+                {
+                    var pair = CurrentMulti;
+                    envelope = pair.Session.CaptureSave(request.Fence!, label, generation);
+                }
                 byte[] bytes = Phase1SaveCodec.Encode(envelope);
                 var result = saveSlots.Save(slot, bytes, request.ReplaceExisting);
                 Interlocked.Increment(ref savesWritten);
@@ -104,23 +120,56 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<MultiLoadRequest>(context, MultiLoadMembers);
         if (request is null) return;
-        MultiAreaLoadResult result;
+        var capturedPair = CurrentMulti;
+        Phase1DecodedSave? loaded = null;
+        P1Refusal? loadFailure = null;
         try
         {
-            result = multiSession.Restore(request.Fence!, saveSlots.Load(request.Slot!, multiSession.SaveExpectation()));
+            loaded = saveSlots.Load(request.Slot!, capturedPair.Session.SaveExpectation());
         }
         catch (P1Refusal refusal)
         {
-            result = new MultiAreaLoadResult(multiSession.ReadView(), 0, null, refusal.Code, refusal.Message);
+            loadFailure = refusal;
         }
-        var snapshot = multiArea.ReadCompositeUiSnapshot();
-        int totalRecordedYears = multiSession.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears);
+        MultiAreaLoadResult result;
+        MultiAreaCompositeUiSnapshot snapshot;
+        int totalRecordedYears;
+        bool economyEnabled;
+        MultiEconomySnapshotDto? economy;
+        lock (multiSwapSync)
+        {
+            var activePair = CurrentMulti;
+            if (!ReferenceEquals(activePair, capturedPair))
+            {
+                result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null,
+                    "PlayerSessionMismatch", "the active session changed before load could commit; nothing changed");
+            }
+            else if (loadFailure is not null)
+            {
+                result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null, loadFailure.Code, loadFailure.Message);
+            }
+            else
+            {
+                try
+                {
+                    result = activePair.Session.Restore(request.Fence!, loaded!);
+                }
+                catch (P1Refusal refusal)
+                {
+                    result = new MultiAreaLoadResult(activePair.Session.ReadView(), 0, null, refusal.Code, refusal.Message);
+                }
+            }
+            snapshot = activePair.Adapter.ReadCompositeUiSnapshot();
+            totalRecordedYears = activePair.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            economyEnabled = activePair.Session.SelectedModels.IsEconomyEnabled;
+            economy = TryBuildEconomySnapshot(activePair.Session, snapshot.View);
+        }
+        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy);
         var info = result.RefusalCode is null ? new MultiLoadInfo(result.DraftOrderCount, result.Checksum!) : null;
         await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(bounded.View, bounded.Scenes,
             MultiLabels, bounded.Stage4, bounded.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage),
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded));
+            bounded.PayloadBudgetExceeded, economyEnabled, economy));
     }
 
     // Restore a slot's verified prior-good backup over its primary. This is a deliberate, separate player action and the
@@ -169,7 +218,9 @@ internal sealed partial class PlayerApi
     private sealed record MultiLoadPayload(object View, object Scenes,
         IReadOnlyDictionary<string, string> Labels, object? Stage4, MultiAreaEcologyDto? Ecology, MultiLoadInfo? Restored,
         Notice? Refusal, bool HistoryTruncated = false, int TotalRecordedYears = 0,
-        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false);
+        bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
+        bool EconomyEnabled = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
 
     private sealed record MultiRecoverPayload(string Slot, string? Checksum, long? Bytes, Notice? Refusal);
 }

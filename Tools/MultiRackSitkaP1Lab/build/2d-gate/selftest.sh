@@ -407,17 +407,27 @@ PY
 
 mut_asset_identity() {
   local clone="$1"
-  # Tamper a committed served asset pinned by s0a-multi-asset-identity (no trailing LF so T0 SHA check fires).
-  printf ' /* selftest multi.css asset-identity tamper */' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css"
-  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.css
-  git -C "$clone" commit --quiet -m "selftest: tamper committed src/Ui/multi/multi.css"
+  # Tamper the live served multi.css payload in MultiRoutes.cs so GET multi.css diverges from committed HEAD:src/Ui/multi/multi.css.
+  python3 - "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p, "r", encoding="utf-8").read()
+old = 'private static readonly byte[] MultiPageCss = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.css");'
+new = 'private static readonly byte[] MultiPageCss = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.css").Concat(new byte[] { (byte)\' \' }).ToArray();'
+assert old in s
+s = s.replace(old, new, 1)
+open(p, "w", encoding="utf-8", newline="\n").write(s)
+PY
+  git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/MultiRoutes.cs
+  git -C "$clone" commit --quiet -m "selftest: tamper live served multi.css asset in MultiRoutes.cs"
 }
 
 mut_s0c_module_tamper() {
   local clone="$1"
-  printf '\n// selftest main.js tamper' >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/main.js"
+  # Plant a forbidden dynamic import() in committed main.js (valid syntax, uninvoked at runtime) so the retained unconditional module-graph.mjs guard catches it.
+  printf "\n// selftest dynamic import tamper\nvoid (() => import('./store.js'));" >> "$clone/Tools/MultiRackSitkaP1Lab/src/Ui/multi/main.js"
   git -C "$clone" add Tools/MultiRackSitkaP1Lab/src/Ui/multi/main.js
-  git -C "$clone" commit --quiet -m "selftest: tamper committed ES module src/Ui/multi/main.js"
+  git -C "$clone" commit --quiet -m "selftest: plant forbidden dynamic import() in committed ES module src/Ui/multi/main.js"
 }
 
 mut_legacy_multi_js() {
@@ -427,17 +437,23 @@ mut_legacy_multi_js() {
   git -C "$clone" commit --quiet -m "selftest: re-add retired src/Ui/multi/multi.js"
 }
 
+# Force-enabling gateEnforce in the clone is what C29 asserts (gate wiring). The hook-inventory tamper is kept,
+# but it is NOT what makes this case fail while HEAD drifts from S0b-tip multi.js.
 mut_s0c_hook_inventory() {
   local clone="$1"
   python3 - "$clone/Tools/MultiRackSitkaP1Lab/build/2d-gate/s0c-hook-inventory.json" <<'PY'
 import json, sys
 p = sys.argv[1]
-d = json.load(open(p, "r", encoding="utf-8"))
+with open(p, "r", encoding="utf-8") as f:
+    d = json.load(f)
+d["gateEnforce"] = True
 d["hooks"][0]["callSites"][0]["originalLine"] += 1
-json.dump(d, open(p, "w", encoding="utf-8"), indent=2)
+with open(p, "w", encoding="utf-8", newline="\n") as f:
+    json.dump(d, f, indent=2)
+    f.write("\n")
 PY
   git -C "$clone" add Tools/MultiRackSitkaP1Lab/build/2d-gate/s0c-hook-inventory.json
-  git -C "$clone" commit --quiet -m "selftest: tamper build/2d-gate/s0c-hook-inventory.json"
+  git -C "$clone" commit --quiet -m "selftest: force-enable gateEnforce and tamper s0c-hook-inventory.json (wiring check)"
 }
 
 # Force-enabling gateEnforce in the clone is what C22 asserts (gate wiring). The planted tamper is kept,
@@ -522,16 +538,16 @@ run_full_case "C13-g7-assets" 4 "GATE G7 FAIL" "planted file under Assets/ -> ex
 run_full_case "C14-missing-marker" 1 "fail-closed marker check failed" "suppressed GATE G7 PASS marker -> exit 1" mut_missing_marker --headless-only
 run_full_case "C15-headless-only" 5 "VERDICT: PARTIAL" "--headless-only partial mode -> exit 5" mut_noop --headless-only
 run_full_case "C20-g2-uismoke-5th-fail" 1 "ui-smoke\.sh unexpected failure IDs: \['Z99'\]" "planted 5th ui-smoke failure Z99 -> exit 1" mut_uismoke_5th_fail
-run_full_case "C21-g2-asset-identity" 1 "S0c mode: multi\.css no longer matches T0 R_css" "tampered served src/Ui/multi/multi.css -> exit 1" mut_asset_identity
+run_full_case "C21-g2-asset-identity" 1 "post-s0-live-serving: live multi\.css body or headers mismatch" "tampered live served multi.css asset diverges from HEAD blob -> exit 1" mut_asset_identity
 run_full_case "C22-g2-move-proof" 1 "S0a move-proof failed" "gateEnforce force-enabled in the clone makes the gate re-run the moved-block check -> exit 1 (wiring; tamper not required while HEAD drifts from T0)" mut_move_proof
 run_full_case "C23-g5-budget" 1 "GATE G5 FAIL" "planted G5 payload budget regression (M11) -> exit 1" mut_g5_budget
 run_full_case "C24-g6-rng-literal" 1 "GATE G6 FAIL" "planted RNG key-prefix literal outside RngSalts.cs -> exit 1" mut_g6_rng_literal
 run_full_case "C25-g7-denylist" 4 "DENY_PREFIX" "planted file under denied Docs/Project/ -> exit 4" mut_g7_denylist
 # Run C26 with --browser (S0C_PARITY_REF unset) so Stage B runs self-contained parity self-check and proves genuine VERDICT: PASS exit 0.
 run_full_case "C26-clean-uismoke-exact-four" 0 "ui-smoke\.sh PASS-BASELINE-DRIFT \(250 passed, 4 known T0 #885 failures: L01,L02,L06,J31; G11b PASS\)" "clean exact-four ui-smoke allowance (--browser) -> exit 0" mut_noop --browser
-run_full_case "C27-g2-s0c-module-tamper" 1 "S0c js-reconstruct\.mjs failed" "tampered committed ES module src/Ui/multi/main.js -> exit 1" mut_s0c_module_tamper
+run_full_case "C27-g2-s0c-module-tamper" 1 "S0c module-graph\.mjs failed" "tampered committed ES module src/Ui/multi/main.js (forbidden dynamic import) caught by retained module-graph.mjs -> exit 1" mut_s0c_module_tamper
 run_full_case "C28-g2-legacy-multi-js" 1 "retired Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi\.js still exists at HEAD" "re-added retired src/Ui/multi/multi.js -> exit 1" mut_legacy_multi_js
-run_full_case "C29-g2-s0c-hook-inventory" 1 "S0c js-reconstruct\.mjs failed" "tampered build/2d-gate/s0c-hook-inventory.json -> exit 1" mut_s0c_hook_inventory
+run_full_case "C29-g2-s0c-hook-inventory" 1 "S0c js-reconstruct\.mjs failed" "gateEnforce force-enabled in the clone makes the gate re-run js-reconstruct.mjs -> exit 1 (wiring; hook tamper not required while HEAD drifts from S0b)" mut_s0c_hook_inventory
 
 # Verify real working tree was never touched.
 REAL_STATUS_AFTER="$(git -C "$REPO_ROOT" status --porcelain)"

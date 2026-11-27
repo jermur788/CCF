@@ -1,7 +1,13 @@
 {
   "schemaVersion": 1,
-  "mode": "s0c-css-plus-html-delta",
+  "mode": "post-s0-live-serving",
   "t0Commit": "47b27a8d3873b32726f315ce1182118da38c50b1",
+  "retirement": {
+    "retiredUtc": "2026-11-26",
+    "authority": "Owner-authorised Phase 2B-2a integrator-prep retirement of S0c T0 asset byte-identity lock",
+    "reason": "The S0c zero-behaviour refactoring completed its purpose and is merged on integration/2d-sim (00dcd196; review 158cdd69). Phase 2B-2a (Economy UI) legitimately adds markup and styles to multi.html and multi.css, so T0 byte-equality for multi.css and T0 1-line delta equality for multi.html are no longer valid trunk invariants.",
+    "retained": "BOM/CR/no-trailing-LF rules on multi.css and multi.html; multi.html module entry script tag present and legacy classic multi.js tag absent; multi.js absent at HEAD and returning live 404; >=1 committed ES module under src/Ui/multi/; live GET of multi, multi.css and every committed module byte-identical to its HEAD blob with unchanged security headers/CSP."
+  },
   "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/PlayerMultiApi.cs",
   "sourceBlobId": "0c3f7ad9273666ce8bf751337f62ea4cb8d8e2d4",
   "capturedUtc": "2026-11-25T16:07:10Z",

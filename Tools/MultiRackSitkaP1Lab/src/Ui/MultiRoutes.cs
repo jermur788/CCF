@@ -49,6 +49,8 @@ internal sealed partial class PlayerApi
     private static readonly string[] MultiSaveMembers = MultiFenceMembers.Concat(new[] { "slot", "replaceExisting" }).ToArray();
     private static readonly string[] MultiLoadMembers = MultiFenceMembers.Append("slot").ToArray();
     private static readonly string[] MultiRecoverMembers = new[] { "slot" };
+    private static readonly string[] MultiEconomySessionMembers = MultiFenceMembers.Concat(new[] { "enabled", "confirmReset" }).ToArray();
+    private static readonly string[] MultiEconomyExecutorMembers = MultiFenceMembers.Concat(new[] { "kind", "areaId", "targetKey", "executor" }).ToArray();
 
     private static readonly byte[] MultiPageHtml = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.html");
     private static readonly byte[] MultiPageCss = MultiEmbeddedAsset("SitkaP1.Ui.multi.multi.css");
@@ -76,13 +78,38 @@ internal sealed partial class PlayerApi
         .Where(field => field.IsLiteral && field.FieldType == typeof(string))
         .ToDictionary(field => field.Name, field => (string)field.GetRawConstantValue()!, StringComparer.Ordinal);
 
-    private readonly MultiAreaWorkPlanAdapter multiArea;
-    private readonly MultiAreaContinuation multiSession;
+    private sealed record MultiSessionPair(MultiAreaWorkPlanAdapter Adapter, MultiAreaContinuation Session);
+
+    private readonly object multiSwapSync = new();
+    private MultiSessionPair multiCurrent = null!;
+    private MultiSessionPair CurrentMulti => Volatile.Read(ref multiCurrent);
     private readonly Phase1SaveSlots saveSlots;
     private int savesWritten; // successful slot writes in this process, only for the truthful shutdown line
 
     /// <summary>True when this process wrote at least one save slot (the shutdown line must not claim nothing was saved).</summary>
     internal bool SavesWritten => Volatile.Read(ref savesWritten) > 0;
+
+    private static MultiSessionPair OpenFreshMultiSession(string experimentKey, bool economyEnabled)
+    {
+        var selection = economyEnabled ? MultiAreaModelSelection.Phase2WithEconomy : MultiAreaModelSelection.Phase2;
+        var economyOptions = economyEnabled ? EconomyOptions.Default : null;
+        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1Key, StringComparison.Ordinal))
+        {
+            var experiment = MultiAreaGenerator.Generate();
+            var session = new MultiAreaContinuation(experiment, selection, null, null, null, economyOptions);
+            var adapter = new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1Key, MultiAreaDemoExperiments.Ma1Badge);
+            return new MultiSessionPair(adapter, session);
+        }
+        if (string.Equals(experimentKey, MultiAreaDemoExperiments.Ma1MixedKey, StringComparison.Ordinal))
+        {
+            var (experiment, phase2Options, badge) = MultiAreaDemoExperiments.CreateMixedDemo();
+            var session = new MultiAreaContinuation(experiment, selection, null, null, phase2Options, economyOptions);
+            var adapter = new MultiAreaWorkPlanAdapter(session, experiment, MultiAreaDemoExperiments.Ma1MixedKey, badge);
+            return new MultiSessionPair(adapter, session);
+        }
+        throw new P1Refusal("MultiAreaUnknownExperiment",
+            "supported --multi-experiment values are ma-1 and ma-1-mixed");
+    }
 
     private void AddMultiAreaRoutes()
     {
@@ -102,21 +129,21 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/cell", new("POST", ReadMultiCellAsync));
         routes.Add("api/multi/competition", new("POST", ReadMultiCompetitionAsync));
         routes.Add("api/multi/crop/mark", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
-            request => multiArea.MarkCrop(request.Fence!, request.AreaId!, request.TreeId!))));
+            (pair, request) => pair.Adapter.MarkCrop(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/crop/unmark", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
-            request => multiArea.UnmarkCrop(request.Fence!, request.AreaId!, request.TreeId!))));
+            (pair, request) => pair.Adapter.UnmarkCrop(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/pending/add", new("POST", context => MultiCommandAsync<MultiAddRequest>(context, MultiAddMembers,
-            request => multiArea.AddPending(request.Fence!, request.AreaId!, request.TreeId!, request.Reason!))));
+            (pair, request) => pair.Adapter.AddPending(request.Fence!, request.AreaId!, request.TreeId!, request.Reason!))));
         routes.Add("api/multi/pending/remove", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
-            request => multiArea.RemovePending(request.Fence!, request.AreaId!, request.TreeId!))));
+            (pair, request) => pair.Adapter.RemovePending(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/plan/approve", new("POST", context => MultiCommandAsync<MultiFenceRequest>(context, MultiFenceMembers,
-            request => multiArea.Approve(request.Fence!))));
+            (pair, request) => pair.Adapter.Approve(request.Fence!))));
         routes.Add("api/multi/plan/cancel", new("POST", context => MultiCommandAsync<MultiFenceRequest>(context, MultiFenceMembers,
-            request => multiArea.CancelApproved(request.Fence!))));
+            (pair, request) => pair.Adapter.CancelApproved(request.Fence!))));
         routes.Add("api/multi/plan/execute", new("POST", context => MultiCommandAsync<MultiExecuteRequest>(context, MultiExecuteMembers,
-            request => multiArea.Execute(request.Fence!, request.PlanId!, request.ExecutionKey!))));
+            (pair, request) => pair.Adapter.Execute(request.Fence!, request.PlanId!, request.ExecutionKey!))));
         routes.Add("api/multi/year/advance", new("POST", context => MultiCommandAsync<MultiAdvanceRequest>(context, MultiAdvanceMembers,
-            request => multiArea.Advance(request.Fence!, request.ConsentToCancelWork))));
+            (pair, request) => pair.Adapter.Advance(request.Fence!, request.ConsentToCancelWork))));
         // Phase 1 Step 2: dual time pacing (preview/skip), paged Decision -> Outcome history, and woodland spatial structure.
         routes.Add("api/multi/year/preview-review", new("POST", PreviewMultiReviewAsync));
         routes.Add("api/multi/year/skip", new("POST", SkipMultiYearsAsync));
@@ -124,30 +151,36 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/history/year", new("POST", ReadMultiHistoryYearAsync));
         routes.Add("api/multi/structure", new("GET", ReadMultiStructureAsync));
         routes.Add("api/multi/prune/add", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
-            request => multiArea.AddPrune(request.Fence!, request.AreaId!, request.TreeId!))));
+            (pair, request) => pair.Adapter.AddPrune(request.Fence!, request.AreaId!, request.TreeId!))));
         routes.Add("api/multi/prune/remove", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
-            request => multiArea.RemovePrune(request.Fence!, request.AreaId!, request.TreeId!))));
+            (pair, request) => pair.Adapter.RemovePrune(request.Fence!, request.AreaId!, request.TreeId!))));
         // Pass 2 fenced biological Work Plan actions (zero edits to Core biology; all under single Pending -> Approve -> Execute gate).
         routes.Add("api/multi/clear/add", new("POST", context => MultiCommandAsync<MultiCellRequest>(context, MultiCellMembers,
-            request => RefusableMulti(() => multiSession.AddClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.AddClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
         routes.Add("api/multi/clear/remove", new("POST", context => MultiCommandAsync<MultiCellRequest>(context, MultiCellMembers,
-            request => RefusableMulti(() => multiSession.RemoveClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.RemoveClearUndergrowth(request.Fence!, request.AreaId!, request.Column!.Value, request.Row!.Value)))));
         routes.Add("api/multi/plant/add", new("POST", context => MultiCommandAsync<MultiPlantRequest>(context, MultiPlantMembers,
-            request => RefusableMulti(() => multiSession.AddPlant(request.Fence!, request.AreaId!, request.SpeciesId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.AddPlant(request.Fence!, request.AreaId!, request.SpeciesId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
         routes.Add("api/multi/shelter/add", new("POST", context => MultiCommandAsync<MultiPointRequest>(context, MultiPointMembers,
-            request => RefusableMulti(() => multiSession.AddShelter(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.AddShelter(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
         routes.Add("api/multi/spot-clear/add", new("POST", context => MultiCommandAsync<MultiPointRequest>(context, MultiPointMembers,
-            request => RefusableMulti(() => multiSession.AddSpotClear(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.AddSpotClear(request.Fence!, request.AreaId!, (float)request.XM!.Value, (float)request.ZM!.Value)))));
         routes.Add("api/multi/planting/remove", new("POST", context => MultiCommandAsync<MultiPlantingRemoveRequest>(context, MultiPlantingRemoveMembers,
-            request => RefusableMulti(() => multiSession.RemovePlanting(request.Fence!, request.OrderId!)))));
+            (pair, request) => RefusableMulti(pair, () => pair.Session.RemovePlanting(request.Fence!, request.OrderId!)))));
+        // Phase 2B-2a Economy UI endpoints (server-authoritative; zero JS economy math; Off payloads stay byte-comparable).
+        routes.Add("api/multi/economy/view", new("GET", ReadMultiEconomyViewAsync));
+        routes.Add("api/multi/economy/session", new("POST", SwitchMultiEconomySessionAsync));
+        routes.Add("api/multi/economy/quote", new("POST", QuoteMultiEconomyAsync));
+        routes.Add("api/multi/economy/executor", new("POST", SetMultiOrderExecutorAsync));
+        routes.Add("api/multi/economy/history/year", new("POST", ReadMultiEconomyHistoryYearAsync));
     }
 
-    private MultiAreaCommandResult RefusableMulti(Func<MultiAreaCommandResult> command)
+    private static MultiAreaCommandResult RefusableMulti(MultiSessionPair pair, Func<MultiAreaCommandResult> command)
     {
         try { return command(); }
         catch (P1Refusal refusal)
         {
-            return new MultiAreaCommandResult(multiArea.Read(), null, null, refusal.Code, refusal.Message);
+            return new MultiAreaCommandResult(pair.Adapter.Read(), null, null, refusal.Code, refusal.Message);
         }
     }
 
@@ -205,6 +238,7 @@ internal sealed partial class PlayerApi
         if (root.ValueKind != JsonValueKind.Object) throw new JsonException("the body must be one JSON object");
         foreach (var (name, limit) in new[] { ("areaId", MaxIdLength), ("treeId", MaxIdLength), ("speciesId", MaxIdLength),
                      ("orderId", MaxIdLength), ("planId", MaxPlanKeyLength), ("executionKey", MaxPlanKeyLength),
+                     ("kind", MaxIdLength), ("targetKey", MaxIdLength), ("executor", MaxIdLength),
                      ("slot", 48), ("label", 64) })
         {
             if (!root.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String) continue;
@@ -249,6 +283,15 @@ internal sealed partial class PlayerApi
         [property: JsonPropertyName("zM")] double? ZM);
 
     private sealed record MultiPlantingRemoveRequest(MultiAreaFence? Fence, string? OrderId);
+
+    private sealed record MultiEconomySessionRequest(MultiAreaFence? Fence, bool Enabled, bool ConfirmReset);
+
+    private sealed record MultiEconomyExecutorRequest(
+        MultiAreaFence? Fence,
+        string? Kind,
+        string? AreaId,
+        string? TargetKey,
+        string? Executor);
 
     private static byte[] MultiEmbeddedAsset(string logicalName)
     {

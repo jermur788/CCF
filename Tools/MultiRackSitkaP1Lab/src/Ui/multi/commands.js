@@ -5,7 +5,7 @@ import { el, fill, fixed, label, plural, technicalPlan } from './dom.js';
 import { addSequence, reasonToSend, refreshCompetition } from './panels/fell-draft.js';
 import { pruneAvailability } from './panels/inspector.js';
 import { ecoOrderList, orderList, pruneList, renderReceipt, showPane } from './panels/work-plan.js';
-import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentJuvenile, currentReport, draftOf, draftTotal, hooks, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, pruneStatusOf, readoutState, referenceIn, selectedId, state } from './store.js';
+import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentJuvenile, currentReport, draftOf, draftTotal, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, pruneStatusOf, readoutState, referenceIn, resetSessionUiState, selectedId, state } from './store.js';
   // ---- Work Plan commands (Fell, Prune, ClearUndergrowth, Plant, Shelter, SpotClear, Crop, Approve, Cancel, Execute, Year +1) ----
 
   export function onCellClearAdd() {
@@ -229,6 +229,87 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       () => announce('Done: pending Prune of ' + treeId + ' removed. Nothing was cut.'), 'plan-heading');
   }
 
+  export function onSetOrderExecutor(kind, areaId, targetKey, executor) {
+    if (!kind || !areaId || !targetKey || !executor || !state.view || state.batch || state.queueRunning) return;
+    run('api/multi/economy/executor', { fence: currentFence(), kind, areaId, targetKey, executor },
+      'Assign ' + kind + ' (' + targetKey + ') to ' + executor,
+      () => announce('Assigned ' + kind + ' ' + targetKey + ' to ' + executor + '. Quote updated.'),
+      'plan-heading');
+  }
+
+  export function openEconomyToggleDialog() {
+    const view = state.view;
+    if (!view || state.busy || state.batch || state.queueRunning || refusedByLock('Switch Money mode')) return;
+    const currentlyOn = isEconomyEnabled();
+    const targetEnabled = !currentlyOn;
+    state.economyToggleTarget = targetEnabled;
+    const pendingCount = view.pending.length + pendingPrunes().length + pendingClears().length + pendingPlantings().length;
+    const hasApproved = view.approved !== null;
+    const drafts = draftTotal();
+    const dirtyParts = [];
+    if (view.source.ecologicalYear > 0) dirtyParts.push('Year ' + view.source.ecologicalYear);
+    if (pendingCount > 0) dirtyParts.push(plural(pendingCount, 'pending order', 'pending orders'));
+    if (hasApproved) dirtyParts.push('an approved Work Plan');
+    if (view.events.length > 0) dirtyParts.push(plural(view.events.length, 'executed work event', 'executed work events'));
+    if (drafts > 0) dirtyParts.push(plural(drafts, 'unsent draft choice', 'unsent draft choices'));
+    const dirty = dirtyParts.length > 0;
+    byId('economy-toggle-title').textContent = targetEnabled ? 'Turn Money On (fresh Year-0 session)' : 'Turn Money Off (fresh Year-0 session)';
+    byId('economy-toggle-text').textContent = targetEnabled
+      ? 'Money is a launch-time opt-in. Starting with Money On opens a fresh Year-0 session of this stand with the engine\'s opening cash balance and annual landowner hour allowance.'
+      : 'Turning Money Off opens a fresh Year-0 session of this stand with Economy disabled (financial history reads NOT RECORDED and Save v2 slots are available).';
+    const warn = byId('economy-toggle-warning');
+    warn.hidden = !dirty;
+    warn.textContent = dirty
+      ? 'Unsaved progress will be discarded: ' + dirtyParts.join(', ') + '. Confirm to reset to a fresh Year-0 session.'
+      : '';
+    byId('economy-toggle-note').textContent = targetEnabled
+      ? 'Note: Economy sessions require Save v3 (deferred to Phase 2B-2b), so Save v2 slots cannot be saved or loaded while Money is On. Earlier session tokens will be invalidated.'
+      : 'Earlier session tokens will be invalidated and local selections will reset to Year 0.';
+    byId('economy-toggle-confirm').textContent = dirty
+      ? (targetEnabled ? 'Discard progress and turn Money On' : 'Discard progress and turn Money Off')
+      : (targetEnabled ? 'Start fresh Year-0 session (Money On)' : 'Start fresh Year-0 session (Money Off)');
+    openDialog(byId('economy-toggle-dialog'), byId('economy-toggle-cancel'));
+  }
+
+  export async function onEconomyToggleConfirmed() {
+    const targetEnabled = state.economyToggleTarget;
+    state.economyToggleTarget = null;
+    byId('economy-toggle-dialog').close();
+    if (targetEnabled === null || targetEnabled === undefined || !state.view || state.busy) return;
+    if (refusedByLock('Switch Money mode')) return;
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    const outcome = await call('api/multi/economy/session', {
+      fence: currentFence(),
+      enabled: Boolean(targetEnabled),
+      confirmReset: true,
+    });
+    state.busy = false;
+    document.documentElement.classList.remove('busy');
+    if (outcome.kind === 'ok') {
+      clearAlert();
+      resetSessionUiState();
+      applyPayload(outcome.payload, false);
+      announce(targetEnabled
+        ? 'Started fresh Year-0 session with Money On (' + (state.economy ? state.economy.cashBalanceDisplay + ', ' + state.economy.landownerHoursDisplay : 'active') + ').'
+        : 'Started fresh Year-0 session with Money Off.');
+      hooks.refreshReviewPreview();
+      if (state.historyOpen) hooks.loadHistoryIndex(null, false);
+      if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
+    } else if (outcome.kind === 'refused') {
+      applyPayload(outcome.payload, false);
+      showRefusal('Switch Money mode', outcome.payload.refusal);
+      hooks.refreshReviewPreview();
+    } else if (outcome.kind === 'guard') {
+      showGuardRefusal('Switch Money mode', outcome.status, outcome.error);
+    } else if (outcome.kind === 'locked') {
+      showLockAlert('Not sent: Switch Money mode.');
+    } else {
+      lockCommands(label('MultiOutcomeUnconfirmed') || 'Outcome unconfirmed — re-read current state',
+        'Switch Money mode: no confirmed result was received. Do not assume that it happened, or that it did not.');
+    }
+  }
+
   export function onApprove() {
     run('api/multi/plan/approve', { fence: currentFence() }, label('MultiApprove'), (payload) => {
       const prunes = payload.stage4 ? payload.stage4.approvedPrunes.map((o) => o.treeId) : [];
@@ -281,6 +362,23 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     const ecoText = ecoParts.length === 0 ? '' :
       (n === 0 && m === 0 ? 'Atomically ' : 'Also ') + ecoParts.join(' and ') + ' in Year ' + confirmation.year + ', or refuses all.';
     byId('execute-text').textContent = [fellText, pruneText, ecoText].filter(Boolean).join(' ');
+    const econBox = byId('execute-economy-summary');
+    if (econBox) {
+      const q = isEconomyEnabled() && state.economy ? state.economy.activeQuote : null;
+      econBox.hidden = !q;
+      if (q) {
+        econBox.replaceChildren(
+          el('p', null, el('strong', null, 'Frozen financial settlement: '),
+            'Upfront external cost ' + q.upfrontCashRequiredDisplay +
+            ' · Expected timber income ' + q.timberSaleRevenueDisplay +
+            ' · Net cash impact ' + q.netCashDeltaDisplay + '.'),
+          el('p', { class: 'small-note' },
+            'Landowner time: ' + q.totalOwnerHoursRequiredDisplay +
+            '. Settles atomically with physical forestry work; replaying never double-charges.'));
+      } else {
+        econBox.replaceChildren();
+      }
+    }
     byId('execute-confirm').textContent = (c > 0 || p > 0) ? 'Confirm Work Plan execution'
       : n > 0 && m > 0 ? 'Confirm felling and pruning' : m > 0 ? 'Confirm pruning' : 'Confirm felling';
     byId('execute-areas').replaceChildren(...view.areas.map((area) => {

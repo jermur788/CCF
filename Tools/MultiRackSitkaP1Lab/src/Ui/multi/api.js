@@ -1,6 +1,6 @@
 // S0c provenance: api.js [L2] — section(s) 3, 5 from multi.js
 import { el, label } from './dom.js';
-import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isPhase2, juvenileById, livingIn, readoutState, state, treeIn } from './store.js';
+import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isPhase2, juvenileById, livingIn, readoutState, state, treeIn } from './store.js';
   // ---- talking to the local session process ---------------------------------------------------------------------------
 
   export function currentFence() {
@@ -38,6 +38,8 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     state.scenes = payload.scenes || {};
     state.stage4 = payload.stage4 || null;
     state.ecology = payload.ecology || null;
+    if (typeof payload.economyEnabled === 'boolean') state.economyEnabled = payload.economyEnabled;
+    state.economy = state.economyEnabled ? (payload.economy || null) : null;
     if (payload.labels) state.labels = payload.labels;
     if (typeof payload.historyTruncated === 'boolean') state.historyTruncated = payload.historyTruncated;
     if (typeof payload.payloadBudgetExceeded === 'boolean') state.payloadBudgetExceeded = payload.payloadBudgetExceeded;
@@ -181,6 +183,25 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
         return 'That ground cell is already queued for ClearUndergrowth.';
       case 'UnknownWorkOrder':
         return 'That pending order is no longer in the Work Plan. Review the current Work Plan.';
+      case 'EconomyInsufficientCash':
+        return 'Upfront cash must cover all external contractor and material costs before approval or execution. Expected timber revenue cannot pre-pay work and no borrowing is allowed.';
+      case 'EconomyInsufficientLandownerAllowance':
+        return 'Remaining annual landowner hours cannot cover the assigned tasks. Switch some tasks to Contractor or advance to next year to reset the ' +
+          (state.economy && state.economy.annualLandownerAllowanceDisplay ? state.economy.annualLandownerAllowanceDisplay + ' ' : '') +
+          'annual landowner allowance.';
+      case 'EconomyFellContractorOnly':
+        return 'Commercial production felling is contractor-only and cannot be assigned to Landowner.';
+      case 'EconomyLandownerTaskIneligible':
+        return 'That task is outside the low-risk landowner DIY boundary and must be performed by a Contractor.';
+      case 'EconomyModelRequired':
+        return 'Turn Money On to use economy views, quotes, or labour assignments.';
+      case 'EconomyResetConfirmationRequired':
+        return 'Confirm discarding unsaved progress before starting a fresh Year-0 session.';
+      case 'SaveEconomyRequiresV3':
+        return 'Saving and loading Economy sessions require Save v3 (deferred to Phase 2B-2b). Switch Money Off to use Save v2 slots.';
+      case 'EconomyQuoteDrift':
+      case 'EconomyApprovedQuoteMissing':
+        return 'Cancel the approved plan, review the updated quote, and approve again.';
       default:
         return 'Review the current view, then choose again.';
     }
@@ -247,10 +268,21 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       if (node) node.disabled = blocked;
     }
     if (readoutState() === 'unavailable') for (const id of ['approve', 'execute', 'execute-confirm']) byId(id).disabled = true;
+    const econBlocked = isEconomyEnabled() && (!state.economy || (state.economy.activeQuote && !state.economy.activeQuote.isEligible));
+    if (econBlocked) {
+      if (!planLocked) byId('approve').disabled = true;
+      else {
+        byId('execute').disabled = true;
+        byId('execute-confirm').disabled = true;
+      }
+    }
+    const econToggle = byId('economy-toggle');
+    if (econToggle) econToggle.disabled = state.batch !== null || state.queueRunning || state.lock !== null;
     for (const button of document.querySelectorAll('[data-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-prune-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-clear-remove]')) button.disabled = blocked;
     for (const button of document.querySelectorAll('[data-planting-remove]')) button.disabled = blocked;
+    for (const button of document.querySelectorAll('[data-executor-value]')) button.disabled = blocked || planLocked;
     if (!blocked) {
       hooks.renderPruneGate();
       byId('cell-clear-add').disabled = planLocked || !isPhase2();

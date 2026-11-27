@@ -2,7 +2,7 @@
 import { announce, applyPayload, clearAlert, currentFence, showAlert } from '../api.js';
 import { openDialog } from '../commands.js';
 import { el, fill, label } from '../dom.js';
-import { byId, hooks, state } from '../store.js';
+import { byId, hooks, isEconomyEnabled, resetSessionUiState, state } from '../store.js';
   // ---- Phase 1 Save/Load (server-managed named slots; no path, no upload, no download) --------------------------------
 
   const SAVE_STATE = {
@@ -70,6 +70,10 @@ import { byId, hooks, state } from '../store.js';
       return;
     }
     state.saves = outcome.payload.slots || [];
+    if (outcome.payload.refusal) {
+      saveStatus(outcome.payload.refusal.code + ': ' + outcome.payload.refusal.message +
+        ' Save v3 economy persistence is deferred to Phase 2B-2b; switch Money Off to use Save v2 slots.', 'warn');
+    }
     renderSaves();
   }
 
@@ -95,7 +99,10 @@ import { byId, hooks, state } from '../store.js';
         el('td', null, el('div', { class: 'slot-actions' }, ...actions)));
     });
     byId('saves-rows').replaceChildren(...(rows.length > 0 ? rows
-      : [el('tr', null, el('td', { colspan: 5, class: 'save-empty' }, label('MultiSavesEmpty') || 'No saved slots yet.'))]));
+      : [el('tr', null, el('td', { colspan: 5, class: 'save-empty' },
+        isEconomyEnabled()
+          ? 'Save v2 slots are unavailable while Money is On (Save v3 deferred to Phase 2B-2b).'
+          : (label('MultiSavesEmpty') || 'No saved slots yet.')))]));
     updateSaveControls();
   }
 
@@ -106,7 +113,7 @@ import { byId, hooks, state } from '../store.js';
     const existing = saveNameValid(name) ? savedSlot(name) : null;
     byId('save-overwrite-wrap').hidden = !existing;
     if (!existing) byId('save-overwrite').checked = false;
-    byId('save-do').disabled = !saveNameValid(name) || state.busy;
+    byId('save-do').disabled = !saveNameValid(name) || state.busy || isEconomyEnabled();
   }
 
   export async function onSave() {
@@ -159,57 +166,7 @@ import { byId, hooks, state } from '../store.js';
   // A load replaces the whole live forest, so every local selection, draft, preview, in-flight request token and pending
   // confirmation of the old session is dropped here BEFORE the new payload is applied.
   function resetForLoad() {
-    state.selected = {};
-    state.selectedJuvenile = null;
-    state.drafts = {};
-    state.draftNotice = null;
-    state.overlap = null;
-    state.competition = null;
-    state.competitionTarget = null;
-    state.competitionTag = null;
-    state.competitionRequest += 1;
-    state.cellDetail = null;
-    state.cellLoading = false;
-    state.batch = null;
-    state.batchResult = null;
-    state.batchResultOpen = false;
-    state.plantDraft = null;
-    state.plantResult = null;
-    state.spotDraft = null;
-    state.spotResult = null;
-    state.confirmation = null;
-    state.consentWork = false;
-    state.lastExecution = null;
-    state.lastWasReplay = false;
-    state.lock = null;
-    state.lockCount = 0;
-    state.mapPick += 1;
-    state.cellPick += 1;
-    state.zoom = 1;
-    state.centre = null;
-    state.mapMode = 'tree';
-    state.overlay = 'off';
-    state.loadSlot = null;
-    state.historyTruncated = false;
-    state.totalRecordedYears = 0;
-    state.reviewPreview = null;
-    state.previewRequest += 1;
-    state.lastSkip = null;
-    state.historyItems = [];
-    state.historyNextCursor = null;
-    state.historyTotalRecorded = 0;
-    state.historySelectedYear = null;
-    state.historyDetail = null;
-    state.historyError = null;
-    state.historyLoading = false;
-    state.historyDetailLoading = false;
-    state.historyRequest += 1;
-    state.historyDetailRequest += 1;
-    state.structure = null;
-    state.structureLoading = false;
-    state.structureError = null;
-    state.structureRootTag = null;
-    state.structureRequest += 1;
+    resetSessionUiState();
   }
 
   export async function onLoadConfirmed() {

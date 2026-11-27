@@ -3,6 +3,13 @@
   "sourceBaseCommit": "5648813d9ccbe8d38e9fbe5df38d62c810af4a22",
   "sourcePath": "Tools/MultiRackSitkaP1Lab/src/Ui/multi/multi.js",
   "sourceSha256": "fbc7c8179dbd42605a55d620fbc903b0f4ccbad2805f33270f28fa7eec9de520",
+  "gateEnforce": false,
+  "retirement": {
+    "retiredUtc": "2026-11-26",
+    "authority": "Owner-authorised Phase 2B-2a integrator-prep retirement of S0c js-reconstruct T0 byte-identity lock",
+    "reason": "The S0c zero-behaviour JS split reconstruction proof completed its purpose: S0c is reviewed and merged on integration/2d-sim (00dcd196; review 158cdd69). Phase 2B-2a (Economy UI) legitimately edits 7 ES modules under src/Ui/multi/, so reversing P2-P5 to byte-identical S0b-tip multi.js is no longer a valid trunk invariant.",
+    "retained": "module-graph.mjs stays unconditionally enforced. js-reconstruct.mjs and this inventory remain in the tree. selftest.sh case C29 force-enables gateEnforce in its disposable clone to prove the gate still wires up and surfaces \"S0c js-reconstruct.mjs failed\" (a gate-wiring check, not a tamper-discrimination test while HEAD drifts from S0b-tip multi.js)."
+  },
   "hookCount": 19,
   "maxAllowedHooks": 20,
   "totalRewrittenCallSites": 49,
