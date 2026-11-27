@@ -364,7 +364,7 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
     if (readoutState() === 'unavailable') {
       showAlert([el('p', { class: 'alert-title' }, 'Execute needs a re-read'),
         el('p', null, 'The engine read-out for this view could not be paired with it, so the approved plan cannot be confirmed exactly. Nothing was sent.'),
-        rereadButton()]);
+        rereadButton()], null, { tier: 'blocking', id: 'readout-unavailable', dismissible: false });
       return;
     }
     const confirmation = confirmationOf(view);

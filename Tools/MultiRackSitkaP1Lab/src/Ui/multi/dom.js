@@ -198,46 +198,47 @@ import { EXPLANATIONS, SVG_NS, byId, state } from './store.js';
     if (explainCtrl.wired) return;
     explainCtrl.wired = true;
     const pop = byId('explain-popover');
-    if (!pop) return;
+    const host = typeof document.addEventListener === 'function' ? document : document.documentElement;
+    if (!pop || !host || typeof host.addEventListener !== 'function') return;
 
-    document.addEventListener('mouseover', (event) => {
+    host.addEventListener('mouseover', (event) => {
       const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
       if (btn) {
         if (explainCtrl.pinned && explainCtrl.trigger !== btn) return;
         openExplain(btn, explainCtrl.pinned && explainCtrl.trigger === btn);
         return;
       }
-      if (pop.contains(event.target)) {
+      if (pop.contains && pop.contains(event.target)) {
         cancelExplainClose();
       }
     });
 
-    document.addEventListener('mouseout', (event) => {
+    host.addEventListener('mouseout', (event) => {
       const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
-      const inPop = pop.contains(event.target);
+      const inPop = Boolean(pop.contains && pop.contains(event.target));
       if (!btn && !inPop) return;
       const related = event.relatedTarget;
-      if (related && (pop.contains(related) || (explainCtrl.trigger && explainCtrl.trigger.contains(related)))) {
+      if (related && ((pop.contains && pop.contains(related)) || (explainCtrl.trigger && explainCtrl.trigger.contains && explainCtrl.trigger.contains(related)))) {
         return;
       }
       scheduleExplainClose();
     });
 
-    document.addEventListener('focusin', (event) => {
+    host.addEventListener('focusin', (event) => {
       const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
       if (btn) {
         if (explainCtrl.pinned && explainCtrl.trigger !== btn) return;
         openExplain(btn, explainCtrl.pinned && explainCtrl.trigger === btn);
         return;
       }
-      if (pop.contains(event.target)) {
+      if (pop.contains && pop.contains(event.target)) {
         cancelExplainClose();
       } else if (!explainCtrl.pinned && isExplainOpen()) {
         closeExplain(false);
       }
     });
 
-    document.addEventListener('click', (event) => {
+    host.addEventListener('click', (event) => {
       const closeBtn = event.target && event.target.closest ? event.target.closest('#explain-close') : null;
       if (closeBtn) {
         event.stopPropagation();

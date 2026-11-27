@@ -154,7 +154,8 @@ async function pressKey(cdp, key) {
   const modifiers = key === '?' ? 8 : 0; // Shift for '?'
   const params = {
     key,
-    text: key.length === 1 ? key : undefined,
+    code: key === 'Enter' ? 'Enter' : (key === 'Escape' ? 'Escape' : undefined),
+    text: key === 'Enter' ? '\r' : (key.length === 1 ? key : undefined),
     windowsVirtualKeyCode: vk,
     nativeVirtualKeyCode: vk,
     modifiers,
@@ -568,38 +569,59 @@ async function runMainPhase(cdp) {
   await waitFor(cdp, "document.getElementById('alert').classList.contains('shown') && document.getElementById('alert').getAttribute('data-top-tier') === 'attention'",
     'Attention Required alert displayed for unfinished work');
 
-  // Trigger a non-modal Blocking alert via unknown exact ID -> must rank ABOVE Attention Required with grouped summary & expand toggle!
+  // Verify benign search miss is Information tier (ranks BELOW Attention Required), then trigger a REAL Blocking
+  // refusal via Skip to Review with unfinished work (WorkPlanOpen from untouched panels/time-history.js).
   await click(cdp, '[data-pane-button="tree"]');
   await typeInto(cdp, '#quick-id', 'NO-SUCH-TREE');
   await pressKey(cdp, 'Enter');
-  await waitFor(cdp, "document.getElementById('alert').getAttribute('data-top-tier') === 'blocking' && document.getElementById('alerts-expand') !== null",
-    'Blocking alert ranks above Attention Required with grouped alert expand button');
-  await click(cdp, '#alerts-expand');
+  await waitFor(cdp, "document.getElementById('alert').getAttribute('data-top-tier') === 'attention' && document.getElementById('alerts-expand') !== null",
+    'Search miss ranked below Attention Required as info tier');
+  await click(cdp, '#skip-review');
+  await waitFor(cdp, "document.getElementById('alert').getAttribute('data-top-tier') === 'blocking' && document.getElementById('alert').textContent.includes('WorkPlanOpen') && document.getElementById('alerts-expand') !== null",
+    'Blocking WorkPlanOpen refusal ranks above Attention Required with grouped alert expand button');
+  await sleep(80);
+  // Keyboard Enter on #alerts-expand must expand AND keep focus on #alerts-expand (never drop to <body>).
+  await evaluate(cdp, "document.getElementById('alerts-expand').focus()");
+  await pressKey(cdp, 'Enter');
+  await waitFor(cdp, "document.getElementById('alerts-expand')?.getAttribute('aria-expanded') === 'true'", 'Enter expanded grouped alerts');
   const alertRankCheck = await evaluate(cdp, `({
     topTier: document.getElementById('alert').getAttribute('data-top-tier'),
     tiersInOrder: Array.from(document.querySelectorAll('#alert [data-alert-tier]')).map((n) => n.getAttribute('data-alert-tier')),
+    blockingRole: document.querySelector('#alert [data-alert-tier="blocking"]')?.getAttribute('role') || '',
+    announced: document.getElementById('announce')?.textContent || '',
+    expandFocusId: document.activeElement?.id || '',
     hasOpenModal: Boolean(document.querySelector('dialog[open]')),
     hasHistoryLink: Boolean(document.querySelector('#alert [data-alert-action="history"]')),
   })`);
-  check(alertRankCheck.topTier === 'blocking' && alertRankCheck.tiersInOrder[0] === 'blocking' &&
-    alertRankCheck.tiersInOrder.includes('attention') && !alertRankCheck.hasOpenModal && alertRankCheck.hasHistoryLink,
-    `MLUI-05 Priority-ranked grouped non-blocking alerts: order=[${alertRankCheck.tiersInOrder.join(' -> ')}], modal=${alertRankCheck.hasOpenModal}, historyLink=${alertRankCheck.hasHistoryLink}`);
   await shot(cdp, 'priority-ranked-alerts');
 
-  // Dismiss manual blocking alert -> Attention Required becomes top -> click its direct 'Open Work Plan' link!
+  // Verify caller-supplied button listener inside .alert-custom-parts works (M-1: live node, never cloned).
+  await click(cdp, '#alert .alert-custom-parts button');
+  await waitFor(cdp, "document.getElementById('side').getAttribute('data-pane') === 'plan' && document.querySelectorAll('[data-disposition-value]').length === 9",
+    'Live caller Open Work Plan button in Skip refusal opened Work Plan');
+
+  // Switch back to Tree tab, dismiss blocking alert -> Attention Required surfaces & focus stays sensible -> click its direct 'Open Work Plan' link.
+  await click(cdp, '[data-pane-button="tree"]');
   await click(cdp, '#alert [data-alert-action="dismiss"]');
   await waitFor(cdp, "document.getElementById('alert').getAttribute('data-top-tier') === 'attention'", 'Attention Required surfaced after dismissing blocking notice');
+  const postDismissFocusTag = await evaluate(cdp, "document.activeElement ? (document.activeElement.tagName + '#' + (document.activeElement.id || '')) : ''");
   await click(cdp, '#alert [data-alert-action="plan"]');
   await waitFor(cdp, "document.getElementById('side').getAttribute('data-pane') === 'plan' && document.querySelectorAll('[data-disposition-value]').length === 9",
-    'Alert direct link opened Work Plan with 3-way felling controls');
+    'Attention Required direct Open Work Plan link opened Work Plan with 3-way felling controls');
+  check(alertRankCheck.topTier === 'blocking' && alertRankCheck.tiersInOrder[0] === 'blocking' &&
+    alertRankCheck.tiersInOrder.includes('attention') && alertRankCheck.blockingRole === 'alert' &&
+    alertRankCheck.announced.includes('WorkPlanOpen') && alertRankCheck.expandFocusId === 'alerts-expand' &&
+    !alertRankCheck.hasOpenModal && alertRankCheck.hasHistoryLink && !postDismissFocusTag.startsWith('BODY'),
+    `MLUI-05 Priority-ranked alerts + live caller button + role=alert + focus preserved: order=[${alertRankCheck.tiersInOrder.join(' -> ')}], expandFocus=${alertRankCheck.expandFocusId}, dismissFocus=${postDismissFocusTag}`);
 
   // Apply 3-way felling dispositions (KeepForUse + LeaveAsDeadwood) -> Approve -> Execute -> Advance 1 Year
   const keepSel = `[data-disposition-area="MA-A"][data-disposition-tree="${tKeep}"][data-disposition-value="KeepForUse"]`;
   const leaveSel = `[data-disposition-area="MA-A"][data-disposition-tree="${tLeave}"][data-disposition-value="LeaveAsDeadwood"]`;
   await click(cdp, keepSel);
-  await waitFor(cdp, `document.querySelector('${keepSel}')?.getAttribute('aria-pressed') === 'true'`, 'KeepForUse applied');
+  await waitFor(cdp, `document.querySelector('${keepSel}')?.getAttribute('aria-pressed') === 'true' && !document.documentElement.classList.contains('busy')`, 'KeepForUse applied');
   await click(cdp, leaveSel);
-  await waitFor(cdp, `document.querySelector('${leaveSel}')?.getAttribute('aria-pressed') === 'true'`, 'LeaveAsDeadwood applied');
+  await waitFor(cdp, `document.querySelector('${leaveSel}')?.getAttribute('aria-pressed') === 'true' && !document.documentElement.classList.contains('busy') && !document.getElementById('approve').disabled`, 'LeaveAsDeadwood applied and Approve ready');
+  await sleep(120);
 
   await click(cdp, '#approve');
   await waitFor(cdp, "!document.getElementById('approved-box').hidden && document.getElementById('economy-quote-badge').textContent.includes('Frozen')",

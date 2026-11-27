@@ -790,7 +790,7 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
         return;
       }
       showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
-        el('p', null, 'No tree or planted sapling in the woodland has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
+        el('p', null, 'No tree or planted sapling in the woodland has the exact case-sensitive ID "' + typed + '".')], byId(inputId), { tier: 'info', id: 'search-no-match' });
     };
   }
 
@@ -818,7 +818,7 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
       else if (action === 'results') { showPane('history'); byId('year-heading').focus(); }
       else if (action === 'focus-area') { const aid = btn.getAttribute('data-area-id'); if (aid) showArea(aid); }
       else if (action === 'dismiss') dismissAlert(btn.getAttribute('data-alert-id'));
-      else if (action === 'toggle-expand') { state.alertsExpanded = !state.alertsExpanded; renderAlertStrip(); }
+      else if (action === 'toggle-expand') { state.alertsExpanded = !state.alertsExpanded; renderAlertStrip({ force: true, restoreFocus: true }); }
     });
     byId('pane-navigator').addEventListener('click', (event) => {
       const cyc = event.target.closest('[data-nav-cycle]');

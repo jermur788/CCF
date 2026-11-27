@@ -335,13 +335,30 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
 
   // ---- priority-ranked grouped non-blocking alerts, announcements and the re-read lock --------------------------------
 
+  let alertRenderSig = '';
+  let manualAlertSeq = 0;
+  let announceTimer = 0;
+
+  function plainTextOfParts(parts) {
+    return (parts || [])
+      .map((part) => (typeof part === 'string' ? part : (part && part.textContent ? part.textContent : '')))
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   export function buildAlertItems() {
     const items = [];
     const view = state.view;
     const dismissed = state.dismissedAlerts || {};
+    const manual = state.manualAlert && !(state.manualAlert.id === 'lock' && !state.lock) ? state.manualAlert : null;
 
-    // 1. Blocking (persistent explanation + corrective action)
-    if (state.lock) {
+    // 1. Blocking (persistent explanation + corrective action).
+    // Direct user-action refusals / lock overrides rank first and deduplicate passive built-in notices with the same id.
+    if (manual && manual.tier === 'blocking') {
+      items.push(manual);
+    }
+    if (state.lock && !(manual && manual.id === 'lock')) {
       items.push({
         id: 'lock',
         tier: 'blocking',
@@ -351,7 +368,7 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
         dismissible: false,
       });
     }
-    if (view && readoutState() === 'unavailable') {
+    if (view && readoutState() === 'unavailable' && !(manual && manual.id === 'readout-unavailable')) {
       items.push({
         id: 'readout-unavailable',
         tier: 'blocking',
@@ -361,11 +378,11 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
         dismissible: false,
       });
     }
-    if (state.manualAlert && state.manualAlert.tier === 'blocking') {
-      items.push(state.manualAlert);
-    }
 
     // 2. Attention Required (warning + direct Work Plan link)
+    if (manual && manual.tier === 'attention') {
+      items.push(manual);
+    }
     if (view) {
       if (isEconomyEnabled() && state.economy && state.economy.activeQuote && !state.economy.activeQuote.isEligible) {
         items.push({
@@ -403,6 +420,9 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     }
 
     // 3. Significant Event (grouped notice with direct map navigation; never one popup per stem)
+    if (manual && manual.tier === 'event') {
+      items.push(manual);
+    }
     if (view && Array.isArray(view.annualHistory) && view.annualHistory.length > 0) {
       const latest = view.annualHistory[view.annualHistory.length - 1];
       if (latest && latest.yearAfter === view.source.ecologicalYear) {
@@ -423,8 +443,8 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     }
 
     // 4. Information (quiet non-blocking notices)
-    if (state.manualAlert && state.manualAlert.tier === 'info') {
-      items.push(state.manualAlert);
+    if (manual && manual.tier === 'info') {
+      items.push(manual);
     }
     if (view && state.lastSkip && state.lastSkip.destinationYear === view.source.ecologicalYear) {
       const skipId = 'info-skip-y' + state.lastSkip.destinationYear + '-r' + view.source.annualRevision;
@@ -450,34 +470,38 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     return items;
   }
 
-  function renderAlertAction(action) {
+  function renderAlertAction(action, itemId) {
     if (!action) return null;
     return el('button', {
       type: 'button',
       class: 'small secondary alert-action-btn',
       'data-alert-action': action.kind,
       'data-area-id': action.areaId || null,
+      'data-focus-key': 'alert-act:' + itemId + ':' + action.kind,
     }, action.label);
   }
 
   function renderAlertRow(item, isPrimary) {
     const meta = ALERT_TIERS[item.tier] || ALERT_TIERS.info;
+    // Insert real caller-supplied nodes directly (never cloneNode) so direct listeners and focusTarget survive intact.
     const body = item.parts && item.parts.length > 0
-      ? el('div', { class: 'alert-custom-parts' }, ...item.parts.map((p) => p.cloneNode ? p.cloneNode(true) : p))
+      ? el('div', { class: 'alert-custom-parts' }, ...item.parts)
       : el('span', { class: 'alert-msg' },
         el('strong', { class: 'alert-title' }, item.title),
         item.text ? ' — ' + item.text : '');
     const controls = el('div', { class: 'alert-controls' },
-      renderAlertAction(item.action),
+      renderAlertAction(item.action, item.id),
       item.dismissible ? el('button', {
         type: 'button',
         class: 'link-button small-link alert-dismiss',
         'data-alert-action': 'dismiss',
         'data-alert-id': item.id,
+        'data-focus-key': 'alert-dismiss:' + item.id,
         'aria-label': 'Dismiss ' + meta.label + ' notice',
       }, '× Dismiss') : null);
     return el('div', {
       class: 'alert-item alert-tier-' + item.tier + (isPrimary ? ' alert-primary' : ''),
+      role: item.tier === 'blocking' ? 'alert' : null,
       'data-alert-tier': item.tier,
       'data-alert-id': item.id,
     },
@@ -487,15 +511,45 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     controls);
   }
 
-  export function renderAlertStrip() {
+  function alertSignature(items) {
+    return items.map((it) => [
+      it.id,
+      it.tier,
+      it.title || '',
+      it.text || '',
+      it.seq || 0,
+      it.dismissible ? 1 : 0,
+      it.action ? (it.action.kind + ':' + (it.action.areaId || '')) : '',
+    ].join('|')).join(';') + '#exp=' + (state.alertsExpanded ? 1 : 0);
+  }
+
+  export function renderAlertStrip(options) {
     const box = byId('alert');
     if (!box) return;
+    const opts = options || {};
     const items = buildAlertItems();
+    const sig = alertSignature(items);
+    const alreadyShown = box.classList.contains('shown');
+    if (!opts.force && sig === alertRenderSig && ((items.length === 0 && !alreadyShown) || (items.length > 0 && alreadyShown))) {
+      return;
+    }
+
+    const focused = document.activeElement;
+    const wasInside = Boolean(focused && focused !== document.body &&
+      (focused === box || (box.contains && box.contains(focused))));
+    const savedKey = wasInside && focused.getAttribute ? focused.getAttribute('data-focus-key') : null;
+    const savedNode = wasInside && !savedKey && focused !== box ? focused : null;
+
+    alertRenderSig = sig;
     if (items.length === 0) {
       box.replaceChildren();
       box.classList.remove('shown');
       box.removeAttribute('data-top-tier');
       state.alertsExpanded = false;
+      if (wasInside || opts.restoreFocus) {
+        const fallback = byId('reread');
+        if (fallback && !fallback.disabled) fallback.focus();
+      }
       return;
     }
     const top = items[0];
@@ -525,12 +579,14 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
           id: 'alerts-expand',
           class: 'link-button small-link',
           'data-alert-action': 'toggle-expand',
+          'data-focus-key': 'alert-expand',
           'aria-expanded': String(Boolean(state.alertsExpanded)),
         }, state.alertsExpanded ? 'Hide alerts ▴' : 'All alerts (' + items.length + ') ▾') : null,
         el('button', {
           type: 'button',
           class: 'link-button small-link alert-history-link',
           'data-alert-action': 'history',
+          'data-focus-key': 'alert-history',
         }, '◷ History')));
 
     const children = [headerBar];
@@ -539,6 +595,20 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
         ...items.slice(1).map((item) => renderAlertRow(item, false))));
     }
     box.replaceChildren(...children);
+
+    if (wasInside || opts.restoreFocus) {
+      if (savedKey) {
+        const nextBtn = box.querySelector('[data-focus-key="' + CSS.escape(savedKey) + '"]');
+        if (nextBtn && !nextBtn.disabled) { nextBtn.focus(); return; }
+      }
+      if (savedNode && savedNode.isConnected && !savedNode.disabled) {
+        savedNode.focus();
+        return;
+      }
+      const firstControl = box.querySelector('button');
+      if (firstControl && !firstControl.disabled) firstControl.focus();
+      else box.focus();
+    }
   }
 
   export function dismissAlert(alertId) {
@@ -548,12 +618,12 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     } else {
       state.dismissedAlerts[alertId] = true;
     }
-    renderAlertStrip();
+    renderAlertStrip({ force: true, restoreFocus: true });
   }
 
   export function clearAlert() {
     state.manualAlert = null;
-    renderAlertStrip();
+    renderAlertStrip({ force: true });
   }
 
   export function showAlert(parts, focusTarget, options) {
@@ -561,24 +631,38 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     const tier = opts.tier && opts.tier in ALERT_TIERS ? opts.tier : 'blocking';
     const cleanParts = (parts || []).filter((part) => part !== null && part !== undefined);
     const dismissible = opts.dismissible !== undefined ? Boolean(opts.dismissible) : (state.lock === null);
+    manualAlertSeq += 1;
     state.manualAlert = {
-      id: opts.id || ('manual-' + Date.now()),
+      id: opts.id || ('manual-' + manualAlertSeq),
+      seq: manualAlertSeq,
       tier,
       parts: cleanParts,
       dismissible,
     };
-    renderAlertStrip();
+    renderAlertStrip({ force: true });
+    if (tier === 'blocking' && !opts.silentAnnounce) {
+      const spoken = plainTextOfParts(cleanParts);
+      if (spoken) announce(spoken);
+    }
     const box = byId('alert');
     if (box) (focusTarget || box).focus();
   }
 
   export function announce(message) {
     const region = byId('announce');
+    if (!region) return;
+    if (announceTimer) {
+      clearTimeout(announceTimer);
+      announceTimer = 0;
+    }
     region.textContent = '';
-    window.setTimeout(() => { region.textContent = message; }, 50);
+    announceTimer = window.setTimeout(() => {
+      announceTimer = 0;
+      region.textContent = message;
+    }, 50);
   }
   export function rereadButton() {
-    const button = el('button', { type: 'button', class: 'small secondary', 'data-alert-action': 'reread' }, 'Re-read current state');
+    const button = el('button', { type: 'button', class: 'small secondary', 'data-focus-key': 'alert-reread' }, 'Re-read current state');
     button.addEventListener('click', () => hooks.reread(true));
     return button;
   }
@@ -702,7 +786,7 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
       extra ? el('p', null, extra) : null,
       el('p', null, 'Every command stays unavailable until a re-read of the current state succeeds.'),
       rereadButton(),
-    ]);
+    ], null, { tier: 'blocking', id: 'lock', dismissible: false });
   }
 
   export function refusedByLock(what) {

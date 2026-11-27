@@ -1644,8 +1644,8 @@ check(server.areas.every((area) => area.cropTreeIds.length === 0) && server.pend
     byId('consent-dialog').removeAttribute('open');
     held.release();
     await waitR3(() => byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree'), 'the map click answer after a dialog-only Escape');
-    checkR3(!byId('inspector-body').hidden && byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree') && alertText() === '',
-      'F-05: an Escape that only closed a dialog leaves the pending map click alone; its answer selects ' + byId('insp-id').textContent, [byId('insp-id').textContent, byId('announce').textContent]);
+    checkR3(!byId('inspector-body').hidden && byId('insp-id').textContent !== refA && byId('announce').textContent.startsWith('Selected tree') && byId('alert').getAttribute('data-top-tier') !== 'blocking',
+      'F-05: an Escape that only closed a dialog leaves the pending map click alone; its answer selects ' + byId('insp-id').textContent, [byId('insp-id').textContent, byId('announce').textContent, alertText()]);
 
     // Clean-up: remove the four orders and re-read, so the rest of the witness sees the session it saw before R3.
     click(byId('inspect-close'));
@@ -1764,7 +1764,8 @@ await sleep(150);
 check(requests.length === mark, 'no request but a read can leave the page while locked', requests.slice(mark));
 click(byId('alert').querySelector('button'));
 await until(() => !byId('advance').disabled && pendingIds().includes(lostTree), 'the re-read to lift the lock and show the committed Add');
-check(alertText() === '', 'a successful re-read lifts the lock and clears the alert');
+check(byId('alert').getAttribute('data-top-tier') !== 'blocking' && !alertText().includes('Outcome unconfirmed'),
+  'a successful re-read lifts the lock and clears the blocking alert', alertText());
 
 // ---- P2 (Pass 2 interactive Work Plan modes, provisional Draft previews, sequential queue partial disclosure,
 // ClearUndergrowth, Plant + Shelter + SpotClear -> Approve -> Execute, live SVG markers, PJ shelter, Escape) ----
@@ -1820,11 +1821,12 @@ check(alertText() === '', 'a successful re-read lifts the lock and clears the al
     'found two well-separated open planting points inside MA-A ground cells', openPts.length);
   const pt1 = openPts[0], pt2 = openPts[1];
 
-  // Select a living tree in MA-A, tick 1 draft competitor, enable Light Guide overlay.
+  // Select a living tree in MA-A, tick 1 draft competitor, switch to Regeneration lens (which unlocks Plant & Spot Clear and defaults safely to Select Tree + Light Guide overlay).
   await selectInTable(aTree);
   await waitP2(() => competitorButtons().length > 0, 'competitors for MA-A reference');
   click(competitorButtons()[0]);
   await waitP2(() => byId('add-button').textContent === 'Add selected 1 to Fell plan', '1 draft Fell tick before Plant mode');
+  click(byId('lens-bar').querySelector('[data-lens-btn="regeneration"]'));
   byId('overlay-select').value = 'light';
   byId('overlay-select').dispatchEvent(new FakeEvent('change'));
 
@@ -1973,6 +1975,7 @@ check(alertText() === '', 'a successful re-read lifts the lock and clears the al
   checkP2(byId('juvenile-panel').hidden && !byId('tree-panel').hidden &&
     byId('add-button').textContent === 'Add selected 1 to Fell plan',
     'Escape closes PJ sapling inspection back to adult tree inspector preserving draft Fell ticks');
+  click(byId('lens-bar').querySelector('[data-lens-btn="woodland"]'));
 }
 
 // ---- S2 (Phase 1 Step 2 UI witness: Skip button + WorkPlanOpen refusal + History drawer + Escape preserves Fell draft +
