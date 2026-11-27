@@ -255,6 +255,19 @@ internal sealed partial class MultiAreaContinuation
             MultiAreaEconomyState? nextEconomy = root.Economy;
             if (root.Economy is not null)
                 (settlement, nextEconomy) = EconomyQuoteCalculator.BuildSettlement(root, Token(root), plan, workRevision);
+            if (settlement is { DeadwoodIntents.Count: > 0 })
+            {
+                if (nextStage4 is null)
+                    throw new P1Refusal("EconomyDeadwoodRequiresStage4",
+                        "a LeaveAsDeadwood stem was settled but this session has no Stage 4 deadwood state");
+                var (deadwoodRecords, nextDeadwood) = FelledStemDeadwood.Materialise(
+                    settlement.DeadwoodIntents, nextStage4.NextDeadwoodNumber);
+                nextStage4 = nextStage4 with
+                {
+                    Deadwood = Array.AsReadOnly(nextStage4.Deadwood.Concat(deadwoodRecords).ToArray()),
+                    NextDeadwoodNumber = nextDeadwood,
+                };
+            }
 
             // Test-only fault seam: rosters, event, settlement and revisions are complete, but nothing has been published.
             beforePublish?.Invoke();

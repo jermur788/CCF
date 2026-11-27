@@ -124,6 +124,14 @@ public sealed record Phase1EngineLineage(int RngModelVersion, int GrowthModelVer
             DerivedManifest.P1AlgorithmVersion, areaModel, MultiAreaIdentity.ActionEligibleDbhThresholdMm);
     }
 
+    internal static Phase1EngineLineage Current(Phase1ModelVector models, EconomyModelVersion economy)
+    {
+        var baseLineage = Current(models);
+        return economy == EconomyModelVersion.Off
+            ? baseLineage
+            : baseLineage with { AreaModelVersion = EconomyIdentity.AreaModelVersion(baseLineage.AreaModelVersion, economy) };
+    }
+
     public override string ToString() => FormattableString.Invariant(
         $"rng {RngModelVersion}, growth {GrowthModelVersion}, p1 {P1AlgorithmVersion}, area {AreaModelVersion}, threshold {ActionEligibleDbhThresholdMm} mm");
 }

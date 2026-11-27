@@ -65,6 +65,10 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
     await refreshSaves();
   }
 
+  function canSaveCurrentSession() {
+    return !isEconomyEnabled() || Boolean(state.economy && state.economy.canSaveV3);
+  }
+
   async function refreshSaves() {
     const outcome = await jsonCall('api/multi/saves', 'GET');
     if (outcome.kind !== 'ok' || !outcome.payload) {
@@ -74,8 +78,7 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
     }
     state.saves = outcome.payload.slots || [];
     if (outcome.payload.refusal) {
-      saveStatus(outcome.payload.refusal.code + ': ' + outcome.payload.refusal.message +
-        ' Save v3 economy persistence is deferred to Phase 2B-2b; switch Money Off to use Save v2 slots.', 'warn');
+      saveStatus(outcome.payload.refusal.code + ': ' + outcome.payload.refusal.message, 'warn');
     }
     renderSaves();
   }
@@ -94,7 +97,8 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
       }
       return el('tr', null,
         el('td', { class: 'slot-cell' }, el('code', null, slot.slot),
-          slot.schemaVersion === 3 ? el('span', { class: 'tag slot-ver' }, 'v3') : null),
+          slot.schemaVersion === 3 ? el('span', { class: 'tag slot-ver' }, 'v3') : null,
+          slot.economyEnabled === true ? el('span', { class: 'tag slot-ver' }, 'Money') : null),
         el('td', { class: 'num' }, slot.ecologicalYear === null || slot.ecologicalYear === undefined ? '–' : String(slot.ecologicalYear)),
         el('td', { class: 'num' }, slot.savedUtc || '–'),
         el('td', { class: stateClass }, word,
@@ -104,9 +108,9 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
     });
     byId('saves-rows').replaceChildren(...(rows.length > 0 ? rows
       : [el('tr', null, el('td', { colspan: 5, class: 'save-empty' },
-        isEconomyEnabled()
-          ? 'Save v2 slots are unavailable while Money is On (Save v3 deferred to Phase 2B-2b).'
-          : (label('MultiSavesEmpty') || 'No saved slots yet.')))]));
+        canSaveCurrentSession()
+          ? (label('MultiSavesEmpty') || 'No saved slots yet.')
+          : 'Built-in stands cannot save while Money is On. Start a Forest Maker woodland for Save v3, or switch Money Off.'))]));
     updateSaveControls();
   }
 
@@ -117,7 +121,7 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
     const existing = saveNameValid(name) ? savedSlot(name) : null;
     byId('save-overwrite-wrap').hidden = !existing;
     if (!existing) byId('save-overwrite').checked = false;
-    byId('save-do').disabled = !saveNameValid(name) || state.busy || isEconomyEnabled();
+    byId('save-do').disabled = !saveNameValid(name) || state.busy || !canSaveCurrentSession();
   }
 
   export async function onSave() {

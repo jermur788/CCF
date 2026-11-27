@@ -18,17 +18,14 @@ internal sealed class FeatureBlockRegistry
     private readonly Dictionary<string, IFeatureBlockCodec> codecs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ReservedFeatureBlockSlot> reserved = new(StringComparer.Ordinal);
 
-    /// <summary>Default Phase 2A-2 registry: <c>genesisRecipe</c> implemented; <c>economy</c> reserved for Phase 2B.</summary>
+    /// <summary>Default Phase 2B-2b registry: <c>genesisRecipe</c> and <c>economy</c> codecs implemented.</summary>
     internal static FeatureBlockRegistry Default { get; } = CreateDefault();
 
     internal static FeatureBlockRegistry CreateDefault()
     {
         var registry = new FeatureBlockRegistry();
         registry.Register(new GenesisRecipeBlockCodec());
-        registry.Reserve(new ReservedFeatureBlockSlot(
-            SaveV3Format.EconomyBlockKey,
-            "SaveEconomyRequiresV3",
-            "the 'economy' Save v3 feature block is reserved for Phase 2B persistence and is not yet implemented by this build"));
+        registry.Register(new EconomyFeatureBlockCodec());
         return registry;
     }
 

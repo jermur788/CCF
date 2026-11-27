@@ -572,20 +572,20 @@ internal sealed partial class PlayerApi
         }
     }
 
-    // ---- Phase 2B-2a Economy Server-Authoritative Projection & Formatting (zero JS math; omitted when Off) -------------
+    // ---- Phase 2B-2a / 2B-2b Economy Server-Authoritative Projection & Formatting (zero JS math; omitted when Off) -----
 
     private static string FormatEconomyDisclaimer(EconomyOptions options) =>
         "Calibrated teaching estimates (ex VAT; not an empirical national tariff or farm-forestry balance sheet). " +
         $"Small cuts on small woods can net a loss under the {EconomyDefaults.FormatEuros(options.MinimumHarvestJobCents)} contractor harvest minimum floor. " +
-        "No automatic grants are modelled. Felled timber is priced and settled through the sell-and-extract engine path; " +
-        "retaining timber for own use (dispositions) is deferred.";
+        "No automatic grants are modelled. Every felled stem is handled by the same contractor job: Sell & Extract earns D-062 roadside revenue, " +
+        "Keep for Own Use adds engine-graded stem volume to retained timber (non-cash), and Leave as Deadwood creates fallen deadwood on site.";
 
-    private const string EconomySaveBlockedNote =
-        "Saving and loading Economy sessions require Save v3 (deferred to Phase 2B-2b). Switch Money Off to use Save v2 slots.";
+    private const string EconomyBuiltInSaveBlockedNote =
+        "Built-in stands (MA-1 / MA-1-MIXED) use frozen Save v2 and cannot be saved while Money is On. Start a Forest Maker woodland for Save v3, or switch Money Off for Save v2.";
 
     private const string EconomyFellContractorTooltip =
         "Commercial production felling is contractor-only — not ordinary owner DIY. " +
-        "Felled timber is priced and settled through the sell-and-extract path (dispositions deferred).";
+        "Choose per felled stem: Sell & Extract, Keep for Own Use (retained m³, non-cash), or Leave as Deadwood.";
 
     private static MultiEconomySnapshotDto? TryBuildEconomySnapshot(MultiAreaContinuation session, MultiAreaSessionView view)
     {
@@ -608,7 +608,7 @@ internal sealed partial class PlayerApi
                 bool hasPending = pendingQuote.HarvestJob is not null || pendingQuote.NonHarvestLines.Count > 0;
                 if (hasPending) quote = pendingQuote;
             }
-            return BuildEconomySnapshot(econView, quote, frozen);
+            return BuildEconomySnapshot(econView, quote, frozen, session.IsForestMaker);
         }
         catch (P1Refusal)
         {
@@ -617,7 +617,7 @@ internal sealed partial class PlayerApi
     }
 
     private static MultiEconomySnapshotDto BuildEconomySnapshot(
-        MultiAreaEconomyView econView, EconomyWorkPlanQuote? activeQuote, bool approvedQuoteFrozen)
+        MultiAreaEconomyView econView, EconomyWorkPlanQuote? activeQuote, bool approvedQuoteFrozen, bool canSaveV3 = false)
     {
         var nextStage = EconomyDefaults.AutoHarvestStage(econView.ExecutedHarvestPlansCount);
         long nextRate = EconomyDefaults.HarvestRateCentsPerTonne(nextStage);
@@ -626,12 +626,18 @@ internal sealed partial class PlayerApi
             .Select(kv => new MultiEconomyExecutorEntryDto(
                 kv.Key.Kind.ToString(), kv.Key.AreaId, kv.Key.TargetKey, kv.Value.ToString()))
             .ToArray();
+        var pendingDispositions = econView.PendingFellDispositions
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new MultiEconomyPendingDispositionDto(
+                kv.Key.AreaId, kv.Key.TargetKey, kv.Value.ToString(), FormatDispositionLabel(kv.Value)))
+            .ToArray();
         var latestSettlement = econView.Settlements.Count > 0
             ? ProjectEconomySettlement(econView.Settlements[^1], econView.Options)
             : null;
         string annualAllowanceHours = FormatHoursValue(econView.Options.AnnualLandownerAllowanceMinutes) + " hrs";
         string allowanceTooltip = FormattableString.Invariant(
             $"Remaining annual landowner hours ({annualAllowanceHours}/yr at {EconomyDefaults.FormatEuros(0L)} cash wage; resets on Advance 1 Year)");
+        var evidence = econView.EvidenceLabels.Concat(FellingDispositionEvidence.All).ToArray();
         return new MultiEconomySnapshotDto(
             Enabled: true,
             CashBalanceCents: econView.CashBalanceCents,
@@ -652,15 +658,18 @@ internal sealed partial class PlayerApi
             MinimumHarvestFloorCents: econView.Options.MinimumHarvestJobCents,
             MinimumHarvestFloorDisplay: EconomyDefaults.FormatEuros(econView.Options.MinimumHarvestJobCents),
             ContractorHourlyRateDisplay: EconomyDefaults.FormatEuros(econView.Options.ContractorHourlyRateCents) + "/hr",
+            RetainedTimber: ProjectRetainedTimber(econView.RetainedTimber),
             PendingOrderExecutors: Array.AsReadOnly(executors),
+            PendingFellDispositions: Array.AsReadOnly(pendingDispositions),
             ActiveQuote: activeQuote is null ? null : ProjectEconomyQuote(activeQuote, econView.Options),
             ApprovedQuoteFrozen: approvedQuoteFrozen,
             LatestSettlement: latestSettlement,
             FellContractorTooltip: EconomyFellContractorTooltip,
-            SaveBlockedCode: "SaveEconomyRequiresV3",
-            SaveBlockedNote: EconomySaveBlockedNote,
+            CanSaveV3: canSaveV3,
+            SaveBlockedCode: canSaveV3 ? null : "SaveEconomyRequiresV3",
+            SaveBlockedNote: canSaveV3 ? null : EconomyBuiltInSaveBlockedNote,
             Disclaimer: FormatEconomyDisclaimer(econView.Options),
-            EvidenceLabels: econView.EvidenceLabels);
+            EvidenceLabels: Array.AsReadOnly(evidence));
     }
 
     private static MultiEconomyQuoteDto ProjectEconomyQuote(EconomyWorkPlanQuote quote, EconomyOptions? options = null)
@@ -723,6 +732,51 @@ internal sealed partial class PlayerApi
             EvidenceLabels: quote.EvidenceLabels);
     }
 
+    private static MultiEconomyRetainedTimberDto ProjectRetainedTimber(RetainedTimberTally tally)
+    {
+        var bySpecies = tally.BySpecies
+            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .Select(kv => new MultiEconomyRetainedSpeciesDto(
+                SpeciesId: kv.Value.SpeciesId,
+                SpeciesLabel: FormatSpeciesLabel(kv.Value.SpeciesId),
+                RetainedTimberCm3: kv.Value.RetainedTimberCm3,
+                RetainedTimberM3: kv.Value.RetainedTimberM3,
+                VolumeDisplay: FormatVolumeM3(kv.Value.RetainedTimberCm3)))
+            .ToArray();
+        return new MultiEconomyRetainedTimberDto(
+            RetainedTimberCm3: tally.RetainedTimberCm3,
+            RetainedTimberM3: tally.RetainedTimberM3,
+            VolumeDisplay: FormatVolumeM3(tally.RetainedTimberCm3),
+            StemCount: tally.Stems.Count,
+            BySpecies: Array.AsReadOnly(bySpecies));
+    }
+
+    private static MultiEconomyStemDispositionDto ProjectStemDisposition(FelledStemDispositionLine d) => new(
+        AreaId: d.AreaId,
+        TreeId: d.TreeId,
+        SpeciesId: d.SpeciesId,
+        SpeciesLabel: FormatSpeciesLabel(d.SpeciesId),
+        Disposition: d.Disposition.ToString(),
+        DispositionLabel: FormatDispositionLabel(d.Disposition),
+        StemVolumeCm3: d.StemVolumeCm3,
+        StemVolumeDisplay: FormatVolumeM3(d.StemVolumeCm3),
+        HarvestedTonnesDisplay: FormatTonnes(d.HarvestedGreenGrams),
+        CreditedTimberRevenueCents: d.CreditedTimberRevenueCents,
+        CreditedTimberRevenueDisplay: EconomyDefaults.FormatEuros(d.CreditedTimberRevenueCents),
+        RetainedTimberCm3: d.RetainedTimberCm3,
+        RetainedTimberM3: RetainedTimber.ToM3(d.RetainedTimberCm3),
+        RetainedTimberDisplay: FormatVolumeM3(d.RetainedTimberCm3),
+        EmitsDeadwoodIntent: d.EmitsDeadwoodIntent);
+
+    private static MultiEconomyDeadwoodIntentDto ProjectDeadwoodIntent(FelledStemDeadwoodIntent i) => new(
+        AreaId: i.AreaId,
+        TreeId: i.TreeId,
+        SpeciesId: i.SpeciesId,
+        SpeciesLabel: FormatSpeciesLabel(i.SpeciesId),
+        VolumeM3: R3f(i.VolumeM3),
+        VolumeDisplay: FormattableString.Invariant($"{i.VolumeM3:0.000} m³"),
+        EcologicalYear: i.EcologicalYear);
+
     private static MultiEconomyHarvestQuoteDto ProjectEconomyHarvestQuote(EconomyHarvestQuote h)
     {
         bool floorApplied = h.MinimumJobAdjustmentCents > 0L;
@@ -743,6 +797,7 @@ internal sealed partial class PlayerApi
             UnitPriceDisplay: EconomyDefaults.FormatEuros(a.UnitPriceCentsPerTonne) + "/t",
             RevenueCents: a.RevenueCents,
             RevenueDisplay: EconomyDefaults.FormatEuros(a.RevenueCents))).ToArray();
+        var stemDispositions = h.StemDispositions.Select(ProjectStemDisposition).ToArray();
         return new MultiEconomyHarvestQuoteDto(
             Stage: h.Stage.ToString(),
             StageLabel: FormatStageLabel(h.Stage, h.StageRateCentsPerTonne),
@@ -752,6 +807,10 @@ internal sealed partial class PlayerApi
             TotalStemVolumeDisplay: FormatVolumeM3(h.TotalStemVolumeCm3),
             SaleVolumeDisplay: FormatVolumeM3(h.SaleVolumeCm3),
             ResidualVolumeDisplay: FormatVolumeM3(h.ResidualVolumeCm3),
+            RetainedStemVolumeCm3: h.RetainedStemVolumeCm3,
+            RetainedStemVolumeDisplay: FormatVolumeM3(h.RetainedStemVolumeCm3),
+            DeadwoodStemVolumeCm3: h.DeadwoodStemVolumeCm3,
+            DeadwoodStemVolumeDisplay: FormatVolumeM3(h.DeadwoodStemVolumeCm3),
             HarvestedTonnesDisplay: FormatTonnes(h.HarvestedGreenGrams),
             VariableHarvestCostCents: h.VariableHarvestCostCents,
             VariableHarvestCostDisplay: EconomyDefaults.FormatEuros(h.VariableHarvestCostCents),
@@ -765,12 +824,16 @@ internal sealed partial class PlayerApi
             TotalHarvestContractorCostDisplay: EconomyDefaults.FormatEuros(h.TotalHarvestContractorCostCents),
             TimberSaleRevenueCents: h.TimberSaleRevenueCents,
             TimberSaleRevenueDisplay: EconomyDefaults.FormatEuros(h.TimberSaleRevenueCents),
+            RetainedTimber: ProjectRetainedTimber(h.RetainedTimber),
+            DeadwoodIntentCount: h.DeadwoodIntents.Count,
+            StemDispositions: Array.AsReadOnly(stemDispositions),
             Assortments: Array.AsReadOnly(assortments));
     }
 
     private static MultiEconomySettlementDto ProjectEconomySettlement(EconomySettlementReceipt r, EconomyOptions? options = null)
     {
         var entries = r.LedgerEntries.Select(e => ProjectEconomyLedgerEntry(e, options)).ToArray();
+        var deadwoodIntents = r.DeadwoodIntents.Select(ProjectDeadwoodIntent).ToArray();
         return new MultiEconomySettlementDto(
             ExecutionKey: r.ExecutionKey,
             PlanId: r.PlanId,
@@ -793,6 +856,9 @@ internal sealed partial class PlayerApi
             OwnerHoursConsumedDisplay: FormatMinutesAndHours(r.OwnerMinutesConsumed),
             OwnerHoursAfterDisplay: FormatMinutesAndHours(r.OwnerMinutesAfter),
             HarvestJob: r.HarvestJob is null ? null : ProjectEconomyHarvestQuote(r.HarvestJob),
+            RetainedTimberDelta: ProjectRetainedTimber(r.RetainedTimberDelta),
+            DeadwoodIntentCount: deadwoodIntents.Length,
+            DeadwoodIntents: Array.AsReadOnly(deadwoodIntents),
             LedgerEntries: Array.AsReadOnly(entries));
     }
 
@@ -807,26 +873,49 @@ internal sealed partial class PlayerApi
         ExecutionKey: e.ExecutionKey,
         PlanId: e.PlanId);
 
-    private static MultiEconomyHistoryYearDto ProjectEconomyHistoryYear(EconomyYearHistory h, EconomyOptions? options = null) => new(
-        Year: h.Year,
-        EconomyActive: h.EconomyActive,
-        Provenance: h.Provenance.ToString(),
-        ProvenanceLabel: h.ProvenanceLabel,
-        OpeningCashCents: h.OpeningCashCents,
-        ClosingCashCents: h.ClosingCashCents,
-        TotalExternalCostCents: h.TotalExternalCostCents,
-        TotalTimberRevenueCents: h.TotalTimberRevenueCents,
-        NetCashDeltaCents: h.NetCashDeltaCents,
-        LandownerMinutesUsed: h.LandownerMinutesUsed,
-        OpeningCashDisplay: h.OpeningCashDisplay,
-        ClosingCashDisplay: h.ClosingCashDisplay,
-        TotalExternalCostDisplay: h.TotalExternalCostDisplay,
-        TotalTimberRevenueDisplay: h.TotalTimberRevenueDisplay,
-        NetCashDeltaDisplay: h.NetCashDeltaCents is long net ? FormatSignedEuros(net) : h.NetCashDeltaDisplay,
-        LandownerMinutesUsedDisplay: h.LandownerMinutesUsed is int m ? FormatMinutesAndHours(m) : h.LandownerMinutesUsedDisplay,
-        Settlements: Array.AsReadOnly(h.Settlements.Select(s => ProjectEconomySettlement(s, options)).ToArray()),
-        Ledger: Array.AsReadOnly(h.Ledger.Select(e => ProjectEconomyLedgerEntry(e, options)).ToArray()),
-        Disclosure: h.Disclosure);
+    private static MultiEconomyHistoryYearDto ProjectEconomyHistoryYear(EconomyYearHistory h, EconomyOptions? options = null)
+    {
+        long? retainedAddedCm3 = null;
+        string retainedAddedDisplay = EconomyHistoryQuery.NotRecordedText;
+        IReadOnlyList<MultiEconomyRetainedSpeciesDto> retainedBySpecies = Array.Empty<MultiEconomyRetainedSpeciesDto>();
+        IReadOnlyList<MultiEconomyStemDispositionDto> stemDispositions = Array.Empty<MultiEconomyStemDispositionDto>();
+        if (h.EconomyActive)
+        {
+            var yearRetained = RetainedTimberTally.FromStems(h.Settlements.SelectMany(s => s.RetainedTimberDelta.Stems));
+            retainedAddedCm3 = yearRetained.RetainedTimberCm3;
+            retainedAddedDisplay = FormatVolumeM3(yearRetained.RetainedTimberCm3);
+            retainedBySpecies = ProjectRetainedTimber(yearRetained).BySpecies;
+            stemDispositions = Array.AsReadOnly(h.Settlements
+                .Where(s => s.HarvestJob is not null)
+                .SelectMany(s => s.HarvestJob!.StemDispositions)
+                .Select(ProjectStemDisposition)
+                .ToArray());
+        }
+        return new MultiEconomyHistoryYearDto(
+            Year: h.Year,
+            EconomyActive: h.EconomyActive,
+            Provenance: h.Provenance.ToString(),
+            ProvenanceLabel: h.ProvenanceLabel,
+            OpeningCashCents: h.OpeningCashCents,
+            ClosingCashCents: h.ClosingCashCents,
+            TotalExternalCostCents: h.TotalExternalCostCents,
+            TotalTimberRevenueCents: h.TotalTimberRevenueCents,
+            NetCashDeltaCents: h.NetCashDeltaCents,
+            LandownerMinutesUsed: h.LandownerMinutesUsed,
+            RetainedTimberAddedCm3: retainedAddedCm3,
+            OpeningCashDisplay: h.OpeningCashDisplay,
+            ClosingCashDisplay: h.ClosingCashDisplay,
+            TotalExternalCostDisplay: h.TotalExternalCostDisplay,
+            TotalTimberRevenueDisplay: h.TotalTimberRevenueDisplay,
+            NetCashDeltaDisplay: h.NetCashDeltaCents is long net ? FormatSignedEuros(net) : h.NetCashDeltaDisplay,
+            LandownerMinutesUsedDisplay: h.LandownerMinutesUsed is int m ? FormatMinutesAndHours(m) : h.LandownerMinutesUsedDisplay,
+            RetainedTimberAddedDisplay: retainedAddedDisplay,
+            RetainedTimberBySpecies: retainedBySpecies,
+            StemDispositions: stemDispositions,
+            Settlements: Array.AsReadOnly(h.Settlements.Select(s => ProjectEconomySettlement(s, options)).ToArray()),
+            Ledger: Array.AsReadOnly(h.Ledger.Select(e => ProjectEconomyLedgerEntry(e, options)).ToArray()),
+            Disclosure: h.Disclosure);
+    }
 
     private static string FormatSignedEuros(long cents) =>
         cents > 0L ? "+" + EconomyDefaults.FormatEuros(cents) : EconomyDefaults.FormatEuros(cents);
@@ -919,7 +1008,17 @@ internal sealed partial class PlayerApi
             (options is not null ? $"{FormatHoursValue(options.AnnualLandownerAllowanceMinutes)}-hour annual allowance." : "annual allowance."),
         "EconomyFellContractorOnly" =>
             "Blocked — Commercial production felling is contractor-only and cannot be assigned to Landowner.",
+        "EconomyDeadwoodRequiresStage4" =>
+            "Blocked — Leave as Deadwood requires Stage 4 fallen-deadwood tracking, which is unavailable on this legacy stand.",
         _ => issue.Message,
+    };
+
+    private static string FormatDispositionLabel(FellingDisposition disposition) => disposition switch
+    {
+        FellingDisposition.SellAndExtract => "Sell & Extract",
+        FellingDisposition.KeepForUse => "Keep for Own Use",
+        FellingDisposition.LeaveAsDeadwood => "Leave as Deadwood",
+        _ => disposition.ToString(),
     };
 
     private sealed record MultiPayloadBudgetExceededDto(string Code, int Bytes, int Budget);
@@ -1045,6 +1144,48 @@ internal sealed partial class PlayerApi
 
     private sealed record MultiEconomyExecutorEntryDto(string Kind, string AreaId, string TargetKey, string Executor);
 
+    private sealed record MultiEconomyPendingDispositionDto(string AreaId, string TreeId, string Disposition, string DispositionLabel);
+
+    private sealed record MultiEconomyRetainedSpeciesDto(
+        string SpeciesId,
+        string SpeciesLabel,
+        long RetainedTimberCm3,
+        decimal RetainedTimberM3,
+        string VolumeDisplay);
+
+    private sealed record MultiEconomyRetainedTimberDto(
+        long RetainedTimberCm3,
+        decimal RetainedTimberM3,
+        string VolumeDisplay,
+        int StemCount,
+        IReadOnlyList<MultiEconomyRetainedSpeciesDto> BySpecies);
+
+    private sealed record MultiEconomyStemDispositionDto(
+        string AreaId,
+        string TreeId,
+        string SpeciesId,
+        string SpeciesLabel,
+        string Disposition,
+        string DispositionLabel,
+        long StemVolumeCm3,
+        string StemVolumeDisplay,
+        string HarvestedTonnesDisplay,
+        long CreditedTimberRevenueCents,
+        string CreditedTimberRevenueDisplay,
+        long RetainedTimberCm3,
+        decimal RetainedTimberM3,
+        string RetainedTimberDisplay,
+        bool EmitsDeadwoodIntent);
+
+    private sealed record MultiEconomyDeadwoodIntentDto(
+        string AreaId,
+        string TreeId,
+        string SpeciesId,
+        string SpeciesLabel,
+        float VolumeM3,
+        string VolumeDisplay,
+        int EcologicalYear);
+
     private sealed record MultiEconomyIssueDto(string Code, string Message, string PlainExplanation, long Required, long Available);
 
     private sealed record MultiEconomyAssortmentDto(
@@ -1071,6 +1212,10 @@ internal sealed partial class PlayerApi
         string TotalStemVolumeDisplay,
         string SaleVolumeDisplay,
         string ResidualVolumeDisplay,
+        long RetainedStemVolumeCm3,
+        string RetainedStemVolumeDisplay,
+        long DeadwoodStemVolumeCm3,
+        string DeadwoodStemVolumeDisplay,
         string HarvestedTonnesDisplay,
         long VariableHarvestCostCents,
         string VariableHarvestCostDisplay,
@@ -1084,6 +1229,9 @@ internal sealed partial class PlayerApi
         string TotalHarvestContractorCostDisplay,
         long TimberSaleRevenueCents,
         string TimberSaleRevenueDisplay,
+        MultiEconomyRetainedTimberDto RetainedTimber,
+        int DeadwoodIntentCount,
+        IReadOnlyList<MultiEconomyStemDispositionDto> StemDispositions,
         IReadOnlyList<MultiEconomyAssortmentDto> Assortments);
 
     private sealed record MultiEconomyNonHarvestLineDto(
@@ -1171,6 +1319,9 @@ internal sealed partial class PlayerApi
         string OwnerHoursConsumedDisplay,
         string OwnerHoursAfterDisplay,
         MultiEconomyHarvestQuoteDto? HarvestJob,
+        MultiEconomyRetainedTimberDto RetainedTimberDelta,
+        int DeadwoodIntentCount,
+        IReadOnlyList<MultiEconomyDeadwoodIntentDto> DeadwoodIntents,
         IReadOnlyList<MultiEconomyLedgerEntryDto> LedgerEntries);
 
     private sealed record MultiEconomySnapshotDto(
@@ -1193,13 +1344,16 @@ internal sealed partial class PlayerApi
         long MinimumHarvestFloorCents,
         string MinimumHarvestFloorDisplay,
         string ContractorHourlyRateDisplay,
+        MultiEconomyRetainedTimberDto RetainedTimber,
         IReadOnlyList<MultiEconomyExecutorEntryDto> PendingOrderExecutors,
+        IReadOnlyList<MultiEconomyPendingDispositionDto> PendingFellDispositions,
         MultiEconomyQuoteDto? ActiveQuote,
         bool ApprovedQuoteFrozen,
         MultiEconomySettlementDto? LatestSettlement,
         string FellContractorTooltip,
-        string SaveBlockedCode,
-        string SaveBlockedNote,
+        bool CanSaveV3,
+        string? SaveBlockedCode,
+        string? SaveBlockedNote,
         string Disclaimer,
         IReadOnlyList<string> EvidenceLabels);
 
@@ -1214,12 +1368,16 @@ internal sealed partial class PlayerApi
         long? TotalTimberRevenueCents,
         long? NetCashDeltaCents,
         int? LandownerMinutesUsed,
+        long? RetainedTimberAddedCm3,
         string OpeningCashDisplay,
         string ClosingCashDisplay,
         string TotalExternalCostDisplay,
         string TotalTimberRevenueDisplay,
         string NetCashDeltaDisplay,
         string LandownerMinutesUsedDisplay,
+        string RetainedTimberAddedDisplay,
+        IReadOnlyList<MultiEconomyRetainedSpeciesDto> RetainedTimberBySpecies,
+        IReadOnlyList<MultiEconomyStemDispositionDto> StemDispositions,
         IReadOnlyList<MultiEconomySettlementDto> Settlements,
         IReadOnlyList<MultiEconomyLedgerEntryDto> Ledger,
         string Disclosure);

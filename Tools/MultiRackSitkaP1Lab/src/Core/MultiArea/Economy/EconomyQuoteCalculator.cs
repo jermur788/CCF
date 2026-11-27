@@ -271,6 +271,9 @@ internal static class EconomyQuoteCalculator
                             retainedVol += yield.StemVolumeCm3;
                             break;
                         case FellingDisposition.LeaveAsDeadwood:
+                            if (root.Stage4 is null)
+                                throw new P1Refusal("EconomyDeadwoodRequiresStage4",
+                                    "LeaveAsDeadwood requires Stage 4 deadwood state; this session has no Stage 4 deadwood tracking");
                             deadwoodIntents.Add(FelledStemDeadwood.IntentFor(fell.AreaId, tree, speciesId,
                                 root.EcologicalYear, workRevision, executionKey, planId));
                             deadwoodVol += yield.StemVolumeCm3;

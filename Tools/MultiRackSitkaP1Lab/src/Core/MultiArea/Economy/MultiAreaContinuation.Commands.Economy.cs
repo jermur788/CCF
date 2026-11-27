@@ -114,6 +114,9 @@ internal sealed partial class MultiAreaContinuation
             var order = root.Pending.FirstOrDefault(o => string.Equals(o.AreaId, areaId, StringComparison.Ordinal) &&
                 string.Equals(o.TreeId, treeId, StringComparison.Ordinal))
                 ?? throw new P1Refusal("UnknownWorkOrder", "no pending Fell order matches that area and tree ID");
+            if (disposition == FellingDisposition.LeaveAsDeadwood && root.Stage4 is null)
+                throw new P1Refusal("EconomyDeadwoodRequiresStage4",
+                    "LeaveAsDeadwood requires Stage 4 deadwood state; this session has no Stage 4 deadwood tracking");
 
             // Keep only choices that still belong to a current pending order, then apply this one. The default is stored
             // as "no entry", so the map only ever holds explicit non-default choices.

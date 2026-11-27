@@ -1,6 +1,7 @@
 using System.Text;
 using SitkaP1.Core;
 using SitkaP1.Core.Phase1;
+using SitkaP1.Core.Saves;
 using SitkaP1.Phase1Save.Tests;
 
 // 2D Phase 1 A0 save-foundation tests (contract level only). They exercise the public DTO, codec, validator and slot store
@@ -771,6 +772,78 @@ T.Add("P1-TH-04 contract: post-Fell anchor events, work logs, whole-woodland pla
         "whole-woodland Phase2PlantedAccount totals preserved");
     T.True(st.Phase2!.TreeSpecies.Count > 0, "broadleaf TreeSpecies map preserved for structure metrics");
     T.Bytes(approvedBytes, Phase1SaveCodec.Encode(loaded.Envelope), "canonical bytes identical");
+});
+
+// ------------------------------------------------------------------ Phase 2B-2b Save v3 Economy round-trip & fail-closed
+T.Add("P2B-2b v3 economy: Save -> fresh slot reload -> RestoreFromV3 preserves cash, hours, retained m3, thinning stage, ledger, and felled deadwood", () =>
+{
+    var econModels = MultiAreaModelSelection.Phase2WithEconomy;
+    var (_, session) = ForestMakerGenerator.CreateSession(ForestMakerPresets.SitkaEdgeBroadleaves064, econModels);
+    static MultiAreaFence FenceOf(MultiAreaSessionView v) => new(v.SessionId, v.Source, v.PlanStateRevision);
+
+    var v = session.ReadView();
+    var area0 = v.Areas[0];
+    var live = area0.Trees.Where(t => t.IsLiving).Take(3).ToArray();
+    v = session.AddPending(FenceOf(v), area0.AreaId, live[0].TreeId, "sell stem").View;
+    v = session.AddPending(FenceOf(v), area0.AreaId, live[1].TreeId, "keep stem").View;
+    v = session.AddPending(FenceOf(v), area0.AreaId, live[2].TreeId, "leave deadwood").View;
+    v = session.SetFellingDisposition(FenceOf(v), area0.AreaId, live[1].TreeId, FellingDisposition.KeepForUse).View;
+    v = session.SetFellingDisposition(FenceOf(v), area0.AreaId, live[2].TreeId, FellingDisposition.LeaveAsDeadwood).View;
+    v = session.AddClearUndergrowth(FenceOf(v), area0.AreaId, 0, 0).View;
+    v = session.SetOrderExecutor(FenceOf(v), EconomyOrderKey.ForClear(area0.AreaId, 0, 0), WorkExecutor.Landowner).View;
+    v = session.Approve(FenceOf(v)).View;
+    var exec = session.Execute(FenceOf(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
+    T.True(exec.RefusalCode is null, "mixed economy plan executed");
+
+    var econBefore = session.ReadEconomyView();
+    T.True(econBefore.RetainedTimber.RetainedTimberCm3 > 0L, "retained timber > 0");
+    T.Eq(1, econBefore.ExecutedHarvestPlansCount, "1 harvest plan executed");
+
+    string slotDir = NewSlotDir();
+    var writerSlots = new SaveV3Slots(new Phase1SaveSlots(slotDir));
+    var (schemaVersion, savedBytes) = session.CaptureSaveBytes(FenceOf(exec.View), "P2B2b Econ Slot", 1);
+    T.Eq(3, schemaVersion, "saved as schema v3");
+    var commit = writerSlots.Save("p2b2b-econ-roundtrip", savedBytes, replaceExisting: false);
+    T.Eq(Phase1SlotCommitStatus.DurablyCommitted, commit.Status, "v3 economy slot durably committed");
+
+    // Simulate process restart: brand new SaveV3Slots over the same directory.
+    var readerSlots = new SaveV3Slots(new Phase1SaveSlots(slotDir));
+    var loaded = readerSlots.Load("p2b2b-econ-roundtrip", v2Expectation: null);
+    T.Eq(3, loaded.SchemaVersion, "reloaded schema v3");
+    var (restored, _, loadResult) = MultiAreaContinuation.RestoreFromV3(loaded.V3!);
+    T.True(loadResult.RefusalCode is null, "RestoreFromV3 succeeded");
+
+    var econAfter = restored.ReadEconomyView();
+    T.Eq(econBefore.CashBalanceCents, econAfter.CashBalanceCents, "cash matches after restart");
+    T.Eq(econBefore.UsedLandownerMinutesThisYear, econAfter.UsedLandownerMinutesThisYear, "used minutes match after restart");
+    T.Eq(econBefore.RemainingLandownerMinutes, econAfter.RemainingLandownerMinutes, "remaining minutes match after restart");
+    T.Eq(econBefore.ExecutedHarvestPlansCount, econAfter.ExecutedHarvestPlansCount, "thinning stage count matches");
+    T.Eq(econBefore.RetainedTimber.RetainedTimberCm3, econAfter.RetainedTimber.RetainedTimberCm3, "retained cm3 matches");
+    T.Eq(econBefore.RetainedTimber.RetainedTimberM3, econAfter.RetainedTimber.RetainedTimberM3, "retained m3 matches");
+    T.Eq(econBefore.Settlements.Count, econAfter.Settlements.Count, "settlements match");
+    T.Eq(econBefore.Ledger.Count, econAfter.Ledger.Count, "ledger matches");
+    T.True(restored.ReadUiSnapshot().Readout.Areas[0].Canopy.FallenDeadwood.Any(d => d.TreeId == live[2].TreeId && d.Cause == FellCause.Harvest),
+        "felled deadwood DW record survives restart");
+
+    // Re-encoding the restored state produces the exact same canonical economy block JSON.
+    var (_, resavedBytes) = restored.CaptureSaveBytes(FenceOf(loadResult.View), "P2B2b Econ Slot", 2);
+    var resaved = SaveV3Codec.Decode(resavedBytes);
+    T.Eq(loaded.V3!.Envelope.Blocks["economy"].CanonicalDataJson, resaved.Envelope.Blocks["economy"].CanonicalDataJson, "economy block canonical JSON identical after round-trip");
+});
+T.Add("P2B-2b v3 economy: built-in Economy save refuses SaveEconomyRequiresV3 and missing/corrupt economy block fails closed", () =>
+{
+    var (mixedExp, mixedP2, _) = MultiAreaDemoExperiments.CreateMixedDemo();
+    var builtIn = new MultiAreaContinuation(mixedExp, MultiAreaModelSelection.Phase2WithEconomy, null, null, mixedP2);
+    var bv = builtIn.ReadView();
+    T.Refuses("SaveEconomyRequiresV3", () => builtIn.CaptureSaveBytes(new(bv.SessionId, bv.Source, bv.PlanStateRevision), "BuiltIn", 1));
+
+    var (_, fm) = ForestMakerGenerator.CreateSession(ForestMakerPresets.PureSitka064, MultiAreaModelSelection.Phase2WithEconomy);
+    var fv = fm.ReadView();
+    var (_, bytes) = fm.CaptureSaveBytes(new(fv.SessionId, fv.Source, fv.PlanStateRevision), "FM Econ", 1);
+    string json = Encoding.UTF8.GetString(bytes);
+    // Flip a byte without re-signing -> SaveChecksumMismatch
+    string flipped = json.Replace("\"FM Econ\"", "\"FM EcoX\"", StringComparison.Ordinal);
+    T.Refuses("SaveChecksumMismatch", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(flipped)));
 });
 
 int exit;

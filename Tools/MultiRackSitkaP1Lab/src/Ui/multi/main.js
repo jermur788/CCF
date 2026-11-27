@@ -3,7 +3,7 @@
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 // S0c provenance: main.js [L5] — sections 7, 15, 17b(wire), 17b(bootstrap) from multi.js
 import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, refusedByLock, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
-import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
+import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetFellingDisposition, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
 import { onWoodlandCancelDiscard, onWoodlandConfirmDiscard, onWoodlandCreate, onWoodlandFieldChanged, openWoodlandDialog } from './dialogs/woodland.js';
@@ -84,12 +84,29 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
       if (econOn) {
         byId('economy-cash').textContent = econ ? econ.cashBalanceDisplay : 'Unavailable — Re-read';
         byId('economy-hours').textContent = econ ? econ.landownerHoursDisplay : '–';
+        const retainedEl = byId('economy-retained');
+        if (retainedEl) {
+          retainedEl.textContent = econ && econ.retainedTimber ? econ.retainedTimber.volumeDisplay : '–';
+        }
+        const retainedWrap = byId('economy-retained-wrap');
+        if (retainedWrap && econ && econ.retainedTimber) {
+          const spParts = (econ.retainedTimber.bySpecies || []).map((sp) => sp.speciesLabel + ': ' + sp.volumeDisplay);
+          retainedWrap.setAttribute('title', spParts.length > 0
+            ? 'Cumulative retained timber kept for own use (physical, non-cash): ' + spParts.join(', ')
+            : 'Cumulative retained timber kept for own use (physical, non-cash; 0.000 m³ so far)');
+        }
         byId('economy-stage').textContent = econ
           ? (econ.nextHarvestStageLabel + ' · ' + econ.minimumHarvestFloorDisplay + ' floor')
           : 'Economy read-out unavailable';
         const hoursWrap = byId('economy-hours-wrap');
         if (hoursWrap && econ && econ.landownerAllowanceTooltip) {
           hoursWrap.setAttribute('title', econ.landownerAllowanceTooltip);
+        }
+        const stripNote = byId('economy-strip-note');
+        if (stripNote) {
+          stripNote.textContent = econ && econ.canSaveV3
+            ? 'Save v3 enabled (Forest Maker) · Sell / Keep / Leave per felled stem'
+            : 'Built-in stand (Save v3 requires Forest Maker) · Sell / Keep / Leave per felled stem';
         }
       }
     }
@@ -779,6 +796,14 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     byId('add-form').addEventListener('submit', onAdd);
     byId('insp-remove').addEventListener('click', () => removePending(state.areaId, selectedId()));
     byId('pending-areas').addEventListener('click', (event) => {
+      const dispBtn = event.target.closest('[data-disposition-value]');
+      if (dispBtn) {
+        onSetFellingDisposition(
+          dispBtn.getAttribute('data-disposition-area'),
+          dispBtn.getAttribute('data-disposition-tree'),
+          dispBtn.getAttribute('data-disposition-value'));
+        return;
+      }
       const execBtn = event.target.closest('[data-executor-value]');
       if (execBtn) {
         onSetOrderExecutor(

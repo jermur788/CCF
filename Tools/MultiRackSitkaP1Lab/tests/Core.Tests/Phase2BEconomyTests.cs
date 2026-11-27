@@ -519,6 +519,76 @@ internal static class Phase2BEconomyTests
                 s.TotalExternalCostCents >= EconomyDefaults.MinimumHarvestJobCents),
                 "every executed felling plan settles at least €2,500");
         });
+
+        T.Add("P2B-2b: LeaveAsDeadwood materialises DW#### fallen deadwood records in Stage4 on Execute", () =>
+        {
+            var session = MixedEconomySession();
+            var v = session.ReadView();
+            var live = v.Areas[1].Trees.Where(t => t.IsLiving).Take(3).ToArray();
+            v = session.AddPending(Fence(v), "MA-B", live[0].TreeId, "sell").View;
+            v = session.AddPending(Fence(v), "MA-B", live[1].TreeId, "keep").View;
+            v = session.AddPending(Fence(v), "MA-B", live[2].TreeId, "leave").View;
+            v = session.SetFellingDisposition(Fence(v), "MA-B", live[1].TreeId, FellingDisposition.KeepForUse).View;
+            v = session.SetFellingDisposition(Fence(v), "MA-B", live[2].TreeId, FellingDisposition.LeaveAsDeadwood).View;
+
+            int dwBefore = GetRoot(session).Stage4!.Deadwood.Count;
+            int nextBefore = GetRoot(session).Stage4!.NextDeadwoodNumber;
+            v = session.Approve(Fence(v)).View;
+            var exec = session.Execute(Fence(v), v.Approved!.PlanId, v.Approved.ExecutionKey);
+            T.True(exec.RefusalCode is null, "mixed execute succeeded");
+
+            var s4 = GetRoot(session).Stage4!;
+            T.Eq(dwBefore + 1, s4.Deadwood.Count, "exactly 1 LeaveAsDeadwood stem appended to Stage4.Deadwood");
+            T.Eq(nextBefore + 1, s4.NextDeadwoodNumber, "NextDeadwoodNumber incremented by 1");
+            var added = s4.Deadwood[^1];
+            T.Eq(FallenDeadwoodRecord.IdFor(nextBefore), added.DeadwoodId, "DW#### id matches NextDeadwoodNumber");
+            T.Eq(live[2].TreeId, added.TreeId, "deadwood treeId matches LeaveAsDeadwood stem");
+            T.Eq("MA-B", added.AreaId, "deadwood areaId matches");
+            T.Eq(FellCause.Harvest, added.Cause, "deadwood cause is FellCause.Harvest");
+            T.Eq(exec.Execution!.Settlement!.DeadwoodIntents[0].VolumeM3, added.EstimatedVolumeM3, "deadwood volume matches intent");
+
+            // Replay must NOT duplicate the deadwood record.
+            var replay = session.Execute(Fence(v), v.Approved.PlanId, v.Approved.ExecutionKey);
+            T.True(replay.Execution!.Replayed, "replay flag set");
+            T.Eq(dwBefore + 1, GetRoot(session).Stage4!.Deadwood.Count, "replay does not duplicate deadwood");
+        });
+
+        T.Add("P2B-2b: S1 Legacy and Stage3CrownC2 + Economy refuse LeaveAsDeadwood with EconomyDeadwoodRequiresStage4", () =>
+        {
+            var nonStage4Models = new[]
+            {
+                MultiAreaModelSelection.Legacy with { Economy = EconomyModelVersion.Enabled },
+                MultiAreaModelSelection.Stage3CrownC2 with { Economy = EconomyModelVersion.Enabled },
+            };
+            foreach (var models in nonStage4Models)
+            {
+                var session = new MultiAreaContinuation(MultiAreaGenerator.Generate(), models);
+                var v = session.ReadView();
+                var live = v.Areas[0].Trees.Where(t => t.IsLiving).Take(2).ToArray();
+                v = session.AddPending(Fence(v), "MA-A", live[0].TreeId, "sell or keep").View;
+                v = session.AddPending(Fence(v), "MA-A", live[1].TreeId, "leave probe").View;
+
+                // Direct command refusal
+                T.Refuses("EconomyDeadwoodRequiresStage4", () =>
+                    session.SetFellingDisposition(Fence(v), "MA-A", live[1].TreeId, FellingDisposition.LeaveAsDeadwood));
+
+                // SellAndExtract and KeepForUse remain allowed when Stage4 is absent
+                v = session.SetFellingDisposition(Fence(v), "MA-A", live[0].TreeId, FellingDisposition.KeepForUse).View;
+                var qOk = session.QuoteWorkPlan(Fence(v));
+                T.True(qOk.IsEligible && qOk.HarvestJob!.RetainedTimber.RetainedTimberCm3 > 0L,
+                    "KeepForUse + SellAndExtract remain eligible without Stage 4");
+
+                // Quote/Approve-time fail-closed guard if a LeaveAsDeadwood choice is ever injected on a Stage4-null root
+                var root = GetRoot(session);
+                var targetOrder = root.Pending.Single(o => o.AreaId == "MA-A" && o.TreeId == live[1].TreeId);
+                var injectedChoices = new Dictionary<EconomyOrderKey, FellingDispositionChoice>(root.Economy!.PendingFellDispositions)
+                {
+                    [EconomyOrderKey.ForFell("MA-A", live[1].TreeId)] = new(targetOrder, FellingDisposition.LeaveAsDeadwood),
+                };
+                var tamperedRoot = root with { Economy = root.Economy with { PendingFellDispositions = FellingDispositionRules.ReadOnly(injectedChoices) } };
+                T.Refuses("EconomyDeadwoodRequiresStage4", () => EconomyQuoteCalculator.ComputePending(tamperedRoot, v.Source));
+            }
+        });
     }
 
     private static MultiAreaContinuation MixedEconomySession()
