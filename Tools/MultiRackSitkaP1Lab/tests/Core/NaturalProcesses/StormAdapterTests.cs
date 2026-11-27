@@ -198,6 +198,31 @@ internal static class StormAdapterTests
             var bands = StormAdapter.ExposureBands(Fixtures.StormTrees(5));
             Fixtures.AssertReadOnly(bands, "ExposureBands output");
             TestRunner.Eq(baseline, Fixtures.Describe(result), "result unchanged by write attempts");
+
+            // R2-01: a plain `with` copy shares no writable path back to the original.
+            var requestCopy = request with { };
+            var resultCopy = result with { };
+            Fixtures.AssertReadOnly(requestCopy.Trees, "with-copy Trees");
+            Fixtures.AssertReadOnly(resultCopy.Victims, "with-copy Victims");
+            Fixtures.AssertReadOnly(resultCopy.Exposure, "with-copy Exposure");
+            TestRunner.Eq(baseline, Fixtures.Describe(StormAdapter.Resolve(request)), "original request unchanged after with-copy probes");
+            TestRunner.Eq(baseline, Fixtures.Describe(result), "original result unchanged after with-copy probes");
+            var bandsBefore = string.Join(",", bands);
+            Fixtures.AssertReadOnly(bands, "ExposureBands output (again)");
+            TestRunner.Eq(bandsBefore, string.Join(",", bands), "exposure bands unchanged");
+
+            // R2-03: the delta reviewer's probe — two equal requests built from the same array are equal again.
+            var shared = Fixtures.StormTrees(60).ToArray();
+            var first = request with { Trees = shared };
+            var second = request with { Trees = shared };
+            TestRunner.True(first == second, "requests initialised from the same array are equal");
+            TestRunner.True(Model1(108, Fixtures.StormTrees(60)) == Model1(108, Fixtures.StormTrees(60).ToArray()), "structurally equal requests are equal");
+            TestRunner.Eq(Model1(108, Fixtures.StormTrees(60)).GetHashCode(), Model1(108, Fixtures.StormTrees(60)).GetHashCode(), "structurally equal request hashes");
+            TestRunner.True(requestCopy == request && resultCopy == result, "with-copies equal their sources");
+            TestRunner.True(Model1(108, Fixtures.StormTrees(60)) != Model1(108, Fixtures.StormTrees(59)), "request with a missing tree differs");
+            TestRunner.True(Model1(108, Fixtures.StormTrees(60)) != Model1(109, Fixtures.StormTrees(60)), "request with a different year differs");
+            TestRunner.True(StormAdapter.Resolve(Model1(108, shared)) == StormAdapter.Resolve(Model1(108, Fixtures.StormTrees(60))), "equal requests give equal results");
+            TestRunner.True(StormAdapter.ExposureBands(Fixtures.StormTrees(5)).Equals(StormAdapter.ExposureBands(Fixtures.StormTrees(5))), "equal exposure bands are equal");
         });
 
         TestRunner.Add(Suite, "JW-T28 shuffled input ordering yields the same victim set (5 shuffles)", () =>

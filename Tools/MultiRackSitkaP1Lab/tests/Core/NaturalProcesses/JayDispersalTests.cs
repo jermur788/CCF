@@ -321,6 +321,35 @@ internal static class JayDispersalTests
             delivered.Add(result.Delivered.Concat(result.Exported).First());
             TestRunner.Eq("A,B", string.Join(",", built.DivertedOnMapCandidateIds), "result constructor snapshots IDs");
             TestRunner.Eq(0, built.Delivered.Count, "result constructor snapshots delivered");
+
+            // R2-01: a plain `with` copy shares no writable path back to the original.
+            var plainCopy = request with { };
+            Fixtures.AssertReadOnly(plainCopy.OnMapOakCandidates, "with-copy OnMapOakCandidates");
+            Fixtures.AssertReadOnly(plainCopy.Woodland.Vertices, "with-copy Woodland.Vertices");
+            var resultCopy = result with { };
+            Fixtures.AssertReadOnly(resultCopy.DivertedOnMapCandidateIds, "with-copy DivertedOnMapCandidateIds");
+            Fixtures.AssertReadOnly(resultCopy.Delivered, "with-copy Delivered");
+            Fixtures.AssertReadOnly(resultCopy.Exported, "with-copy Exported");
+            TestRunner.Eq(baseline, Fixtures.Describe(JayAcornDispersal.Disperse(request)), "original request unchanged after with-copy probes");
+            TestRunner.Eq(baseline, Fixtures.Describe(result), "original result unchanged after with-copy probes");
+            TestRunner.Eq(6400.0, footprint.AreaSquareMetres, "footprint area unchanged after all probes");
+            Fixtures.AssertReadOnly(NaturalProcessStreams.All, "NaturalProcessStreams.All");
+
+            // R2-03: value equality for records holding snapshots.
+            TestRunner.True(plainCopy == request && plainCopy.Equals(request), "with-copy request equals its source");
+            TestRunner.Eq(request.GetHashCode(), plainCopy.GetHashCode(), "with-copy request hash");
+            var a = new JayDispersalRequest(7, Fixtures.Seed, Fixtures.JayAndNearby(OuterEdge.South), Fixtures.Mast, footprint, Fixtures.OakCandidates(5, 4));
+            var b = new JayDispersalRequest(7, Fixtures.Seed, Fixtures.JayAndNearby(OuterEdge.South), Fixtures.Mast, footprint, Fixtures.OakCandidates(5, 4).ToArray());
+            TestRunner.True(a == b, "structurally equal requests from distinct collections are equal");
+            TestRunner.Eq(a.GetHashCode(), b.GetHashCode(), "structurally equal request hashes");
+            var fewer = a with { OnMapOakCandidates = Fixtures.OakCandidates(5, 4).Skip(1).ToList() };
+            var reordered = a with { OnMapOakCandidates = Fixtures.OakCandidates(5, 4).AsEnumerable().Reverse().ToList() };
+            TestRunner.True(a != fewer, "request with a missing candidate differs");
+            TestRunner.True(a != reordered, "request with reordered candidates differs (sequence equality)");
+            TestRunner.True(a != (a with { Year = 8 }), "request with a different year differs");
+            TestRunner.True(JayAcornDispersal.Disperse(a) == JayAcornDispersal.Disperse(b), "equal requests give equal results");
+            TestRunner.True(resultCopy == result, "with-copy result equals its source");
+            TestRunner.True(JayAcornDispersal.Disperse(a) != JayAcornDispersal.Disperse(a with { Year = 8 }), "different results differ");
         });
     }
 }

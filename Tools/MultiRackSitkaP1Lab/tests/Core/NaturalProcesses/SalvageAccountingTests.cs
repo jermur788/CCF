@@ -184,6 +184,31 @@ internal static class SalvageAccountingTests
             added[0] = added[0] with { DeadwoodId = "DW-MUTATED" };
             Fixtures.AssertReadOnly(merged.Deadwood, "merge Deadwood");
             TestRunner.True(merged.Deadwood.Any(d => d.DeadwoodId == "DW-NEW") && merged.Deadwood.All(d => d.DeadwoodId != "DW-MUTATED"), "merge result snapshot");
+
+            // R2-01: a plain `with` copy shares no writable path back to the original.
+            var requestCopy = request with { };
+            var resultCopy = r with { };
+            var mergedCopy = merged with { };
+            Fixtures.AssertReadOnly(requestCopy.Deadwood, "with-copy Deadwood");
+            Fixtures.AssertReadOnly(requestCopy.PreviouslyExtractedDeadwoodIds, "with-copy PreviouslyExtractedDeadwoodIds");
+            Fixtures.AssertReadOnly(requestCopy.Orders, "with-copy Orders");
+            Fixtures.AssertReadOnly(resultCopy.RemainingDeadwood, "with-copy RemainingDeadwood");
+            Fixtures.AssertReadOnly(resultCopy.Lines, "with-copy Lines");
+            Fixtures.AssertReadOnly(resultCopy.ExtractedDeadwoodIds, "with-copy ExtractedDeadwoodIds");
+            Fixtures.AssertReadOnly(mergedCopy.Deadwood, "with-copy merge Deadwood");
+            var again = SalvageAccounting.Apply(request);
+            TestRunner.Eq(42.50m, again.GrossSaleRevenue, "original request unchanged after with-copy probes");
+            TestRunner.Eq("DW-OTHER,DW-WINDTHROW-108-T0001", string.Join(",", r.ExtractedDeadwoodIds), "original result unchanged after with-copy probes");
+
+            // R2-03: value equality for records holding snapshots.
+            TestRunner.True(requestCopy == request && resultCopy == r && mergedCopy == merged, "with-copies equal their sources");
+            TestRunner.True(again == r, "equal requests give equal results");
+            var equalA = new SalvageRequest(Stock().ToArray(), new[] { "DW-OTHER" }, new[] { new SalvageOrder("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", 1.0) }, Pricing);
+            var equalB = new SalvageRequest(Stock().ToList(), new List<string> { "DW-OTHER" }, new List<SalvageOrder> { new("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", 1.0) }, Pricing);
+            TestRunner.True(equalA == equalB, "structurally equal requests are equal");
+            TestRunner.Eq(equalA.GetHashCode(), equalB.GetHashCode(), "structurally equal request hashes");
+            TestRunner.True(equalA != (equalA with { PreviouslyExtractedDeadwoodIds = new[] { "DW-ELSE" } }), "request with different extracted IDs differs");
+            TestRunner.True(equalA != (equalA with { Orders = new[] { new SalvageOrder("DW-WINDTHROW-108-T0001", SalvageChoice.SellAndExtract, "WP-1", 2.0) } }), "request with a different order differs");
         });
     }
 }

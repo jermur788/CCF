@@ -4,12 +4,13 @@
 > `SitkaP1.Core.NaturalProcesses`. Nothing calls this code yet: no `AnnualPipeline`, `MultiAreaContinuation`,
 > `RngSalts`, ForestMaker, Save v3 or `/multi` UI change. No Unity was opened or required.
 
-> **Current status (read first).** Lineage: `7b5c2a07` (Part 1) → `cc59918f` (Repair 1, direction) → Repair 2 (this
-> file's commit; independent review R1-01..R1-09). The independent review of `cc59918f` returned NEEDS CHANGES; Repair 2
-> addresses it and needs a delta re-check by a non-Claude reviewer. **Settled owner rulings:** (1) failure transform is
+> **Current status (read first).** Lineage: `7b5c2a07` (Part 1) → `cc59918f` (Repair 1, direction) → `3170cd2c`
+> (Repair 2; independent review R1-01..R1-09) → Repair 3 (this file's commit; delta review R2-01..R2-03). The delta
+> re-review of `3170cd2c` returned NEEDS CHANGES (R2-01 blocking); Repair 3 addresses it and needs a delta re-check by a
+> non-Claude reviewer. **Settled owner rulings:** (1) failure transform is
 > **BoundedRational** `p = S·V/(1+S·V)` (frozen D-050), not `1 − exp(−S·V)`; (2) storm direction is **`u · 360`
 > blow-towards** (frozen D-050), glyph = direction; the `225 ± 45°` *from* proposal is rejected. The current test
-> transcript is in **Repair 2** at the end of this file (48/48). Sections 2–4 below are the **parent-only** record for
+> transcript is in **Repair 3** at the end of this file (48/48). Sections 2–4 below are the **parent-only** record for
 > `7b5c2a07` and are superseded where they differ.
 
 - **Branch:** `feat/multi-2d-jay-windstorms-engine-v1` (pushed; no `review/*` branch created)
@@ -257,3 +258,53 @@ exit=0
 Two runs gave byte-identical stdout (SHA-256 `21400be17e79268b74e487ee83f20b414b3f539d443203835b5cecd78a912b21`).
 New tests: JW-T15, JW-T16, JW-T17, JW-T31, JW-T48, JW-T49, JW-T50. Strengthened: JW-T06, JW-T09, JW-T23, JW-T24,
 JW-T27, JW-T47, JW-T62. JW-T61 (frozen D-050 parity) unchanged and passing. Unity not run; not wired; not merged.
+
+## Repair 3 — delta review R2-01..R2-03 (2026-11-27)
+
+Parent `3170cd2c`; base `c82e4e75` unchanged. Addresses the delta re-review section of `INDEPENDENT-REVIEW-PART1.md`
+on `review/multi-2d-jay-windstorms-engine-v1` (NEEDS CHANGES, R2-01 blocking). No dispersal, storm or salvage logic
+changed; no stream key, refusal code, signature or property type changed.
+
+| Finding | Resolution |
+|---|---|
+| R2-01 (blocking) | `ContractSnapshot.Of` now returns a private `internal sealed class SnapshotList<T>` (in `NaturalProcessContracts.cs`): copies the source into a private array and implements **only** `IReadOnlyList<T>` (+ `IEnumerable<T>`/`IEnumerable`, `IEquatable`). No `ICollection`, `ICollection<T>`, `IList`, `IList<T>`, so no `SyncRoot`, setter, `Add` or `Clear`; the enumerator is a `yield` iterator so no array reference escapes. Null in → null out kept. Applied to every record collection (via `ContractSnapshot.Of`), `WoodlandFootprint.Vertices`, `StormAdapter.ExposureBands` and the reviewer-noted `NaturalProcessStreams.All`. No `Array.AsReadOnly` remains in `src/Core/NaturalProcesses`. Out of scope and unchanged: `StormVulnerability.Severities/Weights` are `public static readonly float[]` on an `internal` class (not public surface; verbatim frozen calibration). |
+| R2-02 | `spec.md` §5 item 7 now scopes the debit to on-map input: diverted candidates leave the ordinary list, so on-map diversion never increases total **on-map** oak seed input; Nearby Oak Woodland external seeds are the intentional additional input, counted separately and not part of the on-map debit. The ambiguous "total oak seed input cannot increase" phrasing is gone. |
+| R2-03 | `SnapshotList<T>` has sequence value equality (`EqualityComparer<T>.Default`) and a matching structural `GetHashCode`, so the generated record equality is value-based again: structurally identical requests/results compare equal and a `with` copy equals its source. Spec §1.5 snapshot rule now promises the behaviour independently of the wrapper type and notes that `WoodlandFootprint` keeps reference equality. |
+
+**Tests (extended, no new IDs; count unchanged at 48).** Shared helper `Fixtures.AssertReadOnly` now asserts for each
+collection: not `T[]`/`Array`/`List<T>`/`ReadOnlyCollection<T>`; not `ICollection`, `ICollection<T>`, `IList`,
+`IList<T>`; each of those casts and the `T[]` cast throws `InvalidCastException`; no property named `*SyncRoot` on the
+runtime type or any of its interfaces (public and non-public, reflection); no property setter; sealed reference type;
+count and elements unchanged.
+- **JW-T17** adds: plain `with { }` copies of the request (incl. `Woodland.Vertices`) and result probed, original
+  request/result/footprint (6,400 m²) unchanged; `NaturalProcessStreams.All` probed; `with` copy == source with equal
+  hash; two requests from distinct List/array collections equal with equal hash; missing, reordered or different-year
+  requests differ; equal requests give equal results.
+- **JW-T31** adds: `with` copies of request/result probed, originals unchanged; exposure bands re-probed unchanged; the
+  reviewer's R2-03 probe (two `with { Trees = shared }` copies) now equal; structural request equality and hash; missing
+  tree / different year differ; equal requests give equal results; equal exposure-band outputs equal.
+- **JW-T50** adds: `with` copies of request/result/merge result probed, originals unchanged and re-apply gives the same
+  revenue; copies equal sources; array- and List-built requests equal with equal hash; different extracted IDs or order
+  volume differ.
+
+**Mutant checks (in place, then restored; rebuilt and re-run clean):** `ContractSnapshot.Of` back to
+`Array.AsReadOnly(source.ToArray())` → JW-T17/T31/T50 fail ("is not ICollection"), 45/48, exit 1;
+`SnapshotList.Equals(object)` reference-only → JW-T17/T31/T50 fail on structural equality, 45/48, exit 1.
+
+**Verification (SDK 8.0.133, `Tools/MultiRackSitkaP1Lab`):**
+
+```
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore   -> 0 Warning(s), 0 Error(s)
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+---
+SUITE hygiene-parity: 5/5 passed, 0 failed
+SUITE jay: 20/20 passed, 0 failed
+SUITE salvage: 11/11 passed, 0 failed
+SUITE storm: 12/12 passed, 0 failed
+TOTAL: 48/48 passed, 0 failed
+exit=0
+```
+
+Two runs gave byte-identical stdout (SHA-256 `21400be17e79268b74e487ee83f20b414b3f539d443203835b5cecd78a912b21`,
+identical to Repair 2 because stdout lists only test names and totals, which did not change).
+JW-T61 (frozen D-050 parity) and JW-T60/T62 unchanged and passing. Unity not run; not wired; not merged.

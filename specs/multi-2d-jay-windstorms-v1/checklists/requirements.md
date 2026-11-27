@@ -27,5 +27,5 @@ Part 1 only. Test names are the exact `TestRunner` names (prefix `JW-Txx`).
 | **JW-REQ-21** | Stream IDs fixed, versioned and prefix-free against existing RngSalts families. | `JW-T62` |
 | **JW-REQ-22** | Static hygiene: no file, network, clock, machine-state or culture-dependent API in `src/Core/NaturalProcesses/**`. | `JW-T63` |
 | **JW-REQ-23** | Standalone test exe (single Compile glob, zero references); 0 warnings / 0 errors on SDK 8.0.133; exit code 0; fence diff within four prefixes. | `JW-T64`, restore/build/run, `git diff --name-only` |
-| **JW-REQ-24** | Contract collections are defensive read-only snapshots (requests, results, footprint vertices, exposure output). | `JW-T17`, `JW-T31`, `JW-T50` |
+| **JW-REQ-24** | Contract collections are defensive read-only snapshots (requests, results, footprint vertices, exposure output, stream list): `IReadOnlyList<T>` only, no `ICollection`/`IList` (generic or not), no `SyncRoot`, sequence value equality so records keep value equality. | `JW-T17`, `JW-T31`, `JW-T50` |
 | **JW-REQ-25** | Salvage pricing beyond the representable bound is refused atomically; no `decimal` overflow. | `JW-T49` |

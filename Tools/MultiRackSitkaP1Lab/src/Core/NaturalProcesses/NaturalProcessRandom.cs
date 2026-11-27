@@ -18,7 +18,7 @@ public static class NaturalProcessStreams
     public const string NearbyAlongSuffix = "/along";
     public const string NearbySourcePrefix = "NEARBY-OAK-WOODLAND-";
 
-    public static IReadOnlyList<string> All { get; } = Array.AsReadOnly(new[]
+    public static IReadOnlyList<string> All { get; } = ContractSnapshot.Of(new[]
     {
         StormOccurs, StormSeverity, StormDirection, WindthrowTreePrefix,
         JayDivertPrefix, JayAcornPrefix,

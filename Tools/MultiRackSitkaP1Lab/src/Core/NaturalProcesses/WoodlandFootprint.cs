@@ -13,7 +13,7 @@ public sealed class WoodlandFootprint
     public WoodlandFootprint(IReadOnlyList<LocalPoint> vertices)
     {
         _vertices = (vertices ?? Array.Empty<LocalPoint>()).ToArray();
-        _readOnlyVertices = Array.AsReadOnly(_vertices);
+        _readOnlyVertices = new SnapshotList<LocalPoint>(_vertices);
     }
 
     public static WoodlandFootprint Rectangle(double minX, double minY, double maxX, double maxY) =>

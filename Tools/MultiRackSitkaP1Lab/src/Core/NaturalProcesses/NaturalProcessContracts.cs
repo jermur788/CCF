@@ -36,14 +36,61 @@ public enum NaturalProcessRefusalCode
 
 /// <summary>
 /// Defensive snapshots for every collection crossing the contract boundary. The caller's collection is copied into a
-/// private array and exposed only through a read-only wrapper, so mutating the original input, or casting a returned
-/// list and writing to it, can never change a request or a result after construction.
+/// private array and exposed only through <see cref="SnapshotList{T}"/>, so mutating the original input, or casting a
+/// returned list and writing to it, can never change a request or a result after construction.
 /// </summary>
 internal static class ContractSnapshot
 {
     /// <summary>A read-only copy; null stays null so engines can still refuse a missing request list.</summary>
     public static IReadOnlyList<T> Of<T>(IEnumerable<T>? source) =>
-        source is null ? null! : Array.AsReadOnly(source.ToArray());
+        source is null ? null! : new SnapshotList<T>(source);
+}
+
+/// <summary>
+/// An immutable list copy. It deliberately implements only <see cref="IReadOnlyList{T}"/>: not ICollection, IList or
+/// their generic forms, so there is no <c>SyncRoot</c>, setter or Add/Clear that could reach the private array
+/// (an array-backed <c>ReadOnlyCollection&lt;T&gt;</c> leaks its array through <c>ICollection.SyncRoot</c>).
+/// Equality is by sequence, so records holding snapshots keep value equality.
+/// </summary>
+internal sealed class SnapshotList<T> : IReadOnlyList<T>, IEquatable<SnapshotList<T>>
+{
+    private readonly T[] _items;
+
+    public SnapshotList(IEnumerable<T> source) => _items = source.ToArray();
+
+    public int Count => _items.Length;
+
+    public T this[int index] => _items[index];
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        // A yield iterator rather than the array's own enumerator, so no array reference ever leaves this class.
+        for (int i = 0; i < _items.Length; i++) yield return _items[i];
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public bool Equals(SnapshotList<T>? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        if (_items.Length != other._items.Length) return false;
+        var comparer = EqualityComparer<T>.Default;
+        for (int i = 0; i < _items.Length; i++)
+            if (!comparer.Equals(_items[i], other._items[i])) return false;
+        return true;
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as SnapshotList<T>);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(_items.Length);
+        var comparer = EqualityComparer<T>.Default;
+        foreach (T item in _items) hash.Add(item, comparer);
+        return hash.ToHashCode();
+    }
 }
 
 /// <summary>A refusal: nothing was changed and no partial result is returned.</summary>

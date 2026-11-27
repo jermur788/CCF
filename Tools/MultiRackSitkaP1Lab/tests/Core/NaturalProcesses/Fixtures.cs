@@ -60,27 +60,42 @@ internal static class Fixtures
     };
 
     /// <summary>
-    /// Proves a returned collection is a read-only snapshot: it is not a writable array or list, and writing through
-    /// IList/ICollection (set, add, clear) throws without changing anything.
+    /// Proves a collection is a sealed read-only snapshot (R1-02, R2-01): it is not an array or List, implements none of
+    /// ICollection / ICollection&lt;T&gt; / IList / IList&lt;T&gt; (so there is no SyncRoot, setter, Add or Clear to
+    /// reach the storage), every such cast fails, and no public or non-public property named SyncRoot exists anywhere on
+    /// its runtime type or interfaces.
     /// </summary>
     public static void AssertReadOnly<T>(IReadOnlyList<T> list, string name)
     {
-        TestRunner.True(list is not T[], name + " is not a raw array");
-        TestRunner.True(list is not List<T>, name + " is not a List");
-        int before = list.Count;
-        if (list is ICollection<T> collection)
-        {
-            TestRunner.True(collection.IsReadOnly, name + " reports read-only");
-            Throws<NotSupportedException>(() => collection.Clear(), name + " Clear");
-            if (before > 0) Throws<NotSupportedException>(() => collection.Add(list[0]), name + " Add");
-        }
-        if (list is IList<T> writable && before > 0)
-        {
-            T first = list[0];
-            Throws<NotSupportedException>(() => writable[0] = list[before - 1], name + " indexer set");
-            TestRunner.True(EqualityComparer<T>.Default.Equals(first, list[0]), name + " element unchanged");
-        }
+        TestRunner.True(list is not null, name + " is not null");
+        object boxed = list!;
+        int before = list!.Count;
+        var snapshot = list.ToArray();
+        TestRunner.True(boxed is not T[], name + " is not a raw array");
+        TestRunner.True(boxed is not Array, name + " is not any array");
+        TestRunner.True(boxed is not List<T>, name + " is not a List");
+        TestRunner.True(boxed is not System.Collections.ICollection, name + " is not ICollection");
+        TestRunner.True(boxed is not ICollection<T>, name + " is not ICollection<T>");
+        TestRunner.True(boxed is not System.Collections.IList, name + " is not IList");
+        TestRunner.True(boxed is not IList<T>, name + " is not IList<T>");
+        TestRunner.True(boxed is not System.Collections.ObjectModel.ReadOnlyCollection<T>, name + " is not ReadOnlyCollection<T>");
+        Throws<InvalidCastException>(() => _ = (System.Collections.ICollection)boxed, name + " cast to ICollection");
+        Throws<InvalidCastException>(() => _ = (ICollection<T>)boxed, name + " cast to ICollection<T>");
+        Throws<InvalidCastException>(() => _ = (System.Collections.IList)boxed, name + " cast to IList");
+        Throws<InvalidCastException>(() => _ = (IList<T>)boxed, name + " cast to IList<T>");
+        Throws<InvalidCastException>(() => _ = (T[])boxed, name + " cast to T[]");
+
+        const System.Reflection.BindingFlags all = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic |
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static;
+        Type type = boxed.GetType();
+        var types = new[] { type }.Concat(type.GetInterfaces()).ToArray();
+        TestRunner.True(types.All(t => t.GetProperties(all).All(p => !p.Name.EndsWith("SyncRoot", StringComparison.Ordinal))),
+            name + " exposes no SyncRoot member (reflection)");
+        TestRunner.True(type.IsSealed && !type.IsValueType, name + " is a sealed reference type");
+        TestRunner.True(types.All(t => t.GetProperties(all).All(p => p.SetMethod is null)), name + " has no property setter (incl. indexer)");
+
         TestRunner.Eq(before, list.Count, name + " count unchanged");
+        TestRunner.True(snapshot.SequenceEqual(list), name + " elements unchanged");
     }
 
     public static void Throws<TException>(Action action, string message) where TException : Exception
