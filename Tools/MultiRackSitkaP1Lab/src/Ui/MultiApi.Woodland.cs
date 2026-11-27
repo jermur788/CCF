@@ -177,17 +177,12 @@ internal sealed partial class PlayerApi
         var budget = ActiveStandBudget(outSnap.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(outSnap, totalRecordedYears, reviewPreview, out byte[] rawViewBytes,
             economyEnabled, economy, budget, hasUnsavedProgress, activeRecipe);
-        if (bounded.PayloadBudgetExceeded)
-        {
-            await WritePayloadBudgetExceededAsync(context, rawViewBytes.Length, budget.MaxViewBytes);
-            return;
-        }
-
-        await WriteJsonAsync(context, StatusOf(refusal?.Code), new MultiWoodlandNewPayload(
+        await WriteBoundedJsonAsync(context, StatusOf(refusal?.Code), new MultiWoodlandNewPayload(
             bounded.View, bounded.Scenes, MultiLabels, bounded.Stage4, bounded.Ecology,
             refusal, bounded.HistoryTruncated, bounded.TotalRecordedYears, reviewPreview,
             bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded,
-            economyEnabled, economy, hasUnsavedProgress, experimentBadge, activeRecipe));
+            economyEnabled, economy, hasUnsavedProgress, experimentBadge, activeRecipe),
+            budget, bounded.PayloadBudgetExceeded, rawViewBytes.Length);
     }
 
     private static ForestMakerRecipe BuildRecipeFromInput(MultiWoodlandRecipeInput input, bool forceCustomPresetNull)

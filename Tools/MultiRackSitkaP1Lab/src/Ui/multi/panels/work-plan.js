@@ -1,7 +1,7 @@
 // S0c provenance: panels/work-plan.js [L4] — section(s) 14 from multi.js
 import { el, expandable, fixed, label, pair, plural, table, technicalPlan, useIcon } from '../dom.js';
 import { svgRenderer, usableCentre, viewBox } from '../map/renderer-svg.js';
-import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, byId, currentArea, currentJuvenile, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText } from '../store.js';
+import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaShort, areaView, byId, currentArea, currentJuvenile, hooks, isEconomyEnabled, itemOf, ordersIn, pendingClears, pendingPlantings, pendingPrunes, plantedIn, pruneStatusOf, readoutState, selectedId, shelterForJuvenile, speciesLabel, speciesOf, state, statusText } from '../store.js';
   // ---- Work Plan, Receipt, Results, Trees, Details --------------------------------------------------------------------
 
   function statePill(approved, actionIconId, actionWord) {
@@ -130,7 +130,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
     ].filter(Boolean).join(' · ');
   }
   function perAreaCounts(orders) {
-    return state.view.areas.map((area) => area.label + ' ' + ordersIn(orders, area.areaId).length).join(' · ');
+    return allAreas().map((area) => area.label + ' ' + ordersIn(orders, area.areaId).length).join(' · ');
   }
 
   function renderEconomyQuote() {
@@ -249,7 +249,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
       pendingP.length === 0 && pendingC.length === 0 && pendingPl.length === 0
         ? view.pending.length + ' pending Fell · not felled (' + perAreaCounts(view.pending) + ')'
         : workTotals(view.pending.length, pendingP.length, pendingC.length, pendingPl) + ' pending · nothing executed yet';
-    byId('pending-areas').replaceChildren(...view.areas.map((area) => {
+    byId('pending-areas').replaceChildren(...allAreas().map((area) => {
       const orders = ordersIn(view.pending, area.areaId);
       const prunes = ordersIn(pendingP, area.areaId);
       const clears = ordersIn(pendingC, area.areaId);
@@ -277,7 +277,7 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
       ? plan.orders.length + ' approved · still standing'
       : workTotals(plan.orders.length, approvedP.length, approvedC.length, approvedPl) + ' approved · nothing executed yet';
     byId('approved-sub').textContent = 'Execution has not happened. Year remains ' + view.source.ecologicalYear + ' · approved in year ' + plan.source.ecologicalYear + '.';
-    byId('approved-areas').replaceChildren(...view.areas.map((area) => {
+    byId('approved-areas').replaceChildren(...allAreas().map((area) => {
       const orders = ordersIn(plan.orders, area.areaId);
       const prunes = ordersIn(approvedP, area.areaId);
       const clears = ordersIn(approvedC, area.areaId);
@@ -493,8 +493,12 @@ import { PANES, PANE_NAMES, STATEMENTS, ZOOMS, approvedClears, approvedPlantings
       pair('Source class', e.sourceClass), pair('Manifest content hash', expandable(e.manifestContentHash)),
       pair('Generator', e.generatorId + ' v' + e.generatorVersion + ', seed ' + e.generatorSeed),
       pair('Review status', e.reviewStatus), pair('Edge model', e.edgeModel, 'wide'), pair('Site', e.siteNote, 'wide'),
-      ...view.areas.map((area) => pair(area.label + ' (' + area.areaId + ')', area.areaM2Exact + ' m² (' + fixed(area.areaHa, 4) + ' ha) · seed ' +
-        area.simulationSeed + ' · ' + area.trees.length + ' tree records')),
+      ...allAreas().map((area) => {
+        const loaded = areaView(area.areaId);
+        const seedPart = loaded && loaded.simulationSeed !== undefined ? ' · seed ' + loaded.simulationSeed : '';
+        const countPart = loaded && loaded.trees ? loaded.trees.length + ' tree records' : area.stand.livingCount + ' living trees';
+        return pair(area.label + ' (' + area.areaId + ')', area.areaM2Exact + ' m² (' + fixed(area.areaHa, 4) + ' ha)' + seedPart + ' · ' + countPart);
+      }),
       pair('Models', 'RNG v' + s.rngModelVersion + ' · growth model v' + s.growthModelVersion + ' · rules ' + s.p1AlgorithmVersion +
         ' · ' + s.areaModelVersion, 'wide'),
       pair('Ecological year', s.ecologicalYear), pair('Annual revision', s.annualRevision),

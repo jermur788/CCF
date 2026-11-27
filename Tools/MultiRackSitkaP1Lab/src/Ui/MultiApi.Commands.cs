@@ -30,28 +30,23 @@ internal sealed partial class PlayerApi
             hasUnsavedProgress = active.HasUnsavedProgress;
             genesisStems = active.Session.GenesisStemCount;
         }
+        var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
         if (composite is { } c)
         {
-            var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
             var bounded = SerializeBoundedMultiView(result.View, c.Stage4, c.Ecology, totalRecordedYears, reviewPreview: null,
                 out byte[] rawBytes, economyEnabled, economy, budget, hasUnsavedProgress);
-            if (bounded.PayloadBudgetExceeded)
-            {
-                await WritePayloadBudgetExceededAsync(context, rawBytes.Length, budget.MaxViewBytes);
-                return;
-            }
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(bounded.View, bounded.Scenes,
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(bounded.View, bounded.Scenes,
                 NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual,
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
                 bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy,
-                hasUnsavedProgress));
+                hasUnsavedProgress), budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
         }
         else
         {
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(result.View, ScenesOf(result.View),
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(result.View, ScenesOf(result.View),
                 NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual,
                 null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy,
-                HasUnsavedProgress: hasUnsavedProgress));
+                HasUnsavedProgress: hasUnsavedProgress), budget);
         }
     }
 
@@ -151,12 +146,13 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(outSnap.View.Areas.Count, genesisStems);
-        var bounded = BoundSnapshotForResponse(outSnap, totalRecordedYears, economyEnabled, economy, budget);
-        await WriteJsonAsync(context, StatusOf(refusal?.Code), new MultiEconomySessionPayload(
+        var bounded = SerializeBoundedMultiView(outSnap, totalRecordedYears, reviewPreview, out byte[] rawBytes,
+            economyEnabled, economy, budget, hasUnsavedProgress);
+        await WriteBoundedJsonAsync(context, StatusOf(refusal?.Code), new MultiEconomySessionPayload(
             bounded.View, bounded.Scenes, MultiLabels, bounded.Stage4, bounded.Ecology,
             refusal, bounded.HistoryTruncated, bounded.TotalRecordedYears, reviewPreview,
             bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy,
-            hasUnsavedProgress));
+            hasUnsavedProgress), budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
     }
 
     // Pure read-only Work Plan economic quote (POST api/multi/economy/quote). Refuses 409 when Off or fence is stale.
@@ -166,6 +162,7 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         int status;
         MultiEconomyQuotePayload payload;
+        MultiViewBudgetLimit budget;
         lock (multiHost.SyncLock)
         {
             var active = multiHost.Current;
@@ -179,6 +176,7 @@ internal sealed partial class PlayerApi
                 status = StatusCodes.Status200OK;
                 payload = new MultiEconomyQuotePayload(
                     ProjectEconomyQuote(quote, econOptions), FenceOf(view), BoundSessionViewForAux(view), economyEnabled, econ, Refusal: null);
+                budget = ActiveStandBudget(view.Areas.Count, active.Session.GenesisStemCount);
             }
             catch (P1Refusal refusal)
             {
@@ -187,9 +185,10 @@ internal sealed partial class PlayerApi
                 status = StatusCodes.Status409Conflict;
                 payload = new MultiEconomyQuotePayload(
                     Quote: null, FenceOf(view), BoundSessionViewForAux(view), economyEnabled, econ, new Notice(refusal.Code, refusal.Message));
+                budget = ActiveStandBudget(view.Areas.Count, active.Session.GenesisStemCount);
             }
         }
-        await WriteJsonAsync(context, status, payload);
+        await WriteBoundedJsonAsync(context, status, payload, budget);
     }
 
     // Per-order executor assignment (POST api/multi/economy/executor). Refuses Fell->Landowner (EconomyFellContractorOnly)

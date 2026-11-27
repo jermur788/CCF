@@ -1,9 +1,9 @@
 // Phase 2A-2: New Woodland modal dialog (spec §7.1–§7.2; D-020 zero JS forestry/bounds/count math).
 // Every option, bound, preview count, area, stem list, and refusal message comes verbatim from the Core server.
-import { announce, applyPayload, clearAlert, currentFence, syncStandOverview } from '../api.js';
+import { announce, applyPayload, clearAlert, currentFence, refreshMultiStandFrame, showBudgetExceeded } from '../api.js';
 import { openDialog } from '../commands.js';
 import { el, fixed } from '../dom.js';
-import { byId, hooks, resetSessionUiState, state } from '../store.js';
+import { byId, hooks, isMultiLaneStand, resetSessionUiState, state } from '../store.js';
 import { jsonCall, noticeOf } from './saves.js';
 
 let previewTimer = 0;
@@ -236,17 +236,26 @@ async function submitNewWoodland(confirmDiscardUnsaved) {
   document.documentElement.classList.remove('busy');
 
   if (outcome.kind === 'ok' && outcome.payload && outcome.payload.view) {
+    const useLaneReads = outcome.payload.view.areas && outcome.payload.view.areas.length >= 3;
     resetSessionUiState();
     clearAlert();
-    applyPayload(outcome.payload, false);
     byId('woodland-dialog').close();
-    if (outcome.payload.view.areas && outcome.payload.view.areas.length >= 3) {
-      await syncStandOverview();
+    if (useLaneReads) {
+      const frame = await refreshMultiStandFrame(null, false, 'New woodland');
+      if (frame.kind !== 'ok') return;
+    } else {
+      applyPayload(outcome.payload, false);
     }
-    announce('Started new woodland: ' + (outcome.payload.experimentBadge || state.view.experiment.experimentId) + '.');
+    announce('Started new woodland: ' + (outcome.payload.experimentBadge || state.experimentBadge || state.view.experiment.experimentId) + '.');
     hooks.refreshReviewPreview();
     if (state.historyOpen) hooks.loadHistoryIndex(null, false);
     if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
+    return;
+  }
+
+  if (outcome.kind === 'budget') {
+    byId('woodland-dialog').close();
+    showBudgetExceeded('New woodland', outcome.budget);
     return;
   }
 
@@ -260,7 +269,8 @@ async function submitNewWoodland(confirmDiscardUnsaved) {
     return;
   }
   if (outcome.kind === 'refused' && outcome.payload && outcome.payload.view) {
-    applyPayload(outcome.payload, false);
+    if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'New woodland');
+    else applyPayload(outcome.payload, false);
   }
   setWoodlandStatus('Refused (' + notice.code + '): ' + notice.message, 'bad');
 }

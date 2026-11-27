@@ -111,20 +111,28 @@ drive() {
 
 run() { if "$@"; then :; else fail=1; fi; }
 
-# 1. Full Phase 2A-2 suite at 1920x1080 (also saves v3 slot fm-restart-test at Year 2)
+# 1. Full Phase 2A-2 suite (defaults to 1920x1080; override via PHASE2A_FULL_W/PHASE2A_FULL_H/PHASE2A_FULL_TAG)
+full_w="${PHASE2A_FULL_W:-1920}"
+full_h="${PHASE2A_FULL_H:-1080}"
+full_tag="${PHASE2A_FULL_TAG:-vp${full_w}}"
 start_server p2a-full
-run drive full vp1920 1920 1080 "${server_url%/}/multi"
+run drive full "$full_tag" "$full_w" "$full_h" "${server_url%/}/multi"
 stop_server p2a-full 0
 
-# 2. Genuine server process restart -> Load v3 slot at 1280x720 -> Continue to Year 3
+# 2. Genuine server process restart -> negative v3 load unsaved-progress check -> Load v3 slot at 1280x720 -> Continue to Year 3
 start_server p2a-restart
 run drive restart-load vp1280-restart 1280 720 "${server_url%/}/multi"
 stop_server p2a-restart 0
 
-# 3. Forced payload overflow -> HTTP 503 MultiViewPayloadBudgetExceeded + UI alert keeping last good view
+# 3. Forced payload overflow (lowering budget to 400000 B) -> HTTP 503 on ALL view-returning routes + UI alert keeping last good view
 start_server p2a-overflow "CCF_TEST_MAX_VIEW_BYTES=400000"
 run drive overflow-503 vp1280-overflow 1280 720 "${server_url%/}/multi"
 stop_server p2a-overflow 1
+
+# 4. Budget override raise-clamp & near-cap render proof (9999999 B override cannot raise 2.5 MiB ceiling; 2,880-stem 5-lane 2/3-lane reads return 200 and render without overflow)
+start_server p2a-clamp "CCF_TEST_MAX_VIEW_BYTES=9999999"
+run drive clamp-raise vp1280-clamp 1280 720 "${server_url%/}/multi"
+stop_server p2a-clamp 0
 
 say "EVIDENCE $evidence"
 say "OVERALL: $([[ $fail == 0 ]] && echo PASS || echo FAIL) ($(grep -c '^PASS' "$log") passed, $(grep -c '^FAIL' "$log") failed)"

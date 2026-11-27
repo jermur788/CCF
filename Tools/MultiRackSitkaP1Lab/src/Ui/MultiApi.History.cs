@@ -16,6 +16,7 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         int status;
         MultiPreviewReviewPayload payload;
+        MultiViewBudgetLimit budget;
         lock (multiHost.SyncLock)
         {
             var active = multiHost.Current;
@@ -31,6 +32,7 @@ internal sealed partial class PlayerApi
                     preview.CurrentYear, preview.Eligible, preview.SuggestedTargetYear, preview.SuggestedGapYears,
                     preview.AnchorFellYear, preview.IsObservationPeriod, isOverdue, preview.MaxTicksPerPress, preview.StopReason,
                     preview.CalibrationNote, preview.Label, fence, boundedView, Refusal: null);
+                budget = ActiveStandBudget(view.Areas.Count, active.Session.GenesisStemCount);
             }
             catch (P1Refusal refusal)
             {
@@ -39,9 +41,10 @@ internal sealed partial class PlayerApi
                 payload = new MultiPreviewReviewPayload(
                     null, null, null, null, null, null, null, null, null, null, null,
                     FenceOf(view), BoundSessionViewForAux(view), new Notice(refusal.Code, refusal.Message));
+                budget = ActiveStandBudget(view.Areas.Count, active.Session.GenesisStemCount);
             }
         }
-        await WriteJsonAsync(context, status, payload);
+        await WriteBoundedJsonAsync(context, status, payload, budget);
     }
 
     // Bounded multi-year advance (1..5 years per press) calling Core's AdvanceYears(fence, targetYear, ct).
@@ -76,14 +79,16 @@ internal sealed partial class PlayerApi
         }
 
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
-        var bounded = BoundSnapshotForResponse(snapshot, totalRecordedYears, economyEnabled, economy, budget);
+        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
+            economyEnabled, economy, budget);
         if (refusalNotice is not null)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
                 null, null, request.TargetYear, Array.Empty<MultiSkipStepDto>(), false, null, null, null, null, null,
                 bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
                 refusalNotice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
+                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
             return;
         }
 
@@ -98,13 +103,14 @@ internal sealed partial class PlayerApi
             : null;
         int status = isRefusal ? StatusCodes.Status409Conflict : StatusCodes.Status200OK;
 
-        await WriteJsonAsync(context, status, new MultiSkipPayload(
+        await WriteBoundedJsonAsync(context, status, new MultiSkipPayload(
             result.StartYear, result.DestinationYear, result.RequestedTargetYear,
             Array.AsReadOnly(completed), result.ReachedTarget, result.StopReason, result.StopDetail,
             result.IsObservationPeriod, result.AnchorFellYear, result.CalibrationNote,
             bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
             notice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
+            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
+            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
     }
 
     // Read-only newest-first paged index of recorded years. Clamps pageSize to 1..50 (default 10). 400 on invalid query params.
@@ -161,28 +167,29 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         var active = multiHost.Current;
         var currentView = active.Adapter.Read();
+        var budget = ActiveStandBudget(currentView.Areas.Count, active.Session.GenesisStemCount);
         Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
         if (fenceRefusal is not null)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView), fenceRefusal));
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView), fenceRefusal), budget);
             return;
         }
 
         int year = request.Year!.Value;
         if (year < 0)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
                 new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
-                    new Notice("HistoryYearInvalid", "history year must be non-negative")));
+                    new Notice("HistoryYearInvalid", "history year must be non-negative")), budget);
             return;
         }
         if (year > currentView.Source.EcologicalYear)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
                 new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
                     new Notice("HistoryYearNotRecorded",
-                        FormattableString.Invariant($"year {year} exceeds the current ecological year ({currentView.Source.EcologicalYear}) and has no recorded data"))));
+                        FormattableString.Invariant($"year {year} exceeds the current ecological year ({currentView.Source.EcologicalYear}) and has no recorded data"))), budget);
             return;
         }
 
@@ -194,22 +201,22 @@ internal sealed partial class PlayerApi
         catch (P1Refusal refusal)
         {
             var fresh = active.Adapter.Read();
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
                 new MultiHistoryYearRefusalPayload(FenceOf(fresh), BoundSessionViewForAux(fresh),
-                    new Notice(refusal.Code, refusal.Message)));
+                    new Notice(refusal.Code, refusal.Message)), budget);
             return;
         }
 
         if (!detail.HasRecordedData)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
+            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
                 new MultiHistoryYearRefusalPayload(FenceOf(currentView), BoundSessionViewForAux(currentView),
                     new Notice("HistoryYearNotRecorded",
-                        FormattableString.Invariant($"year {year} has no recorded work or annual outcome in this session"))));
+                        FormattableString.Invariant($"year {year} has no recorded work or annual outcome in this session"))), budget);
             return;
         }
 
-        await WriteJsonAsync(context, StatusCodes.Status200OK, detail);
+        await WriteBoundedJsonAsync(context, StatusCodes.Status200OK, detail, budget);
     }
 
     // Read-only per-year Economy financial history (POST api/multi/economy/history/year).
@@ -220,10 +227,12 @@ internal sealed partial class PlayerApi
         if (request is null) return;
         int status;
         object payload;
+        MultiViewBudgetLimit budget;
         lock (multiHost.SyncLock)
         {
             var active = multiHost.Current;
             var currentView = active.Adapter.Read();
+            budget = ActiveStandBudget(currentView.Areas.Count, active.Session.GenesisStemCount);
             Notice? fenceRefusal = ValidateFenceNotice(request.Fence!, currentView);
             if (fenceRefusal is not null)
             {
@@ -261,7 +270,7 @@ internal sealed partial class PlayerApi
                 }
             }
         }
-        await WriteJsonAsync(context, status, payload);
+        await WriteBoundedJsonAsync(context, status, payload, budget);
     }
 
     // Read-only nearest-neighbour spatial woodland structure descriptors (M_i, T_i) over the current committed root.

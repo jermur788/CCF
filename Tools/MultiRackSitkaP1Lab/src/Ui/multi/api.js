@@ -1,6 +1,6 @@
 // S0c provenance: api.js [L2] — section(s) 3, 5 from multi.js
 import { el, label } from './dom.js';
-import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isPhase2, juvenileById, livingIn, readoutState, state, treeIn } from './store.js';
+import { COMMAND_IDS, allAreas, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isMultiLaneStand, isPhase2, juvenileById, livingIn, readoutState, state, treeIn, visibleLaneIds } from './store.js';
   // ---- talking to the local session process ---------------------------------------------------------------------------
 
   export function currentFence() {
@@ -102,9 +102,10 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     }
   }
 
-  // C-FENCE split frame composer: pairs GET api/multi/stand + POST api/multi/stand { fence, lanes },
-  // verifying byte-identical fence equality (JSON.stringify(f1) === JSON.stringify(f2)) and retrying on mismatch.
-  export async function fetchMultiStandCFence(requestedLanes) {
+  // C-FENCE split frame composer: pairs GET api/multi/stand (overview) + GET api/multi/stand?lanes=... (lane-filtered
+  // detail for active lane + immediate neighbours, or 1 lane when singleLaneMode is on). Verifies byte-identical fence
+  // equality (JSON.stringify(f1) === JSON.stringify(f2)); on any mismatch discards BOTH responses and re-reads.
+  export async function fetchMultiStandCFence(activeAreaId, singleLaneMode) {
     for (let attempt = 0; attempt < 3; attempt++) {
       let ovRes;
       try {
@@ -117,23 +118,29 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       if (ovRes.status === 503 && overview && overview.code === 'MultiViewPayloadBudgetExceeded') {
         return { kind: 'budget', status: 503, budget: overview };
       }
-      if (ovRes.status !== 200 || !overview || !overview.fence) {
+      if (ovRes.status !== 200 || !overview || !overview.fence || !Array.isArray(overview.areas)) {
         return { kind: 'transport', detail: 'HTTP ' + ovRes.status };
       }
+      if (overview.areas.length <= 2) {
+        return { kind: 'two-area', overview };
+      }
 
-      const lanesList = requestedLanes && requestedLanes.length > 0
-        ? requestedLanes
-        : overview.areas.slice(0, Math.min(2, overview.areas.length)).map((a) => a.areaId);
+      const lanesList = visibleLaneIds(overview.areas, activeAreaId, Boolean(singleLaneMode));
+      const f = overview.fence;
+      const qs = 'lanes=' + encodeURIComponent(lanesList.join(',')) +
+        '&sessionId=' + encodeURIComponent(f.sessionId) +
+        '&planStateRevision=' + encodeURIComponent(String(f.planStateRevision)) +
+        '&ecologicalYear=' + encodeURIComponent(String(f.source.ecologicalYear)) +
+        '&annualRevision=' + encodeURIComponent(String(f.source.annualRevision)) +
+        '&workRevision=' + encodeURIComponent(String(f.source.workRevision));
 
       let lnRes;
       try {
-        lnRes = await fetch('api/multi/stand', {
-          method: 'POST',
+        lnRes = await fetch('api/multi/stand?' + qs, {
+          method: 'GET',
           cache: 'no-store',
           credentials: 'omit',
           redirect: 'error',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fence: overview.fence, lanes: lanesList }),
         });
       } catch (err) {
         return { kind: 'transport', detail: String((err && err.message) || err) };
@@ -143,14 +150,61 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       if (lnRes.status === 503 && lanesPayload && lanesPayload.code === 'MultiViewPayloadBudgetExceeded') {
         return { kind: 'budget', status: 503, budget: lanesPayload };
       }
-      if (lnRes.status === 200 && lanesPayload && lanesPayload.fence &&
+      if (lnRes.status === 200 && lanesPayload && lanesPayload.fence && lanesPayload.view &&
           JSON.stringify(overview.fence) === JSON.stringify(lanesPayload.fence)) {
         expandCompactLanePayload(lanesPayload);
-        return { kind: 'ok', overview, lanesPayload };
+        return { kind: 'ok', overview, lanesPayload, requestedLanes: lanesList };
       }
       // Fence moved concurrently between overview and lane read: discard both and retry cleanly.
     }
     return { kind: 'transport', detail: 'C-FENCE fence mismatch persisted across retries' };
+  }
+
+  // Composes a >=3-area frame strictly from byte-identical C-FENCE overview + lane-filtered responses.
+  export function applyComposedStandFrame(overview, lanesPayload, keepOverlap, preferredAreaId) {
+    if (!overview || !overview.fence || !lanesPayload || !lanesPayload.fence || !lanesPayload.view) return false;
+    if (JSON.stringify(overview.fence) !== JSON.stringify(lanesPayload.fence)) return false;
+    expandCompactLanePayload(lanesPayload);
+    state.standOverview = overview;
+    if (preferredAreaId && lanesPayload.view.areas && lanesPayload.view.areas.some((a) => a.areaId === preferredAreaId)) {
+      state.areaId = preferredAreaId;
+    }
+    const composed = {
+      view: lanesPayload.view,
+      scenes: lanesPayload.scenes,
+      stage4: lanesPayload.stage4,
+      ecology: lanesPayload.ecology,
+      labels: overview.labels || state.labels,
+      historyTruncated: lanesPayload.historyTruncated,
+      totalRecordedYears: lanesPayload.totalRecordedYears,
+      reviewPreview: overview.reviewPreview,
+      projectionCompacted: lanesPayload.projectionCompacted,
+      stage4Compacted: lanesPayload.stage4Compacted,
+      payloadBudgetExceeded: false,
+      economyEnabled: lanesPayload.economyEnabled,
+      economy: lanesPayload.economy,
+      hasUnsavedProgress: lanesPayload.hasUnsavedProgress,
+      experimentBadge: overview.experimentBadge || state.experimentBadge,
+      recipe: 'recipe' in lanesPayload ? lanesPayload.recipe : overview.recipe,
+    };
+    applyPayload(composed, keepOverlap);
+    return true;
+  }
+
+  // Fetches and applies a C-FENCE lane-filtered frame for >=3-area stands with monotonic request superseding.
+  export async function refreshMultiStandFrame(activeAreaId, singleLaneMode, what, options) {
+    const opts = options || {};
+    const req = ++state.laneRequest;
+    const outcome = await fetchMultiStandCFence(activeAreaId, singleLaneMode);
+    if (req !== state.laneRequest) return { kind: 'superseded' };
+    if (outcome.kind === 'ok') {
+      const applied = applyComposedStandFrame(outcome.overview, outcome.lanesPayload, Boolean(opts.keepOverlap), activeAreaId);
+      return applied ? outcome : { kind: 'transport', detail: 'C-FENCE frame fence mismatch' };
+    }
+    if (outcome.kind === 'budget' && !opts.silentBudget) {
+      showBudgetExceeded(what || 'Read lanes', outcome.budget);
+    }
+    return outcome;
   }
 
   export function showBudgetExceeded(what, budgetPayload) {
@@ -177,7 +231,7 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     if ('recipe' in payload) state.recipe = payload.recipe || null;
     if (payload.experimentBadge) state.experimentBadge = payload.experimentBadge;
     else if (payload.ecology && payload.ecology.experimentBadge) state.experimentBadge = payload.ecology.experimentBadge;
-    if (state.standOverview && (!state.view || state.view.areas.length <= 2 ||
+    if (state.standOverview && (!state.view || !Array.isArray(state.standOverview.areas) || state.standOverview.areas.length < 3 ||
         JSON.stringify(state.standOverview.fence) !== JSON.stringify(currentFence()))) {
       state.standOverview = null;
     }
@@ -202,7 +256,7 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     }
     if (!areaView(state.areaId)) state.areaId = state.view.areas.length > 0 ? state.view.areas[0].areaId : null;
     for (const areaId of Object.keys(state.selected)) {
-      if (!treeIn(areaId, state.selected[areaId])) delete state.selected[areaId];
+      if (areaView(areaId) && !treeIn(areaId, state.selected[areaId])) delete state.selected[areaId];
     }
     if (!keepOverlap) state.overlap = null;
     const target = state.competitionTarget;
@@ -225,19 +279,45 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     if (!state.view || refusedByLock(what) || state.busy) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
-    const outcome = await call(path, body);
-    state.busy = false;
-    document.documentElement.classList.remove('busy');
-    if (outcome.kind === 'ok') {
-      clearAlert();
-      state.lastWasReplay = Boolean(outcome.payload.execution && outcome.payload.execution.replayed);
-      applyPayload(outcome.payload, false);
+    let outcome;
+    let postAction = null;
+    try {
+      outcome = await call(path, body);
+      if (outcome.kind === 'ok') {
+        clearAlert();
+        state.lastWasReplay = Boolean(outcome.payload.execution && outcome.payload.execution.replayed);
+        const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
+        if (useLaneReads) {
+          const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
+          if (frame.kind !== 'ok') {
+            if (frame.kind !== 'budget' && frame.kind !== 'superseded') {
+              showAlert([el('p', { class: 'alert-title' }, 'Lane frame refresh failed after ' + what + '.'), rereadButton()]);
+            }
+            return;
+          }
+        } else {
+          applyPayload(outcome.payload, false);
+        }
+        postAction = 'ok';
+      } else if (outcome.kind === 'refused') {
+        const useLaneReads = isMultiLaneStand() || (outcome.payload.view && outcome.payload.view.areas && outcome.payload.view.areas.length >= 3);
+        if (useLaneReads) {
+          await refreshMultiStandFrame(state.areaId, state.singleLaneMode, what);
+        } else {
+          applyPayload(outcome.payload, false);
+        }
+        postAction = 'refused';
+      }
+    } finally {
+      state.busy = false;
+      document.documentElement.classList.remove('busy');
+    }
+    if (postAction === 'ok') {
       if (onCommitted) onCommitted(outcome.payload);
       if (focusAfter) keepFocusOr(focusAfter);
       hooks.refreshReviewPreview();
       if (state.historyOpen) hooks.loadHistoryIndex(null, false);
-    } else if (outcome.kind === 'refused') {
-      applyPayload(outcome.payload, false);
+    } else if (postAction === 'refused') {
       if (state.lock) showLockAlert('Refused: ' + what + ' (' + outcome.payload.refusal.code + '). Nothing changed.');
       else showRefusal(what, outcome.payload.refusal);
       hooks.refreshReviewPreview();

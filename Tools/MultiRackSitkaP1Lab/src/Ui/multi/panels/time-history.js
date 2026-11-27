@@ -1,9 +1,9 @@
 // S0c provenance: panels/time-history.js [L4] — section(s) 17a from multi.js
-import { announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refusedByLock, showAlert, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
+import { announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refreshMultiStandFrame, refusedByLock, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
 import { reread } from '../commands.js';
 import { jsonCall, noticeOf } from '../dialogs/saves.js';
 import { el, fixed, label, lightIndexText, plural, table } from '../dom.js';
-import { areaShort, byId, draftTotal, isEconomyEnabled, pct1, speciesLabel, state } from '../store.js';
+import { areaShort, byId, draftTotal, isEconomyEnabled, isMultiLaneStand, pct1, speciesLabel, state } from '../store.js';
 import { showPane } from './work-plan.js';
   // ---- Phase 1 Step 2: Skip to Review, On-Demand History Drawer, and On-Demand Structure Panel -----------------------
 
@@ -158,7 +158,12 @@ import { showPane } from './work-plan.js';
         anchorFellYear: p.anchorFellYear,
         calibrationNote: p.calibrationNote || preview.calibrationNote,
       };
-      applyPayload(p, false);
+      if (isMultiLaneStand() || (p.view && p.view.areas && p.view.areas.length >= 3)) {
+        const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Skip to review');
+        if (frame.kind !== 'ok') return;
+      } else {
+        applyPayload(p, false);
+      }
       showPane('history');
       byId('year-heading').focus();
       announce('Skipped Year ' + p.startYear + ' → Year ' + p.destinationYear + ' (' +
@@ -167,10 +172,13 @@ import { showPane } from './work-plan.js';
       refreshReviewPreview();
       if (state.historyOpen) loadHistoryIndex(null, false);
     } else if (skipOutcome.kind === 'refused') {
-      applyPayload(skipOutcome.payload, false);
+      if (isMultiLaneStand()) await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Skip to review');
+      else applyPayload(skipOutcome.payload, false);
       if (state.lock) showLockAlert('Refused: Skip to review (' + skipOutcome.payload.refusal.code + '). Nothing changed.');
       else showRefusal('Skip to review', skipOutcome.payload.refusal);
       refreshReviewPreview();
+    } else if (skipOutcome.kind === 'budget') {
+      showBudgetExceeded('Skip to review', skipOutcome.budget);
     } else if (skipOutcome.kind === 'guard') {
       showGuardRefusal('Skip to review', skipOutcome.status, skipOutcome.error);
     } else if (skipOutcome.kind === 'locked') {

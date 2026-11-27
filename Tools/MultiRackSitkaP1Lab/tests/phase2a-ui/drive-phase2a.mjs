@@ -10,7 +10,7 @@ const opt = (name, fallback = null) => {
   const i = args.indexOf('--' + name);
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback;
 };
-const mode = opt('mode', 'full'); // 'full' | 'restart-load' | 'overflow-503'
+const mode = opt('mode', 'full'); // 'full' | 'restart-load' | 'overflow-503' | 'clamp-raise'
 const tag = opt('tag', mode);
 const width = Number(opt('width', '1920'));
 const height = Number(opt('height', '1080'));
@@ -118,8 +118,17 @@ async function rectOf(cdp, selector) {
 }
 
 async function click(cdp, selector) {
-  await evaluate(cdp, `(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (e && e.scrollIntoView) e.scrollIntoView({ block: 'center', inline: 'nearest' }); })()`);
-  await sleep(60);
+  await evaluate(cdp, `(() => {
+    const e = document.querySelector(${JSON.stringify(selector)});
+    if (!e || !e.scrollIntoView) return;
+    e.scrollIntoView({ block: 'center', inline: 'nearest' });
+    const r = e.getBoundingClientRect();
+    const topEl = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (topEl && topEl !== e && !e.contains(topEl)) {
+      e.scrollIntoView({ block: 'start', inline: 'nearest' });
+    }
+  })()`);
+  await sleep(80);
   const rect = await rectOf(cdp, selector);
   if (!rect || !rect.visible) throw new Error('cannot click ' + selector + ' (not visible)');
   const base = { x: rect.x, y: rect.y, button: 'left', clickCount: 1, pointerType: 'mouse' };
@@ -186,7 +195,7 @@ async function checkLayout(cdp, label, expectMulti) {
     `layout (${label}): zero h-scroll (${geom.scrollW}<=${geom.innerW}), single-row topbar (delta=${geom.maxTopDelta}px), New woodland beside Saved games, multi=${expectMulti} (${geom.advSub})`);
 }
 
-async function runFull(cdp, collectEvents, auditErrors) {
+async function runFull(cdp, collectEvents, auditErrors, netTracker) {
   await setViewport(cdp, width, height);
   await checkLayout(cdp, 'MA-1 initial', false);
 
@@ -233,15 +242,15 @@ async function runFull(cdp, collectEvents, auditErrors) {
   await click(cdp, '#woodland-create');
   await waitFor(cdp, "!document.getElementById('woodland-confirm-box').hidden && document.getElementById('woodland-confirm-text').textContent.includes('Discard unsaved progress')",
     'Unsaved-work confirmation banner shown');
+
+  // Reset network tracker right before switching into >=3-area woodland so we audit ONLY player-page network traffic!
+  collectEvents(false);
+  netTracker.reset();
+
   await click(cdp, '#woodland-confirm-discard');
   await waitFor(cdp, "!document.getElementById('woodland-dialog').open && document.getElementById('year-value').textContent.trim() === '0' && document.querySelectorAll('[data-lane-border]').length === 2",
     'Primary 0.64 ha preset loaded at Year 0 with 2 visible lanes at outer Lane A');
   await sleep(250);
-
-  // Stale old MA-1 fence must now be refused
-  const staleCheck = await fetchJson(cdp, 'api/multi/year/advance', { fence: dirtyFence, consentToCancelWork: false });
-  check(staleCheck.status === 409 && staleCheck.payload?.refusal?.code === 'PlayerSessionMismatch',
-    'Old pre-swap MA-1 fence is refused with 409 PlayerSessionMismatch');
 
   // 4. Multi-lane view: 2 lanes at A (outer), 3 lanes at C (interior), 2 lanes at E (outer), open grassland, mini-map click + Enter, 1-lane toggle, neighbour click!
   await checkLayout(cdp, '0.64 ha Primary (Lane A)', true);
@@ -280,14 +289,55 @@ async function runFull(cdp, collectEvents, auditErrors) {
   await click(cdp, '#lane-mode-toggle');
   await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 2", '1-lane toggle off restores neighbours');
 
-  // Click a tree in visible neighbour lane MA-D (while MA-E is active) -> selects tree in MA-D!
+  // Click a tree in visible neighbour lane MA-D (while MA-E is active) -> selects tree in MA-D & shifts lane window to MA-C,MA-D,MA-E!
   await click(cdp, '[data-lane-crowns="MA-D"] [data-tree-id]');
-  await waitFor(cdp, "document.getElementById('insp-id') && document.getElementById('insp-id').textContent.startsWith('MA-D-')",
-    'Clicking a visible neighbour lane tree inspects it with its exact areaId');
+  await waitFor(cdp, "document.getElementById('insp-id') && document.getElementById('insp-id').textContent.startsWith('MA-D-') && document.querySelectorAll('[data-lane-border]').length === 3",
+    'Clicking a visible neighbour lane tree inspects it with its exact areaId and shifts window to MA-C,MA-D,MA-E');
   const pickedNeighbour = await evaluate(cdp, "document.getElementById('insp-id').textContent.trim()");
   check(pickedNeighbour.startsWith('MA-D-'), `Visible neighbour tree click routed with exact area ID (${pickedNeighbour})`);
 
-  // 5. C-FENCE lane-filtered /api/multi/stand & /api/multi/stand?lanes=MA-A,MA-B,MA-C payload budget & stale-fence refusal
+  // Verify Work Plan / verb routes work against the active lane in the lane-filtered 5-lane view (Crop mark + unmark).
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && !document.getElementById('competition-content').textContent.includes('Reading competition')", 'idle before Crop mark');
+  await click(cdp, '#crop-button');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && document.getElementById('crop-button').textContent.toLowerCase().includes('remove') && !document.getElementById('competition-content').textContent.includes('Reading competition')", 'Crop mark committed on active lane MA-D');
+  await click(cdp, '#crop-button');
+  await waitFor(cdp, "!document.documentElement.classList.contains('busy') && !document.getElementById('crop-button').textContent.toLowerCase().includes('remove')", 'Crop unmark committed on active lane MA-D');
+  check(true, `Work Plan / Crop verb succeeded against active lane MA-D (${pickedNeighbour}) under lane-filtered reads`);
+
+  // Verify Re-read button on >=3-area stand uses lane-filtered reads, NOT /view!
+  await click(cdp, '#reread');
+  await sleep(250);
+
+  // AUDIT PLAYER-PAGE NETWORK TRAFFIC during >=3-area session:
+  // Must have requested /stand (overview) and /stand?lanes= for 2-lane (MA-A,MA-B & MA-D,MA-E), 3-lane (MA-B,MA-C,MA-D & MA-C,MA-D,MA-E),
+  // and 1-lane (MA-E), with ZERO GET /api/multi/view requests and EVERY response <= 524,288 B!
+  collectEvents(false);
+  const playerSnap = netTracker.snapshot();
+  const viewCalls = playerSnap.viewGets;
+  const ovCalls = playerSnap.standOverviews;
+  const laneCalls = playerSnap.standLanes;
+  const laneQueries = laneCalls.map((r) => r.lanes);
+  const hasLaneA2 = laneQueries.includes('MA-A,MA-B');
+  const hasLaneC3 = laneQueries.includes('MA-B,MA-C,MA-D');
+  const hasLaneE2 = laneQueries.includes('MA-D,MA-E');
+  const hasLaneE1 = laneQueries.includes('MA-E');
+  const hasLaneD3 = laneQueries.includes('MA-C,MA-D,MA-E');
+  const maxOvBytes = ovCalls.length ? Math.max(...ovCalls.map((r) => r.bytes)) : 0;
+  const max1LaneBytes = laneCalls.filter((r) => r.laneCount === 1).reduce((m, r) => Math.max(m, r.bytes), 0);
+  const max2LaneBytes = laneCalls.filter((r) => r.laneCount === 2).reduce((m, r) => Math.max(m, r.bytes), 0);
+  const max3LaneBytes = laneCalls.filter((r) => r.laneCount === 3).reduce((m, r) => Math.max(m, r.bytes), 0);
+  const allUnderBudget = ovCalls.every((r) => r.status === 200 && r.bytes > 0 && r.bytes <= 524288) &&
+    laneCalls.every((r) => r.status === 200 && r.bytes > 0 && r.bytes <= 524288);
+  check(viewCalls.length === 0 && ovCalls.length >= 5 && laneCalls.length >= 5 &&
+    hasLaneA2 && hasLaneC3 && hasLaneE2 && hasLaneE1 && hasLaneD3 && allUnderBudget,
+    `Player >=3-area network audit: /view GETs=${viewCalls.length} (must be 0), /stand overviews=${ovCalls.length} (max=${maxOvBytes} B), /stand?lanes= calls=${laneCalls.length} (1-lane max=${max1LaneBytes} B, 2-lane max=${max2LaneBytes} B, 3-lane max=${max3LaneBytes} B; all <= 524288 B; lanes seen=[${[...new Set(laneQueries)].join(' | ')}])`);
+
+  // Stale old MA-1 fence must now be refused
+  const staleCheck = await fetchJson(cdp, 'api/multi/year/advance', { fence: dirtyFence, consentToCancelWork: false });
+  check(staleCheck.status === 409 && staleCheck.payload?.refusal?.code === 'PlayerSessionMismatch',
+    'Old pre-swap MA-1 fence is refused with 409 PlayerSessionMismatch');
+
+  // 5. Direct API C-FENCE checks: POST form, stale-fence 409, unknown lane 409
   const standOv = await fetchJson(cdp, 'api/multi/stand');
   const stand3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-A,MA-B,MA-C');
   const standPost = await fetchJson(cdp, 'api/multi/stand', { fence: standOv.payload.fence, lanes: ['MA-B', 'MA-C', 'MA-D'] });
@@ -318,9 +368,9 @@ async function runFull(cdp, collectEvents, auditErrors) {
   await waitFor(cdp, "!document.getElementById('saves-dialog').open", 'Saves dialog closed');
 
   // 7. Create secondary 0.64 ha pure Sitka preset with Money On at Year 0 -> verify economy strip + SaveEconomyRequiresV3
-  const curV2 = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  const curV2 = (await fetchJson(cdp, 'api/multi/stand')).payload;
   const pureRes = await fetchJson(cdp, 'api/multi/woodland/new', {
-    fence: fenceOf(curV2), choice: 'preset', presetId: 'fm-064-pure-sitka-v1', economyEnabled: true, confirmDiscardUnsaved: false,
+    fence: curV2.fence, choice: 'preset', presetId: 'fm-064-pure-sitka-v1', economyEnabled: true, confirmDiscardUnsaved: false,
   });
   check(pureRes.status === 200 && pureRes.payload?.economyEnabled === true &&
     pureRes.payload?.view?.experiment?.experimentId === 'mad-fm-064-pure-sitka-v1',
@@ -331,14 +381,19 @@ async function runFull(cdp, collectEvents, auditErrors) {
   check(econSaveRef.status === 409 && econSaveRef.payload?.refusal?.code === 'SaveEconomyRequiresV3',
     'Economy-enabled Forest Maker stand refuses Save with 409 SaveEconomyRequiresV3');
 
-  // 8. Switch back to MA-1 via New Woodland -> prove 2-area layout unchanged
+  // 8. Switch back to MA-1 via New Woodland -> prove 2-area layout & /view path restored unchanged
   const backMa1 = await fetchJson(cdp, 'api/multi/woodland/new', {
     fence: fenceOf(pureRes.payload.view), choice: 'ma-1', economyEnabled: false, confirmDiscardUnsaved: true,
   });
   check(backMa1.status === 200 && backMa1.payload?.view?.areas?.length === 2, 'Switched cleanly back to 2-area MA-1');
+  collectEvents(false);
+  netTracker.reset();
   await click(cdp, '#reread');
   await waitFor(cdp, "document.getElementById('woodland-minimap').hidden && document.getElementById('advance-sub').textContent.includes('Both areas')",
     '2-area MA-1 layout restored');
+  collectEvents(false);
+  const ma1Snap = netTracker.snapshot();
+  check(ma1Snap.viewGets.length >= 1, `2-area MA-1 re-read uses api/multi/view unchanged (viewGets=${ma1Snap.viewGets.length})`);
   await checkLayout(cdp, 'MA-1 restored', false);
 
   // Also test 1280x720 layout directly!
@@ -349,21 +404,48 @@ async function runFull(cdp, collectEvents, auditErrors) {
   auditErrors(false);
 }
 
-async function runRestartLoad(cdp, collectEvents, auditErrors) {
+async function runRestartLoad(cdp, collectEvents, auditErrors, netTracker) {
   await setViewport(cdp, width, height);
   // Fresh process starts on MA-1 (2 areas, Year 0)
   const startExp = await evaluate(cdp, "document.getElementById('experiment-badge').textContent");
   check(startExp.includes('MA-1'), `Fresh restarted server started on MA-1 (${startExp})`);
 
+  // Negative test (Review Condition 2 / Item 3): create unsaved progress (Year 1), then call POST api/multi/load
+  // OMITTING confirmDiscardUnsaved -> MUST refuse 409 WoodlandUnsavedProgress and leave MA-1 Year 1 untouched!
+  await click(cdp, '#advance');
+  await waitFor(cdp, "document.getElementById('year-value').textContent.trim() === '1'", 'MA-1 advanced to Year 1 for v3 load unsaved-progress guard test');
+  const dirtyMa1 = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  const dirtyFence = fenceOf(dirtyMa1);
+
+  const loadOmitted = await fetchJson(cdp, 'api/multi/load', { fence: dirtyFence, slot: 'fm-restart-test' });
+  check(loadOmitted.status === 409 && loadOmitted.payload?.refusal?.code === 'WoodlandUnsavedProgress' &&
+    loadOmitted.payload?.view?.sessionId === dirtyMa1.sessionId && loadOmitted.payload?.view?.source?.ecologicalYear === 1,
+    'POST api/multi/load omitting confirmDiscardUnsaved refuses 409 WoodlandUnsavedProgress when unsaved progress exists (session untouched)');
+
+  const loadFalse = await fetchJson(cdp, 'api/multi/load', { fence: dirtyFence, slot: 'fm-restart-test', confirmDiscardUnsaved: false });
+  check(loadFalse.status === 409 && loadFalse.payload?.refusal?.code === 'WoodlandUnsavedProgress' &&
+    loadFalse.payload?.view?.sessionId === dirtyMa1.sessionId && loadFalse.payload?.view?.source?.ecologicalYear === 1,
+    'POST api/multi/load with confirmDiscardUnsaved=false refuses 409 WoodlandUnsavedProgress (session untouched)');
+
   // Open Saved games -> v3 slot 'fm-restart-test' must be valid & canLoad=true even while on MA-1!
+  // Shipped UI sends confirmDiscardUnsaved: true and renders restored 5-lane stand via C-FENCE lane reads!
   await click(cdp, '#saves-open');
   await waitFor(cdp, "document.querySelector('[data-load=\"fm-restart-test\"]') !== null", 'v3 slot fm-restart-test listed as loadable');
   await click(cdp, '[data-load="fm-restart-test"]');
   await waitFor(cdp, "!document.getElementById('load-confirm').hidden", 'Load confirmation shown');
+
+  collectEvents(false);
+  netTracker.reset();
   await click(cdp, '#load-do');
   await waitFor(cdp, "!document.getElementById('saves-dialog').open && document.getElementById('year-value').textContent.trim() === '2' && document.querySelectorAll('[data-strip-lane]').length === 5",
     'Restored 0.64 ha 5-lane stand at Year 2 after genuine server restart');
   await sleep(220);
+
+  collectEvents(false);
+  const loadSnap = netTracker.snapshot();
+  check(loadSnap.viewGets.length === 0 && loadSnap.standOverviews.length >= 1 && loadSnap.standLanes.length >= 1 &&
+    loadSnap.standLanes.every((r) => r.status === 200 && r.bytes <= 524288),
+    `Restored v3 5-lane page renders via /stand?lanes= (viewGets=${loadSnap.viewGets.length}, overviews=${loadSnap.standOverviews.length}, laneReads=${loadSnap.standLanes.length}, lanes=${loadSnap.standLanes.map((r) => r.lanes).join(',')})`);
 
   await checkLayout(cdp, 'Restored v3 at 1280x720', true);
   await shot(cdp, 'restarted-v3-loaded');
@@ -378,24 +460,65 @@ async function runRestartLoad(cdp, collectEvents, auditErrors) {
 
 async function runOverflow503(cdp, collectEvents, auditErrors) {
   await setViewport(cdp, width, height);
-  // Process launched with CCF_TEST_MAX_VIEW_BYTES=400000: MA-1 (~325 KiB) loads fine as last good view!
+  // Process launched with CCF_TEST_MAX_VIEW_BYTES=400000 (tests LOWERING the active budget):
+  // MA-1 (~325 KiB) loads fine as last good view!
   const beforeExp = await evaluate(cdp, "document.getElementById('experiment-badge').textContent.trim()");
   const beforeCrowns = await evaluate(cdp, "document.querySelectorAll('#crowns [data-tree-id]').length");
-  check(beforeExp.includes('MA-1') && beforeCrowns > 0, `Last good view loaded under 400000 B test budget (${beforeCrowns} crowns)`);
+  check(beforeExp.includes('MA-1') && beforeCrowns > 0, `Last good view loaded under lowered 400000 B test budget (${beforeCrowns} crowns)`);
 
   // Direct API request to create 5-lane 0.64 ha preset (exceeds 400000 B) -> MUST return HTTP 503 MultiViewPayloadBudgetExceeded!
   const curV = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  const staleMa1Fence = fenceOf(curV);
   const overRes = await fetchJson(cdp, 'api/multi/woodland/new', {
-    fence: fenceOf(curV), choice: 'preset', presetId: 'fm-064-sitka-edge-broadleaves-v1', economyEnabled: false, confirmDiscardUnsaved: true,
+    fence: staleMa1Fence, choice: 'preset', presetId: 'fm-064-sitka-edge-broadleaves-v1', economyEnabled: false, confirmDiscardUnsaved: true,
   });
   check(overRes.status === 503 && overRes.payload?.code === 'MultiViewPayloadBudgetExceeded' &&
     typeof overRes.payload?.bytes === 'number' && overRes.payload?.budget === 400000 && overRes.payload.bytes > 400000,
-    `Forced overflow returned HTTP 503 MultiViewPayloadBudgetExceeded (bytes=${overRes.payload?.bytes}, budget=${overRes.payload?.budget})`);
+    `Forced overflow (woodland/new) returned HTTP 503 MultiViewPayloadBudgetExceeded (bytes=${overRes.payload?.bytes}, budget=${overRes.payload?.budget})`);
 
-  // Also check GET api/multi/view now returns 503 (never 200 over-budget)
+  // Helper to get fresh 5-lane fence from overview (~78 KB < 400 KB)
+  const freshFence = async () => (await fetchJson(cdp, 'api/multi/stand')).payload.fence;
+
+  // Check EVERY view-returning route refuses with HTTP 503 (never an over-budget 200 or 409)!
   const overView = await fetchJson(cdp, 'api/multi/view');
-  check(overView.status === 503 && overView.payload?.code === 'MultiViewPayloadBudgetExceeded',
-    `GET api/multi/view refuses over-budget with HTTP 503 (never silent 200)`);
+  check(overView.status === 503 && overView.payload?.code === 'MultiViewPayloadBudgetExceeded' && overView.payload?.budget === 400000,
+    `GET api/multi/view refuses over-budget with HTTP 503 (bytes=${overView.payload?.bytes}, budget=${overView.payload?.budget})`);
+
+  const overLane3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-B,MA-C,MA-D');
+  check(overLane3.status === 503 && overLane3.payload?.code === 'MultiViewPayloadBudgetExceeded' && overLane3.payload?.budget === 400000,
+    `GET api/multi/stand?lanes=MA-B,MA-C,MA-D refuses over-budget with HTTP 503 under lowered test budget (bytes=${overLane3.payload?.bytes}, budget=${overLane3.payload?.budget})`);
+
+  const overAdvance = await fetchJson(cdp, 'api/multi/year/advance', { fence: await freshFence(), consentToCancelWork: false });
+  check(overAdvance.status === 503 && overAdvance.payload?.code === 'MultiViewPayloadBudgetExceeded' && overAdvance.payload?.budget === 400000,
+    `POST api/multi/year/advance refuses over-budget with HTTP 503 (bytes=${overAdvance.payload?.bytes}, budget=${overAdvance.payload?.budget})`);
+
+  const overSkip = await fetchJson(cdp, 'api/multi/year/skip', { fence: await freshFence(), targetYear: 3 });
+  check(overSkip.status === 503 && overSkip.payload?.code === 'MultiViewPayloadBudgetExceeded' && overSkip.payload?.budget === 400000,
+    `POST api/multi/year/skip (valid fence) refuses over-budget with HTTP 503 (bytes=${overSkip.payload?.bytes}, budget=${overSkip.payload?.budget})`);
+
+  const overSkipStale = await fetchJson(cdp, 'api/multi/year/skip', { fence: staleMa1Fence, targetYear: 3 });
+  check(overSkipStale.status === 503 && overSkipStale.payload?.code === 'MultiViewPayloadBudgetExceeded' && overSkipStale.payload?.budget === 400000,
+    `POST api/multi/year/skip (stale fence) refuses over-budget with HTTP 503 rather than over-budget 409`);
+
+  const overHit = await fetchJson(cdp, 'api/multi/hit', { fence: await freshFence(), areaId: 'MA-A', u: 5, v: 5 });
+  check(overHit.status === 503 && overHit.payload?.code === 'MultiViewPayloadBudgetExceeded' && overHit.payload?.budget === 400000,
+    `POST api/multi/hit (valid fence) refuses over-budget with HTTP 503 (bytes=${overHit.payload?.bytes}, budget=${overHit.payload?.budget})`);
+
+  const overHitStale = await fetchJson(cdp, 'api/multi/hit', { fence: staleMa1Fence, areaId: 'MA-A', u: 5, v: 5 });
+  check(overHitStale.status === 503 && overHitStale.payload?.code === 'MultiViewPayloadBudgetExceeded' && overHitStale.payload?.budget === 400000,
+    `POST api/multi/hit (stale fence) refuses over-budget with HTTP 503 rather than over-budget 409`);
+
+  const overCell = await fetchJson(cdp, 'api/multi/cell', { fence: await freshFence(), areaId: 'MA-A', column: 1, row: 1 });
+  check(overCell.status === 503 && overCell.payload?.code === 'MultiViewPayloadBudgetExceeded' && overCell.payload?.budget === 400000,
+    `POST api/multi/cell refuses over-budget with HTTP 503 (bytes=${overCell.payload?.bytes}, budget=${overCell.payload?.budget})`);
+
+  const overComp = await fetchJson(cdp, 'api/multi/competition', { fence: await freshFence(), areaId: 'MA-A', treeId: 'MA-A-0001' });
+  check(overComp.status === 503 && overComp.payload?.code === 'MultiViewPayloadBudgetExceeded' && overComp.payload?.budget === 400000,
+    `POST api/multi/competition refuses over-budget with HTTP 503 (bytes=${overComp.payload?.bytes}, budget=${overComp.payload?.budget})`);
+
+  const overEcon = await fetchJson(cdp, 'api/multi/economy/session', { fence: await freshFence(), enabled: true, confirmReset: true });
+  check(overEcon.status === 503 && overEcon.payload?.code === 'MultiViewPayloadBudgetExceeded' && overEcon.payload?.budget === 400000,
+    `POST api/multi/economy/session (Money switch) refuses over-budget with HTTP 503 (bytes=${overEcon.payload?.bytes}, budget=${overEcon.payload?.budget})`);
 
   // Click #reread in UI -> shows clear alert banner AND keeps last good view intact!
   await click(cdp, '#reread');
@@ -408,6 +531,63 @@ async function runOverflow503(cdp, collectEvents, auditErrors) {
   auditErrors(true);
 }
 
+async function runClampRaise(cdp, collectEvents, auditErrors) {
+  await setViewport(cdp, width, height);
+  // Process launched with CCF_TEST_MAX_VIEW_BYTES=9999999 (attempting to RAISE budgets above frozen ceilings).
+  // Switch to a near-cap 2,880-stem 5-lane custom woodland (120x120 m, 2,000 stems/ha, 5 lanes, PureSitka):
+  //   - Scaled budget for 5 areas / 2,880 stems is min(2,621,440, 524,288 * ceil(2880/300)) = 2,621,440 B (never 9,999,999 B).
+  //   - 2-lane and 3-lane filtered reads AND whole /view must all return HTTP 200 within 2,621,440 B.
+  //   - The /multi browser page must render the near-cap stand in default 2-lane outer mode and 3-lane interior mode without the overflow banner.
+  const curV = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  const nearCapRecipe = {
+    widthM: 120, lengthM: 120, laneCount: 5, startAgeYears: 20, stemsPerHa: 2000, seed: 2880101,
+    speciesMix: 'PureSitka', oakPercent: 0, beechPercent: 0,
+  };
+  const createRes = await fetchJson(cdp, 'api/multi/woodland/new', {
+    fence: fenceOf(curV), choice: 'custom', presetId: null, recipe: nearCapRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
+  });
+  check(createRes.status === 200 && createRes.bytes <= 2621440,
+    `Near-cap 2,880-stem 5-lane woodland/new returns 200 within 2.5 MiB scaled ceiling (status=${createRes.status}, bytes=${createRes.bytes})`);
+
+  const stand2 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-A,MA-B');
+  check(stand2.status === 200 && stand2.bytes > 0 && stand2.bytes <= 2621440,
+    `Near-cap 2-lane filtered read returns 200 within scaled 2.5 MiB budget (status=${stand2.status}, bytes=${stand2.bytes})`);
+
+  const stand3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-B,MA-C,MA-D');
+  check(stand3.status === 200 && stand3.bytes > 0 && stand3.bytes <= 2621440,
+    `Near-cap 3-lane filtered read returns 200 within scaled 2.5 MiB budget (status=${stand3.status}, bytes=${stand3.bytes})`);
+
+  const viewCheck = await fetchJson(cdp, 'api/multi/view');
+  check(viewCheck.status === 200 && viewCheck.bytes > 0 && viewCheck.bytes <= 2621440,
+    `Near-cap whole /view returns 200 within scaled 2.5 MiB ceiling (status=${viewCheck.status}, bytes=${viewCheck.bytes})`);
+
+  // Reload /multi against the live 2,880-stem stand: default 2-lane outer view & 3-lane interior view must render with no overflow banner.
+  await cdp.send('Page.navigate', { url });
+  await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 2 && document.querySelectorAll('#crowns [data-tree-id]').length === 1152",
+    'Near-cap 2,880-stem stand renders default 2-lane outer view (1,152 crowns)');
+  const outerRender = await evaluate(cdp, `({
+    alertShown: document.getElementById('alert').classList.contains('shown'),
+    borders: Array.from(document.querySelectorAll('[data-lane-border]')).map((n) => n.getAttribute('data-lane-border')).join(','),
+    crowns: document.querySelectorAll('#crowns [data-tree-id]').length,
+  })`);
+  check(!outerRender.alertShown && outerRender.borders === 'MA-A,MA-B' && outerRender.crowns === 1152,
+    `Near-cap /multi outer Lane A rendered cleanly without overflow banner (${JSON.stringify(outerRender)})`);
+
+  await click(cdp, '[data-minimap-lane="MA-C"]');
+  await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 3 && document.querySelectorAll('#crowns [data-tree-id]').length === 1728",
+    'Near-cap 2,880-stem stand renders 3-lane interior Lane C view (1,728 crowns)');
+  const interiorRender = await evaluate(cdp, `({
+    alertShown: document.getElementById('alert').classList.contains('shown'),
+    borders: Array.from(document.querySelectorAll('[data-lane-border]')).map((n) => n.getAttribute('data-lane-border')).join(','),
+    crowns: document.querySelectorAll('#crowns [data-tree-id]').length,
+  })`);
+  check(!interiorRender.alertShown && interiorRender.borders === 'MA-B,MA-C,MA-D' && interiorRender.crowns === 1728,
+    `Near-cap /multi interior Lane C rendered cleanly without overflow banner (${JSON.stringify(interiorRender)})`);
+  await shot(cdp, 'nearcap-lane-c');
+
+  auditErrors(false);
+}
+
 async function main() {
   const { cdp, child, profile } = await launch();
   const badNetwork = [];
@@ -416,8 +596,18 @@ async function main() {
   const deliberateRefusal = (entry, allow503) => entry.source === 'network' &&
     (allow503 ? /status of (400|409|503)/.test(entry.text || '') : /status of (400|409)/.test(entry.text || ''));
 
+  const netState = { viewGets: [], standOverviews: [], standLanes: [] };
+  const netTracker = {
+    reset() { netState.viewGets.length = 0; netState.standOverviews.length = 0; netState.standLanes.length = 0; },
+    snapshot() { return { viewGets: netState.viewGets.slice(), standOverviews: netState.standOverviews.slice(), standLanes: netState.standLanes.slice() }; },
+  };
+  const reqMethods = new Map();
+
   const collectEvents = (allow503 = false) => {
     for (const e of cdp.events) {
+      if (e.method === 'Network.requestWillBeSent') {
+        reqMethods.set(e.params.requestId, e.params.request?.method || 'GET');
+      }
       if (e.method === 'Runtime.exceptionThrown') consoleIssues.push(e.params.exceptionDetails?.text || 'exception');
       if (e.method === 'Runtime.consoleAPICalled' && e.params.type === 'error') consoleIssues.push(JSON.stringify(e.params.args));
       if (e.method === 'Log.entryAdded' && e.params.entry.level === 'error') {
@@ -426,8 +616,31 @@ async function main() {
         else if (!deliberateRefusal(e.params.entry, allow503)) consoleIssues.push(txt);
       }
       if (e.method === 'Network.responseReceived') {
-        const st = e.params.response?.status;
-        if (st === 404 || (st >= 500 && !(allow503 && st === 503))) badNetwork.push(`${st} ${e.params.response?.url}`);
+        const resp = e.params.response || {};
+        const st = resp.status;
+        const rUrl = resp.url || '';
+        const method = reqMethods.get(e.params.requestId) || 'GET';
+        const headers = resp.headers || {};
+        const clRaw = headers['content-length'] ?? headers['Content-Length'] ?? '0';
+        const bytes = Number(clRaw) || Math.round(resp.encodedDataLength || 0);
+        if (method === 'GET') {
+          try {
+            const parsed = new URL(rUrl);
+            if (parsed.pathname.endsWith('/api/multi/view')) {
+              netState.viewGets.push({ status: st, bytes, url: parsed.pathname });
+            } else if (parsed.pathname.endsWith('/api/multi/stand')) {
+              const lanesParam = parsed.searchParams.get('lanes');
+              if (lanesParam) {
+                const decodedLanes = lanesParam.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',');
+                const laneCount = decodedLanes ? decodedLanes.split(',').length : 0;
+                netState.standLanes.push({ status: st, bytes, lanes: decodedLanes, laneCount });
+              } else {
+                netState.standOverviews.push({ status: st, bytes });
+              }
+            }
+          } catch { /* ignore non-URL */ }
+        }
+        if (st === 404 || (st >= 500 && !(allow503 && st === 503))) badNetwork.push(`${st} ${rUrl}`);
       }
       if (e.method === 'Network.loadingFailed' && !e.params.canceled) {
         badNetwork.push(`LOAD_FAIL ${e.params.errorText || 'unknown'}`);
@@ -451,9 +664,10 @@ async function main() {
     await waitFor(cdp, "document.getElementById('year-value') && document.getElementById('year-value').textContent.trim() !== '–'",
       'the /multi page to render', 30000);
     await sleep(300);
-    if (mode === 'full') await runFull(cdp, collectEvents, auditErrors);
-    else if (mode === 'restart-load') await runRestartLoad(cdp, collectEvents, auditErrors);
+    if (mode === 'full') await runFull(cdp, collectEvents, auditErrors, netTracker);
+    else if (mode === 'restart-load') await runRestartLoad(cdp, collectEvents, auditErrors, netTracker);
     else if (mode === 'overflow-503') await runOverflow503(cdp, collectEvents, auditErrors);
+    else if (mode === 'clamp-raise') await runClampRaise(cdp, collectEvents, auditErrors);
     else throw new Error('unknown mode: ' + mode);
   } finally {
     cdp.close();
