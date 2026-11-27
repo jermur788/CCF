@@ -41,7 +41,27 @@ internal sealed record EconomyHarvestQuote(
     long TotalHarvestContractorCostCents,
     long TimberSaleRevenueCents,
     IReadOnlyList<D062StemYield> Stems,
-    IReadOnlyList<D062AssortmentSummary> Assortments);
+    IReadOnlyList<D062AssortmentSummary> Assortments)
+{
+    // ---- Phase 2B-2b felling dispositions (init-only; defaults keep every Phase 2B-1 construction unchanged) ----
+    // Stems lists every graded felled stem; SaleVolumeCm3/ResidualVolumeCm3/Assortments/TimberSaleRevenueCents cover only
+    // SellAndExtract stems, so TotalStemVolumeCm3 == Sale + Residual + RetainedStemVolumeCm3 + DeadwoodStemVolumeCm3.
+
+    /// <summary>Per-stem disposition outcome, in the same order as <see cref="Stems"/>.</summary>
+    public IReadOnlyList<FelledStemDispositionLine> StemDispositions { get; init; } = Array.Empty<FelledStemDispositionLine>();
+
+    /// <summary>Exact engine-graded stem volume of KeepForUse stems (cm³).</summary>
+    public long RetainedStemVolumeCm3 { get; init; }
+
+    /// <summary>Exact engine-graded stem volume of LeaveAsDeadwood stems (cm³).</summary>
+    public long DeadwoodStemVolumeCm3 { get; init; }
+
+    /// <summary>Expected retained-timber delta of this job (physical, non-cash).</summary>
+    public RetainedTimberTally RetainedTimber { get; init; } = RetainedTimberTally.Empty;
+
+    /// <summary>Expected deadwood intents of this job (one per LeaveAsDeadwood stem, area then tree order).</summary>
+    public IReadOnlyList<FelledStemDeadwoodIntent> DeadwoodIntents { get; init; } = Array.Empty<FelledStemDeadwoodIntent>();
+}
 
 /// <summary>One non-harvest Work Plan line (Prune, ClearUndergrowth, Plant, Shelter, or SpotClear).</summary>
 internal sealed record EconomyNonHarvestLineQuote(
@@ -78,6 +98,12 @@ internal sealed record EconomyWorkPlanQuote(
     IReadOnlyList<string> EvidenceLabels)
 {
     internal bool IsEligible => Issues.Count == 0;
+
+    /// <summary>
+    /// Phase 2B-2b: the resolved disposition of EVERY Fell order this quote priced (defaults included), sorted by key.
+    /// Frozen into the approval with the quote, exactly like <see cref="EconomyApprovedQuote.FrozenOrderExecutors"/>.
+    /// </summary>
+    public IReadOnlyDictionary<EconomyOrderKey, FellingDisposition> FellDispositions { get; init; } = FellingDispositionRules.EmptyResolved;
 }
 
 /// <summary>Immutable quote frozen into <see cref="MultiAreaEconomyState"/> by <c>Approve</c> (C-ECON).</summary>
@@ -87,7 +113,11 @@ internal sealed record EconomyApprovedQuote(
     int QuotedAtPlanStateRevision,
     int ApprovedAtPlanStateRevision,
     IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> FrozenOrderExecutors,
-    EconomyWorkPlanQuote Quote);
+    EconomyWorkPlanQuote Quote)
+{
+    /// <summary>Phase 2B-2b: the felling dispositions frozen at Approve (carried inside the frozen quote).</summary>
+    internal IReadOnlyDictionary<EconomyOrderKey, FellingDisposition> FrozenFellDispositions => Quote.FellDispositions;
+}
 
 /// <summary>Immutable atomic settlement receipt committed together with physical Execute and returned on replay.</summary>
 internal sealed record EconomySettlementReceipt(
@@ -105,7 +135,14 @@ internal sealed record EconomySettlementReceipt(
     int OwnerMinutesAfter,
     EconomyHarvestQuote? HarvestJob,
     IReadOnlyList<EconomyNonHarvestLineQuote> NonHarvestLines,
-    IReadOnlyList<EconomyLedgerEntry> LedgerEntries);
+    IReadOnlyList<EconomyLedgerEntry> LedgerEntries)
+{
+    /// <summary>Phase 2B-2b: retained (keep-for-use) timber added by this settlement, stamped with its execution identity. Never cash.</summary>
+    public RetainedTimberTally RetainedTimberDelta { get; init; } = RetainedTimberTally.Empty;
+
+    /// <summary>Phase 2B-2b: deadwood intents of this settlement (LeaveAsDeadwood stems), stamped with its execution identity.</summary>
+    public IReadOnlyList<FelledStemDeadwoodIntent> DeadwoodIntents { get; init; } = Array.Empty<FelledStemDeadwoodIntent>();
+}
 
 /// <summary>Read-only year-end economy summary recorded by <see cref="ReservedPhase2BYearEndSummaryStep"/> before allowance reset.</summary>
 internal sealed record EconomyYearEndSummary(
@@ -138,6 +175,15 @@ internal sealed record MultiAreaEconomyState(
     IReadOnlyList<EconomyLedgerEntry> Ledger,
     IReadOnlyList<EconomyYearEndSummary> YearEndSummaries)
 {
+    /// <summary>
+    /// Phase 2B-2b: explicit non-default felling dispositions chosen on pending Fell orders. A choice is effective only for
+    /// the exact order instance it was set on (see <see cref="FellingDispositionChoice"/>). Empty by default.
+    /// </summary>
+    public IReadOnlyDictionary<EconomyOrderKey, FellingDispositionChoice> PendingFellDispositions { get; init; } = FellingDispositionRules.EmptyChoices;
+
+    /// <summary>Phase 2B-2b: cumulative retained (keep-for-use) timber balance. Physical, never cash. Empty by default.</summary>
+    public RetainedTimberTally RetainedTimber { get; init; } = RetainedTimberTally.Empty;
+
     internal static MultiAreaEconomyState CreateInitial(EconomyOptions options)
     {
         var valid = options.RequireValid();
@@ -171,7 +217,14 @@ internal sealed record MultiAreaEconomyView(
     IReadOnlyList<EconomySettlementReceipt> Settlements,
     IReadOnlyList<EconomyLedgerEntry> Ledger,
     IReadOnlyList<EconomyYearEndSummary> YearEndSummaries,
-    IReadOnlyList<string> EvidenceLabels);
+    IReadOnlyList<string> EvidenceLabels)
+{
+    /// <summary>Phase 2B-2b: explicit non-default dispositions of current pending Fell orders (missing = SellAndExtract).</summary>
+    public IReadOnlyDictionary<EconomyOrderKey, FellingDisposition> PendingFellDispositions { get; init; } = FellingDispositionRules.EmptyResolved;
+
+    /// <summary>Phase 2B-2b: cumulative retained (keep-for-use) timber balance.</summary>
+    public RetainedTimberTally RetainedTimber { get; init; } = RetainedTimberTally.Empty;
+}
 
 /// <summary>
 /// Read-only per-year economic history readout. When Economy is Off, every money field reads <c>"NOT RECORDED"</c>

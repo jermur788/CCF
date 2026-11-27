@@ -26,7 +26,11 @@ internal sealed partial class MultiAreaContinuation
                 econ.Settlements,
                 econ.Ledger,
                 econ.YearEndSummaries,
-                EconomyEvidence.All);
+                EconomyEvidence.All)
+            {
+                PendingFellDispositions = FellingDispositionRules.ExplicitFor(econ.PendingFellDispositions, root.Pending),
+                RetainedTimber = econ.RetainedTimber,
+            };
         }
     }
 
@@ -90,6 +94,48 @@ internal sealed partial class MultiAreaContinuation
         }
     }
 
+    /// <summary>
+    /// Phase 2B-2b: chooses what happens to one pending Fell order's stem after the contractor fells it
+    /// (<see cref="FellingDisposition.SellAndExtract"/> default, <see cref="FellingDisposition.KeepForUse"/> or
+    /// <see cref="FellingDisposition.LeaveAsDeadwood"/>). The contractor cost is the same for all three. Refuses an
+    /// undefined value (<c>EconomyDispositionUnknown</c>), any edit while a plan is approved (<c>WorkPlanAlreadyApproved</c>)
+    /// and a tree with no pending Fell order (<c>UnknownWorkOrder</c>). Takes no volume, rate or price input.
+    /// </summary>
+    internal MultiAreaCommandResult SetFellingDisposition(MultiAreaFence fence, string areaId, string treeId, FellingDisposition disposition)
+    {
+        lock (sync)
+        {
+            RequireFence(fence);
+            var econ = RequireEconomy();
+            if (!Enum.IsDefined(disposition))
+                throw new P1Refusal("EconomyDispositionUnknown", "unknown felling disposition");
+            if (root.Approved is not null)
+                throw new P1Refusal("WorkPlanAlreadyApproved", "an approved plan is awaiting execution; cancel it before editing");
+            var order = root.Pending.FirstOrDefault(o => string.Equals(o.AreaId, areaId, StringComparison.Ordinal) &&
+                string.Equals(o.TreeId, treeId, StringComparison.Ordinal))
+                ?? throw new P1Refusal("UnknownWorkOrder", "no pending Fell order matches that area and tree ID");
+
+            // Keep only choices that still belong to a current pending order, then apply this one. The default is stored
+            // as "no entry", so the map only ever holds explicit non-default choices.
+            var key = EconomyOrderKey.ForFell(areaId, treeId);
+            var next = new Dictionary<EconomyOrderKey, FellingDispositionChoice>();
+            foreach (var (existingKey, choice) in econ.PendingFellDispositions)
+            {
+                if (root.Pending.Any(o => ReferenceEquals(o, choice.Order)) && existingKey != key)
+                    next[existingKey] = choice;
+            }
+            if (disposition != FellingDisposition.SellAndExtract)
+                next[key] = new FellingDispositionChoice(order, disposition);
+
+            root = root with
+            {
+                Economy = econ with { PendingFellDispositions = next },
+                PlanStateRevision = checked(root.PlanStateRevision + 1),
+            };
+            return WithView(null, null);
+        }
+    }
+
     /// <summary>Convenience fenced command for Fell executor assignment; always refuses <see cref="WorkExecutor.Landowner"/>.</summary>
     internal MultiAreaCommandResult SetFellExecutor(MultiAreaFence fence, string areaId, string treeId, WorkExecutor executor) =>
         SetOrderExecutor(fence, EconomyOrderKey.ForFell(areaId, treeId), executor);
@@ -137,10 +183,18 @@ internal sealed partial class MultiAreaContinuation
         }
     }
 
-    // Caller holds sync. Removes any pending executor override for a removed pending order.
+    // Caller holds sync. Removes any pending executor override, and (Phase 2B-2b) any felling disposition, for a removed
+    // pending order.
     private static MultiAreaEconomyState? WithoutPendingExecutor(MultiAreaEconomyState? econ, EconomyOrderKey key)
     {
-        if (econ is null || !econ.PendingOrderExecutors.ContainsKey(key)) return econ;
+        if (econ is null) return econ;
+        if (econ.PendingFellDispositions.ContainsKey(key))
+        {
+            var nextDispositions = new Dictionary<EconomyOrderKey, FellingDispositionChoice>(econ.PendingFellDispositions);
+            nextDispositions.Remove(key);
+            econ = econ with { PendingFellDispositions = nextDispositions };
+        }
+        if (!econ.PendingOrderExecutors.ContainsKey(key)) return econ;
         var next = new Dictionary<EconomyOrderKey, WorkExecutor>(econ.PendingOrderExecutors);
         next.Remove(key);
         return econ with { PendingOrderExecutors = next };
