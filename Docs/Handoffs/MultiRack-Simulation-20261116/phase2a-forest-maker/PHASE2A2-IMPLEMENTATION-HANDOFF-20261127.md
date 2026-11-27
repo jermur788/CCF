@@ -377,3 +377,22 @@ The clamp-mode server runs with `CCF_TEST_MAX_VIEW_BYTES=9999999`. Every check b
 - Original condition 4: `build/2d-gate/selftest.sh` plus G4 mutation cases. Not run here.
 - Original condition 5: the decision-log entry for C-V3 versus spec §6.2. Not edited here (`Docs/Project/` is out of scope).
 - Not run: `build/2d-gate.sh --browser`, legacy `ui-smoke.sh`, `cli-safety.sh`, `build-output-safety.sh`, `p0-isolation.sh`, and any Unity, Windows-player or 3D check.
+
+---
+
+## 9. Final cross-vendor confirmation (2026-11-27)
+
+- **Reviewer:** GPT-6.2 Sol, separate fresh read-only thread (source-and-evidence review; no builds, tests or browser suites). Required because the final fix was implemented by Claude Opus 5.5 after the original implementer hit a quota, so an Opus re-review would have been self-review.
+- **Report:** `review/multi-2d-phase2a2-final-20261127-v1` @ `be3335511439ef1e2f9f59e32e6cd01b52b45794`, `PHASE2A2-FINAL-CONFIRMATION-20261127.md`.
+- **Outcome:** **INTEGRATION DECISION: APPROVED WITH CONDITIONS** — 0 Critical, 0 Major, 2 carried-forward Minors (R3, R5), 3 nits.
+- **Confirmed closed:** R1 (zero `api/multi/view` GETs across a five-lane load and reload; frame from overview + `?lanes=` with identical fences), R2 (removing the budget clamp fails four checks, including both new direct budget assertions), R4 (handoff corrections accurate, R3/R5 disclosed).
+- **Preserved:** gate scripts/config unchanged, 9 frozen anchors, 24,703 B v2 golden, two-area 512 KiB cap.
+- **Combine verification on `0149769c` (coordinator re-run on the merge tree):** builds 0/0 on `.sln`, `SitkaP1.Ui.csproj` and `Phase1Save.Tests.csproj`; Core 312/312; Save 50/50; `ui-smoke-multiarea` 363/0; Edge `run-phase2a-edge.sh` **68/68 at 1920x1080** and **68/68 at 1280x720**; forbidden-path diff empty; `.p0ref` unchanged; no leftover processes.
+
+### Owner acceptance list (nothing else outstanding from this lane)
+
+1. **R3** — for `>=3`-area stands the lane-read budget moved from 512 KiB to the spec §8 scaled budget (ceiling still 2,621,440 B; two-area caps and the ~495 KB preset 3-lane read unchanged).
+2. **R5** — state-changing actions still return the whole bounded view, so the whole stand remains the capacity limit; a mutation can commit and then return 503 if its whole-view body exceeds budget, and the UI then shows the last-good frame with a Re-read button.
+3. **Cross-tab transition** — a page still showing two areas requests one whole `/view` on its next explicit Re-read after another tab switches the host to `>=3` areas (source observation; outside the stable-session load/reload evidence).
+4. **Speed** — near-cap 3-lane first paint 702-799 ms against the 500 ms target.
+5. **Carried forward** — `build/2d-gate/selftest.sh` with G4 mutation cases, and the Manager decision-log entry reconciling C-V3 with spec §6.2.
