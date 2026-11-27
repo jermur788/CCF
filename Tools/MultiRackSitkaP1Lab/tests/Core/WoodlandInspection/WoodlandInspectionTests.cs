@@ -214,6 +214,46 @@ internal static class WoodlandInspectionTests
                 threw = true;
             }
             TestRunner.True(threw, "InvalidDataException when ATTRIBUTION.json lacks the coordinate caveat");
+
+            // Repair R2 (WI-08): a note that mentions verbatimCoordinates but drops the unverified-inference
+            // qualification is rejected, as is a reworded note that still says "unverified inference".
+            string vettedNote = expectedCaveat;
+            TestRunner.Eq(BuiltInWoodlandCatalogue.VettedCoordinateCaveat, vettedNote, "fixture note is the pinned vetted caveat");
+            string[] weakenedNotes =
+            [
+                "Note: verbatimCoordinates were used.",
+                "Note: verbatimCoordinates are interpreted as plot-local metres (X, Y).",
+                vettedNote.Replace("an unverified inference", "an inference", StringComparison.Ordinal),
+                vettedNote.Replace("is an unverified inference", "is unverified", StringComparison.Ordinal),
+                vettedNote + " Extra text.",
+            ];
+            foreach (string weakened in weakenedNotes)
+            {
+                TestRunner.True(weakened != vettedNote, "weakened note differs from the vetted caveat");
+                byte[] ReadWeakened(string name)
+                {
+                    byte[] bytes = TestFixtures.ReadFixture(name);
+                    if (name != BuiltInWoodlandCatalogue.AttributionFileName)
+                    {
+                        return bytes;
+                    }
+                    var node = System.Text.Json.Nodes.JsonNode.Parse(bytes)!;
+                    string original = node["changesMade"]!.GetValue<string>();
+                    node["changesMade"] = original.Replace(vettedNote, weakened, StringComparison.Ordinal);
+                    TestRunner.True(node["changesMade"]!.GetValue<string>() != original, "fixture note replaced");
+                    return Encoding.UTF8.GetBytes(node.ToJsonString());
+                }
+                bool weakThrew = false;
+                try
+                {
+                    BuiltInWoodlandCatalogue.Load(ReadWeakened);
+                }
+                catch (InvalidDataException)
+                {
+                    weakThrew = true;
+                }
+                TestRunner.True(weakThrew, $"InvalidDataException for weakened caveat '{weakened}'");
+            }
         });
     }
 
@@ -541,6 +581,24 @@ internal static class WoodlandInspectionTests
             TestRunner.Eq(1, listed.BlockerChecklist.Count, "existing refusal reused");
             TestRunner.Eq("t1", string.Join(",", listed.BlockerChecklist[0].AffectedTreeIds), "existing refusal tree");
 
+            // Repair R2 (WI-07): a non-Refusal issue with the same code, tree and field does not suppress the
+            // synthesized refusal, so the withheld stand still shows a renderable refusal item.
+            foreach (IssueSeverity weakSeverity in new[] { IssueSeverity.Warning, IssueSeverity.Info, IssueSeverity.InventoryOnlyBlocker })
+            {
+                WoodlandInspectionView warned = WoodlandInspectionProjector.Project(forged with
+                {
+                    Issues = new[] { new ImportValidationIssue(WoodlandInspectionProjector.SimulatedFieldAtYearZeroCode, weakSeverity, "same code, weaker severity", "t1", nameof(ImportedTreeRecord.HeightM)) },
+                });
+                TestRunner.Eq(WoodlandReadiness.Refused, warned.Readiness, $"{weakSeverity}: withheld as Refused");
+                TestRunner.Eq(0, warned.ObservedYear0.Trees.Count, $"{weakSeverity}: no trees");
+                TestRunner.Eq(1, warned.BlockerChecklist.Count, $"{weakSeverity}: one checklist item");
+                TestRunner.Eq(WoodlandInspectionProjector.SimulatedFieldAtYearZeroCode, warned.BlockerChecklist[0].Code, $"{weakSeverity}: SimulatedFieldAtYearZero listed");
+                TestRunner.Eq(IssueSeverity.Refusal, warned.BlockerChecklist[0].Severity, $"{weakSeverity}: checklist item is a Refusal");
+                TestRunner.Eq("t1", string.Join(",", warned.BlockerChecklist[0].AffectedTreeIds), $"{weakSeverity}: affected tree named");
+                int expectedNotes = weakSeverity == IssueSeverity.InventoryOnlyBlocker ? 0 : 1;
+                TestRunner.Eq(expectedNotes, warned.Notes.Count, $"{weakSeverity}: weaker issue kept as a note only if non-blocking");
+            }
+
             // A clean synthetic Candidate does advance.
             WoodlandInspectionView clean = WoodlandInspectionProjector.Project(
                 TestFixtures.Validate(TestFixtures.Stand([TestFixtures.Tree("t1", "Fagus sylvatica", 10, 10)], TestFixtures.ConstructedBoundary())));
@@ -672,6 +730,13 @@ internal static class WoodlandInspectionTests
                 TestRunner.True(BlockerExplanations.IsKnown(code), $"{code} has plain-English text");
                 TestRunner.True(BlockerExplanations.TitleFor(code) != code, $"{code} title is not the raw code");
             }
+
+            // Repair R2 (WI-09): the importer emits ArchiveSha256Mismatch both for differing bytes and for two
+            // conflicting declared fingerprints, so the explanation names both causes separately.
+            string sha = BlockerExplanations.ExplanationFor("ArchiveSha256Mismatch", "raw");
+            TestRunner.True(sha.Contains("do not match the SHA-256 fingerprint", StringComparison.Ordinal), "ArchiveSha256Mismatch explains the byte mismatch");
+            TestRunner.True(sha.Contains("declared two different fingerprints", StringComparison.Ordinal), "ArchiveSha256Mismatch explains conflicting declarations");
+            TestRunner.True(sha.Contains("no single fingerprint to check the file against", StringComparison.Ordinal), "conflicting declarations are not described as file damage");
         });
 
         TestRunner.Add(Synthetic, "T10e no backing collection reachable through ICollection.SyncRoot can reorder the catalogue or alter a view or its hash", () =>

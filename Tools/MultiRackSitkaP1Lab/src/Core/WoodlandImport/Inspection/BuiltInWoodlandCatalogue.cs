@@ -78,6 +78,16 @@ public static class BuiltInWoodlandCatalogue
     public const string NoBoundaryCaveat =
         "No surveyed boundary is available for this plot, so CCF imports it without one and it cannot be simulated.";
 
+    /// <summary>
+    /// The vetted coordinate/test-polygon caveat, pinned verbatim. The "Note:" sentence of ATTRIBUTION.json
+    /// changesMade must equal it, so a built-in stand is never shown with a caveat that merely mentions
+    /// verbatimCoordinates without saying the plot-local-metre reading is an unverified inference.
+    /// </summary>
+    public const string VettedCoordinateCaveat =
+        "Note: interpreting verbatimCoordinates as plot-local metres (X, Y) is an unverified inference that contradicts " +
+        "the verbatim field verbatimCoordinateSystem='decimal degrees', and test polygons in FixtureQualificationTests.cs " +
+        "(50x100 m and 100x100 m) are constructed test constants with no cited survey source.";
+
     public static ImmutableList<BuiltInWoodlandDefinition> Definitions { get; } = ImmutableList.Create(
 
         new BuiltInWoodlandDefinition(
@@ -194,15 +204,21 @@ public static class BuiltInWoodlandCatalogue
     }
 
     // ATTRIBUTION.json keeps its coordinate/test-polygon caveat in a "Note:" sentence at the end of changesMade.
-    // A built-in stand must not be shown without it, so its absence is an error.
+    // A built-in stand must not be shown without the vetted caveat, so a missing or reworded note is an error.
     private static string ExtractCoordinateCaveat(string changesMade)
     {
         int noteIndex = changesMade.IndexOf("Note:", StringComparison.Ordinal);
         string? note = noteIndex >= 0 ? changesMade.Substring(noteIndex).Trim() : null;
-        if (note is null || !note.Contains("verbatimCoordinates", StringComparison.Ordinal))
+        if (note is null)
         {
             throw new InvalidDataException(
                 "ATTRIBUTION.json changesMade has no 'Note:' caveat about interpreting verbatimCoordinates as plot-local metres.");
+        }
+        if (!note.Equals(VettedCoordinateCaveat, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                "ATTRIBUTION.json changesMade 'Note:' caveat is not the vetted disclosure that interpreting verbatimCoordinates " +
+                "as plot-local metres is an unverified inference.");
         }
         return note;
     }

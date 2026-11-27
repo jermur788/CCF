@@ -109,7 +109,8 @@ public static class BlockerExplanations
                 "The archive holds more than one plot or survey, and no single plot was chosen, so the import was refused rather than merging them."),
             ["ArchiveSha256Mismatch"] = (
                 "Archive does not match its pinned fingerprint",
-                "The archive bytes do not match the SHA-256 fingerprint they were declared to have (or two different fingerprints were declared), so the file may be damaged or altered." + Refused),
+                "Either the archive bytes do not match the SHA-256 fingerprint they were declared to have, so the file may be damaged or altered, " +
+                "or the import metadata declared two different fingerprints for the same archive, so there was no single fingerprint to check the file against." + Refused),
             ["DuplicateMeasurementRow"] = (
                 "Conflicting repeated measurement",
                 "A tree has more than one row for a measurement that can only have one value, so the import was refused rather than silently keeping one of them."),

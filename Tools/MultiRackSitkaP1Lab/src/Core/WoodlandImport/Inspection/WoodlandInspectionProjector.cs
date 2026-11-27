@@ -108,15 +108,19 @@ public static class WoodlandInspectionProjector
         };
     }
 
-    // One Refusal issue per Simulated field (unless the result already lists it), so the withheld stand
-    // still gets a renderable checklist reason that names the affected trees but none of their values.
+    // One Refusal issue per Simulated field (unless the result already lists it as a Refusal), so the withheld
+    // stand still gets a renderable checklist reason that names the affected trees but none of their values.
+    // Only a matching Refusal counts as already listed: a Warning or Info with the same code is shown as a note,
+    // not a checklist item, and must not leave a withheld stand without a refusal reason.
     private static IReadOnlyList<ImportValidationIssue> AddSimulatedFieldRefusals(
         IReadOnlyList<ImportValidationIssue> issues,
         IReadOnlyList<ImportedTreeRecord> trees)
     {
         var combined = new List<ImportValidationIssue>(issues);
         var alreadyListed = new HashSet<(string?, string?)>(
-            issues.Where(i => i.Code == SimulatedFieldAtYearZeroCode).Select(i => (i.SourceTreeId, i.FieldName)));
+            issues
+                .Where(i => i.Code == SimulatedFieldAtYearZeroCode && i.Severity == IssueSeverity.Refusal)
+                .Select(i => (i.SourceTreeId, i.FieldName)));
 
         foreach (ImportedTreeRecord tree in trees)
         {
