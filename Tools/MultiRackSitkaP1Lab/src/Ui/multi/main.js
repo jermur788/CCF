@@ -2,18 +2,20 @@
 // Presentation authority (D-020): this script computes zero forestry, spacing, canopy, light, RD, DBH->radius or pruning rules.
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 // S0c provenance: main.js [L5] — sections 7, 15, 17b(wire), 17b(bootstrap) from multi.js
-import { announce, applyPayload, call, clearAlert, currentFence, refusedByLock, renderCommandGate, rereadButton, showAlert, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
+import { announce, applyPayload, call, clearAlert, currentFence, refusedByLock, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
 import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
+import { onWoodlandCancelDiscard, onWoodlandConfirmDiscard, onWoodlandCreate, onWoodlandFieldChanged, openWoodlandDialog } from './dialogs/woodland.js';
 import { el, fill, fixed, label, n3, pair, plural, svg } from './dom.js';
-import { onRankToggle, renderLegend, renderOverlayLegend, setLegendHidden, svgRenderer } from './map/renderer-svg.js';
+import { renderMinimap } from './map/minimap.js';
+import { onRankToggle, renderLegend, renderOverlayLegend, resolveMapPoint, setLegendHidden, svgRenderer } from './map/renderer-svg.js';
 import { inspectCellAtPoint, renderCellInspector, renderJuvenileInspector, renderPlantDrawer, renderSpotDrawer, setMapMode, setOverlay } from './modes/interactive.js';
 import { clearCompetition, clearDraft, competitionTag, onBatchResultClick, reconcileDrafts, refreshCompetition, renderBatchResult, renderCompetition, renderReasonPicker, resetReasonPicker, toggleDraft } from './panels/fell-draft.js';
 import { renderInspector, renderOverlap, renderPruneGate } from './panels/inspector.js';
 import { closeHistoryDrawer, loadHistoryIndex, loadHistoryYear, onSkipReview, openHistoryDrawer, refreshReviewPreview, refreshStructure, renderHistoryDrawer, renderSkipControl, renderSkipSummary, renderStructure } from './panels/time-history.js';
 import { panMap, renderDetails, renderHistory, renderMapControls, renderPaneButtons, renderPlan, renderReceipt, renderTable, showPane, workTotals, zoomMap } from './panels/work-plan.js';
-import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, juvenileById, livingIn, ordersIn, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
+import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, isMultiLaneStand, juvenileById, livingIn, ordersIn, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
   // ---- rendering ------------------------------------------------------------------------------------------------------
 
   function renderAll() {
@@ -26,6 +28,7 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
     renderOverlayLegend();
     renderAreaSwitch();
     svgRenderer.render();
+    renderMinimap(showArea);
     renderOverlap();
     renderCellInspector();
     renderPlantDrawer();
@@ -51,6 +54,7 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
   }
 
   function experimentBadgeText() {
+    if (state.experimentBadge) return state.experimentBadge;
     if (state.ecology && state.ecology.experimentBadge) return state.ecology.experimentBadge;
     return state.view && state.view.experiment.experimentId === 'mad-ma1-mixed-demo-v1'
       ? 'Synthetic MA-1-MIXED demo — Area A Sitka; Area B ⅓ Sitka / ⅓ Oak / ⅓ Beech (not a surveyed Irish forecast)'
@@ -59,9 +63,11 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
 
   function renderStatus() {
     const view = state.view;
+    const isMulti = isMultiLaneStand();
     const badgeText = experimentBadgeText();
-    document.title = 'Two-area Stand Map — ' + badgeText;
-    byId('page-title').textContent = 'Two-area Stand Map';
+    const titlePrefix = isMulti ? 'Woodland Stand Map' : 'Two-area Stand Map';
+    document.title = titlePrefix + ' — ' + badgeText;
+    byId('page-title').textContent = titlePrefix;
     const badgeEl = byId('experiment-badge');
     badgeEl.textContent = badgeText;
     badgeEl.setAttribute('title', badgeText);
@@ -88,16 +94,49 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
       }
     }
     byId('advance-label').textContent = label('MultiAdvanceYear');
-    byId('area-cards').replaceChildren(...view.areas.map((area) => el('div', {
-      class: 'card area-card' + (area.areaId === state.areaId ? ' current' : '') },
-      el('span', { class: 'dot', 'aria-hidden': 'true' }),
-      el('div', { class: 'area-card-main' },
-        el('p', { class: 'eyebrow' }, area.label + ' · living stand'),
-        el('p', { class: 'area-card-count' }, el('strong', null, String(area.stand.livingCount)), ' ', el('span', null, 'living trees'))),
-      el('div', { class: 'area-card-side' },
-        el('strong', null, fixed(area.stand.basalAreaM2PerHa, 1)),
-        el('span', null, 'm²/ha BA · ' + fixed(area.areaHa, 4) + ' ha')),
-      areaReadouts(area.areaId))));
+    const advSub = byId('advance-sub');
+    if (advSub) advSub.textContent = isMulti ? 'All lanes · does not execute work' : 'Both areas · does not execute work';
+    const planEyebrow = byId('plan-card-eyebrow');
+    if (planEyebrow) planEyebrow.textContent = isMulti ? 'Shared Work Plan · all lanes' : 'Shared Work Plan · both areas';
+    const laneToggle = byId('lane-mode-toggle');
+    if (laneToggle) {
+      laneToggle.hidden = !isMulti;
+      laneToggle.setAttribute('aria-pressed', String(state.singleLaneMode));
+      laneToggle.textContent = state.singleLaneMode ? '1 lane (on)' : '1 lane';
+    }
+    const summaryEl = document.querySelector('.summary');
+    if (summaryEl) summaryEl.classList.toggle('multi-lane', isMulti);
+
+    if (isMulti) {
+      byId('area-cards').replaceChildren(...view.areas.map((area) => {
+        const s4 = s4Area(area.areaId);
+        const cov = s4 ? pct(s4.canopy.geometricCoverFraction) : '–';
+        const rd = s4 ? fixed(s4.canopy.relativeDensity, 2) : '–';
+        const isCurrent = area.areaId === state.areaId;
+        const shortName = area.areaId.startsWith('MA-') ? area.areaId.slice(3) : area.label;
+        return el('button', {
+          type: 'button',
+          class: 'lane-strip-pill' + (isCurrent ? ' current' : ''),
+          'data-strip-lane': area.areaId,
+          'aria-pressed': String(isCurrent),
+          title: area.label + ' · ' + area.stand.livingCount + ' living · Cover ' + cov + ' · RD ' + rd,
+        },
+        el('span', { class: 'lane-strip-name' }, 'Lane ' + shortName),
+        el('span', { class: 'lane-strip-stat' }, String(area.stand.livingCount) + ' trees'),
+        el('span', { class: 'lane-strip-sub' }, cov + ' · RD ' + rd));
+      }));
+    } else {
+      byId('area-cards').replaceChildren(...view.areas.map((area) => el('div', {
+        class: 'card area-card' + (area.areaId === state.areaId ? ' current' : '') },
+        el('span', { class: 'dot', 'aria-hidden': 'true' }),
+        el('div', { class: 'area-card-main' },
+          el('p', { class: 'eyebrow' }, area.label + ' · living stand'),
+          el('p', { class: 'area-card-count' }, el('strong', null, String(area.stand.livingCount)), ' ', el('span', null, 'living trees'))),
+        el('div', { class: 'area-card-side' },
+          el('strong', null, fixed(area.stand.basalAreaM2PerHa, 1)),
+          el('span', null, 'm²/ha BA · ' + fixed(area.areaHa, 4) + ' ha')),
+        areaReadouts(area.areaId))));
+    }
     const approved = view.approved ? view.approved.orders.length : 0;
     const approvedP = approvedPrunes().length;
     const approvedC = approvedClears().length;
@@ -311,51 +350,58 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
   async function onMapClick(event) {
     if (state.batch || state.queueRunning) { waitForBatch(); return; }
     if (!state.view || refusedByLock('Map selection') || state.busy) return;
-    const area = currentArea();
     const matrix = byId('map').getScreenCTM();
-    if (!area || !matrix) return;
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    if (!matrix) return;
+    const svgPoint = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const resolved = resolveMapPoint(svgPoint.x, svgPoint.y);
+    const area = resolved.area;
+    if (!area) return;
+    const localU = resolved.u;
+    const localV = resolved.v;
 
     // Inspect Cell mode: click queries POST api/multi/cell cleanly without altering selection or Fell draft.
     if (state.mapMode === 'cell') {
-      await inspectCellAtPoint(area.areaId, point.x, point.y);
+      if (area.areaId !== state.areaId) { state.areaId = area.areaId; }
+      await inspectCellAtPoint(area.areaId, localU, localV);
       return;
     }
 
     // Plant mode: click places a provisional local Draft preview only (dashed slate, snap OFF, zero engine order).
     if (state.mapMode === 'plant') {
-      const world = worldFromMap(area, point.x, point.y);
-      state.plantDraft = { areaId: area.areaId, u: point.x, v: point.y, xM: world.xM, zM: world.zM };
+      if (area.areaId !== state.areaId) { state.areaId = area.areaId; }
+      const world = worldFromMap(area, localU, localV);
+      state.plantDraft = { areaId: area.areaId, u: localU, v: localV, xM: world.xM, zM: world.zM };
       state.plantResult = null;
       showPane('tree');
       renderAll();
       byId('plant-heading').focus();
-      announce('Provisional Draft planting point at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
+      announce('Provisional Draft planting point in ' + areaName(area.areaId) + ' at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
       return;
     }
 
     // Spot Clear mode: click places a provisional seedling-free 0.564 m circular preview at exact (X, Z) (snap OFF).
     if (state.mapMode === 'spot') {
-      const world = worldFromMap(area, point.x, point.y);
-      state.spotDraft = { areaId: area.areaId, u: point.x, v: point.y, xM: world.xM, zM: world.zM };
+      if (area.areaId !== state.areaId) { state.areaId = area.areaId; }
+      const world = worldFromMap(area, localU, localV);
+      state.spotDraft = { areaId: area.areaId, u: localU, v: localV, xM: world.xM, zM: world.zM };
       state.spotResult = null;
       showPane('tree');
       renderAll();
       byId('spot-heading').focus();
-      announce('Provisional Draft Spot Clear (~1 m², 0.564 m ring) at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
+      announce('Provisional Draft Spot Clear (~1 m², 0.564 m ring) in ' + areaName(area.areaId) + ' at X ' + fixed(world.xM, 2) + ' m, Z ' + fixed(world.zM, 2) + ' m (snap OFF; zero order queued).');
       return;
     }
 
     // Select Tree mode (default): clicking a rendered PJ sapling inspects it (preserving adult Fell drafts); otherwise crown clicks win via POST api/multi/hit.
     const pjEl = event.target && event.target.closest ? event.target.closest('[data-juvenile-id]') : null;
     if (pjEl) {
-      chooseJuvenile(area.areaId, pjEl.getAttribute('data-juvenile-id'));
+      chooseJuvenile(pjEl.getAttribute('data-area-id') || area.areaId, pjEl.getAttribute('data-juvenile-id'));
       return;
     }
 
     const pick = ++state.mapPick;
     state.busy = true;
-    const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: point.x, v: point.y });
+    const outcome = await call('api/multi/hit', { fence: currentFence(), areaId: area.areaId, u: localU, v: localV });
     state.busy = false;
     if (pick !== state.mapPick) {
       if (state.competitionTarget && !state.competition && !state.lock && !state.batch) refreshCompetition();
@@ -378,6 +424,8 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
       applyPayload(outcome.payload, false);
       if (state.lock) showLockAlert('Refused: Map selection (' + outcome.payload.refusal.code + '). Nothing was selected.');
       else showRefusal('Map selection', outcome.payload.refusal);
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded('Map selection', outcome.budget);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal('Map selection', outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -470,6 +518,29 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
       const button = event.target.closest('[data-area]');
       if (button) showArea(button.getAttribute('data-area'));
     });
+    byId('area-cards').addEventListener('click', (event) => {
+      const pill = event.target.closest('[data-strip-lane]');
+      if (pill) showArea(pill.getAttribute('data-strip-lane'));
+    });
+    byId('lane-mode-toggle').addEventListener('click', () => {
+      state.singleLaneMode = !state.singleLaneMode;
+      state.zoom = ZOOMS[0];
+      state.centre = null;
+      renderAll();
+      announce(state.singleLaneMode ? 'Showing 1 active lane only.' : 'Showing active lane and visible neighbours.');
+    });
+    byId('woodland-open').addEventListener('click', openWoodlandDialog);
+    byId('woodland-cancel').addEventListener('click', () => byId('woodland-dialog').close());
+    byId('woodland-dialog').addEventListener('close', () => {
+      byId('woodland-confirm-box').hidden = true;
+      returnFocus();
+    });
+    byId('woodland-choices').addEventListener('change', onWoodlandFieldChanged);
+    byId('woodland-custom-fields').addEventListener('input', onWoodlandFieldChanged);
+    byId('woodland-custom-fields').addEventListener('change', onWoodlandFieldChanged);
+    byId('woodland-create').addEventListener('click', onWoodlandCreate);
+    byId('woodland-confirm-discard').addEventListener('click', onWoodlandConfirmDiscard);
+    byId('woodland-confirm-cancel').addEventListener('click', onWoodlandCancelDiscard);
     byId('map').addEventListener('click', onMapClick);
     byId('mode-tree').addEventListener('click', () => setMapMode('tree', true));
     byId('mode-cell').addEventListener('click', () => setMapMode('cell', true));

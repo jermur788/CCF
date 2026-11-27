@@ -33,6 +33,10 @@
       <span aria-hidden="true">◷</span>
       <span class="btn-title">History</span>
     </button>
+    <button type="button" id="woodland-open" class="woodland-open" aria-haspopup="dialog">
+      <span aria-hidden="true">✦</span>
+      <span class="btn-title">New woodland</span>
+    </button>
     <button type="button" id="saves-open" class="saves-open" aria-haspopup="dialog">
       <span aria-hidden="true">▤</span>
       <span class="btn-title">Saved games</span>
@@ -45,7 +49,7 @@
     <button type="button" id="advance" class="advance">
       <span class="advance-icon" aria-hidden="true">▷</span>
       <span class="advance-text"><span id="advance-label" class="btn-title">Advance one ecological year</span>
-        <span class="btn-sub">Both areas · does not execute work</span></span>
+        <span id="advance-sub" class="btn-sub">Both areas · does not execute work</span></span>
     </button>
     <button type="button" id="reread" class="reread" aria-label="Re-read current state" title="Re-read current state"><span aria-hidden="true">↻</span> Re-read</button>
   </div>
@@ -72,7 +76,7 @@
   <div id="area-cards" class="area-cards"></div>
   <div class="card plan-card">
     <div class="plan-card-text">
-      <p class="eyebrow">Shared Work Plan · both areas</p>
+      <p id="plan-card-eyebrow" class="eyebrow">Shared Work Plan · both areas</p>
       <p class="plan-card-main"><strong id="plan-summary">–</strong> <span id="plan-summary-sub" class="plan-card-sub"></span></p>
     </div>
     <button type="button" id="view-plan" class="link-button">View plan <span aria-hidden="true">→</span></button>
@@ -119,6 +123,7 @@
       <option value="undergrowth">Overlay: Undergrowth</option>
       <option value="seedlings">Overlay: Natural Seedlings</option>
     </select>
+    <button type="button" id="lane-mode-toggle" class="mode-btn lane-mode-toggle" aria-pressed="false" title="Toggle between active lane + neighbours and 1 lane only" hidden>1 lane</button>
     <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
     <nav class="view-tabs" aria-label="Side panel views">
       <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
@@ -437,6 +442,7 @@
         <g id="clear-cells" class="overlay" clip-path="url(#area-clip)"></g>
         <g id="spot-patches" class="overlay" clip-path="url(#area-clip)"></g>
         <polygon id="area-outline" class="area-outline" points="0,0"></polygon>
+        <g id="lane-borders" class="overlay"></g>
         <g id="crowns"></g>
         <g id="deadwood" class="overlay"></g>
         <g id="planted-layer" class="planted-layer"></g>
@@ -471,6 +477,7 @@
         <p class="north" aria-hidden="true"><span>N</span><svg viewBox="0 0 12 16" focusable="false"><path d="M6 0 12 16 6 12 0 16Z"></path></svg></p>
       </div>
       <p class="scale" aria-hidden="true"><svg id="scale-bar" class="scale-bar" width="80" height="9" viewBox="0 0 80 9" focusable="false"><path id="scale-path" d="M 1 1 V 8 H 79 V 1"></path></svg> <span id="scale-text"></span></p>
+      <div id="woodland-minimap" class="woodland-minimap" role="region" aria-label="Whole woodland mini-map" hidden></div>
       <p id="map-status" class="map-status" hidden></p>
     </div>
 
@@ -908,6 +915,46 @@
   <p class="actions">
     <button type="button" id="economy-toggle-cancel" class="secondary">Cancel</button>
     <button type="button" id="economy-toggle-confirm" class="primary">Start fresh Year-0 session</button>
+  </p>
+</dialog>
+
+<dialog id="woodland-dialog" class="woodland-dialog" aria-labelledby="woodland-title" aria-describedby="woodland-intro">
+  <h2 id="woodland-title">New woodland</h2>
+  <p id="woodland-intro" class="note">Choose a built-in stand, a 0.64 ha forest-maker preset, or configure a custom rectangle. Every stem count, area, and validation comes directly from the Core engine.</p>
+  <div id="woodland-choices" class="woodland-choices" role="radiogroup" aria-label="Woodland type"></div>
+  <fieldset id="woodland-custom-fields" class="woodland-custom" hidden>
+    <legend>Custom rectangle parameters</legend>
+    <p id="fm-bounds-hint" class="small-note"></p>
+    <div class="woodland-grid">
+      <div class="field"><label for="fm-width">Width (m)</label><input id="fm-width" type="number" step="1"></div>
+      <div class="field"><label for="fm-length">Length (m)</label><input id="fm-length" type="number" step="1"></div>
+      <div class="field"><label for="fm-lanes">Lanes</label><input id="fm-lanes" type="number" step="1"></div>
+      <div class="field"><label for="fm-age">Start age (yr)</label><input id="fm-age" type="number" step="1"></div>
+      <div class="field"><label for="fm-stems-ha">Stocking (trees/ha)</label><input id="fm-stems-ha" type="number" step="50"></div>
+      <div class="field"><label for="fm-seed">Seed</label><input id="fm-seed" type="number" step="1"></div>
+      <div class="field woodland-span-2"><label for="fm-species-mix">Species mix</label><select id="fm-species-mix"></select></div>
+    </div>
+    <div id="fm-split-fields" class="woodland-grid" hidden>
+      <div class="field"><label for="fm-oak-pct">Oak (%)</label><input id="fm-oak-pct" type="number" min="0" max="100" step="1" value="15"></div>
+      <div class="field"><label for="fm-beech-pct">Beech (%)</label><input id="fm-beech-pct" type="number" min="0" max="100" step="1" value="15"></div>
+    </div>
+  </fieldset>
+  <label class="check-row woodland-econ-row">
+    <input type="checkbox" id="woodland-economy">
+    <span>Start with Money On at Year 0 (Economy opt-in; cannot be saved until Phase 2B-2b economy block)</span>
+  </label>
+  <div id="woodland-preview" class="woodland-preview" role="status" aria-live="polite"></div>
+  <p id="woodland-status" class="save-status" role="status" aria-live="polite"></p>
+  <div id="woodland-confirm-box" class="save-confirm" hidden>
+    <p id="woodland-confirm-text" class="warning"></p>
+    <p class="actions">
+      <button type="button" id="woodland-confirm-cancel" class="secondary">Cancel</button>
+      <button type="button" id="woodland-confirm-discard" class="danger">Discard and start new woodland</button>
+    </p>
+  </div>
+  <p class="actions">
+    <button type="button" id="woodland-cancel" class="secondary">Cancel</button>
+    <button type="button" id="woodland-create" class="primary">Start woodland</button>
   </p>
 </dialog>
 

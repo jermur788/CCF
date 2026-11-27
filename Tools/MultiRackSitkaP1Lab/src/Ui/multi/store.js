@@ -98,10 +98,31 @@
     economyToggleTarget: null,
     historyEconomyDetail: null,
     historyEconomyError: null,
+    // Phase 2A-2 Forest Maker & Multi-Lane UI state (presentation only; all forestry data from Core).
+    singleLaneMode: false,
+    standOverview: null,
+    woodlandOptions: null,
+    hasUnsavedProgress: false,
+    recipe: null,
+    experimentBadge: null,
   };
 
   export function isEconomyEnabled() {
     return state.economyEnabled === true;
+  }
+
+  export function isMultiLaneStand() {
+    return Boolean(state.view && state.view.areas && state.view.areas.length >= 3);
+  }
+
+  export function visibleLaneIds(areas, activeAreaId, singleLaneMode) {
+    if (!areas || areas.length === 0) return [];
+    const active = areas.some((a) => a.areaId === activeAreaId) ? activeAreaId : areas[0].areaId;
+    if (areas.length <= 2 || singleLaneMode) return [active];
+    const idx = areas.findIndex((a) => a.areaId === active);
+    const lo = Math.max(0, idx - 1);
+    const hi = Math.min(areas.length - 1, idx + 1);
+    return areas.slice(lo, hi + 1).map((a) => a.areaId);
   }
 
   // Drops every local selection, draft, preview, in-flight request token and cached panel state when the server
@@ -163,6 +184,11 @@
     state.economyEnabled = false;
     state.economy = null;
     state.economyToggleTarget = null;
+    state.singleLaneMode = false;
+    state.standOverview = null;
+    state.hasUnsavedProgress = false;
+    state.recipe = null;
+    state.experimentBadge = null;
   }
 
   export const byId = (id) => document.getElementById(id);

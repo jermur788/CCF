@@ -1,5 +1,5 @@
 // S0c provenance: commands.js [L4] — section(s) 16 from multi.js
-import { addAvailability, announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refusedByLock, renderCommandGate, rereadButton, run, showAlert, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
+import { addAvailability, announce, applyPayload, call, clearAlert, currentFence, lockCommands, recoveryFor, refusedByLock, renderCommandGate, rereadButton, run, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal, syncStandOverview } from './api.js';
 import { confirmationOf, confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { el, fill, fixed, label, plural, technicalPlan } from './dom.js';
 import { addSequence, reasonToSend, refreshCompetition } from './panels/fell-draft.js';
@@ -462,7 +462,7 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
     state.consentWork = work;
     byId('consent-title').textContent = label('MultiAdvanceYear');
     byId('consent-text').textContent = work ? 'The Work Plan has unexecuted work. Advancing the year needs your explicit choice; cancelling ' +
-      'removes ALL pending and approved orders in BOTH areas and executes nothing.' : 'The Work Plan has no unexecuted work. Advancing the year executes nothing.';
+      'removes ALL pending and approved orders in ' + (view.areas.length >= 3 ? 'ALL lanes' : 'BOTH areas') + ' and executes nothing.' : 'The Work Plan has no unexecuted work. Advancing the year executes nothing.';
     byId('consent-areas').replaceChildren(...(work ? view.areas.map((area) => {
       const pending = ordersIn(view.pending, area.areaId).map((order) => order.treeId)
         .concat(ordersIn(pendingPrunes(), area.areaId).map((order) => order.treeId + ' (Prune)'))
@@ -495,6 +495,9 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
       clearAlert();
       state.lastWasReplay = false;
       applyPayload(outcome.payload, false);
+      if (state.view && state.view.areas && state.view.areas.length >= 3) {
+        await syncStandOverview();
+      }
       if (state.lock && state.lockCount === lockCountAtStart) {
         state.lock = null;
         hooks.renderAll();
@@ -507,6 +510,8 @@ import { approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, 
         if (state.historyOpen) hooks.loadHistoryIndex(null, false);
         if (byId('side').getAttribute('data-pane') === 'details') hooks.refreshStructure();
       }
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded('Re-read', outcome.budget);
     } else if (state.lock) {
       showLockAlert(outcome.kind === 'guard' ? 'The re-read was refused (' + outcome.error.code + '). Try again.' :
         'The re-read got no answer from the local session process. Try again.');

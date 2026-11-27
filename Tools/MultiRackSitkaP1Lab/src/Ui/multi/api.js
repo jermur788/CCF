@@ -25,6 +25,9 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     try { payload = await response.json(); } catch { payload = null; }
     if (response.status === 200 && payload && payload.view) return { kind: 'ok', payload };
     if (response.status === 409 && payload && payload.view && payload.refusal) return { kind: 'refused', payload };
+    if (response.status === 503 && payload && payload.code === 'MultiViewPayloadBudgetExceeded') {
+      return { kind: 'budget', status: 503, budget: payload };
+    }
     if (payload && payload.error) {
       const unconfirmed = payload.error.code === 'OutcomeUnconfirmed';
       return { kind: unconfirmed ? 'unconfirmed' : 'guard', status: response.status, error: payload.error };
@@ -32,7 +35,127 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     return { kind: 'transport', detail: 'HTTP ' + response.status };
   }
 
+  export function expandCompactLanePayload(payload) {
+    if (!payload) return payload;
+    if (payload.stage4 && Array.isArray(payload.stage4.areas)) {
+      for (const area of payload.stage4.areas) {
+        if (!area.ground && Array.isArray(area.groundCompact)) {
+          area.ground = area.groundCompact.map((row) => {
+            const polygon = [];
+            for (let i = 10; i + 3 < row.length; i += 4) {
+              polygon.push({ xm: row[i], zm: row[i + 1], u: row[i + 2], v: row[i + 3] });
+            }
+            return {
+              column: row[0],
+              row: row[1],
+              centreXM: row[2],
+              centreZM: row[3],
+              centreU: row[4],
+              centreV: row[5],
+              clippedAreaM2: row[6],
+              lightIndex: row[7],
+              geometricCoveredFraction: row[8],
+              crossBorderTrees: row[9],
+              polygon,
+            };
+          });
+        }
+      }
+    }
+    if (payload.ecology && payload.ecology.pruneStatusByTreeId && Array.isArray(payload.pruneReasonTable)) {
+      const table = payload.pruneReasonTable;
+      for (const status of Object.values(payload.ecology.pruneStatusByTreeId)) {
+        if (status && typeof status.refusalReasonIndex === 'number' && !status.refusalReason) {
+          status.refusalReason = table[status.refusalReasonIndex] || null;
+        }
+      }
+    }
+    return payload;
+  }
+
+  // C-FENCE read of GET api/multi/stand overview (populates mini-map stems & whole-stand summaries only if fence matches).
+  export async function syncStandOverview() {
+    if (!state.view) return null;
+    try {
+      const response = await fetch('api/multi/stand', { method: 'GET', cache: 'no-store', credentials: 'omit', redirect: 'error' });
+      if (response.status !== 200) return null;
+      const overview = await response.json();
+      if (!overview || !overview.fence || !state.view) return null;
+      if (JSON.stringify(overview.fence) !== JSON.stringify(currentFence())) return null;
+      state.standOverview = overview;
+      if (typeof overview.hasUnsavedProgress === 'boolean') state.hasUnsavedProgress = overview.hasUnsavedProgress;
+      if (overview.experimentBadge) state.experimentBadge = overview.experimentBadge;
+      hooks.renderAll();
+      return overview;
+    } catch {
+      return null;
+    }
+  }
+
+  // C-FENCE split frame composer: pairs GET api/multi/stand + POST api/multi/stand { fence, lanes },
+  // verifying byte-identical fence equality (JSON.stringify(f1) === JSON.stringify(f2)) and retrying on mismatch.
+  export async function fetchMultiStandCFence(requestedLanes) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let ovRes;
+      try {
+        ovRes = await fetch('api/multi/stand', { method: 'GET', cache: 'no-store', credentials: 'omit', redirect: 'error' });
+      } catch (err) {
+        return { kind: 'transport', detail: String((err && err.message) || err) };
+      }
+      let overview = null;
+      try { overview = await ovRes.json(); } catch { overview = null; }
+      if (ovRes.status === 503 && overview && overview.code === 'MultiViewPayloadBudgetExceeded') {
+        return { kind: 'budget', status: 503, budget: overview };
+      }
+      if (ovRes.status !== 200 || !overview || !overview.fence) {
+        return { kind: 'transport', detail: 'HTTP ' + ovRes.status };
+      }
+
+      const lanesList = requestedLanes && requestedLanes.length > 0
+        ? requestedLanes
+        : overview.areas.slice(0, Math.min(2, overview.areas.length)).map((a) => a.areaId);
+
+      let lnRes;
+      try {
+        lnRes = await fetch('api/multi/stand', {
+          method: 'POST',
+          cache: 'no-store',
+          credentials: 'omit',
+          redirect: 'error',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fence: overview.fence, lanes: lanesList }),
+        });
+      } catch (err) {
+        return { kind: 'transport', detail: String((err && err.message) || err) };
+      }
+      let lanesPayload = null;
+      try { lanesPayload = await lnRes.json(); } catch { lanesPayload = null; }
+      if (lnRes.status === 503 && lanesPayload && lanesPayload.code === 'MultiViewPayloadBudgetExceeded') {
+        return { kind: 'budget', status: 503, budget: lanesPayload };
+      }
+      if (lnRes.status === 200 && lanesPayload && lanesPayload.fence &&
+          JSON.stringify(overview.fence) === JSON.stringify(lanesPayload.fence)) {
+        expandCompactLanePayload(lanesPayload);
+        return { kind: 'ok', overview, lanesPayload };
+      }
+      // Fence moved concurrently between overview and lane read: discard both and retry cleanly.
+    }
+    return { kind: 'transport', detail: 'C-FENCE fence mismatch persisted across retries' };
+  }
+
+  export function showBudgetExceeded(what, budgetPayload) {
+    const bytes = budgetPayload && typeof budgetPayload.bytes === 'number' ? budgetPayload.bytes : 0;
+    const budget = budgetPayload && typeof budgetPayload.budget === 'number' ? budgetPayload.budget : 0;
+    showAlert([
+      el('p', { class: 'alert-title' }, 'Payload budget exceeded: ' + what),
+      el('p', null, el('code', null, 'MultiViewPayloadBudgetExceeded'),
+        ' (HTTP 503) — response size ' + bytes + ' B exceeds the active ' + budget + ' B payload budget. The last good view is kept.'),
+      rereadButton(),
+    ]);
+  }
+
   export function applyPayload(payload, keepOverlap) {
+    expandCompactLanePayload(payload);
     const prevTreeTag = state.view ? (state.view.sessionId + ':' + state.view.source.annualRevision + ':' + state.view.source.workRevision) : null;
     state.view = payload.view;
     state.scenes = payload.scenes || {};
@@ -40,6 +163,10 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     state.ecology = payload.ecology || null;
     if (typeof payload.economyEnabled === 'boolean') state.economyEnabled = payload.economyEnabled;
     state.economy = state.economyEnabled ? (payload.economy || null) : null;
+    if (typeof payload.hasUnsavedProgress === 'boolean') state.hasUnsavedProgress = payload.hasUnsavedProgress;
+    if ('recipe' in payload) state.recipe = payload.recipe || null;
+    if (payload.experimentBadge) state.experimentBadge = payload.experimentBadge;
+    else if (payload.ecology && payload.ecology.experimentBadge) state.experimentBadge = payload.ecology.experimentBadge;
     if (payload.labels) state.labels = payload.labels;
     if (typeof payload.historyTruncated === 'boolean') state.historyTruncated = payload.historyTruncated;
     if (typeof payload.payloadBudgetExceeded === 'boolean') state.payloadBudgetExceeded = payload.payloadBudgetExceeded;
@@ -100,6 +227,8 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       if (state.lock) showLockAlert('Refused: ' + what + ' (' + outcome.payload.refusal.code + '). Nothing changed.');
       else showRefusal(what, outcome.payload.refusal);
       hooks.refreshReviewPreview();
+    } else if (outcome.kind === 'budget') {
+      showBudgetExceeded(what, outcome.budget);
     } else if (outcome.kind === 'guard') {
       showGuardRefusal(what, outcome.status, outcome.error);
     } else if (outcome.kind === 'locked') {
@@ -202,6 +331,10 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
       case 'EconomyQuoteDrift':
       case 'EconomyApprovedQuoteMissing':
         return 'Cancel the approved plan, review the updated quote, and approve again.';
+      case 'WoodlandUnsavedProgress':
+        return 'Save the current woodland first or confirm discarding unsaved progress.';
+      case 'MultiViewPayloadBudgetExceeded':
+        return 'The view payload exceeded its byte limit; the previous valid view was kept.';
       default:
         return 'Review the current view, then choose again.';
     }
