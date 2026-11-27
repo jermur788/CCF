@@ -408,16 +408,16 @@ internal sealed partial class PlayerApi
             Array.AsReadOnly(compactAreas), stage4.PendingPrunes, stage4.ApprovedPrunes, TailOf(stage4.PruneLog, pruneLogCap));
     }
 
-    private static BoundedMultiSnapshot BoundSnapshotForResponse(MultiAreaCompositeUiSnapshot snapshot, int totalRecordedYears,
-        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null, MultiViewBudgetLimit? budget = null) =>
-        SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview: null,
-            out _, economyEnabled, economy, budget);
-
-    private static BoundedMultiSnapshot BoundSnapshotForResponse(
-        MultiAreaSessionView view, MultiAreaUiReadout? stage4, MultiAreaEcologyDto? ecology, int totalRecordedYears,
-        bool economyEnabled = false, MultiEconomySnapshotDto? economy = null, MultiViewBudgetLimit? budget = null) =>
-        SerializeBoundedMultiView(view, stage4, ecology, totalRecordedYears, reviewPreview: null,
-            out _, economyEnabled, economy, budget);
+    // Serializes any view-carrying JSON response and guarantees the server NEVER emits a body exceeding the active
+    // payload budget on ANY route (200 or 409): returns typed HTTP 503 MultiViewPayloadBudgetExceeded instead (spec §8).
+    private static Task WriteBoundedJsonAsync<T>(HttpContext context, int status, T payload,
+        MultiViewBudgetLimit budget, bool alreadyExceeded = false, int rawViewBytes = 0)
+    {
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(payload, ResponseJson);
+        if (alreadyExceeded || bytes.Length > budget.MaxViewBytes)
+            return WritePayloadBudgetExceededAsync(context, Math.Max(rawViewBytes, bytes.Length), budget.MaxViewBytes);
+        return WriteRawJsonAsync(context, status, bytes);
+    }
 
     private static object BoundSessionViewForAux(MultiAreaSessionView view)
     {
@@ -485,11 +485,13 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(result.Snapshot.View.Areas.Count, genesisStems);
-        var bounded = BoundSnapshotForResponse(result.Snapshot, totalRecordedYears, economyEnabled, economy, budget);
-        await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
+        var bounded = SerializeBoundedMultiView(result.Snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
+            economyEnabled, economy, budget);
+        await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
             result.Cell, NoticeOf(result.RefusalCode, result.RefusalMessage), bounded.Stage4, bounded.Ecology,
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economyEnabled, economy));
+            bounded.PayloadBudgetExceeded, economyEnabled, economy),
+            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
     }
 
     private async Task ReadMultiCompetitionAsync(HttpContext context)
@@ -512,20 +514,22 @@ internal sealed partial class PlayerApi
             economy = TryBuildEconomySnapshot(active.Session, result.View);
             genesisStems = active.Session.GenesisStemCount;
         }
+        var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
         if (composite is not null)
         {
-            var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy, budget);
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
+            var bounded = SerializeBoundedMultiView(result.View, composite.Stage4, composite.Ecology, totalRecordedYears,
+                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget);
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
+                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
         }
         else
         {
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy));
+                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy), budget);
         }
     }
 
@@ -549,20 +553,22 @@ internal sealed partial class PlayerApi
             economy = TryBuildEconomySnapshot(active.Session, result.View);
             genesisStems = active.Session.GenesisStemCount;
         }
+        var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
         if (composite is not null)
         {
-            var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
-            var bounded = BoundSnapshotForResponse(result.View, composite.Stage4, composite.Ecology, totalRecordedYears, economyEnabled, economy, budget);
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
+            var bounded = SerializeBoundedMultiView(result.View, composite.Stage4, composite.Ecology, totalRecordedYears,
+                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget);
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
                 bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy));
+                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
+                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
         }
         else
         {
-            await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
+            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
                 result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy));
+                null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy), budget);
         }
     }
 

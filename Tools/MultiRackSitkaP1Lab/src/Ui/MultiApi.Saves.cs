@@ -218,17 +218,12 @@ internal sealed partial class PlayerApi
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
             economyEnabled, economy, budget, hasUnsavedProgress, recipeDto);
-        if (bounded.PayloadBudgetExceeded)
-        {
-            await WritePayloadBudgetExceededAsync(context, rawBytes.Length, budget.MaxViewBytes);
-            return;
-        }
-
         var info = result.RefusalCode is null ? new MultiLoadInfo(result.DraftOrderCount, result.Checksum!) : null;
-        await WriteJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(bounded.View, bounded.Scenes,
+        await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(bounded.View, bounded.Scenes,
             MultiLabels, bounded.Stage4, bounded.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage),
             bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economyEnabled, economy, hasUnsavedProgress, experimentBadge, recipeDto));
+            bounded.PayloadBudgetExceeded, economyEnabled, economy, hasUnsavedProgress, experimentBadge, recipeDto),
+            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
     }
 
     private async Task MultiRecoverAsync(HttpContext context)
