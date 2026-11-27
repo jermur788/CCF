@@ -93,7 +93,9 @@ import { CHIPS, ZOOMS, approvedClears, approvedPlantings, approvedPrunes, areaNa
         }
       }
     }
-    byId('advance-label').textContent = label('MultiAdvanceYear');
+    byId('advance-label').textContent = isMulti
+      ? 'Advance one ecological year (all lanes)'
+      : label('MultiAdvanceYear');
     const advSub = byId('advance-sub');
     if (advSub) advSub.textContent = isMulti ? 'All lanes · does not execute work' : 'Both areas · does not execute work';
     const planEyebrow = byId('plan-card-eyebrow');

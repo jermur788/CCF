@@ -482,7 +482,7 @@ internal sealed partial class PlayerApi
             for (int g = 0; g < area.Ground.Count; g++)
             {
                 var cell = area.Ground[g];
-                var row = new double[10 + cell.Polygon.Count * 4];
+                var row = new double[10 + cell.Polygon.Count * 2];
                 row[0] = cell.Column;
                 row[1] = cell.Row;
                 row[2] = R3(cell.CentreXM);
@@ -497,8 +497,6 @@ internal sealed partial class PlayerApi
                 for (int p = 0; p < cell.Polygon.Count; p++)
                 {
                     var v = cell.Polygon[p];
-                    row[offset++] = R3(v.XM);
-                    row[offset++] = R3(v.ZM);
                     row[offset++] = R3(v.U);
                     row[offset++] = R3(v.V);
                 }

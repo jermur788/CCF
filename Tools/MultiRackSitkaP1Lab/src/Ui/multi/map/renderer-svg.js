@@ -40,7 +40,7 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     const vis = visibleAreasNow();
     if (vis) {
       const b = multiLaneBounds(vis);
-      return { x: b.minX - 3.6, y: -3.2, w: b.w + 7.2, h: b.h + 6.8 };
+      return { x: b.minX - 3.6, y: -5.2, w: b.w + 7.2, h: b.h + 9.2 };
     }
     const side = area.extent.sideM;
     return { x: -3.4, y: -2.2, w: side + 6.0, h: side + 5.4 };

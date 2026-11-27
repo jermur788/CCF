@@ -738,6 +738,9 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .lane-mode-toggle { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); padding: .2rem .55rem; }
 .lane-mode-toggle[aria-pressed="true"] { border-color: var(--blue-edge); background: var(--blue); color: #fff; }
 .map-pane.multi-lane-exterior { background: #142218; }
+.map-pane.multi-lane-exterior .dock-areas { max-height: 112px; overflow-y: auto; }
+.map-pane.multi-lane-exterior .area-tab { min-height: 36px; padding: .15rem .1rem; font-size: .72rem; }
+.map-pane.multi-lane-exterior .area-thumb { display: none; }
 .grassland-exterior { fill: #182a1c; pointer-events: none; }
 .lane-border { fill: none; pointer-events: none; vector-effect: non-scaling-stroke; }
 .lane-border-neighbour { stroke: #7b9682; stroke-width: 1.4; stroke-dasharray: 5 4; }

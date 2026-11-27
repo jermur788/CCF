@@ -40,10 +40,20 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     if (payload.stage4 && Array.isArray(payload.stage4.areas)) {
       for (const area of payload.stage4.areas) {
         if (!area.ground && Array.isArray(area.groundCompact)) {
+          const viewArea = payload.view && Array.isArray(payload.view.areas)
+            ? payload.view.areas.find((a) => a.areaId === area.areaId)
+            : null;
+          const ext = viewArea ? viewArea.extent : null;
           area.ground = area.groundCompact.map((row) => {
             const polygon = [];
-            for (let i = 10; i + 3 < row.length; i += 4) {
-              polygon.push({ xm: row[i], zm: row[i + 1], u: row[i + 2], v: row[i + 3] });
+            for (let i = 10; i + 1 < row.length; i += 2) {
+              const u = row[i], v = row[i + 1];
+              polygon.push({
+                xm: ext ? ext.minXM + u : u,
+                zm: ext ? ext.minZM + ext.sideM - v : v,
+                u,
+                v,
+              });
             }
             return {
               column: row[0],
@@ -167,6 +177,10 @@ import { COMMAND_IDS, areaView, blockedReason, byId, currentReport, draftOf, gro
     if ('recipe' in payload) state.recipe = payload.recipe || null;
     if (payload.experimentBadge) state.experimentBadge = payload.experimentBadge;
     else if (payload.ecology && payload.ecology.experimentBadge) state.experimentBadge = payload.ecology.experimentBadge;
+    if (state.standOverview && (!state.view || state.view.areas.length <= 2 ||
+        JSON.stringify(state.standOverview.fence) !== JSON.stringify(currentFence()))) {
+      state.standOverview = null;
+    }
     if (payload.labels) state.labels = payload.labels;
     if (typeof payload.historyTruncated === 'boolean') state.historyTruncated = payload.historyTruncated;
     if (typeof payload.payloadBudgetExceeded === 'boolean') state.payloadBudgetExceeded = payload.payloadBudgetExceeded;
