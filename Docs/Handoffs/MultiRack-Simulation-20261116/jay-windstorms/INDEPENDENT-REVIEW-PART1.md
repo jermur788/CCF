@@ -200,3 +200,64 @@ dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.
 ```
 
 Build exit 0, 0 warnings and 0 errors. Run exit 0, 48/48 passed (20 jay, 12 storm, 11 salvage, 5 hygiene/parity). Temporary external probes compiled the candidate and parent separately. One regression probed 1,000 years of storms and salvage with 400 trees and 100 years of jay dispersal on each edge. Both versions produced SHA-256 `74FBBD8B33ACFD660DA4C63FFBD91761A8ED516492AF77BCBF7332039F10C62F` over serialized results. Direction was checked against `SimulationRandom.Roll` from the frozen context. The probe projects emitted the expected unused draw-log warning because they omit the suite's observer. The required build was warning-free.
+
+## Final re-review (ca601d8d -> 923634c6)
+
+**APPROVED FOR INTEGRATION.** G2 acceptance for standalone Part 1 at `923634c62f18444af1b57206d7ee87981958b7b4`, based on `c82e4e759c2ceef1c13ddb6a033e034097aef77e`. The feature worktree opened clean. HEAD, the local origin-tracking ref and GitHub's live feature ref matched. All 23 paths fit the four spec, source, test and handoff prefixes.
+
+### R3-01 — RESOLVED
+
+JW-T65 passed. A separate .NET probe compiled the parent and candidate sources from Git in temporary directories. The probe supplied its own `IReadOnlyList<T>` / `ICollection<T>` implementation whose `CopyTo` saved the destination array after copying, then attempted to overwrite every retained element. The LINQ control retained one array and overwrote it. The parent handed arrays to the caller in every checked area, and the writes changed the footprint, jay and storm requests, salvage requests and a directly constructed jay result.
+
+The candidate called the caller's `CopyTo` zero times across all cases. Jay and storm requests, plain `with` copies, init replacements and resolved results stayed equal to their baselines. The same held for salvage stock, orders, extracted IDs, request copies, a successful merge and merge refusals for extracted IDs in existing stock and additions. Standalone exposure feedback and direct result construction and init replacement stayed stable. Footprint vertices stayed identical, containment at (70, 70) remained true, and area remained **6,400 m²**.
+
+Every materialization in `src/Core/NaturalProcesses` was checked. `SnapshotCopy.ToArray` reads caller elements through enumeration into a list it owns. Only that list's `ToArray` allocates the final contents. `ContractSnapshot.Of` routes record constructors and init setters through it, preserving null values where their existing contract allows them. Footprint geometry and the exposed outline derive from the same private snapshot. Exposure sorting and merge materialization consume private arrays. Remaining LINQ materializations and the salvage `HashSet` constructors consume snapshots or library-owned intermediates. No source-taking `List<T>` constructor or caller `CopyTo` destination was found.
+
+### Prior findings and regression
+
+| ID | Status | Confirmation |
+|---|---|---|
+| R1-01 | RESOLVED | JW-T15/T16 passed. The ordinal reserved-prefix check precedes draws and mixed-origin identities and keys remain distinct. |
+| R1-02 | RESOLVED | JW-T17/T31/T50/T65 and the retaining-collection probe confirm input isolation and immutable public views, including footprint geometry. |
+| R1-03 | RESOLVED | JW-T44/T45/T48 passed. The probe confirmed that either placement of an extracted ID returns a refusal with existing stock unchanged. See the enumeration-order observation below. |
+| R1-04 | RESOLVED | JW-T49 passed. Atomic pricing refusal and numeric bounds are unchanged. |
+| R1-05 | PARTIALLY RESOLVED | The owner rulings are explicit in the handoff. Its line 16 branch bullet and spec §1.3's line 50 review label are still stale, and the implementation handoff lacks a Repair 4 section. Carry these as a non-blocking follow-up docs-only commit. |
+| R1-06 | RESOLVED | Strengthened JW-T06/T09/T23/T24/T27/T62 passed and their assertions are unchanged. |
+| R1-07 | OBSERVATION ONLY | JW-T25 passed. Direction uses the same draw times 360 in double, blow-towards, with glyph equal to direction. The raw Unity float-bearing precision choice remains queued for Part 2 persistence in spec §5 item 10. |
+| R1-08 | RESOLVED | JW-T47 passed. The dated non-causal note is unchanged. |
+| R1-09 | RESOLVED | Spec §5 items 7–9 still queue on-map debit including exports, persisted storm resolution and authoritative Work Plan checks with grouped settlement. |
+| R2-01 | RESOLVED | JW-T17/T31/T50 cover mutable interfaces and SyncRoot, and the snapshot wrapper and enumeration surface are unchanged. JW-T65 and the probe close the remaining caller-side alias. |
+| R2-02 | RESOLVED | Spec §5 item 7 still defines the debit on on-map seed and accounts for delivered Nearby seed as separate external input. |
+| R2-03 | RESOLVED | JW-T17/T31/T50 passed the sequence equality assertions. The independent probe checked equal records and hashes for plain copies and equivalent replacements for jay, storm and salvage. The footprint identity rule is unchanged. |
+
+### New findings
+
+| ID | Severity | Location | Evidence and effect |
+|---|---|---|---|
+| R4-01 | Low, non-blocking | `Tools/MultiRackSitkaP1Lab/src/Core/NaturalProcesses/SalvageAccounting.cs:80` | Additions are enumerated before the existing-stock validation. With an extracted ID in existing stock, a counting additions list was enumerated once on the candidate and zero times on the parent. Both returned `DeadwoodAlreadyExtracted` with unchanged stock. An additions iterator that throws could mask that refusal. Deferring the additions snapshot until after existing-stock validation would preserve the previous short circuit. |
+| R4-02 | Low, non-blocking | `Tools/MultiRackSitkaP1Lab/src/Core/NaturalProcesses/StormAdapter.cs:52` | `ExposureBands(null!)` changed from `ArgumentNullException` to an empty snapshot. The parameter is declared non-nullable, so this affects callers outside its declared input contract. An explicit null guard would preserve the prior failure. |
+
+### Changed-area criterion matrix
+
+| Criterion | Result | Evidence |
+|---|---|---|
+| Exact head, parent, base and four-prefix fence | PASS | Clean entry, exact local and live origin refs, 23 fenced paths and clean diff whitespace check. |
+| Standalone build and suite | PASS | SDK 8.0.133, build exit 0 with 0 warnings and 0 errors, test exit 0 with 49/49 passed. |
+| Caller input isolation, public read-only views and record copies | PASS | JW-T17/T31/T50/T65 and the external probe. Every caller `CopyTo` counter stayed at zero. |
+| Footprint view, area and containment | PASS | The overwrite attempt left the vertices intact, (70, 70) inside and area 6,400 m². |
+| Merge success, extracted-stock and extracted-addition refusals | PASS | Independent probe and JW-T44/T45/T48. Enumeration timing is recorded in R4-01. |
+| Frozen D-050 rolls, BoundedRational, direction and glyph | PASS | JW-T22/T25/T27/T60/T61 passed. Failure transform and event sampling are unchanged by the delta. |
+| Ordinary simulation outputs across the delta | PASS | Serialized storm and salvage results over 1,000 years with 60 trees and jay results over 100 years on all four edges had the same SHA-256 on both revisions, `87855F1CDA03DC1BFCBE98E3644F27BF572305BF9A4B2B1ADB5AFA9383ECA980`. |
+| Edge-case compatibility | PARTIAL | R4-01 and R4-02 record the two observable changes. |
+| Implementation handoff and ruling labels | PARTIAL | R1-05 and the missing Repair 4 section remain a docs-only follow-up. |
+| Unity, Part 2 runtime, save/load, grouped settlement and dashboard sync | NOT VERIFIED | The review gate covered the standalone Part 1 engine. |
+
+Required commands from `Tools/MultiRackSitkaP1Lab`:
+
+```sh
+dotnet --version
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+```
+
+Suite totals were 20 jay, 12 storm, 11 salvage and 6 hygiene/parity. Both scratch compilations emitted the unused draw-log observer warning because the probe omits the suite's observer. The required project build emitted zero warnings.
