@@ -1325,8 +1325,10 @@ const competitorButtons = () => byId('rank-layer').querySelectorAll('[data-rank-
 
 await until(() => byId('tree-rows').childNodes.length === 171, 'the first view (Area A, 171 rows)');
 const start = await serverView();
-check(requests.length === 1 && requests[0].method === 'GET' && requests[0].path === 'api/multi/view',
-  'the served page starts with one GET api/multi/view', requests);
+check(requests.length === 2 &&
+  requests[0].method === 'GET' && requests[0].path === 'api/multi/stand' &&
+  requests[1].method === 'GET' && requests[1].path === 'api/multi/view',
+  'the served page starts with shape-aware GET api/multi/stand then GET api/multi/view on 2-area MA-1', requests);
 check(byId('area-switch').querySelectorAll('[data-area]').length === 2 && byId('area-switch').querySelector('[data-area="MA-A"]').getAttribute('aria-pressed') === 'true',
   'two area buttons; Area A is shown first');
 // /multi runs Stage 4 (1/1/1) by default (owner decision 2026-11-23, spec multi-stage4-ui-catchup-v1): growth and crowns

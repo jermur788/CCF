@@ -87,6 +87,7 @@ internal sealed partial class PlayerApi
     {
         MultiAreaCompositeUiSnapshot snap;
         int totalRecordedYears;
+        int genesisStems;
         MultiReviewPreviewDto? reviewPreview;
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
@@ -100,6 +101,7 @@ internal sealed partial class PlayerApi
             var active = multiHost.Current;
             snap = active.Adapter.ReadCompositeUiSnapshot();
             totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+            genesisStems = active.Session.GenesisStemCount;
             reviewPreview = TryPreviewForView(active, snap.View);
             economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
             economy = TryBuildEconomySnapshot(active.Session, snap.View);
@@ -157,7 +159,7 @@ internal sealed partial class PlayerApi
             economy);
 
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(payload, ResponseJson);
-        var budget = ActiveLaneBudget(requestedLaneCount: 1, view.Areas.Count, view.Areas.Sum(a => a.Trees.Count));
+        var budget = ActiveLaneBudget(view.Areas.Count, genesisStems);
         if (bytes.Length > budget.MaxViewBytes)
             return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
 
@@ -234,7 +236,7 @@ internal sealed partial class PlayerApi
         var filteredStage4 = FilterStage4ToLanes(snap.Readout, requestedSet);
         var filteredEcology = FilterEcologyToLanes(snap.Ecology, snap.View, filteredView, requestedSet);
 
-        var budget = ActiveLaneBudget(requestedLanes.Count, snap.View.Areas.Count, genesisStems);
+        var budget = ActiveLaneBudget(snap.View.Areas.Count, genesisStems);
         var (bytes, exceeded) = SerializeBoundedLaneStand(
             FenceOf(snap.View), requestedLanes, filteredView, filteredStage4, filteredEcology,
             totalRecordedYears, economyEnabled, economy, hasUnsavedProgress, recipeDto, budget);

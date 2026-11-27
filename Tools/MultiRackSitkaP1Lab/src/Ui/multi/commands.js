@@ -503,10 +503,11 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
     if (state.busy) return;
     const lockCountAtStart = state.lockCount;
     state.busy = true;
-    // For >=3-area stands, re-read exclusively through C-FENCE overview + lane-filtered GET api/multi/stand?lanes=...
-    // (never api/multi/view). If the server switched back to a 2-area stand, fall through to api/multi/view.
+    // On bootstrap (state.view === null) and for >=3-area stands, attempt the C-FENCE overview + lane-filtered
+    // GET api/multi/stand?lanes=... path first so >=3-area loads never fetch whole api/multi/view.
+    // When the active stand has <=2 areas, refreshMultiStandFrame returns kind 'two-area' and we fall through to api/multi/view.
     let outcome = null;
-    if (state.view && isMultiLaneStand()) {
+    if (!state.view || isMultiLaneStand()) {
       const frame = await refreshMultiStandFrame(state.areaId, state.singleLaneMode, 'Re-read', { silentBudget: true });
       if (frame.kind === 'ok') {
         state.busy = false;

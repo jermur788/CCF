@@ -97,8 +97,8 @@ internal sealed partial class PlayerApi
     private MultiViewBudgetLimit ActiveStandBudget(int areaCount, int genesisStems) =>
         MultiViewBudget.ForStand(areaCount, genesisStems, testMaxViewBytesOverride);
 
-    private MultiViewBudgetLimit ActiveLaneBudget(int requestedLaneCount, int totalAreaCount, int genesisStems) =>
-        MultiViewBudget.ForLaneFiltered(requestedLaneCount, totalAreaCount, genesisStems, testMaxViewBytesOverride);
+    private MultiViewBudgetLimit ActiveLaneBudget(int totalAreaCount, int genesisStems) =>
+        MultiViewBudget.ForLaneFiltered(totalAreaCount, genesisStems, testMaxViewBytesOverride);
 
     private void AddMultiAreaRoutes()
     {

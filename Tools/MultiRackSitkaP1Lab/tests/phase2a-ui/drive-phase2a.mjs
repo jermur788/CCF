@@ -169,6 +169,30 @@ function fenceOf(view) {
   return { sessionId: view.sessionId, source: view.source, planStateRevision: view.planStateRevision };
 }
 
+async function readResponseJson(cdp, requestId) {
+  if (!requestId) return null;
+  const body = await cdp.send('Network.getResponseBody', { requestId });
+  const text = body.base64Encoded ? Buffer.from(body.body, 'base64').toString('utf8') : body.body;
+  return JSON.parse(text);
+}
+
+async function verifyStandLoadAudit(cdp, label, snap, maxAllowedBytes) {
+  const ov = snap.standOverviews[snap.standOverviews.length - 1] || null;
+  const ln = snap.standLanes[snap.standLanes.length - 1] || null;
+  const ovJson = ov ? await readResponseJson(cdp, ov.requestId).catch(() => null) : null;
+  const lnJson = ln ? await readResponseJson(cdp, ln.requestId).catch(() => null) : null;
+  const ovFence = ovJson?.fence || null;
+  const lnFence = lnJson?.fence || null;
+  const fencesIdentical = Boolean(ovFence && lnFence && JSON.stringify(ovFence) === JSON.stringify(lnFence));
+  const bytesOk = Boolean(
+    ov && ov.status === 200 && ov.bytes > 0 && ov.bytes <= maxAllowedBytes &&
+    ln && ln.status === 200 && ln.bytes > 0 && ln.bytes <= maxAllowedBytes);
+  check(snap.viewGets.length === 0 && snap.standOverviews.length >= 1 && snap.standLanes.length >= 1 &&
+    bytesOk && fencesIdentical,
+    `${label}: /view GETs=${snap.viewGets.length} (must be 0), /stand overviews=${snap.standOverviews.length} (${ov?.bytes || 0} B), /stand?lanes= calls=${snap.standLanes.length} (${ln?.lanes || 'none'}=${ln?.bytes || 0} B, <= ${maxAllowedBytes} B), identical fences=${fencesIdentical}`);
+  return { ovFence, lnFence, fencesIdentical };
+}
+
 async function checkLayout(cdp, label, expectMulti) {
   const geom = await evaluate(cdp, `(() => {
     const noHScroll = document.documentElement.scrollWidth <= window.innerWidth + 1;
@@ -195,9 +219,21 @@ async function checkLayout(cdp, label, expectMulti) {
     `layout (${label}): zero h-scroll (${geom.scrollW}<=${geom.innerW}), single-row topbar (delta=${geom.maxTopDelta}px), New woodland beside Saved games, multi=${expectMulti} (${geom.advSub})`);
 }
 
+// Two-area pages keep the whole /view read; the only addition is one small shape-probing overview GET before it.
+function checkTwoAreaLoad(label, snap) {
+  const ov = snap.standOverviews[0];
+  const view = snap.viewGets[0];
+  check(snap.sequence.join(',') === 'overview,view' && snap.viewGets.length === 1 && view.status === 200 &&
+    snap.standLanes.length === 0 && ov && ov.status === 200 && ov.bytes > 0 && ov.bytes < view.bytes,
+    `${label}: requests in order [${snap.sequence.join(', ')}] (must be overview, view), overview=${ov?.bytes || 0} B (smaller than /view), /view GETs=${snap.viewGets.length} (${view?.bytes || 0} B), lane reads=${snap.standLanes.length}`);
+}
+
 async function runFull(cdp, collectEvents, auditErrors, netTracker) {
   await setViewport(cdp, width, height);
   await checkLayout(cdp, 'MA-1 initial', false);
+  // The tracker has recorded everything since Network.enable, so this snapshot is the whole first page load.
+  collectEvents(false);
+  checkTwoAreaLoad('2-area MA-1 first load', netTracker.snapshot());
 
   // 1. Accessible New Woodland modal: open, Esc closes, focus returns to #woodland-open
   await click(cdp, '#woodland-open');
@@ -332,6 +368,32 @@ async function runFull(cdp, collectEvents, auditErrors, netTracker) {
     hasLaneA2 && hasLaneC3 && hasLaneE2 && hasLaneE1 && hasLaneD3 && allUnderBudget,
     `Player >=3-area network audit: /view GETs=${viewCalls.length} (must be 0), /stand overviews=${ovCalls.length} (max=${maxOvBytes} B), /stand?lanes= calls=${laneCalls.length} (1-lane max=${max1LaneBytes} B, 2-lane max=${max2LaneBytes} B, 3-lane max=${max3LaneBytes} B; all <= 524288 B; lanes seen=[${[...new Set(laneQueries)].join(' | ')}])`);
 
+  // R1 bootstrap & reload audit: navigate fresh to /multi against the live 5-lane stand, then a full page reload.
+  // The tracker is reset ONCE, before the navigation, and never again until the reload has rendered, so the final
+  // snapshot covers the whole first load AND the whole reload: GET api/multi/view must be 0 across both.
+  collectEvents(false);
+  netTracker.reset();
+  await cdp.send('Page.navigate', { url });
+  await waitFor(cdp, "document.getElementById('year-value') && document.getElementById('year-value').textContent.trim() === '0' && document.querySelectorAll('[data-lane-border]').length === 2 && document.querySelectorAll('#crowns [data-tree-id]').length > 0",
+    'Fresh bootstrap load of live 5-lane stand', 30000);
+  await sleep(250);
+  collectEvents(false);
+  const bootLoadSnap = netTracker.snapshot();
+  const bootLoadAudit = await verifyStandLoadAudit(cdp, '5-lane first load (Page.navigate)', bootLoadSnap, 524288);
+
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitFor(cdp, "document.getElementById('year-value') && document.getElementById('year-value').textContent.trim() === '0' && document.querySelectorAll('[data-lane-border]').length === 2 && document.querySelectorAll('#crowns [data-tree-id]').length > 0",
+    'Full page reload of live 5-lane stand', 30000);
+  await sleep(250);
+  collectEvents(false);
+  const loadAndReloadSnap = netTracker.snapshot();
+  const reloadAudit = await verifyStandLoadAudit(cdp, '5-lane first load + full reload, cumulative (Page.navigate then Page.reload)', loadAndReloadSnap, 524288);
+  check(loadAndReloadSnap.viewGets.length === 0 &&
+    loadAndReloadSnap.standOverviews.length > bootLoadSnap.standOverviews.length &&
+    loadAndReloadSnap.standLanes.length > bootLoadSnap.standLanes.length &&
+    Boolean(bootLoadAudit.ovFence && reloadAudit.ovFence && JSON.stringify(bootLoadAudit.ovFence) === JSON.stringify(reloadAudit.ovFence)),
+    `5-lane load + reload without a tracker reset: /view GETs=${loadAndReloadSnap.viewGets.length} (must be 0), overviews ${bootLoadSnap.standOverviews.length}->${loadAndReloadSnap.standOverviews.length}, lane reads ${bootLoadSnap.standLanes.length}->${loadAndReloadSnap.standLanes.length}, same session fence on load and reload`);
+
   // Stale old MA-1 fence must now be refused
   const staleCheck = await fetchJson(cdp, 'api/multi/year/advance', { fence: dirtyFence, consentToCancelWork: false });
   check(staleCheck.status === 409 && staleCheck.payload?.refusal?.code === 'PlayerSessionMismatch',
@@ -395,6 +457,16 @@ async function runFull(cdp, collectEvents, auditErrors, netTracker) {
   const ma1Snap = netTracker.snapshot();
   check(ma1Snap.viewGets.length >= 1, `2-area MA-1 re-read uses api/multi/view unchanged (viewGets=${ma1Snap.viewGets.length})`);
   await checkLayout(cdp, 'MA-1 restored', false);
+
+  // A browser reload of a live 2-area stand still reads whole /view after one small overview GET.
+  collectEvents(false);
+  netTracker.reset();
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitFor(cdp, "document.getElementById('year-value') && document.getElementById('year-value').textContent.trim() !== '–' && document.querySelectorAll('#crowns [data-tree-id]').length > 0 && document.getElementById('woodland-minimap').hidden && document.getElementById('advance-sub').textContent.includes('Both areas')",
+    '2-area MA-1 page reload rendered', 30000);
+  await sleep(250);
+  collectEvents(false);
+  checkTwoAreaLoad('2-area MA-1 full reload', netTracker.snapshot());
 
   // Also test 1280x720 layout directly!
   await setViewport(cdp, 1280, 720);
@@ -485,8 +557,13 @@ async function runOverflow503(cdp, collectEvents, auditErrors) {
     `GET api/multi/view refuses over-budget with HTTP 503 (bytes=${overView.payload?.bytes}, budget=${overView.payload?.budget})`);
 
   const overLane3 = await fetchJson(cdp, 'api/multi/stand?lanes=MA-B,MA-C,MA-D');
-  check(overLane3.status === 503 && overLane3.payload?.code === 'MultiViewPayloadBudgetExceeded' && overLane3.payload?.budget === 400000,
-    `GET api/multi/stand?lanes=MA-B,MA-C,MA-D refuses over-budget with HTTP 503 under lowered test budget (bytes=${overLane3.payload?.bytes}, budget=${overLane3.payload?.budget})`);
+  // Lowering direction (R2): without the override the 1,344-stem 5-lane preset has a computed scaled budget of
+  // min(2,621,440, 524,288 * ceil(1344 / 300)) = 2,621,440 B, which admits this ~495 KB 3-lane read. The low override
+  // must replace that computed budget with exactly 400,000 B.
+  const computedPresetBudget = Math.min(2621440, 524288 * Math.ceil(1344 / 300));
+  check(overLane3.status === 503 && overLane3.payload?.code === 'MultiViewPayloadBudgetExceeded' && overLane3.payload?.budget === 400000 &&
+    overLane3.payload?.bytes > 400000 && overLane3.payload?.bytes < computedPresetBudget,
+    `GET api/multi/stand?lanes=MA-B,MA-C,MA-D refuses over-budget with HTTP 503 under lowered test budget (bytes=${overLane3.payload?.bytes}, budget=${overLane3.payload?.budget}, lowered from computed ${computedPresetBudget})`);
 
   const overAdvance = await fetchJson(cdp, 'api/multi/year/advance', { fence: await freshFence(), consentToCancelWork: false });
   check(overAdvance.status === 503 && overAdvance.payload?.code === 'MultiViewPayloadBudgetExceeded' && overAdvance.payload?.budget === 400000,
@@ -531,20 +608,61 @@ async function runOverflow503(cdp, collectEvents, auditErrors) {
   auditErrors(true);
 }
 
-async function runClampRaise(cdp, collectEvents, auditErrors) {
+async function runClampRaise(cdp, collectEvents, auditErrors, netTracker) {
   await setViewport(cdp, width, height);
-  // Process launched with CCF_TEST_MAX_VIEW_BYTES=9999999 (attempting to RAISE budgets above frozen ceilings).
-  // Switch to a near-cap 2,880-stem 5-lane custom woodland (120x120 m, 2,000 stems/ha, 5 lanes, PureSitka):
+  // Process launched with CCF_TEST_MAX_VIEW_BYTES=9999999 (attempting to RAISE budgets above computed scaled/frozen limits).
+  // Part A (R2 discriminating raise-clamp proof — MUST fail if Math.Min clamp is removed):
+  //   1) 3-lane 120x50 m stand at 500 stems/ha (300 genesis stems, 960 cells):
+  //      Computed scaled budget = min(2,621,440, 524,288 * ceil(300 / 300)) = 524,288 B (NOT 9,999,999 B).
+  //      Whole /view (~526,886 B) exceeds 524,288 B while staying << 9,999,999 B -> clamped code MUST return HTTP 503
+  //      with budget === 524,288; unclamped code would admit it as HTTP 200 and FAIL.
+  //   2) 2-lane 80x80 m stand at 2,000 stems/ha (1,280 genesis stems, 1,024 cells):
+  //      Frozen 2-area cap = 524,288 B (NOT 9,999,999 B). Whole /view (~1,050,582 B) is ~2x over cap while << 9,999,999 B.
+  const initV = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  const scaledClampRecipe = {
+    widthM: 120, lengthM: 50, laneCount: 3, startAgeYears: 20, stemsPerHa: 500, seed: 300101,
+    speciesMix: 'PureSitka', oakPercent: 0, beechPercent: 0,
+  };
+  const expectedScaledBudget = Math.min(2621440, 524288 * Math.ceil(300 / 300)); // 524,288 B
+  const clampScaledNew = await fetchJson(cdp, 'api/multi/woodland/new', {
+    fence: fenceOf(initV), choice: 'custom', presetId: null, recipe: scaledClampRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
+  });
+  const clampScaledView = await fetchJson(cdp, 'api/multi/view');
+  const postScaledFence = (await fetchJson(cdp, 'api/multi/stand')).payload.fence;
+
+  const twoAreaClampRecipe = {
+    widthM: 80, lengthM: 80, laneCount: 2, startAgeYears: 20, stemsPerHa: 2000, seed: 1280101,
+    speciesMix: 'PureSitka', oakPercent: 0, beechPercent: 0,
+  };
+  const clampTwoAreaNew = await fetchJson(cdp, 'api/multi/woodland/new', {
+    fence: postScaledFence, choice: 'custom', presetId: null, recipe: twoAreaClampRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
+  });
+  const clampTwoAreaView = await fetchJson(cdp, 'api/multi/view');
+  collectEvents(true); // allow only these deliberate forced-503 clamp probe responses
+  check(clampScaledNew.status === 503 && clampScaledNew.payload?.code === 'MultiViewPayloadBudgetExceeded' &&
+    clampScaledNew.payload?.budget === expectedScaledBudget &&
+    clampScaledNew.payload?.bytes > expectedScaledBudget && clampScaledNew.payload?.bytes < 9999999 &&
+    clampScaledView.status === 503 && clampScaledView.payload?.budget === expectedScaledBudget &&
+    clampScaledView.payload?.bytes > expectedScaledBudget && clampScaledView.payload?.bytes < 9999999,
+    `Raise-clamp proof (>=3-area scaled: 3 lanes, 300 genesis stems, override=9999999): forced HTTP 503 reports computed scaled budget=${clampScaledView.payload?.budget} === ${expectedScaledBudget} (new=${clampScaledNew.payload?.bytes} B, view=${clampScaledView.payload?.bytes} B < 9999999)`);
+  check(clampTwoAreaNew.status === 503 && clampTwoAreaNew.payload?.code === 'MultiViewPayloadBudgetExceeded' &&
+    clampTwoAreaNew.payload?.budget === 524288 &&
+    clampTwoAreaNew.payload?.bytes > 524288 && clampTwoAreaNew.payload?.bytes < 9999999 &&
+    clampTwoAreaView.status === 503 && clampTwoAreaView.payload?.budget === 524288 &&
+    clampTwoAreaView.payload?.bytes > 524288 && clampTwoAreaView.payload?.bytes < 9999999,
+    `Raise-clamp proof (2-area frozen cap: 2 lanes, 1280 stems, override=9999999): forced HTTP 503 reports frozen cap budget=${clampTwoAreaView.payload?.budget} === 524288 (new=${clampTwoAreaNew.payload?.bytes} B, view=${clampTwoAreaView.payload?.bytes} B < 9999999)`);
+
+  // Part B: Switch to a near-cap 2,880-stem 5-lane custom woodland (120x120 m, 2,000 stems/ha, 5 lanes, PureSitka):
   //   - Scaled budget for 5 areas / 2,880 stems is min(2,621,440, 524,288 * ceil(2880/300)) = 2,621,440 B (never 9,999,999 B).
   //   - 2-lane and 3-lane filtered reads AND whole /view must all return HTTP 200 within 2,621,440 B.
-  //   - The /multi browser page must render the near-cap stand in default 2-lane outer mode and 3-lane interior mode without the overflow banner.
-  const curV = (await fetchJson(cdp, 'api/multi/view')).payload.view;
+  //   - The /multi browser page must load via C-FENCE with GET /view === 0 and render 2-lane outer & 3-lane interior without overflow banner.
+  const curFence = (await fetchJson(cdp, 'api/multi/stand')).payload.fence;
   const nearCapRecipe = {
     widthM: 120, lengthM: 120, laneCount: 5, startAgeYears: 20, stemsPerHa: 2000, seed: 2880101,
     speciesMix: 'PureSitka', oakPercent: 0, beechPercent: 0,
   };
   const createRes = await fetchJson(cdp, 'api/multi/woodland/new', {
-    fence: fenceOf(curV), choice: 'custom', presetId: null, recipe: nearCapRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
+    fence: curFence, choice: 'custom', presetId: null, recipe: nearCapRecipe, economyEnabled: false, confirmDiscardUnsaved: true,
   });
   check(createRes.status === 200 && createRes.bytes <= 2621440,
     `Near-cap 2,880-stem 5-lane woodland/new returns 200 within 2.5 MiB scaled ceiling (status=${createRes.status}, bytes=${createRes.bytes})`);
@@ -559,12 +677,17 @@ async function runClampRaise(cdp, collectEvents, auditErrors) {
 
   const viewCheck = await fetchJson(cdp, 'api/multi/view');
   check(viewCheck.status === 200 && viewCheck.bytes > 0 && viewCheck.bytes <= 2621440,
-    `Near-cap whole /view returns 200 within scaled 2.5 MiB ceiling (status=${viewCheck.status}, bytes=${viewCheck.bytes})`);
+    `Near-cap whole /view returns 200 within scaled 2.5 MiB ceiling (status=${viewCheck.status}, bytes=${viewCheck.bytes}, projectionCompacted=${viewCheck.payload?.projectionCompacted}, stage4Compacted=${viewCheck.payload?.stage4Compacted}, historyTruncated=${viewCheck.payload?.historyTruncated})`);
 
-  // Reload /multi against the live 2,880-stem stand: default 2-lane outer view & 3-lane interior view must render with no overflow banner.
+  // Reload /multi against the live 2,880-stem stand: must bootstrap via C-FENCE with zero GET /view!
+  collectEvents(false);
+  netTracker.reset();
   await cdp.send('Page.navigate', { url });
   await waitFor(cdp, "document.querySelectorAll('[data-lane-border]').length === 2 && document.querySelectorAll('#crowns [data-tree-id]').length === 1152",
     'Near-cap 2,880-stem stand renders default 2-lane outer view (1,152 crowns)');
+  await sleep(250);
+  collectEvents(false);
+  await verifyStandLoadAudit(cdp, 'Near-cap 2,880-stem bootstrap load (Page.navigate)', netTracker.snapshot(), 2621440);
   const outerRender = await evaluate(cdp, `({
     alertShown: document.getElementById('alert').classList.contains('shown'),
     borders: Array.from(document.querySelectorAll('[data-lane-border]')).map((n) => n.getAttribute('data-lane-border')).join(','),
@@ -596,10 +719,13 @@ async function main() {
   const deliberateRefusal = (entry, allow503) => entry.source === 'network' &&
     (allow503 ? /status of (400|409|503)/.test(entry.text || '') : /status of (400|409)/.test(entry.text || ''));
 
-  const netState = { viewGets: [], standOverviews: [], standLanes: [] };
+  const netState = { viewGets: [], standOverviews: [], standLanes: [], sequence: [] };
   const netTracker = {
-    reset() { netState.viewGets.length = 0; netState.standOverviews.length = 0; netState.standLanes.length = 0; },
-    snapshot() { return { viewGets: netState.viewGets.slice(), standOverviews: netState.standOverviews.slice(), standLanes: netState.standLanes.slice() }; },
+    reset() { netState.viewGets.length = 0; netState.standOverviews.length = 0; netState.standLanes.length = 0; netState.sequence.length = 0; },
+    snapshot() {
+      return { viewGets: netState.viewGets.slice(), standOverviews: netState.standOverviews.slice(),
+        standLanes: netState.standLanes.slice(), sequence: netState.sequence.slice() };
+    },
   };
   const reqMethods = new Map();
 
@@ -628,14 +754,17 @@ async function main() {
             const parsed = new URL(rUrl);
             if (parsed.pathname.endsWith('/api/multi/view')) {
               netState.viewGets.push({ status: st, bytes, url: parsed.pathname });
+              netState.sequence.push('view');
             } else if (parsed.pathname.endsWith('/api/multi/stand')) {
               const lanesParam = parsed.searchParams.get('lanes');
               if (lanesParam) {
                 const decodedLanes = lanesParam.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',');
                 const laneCount = decodedLanes ? decodedLanes.split(',').length : 0;
-                netState.standLanes.push({ status: st, bytes, lanes: decodedLanes, laneCount });
+                netState.standLanes.push({ requestId: e.params.requestId, status: st, bytes, lanes: decodedLanes, laneCount });
+                netState.sequence.push('lanes');
               } else {
-                netState.standOverviews.push({ status: st, bytes });
+                netState.standOverviews.push({ requestId: e.params.requestId, status: st, bytes });
+                netState.sequence.push('overview');
               }
             }
           } catch { /* ignore non-URL */ }
@@ -667,7 +796,7 @@ async function main() {
     if (mode === 'full') await runFull(cdp, collectEvents, auditErrors, netTracker);
     else if (mode === 'restart-load') await runRestartLoad(cdp, collectEvents, auditErrors, netTracker);
     else if (mode === 'overflow-503') await runOverflow503(cdp, collectEvents, auditErrors);
-    else if (mode === 'clamp-raise') await runClampRaise(cdp, collectEvents, auditErrors);
+    else if (mode === 'clamp-raise') await runClampRaise(cdp, collectEvents, auditErrors, netTracker);
     else throw new Error('unknown mode: ' + mode);
   } finally {
     cdp.close();
