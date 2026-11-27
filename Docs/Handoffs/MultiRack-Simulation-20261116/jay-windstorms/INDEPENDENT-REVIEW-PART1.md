@@ -73,3 +73,71 @@ dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.
 - Independent probe used `git show origin/main:Assets/ForestPrototype/StormModel.cs` and `git show origin/main:Assets/ForestPrototype/SimulationRandom.cs` to stage reference files in a temporary project outside the worktree. `dotnet run --project Probe.csproj` compiled those files with a minimal `Mathf` shim and linked the candidate C# sources. It exited 0 after checking the reproductions above. The probe emitted one nullable-return warning in the frozen source under its own nullable-enabled settings. The required candidate build emitted zero warnings.
 - For reproduction, use seed 12345, the 80 × 80 m footprint, year 108, source (1,1) and on-map IDs A0 through A6. Compare `JAY-ACORN-v1-oak-{i}/distance` and `/bearing` rolls directly to returned destinations and classify against rectangle bounds. Use the specific IDs in R1-01 for the collision. The storm fixture used years 1–1000, seed 12345, tree IDs T1 through T400 alternating by lane, height `20 + i % 15`, DBH `20 + i % 8`, top height 30, light 0.5 and recent opening 0.3. Expected victims came from frozen vulnerability, chance and ID-keyed roll.
 - The numeric caps, transport kernel, D-050 values and band boundaries are gameplay calibration. The review verifies their implementation and labels. It supplies no new ecological calibration. The review branch is the bounded coordination record. Dashboard ingestion was not verified under this publication scope.
+
+## Delta re-review (cc59918f -> 3170cd2)
+
+**Integration decision — NEEDS CHANGES.**
+
+Independent delta reviewer, OpenAI Codex, GPT-6.2 Sol, medium effort. Candidate `3170cd2c0d8e5d921ddc66b4c4f516b8de145987` had a clean feature worktree and matched both the local tracking ref and the live feature ref. Its parent is `cc59918f46d3e63bdc164fc70f2125072625bc0e` and its merge base with the specified base is `c82e4e759c2ceef1c13ddb6a033e034097aef77e`. The 23 changed paths all match the four authorized prefixes. `git diff --check c82e4e75..HEAD` passed.
+
+### Prior findings
+
+| ID | Delta status | Exact independent check |
+|---|---|---|
+| R1-01 | RESOLVED | Read the validation before RNG creation and checked ordinal matching. Across four edges with Nearby ON and OFF, isolated the candidate ID, source tree ID and combined conflict (24 refusals). Every result and draw log showed zero draws. Eight accepted calls used lowercase and bare-prefix look-alikes. With both origins on, two on-map plus four external candidates yielded six unique IDs and 16 distinct draw keys per edge. JW-T16 also exercises above-cap selection. Removing only the guard in a temporary copy made JW-T15 fail and the suite exit 1 (47/48). |
+| R1-02 | PARTIALLY RESOLVED | Probed all 14 collection properties through constructors and replacement via `with`, plus footprint vertices and standalone exposure bands. Caller-array writes and direct array/list casts did not alter the views. Generic and nongeneric list setters and generic add/clear threw. However `ICollection.SyncRoot` exposes the mutable backing arrays on SDK 8.0.133. A plain `with { }` copy can mutate the original and the footprint changes area. See R2-01. |
+| R1-03 | RESOLVED | Sold D1, passed existing [D1] / extracted [D1] / additions [D2], and got `DeadwoodAlreadyExtracted` with stock [D1] intact. Inverse placement with existing [D2] and added D1 refused with stock [D2]. Empty extracted history accepted [D1, D2]. JW-T44/T48 passed. |
+| R1-04 | RESOLVED | Refused negative, cap + 0.01 and `decimal.MaxValue` for price and minimum independently. Each refusal left D1 in stock with no lines, extraction, revenue or volume change. Exactly 1,000 m³ at 1,000,000,000 produced 1,000,000,000,000. JW-T49's 50-line aggregate passed. Each line is at most 10¹² and even `int.MaxValue` lines total below 2.2 × 10²¹, within decimal's roughly 7.9 × 10²⁸ range. The spec and code document both limits. |
+| R1-05 | PARTIALLY RESOLVED | Read the handoff header, parent-only transcript, §5 and Repair 2 together with the quartet. Both owner decisions are explicit in the handoff and the current transcript is easy to identify. Spec §1.3 still labels the settled BoundedRational decision “[ENG, flagged for review]” at line 50. The handoff branch bullet at line 15 still says “no review/* branch created” despite the existing review acknowledged in Repair 2. Label that bullet as implementation publication history and align the spec decision label with the owner ruling. |
+| R1-06 | RESOLVED | Inspected and ran all six named cases. T06 compares exactly the carried and diverted ID sets and checks their uniqueness and the supplied partition. T09 compares six literal stream keys to the observed log and uses those literals for the numeric oracle, with T60 covering frozen RNG parity. T23 verifies single event keys, 400 distinct tree keys split 200/200 in the split fixture and the single calm draw. T24 exercises year 108 with checkpoint 200. T27 contains literal 108/229 victim vectors independently reproduced from the frozen sources. T62's nine literals match the nine resolved base registry values in order, and its loops test actual prefixes bidirectionally. |
+| R1-07 | OBSERVATION ONLY | Spec §5 item 10 queues precision selection. The independent frozen-source probe found 17 raw bearing differences in 19 events, maximum 0.0000133514404296875°. Each candidate direction exactly matched the frozen RNG draw widened before multiplication by 360 and equalled its glyph. Victim sets matched. |
+| R1-08 | RESOLVED | Read the runtime teaching constant, §1.4 and the checklist. The old factual market sentence is absent. December 2024 and January 2025 remain, and JW-T47 passed. |
+| R1-09 | RESOLVED | Spec §5 items 7–9 explicitly queue derivation and debit of on-map candidates including exports, woodland-seed/pre-storm resolution with a persisted year guard, and authoritative approved Work Plan lookup with grouped settlement verification. See R2-02 for a wording conflict introduced in the new queue text. |
+
+### New findings
+
+Source paths are relative to `Tools/MultiRackSitkaP1Lab/` unless they start with `specs/`.
+
+| ID | Severity | Location | Evidence and required change |
+|---|---|---|---|
+| R2-01 | Blocking | `src/Core/NaturalProcesses/NaturalProcessContracts.cs:45`, `src/Core/NaturalProcesses/WoodlandFootprint.cs:16`, `src/Core/NaturalProcesses/StormAdapter.cs:52` | On .NET 8 the array-backed `ReadOnlyCollection<T>` delegates nongeneric `ICollection.SyncRoot` to the array, whose sync root is itself. The independent probe overwrote every nonempty request/result collection through that property, including after `with` replacement, and altered a source request through a plain copy. The same path modified standalone exposure feedback and a footprint's area from 6,400 to 4,800 m². Use a snapshot implementation that does not expose mutable storage through its interfaces, including `SyncRoot`, and extend the regression accordingly. The pre-existing `NaturalProcessStreams.All` at `src/Core/NaturalProcesses/NaturalProcessRandom.cs:21` uses the same pattern and should be covered by the public-collection audit. Update the spec to promise the behavior independently of the wrapper type. |
+| R2-02 | Non-blocking | `specs/multi-2d-jay-windstorms-v1/spec.md:137` | “Never increases total oak seed input” in the new debit item can include Nearby contributions, which §1.2 explicitly adds as external seed. Scope the accounting invariant to the on-map derived input and state how delivered external input counts separately. |
+| R2-03 | Observation | `src/Core/NaturalProcesses/NaturalProcessContracts.cs:172` | The generated record equality remains reference-based for collection fields, but two equal scalar StormRequests constructed or initialized from the same nonempty array now own distinct wrappers. A two-version probe comparing `request with { Trees = trees }` to a second copy with that same array returned `true` on the parent and `false` on the candidate. The standalone seam has no production caller and the spec promises no structural equality. Document the consequence if accepting it with the defensive-copy change. |
+
+Minimal R2-01 reproduction on the candidate:
+
+```csharp
+var footprint = WoodlandFootprint.Rectangle(0, 0, 80, 80);
+var list = (System.Collections.ICollection)footprint.Vertices;
+var backing = (LocalPoint[])list.SyncRoot;
+backing[2] = new LocalPoint(80, 40);
+Console.WriteLine(footprint.AreaSquareMetres); // 4800, previously 6400
+```
+
+### Changed-area criterion matrix
+
+| Criterion | Result | Evidence |
+|---|---|---|
+| Exact candidate, base, file fence and standalone gate | PASS | Clean entry, local and remote SHA match, 23/23 in scope, zero warnings/errors, 48/48, exit 0. |
+| Jay origin identities, keys and pre-draw refusal | PASS | JW-T06/T09/T15/T16, independent four-edge probe and guard-removal negative control. |
+| Constructor and `with` input snapshots | PASS | Post-construction mutation checks on every request/result collection and footprint input. |
+| Public immutable collection outputs | FAIL | R2-01, including change to footprint geometry and a plain record copy affecting the original. |
+| Extracted-stock and added-ID invariants | PASS | Independent two-path refusal and unchanged stock plus valid merge. |
+| Atomic sale pricing and aggregate arithmetic | PASS | Independent exact caps, six refusal combinations, JW-T49 aggregate and arithmetic bound. |
+| D-050 parity, storm direction, glyph and probability transform | PASS | JW-T22/T25/T27/T60/T61. Temporary frozen-source compilation independently matched 19/19 event years/severities and all 19 victim sets with 60 trees, including both T27 vectors and formula bits. The persistence precision decision is queued. |
+| Public signatures, stable refusal values and deterministic keys | PASS | Positional signatures and property types preserved, codes 0–22 preserved and 23 appended, unchanged roll and vulnerability sources. The reserved-ID and price-domain refusals are explicit. Record equality change recorded in R2-03. |
+| Six named test strengthenings | PASS | Assertions and literal registry/vector cross-checks in R1-06. |
+| Current and consistent handoff/spec wording | FAIL | Decisions are implemented and the current transcript identified. The remaining stale authority and publication wording is recorded in R1-05 and the Part 2 debit scope in R2-02. |
+| Dated teaching text and removal of old market claim | PASS | JW-T47 and source/spec inspection. |
+| Three required Part 2 queue entries | PASS | Spec §5 items 7–9. |
+| Part 2 runtime, Unity, save/load and settlement | NOT TESTED | Queued outside the standalone Part 1 delta. |
+
+Required candidate commands, from `Tools/MultiRackSitkaP1Lab`:
+
+```sh
+dotnet --version
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+```
+
+SDK 8.0.133, build exit 0 with 0 warnings and 0 errors. Run exit 0 with 48/48 (20 jay, 12 storm, 11 salvage, 5 hygiene/parity). The mutation test, collection/accounting probes and frozen-source oracle ran in temporary projects outside the feature worktree. The frozen oracle used `StormModel.cs` and `SimulationRandom.cs` from context `bdeb6a324` with a minimal `Mathf` shim. Publication is this review branch commit.
