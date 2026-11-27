@@ -22,28 +22,46 @@ internal static class MultiViewBudget
 
     internal static MultiViewBudgetLimit ForStand(int areaCount, int genesisStems, int? testMaxViewBytesOverride = null)
     {
-        if (testMaxViewBytesOverride is > 0)
-            return new MultiViewBudgetLimit(testMaxViewBytesOverride.Value, Math.Min(DefaultEcologyBytes, testMaxViewBytesOverride.Value));
-
+        MultiViewBudgetLimit computed;
         if (areaCount <= 2)
-            return new MultiViewBudgetLimit(DefaultViewBytes, DefaultEcologyBytes);
+        {
+            computed = new MultiViewBudgetLimit(DefaultViewBytes, DefaultEcologyBytes);
+        }
+        else
+        {
+            int safeStems = Math.Max(1, genesisStems);
+            int units = Math.Max(1, (safeStems + StemsPerBudgetUnit - 1) / StemsPerBudgetUnit);
+            int viewCap = (int)Math.Min((long)CeilingViewBytes, (long)DefaultViewBytes * units);
+            int ecoCap = (int)Math.Min((long)CeilingEcologyBytes, (long)DefaultEcologyBytes * units);
+            computed = new MultiViewBudgetLimit(viewCap, ecoCap);
+        }
 
-        int safeStems = Math.Max(1, genesisStems);
-        int units = Math.Max(1, (safeStems + StemsPerBudgetUnit - 1) / StemsPerBudgetUnit);
-        int viewCap = (int)Math.Min((long)CeilingViewBytes, (long)DefaultViewBytes * units);
-        int ecoCap = (int)Math.Min((long)CeilingEcologyBytes, (long)DefaultEcologyBytes * units);
-        return new MultiViewBudgetLimit(viewCap, ecoCap);
+        // Spec §8: test budget override may only LOWER the active budget, never raise it.
+        if (testMaxViewBytesOverride is > 0)
+        {
+            return new MultiViewBudgetLimit(
+                Math.Min(computed.MaxViewBytes, testMaxViewBytesOverride.Value),
+                Math.Min(computed.MaxEcologyBytes, testMaxViewBytesOverride.Value));
+        }
+
+        return computed;
     }
 
     internal static MultiViewBudgetLimit ForLaneFiltered(int requestedLaneCount, int totalAreaCount, int genesisStems, int? testMaxViewBytesOverride = null)
     {
+        var computed = requestedLaneCount <= 3
+            ? new MultiViewBudgetLimit(DefaultViewBytes, DefaultEcologyBytes)
+            : ForStand(totalAreaCount, genesisStems);
+
+        // Spec §8: test budget override may only LOWER the active budget, never raise it.
         if (testMaxViewBytesOverride is > 0)
-            return new MultiViewBudgetLimit(testMaxViewBytesOverride.Value, Math.Min(DefaultEcologyBytes, testMaxViewBytesOverride.Value));
+        {
+            return new MultiViewBudgetLimit(
+                Math.Min(computed.MaxViewBytes, testMaxViewBytesOverride.Value),
+                Math.Min(computed.MaxEcologyBytes, testMaxViewBytesOverride.Value));
+        }
 
-        if (requestedLaneCount <= 3)
-            return new MultiViewBudgetLimit(DefaultViewBytes, DefaultEcologyBytes);
-
-        return ForStand(totalAreaCount, genesisStems);
+        return computed;
     }
 
     internal static int? ReadTestOverrideFromEnvironment()
