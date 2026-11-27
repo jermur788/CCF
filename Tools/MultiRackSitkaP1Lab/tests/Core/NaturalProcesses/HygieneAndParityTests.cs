@@ -99,6 +99,109 @@ internal static class HygieneAndParityTests
             TestRunner.Eq(1, csproj.Split("<Compile ").Length - 1, "one Compile item");
             TestRunner.True(csproj.Contains("<Compile Include=\"../../../src/Core/NaturalProcesses/**/*.cs\" />", StringComparison.Ordinal), "glob");
         });
+        RegisterCopyToRetention();
+    }
+
+    private static void RegisterCopyToRetention()
+    {
+        TestRunner.Add(Suite, "JW-T65 caller collections whose CopyTo retains the destination cannot change requests, with-copies, footprint or results (R3-01)", () =>
+        {
+            // Fixture self-check: on this SDK the hostile collection really captures LINQ's destination, so the attack is live.
+            var probe = new Fixtures.RetainingCollection<int>(new[] { 1, 2, 3 });
+            int[] linqCopy = probe.ToArray();
+            probe.OverwriteCaptured(99);
+            TestRunner.True(probe.CopyToCalls == 1 && linqCopy[0] == 99, "Enumerable.ToArray hands its destination to CopyTo (attack is real)");
+
+            // Footprint: 80 x 80 m from four hostile points stays 6,400 m2 and keeps reporting the same outline.
+            var corners = new Fixtures.RetainingCollection<LocalPoint>(new[]
+                { new LocalPoint(0, 0), new LocalPoint(80, 0), new LocalPoint(80, 80), new LocalPoint(0, 80) });
+            var footprint = new WoodlandFootprint(corners);
+            corners.OverwriteCaptured(2, new LocalPoint(80, 40));
+            TestRunner.Eq(6400.0, footprint.AreaSquareMetres, "footprint area stays 6,400 m2");
+            TestRunner.Eq(new LocalPoint(80, 80), footprint.Vertices[2], "reported vertex 2 unchanged");
+            TestRunner.True(footprint.Contains(new LocalPoint(70, 70)), "geometry still uses (80, 80)");
+            TestRunner.Eq(0, corners.CopyToCalls, "footprint never calls the caller's CopyTo");
+
+            // Jay request: construction, plain with-copy, init replacement, and the result built from the request.
+            var oaks = new Fixtures.RetainingCollection<OnMapOakSeedCandidate>(Fixtures.OakCandidates(5, 4));
+            var jayRequest = Fixtures.JayRequest(Fixtures.JayOn, Fixtures.Mast, oaks);
+            var jayCopy = jayRequest with { };
+            var oaksForInit = new Fixtures.RetainingCollection<OnMapOakSeedCandidate>(Fixtures.OakCandidates(5, 4));
+            var jayReplaced = jayRequest with { OnMapOakCandidates = oaksForInit };
+            var jayResult = JayAcornDispersal.Disperse(jayRequest);
+            string jayIds = string.Join(",", jayRequest.OnMapOakCandidates.Select(c => c.CandidateId));
+            string jayBaseline = Fixtures.Describe(jayResult);
+            var bogusOak = new OnMapOakSeedCandidate("HOSTILE", "HOSTILE", "sessile-oak", new LocalPoint(1, 1));
+            oaks.OverwriteCaptured(bogusOak);
+            oaksForInit.OverwriteCaptured(bogusOak);
+            TestRunner.Eq(0, oaks.CopyToCalls + oaksForInit.CopyToCalls, "jay request never calls the caller's CopyTo");
+            TestRunner.Eq(jayIds, string.Join(",", jayRequest.OnMapOakCandidates.Select(c => c.CandidateId)), "jay request unchanged");
+            TestRunner.Eq(jayIds, string.Join(",", jayCopy.OnMapOakCandidates.Select(c => c.CandidateId)), "jay with-copy unchanged");
+            TestRunner.Eq(jayIds, string.Join(",", jayReplaced.OnMapOakCandidates.Select(c => c.CandidateId)), "jay init replacement unchanged");
+            TestRunner.True(jayRequest == jayCopy && jayRequest == jayReplaced, "jay request and copies still equal");
+            TestRunner.Eq(jayBaseline, Fixtures.Describe(jayResult), "jay result unchanged");
+            TestRunner.Eq(jayBaseline, Fixtures.Describe(JayAcornDispersal.Disperse(jayRequest)), "re-running the request gives the same result");
+            TestRunner.Eq(jayBaseline, Fixtures.Describe(JayAcornDispersal.Disperse(jayReplaced)), "init replacement gives the same result");
+
+            // Storm request and result.
+            var trees = new Fixtures.RetainingCollection<StormTreeInput>(Fixtures.StormTrees(60));
+            var stormRequest = new StormRequest(StormModelVersion.WindthrowV1, 108, Fixtures.Seed, trees);
+            var stormCopy = stormRequest with { };
+            var treesForInit = new Fixtures.RetainingCollection<StormTreeInput>(Fixtures.StormTrees(60));
+            var stormReplaced = stormRequest with { Trees = treesForInit };
+            var stormResult = StormAdapter.Resolve(stormRequest);
+            var bandTrees = new Fixtures.RetainingCollection<StormTreeInput>(Fixtures.StormTrees(5));
+            var bands = StormAdapter.ExposureBands(bandTrees);
+            string stormBaseline = Fixtures.Describe(stormResult);
+            string bandsBaseline = string.Join(",", bands);
+            TestRunner.True(stormResult.Victims.Count > 0, "fixture has victims");
+            var bogusTree = new StormTreeInput("HOSTILE", "LANE-X", "CX", 40f, 10f, 40f, 1f, 2f);
+            trees.OverwriteCaptured(bogusTree);
+            treesForInit.OverwriteCaptured(bogusTree);
+            bandTrees.OverwriteCaptured(bogusTree);
+            TestRunner.Eq(0, trees.CopyToCalls + treesForInit.CopyToCalls + bandTrees.CopyToCalls, "storm inputs never call the caller's CopyTo");
+            TestRunner.True(stormRequest.Trees.All(t => t.TreeId != "HOSTILE") && stormCopy.Trees.All(t => t.TreeId != "HOSTILE") &&
+                stormReplaced.Trees.All(t => t.TreeId != "HOSTILE"), "storm request, with-copy and init replacement unchanged");
+            TestRunner.True(stormRequest == stormCopy && stormRequest == stormReplaced, "storm request and copies still equal");
+            TestRunner.Eq(stormBaseline, Fixtures.Describe(stormResult), "storm result unchanged");
+            TestRunner.Eq(stormBaseline, Fixtures.Describe(StormAdapter.Resolve(stormReplaced)), "init replacement gives the same storm result");
+            TestRunner.Eq(bandsBaseline, string.Join(",", bands), "exposure bands unchanged");
+
+            // Salvage request, result and deadwood merge.
+            var stock = new Fixtures.RetainingCollection<FallenDeadwoodRecord>(new[]
+            {
+                new FallenDeadwoodRecord("DW-A", "TA", StormAdapter.WindthrowCause, 108, DeadwoodForm.Fallen, 20f, 25f),
+                new FallenDeadwoodRecord("DW-B", "TB", StormAdapter.WindthrowCause, 108, DeadwoodForm.Fallen, 22f, 27f),
+            });
+            var extracted = new Fixtures.RetainingCollection<string>(new[] { "DW-OLD" });
+            var orders = new Fixtures.RetainingCollection<SalvageOrder>(new[] { new SalvageOrder("DW-A", SalvageChoice.SellAndExtract, "WP-1", 1.0) });
+            var salvageRequest = new SalvageRequest(stock, extracted, orders, new SalvagePricing(42.50m, 2500m));
+            var salvageCopy = salvageRequest with { };
+            var salvageResult = SalvageAccounting.Apply(salvageRequest);
+            var added = new Fixtures.RetainingCollection<FallenDeadwoodRecord>(new[]
+                { new FallenDeadwoodRecord("DW-NEW", "TN", StormAdapter.WindthrowCause, 110, DeadwoodForm.Fallen, 20f, 25f) });
+            var merged = SalvageAccounting.MergeWindthrowDeadwood(stock, extracted, added);
+            string salvageBaseline = string.Join(",", salvageResult.RemainingDeadwood.Select(d => d.DeadwoodId)) + "/" +
+                string.Join(",", salvageResult.ExtractedDeadwoodIds) + "/" + salvageResult.GrossSaleRevenue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string mergedBaseline = string.Join(",", merged.Deadwood.Select(d => d.DeadwoodId));
+            var bogusDeadwood = new FallenDeadwoodRecord("DW-HOSTILE", "TX", "other", 1, DeadwoodForm.Fallen, 1f, 1f);
+            stock.OverwriteCaptured(bogusDeadwood);
+            added.OverwriteCaptured(bogusDeadwood);
+            extracted.OverwriteCaptured("DW-A");
+            orders.OverwriteCaptured(new SalvageOrder("DW-B", SalvageChoice.KeepForUse, "WP-9", 5.0));
+            TestRunner.Eq(0, stock.CopyToCalls + extracted.CopyToCalls + orders.CopyToCalls + added.CopyToCalls, "salvage inputs never call the caller's CopyTo");
+            TestRunner.True(salvageRequest == salvageCopy, "salvage request and with-copy still equal");
+            TestRunner.Eq("DW-A,DW-B", string.Join(",", salvageRequest.Deadwood.Select(d => d.DeadwoodId)), "salvage request deadwood unchanged");
+            TestRunner.Eq("DW-A,DW-B", string.Join(",", salvageCopy.Deadwood.Select(d => d.DeadwoodId)), "salvage with-copy deadwood unchanged");
+            string salvageAgain = SalvageAccounting.Apply(salvageRequest) is var again
+                ? string.Join(",", again.RemainingDeadwood.Select(d => d.DeadwoodId)) + "/" + string.Join(",", again.ExtractedDeadwoodIds) + "/" +
+                  again.GrossSaleRevenue.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                : "";
+            TestRunner.Eq(salvageBaseline, salvageAgain, "re-running the salvage request gives the same result");
+            TestRunner.Eq("DW-B/DW-A,DW-OLD/42.50", salvageBaseline, "salvage result is the expected one");
+            TestRunner.Eq("DW-A,DW-B,DW-NEW", mergedBaseline, "merge result is the expected one");
+            TestRunner.Eq(mergedBaseline, string.Join(",", merged.Deadwood.Select(d => d.DeadwoodId)), "merge result unchanged");
+        });
     }
 
     private static string? FindDir(params string[] parts)

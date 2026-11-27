@@ -12,7 +12,8 @@ public sealed class WoodlandFootprint
     /// <summary>Copies <paramref name="vertices"/>: changing the caller's collection afterwards never moves the outline.</summary>
     public WoodlandFootprint(IReadOnlyList<LocalPoint> vertices)
     {
-        _vertices = (vertices ?? Array.Empty<LocalPoint>()).ToArray();
+        // One enumeration-only snapshot feeds both the geometry and the reported outline (R3-01), so they cannot differ.
+        _vertices = SnapshotCopy.ToArray(vertices);
         _readOnlyVertices = new SnapshotList<LocalPoint>(_vertices);
     }
 

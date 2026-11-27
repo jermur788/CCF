@@ -129,4 +129,51 @@ internal static class Fixtures
             r.RngDrawCount.ToString(CultureInfo.InvariantCulture) }
         .Concat(r.Victims.Select(v => v.TreeId + ":" + v.Deadwood.DeadwoodId + ":" + v.Opening.CellId))
         .Concat(r.Exposure.Select(e => e.TreeId + ":" + e.Label)));
+
+    /// <summary>
+    /// A hostile caller collection (R3-01). It implements both <see cref="IReadOnlyList{T}"/> and
+    /// <see cref="ICollection{T}"/>; its <see cref="CopyTo"/> copies correctly but keeps every destination array it is
+    /// handed, so a test can overwrite those arrays after construction. LINQ <c>ToArray()</c> and
+    /// <c>new List&lt;T&gt;(source)</c> both call CopyTo on such a source.
+    /// </summary>
+    public sealed class RetainingCollection<T> : IReadOnlyList<T>, ICollection<T>
+    {
+        private readonly List<T> _items;
+        private readonly List<T[]> _captured = new();
+
+        public RetainingCollection(IEnumerable<T> items) => _items = items.ToList();
+
+        public int CopyToCalls { get; private set; }
+        public int Count => _items.Count;
+        public bool IsReadOnly => true;
+        public T this[int index] => _items[index];
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            CopyToCalls++;
+            _items.CopyTo(array, arrayIndex);
+            _captured.Add(array);
+        }
+
+        /// <summary>Overwrites every element of every retained destination with <paramref name="replacement"/>.</summary>
+        public void OverwriteCaptured(T replacement)
+        {
+            foreach (T[] array in _captured)
+                for (int i = 0; i < array.Length; i++) array[i] = replacement;
+        }
+
+        /// <summary>Overwrites one index of every retained destination long enough to hold it.</summary>
+        public void OverwriteCaptured(int index, T replacement)
+        {
+            foreach (T[] array in _captured)
+                if (index < array.Length) array[index] = replacement;
+        }
+
+        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+        public bool Contains(T item) => _items.Contains(item);
+        public void Add(T item) => throw new NotSupportedException();
+        public void Clear() => throw new NotSupportedException();
+        public bool Remove(T item) => throw new NotSupportedException();
+    }
 }

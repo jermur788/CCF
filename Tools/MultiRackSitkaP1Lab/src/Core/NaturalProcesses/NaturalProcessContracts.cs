@@ -35,6 +35,24 @@ public enum NaturalProcessRefusalCode
 }
 
 /// <summary>
+/// The one way caller-supplied collections are copied (R3-01). Items are read by plain enumeration into a private
+/// list, and only then is the final private array allocated. LINQ <c>ToArray()</c> and <c>new List&lt;T&gt;(source)</c>
+/// are never used on caller input: both hand a newly allocated destination to the source's
+/// <see cref="ICollection{T}.CopyTo"/>, and a hostile collection could keep that array and overwrite it later.
+/// </summary>
+internal static class SnapshotCopy
+{
+    /// <summary>A private array copy of <paramref name="source"/>; null gives an empty array.</summary>
+    public static T[] ToArray<T>(IEnumerable<T>? source)
+    {
+        var items = new List<T>();
+        if (source is null) return items.ToArray();
+        foreach (T item in source) items.Add(item);
+        return items.ToArray();
+    }
+}
+
+/// <summary>
 /// Defensive snapshots for every collection crossing the contract boundary. The caller's collection is copied into a
 /// private array and exposed only through <see cref="SnapshotList{T}"/>, so mutating the original input, or casting a
 /// returned list and writing to it, can never change a request or a result after construction.
@@ -56,7 +74,7 @@ internal sealed class SnapshotList<T> : IReadOnlyList<T>, IEquatable<SnapshotLis
 {
     private readonly T[] _items;
 
-    public SnapshotList(IEnumerable<T> source) => _items = source.ToArray();
+    public SnapshotList(IEnumerable<T> source) => _items = SnapshotCopy.ToArray(source);
 
     public int Count => _items.Length;
 

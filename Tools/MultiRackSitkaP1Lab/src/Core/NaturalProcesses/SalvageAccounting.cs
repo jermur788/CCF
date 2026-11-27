@@ -75,23 +75,26 @@ public static class SalvageAccounting
         IReadOnlyList<string> extractedDeadwoodIds,
         IReadOnlyList<FallenDeadwoodRecord> added)
     {
-        var extracted = new HashSet<string>(extractedDeadwoodIds ?? Array.Empty<string>(), StringComparer.Ordinal);
+        // Snapshot each caller list once by enumeration (R3-01); everything below reads only these private copies.
+        FallenDeadwoodRecord[] existingCopy = SnapshotCopy.ToArray(existing);
+        FallenDeadwoodRecord[] addedCopy = SnapshotCopy.ToArray(added);
+        var extracted = new HashSet<string>(SnapshotCopy.ToArray(extractedDeadwoodIds), StringComparer.Ordinal);
         var present = new HashSet<string>(StringComparer.Ordinal);
-        foreach (FallenDeadwoodRecord d in existing ?? Array.Empty<FallenDeadwoodRecord>())
+        foreach (FallenDeadwoodRecord d in existingCopy)
         {
             if (extracted.Contains(d.DeadwoodId))
-                return MergeRefused(existing, NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, d.DeadwoodId);
+                return MergeRefused(existingCopy, NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, d.DeadwoodId);
             if (!present.Add(d.DeadwoodId))
-                return MergeRefused(existing, NaturalProcessRefusalCode.DuplicateDeadwoodId, d.DeadwoodId);
+                return MergeRefused(existingCopy, NaturalProcessRefusalCode.DuplicateDeadwoodId, d.DeadwoodId);
         }
-        foreach (FallenDeadwoodRecord d in added ?? Array.Empty<FallenDeadwoodRecord>())
+        foreach (FallenDeadwoodRecord d in addedCopy)
         {
             if (extracted.Contains(d.DeadwoodId))
-                return MergeRefused(existing, NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, d.DeadwoodId);
+                return MergeRefused(existingCopy, NaturalProcessRefusalCode.DeadwoodAlreadyExtracted, d.DeadwoodId);
             if (!present.Add(d.DeadwoodId))
-                return MergeRefused(existing, NaturalProcessRefusalCode.DuplicateDeadwoodId, d.DeadwoodId);
+                return MergeRefused(existingCopy, NaturalProcessRefusalCode.DuplicateDeadwoodId, d.DeadwoodId);
         }
-        var merged = (existing ?? Array.Empty<FallenDeadwoodRecord>()).Concat(added ?? Array.Empty<FallenDeadwoodRecord>())
+        var merged = existingCopy.Concat(addedCopy)
             .OrderBy(d => d.DeadwoodId, StringComparer.Ordinal).ToArray();
         return new DeadwoodMergeResult(null, merged);
     }
@@ -143,8 +146,8 @@ public static class SalvageAccounting
         new(refusal, deadwood.Where(d => d is not null).OrderBy(d => d.DeadwoodId, StringComparer.Ordinal).ToArray(),
             Array.Empty<SalvageLine>(), Sorted(extracted), 0.0, 0m, 0.0, request.Pricing);
 
-    private static DeadwoodMergeResult MergeRefused(IReadOnlyList<FallenDeadwoodRecord>? existing, NaturalProcessRefusalCode code, string id) =>
-        new(new NaturalProcessRefusal(code, "deadwood " + id), (existing ?? Array.Empty<FallenDeadwoodRecord>()).ToArray());
+    private static DeadwoodMergeResult MergeRefused(FallenDeadwoodRecord[] existingCopy, NaturalProcessRefusalCode code, string id) =>
+        new(new NaturalProcessRefusal(code, "deadwood " + id), existingCopy);
 
     private static string[] Sorted(IEnumerable<string> ids) => ids.OrderBy(id => id, StringComparer.Ordinal).ToArray();
 }
