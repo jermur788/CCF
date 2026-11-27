@@ -16,7 +16,7 @@ Part 1 only. Test names are the exact `TestRunner` names (prefix `JW-Txx`).
 | **JW-REQ-10** | StormModel 0 is storm-free with zero draws and shifts no other stream. | `JW-T20`, `JW-T21` |
 | **JW-REQ-11** | StormModel 1 uses frozen D-050 verbatim (0.02; 0.02/0.06/0.18; 1:1:1; ReducedProposal; BoundedRational; neutral site/edge), bit-identical to the frozen Unity formula and event years. | `JW-T22`, `JW-T60`, `JW-T61`, `JW-T30` |
 | **JW-REQ-12** | At most one woodland-wide event per year; never per lane; no invented lane/exposure/thinning multipliers; repeat resolution for a year refused. | `JW-T23`, `JW-T24`, `JW-T30` |
-| **JW-REQ-13** | Direction `225 + 45(2u − 1)` (FROM); `FallGlyphOrientationDegrees = (dir + 180) mod 360` as a UI convention; no per-tree bearing persisted. | `JW-T25` |
+| **JW-REQ-13** | Direction `u · 360` (blow-towards, frozen D-050); `FallGlyphOrientationDegrees = DirectionDegrees` as a UI convention; no per-tree bearing persisted. | `JW-T25` |
 | **JW-REQ-14** | Qualitative Stable/Watch/Exposed feedback; no hazard percentage or p exposed. | `JW-T26` |
 | **JW-REQ-15** | Two-pass victims keyed `WINDTHROW-v1-<TreeId>`; each victim: cause windthrow, one fallen deadwood record, one canopy opening; no snags/snaps/dominoes. | `JW-T27` |
 | **JW-REQ-16** | Determinism across repeated runs; shuffled input ordering yields the same victim set and jay output. | `JW-T28`, `JW-T29`, `JW-T10`, `JW-T08` |

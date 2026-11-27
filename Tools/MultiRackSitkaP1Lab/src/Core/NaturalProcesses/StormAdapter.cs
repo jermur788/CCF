@@ -14,10 +14,6 @@ public static class StormAdapter
     public const string WindthrowCause = "windthrow";
     public const float OpeningIncrementPerVictim = 1f;
 
-    /// <summary>Direction the storm comes FROM: 225° ± 45° (prevailing south-westerly; gameplay calibration).</summary>
-    public const double PrevailingFromDegrees = 225.0;
-    public const double DirectionSpreadDegrees = 45.0;
-
     public static StormResult Resolve(StormRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -57,8 +53,11 @@ public static class StormAdapter
             .Select(t => Feedback(t.TreeId, StormVulnerability.Index(t)))
             .ToArray();
 
-    /// <summary>The UI fall-glyph orientation: (direction + 180) mod 360. A visual convention, never a stored bearing.</summary>
-    public static double FallGlyphOrientation(double directionDegrees) => (directionDegrees + 180.0) % 360.0;
+    /// <summary>
+    /// The UI fall-glyph orientation: equal to the storm's blow-towards bearing. A visual convention for the event
+    /// notice only, never a persisted per-tree fall bearing (no per-tree jitter is applied).
+    /// </summary>
+    public static double FallGlyphOrientation(double directionDegrees) => directionDegrees;
 
     internal static StormEvent? SampleEvent(NaturalProcessRandom rng, int year, int seed)
     {
@@ -68,7 +67,8 @@ public static class StormAdapter
         float roll = rng.Roll(NaturalProcessStreams.StormSeverity, year, seed) * total;
         int level = roll < w[0] ? 0 : roll < w[0] + w[1] ? 1 : 2;
         double u = rng.Roll(NaturalProcessStreams.StormDirection, year, seed);
-        double direction = PrevailingFromDegrees + DirectionSpreadDegrees * (2.0 * u - 1.0);
+        // Frozen D-050 (StormModel.cs): uniform [0, 360), the bearing the wind blows TOWARDS; 0 = north (+Z), 90 = east (+X).
+        double direction = u * 360.0;
         return new StormEvent(year, level, StormVulnerability.Severities[level], direction, FallGlyphOrientation(direction));
     }
 

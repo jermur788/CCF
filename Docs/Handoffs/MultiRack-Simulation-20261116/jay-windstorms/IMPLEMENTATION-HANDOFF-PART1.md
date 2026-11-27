@@ -21,7 +21,7 @@
 | `JayAcornDispersal.cs` | OFF / mast gates (zero draws), 10/ha on-map cap by diversion, source ID kept |
 | `NearbyOakWoodland.cs` | Authored source line 1 m outside one edge, 6/ha cap, no fabricated tree ID |
 | `StormVulnerability.cs` | Frozen D-050 constants, ReducedProposal V, BoundedRational p, Stable/Watch/Exposed |
-| `StormAdapter.cs` | StormModel 0 (zero draws) / 1; one woodland-wide event; 225 ± 45° FROM; glyph convention; two-pass victims |
+| `StormAdapter.cs` | StormModel 0 (zero draws) / 1; one woodland-wide event; `u·360` blow-towards (D-050, Repair 1); glyph = direction; two-pass victims |
 | `SalvageAccounting.cs` | Default leave; Work Plan gate; Sell revenue only; Keep retained timber; deadwood-ID guards |
 | `NaturalProcessText.cs` | Qualitative labels, convention text, dated non-causal teaching note |
 
@@ -152,7 +152,7 @@ All 23 paths sit under the four allowed prefixes. The coordination anchor `/medi
    quotes the exponential design form. The frozen integrated code uses BoundedRational `p = SV/(1+SV)` (cap 0.999999).
    I implemented BoundedRational and proved bit parity (JW-T61). If the owner meant the exponential, that is a new
    StormModel (D-050 rule: material recalibration → StormModel 2), not a Part 1 edit.
-2. **Direction convention.** The frozen Unity code samples 0–360° *towards*; this task locks `225 ± 45°` *from*. The
+2. **Direction convention — RESOLVED by owner, see Repair 1.** The frozen Unity code samples 0–360° *towards*; this task locks `225 ± 45°` *from*. The
    draw and stream ID are the same; with neutral site/edge, direction never affects victims, so victim parity holds.
 3. Engineering choices ENG-01..ENG-14 are listed in `spec.md` §4 (diversion selection, stream keys, 1 m source-line
    offset, default West edge, cap rounding, Nearby-needs-Jay refusal, neutral site/edge refusal, year guard, deadwood IDs).
@@ -172,3 +172,38 @@ All 23 paths sit under the four allowed prefixes. The coordination anchor `/medi
   general context and has not been source-checked against a cited market report; it should be checked before
   player-facing use in Part 2.
 - Unity was not run and is not required for this lane. No browser suite or `build/2d-gate.sh` was run (out of scope).
+
+## Repair 1 — restore frozen D-050 storm direction (2026-11-27)
+
+**Owner ruling (flag 2):** the `225 ± 45°` *from* convention is rejected; Part 1 follows the frozen D-050 code literally.
+
+**Change** (parent `7b5c2a07`; the commit containing this section is the Repair 1 commit on
+`feat/multi-2d-jay-windstorms-engine-v1`):
+
+- `StormAdapter.cs`: removed `PrevailingFromDegrees` / `DirectionSpreadDegrees`; `DirectionDegrees = u * 360.0` from the
+  unchanged `STORM-DIRECTION-v1` draw — uniform [0, 360), the bearing the wind blows **towards** (0 north +Z, 90 east +X),
+  as the frozen `StormModel.cs` comment states. `FallGlyphOrientation(d) = d` (no +180, no per-tree ±20° jitter); a UI
+  convention only, never a persisted per-tree bearing.
+- `NaturalProcessContracts.cs` / `NaturalProcessText.cs`: doc and player text now say "blows towards"; glyphs point in
+  the storm's blow-towards bearing; display convention only.
+- `spec.md` rules 5 and 9 and the direction note rewritten to record the ruling; `checklists/requirements.md` JW-REQ-13
+  and `tasks.md` JW-T08 updated to match (they restated the rejected formula). BoundedRational and its note unchanged.
+- `StormAdapterTests.cs` JW-T25: asserts `direction == draw * 360`, range [0, 360), glyph == direction, and that the
+  sampled directions over years 1–1000 include at least one < 180 and one > 270. No other test changed; JW-T61 intact.
+
+Victims are unaffected: site hazard and edge facing stay neutral under StormModel 1, so direction never enters the
+failure chance. Note: the frozen Unity code multiplies in `float` (`Roll * 360f`); Part 1 multiplies the same float draw
+by `360.0` in `double`, as the repair instruction specifies. Reported bearings may differ from Unity in the last float
+bits; Part 2 should use the float product if bit-identical persisted bearings are required.
+
+**Verification (SDK 8.0.133, `Tools/MultiRackSitkaP1Lab`):**
+
+```
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore   -> 0 Warning(s), 0 Error(s)
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+PASS [storm] JW-T25 direction is u * 360 (blow-towards, D-050) and fall glyph equals direction
+PASS [hygiene-parity] JW-T61 vulnerability and BoundedRational failure chance are bit-identical to frozen StormModel 1
+TOTAL: 41/41 passed, 0 failed   (exit 0)
+```
+
+Unity not run.

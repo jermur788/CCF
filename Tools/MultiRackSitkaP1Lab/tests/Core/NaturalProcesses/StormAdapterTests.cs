@@ -79,23 +79,26 @@ internal static class StormAdapterTests
             TestRunner.True(StormAdapter.Resolve(Model1(109, Fixtures.StormTrees(10), last: 108)).Refusal is null, "next year allowed");
         });
 
-        TestRunner.Add(Suite, "JW-T25 direction is 225 +/- 45 (FROM) and fall glyph is (direction + 180) mod 360", () =>
+        TestRunner.Add(Suite, "JW-T25 direction is u * 360 (blow-towards, D-050) and fall glyph equals direction", () =>
         {
             int events = 0;
+            bool belowBand = false, aboveBand = false;
             for (int year = 1; year <= 1000; year++)
             {
                 var e = StormAdapter.Resolve(Model1(year, Array.Empty<StormTreeInput>())).Event;
                 if (e is null) continue;
                 events++;
                 double u = NaturalProcessRandom.RollModel1("STORM-DIRECTION-v1", year, Fixtures.Seed);
-                TestRunner.Eq(225.0 + 45.0 * (2.0 * u - 1.0), e.DirectionDegrees, "direction formula");
-                TestRunner.True(e.DirectionDegrees >= 180.0 && e.DirectionDegrees < 270.0, "direction range");
-                TestRunner.Eq((e.DirectionDegrees + 180.0) % 360.0, e.FallGlyphOrientationDegrees, "glyph");
-                TestRunner.True(e.FallGlyphOrientationDegrees >= 0.0 && e.FallGlyphOrientationDegrees < 90.0, "glyph range");
+                TestRunner.Eq(u * 360.0, e.DirectionDegrees, "direction formula");
+                TestRunner.True(e.DirectionDegrees >= 0.0 && e.DirectionDegrees < 360.0, "direction range");
+                TestRunner.Eq(e.DirectionDegrees, e.FallGlyphOrientationDegrees, "glyph");
+                belowBand |= e.DirectionDegrees < 180.0;
+                aboveBand |= e.DirectionDegrees > 270.0;
                 var again = StormAdapter.Resolve(Model1(year, Array.Empty<StormTreeInput>())).Event!;
                 TestRunner.Eq(e.DirectionDegrees, again.DirectionDegrees, "deterministic");
             }
             TestRunner.True(events > 0, "events seen");
+            TestRunner.True(belowBand && aboveBand, "not confined to the old 180-270 band");
             TestRunner.True(typeof(WindthrowVictim).GetProperties().All(p => !p.Name.Contains("Bearing", StringComparison.Ordinal))
                 && typeof(FallenDeadwoodRecord).GetProperties().All(p => !p.Name.Contains("Bearing", StringComparison.Ordinal)), "no per-tree fall bearing persisted");
         });

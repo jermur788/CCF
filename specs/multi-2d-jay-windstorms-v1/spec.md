@@ -38,18 +38,18 @@ Evidence labels used below: **[D-050]** frozen accepted decision; **[C]** gamepl
 2. Frozen D-050 reused verbatim: annual occurrence **0.02**; severities **0.02 / 0.06 / 0.18**, weights **1:1:1**; **ReducedProposal** index; **BoundedRational** transform; neutral site **1**; neutral/absent external edge; one uprooted/fallen outcome only.
 3. **One woodland-wide annual event** across all lanes. Never per-lane occurrence, severity or direction. Zero invented lane, exposure or fresh-thinning multipliers.
 4. Fixed versioned stream IDs `STORM-OCCURS-v1`, `STORM-SEVERITY-v1`, `STORM-DIRECTION-v1`, per-tree `WINDTHROW-v1-<TreeId>`.
-5. `DirectionDegrees = 225 + 45·(2u − 1)` — the direction the storm comes **FROM** (0 = north, 90 = east).
+5. `DirectionDegrees = u · 360` (uniform [0, 360)) — the bearing the storm blows **TOWARDS** (0 = north, 90 = east); frozen D-050 semantics.
 6. Two-pass victim evaluation (all indices from pre-storm state, then rolls), trees sorted by ordinal `TreeId`:
    `V = Load(H) · Dominance(H/Htop) · Slender(((H/D)/70)²) · Openness(1 + 0.6L) · Recent(1 + 0.8RO) · Site · Edge`,
    with `Load = (H/20)²`, `Dominance = min(1, H / max(1, Htop))²`, D in metres, `Site = 1`, `Edge = 1`.
    Victim when `Roll("WINDTHROW-v1-" + TreeId, year, seed) < p`. Height, DBH, local top height, cell light, recent opening, site hazard and edge facing come **from the caller**; the engine invents no missing ecology.
 7. Each victim: mortality cause `"windthrow"`, **one** fallen deadwood record, **one** canopy opening (+1 recent opening at its cell; the caller applies its existing cap). No snapped stems, no snags, no dominoes.
 8. Player feedback is qualitative only: **Stable / Watch / Exposed** (thresholds on V: `< 1.5` Stable, `< 3.0` Watch, else Exposed — gameplay calibration carried over from the frozen Unity bands). No hazard percentage or `p` is ever exposed in a result or text.
-9. The event exposes `DirectionDegrees` and `FallGlyphOrientationDegrees = (DirectionDegrees + 180) mod 360`, explicitly a **UI visual convention**, not a persisted per-tree fall bearing.
+9. The event exposes `DirectionDegrees` and `FallGlyphOrientationDegrees = DirectionDegrees`, explicitly a **UI convention only**, not a persisted per-tree fall bearing (no per-tree jitter).
 
 **Resolution of a wording conflict in the task packet [ENG, flagged for review].** The packet locks "frozen D-050 reused verbatim … ReducedProposal/BoundedRational" and also quotes the design-document form `p = 1 − exp(−S·V)`. The frozen, integrated StormModel 1 (`Assets/ForestPrototype/StormModel.cs`, D-050) uses **BoundedRational**: `p = S·V / (1 + S·V)`, capped at 0.999999. The exponential form is the pre-calibration design proposal (`Docs/Research/WindthrowV1/StormEventArchitecture.md` §3). Because the governing lock is "D-050 verbatim" and the packet itself names BoundedRational, Part 1 implements **BoundedRational** and does not implement the exponential. The two differ by < 2 % for `S·V < 0.04` and diverge above that. Bit-identical parity with the frozen Unity formula is proven by test JW-T61.
 
-**Direction convention note [OWNER vs D-050].** The frozen Unity `SampleEvent` stores a uniform 0–360° bearing the wind blows *towards*. This task's locked rule replaces it with `225 ± 45°` *from*. Under neutral site/edge, direction never affects victims, so victim parity with D-050 is unaffected; only the reported direction differs. Same stream ID, same draw.
+**Direction convention note [OWNER ruling 2026-11-27, D-050].** The design note's proposal of `225 ± 45°` *from* (prevailing south-westerly) is **not adopted**. Part 1 follows the frozen code (`Assets/ForestPrototype/StormModel.cs`): a uniform 0–360° bearing the wind blows *towards*, from the same `STORM-DIRECTION-v1` draw. Site hazard and edge facing remain neutral under StormModel 1, so direction never affects victims either way.
 
 ### 1.4 Salvage accounting [OWNER + D-050]
 

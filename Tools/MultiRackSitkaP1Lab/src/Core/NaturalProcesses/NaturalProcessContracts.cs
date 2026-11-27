@@ -145,9 +145,9 @@ public sealed record StormRequest(
     int? LastResolvedStormYear = null);
 
 /// <summary>
-/// The single woodland-wide storm of a year. <see cref="DirectionDegrees"/> is the bearing the storm comes FROM
-/// (0 north, 90 east). <see cref="FallGlyphOrientationDegrees"/> is a UI visual convention only, never a persisted
-/// per-tree fall bearing.
+/// The single woodland-wide storm of a year. <see cref="DirectionDegrees"/> is the bearing the storm blows towards
+/// (0 north, 90 east; frozen D-050). <see cref="FallGlyphOrientationDegrees"/> equals <see cref="DirectionDegrees"/>;
+/// a UI convention only, never a persisted per-tree fall bearing.
 /// </summary>
 public sealed record StormEvent(
     int Year,

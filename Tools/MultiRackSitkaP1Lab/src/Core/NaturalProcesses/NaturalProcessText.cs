@@ -17,8 +17,8 @@ public static class NaturalProcessText
     public const string StormsOff = "Storm events are off in this forest.";
 
     public const string FallGlyphConvention =
-        "Fallen-tree glyphs point away from the storm (storm direction + 180 degrees). This is a display convention, " +
-        "not a recorded fall bearing for any tree.";
+        "Fallen-tree glyphs point in the direction the storm blew towards (0 degrees north, 90 degrees east). " +
+        "This is a display convention only, not a recorded fall bearing for any tree.";
 
     public const string JayDispersalExplanation =
         "In an oak mast year, jays carry some acorns away from their parent oaks. A carried acorn is only a candidate: " +

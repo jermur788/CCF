@@ -16,7 +16,7 @@
 | **JW-T05** | Jay Acorn Dispersal (`JayAcornDispersal.cs`) | OFF/non-mast zero draws; 10/ha cap diverted not added; source ID kept; no microsite bias | `DONE` |
 | **JW-T06** | Nearby Oak Woodland (`NearbyOakWoodland.cs`) | One edge; 6/ha cap; no fabricated tree ID; same transport | `DONE` |
 | **JW-T07** | Storm vulnerability (`StormVulnerability.cs`) | Frozen D-050 constants; ReducedProposal V; BoundedRational p; Stable/Watch/Exposed bands | `DONE` |
-| **JW-T08** | Storm adapter (`StormAdapter.cs`) | Model 0 zero draws; one woodland-wide event; 225 ± 45 FROM; glyph convention; two-pass victims; one deadwood + one opening | `DONE` |
+| **JW-T08** | Storm adapter (`StormAdapter.cs`) | Model 0 zero draws; one woodland-wide event; u·360 blow-towards (D-050); glyph = direction; two-pass victims; one deadwood + one opening | `DONE` |
 | **JW-T09** | Salvage accounting (`SalvageAccounting.cs`) | Default leave; Work Plan gate; revenue only for Sell; Keep = retained, no revenue; duplicate-deadwood guards | `DONE` |
 | **JW-T10** | Text constants (`NaturalProcessText.cs`) | Qualitative labels; glyph convention; dated non-causal teaching note | `DONE` |
 | **JW-T11** | Standalone offline tests | 41 named tests across jay/storm/salvage/hygiene-parity; non-zero exit on failure | `DONE` |
