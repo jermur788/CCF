@@ -123,4 +123,5 @@ Recorded so the next packet is unambiguous. It is a proposal, not a change, and 
 
 - `feat/multi-2d-birch-alder-engine-v1` remains at `73ed9fe38ce473068803443e841915b8495ad4dc`, unmodified by the reviewer and by this publication.
 - This review branch adds only this document. It does not modify the engine, spec, tests or handoff.
-- `origin/integration/2d-sim` remains at `24871551ae906b6911b48bb17c252c023bdea502`; `origin/main` remains at `bdeb6a324acaf4129c10fb0846faac8b64974360`. Nothing was merged.
+- `origin/main` remains at `bdeb6a324acaf4129c10fb0846faac8b64974360`. Nothing was merged.
+- `origin/integration/2d-sim` was `24871551ae906b6911b48bb17c252c023bdea502` when this branch was cut and had advanced to `674c7c9e470d0aff0a028bd284fd7510f973e2d5` (Playable Milestone 1 closeout) by publication time. `24871551` remains an ancestor of the new tip, and none of this lane's 18 files collide with anything that landed in between. The integrator should re-base or merge normally at G4. The "after Playable Milestone 1 closes" prerequisite is now satisfied; the Scots Pine Part 2 ordering still stands.
