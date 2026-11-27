@@ -141,3 +141,62 @@ dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.
 ```
 
 SDK 8.0.133, build exit 0 with 0 warnings and 0 errors. Run exit 0 with 48/48 (20 jay, 12 storm, 11 salvage, 5 hygiene/parity). The mutation test, collection/accounting probes and frozen-source oracle ran in temporary projects outside the feature worktree. The frozen oracle used `StormModel.cs` and `SimulationRandom.cs` from context `bdeb6a324` with a minimal `Mathf` shim. Publication is this review branch commit.
+
+## Final delta re-review (3170cd2 -> ca601d8d)
+
+**Integration decision — NEEDS CHANGES.** G2 acceptance, standalone Part 1. Spec conformance fails on the immutable snapshot rule. Integration target is `integration/2d-sim`.
+
+Independent reviewer, OpenAI Codex GPT-6.2 Sol, medium effort. Reviewed `feat/multi-2d-jay-windstorms-engine-v1` at `ca601d8d7fa8f4507340cc6c7c7f4958d5805f7f`, parent `3170cd2c0d8e5d921ddc66b4c4f516b8de145987`, merge base `c82e4e759c2ceef1c13ddb6a033e034097aef77e`, context `bdeb6a324acaf4129c10fb0846faac8b64974360`. Clean feature worktree at entry, local and live remote feature refs matched, 23/23 paths inside the four spec prefixes, and `git diff --check c82e4e75..HEAD` passed.
+
+### Delta findings
+
+| ID | Status | Independent evidence |
+|---|---|---|
+| R2-01 | PARTIALLY RESOLVED | All 14 record collection properties and three standalone outputs (vertices, exposure bands, stream list) reject every requested mutable-interface, array and `ReadOnlyCollection<T>` cast. The collection type exposes the read-only list/enumeration interfaces and `IEquatable`. Reflection found no `SyncRoot` or writable field/property on the wrapper. Both enumeration paths yield elements and expose no backing array. The exact prior SyncRoot reproduction changed 6,400 to 4,800 m² on the parent. The candidate throws `InvalidCastException` at the first cast and stays at 6,400 m². Caller-provided collections can still break the snapshot guarantee through `CopyTo` (R3-01). |
+| R2-02 | RESOLVED | Spec §5 item 7 debits all on-map diversions, including exports, against ordinary on-map input. It explicitly tracks delivered Nearby seed as intentional external input, separately from the debit, consistent with §1.2. |
+| R2-03 | RESOLVED | Independently constructed records across all seven record types, with different list instances, compare equal with equal hashes. Plain copies and equivalent init replacements compare equal with equal hashes. For each of the 14 collection fields, reordering, removing or substituting an element, or passing null, breaks equality. Jay requests share the footprint instance in the equality check. An independently constructed equivalent outline compares unequal under the footprint identity rule documented in §1.5. |
+
+### New finding
+
+| ID | Severity | Location | Reproduction and required change |
+|---|---|---|---|
+| R3-01 | Blocking | `Tools/MultiRackSitkaP1Lab/src/Core/NaturalProcesses/NaturalProcessContracts.cs:59`, `Tools/MultiRackSitkaP1Lab/src/Core/NaturalProcesses/WoodlandFootprint.cs:15` | On SDK 8.0.133, LINQ `ToArray()` passes its destination to a source implementing `ICollection<T>.CopyTo`. A custom input implementing both `IReadOnlyList<T>` and `ICollection<T>` copied all items correctly and recorded that destination. A write to the retained destination after construction changed a StormRequest, its plain `with` copy, a request made with an init replacement, and a JayDispersalResult. A footprint built from four points also changed from 6,400 to 4,800 m². The repaired `Vertices` view uses a second copy and still reported (80, 80) at index 2 while the geometry used (80, 40). The input alias existed on the parent, and the delta introduces the visible mismatch between geometry and the reported vertices. Copy through enumeration or indexed reads without handing the final storage to the input; use one verified snapshot for both the outline and the geometry. Add a regression whose `CopyTo` saves the destination and exercise construction and init replacement. |
+
+The independent probe used a small custom collection whose `CopyTo(T[] destination, int index)` calls `items.CopyTo(destination, index)` and stores `destination` in a property. The footprint input was the usual four points for the 80 × 80 m rectangle. Writing `new LocalPoint(80, 40)` to index 2 of that retained destination after construction reproduced the footprint failure. No reflection was needed to reach storage in this case.
+
+### Prior findings and regression
+
+| ID | Status | Confirmation |
+|---|---|---|
+| R1-01 | RESOLVED | JW-T15/T16 passed. Reserved-prefix pre-draw refusal and mixed-origin identity and keys are unchanged. |
+| R1-02 | PARTIALLY RESOLVED | Output cast and SyncRoot paths are closed. R3-01 still breaks input isolation. |
+| R1-03 | RESOLVED | JW-T44/T45/T48 passed. Extracted-ID checks in both stock and additions are unchanged. |
+| R1-04 | RESOLVED | JW-T49 passed. The atomic pricing refusal and numeric bounds are unchanged. |
+| R1-05 | PARTIALLY RESOLVED | Repair 3 is identified as the current transcript and both rulings are explicit in the handoff. The prior nonblocking stale labels remain in the handoff branch bullet at line 16 and spec §1.3 at line 50. |
+| R1-06 | RESOLVED | Strengthened JW-T06/T09/T23/T24/T27/T62 passed. |
+| R1-07 | OBSERVATION ONLY | Across 19 storms, direction exactly matched the frozen RNG draw widened before multiplication by 360 and equalled the glyph. Spec §5 item 10 retains the Part 2 persistence precision decision. |
+| R1-08 | RESOLVED | JW-T47 passed. The dated teaching constant is unchanged. |
+| R1-09 | RESOLVED | Spec §5 items 7–9 queue on-map debit, persisted once-per-year storm resolution and authoritative Work Plan approval with grouped settlement. |
+
+### Changed-area criterion matrix
+
+| Criterion | Result | Evidence |
+|---|---|---|
+| Candidate identity, clean tree, base, fence and standalone suite | PASS | Exact local and live refs, 23 of 23 fenced paths, zero warnings/errors and 48 of 48 tests. |
+| Read-only collection surface and enumerators | PASS | 17 exposed collections audited. The parent SyncRoot reproduction fails at the candidate cast. |
+| Defensive snapshot with ordinary arrays and with-copies | PASS | All record collections audited for caller-array mutation after construction and init replacement. Ordinary footprint array input leaves 6,400 m² intact. |
+| Defensive snapshot across the public input types | FAIL | R3-01 on caller-implemented collections, including records, init replacement and footprint geometry. |
+| Record sequence equality and matching hashes | PASS | Independently constructed records, plain copies, replacement lists, and reordered, missing and different inputs checked under the documented footprint identity rule. |
+| On-map debit and Nearby external input | PASS | Spec §§1.2 and 5 agree. |
+| D-050, direction, calibration visibility and gameplay regression | PASS | JW-T60/T61 passed. Storm vulnerability source and sampling formulas are unchanged. `Severities` and `Weights` are fields on the internal `StormVulnerability` type and public storm methods do not return either array. The independent parent/candidate fixture matched all recorded dispersal, storm and salvage outputs. |
+| Current handoff and ruling labels | PARTIAL | Carryover R1-05 wording. |
+| Unity, Part 2 runtime, save/load, grouped settlement and dashboard sync | NOT VERIFIED | Standalone review and bounded review-branch publication. |
+
+SDK `8.0.133`, from `Tools/MultiRackSitkaP1Lab`:
+
+```sh
+dotnet build tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-restore
+dotnet run --project tests/Core/NaturalProcesses/SitkaP1.NaturalProcesses.Tests.csproj --no-build --no-restore
+```
+
+Build exit 0, 0 warnings and 0 errors. Run exit 0, 48/48 passed (20 jay, 12 storm, 11 salvage, 5 hygiene/parity). Temporary external probes compiled the candidate and parent separately. One regression probed 1,000 years of storms and salvage with 400 trees and 100 years of jay dispersal on each edge. Both versions produced SHA-256 `74FBBD8B33ACFD660DA4C63FFBD91761A8ED516492AF77BCBF7332039F10C62F` over serialized results. Direction was checked against `SimulationRandom.Roll` from the frozen context. The probe projects emitted the expected unused draw-log warning because they omit the suite's observer. The required build was warning-free.
