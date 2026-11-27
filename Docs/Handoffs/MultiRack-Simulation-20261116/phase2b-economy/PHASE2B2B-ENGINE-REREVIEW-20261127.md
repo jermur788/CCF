@@ -1,0 +1,47 @@
+# Phase 2B-2b felling dispositions delta re-review
+
+Reviewed `0af2af793a4efc873dfed2f35d1e78d9d6c95e48`, a fast-forward from the rejected `b298fe1da4b972ba509624f63b0d888a3ca1d355`. The fixed base, `origin/integration/2d-sim`, was `fa69d6d3d8c1789af531b53adefb5f426e90bbed`. The protected `origin/main` remained `bdeb6a324acaf4129c10fb0846faac8b64974360`. The scope was B1, B2, S1 and changes made in repairing them. The original review remains at `3b7c17df47db0980c9d7798c37657d7d0f976a0c`.
+
+## Findings and independent probes
+
+**B1 CLOSED** — Direct generic and non-generic `IDictionary` indexer writes to the pending state, pending view, pending quote, approved quote and its frozen map each threw `NotSupportedException`. Fresh reads matched the saved contents after each write. The shared `EmptyChoices` and `EmptyResolved` maps rejected insertion through both interfaces and stayed empty. Removing an order with an explicit Leave choice rebuilt the state map, leaving the oak Keep choice intact. The rebuilt map also rejected both writes. After trying to overwrite the approved MA-B-002 disposition with Leave, a fresh read still showed Keep and the approval revision was unchanged. Execute with the original approval fence and key succeeded as a fresh settlement, retaining 292,613 cm³ of oak and emitting zero deadwood intents.
+
+In source, `FellingDispositionRules.Resolve` and `ExplicitFor` wrap their locally built sorted maps. `EconomyQuoteCalculator` wraps the map it builds for the quote, which also supplies the approved frozen map. `SetFellingDisposition` and `WithoutPendingExecutor` wrap their new state maps. The shared defaults are wrapped at construction. The backing maps have no externally retained mutable alias on these paths.
+
+**B2 CLOSED** — The independent probe tried to replace sessile oak with 1 cm³ through both `IDictionary` indexers on cumulative view `BySpecies`, cumulative state `BySpecies`, and the individual settlement receipt's delta `BySpecies`. Each write threw `NotSupportedException`. Fresh reads from all three still showed 292,613 cm³ for oak, 292,613 cm³ for the species sum and total, and 0.292613 m³ for the total. Both indexer insertions into the shared empty tally threw the same exception, and a fresh read still showed an empty species map and zero total. `RetainedTimberTally.Empty` and `FromStems` now wrap privately owned ordinal maps. The stem list and cm³ and decimal arithmetic are unchanged.
+
+**S1 CLOSED** — A fresh Legacy + Economy session with MA-B-002 set to Leave approved and executed, producing one receipt intent while Stage 4 remained null. Handoff section 6 accurately describes the supported configuration, uses an explicit typed refusal in the illustrative snippet and records the three deferred policy choices: refuse at choice or quote time, queue for save or migration, or materialise when Stage 4 is created. It calls for a Legacy + Economy test and marks the snippet as unimplemented. Stage 4, Execute and save code are outside the repair diff. The later pass must choose the policy before using the snippet.
+
+## Verification
+
+The dedicated T3 reviewer checkout started clean after `git config core.autocrlf false`, `git fetch origin --prune` and a detached switch to the repaired SHA. The existing reviewer worktree already held the requested review branch at the prior report commit, so it served as the report checkout. No new Git worktree was needed. `git worktree list --porcelain` confirmed the existing checkout assignments and that the scratch directory was not registered as a worktree.
+
+From `Tools/MultiRackSitkaP1Lab` on SDK `8.0.133`, I bootstrapped the missing P0 reference with `bash build/build-p0-core-ref.sh`. The reference SHA-256 was `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3`.
+
+| Check | Observed |
+| --- | --- |
+| Focused `dotnet restore` and `dotnet build --no-restore` for `tests/Core/EconomyDispositions/SitkaP1.EconomyDispositions.Tests.csproj` | Both exited 0. Build had zero warnings and zero errors. |
+| Focused `dotnet run --project tests/Core/EconomyDispositions/SitkaP1.EconomyDispositions.Tests.csproj --no-build --no-restore` | **22 passed, 0 failed**, exit 0. Mixed-disposition determinism SHA-256 `d9c7aeddf2eb629b388c6cc3dfa93d5a55bd27c85e6262b323ddcbe6f14498ed`, matching the prior review. |
+| `dotnet build tests/Core.Tests/SitkaP1.Core.Tests.csproj` | Exit 0, zero warnings and zero errors. Build only. |
+| Independent reverse check | Archived the repaired Core and focused runner to scratch and overlaid the exact `b298fe1d` Economy subtree. The build passed with zero warnings and zero errors. The runner exited 1 with **19 passed, 3 failed**. Case 19 failed at frozen map `IsReadOnly`, case 20 at pending state map `IsReadOnly`, and case 21 at shared empty tally `IsReadOnly`. Case 22 and the original 18 cases passed, and case 15 printed the same mixed-disposition hash. |
+| Independent mutation and Legacy probes | Compiled outside the checkout against the repaired Core DLL using the existing Core.Tests friend assembly name. Observations are listed under B1, B2 and S1. |
+
+### Economic parity and ordered ledger
+
+Rebuilt Core from the base archive and reran the prior review's Quote → Approve → Execute → Advance probe. The same default sale plan for MA-B-001, MA-B-002 and MA-B-003 produced byte-identical output on the base and repaired engine, also matching the prior base output. SHA-256 for each was `84217807ae0fa257eaf09b10ed377dd3ca114f947832340ff4af9d16ea195120`. Revenue, cost and net were 15,727 / 250,000 / −234,273 cents, full green mass was 2,126,303 g, and all graded assortment rows, cash and year-end metrics matched. The quote and settlement each had the same nine lines in order: harvest variable −4,465, floor adjustment −245,535, then beech SecondPlanking +1,519 and Firewood +1,458, oak Fencing +2,438 and Firewood +93, and Sitka Stake +166, Pallet +1,367 and Sawlog +8,686 cents.
+
+For explicit Sell/Keep/Leave, the base predates disposition support. The three-disposition probe compared the pre-repair and repaired engines directly. Output matched byte for byte, SHA-256 `fe6203955e99cbc1ac4817a6b5b7dfdb704e023b66ddbc9b43ebbde099d1f240`. Contractor cost and full green mass also matched the base sale plan. Revenue was 10,219 cents and net was −239,781 cents in both disposition builds. The quote and settlement each ordered the two cost lines first, then the three Sitka sale lines in the order above.
+
+## Scope, new notes and integration hygiene
+
+- **Delta confirmed.** `git diff b298fe1d..0af2af79` changes four Economy source files for the read-only maps, adds four cases and their helper to `DispositionTests.cs`, and updates the handoff. The original 18 cases and existing helpers are byte-identical. The pre-existing `PendingOrderExecutors` and `FrozenOrderExecutors` publication pattern is unchanged and remains out of scope. No unrelated edit or weakened original assertion found.
+- **Fence passed.** `git diff --name-only origin/integration/2d-sim...0af2af79` had 12 paths, all under the lab's `src/Core/MultiArea/Economy/`, the lab's `tests/Core/EconomyDispositions/` or `Docs/Handoffs/MultiRack-Simulation-20261116/phase2b-economy/`. Both the repair and whole-lane diffs passed `git diff --check`.
+- **New finding (low, test coverage).** Case 20 and handoff section 12 describe a check of the rebuilt state map. The test removes `SitkaTree`, whose default Sell disposition has no explicit choice, so it keeps the original map. The independent probe removed Beech's explicit Leave choice, confirmed a new map instance and confirmed that both writes were refused. This closes the runtime gap for the reviewed SHA. The automated branch coverage claim is overstated.
+- **New finding (low, handoff precision).** Section 5 attributes `NotSupportedException` to the cast. The casts succeed and writes throw. Section 6 calls the illustrative refusal after `BuildSettlement` too late. It is before the single root publication and can still abort atomically. The actionable issue is that such a refusal would leave that approved plan unable to execute until cancelled or the governing policy changes. Section 12's repair scope, runner counts and observed hash were otherwise corroborated.
+- **Operational hygiene.** The author's old worktree still holds the local feature branch at `b298fe1da4b972ba509624f63b0d888a3ca1d355`. A fresh fetch and live remote read confirmed `origin/feat/multi-2d-phase2b2b-felling-dispositions-engine-20261127-v1` at `0af2af793a4efc873dfed2f35d1e78d9d6c95e48`. Origin is authoritative. Integration must use the fetched origin ref at that exact SHA and must never use the stale local feature ref. The review branch inherits the original candidate history and the review commits add documentation only. It is a report branch.
+
+## Verification limits
+
+The full Core.Tests suite, `dotnet test`, the 2D gate, browser suites, Phase 2B-2a UI runtime, Unity, frozen anchors and cross-platform determinism were outside this delta run. No Stage 4 append, Version 3 persistence or dashboard synchronization was verified. The focused decision applies to the repaired SHA and makes no claim of integration or post-integration verification.
+
+INTEGRATION DECISION: APPROVE
