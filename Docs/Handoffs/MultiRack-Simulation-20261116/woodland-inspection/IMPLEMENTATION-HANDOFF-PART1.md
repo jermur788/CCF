@@ -284,3 +284,114 @@ The handoff commit adds only this section. No file was added; the five `Inspecti
 - **Importer static.** `ImportedTreeRecord.EmptyAttributes` in the closed importer is a shared `ReadOnlyDictionary` over a `Dictionary`, so its `SyncRoot` is mutable process-wide. It is no longer reachable through the inspection API, because snapshots replace it with fresh immutable dictionaries. The importer itself is closed and was not changed.
 - **Reflection** can still mutate any .NET object; the guarantee covers the public API surface.
 - **Wording** remains builder-written plain English and has not been reviewed by the owner.
+
+## Repair R2 (2026-11-27)
+
+- **Trigger:** independent delta review by GPT-6.2 Sol, `INTEGRATION DECISION: NEEDS CHANGES` on `00fb77bed6fd5a4ec2730d9b0535298145a38a76` (WI-07, WI-08, WI-09). WI-03..WI-06 were resolved and are not regressed. The reviewer accepted the view-level Refused downgrade, the R1 re-pins, the EmptyAttributes limitation and the 57-code scan in T10d.
+- **Repair commit:** `c424302b2ace81b64a99808e2debae4714668c9b`. This handoff update is the following commit. The base is unchanged at `c82e4e759c2ceef1c13ddb6a033e034097aef77e`. There was no rebase or merge, and `integration/2d-sim` was not merged in.
+- **Writer:** Claude Opus 5.5, the original builder, repairing its own candidate. There has been no self-review, so a non-author delta re-review is required.
+- **D-030 state:** isolated branch verified; NOT merged to integration/2d-sim; NOT wired into MultiAreaContinuation, AnnualPipeline, saves, or /multi.
+- **Unity:** not involved, not run.
+
+### R2.1 Finding → change → test
+
+| Finding | Change | Test |
+|---|---|---|
+| **WI-07 Major** (completes WI-01): a same-code `Warning` for the same tree and field suppressed the synthesized refusal. The result was Refused with 0 trees, 0 checklist items and 1 note. | `WoodlandInspectionProjector.AddSimulatedFieldRefusals`: an issue counts as "already listed" only when it has code `SimulatedFieldAtYearZero` **and** severity `Refusal`. A same-code Warning or Info stays a note. A same-code InventoryOnlyBlocker joins the code group, and the group severity rises to Refusal. | **T8b** (extended): the `Warning`, `Info` and `InventoryOnlyBlocker` variants with the same code, tree `t1` and field `HeightM` each give Refused, 0 trees, exactly one checklist item `SimulatedFieldAtYearZero` with severity Refusal naming `t1`, and 1/1/0 notes respectively. The existing case where a matching Refusal is reused, not duplicated, still passes. |
+| **WI-08 Major** (completes WI-02): the loader accepted any `Note:` that merely mentioned `verbatimCoordinates`. | `BuiltInWoodlandCatalogue.VettedCoordinateCaveat` pins the vetted caveat text verbatim. `Load` throws `InvalidDataException` unless the `Note:` sentence of `changesMade` equals it exactly. A missing `Note:` is still rejected, with the original message. The caveat that reaches the view is the same string as before. | **T1b** (extended): asserts that the fixture note equals the pinned constant. Then, for each of five weakened notes, it rewrites `changesMade` through `JsonNode` and asserts that `Load` throws. The five notes are: `"Note: verbatimCoordinates were used."`; a note naming plot-local metres without the qualification; "an unverified inference" → "an inference"; "is an unverified inference" → "is unverified"; and the vetted note plus trailing text. |
+| **WI-09 Minor**: the `ArchiveSha256Mismatch` explanation implied damage even when the cause was conflicting declared fingerprints (`IntegrateMarteloscopeReader.cs:300`). | `BlockerExplanations`: the text now states the two causes separately. The first is bytes that do not match the declared fingerprint, which may mean damage or alteration. The second is import metadata that declared two different fingerprints, leaving no single fingerprint to check against, with no damage implied. | **T10d** (extended): asserts that the explanation contains the byte-mismatch clause, the "declared two different fingerprints" clause and the "no single fingerprint to check the file against" clause. |
+
+**Mutants** (scratch edits in the worktree, each reverted immediately and confirmed by `git diff`). With each new guard removed, the suite went red:
+
+- WI-07: dedup on code only (the `&& i.Severity == IssueSeverity.Refusal` dropped) → `FAIL [synthetic] T8b … Assertion failed (Warning: one checklist item): expected '1', got '0'.`, `TOTAL: 19/20`.
+- WI-08: the equality check replaced by the R1 `Contains("verbatimCoordinates")` → `FAIL [catalogue] T1b … InvalidDataException for weakened caveat 'Note: verbatimCoordinates were used.'`, `TOTAL: 19/20`.
+- WI-09: the R1 `BlockerExplanations.cs` restored → `FAIL [synthetic] T10d … ArchiveSha256Mismatch explains conflicting declarations`, `TOTAL: 19/20`.
+
+No production file was added. `Inspection/` still holds five sources, so the file count the hygiene test pins is unaffected.
+
+### R2.2 Spec ratification
+
+R1 spec.md §4.1–4.3 corrections ratified by owner/Manager 2026-11-27 after delta-review ruling (ii). The edits are kept unchanged. R2 makes no statement in `spec.md` untrue, so `spec.md` is not edited in R2. §4.1 still says `Load` throws when `changesMade` has no `Note:` caveat about `verbatimCoordinates`. That remains true; R2 only narrows which notes are accepted. `tasks.md` records the ratification and the R2 rows. `checklists/requirements.md` WN-REQ-02, -07 and -08 cite R2.
+
+### R2.3 Golden hashes: unchanged
+
+| Stand | R1 (`00fb77be`) | R2 |
+|---|---|---|
+| `IPlus_Donadea_MHF_2` | `b53c6339242f6a0abc22a5292a042920fd0dee17d595f3a567782abd99babeb6` (27093 bytes) | unchanged |
+| `IPlus_Mersch` | `e01bbfada73ab2260300ff4f5e092b1d537e76ac96a72ecab3df1d9ef1d0b9a4` (26636 bytes) | unchanged |
+
+WI-09 changes no serialized output, because `ArchiveSha256Mismatch` is not in either built-in view. WI-08 accepts the same caveat string as before. WI-07 affects only views that hold a Simulated field, which built-in stands do not.
+
+### R2.4 Exact commands and output (committed tree `c424302b`, after deleting both test projects' `bin/` and `obj/`)
+
+```text
+$ dotnet --version
+8.0.133
+$ dotnet restore tests/Core/WoodlandInspection/SitkaP1.WoodlandInspection.Tests.csproj
+rc=0
+$ dotnet build tests/Core/WoodlandInspection/SitkaP1.WoodlandInspection.Tests.csproj --no-restore
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+$ dotnet run --project tests/Core/WoodlandInspection/SitkaP1.WoodlandInspection.Tests.csproj --no-build --no-restore   (run 1, excerpt + tail)
+  [tamper] offset 1000 codes=ArchiveCorruptEntry
+  [determinism] ie-donadea-inspection-sha256=b53c6339242f6a0abc22a5292a042920fd0dee17d595f3a567782abd99babeb6 (27093 bytes)
+  [determinism] lu-mersch-inspection-sha256=e01bbfada73ab2260300ff4f5e092b1d537e76ac96a72ecab3df1d9ef1d0b9a4 (26636 bytes)
+PASS [determinism] T3 each built-in view is byte-identical across repeated projection and independent catalogue loads, and matches golden SHA-256
+...
+PASS [synthetic] T8b a Simulated field at Year 0 never reaches the view (validator Refused; a hand-built Candidate is withheld with a renderable refusal)
+PASS [synthetic] T8c a Refused result that still carries a stand projects no stand data
+PASS [synthetic] T10b species breakdown covers all four categories; synthetic trem: microhabitats projected; collections read-only
+PASS [synthetic] T10c unknown codes fall back to the importer message; Refusal items sort before blockers
+  [codes] importer emits 57 distinct blocker/refusal codes
+PASS [synthetic] T10d every blocker and refusal code the closed importer can emit has plain-English text
+PASS [synthetic] T10e no backing collection reachable through ICollection.SyncRoot can reorder the catalogue or alter a view or its hash
+PASS [hygiene] inspection sources use no file, clock, network, Unity or simulation-wiring APIs
+---
+SUITE catalogue: 4/4 passed, 0 failed
+SUITE determinism: 2/2 passed, 0 failed
+SUITE hygiene: 1/1 passed, 0 failed
+SUITE projection: 5/5 passed, 0 failed
+SUITE synthetic: 8/8 passed, 0 failed
+TOTAL: 20/20 passed, 0 failed
+rc=0
+$ dotnet run ... (run 2)
+rc=0   (output byte-identical to run 1 by cmp: same two hashes, TOTAL: 20/20 passed, 0 failed)
+```
+
+The closed Importer V1 suite was run read-only. It compiles and hygiene-scans the R2 `Inspection/` files:
+
+```text
+$ dotnet restore tests/Core/WoodlandImport/SitkaP1.WoodlandImport.Tests.csproj            rc=0
+$ dotnet build tests/Core/WoodlandImport/SitkaP1.WoodlandImport.Tests.csproj --no-restore
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+$ dotnet run --project tests/Core/WoodlandImport/SitkaP1.WoodlandImport.Tests.csproj --no-build --no-restore
+PASS [synthetic] hygiene: src/Core/WoodlandImport contains zero banned file APIs and zero wall-clock calls
+SUITE qualified: 4/4 passed, 0 failed
+SUITE synthetic: 25/25 passed, 0 failed
+TOTAL: 29/29 passed, 0 failed
+rc=0
+```
+
+### R2.5 Diff and fence
+
+`git diff --stat 00fb77be..c424302b`:
+
+```text
+ .../Inspection/BlockerExplanations.cs              |  3 +-
+ .../Inspection/BuiltInWoodlandCatalogue.cs         | 20 ++++++-
+ .../Inspection/WoodlandInspectionProjector.cs      | 10 +++-
+ .../WoodlandInspection/WoodlandInspectionTests.cs  | 65 ++++++++++++++++++++++
+ .../checklists/requirements.md                     |  6 +-
+ specs/multi-2d-woodland-inspection-v1/tasks.md     | 12 ++--
+ 6 files changed, 102 insertions(+), 14 deletions(-)
+```
+
+The handoff commit adds only this section to this file. No closed importer file, csproj, sln, props, global.json, `spec.md`, `plan.md` or `Docs/Project/**` file changed.
+
+### R2.6 Residual notes
+
+- **The vetted caveat is now exact-match.** Any future rewording of the ATTRIBUTION.json `Note:`, even an accurate one, needs a matching change to `VettedCoordinateCaveat`. This coupling is deliberate.
+- The R1 residual notes (readiness downgrade, the importer's `EmptyAttributes` static, reflection, unreviewed wording) still apply.
