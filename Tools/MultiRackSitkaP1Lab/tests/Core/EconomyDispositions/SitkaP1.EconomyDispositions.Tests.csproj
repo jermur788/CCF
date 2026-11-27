@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Phase 2B-2b ENGINE HALF: standalone, offline, dependency-free console runner for the three-way felling dispositions
+    (SellAndExtract / KeepForUse / LeaveAsDeadwood). Prints PASS/FAIL per case and exits 0 only when every case passes.
+    Run it with dotnet run on this project file; never with dotnet test.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.EconomyDispositions.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.EconomyDispositions.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Core/SitkaP1.Core.csproj" />
+  </ItemGroup>
+</Project>

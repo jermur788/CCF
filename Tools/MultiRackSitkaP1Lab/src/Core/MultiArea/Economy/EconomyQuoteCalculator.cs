@@ -14,8 +14,9 @@ internal static class EconomyQuoteCalculator
         var pendingPrunes = root.Stage4?.PendingPrunes ?? Array.Empty<MultiAreaPruneOrder>();
         var pendingClears = root.Stage5?.PendingClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>();
         var pendingPlanting = root.Phase2?.PendingOrders ?? Array.Empty<MultiAreaPlantingOrder>();
+        var dispositions = FellingDispositionRules.Resolve(econ.PendingFellDispositions, root.Pending);
         return ComputeCore(root, token, econ, root.Pending, pendingPrunes, pendingClears, pendingPlanting,
-            econ.PendingOrderExecutors,
+            econ.PendingOrderExecutors, dispositions,
             executionKey: string.Empty, planId: string.Empty, workRevision: root.WorkRevision);
     }
 
@@ -35,7 +36,7 @@ internal static class EconomyQuoteCalculator
         var approvedClears = root.Stage5?.ApprovedClears ?? Array.Empty<MultiAreaClearUndergrowthOrder>();
         var approvedPlanting = root.Phase2?.ApprovedOrders ?? Array.Empty<MultiAreaPlantingOrder>();
         return ComputeCore(root, token, econ, approvedPlan.Orders, approvedPrunes, approvedClears, approvedPlanting,
-            frozen.FrozenOrderExecutors,
+            frozen.FrozenOrderExecutors, frozen.FrozenFellDispositions,
             executionKey: approvedPlan.ExecutionKey, planId: approvedPlan.PlanId, workRevision: workRevision);
     }
 
@@ -78,6 +79,20 @@ internal static class EconomyQuoteCalculator
         {
             throw new P1Refusal("EconomyQuoteDrift",
                 "live stand or plan state diverged from the frozen Economy approval quote; cancel and re-approve");
+        }
+
+        // Phase 2B-2b: the felling dispositions are frozen at Approve. A live disposition map that no longer matches the
+        // frozen one, or a physical outcome (retained volume, deadwood intents) that differs, refuses instead of repricing.
+        var liveDispositions = FellingDispositionRules.Resolve(econ.PendingFellDispositions, approvedPlan.Orders);
+        var verifiedJob = verified.HarvestJob;
+        var frozenJob = frozenQuote.HarvestJob;
+        if (!FellingDispositionRules.SameResolved(liveDispositions, frozen.FrozenFellDispositions) ||
+            !FellingDispositionRules.SameResolved(verified.FellDispositions, frozen.FrozenFellDispositions) ||
+            (verifiedJob?.RetainedTimber.RetainedTimberCm3 ?? 0L) != (frozenJob?.RetainedTimber.RetainedTimberCm3 ?? 0L) ||
+            (verifiedJob?.DeadwoodIntents.Count ?? 0) != (frozenJob?.DeadwoodIntents.Count ?? 0))
+        {
+            throw new P1Refusal("EconomyQuoteDrift",
+                "felling dispositions diverged from the frozen Economy approval quote; cancel and re-approve");
         }
 
         checked
@@ -131,7 +146,21 @@ internal static class EconomyQuoteCalculator
                 OwnerMinutesAfter: ownerAfter,
                 HarvestJob: frozenQuote.HarvestJob,
                 NonHarvestLines: frozenQuote.NonHarvestLines,
-                LedgerEntries: Array.AsReadOnly(ledgerEntries));
+                LedgerEntries: Array.AsReadOnly(ledgerEntries))
+            {
+                // Physical, non-cash outcomes of the dispositions: never part of the cash ledger reconciliation above.
+                RetainedTimberDelta = (verifiedJob?.RetainedTimber ?? RetainedTimberTally.Empty)
+                    .StampedWith(root.EcologicalYear, workRevision, approvedPlan.ExecutionKey, approvedPlan.PlanId),
+                DeadwoodIntents = Array.AsReadOnly((verifiedJob?.DeadwoodIntents ?? Array.Empty<FelledStemDeadwoodIntent>())
+                    .Select(i => i with
+                    {
+                        EcologicalYear = root.EcologicalYear,
+                        WorkRevision = workRevision,
+                        ExecutionKey = approvedPlan.ExecutionKey,
+                        PlanId = approvedPlan.PlanId,
+                    })
+                    .ToArray()),
+            };
 
             int nextHarvestCount = econ.ExecutedHarvestPlansCount + (frozenQuote.HarvestJob is not null ? 1 : 0);
             var nextEconomy = econ with
@@ -143,6 +172,8 @@ internal static class EconomyQuoteCalculator
                 ApprovedQuote = null,
                 Settlements = Array.AsReadOnly(econ.Settlements.Append(receipt).ToArray()),
                 Ledger = Array.AsReadOnly(econ.Ledger.Concat(ledgerEntries).ToArray()),
+                PendingFellDispositions = FellingDispositionRules.EmptyChoices,
+                RetainedTimber = econ.RetainedTimber.Plus(receipt.RetainedTimberDelta),
             };
 
             return (receipt, nextEconomy);
@@ -158,6 +189,7 @@ internal static class EconomyQuoteCalculator
         IReadOnlyList<MultiAreaClearUndergrowthOrder> clears,
         IReadOnlyList<MultiAreaPlantingOrder> plantingOrders,
         IReadOnlyDictionary<EconomyOrderKey, WorkExecutor> orderExecutors,
+        IReadOnlyDictionary<EconomyOrderKey, FellingDisposition> fellDispositions,
         string executionKey,
         string planId,
         int workRevision)
@@ -179,6 +211,12 @@ internal static class EconomyQuoteCalculator
             EconomyHarvestQuote? harvestQuote = null;
             long harvestCostCents = 0L;
             long timberRevenueCents = 0L;
+            var resolvedDispositions = new SortedDictionary<EconomyOrderKey, FellingDisposition>();
+            foreach (var fell in fells)
+            {
+                var key = EconomyOrderKey.ForFell(fell.AreaId, fell.TreeId);
+                resolvedDispositions[key] = FellingDispositionRules.Of(fellDispositions, key);
+            }
 
             if (fells.Count > 0)
             {
@@ -196,10 +234,16 @@ internal static class EconomyQuoteCalculator
                 var stage = EconomyDefaults.AutoHarvestStage(econ.ExecutedHarvestPlansCount);
                 long stageRate = EconomyDefaults.HarvestRateCentsPerTonne(stage);
                 var stemYields = new List<D062StemYield>(fells.Count);
+                var soldYields = new List<D062StemYield>(fells.Count);
+                var stemLines = new List<FelledStemDispositionLine>(fells.Count);
+                var retainedStems = new List<RetainedTimberStem>();
+                var deadwoodIntents = new List<FelledStemDeadwoodIntent>();
                 long totalStemVol = 0L;
                 long totalSaleVol = 0L;
                 long totalResidualVol = 0L;
                 long totalHarvestedGrams = 0L;
+                long retainedVol = 0L;
+                long deadwoodVol = 0L;
 
                 foreach (var fell in fells.OrderBy(o => o.TreeId, StringComparer.Ordinal))
                 {
@@ -208,11 +252,37 @@ internal static class EconomyQuoteCalculator
                     var pruning = root.Stage4?.PruningOf(tree.TreeId) ?? TreePruningState.Unpruned;
                     var yield = D062TimberAssortmentEngine.GradeStem(tree, speciesId, pruning);
                     stemYields.Add(yield);
+                    // The contractor fells and handles every stem whatever its disposition: same mass, same cost basis.
                     totalStemVol += yield.StemVolumeCm3;
-                    totalSaleVol += yield.SaleVolumeCm3;
-                    totalResidualVol += yield.ResidualVolumeCm3;
                     totalHarvestedGrams += yield.HarvestedGreenGrams;
-                    timberRevenueCents += yield.TimberRevenueCents;
+
+                    var disposition = resolvedDispositions[EconomyOrderKey.ForFell(fell.AreaId, fell.TreeId)];
+                    switch (disposition)
+                    {
+                        case FellingDisposition.SellAndExtract:
+                            soldYields.Add(yield);
+                            totalSaleVol += yield.SaleVolumeCm3;
+                            totalResidualVol += yield.ResidualVolumeCm3;
+                            timberRevenueCents += yield.TimberRevenueCents;
+                            break;
+                        case FellingDisposition.KeepForUse:
+                            retainedStems.Add(new RetainedTimberStem(fell.AreaId, tree.TreeId, speciesId, yield.StemVolumeCm3,
+                                root.EcologicalYear, workRevision, executionKey, planId));
+                            retainedVol += yield.StemVolumeCm3;
+                            break;
+                        case FellingDisposition.LeaveAsDeadwood:
+                            deadwoodIntents.Add(FelledStemDeadwood.IntentFor(fell.AreaId, tree, speciesId,
+                                root.EcologicalYear, workRevision, executionKey, planId));
+                            deadwoodVol += yield.StemVolumeCm3;
+                            break;
+                        default:
+                            throw new P1Refusal("EconomyDispositionUnknown", "unknown felling disposition");
+                    }
+                    stemLines.Add(new FelledStemDispositionLine(fell.AreaId, tree.TreeId, speciesId, disposition,
+                        yield.StemVolumeCm3, yield.HarvestedGreenGrams,
+                        CreditedTimberRevenueCents: disposition == FellingDisposition.SellAndExtract ? yield.TimberRevenueCents : 0L,
+                        RetainedTimberCm3: disposition == FellingDisposition.KeepForUse ? yield.StemVolumeCm3 : 0L,
+                        EmitsDeadwoodIntent: disposition == FellingDisposition.LeaveAsDeadwood));
                 }
 
                 long variableCost = EconomyDefaults.RoundRatio(totalHarvestedGrams, stageRate, EconomyDefaults.GramsPerTonne);
@@ -220,7 +290,8 @@ internal static class EconomyQuoteCalculator
                 long minAdj = Math.Max(0L, floor - variableCost);
                 harvestCostCents = variableCost + minAdj;
 
-                var assortments = D062TimberAssortmentEngine.Summarize(stemYields);
+                // Only sold stems produce assortments, TimberSale ledger lines and revenue.
+                var assortments = D062TimberAssortmentEngine.Summarize(soldYields);
                 harvestQuote = new EconomyHarvestQuote(
                     Stage: stage,
                     StageRateCentsPerTonne: stageRate,
@@ -235,7 +306,16 @@ internal static class EconomyQuoteCalculator
                     TotalHarvestContractorCostCents: harvestCostCents,
                     TimberSaleRevenueCents: timberRevenueCents,
                     Stems: Array.AsReadOnly(stemYields.ToArray()),
-                    Assortments: assortments);
+                    Assortments: assortments)
+                {
+                    StemDispositions = Array.AsReadOnly(stemLines.ToArray()),
+                    RetainedStemVolumeCm3 = retainedVol,
+                    DeadwoodStemVolumeCm3 = deadwoodVol,
+                    RetainedTimber = RetainedTimberTally.FromStems(
+                        retainedStems.OrderBy(r => r.AreaId, StringComparer.Ordinal).ThenBy(r => r.TreeId, StringComparer.Ordinal)),
+                    DeadwoodIntents = Array.AsReadOnly(deadwoodIntents
+                        .OrderBy(i => i.AreaId, StringComparer.Ordinal).ThenBy(i => i.TreeId, StringComparer.Ordinal).ToArray()),
+                };
 
                 if (variableCost > 0L)
                     ledger.Add(new EconomyLedgerEntry(EconomyLedgerCategory.HarvestingAndForwarding,
@@ -374,7 +454,10 @@ internal static class EconomyQuoteCalculator
                 TotalContractorMinutes: totalContractorMinutes,
                 EstimatedLedger: Array.AsReadOnly(ledger.ToArray()),
                 Issues: Array.AsReadOnly(issues.ToArray()),
-                EvidenceLabels: EconomyEvidence.All);
+                EvidenceLabels: EconomyEvidence.All)
+            {
+                FellDispositions = FellingDispositionRules.ReadOnly(resolvedDispositions),
+            };
         }
     }
 }
@@ -429,6 +512,7 @@ internal static class EconomyAnnualSummary
                     ? new Dictionary<EconomyOrderKey, WorkExecutor>()
                     : current.PendingOrderExecutors,
                 ApprovedQuote = cancelledWork ? null : current.ApprovedQuote,
+                PendingFellDispositions = cancelledWork ? FellingDispositionRules.EmptyChoices : current.PendingFellDispositions,
                 YearEndSummaries = Array.AsReadOnly(current.YearEndSummaries.Append(summary).ToArray()),
             };
         }
