@@ -71,6 +71,9 @@ internal sealed record MultiAreaExperiment(string ExperimentId, string Generator
     /// <summary>Optional disclosure override for non-MA-1 synthetic demos; null keeps <see cref="MultiAreaIdentity.Disclosure"/> byte-identical.</summary>
     internal string? DisclosureOverride { get; init; }
 
+    /// <summary>Optional generator note override for non-MA-1 synthetic generators; null keeps the MA-1 manifest bytes identical.</summary>
+    internal string? GeneratorNoteOverride { get; init; }
+
     private static readonly Regex SafeId = new("^[A-Za-z0-9_-]{1,64}$", RegexOptions.CultureInvariant);
     private static readonly Regex AreaIdPattern = new("^MA-[A-Z0-9]{1,16}$", RegexOptions.CultureInvariant);
 
@@ -164,7 +167,7 @@ internal sealed record MultiAreaExperiment(string ExperimentId, string Generator
             .Str("id", GeneratorId)
             .Int("version", GeneratorVersion)
             .Int("seed", GeneratorSeed)
-            .Str("note", "Designed in code by the MA-1 author. Not derived, sliced or rescaled from the P1 30 m fixture or any P0 fixture.")
+            .Str("note", GeneratorNoteOverride ?? "Designed in code by the MA-1 author. Not derived, sliced or rescaled from the P1 30 m fixture or any P0 fixture.")
             .EndObject();
         w.BeginObject("models")
             .Int("rngModelVersion", DerivedManifest.RngModelVersion)
