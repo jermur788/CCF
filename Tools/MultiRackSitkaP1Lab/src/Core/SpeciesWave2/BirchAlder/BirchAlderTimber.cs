@@ -41,13 +41,14 @@ public readonly record struct BirchAlderTimberResult(
 
 public static partial class BirchAlderEngine
 {
-    // [Calibration] One provisional teaching bulk band for both species: the midpoint of the archived EUR 25-60/t
-    // sensitivity range. Never a Sitka borrowing.
+    // [Calibration] One provisional teaching price for both species: EUR 42/t, a rounded figure selected from the
+    // archived EUR 25-60/t sensitivity band (whose arithmetic midpoint is EUR 42.50). Never a Sitka borrowing.
     public const decimal BulkPriceEurPerTonne = 42m;
 
-    // [Calibration/Transfer] Sapling material costs (material only, no planting labour).
+    // Sapling material costs (material only, no planting labour). The two values currently match but carry different
+    // evidence: birch is an empirical 2025-26 wholesale catalogue figure, alder is provisional broadleaf parity.
     public const decimal BirchSaplingMaterialCostEurPerTree = 0.95m;  // [E] None-So Hardy 2025-26 wholesale
-    public const decimal AlderSaplingMaterialCostEurPerTree = 0.95m;   // [C] provisional broadleaf parity
+    public const decimal AlderSaplingMaterialCostEurPerTree = 0.95m;   // [C] provisional parity, no Irish alder quote
 
     // [Calibration] Quality-stem inspection triggers. Birch 30-35+ cm comes from the card's band; the alder card leaves
     // this field null, so the owner-locked "toward 50-60 cm" teaching trigger is declared here.
@@ -84,7 +85,8 @@ public static partial class BirchAlderEngine
     public static double AlderHeartRotRiskProbability(int standAgeYears)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(standAgeYears);
-        if (standAgeYears < AlderHeartRotOnsetYears)
+        // Bit-exact zero through the onset year, so age 50 can never carry a rounded positive risk.
+        if (standAgeYears <= AlderHeartRotOnsetYears)
             return 0.0;
         if (standAgeYears >= AlderHeartRotFullRiskYears)
             return AlderHeartRotMaximumProbability;

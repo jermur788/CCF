@@ -149,6 +149,40 @@ internal static class AlderTests
             }
         });
 
+        TestRunner.Add(Suite, "ALDER-REGEN-01d an otherwise eligible gap is refused on NeutralLegacy and keeps table identity", () =>
+        {
+            int good = FirstYear(true);
+            BirchAlderRegenerationResult neutral = BirchAlderEngine.EvaluateRegeneration(OpenGap(good, SiteMoistureClass.NeutralLegacy));
+            Eq(BirchAlderRegenerationStatus.MoistureUnknown, neutral.Status, "unknown moisture is refused for alder");
+            True(!neutral.CanRegenerate, "and it cannot regenerate");
+            BitEq(0.0, neutral.EstablishmentMultiplier, "a refused gap establishes nothing");
+
+            // The refusal is a recruitment rule, not a change to the identity row the rest of the simulator relies on.
+            foreach (string species in BirchAlderEngine.SupportedSpecies)
+            {
+                SiteResponse response = SpeciesMoistureTable.Response(species, SiteMoistureClass.NeutralLegacy);
+                BitEq(1.0, response.EstablishmentMultiplier, species + " neutral establishment still 1.0");
+                BitEq(1.0, response.GrowthMultiplier, species + " neutral growth still 1.0");
+            }
+
+            // Birch is deliberately unaffected: it may colonise legacy ground. Its own seed-year calendar differs from
+            // alder's, so pick a year that is good for birch rather than reusing alder's.
+            int birchGoodYear = Enumerable.Range(0, 100)
+                .First(y => BirchAlderEngine.IsGoodSeedYear(BirchAlderSpecies.DownyBirch, Seed, y));
+            Eq(BirchAlderRegenerationStatus.Eligible,
+                BirchAlderEngine.EvaluateRegeneration(OpenGap(birchGoodYear, SiteMoistureClass.NeutralLegacy) with
+                {
+                    SpeciesId = BirchAlderSpecies.DownyBirch,
+                }).Status, "birch is not gated on moisture class");
+        });
+
+        TestRunner.Add(Suite, "ALDER-REGEN-01e a default result never reads as an eligible decision", () =>
+        {
+            Eq(BirchAlderRegenerationStatus.NotEvaluated, default(BirchAlderRegenerationStatus), "zero value is NotEvaluated");
+            True(!default(BirchAlderRegenerationResult).CanRegenerate, "default result cannot regenerate");
+            BitEq(0.0, default(BirchAlderRegenerationResult).EstablishmentMultiplier, "default establishment is zero");
+        });
+
         TestRunner.Add(Suite, "ALDER-REGEN-02 good seed years recur every 3-5 years and differ from birch", () =>
         {
             ulong[] seeds = { 0UL, 1UL, Seed, ulong.MaxValue };
@@ -170,6 +204,7 @@ internal static class AlderTests
         {
             for (int age = 0; age < 50; age++)
                 BitEq(0.0, BirchAlderEngine.AlderHeartRotRiskProbability(age), $"no risk at {age}");
+            BitEq(0.0, BirchAlderEngine.AlderHeartRotRiskProbability(50), "bit-exact zero through the onset year");
             BitEq(BirchAlderEngine.AlderHeartRotMaximumProbability, BirchAlderEngine.AlderHeartRotRiskProbability(60), "maximum at 60");
             BitEq(BirchAlderEngine.AlderHeartRotMaximumProbability, BirchAlderEngine.AlderHeartRotRiskProbability(120), "flat after 60");
             ApproxEq(BirchAlderEngine.AlderHeartRotMaximumProbability / 2, BirchAlderEngine.AlderHeartRotRiskProbability(55), 1e-12, "halfway at 55");
@@ -186,8 +221,9 @@ internal static class AlderTests
 
         TestRunner.Add(Suite, "ROT-02 the per-stem roll never fires before 50, matches the risk rate and is order-independent", () =>
         {
-            for (ulong stem = 0; stem < 1000; stem++)
-                True(!BirchAlderEngine.InspectAlderHeartRot(stem, 49), "no downgrade at 49 for stem " + stem);
+            foreach (int age in new[] { 49, 50 })
+                for (ulong stem = 0; stem < 1000; stem++)
+                    True(!BirchAlderEngine.InspectAlderHeartRot(stem, age), $"no downgrade at {age} for stem {stem}");
 
             const int sample = 10000;
             int at55 = 0, at65 = 0;

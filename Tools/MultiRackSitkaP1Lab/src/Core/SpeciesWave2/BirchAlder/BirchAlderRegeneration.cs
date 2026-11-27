@@ -3,7 +3,10 @@ namespace SitkaP1.Core.SpeciesWave2.BirchAlder;
 /// <param name="SpeciesId">Downy birch or Common alder.</param>
 /// <param name="WoodlandSeed">Stable seed identity shared by the woodland's candidate gaps.</param>
 /// <param name="ElapsedYear">Whole years since the woodland's year zero.</param>
-/// <param name="OldestOnMapSeedTreeAgeYears">Age of the oldest local seed tree, or null when absent.</param>
+/// <param name="OldestOnMapSeedTreeAgeYears">
+/// Age of the oldest local seed tree <em>of the requested species</em>, or null when absent. A birch seed tree does not
+/// seed alder.
+/// </param>
 /// <param name="CanopyOpenness">Gap openness from 0 (closed) to 1 (open).</param>
 /// <param name="UndergrowthCover">Competing cover from 0 (none) to 1 (full).</param>
 /// <param name="Moisture">Site moisture at the candidate opening.</param>
@@ -20,11 +23,16 @@ public readonly record struct BirchAlderRegenerationRequest(
 
 public enum BirchAlderRegenerationStatus
 {
+    /// <summary>Zero value: the gap has not been evaluated. It must never read as a successful decision.</summary>
+    NotEvaluated = 0,
     Eligible,
     NoMatureLocalSeedTree,
     PoorSeedYear,
     CanopyTooDark,
+    /// <summary>Alder only: the ground drains freely, so the site is too dry for a wet-site specialist.</summary>
     MoistureTooLow,
+    /// <summary>Alder only: the site carries no moisture class (NeutralLegacy), so suitability is unknown.</summary>
+    MoistureUnknown,
     BogNotAForestCrop,
     NoExposedMineralGround,
     TooMuchUndergrowth,
@@ -92,10 +100,15 @@ public static partial class BirchAlderEngine
             status = BirchAlderRegenerationStatus.PoorSeedYear;
         else if (request.CanopyOpenness < minimumOpenness)
             status = BirchAlderRegenerationStatus.CanopyTooDark;
-        else if (IsAlderMoistureTooLow(birch, request.Moisture))
-            status = BirchAlderRegenerationStatus.MoistureTooLow;
-        else if (!birch && request.Moisture == SiteMoistureClass.StagnantPoorBog)
-            status = BirchAlderRegenerationStatus.BogNotAForestCrop;
+        else if (!birch && !IsAlderMoistureSuitable(request.Moisture))
+            status = request.Moisture switch
+            {
+                SiteMoistureClass.StagnantPoorBog => BirchAlderRegenerationStatus.BogNotAForestCrop,
+                SiteMoistureClass.DryFreeDraining => BirchAlderRegenerationStatus.MoistureTooLow,
+                // NeutralLegacy carries no moisture class. Alder must not recruit on unknown ground just because the
+                // table's identity multipliers are (1.0, 1.0).
+                _ => BirchAlderRegenerationStatus.MoistureUnknown,
+            };
         else if (!birch && !request.ExposedMineralGround)
             status = BirchAlderRegenerationStatus.NoExposedMineralGround;
         else if (request.UndergrowthCover > maximumUndergrowth)
@@ -106,8 +119,14 @@ public static partial class BirchAlderEngine
         return new BirchAlderRegenerationResult(speciesId, site, goodSeedYear, status);
     }
 
-    private static bool IsAlderMoistureTooLow(bool birch, SiteMoistureClass moisture) =>
-        !birch && moisture == SiteMoistureClass.DryFreeDraining;
+    /// <summary>
+    /// Common alder recruits only on the three moisture classes FR-4 names. Anything else, including
+    /// <see cref="SiteMoistureClass.NeutralLegacy"/> ground with no moisture class at all, is refused.
+    /// </summary>
+    private static bool IsAlderMoistureSuitable(SiteMoistureClass moisture) =>
+        moisture is SiteMoistureClass.WetMovingAlluvial
+            or SiteMoistureClass.FreshMoistMineral
+            or SiteMoistureClass.SeasonallyWetAerated;
 
     /// <summary>
     /// [Calibration] One good seed year per four-year block, at offset 0 or 1, so gaps span 3-5 years. Each species

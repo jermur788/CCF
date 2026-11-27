@@ -16,7 +16,7 @@ internal static class DeterminismTests
     private const string Suite = "Determinism";
 
     /// <summary>Digest observed on the first verified run (SDK 8.0.133). Any output change must update it deliberately.</summary>
-    internal const string PinnedDigest = "e2ce886e80871015d63bf9bd98acafafc1b6d80c59d7b725ae4f0d7abb960298";
+    internal const string PinnedDigest = "ca2e61bd3432329352cdd63a5c2c2b97bc7ba1824f284aee7728e627f1740f23";
 
     public static string CanonicalDigest() =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalText()))).ToLowerInvariant();
@@ -59,11 +59,13 @@ internal static class DeterminismTests
 
             foreach (ulong seed in new[] { 0UL, 7UL, 0xC0FFEE20261127UL })
             for (int year = 0; year < 40; year++)
+            foreach (SiteMoistureClass moisture in new[] { SiteMoistureClass.WetMovingAlluvial, SiteMoistureClass.NeutralLegacy })
             {
                 BirchAlderRegenerationResult r = BirchAlderEngine.EvaluateRegeneration(new(
                     species, seed, year, 15 + year % 4, 0.50 + (year % 6) * 0.05, (year % 5) * 0.1,
-                    SiteMoistureClass.WetMovingAlluvial, ExposedMineralGround: year % 2 == 0));
+                    moisture, ExposedMineralGround: year % 2 == 0));
                 text.Append("R|").Append(species).Append('|').Append(seed).Append('|').Append(year).Append('|')
+                    .Append(moisture).Append('|')
                     .Append(r.Status).Append('|').Append(Bits(r.EstablishmentMultiplier)).Append('\n');
             }
         }
@@ -76,6 +78,12 @@ internal static class DeterminismTests
             for (ulong stem = 0; stem < 100; stem++)
                 if (BirchAlderEngine.InspectAlderHeartRot(stem, age)) downgraded++;
             text.Append(downgraded).Append('\n');
+
+            // Per-stem flags, so reassigning which identities downgrade changes the digest even when the total does not.
+            text.Append("HS|").Append(age).Append('|');
+            for (ulong stem = 0; stem < 12; stem++)
+                text.Append(BirchAlderEngine.InspectAlderHeartRot(stem, age) ? '1' : '0');
+            text.Append('\n');
         }
 
         foreach (string species in BirchAlderEngine.SupportedSpecies)
