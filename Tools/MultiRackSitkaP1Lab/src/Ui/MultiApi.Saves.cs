@@ -187,11 +187,11 @@ internal sealed partial class PlayerApi
             }
             else
             {
-                // Self-contained Save v3 load: check fence + optional unsaved confirmation, build complete candidate, then swap.
+                // Self-contained Save v3 load: check fence + required unsaved confirmation (missing or false refuses), build candidate, then swap.
                 try
                 {
                     activeState.Session.RequireCurrentFence(request.Fence!);
-                    if (activeState.HasUnsavedProgress && request.ConfirmDiscardUnsaved == false)
+                    if (activeState.HasUnsavedProgress && request.ConfirmDiscardUnsaved != true)
                         throw new P1Refusal("WoodlandUnsavedProgress", "Discard unsaved progress and load this saved woodland?");
                     var (restoredSession, restoredExperiment, loadResult) = MultiAreaContinuation.RestoreFromV3(loaded.V3!);
                     var candidate = MultiSessionHost.WrapRestoredV3(restoredSession, restoredExperiment);
