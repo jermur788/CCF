@@ -1,6 +1,6 @@
 # Phase 2B-2b ENGINE HALF: Three-Way Felling Dispositions (handoff)
 
-**Date:** 2026-11-27 · **Role:** implementer (Claude Opus 5.5) · **Status:** HANDED OFF, NOT MERGED, NOT REVIEWED
+**Date:** 2026-11-27 · **Role:** implementer (Claude Opus 5.5) · **Status:** REPAIRED AFTER INDEPENDENT REVIEW (NEEDS CHANGES → B1/B2/S1 addressed), NOT MERGED, delta re-review pending
 
 | Item | Value |
 |---|---|
@@ -8,14 +8,17 @@
 | Feature branch | `feat/multi-2d-phase2b2b-felling-dispositions-engine-20261127-v1` |
 | Engine commit | `1a1ee151`: `feat(economy): Phase 2B-2b felling dispositions engine (Sell/Keep/Leave)` |
 | Test commit | `fcd7541f`: `test(economy): standalone 18-case felling-dispositions runner` |
-| Review branch (not created by me) | `review/multi-2d-phase2b2b-felling-dispositions-engine-20261127-v1` |
+| Repair commits | `a72117e9`: `fix(economy): publish genuinely read-only disposition and retained-timber maps`; `5cc4677e`: `test(economy): regression cases for read-only disposition and retained maps` (see section 12) |
+| Review branch (not created by me) | `review/multi-2d-phase2b2b-felling-dispositions-engine-20261127-v1`, report `PHASE2B2B-ENGINE-REVIEW-20261127.md` at `3b7c17df`: NEEDS CHANGES (B1, B2, S1) |
 | Unity | NOT RUN. This lane is pure .NET and offline. |
 
 ## 1. Objective
 
 Add three felling dispositions to the pure .NET Phase 2B Economy engine: **SellAndExtract** (default, unchanged behaviour), **KeepForUse** and **LeaveAsDeadwood**. Each one is chosen per Fell order. The engine computes a retained-timber balance that it alone controls (no player override), and it emits deadwood intents. The UI, saves and Stage 4 deadwood are not touched.
 
-## 2. `git diff --stat origin/integration/2d-sim...HEAD` (code commits)
+## 2. `git diff --stat origin/integration/2d-sim...HEAD` (code commits, original candidate)
+
+The repaired totals are in section 12.
 
 ```
  .../Dispositions/DispositionsAssemblyInfo.cs       |   5 +
@@ -112,7 +115,7 @@ All paths are under `Tools/MultiRackSitkaP1Lab/`.
 ## 5. Retained-timber contract
 
 - **Unit basis:** `long` cubic centimetres, summed from `D062StemYield.StemVolumeCm3`. That value comes from `D062TimberAssortmentEngine.GradeStem` on the live tree, with its live species and pruning, inside `ComputeCore`.
-- **Exposed fields:** `RetainedTimberCm3` (long), `RetainedTimberM3` (decimal, `cm3 / 1_000_000m`, exact for every long), and `BySpecies`. `BySpecies` is a `SortedDictionary` with ordinal species-id keys, holding `RetainedTimberAmount(SpeciesId, RetainedTimberCm3)` with its own `RetainedTimberM3`. `Stems` is the per-stem list, carrying the execution identity.
+- **Exposed fields:** `RetainedTimberCm3` (long), `RetainedTimberM3` (decimal, `cm3 / 1_000_000m`, exact for every long), and `BySpecies`. `BySpecies` is a read-only `ReadOnlyDictionary` over a privately owned ordinal `SortedDictionary` (repair B2; before the repair the `SortedDictionary` itself was published and could be mutated through a cast), holding `RetainedTimberAmount(SpeciesId, RetainedTimberCm3)` with its own `RetainedTimberM3`. `Stems` is the per-stem list, carrying the execution identity.
 - **Where it lives:**
   - `EconomyHarvestQuote.RetainedTimber` is the expected delta.
   - `EconomySettlementReceipt.RetainedTimberDelta` is the delta for each settlement, stamped with year, work revision, execution key and plan id.
@@ -121,6 +124,7 @@ All paths are under `Tools/MultiRackSitkaP1Lab/`.
   - No command, constructor path or option accepts a volume.
   - `SetFellingDisposition` takes only the fence, area, tree and disposition; a reflection test asserts its exact signature and that no felling, disposition, executor or quote method takes a numeric parameter.
   - Tallies are only built inside the engine, by `FromStems` from graded stems.
+  - The published `BySpecies` map, including the shared `RetainedTimberTally.Empty`, is read-only: a cast to `IDictionary` throws `NotSupportedException` (repair B2, tested by case 21).
 - **Not cash:** retained timber never produces a cash delta and never a ledger line, of any category. The cash reconciliation `sum(ledger) == Net` is unchanged and is tested for every disposition and for the mixed plan.
 - **Not persisted:** saving with Economy enabled still refuses with `SaveEconomyRequiresV3`. No Version 3 or codec work was done.
 
@@ -135,10 +139,17 @@ All paths are under `Tools/MultiRackSitkaP1Lab/`.
   - `Cause` is `FellCause.Harvest` (`"fell"`), and `DeathYear` is the intent's year.
   - It refuses a repeated (area, tree) pair and any number below 1.
 - **Not appended in this half.** `MultiAreaStage4State` is unchanged, and the tests assert that `Stage4.Deadwood.Count` does not change on Execute. Extracted and kept stems never create intents. A felled tree is marked dead with the `fell` cause, which `AnnualPipeline` never turns into deadwood, so materialising later cannot duplicate a record.
-- **Follow-up wiring step (one edit, in `MultiAreaContinuation.Commands.Plan.cs` `Execute`, after `BuildSettlement`):**
+- **Confirmed case: Stage 4 is null in a supported Economy configuration (review S1).** `MultiAreaModelSelection.RequireSupported` (`src/Core/Stage4Models.cs:94–104`) accepts Legacy (0/0/0/0/0) with Economy Enabled, and genesis sets `Stage4 = models.IsStage4 ? MultiAreaStage4State.Empty : null` (`src/Core/MultiArea/MultiAreaContinuation.cs:198`). So a real Legacy + Economy session can approve and settle a LeaveAsDeadwood stem while `root.Stage4` is null. The engine half still emits the intent on the receipt in that case; nothing materialises it. My original snippet guarded the append on `nextStage4 is not null` and would have **silently dropped** that intent. The original text also said only that Stage 4 "is not null in the mixed demo", which hid this case. Both are corrected here.
+- **Follow-up wiring step (documentation only; NOT implemented; one edit in `MultiAreaContinuation.Commands.Plan.cs` `Execute`, after `BuildSettlement`).** The snippet must fail loudly rather than skip:
   ```csharp
-  if (settlement is { DeadwoodIntents.Count: > 0 } && nextStage4 is not null)
+  if (settlement is { DeadwoodIntents.Count: > 0 })
   {
+      // Never silently drop a settled LeaveAsDeadwood intent. Until the policy below is decided, a session without
+      // Stage 4 must refuse rather than lose the stem's physical outcome. Placeholder code; the later pass picks the
+      // final policy and refusal code.
+      if (nextStage4 is null)
+          throw new P1Refusal("EconomyDeadwoodRequiresStage4",
+              "a LeaveAsDeadwood stem was settled but this session has no Stage 4 deadwood state");
       var (records, next) = FelledStemDeadwood.Materialise(settlement.DeadwoodIntents, nextStage4.NextDeadwoodNumber);
       nextStage4 = nextStage4 with
       {
@@ -147,9 +158,14 @@ All paths are under `Tools/MultiRackSitkaP1Lab/`.
       };
   }
   ```
-  Two things must be decided before that wiring can be done:
-  1. Whether felled deadwood belongs in the Phase 1 save validator rule `NextDeadwoodNumber == Deadwood.Count + 1`. That rule only bites if felled deadwood is ever saved; saving is blocked today while Economy is on.
-  2. Whether Stage 4 can be null in Economy sessions. It is not null in the mixed demo.
+  Placing the throw at this point is still too late in a real Execute: by then the settlement has been computed, so a refusal there would leave an approved plan that can never execute. That is why the policy question below must be answered first, and why the throw is a placeholder rather than a finished design.
+- **Policy question the later pass must answer** for a LeaveAsDeadwood choice in a session with no Stage 4 (for example Legacy + Economy). Choose one:
+  1. **Refuse at choice/quote time.** `SetFellingDisposition` (or Quote/Approve) refuses LeaveAsDeadwood with a typed code when `root.Stage4` is null, so no such intent can ever be settled. This is the simplest and keeps Execute atomic.
+  2. **Queue for the save/migration pass.** Keep settled intents in Economy state (or another durable list) until Version 3 saves and a migration decide where they live. This needs a persisted pending-intent list.
+  3. **Materialise when Stage 4 is created.** Only meaningful if a session can move from no Stage 4 to Stage 4 later, which no current path does.
+
+  Whichever is chosen, a settled intent must never disappear silently, and a test must cover the Legacy + Economy configuration.
+- **Validator note.** The suggested append plus counter increment keeps `NextDeadwoodNumber == Deadwood.Count + 1` (`src/Core/Phase1/Phase1SaveValidator.cs:334`) whenever that invariant holds on entry, as the review confirmed. The validator does not check the death cause there. That rule only bites if felled deadwood is ever saved; saving is blocked today while Economy is on, and Version 3 is out of scope.
 
 ## 7. Evidence labels
 
@@ -221,7 +237,7 @@ I captured these with a throwaway probe on the **unmodified base engine** (`fa69
 
   This is reasoning, not a run.
 - **The 2D gate, browser suites and the Phase 2B-2a UI:** not run. The UI can't set dispositions yet; `src/Ui/**` is untouched.
-- **Deadwood wiring into Stage 4:** not implemented, by design (section 6).
+- **Deadwood wiring into Stage 4:** not implemented, by design (section 6). The Legacy + Economy (Stage 4 null) case is documented, not tested by an append, because no append exists.
 
 ## 11. Residual risks and notes
 
@@ -232,3 +248,40 @@ I captured these with a throwaway probe on the **unmodified base engine** (`fa69
 5. **The ProjectReference path is deeper than the packet said.** The packet gave `../../src/Core/SitkaP1.Core.csproj`, but from `tests/Core/EconomyDispositions/` that resolves to `tests/src/…`, which does not exist. The csproj uses `../../../src/Core/SitkaP1.Core.csproj`, which is the same target the packet meant.
 6. **Edits to `EconomyQuoteCalculator.cs` and `Commands.Economy.cs` are not purely added lines.** Some existing method bodies were rewritten (section 3), all inside the allowed files. No positional record shape changed.
 7. **No fell-only rate.** A future calibration might make LeaveAsDeadwood cheaper than SellAndExtract, since there is no extraction. That is an open calibration decision.
+8. **Observed pre-existing pattern, not changed (outside this repair's envelope).** `PendingOrderExecutors` on the economy state and `FrozenOrderExecutors` on the approved quote predate this lane and are still published as plain `Dictionary` instances behind `IReadOnlyDictionary`. The view copies `PendingOrderExecutors` into a fresh `Dictionary`, but the approved quote's `FrozenOrderExecutors` is the stored instance. This is the same class of issue as B1. I did not change it; it is a candidate for a separate, scoped fix.
+
+## 12. Repair after independent review (2026-11-27)
+
+The independent review at `3b7c17df` returned **NEEDS CHANGES** with two blocking findings and one should-fix. All three are addressed. Nothing else was refactored.
+
+| Finding | What was wrong | What changed |
+|---|---|---|
+| **B1** (blocking) | `EconomyQuoteCalculator` put its local `SortedDictionary` straight onto the quote's `FellDispositions`. A read caller could cast `ApprovedQuote.FrozenFellDispositions` to `IDictionary`, rewrite a disposition, and make a valid approved plan refuse with `EconomyQuoteDrift`. | Every published disposition map is now a `System.Collections.ObjectModel.ReadOnlyDictionary` over a privately owned backing map, via a new helper `FellingDispositionRules.ReadOnly(...)`. It covers the quote and approved quote (`FellDispositions` / `FrozenFellDispositions`), the results of `Resolve` and `ExplicitFor` (so the view's `PendingFellDispositions`), both state assignments in `SetFellingDisposition` and `WithoutPendingExecutor`, and the shared `EmptyChoices` and `EmptyResolved`. |
+| **B2** (blocking) | `RetainedTimberTally.BySpecies` was the backing `SortedDictionary`, in both `Empty` and `FromStems`. A caller could rewrite the authoritative per-species retained volume without any command. | `BySpecies` is wrapped in `ReadOnlyDictionary` in both `Empty` and `FromStems`. `Stems` was already `Array.AsReadOnly` and is unchanged. The cm³/decimal arithmetic is unchanged. |
+| **S1** (should-fix, docs only) | The follow-up Stage 4 snippet skipped silently when Stage 4 is null, which happens in the supported Legacy + Economy configuration. | Section 6 now states that case explicitly, replaces the snippet with one that refuses loudly, and sets out the policy question (refuse at choice/quote time, queue for the save/migration pass, or materialise when Stage 4 is created). No Stage 4, save or Execute code was touched. |
+
+**Why ordering and the hash cannot change.** `ReadOnlyDictionary` enumerates by delegating to the map it wraps. The backing stores are the same `SortedDictionary` instances (keyed by `EconomyOrderKey.CompareTo` or `StringComparer.Ordinal`) as before. The two state maps keep their `Dictionary` backing; they feed the published views only through `Resolve`, which sorts.
+
+**New regression cases** in `tests/Core/EconomyDispositions/DispositionTests.cs` use a shared helper, `AssertWriteRefused`. The helper casts a published map to `IDictionary<K,V>` and to the non-generic `IDictionary`. It asserts that `IsReadOnly` is true and that the indexer set, `Add`, `Remove`, `Clear` and the non-generic indexer set each throw `NotSupportedException`. It then checks that the map's contents are unchanged.
+- **19 (B1):** the approved `FrozenFellDispositions`, the approved `Quote.FellDispositions` and a pending quote's map. A fresh read still shows Sell, Keep and Leave, and the approved plan still executes (oak retained 292,613 cm³, one deadwood intent).
+- **20 (B1):** the state `PendingFellDispositions`, the view `PendingFellDispositions`, `EmptyChoices`, `EmptyResolved`, the state map rebuilt after `RemovePending`, and a fresh session's state and view maps. Fresh reads still show two explicit choices, with oak as Keep and beech as Leave.
+- **21 (B2):** `BySpecies` on the shared `RetainedTimberTally.Empty`, a fresh session's view tally, and, after a Keep-oak settlement, the view cumulative tally, the state cumulative tally and the receipt delta. Fresh reads still show a total of 292,613 cm³ and a species sum of 292,613 cm³.
+- **22 (ordering):** a plan with four stems (three in MA-B added in reverse order, plus one in another area), all Keep. The frozen map enumerates in `EconomyOrderKey` ordinal order, and `BySpecies` enumerates `beech`, `sessile-oak`, `sitka-spruce` (ordinal ascending) on both the receipt and the balance.
+
+**Reverse check (actually run).** With the new tests in place, I checked out the pre-repair engine sources (`b298fe1d`) for `src/Core/MultiArea/Economy/`, built them and ran the tests: 19/22 passed, and cases 19, 20 and 21 failed on `IsReadOnly`. Case 22 passes on both, as expected, because it guards the hash rather than the defect. I then restored the sources with `git checkout HEAD`, and `git status` was clean.
+
+**Verification after repair (actually run, 2026-11-27):**
+
+```
+cd Tools/MultiRackSitkaP1Lab
+bash build/build-p0-core-ref.sh   → sha256=9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3
+dotnet --version                  → 8.0.133
+dotnet restore tests/Core/EconomyDispositions/SitkaP1.EconomyDispositions.Tests.csproj → restored
+dotnet build   tests/Core/EconomyDispositions/SitkaP1.EconomyDispositions.Tests.csproj --no-restore → 0 Warning(s) 0 Error(s)
+dotnet run --project tests/Core/EconomyDispositions/SitkaP1.EconomyDispositions.Tests.csproj --no-build --no-restore
+                                  → 22/22 passed, 0 failed (exit 0)
+                                    determinism hash (mixed plan) = d9c7aeddf2eb629b388c6cc3dfa93d5a55bd27c85e6262b323ddcbe6f14498ed (unchanged)
+dotnet build tests/Core.Tests/SitkaP1.Core.Tests.csproj → 0 Warning(s) 0 Error(s)   (build only; suite NOT run)
+```
+
+The 18 original cases are unchanged and still pass. Still **not verified**: Unity, the full Core.Tests suite, the 2D gate, browser suites, the Phase 2B-2a UI at runtime, Version 3 persistence, and any Stage 4 append.
