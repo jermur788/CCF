@@ -1,5 +1,5 @@
 /**
- * Deterministic 80 x 80 m, 5-lane test frame for B01-B20.
+ * Deterministic 80 x 80 m, 5-lane test frame for B01-B26.
  *
  * SYNTHETIC TEST DATA. The anchor coordinates, trees, cells and imagery are made up for
  * verification only; they describe no real woodland and carry no ecological meaning.

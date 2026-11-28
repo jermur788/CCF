@@ -18,17 +18,18 @@
  * Fallbacks never block, never use alert/confirm/prompt and keep the current selection.
  */
 
-import { createGeoAnchorBridge, validateGeoAnchor } from './geo-anchor.js';
+import { checkWebMercatorFootprint, createGeoAnchorBridge, validateGeoAnchor } from './geo-anchor.js';
 import { LAYER_STACK } from './layer-stack.js';
 import {
   DEFAULT_CANVAS_COLOR,
   DEFAULT_IMAGERY_OPACITY,
   FALLBACK_CODES,
   FALLBACK_COPY,
+  quadIntersectsViewport,
   shouldShowAttribution,
   validateImagerySource,
 } from './imagery-policy.js';
-import { focusBox, normalizeFrame, resolveWorldPoint, areaUvToWorld } from './frame-projector.js';
+import { areasBounds, focusBox, normalizeFrame, resolveWorldPoint, areaUvToWorld } from './frame-projector.js';
 import { createLayerGroups, fillLayerGroups, svgEl } from './overlay-layers.js';
 import { cleanWoodlandMatrix } from './clean-woodland.js';
 
@@ -48,6 +49,7 @@ const EXTENT_LAYER_ID = 'ccf-woodland-extent';
 const CLICK_SLOP_PX = 5;
 const FIT_PADDING_PX = 24;
 const DEFAULT_LOAD_TIMEOUT_MS = 15000;
+const DEFAULT_IMAGERY_TIMEOUT_MS = 8000;
 
 function htmlEl(tag, attrs = null) {
   const node = document.createElement(tag);
@@ -68,17 +70,31 @@ function webglAvailable() {
   }
 }
 
-/** Fetch the imagery once and make sure the browser can decode it as an image. */
-async function probeImagery(url) {
-  try {
-    const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
-    if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) return false;
-    const bitmap = await createImageBitmap(await res.blob());
-    bitmap.close();
-    return true;
-  } catch {
-    return false;
-  }
+/**
+ * Fetch the imagery once and make sure the browser can decode it as an image.
+ * The wait is bounded: after timeoutMs the request is aborted and the probe resolves to false.
+ * The returned controller lets the adapter abort it early (display failure, destroy).
+ * @returns {{ promise: Promise<boolean>, controller: AbortController, settled: boolean }}
+ */
+function probeImagery(url, timeoutMs) {
+  const controller = new AbortController();
+  const probe = { controller, settled: false, promise: null };
+  const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
+  probe.promise = (async () => {
+    try {
+      const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
+      if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) return false;
+      const bitmap = await createImageBitmap(await res.blob());
+      bitmap.close();
+      return !controller.signal.aborted;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+      probe.settled = true;
+    }
+  })();
+  return probe;
 }
 
 function ensureMapLibreStylesheet() {
@@ -87,6 +103,7 @@ function ensureMapLibreStylesheet() {
 }
 
 const matrixScale = (m) => Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
+const isUsableMatrix = (m) => Boolean(m) && [m.a, m.b, m.c, m.d, m.e, m.f].every(Number.isFinite) && matrixScale(m) > 0;
 
 /**
  * Create a MapLibre display adapter.
@@ -95,7 +112,8 @@ const matrixScale = (m) => Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
  * @param {{
  *   loadMapLibre?: () => Promise<object>,  // replaces the lazy import (fault injection)
  *   workerUrl?: string,                    // replaces the vendored worker URL (fault injection)
- *   loadTimeoutMs?: number,                // readiness watchdog (style + worker); default 15 s
+ *   loadTimeoutMs?: number,                // readiness watchdog (module + style + worker); default 15 s
+ *   imageryTimeoutMs?: number,             // imagery probe limit; default min(8 s, loadTimeoutMs / 2)
  *   onDiagnostic?: (event: object) => void,
  *   exposeDebug?: boolean,                 // adds a non-enumerable Symbol.for('ccf.maplibre.debug') handle
  * }} [options]
@@ -104,11 +122,14 @@ export function createMapLibreAdapter(options = {}) {
   const loadMapLibre = options.loadMapLibre || (() => import(MAPLIBRE_MODULE_URL));
   const workerUrl = options.workerUrl || MAPLIBRE_WORKER_URL;
   const loadTimeoutMs = Number.isFinite(options.loadTimeoutMs) ? options.loadTimeoutMs : DEFAULT_LOAD_TIMEOUT_MS;
+  const imageryTimeoutMs = Number.isFinite(options.imageryTimeoutMs)
+    ? options.imageryTimeoutMs
+    : Math.min(DEFAULT_IMAGERY_TIMEOUT_MS, loadTimeoutMs / 2);
   const onDiagnostic = typeof options.onDiagnostic === 'function' ? options.onDiagnostic : null;
 
   let mounted = false;
   let destroyed = false;
-  let generation = 0; // bumped by render/destroy; async work started for an older value is dropped
+  let generation = 0; // bumped by render/destroy/display failure; async work started for an older value is dropped
 
   let deps = {};
   let host = null;
@@ -130,7 +151,7 @@ export function createMapLibreAdapter(options = {}) {
 
   let activeStyle = 'clean-woodland';
   let fallbackCode = FALLBACK_CODES.NONE;
-  let displayFailed = false; // a WebGL/module/worker failure keeps this adapter on Clean Woodland
+  let displayFailed = false; // a WebGL/module/worker failure keeps this adapter on Clean Woodland for its lifetime
 
   let modulePromise = null;
   let mapModule = null;
@@ -139,10 +160,10 @@ export function createMapLibreAdapter(options = {}) {
   let mapReady = false;  // the worker-tiled extent source has loaded: the display really works
   let bridge = null;
   let anchorKey = null;
-  let loadWatchdog = null;
+  let loadWatchdog = null; // bounds the whole satellite start: module import, style and worker
   let wantedImagery = null; // { url, attribution, boundsLocal } once probed, else null
   let imageryLoaded = false;
-  const probeCache = new Map();
+  const probeCache = new Map(); // url -> probe from probeImagery()
 
   let matrix = null;
   let built = { frame: null, selection: null, mpp: 0 };
@@ -162,7 +183,7 @@ export function createMapLibreAdapter(options = {}) {
     if (!rootEl) return;
     const opacity = frame ? frame.imageryOpacity : DEFAULT_IMAGERY_OPACITY;
     const attribution = wantedImagery ? wantedImagery.attribution : '';
-    const imageryVisible = shouldShowAttribution({ activeStyle, imageryLoaded, imageryOpacity: opacity, attribution });
+    const imageryVisible = shouldShowAttribution({ activeStyle, imageryLoaded, imageryOpacity: opacity, imageryInView: imageryInView(), attribution });
     rootEl.setAttribute('data-map-style', activeStyle);
     rootEl.setAttribute('data-fallback', fallbackCode);
     rootEl.setAttribute('data-frame-key', frame && frame.frameKey ? frame.frameKey : '');
@@ -175,10 +196,36 @@ export function createMapLibreAdapter(options = {}) {
     attributionEl.hidden = !imageryVisible;
   }
 
+  /** Does the imagery footprint, as MapLibre draws it now, overlap the visible stage? */
+  function imageryInView() {
+    if (!map || !bridge || !wantedImagery || activeStyle !== 'satellite') return false;
+    try {
+      const quad = imageryQuad(wantedImagery.boundsLocal).map((lngLat) => map.project(lngLat));
+      const { width, height } = stageSize();
+      return quadIntersectsViewport(quad, width, height);
+    } catch {
+      return false;
+    }
+  }
+
   // ---- overlay (Layers 3-8) -------------------------------------------------------------------
 
+  /**
+   * Remove every drawn mark and the hit-test transform. Used whenever the current frame has
+   * nothing drawable, so nothing from a previous frame stays on screen or answers clicks.
+   * Layer 3 keeps its (empty) reserved slots.
+   */
+  function clearOverlay() {
+    matrix = null;
+    built = { frame: null, selection: null, mpp: 0 };
+    if (!worldEl) return;
+    worldEl.removeAttribute('transform');
+    for (const group of layerGroups.slice(1)) group.replaceChildren();
+  }
+
   function drawOverlay(nextMatrix) {
-    if (!nextMatrix || !frame) return;
+    if (!worldEl) return;
+    if (!frame || !frame.worldBounds || !isUsableMatrix(nextMatrix)) { clearOverlay(); return; }
     matrix = nextMatrix;
     worldEl.setAttribute('transform', 'matrix(' + [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].join(' ') + ')');
     const mpp = 1 / matrixScale(matrix);
@@ -215,22 +262,47 @@ export function createMapLibreAdapter(options = {}) {
     updateStatus();
   }
 
+  /** Redraw the overlay with the Clean Woodland transform (or clear it when nothing is drawable). */
+  function redrawCleanWoodland() {
+    const { width, height } = stageSize();
+    drawOverlay(frame ? cleanWoodlandMatrix(frame, focusedAreaId, width, height) : null);
+    updateStatus();
+  }
+
   function showCleanWoodland(code) {
+    clearWatchdog();
     teardownMap();
     activeStyle = 'clean-woodland';
     fallbackCode = code;
-    if (frame && frame.worldBounds) {
-      const { width, height } = stageSize();
-      drawOverlay(cleanWoodlandMatrix(frame, focusedAreaId, width, height));
-    }
-    updateStatus();
+    redrawCleanWoodland();
     diag('clean-woodland', { code });
   }
 
   // ---- MapLibre lifecycle -----------------------------------------------------------------------
 
-  function teardownMap() {
+  function armWatchdog() {
+    if (loadWatchdog || mapReady) return;
+    loadWatchdog = setTimeout(() => {
+      loadWatchdog = null;
+      if (destroyed || displayFailed || mapReady || !frame || frame.mapStyle !== 'satellite') return;
+      failDisplay('not ready in time (module, style or worker did not load)');
+    }, loadTimeoutMs);
+  }
+
+  function clearWatchdog() {
     if (loadWatchdog) { clearTimeout(loadWatchdog); loadWatchdog = null; }
+  }
+
+  /** Abort imagery probes still in flight and forget them, so none can resolve into a later state. */
+  function abortPendingProbes(reason) {
+    for (const [url, probe] of probeCache) {
+      if (probe.settled) continue;
+      probe.controller.abort(reason);
+      probeCache.delete(url);
+    }
+  }
+
+  function teardownMap() {
     if (map) {
       const old = map;
       map = null;
@@ -246,6 +318,10 @@ export function createMapLibreAdapter(options = {}) {
 
   function failDisplay(reason) {
     displayFailed = true;
+    // Invalidate every pending async step (module import, imagery probe) and abort the probes:
+    // the fallback is sticky, so nothing that resolves later may rebuild Satellite.
+    generation += 1;
+    abortPendingProbes('display-unavailable');
     diag('display-unavailable', { reason });
     showCleanWoodland(FALLBACK_CODES.DISPLAY_UNAVAILABLE);
   }
@@ -273,8 +349,8 @@ export function createMapLibreAdapter(options = {}) {
       diag('imagery-not-used', { reason: check.reason });
       return null;
     }
-    if (!probeCache.has(check.url)) probeCache.set(check.url, probeImagery(check.url));
-    const ok = await probeCache.get(check.url);
+    if (!probeCache.has(check.url)) probeCache.set(check.url, probeImagery(check.url, imageryTimeoutMs));
+    const ok = await probeCache.get(check.url).promise;
     if (!ok) diag('imagery-probe-failed', { url: check.url });
     return ok ? { url: check.url, attribution: check.attribution, boundsLocal: check.boundsLocal } : null;
   }
@@ -307,7 +383,7 @@ export function createMapLibreAdapter(options = {}) {
     try { loaded = map.isSourceLoaded(EXTENT_SOURCE_ID); } catch { loaded = false; }
     if (!loaded) return;
     mapReady = true;
-    if (loadWatchdog) { clearTimeout(loadWatchdog); loadWatchdog = null; }
+    clearWatchdog();
     diag('map-ready');
   }
 
@@ -438,13 +514,19 @@ export function createMapLibreAdapter(options = {}) {
       else diag('map-error', { message });
     });
     created.on('webglcontextlost', () => { if (live()) failDisplay('webglcontextlost'); });
-    loadWatchdog = setTimeout(() => { if (live() && !mapReady) failDisplay('not ready in time (style or worker did not load)'); }, loadTimeoutMs);
 
     fitSatelliteCamera();
   }
 
+  /**
+   * Bring up (or update) Satellite for one frame. The readiness watchdog is armed first, so a
+   * stuck module import, style or worker always ends in the display fallback. The imagery probe
+   * runs alongside and never delays the map; it is time-limited and aborted on display failure.
+   */
   async function startSatellite(currentFrame, nextBridge, myGeneration) {
-    const stale = () => myGeneration !== generation || destroyed;
+    const stale = () => myGeneration !== generation || destroyed || displayFailed;
+    armWatchdog();
+    const imageryPromise = resolveImagery(currentFrame);
     let mod;
     try {
       mod = await loadModuleOnce();
@@ -453,13 +535,10 @@ export function createMapLibreAdapter(options = {}) {
       return;
     }
     if (stale()) return;
-    const imagery = await resolveImagery(currentFrame);
-    if (stale()) return;
 
     mapModule = mod;
-    wantedImagery = imagery;
+    if (activeStyle !== 'satellite') fallbackCode = FALLBACK_CODES.NONE;
     activeStyle = 'satellite';
-    fallbackCode = imagery ? FALLBACK_CODES.NONE : FALLBACK_CODES.IMAGERY_UNAVAILABLE;
     const nextKey = JSON.stringify(nextBridge.anchor);
     if (map && nextKey === anchorKey) {
       bridge = nextBridge;
@@ -467,13 +546,23 @@ export function createMapLibreAdapter(options = {}) {
       if (extent) extent.setData(extentGeoJson(currentFrame, bridge));
       applyImagery();
       syncSatelliteOverlay();
-      return;
+    } else {
+      teardownMap();
+      wantedImagery = null;
+      bridge = nextBridge;
+      anchorKey = nextKey;
+      armWatchdog();
+      updateStatus();
+      createMap(mod, currentFrame);
+      if (!map) return; // the constructor failed and the display fallback is already showing
     }
-    teardownMap();
-    bridge = nextBridge;
-    anchorKey = nextKey;
+
+    const imagery = await imageryPromise;
+    if (stale()) return;
+    wantedImagery = imagery;
+    fallbackCode = imagery ? FALLBACK_CODES.NONE : FALLBACK_CODES.IMAGERY_UNAVAILABLE;
+    applyImagery();
     updateStatus();
-    createMap(mod, currentFrame);
   }
 
   // ---- pointer --------------------------------------------------------------------------------
@@ -521,7 +610,7 @@ export function createMapLibreAdapter(options = {}) {
       map.resize();
       syncSatelliteOverlay();
     } else {
-      showCleanWoodland(fallbackCode);
+      redrawCleanWoodland();
     }
   }
 
@@ -575,17 +664,24 @@ export function createMapLibreAdapter(options = {}) {
       showCleanWoodland(FALLBACK_CODES.NO_LOCATION);
       return;
     }
+    // Part 1 shows one Web Mercator world on one longitude branch. A footprint that crosses the
+    // antimeridian or the Mercator latitude limit is not shown on MapLibre at all (not sticky:
+    // the next frame with a supported footprint can use Satellite).
+    const nextBridge = createGeoAnchorBridge(frame.geoAnchor, binding);
+    const footprint = [areasBounds(frame.areas), frame.imagery && frame.imagery.boundsLocal];
+    const fit = checkWebMercatorFootprint(nextBridge, footprint);
+    if (!fit.ok) {
+      diag('footprint-unsupported', { code: fit.code, reason: fit.reason });
+      showCleanWoodland(FALLBACK_CODES.DISPLAY_UNAVAILABLE);
+      return;
+    }
     if (!map && !webglAvailable()) { failDisplay('WebGL unavailable'); return; }
     ensureMapLibreStylesheet();
 
     // Keep what is on screen in step with the new frame while async work runs.
     if (activeStyle === 'satellite' && map) syncSatelliteOverlay();
-    else if (frame.worldBounds) {
-      const { width, height } = stageSize();
-      drawOverlay(cleanWoodlandMatrix(frame, focusedAreaId, width, height));
-      updateStatus();
-    }
-    void startSatellite(frame, createGeoAnchorBridge(frame.geoAnchor, binding), generation);
+    else redrawCleanWoodland();
+    void startSatellite(frame, nextBridge, generation);
   }
 
   function setSelection(next) {
@@ -598,10 +694,16 @@ export function createMapLibreAdapter(options = {}) {
 
   function focusArea(areaId) {
     if (!mounted || destroyed) return;
-    focusedAreaId = typeof areaId === 'string' && areaId ? areaId : null;
+    const next = typeof areaId === 'string' && areaId ? areaId : null;
+    // A lane that the current frame hides is not framed: the visible lanes keep their place.
+    if (next && frame && !frame.visibleAreaIds.includes(next)) {
+      diag('focus-ignored', { reason: 'area not visible', areaId: next });
+      return;
+    }
+    focusedAreaId = next;
     if (!frame) return;
     if (activeStyle === 'satellite' && map) fitSatelliteCamera();
-    else showCleanWoodland(fallbackCode);
+    else redrawCleanWoodland();
   }
 
   function destroy() {
@@ -615,6 +717,8 @@ export function createMapLibreAdapter(options = {}) {
       stageEl.removeEventListener('pointerdown', onPointerDown);
       stageEl.removeEventListener('pointerup', onPointerUp);
     }
+    clearWatchdog();
+    abortPendingProbes('destroyed');
     teardownMap();
     if (host && rootEl && rootEl.parentNode === host) host.removeChild(rootEl);
     host = rootEl = stageEl = canvasEl = imageryStateEl = overlayEl = worldEl = noticeEl = attributionEl = null;
@@ -626,6 +730,11 @@ export function createMapLibreAdapter(options = {}) {
     built = { frame: null, selection: null, mpp: 0 };
     wantedImagery = null;
     deps = {};
+    pointerDown = null;
+    // Reset the transient display state so a remount starts cleanly in Clean Woodland. Only the
+    // sticky display failure (and the per-URL probe results) last for the adapter's lifetime.
+    activeStyle = 'clean-woodland';
+    fallbackCode = FALLBACK_CODES.NONE;
   }
 
   const renderer = { mount, render, setSelection, focusArea, destroy };
@@ -637,6 +746,8 @@ export function createMapLibreAdapter(options = {}) {
       value: () => ({
         mounted, destroyed, generation, activeStyle, fallbackCode, displayFailed, mapLoaded, mapReady, imageryLoaded,
         hasMap: Boolean(map),
+        watchdogArmed: Boolean(loadWatchdog),
+        pendingProbes: Array.from(probeCache.values()).filter((p) => !p.settled).length,
         focusedAreaId,
         selection,
         frame,

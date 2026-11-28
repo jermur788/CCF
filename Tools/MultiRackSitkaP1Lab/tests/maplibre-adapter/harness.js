@@ -1,5 +1,5 @@
 /**
- * Browser side of the B01-B20 harness. Loads the real map contract and the adapter, records
+ * Browser side of the B01-B26 harness. Loads the real map contract and the adapter, records
  * pointer callbacks, modal calls, storage writes and CSP violations, and exposes a small
  * control surface on window.__CCF_HARNESS__ for drive-maplibre-cdp.mjs.
  */
@@ -118,6 +118,61 @@ function measureSatelliteCrowns() {
   return { count: circles.length, maxErrM, maxCentrePx, rAttrMatches, radiusPx };
 }
 
+/**
+ * Style-agnostic sanity of the drawn crowns, read from the rendered SVG (what the browser draws):
+ * every crown centre and pixel radius is finite and on the stage, and the pixel-per-metre ratio
+ * is the same (within 5 %) for crown-to-crown distances and for crown radii. A wrapped longitude
+ * or a broken transform shows up as a non-finite value, a crown off-screen or a huge ratio spread.
+ */
+function crownScreenSanity() {
+  const index = treeIndex(adapter[DEBUG]().frame);
+  const stage = document.querySelector('.ccf-ml-stage').getBoundingClientRect();
+  const circles = Array.from(document.querySelectorAll('[data-layer-index="6"] circle.ccf-crown'));
+  const crowns = circles.map((circle) => {
+    const id = circle.getAttribute('data-tree-id');
+    const { xM, zM, tree } = index.get(id);
+    const m = circle.getScreenCTM();
+    const cx = Number(circle.getAttribute('cx'));
+    const cy = Number(circle.getAttribute('cy'));
+    const x = m.a * cx + m.c * cy + m.e - stage.left;
+    const y = m.b * cx + m.d * cy + m.f - stage.top;
+    const rPx = tree.radiusM * Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
+    return { id, xM, zM, radiusM: tree.radiusM, x, y, rPx };
+  });
+  const finite = crowns.every((c) => [c.x, c.y, c.rPx].every(Number.isFinite));
+  const onStage = crowns.every((c) => c.x >= 0 && c.x <= stage.width && c.y >= 0 && c.y <= stage.height);
+  const ratios = [];
+  for (let i = 0; i < crowns.length; i++) {
+    for (let j = i + 1; j < crowns.length; j++) {
+      const dm = Math.hypot(crowns[i].xM - crowns[j].xM, crowns[i].zM - crowns[j].zM);
+      if (dm > 1) ratios.push(Math.hypot(crowns[i].x - crowns[j].x, crowns[i].y - crowns[j].y) / dm);
+    }
+  }
+  const radiusRatios = crowns.map((c) => c.rPx / c.radiusM);
+  const all = ratios.concat(radiusRatios);
+  const maxRatio = all.length ? Math.max(...all) : NaN;
+  const minRatio = all.length ? Math.min(...all) : NaN;
+  const maxStepPx = ratios.length ? Math.max(...ratios) * 120 : NaN; // largest px for a 120 m step
+  return {
+    count: crowns.length,
+    finite,
+    onStage,
+    pxPerM: radiusRatios.length ? radiusRatios.reduce((a, b) => a + b, 0) / radiusRatios.length : NaN,
+    ratioSpread: maxRatio / minRatio,
+    maxStepPx,
+    sane: crowns.length > 0 && finite && onStage && Number.isFinite(maxRatio) && maxRatio / minRatio < 1.05,
+  };
+}
+
+/** Recursively list every object reachable from `value` that is frozen (caller-integrity check). */
+function frozenObjectsIn(value, seen = new Set()) {
+  if (!value || typeof value !== 'object' || seen.has(value)) return [];
+  seen.add(value);
+  const found = Object.isFrozen(value) ? [value] : [];
+  for (const key of Object.keys(value)) found.push(...frozenObjectsIn(value[key], seen));
+  return found;
+}
+
 /** Clean Woodland crown check: the transform must be a uniform scale equal to the fit scale. */
 function measureCleanWoodlandCrowns() {
   const index = treeIndex(adapter[DEBUG]().frame);
@@ -145,6 +200,8 @@ window.__CCF_HARNESS__ = {
   newAdapter: (options) => createMapLibreAdapter(options),
   measureSatelliteCrowns,
   measureCleanWoodlandCrowns,
+  crownScreenSanity,
+  frozenObjectsIn,
   MAP_RENDERER_METHODS,
   LAYER_STACK,
   FALLBACK_COPY,
@@ -158,11 +215,14 @@ window.__CCF_HARNESS__ = {
   debug: () => (adapter && adapter[DEBUG] ? adapter[DEBUG]() : null),
   actions: () => (adapter ? adapter[ACTIONS] : null),
   render: (overrides = {}) => { const f = createFixtureFrame(overrides); adapter.render(f); return true; },
+  /** destroy() then mount() on the SAME adapter instance (B26 remount). */
+  remountSame: () => { adapter.destroy(); adapter.mount(host, { onPointer: (p) => pointerEvents.push(p) }); return true; },
   firstFrame: () => firstFrame,
   firstFrameJson: () => firstFrameJson,
   pointerEvents: () => pointerEvents.slice(),
   clearPointerEvents: () => { pointerEvents.length = 0; },
   diagnostics: () => diagnostics.map((d) => ({ kind: d.kind, url: d.url, reason: d.reason, code: d.code })),
+  constructedCount: () => diagnostics.filter((d) => d.kind === 'map-constructed').length,
   modalCalls: () => modalCalls.slice(),
   openDialogs: () => document.querySelectorAll('dialog[open], [role="alertdialog"]').length,
   storageWrites: () => storageWrites.slice(),

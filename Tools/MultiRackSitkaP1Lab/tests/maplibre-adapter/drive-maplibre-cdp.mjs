@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B20 for the MapLibre Display Adapter.
+ * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B26 for the MapLibre Display Adapter.
  *
  * - Loopback static server (server.mjs) sends the exact strict CSP + Referrer-Policy on every response.
  * - Chromium uses SwiftShader WebGL (no --disable-gpu), --host-resolver-rules that fail every
@@ -8,8 +8,11 @@
  * - Dedicated workers are auto-attached so worker console errors and worker URLs are audited too.
  *
  * Usage: node drive-maplibre-cdp.mjs --out <evidence-dir>
- * Exit 0 only if all 20 cases pass and the audit has zero console errors, CSP violations,
+ * Exit 0 only if all 26 cases pass and the audit has zero console errors, CSP violations,
  * failed requests and non-loopback requests. Exit 2 when WebGL2 is unavailable (NOT TESTED).
+ *
+ * B08, B20 and B24 are evaluated after every other case, so their header and audit checks
+ * cover the whole run (results are reported in case-id order).
  */
 
 import { spawn } from 'node:child_process';
@@ -29,6 +32,7 @@ const H = 720;
 const BG = [21, 37, 26]; // #15251a
 const IMG = [196, 168, 92]; // synthetic imagery margin colour
 const WORKER_PATH = '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl-worker.mjs';
+const EXPECTED_CASES = 26;
 mkdirSync(evidenceDir, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -133,6 +137,11 @@ async function launchChromium() {
   return { cdp: await Cdp.connect(target.webSocketDebuggerUrl), stop };
 }
 
+/** Responses whose CSP or Referrer-Policy is not exactly the strict pair. */
+export function headerMismatches(responses) {
+  return responses.filter((r) => r.csp !== STRICT_CSP_HEADER || r.referrer !== REFERRER_POLICY);
+}
+
 // ---- audit: everything the page and its workers report --------------------------------------
 
 function createAudit(cdp) {
@@ -142,15 +151,17 @@ function createAudit(cdp) {
     failedRequests: [],
     nonLoopbackRequests: [],
     httpRequests: 0,
-    responses: [],
+    responses: [], // every browser-reported http(s) response, page and worker sessions, whole run
     workers: [],
   };
+  const sessionUrl = new Map(); // CDP sessionId -> worker URL
   const isCsp = (t) => /Content[- ]Security[- ]Policy|Refused to/i.test(t);
   cdp.listeners.push((msg) => {
     const p = msg.params || {};
     switch (msg.method) {
       case 'Target.attachedToTarget':
         audit.workers.push({ url: p.targetInfo.url, type: p.targetInfo.type, at: Date.now() });
+        sessionUrl.set(p.sessionId, p.targetInfo.url);
         for (const method of ['Runtime.enable', 'Log.enable', 'Network.enable']) {
           cdp.send(method, {}, p.sessionId).catch(() => {});
         }
@@ -184,7 +195,16 @@ function createAudit(cdp) {
       case 'Network.responseReceived': {
         const r = p.response || {};
         const headers = Object.fromEntries(Object.entries(r.headers || {}).map(([k, v]) => [k.toLowerCase(), v]));
-        if (/^https?:/.test(r.url || '')) audit.responses.push({ url: r.url, status: r.status, csp: headers['content-security-policy'], referrer: headers['referrer-policy'] });
+        if (/^https?:/.test(r.url || '')) {
+          audit.responses.push({
+            url: r.url,
+            path: new URL(r.url).pathname,
+            status: r.status,
+            session: msg.sessionId ? 'worker:' + (sessionUrl.get(msg.sessionId) || msg.sessionId) : 'page',
+            csp: headers['content-security-policy'],
+            referrer: headers['referrer-policy'],
+          });
+        }
         if (r.status >= 400) audit.failedRequests.push(`HTTP ${r.status} ${r.url}`);
         break;
       }
@@ -215,7 +235,9 @@ async function main() {
     browser = await launchChromium();
     const { cdp } = browser;
     const audit = createAudit(cdp);
-    await cdp.send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: false, flatten: true });
+    // Workers start paused until their session has Network enabled (see createAudit), so the
+    // worker script's own response, and any worker-internal request, is reported and header-checked.
+    await cdp.send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: true });
     for (const domain of ['Page', 'Runtime', 'Network', 'Log']) await cdp.send(`${domain}.enable`);
     const setViewport = (width, height) => cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
     await setViewport(W, H);
@@ -290,7 +312,7 @@ async function main() {
       return { ok: true, version: gl.getParameter(gl.VERSION), renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) };
     })()`);
     if (!webgl.ok) {
-      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B20 not run.');
+      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B26 not run.');
       await finish(2);
       return;
     }
@@ -311,12 +333,15 @@ async function main() {
         names: Object.getOwnPropertyNames(a).sort(),
         expected: [...h.MAP_RENDERER_METHODS].sort(),
         frozen: Object.isFrozen(a),
-        plainAdapterKeys: Object.getOwnPropertyNames(h.newAdapter()).concat(Object.getOwnPropertySymbols(h.newAdapter()).map(String)).sort(),
+        plainAdapterKeys: Reflect.ownKeys(h.newAdapter()).map(String).sort(),
+        debugSymbols: Object.getOwnPropertySymbols(a).map((sym) => sym.description).sort(),
+        debugSymbolsEnumerable: Object.getOwnPropertySymbols(a).some((sym) => Object.getOwnPropertyDescriptor(a, sym).enumerable),
       };
     })()`);
     record('B01', b01.asserted && JSON.stringify(b01.keys) === JSON.stringify(b01.expected) && JSON.stringify(b01.names) === JSON.stringify(b01.expected)
-      && JSON.stringify(b01.plainAdapterKeys) === JSON.stringify(b01.expected) && b01.frozen,
-      `assertMapRenderer passes; own properties=[${b01.names}]; production adapter (no debug) properties=[${b01.plainAdapterKeys}]; frozen=${b01.frozen}`);
+      && JSON.stringify(b01.plainAdapterKeys) === JSON.stringify(b01.expected) && b01.frozen
+      && JSON.stringify(b01.debugSymbols) === '["ccf.maplibre.debug","ccf.maplibre.debug.actions"]' && !b01.debugSymbolsEnumerable,
+      `assertMapRenderer passes; production adapter Reflect.ownKeys=[${b01.plainAdapterKeys}] (exactly five string-keyed methods, no symbols); debug-enabled adapter: string-keyed own properties=[${b01.names}] plus opt-in non-enumerable symbols [${b01.debugSymbols}]; frozen=${b01.frozen}`);
 
     // B02 frame immutability
     const b02 = await evaluate(`(() => {
@@ -417,13 +442,7 @@ async function main() {
       && audit.cspViolations.length === 0 && audit.consoleErrors.length === 0,
       `module/worker/css 200 after switch; worker targets=${workerUrls.length} all at ${WORKER_PATH} (no blob/data); getWorkerUrl matches; setWorkerUrl before new Map=${b07.setBeforeMap}; CSP violations=${audit.cspViolations.length + b07.pageCsp}; console errors=${audit.consoleErrors.length}`);
 
-    // B08 exact headers on every response, loopback only
-    const direct404 = await fetch(srv.baseUrl + '/no-such-file');
-    const direct404Ok = direct404.status === 404 && direct404.headers.get('content-security-policy') === STRICT_CSP_HEADER && direct404.headers.get('referrer-policy') === REFERRER_POLICY;
-    await direct404.arrayBuffer();
-    const badHeaders = audit.responses.filter((r) => r.csp !== STRICT_CSP_HEADER || r.referrer !== REFERRER_POLICY);
-    record('B08', audit.responses.length > 0 && badHeaders.length === 0 && direct404Ok && audit.nonLoopbackRequests.length === 0 && audit.failedRequests.length === 0,
-      `${audit.responses.length} browser responses all carry the exact CSP + Referrer-Policy (mismatches=${badHeaders.length}); server 404 also exact=${direct404Ok}; http requests=${audit.httpRequests}, non-loopback=${audit.nonLoopbackRequests.length}, failed=${audit.failedRequests.length}`);
+    // B08 is evaluated at the very end of the run (after B26) so it covers every response.
 
     // B09 inline-only MapLibre style
     await waitFor('window.__CCF_HARNESS__.debug().imageryLoaded', 'imagery loaded (B09)');
@@ -670,7 +689,7 @@ async function main() {
     record('B19', b19ok,
       `L4 lanes=${b19.lanes}, moisture cells dry=${b19.dry}/moist=${b19.moist}, cell ${b19.cellSize.map((v) => v.toFixed(2)).join(' x ')} m; L5 deadwood=${b19.deadwood}; L6 crowns=${b19.crowns} [${b19.statuses}]; L7 juveniles=${b19.juveniles} (shelter ${b19.shelters}); L8 crop ring+C=${b19.crop}, pending dashed=${b19.pendingDashed}/approved solid=${b19.approvedSolid}, ranks=${b19.ranks}, selection on top with frame+SEL+aria=${b19.selTop && b19.selShape}; focusArea centres x=${centreA.xM.toFixed(2)} (MA-A) -> ${centreE.xM.toFixed(2)} (MA-E), frame unchanged=${frameBefore === frameAfter}, selection kept=${focusSel}`);
 
-    // B20 session-only style, Guardrail 7, reload, final audit
+    // B20 part 1: session-only style and Guardrail 7 (the whole-run audit is recorded at the end)
     const b20 = await evaluate(`(() => {
       const h = window.__CCF_HARNESS__;
       const text = document.body.innerText + ' ' + Array.from(document.querySelectorAll('[aria-label]')).map((n) => n.getAttribute('aria-label')).join(' ');
@@ -682,11 +701,295 @@ async function main() {
     const reloadStyle = await evaluate(`document.querySelector('.ccf-ml-root').getAttribute('data-map-style')`);
     const reloadVendor = vendorRequests(reloadMark.log).length;
     const reloadWorkers = audit.workers.length - reloadMark.workers;
+
+    const rootAttr = (name) => evaluate(`document.querySelector('.ccf-ml-root').getAttribute('${name}')`);
+    const constructed = () => evaluate('window.__CCF_HARNESS__.constructedCount()');
+    const diagKinds = () => evaluate('window.__CCF_HARNESS__.diagnostics()');
+    const sanity = () => evaluate('window.__CCF_HARNESS__.crownScreenSanity()');
+
+    // ===== Repair cycle 1 regression cases ======================================================
+
+    // B21 antimeridian and high latitude: one longitude branch, or a defined fallback before MapLibre
+    const b21 = [];
+    const anchorCases = [
+      { label: 'east crossing (anchor 179.9996 E)', patch: { lonDeg: 179.9996, bearingDeg: 0 }, expect: 'CROSSES_ANTIMERIDIAN' },
+      { label: 'west crossing (anchor 179.9996 W, stand west of origin)', patch: { lonDeg: -179.9996, bearingDeg: 0, localOriginXM: 80 }, expect: 'CROSSES_ANTIMERIDIAN' },
+      { label: 'Mercator latitude limit (anchor 85.0508 N)', patch: { latDeg: 85.0508, bearingDeg: 0 }, expect: 'OUTSIDE_MERCATOR_LATITUDE' },
+      { label: 'near antimeridian, east side (179.99 E)', patch: { lonDeg: 179.99, bearingDeg: 0 }, expect: 'satellite' },
+      { label: 'near antimeridian, west side (179.99 W)', patch: { lonDeg: -179.99, bearingDeg: 0, localOriginXM: 80 }, expect: 'satellite' },
+      { label: 'high latitude (84.9 N, bearing 12.5)', patch: { latDeg: 84.9 }, expect: 'satellite' },
+    ];
+    for (const c of anchorCases) {
+      await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render(); ${SELECT};
+        const base = h.createFixtureFrame().geoAnchor; h.render({ mapStyle: 'satellite', geoAnchor: { ...base, ...${JSON.stringify(c.patch)} } }); })()`);
+      if (c.expect === 'satellite') {
+        await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'satellite ' + c.label);
+        await idle();
+        const m = await evaluate('window.__CCF_HARNESS__.measureSatelliteCrowns()');
+        const s = await status();
+        const san = await sanity();
+        b21.push({ label: c.label, ok: s.style === 'satellite' && s.hasMap && m.count === 20 && m.maxErrM <= 0.002 && m.maxCentrePx < 0.5 && san.sane,
+          detail: `satellite, radius err ${(m.maxErrM * 1000).toFixed(4)} mm, centre ${m.maxCentrePx.toFixed(4)} px, ${san.pxPerM.toFixed(3)} px/m, ratio spread ${san.ratioSpread.toFixed(5)}` });
+      } else {
+        await frames();
+        const s = await status();
+        const san = await sanity();
+        const d = await diagKinds();
+        const footprintDiag = d.find((x) => x.kind === 'footprint-unsupported');
+        const n = await constructed();
+        const failed = (await evaluate('window.__CCF_HARNESS__.debug().displayFailed'));
+        b21.push({ label: c.label,
+          ok: s.style === 'clean-woodland' && s.fallback === 'display-unavailable' && s.notice === COPY.display && s.noticeVisible && !s.hasMap && n === 0
+            && footprintDiag && footprintDiag.code === c.expect && !failed && s.selectionKept && s.modals === 0 && s.crowns === 20 && san.sane,
+          detail: `${s.style}/${s.fallback} code=${footprintDiag ? footprintDiag.code : 'none'}, maps=${n}, sticky=${failed}, ${san.pxPerM.toFixed(3)} px/m, spread ${Number(san.ratioSpread).toFixed(5)}, finite=${san.finite}, onStage=${san.onStage}` });
+      }
+    }
+    // The footprint fallback is per frame, not sticky: a supported frame on the same adapter uses Satellite.
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); const base = h.createFixtureFrame().geoAnchor;
+      h.render({ mapStyle: 'satellite', geoAnchor: { ...base, lonDeg: 179.9996, bearingDeg: 0 } }); h.render({ mapStyle: 'satellite' }); })()`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'satellite after unsupported footprint');
+    const b21Recover = (await status()).style === 'satellite';
+    record('B21', b21.every((c) => c.ok) && b21Recover,
+      `${b21.filter((c) => c.ok).length}/${b21.length} [${b21.map((c) => c.label + ': ' + (c.ok ? 'ok' : 'FAIL') + ' (' + c.detail + ')').join('; ')}]; supported frame after an unsupported one -> satellite=${b21Recover}`);
+
+    // B22 an in-flight imagery probe can never undo the display fallback; a stuck start is bounded
+    const heldImagery = `imagery: { url: '/fixtures/held-imagery.png', attribution: 'Synthetic local test imagery (not a real photograph)', boundsLocal: { minXM: -24, minZM: -24, maxXM: 104, maxZM: 104 } }`;
+    const waitHeld = async (n, label) => {
+      const end = Date.now() + 10000;
+      while (srv.heldCount() < n) { if (Date.now() > end) throw new Error('timed out waiting for held imagery ' + label); await sleep(40); }
+    };
+    // (a) live map, new imagery request held, WebGL context lost, then the request is released
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'satellite' }); })()`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady && window.__CCF_HARNESS__.debug().imageryLoaded', 'satellite + imagery (B22a)');
+    await evaluate(SELECT);
+    const mapsA = await constructed();
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite', ${heldImagery} })`);
+    await waitHeld(1, 'B22a');
+    const pendingA = await evaluate('window.__CCF_HARNESS__.debug().pendingProbes');
+    const lostA = await evaluate('window.__CCF_HARNESS__.actions().loseContext()');
+    await waitFor(`document.querySelector('.ccf-ml-root').getAttribute('data-fallback') === 'display-unavailable'`, 'context loss with pending imagery');
+    const pendingAfterLoss = await evaluate('window.__CCF_HARNESS__.debug().pendingProbes');
+    const releasedA = srv.releaseHeld();
+    await sleep(1500);
+    await frames();
+    const sA = await status();
+    const mapsAfterA = await constructed();
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite' })`);
+    await sleep(600);
+    const sA2 = await status();
+    const okA = lostA && pendingA === 1 && pendingAfterLoss === 0 && releasedA >= 1 && sA.style === 'clean-woodland' && sA.fallback === 'display-unavailable'
+      && sA.notice === COPY.display && sA.noticeVisible && !sA.hasMap && mapsAfterA === mapsA && sA.selectionKept && sA.crowns === 20
+      && sA2.style === 'clean-woodland' && sA2.noticeVisible && !sA2.hasMap && (await constructed()) === mapsA;
+    // (b) startup with the imagery held: Satellite comes up without it and the imagery notice appears in time
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create('default', { imageryTimeoutMs: 1500, loadTimeoutMs: 8000 }); h.render(); })()`);
+    const t0 = Date.now();
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite', ${heldImagery} })`);
+    await waitHeld(1, 'B22b');
+    await waitFor(`document.querySelector('.ccf-ml-root').getAttribute('data-fallback') === 'imagery-unavailable'`, 'imagery timeout notice', 8000);
+    const noticeMs = Date.now() - t0;
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'map ready with imagery held');
+    const releasedB = srv.releaseHeld();
+    await sleep(1200);
+    await idle();
+    const sB = await status();
+    const layersB = await evaluate(`window.__CCF_HARNESS__.debug().style.layers.map((l) => l.id)`);
+    const okB = releasedB >= 1 && noticeMs < 8000 && sB.style === 'satellite' && sB.fallback === 'imagery-unavailable' && sB.notice === COPY.imagery && sB.noticeVisible
+      && !sB.attrVisible && sB.hasMap && JSON.stringify(layersB) === '["ccf-woodland-canvas","ccf-woodland-extent"]' && (await constructed()) === 1;
+    // (c) module import that never finishes: the watchdog ends it, and a late import changes nothing
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create('delayed-loader', { loadTimeoutMs: 2000 }); h.render(); ${SELECT}; h.render({ mapStyle: 'satellite' }); })()`);
+    const t1 = Date.now();
+    await waitFor(`document.querySelector('.ccf-ml-root').getAttribute('data-fallback') === 'display-unavailable'`, 'watchdog on stuck module import', 6000);
+    const watchdogMs = Date.now() - t1;
+    await evaluate('window.__CCF_RELEASE_LOADER__()');
+    await sleep(1200);
+    const sC = await status();
+    const okC = watchdogMs >= 1500 && sC.style === 'clean-woodland' && sC.notice === COPY.display && sC.noticeVisible && !sC.hasMap && (await constructed()) === 0 && sC.selectionKept;
+    record('B22', okA && okB && okC,
+      `(a) held imagery probe + WebGL loss: pending probes ${pendingA} -> ${pendingAfterLoss} (aborted), released ${releasedA}; after release style=${sA.style}, notice "${sA.notice}", map=${sA.hasMap}, maps constructed ${mapsA} -> ${mapsAfterA}; later satellite frame stays Clean Woodland=${sA2.style === 'clean-woodland'} [${okA ? 'ok' : 'FAIL'}]; `
+      + `(b) startup with imagery held: imagery notice after ${noticeMs} ms (< 8000 watchdog), map ready, after release still ${sB.style}/${sB.fallback}, layers [${layersB}] [${okB ? 'ok' : 'FAIL'}]; `
+      + `(c) stuck module import -> display fallback after ${watchdogMs} ms, late import ignored (maps=0, style=${sC.style}) [${okC ? 'ok' : 'FAIL'}]`);
+
+    // B23 caller objects are never frozen/mutated; a frame with no drawable areas clears the overlay
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render(); })()`);
+    const b23a = await evaluate(`(() => {
+      const h = window.__CCF_HARNESS__;
+      const raw = h.createFixtureFrame({ mapStyle: 'satellite' });
+      raw.geoAnchor.provenance = { sourceCrs: 'EPSG:2157', steps: [{ tool: 'synthetic-test', at: '2026-11-28' }] };
+      raw.extra = { nested: { list: [1, 2, 3] } };
+      const before = JSON.stringify(raw);
+      h.adapter().render(raw);
+      const frozenInCaller = h.frozenObjectsIn(raw).length;
+      let mutable = true;
+      try { raw.geoAnchor.provenance.steps.push({ tool: 'later' }); raw.geoAnchor.provenance.steps.pop(); raw.geoAnchor.note = 'x'; delete raw.geoAnchor.note; } catch { mutable = false; }
+      const f = h.debug().frame;
+      const bad = h.createFixtureFrame({ mapStyle: 'satellite' });
+      bad.geoAnchor.lonDeg = { value: -6.7 };
+      h.adapter().render(bad);
+      const badFrozen = h.frozenObjectsIn(bad).length;
+      const badFallback = document.querySelector('.ccf-ml-root').getAttribute('data-fallback');
+      h.adapter().render(raw);
+      return { unchanged: JSON.stringify(raw) === before, frozenInCaller, mutable, adapterAnchorFrozen: Object.isFrozen(f.geoAnchor),
+        adapterHasProvenance: Object.prototype.hasOwnProperty.call(f.geoAnchor, 'provenance'), distinct: f.geoAnchor !== raw.geoAnchor,
+        badFrozen, badFallback };
+    })()`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'satellite with provenance-bearing anchor');
+    await idle();
+    await evaluate(SELECT);
+    await idle();
+    const oldCrown = await centreOf('circle.ccf-crown[data-tree-id="MA-C-T02"]');
+    const emptyState = async () => evaluate(`(() => {
+      const d = window.__CCF_HARNESS__.debug();
+      const groups = [4, 5, 6, 7, 8].map((i) => document.querySelector('[data-layer-index="' + i + '"]').childElementCount);
+      return { groups, selection: document.querySelectorAll('.ccf-selection').length, matrix: d.matrix,
+        transform: document.querySelector('.ccf-ml-world').getAttribute('transform'),
+        reservedSlots: document.querySelectorAll('[data-layer-index="3"] [data-reserved-slot]').length };
+    })()`);
+    const emptyCases = [];
+    for (const [label, style] of [['satellite frame with areas: []', 'satellite'], ['clean-woodland frame with areas: []', 'clean-woodland']]) {
+      await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: '${style}', areas: [], frameKey: 'empty-${style}' })`);
+      await frames();
+      const st = await status();
+      const es = await emptyState();
+      await evaluate('window.__CCF_HARNESS__.clearPointerEvents()');
+      await click(oldCrown);
+      const events = await evaluate('window.__CCF_HARNESS__.pointerEvents()');
+      emptyCases.push({ label, ok: st.crowns === 0 && es.groups.every((n) => n === 0) && es.selection === 0 && es.matrix === null && es.transform === null
+        && es.reservedSlots === 4 && events.length === 0 && st.style === 'clean-woodland' && !st.hasMap && (await rootAttr('data-frame-key')) === 'empty-' + style,
+        detail: `crowns=${st.crowns}, layer 4-8 children=[${es.groups}], selection marks=${es.selection}, matrix=${es.matrix}, clicks emitted=${events.length}` });
+    }
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'clean-woodland', frameKey: 'refilled' })`);
+    await frames();
+    await evaluate('window.__CCF_HARNESS__.clearPointerEvents()');
+    await click(await centreOf('circle.ccf-crown[data-tree-id="MA-C-T02"]'));
+    const refill = await evaluate('window.__CCF_HARNESS__.pointerEvents()');
+    const refillOk = (await status()).crowns === 20 && refill.length === 1 && refill[0].frameKey === 'refilled' && refill[0].areaId === 'MA-C' && (await status()).selectionKept;
+    const b23aOk = b23a.unchanged && b23a.frozenInCaller === 0 && b23a.mutable && b23a.adapterAnchorFrozen && !b23a.adapterHasProvenance && b23a.distinct
+      && b23a.badFrozen === 0 && b23a.badFallback === 'no-location';
+    record('B23', b23aOk && emptyCases.every((c) => c.ok) && refillOk,
+      `caller frame with nested anchor provenance: unchanged=${b23a.unchanged}, frozen caller objects=${b23a.frozenInCaller}, still mutable=${b23a.mutable}, adapter anchor copy frozen=${b23a.adapterAnchorFrozen} without provenance=${!b23a.adapterHasProvenance}; non-primitive lonDeg -> ${b23a.badFallback}, frozen caller objects=${b23a.badFrozen}; `
+      + `${emptyCases.map((c) => c.label + ': ' + (c.ok ? 'ok' : 'FAIL') + ' (' + c.detail + ')').join('; ')}; populated frame afterwards: 20 crowns, click -> frameKey ${refill[0] ? refill[0].frameKey : 'none'} [${refillOk ? 'ok' : 'FAIL'}]`);
+
+    // B25 attribution only while the imagery intersects the visible viewport
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'satellite',
+      imagery: { url: '/fixtures/synthetic-imagery.png', attribution: 'Synthetic local test imagery (not a real photograph)', boundsLocal: { minXM: 2000, minZM: 2000, maxXM: 2128, maxZM: 2128 } } }); })()`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady && window.__CCF_HARNESS__.debug().imageryLoaded', 'offscreen imagery loaded (B25)');
+    await idle();
+    const off = await status();
+    const offVisible = await evaluate(`document.querySelector('[data-layer-index="2"]').getAttribute('data-imagery-visible')`);
+    const offPaint = await evaluate('window.__CCF_HARNESS__.debug().rasterOpacity');
+    await evaluate('window.__CCF_HARNESS__.actions().zoomBy(-6)');
+    await idle();
+    await waitFor(`!document.querySelector('.ccf-ml-attribution').hidden`, 'attribution once imagery is in view', 8000).catch(() => {});
+    const inView = await status();
+    await evaluate('window.__CCF_HARNESS__.actions().zoomBy(6)');
+    await idle();
+    const offAgain = await status();
+    record('B25', !off.attrVisible && offVisible === 'false' && offPaint === 0.65 && inView.attrVisible && inView.attrText === 'Synthetic local test imagery (not a real photograph)' && !offAgain.attrVisible
+      && off.fallback === 'none',
+      `imagery loaded ~2 km outside the view (paint ${offPaint}): attribution hidden=${!off.attrVisible}, data-imagery-visible=${offVisible}; zoomed out until it is on screen: attribution visible=${inView.attrVisible}; zoomed back: hidden=${!offAgain.attrVisible}`);
+
+    // B26 focus on a hidden lane keeps the view; destroy + mount on the same instance starts clean
+    const crownPos = () => centreOf('circle.ccf-crown[data-tree-id="MA-C-T02"]');
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'clean-woodland', visibleAreaIds: ['MA-C'] }); })()`);
+    await frames();
+    const cw0 = await crownPos();
+    await evaluate(`window.__CCF_HARNESS__.adapter().focusArea('MA-A')`);
+    await frames();
+    const cw1 = await crownPos();
+    const cwFocus = await evaluate('window.__CCF_HARNESS__.debug().focusedAreaId');
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite', visibleAreaIds: ['MA-C'] })`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'satellite single lane (B26)');
+    await idle();
+    const sat0 = await crownPos();
+    await evaluate(`window.__CCF_HARNESS__.adapter().focusArea('MA-A')`);
+    await idle();
+    const sat1 = await crownPos();
+    const cwShift = Math.hypot(cw1.x - cw0.x, cw1.y - cw0.y);
+    const satShift = Math.hypot(sat1.x - sat0.x, sat1.y - sat0.y);
+    const hiddenOk = cwShift < 0.5 && satShift < 0.5 && cwFocus === null && Math.abs(cw0.x - W / 2) < 120;
+    // same-instance remount
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'satellite' }); })()`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady && window.__CCF_HARNESS__.debug().imageryLoaded', 'satellite before remount');
+    await idle();
+    const beforeRemount = await status();
+    await evaluate('window.__CCF_HARNESS__.remountSame()');
+    await frames();
+    const remounted = await evaluate(`(() => {
+      const root = document.querySelectorAll('.ccf-ml-root');
+      const d = window.__CCF_HARNESS__.debug();
+      return { roots: root.length, style: root[0].getAttribute('data-map-style'), fallback: root[0].getAttribute('data-fallback'), frameKey: root[0].getAttribute('data-frame-key'),
+        noticeHidden: document.querySelector('.ccf-ml-notice').hidden, attrHidden: document.querySelector('.ccf-ml-attribution').hidden,
+        imageryVisible: document.querySelector('[data-layer-index="2"]').getAttribute('data-imagery-visible'),
+        crowns: document.querySelectorAll('.ccf-crown').length, canvases: document.querySelectorAll('.ccf-ml-canvas canvas').length,
+        hasMap: d.hasMap, activeStyle: d.activeStyle, mapReady: d.mapReady, imageryLoaded: d.imageryLoaded, watchdog: d.watchdogArmed };
+    })()`);
+    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite' })`);
+    await waitFor('window.__CCF_HARNESS__.debug().mapReady && window.__CCF_HARNESS__.debug().imageryLoaded', 'satellite after same-instance remount');
+    await idle();
+    const afterRemount = await status();
+    const mRemount = await evaluate('window.__CCF_HARNESS__.measureSatelliteCrowns()');
+    const remountOk = beforeRemount.style === 'satellite' && remounted.roots === 1 && remounted.style === 'clean-woodland' && remounted.fallback === 'none' && remounted.frameKey === ''
+      && remounted.noticeHidden && remounted.attrHidden && remounted.imageryVisible === 'false' && remounted.crowns === 0 && remounted.canvases === 0 && !remounted.hasMap
+      && remounted.activeStyle === 'clean-woodland' && !remounted.mapReady && !remounted.imageryLoaded && !remounted.watchdog
+      && afterRemount.style === 'satellite' && afterRemount.attrVisible && afterRemount.crowns === 20 && mRemount.maxCentrePx < 0.5 && mRemount.maxErrM <= 0.002 && (await constructed()) === 2;
+    record('B26', hiddenOk && remountOk,
+      `focusArea on a hidden lane: visible crown moved ${cwShift.toFixed(3)} px (clean woodland, x=${cw0.x.toFixed(1)}) and ${satShift.toFixed(3)} px (satellite), focus kept=${cwFocus} [${hiddenOk ? 'ok' : 'FAIL'}]; `
+      + `same-instance destroy+mount after Satellite: style=${remounted.style}, fallback=${remounted.fallback}, notice hidden=${remounted.noticeHidden}, attribution hidden=${remounted.attrHidden}, crowns=${remounted.crowns}, map canvases=${remounted.canvases}; next satellite frame rebuilt (maps constructed=2, centre ${mRemount.maxCentrePx.toFixed(4)} px, attribution visible=${afterRemount.attrVisible}) [${remountOk ? 'ok' : 'FAIL'}]`);
+
+    // ===== Whole-run checks (B08, B20 audit, B24) ===============================================
+    await freshPage();
+    await sleep(300);
+    const direct404 = await fetch(srv.baseUrl + '/no-such-file');
+    const nodeResponses = [{ path: '/no-such-file', status: direct404.status, session: 'node', csp: direct404.headers.get('content-security-policy'), referrer: direct404.headers.get('referrer-policy') }];
+    await direct404.arrayBuffer();
+    await sleep(200);
+    const browserResponses = audit.responses.slice();
+    const serverResponses = srv.requestLog.slice();
+    const badBrowser = headerMismatches(browserResponses);
+    const badServer = headerMismatches(serverResponses);
+    const badNode = headerMismatches(nodeResponses);
     const auditClean = audit.consoleErrors.length === 0 && audit.cspViolations.length === 0 && audit.failedRequests.length === 0 && audit.nonLoopbackRequests.length === 0;
+    record('B08', browserResponses.length > 0 && badBrowser.length === 0 && badServer.length === 0 && badNode.length === 0 && nodeResponses[0].status === 404
+      && audit.nonLoopbackRequests.length === 0 && audit.failedRequests.length === 0,
+      `whole run, checked at the end: ${browserResponses.length} browser responses (page + worker sessions), ${serverResponses.length} server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=${badBrowser.length}, server=${badServer.length}, node=${badNode.length}); http requests=${audit.httpRequests}, non-loopback=${audit.nonLoopbackRequests.length}, failed=${audit.failedRequests.length}`);
+
     record('B20', b20.writes === 0 && b20.local === 0 && b20.session === 0 && b20.cookie === '' && b20.guardrail && b20.pageCsp === 0
       && reloadStyle === 'clean-woodland' && reloadVendor === 0 && reloadWorkers === 0 && auditClean,
-      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run: console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}`);
+      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B26): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}`);
 
+    // B24 the header gate covers every kind of response and is sensitive to a single late loss
+    const browserPaths = new Set(browserResponses.map((r) => r.path));
+    const requiredBrowser = ['/harness.html', '/harness/harness.js', '/harness/fixture-80x80.mjs', '/map/contract.js', '/map/maplibre/adapter.js', '/map/maplibre/adapter.css',
+      '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl.mjs', WORKER_PATH, '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl.css',
+      '/fixtures/synthetic-imagery.png', '/fixtures/not-an-image.png', '/harness/fixtures/silent-worker.mjs'];
+    const missingBrowser = requiredBrowser.filter((x) => !browserPaths.has(x));
+    const heldServer = serverResponses.filter((r) => r.pathname === '/fixtures/held-imagery.png');
+    const server404 = serverResponses.filter((r) => r.status === 404);
+    // Every server-written response is either seen by the browser, the node-side 404, or a held
+    // imagery request the adapter aborted before it was answered. Nothing may be unaccounted for.
+    const unaccounted = serverResponses.filter((r) => !browserPaths.has(r.pathname) && r.pathname !== '/no-such-file' && r.pathname !== '/fixtures/held-imagery.png');
+    const lastLoss = (list, key) => { const copy = list.map((r) => ({ ...r })); delete copy[copy.length - 1][key]; return headerMismatches(copy).length; };
+    const sensitivity = {
+      browserLastCsp: lastLoss(browserResponses, 'csp'),
+      browserLastReferrer: lastLoss(browserResponses, 'referrer'),
+      serverLastCsp: lastLoss(serverResponses, 'csp'),
+      silentWorkerCsp: headerMismatches(browserResponses.filter((r) => r.path === '/harness/fixtures/silent-worker.mjs').map((r) => ({ ...r, csp: undefined }))).length,
+    };
+    const silentWorkerResponses = browserResponses.filter((r) => r.path === '/harness/fixtures/silent-worker.mjs');
+    const workerSessionResponses = browserResponses.filter((r) => r.session.startsWith('worker:'));
+    // Each worker target must report its own script response; anything else a worker fetched is worker-internal.
+    const workersWithoutScript = audit.workers.filter((w) => !workerSessionResponses.some((r) => r.session === 'worker:' + w.url && r.url === w.url));
+    const workerInternal = workerSessionResponses.filter((r) => r.session !== 'worker:' + r.url);
+    const lastBrowser = browserResponses[browserResponses.length - 1];
+    record('B24', missingBrowser.length === 0 && heldServer.length >= 2 && heldServer.every((r) => r.csp === STRICT_CSP_HEADER && r.referrer === REFERRER_POLICY)
+      && server404.length >= 1 && server404.every((r) => r.csp === STRICT_CSP_HEADER) && unaccounted.length === 0 && silentWorkerResponses.length >= 1
+      && audit.workers.length > 0 && workersWithoutScript.length === 0
+      && sensitivity.browserLastCsp === 1 && sensitivity.browserLastReferrer === 1 && sensitivity.serverLastCsp === 1 && sensitivity.silentWorkerCsp === silentWorkerResponses.length,
+      `required response kinds seen by the browser: ${requiredBrowser.length - missingBrowser.length}/${requiredBrowser.length}${missingBrowser.length ? ' missing ' + missingBrowser.join(',') : ''} (incl. the intentional silent-worker fixture x${silentWorkerResponses.length}); `
+      + `${audit.workers.length} worker targets each reported their own script response in the worker session (missing=${workersWithoutScript.length}), other worker-internal responses=${workerInternal.length}; held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; unaccounted server responses=${unaccounted.length}; `
+      + `sensitivity: dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
+
+    results.sort((a, b) => a.id.localeCompare(b.id));
     const passed = results.filter((r) => r.status === 'PASS').length;
     const report = {
       timestampUtc: new Date().toISOString(),
@@ -694,29 +997,34 @@ async function main() {
       webgl,
       cspHeader: STRICT_CSP_HEADER,
       referrerPolicy: REFERRER_POLICY,
-      totals: { passed, failed: results.length - passed, total: results.length },
+      totals: { passed, failed: results.length - passed, total: results.length, expected: EXPECTED_CASES },
       audit: {
         consoleErrors: audit.consoleErrors,
         cspViolations: audit.cspViolations,
         failedRequests: audit.failedRequests,
         nonLoopbackRequests: audit.nonLoopbackRequests,
         httpRequests: audit.httpRequests,
-        responsesChecked: audit.responses.length,
+        responsesChecked: browserResponses.length,
+        serverResponsesChecked: serverResponses.length,
+        workerSessionResponses: workerSessionResponses.length,
+        headerMismatches: { browser: badBrowser, server: badServer, node: badNode },
         workerTargets: audit.workers.map((w) => w.url.replace(srv.baseUrl, '')),
         serverRequests: srv.requestLog.length,
       },
       cases: results,
     };
-    writeFileSync(join(evidenceDir, 'cdp-b01-b20-report.json'), JSON.stringify(report, null, 2) + '\n');
+    writeFileSync(join(evidenceDir, 'cdp-matrix-report.json'), JSON.stringify(report, null, 2) + '\n');
     writeFileSync(join(evidenceDir, 'server-request-log.json'), JSON.stringify(srv.requestLog, null, 1) + '\n');
+    writeFileSync(join(evidenceDir, 'browser-responses.json'), JSON.stringify(browserResponses, null, 1) + '\n');
     console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}`);
     for (const key of ['consoleErrors', 'cspViolations', 'failedRequests', 'nonLoopbackRequests']) {
       if (audit[key].length) console.log(key.toUpperCase() + ': ' + JSON.stringify(audit[key], null, 1));
     }
-    await finish(passed === results.length && results.length === 20 && auditClean ? 0 : 1);
+    if (badBrowser.length || badServer.length) console.log('HEADER_MISMATCHES: ' + JSON.stringify({ browser: badBrowser, server: badServer }, null, 1));
+    await finish(passed === results.length && results.length === EXPECTED_CASES && auditClean ? 0 : 1);
   } catch (err) {
     console.log('HARNESS_FATAL: ' + (err && err.stack ? err.stack : err));
-    writeFileSync(join(evidenceDir, 'cdp-b01-b20-report.json'), JSON.stringify({ fatal: String(err && err.stack ? err.stack : err), cases: results }, null, 2) + '\n');
+    writeFileSync(join(evidenceDir, 'cdp-matrix-report.json'), JSON.stringify({ fatal: String(err && err.stack ? err.stack : err), cases: results }, null, 2) + '\n');
     await finish(1);
   }
 }

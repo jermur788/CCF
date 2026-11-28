@@ -13,11 +13,12 @@ const git = (...args) => { try { return execFileSync('git', args, { encoding: 'u
 
 const vendor = read('01-vendor-integrity.log').match(/VENDOR_INTEGRITY_SUMMARY: (\d+) passed, (\d+) failed, files_checked=(\d+)/);
 const geo = read('02-geo-oracle.log').match(/GEO_ORACLE_SUMMARY: (\d+) passed, (\d+) failed, max_roundtrip_m=(\S+), oracle_30m=(\S+), oracle_80m=(\S+), oracle_120m=(\S+)/);
-const cdpText = read('cdp-b01-b20-report.json');
+const cdpText = read('cdp-matrix-report.json');
 const cdp = cdpText ? JSON.parse(cdpText) : null;
 const status = (rc) => (Number(rc) === 0 ? 'PASS' : Number(rc) === 2 ? 'NOT TESTED' : 'FAIL');
 
 const summary = {
+  schemaVersion: 2, // v2 (repair cycle 1): B01-B26, whole-run header counts
   generatedUtc: new Date().toISOString(),
   testedCommit: git('rev-parse', 'HEAD'),
   testedTreeDirty: (git('status', '--porcelain', '--', 'Tools/MultiRackSitkaP1Lab/src/Ui/multi/map', 'Tools/MultiRackSitkaP1Lab/tests/maplibre-adapter') || '') !== '',
@@ -36,6 +37,7 @@ const summary = {
       passed: cdp.totals.passed,
       failed: cdp.totals.failed,
       total: cdp.totals.total,
+      expected: cdp.totals.expected,
       browser: cdp.browser,
       webglRenderer: cdp.webgl && cdp.webgl.renderer,
       cspHeader: cdp.cspHeader,
@@ -45,6 +47,10 @@ const summary = {
       failedRequests: cdp.audit.failedRequests.length,
       nonLoopbackRequests: cdp.audit.nonLoopbackRequests.length,
       httpRequests: cdp.audit.httpRequests,
+      browserResponsesHeaderChecked: cdp.audit.responsesChecked,
+      serverResponsesHeaderChecked: cdp.audit.serverResponsesChecked,
+      workerSessionResponses: cdp.audit.workerSessionResponses,
+      headerMismatches: cdp.audit.headerMismatches ? cdp.audit.headerMismatches.browser.length + cdp.audit.headerMismatches.server.length + cdp.audit.headerMismatches.node.length : null,
       cases: cdp.cases.map((c) => ({ id: c.id, status: c.status, detail: c.detail })),
     }
     : { status: status(cdpRc), note: cdp && cdp.fatal ? 'harness fatal: ' + cdp.fatal.split('\n')[0] : 'no report' },

@@ -294,3 +294,49 @@ export function createGeoAnchorBridge(geoAnchor, expectedBinding, options = {}) 
     boundsToWgs84Quad,
   });
 }
+
+/** Extra metres added around every footprint box before it is checked (covers the ±10 m Jacobian samples). */
+export const FOOTPRINT_MARGIN_M = 50;
+
+/**
+ * Check that a woodland footprint can be shown on one Web Mercator world without wrapping.
+ *
+ * Part 1 keeps one longitude branch for camera, overlay and imagery: the footprint (every box,
+ * grown by marginM) must stay on the anchor's side of the antimeridian and inside the Web
+ * Mercator latitude limit. A footprint that crosses either limit is reported as unsupported, so
+ * the adapter can fall back before MapLibre starts rather than draw positions from the wrong
+ * side of the world. Longitudes are unwrapped relative to the anchor, so east and west crossings
+ * are both detected. The boxes are small (metres to a few km), so corners and edge midpoints
+ * bound the longitude and latitude ranges.
+ *
+ * @param {{ anchor: { lonDeg: number }, localToWgs84: (x: number, z: number) => number[] }} bridge
+ * @param {Array<{minXM: number, minZM: number, maxXM: number, maxZM: number}>} boxes  local-metre boxes
+ * @returns {{ ok: true } | { ok: false, code: 'CROSSES_ANTIMERIDIAN' | 'OUTSIDE_MERCATOR_LATITUDE' | 'NON_FINITE_FOOTPRINT', reason: string }}
+ */
+export function checkWebMercatorFootprint(bridge, boxes, marginM = FOOTPRINT_MARGIN_M) {
+  const lon0 = bridge.anchor.lonDeg;
+  for (const box of boxes) {
+    if (!box) continue;
+    const xs = [box.minXM - marginM, (box.minXM + box.maxXM) / 2, box.maxXM + marginM];
+    const zs = [box.minZM - marginM, (box.minZM + box.maxZM) / 2, box.maxZM + marginM];
+    for (const x of xs) {
+      for (const z of zs) {
+        if (!isFiniteNumber(x) || !isFiniteNumber(z)) {
+          return { ok: false, code: 'NON_FINITE_FOOTPRINT', reason: 'Footprint bounds are not finite.' };
+        }
+        const [lon, lat] = bridge.localToWgs84(x, z);
+        if (!isFiniteNumber(lon) || !isFiniteNumber(lat)) {
+          return { ok: false, code: 'NON_FINITE_FOOTPRINT', reason: 'Footprint does not project to finite coordinates.' };
+        }
+        const unwrapped = lon0 + ((((lon - lon0) % 360) + 540) % 360) - 180;
+        if (unwrapped > 180 || unwrapped < -180) {
+          return { ok: false, code: 'CROSSES_ANTIMERIDIAN', reason: 'Woodland footprint crosses the 180° meridian.' };
+        }
+        if (Math.abs(lat) >= MERCATOR_MAX_LAT_DEG) {
+          return { ok: false, code: 'OUTSIDE_MERCATOR_LATITUDE', reason: 'Woodland footprint reaches the Web Mercator latitude limit.' };
+        }
+      }
+    }
+  }
+  return { ok: true };
+}

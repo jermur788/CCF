@@ -68,8 +68,38 @@ export function validateImagerySource(imagery, pageUrl) {
   return { allowed: true, url: resolved.href, attribution, boundsLocal: imagery.boundsLocal };
 }
 
-/** Attribution is shown only while imagery is actually visible. */
-export function shouldShowAttribution({ activeStyle, imageryLoaded, imageryOpacity, attribution }) {
-  return activeStyle === 'satellite' && imageryLoaded === true && imageryOpacity > 0
+/**
+ * Attribution is shown only while imagery is actually visible: satellite style, the image source
+ * has loaded, its opacity is above 0 and its footprint intersects the visible viewport.
+ */
+export function shouldShowAttribution({ activeStyle, imageryLoaded, imageryOpacity, imageryInView, attribution }) {
+  return activeStyle === 'satellite' && imageryLoaded === true && imageryOpacity > 0 && imageryInView === true
     && typeof attribution === 'string' && attribution.trim().length > 0;
+}
+
+/**
+ * True when a convex screen-space quad (the projected imagery corners, in order) overlaps the
+ * viewport rectangle [0, width] x [0, height]. Separating-axis test: the two shapes are apart
+ * exactly when one of the rectangle axes or one of the quad's edge normals separates them.
+ * @param {Array<{x: number, y: number}>} quad
+ */
+export function quadIntersectsViewport(quad, width, height) {
+  if (!Array.isArray(quad) || quad.length < 3 || !quad.every((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y))) return false;
+  const rect = [{ x: 0, y: 0 }, { x: width, y: 0 }, { x: width, y: height }, { x: 0, y: height }];
+  const axes = [{ x: 1, y: 0 }, { x: 0, y: 1 }];
+  for (let i = 0; i < quad.length; i++) {
+    const a = quad[i];
+    const b = quad[(i + 1) % quad.length];
+    axes.push({ x: -(b.y - a.y), y: b.x - a.x });
+  }
+  for (const axis of axes) {
+    const span = (pts) => {
+      const proj = pts.map((p) => p.x * axis.x + p.y * axis.y);
+      return [Math.min(...proj), Math.max(...proj)];
+    };
+    const [q0, q1] = span(quad);
+    const [r0, r1] = span(rect);
+    if (q1 <= r0 || r1 <= q0) return false;
+  }
+  return true;
 }

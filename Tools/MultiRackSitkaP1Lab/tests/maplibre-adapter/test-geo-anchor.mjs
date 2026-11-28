@@ -10,7 +10,7 @@
  * 4) Strict binding validation rejections (centroid, missing identity, digest mismatch, out-of-range, non-finite).
  */
 
-import { createGeoAnchorBridge, validateGeoAnchor } from '../../src/Ui/multi/map/maplibre/geo-anchor.js';
+import { checkWebMercatorFootprint, createGeoAnchorBridge, validateGeoAnchor } from '../../src/Ui/multi/map/maplibre/geo-anchor.js';
 
 // ---- Independent Vincenty Inverse Geodesic Oracle on WGS84 (no shared code with geo-anchor.js) ----
 const ORACLE_A = 6378137.0;
@@ -259,6 +259,30 @@ for (const [label, candidate, binding, expectedCode] of rejectionCases) {
 
 const validCheck = validateGeoAnchor(baseValid, expectedBinding);
 check(validCheck.valid, `Valid explicit non-centroid geo-anchor accepted (${baseValid.originKind})`);
+
+// 5. Web Mercator footprint check (repair cycle 1): antimeridian east/west and the latitude limit
+{
+  const stand = { minXM: 0, minZM: 0, maxXM: 80, maxZM: 80 };
+  const imagery = { minXM: -24, minZM: -24, maxXM: 104, maxZM: 104 };
+  const footprintCases = [
+    ['east crossing: anchor 179.9996 E, stand to the east', { lonDeg: 179.9996, latDeg: 53.3468, bearingDeg: 0 }, 'CROSSES_ANTIMERIDIAN'],
+    ['west crossing: anchor 179.9996 W, stand to the west', { lonDeg: -179.9996, latDeg: 53.3468, bearingDeg: 0, localOriginXM: 80 }, 'CROSSES_ANTIMERIDIAN'],
+    ['anchor exactly on 180, stand to the east', { lonDeg: 180, latDeg: 10, bearingDeg: 0 }, 'CROSSES_ANTIMERIDIAN'],
+    ['rotated stand reaching across (bearing 90, anchor 179.9995 E)', { lonDeg: 179.9995, latDeg: 53.3468, bearingDeg: 90, localOriginZM: -80 }, 'CROSSES_ANTIMERIDIAN'],
+    ['Mercator limit: anchor 85.0508 N, stand to the north', { lonDeg: 10, latDeg: 85.0508, bearingDeg: 0 }, 'OUTSIDE_MERCATOR_LATITUDE'],
+    ['Mercator limit: anchor 85.0508 S, stand to the south', { lonDeg: 10, latDeg: -85.0508, bearingDeg: 0, localOriginZM: 80 }, 'OUTSIDE_MERCATOR_LATITUDE'],
+    ['near antimeridian, east side 179.99 E', { lonDeg: 179.99, latDeg: 53.3468, bearingDeg: 0 }, null],
+    ['near antimeridian, west side 179.99 W', { lonDeg: -179.99, latDeg: 53.3468, bearingDeg: 0, localOriginXM: 80 }, null],
+    ['high latitude 84.9 N', { lonDeg: -6.7421, latDeg: 84.9, bearingDeg: 12.5 }, null],
+    ['Kildare fixture anchor', { lonDeg: -6.7421, latDeg: 53.3468, bearingDeg: 12.5 }, null],
+  ];
+  for (const [label, patch, expected] of footprintCases) {
+    const bridge = createGeoAnchorBridge({ ...baseValid, ...patch }, expectedBinding);
+    const res = checkWebMercatorFootprint(bridge, [stand, imagery]);
+    check(expected ? !res.ok && res.code === expected : res.ok,
+      `Footprint [${label}]: ok=${res.ok}${res.ok ? '' : ', code=' + res.code} (expected ${expected || 'ok'})`);
+  }
+}
 
 console.log(`GEO_ORACLE_SUMMARY: ${passed} passed, ${failed} failed, max_roundtrip_m=${maxRoundTripErrM.toExponential(4)}, oracle_30m=${oracleMaxByStand[30].toExponential(4)}, oracle_80m=${oracleMaxByStand[80].toExponential(4)}, oracle_120m=${oracleMaxByStand[120].toExponential(4)}`);
 process.exit(failed === 0 ? 0 : 1);

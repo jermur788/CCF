@@ -8,6 +8,12 @@
  *   /harness/<path>                   files in this test folder (harness.js, fixture, stub worker)
  *   /fixtures/synthetic-imagery.png   generated synthetic imagery
  *   /fixtures/not-an-image.png        200 text/plain: imagery that exists but is not an image
+ *   /fixtures/held-imagery.png        the synthetic PNG, but the response is held until the driver
+ *                                     calls releaseHeld() (deterministic "slow imagery" for B22)
+ *
+ * requestLog records, for every response actually written, the CSP and Referrer-Policy values
+ * the server sent, so the driver can check headers for requests the browser never reports
+ * (aborted, held or node-side requests) as well as the ones it does.
  */
 
 import http from 'node:http';
@@ -42,6 +48,7 @@ function fileUnder(root, relative) {
 export async function startHarnessServer() {
   const imagery = generateSyntheticWoodlandPng();
   const requestLog = [];
+  const held = [];
 
   const server = http.createServer((req, res) => {
     res.setHeader('Content-Security-Policy', STRICT_CSP_HEADER);
@@ -55,13 +62,25 @@ export async function startHarnessServer() {
       pathname = '<malformed>';
     }
     const send = (status, type, body) => {
-      requestLog.push({ method: req.method, pathname, status, at: Date.now() });
       res.writeHead(status, { 'Content-Type': type });
+      requestLog.push({
+        method: req.method,
+        pathname,
+        status,
+        at: Date.now(),
+        csp: res.getHeader('Content-Security-Policy') ?? null,
+        referrer: res.getHeader('Referrer-Policy') ?? null,
+        clientClosed: res.destroyed || req.destroyed,
+      });
       res.end(body);
     };
 
     if (pathname === '/' || pathname === '/harness.html') return send(200, MIME['.html'], readFileSync(resolve(HERE, 'harness.html')));
     if (pathname === '/fixtures/synthetic-imagery.png') return send(200, MIME['.png'], imagery);
+    if (pathname === '/fixtures/held-imagery.png') {
+      held.push(() => send(200, MIME['.png'], imagery));
+      return undefined;
+    }
     if (pathname === '/fixtures/not-an-image.png') return send(200, MIME['.txt'], 'imagery service unavailable');
     if (pathname === '/favicon.ico') return send(204, MIME['.txt'], '');
     const routes = [['/map/', MAP_ROOT], ['/harness/', HERE]];
@@ -82,6 +101,9 @@ export async function startHarnessServer() {
   return {
     baseUrl: 'http://127.0.0.1:' + port,
     requestLog,
-    close: () => new Promise((done) => { server.closeAllConnections?.(); server.close(() => done()); }),
+    heldCount: () => held.length,
+    /** Answer every held imagery request now (sockets the browser already closed are written anyway). */
+    releaseHeld: () => { const n = held.length; held.splice(0).forEach((reply) => reply()); return n; },
+    close: () => new Promise((done) => { held.splice(0).forEach((reply) => reply()); server.closeAllConnections?.(); server.close(() => done()); }),
   };
 }

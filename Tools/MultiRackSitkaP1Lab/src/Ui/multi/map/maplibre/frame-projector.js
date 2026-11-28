@@ -112,7 +112,8 @@ function normalizeArea(area) {
   };
 }
 
-function boundsOf(areas) {
+/** Local-metre bounding box of the areas' polygons, or null when there are none. */
+export function areasBounds(areas) {
   const pts = areas.flatMap((a) => a.polygon);
   if (pts.length === 0) return null;
   const xs = pts.map((p) => p.xm);
@@ -133,8 +134,30 @@ function normalizeImagery(raw) {
   };
 }
 
+// The anchor fields geo-anchor.js reads. Only these are copied, and only primitive values, so the
+// adapter never holds (or freezes) a reference to any object inside the caller's anchor.
+const GEO_ANCHOR_FIELDS = Object.freeze([
+  'sourceId', 'geometryDigest', 'originKind', 'lonDeg', 'latDeg', 'bearingDeg', 'heightM',
+  'localOriginXM', 'localOriginZM', 'isCentroid', 'derivedFromCentroid',
+]);
+
+function normalizeGeoAnchor(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const anchor = {};
+  for (const key of GEO_ANCHOR_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) continue;
+    const value = raw[key];
+    if (value === undefined) continue;
+    const primitive = value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
+    // A non-primitive becomes null: the validator then rejects it instead of the adapter keeping a reference.
+    anchor[key] = primitive ? value : null;
+  }
+  return anchor;
+}
+
 /**
- * Copy, normalise and deep-freeze an incoming frame. The caller's object is never mutated.
+ * Copy, normalise and deep-freeze an incoming frame. Every value is copied into adapter-owned
+ * plain data; the caller's objects are never mutated, frozen or referenced.
  * @param {unknown} rawFrame
  */
 export function normalizeFrame(rawFrame) {
@@ -154,13 +177,13 @@ export function normalizeFrame(rawFrame) {
     mapStyle: normalizeMapStyle(rawFrame.mapStyle),
     imageryOpacity: normalizeImageryOpacity(rawFrame.imageryOpacity),
     imagery: normalizeImagery(rawFrame.imagery),
-    // Copied shallowly here; geo-anchor.js performs the strict validation before any use.
-    geoAnchor: rawFrame.geoAnchor && typeof rawFrame.geoAnchor === 'object' ? { ...rawFrame.geoAnchor } : null,
+    // Supported primitive fields only; geo-anchor.js performs the strict validation before any use.
+    geoAnchor: normalizeGeoAnchor(rawFrame.geoAnchor),
     activeAreaId,
     visibleAreaIds,
     overlay: VALID_OVERLAYS.includes(rawFrame.overlay) ? rawFrame.overlay : 'off',
     areas,
-    worldBounds: boundsOf(visibleAreas),
+    worldBounds: areasBounds(visibleAreas),
   });
 }
 
@@ -211,8 +234,12 @@ export function resolveWorldPoint(frame, xM, zM) {
   return { areaId: hit.areaId, u: xM - hit.extent.minXM, v: hit.extent.minZM + hit.extent.sideM - zM };
 }
 
-/** Local-metre box to frame: the named visible area, or the whole visible woodland. */
+/**
+ * Local-metre box to frame: the named area when it is visible, otherwise the whole visible
+ * woodland. A hidden area is never framed, so focusing a filtered-out lane cannot push the
+ * visible lanes off-centre.
+ */
 export function focusBox(frame, areaId) {
-  const area = areaId ? frame.areas.find((a) => a.areaId === areaId) : null;
-  return (area && boundsOf([area])) || frame.worldBounds;
+  const area = areaId && frame.visibleAreaIds.includes(areaId) ? frame.areas.find((a) => a.areaId === areaId) : null;
+  return (area && areasBounds([area])) || frame.worldBounds;
 }
