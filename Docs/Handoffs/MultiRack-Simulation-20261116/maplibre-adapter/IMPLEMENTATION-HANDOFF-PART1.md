@@ -9,13 +9,63 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test: b6cb1461fc28470cff064f55aad8934d71c8080a (spec 1ec9649a, adapter dc735173, harness b6cb1461)
-HEAD: the commit that adds this file (docs only; no code change after b6cb1461)
+Code under test (repair cycle 1): e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (fix(2d-sim): repair cycle 1)
+  Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after e4b33fc1)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE: /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T120314Z/
+DURABLE EVIDENCE (repair cycle 1): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z/
+  (mutants: run-20261128T125152Z/mutants/; original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch implemented and verified by its own harness. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired once after independent review, and re-verified by its own harness. It still needs an independent delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 1 (after GPT-6.2 Sol review: REQUEST CHANGES)
+
+Sole writer: Claude Opus 5.5. Fix commit `e4b33fc1`. Same file fence; no C#, shell, save, Unity, `.meta`, build or `Docs/Project` change.
+
+Gate run on clean `e4b33fc1` (`run.sh`, exit 0, 2026-11-28T12:51Z):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38** (28 before, plus 10 footprint cases);
+- browser matrix **B01–B26 26/26**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests.
+
+| # | Finding | Fix | Regression test | Result |
+|---|---|---|---|---|
+| B1 | An in-flight imagery probe could undo the WebGL fallback; a held probe at startup kept Clean Woodland with no notice past the watchdog | `failDisplay` bumps the generation and aborts every pending probe (`AbortController`). `startSatellite` treats `displayFailed` as stale. The watchdog is armed when the satellite start begins, so it also covers the module import. The imagery probe runs alongside the map start (it no longer gates `new Map`) and is limited to `imageryTimeoutMs` = `min(8 s, loadTimeoutMs / 2)` | **B22**: (a) the server holds a new imagery response, then a forced WebGL context loss, then release; (b) startup with the imagery held; (c) a module import that never finishes | PASS. (a) The pending probe was aborted (1 → 0); after release the notice persisted, with no map and maps constructed 1 → 1; a later satellite frame stayed on Clean Woodland. (b) The imagery notice appeared after 1885 ms (< watchdog), and release changed nothing. (c) The watchdog fired after 2053 ms and the late import built no map |
+| B2 | Satellite projection broke across the antimeridian (Jacobian sampled wrapped longitudes) | New `checkWebMercatorFootprint`, run before any MapLibre work. The footprint is every area plus the imagery bounds, grown by 50 m, with longitudes unwrapped relative to the anchor. A footprint crossing ±180° (east or west) or reaching ±85.0511° falls back to Clean Woodland with the display copy. The fallback is per frame and not sticky | **B21** (east crossing 179.9996° E; west crossing 179.9996° W; Mercator limit 85.0508° N; near-antimeridian 179.99° E/W and 84.9° N in Satellite), plus 10 geo-oracle footprint cases | PASS. Crossings: Clean Woodland, the correct code, 0 maps, crowns finite and on stage, px/m spread 1.00000. Near-antimeridian: radius error 0.216 mm, centres 0.0017 px. 84.9° N: radius error 1.750 mm (≤ 2 mm), centres 0.014 px. A supported frame afterwards uses Satellite |
+| B3a | `normalizeFrame` aliased and froze nested caller anchor data | Only the supported anchor fields are copied, and only as primitives (a non-primitive becomes `null` and is rejected). Only the adapter's own copy is deep-frozen | **B23** (nested `provenance` + extra nested data; non-primitive `lonDeg`) | PASS. Caller unchanged, 0 frozen caller objects, still mutable; the adapter copy is frozen and has no `provenance` |
+| B3b | `areas: []` left the old crowns and transform; clicks emitted coordinates from the old frame | New `clearOverlay()` empties Layers 4–8 (reserved slots kept), the selection marks, the transform and the hit-test matrix whenever the frame has no drawable area or the transform is unusable | **B23** (`areas: []` in both styles, click at the old crown position) | PASS. 0 crowns, layers [0,0,0,0,0], matrix null, 0 clicks emitted. The refilled frame draws 20 crowns and its click carries the new `frameKey` |
+| B4 | The CSP gate passed after a late response lost its header | **B08** now runs after every other case. It covers every browser response (page **and worker sessions**: workers auto-attach paused so their own script fetch is reported), every server-written response (headers recorded by the server, including held/aborted imagery) and the node-side 404. **B24** adds a coverage check (required response kinds, incl. the silent-worker fixture), worker-script accounting (each of 17 worker targets reported its own script), "no unaccounted server response", and a pure sensitivity self-test | **B08**, **B24**, plus the disposable-copy mutation `late-csp-header` | PASS. 141 browser + 145 server responses + the 404, all exact; 12/12 kinds; 0 unaccounted. Removing one header is detected (1 mismatch each) |
+| N5 | Attribution stayed visible with the image wholly off-screen | `shouldShowAttribution` also requires `imageryInView`: the projected imagery quad intersects the stage (separating-axis test, re-evaluated on move/resize) | **B25** | PASS. Off-screen: hidden. Zoomed out until the image is on screen: shown. Zoomed back: hidden |
+| N6a | Focusing a hidden lane moved the visible lane | `focusArea` ignores an area the current frame hides; `focusBox` only frames visible areas | **B26** | PASS. The visible crown moved 0.000 px (both styles) |
+| N6b | Same-instance destroy + mount kept the Satellite status on an empty canvas | `destroy` resets the style, fallback, imagery state and watchdog, and aborts probes. Only the sticky display failure and the probe cache persist | **B26** | PASS. Remount shows Clean Woodland with no notice, no attribution, no crowns and no canvas; the next satellite frame rebuilds (maps constructed = 2) |
+| N7 | B01/tasks wording | Spec, plan and tasks now say: production adapter = exactly five string-keyed own methods (`Reflect.ownKeys`); the opt-in debug handle adds two non-enumerable symbols. B01 asserts both | **B01** | PASS (no behaviour change) |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs in `mutants/`):**
+
+| Mutation (disposable copy) | Reviewer finding | Matrix result |
+|---|---|---|
+| `late-csp-header`: server drops CSP from the later B16 non-image response | B4 | exit 1. **B08 FAIL** (browser 1 + server 1 mismatch); B24 also FAILs, because its sensitivity counts become 2 |
+| `pending-imagery-vs-webgl-loss`: no generation bump, no probe abort, `displayFailed` not treated as stale (the pre-repair behaviour) | B1 | exit 1. **B22 FAIL**: after release the notice is cleared (`""`); in (c) the late import flips the style to `satellite` |
+| `antimeridian-no-footprint-check`: footprint check disabled | B2 | exit 1. **B21 FAIL** 3/6: crossings go to Satellite with crowns off stage, or show no notice |
+| `empty-frame-stale-overlay`: `drawOverlay` returns early instead of clearing | B3b | exit 1. **B23 FAIL**: 20 crowns left, layers [1125,5,20,5,7], 1 stale click emitted |
+| `attribution-ignores-viewport` (extra) | N5 | exit 1. **B25 FAIL** (attribution shown with the image off-screen) |
+| `focus-hidden-lane` (extra) | N6a | exit 1. **B26 FAIL** (the visible crown moved 261.8 px) |
+| `caller-anchor-aliased` (extra): shallow anchor copy restored | B3a | exit 1. **B23 FAIL** (3 caller objects frozen, caller no longer mutable) |
+
+Scripts: `run-mutants.sh` and `apply-mutant.py` (copied into the evidence run folder); summary in `mutants/mutants-summary.txt`. No Chromium process or working copy was left behind.
+
+**Repair-cycle choices a reviewer should check:**
+
+- **Antimeridian:** reject rather than wrap. Rendering across ±180° would need wrapped camera, overlay and image-source handling inside the vendored MapLibre, which Part 1 does not attempt. The fallback reuses the locked display copy (`Map display unavailable. Showing Clean Woodland.`) instead of inventing a fourth string. It is not sticky.
+- **Sticky display failure survives same-instance remount** (the spec says "for its lifetime"). Everything else resets on `destroy`.
+- **Imagery timeout:** a timed-out probe is cached as unavailable for the adapter's lifetime, the same as any other probe result.
+- **High latitude:** at 84.9° N the single-affine overlay measures 1.75 mm against the 2 mm bar on the 80 m fixture. That is the expected second-order term (∝ tan φ · distance²). A larger stand at very high latitude would need a re-centred derivative, so this is noted as a limitation and not addressed.
+
+---
+
+*The sections below describe the original Part 1 delivery (code `b6cb1461`) and are kept for history; the repair table above supersedes their verification numbers.*
 
 ## What changed
 
@@ -142,8 +192,10 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 1 additions, not tested:** rendering across the antimeridian (rejected by design); hardware-GPU context loss (SwiftShader `WEBGL_lose_context` only); real slow networks (the stall is simulated by a held loopback response).
+
 ## Next authorised step
 
-An independent non-author review of `review/multi-2d-maplibre-adapter-v1` against this handoff and spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 1, code `e4b33fc1`) against the review findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.

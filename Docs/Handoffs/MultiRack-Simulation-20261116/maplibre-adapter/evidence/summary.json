@@ -1,8 +1,9 @@
 {
-  "generatedUtc": "2026-11-28T12:03:45.450Z",
-  "testedCommit": "b6cb1461fc28470cff064f55aad8934d71c8080a",
+  "schemaVersion": 2,
+  "generatedUtc": "2026-11-28T12:52:44.176Z",
+  "testedCommit": "e4b33fc1066a83d4eb2b03c7afccd268dbad4021",
   "testedTreeDirty": false,
-  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T120314Z",
+  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z",
   "overall": "PASS",
   "vendorIntegrity": {
     "status": "PASS",
@@ -12,21 +13,22 @@
   },
   "geoOracle": {
     "status": "PASS",
-    "checksPassed": 28,
+    "checksPassed": 38,
     "checksFailed": 0,
     "thresholdM": 0.01,
-    "maxRoundTripErrorM": 7.3065e-8,
+    "maxRoundTripErrorM": 7.3065e-08,
     "oracleMaxDistanceErrorM": {
-      "stand30m": 3.9981e-7,
-      "stand80m": 4.4374e-7,
-      "stand120m": 3.316e-7
+      "stand30m": 3.9981e-07,
+      "stand80m": 4.4374e-07,
+      "stand120m": 3.316e-07
     }
   },
   "browserMatrix": {
     "status": "PASS",
-    "passed": 20,
+    "passed": 26,
     "failed": 0,
-    "total": 20,
+    "total": 26,
+    "expected": 26,
     "browser": "Chrome/156.0.8078.79",
     "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
     "cspHeader": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; img-src data: blob: 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -35,12 +37,16 @@
     "cspViolations": 0,
     "failedRequests": 0,
     "nonLoopbackRequests": 0,
-    "httpRequests": 93,
+    "httpRequests": 144,
+    "browserResponsesHeaderChecked": 141,
+    "serverResponsesHeaderChecked": 145,
+    "workerSessionResponses": 17,
+    "headerMismatches": 0,
     "cases": [
       {
         "id": "B01",
         "status": "PASS",
-        "detail": "assertMapRenderer passes; own properties=[destroy,focusArea,mount,render,setSelection]; production adapter (no debug) properties=[destroy,focusArea,mount,render,setSelection]; frozen=true"
+        "detail": "assertMapRenderer passes; production adapter Reflect.ownKeys=[destroy,focusArea,mount,render,setSelection] (exactly five string-keyed methods, no symbols); debug-enabled adapter: string-keyed own properties=[destroy,focusArea,mount,render,setSelection] plus opt-in non-enumerable symbols [ccf.maplibre.debug,ccf.maplibre.debug.actions]; frozen=true"
       },
       {
         "id": "B02",
@@ -75,7 +81,7 @@
       {
         "id": "B08",
         "status": "PASS",
-        "detail": "18 browser responses all carry the exact CSP + Referrer-Policy (mismatches=0); server 404 also exact=true; http requests=19, non-loopback=0, failed=0"
+        "detail": "whole run, checked at the end: 141 browser responses (page + worker sessions), 145 server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=0, server=0, node=0); http requests=144, non-loopback=0, failed=0"
       },
       {
         "id": "B09",
@@ -135,7 +141,100 @@
       {
         "id": "B20",
         "status": "PASS",
-        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run: console errors=0, CSP violations=0, failed requests=0, non-loopback=0"
+        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run (B01-B26): console errors=0, CSP violations=0, failed requests=0, non-loopback=0"
+      },
+      {
+        "id": "B21",
+        "status": "PASS",
+        "detail": "6/6 [east crossing (anchor 179.9996 E): ok (clean-woodland/display-unavailable code=CROSSES_ANTIMERIDIAN, maps=0, sticky=false, 8.182 px/m, spread 1.00000, finite=true, onStage=true); west crossing (anchor 179.9996 W, stand west of origin): ok (clean-woodland/display-unavailable code=CROSSES_ANTIMERIDIAN, maps=0, sticky=false, 8.182 px/m, spread 1.00000, finite=true, onStage=true); Mercator latitude limit (anchor 85.0508 N): ok (clean-woodland/display-unavailable code=OUTSIDE_MERCATOR_LATITUDE, maps=0, sticky=false, 8.182 px/m, spread 1.00000, finite=true, onStage=true); near antimeridian, east side (179.99 E): ok (satellite, radius err 0.2159 mm, centre 0.0017 px, 8.400 px/m, ratio spread 1.00240); near antimeridian, west side (179.99 W): ok (satellite, radius err 0.2151 mm, centre 0.0017 px, 8.400 px/m, ratio spread 1.00240); high latitude (84.9 N, bearing 12.5): ok (satellite, radius err 1.7499 mm, centre 0.0143 px, 8.400 px/m, ratio spread 1.00005)]; supported frame after an unsupported one -> satellite=true"
+      },
+      {
+        "id": "B22",
+        "status": "PASS",
+        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1885 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2053 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
+      },
+      {
+        "id": "B23",
+        "status": "PASS",
+        "detail": "caller frame with nested anchor provenance: unchanged=true, frozen caller objects=0, still mutable=true, adapter anchor copy frozen=true without provenance=true; non-primitive lonDeg -> no-location, frozen caller objects=0; satellite frame with areas: []: ok (crowns=0, layer 4-8 children=[0,0,0,0,0], selection marks=0, matrix=null, clicks emitted=0); clean-woodland frame with areas: []: ok (crowns=0, layer 4-8 children=[0,0,0,0,0], selection marks=0, matrix=null, clicks emitted=0); populated frame afterwards: 20 crowns, click -> frameKey refilled [ok]"
+      },
+      {
+        "id": "B24",
+        "status": "PASS",
+        "detail": "required response kinds seen by the browser: 12/12 (incl. the intentional silent-worker fixture x1); 17 worker targets each reported their own script response in the worker session (missing=0), other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; unaccounted server responses=0; sensitivity: dropping CSP from the last browser response (/favicon.ico) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 1"
+      },
+      {
+        "id": "B25",
+        "status": "PASS",
+        "detail": "imagery loaded ~2 km outside the view (paint 0.65): attribution hidden=true, data-imagery-visible=false; zoomed out until it is on screen: attribution visible=true; zoomed back: hidden=true"
+      },
+      {
+        "id": "B26",
+        "status": "PASS",
+        "detail": "focusArea on a hidden lane: visible crown moved 0.000 px (clean woodland, x=641.6) and 0.000 px (satellite), focus kept=null [ok]; same-instance destroy+mount after Satellite: style=clean-woodland, fallback=none, notice hidden=true, attribution hidden=true, crowns=0, map canvases=0; next satellite frame rebuilt (maps constructed=2, centre 0.0017 px, attribution visible=true) [ok]"
+      }
+    ]
+  },
+  "repairCycle1Mutations": {
+    "note": "disposable copies; each must make the matrix exit non-zero on its target case",
+    "evidence": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z/mutants/",
+    "results": [
+      {
+        "mutation": "late-csp-header",
+        "exit": 1,
+        "failingCases": [
+          "B08",
+          "B24"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "pending-imagery-vs-webgl-loss",
+        "exit": 1,
+        "failingCases": [
+          "B22"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "antimeridian-no-footprint-check",
+        "exit": 1,
+        "failingCases": [
+          "B21"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "empty-frame-stale-overlay",
+        "exit": 1,
+        "failingCases": [
+          "B23"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "attribution-ignores-viewport",
+        "exit": 1,
+        "failingCases": [
+          "B25"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "focus-hidden-lane",
+        "exit": 1,
+        "failingCases": [
+          "B26"
+        ],
+        "harnessFatal": 0
+      },
+      {
+        "mutation": "caller-anchor-aliased",
+        "exit": 1,
+        "failingCases": [
+          "B23"
+        ],
+        "harnessFatal": 0
       }
     ]
   }
