@@ -46,9 +46,11 @@ internal sealed partial class MultiAreaContinuation
         lock (sync)
         {
             int lifts = (root.Stage4 ?? MultiAreaStage4State.Empty).PruningOf(treeId ?? string.Empty).Lifts;
-            float target = root.Phase2 is { } phase2
-                ? Phase2Pruning.NextLiftTargetM(lifts, phase2.BroadleafOf(treeId ?? string.Empty))
-                : PruningRules.NextLiftTargetM(lifts);
+            float target = root.Phase2 is { } pinePhase2 && ScotsPineLive.IsPine(pinePhase2.SpeciesIdOf(treeId ?? string.Empty))
+                ? ScotsPinePruning.NextLiftTargetM(lifts)
+                : root.Phase2 is { } phase2
+                    ? Phase2Pruning.NextLiftTargetM(lifts, phase2.BroadleafOf(treeId ?? string.Empty))
+                    : PruningRules.NextLiftTargetM(lifts);
             return AddPrune(fence, areaId, treeId!, target);
         }
     }

@@ -163,6 +163,7 @@ public sealed class CanonicalWriter
     public CanonicalWriter Int(string key, long value) { Key(key); _sb.Append(value.ToString(System.Globalization.CultureInfo.InvariantCulture)); return this; }
     public CanonicalWriter IntOrNull(string key, long? value) { Key(key); _sb.Append(value is null ? "null" : value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)); return this; }
     public CanonicalWriter F32(string key, uint bits) { BeginObject(key).Str("k", "f32").Str("b", Core.F32.Hex(bits)).EndObject(); return this; }
+    public CanonicalWriter Bool(string key, bool value) { Key(key); _sb.Append(value ? "true" : "false"); return this; }
     public CanonicalWriter StrArray(string key, IEnumerable<string> values)
     {
         BeginArray(key);

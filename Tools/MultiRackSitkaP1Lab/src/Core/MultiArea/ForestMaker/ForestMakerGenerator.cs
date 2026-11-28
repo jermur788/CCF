@@ -11,7 +11,8 @@ internal sealed record ForestMakerLaneSummary(
     int TotalStems,
     int SitkaCount,
     int OakCount,
-    int BeechCount);
+    int BeechCount,
+    int ScotsPineCount = 0);
 
 /// <summary>Complete output of <see cref="ForestMakerGenerator.Generate"/>.</summary>
 internal sealed record ForestMakerResult(
@@ -22,7 +23,31 @@ internal sealed record ForestMakerResult(
     Phase2Options Options,
     int TotalStems,
     double TotalAreaHa,
-    IReadOnlyList<ForestMakerLaneSummary> Lanes);
+    IReadOnlyList<ForestMakerLaneSummary> Lanes,
+    IReadOnlyList<string>? ScotsPineTreeIds = null)
+{
+    /// <summary>True for a recipe whose site is the Dry Ridge &amp; Moist Slope two-zone map.</summary>
+    internal bool IsTwoZone => Recipe.SpeciesMix == ForestMakerSpeciesMix.ScotsPineSitkaTwoZone;
+
+    /// <summary>
+    /// The Scots pine / site-moisture genesis of this stand: the two-zone recipe always carries its own site and genesis pine;
+    /// any other recipe carries a whole-woodland class only when one other than NeutralLegacy was chosen (else null).
+    /// </summary>
+    internal ScotsPineGenesis? ScotsPineGenesisFor(SiteMoistureSetting? chosen)
+    {
+        if (IsTwoZone)
+        {
+            if (chosen is not null && !chosen.IsNeutral && chosen != SiteMoistureSetting.DryRidgeMoistSlope)
+                throw new P1Refusal("SiteMoistureFixedByPreset",
+                    "the Dry Ridge & Moist Slope woodland has its own two-zone site; a whole-woodland class cannot replace it");
+            return new ScotsPineGenesis(SiteMoistureSetting.DryRidgeMoistSlope, ScotsPineTreeIds ?? Array.Empty<string>());
+        }
+        if (chosen is null || chosen.IsNeutral) return null;
+        if (chosen.Mode != SiteMoistureMode.Whole)
+            throw new P1Refusal("SiteMoistureInvalid", "only the Dry Ridge & Moist Slope woodland uses the two-zone site");
+        return new ScotsPineGenesis(chosen.RequireValid(), Array.Empty<string>());
+    }
+}
 
 /// <summary>
 /// Deterministic, integer-only rectangular forest maker (SPEC-multi-2d-phase2a-forest-maker-V1 §5.2–§5.3).
@@ -90,6 +115,7 @@ internal static class ForestMakerGenerator
         var areas = new MultiAreaDefinition[recipe.LaneCount];
         var laneSummaries = new ForestMakerLaneSummary[recipe.LaneCount];
         var genesisSpecies = new Dictionary<string, string>(StringComparer.Ordinal);
+        var scotsPineIds = new List<string>();
 
         for (int i = 0; i < recipe.LaneCount; i++)
         {
@@ -108,17 +134,18 @@ internal static class ForestMakerGenerator
 
             foreach (var candidate in selected)
             {
-                string speciesId = PickCohortSpecies(recipe, i, candidate.CellIndex);
+                string speciesId = PickCohortSpecies(recipe, i, candidate.CellIndex, candidate.XMm);
                 var (dbhMm, heightMm) = CohortStartingSize(recipe.Seed, i, candidate.CellIndex, recipe.StartAgeYears);
                 stems.Add(new PlacedStem(candidate.XMm, candidate.YMm, recipe.StartAgeYears, dbhMm, heightMm, speciesId));
             }
 
-            var (trees, sitkaCount, oakCount, beechCount) = AssignIds(lane.AreaId, stems, genesisSpecies);
-            string stockingNote = BuildStockingNote(recipe, lane, sitkaCount, oakCount, beechCount);
+            var (trees, sitkaCount, oakCount, beechCount, pineCount) = AssignIds(lane.AreaId, stems, genesisSpecies, scotsPineIds);
+            string stockingNote = BuildStockingNote(recipe, lane, sitkaCount, oakCount, beechCount, pineCount);
 
             var areaDef = new MultiAreaDefinition(lane.AreaId, lane.Label, stockingNote, lane.Polygon, laneSeeds[i], trees);
             areas[i] = areaDef;
-            laneSummaries[i] = new ForestMakerLaneSummary(lane.AreaId, lane.Label, areaDef.AreaHa, trees.Count, sitkaCount, oakCount, beechCount);
+            laneSummaries[i] = new ForestMakerLaneSummary(lane.AreaId, lane.Label, areaDef.AreaHa, trees.Count, sitkaCount, oakCount, beechCount,
+                pineCount);
         }
 
         double totalAreaHa = areas.Sum(a => (double)a.AreaHa);
@@ -150,16 +177,21 @@ internal static class ForestMakerGenerator
             options,
             totalStems,
             totalAreaHa,
-            Array.AsReadOnly(laneSummaries));
+            Array.AsReadOnly(laneSummaries),
+            scotsPineIds.Count == 0 ? null : Array.AsReadOnly(scotsPineIds.Order(StringComparer.Ordinal).ToArray()));
     }
 
-    /// <summary>Convenience entry helper to open a <see cref="MultiAreaContinuation"/> from a validated recipe.</summary>
+    /// <summary>
+    /// Convenience entry helper to open a <see cref="MultiAreaContinuation"/> from a validated recipe. <paramref name="siteMoisture"/>
+    /// is the New Woodland whole-woodland class; null or NeutralLegacy keeps every existing woodland exactly as before.
+    /// </summary>
     internal static (ForestMakerResult Generated, MultiAreaContinuation Session) CreateSession(
         ForestMakerRecipe recipe,
         MultiAreaModelSelection? models = null,
         Stage4Options? stage4 = null,
         Stage5Options? stage5 = null,
-        EconomyOptions? economy = null)
+        EconomyOptions? economy = null,
+        SiteMoistureSetting? siteMoisture = null)
     {
         var generated = Generate(recipe);
         var selected = models ?? MultiAreaModelSelection.Phase2;
@@ -170,7 +202,8 @@ internal static class ForestMakerGenerator
             stage5,
             selected.IsPhase2 ? generated.Options : null,
             economy,
-            genesisRecipe: generated.Recipe);
+            genesisRecipe: generated.Recipe,
+            scotsPine: selected.IsPhase2 ? generated.ScotsPineGenesisFor(siteMoisture) : null);
         return (generated, session);
     }
 
@@ -368,8 +401,19 @@ internal static class ForestMakerGenerator
         return true;
     }
 
-    private static string PickCohortSpecies(ForestMakerRecipe recipe, int laneIndex, int cellIndex)
+    // [Calibration] Scots pine share of cohort stems on the dry ridge (x below the stand midpoint) and on the moist slope.
+    internal const int ScotsPineDryRidgePercent = 75;
+    internal const int ScotsPineMoistSlopePercent = 25;
+
+    private static string PickCohortSpecies(ForestMakerRecipe recipe, int laneIndex, int cellIndex, long xMm)
     {
+        if (recipe.SpeciesMix == ForestMakerSpeciesMix.ScotsPineSitkaTwoZone)
+        {
+            // Same midpoint rule as the Part 1 Dry Ridge & Moist Slope map: x below W/2 is dry, the midpoint and above is moist.
+            int pinePercent = 2 * xMm < recipe.WidthMm ? ScotsPineDryRidgePercent : ScotsPineMoistSlopePercent;
+            int draw = (int)(Next(recipe.Seed, laneIndex, cellIndex, 30) % 100UL);
+            return draw < pinePercent ? ScotsPineLive.SpeciesId : Phase2Species.SitkaId;
+        }
         if (recipe.SpeciesMix != ForestMakerSpeciesMix.CustomSplit)
             return Phase2Species.SitkaId;
 
@@ -425,8 +469,8 @@ internal static class ForestMakerGenerator
     }
 
     /// <summary>Rule 6: sort stems by (yMm, xMm) ascending and assign 4-digit ordinal IDs (<c>MA-A-0001</c>).</summary>
-    private static (IReadOnlyList<MultiAreaTreeDefinition> Trees, int Sitka, int Oak, int Beech) AssignIds(
-        string areaId, List<PlacedStem> stems, Dictionary<string, string> genesisSpecies)
+    private static (IReadOnlyList<MultiAreaTreeDefinition> Trees, int Sitka, int Oak, int Beech, int Pine) AssignIds(
+        string areaId, List<PlacedStem> stems, Dictionary<string, string> genesisSpecies, List<string> scotsPineIds)
     {
         stems.Sort((a, b) =>
         {
@@ -435,7 +479,7 @@ internal static class ForestMakerGenerator
         });
 
         var trees = new MultiAreaTreeDefinition[stems.Count];
-        int sitka = 0, oak = 0, beech = 0;
+        int sitka = 0, oak = 0, beech = 0, pine = 0;
 
         for (int i = 0; i < stems.Count; i++)
         {
@@ -453,13 +497,19 @@ internal static class ForestMakerGenerator
                 beech++;
                 genesisSpecies[treeId] = Phase2Species.BeechId;
             }
+            else if (ScotsPineLive.IsPine(stem.SpeciesId))
+            {
+                // Genesis Scots pine never enter Phase2Options.GenesisSpecies (frozen Oak/Beech contract); they are listed apart.
+                pine++;
+                scotsPineIds.Add(treeId);
+            }
             else
             {
                 sitka++;
             }
         }
 
-        return (Array.AsReadOnly(trees), sitka, oak, beech);
+        return (Array.AsReadOnly(trees), sitka, oak, beech, pine);
     }
 
     /// <summary>Rule 8: unique per-lane simulation seeds never equal to recipe.Seed.</summary>
@@ -471,10 +521,14 @@ internal static class ForestMakerGenerator
         return seeds;
     }
 
-    private static string BuildStockingNote(ForestMakerRecipe recipe, LaneBounds lane, int sitka, int oak, int beech) =>
+    // The Scots pine count is appended only on the two-zone mix, so every existing stocking note and content hash is unchanged.
+    private static string BuildStockingNote(ForestMakerRecipe recipe, LaneBounds lane, int sitka, int oak, int beech, int pine) =>
         string.Create(CultureInfo.InvariantCulture,
             $"forest-maker v{recipe.GeneratorVersion} lane {lane.AreaId} ({lane.WidthMm}x{lane.LengthMm} mm): " +
-            $"target {recipe.StemsPerHa}/ha, age {recipe.StartAgeYears}, {sitka} sitka, {oak} oak, {beech} beech");
+            $"target {recipe.StemsPerHa}/ha, age {recipe.StartAgeYears}, {sitka} sitka, {oak} oak, {beech} beech") +
+        (recipe.SpeciesMix == ForestMakerSpeciesMix.ScotsPineSitkaTwoZone
+            ? string.Create(CultureInfo.InvariantCulture, $", {pine} scots pine")
+            : "");
 
     // ---------------------------------------------------------------- pure integer math and SplitMix64
 

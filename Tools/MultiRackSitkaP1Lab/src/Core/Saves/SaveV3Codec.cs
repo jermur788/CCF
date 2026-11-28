@@ -91,6 +91,19 @@ internal static class SaveV3Codec
             encodedBlocks.Add(econCodec.BlockKey, new SaveV3Block(econCodec.CurrentBlockVersion, dataJson));
         }
 
+        // Scots pine / site moisture (Part 2): written only when the woodland has that state, so every other save is unchanged.
+        if (root.ScotsPine is not null)
+        {
+            if (!reg.TryGetCodec(SaveV3Format.ScotsPineBlockKey, out var pineCodec) || pineCodec is null)
+                throw new P1Refusal("SaveRequiredBlockMissing", "scotsPine codec is not registered");
+            encodedBlocks.Add(pineCodec.BlockKey, new SaveV3Block(pineCodec.CurrentBlockVersion, pineCodec.Encode(root)));
+        }
+        else if (root.Phase2 is { } phase2 && (phase2.TreeSpecies.Values.Any(ScotsPineLive.IsPine) ||
+                 phase2.Juveniles.Any(j => ScotsPineLive.IsPine(j.SpeciesId)) || phase2.PendingOrders.Any(ScotsPineSaveProjection.IsPineOrder)))
+        {
+            throw new P1Refusal("SaveInconsistent", "the woodland holds Scots pine but has no Scots pine state to save");
+        }
+
         string blocksJson = EncodeBlocksJson(encodedBlocks);
         string prefixWithoutChecksum = BuildPrefixWithoutChecksum(headerJson, payloadJson, blocksJson);
         string checksum = Sha256Hex(prefixWithoutChecksum);

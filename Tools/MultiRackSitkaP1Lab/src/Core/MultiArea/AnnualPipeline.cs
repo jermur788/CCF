@@ -27,7 +27,9 @@ internal sealed class YearInProgress
         Stage4Options? stage4Options,
         IReadOnlyList<AnnualAreaSpec> areas,
         Func<IReadOnlyList<IReadOnlyList<AnnualTree>>, Stage5AreaInput[]> buildStage5Inputs,
-        Action<string>? afterArea)
+        Action<string>? afterArea,
+        SiteMoistureField? siteMoisture = null,
+        ulong woodlandSeed = 0)
     {
         Start = start;
         HasWork = hasWork;
@@ -53,6 +55,16 @@ internal sealed class YearInProgress
         // Phase 2 only: each rack's density route (pure Sitka or two-part mixed) and the species of every adult.
         Phase2Start = start.Phase2;
         Density = new List<Phase2DensityRecord>();
+        // Scots pine / site moisture only (null on every other woodland): the field, the woodland seed and the rack context.
+        ScotsPineStart = start.ScotsPine is not null && start.Phase2 is not null ? start.ScotsPine : null;
+        if (ScotsPineStart is not null)
+        {
+            SiteMoisture = siteMoisture ?? throw new InvalidOperationException("a Scots pine year needs the woodland's site-moisture field");
+            WoodlandSeed = woodlandSeed;
+            ScotsPineAdults = new ScotsPineAdultTally();
+            var phase2 = start.Phase2!;
+            ScotsPineRack = new ScotsPineRackContext(SiteMoisture, phase2.SpeciesIdOf, ScotsPineAdults);
+        }
     }
 
     internal MultiAreaRoot Start { get; }
@@ -79,6 +91,12 @@ internal sealed class YearInProgress
     internal MultiAreaStage5State? NextStage5 { get; set; }
     internal MultiAreaPhase2State? NextPhase2 { get; set; }
     internal MultiAreaEconomyState? NextEconomy { get; set; }
+    internal MultiAreaScotsPineState? ScotsPineStart { get; }
+    internal SiteMoistureField? SiteMoisture { get; }
+    internal ulong WoodlandSeed { get; }
+    internal ScotsPineAdultTally? ScotsPineAdults { get; }
+    internal ScotsPineRackContext? ScotsPineRack { get; }
+    internal MultiAreaScotsPineState? NextScotsPine { get; set; }
 }
 
 /// <summary>
@@ -126,7 +144,8 @@ internal sealed class AdultGrowthStep : IAnnualStep
                 if (phase2Start is not null)
                 {
                     var (mixedReport, mixedNext, record) = Phase2MixedDensity.StepRack(area.AreaId, area.State, info.Seed, info.AreaHa,
-                        progress.Woodland!, treeId => stage4!.PruningOf(treeId).Lifts, progress.Stage4Options!, phase2Start.BroadleafOf);
+                        progress.Woodland!, treeId => stage4!.PruningOf(treeId).Lifts, progress.Stage4Options!, phase2Start.BroadleafOf,
+                        progress.ScotsPineRack);
                     (report, stepped) = (mixedReport, mixedNext);
                     progress.Density.Add(record);
                 }
@@ -236,23 +255,29 @@ internal sealed class RegenerationStep : IAnnualStep
             // Phase 2 (spec §4 steps 3d–5): all three species' regeneration and the planted juveniles in one pure step.
             var stepped = Phase2Annual.Step(phase2Stage5, phase2Start,
                 progress.BuildStage5Inputs(nextAreas.Select(area => area.State.Trees).ToArray()),
-                checked(year + 1), progress.Density);
-            for (int i = 0; i < nextAreas.Length; i++)
+                checked(year + 1), progress.Density, progress.SiteMoisture);
+            MergePromoted(nextAreas, stepped.PromotedTrees, year);
+            var nextPhase2 = stepped.NextPhase2;
+            // Scots pine (only when the woodland has Scots pine / site-moisture state): planted pine and local recruits grow,
+            // die or promote on this year's cell light and covers, then local seed fills eligible gaps.
+            if (progress.ScotsPineStart is { } pineStart)
             {
-                var promoted = stepped.PromotedTrees[nextAreas[i].AreaId];
-                if (promoted.Count == 0) continue;
-                var roster = nextAreas[i].State.Trees.Concat(promoted).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
-                nextAreas[i] = nextAreas[i] with { State = new AnnualState(checked(year + 1), Array.AsReadOnly(roster)) };
+                var pine = ScotsPineAnnual.Step(pineStart, nextPhase2, stepped.NextStage5,
+                    progress.BuildStage5Inputs(nextAreas.Select(area => area.State.Trees).ToArray()), progress.SiteMoisture!,
+                    progress.WoodlandSeed, checked(year + 1), progress.ScotsPineAdults!);
+                MergePromoted(nextAreas, pine.PromotedTrees, year);
+                nextPhase2 = pine.NextPhase2;
+                progress.NextScotsPine = pine.NextState;
             }
             progress.NextStage5 = stepped.NextStage5 with
             {
                 PendingClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.NextStage5.PendingClears,
                 ApprovedClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.NextStage5.ApprovedClears,
             };
-            progress.NextPhase2 = stepped.NextPhase2 with
+            progress.NextPhase2 = nextPhase2 with
             {
-                PendingOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : stepped.NextPhase2.PendingOrders,
-                ApprovedOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : stepped.NextPhase2.ApprovedOrders,
+                PendingOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : nextPhase2.PendingOrders,
+                ApprovedOrders = hasWork ? Array.Empty<MultiAreaPlantingOrder>() : nextPhase2.ApprovedOrders,
             };
         }
         else if (start.Stage5 is { } stage5Start)
@@ -272,6 +297,19 @@ internal sealed class RegenerationStep : IAnnualStep
                 PendingClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.PendingClears,
                 ApprovedClears = hasWork ? Array.Empty<MultiAreaClearUndergrowthOrder>() : stepped.Next.ApprovedClears,
             };
+        }
+    }
+
+    // Promoted adults join their area's roster in ordinal TreeId order (unchanged rule, shared by Phase 2 and Scots pine).
+    private static void MergePromoted(MultiAreaAreaState[] nextAreas, IReadOnlyDictionary<string, IReadOnlyList<AnnualTree>> promotedTrees,
+        int year)
+    {
+        for (int i = 0; i < nextAreas.Length; i++)
+        {
+            var promoted = promotedTrees[nextAreas[i].AreaId];
+            if (promoted.Count == 0) continue;
+            var roster = nextAreas[i].State.Trees.Concat(promoted).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
+            nextAreas[i] = nextAreas[i] with { State = new AnnualState(checked(year + 1), Array.AsReadOnly(roster)) };
         }
     }
 }

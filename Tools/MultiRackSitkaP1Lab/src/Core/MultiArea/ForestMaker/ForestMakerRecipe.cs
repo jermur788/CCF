@@ -8,6 +8,8 @@ internal enum ForestMakerSpeciesMix
     PureSitka = 0,
     SitkaPlusEdgeBroadleaves = 1,
     CustomSplit = 2,
+    /// <summary>Scots pine + Sitka on the Dry Ridge &amp; Moist Slope two-zone site (SPEC-multi-2d-scots-pine-moisture-V1 Part 2).</summary>
+    ScotsPineSitkaTwoZone = 3,
 }
 
 /// <summary>Core-enforced bounds and constants for the CCF 2D rectangular forest maker v1.</summary>
@@ -172,6 +174,7 @@ internal sealed record ForestMakerRecipe(
         ForestMakerSpeciesMix.PureSitka => "PureSitka",
         ForestMakerSpeciesMix.SitkaPlusEdgeBroadleaves => "SitkaPlusEdgeBroadleaves",
         ForestMakerSpeciesMix.CustomSplit => "CustomSplit",
+        ForestMakerSpeciesMix.ScotsPineSitkaTwoZone => "ScotsPineSitkaTwoZone",
         _ => throw new P1Refusal("ForestMakerSpeciesMixInvalid", "unknown speciesMix value: " + mix),
     };
 
@@ -180,6 +183,7 @@ internal sealed record ForestMakerRecipe(
         "PureSitka" => ForestMakerSpeciesMix.PureSitka,
         "SitkaPlusEdgeBroadleaves" => ForestMakerSpeciesMix.SitkaPlusEdgeBroadleaves,
         "CustomSplit" => ForestMakerSpeciesMix.CustomSplit,
+        "ScotsPineSitkaTwoZone" => ForestMakerSpeciesMix.ScotsPineSitkaTwoZone,
         _ => throw new P1Refusal("ForestMakerSpeciesMixInvalid", "unknown speciesMix: " + value),
     };
 
@@ -349,16 +353,44 @@ internal static class ForestMakerPresets
         OakPercent: 0,
         BeechPercent: 0);
 
+    internal const string ScotsPineTwoZonePresetId = "fm-064-scots-pine-sitka-two-zone-v1";
+    internal const string ScotsPineTwoZoneExperimentId = "mad-fm-064-scots-pine-sitka-two-zone-v1";
+    internal const int ScotsPineTwoZoneSeed = 6_400_303;
+    internal const string ScotsPineTwoZoneTitle = "0.64 ha Mixed Scots Pine & Sitka (Dry Ridge & Moist Slope)";
+    internal const string ScotsPineTwoZoneBadge =
+        "Forest maker — 0.64 ha, 5 lanes, mixed Scots pine & Sitka, Dry Ridge & Moist Slope (synthetic, not a surveyed Irish forecast)";
+
+    /// <summary>
+    /// Scots pine Part 2 preset: 80 x 80 m, 5 equal 16 x 80 m lanes, age 20 Scots pine + Sitka at 2,100 stems/ha (1,344 stems,
+    /// as the other 0.64 ha presets). The x-low half is DryFreeDraining and the x-high half FreshMoistMineral (Part 1 midpoint
+    /// rule). [Calibration] Scots pine is 75 % of cohort stems on the dry ridge and 25 % on the moist slope.
+    /// </summary>
+    internal static readonly ForestMakerRecipe ScotsPineTwoZone064 = new(
+        GeneratorId: ForestMakerBounds.GeneratorId,
+        GeneratorVersion: ForestMakerBounds.GeneratorVersion,
+        PresetId: ScotsPineTwoZonePresetId,
+        WidthM: 80,
+        LengthM: 80,
+        LaneCount: 5,
+        StartAgeYears: 20,
+        StemsPerHa: 2_100,
+        Seed: ScotsPineTwoZoneSeed,
+        SpeciesMix: ForestMakerSpeciesMix.ScotsPineSitkaTwoZone,
+        OakPercent: 0,
+        BeechPercent: 0);
+
     internal static readonly IReadOnlyList<ForestMakerRecipe> All = Array.AsReadOnly(new[]
     {
         SitkaEdgeBroadleaves064,
         PureSitka064,
+        ScotsPineTwoZone064,
     });
 
     internal static ForestMakerRecipe? FindByPresetId(string? presetId) => presetId switch
     {
         PrimaryPresetId => SitkaEdgeBroadleaves064,
         PureSitkaPresetId => PureSitka064,
+        ScotsPineTwoZonePresetId => ScotsPineTwoZone064,
         _ => null,
     };
 
@@ -369,6 +401,7 @@ internal static class ForestMakerPresets
     {
         PrimaryPresetId => PrimaryExperimentId,
         PureSitkaPresetId => PureSitkaExperimentId,
+        ScotsPineTwoZonePresetId => ScotsPineTwoZoneExperimentId,
         null => "mad-fm-custom-" + recipeHash[..16],
         _ => throw new P1Refusal("ForestMakerPresetUnknown", "unknown forest-maker presetId: " + recipe.PresetId),
     };
@@ -377,6 +410,7 @@ internal static class ForestMakerPresets
     {
         PrimaryPresetId => PrimaryBadge,
         PureSitkaPresetId => PureSitkaBadge,
+        ScotsPineTwoZonePresetId => ScotsPineTwoZoneBadge,
         null => string.Create(CultureInfo.InvariantCulture,
             $"Forest maker \u2014 {totalAreaHa:0.00} ha, {recipe.LaneCount} lanes, {MixBadgeLabel(recipe)} (synthetic, not a surveyed Irish forecast)"),
         _ => throw new P1Refusal("ForestMakerPresetUnknown", "unknown forest-maker presetId: " + recipe.PresetId),
@@ -388,6 +422,7 @@ internal static class ForestMakerPresets
         ForestMakerSpeciesMix.SitkaPlusEdgeBroadleaves => "Sitka + edge broadleaves",
         ForestMakerSpeciesMix.CustomSplit => string.Create(CultureInfo.InvariantCulture,
             $"custom {100 - recipe.OakPercent - recipe.BeechPercent}% Sitka / {recipe.OakPercent}% Oak / {recipe.BeechPercent}% Beech"),
+        ForestMakerSpeciesMix.ScotsPineSitkaTwoZone => "mixed Scots pine & Sitka, Dry Ridge & Moist Slope",
         _ => recipe.SpeciesMix.ToString(),
     };
 }

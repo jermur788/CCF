@@ -45,17 +45,24 @@ internal static class Phase2Annual
             Array.Empty<Phase2YearAccount>());
 
     /// <summary>One Phase 2 year ending in <paramref name="yearAfter"/>, on the model light of the post-adult-step woodland.</summary>
+    /// <remarks>
+    /// <paramref name="moisture"/> is null (or neutral) on every woodland without a site-moisture class, and the step is then
+    /// unchanged. A non-neutral field scales each species' requested natural establishment by its moisture establishment
+    /// modifier at the cell centre (SPEC-multi-2d-scots-pine-moisture-V1 Part 2). Scots pine adults are never Sitka seed sources.
+    /// </remarks>
     public static Phase2AnnualResult Step(MultiAreaStage5State start5, MultiAreaPhase2State start2, IReadOnlyList<Stage5AreaInput> areas,
-        int yearAfter, IReadOnlyList<Phase2DensityRecord> density)
+        int yearAfter, IReadOnlyList<Phase2DensityRecord> density, SiteMoistureField? moisture = null)
     {
         var inputs = InStateOrder(start5, areas);
-        return Step(start5, start2, inputs, yearAfter, density, ModelLight(inputs, start5.Options.GridCellM));
+        return Step(start5, start2, inputs, yearAfter, density, ModelLight(inputs, start5.Options.GridCellM), moisture);
     }
 
     /// <summary>The same year with the light field given (tests use it to build controlled light).</summary>
     public static Phase2AnnualResult Step(MultiAreaStage5State start5, MultiAreaPhase2State start2, IReadOnlyList<Stage5AreaInput> areas,
-        int yearAfter, IReadOnlyList<Phase2DensityRecord> density, IReadOnlyDictionary<string, IReadOnlyList<CanopyLightCell>> lightByArea)
+        int yearAfter, IReadOnlyList<Phase2DensityRecord> density, IReadOnlyDictionary<string, IReadOnlyList<CanopyLightCell>> lightByArea,
+        SiteMoistureField? moisture = null)
     {
+        var establishmentField = moisture is { IsNeutral: false } ? moisture : null;
         var options = start5.Options;
         var scale = Stage5CellScale.For(options.GridCellM);
         var inputs = InStateOrder(start5, areas);
@@ -69,7 +76,8 @@ internal static class Phase2Annual
         // independent mast stream and one source set per broadleaf.
         var woodland = CrownModel.Woodland(inputs.SelectMany(area => area.Trees));
         var sitkaMast = Stage5Mast.ForYear(start5.MastSeed, yearAfter);
-        var sitkaSources = Stage5SeedRain.Sources(woodland.Where(tree => BroadleafOf(tree.TreeId) is null), sitkaMast.Multiplier);
+        var sitkaSources = Stage5SeedRain.Sources(woodland.Where(tree => BroadleafOf(tree.TreeId) is null &&
+            !ScotsPineLive.IsPine(speciesMap.GetValueOrDefault(tree.TreeId))), sitkaMast.Multiplier);
         var broadleafMast = new Stage5MastState[2];
         var broadleafSources = new IReadOnlyList<Stage5SeedSource>[2];
         for (int s = 0; s < 2; s++)
@@ -133,6 +141,8 @@ internal static class Phase2Annual
                         initialHeight = species.RegenInitialHeightM;
                     }
                     if (seedRain > 0f) tally.SeedArrival += seedRain;
+                    if (establishmentField is not null && requested > 0f)
+                        requested *= establishmentField.EstablishmentMultiplier(SlotId(s), cell.CentreXM, cell.CentreZM);
                     if (requested > 0f)
                         tally.CellAccepted[c] = AdmitRecruitment(slots, s, yearAfter, initialHeight, requested, scale, tally.Bands);
                 }

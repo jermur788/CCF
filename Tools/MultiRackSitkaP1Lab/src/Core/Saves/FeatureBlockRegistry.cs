@@ -18,7 +18,7 @@ internal sealed class FeatureBlockRegistry
     private readonly Dictionary<string, IFeatureBlockCodec> codecs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ReservedFeatureBlockSlot> reserved = new(StringComparer.Ordinal);
 
-    /// <summary>Default Phase 2B-2b registry: <c>genesisRecipe</c> and <c>economy</c> codecs implemented.</summary>
+    /// <summary>Default registry: <c>genesisRecipe</c>, <c>economy</c> and (Scots pine Part 2) <c>scotsPine</c> codecs implemented.</summary>
     internal static FeatureBlockRegistry Default { get; } = CreateDefault();
 
     internal static FeatureBlockRegistry CreateDefault()
@@ -26,6 +26,7 @@ internal sealed class FeatureBlockRegistry
         var registry = new FeatureBlockRegistry();
         registry.Register(new GenesisRecipeBlockCodec());
         registry.Register(new EconomyFeatureBlockCodec());
+        registry.Register(new ScotsPineFeatureBlockCodec());
         return registry;
     }
 

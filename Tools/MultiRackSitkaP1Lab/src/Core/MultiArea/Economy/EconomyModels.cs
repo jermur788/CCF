@@ -155,10 +155,16 @@ internal static class EconomyDefaults
         _ => HarvestThinningStage.LaterThinning,
     };
 
+    // Scots pine sapling material: the Part 1 [Calibration] EUR 0.45 per tree (ScotsPineEngine.SaplingMaterialCostEurPerTree).
+    internal const string ScotsPineSaplingMaterialId = "scots-pine-sapling";
+    internal static long ScotsPineSaplingMaterialCents =>
+        checked((long)(SitkaP1.Core.SpeciesWave2.ScotsPine.ScotsPineEngine.SaplingMaterialCostEurPerTree * 100m));
+
     internal static (string MaterialId, long UnitCents) SaplingMaterialFor(string speciesId) => speciesId switch
     {
         Phase2Species.BeechId => (BeechSaplingMaterialId, BeechSaplingMaterialCents),
         Phase2Species.OakId => (OakSaplingMaterialId, OakSaplingMaterialCents),
+        ScotsPineLive.SpeciesId => (ScotsPineSaplingMaterialId, ScotsPineSaplingMaterialCents),
         _ => throw new P1Refusal("EconomySaplingMaterialUnknown", "no on-demand sapling price exists for species " + speciesId),
     };
 

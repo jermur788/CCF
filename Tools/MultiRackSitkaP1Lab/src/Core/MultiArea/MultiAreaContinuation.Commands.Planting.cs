@@ -33,10 +33,13 @@ internal sealed partial class MultiAreaContinuation
             AreaIndex(order.AreaId);
             var batch = phase2.PendingOrders.Append(order).ToArray();
             RequireValidPlantingBatch(phase2, batch);
+            // The first Scots pine order of a woodland opens its (neutral) Scots pine state so the Save v3 block carries it.
+            bool pine = order is MultiAreaPlantOrder { SpeciesId: var speciesId } && ScotsPineLive.IsPine(speciesId);
             root = root with
             {
                 Phase2 = phase2 with { PendingOrders = Array.AsReadOnly(batch), NextOrderNumber = checked(phase2.NextOrderNumber + 1) },
                 PlanStateRevision = checked(root.PlanStateRevision + 1),
+                ScotsPine = pine ? root.ScotsPine ?? MultiAreaScotsPineState.Create(SiteMoistureSetting.Neutral) : root.ScotsPine,
             };
             return WithView(null, null);
         }
