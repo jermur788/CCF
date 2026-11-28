@@ -9,16 +9,59 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test (repair cycle 2): ce7732a93d01ebd1fb37167591ca787d7000a225 (fix(2d-sim): repair cycle 2)
+Code under test (repair cycle 3): 8f1a62a3fd56dd854834c76967537278e64f3ca2 (fix(2d-sim): repair cycle 3)
+  Repair cycle 2 code: ce7732a93d01ebd1fb37167591ca787d7000a225 (third review: NEEDS CHANGES, 2 blocking + 1 non-blocking)
   Repair cycle 1 code: e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (delta re-review: REQUEST CHANGES, 2 blocking + 2 non-blocking + 1 nit)
   Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
-HEAD: the commit that updates this file (docs + evidence summary only; no code change after ce7732a9)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after 8f1a62a3)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE (repair cycle 2): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T133605Z/
-  (mutants: run-20261128T133605Z/mutants/; repair cycle 1: run-20261128T125152Z/; original Part 1 run: run-20261128T120314Z/)
+DURABLE EVIDENCE (repair cycle 3): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T142326Z/
+  (mutants: run-20261128T142326Z/mutants/; repair cycle 2: run-20261128T133605Z/; repair cycle 1: run-20261128T125152Z/;
+   original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch, implemented, repaired twice after independent review (repair cycle 2 answers the delta re-review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired three times after independent review (repair cycle 3 answers the third review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 3 (after the third independent review: NEEDS CHANGES)
+
+Sole writer: Claude Opus 5.5. Fix commit `8f1a62a3`. Same file fence; no C#, shell, save, Unity, `.meta`, build, package or `Docs/Project` change. No existing case was deleted. B24 was strengthened and B30 was added. B27 was relaxed only in its render-relative bound, as the review asked; the probe-relative deadline assertion is unchanged.
+
+Gate run on clean `8f1a62a3` (`run.sh`, exit 0, 2026-11-28T14:23Z):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38**;
+- browser matrix **B01–B30 30/30**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests, 0 audit setup failures, 0 unanswered requests;
+- 187 browser and 191 server responses plus the node-side 404, all with the exact headers;
+- 24 worker targets, each matched to its own startup response of resource type `Script`.
+
+| # | Finding | Fix | Regression test | Evidence (run-20261128T142326Z) |
+|---|---|---|---|---|
+| B1 | Deadline race: with a 1,200 ms deadline, a decode delivered at 1,817 ms while the main thread was busy was accepted. Its promise continuation ran before the overdue `setTimeout`, so the raster loaded and no fallback appeared | `probeImagery` records `startedAt = performance.now()`. After the fetch, after the body read and after the decode, `overdue()` checks the time elapsed since the start. If the deadline has passed, it settles the probe as `timeout` and aborts the controller, instead of accepting the result. This works whatever the microtask/timer order is. A late callback finds the probe settled. The bitmap is always closed in `finally`. The settled timeout stays in the per-URL cache, which lives for the adapter's lifetime, so it survives a same-instance remount | **B30** (new, deterministic). Deadline 1,500 ms. The harness decodes the real bitmap at once but withholds it (`holdDecodes('predecode')`). 150 ms before the deadline, measured from the probe's own start, one page task blocks the main thread until 600 ms past the deadline. It then resolves the held decode synchronously, so the continuation runs as a microtask **before** the overdue timer task. The case records the preconditions (probe pending when the task began and at release) and fails if the race was not really set up. It asserts: probe failures exactly `["timeout"]`, exact imagery notice, no raster layer, one fetch, late bitmap closed. After the timer: no change. Same URL: no refetch or decode. After a healthy same-instance remount: same URL → notice, no refetch, no raster. A different healthy URL loads with attribution. Back to the timed-out URL → notice, no refetch | PASS. The blocking task began 1,349.5 ms after the probe start (pending = 1, 1 ready bitmap). The decode was released at 2,100.0 ms (deadline 1,500) with the timer still queued, and the probe settled before the timer turn. Result: `satellite/imagery-unavailable`, notice "Imagery unavailable. Showing woodland map.", layers `[ccf-woodland-canvas, ccf-woodland-extent]`, probe failures `["timeout"]`, server fetches 1, late bitmap `[[0,0]]`. Same URL: 0 refetches, 0 decodes. Remount: same URL notice, 0 refetches, no raster, maps constructed 2. Healthy URL: fallback `none`, attribution visible. Back: notice, 0 refetches |
+| B2 | B24 accepted an ordinary `Fetch` as startup-script evidence. The collector matched session and URL but ignored the CDP resource type. A silent worker that fetched its own URL, with its startup events withheld, still passed | Each response now carries `resourceType` (CDP `Network.responseReceived.type`). All own-URL responses are kept in `ownUrlResponses`. `workerCoverageFailures` counts only entries with `resourceType === 'Script'` in the worker's own session (target and session id) with the target URL, 200 and exact headers. A same-URL `Fetch` never counts. The silent-worker fixture now fetches its own URL once, so every run contains a real same-session `Fetch` twin of a startup URL | **B24**: the type rule, plus an **in-run self-test**. The silent worker's `Script` responses are withheld and its real `Fetch` is kept; this must fail exactly the silent worker(s), and the `Fetch` twin must exist. The drop-one and same-URL-twin self-tests are unchanged. **B20**: an unanswered startup request still fails the run | PASS. Own-URL response types seen `["Fetch","Script"]`. Silent worker: 1 `Script` + 1 `Fetch` (both 200, same session). Self-test: withholding its `Script` responses but keeping the `Fetch` → 1 failure. Drop one → 1. Twin → 1 |
+| N3 | B27's extra render-relative limit (≤ deadline + 1,000 ms from `render()`) failed falsely under concurrent load. WebGL start-up took 1,244 ms, then the probe settled at 2,199.6 ms against its 2,200 ms deadline | The render-relative bound is now a sanity limit (`deadline + 8000` ms). The notice wait was widened to match. Still asserted, unchanged: reason `timeout`, settlement within [deadline − 5, deadline + 150] ms of the probe's own start, notice ≤ 20 ms after settlement while the decode is still held, 0 pending probes | **B27** (relaxed bound only) | PASS. The probe started at 274.8 ms and settled 2,199.9 ms later with reason `timeout`. The notice came 2,474.8 ms after `render()`, with the decode still held |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs, `run-mutants.sh`, `mutate.py` and `mutants-summary.txt` in `run-20261128T142326Z/mutants/`):**
+
+| Mutation (disposable copy) | Finding | Expected | Matrix result |
+|---|---|---|---|
+| (a1) `deadline-race-accepted`: the three `overdue()` checks reverted to the repair-cycle-2 code (the reviewer's race) | B1 | B30 fails | exit 1. **B30 FAIL** alone. The race was set up (pending = 1 at release, 2,100 ms vs 1,500 ms). Result: `satellite/none`, empty notice, raster layer `ccf-georeferenced-imagery` present, no probe failure, 2 fetches (probe + MapLibre) |
+| (a2) `post-decode-check-only-settled`: only the post-decode check weakened to "already settled?" | B1 | B30 fails | exit 1. **B30 FAIL** alone, same symptoms as a1 |
+| (b1) `worker-fetch-counted`: the reviewer's reproduction. The silent worker's startup `Script` request and response are withheld, its same-URL `Fetch` is kept, and the coverage rule ignores the resource type | B2 | B24 fails | exit 1. **B24 FAIL**. Coverage failures = 0 (the `Fetch` counted, as in the review), and the in-run self-test reports 0 failures `[FAIL]`. B20 passes, because nothing was left unanswered |
+| (b2) `resource-type-ignored`: the type rule removed, no events lost | B2 | B24 fails | exit 1. **B24 FAIL** alone: the self-test reports 0 failures `[FAIL]` |
+| (b3) `startup-script-withheld`: the startup `Script` request and response withheld, type rule intact | B2 | B24 fails | exit 1. **B24 FAIL** alone: 1 coverage failure "no Script-type startup response in its own session" |
+| (b4) `startup-response-withheld`: only the startup `Script` response withheld | B2 | B24 + B20 fail | exit 1. **B20 FAIL** (1 unanswered request) and **B24 FAIL** (1 coverage failure, 1 unanswered) |
+| (c1) `b27-slow-start-cycle2-limit`: probe start delayed 1.3 s after `render()` (simulated load), with the repair-cycle-2 render limit restored | N3 | B27 fails (reproduces the false failure) | exit 1. **B27 FAIL** alone. The probe settled 2,199.9 ms after its own start, but the notice came 3,694.0 ms after `render()`, over the old 3,200 ms bound. The detail string still prints the new limit text, because only the condition was patched |
+| (c2) `b27-slow-start`: the same load with the repaired B27 | N3 | exit 0 | exit 0, **30/30**: no false failure |
+| (c3) `b27-deadline-late`: a real deadline defect (timer fires 400 ms late) | N3 | B27 fails | exit 1. **B27 FAIL** alone: settled 2,599.7 ms after the probe start, outside [2195, 2350] |
+
+Every mutation asserts that its patch applied. No Chromium process or working copy was left behind.
+
+**Repair-cycle-3 choices a reviewer should check:**
+
+- **The elapsed-time check uses `>= timeoutMs` from `performance.now()` at probe creation.** A step that finishes exactly at the deadline is a timeout. The probe start is taken just before the `imagery-probe-started` diagnostic, so B30's busy-wait (measured from that diagnostic) overshoots the internal deadline by at least 600 ms.
+- **The silent-worker fixture changed.** It now fetches its own URL. That is the only way to get a genuine same-session `Fetch` twin in every run. B17 is unaffected: the worker still never answers MapLibre.
+- **B30 depends on `holdDecodes('predecode')`.** The race needs a bitmap that is ready before release. The harness decodes it at hold time and withholds it, so the release is synchronous inside the blocking task.
 
 ## Repair cycle 2 (after the delta re-review: REQUEST CHANGES)
 
@@ -232,11 +275,12 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 3 additions, not tested:** a real main-thread stall in a real page (B30 simulates it with a busy-wait inside a harness task); CDP resource types in other Chromium versions or other browsers.
 - **Repair cycle 2 additions, not tested:** a real slow image decoder (the stall is simulated by wrapping `createImageBitmap` in the harness page); non-Chromium worker auditing.
 - **Repair cycle 1 additions, not tested:** rendering across the antimeridian (rejected by design); hardware-GPU context loss (SwiftShader `WEBGL_lose_context` only); real slow networks (the stall is simulated by a held loopback response).
 
 ## Next authorised step
 
-An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 2, code `ce7732a9`) against the delta re-review findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 3, code `8f1a62a3`) against the third review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.
