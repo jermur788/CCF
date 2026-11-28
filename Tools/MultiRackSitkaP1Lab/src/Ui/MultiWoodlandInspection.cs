@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core.WoodlandImport;
 using SitkaP1.Core.WoodlandImport.Inspection;
@@ -66,12 +67,13 @@ internal sealed partial class PlayerApi
     private static readonly Lazy<(ImmutableList<BuiltInWoodlandEntry>? Entries, string? Failure)> BuiltInInspectionCatalogue =
         new(LoadBuiltInInspectionCatalogue, LazyThreadSafetyMode.ExecutionAndPublication);
 
-    // The inspected plot, or null in normal play. Written only under multiHost.SyncLock; read with Volatile by the guard.
+    // The inspected plot, or null in normal play. Written only under multiHost.SyncLock. The admission guard reads it with
+    // Volatile as a fast path; the authoritative check is InspectionBlockerLocked(), made inside the same lock as each commit.
     private BuiltInWoodlandEntry? activeInspection;
 
-    /// <summary>True while a plot that cannot advance time is being inspected (the simulation is then read-only).</summary>
-    private bool InspectionBlocksSimulation =>
-        Volatile.Read(ref activeInspection) is { InspectionView.CanAdvanceTime: false };
+    private const string InspectionRouteItemKey = "ccf.inspection.route";
+    private const string AdmissionCheckpoint = "admission";
+    private const string CommitCheckpoint = "commit";
 
     private void AddWoodlandInspectionRoutes()
     {
@@ -81,21 +83,46 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/woodland/inspection/exit", new("POST", ExitInspectionAsync));
     }
 
-    /// <summary>Called by <see cref="HandleAsync"/> after the route, method and Origin guards: refuses a simulation change while inspecting.</summary>
+    /// <summary>
+    /// Admission check, called by <see cref="HandleAsync"/> after the route, method and Origin guards. It refuses early, before
+    /// the body is read, when a read-only survey is already open. It is only a fast path: a request admitted here can still
+    /// meet a survey that opens while its body is arriving, so every mutating handler also calls
+    /// <see cref="InspectionBlockerLocked"/> inside the lock that guards its commit.
+    /// </summary>
     private async Task<bool> RefusedByInspectionAsync(HttpContext context, string routeName)
     {
+        context.Items[InspectionRouteItemKey] = routeName;
         if (!string.Equals(context.Request.Method, "POST", StringComparison.Ordinal) || InspectionAllowedPosts.Contains(routeName))
             return false;
         var entry = Volatile.Read(ref activeInspection);
         if (entry is null || entry.InspectionView.CanAdvanceTime) return false;
+        await WriteInspectionRefusalAsync(context, entry, AdmissionCheckpoint);
+        return true;
+    }
 
+    /// <summary>
+    /// Commit-time check. The caller holds <c>multiHost.SyncLock</c>, has already read its request body, and calls this
+    /// immediately before its engine call or file write. Inspection load, exit, New woodland and Load save all change the
+    /// inspection under that same lock, so a mutation and a survey opening can never interleave: whichever takes the lock
+    /// first is wholly ordered before the other. Returns the survey that now blocks the mutation, or null.
+    /// </summary>
+    private BuiltInWoodlandEntry? InspectionBlockerLocked() =>
+        activeInspection is { InspectionView.CanAdvanceTime: false } entry ? entry : null;
+
+    /// <summary>Writes the commit-time refusal (see <see cref="InspectionBlockerLocked"/>); nothing changed.</summary>
+    private Task WriteInspectionCommitRefusalAsync(HttpContext context, BuiltInWoodlandEntry entry) =>
+        WriteInspectionRefusalAsync(context, entry, CommitCheckpoint);
+
+    /// <summary>The typed HTTP 409 WoodlandInspectionReadOnly refusal; nothing changed. <paramref name="checkpoint"/> says which check refused.</summary>
+    private Task WriteInspectionRefusalAsync(HttpContext context, BuiltInWoodlandEntry entry, string checkpoint)
+    {
+        string routeName = context.Items[InspectionRouteItemKey] as string ?? "";
         string action = InspectionRefusedActionNames.TryGetValue(routeName, out var name) ? name : "This change";
         string message = action + " is not available in survey inspection mode. " + entry.DisplayName +
             " is a Year-0 survey that cannot be simulated, so nothing changed. Choose \"Return to normal woodland\" to keep playing.";
         var notice = new Notice(InspectionReadOnlyCode, message);
-        await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-            new InspectionRefusalPayload(notice, notice, new InspectionStatusDto(true, entry.PlotId, entry.DisplayName, false)));
-        return true;
+        return WriteJsonAsync(context, StatusCodes.Status409Conflict,
+            new InspectionRefusalPayload(notice, notice, InspectionStatusOf(entry), checkpoint));
     }
 
     /// <summary>Clears the inspection. The caller holds <c>multiHost.SyncLock</c> (New woodland and Load save commit under it).</summary>
@@ -107,12 +134,13 @@ internal sealed partial class PlayerApi
         if (context.Request.Query.Count > 0)
             return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
                 "the catalogue does not accept query parameters; nothing changed");
+        var status = InspectionStatusOf(Volatile.Read(ref activeInspection)); // one snapshot per reply
         var (entries, failure) = BuiltInInspectionCatalogue.Value;
         if (entries is null)
             return WriteJsonAsync(context, StatusCodes.Status409Conflict, new InspectionCataloguePayload(
-                Array.Empty<InspectionCatalogueEntryDto>(), CurrentStatus(), new Notice(InspectionUnavailableCode, failure!)));
+                Array.Empty<InspectionCatalogueEntryDto>(), status, new Notice(InspectionUnavailableCode, failure!)));
         return WriteJsonAsync(context, StatusCodes.Status200OK,
-            new InspectionCataloguePayload(entries.Select(ProjectCatalogueEntry).ToArray(), CurrentStatus(), null));
+            new InspectionCataloguePayload(entries.Select(ProjectCatalogueEntry).ToArray(), status, null));
     }
 
     // GET api/multi/woodland/inspection/current — lets a reloaded page restore the inspection screen (no stale UI state).
@@ -121,10 +149,10 @@ internal sealed partial class PlayerApi
         if (context.Request.Query.Count > 0)
             return WriteErrorAsync(context, StatusCodes.Status400BadRequest, "BadRequest",
                 "this read does not accept query parameters; nothing changed");
+        // One read: the status and the survey in this reply always describe the same plot.
         var entry = Volatile.Read(ref activeInspection);
-        return WriteJsonAsync(context, StatusCodes.Status200OK, entry is null
-            ? new InspectionCurrentPayload(CurrentStatus(), null)
-            : new InspectionCurrentPayload(CurrentStatus(), BuildInspectionPayload(entry)));
+        return WriteJsonAsync(context, StatusCodes.Status200OK,
+            new InspectionCurrentPayload(InspectionStatusOf(entry), entry is null ? null : BuildInspectionPayload(entry)));
     }
 
     // POST api/multi/woodland/inspection/load {"plotId": "..."} — enter read-only Year-0 survey inspection.
@@ -143,21 +171,24 @@ internal sealed partial class PlayerApi
         var (entries, failure) = BuiltInInspectionCatalogue.Value;
         if (entries is null)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new InspectionLoadPayload(null, CurrentStatus(), new Notice(InspectionUnavailableCode, failure!)));
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new InspectionLoadPayload(null,
+                InspectionStatusOf(Volatile.Read(ref activeInspection)), new Notice(InspectionUnavailableCode, failure!)));
             return;
         }
         var entry = entries.FirstOrDefault(e => string.Equals(e.PlotId, plotId, StringComparison.Ordinal));
         if (entry is null)
         {
-            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new InspectionLoadPayload(null, CurrentStatus(),
+            await WriteJsonAsync(context, StatusCodes.Status409Conflict, new InspectionLoadPayload(null,
+                InspectionStatusOf(Volatile.Read(ref activeInspection)),
                 new Notice(InspectionPlotUnknownCode, "That plot is not in the built-in catalogue of real woodlands; nothing changed.")));
             return;
         }
 
         lock (multiHost.SyncLock) Volatile.Write(ref activeInspection, entry);
+        // Both halves of the reply come from the entry this request committed, never from a later re-read, so an
+        // overlapping load of another plot cannot make "current" and "inspection" name different plots.
         await WriteJsonAsync(context, StatusCodes.Status200OK,
-            new InspectionLoadPayload(BuildInspectionPayload(entry), CurrentStatus(), null));
+            new InspectionLoadPayload(BuildInspectionPayload(entry), InspectionStatusOf(entry), null));
     }
 
     // POST api/multi/woodland/inspection/exit {} — return to the playable woodland, which was never changed.
@@ -171,28 +202,26 @@ internal sealed partial class PlayerApi
             wasActive = activeInspection is not null;
             ClearInspectionLocked();
         }
-        await WriteJsonAsync(context, StatusCodes.Status200OK, new InspectionExitPayload(wasActive, CurrentStatus()));
+        // The status describes this commit (inactive), not a later load that may already have raced in.
+        await WriteJsonAsync(context, StatusCodes.Status200OK, new InspectionExitPayload(wasActive, InspectionStatusOf(null)));
     }
 
-    private InspectionStatusDto CurrentStatus()
-    {
-        var entry = Volatile.Read(ref activeInspection);
-        return entry is null
-            ? new InspectionStatusDto(false, null, null, true)
-            : new InspectionStatusDto(true, entry.PlotId, entry.DisplayName, entry.InspectionView.CanAdvanceTime);
-    }
+    private static InspectionStatusDto InspectionStatusOf(BuiltInWoodlandEntry? entry) => entry is null
+        ? new InspectionStatusDto(false, null, null, true)
+        : new InspectionStatusDto(true, entry.PlotId, entry.DisplayName, entry.InspectionView.CanAdvanceTime);
 
     private static InspectionPayloadDto BuildInspectionPayload(BuiltInWoodlandEntry entry)
     {
-        // The Part 1 canonical JSON, passed through verbatim so the page sees exactly what the projector built.
-        using var document = JsonDocument.Parse(WoodlandInspectionSerializer.SerializeUtf8(entry.InspectionView));
+        // The Part 1 canonical JSON bytes are written into the reply unchanged, so the bytes a client receives hash to
+        // exactly the Part 1 golden SHA-256.
         var view = entry.InspectionView;
+        byte[] canonical = WoodlandInspectionSerializer.SerializeUtf8(view);
         var trees = view.ObservedYear0.Trees;
         int plotted = trees.Count(t => t.PositionLocalM.Value is not null);
         return new InspectionPayloadDto(
             ProjectCatalogueEntry(entry),
-            document.RootElement.Clone(),
-            WoodlandInspectionSerializer.ComputeSha256Hex(view),
+            new CanonicalJson(canonical),
+            WoodlandImportSerializer.ComputeSha256Hex(canonical),
             new InspectionSummaryDto(trees.Count, plotted, trees.Count - plotted),
             InspectionDisplayLabels.Instance);
     }
@@ -280,7 +309,7 @@ internal sealed partial class PlayerApi
 
     private sealed record InspectionPayloadDto(
         InspectionCatalogueEntryDto Entry,
-        JsonElement View,
+        CanonicalJson View,
         string ViewSha256,
         InspectionSummaryDto Summary,
         InspectionDisplayLabels Labels);
@@ -294,7 +323,20 @@ internal sealed partial class PlayerApi
 
     private sealed record InspectionExitPayload(bool WasActive, InspectionStatusDto Inspection);
 
-    private sealed record InspectionRefusalPayload(Notice Error, Notice Refusal, InspectionStatusDto Inspection);
+    private sealed record InspectionRefusalPayload(Notice Error, Notice Refusal, InspectionStatusDto Inspection, string Checkpoint);
+
+    /// <summary>Already-serialised canonical JSON, written verbatim by <see cref="CanonicalJsonConverter"/>.</summary>
+    [JsonConverter(typeof(CanonicalJsonConverter))]
+    private sealed record CanonicalJson(byte[] Utf8);
+
+    private sealed class CanonicalJsonConverter : JsonConverter<CanonicalJson>
+    {
+        public override CanonicalJson Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            throw new NotSupportedException("canonical JSON is write-only");
+
+        public override void Write(Utf8JsonWriter writer, CanonicalJson value, JsonSerializerOptions options) =>
+            writer.WriteRawValue(value.Utf8, skipInputValidation: false);
+    }
 }
 
 /// <summary>

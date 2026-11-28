@@ -60,22 +60,33 @@ internal sealed partial class PlayerApi
         bool economyEnabled;
         MultiEconomySnapshotDto? economy;
         int genesisStems;
+        Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
         lock (multiHost.SyncLock)
         {
             var active = multiHost.Current;
-            try
+            // Commit-time survey check: the body is already read, and nothing runs between this check and the skip.
+            inspectionBlock = InspectionBlockerLocked();
+            if (inspectionBlock is null)
             {
-                result = active.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
-            }
-            catch (P1Refusal refusal)
-            {
-                refusalNotice = new Notice(refusal.Code, refusal.Message);
+                try
+                {
+                    result = active.Session.AdvanceYears(request.Fence!, request.TargetYear!.Value, context.RequestAborted);
+                }
+                catch (P1Refusal refusal)
+                {
+                    refusalNotice = new Notice(refusal.Code, refusal.Message);
+                }
             }
             snapshot = active.Adapter.ReadCompositeUiSnapshot();
             totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
             economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
             economy = TryBuildEconomySnapshot(active.Session, snapshot.View);
             genesisStems = active.Session.GenesisStemCount;
+        }
+        if (inspectionBlock is not null)
+        {
+            await WriteInspectionCommitRefusalAsync(context, inspectionBlock);
+            return;
         }
 
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);

@@ -265,16 +265,30 @@ internal sealed partial class PlayerApi
             PlayerMapScene.Build(result.View), result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage)));
     }
 
-    private static async Task CommandAsync<TRequest>(HttpContext context, Func<TRequest, PlayerCommandResult> command,
+    private async Task CommandAsync<TRequest>(HttpContext context, Func<TRequest, PlayerCommandResult> command,
         bool rejectDuplicateMembers = false)
         where TRequest : class
     {
         var request = await ReadRequestAsync<TRequest>(context, rejectDuplicateMembers);
         if (request is null) return; // a guard has already answered
-        var result = command(request);
-        await WriteJsonAsync(context, StatusOf(result.RefusalCode), new CommandPayload(result.View,
-            PlayerMapScene.Build(result.View), NoticeOf(result.RefusalCode, result.RefusalMessage),
-            result.Execution, result.Annual));
+        // Commit-time survey check (MultiWoodlandInspection.cs): the inspection changes only under multiHost.SyncLock, so
+        // checking and committing inside that lock orders this command wholly before or after any survey opening.
+        PlayerCommandResult? result = null;
+        Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
+        lock (multiHost.SyncLock)
+        {
+            inspectionBlock = InspectionBlockerLocked();
+            if (inspectionBlock is null) result = command(request);
+        }
+        if (inspectionBlock is not null)
+        {
+            await WriteInspectionCommitRefusalAsync(context, inspectionBlock);
+            return;
+        }
+        var committed = result!;
+        await WriteJsonAsync(context, StatusOf(committed.RefusalCode), new CommandPayload(committed.View,
+            PlayerMapScene.Build(committed.View), NoticeOf(committed.RefusalCode, committed.RefusalMessage),
+            committed.Execution, committed.Annual));
     }
 
     // A refusal is never a silent 200: it is 409 with the engine's code, its message and the fresh current view.

@@ -11,24 +11,35 @@ internal sealed partial class PlayerApi
     {
         var request = await ReadMultiRequestAsync<TRequest>(context, required);
         if (request is null) return;
-        MultiAreaCommandResult result;
-        (MultiAreaUiReadout? Stage4, MultiAreaEcologyDto? Ecology)? composite;
-        int totalRecordedYears;
-        bool economyEnabled;
-        MultiEconomySnapshotDto? economy;
-        bool hasUnsavedProgress;
-        int genesisStems;
+        MultiAreaCommandResult result = null!;
+        (MultiAreaUiReadout? Stage4, MultiAreaEcologyDto? Ecology)? composite = null;
+        int totalRecordedYears = 0;
+        bool economyEnabled = false;
+        MultiEconomySnapshotDto? economy = null;
+        bool hasUnsavedProgress = false;
+        int genesisStems = 0;
+        Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
         lock (multiHost.SyncLock)
         {
-            var active = multiHost.Current;
-            result = command(active, request);
-            var comp = active.Adapter.CompositeFor(result.View);
-            composite = comp is null ? null : (comp.Stage4, comp.Ecology);
-            totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
-            economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
-            economy = TryBuildEconomySnapshot(active.Session, result.View);
-            hasUnsavedProgress = active.HasUnsavedProgress;
-            genesisStems = active.Session.GenesisStemCount;
+            // Commit-time survey check: the body is already read, and nothing runs between this check and the command.
+            inspectionBlock = InspectionBlockerLocked();
+            if (inspectionBlock is null)
+            {
+                var active = multiHost.Current;
+                result = command(active, request);
+                var comp = active.Adapter.CompositeFor(result.View);
+                composite = comp is null ? null : (comp.Stage4, comp.Ecology);
+                totalRecordedYears = active.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;
+                economyEnabled = active.Session.SelectedModels.IsEconomyEnabled;
+                economy = TryBuildEconomySnapshot(active.Session, result.View);
+                hasUnsavedProgress = active.HasUnsavedProgress;
+                genesisStems = active.Session.GenesisStemCount;
+            }
+        }
+        if (inspectionBlock is not null)
+        {
+            await WriteInspectionCommitRefusalAsync(context, inspectionBlock);
+            return;
         }
         var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
         if (composite is { } c)
@@ -103,12 +114,15 @@ internal sealed partial class PlayerApi
         bool hasUnsavedProgress;
         int genesisStems;
         Notice? refusal = null;
+        Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
         lock (multiHost.SyncLock)
         {
             var current = multiHost.Current;
             var currentView = current.Adapter.Read();
-            refusal = ValidateFenceNotice(request.Fence!, currentView);
-            if (refusal is null)
+            // Commit-time survey check, in the same lock as the session swap below.
+            inspectionBlock = InspectionBlockerLocked();
+            refusal = inspectionBlock is null ? ValidateFenceNotice(request.Fence!, currentView) : null;
+            if (refusal is null && inspectionBlock is null)
             {
                 bool currentEnabled = current.Session.SelectedModels.IsEconomyEnabled;
                 if (request.Enabled != currentEnabled)
@@ -144,6 +158,11 @@ internal sealed partial class PlayerApi
             economy = TryBuildEconomySnapshot(active.Session, outSnap.View);
             hasUnsavedProgress = active.HasUnsavedProgress;
             genesisStems = active.Session.GenesisStemCount;
+        }
+        if (inspectionBlock is not null)
+        {
+            await WriteInspectionCommitRefusalAsync(context, inspectionBlock);
+            return;
         }
         var budget = ActiveStandBudget(outSnap.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(outSnap, totalRecordedYears, reviewPreview, out byte[] rawBytes,

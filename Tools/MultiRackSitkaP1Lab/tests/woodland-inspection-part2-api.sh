@@ -10,6 +10,11 @@
 #     refused with HTTP 409 WoodlandInspectionReadOnly and nothing changes; read-only routes still answer;
 #   - X: Return to normal woodland clears the inspection and Advance works again; New woodland and Load save both clear
 #     any inspection; exit is idempotent; malformed and unknown plot requests are refused;
+#   - K: commands admitted before a survey opens (request body held back on a raw socket until after the survey opened)
+#     are refused at the commit-time recheck (checkpoint "commit"): multi Advance, Skip, Save, Recover and single-area
+#     Advance; nothing changes; a control proves the same paused request commits when no survey opens;
+#   - O: 50 overlapping Donadea/Mersch load pairs never return a reply whose current survey and status disagree, and the
+#     served view bytes always hash to that plot's Part 1 golden;
 #   - SIGINT ends the process cleanly; no file appears in the lab tree; git status of the lab is unchanged.
 #
 # Usage: tests/woodland-inspection-part2-api.sh [<evidence-dir>]
@@ -99,12 +104,92 @@ PY
 }
 fence() { python3 -c 'import json,sys; v=json.load(open(sys.argv[1]))["view"]; print(json.dumps({"sessionId": v["sessionId"], "source": v["source"], "planStateRevision": v["planStateRevision"]}))' "$scratch/$1.json"; }
 year_of() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["view"]["source"]["ecologicalYear"])' "$scratch/$1.json"; }
+# Concurrency and byte-level helpers (stdlib only), written into the scratch directory.
+cat > "$scratch/insp_race.py" << 'PY'
+import hashlib, http.client, json, socket, sys, threading, time
+
+def call(port, path, body=None):
+    conn = http.client.HTTPConnection('127.0.0.1', port, timeout=120)
+    headers = {} if body is None else {'Content-Type': 'application/json', 'Origin': 'http://127.0.0.1:%d' % port}
+    conn.request('GET' if body is None else 'POST', path, body=body, headers=headers)
+    response = conn.getresponse()
+    data = response.read()
+    conn.close()
+    return response.status, data.decode('utf-8')
+
+def view_bytes_sha(text):
+    # SHA-256 of the exact "view" bytes as served (the value that follows current.entry), not of a re-serialisation.
+    dec = json.JSONDecoder()
+    key = '"current":{"entry":'
+    i = text.index(key) + len(key)
+    _, end = dec.raw_decode(text, i)
+    sep = ',"view":'
+    if not text.startswith(sep, end):
+        raise ValueError('view does not follow entry')
+    start = end + len(sep)
+    _, vend = dec.raw_decode(text, start)
+    return hashlib.sha256(text[start:vend].encode('utf-8')).hexdigest()
+
+mode = sys.argv[1]
+if mode == 'viewsha':
+    print(view_bytes_sha(open(sys.argv[2], encoding='utf-8').read()))
+elif mode == 'paused':
+    # paused <port> <base> <route> <body> <plotId|none> <out>: send headers only, open a survey, then release the body.
+    port, base, route, body, plot, out = int(sys.argv[2]), sys.argv[3], sys.argv[4], sys.argv[5].encode('utf-8'), sys.argv[6], sys.argv[7]
+    sock = socket.create_connection(('127.0.0.1', port), timeout=120)
+    sock.sendall(('POST %s%s HTTP/1.1\r\nHost: 127.0.0.1:%d\r\nOrigin: http://127.0.0.1:%d\r\nContent-Type: application/json\r\n'
+                  'Content-Length: %d\r\nConnection: close\r\n\r\n' % (base, route, port, port, len(body))).encode('ascii'))
+    time.sleep(0.8)  # the request has passed admission (no survey open) and its handler is waiting for the body
+    load_status, loaded_plot = None, None
+    if plot != 'none':
+        load_status, text = call(port, base + 'api/multi/woodland/inspection/load', json.dumps({'plotId': plot}))
+        loaded_plot = json.loads(text)['inspection']['plotId']
+    sock.sendall(body)
+    raw = b''
+    while True:
+        chunk = sock.recv(65536)
+        if not chunk:
+            break
+        raw += chunk
+    sock.close()
+    head, _, payload = raw.partition(b'\r\n\r\n')
+    status = int(head.split(b' ')[1])
+    json.dump({'loadStatus': load_status, 'loadedPlot': loaded_plot, 'status': status, 'body': json.loads(payload)}, open(out, 'w'))
+elif mode == 'overlap':
+    # overlap <port> <base> <pairs> <golden-donadea> <golden-mersch> <out>: opposite plot loads released together.
+    port, base, pairs, out = int(sys.argv[2]), sys.argv[3], int(sys.argv[4]), sys.argv[7]
+    golden = {'IPlus_Donadea_MHF_2': sys.argv[5], 'IPlus_Mersch': sys.argv[6]}
+    results = []
+    for _ in range(pairs):
+        barrier = threading.Barrier(2)
+        def one(plot):
+            barrier.wait()
+            results.append((plot, call(port, base + 'api/multi/woodland/inspection/load', json.dumps({'plotId': plot}))))
+        threads = [threading.Thread(target=one, args=(p,)) for p in golden]
+        for t in threads: t.start()
+        for t in threads: t.join()
+    ok = contradictory = mismatched = 0
+    for asked, (status, text) in results:
+        if status != 200:
+            continue
+        ok += 1
+        d = json.loads(text)
+        cur, ins = d['current']['entry']['plotId'], d['inspection']['plotId']
+        if cur != ins or cur != asked:
+            contradictory += 1
+        if d['current']['viewSha256'] != golden[cur] or view_bytes_sha(text) != golden[cur]:
+            mismatched += 1
+    json.dump({'responses': len(results), 'ok200': ok, 'contradictory': contradictory, 'hashMismatched': mismatched}, open(out, 'w'))
+PY
+race() { python3 "$scratch/insp_race.py" "$@"; }
+
 read_only_refusal() { python3 - "$scratch/$1.json" << 'PY'
 import json, sys
 d = json.load(open(sys.argv[1], encoding='utf-8'))
 ok = (d.get('error', {}).get('code') == 'WoodlandInspectionReadOnly' and d.get('refusal', {}).get('code') == 'WoodlandInspectionReadOnly'
       and d['inspection']['active'] is True and d['inspection']['canAdvanceTime'] is False
-      and 'nothing changed' in d['refusal']['message'] and 'api/' not in d['refusal']['message'])
+      and 'nothing changed' in d['refusal']['message'] and 'api/' not in d['refusal']['message']
+      and d.get('checkpoint') in ('admission', 'commit'))
 sys.exit(0 if ok else 1)
 PY
 }
@@ -134,7 +219,9 @@ common_view_checks() {
   local name="$1" plot="$2" golden="$3"
   check "L-$plot load: 200 with the plot active and read-only" py "$name" \
     "d['refusal'] is None and d['inspection'] == {'active': True, 'plotId': '$plot', 'displayName': d['current']['entry']['displayName'], 'canAdvanceTime': False}"
-  check "L-$plot the served view is the exact Part 1 view (golden SHA-256 $golden)" py "$name" "d['current']['viewSha256'] == '$golden'"
+  check "L-$plot the declared view hash is the Part 1 golden SHA-256 $golden" py "$name" "d['current']['viewSha256'] == '$golden'"
+  check "L-$plot the served view BYTES hash to the Part 1 golden (exact canonical JSON, not a re-serialisation)" \
+    test "$(race viewsha "$scratch/$name.json")" == "$golden"
   check "L-$plot 20 Year-0 trees, all plotted, summary agrees" py "$name" \
     "len(d['current']['view']['observedYear0']['trees']) == 20 and d['current']['summary'] == {'treeCount': 20, 'plottedTreeCount': 20, 'unplottedTreeCount': 0}"
   check "L-$plot readiness InventoryOnly, cannot advance time, no simulated future, Year 0 only" py "$name" \
@@ -258,6 +345,64 @@ check "X15 the refused New woodland changed nothing: the inspection stays active
   "d['inspection']['active'] is True and d['inspection']['plotId'] == 'IPlus_Donadea_MHF_2'"
 code="$(post exit3 woodland/inspection/exit '{}')"
 check "X16 final exit: 200" test "$code" == 200
+check "R04 a refusal made while a survey was already open is labelled as the admission check" py r-advance "d['checkpoint'] == 'admission'"
+
+# ---- K: commands admitted BEFORE a survey opens are refused at commit time (paused request bodies) ------------------
+# Each case sends only the headers of a valid command while no survey is open (so it passes admission), opens a survey,
+# and only then sends the body. checkpoint == "commit" proves the request got past admission and was stopped by the
+# in-lock recheck, so this exercises the reviewer's race rather than an ordinary sequential refusal.
+base="/s/$cap/"
+same_fence() { python3 -c 'import json,sys; a=json.load(open(sys.argv[1]))["view"]; b=json.load(open(sys.argv[2]))["view"]; sys.exit(0 if (a["sessionId"],a["source"],a["planStateRevision"])==(b["sessionId"],b["source"],b["planStateRevision"]) else 1)' "$scratch/$1.json" "$scratch/$2.json"; }
+commit_refusal() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); b=d["body"]; sys.exit(0 if d["loadStatus"]==200 and d["status"]==409 and b["refusal"]["code"]=="WoodlandInspectionReadOnly" and b["error"]["code"]=="WoodlandInspectionReadOnly" and b["checkpoint"]=="commit" and b["inspection"]["active"] else 1)' "$scratch/$1.json"; }
+
+code="$(get k-before view)"; fk="$(fence k-before)"; yk="$(year_of k-before)"
+race paused "$port" "$base" api/multi/year/advance "{\"fence\":$fk,\"consentToCancelWork\":false}" IPlus_Donadea_MHF_2 "$scratch/k1.json"
+check "K01 Advance admitted before Donadea opened, body sent after: 409 WoodlandInspectionReadOnly at the commit check" commit_refusal k1
+code="$(get k-after1 view)"
+check "K02 the playable woodland did not change: same year ($yk), session and revisions" same_fence k-before k-after1
+code="$(get k-cur1 woodland/inspection/current)"
+check "K03 the survey stayed open (Donadea)" py k-cur1 "d['inspection']['active'] is True and d['inspection']['plotId'] == 'IPlus_Donadea_MHF_2'"
+code="$(post k-exit1 woodland/inspection/exit '{}')"
+
+race paused "$port" "$base" api/multi/year/skip "{\"fence\":$fk,\"targetYear\":$((yk + 2))}" IPlus_Mersch "$scratch/k2.json"
+check "K04 Skip admitted before Mersch opened: 409 at the commit check" commit_refusal k2
+code="$(get k-after2 view)"
+check "K05 Skip changed nothing" same_fence k-before k-after2
+code="$(post k-exit2 woodland/inspection/exit '{}')"
+
+race paused "$port" "$base" api/multi/save "{\"fence\":$fk,\"slot\":\"insp-race\",\"replaceExisting\":false}" IPlus_Donadea_MHF_2 "$scratch/k3.json"
+check "K06 Save admitted before a survey opened: 409 at the commit check" commit_refusal k3
+code="$(get k-saves saves)"
+check "K07 no save slot was written by the refused Save" py k-saves "all(s['slot'] != 'insp-race' for s in d['slots'])"
+code="$(post k-exit3 woodland/inspection/exit '{}')"
+
+race paused "$port" "$base" api/multi/saves/recover '{"slot":"insp-part2"}' IPlus_Mersch "$scratch/k4.json"
+check "K08 save Recover admitted before a survey opened: 409 at the commit check (before any slot file is touched)" commit_refusal k4
+code="$(post k-exit4 woodland/inspection/exit '{}')"
+
+curl --silent --noproxy '*' --max-time 30 -o "$scratch/k-sa-before.json" "$origin/s/$cap/api/view"
+fsa="$(fence k-sa-before)"
+race paused "$port" "$base" api/year/advance "{\"fence\":$fsa,\"consentToCancelWork\":false}" IPlus_Donadea_MHF_2 "$scratch/k5.json"
+check "K09 single-area Advance admitted before a survey opened: 409 at the commit check" commit_refusal k5
+curl --silent --noproxy '*' --max-time 30 -o "$scratch/k-sa-after.json" "$origin/s/$cap/api/view"
+check "K10 the single-area session did not change" same_fence k-sa-before k-sa-after
+code="$(post k-exit5 woodland/inspection/exit '{}')"
+
+race paused "$port" "$base" api/multi/year/advance "{\"fence\":$fk,\"consentToCancelWork\":false}" none "$scratch/k6.json"
+check "K11 control: the same paused Advance with no survey opened commits (200, year $yk -> $((yk + 1)))" python3 -c \
+  'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d["status"]==200 and d["body"]["view"]["source"]["ecologicalYear"]==int(sys.argv[2])+1 else 1)' \
+  "$scratch/k6.json" "$yk"
+
+# ---- O: overlapping loads of opposite plots never return a contradictory reply -----------------------------------------
+race overlap "$port" "$base" 50 "$golden_donadea" "$golden_mersch" "$scratch/o1.json"
+check "O01 50 overlapping Donadea/Mersch load pairs: 100 replies, all 200" py o1 "d['responses'] == 100 and d['ok200'] == 100"
+check "O02 every reply's current survey, inspection status and requested plot agree (0 contradictory)" py o1 "d['contradictory'] == 0"
+check "O03 every reply's declared and actual view-byte SHA-256 match that plot's golden (0 mismatched)" py o1 "d['hashMismatched'] == 0"
+code="$(get o-cur woodland/inspection/current)"
+check "O04 after the overlap, GET current is self-consistent" py o-cur \
+  "d['inspection']['active'] is True and d['current']['entry']['plotId'] == d['inspection']['plotId']"
+code="$(post o-exit woodland/inspection/exit '{}')"
+check "O05 exit after the overlap: inactive status from the same commit" py o-exit "d['wasActive'] is True and d['inspection']['active'] is False"
 
 # ---- Z: clean shutdown ---------------------------------------------------------------------------------------------
 kill -INT "$server_pid"

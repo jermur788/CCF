@@ -35,6 +35,7 @@ R1 spec.md §4.1–4.3 corrections ratified by owner/Manager 2026-11-27 after de
 | **WN-P2-04** | `tests/woodland-inspection-part2-api.sh` API harness | `DONE` |
 | **WN-P2-05** | Gates: builds 0/0, engine suites, 9 anchors, module graph, UI smoke, Edge 1920×1080 + 1280×720 | `DONE` (see Part 2 handoff) |
 | **WN-P2-06** | `IMPLEMENTATION-HANDOFF-PART2.md`; push feature + review refs; no merge, no PR | `DONE` |
-| **WN-P2-07** | Independent review (fresh thread, not the builder) | `PENDING` |
+| **WN-P2-07** | Independent review (fresh thread, not the builder) | `NEEDS CHANGES` on `eaae40a4` (GPT-6.2 Sol: commit-time race BLOCKER; contradictory overlapping loads MAJOR; harness/checklist nits) → Repair R1 |
+| **WN-P2-R1** | Repair R1: in-lock commit-time recheck on every mutating route; single-snapshot inspection replies; canonical view bytes served and hashed; paused-body (K) and overlapping-load (O) tests; checklist route matrix corrected | `DONE` (delta re-review `PENDING`) |
 
 Deferred and out of scope for both parts: importer items NF-07, NF-08, NF-09; local ZIP upload; network retrieval.
