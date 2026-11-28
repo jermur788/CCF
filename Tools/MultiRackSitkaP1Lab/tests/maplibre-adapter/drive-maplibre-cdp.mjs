@@ -14,7 +14,9 @@
  * failed requests, non-loopback requests and audit setup failures. Exit 2 when WebGL2 is unavailable (NOT TESTED).
  *
  * B08, B20 and B24 are evaluated after every other case (B27-B31 run before them), so their header and audit checks
- * cover the whole run (results are reported in case-id order).
+ * cover the whole run (results are reported in case-id order). B24 pairs every browser request with its
+ * own server receipt (reconcileAttempts, repair cycle 5) and runs in-run withholding self-tests,
+ * including a real same-URL mixed duplicate (one request aborted after receipt, one answered 200).
  */
 
 import { spawn } from 'node:child_process';
@@ -170,7 +172,8 @@ function createAudit(cdp) {
     httpRequests: 0,
     responses: [], // every browser-reported http(s) response, page and worker sessions, whole run
     workers: [], // one record per attached worker target (see attachedToTarget below)
-    requests: new Map(), // "<session>|<requestId>" -> { url, responded, failed, canceled, fromCache }
+    requests: new Map(), // "<session>|<requestId>" -> { url, wallTimeMs, responded, responseStatus, fromCache, failed, canceled, endWallMs }
+    orphanResponses: [], // http(s) responses whose request was never announced (B24 fails on any)
   };
   const servedFromCache = new Set(); // "<session>|<requestId>" reported by Network.requestServedFromCache
   const workerBySession = new Map(); // CDP sessionId -> worker record
@@ -231,7 +234,8 @@ function createAudit(cdp) {
         if (/^https?:/.test(url)) {
           audit.httpRequests++;
           if (new URL(url).hostname !== '127.0.0.1') audit.nonLoopbackRequests.push(url);
-          if (key) audit.requests.set(key + '|' + p.requestId, { url, session: key, requestId: p.requestId, responded: false, failed: false, canceled: false });
+          if (key) audit.requests.set(key + '|' + p.requestId, { url, session: key, requestId: p.requestId, wallTimeMs: (p.wallTime || 0) * 1000, sentMonoSec: p.timestamp,
+            responded: false, responseStatus: null, fromCache: false, failed: false, canceled: false, endWallMs: null });
         } else if (!/^(data|blob|about):/.test(url)) {
           audit.nonLoopbackRequests.push(url);
         }
@@ -268,7 +272,8 @@ function createAudit(cdp) {
           // A worker's script request is announced in the page session and answered in the
           // worker's own session under the same requestId.
           const req = key ? audit.requests.get(key + '|' + p.requestId) || (worker ? audit.requests.get('page|' + p.requestId) : null) : null;
-          if (req) { req.responded = true; req.answeredIn = entry.session; }
+          if (req) { req.responded = true; req.answeredIn = entry.session; req.responseStatus = r.status; req.fromCache = entry.fromCache; }
+          else audit.orphanResponses.push({ url: r.url, status: r.status, session: entry.session, requestId: p.requestId });
         }
         if (r.status >= 400) audit.failedRequests.push(`HTTP ${r.status} ${r.url}`);
         break;
@@ -276,7 +281,12 @@ function createAudit(cdp) {
       case 'Network.loadingFailed': {
         const key = sessionKey(msg);
         const req = key ? audit.requests.get(key + '|' + p.requestId) : null;
-        if (req) { req.failed = true; req.canceled = Boolean(p.canceled); }
+        if (req) {
+          req.failed = true;
+          req.canceled = Boolean(p.canceled);
+          // Wall-clock end of the attempt (same session, so the same monotonic clock as its start).
+          if (req.session === key && typeof req.sentMonoSec === 'number' && typeof p.timestamp === 'number') req.endWallMs = req.wallTimeMs + (p.timestamp - req.sentMonoSec) * 1000;
+        }
         if (!p.canceled) audit.failedRequests.push(`LOAD_FAILED ${p.errorText} (${p.type || 'unknown'})`);
         break;
       }
@@ -324,36 +334,89 @@ export function exactKey(url) {
 }
 
 /**
- * B24 exact-URL response accounting (repair cycle 4). Server-written responses are reconciled with
- * browser-reported responses (page and worker sessions) by EXACT request target, counted as a
- * multiset, so duplicate URLs count once per response and a withheld exact URL is never covered by
- * other requests that share its pathname. Per exact target:
- *   expected = server responses - node-side responses (the driver's own direct 404 fetch)
- *   browser  = browser responses that came over the network (cache hits are counted separately)
- *   canceled = browser requests that were canceled before any response event (e.g. aborted imagery)
- * and it must hold that browser <= expected <= browser + canceled. A server response with no browser
- * response and no canceled request, or a browser response with no server response, is a failure.
- * The only documented exceptions are therefore the node-side 404, canceled/aborted requests (which
- * the server may or may not have answered) and browser cache hits (which have no server response).
+ * B24 per-attempt response accounting (repair cycle 5; replaces the repair-cycle-4 per-URL tally).
+ * Every browser network request (page and worker sessions; cache hits excluded) is paired with ITS OWN
+ * server receipt: same exact request target (path + query), received no earlier than the browser sent
+ * it (RECEIPT_LEAD_MS tolerance for Date.now() truncation; measured gaps are about -0.2 to +15 ms) and,
+ * for a canceled request, no later than its cancellation (CANCEL_LAG_MS tolerance). Pairing is in two
+ * passes, each in browser send order:
+ *   1. requests that got a response take the earliest eligible receipt whose response was delivered
+ *      (open socket) with the same status (or, failing that, the earliest eligible one, to name it);
+ *   2. canceled requests then take the earliest eligible receipt that was NOT delivered (no response,
+ *      or a response written after the client closed), and only if there is none a delivered one.
+ * So a cancellation is always paired with the attempt least able to cover a missing response. Then:
+ *   - a browser response must pair with a receipt whose response was written to an open socket with
+ *     the same status, otherwise "browser response without its own server response";
+ *   - a canceled browser request explains only its own receipt: no response, a response written after
+ *     the client closed (held imagery), or a response the browser abandoned (aborted mid-flight); it
+ *     may also have no receipt at all (canceled before it reached the server);
+ *   - every server-written response (open or closed socket) must have been paired with a browser
+ *     request, otherwise "server response without its own browser request/response". A cancellation
+ *     can therefore never stand in for another request's missing response, even at the same URL;
+ *   - a receipt that never got any response and has no browser request is reported but allowed
+ *     (an abandoned receipt is not a response);
+ *   - the node-side 404 is the only server response with no browser counterpart.
  */
-export function reconcileExactUrls({ server, nodeSide, browserResponses, browserRequests }) {
-  const tally = new Map();
+export const RECEIPT_LEAD_MS = 5;
+export const CANCEL_LAG_MS = 20; // measured: receipts of canceled requests arrived 1.7-1500 ms BEFORE the cancellation
+export function reconcileAttempts({ receipts, nodeSide, browserRequests }) {
+  const byKey = new Map();
   const at = (key) => {
-    if (!tally.has(key)) tally.set(key, { key, server: 0, node: 0, browser: 0, cached: 0, canceled: 0 });
-    return tally.get(key);
+    if (!byKey.has(key)) byKey.set(key, { key, receipts: [], browser: [], cached: 0 });
+    return byKey.get(key);
   };
-  for (const r of server) at(exactKey(r.url)).server++;
-  for (const r of nodeSide) at(exactKey(r.url)).node++;
-  for (const r of browserResponses) { const t = at(exactKey(r.url)); if (r.fromCache) t.cached++; else t.browser++; }
-  for (const q of browserRequests) if (q.canceled && !q.responded) at(exactKey(q.url)).canceled++;
+  const nodeLeft = new Map();
+  for (const r of nodeSide) nodeLeft.set(exactKey(r.url), (nodeLeft.get(exactKey(r.url)) || 0) + 1);
+  // The node-side requests are the driver's last ones, so they are the LAST receipts of their target.
+  for (const r of [...receipts].sort((a, b) => b.seq - a.seq)) {
+    const key = exactKey(r.url);
+    if (nodeLeft.get(key) > 0) { nodeLeft.set(key, nodeLeft.get(key) - 1); continue; }
+    at(key).receipts.push(r);
+  }
+  for (const q of browserRequests) {
+    if (q.responded && q.fromCache) { at(exactKey(q.url)).cached++; continue; }
+    at(exactKey(q.url)).browser.push(q);
+  }
   const serverWithoutBrowser = [];
   const browserWithoutServer = [];
-  for (const t of tally.values()) {
-    const expected = t.server - t.node;
-    if (t.browser > expected) browserWithoutServer.push(t);
-    else if (expected > t.browser + t.canceled) serverWithoutBrowser.push(t);
+  const abandonedReceipts = [];
+  const tally = [];
+  const gaps = []; // receipt time - browser send time for paired responded requests (diagnostic)
+  const describe = (r) => ({ seq: r.seq, status: r.responseStatus, closedSocket: Boolean(r.responseToClosedSocket) });
+  for (const t of byKey.values()) {
+    t.receipts.sort((a, b) => a.seq - b.seq);
+    t.browser.sort((a, b) => a.wallTimeMs - b.wallTimeMs);
+    const paired = new Set();
+    let canceledExplained = 0;
+    let canceledWithoutReceipt = 0;
+    const delivered = (r) => r.responseStatus !== null && !r.responseToClosedSocket;
+    const eligible = (q, latest) => t.receipts.filter((x) => !paired.has(x) && x.receivedAt >= q.wallTimeMs - RECEIPT_LEAD_MS && x.receivedAt <= latest);
+    for (const q of t.browser.filter((x) => x.responded)) {
+      const pool = eligible(q, Infinity);
+      const r = pool.find((x) => delivered(x) && x.responseStatus === q.responseStatus) || pool[0];
+      if (r) { paired.add(r); gaps.push(r.receivedAt - q.wallTimeMs); }
+      if (!r) browserWithoutServer.push({ key: t.key, requestId: q.requestId, status: q.responseStatus, reason: 'no server receipt' });
+      else if (!delivered(r) || r.responseStatus !== q.responseStatus) {
+        browserWithoutServer.push({ key: t.key, requestId: q.requestId, status: q.responseStatus, receipt: describe(r), reason: 'its own receipt has no matching delivered response' });
+      }
+    }
+    for (const q of t.browser.filter((x) => !x.responded)) {
+      if (!q.canceled) { browserWithoutServer.push({ key: t.key, requestId: q.requestId, reason: 'failed (not canceled)' }); continue; }
+      const pool = eligible(q, typeof q.endWallMs === 'number' ? q.endWallMs + CANCEL_LAG_MS : Infinity);
+      const r = pool.find((x) => !delivered(x)) || pool[0];
+      if (r) { paired.add(r); canceledExplained++; } else canceledWithoutReceipt++;
+    }
+    for (const r of t.receipts) {
+      if (paired.has(r)) continue;
+      if (r.responseStatus === null) abandonedReceipts.push({ key: t.key, seq: r.seq });
+      else serverWithoutBrowser.push({ key: t.key, ...describe(r) });
+    }
+    tally.push({ key: t.key, receipts: t.receipts.length, responses: t.receipts.filter((r) => r.responseStatus !== null).length,
+      browser: t.browser.length, responded: t.browser.filter((q) => q.responded).length, canceled: t.browser.filter((q) => q.canceled && !q.responded).length,
+      canceledExplained, canceledWithoutReceipt, cached: t.cached });
   }
-  return { tally: [...tally.values()], serverWithoutBrowser, browserWithoutServer };
+  const pairGapMs = gaps.length ? { min: Math.min(...gaps), max: Math.max(...gaps) } : null;
+  return { tally, serverWithoutBrowser, browserWithoutServer, abandonedReceipts, pairGapMs };
 }
 
 // ---- main -----------------------------------------------------------------------------------
@@ -1418,6 +1481,17 @@ async function main() {
     // ===== Whole-run checks (B08, B20 audit, B24) ===============================================
     await freshPage();
     await sleep(300);
+    // B24 mixed duplicate (repair cycle 5, the reviewer's reproduction, done for real): request A to an
+    // exact URL is aborted after the server received it (the server never answers A); request B to the
+    // SAME exact URL then gets 200. B24's self-tests withhold B's CDP events (must fail, naming the URL
+    // and B's response) and A's (must not fail).
+    const MIXED_URL = '/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate';
+    const mixedReceipts = () => srv.receiptLog.filter((r) => r.url === MIXED_URL);
+    await evaluate(`(() => { window.__B24A__ = new AbortController(); window.__B24A_RESULT__ = fetch(${JSON.stringify(MIXED_URL)}, { signal: window.__B24A__.signal, cache: 'no-store' }).then(() => 'responded', (e) => e.name); return true; })()`);
+    for (let end = Date.now() + 5000; mixedReceipts().length < 1 && Date.now() < end;) await sleep(20);
+    const mixedRun = await evaluate(`(async () => { window.__B24A__.abort(); const a = await window.__B24A_RESULT__;
+      const r = await fetch(${JSON.stringify(MIXED_URL)}, { cache: 'no-store' }); return { a, status: r.status, body: await r.text() }; })()`);
+    for (let end = Date.now() + 2000; !(mixedReceipts()[0] && mixedReceipts()[0].clientClosedBeforeResponse) && Date.now() < end;) await sleep(20);
     const direct404 = await fetch(srv.baseUrl + '/no-such-file');
     const nodeResponses = [{ path: '/no-such-file', url: '/no-such-file', status: direct404.status, session: 'node', csp: direct404.headers.get('content-security-policy'), referrer: direct404.headers.get('referrer-policy') }];
     await direct404.arrayBuffer();
@@ -1447,37 +1521,57 @@ async function main() {
     const missingBrowser = requiredBrowser.filter((x) => !browserPaths.has(x));
     const heldServer = serverResponses.filter((r) => r.pathname === '/fixtures/held-imagery.png');
     const server404 = serverResponses.filter((r) => r.status === 404);
-    // Repair cycle 4: every server-written response is reconciled with a browser response for the
-    // SAME exact request target (multiset), except the documented node-side 404, canceled requests and
-    // cache hits; every browser network response needs a server response too (reconcileExactUrls).
+    // Repair cycle 5: every browser request is paired with its OWN server receipt (exact URL, send
+    // order, time window), so a cancellation explains only its own attempt (reconcileAttempts).
     const browserRequests = [...audit.requests.values()];
-    const reconcileWith = (over = {}) => reconcileExactUrls({ server: serverResponses, nodeSide: nodeResponses, browserResponses, browserRequests, ...over });
+    const receipts = srv.receiptLog.slice();
+    const reconcileWith = (over = {}) => reconcileAttempts({ receipts, nodeSide: nodeResponses, browserRequests, ...over });
     const recon = reconcileWith();
-    const reconKeys = (r) => JSON.stringify({ server: r.serverWithoutBrowser.map((t) => t.key).sort(), browser: r.browserWithoutServer.map((t) => t.key).sort() });
+    const reconKeys = (r) => JSON.stringify({ server: [...new Set(r.serverWithoutBrowser.map((t) => t.key))].sort(), browser: [...new Set(r.browserWithoutServer.map((t) => t.key))].sort() });
+    const NO_GAPS = JSON.stringify({ server: [], browser: [] });
     const nodeKeys = new Set(nodeResponses.map((r) => exactKey(r.url)));
-    const serverKeys = recon.tally.filter((t) => t.server - t.node >= 1).map((t) => t.key);
-    const withoutKey = (key) => reconcileWith({ browserResponses: browserResponses.filter((r) => exactKey(r.url) !== key), browserRequests: browserRequests.filter((q) => exactKey(q.url) !== key) });
-    // Self-test 1 (the reviewer's reproduction, in-run): withhold BOTH CDP events for the exact B27
+    const serverKeys = [...new Set(serverResponses.map((r) => exactKey(r.url)))];
+    const withoutKey = (key) => reconcileWith({ browserRequests: browserRequests.filter((q) => exactKey(q.url) !== key) });
+    // Self-test 1 (repair cycle 4 reproduction, in-run): withhold BOTH CDP events for the exact B27
     // imagery URL. Other requests share its pathname; the accounting must still flag exactly that URL.
     const b27Key = exactKey(url27);
-    const b27Siblings = recon.tally.filter((t) => t.key !== b27Key && t.key.startsWith('/fixtures/synthetic-imagery.png') && t.browser >= 1).length;
+    const b27Siblings = recon.tally.filter((t) => t.key !== b27Key && t.key.startsWith('/fixtures/synthetic-imagery.png') && t.responded >= 1).length;
     const withheldB27 = reconKeys(withoutKey(b27Key));
-    const withheldB27Ok = recon.tally.some((t) => t.key === b27Key && t.server >= 1) && b27Siblings >= 1 && withheldB27 === JSON.stringify({ server: [b27Key], browser: [] });
+    const withheldB27Ok = recon.tally.some((t) => t.key === b27Key && t.responses >= 1) && b27Siblings >= 1 && withheldB27 === JSON.stringify({ server: [b27Key], browser: [] });
     // Self-test 2: the same for every exact target the server answered (node-side 404 excluded).
-    const sweepMissed = serverKeys.filter((key) => !nodeKeys.has(key) && reconKeys(withoutKey(key)) !== JSON.stringify({ server: [key], browser: [] }));
-    // Self-test 3 (reverse direction): a browser response whose server response is missing.
-    const dropServer = (key) => { const i = serverResponses.findIndex((r) => exactKey(r.url) === key); return serverResponses.filter((_, j) => j !== i); };
-    const reverseB27 = reconKeys(reconcileWith({ server: dropServer(b27Key) }));
-    const reverseOk = reverseB27 === JSON.stringify({ server: [], browser: [b27Key] });
-    // Self-test 4 (duplicate URLs count per response): drop ONE browser response of a target answered several times.
-    const dupKey = (recon.tally.find((t) => t.browser >= 3 && t.canceled === 0 && t.cached === 0) || {}).key;
-    const dupIndex = dupKey ? browserResponses.findIndex((r) => exactKey(r.url) === dupKey && !r.fromCache) : -1;
-    const dupDropped = dupKey ? reconKeys(reconcileWith({ browserResponses: browserResponses.filter((_, j) => j !== dupIndex) })) : null;
+    const sweepKeys = serverKeys.filter((key) => !nodeKeys.has(key));
+    const sweepMissed = sweepKeys.filter((key) => reconKeys(withoutKey(key)) !== JSON.stringify({ server: [key], browser: [] }));
+    // Self-test 3 (reverse direction): a browser response whose server receipt is missing.
+    const b27Receipt = receipts.find((r) => exactKey(r.url) === b27Key && r.responseStatus !== null);
+    const reverseB27 = reconKeys(reconcileWith({ receipts: receipts.filter((r) => r !== b27Receipt) }));
+    const reverseOk = Boolean(b27Receipt) && reverseB27 === JSON.stringify({ server: [], browser: [b27Key] });
+    // Self-test 4 (duplicate URLs count per attempt): withhold ONE browser request of a target answered several times.
+    const dupCandidates = recon.tally.filter((t) => t.responded >= 3 && t.canceled === 0 && t.cached === 0);
+    const dupKey = (dupCandidates.find((t) => t.key === '/harness.html') || dupCandidates[0] || {}).key;
+    const dupReq = dupKey ? browserRequests.find((q) => exactKey(q.url) === dupKey && q.responded) : null;
+    const dupDropped = dupKey ? reconKeys(reconcileWith({ browserRequests: browserRequests.filter((q) => q !== dupReq) })) : null;
     const dupOk = Boolean(dupKey) && dupDropped === JSON.stringify({ server: [dupKey], browser: [] });
+    // Self-test 5 (repair cycle 5, the reviewer's mixed duplicate): same exact URL, A canceled after the
+    // server received it (no response), B answered 200. Withholding only B's CDP events must fail and
+    // name B's response; withholding only A's must not fail.
+    const mixedKey = exactKey(MIXED_URL);
+    const mixedReqs = browserRequests.filter((q) => exactKey(q.url) === mixedKey);
+    const mixedA = mixedReqs.find((q) => q.canceled && !q.responded);
+    const mixedB = mixedReqs.find((q) => q.responded && q.responseStatus === 200);
+    const mixedR = mixedReceipts();
+    const mixedSetUp = mixedRun.a === 'AbortError' && mixedRun.status === 200 && mixedRun.body === 'ok' && mixedReqs.length === 2 && Boolean(mixedA) && Boolean(mixedB)
+      && mixedR.length === 2 && mixedR[0].responseStatus === null && mixedR[0].clientClosedBeforeResponse && mixedR[1].responseStatus === 200 && !mixedR[1].responseToClosedSocket;
+    const withheldMixedB = reconcileWith({ browserRequests: browserRequests.filter((q) => q !== mixedB) });
+    const withheldMixedBOk = mixedSetUp && withheldMixedB.browserWithoutServer.length === 0 && withheldMixedB.serverWithoutBrowser.length === 1
+      && withheldMixedB.serverWithoutBrowser[0].key === mixedKey && withheldMixedB.serverWithoutBrowser[0].seq === mixedR[1].seq && withheldMixedB.serverWithoutBrowser[0].status === 200;
+    const withheldMixedA = reconcileWith({ browserRequests: browserRequests.filter((q) => q !== mixedA) });
+    const withheldMixedAOk = mixedSetUp && reconKeys(withheldMixedA) === NO_GAPS;
     const reconCanceled = recon.tally.reduce((n, t) => n + t.canceled, 0);
+    const reconCanceledWithout = recon.tally.reduce((n, t) => n + t.canceledWithoutReceipt, 0);
     const reconCached = recon.tally.reduce((n, t) => n + t.cached, 0);
-    const reconCanceledKeys = recon.tally.filter((t) => t.canceled > 0 && t.server - t.node > t.browser).map((t) => `${t.key} (server ${t.server}, browser ${t.browser}, canceled ${t.canceled})`);
-    const accountingOk = recon.serverWithoutBrowser.length === 0 && recon.browserWithoutServer.length === 0 && withheldB27Ok && sweepMissed.length === 0 && reverseOk && dupOk;
+    const reconCanceledKeys = recon.tally.filter((t) => t.canceled > 0).map((t) => `${t.key} (receipts ${t.receipts}, responses ${t.responses}, responded ${t.responded}, canceled ${t.canceled}: own receipt ${t.canceledExplained}, none ${t.canceledWithoutReceipt})`);
+    const accountingOk = recon.serverWithoutBrowser.length === 0 && recon.browserWithoutServer.length === 0 && audit.orphanResponses.length === 0
+      && withheldB27Ok && sweepMissed.length === 0 && reverseOk && dupOk && withheldMixedBOk && withheldMixedAOk;
     const lastLoss = (list, key) => { const copy = list.map((r) => ({ ...r })); delete copy[copy.length - 1][key]; return headerMismatches(copy).length; };
     const sensitivity = {
       browserLastCsp: lastLoss(browserResponses, 'csp'),
@@ -1516,8 +1610,10 @@ async function main() {
       `required response kinds seen by the browser: ${requiredBrowser.length - missingBrowser.length}/${requiredBrowser.length}${missingBrowser.length ? ' missing ' + missingBrowser.join(',') : ''} (incl. the intentional silent-worker fixture x${silentWorkerResponses.length}); `
       + `${audit.workers.length} worker targets (${new Set(audit.workers.map((w) => w.sessionId)).size} distinct sessions, ${workerScriptUrls.size} distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=${workerFailures.length}${workerFailures.length ? ' ' + JSON.stringify(workerFailures) : ''}); audit setup failures=${audit.setupFailures.length}; unanswered requests=${unanswered.length}; other worker-internal responses=${workerInternal}; `
       + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; `
-      + `exact-URL accounting over ${recon.tally.length} exact targets / ${serverResponses.length} server responses / ${browserResponses.length} browser responses: server-without-browser=${recon.serverWithoutBrowser.length}${recon.serverWithoutBrowser.length ? ' ' + JSON.stringify(recon.serverWithoutBrowser) : ''}, browser-without-server=${recon.browserWithoutServer.length}${recon.browserWithoutServer.length ? ' ' + JSON.stringify(recon.browserWithoutServer) : ''}; exceptions used: node-side 404 x${nodeResponses.length}, canceled requests=${reconCanceled} (covering server-only responses at: ${reconCanceledKeys.join(', ') || 'none'}), cache hits=${reconCached}; `
-      + `accounting self-tests: withhold both CDP events for ${b27Key} (${b27Siblings} other exact URLs share its pathname) -> ${withheldB27} [${withheldB27Ok ? 'ok' : 'FAIL'}]; same for each of ${serverKeys.filter((k) => !nodeKeys.has(k)).length} server-answered targets -> missed ${sweepMissed.length}${sweepMissed.length ? ' ' + JSON.stringify(sweepMissed.slice(0, 5)) : ''}; drop its server response -> ${reverseB27} [${reverseOk ? 'ok' : 'FAIL'}]; drop 1 of the browser responses for duplicate target ${dupKey} -> ${dupDropped} [${dupOk ? 'ok' : 'FAIL'}]; `
+      + `per-attempt accounting over ${recon.tally.length} exact targets / ${receipts.length} server receipts / ${serverResponses.length} server responses / ${browserRequests.length} browser requests: server-response-without-its-own-browser-request=${recon.serverWithoutBrowser.length}${recon.serverWithoutBrowser.length ? ' ' + JSON.stringify(recon.serverWithoutBrowser) : ''}, browser-response-without-its-own-server-response=${recon.browserWithoutServer.length}${recon.browserWithoutServer.length ? ' ' + JSON.stringify(recon.browserWithoutServer) : ''}, orphan browser responses=${audit.orphanResponses.length}; `
+      + `exceptions used: node-side 404 x${nodeResponses.length}, canceled requests=${reconCanceled} (each explains only its own receipt; without a receipt=${reconCanceledWithout}; at: ${reconCanceledKeys.join(', ') || 'none'}), abandoned receipts (no response ever written)=${JSON.stringify(recon.abandonedReceipts)}, cache hits=${reconCached}; receipt-after-send gap ${recon.pairGapMs ? recon.pairGapMs.min.toFixed(1) + '..' + recon.pairGapMs.max.toFixed(1) : 'n/a'} ms (lead tolerance ${RECEIPT_LEAD_MS} ms); `
+      + `accounting self-tests: mixed duplicate ${mixedKey} (A aborted after receipt #${mixedR[0] ? mixedR[0].seq : '?'} with no response -> ${mixedRun.a}; B -> ${mixedRun.status} as receipt #${mixedR[1] ? mixedR[1].seq : '?'}; set up=${mixedSetUp}): withhold only B's CDP events -> ${JSON.stringify(withheldMixedB.serverWithoutBrowser)} [${withheldMixedBOk ? 'ok' : 'FAIL'}], withhold only A's -> ${reconKeys(withheldMixedA)} [${withheldMixedAOk ? 'ok' : 'FAIL'}]; `
+      + `withhold both CDP events for ${b27Key} (${b27Siblings} other exact URLs share its pathname) -> ${withheldB27} [${withheldB27Ok ? 'ok' : 'FAIL'}]; same for each of ${sweepKeys.length} server-answered targets -> missed ${sweepMissed.length}${sweepMissed.length ? ' ' + JSON.stringify(sweepMissed.slice(0, 5)) : ''}; drop its server response -> ${reverseB27} [${reverseOk ? 'ok' : 'FAIL'}]; withhold 1 of the browser requests for duplicate target ${dupKey} -> ${dupDropped} [${dupOk ? 'ok' : 'FAIL'}]; `
       + `own-URL response types seen=${JSON.stringify(scriptTypes)}; resource-type self-test: silent workers=${silentWorkers.length}, their same-URL Fetch responses=${JSON.stringify(fetchTwins)}, withholding their Script responses but keeping the Fetch -> ${withheldScript.length} failure(s) [${withheldOk ? 'ok' : 'FAIL'}]; `
       + `sensitivity: drop one worker's script response -> ${dropOne} failure, lend it a same-URL twin's response -> ${borrowed} failure; dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
 
@@ -1547,12 +1643,17 @@ async function main() {
         setupFailures: audit.setupFailures,
         unansweredRequests: unanswered,
         serverRequests: srv.requestLog.length,
+        serverReceipts: srv.receiptLog.length,
+        attemptAccounting: { serverWithoutBrowser: recon.serverWithoutBrowser, browserWithoutServer: recon.browserWithoutServer, abandonedReceipts: recon.abandonedReceipts,
+          orphanResponses: audit.orphanResponses, mixedDuplicate: { url: mixedKey, setUp: mixedSetUp, withholdB: withheldMixedBOk ? 'fails as required' : 'NOT DETECTED', withholdA: withheldMixedAOk ? 'no false failure' : 'FALSE FAILURE' } },
       },
       cases: results,
     };
     writeFileSync(join(evidenceDir, 'cdp-matrix-report.json'), JSON.stringify(report, null, 2) + '\n');
     writeFileSync(join(evidenceDir, 'server-request-log.json'), JSON.stringify(srv.requestLog, null, 1) + '\n');
     writeFileSync(join(evidenceDir, 'browser-responses.json'), JSON.stringify(browserResponses, null, 1) + '\n');
+    writeFileSync(join(evidenceDir, 'browser-requests.json'), JSON.stringify(browserRequests, null, 1) + '\n');
+    writeFileSync(join(evidenceDir, 'server-receipt-log.json'), JSON.stringify(srv.receiptLog, null, 1) + '\n');
     console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}, setup_failures=${audit.setupFailures.length}, unanswered=${unanswered.length}`);
     for (const key of ['consoleErrors', 'cspViolations', 'failedRequests', 'nonLoopbackRequests', 'setupFailures']) {
       if (audit[key].length) console.log(key.toUpperCase() + ': ' + JSON.stringify(audit[key], null, 1));

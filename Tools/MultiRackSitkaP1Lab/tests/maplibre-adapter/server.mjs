@@ -12,10 +12,15 @@
  *                                     browser's own decoder rejects it (B31)
  *   /fixtures/held-imagery.png        the synthetic PNG, but the response is held until the driver
  *                                     calls releaseHeld() (deterministic "slow imagery" for B22)
+ *   /fixtures/abandoned-then-ok.txt   B24 mixed duplicate: the FIRST receipt of each exact request target
+ *                                     is never answered (the client aborts it), every later one gets 200
  *
  * requestLog records, for every response actually written, the CSP and Referrer-Policy values
  * the server sent, so the driver can check headers for requests the browser never reports
  * (aborted, held or node-side requests) as well as the ones it does.
+ * receiptLog records every request the server received, in arrival order, answered or not, with
+ * its response status (null if none was ever written) and whether the client had closed the socket
+ * first. B24 pairs each browser request with its own receipt (repair cycle 5).
  */
 
 import http from 'node:http';
@@ -53,7 +58,9 @@ export async function startHarnessServer() {
   // and the failure comes from the browser's own image decoder.
   const corrupt = Buffer.concat([imagery.subarray(0, 8), Buffer.from('this is not a PNG chunk stream '.repeat(8))]);
   const requestLog = [];
+  const receiptLog = [];
   const held = [];
+  const abandonedOnce = new Set(); // exact targets of /fixtures/abandoned-then-ok.txt already received once
 
   const server = http.createServer((req, res) => {
     res.setHeader('Content-Security-Policy', STRICT_CSP_HEADER);
@@ -66,18 +73,31 @@ export async function startHarnessServer() {
     } catch {
       pathname = '<malformed>';
     }
+    // Every request the server receives gets a receipt (in arrival order), answered or not, so B24 can
+    // tell a receipt the client abandoned before any response from a response that was written.
+    const receipt = { seq: receiptLog.length + 1, method: req.method, url: req.url || '/', pathname, receivedAt: Date.now(),
+      clientPort: req.socket.remotePort, responseStatus: null, responseToClosedSocket: null, clientClosedBeforeResponse: false, clientClosedAfterResponse: false };
+    receiptLog.push(receipt);
+    res.on('close', () => {
+      if (receipt.responseStatus === null) receipt.clientClosedBeforeResponse = true;
+      else if (!res.writableFinished) receipt.clientClosedAfterResponse = true;
+    });
     const send = (status, type, body) => {
       res.writeHead(status, { 'Content-Type': type });
+      receipt.responseStatus = status;
       requestLog.push({
         method: req.method,
         pathname,
-        url: req.url || '/', // exact request target (path + query), reconciled 1:1 with browser events in B24
+        url: req.url || '/', // exact request target (path + query), reconciled with browser events in B24
         status,
         at: Date.now(),
+        receiptSeq: receipt.seq,
         csp: res.getHeader('Content-Security-Policy') ?? null,
         referrer: res.getHeader('Referrer-Policy') ?? null,
-        clientClosed: res.destroyed || req.destroyed,
+        // true when the client had already closed the socket, so this response could not be delivered
+        clientClosed: Boolean(res.destroyed || req.destroyed || receipt.clientClosedBeforeResponse),
       });
+      receipt.responseToClosedSocket = requestLog[requestLog.length - 1].clientClosed;
       res.end(body);
     };
 
@@ -86,6 +106,10 @@ export async function startHarnessServer() {
     if (pathname === '/fixtures/held-imagery.png') {
       held.push(() => send(200, MIME['.png'], imagery));
       return undefined;
+    }
+    if (pathname === '/fixtures/abandoned-then-ok.txt') {
+      if (!abandonedOnce.has(receipt.url)) { abandonedOnce.add(receipt.url); return undefined; } // never answered
+      return send(200, MIME['.txt'], 'ok');
     }
     if (pathname === '/fixtures/corrupt-imagery.png') return send(200, MIME['.png'], corrupt);
     if (pathname === '/fixtures/not-an-image.png') return send(200, MIME['.txt'], 'imagery service unavailable');
@@ -108,6 +132,7 @@ export async function startHarnessServer() {
   return {
     baseUrl: 'http://127.0.0.1:' + port,
     requestLog,
+    receiptLog,
     heldCount: () => held.length,
     /** Answer every held imagery request now (sockets the browser already closed are written anyway). */
     releaseHeld: () => { const n = held.length; held.splice(0).forEach((reply) => reply()); return n; },

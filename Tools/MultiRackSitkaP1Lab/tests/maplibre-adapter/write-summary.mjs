@@ -18,7 +18,7 @@ const cdp = cdpText ? JSON.parse(cdpText) : null;
 const status = (rc) => (Number(rc) === 0 ? 'PASS' : Number(rc) === 2 ? 'NOT TESTED' : 'FAIL');
 
 const summary = {
-  schemaVersion: 5, // v5 (repair cycle 4): B01-B31, exact-URL response accounting; v4 Script-type worker startup evidence; v3 per-worker-target coverage
+  schemaVersion: 6, // v6 (repair cycle 5): per-attempt response accounting (browser request <-> its own server receipt); v5 B01-B31, exact-URL accounting; v4 Script-type worker startup evidence; v3 per-worker-target coverage
   generatedUtc: new Date().toISOString(),
   testedCommit: git('rev-parse', 'HEAD'),
   testedTreeDirty: (git('status', '--porcelain', '--', 'Tools/MultiRackSitkaP1Lab/src/Ui/multi/map', 'Tools/MultiRackSitkaP1Lab/tests/maplibre-adapter') || '') !== '',
@@ -53,6 +53,16 @@ const summary = {
       workerTargets: Array.isArray(cdp.audit.workerTargets) ? cdp.audit.workerTargets.length : null,
       auditSetupFailures: Array.isArray(cdp.audit.setupFailures) ? cdp.audit.setupFailures.length : null,
       unansweredRequests: Array.isArray(cdp.audit.unansweredRequests) ? cdp.audit.unansweredRequests.length : null,
+      serverReceipts: cdp.audit.serverReceipts ?? null,
+      attemptAccounting: cdp.audit.attemptAccounting
+        ? {
+          serverResponsesWithoutOwnBrowserRequest: cdp.audit.attemptAccounting.serverWithoutBrowser.length,
+          browserResponsesWithoutOwnServerResponse: cdp.audit.attemptAccounting.browserWithoutServer.length,
+          orphanBrowserResponses: cdp.audit.attemptAccounting.orphanResponses.length,
+          abandonedReceipts: cdp.audit.attemptAccounting.abandonedReceipts.length,
+          mixedDuplicate: cdp.audit.attemptAccounting.mixedDuplicate,
+        }
+        : null,
       headerMismatches: cdp.audit.headerMismatches ? cdp.audit.headerMismatches.browser.length + cdp.audit.headerMismatches.server.length + cdp.audit.headerMismatches.node.length : null,
       cases: cdp.cases.map((c) => ({ id: c.id, status: c.status, detail: c.detail })),
     }
