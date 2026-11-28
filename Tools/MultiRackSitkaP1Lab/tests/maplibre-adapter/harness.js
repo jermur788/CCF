@@ -1,5 +1,5 @@
 /**
- * Browser side of the B01-B26 harness. Loads the real map contract and the adapter, records
+ * Browser side of the B01-B29 harness. Loads the real map contract and the adapter, records
  * pointer callbacks, modal calls, storage writes and CSP violations, and exposes a small
  * control surface on window.__CCF_HARNESS__ for drive-maplibre-cdp.mjs.
  */
@@ -29,6 +29,24 @@ document.addEventListener('securitypolicyviolation', (e) => {
   cspViolations.push({ directive: e.violatedDirective, blocked: e.blockedURI, source: e.sourceFile });
 });
 
+// B27: hold image decodes (after the image bytes have arrived) until the driver releases them.
+// Only decodes of image blobs are held, and only while holding is switched on. A released decode
+// runs the real createImageBitmap; the bitmap it produced is kept so the driver can check that the
+// adapter closed (discarded) it.
+const realCreateImageBitmap = window.createImageBitmap.bind(window);
+const heldDecodes = [];
+const lateBitmaps = [];
+let holdingDecodes = false;
+window.createImageBitmap = function createImageBitmap(source, ...rest) {
+  if (holdingDecodes && source instanceof Blob && /^image\//.test(source.type)) {
+    return new Promise((resolve, reject) => {
+      heldDecodes.push(() => realCreateImageBitmap(source, ...rest).then((bitmap) => { lateBitmaps.push(bitmap); resolve(bitmap); }, reject));
+    });
+  }
+  return realCreateImageBitmap(source, ...rest);
+};
+let decodesHeldTotal = 0;
+
 const host = document.getElementById('map-host');
 const pointerEvents = [];
 const diagnostics = [];
@@ -39,7 +57,7 @@ function create(mode = 'default', extra = {}) {
   if (adapter) adapter.destroy();
   if (realGetContext) { HTMLCanvasElement.prototype.getContext = realGetContext; realGetContext = null; }
   diagnostics.length = 0;
-  const options = { exposeDebug: true, onDiagnostic: (e) => diagnostics.push(e), ...extra };
+  const options = { exposeDebug: true, onDiagnostic: (e) => diagnostics.push({ ...e, at: performance.now() }), ...extra };
   if (mode === 'module-fail') options.loadMapLibre = async () => { throw new Error('simulated module load failure'); };
   if (mode === 'worker-silent') {
     options.workerUrl = new URL('/harness/fixtures/silent-worker.mjs', window.location.href).href;
@@ -221,11 +239,16 @@ window.__CCF_HARNESS__ = {
   firstFrameJson: () => firstFrameJson,
   pointerEvents: () => pointerEvents.slice(),
   clearPointerEvents: () => { pointerEvents.length = 0; },
-  diagnostics: () => diagnostics.map((d) => ({ kind: d.kind, url: d.url, reason: d.reason, code: d.code })),
+  diagnostics: () => diagnostics.map((d) => ({ kind: d.kind, url: d.url, reason: d.reason, code: d.code, at: d.at })),
   constructedCount: () => diagnostics.filter((d) => d.kind === 'map-constructed').length,
   modalCalls: () => modalCalls.slice(),
   openDialogs: () => document.querySelectorAll('dialog[open], [role="alertdialog"]').length,
   storageWrites: () => storageWrites.slice(),
   cspViolations: () => cspViolations.slice(),
+  holdDecodes: (on) => { holdingDecodes = Boolean(on); return holdingDecodes; },
+  heldDecodeCount: () => heldDecodes.length + decodesHeldTotal,
+  releaseDecodes: () => { const n = heldDecodes.length; decodesHeldTotal += n; heldDecodes.splice(0).forEach((run) => run()); return n; },
+  /** Bitmaps produced by released decodes: [width, height]; a closed ImageBitmap reports 0 x 0. */
+  lateBitmapSizes: () => lateBitmaps.map((b) => [b.width, b.height]),
   ready: true,
 };

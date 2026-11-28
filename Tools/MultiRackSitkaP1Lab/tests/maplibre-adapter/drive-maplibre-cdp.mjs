@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /**
- * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B26 for the MapLibre Display Adapter.
+ * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B29 for the MapLibre Display Adapter.
  *
  * - Loopback static server (server.mjs) sends the exact strict CSP + Referrer-Policy on every response.
  * - Chromium uses SwiftShader WebGL (no --disable-gpu), --host-resolver-rules that fail every
  *   hostname except 127.0.0.1, and a dead proxy so even IP-literal outbound requests fail loudly.
- * - Dedicated workers are auto-attached so worker console errors and worker URLs are audited too.
+ * - Dedicated workers are auto-attached (paused until their session is set up) and tracked per CDP
+ *   session/target id, so worker console errors, requests and each worker's own script response
+ *   are audited too; audit setup failures fail the run.
  *
  * Usage: node drive-maplibre-cdp.mjs --out <evidence-dir>
- * Exit 0 only if all 26 cases pass and the audit has zero console errors, CSP violations,
- * failed requests and non-loopback requests. Exit 2 when WebGL2 is unavailable (NOT TESTED).
+ * Exit 0 only if all 29 cases pass and the audit has zero console errors, CSP violations,
+ * failed requests, non-loopback requests and audit setup failures. Exit 2 when WebGL2 is unavailable (NOT TESTED).
  *
- * B08, B20 and B24 are evaluated after every other case, so their header and audit checks
+ * B08, B20 and B24 are evaluated after every other case (B27-B29 run before them), so their header and audit checks
  * cover the whole run (results are reported in case-id order).
  */
 
@@ -32,7 +34,7 @@ const H = 720;
 const BG = [21, 37, 26]; // #15251a
 const IMG = [196, 168, 92]; // synthetic imagery margin colour
 const WORKER_PATH = '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl-worker.mjs';
-const EXPECTED_CASES = 26;
+const EXPECTED_CASES = 29;
 mkdirSync(evidenceDir, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -144,29 +146,69 @@ export function headerMismatches(responses) {
 
 // ---- audit: everything the page and its workers report --------------------------------------
 
+/**
+ * Collects console errors, CSP violations, requests and responses from the page and from every
+ * auto-attached worker. Each worker is tracked by its own CDP session id and target id (never by
+ * script URL), so one worker's script response can never stand in for another's. Anything that
+ * would make the audit blind is recorded in setupFailures, which fails the run:
+ *   - an attached target without a session id or target id, or of an unexpected type;
+ *   - a worker that was not paused for the debugger (its script response could be missed);
+ *   - Runtime/Log/Network.enable or runIfWaitingForDebugger failing for a worker session;
+ *   - network events from a session that was never attached;
+ *   - an http(s) request that never got a response or a loading failure (a skipped response);
+ *     a worker's script request is announced in the page session and answered in the worker's
+ *     own session under the same requestId, so it only counts as answered there.
+ */
 function createAudit(cdp) {
   const audit = {
     consoleErrors: [],
     cspViolations: [],
     failedRequests: [],
     nonLoopbackRequests: [],
+    setupFailures: [],
+    setupTasks: [],
     httpRequests: 0,
     responses: [], // every browser-reported http(s) response, page and worker sessions, whole run
-    workers: [],
+    workers: [], // one record per attached worker target (see attachedToTarget below)
+    requests: new Map(), // "<session>|<requestId>" -> { url, responded, failed }
   };
-  const sessionUrl = new Map(); // CDP sessionId -> worker URL
+  const workerBySession = new Map(); // CDP sessionId -> worker record
   const isCsp = (t) => /Content[- ]Security[- ]Policy|Refused to/i.test(t);
+  const sessionKey = (msg) => {
+    if (!msg.sessionId) return 'page';
+    if (workerBySession.has(msg.sessionId)) return msg.sessionId;
+    audit.setupFailures.push(`${msg.method} from a session that was never attached (${msg.sessionId})`);
+    return null;
+  };
   cdp.listeners.push((msg) => {
     const p = msg.params || {};
     switch (msg.method) {
-      case 'Target.attachedToTarget':
-        audit.workers.push({ url: p.targetInfo.url, type: p.targetInfo.type, at: Date.now() });
-        sessionUrl.set(p.sessionId, p.targetInfo.url);
-        for (const method of ['Runtime.enable', 'Log.enable', 'Network.enable']) {
-          cdp.send(method, {}, p.sessionId).catch(() => {});
+      case 'Target.attachedToTarget': {
+        const info = p.targetInfo || {};
+        if (!p.sessionId || !info.targetId) {
+          audit.setupFailures.push('attached target without a session id or target id: ' + JSON.stringify(info));
+          break;
         }
-        cdp.send('Runtime.runIfWaitingForDebugger', {}, p.sessionId).catch(() => {});
+        const worker = { sessionId: p.sessionId, targetId: info.targetId, url: info.url, type: info.type, at: Date.now(),
+          setup: 'pending', scriptResponses: [], otherResponses: [] };
+        workerBySession.set(p.sessionId, worker);
+        audit.workers.push(worker);
+        if (info.type !== 'worker') audit.setupFailures.push(`unexpected auto-attached target type "${info.type}" (${info.url})`);
+        if (p.waitingForDebugger !== true) audit.setupFailures.push(`worker ${info.targetId} was not paused for the debugger; its script response could be missed`);
+        // Enable the domains in order and only then let the worker run, so its own script response is reported.
+        audit.setupTasks.push((async () => {
+          for (const method of ['Runtime.enable', 'Log.enable', 'Network.enable', 'Runtime.runIfWaitingForDebugger']) {
+            try {
+              await cdp.send(method, {}, p.sessionId);
+            } catch (err) {
+              worker.setup = 'failed';
+              audit.setupFailures.push(`${method} failed for worker ${info.targetId} (${info.url}): ${err && err.message ? err.message : err}`);
+            }
+          }
+          if (worker.setup === 'pending') worker.setup = 'ok';
+        })());
         break;
+      }
       case 'Runtime.exceptionThrown':
         audit.consoleErrors.push('exception: ' + (p.exceptionDetails?.exception?.description || p.exceptionDetails?.text));
         break;
@@ -183,39 +225,78 @@ function createAudit(cdp) {
         }
         break;
       case 'Network.requestWillBeSent': {
+        const key = sessionKey(msg);
         const url = p.request?.url || '';
         if (/^https?:/.test(url)) {
           audit.httpRequests++;
           if (new URL(url).hostname !== '127.0.0.1') audit.nonLoopbackRequests.push(url);
+          if (key) audit.requests.set(key + '|' + p.requestId, { url, session: key, responded: false, failed: false });
         } else if (!/^(data|blob|about):/.test(url)) {
           audit.nonLoopbackRequests.push(url);
         }
         break;
       }
       case 'Network.responseReceived': {
+        const key = sessionKey(msg);
         const r = p.response || {};
         const headers = Object.fromEntries(Object.entries(r.headers || {}).map(([k, v]) => [k.toLowerCase(), v]));
         if (/^https?:/.test(r.url || '')) {
-          audit.responses.push({
+          const worker = key && key !== 'page' ? workerBySession.get(key) : null;
+          const entry = {
             url: r.url,
             path: new URL(r.url).pathname,
             status: r.status,
-            session: msg.sessionId ? 'worker:' + (sessionUrl.get(msg.sessionId) || msg.sessionId) : 'page',
+            session: worker ? 'worker:' + worker.targetId : key === 'page' ? 'page' : 'unattached:' + msg.sessionId,
+            sessionId: msg.sessionId || null,
             csp: headers['content-security-policy'],
             referrer: headers['referrer-policy'],
-          });
+          };
+          audit.responses.push(entry);
+          if (worker) (r.url === worker.url ? worker.scriptResponses : worker.otherResponses).push(entry);
+          // A worker's script request is announced in the page session and answered in the
+          // worker's own session under the same requestId.
+          const req = key ? audit.requests.get(key + '|' + p.requestId) || (worker ? audit.requests.get('page|' + p.requestId) : null) : null;
+          if (req) { req.responded = true; req.answeredIn = entry.session; }
         }
         if (r.status >= 400) audit.failedRequests.push(`HTTP ${r.status} ${r.url}`);
         break;
       }
-      case 'Network.loadingFailed':
+      case 'Network.loadingFailed': {
+        const key = sessionKey(msg);
+        const req = key ? audit.requests.get(key + '|' + p.requestId) : null;
+        if (req) req.failed = true;
         if (!p.canceled) audit.failedRequests.push(`LOAD_FAILED ${p.errorText} (${p.type || 'unknown'})`);
         break;
+      }
       default:
         break;
     }
   });
   return audit;
+}
+
+/**
+ * Per-worker-target coverage: every attached worker must have finished its CDP setup and have
+ * reported, in its own session, its own script response (URL equal to the target URL, HTTP 200,
+ * exact CSP and Referrer-Policy). Returns the workers that fail, with the reason.
+ */
+export function workerCoverageFailures(workers) {
+  const failures = [];
+  const sessions = new Set();
+  const targets = new Set();
+  for (const w of workers) {
+    if (sessions.has(w.sessionId)) failures.push({ targetId: w.targetId, reason: 'duplicate session id' });
+    if (targets.has(w.targetId)) failures.push({ targetId: w.targetId, reason: 'duplicate target id' });
+    sessions.add(w.sessionId);
+    targets.add(w.targetId);
+    if (w.setup !== 'ok') failures.push({ targetId: w.targetId, reason: 'setup ' + w.setup });
+    const own = w.scriptResponses.filter((r) => r.session === 'worker:' + w.targetId && r.sessionId === w.sessionId && r.url === w.url);
+    if (own.length === 0) failures.push({ targetId: w.targetId, reason: 'no script response in its own session' });
+    else if (own.some((r) => r.status !== 200 || r.csp !== STRICT_CSP_HEADER || r.referrer !== REFERRER_POLICY)) {
+      failures.push({ targetId: w.targetId, reason: 'script response status/headers not exact' });
+    }
+  }
+  return failures;
 }
 
 // ---- main -----------------------------------------------------------------------------------
@@ -312,7 +393,7 @@ async function main() {
       return { ok: true, version: gl.getParameter(gl.VERSION), renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) };
     })()`);
     if (!webgl.ok) {
-      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B26 not run.');
+      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B29 not run.');
       await finish(2);
       return;
     }
@@ -442,7 +523,7 @@ async function main() {
       && audit.cspViolations.length === 0 && audit.consoleErrors.length === 0,
       `module/worker/css 200 after switch; worker targets=${workerUrls.length} all at ${WORKER_PATH} (no blob/data); getWorkerUrl matches; setWorkerUrl before new Map=${b07.setBeforeMap}; CSP violations=${audit.cspViolations.length + b07.pageCsp}; console errors=${audit.consoleErrors.length}`);
 
-    // B08 is evaluated at the very end of the run (after B26) so it covers every response.
+    // B08 is evaluated at the very end of the run (after B29) so it covers every response.
 
     // B09 inline-only MapLibre style
     await waitFor('window.__CCF_HARNESS__.debug().imageryLoaded', 'imagery loaded (B09)');
@@ -897,16 +978,22 @@ async function main() {
     await frames();
     const cw1 = await crownPos();
     const cwFocus = await evaluate('window.__CCF_HARNESS__.debug().focusedAreaId');
-    await evaluate(`window.__CCF_HARNESS__.render({ mapStyle: 'satellite', visibleAreaIds: ['MA-C'] })`);
+    // Satellite half on a NEW adapter (repair cycle 2): it must not inherit the clean-woodland
+    // focus state, so a satellite-only regression is caught on its own.
+    await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'satellite', visibleAreaIds: ['MA-C'] }); })()`);
     await waitFor('window.__CCF_HARNESS__.debug().mapReady', 'satellite single lane (B26)');
     await idle();
     const sat0 = await crownPos();
+    const satFocusBefore = await evaluate('window.__CCF_HARNESS__.debug().focusedAreaId');
     await evaluate(`window.__CCF_HARNESS__.adapter().focusArea('MA-A')`);
     await idle();
     const sat1 = await crownPos();
+    const satFocus = await evaluate('window.__CCF_HARNESS__.debug().focusedAreaId');
     const cwShift = Math.hypot(cw1.x - cw0.x, cw1.y - cw0.y);
     const satShift = Math.hypot(sat1.x - sat0.x, sat1.y - sat0.y);
-    const hiddenOk = cwShift < 0.5 && satShift < 0.5 && cwFocus === null && Math.abs(cw0.x - W / 2) < 120;
+    const cwHiddenOk = cwShift < 0.5 && cwFocus === null && Math.abs(cw0.x - W / 2) < 120;
+    const satHiddenOk = satShift < 0.5 && satFocusBefore === null && satFocus === null;
+    const hiddenOk = cwHiddenOk && satHiddenOk;
     // same-instance remount
     await evaluate(`(() => { const h = window.__CCF_HARNESS__; h.create(); h.render({ mapStyle: 'satellite' }); })()`);
     await waitFor('window.__CCF_HARNESS__.debug().mapReady && window.__CCF_HARNESS__.debug().imageryLoaded', 'satellite before remount');
@@ -933,8 +1020,150 @@ async function main() {
       && remounted.activeStyle === 'clean-woodland' && !remounted.mapReady && !remounted.imageryLoaded && !remounted.watchdog
       && afterRemount.style === 'satellite' && afterRemount.attrVisible && afterRemount.crowns === 20 && mRemount.maxCentrePx < 0.5 && mRemount.maxErrM <= 0.002 && (await constructed()) === 2;
     record('B26', hiddenOk && remountOk,
-      `focusArea on a hidden lane: visible crown moved ${cwShift.toFixed(3)} px (clean woodland, x=${cw0.x.toFixed(1)}) and ${satShift.toFixed(3)} px (satellite), focus kept=${cwFocus} [${hiddenOk ? 'ok' : 'FAIL'}]; `
+      `focusArea on a hidden lane: clean woodland crown moved ${cwShift.toFixed(3)} px (x=${cw0.x.toFixed(1)}), focus=${cwFocus} [${cwHiddenOk ? 'ok' : 'FAIL'}]; satellite on a fresh adapter (focus before=${satFocusBefore}): crown moved ${satShift.toFixed(3)} px, focus=${satFocus} [${satHiddenOk ? 'ok' : 'FAIL'}]; `
       + `same-instance destroy+mount after Satellite: style=${remounted.style}, fallback=${remounted.fallback}, notice hidden=${remounted.noticeHidden}, attribution hidden=${remounted.attrHidden}, crowns=${remounted.crowns}, map canvases=${remounted.canvases}; next satellite frame rebuilt (maps constructed=2, centre ${mRemount.maxCentrePx.toFixed(4)} px, attribution visible=${afterRemount.attrVisible}) [${remountOk ? 'ok' : 'FAIL'}]`);
+
+    // ===== Repair cycle 2 regression cases ======================================================
+    const HX = 'window.__CCF_HARNESS__';
+    const softWait = (expr, label, timeoutMs) => waitFor(expr, label, timeoutMs).then(() => true, () => false);
+    const fallbackIs = (code) => `document.querySelector('.ccf-ml-root').getAttribute('data-fallback') === '${code}'`;
+    const SYNTH_ATTR = 'Synthetic local test imagery (not a real photograph)';
+
+    // B27 the whole imagery probe settles at its deadline, even when the decode stalls after the bytes arrived
+    await freshPage();
+    const deadline27 = 2200;
+    const url27 = '/fixtures/synthetic-imagery.png?b27-stalled-decode';
+    await evaluate(`(() => { const h = ${HX}; h.create('default', { imageryTimeoutMs: ${deadline27}, loadTimeoutMs: 9000 }); h.render(); ${SELECT}; h.holdDecodes(true); })()`);
+    const log27 = srv.requestLog.length;
+    const t27 = Date.now();
+    // In-page clock: the time from render() to the moment data-fallback flips, observed synchronously.
+    // The probe's own settlement is read from its 'imagery-probe-failed' diagnostic (time + reason):
+    // it must settle from its deadline timer ('timeout') while the decode is still held, and the
+    // notice must follow in the same task. SwiftShader can delay any timer, so the absolute bound
+    // is only a sanity limit.
+    await evaluate(`(() => {
+      const root = document.querySelector('.ccf-ml-root');
+      const t = window.__CCF_B27__ = { t0: performance.now(), noticeMs: null };
+      new MutationObserver((list, obs) => {
+        if (root.getAttribute('data-fallback') === 'imagery-unavailable') { t.noticeMs = performance.now() - t.t0; obs.disconnect(); }
+      }).observe(root, { attributes: true, attributeFilter: ['data-fallback'] });
+      ${HX}.render({ mapStyle: 'satellite', imagery: { url: '${url27}', attribution: '${SYNTH_ATTR}', boundsLocal: { minXM: -24, minZM: -24, maxXM: 104, maxZM: 104 } } });
+    })()`);
+    const held27 = await softWait(`${HX}.heldDecodeCount() >= 1`, 'decode held (B27)', 5000);
+    const heldMs = Date.now() - t27;
+    const bytes27 = srv.requestLog.slice(log27).filter((r) => r.pathname === '/fixtures/synthetic-imagery.png' && r.status === 200).length;
+    const notice27 = await softWait(fallbackIs('imagery-unavailable'), 'imagery notice at the probe deadline (B27)', deadline27 + 1500);
+    const noticeMs27 = Date.now() - t27;
+    const atNotice = await evaluate(`(() => { const d = ${HX}.debug(); return { pending: d.pendingProbes, decodesStillHeld: ${HX}.heldDecodeCount(), pageNoticeMs: window.__CCF_B27__.noticeMs,
+      started: ${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-started').map((x) => x.at - window.__CCF_B27__.t0),
+      probe: ${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-failed').map((x) => ({ reason: x.reason, ms: x.at - window.__CCF_B27__.t0 })) }; })()`);
+    const probe27 = atNotice.probe.length === 1 ? atNotice.probe[0] : { reason: 'none', ms: NaN };
+    const probeLife27 = atNotice.started.length === 1 ? probe27.ms - atNotice.started[0] : NaN;
+    const ready27 = await softWait(`${HX}.debug().mapReady`, 'map ready with decode held (B27)', 9000);
+    await idle();
+    const s27 = await status();
+    const d27 = await evaluate(`(() => { const d = ${HX}.debug(); return { watchdog: d.watchdogArmed, imageryLoaded: d.imageryLoaded, layers: d.style ? d.style.layers.map((l) => l.id) : null, zoom: d.zoom }; })()`);
+    // the map stays usable: it zooms and the overlay follows MapLibre exactly
+    await evaluate(`${HX}.actions().zoomBy(0.5)`);
+    await idle();
+    const zoom27 = await evaluate(`${HX}.debug().zoom`);
+    const m27 = await evaluate(`${HX}.measureSatelliteCrowns()`);
+    // releasing the decode later changes nothing and cannot resurrect imagery
+    const released27 = await evaluate(`${HX}.releaseDecodes()`);
+    await sleep(1500);
+    await idle();
+    const s27b = await status();
+    const d27b = await evaluate(`(() => { const d = ${HX}.debug(); return { imageryLoaded: d.imageryLoaded, layers: d.style.layers.map((l) => l.id), pending: d.pendingProbes,
+      lateBitmaps: ${HX}.lateBitmapSizes(), visible: document.querySelector('[data-layer-index="2"]').getAttribute('data-imagery-visible') }; })()`);
+    // the timed-out answer is cached per URL: the same imagery later is not fetched or decoded again
+    const log27b = srv.requestLog.length;
+    const heldBefore = await evaluate(`${HX}.heldDecodeCount()`);
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imageryOpacity: 0.9, imagery: { url: '${url27}', attribution: '${SYNTH_ATTR}', boundsLocal: { minXM: -24, minZM: -24, maxXM: 104, maxZM: 104 } } })`);
+    await sleep(600);
+    await idle();
+    const s27c = await status();
+    const refetched27 = srv.requestLog.slice(log27b).filter((r) => r.pathname === '/fixtures/synthetic-imagery.png').length;
+    const heldAfter = await evaluate(`${HX}.heldDecodeCount()`);
+    const maps27 = await constructed();
+    await evaluate(`${HX}.holdDecodes(false)`);
+    const ok27 = held27 && bytes27 === 1 && notice27 && atNotice.pageNoticeMs !== null && atNotice.probe.length === 1 && probe27.reason === 'timeout' && probeLife27 >= deadline27 - 5 && probeLife27 <= deadline27 + 150
+      && atNotice.pageNoticeMs >= probe27.ms && atNotice.pageNoticeMs - probe27.ms <= 20 && atNotice.pageNoticeMs <= deadline27 + 1000 && atNotice.pending === 0 && atNotice.decodesStillHeld >= 1
+      && ready27 && s27.style === 'satellite' && s27.hasMap && s27.notice === COPY.imagery && s27.noticeVisible && !s27.attrVisible && s27.selectionKept && s27.crowns === 20 && s27.modals === 0
+      && !d27.watchdog && !d27.imageryLoaded && JSON.stringify(d27.layers) === '["ccf-woodland-canvas","ccf-woodland-extent"]'
+      && Math.abs(zoom27 - d27.zoom - 0.5) < 1e-6 && m27.count === 20 && m27.maxCentrePx < 0.5 && m27.maxErrM <= 0.002
+      && released27 >= 1 && s27b.style === 'satellite' && s27b.fallback === 'imagery-unavailable' && s27b.notice === COPY.imagery && !s27b.attrVisible
+      && !d27b.imageryLoaded && d27b.visible === 'false' && JSON.stringify(d27b.layers) === '["ccf-woodland-canvas","ccf-woodland-extent"]' && d27b.pending === 0
+      && d27b.lateBitmaps.length === released27 && d27b.lateBitmaps.every(([w, h]) => w === 0 && h === 0)
+      && s27c.fallback === 'imagery-unavailable' && s27c.notice === COPY.imagery && refetched27 === 0 && heldAfter === heldBefore && maps27 === 1;
+    record('B27', ok27,
+      `decode held after the image bytes arrived (server 200s=${bytes27}, held at ${heldMs} ms); imagery notice "${s27.notice}" ${atNotice.pageNoticeMs === null ? 'never' : atNotice.pageNoticeMs.toFixed(1) + ' ms'} after render() by the page clock; the probe started at ${atNotice.started.length === 1 ? atNotice.started[0].toFixed(1) : 'n/a'} ms and settled with reason "${probe27.reason}" ${Number(probeLife27).toFixed(1)} ms later (deadline ${deadline27} ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it and <= deadline + 1000 ms after render(); driver wall clock ${noticeMs27} ms) with the decode still held (${atNotice.decodesStillHeld}) and pending probes=${atNotice.pending}; `
+      + `map ready, watchdog off=${!d27.watchdog}, no raster layer, selection kept; still usable: zoom +0.5 -> ${(zoom27 - d27.zoom).toFixed(3)}, crowns ${m27.count}, centre err ${m27.maxCentrePx.toFixed(4)} px; `
+      + `released ${released27} decode(s) later: still ${s27b.style}/${s27b.fallback}, imageryLoaded=${d27b.imageryLoaded}, late bitmaps closed=${JSON.stringify(d27b.lateBitmaps)}; same URL again: refetches=${refetched27}, new decodes=${heldAfter - heldBefore}, notice kept=${s27c.fallback === 'imagery-unavailable'}, maps constructed=${maps27}`);
+
+    // B28 a frame that hides the focused lane re-frames the visible woodland, in both styles
+    const posOf = (id) => centreOf(`circle.ccf-crown[data-tree-id="${id}"]`);
+    const dist = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+    await evaluate(`(() => { const h = ${HX}; h.create(); h.render({ mapStyle: 'satellite' }); })()`);
+    const ready28 = await softWait(`${HX}.debug().mapReady`, 'satellite (B28)', 20000);
+    await idle();
+    await evaluate(`${HX}.adapter().focusArea('MA-A')`);
+    await idle();
+    const satFocused = await posOf('MA-E-T01');
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', visibleAreaIds: ['MA-E'] })`);
+    await idle();
+    const satAuto = await posOf('MA-E-T01');
+    const satAutoState = await evaluate(`({ focus: ${HX}.debug().focusedAreaId, zoom: ${HX}.debug().zoom, maps: ${HX}.constructedCount() })`);
+    const satAutoSanity = await sanity();
+    await evaluate(`${HX}.adapter().focusArea(null)`);
+    await idle();
+    const satRef = await posOf('MA-E-T01');
+    const satRefZoom = await evaluate(`${HX}.debug().zoom`);
+    const satOk28 = ready28 && satAutoState.focus === null && dist(satAuto, satRef) < 0.5 && Math.abs(satAutoState.zoom - satRefZoom) < 1e-6
+      && dist(satFocused, satRef) > 50 && satAutoSanity.onStage && satAutoState.maps === 1;
+    await evaluate(`(() => { const h = ${HX}; h.create(); h.render({ mapStyle: 'clean-woodland' }); h.adapter().focusArea('MA-A'); })()`);
+    await frames();
+    const cwFocused = await posOf('MA-E-T01');
+    await evaluate(`${HX}.render({ mapStyle: 'clean-woodland', visibleAreaIds: ['MA-E'] })`);
+    await frames();
+    const cwAuto = await posOf('MA-E-T01');
+    const cwAutoState = await evaluate(`({ focus: ${HX}.debug().focusedAreaId, m: ${HX}.debug().matrix })`);
+    await evaluate(`${HX}.adapter().focusArea(null)`);
+    await frames();
+    const cwRef = await posOf('MA-E-T01');
+    const cwRefM = await evaluate(`${HX}.debug().matrix`);
+    const cwOk28 = cwAutoState.focus === null && dist(cwAuto, cwRef) < 0.5 && JSON.stringify(cwAutoState.m) === JSON.stringify(cwRefM) && dist(cwFocused, cwRef) > 50;
+    record('B28', satOk28 && cwOk28,
+      `satellite: focused MA-A -> MA-E-T01 at x=${satFocused.x.toFixed(1)}; frame showing only MA-E -> x=${satAuto.x.toFixed(1)}, focus cleared=${satAutoState.focus === null}; focusArea(null) reference x=${satRef.x.toFixed(1)} (diff ${dist(satAuto, satRef).toFixed(3)} px, zoom diff ${Math.abs(satAutoState.zoom - satRefZoom).toExponential(1)}), on stage=${satAutoSanity.onStage} [${satOk28 ? 'ok' : 'FAIL'}]; `
+      + `clean woodland: focused x=${cwFocused.x.toFixed(1)} -> hidden-focus frame x=${cwAuto.x.toFixed(1)} vs reference x=${cwRef.x.toFixed(1)} (diff ${dist(cwAuto, cwRef).toFixed(3)} px, same matrix=${JSON.stringify(cwAutoState.m) === JSON.stringify(cwRefM)}) [${cwOk28 ? 'ok' : 'FAIL'}]`);
+
+    // B29 ineligible imagery is dropped before the footprint preflight; the supported stand still renders
+    const anchor29 = { lonDeg: 179.99, bearingDeg: 0 }; // stand fits the one branch (B21); imagery reaching 2 km east does not
+    const crossing = '{ minXM: -24, minZM: -24, maxXM: 2000, maxZM: 104 }';
+    const b29 = [];
+    const cases29 = [
+      { label: 'remote imagery URL with antimeridian-crossing bounds', imagery: `{ url: 'https://imagery.example.invalid/tile.png', attribution: '${SYNTH_ATTR}', boundsLocal: ${crossing} }`, reason: /another origin/ },
+      { label: 'same-origin imagery whose own bounds cross the antimeridian', imagery: `{ url: '/fixtures/b29-crossing-imagery.png', attribution: '${SYNTH_ATTR}', boundsLocal: ${crossing} }`, reason: /Imagery footprint unsupported/, code: 'CROSSES_ANTIMERIDIAN' },
+      { label: 'same stand without an imagery descriptor (control)', imagery: 'null', reason: /No imagery source configured/ },
+    ];
+    const log29 = srv.requestLog.length;
+    for (const c of cases29) {
+      await evaluate(`(() => { const h = ${HX}; h.create(); h.render(); ${SELECT}; const base = h.createFixtureFrame().geoAnchor;
+        h.render({ mapStyle: 'satellite', geoAnchor: { ...base, ...${JSON.stringify(anchor29)} }, imagery: ${c.imagery} }); })()`);
+      const ready = await softWait(`${HX}.debug().mapReady && ${fallbackIs('imagery-unavailable')}`, 'satellite + imagery fallback ' + c.label, 20000);
+      await idle();
+      const st = await status();
+      const d = await diagKinds();
+      const notUsed = d.find((x) => x.kind === 'imagery-not-used');
+      const layers = await evaluate(`${HX}.debug().style ? ${HX}.debug().style.layers.map((l) => l.id) : null`);
+      const m = ready ? await evaluate(`${HX}.measureSatelliteCrowns()`) : { count: 0, maxCentrePx: NaN, maxErrM: NaN };
+      const ok = ready && st.style === 'satellite' && st.hasMap && st.fallback === 'imagery-unavailable' && st.notice === COPY.imagery && st.noticeVisible && !st.attrVisible
+        && st.selectionKept && st.modals === 0 && !d.some((x) => x.kind === 'footprint-unsupported') && notUsed && c.reason.test(notUsed.reason || '') && (!c.code || notUsed.code === c.code)
+        && JSON.stringify(layers) === '["ccf-woodland-canvas","ccf-woodland-extent"]' && m.count === 20 && m.maxCentrePx < 0.5 && m.maxErrM <= 0.002;
+      b29.push({ label: c.label, ok, detail: `${st.style}/${st.fallback}, imagery dropped: "${notUsed ? notUsed.reason : 'none'}"${notUsed && notUsed.code ? ' (' + notUsed.code + ')' : ''}, footprint fallback=${d.some((x) => x.kind === 'footprint-unsupported')}, crowns ${m.count}, centre err ${Number(m.maxCentrePx).toFixed(4)} px` });
+    }
+    const fetched29 = srv.requestLog.slice(log29).filter((r) => r.pathname === '/fixtures/b29-crossing-imagery.png').length;
+    record('B29', b29.every((c) => c.ok) && fetched29 === 0,
+      `${b29.filter((c) => c.ok).length}/${b29.length} on anchor 179.99 E: [${b29.map((c) => c.label + ': ' + (c.ok ? 'ok' : 'FAIL') + ' (' + c.detail + ')').join('; ')}]; dropped same-origin imagery requested=${fetched29} times`);
 
     // ===== Whole-run checks (B08, B20 audit, B24) ===============================================
     await freshPage();
@@ -943,19 +1172,22 @@ async function main() {
     const nodeResponses = [{ path: '/no-such-file', status: direct404.status, session: 'node', csp: direct404.headers.get('content-security-policy'), referrer: direct404.headers.get('referrer-policy') }];
     await direct404.arrayBuffer();
     await sleep(200);
+    await Promise.allSettled(audit.setupTasks);
     const browserResponses = audit.responses.slice();
+    const unanswered = [...audit.requests.values()].filter((r) => !r.responded && !r.failed);
     const serverResponses = srv.requestLog.slice();
     const badBrowser = headerMismatches(browserResponses);
     const badServer = headerMismatches(serverResponses);
     const badNode = headerMismatches(nodeResponses);
-    const auditClean = audit.consoleErrors.length === 0 && audit.cspViolations.length === 0 && audit.failedRequests.length === 0 && audit.nonLoopbackRequests.length === 0;
+    const auditClean = audit.consoleErrors.length === 0 && audit.cspViolations.length === 0 && audit.failedRequests.length === 0 && audit.nonLoopbackRequests.length === 0
+      && audit.setupFailures.length === 0 && unanswered.length === 0;
     record('B08', browserResponses.length > 0 && badBrowser.length === 0 && badServer.length === 0 && badNode.length === 0 && nodeResponses[0].status === 404
       && audit.nonLoopbackRequests.length === 0 && audit.failedRequests.length === 0,
       `whole run, checked at the end: ${browserResponses.length} browser responses (page + worker sessions), ${serverResponses.length} server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=${badBrowser.length}, server=${badServer.length}, node=${badNode.length}); http requests=${audit.httpRequests}, non-loopback=${audit.nonLoopbackRequests.length}, failed=${audit.failedRequests.length}`);
 
     record('B20', b20.writes === 0 && b20.local === 0 && b20.session === 0 && b20.cookie === '' && b20.guardrail && b20.pageCsp === 0
       && reloadStyle === 'clean-woodland' && reloadVendor === 0 && reloadWorkers === 0 && auditClean,
-      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B26): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}`);
+      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B29): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}, audit setup failures=${audit.setupFailures.length}, unanswered requests=${unanswered.length}`);
 
     // B24 the header gate covers every kind of response and is sensitive to a single late loss
     const browserPaths = new Set(browserResponses.map((r) => r.path));
@@ -977,17 +1209,26 @@ async function main() {
     };
     const silentWorkerResponses = browserResponses.filter((r) => r.path === '/harness/fixtures/silent-worker.mjs');
     const workerSessionResponses = browserResponses.filter((r) => r.session.startsWith('worker:'));
-    // Each worker target must report its own script response; anything else a worker fetched is worker-internal.
-    const workersWithoutScript = audit.workers.filter((w) => !workerSessionResponses.some((r) => r.session === 'worker:' + w.url && r.url === w.url));
-    const workerInternal = workerSessionResponses.filter((r) => r.session !== 'worker:' + r.url);
+    // Each worker TARGET (by CDP session id and target id, never by URL) must report its own script
+    // response in its own session with the exact headers, and its setup must have succeeded.
+    const workerFailures = workerCoverageFailures(audit.workers);
+    const workerInternal = audit.workers.reduce((n, w) => n + w.otherResponses.length, 0);
+    const workerScriptUrls = new Set(audit.workers.map((w) => w.url));
+    // In-run sensitivity of the per-target rule: removing ONE worker's own script response, or moving
+    // it to another worker with the same URL, must be caught for exactly that worker.
+    const dropOne = workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, scriptResponses: [] } : w))).length;
+    const twin = audit.workers.findIndex((w, i) => i > 0 && w.url === audit.workers[0].url);
+    const borrowed = twin < 0 ? -1 : workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, scriptResponses: audit.workers[twin].scriptResponses } : w))).length;
     const lastBrowser = browserResponses[browserResponses.length - 1];
     record('B24', missingBrowser.length === 0 && heldServer.length >= 2 && heldServer.every((r) => r.csp === STRICT_CSP_HEADER && r.referrer === REFERRER_POLICY)
       && server404.length >= 1 && server404.every((r) => r.csp === STRICT_CSP_HEADER) && unaccounted.length === 0 && silentWorkerResponses.length >= 1
-      && audit.workers.length > 0 && workersWithoutScript.length === 0
+      && audit.workers.length > 1 && workerFailures.length === 0 && audit.setupFailures.length === 0 && unanswered.length === 0
+      && dropOne === 1 && borrowed === 1
       && sensitivity.browserLastCsp === 1 && sensitivity.browserLastReferrer === 1 && sensitivity.serverLastCsp === 1 && sensitivity.silentWorkerCsp === silentWorkerResponses.length,
       `required response kinds seen by the browser: ${requiredBrowser.length - missingBrowser.length}/${requiredBrowser.length}${missingBrowser.length ? ' missing ' + missingBrowser.join(',') : ''} (incl. the intentional silent-worker fixture x${silentWorkerResponses.length}); `
-      + `${audit.workers.length} worker targets each reported their own script response in the worker session (missing=${workersWithoutScript.length}), other worker-internal responses=${workerInternal.length}; held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; unaccounted server responses=${unaccounted.length}; `
-      + `sensitivity: dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
+      + `${audit.workers.length} worker targets (${new Set(audit.workers.map((w) => w.sessionId)).size} distinct sessions, ${workerScriptUrls.size} distinct script URLs): each one set up and reported its OWN script response in its own session with exact headers (failures=${workerFailures.length}${workerFailures.length ? ' ' + JSON.stringify(workerFailures) : ''}); audit setup failures=${audit.setupFailures.length}; unanswered requests=${unanswered.length}; other worker-internal responses=${workerInternal}; `
+      + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; unaccounted server responses=${unaccounted.length}; `
+      + `sensitivity: drop one worker's script response -> ${dropOne} failure, lend it a same-URL twin's response -> ${borrowed} failure; dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
 
     results.sort((a, b) => a.id.localeCompare(b.id));
     const passed = results.filter((r) => r.status === 'PASS').length;
@@ -1008,7 +1249,10 @@ async function main() {
         serverResponsesChecked: serverResponses.length,
         workerSessionResponses: workerSessionResponses.length,
         headerMismatches: { browser: badBrowser, server: badServer, node: badNode },
-        workerTargets: audit.workers.map((w) => w.url.replace(srv.baseUrl, '')),
+        workerTargets: audit.workers.map((w) => ({ targetId: w.targetId, sessionId: w.sessionId, url: w.url.replace(srv.baseUrl, ''), setup: w.setup,
+          scriptResponses: w.scriptResponses.length, otherResponses: w.otherResponses.length })),
+        setupFailures: audit.setupFailures,
+        unansweredRequests: unanswered,
         serverRequests: srv.requestLog.length,
       },
       cases: results,
@@ -1016,8 +1260,8 @@ async function main() {
     writeFileSync(join(evidenceDir, 'cdp-matrix-report.json'), JSON.stringify(report, null, 2) + '\n');
     writeFileSync(join(evidenceDir, 'server-request-log.json'), JSON.stringify(srv.requestLog, null, 1) + '\n');
     writeFileSync(join(evidenceDir, 'browser-responses.json'), JSON.stringify(browserResponses, null, 1) + '\n');
-    console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}`);
-    for (const key of ['consoleErrors', 'cspViolations', 'failedRequests', 'nonLoopbackRequests']) {
+    console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}, setup_failures=${audit.setupFailures.length}, unanswered=${unanswered.length}`);
+    for (const key of ['consoleErrors', 'cspViolations', 'failedRequests', 'nonLoopbackRequests', 'setupFailures']) {
       if (audit[key].length) console.log(key.toUpperCase() + ': ' + JSON.stringify(audit[key], null, 1));
     }
     if (badBrowser.length || badServer.length) console.log('HEADER_MISMATCHES: ' + JSON.stringify({ browser: badBrowser, server: badServer }, null, 1));

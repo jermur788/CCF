@@ -18,7 +18,7 @@ const cdp = cdpText ? JSON.parse(cdpText) : null;
 const status = (rc) => (Number(rc) === 0 ? 'PASS' : Number(rc) === 2 ? 'NOT TESTED' : 'FAIL');
 
 const summary = {
-  schemaVersion: 2, // v2 (repair cycle 1): B01-B26, whole-run header counts
+  schemaVersion: 3, // v3 (repair cycle 2): B01-B29, per-worker-target coverage, audit setup failures
   generatedUtc: new Date().toISOString(),
   testedCommit: git('rev-parse', 'HEAD'),
   testedTreeDirty: (git('status', '--porcelain', '--', 'Tools/MultiRackSitkaP1Lab/src/Ui/multi/map', 'Tools/MultiRackSitkaP1Lab/tests/maplibre-adapter') || '') !== '',
@@ -50,6 +50,9 @@ const summary = {
       browserResponsesHeaderChecked: cdp.audit.responsesChecked,
       serverResponsesHeaderChecked: cdp.audit.serverResponsesChecked,
       workerSessionResponses: cdp.audit.workerSessionResponses,
+      workerTargets: Array.isArray(cdp.audit.workerTargets) ? cdp.audit.workerTargets.length : null,
+      auditSetupFailures: Array.isArray(cdp.audit.setupFailures) ? cdp.audit.setupFailures.length : null,
+      unansweredRequests: Array.isArray(cdp.audit.unansweredRequests) ? cdp.audit.unansweredRequests.length : null,
       headerMismatches: cdp.audit.headerMismatches ? cdp.audit.headerMismatches.browser.length + cdp.audit.headerMismatches.server.length + cdp.audit.headerMismatches.node.length : null,
       cases: cdp.cases.map((c) => ({ id: c.id, status: c.status, detail: c.detail })),
     }

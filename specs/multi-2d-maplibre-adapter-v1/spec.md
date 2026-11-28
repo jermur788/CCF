@@ -1,7 +1,7 @@
 # Open-Source Satellite Map Plug — MapLibre Display Adapter and Ellipsoidal Geo-Anchor Bridge V1
 
 - **Spec ID:** `SPEC-multi-2d-maplibre-adapter-V1`
-- **Status:** `APPROVED / IMPLEMENTING` — Part 1 implemented on an isolated branch, repair cycle 1 applied after independent review; **Part 2 `QUEUED`** behind separate integrator approval
+- **Status:** `APPROVED / IMPLEMENTING` — Part 1 implemented on an isolated branch, repair cycles 1 and 2 applied after independent review; **Part 2 `QUEUED`** behind separate integrator approval
 - **Milestone:** CCF 2D Simulator — Playable Milestone 7, Part 1
 - **Owner:** Overall Manager / 2D Delivery Manager
 - **Base commit:** `b2006767cbe70fa2c822497470908251a0fd6ffd` (`origin/integration/2d-sim`, Scots Pine Part 2 merged green)
@@ -18,7 +18,7 @@ Give the 2D simulator an optional, offline, open-source map style behind the exi
 - MapLibre GL JS 6.20.0 (BSD-3-Clause) vendored unmodified, with SHA-256 provenance; no build step, no CDN.
 - A self-contained adapter under `Tools/MultiRackSitkaP1Lab/src/Ui/multi/map/maplibre/` that imports nothing from the shared `/multi` shell.
 - An ellipsoidal WGS84 geo-anchor bridge (`geo-anchor.js`).
-- A standalone verification harness (`tests/maplibre-adapter/`): vendor integrity, geodesic oracle, and a strict-CSP offline headless-Chromium matrix `B01`–`B26` over an 80 × 80 m, 5-lane synthetic fixture (`B21`–`B26` added in repair cycle 1).
+- A standalone verification harness (`tests/maplibre-adapter/`): vendor integrity, geodesic oracle, and a strict-CSP offline headless-Chromium matrix `B01`–`B29` over an 80 × 80 m, 5-lane synthetic fixture (`B21`–`B26` added in repair cycle 1, `B27`–`B29` in repair cycle 2).
 
 **Part 2 — `QUEUED` (out of scope; needs a separate integrator-approved packet):**
 
@@ -56,8 +56,8 @@ Give the 2D simulator an optional, offline, open-source map style behind the exi
 - `mount(container, deps)` — builds the DOM once; a second `mount` only replaces `deps`. Calls before `mount` or after `destroy` are no-ops.
 - `render(frame)` — copies the frame into adapter-owned plain data, normalises it and deep-freezes **only that copy** (`normalizeFrame`). The caller's objects are never mutated, frozen or referenced; from `geoAnchor` only the supported primitive fields are copied (`sourceId`, `geometryDigest`, `originKind`, `lonDeg`, `latDeg`, `bearingDeg`, `heightM`, `localOriginXM`, `localOriginZM`, `isCentroid`, `derivedFromCentroid`), and any other key (for example nested provenance) is ignored. Each call bumps a generation counter, and so does a display failure; async work (module import, imagery probe) started for an older generation is dropped. MapLibre events are guarded by map-instance identity instead, so later renders never deafen a live map. A frame with no drawable area clears Layers 4–8, the selection marks and the hit-test transform, so nothing from an earlier frame stays on screen and clicks emit nothing until a drawable frame arrives.
 - `setSelection({kind: 'tree'|'cell'|'juvenile', areaId, id} | null)` — kept across renders, style switches and every fallback.
-- `focusArea(areaId | null)` — frames one visible area (or the whole woodland); changes no data and keeps the selection. A lane that the current frame hides is ignored (the view stays put), and a later frame that hides the focused lane frames the whole visible woodland.
-- `destroy()` — idempotent; removes DOM, listeners, the resize observer, the watchdog and any MapLibre instance, aborts pending imagery probes and invalidates in-flight work. It also resets the transient display state (style, fallback notice, imagery state), so `mount` on the same instance starts in Clean Woodland and the next satellite frame rebuilds the map. Only the sticky display failure (§8) and the per-URL probe results last for the adapter's lifetime.
+- `focusArea(areaId | null)` — frames one visible area (or the whole woodland); changes no data and keeps the selection. A lane that the current frame hides is ignored (the view stays put). A later frame that hides the focused lane clears the focus, and that render itself frames the whole visible woodland in both styles (Satellite refits its camera; no `focusArea(null)` call is needed).
+- `destroy()` — idempotent; removes DOM, listeners, the resize observer, the watchdog and any MapLibre instance, aborts pending imagery probes and invalidates in-flight work. It also resets the transient display state (style, fallback notice, imagery state), so `mount` on the same instance starts in Clean Woodland, and a **healthy** adapter rebuilds the map on its next Satellite frame. An adapter with a sticky display failure (§8) stays on Clean Woodland instead. Only that sticky display failure and the per-URL probe results last for the adapter's lifetime.
 
 **Style selection lives in the frame** (`frame.mapStyle`, default `'clean-woodland'`), so no extra method is needed.
 
@@ -87,7 +87,8 @@ Records missing a value needed to draw them honestly (for example a tree without
 - **Constant-pixel marks** (badges, sapling glyphs, rings) are sized from metres-per-pixel; strokes use `vector-effect: non-scaling-stroke`. Panning only rewrites the transform; content is rebuilt when frame or selection change, or when zoom changes by more than 1 %.
 - **Satellite canvas:** MapLibre draws Layer 1 (a `background` `#15251a`, plus an inline GeoJSON woodland-extent `fill` in the same colour) and, above it, Layer 2 (`image` source + `raster` layer, `raster-opacity` = frame opacity). The extent fill looks identical to the background. It is there because GeoJSON is tiled by the worker: the adapter counts the map *ready* only once that source has loaded. With a background-only style a dead worker would go unnoticed (the first harness run proved this).
 - **Camera:** map bearing is set to the anchor's `bearingDeg`, so the woodland stays upright in both styles; rotation and pitch interactions are disabled; zoom and pan stay enabled.
-- **Imagery:** same-origin URL plus local `boundsLocal` (its georeference in local metres) plus non-empty attribution are all required. Before handing the URL to MapLibre, the adapter fetches it once and checks that it decodes as an image (`createImageBitmap`); the result is cached per URL for the adapter's lifetime. The probe runs alongside the map start and never delays it. It is bounded by `imageryTimeoutMs`: the default is `min(8 s, loadTimeoutMs / 2)`, after which the request is aborted and the imagery is treated as unavailable. A display failure or `destroy` aborts any probe still in flight.
+- **Imagery:** same-origin URL plus local `boundsLocal` (its georeference in local metres) plus non-empty attribution are all required. Before handing the URL to MapLibre, the adapter fetches it once and checks that it decodes as an image (`createImageBitmap`); the result is cached per URL for the adapter's lifetime. The probe runs alongside the map start and never delays it. **The whole probe — fetch, body read and decode — shares one deadline**, `imageryTimeoutMs` (default `min(8 s, loadTimeoutMs / 2)`). At the deadline the probe settles to *unavailable* whatever step it is in and the request is aborted; a step that finishes later (for example a decode the browser releases late) changes nothing, and its bitmap is closed and discarded. A timed-out result is cached per URL like any other. A display failure or `destroy` aborts any probe still in flight.
+- **Imagery eligibility comes first.** Before the footprint preflight, the imagery descriptor is checked on its own: the policy above, then its own footprint (`boundsLocal`, grown by 50 m) on the anchor's longitude branch. Imagery that fails either check is dropped (imagery-unavailable path, no request made) and never takes part in the stand's footprint preflight, so it cannot disqualify a supported stand.
 - **Attribution** is shown only while imagery is visible, which requires all of the following:
   - satellite style;
   - MapLibre reports the image source loaded;
@@ -95,7 +96,7 @@ Records missing a value needed to draw them honestly (for example a tree without
   - the projected imagery quad intersects the visible stage (a separating-axis test, re-evaluated on every map move and resize).
 
   At 0 %, and while the image lies wholly off-screen, the attribution is hidden.
-- **One longitude branch.** Camera, overlay and imagery share the anchor's longitude branch. Before MapLibre starts, the footprint is checked: every area's bounds plus the imagery bounds, grown by 50 m. A footprint that crosses the antimeridian (east or west, with longitudes unwrapped relative to the anchor) or reaches the Web Mercator latitude limit is not shown on MapLibre (§8).
+- **One longitude branch.** Camera, overlay and imagery share the anchor's longitude branch. Before MapLibre starts, the stand footprint is checked: every area's bounds, grown by 50 m. A stand footprint that crosses the antimeridian (east or west, with longitudes unwrapped relative to the anchor) or reaches the Web Mercator latitude limit is not shown on MapLibre (§8). Imagery bounds are judged separately (see *Imagery eligibility*): imagery that does not fit is dropped, not the map.
 
 ## 5. Ellipsoidal geo-anchor bridge (`geo-anchor.js`)
 
@@ -136,9 +137,9 @@ Irish woodland data often arrives in EPSG:2157 (IRENET95 / Irish Transverse Merc
 | Trigger | Result | Notes |
 |---|---|---|
 | anchor missing or invalid, or frame has no identity | Clean Woodland + no-location copy | checked synchronously, before any MapLibre request |
-| no imagery configured; imagery not same-origin, missing bounds or attribution; URL does not decode as an image; MapLibre image-source error | dark MapLibre canvas + imagery copy | crowns, marks and selection still drawn |
-| imagery probe still pending after `imageryTimeoutMs` | dark MapLibre canvas + imagery copy | the request is aborted; a late answer changes nothing |
-| valid anchor, but the footprint crosses the antimeridian or reaches the Web Mercator latitude limit | Clean Woodland + display copy | checked synchronously before any MapLibre request; **per frame, not sticky** (a later frame with a supported footprint uses Satellite). Part 1 deliberately does not render across the antimeridian |
+| no imagery configured; imagery not same-origin, missing bounds or attribution; imagery bounds crossing the antimeridian or reaching the Mercator limit; URL does not decode as an image; MapLibre image-source error | dark MapLibre canvas + imagery copy | crowns, marks and selection still drawn; ineligible imagery is dropped before the footprint preflight and never requested |
+| imagery probe (fetch, body read **or decode**) still pending after `imageryTimeoutMs` | dark MapLibre canvas + imagery copy | the probe settles at the deadline and the request is aborted; a late answer or late decode changes nothing (the late bitmap is closed); the timeout is cached per URL |
+| valid anchor, but the stand footprint crosses the antimeridian or reaches the Web Mercator latitude limit | Clean Woodland + display copy | checked synchronously before any MapLibre request; **per frame, not sticky** (a later frame with a supported footprint uses Satellite). Part 1 deliberately does not render across the antimeridian |
 | WebGL unavailable (checked before import) | Clean Woodland + display copy | no vendor request |
 | module import failure or hang; `Map` constructor throws; MapLibre error before ready; not ready within the watchdog (15 s default, armed when the satellite start begins, so it also covers the module import); WebGL context lost | Clean Woodland + display copy | **sticky**: the adapter then stays on Clean Woodland for its lifetime (no retry loop, survives same-instance remount); the failure bumps the generation and aborts pending imagery probes, so no later resolution can clear the notice or rebuild Satellite; a new adapter retries |
 
@@ -152,7 +153,7 @@ The following are not touched: Unity (`Assets/`, `Packages/`, `ProjectSettings/`
 
 - **AC-1** Vendored files match `provenance.json` sizes and SHA-256 hashes; the tarball hash and registry integrity are recorded.
 - **AC-2** Geo bridge: round trip < 0.01 m and Vincenty agreement < 0.01 m at 30/80/120 m. All rejection cases fail with the expected code.
-- **AC-3** `B01`–`B26` all pass in one run, with zero console errors (page and workers), zero CSP violations, zero failed requests and zero non-loopback requests. Every response of the run carries the exact CSP and Referrer-Policy, checked at the end of the run: browser page and worker sessions, every server-written response, and the node-side 404.
+- **AC-3** `B01`–`B29` all pass in one run, with zero console errors (page and workers), zero CSP violations, zero failed requests, zero non-loopback requests, zero audit setup failures and zero unanswered requests. Every worker target (identified by CDP session and target id, not by URL) reports its own script response with the exact headers. Every response of the run carries the exact CSP and Referrer-Policy, checked at the end of the run: browser page and worker sessions, every server-written response, and the node-side 404.
 - **AC-4** `git diff --name-only b2006767...HEAD` lists only the four prefixes; `git status --short` is clean; `origin/main` is unchanged.
 - **AC-5 (Part 2, QUEUED)** Live `/multi` wiring, C# routes, CSP and resources verified under a separate approved packet.
 

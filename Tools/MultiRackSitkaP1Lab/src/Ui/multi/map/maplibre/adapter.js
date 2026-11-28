@@ -72,26 +72,45 @@ function webglAvailable() {
 
 /**
  * Fetch the imagery once and make sure the browser can decode it as an image.
- * The wait is bounded: after timeoutMs the request is aborted and the probe resolves to false.
- * The returned controller lets the adapter abort it early (display failure, destroy).
- * @returns {{ promise: Promise<boolean>, controller: AbortController, settled: boolean }}
+ *
+ * The whole probe (fetch, body read and decode) is bounded by one deadline: after timeoutMs the
+ * probe settles to false whatever step it is in, and the request is aborted. A step that finishes
+ * later (for example a decode the browser releases after the deadline) cannot change the answer;
+ * its bitmap is closed and discarded. The controller lets the adapter abort early (display
+ * failure, destroy), which also settles the probe to false.
+ * @returns {{ promise: Promise<boolean>, controller: AbortController, settled: boolean, result: boolean|null,
+ *   reason: 'ok'|'timeout'|'aborted'|'not-image'|'error'|null }}
  */
 function probeImagery(url, timeoutMs) {
   const controller = new AbortController();
-  const probe = { controller, settled: false, promise: null };
-  const timer = setTimeout(() => controller.abort('timeout'), timeoutMs);
-  probe.promise = (async () => {
+  const probe = { controller, settled: false, result: null, reason: null, promise: null };
+  let resolveProbe;
+  probe.promise = new Promise((resolve) => { resolveProbe = resolve; });
+  let timer = null;
+  const settle = (ok, reason) => {
+    if (probe.settled) return false;
+    probe.settled = true;
+    probe.result = ok;
+    probe.reason = reason;
+    clearTimeout(timer);
+    resolveProbe(ok);
+    return true;
+  };
+  timer = setTimeout(() => { if (settle(false, 'timeout')) controller.abort('timeout'); }, timeoutMs);
+  controller.signal.addEventListener('abort', () => settle(false, 'aborted'), { once: true });
+  (async () => {
+    let bitmap = null;
     try {
       const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
-      if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) return false;
-      const bitmap = await createImageBitmap(await res.blob());
-      bitmap.close();
-      return !controller.signal.aborted;
+      if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) { settle(false, 'not-image'); return; }
+      const blob = await res.blob();
+      if (probe.settled) return;
+      bitmap = await createImageBitmap(blob);
+      settle(true, 'ok'); // a no-op when the deadline (or an abort) already settled the probe
     } catch {
-      return false;
+      settle(false, 'error');
     } finally {
-      clearTimeout(timer);
-      probe.settled = true;
+      if (bitmap) bitmap.close();
     }
   })();
   return probe;
@@ -343,15 +362,31 @@ export function createMapLibreAdapter(options = {}) {
     return modulePromise;
   }
 
-  async function resolveImagery(currentFrame) {
+  /**
+   * Decide, synchronously and before the footprint preflight, whether this frame's imagery can be
+   * used at all: it must pass the imagery policy and its own footprint must fit the one longitude
+   * branch. Imagery that fails is dropped (imagery-unavailable); it never disqualifies the stand.
+   */
+  function imageryEligibility(currentFrame, geo) {
     const check = validateImagerySource(currentFrame.imagery, window.location.href);
+    if (!check.allowed) return check;
+    const fit = checkWebMercatorFootprint(geo, [check.boundsLocal]);
+    if (!fit.ok) return { allowed: false, reason: 'Imagery footprint unsupported: ' + fit.reason, code: fit.code };
+    return check;
+  }
+
+  async function resolveImagery(check) {
     if (!check.allowed) {
-      diag('imagery-not-used', { reason: check.reason });
+      diag('imagery-not-used', { reason: check.reason, code: check.code });
       return null;
     }
-    if (!probeCache.has(check.url)) probeCache.set(check.url, probeImagery(check.url, imageryTimeoutMs));
-    const ok = await probeCache.get(check.url).promise;
-    if (!ok) diag('imagery-probe-failed', { url: check.url });
+    if (!probeCache.has(check.url)) {
+      probeCache.set(check.url, probeImagery(check.url, imageryTimeoutMs));
+      diag('imagery-probe-started', { url: check.url });
+    }
+    const probe = probeCache.get(check.url);
+    const ok = await probe.promise;
+    if (!ok) diag('imagery-probe-failed', { url: check.url, reason: probe.reason });
     return ok ? { url: check.url, attribution: check.attribution, boundsLocal: check.boundsLocal } : null;
   }
 
@@ -523,10 +558,10 @@ export function createMapLibreAdapter(options = {}) {
    * stuck module import, style or worker always ends in the display fallback. The imagery probe
    * runs alongside and never delays the map; it is time-limited and aborted on display failure.
    */
-  async function startSatellite(currentFrame, nextBridge, myGeneration) {
+  async function startSatellite(currentFrame, nextBridge, myGeneration, imageryCheck) {
     const stale = () => myGeneration !== generation || destroyed || displayFailed;
     armWatchdog();
-    const imageryPromise = resolveImagery(currentFrame);
+    const imageryPromise = resolveImagery(imageryCheck);
     let mod;
     try {
       mod = await loadModuleOnce();
@@ -653,6 +688,13 @@ export function createMapLibreAdapter(options = {}) {
     if (!mounted || destroyed) return;
     frame = normalizeFrame(rawFrame);
     generation += 1;
+    // A frame that hides the focused lane frames the whole visible woodland again (spec §3), in
+    // both styles. Clean Woodland reads the focus on every redraw; Satellite needs a camera refit.
+    const focusLost = Boolean(focusedAreaId) && !frame.visibleAreaIds.includes(focusedAreaId);
+    if (focusLost) {
+      diag('focus-cleared', { reason: 'focused area hidden by the frame', areaId: focusedAreaId });
+      focusedAreaId = null;
+    }
     if (frame.mapStyle !== 'satellite') { showCleanWoodland(FALLBACK_CODES.NONE); return; }
     if (displayFailed) { showCleanWoodland(FALLBACK_CODES.DISPLAY_UNAVAILABLE); return; }
 
@@ -664,12 +706,13 @@ export function createMapLibreAdapter(options = {}) {
       showCleanWoodland(FALLBACK_CODES.NO_LOCATION);
       return;
     }
-    // Part 1 shows one Web Mercator world on one longitude branch. A footprint that crosses the
-    // antimeridian or the Mercator latitude limit is not shown on MapLibre at all (not sticky:
-    // the next frame with a supported footprint can use Satellite).
+    // Part 1 shows one Web Mercator world on one longitude branch. A stand footprint that crosses
+    // the antimeridian or the Mercator latitude limit is not shown on MapLibre at all (not sticky:
+    // the next frame with a supported footprint can use Satellite). Imagery is judged first and on
+    // its own: imagery that is not eligible is dropped and never takes part in this preflight.
     const nextBridge = createGeoAnchorBridge(frame.geoAnchor, binding);
-    const footprint = [areasBounds(frame.areas), frame.imagery && frame.imagery.boundsLocal];
-    const fit = checkWebMercatorFootprint(nextBridge, footprint);
+    const imageryCheck = imageryEligibility(frame, nextBridge);
+    const fit = checkWebMercatorFootprint(nextBridge, [areasBounds(frame.areas)]);
     if (!fit.ok) {
       diag('footprint-unsupported', { code: fit.code, reason: fit.reason });
       showCleanWoodland(FALLBACK_CODES.DISPLAY_UNAVAILABLE);
@@ -679,9 +722,13 @@ export function createMapLibreAdapter(options = {}) {
     ensureMapLibreStylesheet();
 
     // Keep what is on screen in step with the new frame while async work runs.
-    if (activeStyle === 'satellite' && map) syncSatelliteOverlay();
-    else redrawCleanWoodland();
-    void startSatellite(frame, nextBridge, generation);
+    if (activeStyle === 'satellite' && map) {
+      if (focusLost) fitSatelliteCamera();
+      else syncSatelliteOverlay();
+    } else {
+      redrawCleanWoodland();
+    }
+    void startSatellite(frame, nextBridge, generation, imageryCheck);
   }
 
   function setSelection(next) {
