@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.Senescence.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.Senescence.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!--
+    Compiles only the Species Wave 2 sources (the six species ids, the moisture table and the Scots pine / birch-alder
+    growth evaluators the late-life module delegates to), the isolated senescence module, and these tests.
+    No Unity, P0, NaturalProcesses or other Core code; no ProjectReference or PackageReference.
+  -->
+  <ItemGroup>
+    <Compile Include="../../../src/Core/SpeciesWave2/**/*.cs" />
+    <Compile Include="../../../src/Core/NaturalProcesses/Senescence/**/*.cs" />
+  </ItemGroup>
+</Project>
