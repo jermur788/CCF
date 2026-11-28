@@ -158,12 +158,8 @@ internal sealed partial class PlayerApi
             economyEnabled,
             economy);
 
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(payload, ResponseJson);
         var budget = ActiveLaneBudget(view.Areas.Count, genesisStems);
-        if (bytes.Length > budget.MaxViewBytes)
-            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
-
-        return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
+        return WriteBoundedJsonAsync(context, StatusCodes.Status200OK, payload, budget);
     }
 
     private Task WriteStandLanesAsync(
@@ -214,10 +210,11 @@ internal sealed partial class PlayerApi
             }
         }
 
+        var budget = ActiveLaneBudget(snap.View.Areas.Count, genesisStems);
         if (refusal is not null)
         {
-            return WriteJsonAsync(context, StatusCodes.Status409Conflict,
-                new MultiStandRefusalPayload(FenceOf(snap.View), refusal));
+            return WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
+                new MultiStandRefusalPayload(FenceOf(snap.View), refusal), budget);
         }
 
         var knownIds = snap.View.Areas.Select(a => a.AreaId).ToHashSet(StringComparer.Ordinal);
@@ -225,9 +222,9 @@ internal sealed partial class PlayerApi
         {
             if (!knownIds.Contains(lane))
             {
-                return WriteJsonAsync(context, StatusCodes.Status409Conflict,
+                return WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict,
                     new MultiStandRefusalPayload(FenceOf(snap.View),
-                        new Notice("MultiAreaUnknownArea", "no area of this experiment has exact ID '" + lane + "'")));
+                        new Notice("MultiAreaUnknownArea", "no area of this experiment has exact ID '" + lane + "'")), budget);
             }
         }
 
@@ -236,15 +233,11 @@ internal sealed partial class PlayerApi
         var filteredStage4 = FilterStage4ToLanes(snap.Readout, requestedSet);
         var filteredEcology = FilterEcologyToLanes(snap.Ecology, snap.View, filteredView, requestedSet);
 
-        var budget = ActiveLaneBudget(snap.View.Areas.Count, genesisStems);
         var (bytes, exceeded) = SerializeBoundedLaneStand(
             FenceOf(snap.View), requestedLanes, filteredView, filteredStage4, filteredEcology,
             totalRecordedYears, economyEnabled, economy, hasUnsavedProgress, recipeDto, budget);
 
-        if (exceeded)
-            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
-
-        return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
+        return WriteBoundedBytesAsync(context, StatusCodes.Status200OK, bytes, budget, exceeded);
     }
 
     private static bool TryNormalizeRequestedLanes(IReadOnlyList<string> rawLanes, out IReadOnlyList<string>? normalized, out string? error)
@@ -438,7 +431,7 @@ internal sealed partial class PlayerApi
         bool overPruneTrunc = filteredStage4.PruneLog.Count > 0;
         byte[] overBytes = Build(overV, projScenes, overS4, compactEco, reasonTable,
             histTrunc: overHistTrunc, projCompact: true, s4Compact: true, pruneTrunc: overPruneTrunc);
-        return (overBytes, overBytes.Length > budget.MaxViewBytes);
+        return (overBytes, overBytes.Length > budget.HardMaxViewBytes);
     }
 
     // Deduplicates repeated RefusalReason strings into a compact indexed table so 807 trees don't repeat

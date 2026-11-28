@@ -65,15 +65,15 @@ say "ui-smoke-multiarea $(date -u +%FT%TZ) HEAD $(git -C "$repo" rev-parse HEAD)
 mkdir "$scratch/fixture"
 cat -- "$p1_root/fixtures/derived/$fixture_name" > "$scratch/fixture/$fixture_name"
 
-# start_server <run> : starts one fresh UI process (one fresh in-memory session) and sets server_pid, url, port, cap, origin.
+# start_server <run> [experiment] : starts one fresh UI process (one fresh in-memory session) and sets server_pid, url, port, cap, origin.
 # Job control gives the process its own process group with the default SIGINT action, as in an interactive terminal.
 start_server() {
-  local run="$1"
+  local run="$1" experiment="${2:-ma-1}"
   set -m
   ( cd "$p1_root" && exec env ASPNETCORE_URLS="http://0.0.0.0:5187" DOTNET_URLS="http://0.0.0.0:5187" ASPNETCORE_HTTP_PORTS=5187 \
       Kestrel__Endpoints__Lan__Url="http://0.0.0.0:5187" ASPNETCORE_ENVIRONMENT=Development \
       XDG_DATA_HOME="$scratch/xdg" \
-      "$dotnet_bin" "$ui_dll" "$scratch/fixture" ) > "$scratch/server-$run.out" 2> "$scratch/server-$run.err" &
+      "$dotnet_bin" "$ui_dll" "$scratch/fixture" --multi-experiment="$experiment" ) > "$scratch/server-$run.out" 2> "$scratch/server-$run.err" &
   server_pid=$!
   set +m
   url=""
@@ -91,13 +91,13 @@ start_server() {
   origin="http://127.0.0.1:$port"
   say "run $run: server pid $server_pid (this script's own process), port $port"
   check "S01-$run the process prints the two-area page address on the same listener" \
-    grep -qx "Two-area MA-1 simulator: http://127.0.0.1:$port/s/$cap/multi" "$scratch/server-$run.out"
+    grep -qx "Two-area ${experiment^^} simulator: http://127.0.0.1:$port/s/$cap/multi" "$scratch/server-$run.out"
   check "S02-$run the port is ephemeral, not 5187 and not privileged" test "$port" != 5187 -a "$port" -ge 1024
 }
 
 # stop_server <run> : stops this script's own process like Ctrl+C and checks that it ended cleanly.
 stop_server() {
-  local run="$1" saved="${2:-0}" rc=0
+  local run="$1" saved="${2:-0}" expected_overflow_budget="${3:-}" rc=0
   kill -INT "$server_pid"
   for _ in $(seq 1 150); do kill -0 "$server_pid" 2> /dev/null || break; sleep 0.1; done
   if kill -0 "$server_pid" 2> /dev/null; then bad "Z01-$run still running 15 s after SIGINT"; kill -KILL "$server_pid" 2> /dev/null || true; fi
@@ -110,7 +110,14 @@ stop_server() {
     check "Z01-$run SIGINT ends this script's own process with exit 0 and 'Session ended; nothing was saved.' (exit $rc)" \
       bash -c 'test "$1" == 0 && grep -qx "Session ended; nothing was saved." "$2"' _ "$rc" "$scratch/server-$run.out"
   fi
-  check "Z02-$run the server wrote nothing to stderr (no unconfirmed outcome, no fault)" test ! -s "$scratch/server-$run.err"
+  if [[ -n "$expected_overflow_budget" ]]; then
+    check "Z02-$run stderr contains only the expected 503 diagnostic" bash -c '
+      test "$(wc -l < "$1")" -eq 1 &&
+      grep -Exq "PAYLOAD BUDGET EXCEEDED \(HTTP 503\): bytes=[0-9]+, budget=$2" "$1"
+    ' _ "$scratch/server-$run.err" "$expected_overflow_budget"
+  else
+    check "Z02-$run the server wrote nothing to stderr (no unconfirmed outcome, no fault)" test ! -s "$scratch/server-$run.err"
+  fi
 }
 
 start_server api
@@ -1062,6 +1069,127 @@ finally:
     stop_proc(p2, o2, e2)
 PY
 ' _ "$dotnet_bin" "$ui_dll" "$scratch/fixture" "$p1_root" "$scratch"
+
+# ---- M16: Replay the independent review's steady thinning workload on a fresh MA-1-MIXED session -----------------------
+CCF_TEST_MAX_VIEW_BYTES= start_server steady-thinning ma-1-mixed
+thinning_rc=0
+python3 -I -B - "$url" << 'PY' | tee -a "$log" || thinning_rc=$?
+from collections import Counter
+import json, sys, urllib.error, urllib.request
+
+base = sys.argv[1]
+origin = base.split("/s/")[0]
+reason = "Opus margin probe: realistic operator note for this felling; " + ("x" * 440)
+soft_limit, hard_limit = 524288, 4194304
+failures = []
+prune_refusals = Counter()
+
+def fence(view):
+    return {key: view[key] for key in ("sessionId", "source", "planStateRevision")}
+
+def send(year, route, body=None, allowed=(200,)):
+    headers = {"Origin": origin}
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    request = urllib.request.Request(base + "api/multi/" + route,
+        data=None if body is None else json.dumps(body).encode(), headers=headers)
+    try:
+        response = urllib.request.urlopen(request, timeout=30)
+    except urllib.error.HTTPError as error:
+        response = error
+    with response:
+        raw = response.read()
+        status = response.code
+        soft = response.headers.get("X-Multi-View-Soft-Limit")
+        hard = response.headers.get("X-Multi-View-Hard-Limit")
+    payload = json.loads(raw)
+    label = f"Y{year:02d} {route} HTTP {status} bytes={len(raw)}"
+    if status not in allowed:
+        failures.append(f"{label}, refusal={payload.get('code') or payload.get('refusal')}")
+    elif len(raw) > hard_limit or payload.get("payloadBudgetExceeded") is True:
+        failures.append(f"{label}, accepted with payloadBudgetExceeded or above hard limit")
+    if (soft, hard) != (str(soft_limit), str(hard_limit)):
+        failures.append(f"{label}, unexpected limits soft={soft} hard={hard}")
+    return status, payload, len(raw), soft, hard
+
+_, initial, _, _, _ = send(0, "view")
+view = initial["view"]
+assert view["source"]["ecologicalYear"] == 0 and initial["historyTruncated"] is False
+assert initial["economyEnabled"] is False and [a["areaId"] for a in view["areas"]] == ["MA-A", "MA-B"]
+year_zero_fence = fence(view)
+
+for year in range(1, 31):
+    for area in view["areas"]:
+        live = [tree["treeId"] for tree in area["trees"] if tree["isLiving"]]
+        assert len(live) >= 5, f"Y{year:02d} {area['areaId']} needs at least five living trees"
+        for tree_id in live[:2]:
+            _, payload, *_ = send(year, "pending/add", {
+                "fence": fence(view), "areaId": area["areaId"], "treeId": tree_id, "reason": reason})
+            view = payload.get("view", view)
+        for tree_id in live[2:5]:
+            # Follow the review probe's fixed targets. Core can refuse a repeat or ineligible lift.
+            status, payload, *_ = send(year, "prune/add", {
+                "fence": fence(view), "areaId": area["areaId"], "treeId": tree_id}, allowed=(200, 409))
+            if status == 409:
+                code = (payload.get("refusal") or {}).get("code", "")
+                if not code.startswith("Prune"):
+                    failures.append(f"Y{year:02d} prune/add unexpected refusal {code}")
+                prune_refusals[code] += 1
+            elif status == 200:
+                view = payload["view"]
+
+    if view["pending"]:
+        _, payload, *_ = send(year, "plan/approve", {"fence": fence(view)})
+        view = payload.get("view", view)
+    if view["approved"]:
+        plan = view["approved"]
+        _, payload, *_ = send(year, "plan/execute", {
+            "fence": fence(view), "planId": plan["planId"], "executionKey": plan["executionKey"]})
+        view = payload.get("view", view)
+
+    advance = send(year, "year/advance", {"fence": fence(view), "consentToCancelWork": True})
+    view = advance[1].get("view", view)
+    reread = send(year, "view")
+    view = reread[1].get("view", view)
+    if view["source"]["ecologicalYear"] != year:
+        failures.append(f"Y{year:02d} advanced to {view['source']['ecologicalYear']}")
+
+for route, (status, payload, size, soft, hard) in (("year/advance", advance), ("view", reread)):
+    print(f"M16 Y30 {route} HTTP {status} bytes={size} X-Multi-View-Soft-Limit={soft} X-Multi-View-Hard-Limit={hard}")
+    if not any(payload.get(flag) for flag in ("projectionCompacted", "stage4Compacted", "historyTruncated")):
+        failures.append(f"Y30 {route} did not report compaction")
+if not soft_limit < reread[2] <= 600000:
+    failures.append(f"Y30 view bytes={reread[2]}, expected >{soft_limit} and <=600000")
+
+send(30, "stand?lanes=MA-A,MA-B")
+_, stale, *_ = send(30, "stand", {"fence": year_zero_fence, "lanes": ["MA-A", "MA-B"]}, allowed=(409,))
+if (stale.get("refusal") or {}).get("code") != "PlayerSourceStale":
+    failures.append("Y30 lane read with the Year-0 fence did not return PlayerSourceStale")
+
+print(f"M16 engine prune refusals out of 180 requests: {dict(prune_refusals)}")
+for failure in failures:
+    print(f"M16 {failure}")
+sys.exit(bool(failures))
+PY
+check "M16 steady thinning: all 30 advances and view reads return 200, including the compact Year-30 view above the soft limit" test "$thinning_rc" -eq 0
+stop_server steady-thinning
+
+# ---- M17: A strict test override still refuses hard overflow ----------------------------------------------------------
+CCF_TEST_MAX_VIEW_BYTES=3000 start_server hard-ceiling ma-1-mixed
+code="$(req hard-ceiling GET "/s/$cap/api/multi/view")"
+soft="$(header hard-ceiling X-Multi-View-Soft-Limit)"
+hard="$(header hard-ceiling X-Multi-View-Hard-Limit)"
+say "M17 GET view HTTP $code X-Multi-View-Soft-Limit=$soft X-Multi-View-Hard-Limit=$hard $(cat "$scratch/hard-ceiling.body")"
+check "M17 hard-ceiling overflow returns HTTP 503 with code MultiViewPayloadBudgetExceeded and budget 3000" \
+  python3 -I -B -c '
+import json, sys
+status, soft, hard, path = sys.argv[1:]
+with open(path, encoding="utf-8") as response:
+    payload = json.load(response)
+assert (status, soft, hard) == ("503", "3000", "3000")
+assert payload["code"] == "MultiViewPayloadBudgetExceeded" and payload["budget"] == 3000 and payload["bytes"] > 3000
+' "$code" "$soft" "$hard" "$scratch/hard-ceiling.body"
+stop_server hard-ceiling 0 3000
 
 # ---- J: the page's own script against a second, fresh process (a fresh session at Year 0) --------------------------------
 start_server page

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -26,8 +27,7 @@ internal sealed partial class PlayerApi
         return WriteAssetAsync(context, combined, JsonContentType);
     }
 
-    // Explicit HTTP 503 refusal whenever a view or lane-filtered payload cannot fit within its active byte budget.
-    // Closes the silent-overflow gap (spec §8.1 / T-2A2-07): over-budget bytes are NEVER returned as HTTP 200.
+    // The bounded writer calls this only for a payload above the defensive ceiling.
     private static Task WritePayloadBudgetExceededAsync(HttpContext context, int actualBytes, int budgetBytes)
     {
         Console.Error.WriteLine(FormattableString.Invariant(
@@ -37,8 +37,7 @@ internal sealed partial class PlayerApi
     }
 
     // Composite read: view, stage4 and ecology share one exact Core snapshot lock; totalRecordedYears and reviewPreview
-    // are read-only metadata queries. Bounded to ActiveStandBudget (512 KiB for <=2 areas; scaled up to 2.5 MiB for >=3
-    // areas). Never returns an over-budget body: returns HTTP 503 MultiViewPayloadBudgetExceeded instead.
+    // are read-only metadata queries. Compacts toward the stand's soft target and enforces its defensive ceiling.
     private Task ReadMultiViewAsync(HttpContext context)
     {
         MultiAreaCompositeUiSnapshot snapshot;
@@ -64,9 +63,7 @@ internal sealed partial class PlayerApi
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview, out byte[] bytes,
             economyEnabled, economy, budget, hasUnsavedProgress, recipeDto);
-        if (bounded.PayloadBudgetExceeded)
-            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
-        return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
+        return WriteBoundedBytesAsync(context, StatusCodes.Status200OK, bytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     private readonly record struct BoundedMultiFrame(
@@ -139,10 +136,8 @@ internal sealed partial class PlayerApi
         return droppedAny ? ecology with { PruneStatusByTreeId = filtered } : ecology;
     }
 
-    // Projection-only bounded serialization for GET api/multi/view (Owner G5 Year 30 horizon: raw <= 524,288 B,
-    // ecology <= 153,600 B). Never mutates or truncates the committed Core root. Preserves at least the latest work
-    // event and latest annual record whenever present; trims stage4.pruneLog before dropping them; omits rather than
-    // fabricates empty lists; and never returns over-budget bytes silently (sets payloadBudgetExceeded + logs to stderr).
+    // Compacts the response projection toward the stand's soft byte targets. The committed Core root is untouched.
+    // Preserves at least the latest work event and latest annual record when present.
     private static BoundedMultiSnapshot SerializeBoundedMultiView(
         MultiAreaCompositeUiSnapshot snapshot,
         int totalRecordedYears,
@@ -173,6 +168,7 @@ internal sealed partial class PlayerApi
     {
         int maxViewBytes = budgetOverride?.MaxViewBytes ?? MaxViewPayloadBytes;
         int maxEcoBytes = budgetOverride?.MaxEcologyBytes ?? MaxEcologyPayloadBytes;
+        int hardMaxViewBytes = budgetOverride?.HardMaxViewBytes ?? MultiViewBudget.DefensiveHardCeilingBytes;
         var fullScenes = ScenesOf(fullView);
         var projEco = ProjectEcologyForView(fullEcology, fullView);
         int ecoBytes = projEco is null ? 0 : JsonSerializer.SerializeToUtf8Bytes(projEco, ResponseJson).Length;
@@ -313,17 +309,23 @@ internal sealed partial class PlayerApi
             return tier2Fit!;
         }
 
-        // Tier 3: over-budget sentinel — callers refuse with HTTP 503 MultiViewPayloadBudgetExceeded (never HTTP 200).
-        object? overStage4 = fullStage4 is null ? null
+        // Tier 3: keep the smallest projection when the soft target cannot be met.
+        object? fallbackStage4 = fullStage4 is null ? null
             : ProjectStage4ForBudget(fullStage4, hasEcology: projEco is not null, compactGround: true, pruneLogCap: 0);
-        var overView = ProjectViewForBudget(TailRaw(minEvents, minAnnual));
-        bool overTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count;
-        bool overPruneTrunc = (fullStage4?.PruneLog.Count ?? 0) > 0;
-        byte[] overBytes = Serialize(overView, projScenes, overStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true, pruneTrunc: overPruneTrunc);
-        finalBytes = overBytes;
-        return new BoundedMultiSnapshot(overView, projScenes, overStage4, projEco,
-            HistoryTruncated: overTrunc, TotalRecordedYears: totalRecordedYears,
-            ProjectionCompacted: true, Stage4Compacted: fullStage4 is not null, PayloadBudgetExceeded: true, PruneLogTruncated: overPruneTrunc);
+        var fallbackView = ProjectViewForBudget(TailRaw(minEvents, minAnnual));
+        bool historyTruncated = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count;
+        bool pruneLogTruncated = (fullStage4?.PruneLog.Count ?? 0) > 0;
+        bool stage4Compacted = fullStage4 is not null;
+        finalBytes = Serialize(fallbackView, projScenes, fallbackStage4, historyTruncated,
+            projCompact: true, stage4Compacted, exceeded: false, pruneLogTruncated);
+        bool exceeded = finalBytes.Length > hardMaxViewBytes;
+        if (exceeded)
+        {
+            finalBytes = Serialize(fallbackView, projScenes, fallbackStage4, historyTruncated,
+                projCompact: true, stage4Compacted, exceeded: true, pruneLogTruncated);
+        }
+        return new BoundedMultiSnapshot(fallbackView, projScenes, fallbackStage4, projEco,
+            historyTruncated, totalRecordedYears, ProjectionCompacted: true, stage4Compacted, exceeded, pruneLogTruncated);
     }
 
     // Honest projection of MultiAreaSessionView: keeps every area, living tree, stump and dead tree with exact field names;
@@ -449,25 +451,19 @@ internal sealed partial class PlayerApi
             Array.AsReadOnly(compactAreas), stage4.PendingPrunes, stage4.ApprovedPrunes, TailOf(stage4.PruneLog, pruneLogCap));
     }
 
-    // Writes pre-serialized envelope bytes produced by SerializeBoundedMultiView, refusing with HTTP 503 whenever over budget.
+    // Send the exact envelope bytes and share the same limit headers on success and refusal.
     private static Task WriteBoundedBytesAsync(HttpContext context, int status, byte[] bytes,
-        MultiViewBudgetLimit budget, bool alreadyExceeded)
+        MultiViewBudgetLimit budget, bool alreadyExceeded = false)
     {
-        if (alreadyExceeded || bytes.Length > budget.MaxViewBytes)
-            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
+        context.Response.Headers["X-Multi-View-Soft-Limit"] = budget.MaxViewBytes.ToString(CultureInfo.InvariantCulture);
+        context.Response.Headers["X-Multi-View-Hard-Limit"] = budget.HardMaxViewBytes.ToString(CultureInfo.InvariantCulture);
+        if (alreadyExceeded || bytes.Length > budget.HardMaxViewBytes)
+            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.HardMaxViewBytes);
         return WriteRawJsonAsync(context, status, bytes);
     }
 
-    // Serializes any view-carrying JSON response and guarantees the server NEVER emits a body exceeding the active
-    // payload budget on ANY route (200 or 409): returns typed HTTP 503 MultiViewPayloadBudgetExceeded instead (spec §8).
-    private static Task WriteBoundedJsonAsync<T>(HttpContext context, int status, T payload,
-        MultiViewBudgetLimit budget, bool alreadyExceeded = false, int rawViewBytes = 0)
-    {
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(payload, ResponseJson);
-        if (alreadyExceeded || bytes.Length > budget.MaxViewBytes)
-            return WritePayloadBudgetExceededAsync(context, Math.Max(rawViewBytes, bytes.Length), budget.MaxViewBytes);
-        return WriteRawJsonAsync(context, status, bytes);
-    }
+    private static Task WriteBoundedJsonAsync<T>(HttpContext context, int status, T payload, MultiViewBudgetLimit budget) =>
+        WriteBoundedBytesAsync(context, status, JsonSerializer.SerializeToUtf8Bytes(payload, ResponseJson), budget);
 
     private static object BoundSessionViewForAux(MultiAreaSessionView view)
     {
