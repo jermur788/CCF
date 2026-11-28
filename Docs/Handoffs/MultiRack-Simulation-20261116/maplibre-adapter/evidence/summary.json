@@ -1,0 +1,142 @@
+{
+  "generatedUtc": "2026-11-28T12:03:45.450Z",
+  "testedCommit": "b6cb1461fc28470cff064f55aad8934d71c8080a",
+  "testedTreeDirty": false,
+  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T120314Z",
+  "overall": "PASS",
+  "vendorIntegrity": {
+    "status": "PASS",
+    "checksPassed": 16,
+    "checksFailed": 0,
+    "filesHashed": 4
+  },
+  "geoOracle": {
+    "status": "PASS",
+    "checksPassed": 28,
+    "checksFailed": 0,
+    "thresholdM": 0.01,
+    "maxRoundTripErrorM": 7.3065e-8,
+    "oracleMaxDistanceErrorM": {
+      "stand30m": 3.9981e-7,
+      "stand80m": 4.4374e-7,
+      "stand120m": 3.316e-7
+    }
+  },
+  "browserMatrix": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0,
+    "total": 20,
+    "browser": "Chrome/156.0.8078.79",
+    "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "cspHeader": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; img-src data: blob: 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "referrerPolicy": "no-referrer",
+    "consoleErrors": 0,
+    "cspViolations": 0,
+    "failedRequests": 0,
+    "nonLoopbackRequests": 0,
+    "httpRequests": 93,
+    "cases": [
+      {
+        "id": "B01",
+        "status": "PASS",
+        "detail": "assertMapRenderer passes; own properties=[destroy,focusArea,mount,render,setSelection]; production adapter (no debug) properties=[destroy,focusArea,mount,render,setSelection]; frozen=true"
+      },
+      {
+        "id": "B02",
+        "status": "PASS",
+        "detail": "callerFrameUnmutated=true, normalisedFrameDeepFrozen=true, copiedNotAliased=true, frozenInputAccepted=true, radiusCopiedVerbatim=true"
+      },
+      {
+        "id": "B03",
+        "status": "PASS",
+        "detail": "style=clean-woodland, notice hidden=true, canvas pixel=(21.0,37.0,26.0) (want #15251a), layer1=rgb(21, 37, 26), vendorRequests=0, workers=0, crowns=20"
+      },
+      {
+        "id": "B04",
+        "status": "PASS",
+        "detail": "6/6 invalid anchors -> \"No map location set. Showing Clean Woodland.\" with selection kept, 0 modals [missing anchor:ok; centroid origin:ok; digest mismatch:ok; frame without source identity:ok; latitude out of range:ok; non-finite bearing:ok]; vendorRequests=0"
+      },
+      {
+        "id": "B05",
+        "status": "PASS",
+        "detail": "callsBeforeMount safe=true; roots after double mount=1, after destroy=0; second destroy + calls after destroy safe=true (roots=0); remount roots=1"
+      },
+      {
+        "id": "B06",
+        "status": "PASS",
+        "detail": "stale delayed module load ignored (style=clean-woodland, map=false, constructed=0); back-to-back satellite frames -> shown frameKey=key-B, maps constructed=1"
+      },
+      {
+        "id": "B07",
+        "status": "PASS",
+        "detail": "module/worker/css 200 after switch; worker targets=1 all at /map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl-worker.mjs (no blob/data); getWorkerUrl matches; setWorkerUrl before new Map=true; CSP violations=0; console errors=0"
+      },
+      {
+        "id": "B08",
+        "status": "PASS",
+        "detail": "18 browser responses all carry the exact CSP + Referrer-Policy (mismatches=0); server 404 also exact=true; http requests=19, non-loopback=0, failed=0"
+      },
+      {
+        "id": "B09",
+        "status": "PASS",
+        "detail": "glyphs=null, sprite=null, sources=[\"geojson inline data\",\"image /fixtures/synthetic-imagery.png\"], layers=[ccf-woodland-canvas:background,ccf-woodland-extent:fill,ccf-georeferenced-imagery:raster], background=#15251a, extent fill=#15251a (Layer 1, worker-tiled)"
+      },
+      {
+        "id": "B10",
+        "status": "PASS",
+        "detail": "DOM bottom->top [woodland-canvas > georeferenced-imagery > stage2-reserved > ground-overlays > schematic-deadwood > living-crowns > planted-juveniles > marks-ranks-selection] matches descriptors; reserved slots drone-lidar=false/0, hillshade-contours=false/0, streams-rivers=false/0, roads-bridges-paths=false/0; MapLibre canvas order background<extent fill (Layer 1)<raster (Layer 2); overlay above canvas=true; marks topmost=true"
+      },
+      {
+        "id": "B11",
+        "status": "PASS",
+        "detail": "20 crowns, r attribute == radiusM metres: true; rendered rim -> MapLibre unproject -> local metres: max radius error 0.2115 mm (<= 2 mm); centre vs map.project max 0.0017 px; MA-C-T03 (3.8 m) = 31.92 px"
+      },
+      {
+        "id": "B12",
+        "status": "PASS",
+        "detail": "satellite 800x500: max error 0.2111 mm, MA-C-T03 31.92 -> 21.47 px (x0.673); clean woodland uniform scale, max error 0.0001 mm, 31.09 px @1280x720 -> 21.59 px @800x500 (x0.694)"
+      },
+      {
+        "id": "B13",
+        "status": "PASS",
+        "detail": "after zoom +0.8 and pan (120,-60) px: centre error max 0.0030 px (< 0.5), radius error max 0.2095 mm"
+      },
+      {
+        "id": "B14",
+        "status": "PASS",
+        "detail": "default raster-opacity=0.65; imagery pixel (135.0,122.0,69.0) vs 65% blend (134.8,122.2,68.9) (+-4); attribution visible \"Synthetic local test imagery (not a real photograph)\""
+      },
+      {
+        "id": "B15",
+        "status": "PASS",
+        "detail": "0%: paint=0, pixel (21.0,37.0,26.0) (= canvas #15251a), attribution hidden=true; 100%: paint=1, pixel (196.0,168.0,92.0) (= imagery), attribution visible=true; layers 1,4-8 + overlay opacity stay 1=true"
+      },
+      {
+        "id": "B16",
+        "status": "PASS",
+        "detail": "2/2 -> \"Imagery unavailable. Showing woodland map.\" on the dark MapLibre canvas (pixels (21.0,37.0,26.0), (21.0,37.0,26.0)), no raster layer, attribution hidden, selection kept, 0 modals [no imagery configured:ok; imagery URL returns a non-image:ok]"
+      },
+      {
+        "id": "B17",
+        "status": "PASS",
+        "detail": "5/5 -> \"Map display unavailable. Showing Clean Woodland.\", selection kept, 0 modals [WebGL unavailable (no vendor request):ok; module import failure:ok; worker never responds (load watchdog):ok; WebGL context lost on a live map:ok; later satellite frame stays on Clean Woodland (no retry loop):ok]"
+      },
+      {
+        "id": "B18",
+        "status": "PASS",
+        "detail": "satellite [[\"MA-C\",8.2,36,null],[\"MA-C\",5.5,44,\"MA-C-PJ01\"],[\"MA-E\",4.5,18,null]]; clean woodland [[\"MA-C\",8.2,36,null],[\"MA-C\",5.5,44,\"MA-C-PJ01\"],[\"MA-E\",4.5,18,null]]; keys exactly {areaId,u,v,juvenileId,frameKey}; 64 px drag panned the map=true and emitted 0 callbacks"
+      },
+      {
+        "id": "B19",
+        "status": "PASS",
+        "detail": "L4 lanes=5, moisture cells dry=576/moist=544, cell 2.50 x 2.50 m; L5 deadwood=5; L6 crowns=20 [ApprovedFell,Felled,Living,NaturalDead,PendingFell]; L7 juveniles=5 (shelter 1); L8 crop ring+C=true, pending dashed=true/approved solid=true, ranks=1,2, selection on top with frame+SEL+aria=true; focusArea centres x=8.00 (MA-A) -> 72.00 (MA-E), frame unchanged=true, selection kept=true"
+      },
+      {
+        "id": "B20",
+        "status": "PASS",
+        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run: console errors=0, CSP violations=0, failed requests=0, non-loopback=0"
+      }
+    ]
+  }
+}
