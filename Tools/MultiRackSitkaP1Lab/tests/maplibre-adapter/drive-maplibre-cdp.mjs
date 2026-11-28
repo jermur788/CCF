@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B29 for the MapLibre Display Adapter.
+ * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B30 for the MapLibre Display Adapter.
  *
  * - Loopback static server (server.mjs) sends the exact strict CSP + Referrer-Policy on every response.
  * - Chromium uses SwiftShader WebGL (no --disable-gpu), --host-resolver-rules that fail every
@@ -10,10 +10,10 @@
  *   are audited too; audit setup failures fail the run.
  *
  * Usage: node drive-maplibre-cdp.mjs --out <evidence-dir>
- * Exit 0 only if all 29 cases pass and the audit has zero console errors, CSP violations,
+ * Exit 0 only if all 30 cases pass and the audit has zero console errors, CSP violations,
  * failed requests, non-loopback requests and audit setup failures. Exit 2 when WebGL2 is unavailable (NOT TESTED).
  *
- * B08, B20 and B24 are evaluated after every other case (B27-B29 run before them), so their header and audit checks
+ * B08, B20 and B24 are evaluated after every other case (B27-B30 run before them), so their header and audit checks
  * cover the whole run (results are reported in case-id order).
  */
 
@@ -34,7 +34,7 @@ const H = 720;
 const BG = [21, 37, 26]; // #15251a
 const IMG = [196, 168, 92]; // synthetic imagery margin colour
 const WORKER_PATH = '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl-worker.mjs';
-const EXPECTED_CASES = 29;
+const EXPECTED_CASES = 30;
 mkdirSync(evidenceDir, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -190,7 +190,7 @@ function createAudit(cdp) {
           break;
         }
         const worker = { sessionId: p.sessionId, targetId: info.targetId, url: info.url, type: info.type, at: Date.now(),
-          setup: 'pending', scriptResponses: [], otherResponses: [] };
+          setup: 'pending', ownUrlResponses: [], otherResponses: [] };
         workerBySession.set(p.sessionId, worker);
         audit.workers.push(worker);
         if (info.type !== 'worker') audit.setupFailures.push(`unexpected auto-attached target type "${info.type}" (${info.url})`);
@@ -248,11 +248,14 @@ function createAudit(cdp) {
             status: r.status,
             session: worker ? 'worker:' + worker.targetId : key === 'page' ? 'page' : 'unattached:' + msg.sessionId,
             sessionId: msg.sessionId || null,
+            resourceType: p.type || null, // CDP Network.ResourceType: 'Script' for a worker's startup script, 'Fetch' for fetch()
             csp: headers['content-security-policy'],
             referrer: headers['referrer-policy'],
           };
           audit.responses.push(entry);
-          if (worker) (r.url === worker.url ? worker.scriptResponses : worker.otherResponses).push(entry);
+          // Every response for the worker's own URL is kept here, whatever its resource type;
+          // workerCoverageFailures() decides which of them is startup evidence (type Script only).
+          if (worker) (r.url === worker.url ? worker.ownUrlResponses : worker.otherResponses).push(entry);
           // A worker's script request is announced in the page session and answered in the
           // worker's own session under the same requestId.
           const req = key ? audit.requests.get(key + '|' + p.requestId) || (worker ? audit.requests.get('page|' + p.requestId) : null) : null;
@@ -277,8 +280,10 @@ function createAudit(cdp) {
 
 /**
  * Per-worker-target coverage: every attached worker must have finished its CDP setup and have
- * reported, in its own session, its own script response (URL equal to the target URL, HTTP 200,
- * exact CSP and Referrer-Policy). Returns the workers that fail, with the reason.
+ * reported, in its own session, its own startup script response: CDP resource type 'Script', URL
+ * equal to the target URL, HTTP 200, exact CSP and Referrer-Policy. An ordinary fetch() of the
+ * same URL from the same worker (resource type 'Fetch') is NOT startup evidence and never counts.
+ * Returns the workers that fail, with the reason.
  */
 export function workerCoverageFailures(workers) {
   const failures = [];
@@ -290,8 +295,8 @@ export function workerCoverageFailures(workers) {
     sessions.add(w.sessionId);
     targets.add(w.targetId);
     if (w.setup !== 'ok') failures.push({ targetId: w.targetId, reason: 'setup ' + w.setup });
-    const own = w.scriptResponses.filter((r) => r.session === 'worker:' + w.targetId && r.sessionId === w.sessionId && r.url === w.url);
-    if (own.length === 0) failures.push({ targetId: w.targetId, reason: 'no script response in its own session' });
+    const own = w.ownUrlResponses.filter((r) => r.resourceType === 'Script' && r.session === 'worker:' + w.targetId && r.sessionId === w.sessionId && r.url === w.url);
+    if (own.length === 0) failures.push({ targetId: w.targetId, reason: 'no Script-type startup response in its own session' });
     else if (own.some((r) => r.status !== 200 || r.csp !== STRICT_CSP_HEADER || r.referrer !== REFERRER_POLICY)) {
       failures.push({ targetId: w.targetId, reason: 'script response status/headers not exact' });
     }
@@ -393,7 +398,7 @@ async function main() {
       return { ok: true, version: gl.getParameter(gl.VERSION), renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) };
     })()`);
     if (!webgl.ok) {
-      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B29 not run.');
+      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B30 not run.');
       await finish(2);
       return;
     }
@@ -523,7 +528,7 @@ async function main() {
       && audit.cspViolations.length === 0 && audit.consoleErrors.length === 0,
       `module/worker/css 200 after switch; worker targets=${workerUrls.length} all at ${WORKER_PATH} (no blob/data); getWorkerUrl matches; setWorkerUrl before new Map=${b07.setBeforeMap}; CSP violations=${audit.cspViolations.length + b07.pageCsp}; console errors=${audit.consoleErrors.length}`);
 
-    // B08 is evaluated at the very end of the run (after B29) so it covers every response.
+    // B08 is evaluated at the very end of the run (after B30) so it covers every response.
 
     // B09 inline-only MapLibre style
     await waitFor('window.__CCF_HARNESS__.debug().imageryLoaded', 'imagery loaded (B09)');
@@ -1032,6 +1037,7 @@ async function main() {
     // B27 the whole imagery probe settles at its deadline, even when the decode stalls after the bytes arrived
     await freshPage();
     const deadline27 = 2200;
+    const B27_RENDER_SANITY_MS = deadline27 + 8000; // sanity only; the deadline itself is asserted from the probe start
     const url27 = '/fixtures/synthetic-imagery.png?b27-stalled-decode';
     await evaluate(`(() => { const h = ${HX}; h.create('default', { imageryTimeoutMs: ${deadline27}, loadTimeoutMs: 9000 }); h.render(); ${SELECT}; h.holdDecodes(true); })()`);
     const log27 = srv.requestLog.length;
@@ -1039,8 +1045,10 @@ async function main() {
     // In-page clock: the time from render() to the moment data-fallback flips, observed synchronously.
     // The probe's own settlement is read from its 'imagery-probe-failed' diagnostic (time + reason):
     // it must settle from its deadline timer ('timeout') while the decode is still held, and the
-    // notice must follow in the same task. SwiftShader can delay any timer, so the absolute bound
-    // is only a sanity limit.
+    // notice must follow in the same task. Render-relative time includes WebGL/map start-up, which
+    // concurrent load can stretch by seconds (repair cycle 3: 1,244 ms start-up gave a false failure),
+    // so the deadline is asserted only relative to the probe's own start; the render-relative bound
+    // is a generous sanity limit.
     await evaluate(`(() => {
       const root = document.querySelector('.ccf-ml-root');
       const t = window.__CCF_B27__ = { t0: performance.now(), noticeMs: null };
@@ -1052,7 +1060,7 @@ async function main() {
     const held27 = await softWait(`${HX}.heldDecodeCount() >= 1`, 'decode held (B27)', 5000);
     const heldMs = Date.now() - t27;
     const bytes27 = srv.requestLog.slice(log27).filter((r) => r.pathname === '/fixtures/synthetic-imagery.png' && r.status === 200).length;
-    const notice27 = await softWait(fallbackIs('imagery-unavailable'), 'imagery notice at the probe deadline (B27)', deadline27 + 1500);
+    const notice27 = await softWait(fallbackIs('imagery-unavailable'), 'imagery notice at the probe deadline (B27)', deadline27 + 6000);
     const noticeMs27 = Date.now() - t27;
     const atNotice = await evaluate(`(() => { const d = ${HX}.debug(); return { pending: d.pendingProbes, decodesStillHeld: ${HX}.heldDecodeCount(), pageNoticeMs: window.__CCF_B27__.noticeMs,
       started: ${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-started').map((x) => x.at - window.__CCF_B27__.t0),
@@ -1087,7 +1095,7 @@ async function main() {
     const maps27 = await constructed();
     await evaluate(`${HX}.holdDecodes(false)`);
     const ok27 = held27 && bytes27 === 1 && notice27 && atNotice.pageNoticeMs !== null && atNotice.probe.length === 1 && probe27.reason === 'timeout' && probeLife27 >= deadline27 - 5 && probeLife27 <= deadline27 + 150
-      && atNotice.pageNoticeMs >= probe27.ms && atNotice.pageNoticeMs - probe27.ms <= 20 && atNotice.pageNoticeMs <= deadline27 + 1000 && atNotice.pending === 0 && atNotice.decodesStillHeld >= 1
+      && atNotice.pageNoticeMs >= probe27.ms && atNotice.pageNoticeMs - probe27.ms <= 20 && atNotice.pageNoticeMs <= B27_RENDER_SANITY_MS && atNotice.pending === 0 && atNotice.decodesStillHeld >= 1
       && ready27 && s27.style === 'satellite' && s27.hasMap && s27.notice === COPY.imagery && s27.noticeVisible && !s27.attrVisible && s27.selectionKept && s27.crowns === 20 && s27.modals === 0
       && !d27.watchdog && !d27.imageryLoaded && JSON.stringify(d27.layers) === '["ccf-woodland-canvas","ccf-woodland-extent"]'
       && Math.abs(zoom27 - d27.zoom - 0.5) < 1e-6 && m27.count === 20 && m27.maxCentrePx < 0.5 && m27.maxErrM <= 0.002
@@ -1096,7 +1104,7 @@ async function main() {
       && d27b.lateBitmaps.length === released27 && d27b.lateBitmaps.every(([w, h]) => w === 0 && h === 0)
       && s27c.fallback === 'imagery-unavailable' && s27c.notice === COPY.imagery && refetched27 === 0 && heldAfter === heldBefore && maps27 === 1;
     record('B27', ok27,
-      `decode held after the image bytes arrived (server 200s=${bytes27}, held at ${heldMs} ms); imagery notice "${s27.notice}" ${atNotice.pageNoticeMs === null ? 'never' : atNotice.pageNoticeMs.toFixed(1) + ' ms'} after render() by the page clock; the probe started at ${atNotice.started.length === 1 ? atNotice.started[0].toFixed(1) : 'n/a'} ms and settled with reason "${probe27.reason}" ${Number(probeLife27).toFixed(1)} ms later (deadline ${deadline27} ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it and <= deadline + 1000 ms after render(); driver wall clock ${noticeMs27} ms) with the decode still held (${atNotice.decodesStillHeld}) and pending probes=${atNotice.pending}; `
+      `decode held after the image bytes arrived (server 200s=${bytes27}, held at ${heldMs} ms); imagery notice "${s27.notice}" ${atNotice.pageNoticeMs === null ? 'never' : atNotice.pageNoticeMs.toFixed(1) + ' ms'} after render() by the page clock; the probe started at ${atNotice.started.length === 1 ? atNotice.started[0].toFixed(1) : 'n/a'} ms and settled with reason "${probe27.reason}" ${Number(probeLife27).toFixed(1)} ms later (deadline ${deadline27} ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it; render-relative sanity limit ${B27_RENDER_SANITY_MS} ms; driver wall clock ${noticeMs27} ms) with the decode still held (${atNotice.decodesStillHeld}) and pending probes=${atNotice.pending}; `
       + `map ready, watchdog off=${!d27.watchdog}, no raster layer, selection kept; still usable: zoom +0.5 -> ${(zoom27 - d27.zoom).toFixed(3)}, crowns ${m27.count}, centre err ${m27.maxCentrePx.toFixed(4)} px; `
       + `released ${released27} decode(s) later: still ${s27b.style}/${s27b.fallback}, imageryLoaded=${d27b.imageryLoaded}, late bitmaps closed=${JSON.stringify(d27b.lateBitmaps)}; same URL again: refetches=${refetched27}, new decodes=${heldAfter - heldBefore}, notice kept=${s27c.fallback === 'imagery-unavailable'}, maps constructed=${maps27}`);
 
@@ -1165,6 +1173,94 @@ async function main() {
     record('B29', b29.every((c) => c.ok) && fetched29 === 0,
       `${b29.filter((c) => c.ok).length}/${b29.length} on anchor 179.99 E: [${b29.map((c) => c.label + ': ' + (c.ok ? 'ok' : 'FAIL') + ' (' + c.detail + ')').join('; ')}]; dropped same-origin imagery requested=${fetched29} times`);
 
+    // ===== Repair cycle 3 regression case =======================================================
+    // B30 a decode that finishes after the probe deadline is never accepted, even when its
+    // continuation runs before the overdue deadline timer (the reviewer's race, made deterministic)
+    await freshPage();
+    const deadline30 = 1500;
+    const overshoot30 = 600; // the release happens 600 ms past the deadline (reviewer: 1,817 ms vs 1,200 ms)
+    const url30 = '/fixtures/synthetic-imagery.png?b30-deadline-race';
+    const imagery30 = (url) => `{ url: '${url}', attribution: '${SYNTH_ATTR}', boundsLocal: { minXM: -24, minZM: -24, maxXM: 104, maxZM: 104 } }`;
+    const imageryRequests = (from) => srv.requestLog.slice(from).filter((r) => r.pathname === '/fixtures/synthetic-imagery.png').length;
+    const layers30 = () => evaluate(`${HX}.debug().style ? ${HX}.debug().style.layers.map((l) => l.id) : null`);
+    const NO_RASTER = '["ccf-woodland-canvas","ccf-woodland-extent"]';
+    const probeFails30 = () => evaluate(`${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-failed').map((x) => x.reason)`);
+    await evaluate(`(() => { const h = ${HX}; h.create('default', { imageryTimeoutMs: ${deadline30}, loadTimeoutMs: 9000 }); h.render(); ${SELECT}; h.holdDecodes('predecode'); })()`);
+    const log30 = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30(url30)} })`);
+    // the decode is held with its real bitmap already decoded, then the race is armed from the probe's own start
+    const held30 = await softWait(`${HX}.readyHeldDecodes() >= 1`, 'decode held and pre-decoded (B30)', 6000);
+    const armed30 = held30 && await evaluate(`(() => { const s = ${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-started');
+      return s.length === 1 && ${HX}.armDeadlineRace(s[0].at, ${deadline30}, ${overshoot30}); })()`);
+    const ran30 = armed30 && await softWait(`${HX}.raceRecord().pendingAfterTimerTurn !== undefined`, 'race ran (B30)', deadline30 + overshoot30 + 6000);
+    const race30 = (await evaluate(`${HX}.raceRecord()`)) || {};
+    const notice30 = await softWait(fallbackIs('imagery-unavailable'), 'imagery notice after the late decode (B30)', 6000);
+    const ready30 = await softWait(`${HX}.debug().mapReady`, 'map ready (B30)', 9000);
+    await idle();
+    const s30 = await status();
+    const d30 = await evaluate(`(() => { const d = ${HX}.debug(); return { imageryLoaded: d.imageryLoaded, pending: d.pendingProbes, watchdog: d.watchdogArmed,
+      lateBitmaps: ${HX}.lateBitmapSizes(), visible: document.querySelector('[data-layer-index="2"]').getAttribute('data-imagery-visible') }; })()`);
+    const layersA30 = await layers30();
+    const failsA = await probeFails30();
+    const requestsA = imageryRequests(log30);
+    // the overdue timer has long run by now: still nothing resurrects
+    await sleep(deadline30);
+    await idle();
+    const s30b = await status();
+    const d30b = await evaluate(`({ imageryLoaded: ${HX}.debug().imageryLoaded, pending: ${HX}.debug().pendingProbes })`);
+    const layersB30 = await layers30();
+    // the timeout is cached per URL: the same imagery again is neither fetched nor decoded
+    const heldBefore30 = await evaluate(`${HX}.heldDecodeCount()`);
+    const logSame = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imageryOpacity: 0.9, imagery: ${imagery30(url30)} })`);
+    await sleep(600);
+    await idle();
+    const s30c = await status();
+    const sameRefetch = imageryRequests(logSame);
+    const heldAfter30 = await evaluate(`${HX}.heldDecodeCount()`);
+    await evaluate(`${HX}.holdDecodes(false)`);
+    // a healthy same-instance remount: the same URL still shows the exact notice without a refetch,
+    // while a different, healthy imagery URL loads on the remounted map
+    const logRemount = srv.requestLog.length;
+    await evaluate(`(() => { const h = ${HX}; h.remountSame(); h.render({ mapStyle: 'satellite', imagery: ${imagery30(url30)} }); ${SELECT}; })()`);
+    const readyR = await softWait(`${HX}.debug().mapReady && ${fallbackIs('imagery-unavailable')}`, 'remounted satellite keeps the cached timeout (B30)', 20000);
+    await idle();
+    const s30r = await status();
+    const layersR30 = await layers30();
+    const remountRefetch = imageryRequests(logRemount);
+    const dR = await evaluate(`({ imageryLoaded: ${HX}.debug().imageryLoaded, hasMap: ${HX}.debug().hasMap })`);
+    const mapsAfterRemount = await constructed();
+    const logHealthy = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30('/fixtures/synthetic-imagery.png?b30-healthy-after-remount')} })`);
+    const healthy30 = await softWait(`${HX}.debug().mapReady && ${HX}.debug().imageryLoaded`, 'healthy imagery after remount (B30)', 9000);
+    await idle();
+    const s30h = await status();
+    const healthyFetches = imageryRequests(logHealthy);
+    const logBack = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30(url30)} })`);
+    const back30 = await softWait(`${fallbackIs('imagery-unavailable')} && !${HX}.debug().imageryLoaded`, 'timed-out URL again after healthy imagery (B30)', 6000);
+    await idle();
+    const s30k = await status();
+    const backRefetch = imageryRequests(logBack);
+    const raceSetUp = race30.ran === true && race30.pendingAtStart === 1 && race30.readyAtStart >= 1 && race30.beganMs < deadline30
+      && race30.pendingBeforeRelease === 1 && race30.releasedAtMs >= deadline30 + overshoot30 && race30.released >= 1 && race30.pendingAfterMicrotask === 0;
+    const phaseA = notice30 && ready30 && s30.style === 'satellite' && s30.hasMap && s30.fallback === 'imagery-unavailable' && s30.notice === COPY.imagery && s30.noticeVisible && !s30.attrVisible
+      && s30.selectionKept && s30.crowns === 20 && s30.modals === 0 && !d30.imageryLoaded && d30.visible === 'false' && d30.pending === 0 && !d30.watchdog
+      && JSON.stringify(layersA30) === NO_RASTER && JSON.stringify(failsA) === '["timeout"]' && requestsA === 1
+      && d30.lateBitmaps.length === race30.released && d30.lateBitmaps.every(([w, h]) => w === 0 && h === 0);
+    const phaseB = s30b.fallback === 'imagery-unavailable' && s30b.notice === COPY.imagery && !d30b.imageryLoaded && d30b.pending === 0 && JSON.stringify(layersB30) === NO_RASTER
+      && s30c.fallback === 'imagery-unavailable' && s30c.notice === COPY.imagery && sameRefetch === 0 && heldAfter30 === heldBefore30;
+    const phaseR = readyR && s30r.style === 'satellite' && s30r.notice === COPY.imagery && s30r.noticeVisible && !s30r.attrVisible && dR.hasMap && !dR.imageryLoaded
+      && JSON.stringify(layersR30) === NO_RASTER && remountRefetch === 0 && mapsAfterRemount === 2
+      && healthy30 && s30h.fallback === 'none' && s30h.attrVisible && healthyFetches >= 1
+      && back30 && s30k.fallback === 'imagery-unavailable' && s30k.notice === COPY.imagery && !s30k.attrVisible && backRefetch === 0;
+    record('B30', held30 && armed30 && ran30 && raceSetUp && phaseA && phaseB && phaseR,
+      `race set up=${raceSetUp} (blocking task began ${Number(race30.beganMs).toFixed(1)} ms after the probe start with pending probes=${race30.pendingAtStart} and ${race30.readyAtStart} ready bitmap(s); deadline timer still queued at release (pending=${race30.pendingBeforeRelease}); `
+      + `decode released ${Number(race30.releasedAtMs).toFixed(1)} ms after the probe start, deadline ${deadline30} ms; settled before the timer turn=${race30.pendingAfterMicrotask === 0}); `
+      + `result: ${s30.style}/${s30.fallback}, notice "${s30.notice}", attribution hidden=${!s30.attrVisible}, layers=${JSON.stringify(layersA30)}, imageryLoaded=${d30.imageryLoaded}, probe failures=${JSON.stringify(failsA)}, server fetches=${requestsA}, late bitmaps closed=${JSON.stringify(d30.lateBitmaps)} [${phaseA ? 'ok' : 'FAIL'}]; `
+      + `after the overdue timer: ${s30b.fallback}, imageryLoaded=${d30b.imageryLoaded}; same URL again: refetches=${sameRefetch}, new decodes=${heldAfter30 - heldBefore30} [${phaseB ? 'ok' : 'FAIL'}]; `
+      + `healthy same-instance remount: same URL -> ${s30r.fallback} "${s30r.notice}", refetches=${remountRefetch}, raster=${JSON.stringify(layersR30) !== NO_RASTER}, maps constructed=${mapsAfterRemount}; healthy URL -> ${s30h.fallback}, attribution visible=${s30h.attrVisible} (fetches=${healthyFetches}); back to the timed-out URL -> ${s30k.fallback}, refetches=${backRefetch} [${phaseR ? 'ok' : 'FAIL'}]`);
+
     // ===== Whole-run checks (B08, B20 audit, B24) ===============================================
     await freshPage();
     await sleep(300);
@@ -1187,7 +1283,7 @@ async function main() {
 
     record('B20', b20.writes === 0 && b20.local === 0 && b20.session === 0 && b20.cookie === '' && b20.guardrail && b20.pageCsp === 0
       && reloadStyle === 'clean-woodland' && reloadVendor === 0 && reloadWorkers === 0 && auditClean,
-      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B29): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}, audit setup failures=${audit.setupFailures.length}, unanswered requests=${unanswered.length}`);
+      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B30): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}, audit setup failures=${audit.setupFailures.length}, unanswered requests=${unanswered.length}`);
 
     // B24 the header gate covers every kind of response and is sensitive to a single late loss
     const browserPaths = new Set(browserResponses.map((r) => r.path));
@@ -1216,18 +1312,29 @@ async function main() {
     const workerScriptUrls = new Set(audit.workers.map((w) => w.url));
     // In-run sensitivity of the per-target rule: removing ONE worker's own script response, or moving
     // it to another worker with the same URL, must be caught for exactly that worker.
-    const dropOne = workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, scriptResponses: [] } : w))).length;
+    const dropOne = workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, ownUrlResponses: [] } : w))).length;
     const twin = audit.workers.findIndex((w, i) => i > 0 && w.url === audit.workers[0].url);
-    const borrowed = twin < 0 ? -1 : workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, scriptResponses: audit.workers[twin].scriptResponses } : w))).length;
+    const borrowed = twin < 0 ? -1 : workerCoverageFailures(audit.workers.map((w, i) => (i === 0 ? { ...w, ownUrlResponses: audit.workers[twin].ownUrlResponses } : w))).length;
+    // Repair cycle 3 resource-type self-test (the reviewer's reproduction, in-run): the silent worker
+    // fetches its own script URL, so its session reports a real Fetch response with the startup URL.
+    // Withholding its Script-type responses while keeping that Fetch must fail exactly those workers.
+    const silentWorkers = audit.workers.filter((w) => w.url.endsWith('/harness/fixtures/silent-worker.mjs'));
+    const fetchTwins = silentWorkers.map((w) => w.ownUrlResponses.filter((r) => r.resourceType === 'Fetch' && r.sessionId === w.sessionId && r.status === 200).length);
+    const scriptTypes = [...new Set(audit.workers.flatMap((w) => w.ownUrlResponses.map((r) => r.resourceType)))].sort();
+    const withheldScript = workerCoverageFailures(audit.workers.map((w) => (silentWorkers.includes(w)
+      ? { ...w, ownUrlResponses: w.ownUrlResponses.filter((r) => r.resourceType !== 'Script') } : w)));
+    const withheldOk = silentWorkers.length >= 1 && fetchTwins.every((n) => n >= 1)
+      && withheldScript.length === silentWorkers.length && withheldScript.every((f) => silentWorkers.some((w) => w.targetId === f.targetId) && /Script-type/.test(f.reason));
     const lastBrowser = browserResponses[browserResponses.length - 1];
     record('B24', missingBrowser.length === 0 && heldServer.length >= 2 && heldServer.every((r) => r.csp === STRICT_CSP_HEADER && r.referrer === REFERRER_POLICY)
       && server404.length >= 1 && server404.every((r) => r.csp === STRICT_CSP_HEADER) && unaccounted.length === 0 && silentWorkerResponses.length >= 1
       && audit.workers.length > 1 && workerFailures.length === 0 && audit.setupFailures.length === 0 && unanswered.length === 0
-      && dropOne === 1 && borrowed === 1
+      && dropOne === 1 && borrowed === 1 && withheldOk
       && sensitivity.browserLastCsp === 1 && sensitivity.browserLastReferrer === 1 && sensitivity.serverLastCsp === 1 && sensitivity.silentWorkerCsp === silentWorkerResponses.length,
       `required response kinds seen by the browser: ${requiredBrowser.length - missingBrowser.length}/${requiredBrowser.length}${missingBrowser.length ? ' missing ' + missingBrowser.join(',') : ''} (incl. the intentional silent-worker fixture x${silentWorkerResponses.length}); `
-      + `${audit.workers.length} worker targets (${new Set(audit.workers.map((w) => w.sessionId)).size} distinct sessions, ${workerScriptUrls.size} distinct script URLs): each one set up and reported its OWN script response in its own session with exact headers (failures=${workerFailures.length}${workerFailures.length ? ' ' + JSON.stringify(workerFailures) : ''}); audit setup failures=${audit.setupFailures.length}; unanswered requests=${unanswered.length}; other worker-internal responses=${workerInternal}; `
+      + `${audit.workers.length} worker targets (${new Set(audit.workers.map((w) => w.sessionId)).size} distinct sessions, ${workerScriptUrls.size} distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=${workerFailures.length}${workerFailures.length ? ' ' + JSON.stringify(workerFailures) : ''}); audit setup failures=${audit.setupFailures.length}; unanswered requests=${unanswered.length}; other worker-internal responses=${workerInternal}; `
       + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; unaccounted server responses=${unaccounted.length}; `
+      + `own-URL response types seen=${JSON.stringify(scriptTypes)}; resource-type self-test: silent workers=${silentWorkers.length}, their same-URL Fetch responses=${JSON.stringify(fetchTwins)}, withholding their Script responses but keeping the Fetch -> ${withheldScript.length} failure(s) [${withheldOk ? 'ok' : 'FAIL'}]; `
       + `sensitivity: drop one worker's script response -> ${dropOne} failure, lend it a same-URL twin's response -> ${borrowed} failure; dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
 
     results.sort((a, b) => a.id.localeCompare(b.id));
@@ -1250,7 +1357,9 @@ async function main() {
         workerSessionResponses: workerSessionResponses.length,
         headerMismatches: { browser: badBrowser, server: badServer, node: badNode },
         workerTargets: audit.workers.map((w) => ({ targetId: w.targetId, sessionId: w.sessionId, url: w.url.replace(srv.baseUrl, ''), setup: w.setup,
-          scriptResponses: w.scriptResponses.length, otherResponses: w.otherResponses.length })),
+          scriptResponses: w.ownUrlResponses.filter((r) => r.resourceType === 'Script').length,
+          ownUrlNonScriptResponses: w.ownUrlResponses.filter((r) => r.resourceType !== 'Script').map((r) => r.resourceType),
+          otherResponses: w.otherResponses.length })),
         setupFailures: audit.setupFailures,
         unansweredRequests: unanswered,
         serverRequests: srv.requestLog.length,

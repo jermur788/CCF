@@ -18,7 +18,7 @@ const cdp = cdpText ? JSON.parse(cdpText) : null;
 const status = (rc) => (Number(rc) === 0 ? 'PASS' : Number(rc) === 2 ? 'NOT TESTED' : 'FAIL');
 
 const summary = {
-  schemaVersion: 3, // v3 (repair cycle 2): B01-B29, per-worker-target coverage, audit setup failures
+  schemaVersion: 4, // v4 (repair cycle 3): B01-B30, Script-type worker startup evidence; v3 added per-worker-target coverage
   generatedUtc: new Date().toISOString(),
   testedCommit: git('rev-parse', 'HEAD'),
   testedTreeDirty: (git('status', '--porcelain', '--', 'Tools/MultiRackSitkaP1Lab/src/Ui/multi/map', 'Tools/MultiRackSitkaP1Lab/tests/maplibre-adapter') || '') !== '',

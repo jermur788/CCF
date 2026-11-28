@@ -78,6 +78,11 @@ function webglAvailable() {
  * later (for example a decode the browser releases after the deadline) cannot change the answer;
  * its bitmap is closed and discarded. The controller lets the adapter abort early (display
  * failure, destroy), which also settles the probe to false.
+ *
+ * The deadline timer alone is not enough: when the main thread is busy past the deadline, a
+ * decode that finished meanwhile resumes as a microtask BEFORE the overdue timer task runs. So
+ * every step also checks the time elapsed since the probe started, and an overdue step settles
+ * the probe as 'timeout' itself instead of accepting the result.
  * @returns {{ promise: Promise<boolean>, controller: AbortController, settled: boolean, result: boolean|null,
  *   reason: 'ok'|'timeout'|'aborted'|'not-image'|'error'|null }}
  */
@@ -96,17 +101,28 @@ function probeImagery(url, timeoutMs) {
     resolveProbe(ok);
     return true;
   };
-  timer = setTimeout(() => { if (settle(false, 'timeout')) controller.abort('timeout'); }, timeoutMs);
+  const startedAt = performance.now();
+  const timeOut = () => { if (settle(false, 'timeout')) controller.abort('timeout'); };
+  // True (and the probe settled as 'timeout') once the deadline has passed, even if its timer has not run yet.
+  const overdue = () => {
+    if (probe.settled) return true;
+    if (performance.now() - startedAt < timeoutMs) return false;
+    timeOut();
+    return true;
+  };
+  timer = setTimeout(timeOut, timeoutMs);
   controller.signal.addEventListener('abort', () => settle(false, 'aborted'), { once: true });
   (async () => {
     let bitmap = null;
     try {
       const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
+      if (overdue()) return;
       if (!res.ok || !(res.headers.get('content-type') || '').startsWith('image/')) { settle(false, 'not-image'); return; }
       const blob = await res.blob();
-      if (probe.settled) return;
+      if (overdue()) return;
       bitmap = await createImageBitmap(blob);
-      settle(true, 'ok'); // a no-op when the deadline (or an abort) already settled the probe
+      if (overdue()) return; // a late decode is discarded (closed below), never accepted
+      settle(true, 'ok');
     } catch {
       settle(false, 'error');
     } finally {
