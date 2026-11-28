@@ -17,6 +17,9 @@
  * cover the whole run (results are reported in case-id order). B24 pairs every browser request with its
  * own server receipt (reconcileAttempts, repair cycle 5) and runs in-run withholding self-tests,
  * including a real same-URL mixed duplicate (one request aborted after receipt, one answered 200).
+ * A self-test whose own fixture request was deliberately withheld (its CDP events absent, its receipt
+ * never answered) is reported SKIPPED with a counted reason and does not fail the run (repair cycle 6);
+ * any other self-test or audit setup gap still fails B24.
  */
 
 import { spawn } from 'node:child_process';
@@ -1554,18 +1557,44 @@ async function main() {
     // Self-test 5 (repair cycle 5, the reviewer's mixed duplicate): same exact URL, A canceled after the
     // server received it (no response), B answered 200. Withholding only B's CDP events must fail and
     // name B's response; withholding only A's must not fail.
+    // Repair cycle 6: the setup is split in two. The FIXTURE facts come from the page and the server
+    // (A aborted with no response ever written, B answered 200 to an open socket) and no CDP loss can
+    // change them; if they do not hold, the self-test is a real setup failure. The CDP OBSERVATION of A
+    // and B is what a withholding mutation removes. If only A's events are missing (B observed, and
+    // A's own receipt still has no response written), the "withhold A" half cannot be run, because A
+    // is already withheld: it is SKIPPED with a counted reason, and the live accounting, which then
+    // must show A's receipt as abandoned and the URL with no gaps, is that control. Any other
+    // observation gap (B missing, extra requests, a written response for A) still fails.
     const mixedKey = exactKey(MIXED_URL);
     const mixedReqs = browserRequests.filter((q) => exactKey(q.url) === mixedKey);
     const mixedA = mixedReqs.find((q) => q.canceled && !q.responded);
     const mixedB = mixedReqs.find((q) => q.responded && q.responseStatus === 200);
     const mixedR = mixedReceipts();
-    const mixedSetUp = mixedRun.a === 'AbortError' && mixedRun.status === 200 && mixedRun.body === 'ok' && mixedReqs.length === 2 && Boolean(mixedA) && Boolean(mixedB)
+    const mixedFixtureSetUp = mixedRun.a === 'AbortError' && mixedRun.status === 200 && mixedRun.body === 'ok'
       && mixedR.length === 2 && mixedR[0].responseStatus === null && mixedR[0].clientClosedBeforeResponse && mixedR[1].responseStatus === 200 && !mixedR[1].responseToClosedSocket;
+    const mixedObserved = mixedReqs.length === 2 && Boolean(mixedA) && Boolean(mixedB);
+    const mixedOnlyAUnobserved = mixedReqs.length === 1 && Boolean(mixedB) && !mixedA;
+    const mixedSetUp = mixedFixtureSetUp && mixedObserved;
     const withheldMixedB = reconcileWith({ browserRequests: browserRequests.filter((q) => q !== mixedB) });
-    const withheldMixedBOk = mixedSetUp && withheldMixedB.browserWithoutServer.length === 0 && withheldMixedB.serverWithoutBrowser.length === 1
+    const withheldMixedBOk = mixedFixtureSetUp && Boolean(mixedB) && withheldMixedB.browserWithoutServer.length === 0 && withheldMixedB.serverWithoutBrowser.length === 1
       && withheldMixedB.serverWithoutBrowser[0].key === mixedKey && withheldMixedB.serverWithoutBrowser[0].seq === mixedR[1].seq && withheldMixedB.serverWithoutBrowser[0].status === 200;
     const withheldMixedA = reconcileWith({ browserRequests: browserRequests.filter((q) => q !== mixedA) });
-    const withheldMixedAOk = mixedSetUp && reconKeys(withheldMixedA) === NO_GAPS;
+    const liveMixedClean = !recon.serverWithoutBrowser.some((x) => x.key === mixedKey) && !recon.browserWithoutServer.some((x) => x.key === mixedKey)
+      && recon.abandonedReceipts.some((x) => x.key === mixedKey && mixedR[0] && x.seq === mixedR[0].seq);
+    const selfTestSkips = [];
+    let withheldMixedAStatus;
+    if (mixedSetUp) {
+      withheldMixedAStatus = reconKeys(withheldMixedA) === NO_GAPS ? 'ok' : 'FAIL';
+    } else if (mixedFixtureSetUp && mixedOnlyAUnobserved && liveMixedClean) {
+      withheldMixedAStatus = 'SKIPPED';
+      selfTestSkips.push({ selfTest: 'B24 mixed duplicate: withhold only A', reason: 'setup unavailable: request A\'s own CDP events are absent from this run '
+        + `(${mixedReqs.length}/2 browser requests observed at ${mixedKey}; A's receipt #${mixedR[0].seq} never had a response written); `
+        + 'the live accounting already runs without A and is clean for this URL (A\'s receipt abandoned, B paired)' });
+    } else {
+      withheldMixedAStatus = 'SETUP FAILED';
+    }
+    const withheldMixedAOk = withheldMixedAStatus === 'ok' || withheldMixedAStatus === 'SKIPPED';
+    const mixedSetupDetail = `fixture set up=${mixedFixtureSetUp}, CDP-observed requests=${mixedReqs.length}/2 (A ${mixedA ? 'seen' : 'absent'}, B ${mixedB ? 'seen' : 'absent'})`;
     const reconCanceled = recon.tally.reduce((n, t) => n + t.canceled, 0);
     const reconCanceledWithout = recon.tally.reduce((n, t) => n + t.canceledWithoutReceipt, 0);
     const reconCached = recon.tally.reduce((n, t) => n + t.cached, 0);
@@ -1612,7 +1641,8 @@ async function main() {
       + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; `
       + `per-attempt accounting over ${recon.tally.length} exact targets / ${receipts.length} server receipts / ${serverResponses.length} server responses / ${browserRequests.length} browser requests: server-response-without-its-own-browser-request=${recon.serverWithoutBrowser.length}${recon.serverWithoutBrowser.length ? ' ' + JSON.stringify(recon.serverWithoutBrowser) : ''}, browser-response-without-its-own-server-response=${recon.browserWithoutServer.length}${recon.browserWithoutServer.length ? ' ' + JSON.stringify(recon.browserWithoutServer) : ''}, orphan browser responses=${audit.orphanResponses.length}; `
       + `exceptions used: node-side 404 x${nodeResponses.length}, canceled requests=${reconCanceled} (each explains only its own receipt; without a receipt=${reconCanceledWithout}; at: ${reconCanceledKeys.join(', ') || 'none'}), abandoned receipts (no response ever written)=${JSON.stringify(recon.abandonedReceipts)}, cache hits=${reconCached}; receipt-after-send gap ${recon.pairGapMs ? recon.pairGapMs.min.toFixed(1) + '..' + recon.pairGapMs.max.toFixed(1) : 'n/a'} ms (lead tolerance ${RECEIPT_LEAD_MS} ms); `
-      + `accounting self-tests: mixed duplicate ${mixedKey} (A aborted after receipt #${mixedR[0] ? mixedR[0].seq : '?'} with no response -> ${mixedRun.a}; B -> ${mixedRun.status} as receipt #${mixedR[1] ? mixedR[1].seq : '?'}; set up=${mixedSetUp}): withhold only B's CDP events -> ${JSON.stringify(withheldMixedB.serverWithoutBrowser)} [${withheldMixedBOk ? 'ok' : 'FAIL'}], withhold only A's -> ${reconKeys(withheldMixedA)} [${withheldMixedAOk ? 'ok' : 'FAIL'}]; `
+      + `accounting self-tests: mixed duplicate ${mixedKey} (A aborted after receipt #${mixedR[0] ? mixedR[0].seq : '?'} with no response -> ${mixedRun.a}; B -> ${mixedRun.status} as receipt #${mixedR[1] ? mixedR[1].seq : '?'}; ${mixedSetupDetail}): withhold only B's CDP events -> ${JSON.stringify(withheldMixedB.serverWithoutBrowser)} [${withheldMixedBOk ? 'ok' : 'FAIL'}], withhold only A's -> ${withheldMixedAStatus === 'SKIPPED' ? 'not run' : reconKeys(withheldMixedA)} [${withheldMixedAStatus}]; `
+      + `self-tests skipped=${selfTestSkips.length}${selfTestSkips.length ? ' ' + JSON.stringify(selfTestSkips) : ''}; `
       + `withhold both CDP events for ${b27Key} (${b27Siblings} other exact URLs share its pathname) -> ${withheldB27} [${withheldB27Ok ? 'ok' : 'FAIL'}]; same for each of ${sweepKeys.length} server-answered targets -> missed ${sweepMissed.length}${sweepMissed.length ? ' ' + JSON.stringify(sweepMissed.slice(0, 5)) : ''}; drop its server response -> ${reverseB27} [${reverseOk ? 'ok' : 'FAIL'}]; withhold 1 of the browser requests for duplicate target ${dupKey} -> ${dupDropped} [${dupOk ? 'ok' : 'FAIL'}]; `
       + `own-URL response types seen=${JSON.stringify(scriptTypes)}; resource-type self-test: silent workers=${silentWorkers.length}, their same-URL Fetch responses=${JSON.stringify(fetchTwins)}, withholding their Script responses but keeping the Fetch -> ${withheldScript.length} failure(s) [${withheldOk ? 'ok' : 'FAIL'}]; `
       + `sensitivity: drop one worker's script response -> ${dropOne} failure, lend it a same-URL twin's response -> ${borrowed} failure; dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
@@ -1645,7 +1675,10 @@ async function main() {
         serverRequests: srv.requestLog.length,
         serverReceipts: srv.receiptLog.length,
         attemptAccounting: { serverWithoutBrowser: recon.serverWithoutBrowser, browserWithoutServer: recon.browserWithoutServer, abandonedReceipts: recon.abandonedReceipts,
-          orphanResponses: audit.orphanResponses, mixedDuplicate: { url: mixedKey, setUp: mixedSetUp, withholdB: withheldMixedBOk ? 'fails as required' : 'NOT DETECTED', withholdA: withheldMixedAOk ? 'no false failure' : 'FALSE FAILURE' } },
+          orphanResponses: audit.orphanResponses, mixedDuplicate: { url: mixedKey, setUp: mixedSetUp, fixtureSetUp: mixedFixtureSetUp, cdpObservedRequests: mixedReqs.length,
+            withholdB: withheldMixedBOk ? 'fails as required' : 'NOT DETECTED',
+            withholdA: { ok: 'no false failure', SKIPPED: 'SKIPPED (setup unavailable; see selfTestsSkipped)', FAIL: 'FALSE FAILURE', 'SETUP FAILED': 'SETUP FAILED' }[withheldMixedAStatus] } },
+        selfTestsSkipped: selfTestSkips,
       },
       cases: results,
     };
@@ -1654,7 +1687,7 @@ async function main() {
     writeFileSync(join(evidenceDir, 'browser-responses.json'), JSON.stringify(browserResponses, null, 1) + '\n');
     writeFileSync(join(evidenceDir, 'browser-requests.json'), JSON.stringify(browserRequests, null, 1) + '\n');
     writeFileSync(join(evidenceDir, 'server-receipt-log.json'), JSON.stringify(srv.receiptLog, null, 1) + '\n');
-    console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}, setup_failures=${audit.setupFailures.length}, unanswered=${unanswered.length}`);
+    console.log(`CDP_MATRIX_SUMMARY: ${passed} passed, ${results.length - passed} failed, total=${results.length}, console_errors=${audit.consoleErrors.length}, csp_violations=${audit.cspViolations.length}, failed_requests=${audit.failedRequests.length}, non_loopback=${audit.nonLoopbackRequests.length}, setup_failures=${audit.setupFailures.length}, unanswered=${unanswered.length}, self_tests_skipped=${selfTestSkips.length}`);
     for (const key of ['consoleErrors', 'cspViolations', 'failedRequests', 'nonLoopbackRequests', 'setupFailures']) {
       if (audit[key].length) console.log(key.toUpperCase() + ': ' + JSON.stringify(audit[key], null, 1));
     }

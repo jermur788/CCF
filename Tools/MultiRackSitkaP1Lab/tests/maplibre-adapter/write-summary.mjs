@@ -18,7 +18,7 @@ const cdp = cdpText ? JSON.parse(cdpText) : null;
 const status = (rc) => (Number(rc) === 0 ? 'PASS' : Number(rc) === 2 ? 'NOT TESTED' : 'FAIL');
 
 const summary = {
-  schemaVersion: 6, // v6 (repair cycle 5): per-attempt response accounting (browser request <-> its own server receipt); v5 B01-B31, exact-URL accounting; v4 Script-type worker startup evidence; v3 per-worker-target coverage
+  schemaVersion: 7, // v7 (repair cycle 6): counted self-test skips (selfTestsSkipped); v6 (repair cycle 5): per-attempt response accounting (browser request <-> its own server receipt); v5 B01-B31, exact-URL accounting; v4 Script-type worker startup evidence; v3 per-worker-target coverage
   generatedUtc: new Date().toISOString(),
   testedCommit: git('rev-parse', 'HEAD'),
   testedTreeDirty: (git('status', '--porcelain', '--', 'Tools/MultiRackSitkaP1Lab/src/Ui/multi/map', 'Tools/MultiRackSitkaP1Lab/tests/maplibre-adapter') || '') !== '',
@@ -54,6 +54,8 @@ const summary = {
       auditSetupFailures: Array.isArray(cdp.audit.setupFailures) ? cdp.audit.setupFailures.length : null,
       unansweredRequests: Array.isArray(cdp.audit.unansweredRequests) ? cdp.audit.unansweredRequests.length : null,
       serverReceipts: cdp.audit.serverReceipts ?? null,
+      selfTestsSkipped: Array.isArray(cdp.audit.selfTestsSkipped) ? cdp.audit.selfTestsSkipped.length : null,
+      selfTestSkipReasons: Array.isArray(cdp.audit.selfTestsSkipped) ? cdp.audit.selfTestsSkipped : null,
       attemptAccounting: cdp.audit.attemptAccounting
         ? {
           serverResponsesWithoutOwnBrowserRequest: cdp.audit.attemptAccounting.serverWithoutBrowser.length,
