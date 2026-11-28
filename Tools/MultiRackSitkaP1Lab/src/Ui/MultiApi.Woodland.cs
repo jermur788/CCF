@@ -39,9 +39,12 @@ internal sealed partial class PlayerApi
         var presets = ForestMakerPresets.All.Select(preset =>
         {
             var generated = ForestMakerGenerator.Generate(preset);
-            string title = preset.PresetId == ForestMakerPresets.PrimaryPresetId
-                ? "0.64 ha Sitka + edge broadleaves (5 lanes)"
-                : "0.64 ha pure Sitka control (5 lanes)";
+            string title = preset.PresetId switch
+            {
+                ForestMakerPresets.PrimaryPresetId => "0.64 ha Sitka + edge broadleaves (5 lanes)",
+                ForestMakerPresets.ScotsPineTwoZonePresetId => ForestMakerPresets.ScotsPineTwoZoneTitle,
+                _ => "0.64 ha pure Sitka control (5 lanes)",
+            };
             return new MultiWoodlandPresetDto(
                 preset.PresetId!,
                 title,
@@ -50,7 +53,19 @@ internal sealed partial class PlayerApi
                 generated.TotalStems,
                 generated.TotalAreaHa,
                 ComputeGroundCellCount(preset),
-                ProjectRecipeDto(preset));
+                ProjectRecipeDto(preset),
+                SiteFixed: generated.IsTwoZone,
+                SiteLabel: generated.IsTwoZone ? SiteMoistureLabels.TwoZoneLabel : null);
+        }).ToArray();
+
+        // Site moisture choices (Core labels and the bog caution; the dialog renders them and computes nothing).
+        var siteMoistureOptions = SitkaP1.Core.SpeciesWave2.SpeciesMoistureTable.MoistureClasses.Select(moisture =>
+        {
+            var setting = SiteMoistureSetting.Whole(moisture);
+            bool caution = SiteMoistureLabels.HabitatCaution(setting);
+            return new MultiWoodlandSiteMoistureOptionDto(SiteMoistureSetting.ClassWire(moisture), SiteMoistureLabels.ClassLabel(moisture),
+                moisture == SitkaP1.Core.SpeciesWave2.SiteMoistureClass.NeutralLegacy, caution,
+                caution ? SiteMoistureLabels.HabitatCautionText : null);
         }).ToArray();
 
         var bounds = new MultiWoodlandBoundsDto(
@@ -72,6 +87,7 @@ internal sealed partial class PlayerApi
                 new MultiWoodlandSpeciesMixOptionDto("SitkaPlusEdgeBroadleaves", "Sitka + edge broadleaves"),
                 new MultiWoodlandSpeciesMixOptionDto("PureSitka", "Pure Sitka"),
                 new MultiWoodlandSpeciesMixOptionDto("CustomSplit", "Custom species split"),
+                new MultiWoodlandSpeciesMixOptionDto("ScotsPineSitkaTwoZone", "Scots pine + Sitka (Dry Ridge & Moist Slope)"),
             });
 
         return WriteJsonAsync(context, StatusCodes.Status200OK, new MultiWoodlandOptionsPayload(
@@ -79,7 +95,9 @@ internal sealed partial class PlayerApi
             presets,
             bounds,
             ForestMakerBounds.Disclosure,
-            currentDto));
+            currentDto,
+            siteMoistureOptions,
+            SiteMoistureLabels.Evidence));
     }
 
     // POST api/multi/woodland/preview — pure read-only Core validation & generation preview. Zero JS math, zero state mutation.
@@ -92,7 +110,7 @@ internal sealed partial class PlayerApi
             var recipe = BuildRecipeFromInput(request.Recipe!, forceCustomPresetNull: false);
             var generated = ForestMakerGenerator.Generate(recipe);
             var lanes = generated.Lanes.Select(l => new MultiWoodlandPreviewLaneDto(
-                l.AreaId, l.Label, l.AreaHa, l.TotalStems, l.SitkaCount, l.OakCount, l.BeechCount)).ToArray();
+                l.AreaId, l.Label, l.AreaHa, l.TotalStems, l.SitkaCount, l.OakCount, l.BeechCount, l.ScotsPineCount)).ToArray();
             var preview = new MultiWoodlandPreviewDto(
                 generated.Experiment.ExperimentId,
                 generated.RecipeHash,
@@ -108,7 +126,9 @@ internal sealed partial class PlayerApi
                 lanes,
                 ForestMakerBounds.Disclosure,
                 ForestMakerBounds.GeneratorNote,
-                ProjectRecipeDto(generated.Recipe));
+                ProjectRecipeDto(generated.Recipe),
+                generated.IsTwoZone ? SiteMoistureLabels.TwoZoneLabel : null,
+                generated.Lanes.Sum(l => l.ScotsPineCount));
             await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiWoodlandPreviewPayload(true, preview, null));
         }
         catch (P1Refusal refusal)
@@ -141,16 +161,23 @@ internal sealed partial class PlayerApi
             multiHost.AtomicReplace(request.Fence!, request.ConfirmDiscardUnsaved, _ =>
             {
                 string choice = (request.Choice ?? "").Trim();
+                // Whole-woodland site moisture (Part 2): absent or NeutralLegacy keeps every woodland exactly as before;
+                // built-in MA-1 stands (Save v2) take no moisture class.
+                SiteMoistureSetting? site = string.IsNullOrWhiteSpace(request.SiteMoisture)
+                    ? null
+                    : SiteMoistureSetting.Whole(SiteMoistureSetting.ParseClass(request.SiteMoisture.Trim()));
+                if (site is { IsNeutral: false } && choice is "ma-1" or "ma-1-mixed")
+                    throw new P1Refusal("ScotsPineRequiresForestMaker", "site moisture classes need a Forest Maker woodland (Save v3)");
                 return choice switch
                 {
                     "ma-1" => MultiSessionHost.BuildBuiltIn(MultiAreaDemoExperiments.Ma1Key, request.EconomyEnabled),
                     "ma-1-mixed" => MultiSessionHost.BuildBuiltIn(MultiAreaDemoExperiments.Ma1MixedKey, request.EconomyEnabled),
                     "preset" => MultiSessionHost.BuildForestMaker(
                         ForestMakerPresets.ByPresetId(request.PresetId ?? ""),
-                        request.EconomyEnabled),
+                        request.EconomyEnabled, site),
                     "custom" => MultiSessionHost.BuildForestMaker(
                         BuildRecipeFromInput(request.Recipe ?? throw new P1Refusal("ForestMakerRecipeRequired", "custom woodland requires a recipe"), forceCustomPresetNull: true),
-                        request.EconomyEnabled),
+                        request.EconomyEnabled, site),
                     _ => throw new P1Refusal("WoodlandChoiceInvalid", "unsupported woodland choice: " + choice),
                 };
             });
@@ -263,7 +290,8 @@ internal sealed partial class PlayerApi
         string? PresetId,
         MultiWoodlandRecipeInput? Recipe,
         bool EconomyEnabled,
-        bool ConfirmDiscardUnsaved);
+        bool ConfirmDiscardUnsaved,
+        string? SiteMoisture = null);
 
     private sealed record MultiWoodlandBuiltInDto(string Key, string Title, string Badge);
 
@@ -275,9 +303,14 @@ internal sealed partial class PlayerApi
         int TotalStems,
         double TotalAreaHa,
         int CellCount,
-        MultiWoodlandRecipeDto Recipe);
+        MultiWoodlandRecipeDto Recipe,
+        bool SiteFixed = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SiteLabel = null);
 
     private sealed record MultiWoodlandSpeciesMixOptionDto(string Value, string Label);
+
+    private sealed record MultiWoodlandSiteMoistureOptionDto(string Value, string Label, bool IsDefault, bool HabitatCaution,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? CautionText);
 
     private sealed record MultiWoodlandBoundsDto(
         string GeneratorId,
@@ -310,7 +343,9 @@ internal sealed partial class PlayerApi
         IReadOnlyList<MultiWoodlandPresetDto> Presets,
         MultiWoodlandBoundsDto Bounds,
         string Disclosure,
-        MultiWoodlandCurrentDto Current);
+        MultiWoodlandCurrentDto Current,
+        IReadOnlyList<MultiWoodlandSiteMoistureOptionDto> SiteMoistureOptions,
+        string SiteMoistureEvidence);
 
     private sealed record MultiWoodlandPreviewLaneDto(
         string AreaId,
@@ -319,7 +354,8 @@ internal sealed partial class PlayerApi
         int TotalStems,
         int SitkaCount,
         int OakCount,
-        int BeechCount);
+        int BeechCount,
+        int ScotsPineCount = 0);
 
     private sealed record MultiWoodlandPreviewDto(
         string ExperimentId,
@@ -336,7 +372,9 @@ internal sealed partial class PlayerApi
         IReadOnlyList<MultiWoodlandPreviewLaneDto> Lanes,
         string Disclosure,
         string GeneratorNote,
-        MultiWoodlandRecipeDto Recipe);
+        MultiWoodlandRecipeDto Recipe,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SiteLabel = null,
+        int ScotsPineStems = 0);
 
     private sealed record MultiWoodlandPreviewPayload(
         bool Valid,

@@ -1,7 +1,7 @@
 // S0c provenance: map/renderer-svg.js [L3] — section(s) 8, 9, 11 from multi.js
 import { announce } from '../api.js';
 import { el, fixed, label, n3, plural, setAttributes, svg } from '../dom.js';
-import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentLens, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
+import { SAPLING_SYMBOL, SLATE, SPECIES_SYMBOL, SPOT_PREVIEW_RADIUS_M, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, compactCellsFor, currentArea, currentJuvenile, currentLens, currentReport, draftOf, groundCell, hooks, isMultiLaneStand, itemOf, lightPaint, opacityText, pendingPlantings, pruneStatusOf, referenceIn, s4Area, sceneOf, scotsPineEcology, selectedId, speciesLabel, speciesOf, state, visibleLaneIds } from '../store.js';
 import { MAP_RENDERER_METHODS } from './contract.js';
   // ---- the map: 1 SVG user unit = 1 metre; U east, V south ------------------------------------------------------------
 
@@ -655,9 +655,37 @@ import { MAP_RENDERER_METHODS } from './contract.js';
 
   // Rule 2: SpotClear (~1 m2): circular dashed ring drawn to exact world scale r = patch.radiusM (~0.564 m)
   // over bare soil/twigs with NO seedling inside, rendered in its own layer BENEATH planted PJ saplings.
+  // Scots pine & site moisture (Part 2): the Core two-zone layout as a faint ground tint under the crowns, with the
+  // midpoint boundary dashed and labelled. Zone extents and labels come from Core; JS only projects them to map metres.
+  const ZONE_TINT = { DryFreeDraining: 'moisture-zone-dry', FreshMoistMineral: 'moisture-zone-moist' };
+  function buildMoistureZoneNodes(areaId) {
+    const sp = scotsPineEcology();
+    const area = areaView(areaId);
+    if (!sp || !area || sp.site.mode !== 'DryRidgeMoistSlope' || !['woodland', 'regeneration', 'habitat'].includes(state.lens)) return [];
+    const xs = area.polygon.map((p) => p.xm), zs = area.polygon.map((p) => p.zm);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
+    const toU = (x) => x - area.extent.minXM;
+    const toV = (z) => area.extent.minZM + area.extent.sideM - z;
+    const nodes = [];
+    for (const zone of sp.site.zones) {
+      const x0 = Math.max(minX, zone.minXM), x1 = Math.min(maxX, zone.maxXM);
+      if (!(x1 > x0)) continue;
+      const g = svg('g', { 'data-moisture-zone': zone.moistureClass, 'data-area-id': areaId });
+      g.append(svg('title', null, zone.label + ' (' + sp.site.wholeStandLabel + ')'));
+      g.append(svg('rect', { class: 'moisture-zone ' + (ZONE_TINT[zone.moistureClass] || ''), x: n3(toU(x0)), y: n3(toV(maxZ)),
+        width: n3(x1 - x0), height: n3(maxZ - minZ) }));
+      nodes.push(g);
+      if (zone.minXM > minX && zone.minXM < maxX) {
+        nodes.push(svg('line', { class: 'moisture-zone-edge', 'data-moisture-edge': 'midpoint', x1: n3(toU(zone.minXM)), y1: n3(toV(maxZ)),
+          x2: n3(toU(zone.minXM)), y2: n3(toV(minZ)) }));
+      }
+    }
+    return nodes;
+  }
+
   function buildSpotPatchNodes(areaId) {
     if (!state.ecology) return [];
-    const nodes = [];
+    const nodes = buildMoistureZoneNodes(areaId);
     for (const p of (state.ecology.patches || [])) {
       if (p.areaId !== areaId) continue;
       const r = p.radiusM;
@@ -716,6 +744,16 @@ import { MAP_RENDERER_METHODS } from './contract.js';
       if (selectedPj && selectedPj.juvenileId === j.juvenileId) {
         g.append(svg('circle', { class: 'pj-selected-ring', cx: n3(j.u), cy: n3(j.v), r: n3(sSize * 0.65) }));
       }
+      nodes.push(g);
+    }
+    // Natural local-seed Scots pine recruits (Core individuals; dashed ring distinguishes them from planted saplings).
+    const sp = scotsPineEcology();
+    for (const r of (sp ? sp.recruits : [])) {
+      if (r.areaId !== areaId) continue;
+      const g = svg('g', { class: 'pine-recruit', 'data-recruit-id': r.recruitId, 'data-area-id': areaId, 'data-species': 'scots-pine' });
+      g.append(svg('title', null, r.recruitId + ' · Scots pine natural recruit (local seed, year ' + r.establishYear + '), H ' + fixed(r.heightM, 2) + ' m'));
+      g.append(svg('circle', { class: 'pine-recruit-ring', cx: n3(r.u), cy: n3(r.v), r: n3(sSize * 0.62) }));
+      g.append(svg('use', { href: '#ccf-sapling-pine', x: n3(r.u - sSize * 0.4), y: n3(r.v - sSize * 0.4), width: n3(sSize * 0.8), height: n3(sSize * 0.8) }));
       nodes.push(g);
     }
     const shSize = Math.max(0.95, 22 * mpp);
@@ -1073,7 +1111,33 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     return [svg('use', { href: '#' + symbolId, x: -s, y: -s, width: 2 * s, height: 2 * s })];
   }
 
+  // Scots pine & site-moisture legend entries appear only when the woodland actually carries them (the default 16-symbol
+  // legend of every other woodland is unchanged).
+  function scotsPineLegendEntries() {
+    const sp = scotsPineEcology();
+    if (!sp) return [];
+    const out = [];
+    if (sp.livingPineAdults > 0 || sp.activePlantedPine > 0 || sp.recruits.length > 0) {
+      out.push({ key: 'pine', name: 'Scots pine', short: 'Pine', description: 'Open tufted conifer crown, straight-down view', draw: () => legendUse('ccf-pine', 1.25) });
+    }
+    if (sp.recruits.length > 0) {
+      out.push({ key: 'pine-recruit', name: 'Scots pine recruit', short: 'Pine recruit', description: 'Natural local-seed juvenile (dashed ring)', draw: () => [
+        svg('circle', { class: 'pine-recruit-ring', cx: 0, cy: 0, r: 1.2 }), ...legendUse('ccf-sapling-pine', 0.95)] });
+    }
+    if (sp.site.mode === 'DryRidgeMoistSlope') {
+      out.push({ key: 'moisture-zones', name: 'Site moisture zones', short: 'Dry | Moist', description: sp.site.wholeStandLabel, draw: () => [
+        svg('rect', { class: 'moisture-zone moisture-zone-dry', x: -1.6, y: -1.6, width: 1.6, height: 3.2 }),
+        svg('rect', { class: 'moisture-zone moisture-zone-moist', x: 0, y: -1.6, width: 1.6, height: 3.2 }),
+        svg('line', { class: 'moisture-zone-edge', x1: 0, y1: -1.6, x2: 0, y2: 1.6 })] });
+    }
+    return out;
+  }
+
   function legendEntries() {
+    return [...baseLegendEntries(), ...scotsPineLegendEntries()];
+  }
+
+  function baseLegendEntries() {
     return [
       { key: 'sitka', name: 'Sitka spruce', short: 'Sitka', description: 'Radial conifer crown', draw: () => legendUse('ccf-sitka', 1.25) },
       { key: 'oak', name: 'Sessile oak', short: 'Oak', description: 'Lobed broadleaf crown', draw: () => legendUse('ccf-oak', 1.25) },
@@ -1106,8 +1170,11 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     return boundary;
   }
 
+  let legendSignature = null;
   export function renderLegend() {
-    const items = legendEntries().map((entry) => el('li', { 'data-legend-key': entry.key },
+    const entries = legendEntries();
+    legendSignature = entries.map((e) => e.key + ':' + e.description).join('|');
+    const items = entries.map((entry) => el('li', { 'data-legend-key': entry.key },
       entry.draw ? legendIcon(entry.draw) : boundarySwatch(),
       el('span', null, el('span', { class: 'legend-name' }, entry.name), el('span', { class: 'legend-desc' }, entry.description))));
     byId('legend').replaceChildren(...items);
@@ -1117,7 +1184,10 @@ import { MAP_RENDERER_METHODS } from './contract.js';
     const host = byId('legend-compact-items');
     if (!host) return;
     const lens = currentLens();
-    const byKey = new Map(legendEntries().map((e) => [e.key, e]));
+    const all = legendEntries();
+    // The full legend follows the woodland: Scots pine / moisture entries join it only when the woodland carries them.
+    if (all.map((e) => e.key + ':' + e.description).join('|') !== legendSignature && byId('legend')) renderLegend();
+    const byKey = new Map(all.map((e) => [e.key, e]));
     const keys = lens.legendKeys.slice();
     if (state.overlay === 'seedlings' && !keys.includes('seedlings')) keys.unshift('seedlings');
     if (state.overlay === 'undergrowth' && !keys.includes('clear-undergrowth')) keys.push('clear-undergrowth');
@@ -1158,7 +1228,8 @@ import { MAP_RENDERER_METHODS } from './contract.js';
       const target = state.legendExpanded ? hideBtn : toggle;
       if (target && !target.hidden) target.focus();
     }
-    announce(state.legendExpanded ? 'Full map legend expanded (16 symbols). Press Escape to collapse.' : 'Full map legend collapsed to compact contextual key.');
+    announce(state.legendExpanded ? 'Full map legend expanded (' + legendEntries().length + ' symbols). Press Escape to collapse.'
+      : 'Full map legend collapsed to compact contextual key.');
   }
 
   export function setLegendHidden(hidden, moveFocus) {

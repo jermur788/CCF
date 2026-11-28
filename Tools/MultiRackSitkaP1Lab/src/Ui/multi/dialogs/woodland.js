@@ -61,6 +61,46 @@ function renderCustomVisibility() {
   byId('fm-split-fields').hidden = choice !== 'custom' || mix !== 'CustomSplit';
   byId('woodland-confirm-box').hidden = true;
   pendingCreate = null;
+  renderSiteControls();
+}
+
+// Scots pine & site moisture (Part 2): the whole-woodland class picker. Labels, the default and the bog caution text come
+// from Core (GET api/multi/woodland/options); the dialog only shows them. Presets with their own site lock the picker.
+function siteLock() {
+  const opts = state.woodlandOptions;
+  const { choice, presetId } = parseChoiceValue(selectedChoice());
+  if (choice === 'ma-1' || choice === 'ma-1-mixed') return 'Built-in stands keep NeutralLegacy (frozen Save v2 has no moisture class).';
+  if (choice === 'preset') {
+    const preset = opts && (opts.presets || []).find((p) => p.presetId === presetId);
+    if (preset && preset.siteFixed) return 'Site fixed by this preset: ' + preset.siteLabel + '.';
+  }
+  if (choice === 'custom' && byId('fm-species-mix').value === 'ScotsPineSitkaTwoZone') {
+    return 'This species mix uses the two-zone site (Dry Ridge & Moist Slope); no whole-woodland class applies.';
+  }
+  return null;
+}
+
+function renderSiteControls() {
+  const select = byId('woodland-site-moisture');
+  if (!select) return;
+  const opts = state.woodlandOptions;
+  const options = (opts && opts.siteMoistureOptions) || [];
+  const lock = siteLock();
+  select.disabled = Boolean(lock);
+  if (lock) {
+    const neutral = options.find((o) => o.isDefault);
+    if (neutral) select.value = neutral.value;
+  }
+  const chosen = options.find((o) => o.value === select.value) || null;
+  byId('woodland-site-note').textContent = lock || (opts && opts.siteMoistureEvidence) || '';
+  const caution = byId('woodland-site-caution');
+  caution.hidden = !(chosen && chosen.habitatCaution && !lock);
+  caution.textContent = chosen && chosen.habitatCaution ? chosen.cautionText || '' : '';
+}
+
+function selectedSiteMoisture() {
+  const select = byId('woodland-site-moisture');
+  return select && !select.disabled && select.value ? select.value : null;
 }
 
 function renderPreviewBox(preview, refusal, builtIn) {
@@ -90,12 +130,15 @@ function renderPreviewBox(preview, refusal, builtIn) {
   const laneBits = (preview.lanes || []).map((l) =>
     l.label + ': ' + l.totalStems + ' (' + l.sitkaCount + ' S' +
     (l.oakCount > 0 ? ', ' + l.oakCount + ' O' : '') +
-    (l.beechCount > 0 ? ', ' + l.beechCount + ' B' : '') + ')');
+    (l.beechCount > 0 ? ', ' + l.beechCount + ' B' : '') +
+    (l.scotsPineCount > 0 ? ', ' + l.scotsPineCount + ' P' : '') + ')');
   box.replaceChildren(
     el('p', { class: 'woodland-preview-title' },
       fixed(preview.totalAreaHa, 2) + ' ha · ' + preview.laneCount + ' lanes · ' +
       preview.totalStems + ' living stems · ' + preview.cellCount + ' ground cells'),
     el('p', { class: 'small-note' }, preview.badge),
+    preview.siteLabel ? el('p', { class: 'small-note', 'data-preview-site': 'true' },
+      'Site: ' + preview.siteLabel + ' · ' + preview.scotsPineStems + ' Scots pine at Year 0') : null,
     el('p', { class: 'small-note mono' }, 'ID: ' + preview.experimentId),
     el('p', { class: 'small-note' }, laneBits.join(' · ')),
     el('p', { class: 'small-note' }, preview.disclosure));
@@ -196,6 +239,13 @@ function populateOptionsUi(opts) {
     if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
   }
 
+  const site = byId('woodland-site-moisture');
+  if (site) {
+    const options = opts.siteMoistureOptions || [];
+    site.replaceChildren(...options.map((o) => el('option', { value: o.value }, o.label + (o.habitatCaution ? ' — habitat caution' : ''))));
+    const def = options.find((o) => o.isDefault);
+    if (def) site.value = def.value;
+  }
   byId('woodland-economy').checked = Boolean(opts.current && opts.current.economyEnabled);
   state.hasUnsavedProgress = Boolean(opts.current && opts.current.hasUnsavedProgress);
   renderCustomVisibility();
@@ -228,6 +278,8 @@ async function submitNewWoodland(confirmDiscardUnsaved) {
     economyEnabled: Boolean(byId('woodland-economy').checked),
     confirmDiscardUnsaved: Boolean(confirmDiscardUnsaved),
   };
+  const siteMoisture = selectedSiteMoisture();
+  if (siteMoisture) body.siteMoisture = siteMoisture;
 
   state.busy = true;
   document.documentElement.classList.add('busy');

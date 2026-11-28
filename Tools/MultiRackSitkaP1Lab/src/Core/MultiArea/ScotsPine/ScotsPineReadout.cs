@@ -30,9 +30,66 @@ internal sealed record ScotsPineTreeView(string TreeId, string AreaId, string Sp
     string? TimberSortment, double? TimberPriceEurPerTonne, double? TimberVolumeM3, double? TimberGreenTonnes, double? TimberValueEur,
     string? TimberReason, string Evidence);
 
+/// <summary>One active natural recruit as a map mark (engine and map coordinates).</summary>
+internal sealed record ScotsPineRecruitMark(string RecruitId, string AreaId, float XM, float ZM, double U, double V, int EstablishYear,
+    float HeightM);
+
+/// <summary>The planting option the Plant menu offers for Scots pine (Part 1 / live [Calibration] values, never computed in JS).</summary>
+internal sealed record ScotsPinePlantOption(string SpeciesId, string Label, decimal SaplingMaterialEur, int ShelterYears,
+    double SpotClearM2, string Note);
+
+/// <summary>The Scots pine timber book the Harvesting lens shows (Part 1 grades, prices and density).</summary>
+internal sealed record ScotsPineTimberBook(decimal SawlogEurPerTonne, decimal SmallRoundwoodEurPerTonne, decimal PulpChipEurPerTonne,
+    decimal GreenDensityTPerM3, double SawlogPrunedHeightM, int MatureAgeYears, double SmallRoundwoodMinimumDbhCm, string Rule);
+
+/// <summary>
+/// The compact Scots pine / site-moisture section of the ecology DTO (Forest Maker woodlands only). Pine adults are already
+/// named in <c>speciesByTreeId</c> and planted pine in <c>planted</c>; this adds the site, local recruits and the year's account.
+/// </summary>
+internal sealed record MultiAreaScotsPineEcology(
+    SiteMoistureView Site,
+    int LivingPineAdults,
+    int ActivePlantedPine,
+    int PineDeadwood,
+    IReadOnlyList<ScotsPineRecruitMark> Recruits,
+    IReadOnlyList<ScotsPineYearAccount> Accounts,
+    bool NextYearIsGoodSeedYear,
+    ScotsPinePlantOption Plant,
+    ScotsPineTimberBook Timber,
+    string Evidence);
+
 /// <summary>Builds the Scots pine / site-moisture views (pure; the UI renders these strings and numbers and computes nothing).</summary>
 internal static class ScotsPineReadouts
 {
+    public static MultiAreaScotsPineEcology Ecology(MultiAreaRoot root, SiteMoistureField field, ulong woodlandSeed,
+        MultiAreaSessionView view)
+    {
+        var phase2 = root.Phase2;
+        var extentOf = view.Areas.ToDictionary(a => a.AreaId, a => a.Extent, StringComparer.Ordinal);
+        int living = root.Areas.Sum(a => a.State.Trees.Count(t => t.IsLiving && phase2 is not null && ScotsPineLive.IsPine(phase2.SpeciesIdOf(t.TreeId))));
+        var recruits = (root.ScotsPine?.Recruits ?? Array.Empty<ScotsPineRecruit>()).Where(r => r.IsActive && extentOf.ContainsKey(r.AreaId))
+            .Select(r => new ScotsPineRecruitMark(r.RecruitId, r.AreaId, r.XM, r.ZM, MultiAreaUiReadouts.MapU(extentOf[r.AreaId], r.XM),
+                MultiAreaUiReadouts.MapV(extentOf[r.AreaId], r.ZM), r.EstablishYear, r.HeightM)).ToArray();
+        var timber = ScotsPineLive.Profile;
+        return new MultiAreaScotsPineEcology(
+            Site(field),
+            living,
+            phase2?.Juveniles.Count(j => j.IsActive && ScotsPineLive.IsPine(j.SpeciesId)) ?? 0,
+            root.Stage4?.Deadwood.Count(d => ScotsPineLive.IsPine(d.SpeciesId)) ?? 0,
+            Array.AsReadOnly(recruits),
+            root.ScotsPine?.Accounts ?? Array.Empty<ScotsPineYearAccount>(),
+            ScotsPineEngine.IsGoodSeedYear(woodlandSeed, root.EcologicalYear),
+            new ScotsPinePlantOption(ScotsPineLive.SpeciesId, "Scots pine", ScotsPineEngine.SaplingMaterialCostEurPerTree,
+                Phase2Constants.ShelterEffectiveYears, 1.0,
+                "Sapling material EUR 0.45/tree [Calibration]; optional 8-year shelter and ~1 m2 spot clear use the shared Phase 2 rules."),
+            new ScotsPineTimberBook(ScotsPineEngine.SawlogPriceEurPerTonne, ScotsPineEngine.SmallRoundwoodPriceEurPerTonne,
+                ScotsPineEngine.PulpChipPriceEurPerTonne, ScotsPineEngine.GreenDensityTPerM3,
+                timber.Silviculture.PruningTargetHeightM?.Low ?? 5.0, ScotsPineLive.MatureAgeYears, ScotsPineLive.SmallRoundwoodMinimumDbhCm,
+                "Sawlog: mature (40+ years) and pruned to at least 5.0 m, or grown under tight early stocking; otherwise Small Roundwood " +
+                "(DBH 14 cm+) or Pulp/Chip. Provisional [Calibration] teaching prices, EUR per green tonne at 1.02 t/m3."),
+            ScotsPineLive.Evidence);
+    }
+
     private static readonly string[] LiveSpecies =
     {
         Phase2Species.SitkaId, Phase2Species.OakId, Phase2Species.BeechId, ScotsPineLive.SpeciesId,

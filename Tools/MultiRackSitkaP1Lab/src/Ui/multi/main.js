@@ -851,6 +851,7 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
       returnFocus();
     });
     byId('woodland-choices').addEventListener('change', onWoodlandFieldChanged);
+    byId('woodland-site-moisture').addEventListener('change', onWoodlandFieldChanged);
     byId('woodland-custom-fields').addEventListener('input', onWoodlandFieldChanged);
     byId('woodland-custom-fields').addEventListener('change', onWoodlandFieldChanged);
     byId('woodland-create').addEventListener('click', onWoodlandCreate);
@@ -871,6 +872,7 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
       if (c && !c.missing) removeClear(c.areaId, c.column, c.row);
     });
     byId('plant-opt-shelter').addEventListener('change', () => svgRenderer.render());
+    byId('plant-species').addEventListener('change', () => renderPlantDrawer());
     byId('plant-opt-spot').addEventListener('change', () => svgRenderer.render());
     byId('plant-queue').addEventListener('click', onPlantQueue);
     byId('plant-clear-draft').addEventListener('click', () => { state.plantDraft = null; renderAll(); });

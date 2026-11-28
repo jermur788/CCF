@@ -338,6 +338,37 @@
             <ellipse cx="0" cy="-9" rx="7" ry="6" fill="#a8b84c" stroke="#1f3817" stroke-width="1.2"></ellipse>
           </symbol>
 
+          <!-- #ccf-pine (Scots pine Part 2): circular straight-down open crown; tufted needle clumps around orange upper
+               branches with transparent gaps between clumps (light-demanding, LightModerate shade casting). -->
+          <symbol id="ccf-pine" viewBox="-100 -100 200 200">
+            <g fill="#1d3a2b">
+              <circle cx="0" cy="-66" r="30"></circle><circle cx="57" cy="-33" r="29"></circle><circle cx="57" cy="34" r="30"></circle>
+              <circle cx="0" cy="67" r="29"></circle><circle cx="-57" cy="33" r="30"></circle><circle cx="-57" cy="-34" r="29"></circle>
+            </g>
+            <g fill="none" stroke="#9a5f33" stroke-width="7" stroke-linecap="round">
+              <path d="M0 0 L0-58 M0 0 L50-29 M0 0 L50 30 M0 0 L0 59 M0 0 L-50 29 M0 0 L-50-30"></path>
+            </g>
+            <g fill="#36603f">
+              <circle cx="-6" cy="-62" r="20"></circle><circle cx="50" cy="-36" r="19"></circle><circle cx="52" cy="28" r="20"></circle>
+              <circle cx="6" cy="61" r="19"></circle><circle cx="-50" cy="36" r="20"></circle><circle cx="-52" cy="-28" r="19"></circle>
+              <circle cx="0" cy="0" r="26"></circle>
+            </g>
+            <g fill="#6f9a52">
+              <circle cx="-10" cy="-66" r="9"></circle><circle cx="44" cy="-42" r="9"></circle><circle cx="46" cy="22" r="8"></circle>
+              <circle cx="-44" cy="30" r="8"></circle><circle cx="-48" cy="-34" r="9"></circle><circle cx="-6" cy="-6" r="12"></circle>
+            </g>
+            <circle cx="-4" cy="-5" r="4.5" fill="#c98a4b"></circle>
+          </symbol>
+
+          <symbol id="ccf-sapling-pine" viewBox="-24 -24 48 48">
+            <ellipse cx="0" cy="15" rx="14" ry="5" fill="#4f3822" stroke="#1e150c" stroke-width="1.2"></ellipse>
+            <rect x="-2" y="6" width="4" height="9" fill="#9a5f33"></rect>
+            <g fill="#36603f" stroke="#12261a" stroke-width="1.2">
+              <circle cx="0" cy="-10" r="6"></circle><circle cx="-7" cy="-1" r="6"></circle><circle cx="7" cy="-1" r="6"></circle>
+            </g>
+            <circle cx="-1" cy="-6" r="3" fill="#6f9a52"></circle>
+          </symbol>
+
           <!-- #ccf-shelter-active: Solid cyan-blue mesh tube + stakes (< 8 yr) -->
           <symbol id="ccf-shelter-active" viewBox="-28 -28 56 56">
             <ellipse cx="0" cy="19" rx="17" ry="5" fill="#2d3a24" opacity="0.85"></ellipse>
@@ -571,7 +602,9 @@
           <select id="plant-species">
             <option value="sessile-oak" selected>Sessile Oak (sessile-oak)</option>
             <option value="beech">European Beech (beech)</option>
+            <option value="scots-pine" id="plant-species-pine" hidden disabled>Scots Pine (scots-pine)</option>
           </select>
+          <p id="plant-species-note" class="small-note" hidden></p>
         </div>
         <div class="drawer-checks">
           <label class="check-row"><input type="checkbox" id="plant-opt-shelter"><span>Add 8-year shelter</span></label>
@@ -1042,6 +1075,12 @@
       <div class="field"><label for="fm-beech-pct">Beech (%)</label><input id="fm-beech-pct" type="number" min="0" max="100" step="1" value="15"></div>
     </div>
   </fieldset>
+  <div id="woodland-site" class="field woodland-site">
+    <label for="woodland-site-moisture">Site moisture (whole woodland)</label>
+    <select id="woodland-site-moisture"></select>
+    <p id="woodland-site-note" class="small-note"></p>
+    <p id="woodland-site-caution" class="warning" role="alert" hidden></p>
+  </div>
   <label class="check-row woodland-econ-row">
     <input type="checkbox" id="woodland-economy">
     <span>Start with Money On at Year 0 (Economy opt-in; Forest Maker woodlands support Save v3)</span>

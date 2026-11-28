@@ -3,10 +3,13 @@
   export const SPOT_PREVIEW_RADIUS_M = Math.sqrt(1 / Math.PI); // visual radius (~0.564 m) for ~1 m2 Spot Clear circle preview
   const STATUS_LABEL = { Living: 'StatusLiving', PendingFell: 'StatusPendingFell', ApprovedFell: 'StatusApprovedFell',
     Felled: 'StatusFelled', NaturalDead: 'StatusNaturalDead' };
-  const SPECIES_NAME = { 'sitka-spruce': 'Sitka spruce', 'sessile-oak': 'Sessile oak', beech: 'European beech' };
-  export const SPECIES_SHORT = { 'sitka-spruce': 'S', 'sessile-oak': 'O', beech: 'B' };
-  export const SPECIES_SYMBOL = { 'sitka-spruce': 'ccf-sitka', 'sessile-oak': 'ccf-oak', beech: 'ccf-beech' };
-  export const SAPLING_SYMBOL = { 'sitka-spruce': 'ccf-sapling-sitka', 'sessile-oak': 'ccf-sapling-oak', beech: 'ccf-sapling-beech' };
+  const SPECIES_NAME = { 'sitka-spruce': 'Sitka spruce', 'sessile-oak': 'Sessile oak', beech: 'European beech', 'scots-pine': 'Scots pine' };
+  export const SPECIES_SHORT = { 'sitka-spruce': 'S', 'sessile-oak': 'O', beech: 'B', 'scots-pine': 'P' };
+  export const SPECIES_SYMBOL = { 'sitka-spruce': 'ccf-sitka', 'sessile-oak': 'ccf-oak', beech: 'ccf-beech', 'scots-pine': 'ccf-pine' };
+  export const SAPLING_SYMBOL = { 'sitka-spruce': 'ccf-sapling-sitka', 'sessile-oak': 'ccf-sapling-oak', beech: 'ccf-sapling-beech',
+    'scots-pine': 'ccf-sapling-pine' };
+  // Scots pine Part 2 lens slots that render live Core readouts when the woodland carries Scots pine / site-moisture data.
+  export const SCOTS_PINE_SLOT_IDS = Object.freeze(['scots-pine-profile', 'soil-moisture-overlay', 'scots-pine-timber-grader', 'sensitive-wet-ground']);
   export const ZOOMS = Array.from({ length: 11 }, (_, i) => Math.pow(4, i / 10));
   export const PANES = ['tree', 'navigator', 'plan', 'trees', 'history', 'details'];
   export const PANE_NAMES = { tree: 'Tree', navigator: 'Navigator', plan: 'Work Plan', trees: 'Trees', history: 'Results', details: 'Details' };
@@ -20,7 +23,7 @@
       shortDesc: 'Overview · canopy, living stems & lane orientation',
       defaultOverlay: 'off',
       tools: ['tree', 'cell'],
-      legendKeys: ['sitka', 'oak', 'beech', 'crop', 'pending', 'approved', 'boundary'],
+      legendKeys: ['sitka', 'oak', 'beech', 'pine', 'moisture-zones', 'crop', 'pending', 'approved', 'boundary'],
       extensionSlots: [],
     }),
     trees: Object.freeze({
@@ -31,7 +34,7 @@
       shortDesc: 'Dimensions, competition, crop-tree marking, pruning & timber quality',
       defaultOverlay: 'off',
       tools: ['tree'],
-      legendKeys: ['sitka', 'oak', 'beech', 'crop', 'reference', 'pending', 'approved'],
+      legendKeys: ['sitka', 'oak', 'beech', 'pine', 'crop', 'reference', 'pending', 'approved'],
       extensionSlots: [
         { id: 'scots-pine-profile', feature: 'Scots Pine & Soil Moisture', label: 'Scots pine crown, growth & pruning eligibility' },
         { id: 'birch-alder-profiles', feature: 'Downy Birch & Common Alder', label: 'Downy birch & common alder crown/stem traits' },
@@ -46,7 +49,7 @@
       shortDesc: 'Light, soil moisture, seedlings, planting, shelters & undergrowth',
       defaultOverlay: 'light',
       tools: ['tree', 'cell', 'plant', 'spot'],
-      legendKeys: ['seedlings', 'shelter-active', 'shelter-expired', 'spot-clear', 'clear-undergrowth'],
+      legendKeys: ['seedlings', 'pine-recruit', 'moisture-zones', 'shelter-active', 'shelter-expired', 'spot-clear', 'clear-undergrowth'],
       extensionSlots: [
         { id: 'soil-moisture-overlay', feature: 'Scots Pine & Soil Moisture', label: '5-level soil moisture suitability layer' },
         { id: 'jay-acorn-dispersal', feature: 'Jay Acorn Dispersal & 2D Windstorms', label: 'Mast-year oak acorn landings & nearby oak edge' },
@@ -75,7 +78,7 @@
       shortDesc: 'Deadwood, diversity, microhabitats, sensitive ground & resilience',
       defaultOverlay: 'undergrowth',
       tools: ['tree', 'cell'],
-      legendKeys: ['standing-dead', 'fallen-log', 'sitka', 'oak', 'beech', 'clear-undergrowth'],
+      legendKeys: ['standing-dead', 'fallen-log', 'sitka', 'oak', 'beech', 'pine', 'moisture-zones', 'clear-undergrowth'],
       extensionSlots: [
         { id: 'real-woodland-microhabitats', feature: 'Real-World Woodland Inspection', label: 'TreMs microhabitats & survey provenance' },
         { id: 'windstorm-deadwood-resilience', feature: 'Jay Acorn Dispersal & 2D Windstorms', label: 'Wind-aligned fallen deadwood & resilience' },
@@ -245,7 +248,20 @@
     manualAlert: null,
     extensionAlerts: [],
     navigatorCursor: { crops: -1, work: -1 },
+    // Scots pine & site moisture (Part 2): the inspector's per-tree Core detail (POST api/multi/scots-pine/tree), keyed by
+    // the exact root it was read from; presentation cache only (every number comes from Core).
+    scotsPineTree: null,
+    scotsPineTreeRequest: 0,
   };
+
+  // The Core Scots pine / site-moisture section of the ecology DTO (Forest Maker woodlands only), or null.
+  export function scotsPineEcology() {
+    return state.ecology && state.ecology.scotsPine ? state.ecology.scotsPine : null;
+  }
+  export function scotsPineTreeKey(areaId, treeId) {
+    const v = state.view;
+    return v ? [v.sessionId, v.source.annualRevision, v.source.workRevision, v.planStateRevision, areaId, treeId].join('|') : null;
+  }
 
   export function isEconomyEnabled() {
     return state.economyEnabled === true;
@@ -367,6 +383,8 @@
     state.manualAlert = null;
     state.extensionAlerts = [];
     state.navigatorCursor = { crops: -1, work: -1 };
+    state.scotsPineTree = null;
+    state.scotsPineTreeRequest += 1;
   }
 
   export const byId = (id) => document.getElementById(id);

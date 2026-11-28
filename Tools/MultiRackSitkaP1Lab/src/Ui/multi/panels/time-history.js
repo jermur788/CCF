@@ -3,7 +3,7 @@ import { announce, applyPayload, call, clearAlert, currentFence, lockCommands, r
 import { reread } from '../commands.js';
 import { jsonCall, noticeOf } from '../dialogs/saves.js';
 import { el, fixed, label, lightIndexText, plural, table } from '../dom.js';
-import { areaShort, byId, draftTotal, isEconomyEnabled, isMultiLaneStand, pct1, speciesLabel, state } from '../store.js';
+import { areaShort, byId, draftTotal, isEconomyEnabled, isMultiLaneStand, pct1, scotsPineEcology, speciesLabel, state } from '../store.js';
 import { showPane } from './work-plan.js';
   // ---- Phase 1 Step 2: Skip to Review, On-Demand History Drawer, and On-Demand Structure Panel -----------------------
 
@@ -464,6 +464,21 @@ import { showPane } from './work-plan.js';
             fixed(a.before.basalAreaM2PerHa, 2) + ' → ' + fixed(a.after.basalAreaM2PerHa, 2), String(a.naturalDeathCount)]))));
     }
     cards.push(el('section', { class: 'history-card history-card-outcome', 'data-history-section': 'observed-outcome' }, ...outParts));
+
+    // 2b. Scots pine year (Part 2, Forest Maker woodlands with Scots pine / site-moisture state): the Core annual account.
+    const pine = scotsPineEcology();
+    const pineYear = pine ? pine.accounts.find((a) => a.yearAfter === d.observedYear) : null;
+    if (pineYear) {
+      cards.push(el('section', { class: 'history-card', 'data-history-section': 'scots-pine-year' },
+        el('div', { class: 'history-card-head' },
+          el('h3', null, 'Scots pine — Year ' + pineYear.yearBefore + ' → ' + pineYear.yearAfter),
+          el('div', { class: 'history-pills' }, provPill('RECORDED'))),
+        el('p', { class: 'small-note' }, 'Site: ' + pine.site.wholeStandLabel + ' · ' + (pineYear.goodSeedYear ? 'good' : 'poor') + ' seed year · ' +
+          pineYear.matureSeedTrees + ' mature local seed trees'),
+        table('Scots pine annual account', ['Recruited (eligible gaps)', 'Establishment deaths', 'Juvenile deaths', 'Promoted', 'Adults growing / outside domain'],
+          [[pineYear.recruited + ' (' + pineYear.eligibleCells + ')', String(pineYear.establishmentDeaths), String(pineYear.juvenileDeaths),
+            String(pineYear.promoted), pineYear.adultsGrowing + ' / ' + pineYear.adultsOutsideDomain]])));
+    }
 
     // 3. Later Observed Comparison (CURRENT + DERIVED + non-causal note, no weather mention)
     if (d.laterObservedComparison) {

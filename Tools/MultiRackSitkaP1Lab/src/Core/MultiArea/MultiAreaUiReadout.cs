@@ -143,7 +143,7 @@ internal static class MultiAreaUiReadouts
                 s4.RelativeDensity, s4.AnnualNaturalDeaths, s4.CumulativeNaturalDeaths, deadwood.Length, report.Light.MeanLightIndex,
                 report.Light.MinLightIndex, report.Light.MaxLightIndex, Array.AsReadOnly(deadwood));
             var trees = area.Trees.Select((tree, t) => TreeOf(tree, s4.Trees[t], stage4, models.IsStage4,
-                phase2?.BroadleafOf(tree.TreeId))).ToArray();
+                phase2?.BroadleafOf(tree.TreeId), phase2 is not null && ScotsPineLive.IsPine(phase2.SpeciesIdOf(tree.TreeId)))).ToArray();
             areas[i] = new MultiAreaUiArea(area.AreaId, summary, Array.AsReadOnly(trees), ground[i]);
         }
         return new MultiAreaUiReadout(view.SessionId, view.Source.EcologicalYear, view.PlanStateRevision, view.Source,
@@ -179,14 +179,14 @@ internal static class MultiAreaUiReadouts
     internal static double MapV(PlayerMapExtent extent, double zM) => extent.MinZM + extent.SideM - zM;
 
     private static MultiAreaUiTree TreeOf(AnnualTree tree, MultiAreaStage4TreeView s4, MultiAreaStage4View stage4, bool isStage4,
-        Phase2Species? broadleaf)
+        Phase2Species? broadleaf, bool scotsPine = false)
     {
         if (s4.TreeId != tree.TreeId) throw new InvalidOperationException("read-out trees are not in view order");
         string? planState = stage4.PendingPrunes.Any(o => o.TreeId == tree.TreeId) ? "PendingPrune"
             : stage4.ApprovedPrunes.Any(o => o.TreeId == tree.TreeId) ? "ApprovedPrune" : null;
         var status = MultiAreaSpeciesPruneHelper.Evaluate(tree,
             new TreePruningState(s4.PruningLifts, s4.CrownBaseHeightM, s4.LastPruningYear),
-            stage4.EcologicalYear, broadleaf, isStage4, planState);
+            stage4.EcologicalYear, broadleaf, isStage4, planState, scotsPine);
         return new MultiAreaUiTree(tree.TreeId, s4.LifeState, s4.DeathCause, s4.DeathYear, s4.PruningLifts, status.MaxLifts,
             s4.CrownBaseHeightM, s4.LastPruningYear, status.Eligible, status.RefusalCode, status.RefusalReason,
             status.NextTargetM, status.NextEligibleYear, planState);

@@ -493,6 +493,13 @@ internal sealed partial class MultiAreaContinuation
                 p2.Patches, p2.PendingOrders, p2.ApprovedOrders, p2.WorkLog, p2.Accounts)
             : null;
         var ecology = MultiAreaEcologyBuilder.Build(view, s4View, current.Stage5, current.Phase2, canopy, models, experimentBadge);
+        // Scots pine & site moisture (Part 2): Forest Maker woodlands only, so every other payload is byte-for-byte unchanged.
+        if (ecology is not null && current.GenesisRecipe is not null)
+            ecology = ecology with
+            {
+                ScotsPine = ScotsPineReadouts.Ecology(current,
+                    SiteFieldOf(current) ?? new SiteMoistureField(SiteMoistureSetting.Neutral, siteBounds), woodlandSeed, view),
+            };
         return new MultiAreaCompositeUiSnapshot(view, readout, ecology, s4View, s5View, p2View);
     }
 
