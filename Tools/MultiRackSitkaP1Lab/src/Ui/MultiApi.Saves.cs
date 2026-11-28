@@ -104,6 +104,8 @@ internal sealed partial class PlayerApi
     }
 
     // Saves the current fenced session into a named slot: v2 for MA-1 / MA-1-MIXED, C-V3 for Forest Maker stands.
+    // Lock order (the only one used anywhere): multiHost.SyncLock first, then the save-slot lock. Recover uses the same order,
+    // and no path takes a slot lock and then multiHost.SyncLock, so Save and Recover on one slot can never deadlock.
     private async Task MultiSaveAsync(HttpContext context)
     {
         var request = await ReadMultiRequestAsync<MultiSaveRequest>(context, MultiSaveMembers);
@@ -112,45 +114,32 @@ internal sealed partial class PlayerApi
         string label = string.IsNullOrEmpty(request.Label) ? slot : request.Label;
         try
         {
-            MultiSavePayload? payload = null;
             Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
-            using (saveV3Slots.LockSlot(slot))
+            MultiSessionState? capturedState = null;
+            (int AnnualRevision, int WorkRevision, int PlanStateRevision) marker = default;
+            int schemaVersion = 0;
+            byte[] bytes = Array.Empty<byte>();
+            Phase1SlotSaveResult? result = null;
+            lock (multiHost.SyncLock)
             {
-                var (exists, generation) = saveV3Slots.NextGeneration(slot);
-                if (exists && !request.ReplaceExisting)
-                    throw new P1Refusal("SlotExists",
-                        "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
-
-                MultiSessionState capturedState;
-                (int AnnualRevision, int WorkRevision, int PlanStateRevision) marker = default;
-                int schemaVersion = 0;
-                byte[] bytes = Array.Empty<byte>();
-                Phase1SlotSaveResult? result = null;
-                lock (multiHost.SyncLock)
+                // Commit-time survey check first (the body is already read): a blocked Save is refused before it reads any
+                // slot metadata, so it cannot answer SlotExists or touch the slot. The slot work and the write then stay
+                // inside this lock, so a save can never land on disk after a survey inspection has opened.
+                inspectionBlock = InspectionBlockerLocked();
+                if (inspectionBlock is null)
                 {
-                    // Commit-time survey check (the body is already read). The slot write also stays inside this lock, so a
-                    // save can never land on disk after a survey inspection has opened.
-                    inspectionBlock = InspectionBlockerLocked();
-                    capturedState = multiHost.Current;
-                    if (inspectionBlock is null)
+                    using (saveV3Slots.LockSlot(slot))
                     {
+                        var (exists, generation) = saveV3Slots.NextGeneration(slot);
+                        if (exists && !request.ReplaceExisting)
+                            throw new P1Refusal("SlotExists",
+                                "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
+
+                        capturedState = multiHost.Current;
                         (schemaVersion, bytes) = capturedState.Session.CaptureSaveBytes(request.Fence!, label, generation);
                         marker = capturedState.Session.ProgressMarker();
                         result = saveV3Slots.Save(slot, bytes, request.ReplaceExisting);
                     }
-                }
-
-                if (result is not null)
-                {
-                    Interlocked.Increment(ref savesWritten);
-                    multiHost.MarkPersisted(capturedState, marker);
-
-                    var decoded = SaveV3Codec.DecodeAny(bytes);
-                    var header = decoded.Header;
-                    payload = new MultiSavePayload(new MultiSaveOutcome(result.SlotName,
-                        result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
-                        result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
-                        header.SavedUtc, schemaVersion), null);
                 }
             }
             if (inspectionBlock is not null)
@@ -158,7 +147,14 @@ internal sealed partial class PlayerApi
                 await WriteInspectionCommitRefusalAsync(context, inspectionBlock);
                 return;
             }
-            await WriteJsonAsync(context, StatusCodes.Status200OK, payload!);
+
+            Interlocked.Increment(ref savesWritten);
+            multiHost.MarkPersisted(capturedState!, marker);
+            var header = SaveV3Codec.DecodeAny(bytes).Header;
+            await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result!.SlotName,
+                result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
+                result.BackupUpdated, result.Checksum, result.Bytes, header.SaveGeneration, header.Label, header.EcologicalYear,
+                header.SavedUtc, schemaVersion), null));
         }
         catch (P1Refusal refusal)
         {
@@ -274,6 +270,7 @@ internal sealed partial class PlayerApi
             lock (multiHost.SyncLock)
             {
                 // Commit-time survey check (the body is already read); the slot file changes only inside this lock.
+                // Lock order: multiHost.SyncLock, then RecoverFromBackup takes the slot lock — the same order as Save.
                 inspectionBlock = InspectionBlockerLocked();
                 if (inspectionBlock is null) result = saveV3Slots.RecoverFromBackup(request.Slot!);
             }

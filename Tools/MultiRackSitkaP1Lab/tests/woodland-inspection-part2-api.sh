@@ -15,6 +15,8 @@
 #     Advance; nothing changes; a control proves the same paused request commits when no survey opens;
 #   - O: 50 overlapping Donadea/Mersch load pairs never return a reply whose current survey and status disagree, and the
 #     served view bytes always hash to that plot's Part 1 golden;
+#   - S: 30 simultaneous Save + Recover pairs on one slot all answer within a timeout (one lock order: host, then slot),
+#     and a blocked Save to an existing slot is refused for the survey before any SlotExists check;
 #   - SIGINT ends the process cleanly; no file appears in the lab tree; git status of the lab is unchanged.
 #
 # Usage: tests/woodland-inspection-part2-api.sh [<evidence-dir>]
@@ -108,8 +110,8 @@ year_of() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["vie
 cat > "$scratch/insp_race.py" << 'PY'
 import hashlib, http.client, json, socket, sys, threading, time
 
-def call(port, path, body=None):
-    conn = http.client.HTTPConnection('127.0.0.1', port, timeout=120)
+def call(port, path, body=None, timeout=120):
+    conn = http.client.HTTPConnection('127.0.0.1', port, timeout=timeout)
     headers = {} if body is None else {'Content-Type': 'application/json', 'Origin': 'http://127.0.0.1:%d' % port}
     conn.request('GET' if body is None else 'POST', path, body=body, headers=headers)
     response = conn.getresponse()
@@ -180,6 +182,30 @@ elif mode == 'overlap':
         if d['current']['viewSha256'] != golden[cur] or view_bytes_sha(text) != golden[cur]:
             mismatched += 1
     json.dump({'responses': len(results), 'ok200': ok, 'contradictory': contradictory, 'hashMismatched': mismatched}, open(out, 'w'))
+elif mode == 'saverecover':
+    # saverecover <port> <base> <fence-json> <slot> <pairs> <out>: a Save and a Recover of one slot released together, each
+    # bounded by a 20 s timeout, so a lock-order deadlock shows up as a timeout instead of a hung test.
+    port, base, fence, slot, pairs, out = int(sys.argv[2]), sys.argv[3], json.loads(sys.argv[4]), sys.argv[5], int(sys.argv[6]), sys.argv[7]
+    statuses = {'save': [], 'recover': []}
+    timeouts = 0
+    for _ in range(pairs):
+        barrier = threading.Barrier(2)
+        def one(kind):
+            global timeouts
+            body = json.dumps({'fence': fence, 'slot': slot, 'replaceExisting': True}) if kind == 'save' else json.dumps({'slot': slot})
+            barrier.wait()
+            try:
+                status, _ = call(port, base + ('api/multi/save' if kind == 'save' else 'api/multi/saves/recover'), body, timeout=20)
+                statuses[kind].append(status)
+            except (socket.timeout, TimeoutError):
+                timeouts += 1
+        threads = [threading.Thread(target=one, args=(k,)) for k in ('save', 'recover')]
+        for t in threads: t.start()
+        for t in threads: t.join()
+        if timeouts:
+            break  # a deadlocked server never recovers; one timeout is the evidence
+    json.dump({'pairs': pairs, 'timeouts': timeouts, 'save': sorted(set(statuses['save'])), 'saveCount': len(statuses['save']),
+               'recover': sorted(set(statuses['recover'])), 'recoverCount': len(statuses['recover'])}, open(out, 'w'))
 PY
 race() { python3 "$scratch/insp_race.py" "$@"; }
 
@@ -403,6 +429,21 @@ check "O04 after the overlap, GET current is self-consistent" py o-cur \
   "d['inspection']['active'] is True and d['current']['entry']['plotId'] == d['inspection']['plotId']"
 code="$(post o-exit woodland/inspection/exit '{}')"
 check "O05 exit after the overlap: inactive status from the same commit" py o-exit "d['wasActive'] is True and d['inspection']['active'] is False"
+
+# ---- S: Save and Recover of one slot, released together, never deadlock (one lock order: host, then slot) ----------
+code="$(get s-before view)"; fs="$(fence s-before)"
+race saverecover "$port" "$base" "$fs" insp-part2 30 "$scratch/s1.json"
+check "S01 30 simultaneous Save + Recover pairs on one slot: every request answered within 20 s (no deadlock)" py s1 \
+  "d['timeouts'] == 0 and d['saveCount'] == 30 and d['recoverCount'] == 30"
+check "S02 every Save committed (200) and every Recover answered 200 or a typed 409" py s1 \
+  "d['save'] == [200] and set(d['recover']) <= {200, 409}"
+code="$(get s-after view)"
+check "S03 the server still answers reads afterwards and the playable woodland did not change" bash -c \
+  'test "$1" == 200' _ "$code"
+check "S04 same session, year and revisions after the Save/Recover burst" same_fence s-before s-after
+race paused "$port" "$base" api/multi/save "{\"fence\":$fs,\"slot\":\"insp-part2\",\"replaceExisting\":false}" IPlus_Mersch "$scratch/s5.json"
+check "S05 a blocked Save to an EXISTING slot is refused as WoodlandInspectionReadOnly at commit, before any SlotExists check" commit_refusal s5
+code="$(post s-exit woodland/inspection/exit '{}')"
 
 # ---- Z: clean shutdown ---------------------------------------------------------------------------------------------
 kill -INT "$server_pid"
