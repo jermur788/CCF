@@ -1,0 +1,194 @@
+/* MapLibre Display Adapter (Part 1). External stylesheet only: works under CSP style-src 'self'. */
+
+.ccf-ml-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  background-color: #15251a;
+  color: #e2ecf7;
+  font: 0.88rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Arial, sans-serif;
+}
+
+.ccf-ml-stage {
+  position: absolute;
+  inset: 0;
+  background-color: #15251a;
+}
+
+.ccf-ml-root[data-map-style="clean-woodland"] .ccf-ml-stage {
+  cursor: crosshair;
+}
+
+/* Layer 1. The extra class keeps this rule stronger than MapLibre's own .maplibregl-map { position: relative }. */
+.ccf-ml-stage > .ccf-ml-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: #15251a;
+}
+
+/* Layer 2 is drawn inside the MapLibre canvas; this element only reports its state. */
+.ccf-ml-stage > .ccf-ml-imagery-state {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Layers 3-8. Clicks pass through to the stage (and to MapLibre for panning). */
+.ccf-ml-stage > .ccf-ml-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Layer 4: lane borders and 2.5 m ground cells */
+.ccf-lane {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-lane-active {
+  stroke: #9fd4ad;
+  stroke-width: 2px;
+}
+.ccf-lane-neighbour {
+  stroke: #6f9a7b;
+  stroke-width: 1.25px;
+  stroke-dasharray: 5 4;
+}
+.ccf-cell {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-cell-moisture { fill-opacity: 0.32; fill: #4d6656; }
+.ccf-moisture-DryFreeDraining { fill: #c98e4b; }
+.ccf-moisture-FreshMoistMineral { fill: #3b8c7a; }
+.ccf-cell-light { fill: #e8d77a; }
+.ccf-cell-undergrowth { fill: #8e5a7c; }
+.ccf-cell-seedlings { fill: #5bb462; fill-opacity: 0.34; }
+
+/* Layer 5: schematic deadwood */
+.ccf-deadwood-log {
+  fill: #a67c52;
+  stroke: #1b150e;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Layer 6: crowns at true radiusM */
+.ccf-crown {
+  fill: #467d57;
+  fill-opacity: 0.82;
+  stroke: #82c595;
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-tree[data-species="sessile-oak"] .ccf-crown { fill: #77a846; stroke: #bce382; }
+.ccf-tree[data-species="european-beech"] .ccf-crown { fill: #a59a45; stroke: #ddd27e; }
+.ccf-tree[data-species="scots-pine"] .ccf-crown { fill: #b97e46; stroke: #e4aa6f; }
+.ccf-tree-dead .ccf-crown { fill: #79857d; stroke: #c4c9c6; }
+.ccf-tree-felled .ccf-crown { fill: #a38d6d; stroke: #cbb48c; fill-opacity: 0.6; }
+
+/* Layer 7: planted juveniles */
+.ccf-juvenile-diamond {
+  fill: #244530;
+  stroke: #7ae594;
+  stroke-width: 1.8px;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-juvenile-core { fill: #b9f7c7; }
+.ccf-juvenile-shelter {
+  fill: none;
+  stroke: #6ce0ef;
+  stroke-width: 1.4px;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Layer 8: marks, ranks, selection. Each mark has a shape or text, not colour alone. */
+.ccf-mark-crop-ring,
+.ccf-mark-pending-ring,
+.ccf-mark-approved-ring {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-mark-crop-ring { stroke: #f5d57a; stroke-width: 2.2px; }
+.ccf-mark-pending-ring { stroke: #edc774; stroke-width: 2px; stroke-dasharray: 4 3; }
+.ccf-mark-approved-ring { stroke: #88c5e8; stroke-width: 2.4px; }
+
+.ccf-mark-badge rect,
+.ccf-rank-badge rect {
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-mark-badge rect { fill: #1c1708; stroke: #f5d57a; }
+.ccf-rank-badge rect { fill: #152438; stroke: #91c6fa; }
+.ccf-rank-chosen rect { fill: #2c4f70; stroke: #f2ad76; }
+.ccf-mark-badge text,
+.ccf-rank-badge text,
+.ccf-selection-tag-text {
+  font-weight: 700;
+  text-anchor: middle;
+}
+.ccf-mark-badge text { fill: #f5d57a; }
+.ccf-rank-badge text { fill: #ffffff; }
+
+.ccf-selection-halo,
+.ccf-selection-frame {
+  fill: none;
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-selection-halo { stroke: #0b1523; stroke-width: 5px; }
+.ccf-selection-frame { stroke: #ffffff; stroke-width: 2.4px; }
+.ccf-selection-tag {
+  fill: #0b1523;
+  stroke: #ffffff;
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+}
+.ccf-selection-tag-text { fill: #ffffff; }
+
+/* Non-blocking fallback notice */
+.ccf-ml-notice {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  max-width: calc(100% - 20px);
+  padding: 6px 11px;
+  border: 1px solid #756b46;
+  border-radius: 6px;
+  background-color: rgba(24, 34, 27, 0.94);
+  color: #f4df9b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Imagery attribution: only present while imagery is visible */
+.ccf-ml-attribution {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 4;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 4px;
+  background-color: rgba(11, 21, 15, 0.86);
+  color: #dbe8df;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  pointer-events: none;
+}
+
+.ccf-ml-root [hidden] {
+  display: none;
+}
