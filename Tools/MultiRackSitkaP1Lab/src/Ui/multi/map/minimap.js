@@ -33,12 +33,13 @@ export function renderMinimap(onSelectLane) {
   const h = Math.max(1, maxZ - minZ);
   const pad = Math.max(w, h) * 0.08;
 
-  const visible = new Set(visibleLaneIds(areas, state.areaId, state.singleLaneMode));
+  const visibleList = visibleLaneIds(areas, state.areaId, state.singleLaneMode, window.innerWidth);
+  const visible = new Set(visibleList);
   const mapSvg = svg('svg', {
     class: 'minimap-svg',
     viewBox: [minX - pad, -pad, w + 2 * pad, h + 2 * pad].map(n3).join(' '),
     role: 'group',
-    'aria-label': 'Whole woodland mini-map (' + areas.length + ' lanes); click or press Enter on a lane to switch',
+    'aria-label': 'Whole woodland mini-map (' + areas.length + ' lanes; showing ' + visibleList.length + '); click or press Enter on a lane to switch',
   });
 
   // Open grassland surround outside the woodland perimeter (zero trees outside).
@@ -118,8 +119,26 @@ export function renderMinimap(onSelectLane) {
     mapSvg.append(g);
   }
 
+  // Highlight active visible lane range cleanly across all currently visible lanes.
+  const visPolys = areas.filter((a) => visible.has(a.areaId)).flatMap((a) => a.polygon || []);
+  if (visPolys.length > 0) {
+    const vMinX = Math.min(...visPolys.map((p) => p.xm));
+    const vMaxX = Math.max(...visPolys.map((p) => p.xm));
+    const vMinY = Math.min(...visPolys.map((p) => maxZ - p.zm));
+    const vMaxY = Math.max(...visPolys.map((p) => maxZ - p.zm));
+    mapSvg.append(svg('rect', {
+      class: 'minimap-range-frame',
+      'data-visible-range': visibleList.join(','),
+      x: n3(vMinX),
+      y: n3(vMinY),
+      width: n3(Math.max(1, vMaxX - vMinX)),
+      height: n3(Math.max(1, vMaxY - vMinY)),
+    }));
+  }
+
   const head = el('div', { class: 'minimap-head' },
     el('span', { class: 'minimap-title' }, 'Woodland (' + areas.length + ' lanes)'),
-    el('span', { class: 'minimap-mode' }, state.singleLaneMode ? '1 lane' : visible.size + ' shown'));
+    el('span', { class: 'minimap-mode', 'data-minimap-scope': visibleList.join(',') },
+      state.singleLaneMode ? '1 lane precision' : visible.size + ' of ' + areas.length + ' shown'));
   host.replaceChildren(head, mapSvg);
 }

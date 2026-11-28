@@ -107,39 +107,48 @@
 </div>
 
 <div class="messages">
-  <div id="alert" class="alert" role="alert" tabindex="-1"></div>
+  <div id="alert" class="alert" role="region" aria-label="Priority-ranked woodland alerts" tabindex="-1"></div>
 </div>
 
-<main id="workspace" class="workspace" data-legend="shown">
-  <div class="workspace-head">
-    <h2 id="map-heading" tabindex="-1">Stand map</h2>
-    <p id="map-subtitle" class="map-subtitle"></p>
-    <div class="mode-switch" role="group" aria-label="Map interaction mode">
-      <button type="button" id="mode-tree" class="mode-btn" data-map-mode="tree" aria-pressed="true">Select Tree</button>
-      <button type="button" id="mode-cell" class="mode-btn" data-map-mode="cell" aria-pressed="false">Inspect Cell</button>
-      <button type="button" id="mode-plant" class="mode-btn" data-map-mode="plant" aria-pressed="false">Plant</button>
-      <button type="button" id="mode-spot" class="mode-btn" data-map-mode="spot" aria-pressed="false">Spot Clear</button>
-    </div>
-    <label class="sr-only" for="overlay-select">Ground overlay</label>
-    <select id="overlay-select" class="overlay-select" aria-label="Ground overlay">
-      <option value="off">Overlay: Off</option>
-      <option value="light">Overlay: Light Guide</option>
-      <option value="undergrowth">Overlay: Undergrowth</option>
-      <option value="seedlings">Overlay: Natural Seedlings</option>
-    </select>
-    <button type="button" id="lane-mode-toggle" class="mode-btn lane-mode-toggle" aria-pressed="false" title="Toggle between active lane + neighbours and 1 lane only" hidden>1 lane</button>
-    <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
-    <nav class="view-tabs" aria-label="Side panel views">
-      <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
-      <button type="button" class="view-tab" data-pane-button="plan" aria-controls="pane-plan" aria-pressed="false">Work Plan</button>
-      <button type="button" class="view-tab" data-pane-button="trees" aria-controls="pane-trees" aria-pressed="false">Trees</button>
-      <button type="button" class="view-tab" data-pane-button="history" aria-controls="pane-history" aria-pressed="false">Results</button>
-      <button type="button" class="view-tab" data-pane-button="details" aria-controls="pane-details" aria-pressed="false">Details</button>
-    </nav>
-  </div>
-
+<main id="workspace" class="workspace" data-legend="compact" data-lens="woodland">
   <section class="map-panel" aria-labelledby="map-heading">
-    <div id="map-pane" class="map-pane">
+    <div class="map-toolbar">
+      <div class="map-toolbar-row map-toolbar-lenses">
+        <div class="map-title-group">
+          <h2 id="map-heading" tabindex="-1">Stand map</h2>
+          <p id="map-subtitle" class="map-subtitle"></p>
+        </div>
+        <div id="lens-bar" class="lens-bar" role="group" aria-label="Presentation lenses (view only — separate from tools)">
+          <button type="button" class="lens-btn" data-lens-btn="woodland" aria-pressed="true"><span class="lens-key" aria-hidden="true">1</span><span class="lens-icon" aria-hidden="true">◈</span> Woodland</button>
+          <button type="button" class="lens-btn" data-lens-btn="trees" aria-pressed="false"><span class="lens-key" aria-hidden="true">2</span><span class="lens-icon" aria-hidden="true">◎</span> Trees</button>
+          <button type="button" class="lens-btn" data-lens-btn="regeneration" aria-pressed="false"><span class="lens-key" aria-hidden="true">3</span><span class="lens-icon" aria-hidden="true">❖</span> Regeneration</button>
+          <button type="button" class="lens-btn" data-lens-btn="harvesting" aria-pressed="false"><span class="lens-key" aria-hidden="true">4</span><span class="lens-icon" aria-hidden="true">◧</span> Harvesting</button>
+          <button type="button" class="lens-btn" data-lens-btn="habitat" aria-pressed="false"><span class="lens-key" aria-hidden="true">5</span><span class="lens-icon" aria-hidden="true">◐</span> Habitat</button>
+        </div>
+        <button type="button" class="explain-btn" data-explain="lenses-tools" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain lenses versus active tools" title="Lenses vs active tools">?</button>
+        <p id="announce" class="announce" role="status" aria-live="polite" aria-atomic="true"></p>
+      </div>
+      <div class="map-toolbar-row map-toolbar-tools">
+        <span class="toolbar-label" aria-hidden="true">Tools</span>
+        <div class="mode-switch" role="group" aria-label="Active map interaction tool (separate from lens)">
+          <button type="button" id="mode-tree" class="mode-btn" data-map-mode="tree" aria-pressed="true">Select Tree</button>
+          <button type="button" id="mode-cell" class="mode-btn" data-map-mode="cell" aria-pressed="false">Inspect Cell</button>
+          <button type="button" id="mode-plant" class="mode-btn" data-map-mode="plant" aria-pressed="false" hidden>Plant</button>
+          <button type="button" id="mode-spot" class="mode-btn" data-map-mode="spot" aria-pressed="false" hidden>Spot Clear</button>
+        </div>
+        <label class="sr-only" for="overlay-select">Ground overlay</label>
+        <select id="overlay-select" class="overlay-select" aria-label="Ground overlay">
+          <option value="off">Overlay: Off</option>
+          <option value="light">Overlay: Light Guide</option>
+          <option value="undergrowth">Overlay: Undergrowth</option>
+          <option value="seedlings">Overlay: Natural Seedlings</option>
+        </select>
+        <button type="button" id="lane-mode-toggle" class="mode-btn lane-mode-toggle" aria-pressed="false" title="Toggle between adjacent lanes (2–3 wide, 2 compact) and 1-lane precision view (M)" hidden>1 lane</button>
+        <p id="lens-active-desc" class="lens-active-desc"></p>
+      </div>
+    </div>
+
+    <div id="map-pane" class="map-pane" data-lens="woodland">
       <svg id="map" viewBox="0 0 40 40" role="img" aria-labelledby="map-title map-desc">
         <title id="map-title">Map of the selected management area, north up</title>
         <desc id="map-desc">Loading the current view.</desc>
@@ -477,12 +486,31 @@
       </div>
 
       <div class="map-orient">
-        <button type="button" id="legend-show" class="legend-show" aria-controls="legend-panel" aria-expanded="false" hidden>Show legend</button>
         <p class="north" aria-hidden="true"><span>N</span><svg viewBox="0 0 12 16" focusable="false"><path d="M6 0 12 16 6 12 0 16Z"></path></svg></p>
       </div>
       <p class="scale" aria-hidden="true"><svg id="scale-bar" class="scale-bar" width="80" height="9" viewBox="0 0 80 9" focusable="false"><path id="scale-path" d="M 1 1 V 8 H 79 V 1"></path></svg> <span id="scale-text"></span></p>
       <div id="woodland-minimap" class="woodland-minimap" role="region" aria-label="Whole woodland mini-map" hidden></div>
       <p id="map-status" class="map-status" hidden></p>
+
+      <!-- Floating full-legend popover (Option B): opens on demand without creating a permanent 3rd/4th layout column. -->
+      <aside id="legend-panel" class="legend-panel" aria-labelledby="legend-heading" hidden>
+        <div class="legend-head">
+          <h2 id="legend-heading">Full map legend (16 symbols)</h2>
+          <button type="button" id="legend-hide" class="link-button small-link" aria-controls="legend-panel" aria-expanded="false">× Collapse</button>
+        </div>
+        <ul id="legend" class="legend"></ul>
+        <p class="legend-foot">Letters, rings and shapes carry status. Fallen logs: direction schematic, not simulated. Expired shelter: map state only.</p>
+      </aside>
+    </div>
+
+    <!-- Compact contextual legend bar (Option B): shows symbols for active lens + overlay with Full legend expand toggle. -->
+    <div id="legend-bar" class="legend-bar" role="region" aria-label="Contextual map legend">
+      <span id="legend-context-label" class="legend-context-label">Woodland key:</span>
+      <div id="legend-compact-items" class="legend-compact-items"></div>
+      <div class="legend-bar-actions">
+        <button type="button" id="legend-toggle" class="link-button small-link legend-toggle" aria-controls="legend-panel" aria-expanded="false">Full legend ▾</button>
+        <button type="button" id="shortcuts-open" class="link-button small-link shortcuts-open" aria-haspopup="dialog" title="Keyboard shortcuts guide (?)">? Keys</button>
+      </div>
     </div>
 
     <!-- Active ground overlay legend strip (shown only when an overlay is selected). -->
@@ -490,20 +518,19 @@
 
     <div class="map-foot">
       <p id="map-note" class="map-note"></p>
-      <p class="map-note map-note-end">Modelled light · not calibrated PAR · Draft choices are not work orders</p>
+      <p class="map-note map-note-end">Modelled light · not calibrated PAR <button type="button" class="explain-btn explain-btn-xs" data-explain="modelled-light" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain modelled light caveat">?</button> · Draft choices are not work orders</p>
     </div>
   </section>
 
-  <aside id="legend-panel" class="legend-panel" aria-labelledby="legend-heading">
-    <div class="legend-head">
-      <h2 id="legend-heading">Map legend</h2>
-      <button type="button" id="legend-hide" class="link-button small-link" aria-controls="legend-panel" aria-expanded="true">Hide legend</button>
-    </div>
-    <ul id="legend" class="legend"></ul>
-    <p class="legend-foot">Letters, rings and shapes carry status. Fallen logs: direction schematic, not simulated. Expired shelter: map state only.</p>
-  </aside>
-
   <div id="side" class="side" data-pane="tree">
+    <nav class="view-tabs" aria-label="Contextual side panel views">
+      <button type="button" class="view-tab" data-pane-button="tree" aria-controls="pane-tree" aria-pressed="true">Tree</button>
+      <button type="button" class="view-tab" data-pane-button="navigator" aria-controls="pane-navigator" aria-pressed="false">Navigator</button>
+      <button type="button" class="view-tab" data-pane-button="plan" aria-controls="pane-plan" aria-pressed="false">Work Plan</button>
+      <button type="button" class="view-tab" data-pane-button="trees" aria-controls="pane-trees" aria-pressed="false">Trees</button>
+      <button type="button" class="view-tab" data-pane-button="history" aria-controls="pane-history" aria-pressed="false">Results</button>
+      <button type="button" class="view-tab" data-pane-button="details" aria-controls="pane-details" aria-pressed="false">Details</button>
+    </nav>
     <div id="pane-tree" class="pane">
       <!-- Inspect Cell mode: explicitly SWAPS the inspector body (never stacks above the tree panel). -->
       <section id="cell-panel" class="panel cell-panel" aria-labelledby="cell-heading" hidden>
@@ -624,7 +651,7 @@
           </div>
 
           <section id="competition-panel" class="competition" aria-labelledby="competition-heading">
-            <h3 id="competition-heading">Competitors for Fell <span id="competition-sub" class="comp-sub"></span></h3>
+            <h3 id="competition-heading">Competitors for Fell <button type="button" class="explain-btn explain-btn-xs" data-explain="hegyi-ci" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain Hegyi Competition Index">?</button> <span id="competition-sub" class="comp-sub"></span></h3>
             <div id="competition-content"></div>
           </section>
 
@@ -679,6 +706,9 @@
             <dl id="insp-facts" class="pairs insp-facts"></dl>
             <p id="insp-threshold" class="small-note"></p>
           </details>
+          <details id="lens-slots-details" class="more"><summary id="lens-slots-summary">Woodland lens · Part 2 slots (0)</summary>
+            <ul id="lens-slots-list" class="list"></ul>
+          </details>
         </div>
         <div id="overlap" class="overlap" hidden>
           <h3 id="overlap-heading" tabindex="-1"></h3>
@@ -691,10 +721,75 @@
       </section>
     </div>
 
+    <div id="pane-navigator" class="pane">
+      <section class="panel navigator-panel" aria-labelledby="navigator-heading">
+        <div class="ref-top">
+          <h2 id="navigator-heading" tabindex="-1">Woodland Navigator</h2>
+          <button type="button" class="explain-btn explain-btn-xs" data-explain="navigator-scope" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain visible versus whole-woodland navigator counts">?</button>
+        </div>
+        <p id="nav-scope-summary" class="small-note"></p>
+
+        <details id="nav-sec-lanes" class="nav-section" open>
+          <summary class="nav-summary">
+            <span class="nav-summary-title">Lanes / Areas <span id="nav-lanes-count" class="count">0</span></span>
+            <span class="tag nav-scope-tag" data-scope-kind="whole">Whole woodland</span>
+          </summary>
+          <div class="nav-cycle-row">
+            <button type="button" class="small secondary" data-nav-cycle="lanes" data-nav-dir="-1">← Prev lane [</button>
+            <button type="button" class="small secondary" data-nav-cycle="lanes" data-nav-dir="1">Next lane ] →</button>
+          </div>
+          <div id="nav-lanes-body"></div>
+        </details>
+
+        <details id="nav-sec-crops" class="nav-section" open>
+          <summary class="nav-summary">
+            <span class="nav-summary-title">Marked Crop Trees <span id="nav-crops-count" class="count">0</span></span>
+            <span id="nav-crops-scope" class="tag nav-scope-tag" data-scope-kind="visible">Visible lanes</span>
+          </summary>
+          <div class="nav-cycle-row">
+            <button type="button" class="small secondary" data-nav-cycle="crops" data-nav-dir="-1" disabled>← Prev crop</button>
+            <button type="button" class="small secondary" data-nav-cycle="crops" data-nav-dir="1" disabled>Next crop →</button>
+          </div>
+          <div id="nav-crops-body"></div>
+        </details>
+
+        <details id="nav-sec-work" class="nav-section" open>
+          <summary class="nav-summary">
+            <span class="nav-summary-title">Unfinished Work <span id="nav-work-count" class="count">0</span></span>
+            <span class="tag nav-scope-tag" data-scope-kind="whole">Whole woodland</span>
+          </summary>
+          <div class="nav-cycle-row">
+            <button type="button" class="small secondary" data-nav-cycle="work" data-nav-dir="-1" disabled>← Prev order</button>
+            <button type="button" class="small secondary" data-nav-cycle="work" data-nav-dir="1" disabled>Next order →</button>
+          </div>
+          <div id="nav-work-body"></div>
+        </details>
+
+        <details id="nav-sec-storm" class="nav-section" data-extension-slot="nav-storm-felled">
+          <summary class="nav-summary">
+            <span class="nav-summary-title">Storm-felled Stems <span class="count">0</span></span>
+            <span class="tag nav-scope-tag" data-scope-kind="slot">Part 2 slot</span>
+          </summary>
+          <p class="small-note">No storm-felled stems in this woodland. Slot ready for 2D Windstorms (StormModel 1) without UI redesign.</p>
+        </details>
+
+        <details id="nav-sec-inspection" class="nav-section" data-extension-slot="nav-inspection-blockers">
+          <summary class="nav-summary">
+            <span class="nav-summary-title">Inspection Blockers <span class="count">0</span></span>
+            <span class="tag nav-scope-tag" data-scope-kind="slot">Part 2 slot</span>
+          </summary>
+          <p class="small-note">No inspection blockers in this woodland. Slot ready for Real-World Woodland Inspection checklists.</p>
+        </details>
+      </section>
+    </div>
+
     <div id="pane-plan" class="pane">
       <section class="panel" aria-labelledby="plan-heading">
         <p class="ref-top"><span class="eyebrow">Work Plan</span> <span class="tag">Both areas</span></p>
-        <h2 id="plan-heading" tabindex="-1">Work plan</h2>
+        <div class="heading-with-help">
+          <h2 id="plan-heading" tabindex="-1">Work plan</h2>
+          <button type="button" class="explain-btn explain-btn-xs" data-explain="work-plan-gate" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain Work Plan commitment gate">?</button>
+        </div>
         <ol class="stepper" aria-label="Work Plan steps">
           <li id="step-pending">Pending</li>
           <li id="step-approved">Approved</li>
@@ -706,7 +801,11 @@
         </div>
         <section id="economy-quote-panel" class="economy-quote" aria-labelledby="economy-quote-heading" hidden>
           <div class="ref-top">
-            <h3 id="economy-quote-heading">Work Plan Quote</h3>
+            <div class="heading-with-help">
+              <h3 id="economy-quote-heading">Work Plan Quote</h3>
+              <button type="button" class="explain-btn explain-btn-xs" data-explain="harvest-floor" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain €2,500 minimum contractor harvest floor">?</button>
+              <button type="button" class="explain-btn explain-btn-xs" data-explain="felling-choices" aria-expanded="false" aria-controls="explain-popover" aria-label="Explain 3-way felling destinations">?</button>
+            </div>
             <span id="economy-quote-badge" class="tag">Money On</span>
           </div>
           <div id="economy-verdict" class="econ-verdict" role="status" aria-live="polite" hidden></div>
@@ -960,6 +1059,31 @@
     <button type="button" id="woodland-cancel" class="secondary">Cancel</button>
     <button type="button" id="woodland-create" class="primary">Start woodland</button>
   </p>
+</dialog>
+
+<!-- Shared single-level accessible pinned explanation popover (Safe Hybrid; WCAG 2.2 SC 1.4.13). Zero nested triggers. -->
+<div id="explain-popover" class="explain-popover" role="region" aria-labelledby="explain-title" data-pinned="false" hidden>
+  <div class="explain-head">
+    <strong id="explain-title"></strong>
+    <span id="explain-tag" class="tag" hidden></span>
+    <span id="explain-pin-tag" class="tag explain-pin-tag" hidden>📌 Pinned</span>
+    <button type="button" id="explain-close" class="explain-close" aria-label="Close explanation (Escape)">×</button>
+  </div>
+  <p id="explain-body" class="explain-body"></p>
+  <p id="explain-hint" class="explain-hint"></p>
+</div>
+
+<dialog id="shortcuts-dialog" class="shortcuts-dialog" aria-labelledby="shortcuts-title">
+  <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+  <p class="small-note">Shortcuts are active outside text fields, dropdowns, and dialogs. Destructive or commitment actions (Approve, Execute, Advance, New Woodland, Load Save, Money reset) intentionally have zero unguarded keyboard shortcuts.</p>
+  <table class="shortcuts-table">
+    <caption class="sr-only">Available safe keyboard shortcuts</caption>
+    <thead>
+      <tr><th scope="col">Key</th><th scope="col">Action</th></tr>
+    </thead>
+    <tbody id="shortcuts-list"></tbody>
+  </table>
+  <p class="actions"><button type="button" id="shortcuts-close" class="secondary">Close</button></p>
 </dialog>
 
 <noscript><p class="noscript">This page needs JavaScript to talk to the local session process.</p></noscript>

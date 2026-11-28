@@ -1,5 +1,5 @@
 // S0c provenance: dom.js [L1] — section(s) 1 from multi.js
-import { SVG_NS, state } from './store.js';
+import { EXPLANATIONS, SVG_NS, byId, state } from './store.js';
   // ---- small DOM helpers ----------------------------------------------------------------------------------------------
 
   export function setAttributes(node, attributes) {
@@ -73,5 +73,200 @@ import { SVG_NS, state } from './store.js';
         el('thead', null, el('tr', null, ...headers.map((header) => el('th', { scope: 'col' }, header)))),
         el('tbody', null, ...rows.map((cells) => el('tr', null, el('th', { scope: 'row' }, cells[0]),
           ...cells.slice(1).map((cell) => el('td', null, cell)))))));
+  }
+
+  // ---- Shared single-level accessible pinned explanation component (WCAG 2.2 SC 1.4.13; Safe Hybrid) ------------------
+
+  const explainCtrl = {
+    trigger: null,
+    key: null,
+    pinned: false,
+    closeTimer: 0,
+    wired: false,
+  };
+
+  export function explainTrigger(key, ariaLabel) {
+    const info = EXPLANATIONS[key];
+    return el('button', {
+      type: 'button',
+      class: 'explain-btn',
+      'data-explain': key,
+      'aria-expanded': 'false',
+      'aria-controls': 'explain-popover',
+      'aria-label': ariaLabel || (info ? 'Explain: ' + info.title : 'Show explanation'),
+      title: info ? info.title + ' (hover, focus, or click to pin)' : 'Explanation',
+    }, '?');
+  }
+
+  export function isExplainOpen() {
+    const pop = byId('explain-popover');
+    return Boolean(pop && !pop.hidden);
+  }
+
+  export function isExplainPinned() {
+    return isExplainOpen() && explainCtrl.pinned;
+  }
+
+  function cancelExplainClose() {
+    if (explainCtrl.closeTimer) {
+      window.clearTimeout(explainCtrl.closeTimer);
+      explainCtrl.closeTimer = 0;
+    }
+  }
+
+  function scheduleExplainClose() {
+    if (explainCtrl.pinned) return;
+    cancelExplainClose();
+    explainCtrl.closeTimer = window.setTimeout(() => {
+      explainCtrl.closeTimer = 0;
+      if (!explainCtrl.pinned) closeExplain(false);
+    }, 180);
+  }
+
+  function positionExplainPopover(triggerEl) {
+    const pop = byId('explain-popover');
+    if (!pop || !triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    const popW = Math.min(320, window.innerWidth - 16);
+    const popH = pop.offsetHeight || 120;
+    let left = rect.left;
+    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+    if (left < 8) left = 8;
+    let top = rect.bottom + 6;
+    if (top + popH > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - popH - 6);
+    }
+    pop.style.left = Math.round(left) + 'px';
+    pop.style.top = Math.round(top) + 'px';
+  }
+
+  export function openExplain(triggerEl, pin) {
+    const pop = byId('explain-popover');
+    if (!pop || !triggerEl) return false;
+    const key = triggerEl.getAttribute('data-explain');
+    const info = key ? EXPLANATIONS[key] : null;
+    if (!info) return false;
+    cancelExplainClose();
+    if (explainCtrl.trigger && explainCtrl.trigger !== triggerEl) {
+      explainCtrl.trigger.setAttribute('aria-expanded', 'false');
+    }
+    explainCtrl.trigger = triggerEl;
+    explainCtrl.key = key;
+    explainCtrl.pinned = Boolean(pin);
+    byId('explain-title').textContent = info.title;
+    byId('explain-body').textContent = info.body;
+    const tagEl = byId('explain-tag');
+    if (tagEl) {
+      tagEl.textContent = info.tag || '';
+      tagEl.hidden = !info.tag;
+    }
+    const pinTag = byId('explain-pin-tag');
+    if (pinTag) pinTag.hidden = !explainCtrl.pinned;
+    const hint = byId('explain-hint');
+    if (hint) {
+      hint.textContent = explainCtrl.pinned
+        ? 'Pinned · Press Esc or × to close'
+        : 'Hoverable · Click or press Enter to pin · Esc to dismiss';
+    }
+    pop.setAttribute('data-explain-key', key);
+    pop.setAttribute('data-pinned', String(explainCtrl.pinned));
+    pop.hidden = false;
+    triggerEl.setAttribute('aria-expanded', 'true');
+    positionExplainPopover(triggerEl);
+    return true;
+  }
+
+  export function closeExplain(returnFocus) {
+    const pop = byId('explain-popover');
+    cancelExplainClose();
+    if (!pop || pop.hidden) return false;
+    const prevTrigger = explainCtrl.trigger;
+    pop.hidden = true;
+    pop.setAttribute('data-pinned', 'false');
+    pop.removeAttribute('data-explain-key');
+    if (prevTrigger) prevTrigger.setAttribute('aria-expanded', 'false');
+    explainCtrl.trigger = null;
+    explainCtrl.key = null;
+    explainCtrl.pinned = false;
+    if (returnFocus && prevTrigger && prevTrigger.isConnected && !prevTrigger.closest('[hidden]') && !prevTrigger.disabled) {
+      prevTrigger.focus();
+    }
+    return true;
+  }
+
+  export function initExplainPopover() {
+    if (explainCtrl.wired) return;
+    explainCtrl.wired = true;
+    const pop = byId('explain-popover');
+    const host = typeof document.addEventListener === 'function' ? document : document.documentElement;
+    if (!pop || !host || typeof host.addEventListener !== 'function') return;
+
+    host.addEventListener('mouseover', (event) => {
+      const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
+      if (btn) {
+        if (explainCtrl.pinned && explainCtrl.trigger !== btn) return;
+        openExplain(btn, explainCtrl.pinned && explainCtrl.trigger === btn);
+        return;
+      }
+      if (pop.contains && pop.contains(event.target)) {
+        cancelExplainClose();
+      }
+    });
+
+    host.addEventListener('mouseout', (event) => {
+      const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
+      const inPop = Boolean(pop.contains && pop.contains(event.target));
+      if (!btn && !inPop) return;
+      const related = event.relatedTarget;
+      if (related && ((pop.contains && pop.contains(related)) || (explainCtrl.trigger && explainCtrl.trigger.contains && explainCtrl.trigger.contains(related)))) {
+        return;
+      }
+      scheduleExplainClose();
+    });
+
+    host.addEventListener('focusin', (event) => {
+      const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
+      if (btn) {
+        if (explainCtrl.pinned && explainCtrl.trigger !== btn) return;
+        openExplain(btn, explainCtrl.pinned && explainCtrl.trigger === btn);
+        return;
+      }
+      if (pop.contains && pop.contains(event.target)) {
+        cancelExplainClose();
+      } else if (!explainCtrl.pinned && isExplainOpen()) {
+        closeExplain(false);
+      }
+    });
+
+    host.addEventListener('click', (event) => {
+      const closeBtn = event.target && event.target.closest ? event.target.closest('#explain-close') : null;
+      if (closeBtn) {
+        event.stopPropagation();
+        closeExplain(true);
+        return;
+      }
+      const btn = event.target && event.target.closest ? event.target.closest('[data-explain]') : null;
+      if (btn) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (explainCtrl.pinned && explainCtrl.trigger === btn) {
+          closeExplain(false);
+        } else {
+          openExplain(btn, true);
+        }
+        return;
+      }
+      if (isExplainOpen() && !pop.contains(event.target)) {
+        closeExplain(false);
+      }
+    });
+
+    pop.addEventListener('mouseenter', cancelExplainClose);
+    pop.addEventListener('mouseleave', scheduleExplainClose);
+    window.addEventListener('resize', () => {
+      if (isExplainOpen() && explainCtrl.trigger && explainCtrl.trigger.isConnected) {
+        positionExplainPopover(explainCtrl.trigger);
+      }
+    });
   }
 

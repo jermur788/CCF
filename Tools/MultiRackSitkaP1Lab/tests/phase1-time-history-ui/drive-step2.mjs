@@ -275,6 +275,14 @@ async function checkLayoutAndR3Fold(cdp, tag) {
   await waitFor(cdp, "document.getElementById('inspector-body').hidden", 'inspector closed');
 }
 
+async function screenOf(cdp, u, v) {
+  return evaluate(cdp, `(() => {
+    const svg = document.getElementById('map');
+    const pt = new DOMPoint(${u}, ${v}).matrixTransform(svg.getScreenCTM());
+    return { sx: pt.x, sy: pt.y };
+  })()`);
+}
+
 // Find a valid open planting point in the active area and return its screen coordinates on the #map SVG.
 async function findOpenMapPoint(cdp, areaId) {
   const res = await fetchJson(cdp, 'api/multi/view');
@@ -286,11 +294,7 @@ async function findOpenMapPoint(cdp, areaId) {
     const x = ext.minXM + cell.centreU;
     const z = ext.minZM + ext.sideM - cell.centreV;
     if (allLiving.every((t) => Math.hypot(t.xm - x, t.zm - z) >= 1.35)) {
-      const screen = await evaluate(cdp, `(() => {
-        const svg = document.getElementById('map');
-        const pt = new DOMPoint(${cell.centreU}, ${cell.centreV}).matrixTransform(svg.getScreenCTM());
-        return { sx: pt.x, sy: pt.y };
-      })()`);
+      const screen = await screenOf(cdp, cell.centreU, cell.centreV);
       return { u: cell.centreU, v: cell.centreV, x, z, column: cell.column, row: cell.row, sx: screen.sx, sy: screen.sy };
     }
   }
@@ -302,11 +306,23 @@ async function findOpenMapPoint(cdp, areaId) {
 async function checkNb2AtResolution(cdp, width, height) {
   await viewport(cdp, width, height);
   await sleep(180);
-  const pt = await findOpenMapPoint(cdp, 'MA-A');
+
+  // Keep the non-blocking Attention Required alert strip already open across both map clicks so #map's
+  // getScreenCTM() stays bit-identical for exact-float Phase2DuplicateOrder collision testing.
+  const initRes = await fetchJson(cdp, 'api/multi/view');
+  const holdCell = initRes.payload.stage4.areas.find((a) => a.areaId === 'MA-A').ground[0];
+  await fetchJson(cdp, 'api/multi/clear/add', { fence: fenceOf(initRes.payload.view), areaId: 'MA-A', column: holdCell.column, row: holdCell.row });
+  await click(cdp, '#reread');
+  await waitFor(cdp, "document.getElementById('alert').classList.contains('shown')", 'Attention strip open before NB-2 clicks');
+
+  // Switch to Regeneration lens (unlocks Plant & Spot Clear while defaulting safely to Select Tree).
+  await click(cdp, '[data-lens-btn="regeneration"]');
+  await waitFor(cdp, "!document.getElementById('mode-spot').hidden && !document.getElementById('mode-plant').hidden", 'Regeneration lens tools visible');
 
   // Pre-queue SpotClear at pt so step 3 of Plant+Shelter+SpotClear hits 409 Phase2DuplicateOrder.
   await click(cdp, '#mode-spot');
   await waitFor(cdp, "!document.getElementById('spot-panel').hidden", 'Spot Clear panel');
+  const pt = await findOpenMapPoint(cdp, 'MA-A');
   await clickPoint(cdp, pt.sx, pt.sy);
   await waitFor(cdp, "!document.getElementById('spot-queue').disabled", 'Spot Clear Queue enabled');
   await click(cdp, '#spot-queue');
@@ -316,7 +332,8 @@ async function checkNb2AtResolution(cdp, width, height) {
   // Switch to Plant mode, click same point, check Shelter + SpotClear, click Queue.
   await click(cdp, '#mode-plant');
   await waitFor(cdp, "!document.getElementById('plant-panel').hidden", 'Plant panel');
-  await clickPoint(cdp, pt.sx, pt.sy);
+  const ptPlant = await screenOf(cdp, pt.u, pt.v);
+  await clickPoint(cdp, ptPlant.sx, ptPlant.sy);
   await evaluate(cdp, `(() => {
     const sh = document.getElementById('plant-opt-shelter');
     const sp = document.getElementById('plant-opt-spot');
@@ -368,11 +385,14 @@ async function checkNb2AtResolution(cdp, width, height) {
   await click(cdp, '#plant-result [data-planting-remove]');
   await waitFor(cdp, "document.querySelectorAll('#plant-result [data-planting-remove]').length === 0", 'second NB-2 Remove click');
 
-  // Remove the pre-existing SpotClear so the plan is completely clean for subsequent checks.
-  const v = await currentView(cdp);
+  // Remove the pre-existing SpotClear and temporary hold-cell Clear so the plan is completely clean for subsequent checks.
+  let v = await currentView(cdp);
   const rm = await fetchJson(cdp, 'api/multi/planting/remove', { fence: fenceOf(v), orderId: preSpotId });
+  v = await currentView(cdp);
+  await fetchJson(cdp, 'api/multi/clear/remove', { fence: fenceOf(v), areaId: 'MA-A', column: holdCell.column, row: holdCell.row });
   check(rm.status === 200, `NB-2 order 3 ${width}x${height}: Remove buttons cleared partial orders and pre-SpotClear cleaned`);
   await click(cdp, '#mode-tree');
+  await click(cdp, '[data-lens-btn="woodland"]');
   await click(cdp, '#reread');
   await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2 order 3');
 }
@@ -384,11 +404,22 @@ async function checkNb2AtResolution(cdp, width, height) {
 async function checkNb2Order2AtResolution(cdp, width, height) {
   await viewport(cdp, width, height);
   await sleep(180);
-  const pt = await findOpenMapPoint(cdp, 'MA-A');
+
+  // Keep the non-blocking Attention Required strip open across both clicks so #map getScreenCTM() is bit-identical.
+  const initRes = await fetchJson(cdp, 'api/multi/view');
+  const holdCell = initRes.payload.stage4.areas.find((a) => a.areaId === 'MA-A').ground[0];
+  await fetchJson(cdp, 'api/multi/clear/add', { fence: fenceOf(initRes.payload.view), areaId: 'MA-A', column: holdCell.column, row: holdCell.row });
+  await click(cdp, '#reread');
+  await waitFor(cdp, "document.getElementById('alert').classList.contains('shown')", 'Attention strip open before NB-2 order 2 clicks');
+
+  // Switch to Regeneration lens (unlocks Plant tool while defaulting safely to Select Tree).
+  await click(cdp, '[data-lens-btn="regeneration"]');
+  await waitFor(cdp, "!document.getElementById('mode-plant').hidden", 'Regeneration lens Plant tool visible');
 
   // Pre-queue Plant + Shelter via the exact same map click so SVG->world coordinates match identically.
   await click(cdp, '#mode-plant');
   await waitFor(cdp, "!document.getElementById('plant-panel').hidden", 'Plant panel for NB-2 order 2 setup');
+  const pt = await findOpenMapPoint(cdp, 'MA-A');
   await clickPoint(cdp, pt.sx, pt.sy);
   await evaluate(cdp, `(() => {
     const shEl = document.getElementById('plant-opt-shelter');
@@ -414,7 +445,8 @@ async function checkNb2Order2AtResolution(cdp, width, height) {
 
   await click(cdp, '#mode-plant');
   await waitFor(cdp, "!document.getElementById('plant-panel').hidden", 'Plant panel for NB-2 order 2');
-  await clickPoint(cdp, pt.sx, pt.sy);
+  const ptOrder2 = await screenOf(cdp, pt.u, pt.v);
+  await clickPoint(cdp, ptOrder2.sx, ptOrder2.sy);
   await evaluate(cdp, `(() => {
     const shEl = document.getElementById('plant-opt-shelter');
     const spEl = document.getElementById('plant-opt-spot');
@@ -465,10 +497,13 @@ async function checkNb2Order2AtResolution(cdp, width, height) {
 
   await click(cdp, '#plant-result [data-planting-remove]');
   await waitFor(cdp, "document.querySelectorAll('#plant-result [data-planting-remove]').length === 0", 'NB-2 order 2 Remove click');
-  const vAfter = await currentView(cdp);
+  let vAfter = await currentView(cdp);
   const rmSh = await fetchJson(cdp, 'api/multi/planting/remove', { fence: fenceOf(vAfter), orderId: preShelterId });
+  vAfter = await currentView(cdp);
+  await fetchJson(cdp, 'api/multi/clear/remove', { fence: fenceOf(vAfter), areaId: 'MA-A', column: holdCell.column, row: holdCell.row });
   check(rmSh.status === 200, `NB-2 order 2 ${width}x${height}: Remove button cleared queued Plant and pre-Shelter cleaned`);
   await click(cdp, '#mode-tree');
+  await click(cdp, '[data-lens-btn="woodland"]');
   await click(cdp, '#reread');
   await waitFor(cdp, "document.getElementById('pending-total').textContent === 'No pending orders'", 'clean plan after NB-2 order 2');
 }

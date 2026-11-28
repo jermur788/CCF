@@ -2,11 +2,39 @@
 import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
 import { el, fixed, lightIndexText, pair, plural, svg, table } from '../dom.js';
 import { showPane } from '../panels/work-plan.js';
-import { SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, hooks, isMultiLaneStand, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, shelterForJuvenile, speciesLabel, state } from '../store.js';
-  // ---- Interactive modes: Inspect Cell, Plant, Spot Clear, and PJ Sapling inspection ----------------------------------
+import { LENSES, LENS_IDS, SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, currentLens, hooks, isMultiLaneStand, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, shelterForJuvenile, speciesLabel, state } from '../store.js';
+  // ---- Task-focused Lenses (strictly separate from active tools; Option B) & Interactive modes ------------------------
+
+  // Switching lenses changes presentation/overlay defaults and available tools ONLY:
+  // never mutates simulation, never submits/approves/executes work, always defaults to safe inspection ('tree'),
+  // and preserves selection, Fell draft ticks, marks, and map pan/zoom/lane position.
+  export function setLens(lensId, moveFocus) {
+    if (!LENS_IDS.includes(lensId)) return;
+    const lens = LENSES[lensId];
+    state.lens = lensId;
+    state.overlay = lens.defaultOverlay;
+    state.mapMode = 'tree';
+    state.cellPick += 1;
+    state.cellLoading = false;
+    state.plantDraft = null;
+    state.spotDraft = null;
+    hooks.renderAll();
+    if (moveFocus) {
+      const btn = document.querySelector('[data-lens-btn="' + lensId + '"]');
+      if (btn) btn.focus();
+    }
+    const overlayNames = { off: 'Off', light: 'Light Guide', undergrowth: 'Undergrowth', seedlings: 'Natural Seedlings' };
+    announce(lens.label + ' lens active (overlay: ' + (overlayNames[lens.defaultOverlay] || 'Off') +
+      ', tool: Select Tree safe inspection). Selection, drafts, marks, and map view preserved.');
+  }
 
   export function setMapMode(mode, moveFocus) {
     if (!['tree', 'cell', 'plant', 'spot'].includes(mode)) return;
+    const allowed = currentLens().tools;
+    if (mode !== 'tree' && !allowed.includes(mode)) {
+      announce(mode + ' tool is available in the Regeneration lens.');
+      return;
+    }
     if (state.mapMode === mode) return;
     state.mapMode = mode;
     state.cellPick += 1;

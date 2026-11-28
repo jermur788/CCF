@@ -206,7 +206,7 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
         el('p', null, 'Year ' + state.view.source.ecologicalYear + ', ' + areaScopeText + ' restored from the save; the session has a new authority, so every earlier token is refused.'),
         draft ? el('p', { class: 'warning' }, draft) : null,
         el('p', null, 'Advance or approve and execute work to continue from here.'),
-      ]);
+      ], null, { tier: 'info', id: 'loaded-' + slot });
       announce('Loaded ' + slot + ' in year ' + state.view.source.ecologicalYear + '.' + (draft ? ' ' + draft : ''));
       hooks.refreshReviewPreview();
       if (state.historyOpen) hooks.loadHistoryIndex(null, false);

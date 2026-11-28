@@ -2,20 +2,20 @@
 // Presentation authority (D-020): this script computes zero forestry, spacing, canopy, light, RD, DBH->radius or pruning rules.
 // Every value comes from the server's atomic composite view/stage4/ecology/cell payload. Pure inline SVG only; zero WebP.
 // S0c provenance: main.js [L5] — sections 7, 15, 17b(wire), 17b(bootstrap) from multi.js
-import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, refusedByLock, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
-import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetFellingDisposition, onSetOrderExecutor, onSpotQueue, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
+import { announce, applyPayload, call, clearAlert, currentFence, dismissAlert, refreshMultiStandFrame, refusedByLock, renderAlertStrip, renderCommandGate, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from './api.js';
+import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetFellingDisposition, onSetOrderExecutor, onSpotQueue, openDialog, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
 import { onWoodlandCancelDiscard, onWoodlandConfirmDiscard, onWoodlandCreate, onWoodlandFieldChanged, openWoodlandDialog } from './dialogs/woodland.js';
-import { el, fill, fixed, label, n3, pair, plural, svg } from './dom.js';
+import { closeExplain, el, fill, fixed, initExplainPopover, isExplainOpen, label, n3, pair, plural, svg } from './dom.js';
 import { renderMinimap } from './map/minimap.js';
-import { onRankToggle, renderLegend, renderOverlayLegend, resolveMapPoint, setLegendHidden, svgRenderer } from './map/renderer-svg.js';
-import { inspectCellAtPoint, renderCellInspector, renderJuvenileInspector, renderPlantDrawer, renderSpotDrawer, setMapMode, setOverlay } from './modes/interactive.js';
+import { onRankToggle, renderCompactLegend, renderLegend, renderOverlayLegend, resolveMapPoint, setLegendExpanded, svgRenderer } from './map/renderer-svg.js';
+import { inspectCellAtPoint, renderCellInspector, renderJuvenileInspector, renderPlantDrawer, renderSpotDrawer, setLens, setMapMode, setOverlay } from './modes/interactive.js';
 import { clearCompetition, clearDraft, competitionTag, onBatchResultClick, reconcileDrafts, refreshCompetition, renderBatchResult, renderCompetition, renderReasonPicker, resetReasonPicker, toggleDraft } from './panels/fell-draft.js';
-import { renderInspector, renderOverlap, renderPruneGate } from './panels/inspector.js';
+import { renderInspector, renderLensSlots, renderOverlap, renderPruneGate } from './panels/inspector.js';
 import { closeHistoryDrawer, loadHistoryIndex, loadHistoryYear, onSkipReview, openHistoryDrawer, refreshReviewPreview, refreshStructure, renderHistoryDrawer, renderSkipControl, renderSkipSummary, renderStructure } from './panels/time-history.js';
-import { panMap, renderDetails, renderHistory, renderMapControls, renderPaneButtons, renderPlan, renderReceipt, renderTable, showPane, workTotals, zoomMap } from './panels/work-plan.js';
-import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, isMultiLaneStand, juvenileById, livingIn, ordersIn, overviewArea, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, worldFromMap } from './store.js';
+import { navigatorSnapshot, panMap, renderDetails, renderHistory, renderMapControls, renderNavigator, renderPaneButtons, renderPlan, renderReceipt, renderTable, showPane, workTotals, zoomMap } from './panels/work-plan.js';
+import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaOfTree, areaView, byId, currentArea, currentJuvenile, currentLens, draftOf, draftTotal, ecoArea, hooks, isEconomyEnabled, isMultiLaneStand, juvenileById, livingIn, maxAdjacentLanes, ordersIn, overviewArea, pct, pendingClears, pendingPlantings, pendingPrunes, readoutState, s4Area, selectedId, speciesLabel, speciesOf, state, treeIn, visibleLaneIds, worldFromMap } from './store.js';
   // ---- rendering ------------------------------------------------------------------------------------------------------
 
   function renderAll() {
@@ -23,8 +23,10 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     const active = document.activeElement;
     const focusKey = active && active.getAttribute ? active.getAttribute('data-focus-key') : null;
     renderStatus();
+    renderAlertStrip();
     renderSkipControl();
     renderModeAndOverlayControls();
+    renderCompactLegend();
     renderOverlayLegend();
     renderAreaSwitch();
     svgRenderer.render();
@@ -35,8 +37,10 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     renderSpotDrawer();
     renderJuvenileInspector();
     renderInspector();
+    renderLensSlots();
     renderCompetition();
     renderBatchResult();
+    renderNavigator();
     renderPlan();
     renderReceipt();
     renderTable();
@@ -225,11 +229,20 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
   }
 
   function renderModeAndOverlayControls() {
+    const lens = currentLens();
+    for (const btn of document.querySelectorAll('[data-lens-btn]')) {
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('data-lens-btn') === lens.id));
+    }
+    const lensDesc = byId('lens-active-desc');
+    if (lensDesc) lensDesc.textContent = lens.shortDesc;
     const mode = state.mapMode;
-    byId('mode-tree').setAttribute('aria-pressed', String(mode === 'tree'));
-    byId('mode-cell').setAttribute('aria-pressed', String(mode === 'cell'));
-    byId('mode-plant').setAttribute('aria-pressed', String(mode === 'plant'));
-    byId('mode-spot').setAttribute('aria-pressed', String(mode === 'spot'));
+    for (const toolId of ['tree', 'cell', 'plant', 'spot']) {
+      const btn = byId('mode-' + toolId);
+      if (!btn) continue;
+      const allowed = toolId === 'tree' || lens.tools.includes(toolId);
+      btn.hidden = !allowed;
+      btn.setAttribute('aria-pressed', String(mode === toolId));
+    }
     const pane = byId('map-pane');
     pane.classList.toggle('cell-mode', mode === 'cell');
     pane.classList.toggle('plant-mode', mode === 'plant');
@@ -545,39 +558,205 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     return true;
   }
 
-  // Escape precedence (Pass 2 spec §4.3 + Stage 4 R3 F-05 + Phase 1 Step 2):
-  // 1) open modal dialog closes itself (leaves pending map hit-test alone);
-  // 2) open on-demand History drawer closes WITHOUT clearing draft Fell ticks, selection, map mode or overlay;
-  // 3) non-empty search box clears itself;
-  // 4) Plant / Spot Clear / Inspect Cell preview & mode exits to Select Tree WITHOUT clearing draft Fell ticks or overlay;
-  // 5) PJ sapling inspection closes back to adult tree inspector WITHOUT clearing draft Fell ticks;
-  // 6) adult tree selection closes. Work Plan is NEVER mutated by Escape.
-  function onEscape(event) {
-    if (event.key !== 'Escape') return;
+  // ---- Keyboard navigation, safe bounded hotkeys, Navigator cycling & Escape precedence -------------------------------
+
+  function isTypingContext(target) {
+    if (!target || target === document.body || target === document.documentElement) return false;
+    if (target.isContentEditable) return true;
+    const tag = target.localName;
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'option') return true;
+    return Boolean(target.closest && target.closest('input, textarea, select, [contenteditable]'));
+  }
+
+  async function toggleSingleLaneMode() {
+    if (!state.view || state.busy || state.batch || state.queueRunning) return;
+    if (!isMultiLaneStand()) {
+      announce('1-lane precision toggle applies to multi-lane woodlands (3 or more lanes).');
+      return;
+    }
+    const prevSingle = state.singleLaneMode;
+    const nextSingle = !prevSingle;
+    state.singleLaneMode = nextSingle;
+    state.zoom = ZOOMS[0];
+    state.centre = null;
+    state.busy = true;
+    document.documentElement.classList.add('busy');
+    let frame;
+    try {
+      frame = await refreshMultiStandFrame(state.areaId, nextSingle, 'Toggle lane view');
+    } finally {
+      state.busy = false;
+      document.documentElement.classList.remove('busy');
+    }
+    if (!frame || frame.kind === 'superseded') return;
+    if (frame.kind !== 'ok') {
+      state.singleLaneMode = prevSingle;
+      renderAll();
+      return;
+    }
+    announce(state.singleLaneMode ? '1-lane precision mode active.' : 'Adjacent-lanes view active.');
+  }
+
+  function cycleLane(delta) {
+    const areas = allAreas();
+    if (areas.length <= 1) return;
+    const idx = Math.max(0, areas.findIndex((a) => a.areaId === state.areaId));
+    const next = areas[(idx + delta + areas.length) % areas.length];
+    if (next) showArea(next.areaId);
+  }
+
+  async function selectNavigatorItem(areaId, treeId) {
+    if (!areaId) return;
+    if (treeId) {
+      if (!areaView(areaId)) await showArea(areaId);
+      if (treeIn(areaId, treeId)) {
+        chooseTree(areaId, treeId, true);
+        if (!state.batch) byId('inspector-heading').focus();
+        return;
+      }
+    }
+    showPane('plan');
+    byId('plan-heading').focus();
+  }
+
+  function cycleNavigator(kind, delta) {
+    if (kind === 'lanes') {
+      cycleLane(delta);
+      return;
+    }
+    const snap = navigatorSnapshot();
+    if (kind === 'crops') {
+      if (snap.crops.length === 0) return;
+      const curIdx = snap.crops.findIndex((c) => c.areaId === state.areaId && c.treeId === selectedId());
+      const base = curIdx >= 0 ? curIdx : state.navigatorCursor.crops;
+      const nextIdx = (base + delta + snap.crops.length) % snap.crops.length;
+      state.navigatorCursor.crops = nextIdx;
+      const item = snap.crops[nextIdx];
+      chooseTree(item.areaId, item.treeId, true);
+      showPane('navigator');
+      announce('Crop Tree ' + (nextIdx + 1) + ' of ' + snap.crops.length + ': ' + item.treeId + ' (' + item.areaLabel + ').');
+      return;
+    }
+    if (kind === 'work') {
+      if (snap.work.length === 0) return;
+      const base = state.navigatorCursor.work;
+      const nextIdx = (base + delta + snap.work.length) % snap.work.length;
+      state.navigatorCursor.work = nextIdx;
+      const item = snap.work[nextIdx];
+      announce('Unfinished work ' + (nextIdx + 1) + ' of ' + snap.work.length + ': ' +
+        (item.approved ? 'Approved ' : 'Pending ') + item.kind + ' ' + item.target + ' (' + item.areaLabel + ').');
+      selectNavigatorItem(item.areaId, item.treeId);
+    }
+  }
+
+  function openShortcutsDialog() {
+    const dlg = byId('shortcuts-dialog');
+    if (!dlg) return;
+    if (dlg.open) {
+      dlg.close();
+      return;
+    }
+    const list = byId('shortcuts-list');
+    if (list) {
+      list.replaceChildren(...SHORTCUTS.map(([keys, desc]) =>
+        el('tr', null, el('th', { scope: 'row' }, el('kbd', { class: 'kbd' }, keys)), el('td', null, desc))));
+    }
+    openDialog(dlg, byId('shortcuts-close'));
+  }
+
+  // Unified Escape & safe bounded hotkey handler:
+  // Escape precedence (topmost layer first):
+  // 1) open native <dialog open> closes itself;
+  // 2) open shared explanation popover (#explain-popover) dismisses first;
+  // 3) expanded full-legend popover collapses to compact contextual legend;
+  // 4) open on-demand History drawer closes WITHOUT clearing drafts, selection, lens, map mode or overlay;
+  // 5) non-empty search box clears itself;
+  // 6) Plant / Spot Clear / Inspect Cell mode exits to Select Tree WITHOUT clearing draft Fell ticks or overlay;
+  // 7) PJ sapling inspection closes back to adult tree inspector WITHOUT clearing draft Fell ticks;
+  // 8) adult tree selection closes. Work Plan is NEVER mutated by Escape.
+  // Safe hotkeys (1-5, [, ], H, W, M, ?) are strictly ignored in text-entry/input/select/textarea/contenteditable contexts
+  // and whenever a modal dialog is open; zero unguarded shortcuts exist for Approve, Execute, or session reset.
+  function onKeyDown(event) {
+    if (event.key === 'Escape') {
+      if (document.querySelector('dialog[open]')) return;
+      if (isExplainOpen()) {
+        event.preventDefault();
+        closeExplain(true);
+        return;
+      }
+      if (state.legendExpanded) {
+        event.preventDefault();
+        setLegendExpanded(false, true);
+        return;
+      }
+      if (state.historyOpen) {
+        event.preventDefault();
+        closeHistoryDrawer(true);
+        return;
+      }
+      state.mapPick += 1;
+      state.cellPick += 1;
+      if (event.defaultPrevented) return;
+      const target = event.target;
+      if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;
+      if (state.mapMode !== 'tree') {
+        event.preventDefault();
+        state.plantDraft = null;
+        state.spotDraft = null;
+        setMapMode('tree', true);
+        return;
+      }
+      if (state.selectedJuvenile) {
+        event.preventDefault();
+        closeJuvenileInspection(true);
+        return;
+      }
+      if (closeInspection()) event.preventDefault();
+      return;
+    }
+
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
     if (document.querySelector('dialog[open]')) return;
-    if (state.historyOpen) {
+    if (isTypingContext(event.target)) return;
+    if (!state.view) return;
+
+    const key = event.key;
+    if (key >= '1' && key <= '5') {
       event.preventDefault();
-      closeHistoryDrawer(true);
+      setLens(LENS_IDS[Number(key) - 1], false);
       return;
     }
-    state.mapPick += 1;
-    state.cellPick += 1;
-    if (event.defaultPrevented) return;
-    const target = event.target;
-    if (target && target.localName === 'input' && target.getAttribute('type') === 'search' && target.value !== '') return;
-    if (state.mapMode !== 'tree') {
+    if (key === '[') {
       event.preventDefault();
-      state.plantDraft = null;
-      state.spotDraft = null;
-      setMapMode('tree', true);
+      cycleLane(-1);
       return;
     }
-    if (state.selectedJuvenile) {
+    if (key === ']') {
       event.preventDefault();
-      closeJuvenileInspection(true);
+      cycleLane(1);
       return;
     }
-    if (closeInspection()) event.preventDefault();
+    if (key === 'h' || key === 'H') {
+      event.preventDefault();
+      if (state.historyOpen) closeHistoryDrawer(true);
+      else openHistoryDrawer();
+      return;
+    }
+    if (key === 'w' || key === 'W') {
+      event.preventDefault();
+      showPane('plan');
+      byId('plan-heading').focus();
+      return;
+    }
+    if (key === 'm' || key === 'M') {
+      event.preventDefault();
+      toggleSingleLaneMode();
+      return;
+    }
+    if (key === '?') {
+      event.preventDefault();
+      openShortcutsDialog();
+    }
   }
 
   function exactIdKey(inputId) {
@@ -611,7 +790,7 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
         return;
       }
       showAlert([el('p', { class: 'alert-title' }, 'No exact match — the selection is unchanged'),
-        el('p', null, 'No tree or planted sapling in the woodland has the exact case-sensitive ID "' + typed + '".')], byId(inputId));
+        el('p', null, 'No tree or planted sapling in the woodland has the exact case-sensitive ID "' + typed + '".')], byId(inputId), { tier: 'info', id: 'search-no-match' });
     };
   }
 
@@ -624,34 +803,47 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
       const pill = event.target.closest('[data-strip-lane]');
       if (pill) showArea(pill.getAttribute('data-strip-lane'));
     });
-    byId('lane-mode-toggle').addEventListener('click', async () => {
-      if (!state.view || state.busy || state.batch || state.queueRunning) return;
-      const prevSingle = state.singleLaneMode;
-      const nextSingle = !prevSingle;
-      state.singleLaneMode = nextSingle;
-      state.zoom = ZOOMS[0];
-      state.centre = null;
-      if (isMultiLaneStand()) {
-        state.busy = true;
-        document.documentElement.classList.add('busy');
-        let frame;
-        try {
-          frame = await refreshMultiStandFrame(state.areaId, nextSingle, 'Toggle lane view');
-        } finally {
-          state.busy = false;
-          document.documentElement.classList.remove('busy');
-        }
-        if (!frame || frame.kind === 'superseded') return;
-        if (frame.kind !== 'ok') {
-          state.singleLaneMode = prevSingle;
-          renderAll();
-          return;
-        }
-      } else {
-        renderAll();
-      }
-      announce(state.singleLaneMode ? 'Showing 1 active lane only.' : 'Showing active lane and visible neighbours.');
+    byId('lane-mode-toggle').addEventListener('click', toggleSingleLaneMode);
+    byId('lens-bar').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-lens-btn]');
+      if (btn) setLens(btn.getAttribute('data-lens-btn'), true);
     });
+    byId('alert').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-alert-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-alert-action');
+      if (action === 'reread') reread(true);
+      else if (action === 'plan') { showPane('plan'); byId('plan-heading').focus(); }
+      else if (action === 'history') openHistoryDrawer();
+      else if (action === 'results') { showPane('history'); byId('year-heading').focus(); }
+      else if (action === 'focus-area') { const aid = btn.getAttribute('data-area-id'); if (aid) showArea(aid); }
+      else if (action === 'dismiss') dismissAlert(btn.getAttribute('data-alert-id'));
+      else if (action === 'toggle-expand') { state.alertsExpanded = !state.alertsExpanded; renderAlertStrip({ force: true, restoreFocus: true }); }
+    });
+    byId('pane-navigator').addEventListener('click', (event) => {
+      const cyc = event.target.closest('[data-nav-cycle]');
+      if (cyc) {
+        cycleNavigator(cyc.getAttribute('data-nav-cycle'), Number(cyc.getAttribute('data-nav-dir') || 1));
+        return;
+      }
+      const treeBtn = event.target.closest('[data-nav-tree]');
+      if (treeBtn) {
+        selectNavigatorItem(treeBtn.getAttribute('data-nav-area'), treeBtn.getAttribute('data-nav-tree'));
+        return;
+      }
+      const areaBtn = event.target.closest('[data-nav-area]');
+      if (areaBtn) {
+        showArea(areaBtn.getAttribute('data-nav-area'));
+        return;
+      }
+      const workBtn = event.target.closest('[data-nav-work-area]');
+      if (workBtn) {
+        selectNavigatorItem(workBtn.getAttribute('data-nav-work-area'), workBtn.getAttribute('data-nav-work-tree'));
+      }
+    });
+    byId('shortcuts-open').addEventListener('click', openShortcutsDialog);
+    byId('shortcuts-close').addEventListener('click', () => byId('shortcuts-dialog').close());
+    byId('shortcuts-dialog').addEventListener('close', returnFocus);
     byId('woodland-open').addEventListener('click', openWoodlandDialog);
     byId('woodland-cancel').addEventListener('click', () => byId('woodland-dialog').close());
     byId('woodland-dialog').addEventListener('close', () => {
@@ -767,9 +959,15 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     byId('rank-layer').addEventListener('click', onRankToggle);
     byId('inspect-close').addEventListener('click', closeInspection);
     byId('readout-reread').addEventListener('click', () => reread(true));
-    document.documentElement.addEventListener('keydown', onEscape);
-    byId('legend-hide').addEventListener('click', () => setLegendHidden(true, true));
-    byId('legend-show').addEventListener('click', () => setLegendHidden(false, true));
+    document.documentElement.addEventListener('keydown', onKeyDown);
+    byId('legend-hide').addEventListener('click', () => setLegendExpanded(false, true));
+    byId('legend-toggle').addEventListener('click', () => setLegendExpanded(!state.legendExpanded, true));
+    for (const id of ['side', 'legend-panel', 'history-drawer', 'explain-popover']) {
+      const node = byId(id);
+      if (node) {
+        node.addEventListener('wheel', (event) => { event.stopPropagation(); }, { passive: true });
+      }
+    }
     byId('competition-content').addEventListener('change', (event) => {
       const box = event.target.closest('[data-draft]');
       if (box) toggleDraft(box.getAttribute('data-draft'), box.checked);
@@ -853,12 +1051,32 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
     byId('pan-west').addEventListener('click', () => panMap(-1, 0));
     byId('pan-east').addEventListener('click', () => panMap(1, 0));
     let frame = 0;
+    let lastLaneCap = maxAdjacentLanes(window.innerWidth);
     const reframe = () => {
       if (frame) return;
-      frame = window.requestAnimationFrame(() => { frame = 0; if (state.view && state.labels) { svgRenderer.render(); renderMapControls(); } });
+      frame = window.requestAnimationFrame(async () => {
+        frame = 0;
+        if (!state.view || !state.labels) return;
+        const nextLaneCap = maxAdjacentLanes(window.innerWidth);
+        if (nextLaneCap !== lastLaneCap) {
+          lastLaneCap = nextLaneCap;
+          if (isMultiLaneStand() && !state.singleLaneMode) {
+            const wanted = visibleLaneIds(allAreas(), state.areaId, false, window.innerWidth);
+            const missing = wanted.some((id) => !areaView(id));
+            if (missing && !state.busy) {
+              await refreshMultiStandFrame(state.areaId, false, 'Resize lane window');
+              return;
+            }
+          }
+        }
+        svgRenderer.render();
+        renderMinimap(showArea);
+        renderMapControls();
+      });
     };
     if (typeof ResizeObserver === 'function') new ResizeObserver(reframe).observe(byId('map-pane'));
     else window.addEventListener('resize', reframe);
+    window.addEventListener('resize', reframe);
   }
 
   // S0c P4 hook assignments
@@ -883,5 +1101,7 @@ import { CHIPS, ZOOMS, allAreas, approvedClears, approvedPlantings, approvedPrun
   hooks.workTotals = workTotals;
   svgRenderer.mount();
   renderLegend();
+  renderCompactLegend();
+  initExplainPopover();
   wire();
   reread(false);
