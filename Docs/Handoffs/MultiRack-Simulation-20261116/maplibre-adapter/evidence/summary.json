@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
-  "generatedUtc": "2026-11-28T12:52:44.176Z",
-  "testedCommit": "e4b33fc1066a83d4eb2b03c7afccd268dbad4021",
+  "schemaVersion": 3,
+  "generatedUtc": "2026-11-28T13:37:06.321Z",
+  "testedCommit": "ce7732a93d01ebd1fb37167591ca787d7000a225",
   "testedTreeDirty": false,
-  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z",
+  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T133605Z",
   "overall": "PASS",
   "vendorIntegrity": {
     "status": "PASS",
@@ -16,19 +16,19 @@
     "checksPassed": 38,
     "checksFailed": 0,
     "thresholdM": 0.01,
-    "maxRoundTripErrorM": 7.3065e-08,
+    "maxRoundTripErrorM": 7.3065e-8,
     "oracleMaxDistanceErrorM": {
-      "stand30m": 3.9981e-07,
-      "stand80m": 4.4374e-07,
-      "stand120m": 3.316e-07
+      "stand30m": 3.9981e-7,
+      "stand80m": 4.4374e-7,
+      "stand120m": 3.316e-7
     }
   },
   "browserMatrix": {
     "status": "PASS",
-    "passed": 26,
+    "passed": 29,
     "failed": 0,
-    "total": 26,
-    "expected": 26,
+    "total": 29,
+    "expected": 29,
     "browser": "Chrome/156.0.8078.79",
     "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
     "cspHeader": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; img-src data: blob: 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -37,10 +37,13 @@
     "cspViolations": 0,
     "failedRequests": 0,
     "nonLoopbackRequests": 0,
-    "httpRequests": 144,
-    "browserResponsesHeaderChecked": 141,
-    "serverResponsesHeaderChecked": 145,
-    "workerSessionResponses": 17,
+    "httpRequests": 168,
+    "browserResponsesHeaderChecked": 165,
+    "serverResponsesHeaderChecked": 169,
+    "workerSessionResponses": 22,
+    "workerTargets": 22,
+    "auditSetupFailures": 0,
+    "unansweredRequests": 0,
     "headerMismatches": 0,
     "cases": [
       {
@@ -81,7 +84,7 @@
       {
         "id": "B08",
         "status": "PASS",
-        "detail": "whole run, checked at the end: 141 browser responses (page + worker sessions), 145 server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=0, server=0, node=0); http requests=144, non-loopback=0, failed=0"
+        "detail": "whole run, checked at the end: 165 browser responses (page + worker sessions), 169 server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=0, server=0, node=0); http requests=168, non-loopback=0, failed=0"
       },
       {
         "id": "B09",
@@ -101,7 +104,7 @@
       {
         "id": "B12",
         "status": "PASS",
-        "detail": "satellite 800x500: max error 0.2111 mm, MA-C-T03 31.92 -> 21.47 px (x0.673); clean woodland uniform scale, max error 0.0001 mm, 31.09 px @1280x720 -> 21.59 px @800x500 (x0.694)"
+        "detail": "satellite 800x500: max error 0.2110 mm, MA-C-T03 31.92 -> 21.47 px (x0.673); clean woodland uniform scale, max error 0.0001 mm, 31.09 px @1280x720 -> 21.59 px @800x500 (x0.694)"
       },
       {
         "id": "B13",
@@ -141,7 +144,7 @@
       {
         "id": "B20",
         "status": "PASS",
-        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run (B01-B26): console errors=0, CSP violations=0, failed requests=0, non-loopback=0"
+        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run (B01-B29): console errors=0, CSP violations=0, failed requests=0, non-loopback=0, audit setup failures=0, unanswered requests=0"
       },
       {
         "id": "B21",
@@ -151,7 +154,7 @@
       {
         "id": "B22",
         "status": "PASS",
-        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1885 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2053 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
+        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1872 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2050 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
       },
       {
         "id": "B23",
@@ -161,7 +164,7 @@
       {
         "id": "B24",
         "status": "PASS",
-        "detail": "required response kinds seen by the browser: 12/12 (incl. the intentional silent-worker fixture x1); 17 worker targets each reported their own script response in the worker session (missing=0), other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; unaccounted server responses=0; sensitivity: dropping CSP from the last browser response (/favicon.ico) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 1"
+        "detail": "required response kinds seen by the browser: 12/12 (incl. the intentional silent-worker fixture x1); 22 worker targets (22 distinct sessions, 2 distinct script URLs): each one set up and reported its OWN script response in its own session with exact headers (failures=0); audit setup failures=0; unanswered requests=0; other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; unaccounted server responses=0; sensitivity: drop one worker's script response -> 1 failure, lend it a same-URL twin's response -> 1 failure; dropping CSP from the last browser response (/favicon.ico) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 1"
       },
       {
         "id": "B25",
@@ -171,70 +174,22 @@
       {
         "id": "B26",
         "status": "PASS",
-        "detail": "focusArea on a hidden lane: visible crown moved 0.000 px (clean woodland, x=641.6) and 0.000 px (satellite), focus kept=null [ok]; same-instance destroy+mount after Satellite: style=clean-woodland, fallback=none, notice hidden=true, attribution hidden=true, crowns=0, map canvases=0; next satellite frame rebuilt (maps constructed=2, centre 0.0017 px, attribution visible=true) [ok]"
-      }
-    ]
-  },
-  "repairCycle1Mutations": {
-    "note": "disposable copies; each must make the matrix exit non-zero on its target case",
-    "evidence": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z/mutants/",
-    "results": [
-      {
-        "mutation": "late-csp-header",
-        "exit": 1,
-        "failingCases": [
-          "B08",
-          "B24"
-        ],
-        "harnessFatal": 0
+        "detail": "focusArea on a hidden lane: clean woodland crown moved 0.000 px (x=641.6), focus=null [ok]; satellite on a fresh adapter (focus before=null): crown moved 0.000 px, focus=null [ok]; same-instance destroy+mount after Satellite: style=clean-woodland, fallback=none, notice hidden=true, attribution hidden=true, crowns=0, map canvases=0; next satellite frame rebuilt (maps constructed=2, centre 0.0017 px, attribution visible=true) [ok]"
       },
       {
-        "mutation": "pending-imagery-vs-webgl-loss",
-        "exit": 1,
-        "failingCases": [
-          "B22"
-        ],
-        "harnessFatal": 0
+        "id": "B27",
+        "status": "PASS",
+        "detail": "decode held after the image bytes arrived (server 200s=1, held at 643 ms); imagery notice \"Imagery unavailable. Showing woodland map.\" 2480.1 ms after render() by the page clock; the probe started at 280.1 ms and settled with reason \"timeout\" 2199.9 ms later (deadline 2200 ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it and <= deadline + 1000 ms after render(); driver wall clock 2494 ms) with the decode still held (1) and pending probes=0; map ready, watchdog off=true, no raster layer, selection kept; still usable: zoom +0.5 -> 0.500, crowns 20, centre err 0.0024 px; released 1 decode(s) later: still satellite/imagery-unavailable, imageryLoaded=false, late bitmaps closed=[[0,0]]; same URL again: refetches=0, new decodes=0, notice kept=true, maps constructed=1"
       },
       {
-        "mutation": "antimeridian-no-footprint-check",
-        "exit": 1,
-        "failingCases": [
-          "B21"
-        ],
-        "harnessFatal": 0
+        "id": "B28",
+        "status": "PASS",
+        "detail": "satellite: focused MA-A -> MA-E-T01 at x=1147.6; frame showing only MA-E -> x=610.5, focus cleared=true; focusArea(null) reference x=610.5 (diff 0.000 px, zoom diff 1.2e-10), on stage=true [ok]; clean woodland: focused x=1135.0 -> hidden-focus frame x=611.4 vs reference x=611.4 (diff 0.000 px, same matrix=true) [ok]"
       },
       {
-        "mutation": "empty-frame-stale-overlay",
-        "exit": 1,
-        "failingCases": [
-          "B23"
-        ],
-        "harnessFatal": 0
-      },
-      {
-        "mutation": "attribution-ignores-viewport",
-        "exit": 1,
-        "failingCases": [
-          "B25"
-        ],
-        "harnessFatal": 0
-      },
-      {
-        "mutation": "focus-hidden-lane",
-        "exit": 1,
-        "failingCases": [
-          "B26"
-        ],
-        "harnessFatal": 0
-      },
-      {
-        "mutation": "caller-anchor-aliased",
-        "exit": 1,
-        "failingCases": [
-          "B23"
-        ],
-        "harnessFatal": 0
+        "id": "B29",
+        "status": "PASS",
+        "detail": "3/3 on anchor 179.99 E: [remote imagery URL with antimeridian-crossing bounds: ok (satellite/imagery-unavailable, imagery dropped: \"Imagery from another origin is not allowed (offline, same-origin only).\", footprint fallback=false, crowns 20, centre err 0.0017 px); same-origin imagery whose own bounds cross the antimeridian: ok (satellite/imagery-unavailable, imagery dropped: \"Imagery footprint unsupported: Woodland footprint crosses the 180° meridian.\" (CROSSES_ANTIMERIDIAN), footprint fallback=false, crowns 20, centre err 0.0017 px); same stand without an imagery descriptor (control): ok (satellite/imagery-unavailable, imagery dropped: \"No imagery source configured.\", footprint fallback=false, crowns 20, centre err 0.0017 px)]; dropped same-origin imagery requested=0 times"
       }
     ]
   }

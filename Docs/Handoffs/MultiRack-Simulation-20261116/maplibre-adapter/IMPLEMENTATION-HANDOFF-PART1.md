@@ -9,15 +9,55 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test (repair cycle 1): e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (fix(2d-sim): repair cycle 1)
+Code under test (repair cycle 2): ce7732a93d01ebd1fb37167591ca787d7000a225 (fix(2d-sim): repair cycle 2)
+  Repair cycle 1 code: e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (delta re-review: REQUEST CHANGES, 2 blocking + 2 non-blocking + 1 nit)
   Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
-HEAD: the commit that updates this file (docs + evidence summary only; no code change after e4b33fc1)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after ce7732a9)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE (repair cycle 1): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T125152Z/
-  (mutants: run-20261128T125152Z/mutants/; original Part 1 run: run-20261128T120314Z/)
+DURABLE EVIDENCE (repair cycle 2): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T133605Z/
+  (mutants: run-20261128T133605Z/mutants/; repair cycle 1: run-20261128T125152Z/; original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch, implemented, repaired once after independent review, and re-verified by its own harness. It still needs an independent delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired twice after independent review (repair cycle 2 answers the delta re-review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 2 (after the delta re-review: REQUEST CHANGES)
+
+Sole writer: Claude Opus 5.5. Fix commit `ce7732a9`. Same file fence; no C#, shell, save, Unity, `.meta`, build, package or `Docs/Project` change. No existing case was deleted or loosened. B24 and B26 were strengthened, and B27–B29 were added.
+
+Gate run on clean `ce7732a9` (`run.sh`, exit 0, 2026-11-28T13:36Z):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38**;
+- browser matrix **B01–B29 29/29**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests, 0 audit setup failures, 0 unanswered requests;
+- 165 browser and 169 server responses plus the node-side 404, all with the exact headers;
+- 22 worker targets, each matched to its own script response.
+
+| # | Finding | Fix | Regression test | Evidence (run-20261128T133605Z) |
+|---|---|---|---|---|
+| B1 | A stalled `createImageBitmap` (after the image bytes arrived) kept the probe pending past its deadline. The imagery notice appeared only when the decode was released | `probeImagery` is now one settle-once promise. The deadline timer settles it to *unavailable* (reason `timeout`) whatever step it is in, then aborts the fetch. A later decode is a no-op: its bitmap is closed and discarded. An abort (display failure, destroy) also settles it. The timeout result stays cached per URL. The diagnostics now carry `imagery-probe-started` and the reason the probe failed | **B27**: the harness holds image decodes in the page (`holdDecodes`). The case checks: the server sent 200 for the image, the decode was held, the probe settled at its own deadline, the exact notice appeared, the map stayed usable, and a late release changed nothing. The same URL again was not refetched | PASS. Decode held at 643 ms. The probe started at 280.1 ms (`render()` first runs the synchronous WebGL check) and settled **2199.9 ms later with reason `timeout`**. The notice followed at 2480.1 ms with the decode **still held** and 0 pending probes. The map was ready with the watchdog off and no raster; zoom +0.5 kept centres at 0.0024 px. After release: still `imagery-unavailable`, `imageryLoaded=false`, late bitmap closed (0 × 0). Same URL again: 0 refetches, 0 new decodes |
+| B2 | B24 matched worker responses by script URL, so one worker's response satisfied every worker with that URL. The reviewer dropped one response and the matrix still exited 0 | The audit records each worker under its CDP session id and target id. In order, it enables Runtime, Log and Network, then calls `runIfWaitingForDebugger`, awaiting each step. Responses are filed against the session that reported them. `workerCoverageFailures` requires, for every target, a 200 script response in its own session with the target URL and the exact headers. The following all go into `setupFailures`, which fails B20 and B24 and the run exit code: a target without session or target id, an unexpected target type, a worker not paused for the debugger, a failed enable or resume, events from an unattached session, and an http(s) request with neither a response nor a loading failure. A worker's script request is announced in the page session and answered in the worker session under the same `requestId`; it counts as answered only there | **B24** (per-target coverage; in-run self-tests: removing one worker's response, or lending it a same-URL twin's, is caught for exactly that worker) and **B20** (setup failures, unanswered requests). **B26**'s Satellite half now runs on a fresh adapter, so it cannot inherit focus state | PASS. 22 targets, 22 distinct sessions, 2 script URLs, 0 coverage failures, 0 setup failures, 0 unanswered. Self-tests: drop one → 1 failure; borrow a twin's response → 1 failure. B26 Satellite half: focus before = `null`, crown moved 0.000 px, focus stays `null` |
+| N3 | Focusing MA-A and then rendering a frame that shows only MA-E kept the old Satellite camera | `render()` clears a focus that the new frame hides. When a map exists it refits the Satellite camera on the visible woodland. Clean Woodland already reframed through `focusBox`; it now also clears the focus | **B28** (both styles: the hide-render result is compared with an explicit `focusArea(null)`) | PASS. Satellite: MA-E-T01 moved from x = 1147.6 (focused) to 610.5; the reference is 610.5 (0.000 px, zoom difference 1.2e-10), on stage, no new map. Clean Woodland: 611.4 against 611.4, same matrix |
+| N4 | A rejected remote imagery URL with antimeridian-crossing bounds pushed a supported stand to Clean Woodland | `imageryEligibility()` runs **before** the stand preflight. It applies the imagery policy and then checks the imagery's own footprint. Imagery that fails is dropped (imagery-unavailable path, never requested). The stand preflight now uses the area bounds only | **B29** (anchor 179.99° E: a remote URL with crossing bounds; same-origin imagery whose own bounds cross; a control with no imagery) | PASS 3/3. All three cases stay in Satellite with the exact imagery copy, no raster, no `footprint-unsupported`, and crowns within 0.0017 px. The same-origin case reports `CROSSES_ANTIMERIDIAN`. The dropped same-origin URL was requested 0 times |
+| NIT5 | §3 remount wording | §3 now says a **healthy** adapter rebuilds on its next Satellite frame, and that one with a sticky display failure (§8) stays on Clean Woodland | — | Wording only. §4 and §8 were also updated for N3/N4 and the whole-probe deadline |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs in `run-20261128T133605Z/mutants/`):**
+
+| Mutation (disposable copy) | Finding | Matrix result |
+|---|---|---|
+| (a) `worker-script-omitted`: the CDP collector discards ONE vendored worker's own script response (the reviewer's omission) | B2 | exit 1. **B24 FAIL**: 1 coverage failure naming target `2D9A459A…` ("no script response in its own session"). **B20 FAIL**: 1 unanswered request. All other cases pass |
+| (b) `decode-not-bounded`: `probeImagery` restored to the repair-cycle-1 version (the timer only aborts fetch; the decode is awaited) | B1 | exit 1. **B27 FAIL** alone: decode held at 645 ms, no notice by the deadline ("never"), no probe settlement |
+| (c) `hidden-focus-no-refit`: the hide-render keeps the old Satellite camera (`syncSatelliteOverlay` only) | N3 | exit 1. **B28 FAIL** alone: Satellite crown stays at x = 1147.6 against the 610.5 reference (537 px); the Clean Woodland half passes |
+| (d) `imagery-bounds-in-preflight`: imagery bounds put back into the stand footprint preflight | N4 | exit 1. **B29 FAIL** alone (1/3): both crossing-imagery cases fall to Clean Woodland with `footprint-unsupported`; the control passes |
+| (e) `satellite-hidden-focus` (extra): a hidden lane is focused and framed only while Satellite is active | B2 (B26 independence) | exit 1. **B26 FAIL** alone: the Satellite half on a fresh adapter moved the crown 268.5 px (focus = MA-A); the Clean Woodland half passes |
+
+Scripts: `run-mutants.sh` and `mutate.py` (copied into `mutants/`, with `mutants-summary.txt`). Every mutation asserts that its patch applied. No Chromium process or working copy was left behind.
+
+**Repair-cycle-2 choices a reviewer should check:**
+
+- **Imagery whose own footprint does not fit is dropped, not the map.** The reviewer asked for invalid imagery to be dropped. Same-origin imagery that crosses the antimeridian is treated the same way, because it cannot be drawn on the one longitude branch. Only the stand footprint can now cause the display fallback.
+- **A hidden focus is cleared, not remembered.** If the lane becomes visible again, the view stays on the whole woodland until `focusArea` is called again.
+- **The B27 timing bound is relative to the probe's own start.** Under SwiftShader, the synchronous WebGL availability check in `render()` takes about 280 ms before the probe starts, so the absolute bound from `render()` is only a sanity limit (≤ deadline + 1000 ms).
 
 ## Repair cycle 1 (after GPT-6.2 Sol review: REQUEST CHANGES)
 
@@ -192,10 +232,11 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 2 additions, not tested:** a real slow image decoder (the stall is simulated by wrapping `createImageBitmap` in the harness page); non-Chromium worker auditing.
 - **Repair cycle 1 additions, not tested:** rendering across the antimeridian (rejected by design); hardware-GPU context loss (SwiftShader `WEBGL_lose_context` only); real slow networks (the stall is simulated by a held loopback response).
 
 ## Next authorised step
 
-An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 1, code `e4b33fc1`) against the review findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 2, code `ce7732a9`) against the delta re-review findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.
