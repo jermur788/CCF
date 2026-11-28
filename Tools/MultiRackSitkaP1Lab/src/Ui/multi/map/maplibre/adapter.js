@@ -82,7 +82,10 @@ function webglAvailable() {
  * The deadline timer alone is not enough: when the main thread is busy past the deadline, a
  * decode that finished meanwhile resumes as a microtask BEFORE the overdue timer task runs. So
  * every step also checks the time elapsed since the probe started, and an overdue step settles
- * the probe as 'timeout' itself instead of accepting the result.
+ * the probe as 'timeout' itself instead of accepting the result. The same check applies when a step
+ * REJECTS (for example the decoder rejecting corrupt bytes) after the deadline: an overdue
+ * rejection is a timeout (request aborted, cached per URL like any timeout), and only a rejection
+ * that arrives in time is reported as 'error'.
  * @returns {{ promise: Promise<boolean>, controller: AbortController, settled: boolean, result: boolean|null,
  *   reason: 'ok'|'timeout'|'aborted'|'not-image'|'error'|null }}
  */
@@ -124,6 +127,8 @@ function probeImagery(url, timeoutMs) {
       if (overdue()) return; // a late decode is discarded (closed below), never accepted
       settle(true, 'ok');
     } catch {
+      // An overdue rejection settles as 'timeout' (and aborts), exactly like an overdue success.
+      if (overdue()) return;
       settle(false, 'error');
     } finally {
       if (bitmap) bitmap.close();
@@ -811,6 +816,8 @@ export function createMapLibreAdapter(options = {}) {
         hasMap: Boolean(map),
         watchdogArmed: Boolean(loadWatchdog),
         pendingProbes: Array.from(probeCache.values()).filter((p) => !p.settled).length,
+        probes: Array.from(probeCache, ([url, p]) => ({ url, settled: p.settled, reason: p.reason,
+          aborted: p.controller.signal.aborted, abortReason: p.controller.signal.aborted ? String(p.controller.signal.reason) : null })),
         focusedAreaId,
         selection,
         frame,

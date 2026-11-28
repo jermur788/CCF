@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B30 for the MapLibre Display Adapter.
+ * Strict-CSP, offline, headless-Chromium (CDP) matrix B01-B31 for the MapLibre Display Adapter.
  *
  * - Loopback static server (server.mjs) sends the exact strict CSP + Referrer-Policy on every response.
  * - Chromium uses SwiftShader WebGL (no --disable-gpu), --host-resolver-rules that fail every
@@ -10,10 +10,10 @@
  *   are audited too; audit setup failures fail the run.
  *
  * Usage: node drive-maplibre-cdp.mjs --out <evidence-dir>
- * Exit 0 only if all 30 cases pass and the audit has zero console errors, CSP violations,
+ * Exit 0 only if all 31 cases pass and the audit has zero console errors, CSP violations,
  * failed requests, non-loopback requests and audit setup failures. Exit 2 when WebGL2 is unavailable (NOT TESTED).
  *
- * B08, B20 and B24 are evaluated after every other case (B27-B30 run before them), so their header and audit checks
+ * B08, B20 and B24 are evaluated after every other case (B27-B31 run before them), so their header and audit checks
  * cover the whole run (results are reported in case-id order).
  */
 
@@ -34,7 +34,7 @@ const H = 720;
 const BG = [21, 37, 26]; // #15251a
 const IMG = [196, 168, 92]; // synthetic imagery margin colour
 const WORKER_PATH = '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl-worker.mjs';
-const EXPECTED_CASES = 30;
+const EXPECTED_CASES = 31;
 mkdirSync(evidenceDir, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -170,8 +170,9 @@ function createAudit(cdp) {
     httpRequests: 0,
     responses: [], // every browser-reported http(s) response, page and worker sessions, whole run
     workers: [], // one record per attached worker target (see attachedToTarget below)
-    requests: new Map(), // "<session>|<requestId>" -> { url, responded, failed }
+    requests: new Map(), // "<session>|<requestId>" -> { url, responded, failed, canceled, fromCache }
   };
+  const servedFromCache = new Set(); // "<session>|<requestId>" reported by Network.requestServedFromCache
   const workerBySession = new Map(); // CDP sessionId -> worker record
   const isCsp = (t) => /Content[- ]Security[- ]Policy|Refused to/i.test(t);
   const sessionKey = (msg) => {
@@ -230,10 +231,15 @@ function createAudit(cdp) {
         if (/^https?:/.test(url)) {
           audit.httpRequests++;
           if (new URL(url).hostname !== '127.0.0.1') audit.nonLoopbackRequests.push(url);
-          if (key) audit.requests.set(key + '|' + p.requestId, { url, session: key, responded: false, failed: false });
+          if (key) audit.requests.set(key + '|' + p.requestId, { url, session: key, requestId: p.requestId, responded: false, failed: false, canceled: false });
         } else if (!/^(data|blob|about):/.test(url)) {
           audit.nonLoopbackRequests.push(url);
         }
+        break;
+      }
+      case 'Network.requestServedFromCache': {
+        const key = sessionKey(msg);
+        if (key) servedFromCache.add(key + '|' + p.requestId);
         break;
       }
       case 'Network.responseReceived': {
@@ -249,6 +255,9 @@ function createAudit(cdp) {
             session: worker ? 'worker:' + worker.targetId : key === 'page' ? 'page' : 'unattached:' + msg.sessionId,
             sessionId: msg.sessionId || null,
             resourceType: p.type || null, // CDP Network.ResourceType: 'Script' for a worker's startup script, 'Fetch' for fetch()
+            requestId: p.requestId,
+            // Served without a server round trip (B24 exact-URL accounting excludes these; no-store makes them rare).
+            fromCache: Boolean(r.fromDiskCache || r.fromPrefetchCache || r.fromServiceWorker || r.fromEarlyHints || (key && servedFromCache.has(key + '|' + p.requestId))),
             csp: headers['content-security-policy'],
             referrer: headers['referrer-policy'],
           };
@@ -267,7 +276,7 @@ function createAudit(cdp) {
       case 'Network.loadingFailed': {
         const key = sessionKey(msg);
         const req = key ? audit.requests.get(key + '|' + p.requestId) : null;
-        if (req) req.failed = true;
+        if (req) { req.failed = true; req.canceled = Boolean(p.canceled); }
         if (!p.canceled) audit.failedRequests.push(`LOAD_FAILED ${p.errorText} (${p.type || 'unknown'})`);
         break;
       }
@@ -302,6 +311,49 @@ export function workerCoverageFailures(workers) {
     }
   }
   return failures;
+}
+
+/** Exact request target (path + query) of an absolute or origin-relative URL; the fragment is ignored. */
+export function exactKey(url) {
+  try {
+    const u = new URL(url, 'http://127.0.0.1');
+    return u.pathname + u.search;
+  } catch {
+    return '<malformed>';
+  }
+}
+
+/**
+ * B24 exact-URL response accounting (repair cycle 4). Server-written responses are reconciled with
+ * browser-reported responses (page and worker sessions) by EXACT request target, counted as a
+ * multiset, so duplicate URLs count once per response and a withheld exact URL is never covered by
+ * other requests that share its pathname. Per exact target:
+ *   expected = server responses - node-side responses (the driver's own direct 404 fetch)
+ *   browser  = browser responses that came over the network (cache hits are counted separately)
+ *   canceled = browser requests that were canceled before any response event (e.g. aborted imagery)
+ * and it must hold that browser <= expected <= browser + canceled. A server response with no browser
+ * response and no canceled request, or a browser response with no server response, is a failure.
+ * The only documented exceptions are therefore the node-side 404, canceled/aborted requests (which
+ * the server may or may not have answered) and browser cache hits (which have no server response).
+ */
+export function reconcileExactUrls({ server, nodeSide, browserResponses, browserRequests }) {
+  const tally = new Map();
+  const at = (key) => {
+    if (!tally.has(key)) tally.set(key, { key, server: 0, node: 0, browser: 0, cached: 0, canceled: 0 });
+    return tally.get(key);
+  };
+  for (const r of server) at(exactKey(r.url)).server++;
+  for (const r of nodeSide) at(exactKey(r.url)).node++;
+  for (const r of browserResponses) { const t = at(exactKey(r.url)); if (r.fromCache) t.cached++; else t.browser++; }
+  for (const q of browserRequests) if (q.canceled && !q.responded) at(exactKey(q.url)).canceled++;
+  const serverWithoutBrowser = [];
+  const browserWithoutServer = [];
+  for (const t of tally.values()) {
+    const expected = t.server - t.node;
+    if (t.browser > expected) browserWithoutServer.push(t);
+    else if (expected > t.browser + t.canceled) serverWithoutBrowser.push(t);
+  }
+  return { tally: [...tally.values()], serverWithoutBrowser, browserWithoutServer };
 }
 
 // ---- main -----------------------------------------------------------------------------------
@@ -398,7 +450,7 @@ async function main() {
       return { ok: true, version: gl.getParameter(gl.VERSION), renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) };
     })()`);
     if (!webgl.ok) {
-      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B30 not run.');
+      console.log('NOT TESTED: WebGL2 is unavailable in this headless Chromium; B01-B31 not run.');
       await finish(2);
       return;
     }
@@ -528,7 +580,7 @@ async function main() {
       && audit.cspViolations.length === 0 && audit.consoleErrors.length === 0,
       `module/worker/css 200 after switch; worker targets=${workerUrls.length} all at ${WORKER_PATH} (no blob/data); getWorkerUrl matches; setWorkerUrl before new Map=${b07.setBeforeMap}; CSP violations=${audit.cspViolations.length + b07.pageCsp}; console errors=${audit.consoleErrors.length}`);
 
-    // B08 is evaluated at the very end of the run (after B30) so it covers every response.
+    // B08 is evaluated at the very end of the run (after B31) so it covers every response.
 
     // B09 inline-only MapLibre style
     await waitFor('window.__CCF_HARNESS__.debug().imageryLoaded', 'imagery loaded (B09)');
@@ -1261,11 +1313,113 @@ async function main() {
       + `after the overdue timer: ${s30b.fallback}, imageryLoaded=${d30b.imageryLoaded}; same URL again: refetches=${sameRefetch}, new decodes=${heldAfter30 - heldBefore30} [${phaseB ? 'ok' : 'FAIL'}]; `
       + `healthy same-instance remount: same URL -> ${s30r.fallback} "${s30r.notice}", refetches=${remountRefetch}, raster=${JSON.stringify(layersR30) !== NO_RASTER}, maps constructed=${mapsAfterRemount}; healthy URL -> ${s30h.fallback}, attribution visible=${s30h.attrVisible} (fetches=${healthyFetches}); back to the timed-out URL -> ${s30k.fallback}, refetches=${backRefetch} [${phaseR ? 'ok' : 'FAIL'}]`);
 
+    // ===== Repair cycle 4 regression case =======================================================
+    // B31 a decode REJECTION that arrives after the probe deadline is a timeout, not an error: the
+    // request is aborted with reason 'timeout', the timeout is cached per URL, and the exact imagery
+    // fallback shows. The browser's own decoder rejects corrupt bytes; the rejection is withheld and
+    // released inside a busy task already past the deadline, while the deadline timer is still queued
+    // (the reviewer's reproduction, made deterministic). Control: the same corrupt bytes rejected in
+    // time are still reported as 'error' and do not abort the request.
+    await freshPage();
+    const deadline31 = 1500;
+    const overshoot31 = 600; // reviewer: rejection released at 1,820 ms into a 1,200 ms probe
+    const url31 = '/fixtures/corrupt-imagery.png?b31-overdue-rejection';
+    const urlCtl31 = '/fixtures/corrupt-imagery.png?b31-timely-rejection';
+    const exactRequests = (from, url) => srv.requestLog.slice(from).filter((r) => r.url === url).length;
+    const probeFor = (url) => evaluate(`${HX}.debug().probes.find((p) => new URL(p.url).pathname + new URL(p.url).search === '${url}') || null`);
+    const failsFor = (url) => evaluate(`${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-failed' && x.url && new URL(x.url).pathname + new URL(x.url).search === '${url}').map((x) => x.reason)`);
+    await evaluate(`(() => { const h = ${HX}; h.create('default', { imageryTimeoutMs: ${deadline31}, loadTimeoutMs: 9000 }); h.render(); ${SELECT}; })()`);
+    // control: a timely native decode rejection -> 'error', request not aborted, exact notice, no raster
+    const logCtl31 = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30(urlCtl31)} })`);
+    const ctlNotice31 = await softWait(`${fallbackIs('imagery-unavailable')} && ${HX}.debug().pendingProbes === 0`, 'timely rejection notice (B31 control)', 6000);
+    const ctlReady31 = await softWait(`${HX}.debug().mapReady`, 'map ready (B31 control)', 9000);
+    await idle();
+    const s31c = await status();
+    const probeCtl31 = await probeFor(urlCtl31);
+    const failsCtl31 = await failsFor(urlCtl31);
+    const layersCtl31 = await layers30();
+    const ctlFetches31 = exactRequests(logCtl31, urlCtl31);
+    const controlOk31 = ctlNotice31 && ctlReady31 && s31c.fallback === 'imagery-unavailable' && s31c.notice === COPY.imagery && s31c.noticeVisible && !s31c.attrVisible
+      && probeCtl31 && probeCtl31.settled && probeCtl31.reason === 'error' && probeCtl31.aborted === false && JSON.stringify(failsCtl31) === '["error"]'
+      && JSON.stringify(layersCtl31) === NO_RASTER && ctlFetches31 === 1;
+    // overdue: hold the native rejection, then release it 600 ms past the deadline inside a busy task
+    await evaluate(`${HX}.holdDecodes('predecode')`);
+    const log31 = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30(url31)} })`);
+    const held31 = await softWait(`${HX}.rejectedHeldDecodes() >= 1`, 'native decode rejection held (B31)', 6000);
+    const armed31 = held31 && await evaluate(`(() => { const s = ${HX}.diagnostics().filter((x) => x.kind === 'imagery-probe-started' && new URL(x.url).search === '?b31-overdue-rejection');
+      return s.length === 1 && ${HX}.armDeadlineRace(s[0].at, ${deadline31}, ${overshoot31}); })()`);
+    const ran31 = armed31 && await softWait(`${HX}.raceRecord().pendingAfterTimerTurn !== undefined`, 'race ran (B31)', deadline31 + overshoot31 + 6000);
+    const race31 = (await evaluate(`${HX}.raceRecord()`)) || {};
+    const notice31 = await softWait(fallbackIs('imagery-unavailable'), 'imagery notice after the overdue rejection (B31)', 6000);
+    const ready31 = await softWait(`${HX}.debug().mapReady`, 'map ready (B31)', 9000);
+    await idle();
+    const s31 = await status();
+    const probe31 = await probeFor(url31);
+    const fails31 = await failsFor(url31);
+    const rejections31 = await evaluate(`${HX}.decodeRejections()`);
+    const d31 = await evaluate(`(() => { const d = ${HX}.debug(); return { imageryLoaded: d.imageryLoaded, pending: d.pendingProbes, watchdog: d.watchdogArmed,
+      visible: document.querySelector('[data-layer-index="2"]').getAttribute('data-imagery-visible') }; })()`);
+    const layersA31 = await layers30();
+    const fetches31 = exactRequests(log31, url31);
+    // the overdue timer has long run by now: the answer does not change
+    await sleep(deadline31);
+    await idle();
+    const s31b = await status();
+    const probe31b = await probeFor(url31);
+    const layersB31 = await layers30();
+    // cached per URL: the same imagery again is neither fetched nor decoded
+    const heldBefore31 = await evaluate(`${HX}.heldDecodeCount()`);
+    const logSame31 = srv.requestLog.length;
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imageryOpacity: 0.9, imagery: ${imagery30(url31)} })`);
+    await sleep(600);
+    await idle();
+    const s31s = await status();
+    const sameRefetch31 = exactRequests(logSame31, url31);
+    const heldAfter31 = await evaluate(`${HX}.heldDecodeCount()`);
+    await evaluate(`${HX}.holdDecodes(false)`);
+    // a healthy same-instance remount keeps both cached results (timeout and error) without refetching
+    const logRemount31 = srv.requestLog.length;
+    await evaluate(`(() => { const h = ${HX}; h.remountSame(); h.render({ mapStyle: 'satellite', imagery: ${imagery30(url31)} }); ${SELECT}; })()`);
+    const readyR31 = await softWait(`${HX}.debug().mapReady && ${fallbackIs('imagery-unavailable')}`, 'remounted satellite keeps the cached timeout (B31)', 20000);
+    await idle();
+    const s31r = await status();
+    const layersR31 = await layers30();
+    const probeR31 = await probeFor(url31);
+    const dR31 = await evaluate(`({ imageryLoaded: ${HX}.debug().imageryLoaded, hasMap: ${HX}.debug().hasMap })`);
+    const mapsAfterRemount31 = await constructed();
+    await evaluate(`${HX}.render({ mapStyle: 'satellite', imagery: ${imagery30(urlCtl31)} })`);
+    await sleep(400);
+    await idle();
+    const s31e = await status();
+    const probeCtlR31 = await probeFor(urlCtl31);
+    const remountRefetch31 = exactRequests(logRemount31, url31) + exactRequests(logRemount31, urlCtl31);
+    const raceSetUp31 = race31.ran === true && race31.pendingAtStart === 1 && race31.rejectedAtStart >= 1 && race31.readyAtStart === 0 && race31.beganMs < deadline31
+      && race31.pendingBeforeRelease === 1 && race31.releasedAtMs >= deadline31 + overshoot31 && race31.released >= 1 && race31.pendingAfterMicrotask === 0
+      && rejections31.length === race31.released;
+    const phaseA31 = notice31 && ready31 && s31.style === 'satellite' && s31.hasMap && s31.fallback === 'imagery-unavailable' && s31.notice === COPY.imagery && s31.noticeVisible && !s31.attrVisible
+      && s31.selectionKept && s31.crowns === 20 && s31.modals === 0 && !d31.imageryLoaded && d31.visible === 'false' && d31.pending === 0 && !d31.watchdog
+      && probe31 && probe31.settled && probe31.reason === 'timeout' && probe31.aborted === true && probe31.abortReason === 'timeout'
+      && JSON.stringify(fails31) === '["timeout"]' && JSON.stringify(layersA31) === NO_RASTER && fetches31 === 1;
+    const phaseB31 = s31b.fallback === 'imagery-unavailable' && s31b.notice === COPY.imagery && probe31b && probe31b.reason === 'timeout' && JSON.stringify(layersB31) === NO_RASTER
+      && s31s.fallback === 'imagery-unavailable' && s31s.notice === COPY.imagery && sameRefetch31 === 0 && heldAfter31 === heldBefore31;
+    const phaseR31 = readyR31 && s31r.style === 'satellite' && s31r.notice === COPY.imagery && s31r.noticeVisible && !s31r.attrVisible && dR31.hasMap && !dR31.imageryLoaded
+      && JSON.stringify(layersR31) === NO_RASTER && mapsAfterRemount31 === 2 && probeR31 && probeR31.reason === 'timeout' && probeR31.aborted === true
+      && s31e.fallback === 'imagery-unavailable' && s31e.notice === COPY.imagery && probeCtlR31 && probeCtlR31.reason === 'error' && probeCtlR31.aborted === false && remountRefetch31 === 0;
+    record('B31', controlOk31 && held31 && armed31 && ran31 && raceSetUp31 && phaseA31 && phaseB31 && phaseR31,
+      `control (timely native rejection of the same corrupt bytes): ${s31c.fallback}, notice "${s31c.notice}", probe reason=${probeCtl31 && probeCtl31.reason}, aborted=${probeCtl31 && probeCtl31.aborted}, failures=${JSON.stringify(failsCtl31)}, layers=${JSON.stringify(layersCtl31)}, fetches=${ctlFetches31} [${controlOk31 ? 'ok' : 'FAIL'}]; `
+      + `race set up=${raceSetUp31} (blocking task began ${Number(race31.beganMs).toFixed(1)} ms after the probe start with pending probes=${race31.pendingAtStart}, ${race31.rejectedAtStart} held native rejection(s), ${race31.readyAtStart} bitmaps; deadline timer still queued at release (pending=${race31.pendingBeforeRelease}); `
+      + `rejection ${JSON.stringify(rejections31.map((r) => r.name))} released ${Number(race31.releasedAtMs).toFixed(1)} ms after the probe start, deadline ${deadline31} ms; settled before the timer turn=${race31.pendingAfterMicrotask === 0}); `
+      + `result: ${s31.style}/${s31.fallback}, notice "${s31.notice}", attribution hidden=${!s31.attrVisible}, layers=${JSON.stringify(layersA31)}, probe reason=${probe31 && probe31.reason}, abort emitted=${probe31 && probe31.aborted} (reason ${probe31 && probe31.abortReason}), failures=${JSON.stringify(fails31)}, server fetches=${fetches31} [${phaseA31 ? 'ok' : 'FAIL'}]; `
+      + `after the overdue timer: ${s31b.fallback}, reason=${probe31b && probe31b.reason}; same URL again: refetches=${sameRefetch31}, new decodes=${heldAfter31 - heldBefore31} [${phaseB31 ? 'ok' : 'FAIL'}]; `
+      + `same-instance remount: overdue URL -> ${s31r.fallback} "${s31r.notice}" (cached reason ${probeR31 && probeR31.reason}, aborted ${probeR31 && probeR31.aborted}), timely URL -> ${s31e.fallback} (cached reason ${probeCtlR31 && probeCtlR31.reason}), refetches=${remountRefetch31}, raster=${JSON.stringify(layersR31) !== NO_RASTER}, maps constructed=${mapsAfterRemount31} [${phaseR31 ? 'ok' : 'FAIL'}]`);
+
     // ===== Whole-run checks (B08, B20 audit, B24) ===============================================
     await freshPage();
     await sleep(300);
     const direct404 = await fetch(srv.baseUrl + '/no-such-file');
-    const nodeResponses = [{ path: '/no-such-file', status: direct404.status, session: 'node', csp: direct404.headers.get('content-security-policy'), referrer: direct404.headers.get('referrer-policy') }];
+    const nodeResponses = [{ path: '/no-such-file', url: '/no-such-file', status: direct404.status, session: 'node', csp: direct404.headers.get('content-security-policy'), referrer: direct404.headers.get('referrer-policy') }];
     await direct404.arrayBuffer();
     await sleep(200);
     await Promise.allSettled(audit.setupTasks);
@@ -1283,19 +1437,47 @@ async function main() {
 
     record('B20', b20.writes === 0 && b20.local === 0 && b20.session === 0 && b20.cookie === '' && b20.guardrail && b20.pageCsp === 0
       && reloadStyle === 'clean-woodland' && reloadVendor === 0 && reloadWorkers === 0 && auditClean,
-      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B30): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}, audit setup failures=${audit.setupFailures.length}, unanswered requests=${unanswered.length}`);
+      `storage writes=${b20.writes}, local/session items=${b20.local}/${b20.session}, cookies="${b20.cookie}", no [C]/[E]/disclaimers=${b20.guardrail}; fresh load style=${reloadStyle}, vendor requests=${reloadVendor}, workers=${reloadWorkers}; whole run (B01-B31): console errors=${audit.consoleErrors.length}, CSP violations=${audit.cspViolations.length}, failed requests=${audit.failedRequests.length}, non-loopback=${audit.nonLoopbackRequests.length}, audit setup failures=${audit.setupFailures.length}, unanswered requests=${unanswered.length}`);
 
     // B24 the header gate covers every kind of response and is sensitive to a single late loss
     const browserPaths = new Set(browserResponses.map((r) => r.path));
     const requiredBrowser = ['/harness.html', '/harness/harness.js', '/harness/fixture-80x80.mjs', '/map/contract.js', '/map/maplibre/adapter.js', '/map/maplibre/adapter.css',
       '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl.mjs', WORKER_PATH, '/map/maplibre/vendor/maplibre-gl-6.20.0/maplibre-gl.css',
-      '/fixtures/synthetic-imagery.png', '/fixtures/not-an-image.png', '/harness/fixtures/silent-worker.mjs'];
+      '/fixtures/synthetic-imagery.png', '/fixtures/not-an-image.png', '/fixtures/corrupt-imagery.png', '/harness/fixtures/silent-worker.mjs'];
     const missingBrowser = requiredBrowser.filter((x) => !browserPaths.has(x));
     const heldServer = serverResponses.filter((r) => r.pathname === '/fixtures/held-imagery.png');
     const server404 = serverResponses.filter((r) => r.status === 404);
-    // Every server-written response is either seen by the browser, the node-side 404, or a held
-    // imagery request the adapter aborted before it was answered. Nothing may be unaccounted for.
-    const unaccounted = serverResponses.filter((r) => !browserPaths.has(r.pathname) && r.pathname !== '/no-such-file' && r.pathname !== '/fixtures/held-imagery.png');
+    // Repair cycle 4: every server-written response is reconciled with a browser response for the
+    // SAME exact request target (multiset), except the documented node-side 404, canceled requests and
+    // cache hits; every browser network response needs a server response too (reconcileExactUrls).
+    const browserRequests = [...audit.requests.values()];
+    const reconcileWith = (over = {}) => reconcileExactUrls({ server: serverResponses, nodeSide: nodeResponses, browserResponses, browserRequests, ...over });
+    const recon = reconcileWith();
+    const reconKeys = (r) => JSON.stringify({ server: r.serverWithoutBrowser.map((t) => t.key).sort(), browser: r.browserWithoutServer.map((t) => t.key).sort() });
+    const nodeKeys = new Set(nodeResponses.map((r) => exactKey(r.url)));
+    const serverKeys = recon.tally.filter((t) => t.server - t.node >= 1).map((t) => t.key);
+    const withoutKey = (key) => reconcileWith({ browserResponses: browserResponses.filter((r) => exactKey(r.url) !== key), browserRequests: browserRequests.filter((q) => exactKey(q.url) !== key) });
+    // Self-test 1 (the reviewer's reproduction, in-run): withhold BOTH CDP events for the exact B27
+    // imagery URL. Other requests share its pathname; the accounting must still flag exactly that URL.
+    const b27Key = exactKey(url27);
+    const b27Siblings = recon.tally.filter((t) => t.key !== b27Key && t.key.startsWith('/fixtures/synthetic-imagery.png') && t.browser >= 1).length;
+    const withheldB27 = reconKeys(withoutKey(b27Key));
+    const withheldB27Ok = recon.tally.some((t) => t.key === b27Key && t.server >= 1) && b27Siblings >= 1 && withheldB27 === JSON.stringify({ server: [b27Key], browser: [] });
+    // Self-test 2: the same for every exact target the server answered (node-side 404 excluded).
+    const sweepMissed = serverKeys.filter((key) => !nodeKeys.has(key) && reconKeys(withoutKey(key)) !== JSON.stringify({ server: [key], browser: [] }));
+    // Self-test 3 (reverse direction): a browser response whose server response is missing.
+    const dropServer = (key) => { const i = serverResponses.findIndex((r) => exactKey(r.url) === key); return serverResponses.filter((_, j) => j !== i); };
+    const reverseB27 = reconKeys(reconcileWith({ server: dropServer(b27Key) }));
+    const reverseOk = reverseB27 === JSON.stringify({ server: [], browser: [b27Key] });
+    // Self-test 4 (duplicate URLs count per response): drop ONE browser response of a target answered several times.
+    const dupKey = (recon.tally.find((t) => t.browser >= 3 && t.canceled === 0 && t.cached === 0) || {}).key;
+    const dupIndex = dupKey ? browserResponses.findIndex((r) => exactKey(r.url) === dupKey && !r.fromCache) : -1;
+    const dupDropped = dupKey ? reconKeys(reconcileWith({ browserResponses: browserResponses.filter((_, j) => j !== dupIndex) })) : null;
+    const dupOk = Boolean(dupKey) && dupDropped === JSON.stringify({ server: [dupKey], browser: [] });
+    const reconCanceled = recon.tally.reduce((n, t) => n + t.canceled, 0);
+    const reconCached = recon.tally.reduce((n, t) => n + t.cached, 0);
+    const reconCanceledKeys = recon.tally.filter((t) => t.canceled > 0 && t.server - t.node > t.browser).map((t) => `${t.key} (server ${t.server}, browser ${t.browser}, canceled ${t.canceled})`);
+    const accountingOk = recon.serverWithoutBrowser.length === 0 && recon.browserWithoutServer.length === 0 && withheldB27Ok && sweepMissed.length === 0 && reverseOk && dupOk;
     const lastLoss = (list, key) => { const copy = list.map((r) => ({ ...r })); delete copy[copy.length - 1][key]; return headerMismatches(copy).length; };
     const sensitivity = {
       browserLastCsp: lastLoss(browserResponses, 'csp'),
@@ -1327,13 +1509,15 @@ async function main() {
       && withheldScript.length === silentWorkers.length && withheldScript.every((f) => silentWorkers.some((w) => w.targetId === f.targetId) && /Script-type/.test(f.reason));
     const lastBrowser = browserResponses[browserResponses.length - 1];
     record('B24', missingBrowser.length === 0 && heldServer.length >= 2 && heldServer.every((r) => r.csp === STRICT_CSP_HEADER && r.referrer === REFERRER_POLICY)
-      && server404.length >= 1 && server404.every((r) => r.csp === STRICT_CSP_HEADER) && unaccounted.length === 0 && silentWorkerResponses.length >= 1
+      && server404.length >= 1 && server404.every((r) => r.csp === STRICT_CSP_HEADER) && accountingOk && silentWorkerResponses.length >= 1
       && audit.workers.length > 1 && workerFailures.length === 0 && audit.setupFailures.length === 0 && unanswered.length === 0
       && dropOne === 1 && borrowed === 1 && withheldOk
       && sensitivity.browserLastCsp === 1 && sensitivity.browserLastReferrer === 1 && sensitivity.serverLastCsp === 1 && sensitivity.silentWorkerCsp === silentWorkerResponses.length,
       `required response kinds seen by the browser: ${requiredBrowser.length - missingBrowser.length}/${requiredBrowser.length}${missingBrowser.length ? ' missing ' + missingBrowser.join(',') : ''} (incl. the intentional silent-worker fixture x${silentWorkerResponses.length}); `
       + `${audit.workers.length} worker targets (${new Set(audit.workers.map((w) => w.sessionId)).size} distinct sessions, ${workerScriptUrls.size} distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=${workerFailures.length}${workerFailures.length ? ' ' + JSON.stringify(workerFailures) : ''}); audit setup failures=${audit.setupFailures.length}; unanswered requests=${unanswered.length}; other worker-internal responses=${workerInternal}; `
-      + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; unaccounted server responses=${unaccounted.length}; `
+      + `held imagery responses (aborted, server-side headers checked)=${heldServer.length}; 404s=${server404.length}; `
+      + `exact-URL accounting over ${recon.tally.length} exact targets / ${serverResponses.length} server responses / ${browserResponses.length} browser responses: server-without-browser=${recon.serverWithoutBrowser.length}${recon.serverWithoutBrowser.length ? ' ' + JSON.stringify(recon.serverWithoutBrowser) : ''}, browser-without-server=${recon.browserWithoutServer.length}${recon.browserWithoutServer.length ? ' ' + JSON.stringify(recon.browserWithoutServer) : ''}; exceptions used: node-side 404 x${nodeResponses.length}, canceled requests=${reconCanceled} (covering server-only responses at: ${reconCanceledKeys.join(', ') || 'none'}), cache hits=${reconCached}; `
+      + `accounting self-tests: withhold both CDP events for ${b27Key} (${b27Siblings} other exact URLs share its pathname) -> ${withheldB27} [${withheldB27Ok ? 'ok' : 'FAIL'}]; same for each of ${serverKeys.filter((k) => !nodeKeys.has(k)).length} server-answered targets -> missed ${sweepMissed.length}${sweepMissed.length ? ' ' + JSON.stringify(sweepMissed.slice(0, 5)) : ''}; drop its server response -> ${reverseB27} [${reverseOk ? 'ok' : 'FAIL'}]; drop 1 of the browser responses for duplicate target ${dupKey} -> ${dupDropped} [${dupOk ? 'ok' : 'FAIL'}]; `
       + `own-URL response types seen=${JSON.stringify(scriptTypes)}; resource-type self-test: silent workers=${silentWorkers.length}, their same-URL Fetch responses=${JSON.stringify(fetchTwins)}, withholding their Script responses but keeping the Fetch -> ${withheldScript.length} failure(s) [${withheldOk ? 'ok' : 'FAIL'}]; `
       + `sensitivity: drop one worker's script response -> ${dropOne} failure, lend it a same-URL twin's response -> ${borrowed} failure; dropping CSP from the last browser response (${lastBrowser ? lastBrowser.path : 'none'}) -> ${sensitivity.browserLastCsp} mismatch, its Referrer-Policy -> ${sensitivity.browserLastReferrer}, last server response CSP -> ${sensitivity.serverLastCsp}, silent-worker CSP -> ${sensitivity.silentWorkerCsp}`);
 

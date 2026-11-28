@@ -8,6 +8,8 @@
  *   /harness/<path>                   files in this test folder (harness.js, fixture, stub worker)
  *   /fixtures/synthetic-imagery.png   generated synthetic imagery
  *   /fixtures/not-an-image.png        200 text/plain: imagery that exists but is not an image
+ *   /fixtures/corrupt-imagery.png     200 image/png whose bytes are not a decodable PNG: the
+ *                                     browser's own decoder rejects it (B31)
  *   /fixtures/held-imagery.png        the synthetic PNG, but the response is held until the driver
  *                                     calls releaseHeld() (deterministic "slow imagery" for B22)
  *
@@ -47,6 +49,9 @@ function fileUnder(root, relative) {
 
 export async function startHarnessServer() {
   const imagery = generateSyntheticWoodlandPng();
+  // A real PNG signature followed by bytes that are not a valid chunk stream, so the MIME check passes
+  // and the failure comes from the browser's own image decoder.
+  const corrupt = Buffer.concat([imagery.subarray(0, 8), Buffer.from('this is not a PNG chunk stream '.repeat(8))]);
   const requestLog = [];
   const held = [];
 
@@ -66,6 +71,7 @@ export async function startHarnessServer() {
       requestLog.push({
         method: req.method,
         pathname,
+        url: req.url || '/', // exact request target (path + query), reconciled 1:1 with browser events in B24
         status,
         at: Date.now(),
         csp: res.getHeader('Content-Security-Policy') ?? null,
@@ -81,6 +87,7 @@ export async function startHarnessServer() {
       held.push(() => send(200, MIME['.png'], imagery));
       return undefined;
     }
+    if (pathname === '/fixtures/corrupt-imagery.png') return send(200, MIME['.png'], corrupt);
     if (pathname === '/fixtures/not-an-image.png') return send(200, MIME['.txt'], 'imagery service unavailable');
     if (pathname === '/favicon.ico') return send(204, MIME['.txt'], '');
     const routes = [['/map/', MAP_ROOT], ['/harness/', HERE]];

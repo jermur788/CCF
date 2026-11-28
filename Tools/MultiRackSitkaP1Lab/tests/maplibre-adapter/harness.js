@@ -1,5 +1,5 @@
 /**
- * Browser side of the B01-B30 harness. Loads the real map contract and the adapter, records
+ * Browser side of the B01-B31 harness. Loads the real map contract and the adapter, records
  * pointer callbacks, modal calls, storage writes and CSP violations, and exposes a small
  * control surface on window.__CCF_HARNESS__ for drive-maplibre-cdp.mjs.
  */
@@ -34,7 +34,8 @@ document.addEventListener('securitypolicyviolation', (e) => {
 // hands the adapter a real bitmap; every such bitmap is kept so the driver can check that the
 // adapter closed (discarded) it.
 //   holdDecodes(true)        B27: releaseDecodes() runs the real createImageBitmap at release time.
-//   holdDecodes('predecode') B30: the real bitmap is decoded at once but withheld, so that
+//   holdDecodes('predecode') B30/B31: the real decode runs at once but its OUTCOME is withheld (the
+//                            bitmap, or the decoder's own rejection for corrupt bytes), so that
 //                            releaseDecodesNow() can hand it over synchronously, inside a task that
 //                            is already past the probe deadline (see armDeadlineRace).
 const realCreateImageBitmap = window.createImageBitmap.bind(window);
@@ -44,9 +45,12 @@ let holdingDecodes = false;
 window.createImageBitmap = function createImageBitmap(source, ...rest) {
   if (holdingDecodes && source instanceof Blob && /^image\//.test(source.type)) {
     return new Promise((resolve, reject) => {
-      const entry = { resolve, reject, ready: null, run: null };
+      const entry = { resolve, reject, ready: null, rejection: null, run: null };
       entry.run = () => realCreateImageBitmap(source, ...rest).then((bitmap) => { lateBitmaps.push(bitmap); resolve(bitmap); }, reject);
-      if (holdingDecodes === 'predecode') realCreateImageBitmap(source, ...rest).then((bitmap) => { entry.ready = bitmap; }, reject);
+      if (holdingDecodes === 'predecode') {
+        realCreateImageBitmap(source, ...rest).then((bitmap) => { entry.ready = bitmap; },
+          (err) => { entry.rejection = { name: err && err.name, message: String(err && err.message), error: err }; });
+      }
       heldDecodes.push(entry);
     });
   }
@@ -54,17 +58,23 @@ window.createImageBitmap = function createImageBitmap(source, ...rest) {
 };
 let decodesHeldTotal = 0;
 
-/** Synchronously resolve every held decode whose bitmap is ready (microtasks run when this task ends). */
+const decodeRejections = [];
+/**
+ * Synchronously settle every held decode whose real outcome is known: a ready bitmap is resolved,
+ * a native decoder rejection is rejected with the decoder's own error (microtasks run when this task ends).
+ */
 function releaseDecodesNow() {
-  const ready = heldDecodes.filter((e) => e.ready);
+  const ready = heldDecodes.filter((e) => e.ready || e.rejection);
   for (const e of ready) heldDecodes.splice(heldDecodes.indexOf(e), 1);
   decodesHeldTotal += ready.length;
-  for (const e of ready) { lateBitmaps.push(e.ready); e.resolve(e.ready); }
+  for (const e of ready) {
+    if (e.ready) { lateBitmaps.push(e.ready); e.resolve(e.ready); } else { decodeRejections.push({ name: e.rejection.name, message: e.rejection.message }); e.reject(e.rejection.error); }
+  }
   return ready.length;
 }
 
 /**
- * B30 deterministic deadline race (the reviewer's reproduction). Shortly before the probe deadline
+ * B30/B31 deterministic deadline race (the reviewers' reproductions). Shortly before the probe deadline
  * (measured from probeStartAt), one task blocks the main thread until overshootMs past the deadline,
  * so the probe's deadline timer is due but cannot run. Still inside that task, the held decode is
  * released with its ready bitmap. When the task ends, the decode's continuation runs as a microtask
@@ -79,6 +89,7 @@ function armDeadlineRace(probeStartAt, deadlineMs, overshootMs) {
     race.beganMs = performance.now() - probeStartAt;
     race.pendingAtStart = adapter[DEBUG]().pendingProbes;
     race.readyAtStart = heldDecodes.filter((e) => e.ready).length;
+    race.rejectedAtStart = heldDecodes.filter((e) => e.rejection).length;
     const until = probeStartAt + deadlineMs + overshootMs;
     while (performance.now() < until) { /* hold the main thread past the deadline */ }
     race.pendingBeforeRelease = adapter[DEBUG]().pendingProbes;
@@ -292,6 +303,9 @@ window.__CCF_HARNESS__ = {
   heldDecodeCount: () => heldDecodes.length + decodesHeldTotal,
   releaseDecodes: () => { const n = heldDecodes.length; decodesHeldTotal += n; heldDecodes.splice(0).forEach((e) => e.run()); return n; },
   readyHeldDecodes: () => heldDecodes.filter((e) => e.ready).length,
+  rejectedHeldDecodes: () => heldDecodes.filter((e) => e.rejection).length,
+  /** Native decoder rejections handed to the adapter by releaseDecodesNow(): { name, message }. */
+  decodeRejections: () => decodeRejections.slice(),
   releaseDecodesNow,
   armDeadlineRace,
   raceRecord: () => window.__CCF_B30_RACE__ || null,
