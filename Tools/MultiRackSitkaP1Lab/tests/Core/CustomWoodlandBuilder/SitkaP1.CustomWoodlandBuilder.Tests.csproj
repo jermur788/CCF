@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.CustomWoodlandBuilder.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.CustomWoodlandBuilder.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Compiles only the Species Wave 2 vocabulary plus the CustomWoodlandBuilder engine and these tests: no Unity, P0 or other Core code. -->
+  <ItemGroup>
+    <Compile Include="../../../src/Core/SpeciesWave2/**/*.cs" />
+    <Compile Include="../../../src/Core/CustomWoodlandBuilder/**/*.cs" />
+  </ItemGroup>
+</Project>
