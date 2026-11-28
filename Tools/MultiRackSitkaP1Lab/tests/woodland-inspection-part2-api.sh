@@ -17,6 +17,7 @@
 #     served view bytes always hash to that plot's Part 1 golden;
 #   - S: 30 simultaneous Save + Recover pairs on one slot all answer within a timeout (one lock order: host, then slot),
 #     and a blocked Save to an existing slot is refused for the survey before any SlotExists check;
+#   - M: successful and refused saves report the correct live progress marker, including a newer same-slot save;
 #   - SIGINT ends the process cleanly; no file appears in the lab tree; git status of the lab is unchanged.
 #
 # Usage: tests/woodland-inspection-part2-api.sh [<evidence-dir>]
@@ -441,9 +442,44 @@ code="$(get s-after view)"
 check "S03 the server still answers reads afterwards and the playable woodland did not change" bash -c \
   'test "$1" == 200' _ "$code"
 check "S04 same session, year and revisions after the Save/Recover burst" same_fence s-before s-after
-race paused "$port" "$base" api/multi/save "{\"fence\":$fs,\"slot\":\"insp-part2\",\"replaceExisting\":false}" IPlus_Mersch "$scratch/s5.json"
+# ---- M: verify the persisted progress marker through the API ------------------------------------------------------
+# These checks observe the marker. The host lock in MultiSaveAsync establishes the ordering for an overlapping load.
+code="$(post m-advance year/advance "{\"fence\":$fs,\"consentToCancelWork\":false}")"
+check "M01 advancing creates unsaved progress" py m-advance "d['hasUnsavedProgress'] is True"
+code="$(get m-dirty view)"; fm="$(fence m-dirty)"; ym="$(year_of m-dirty)"
+check "M02 GET view reports unsaved progress before either refusal" py m-dirty "d['hasUnsavedProgress'] is True"
+race paused "$port" "$base" api/multi/save "{\"fence\":$fm,\"slot\":\"insp-part2\",\"replaceExisting\":false}" IPlus_Mersch "$scratch/s5.json"
 check "S05 a blocked Save to an EXISTING slot is refused as WoodlandInspectionReadOnly at commit, before any SlotExists check" commit_refusal s5
+code="$(get m-blocked view)"
+check "M03 the refused Save leaves the live marker dirty during survey inspection" py m-blocked "d['hasUnsavedProgress'] is True"
 code="$(post s-exit woodland/inspection/exit '{}')"
+
+code="$(post m-exists save "{\"fence\":$fm,\"slot\":\"insp-part2\",\"replaceExisting\":false}")"
+check "M04 an overwrite refused in normal play returns SlotExists" py m-exists "d['refusal']['code'] == 'SlotExists'"
+code="$(get m-after-exists view)"
+check "M05 the failed overwrite leaves the live marker dirty" py m-after-exists "d['hasUnsavedProgress'] is True"
+code="$(post m-save1 save "{\"fence\":$fm,\"slot\":\"insp-part2\",\"replaceExisting\":true}")"
+check "M06 the first overwrite saves the current year" py m-save1 "d['refusal'] is None and d['saved']['ecologicalYear'] == $ym"
+code="$(get m-clean view)"
+check "M07 the successful overwrite marks the current progress saved" py m-clean "d['hasUnsavedProgress'] is False"
+
+code="$(post m-advance2 year/advance "{\"fence\":$fm,\"consentToCancelWork\":false}")"
+check "M08 advancing again makes the next year unsaved" py m-advance2 \
+  "d['hasUnsavedProgress'] is True and d['view']['source']['ecologicalYear'] == $((ym + 1))"
+fn="$(fence m-advance2)"
+code="$(post m-save2 save "{\"fence\":$fn,\"slot\":\"insp-part2\",\"replaceExisting\":true}")"
+check "M09 the latest same-slot Save records the newer year and save generation" python3 -c \
+  'import json,sys; older,newer=(json.load(open(p))["saved"] for p in sys.argv[1:]); assert newer["ecologicalYear"]==older["ecologicalYear"]+1 and newer["saveGeneration"]==older["saveGeneration"]+1' \
+  "$scratch/m-save1.json" "$scratch/m-save2.json"
+code="$(post m-survey woodland/inspection/load '{"plotId":"IPlus_Donadea_MHF_2"}')"
+check "M10 survey opens after the latest same-slot Save" py m-survey \
+  "d['inspection']['active'] is True and d['inspection']['plotId'] == 'IPlus_Donadea_MHF_2'"
+code="$(get m-survey-view view)"
+check "M11 GET playable view still answers during the survey" bash -c 'test "$1" == 200' _ "$code"
+check "M12 the latest saved marker and fence are visible during inspection" py m-survey-view \
+  "d['hasUnsavedProgress'] is False and d['view']['source']['ecologicalYear'] == $((ym + 1))"
+check "M13 the survey leaves the latest playable session and revisions intact" same_fence m-advance2 m-survey-view
+code="$(post m-exit woodland/inspection/exit '{}')"
 
 # ---- Z: clean shutdown ---------------------------------------------------------------------------------------------
 kill -INT "$server_pid"

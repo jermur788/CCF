@@ -115,8 +115,6 @@ internal sealed partial class PlayerApi
         try
         {
             Core.WoodlandImport.Inspection.BuiltInWoodlandEntry? inspectionBlock;
-            MultiSessionState? capturedState = null;
-            (int AnnualRevision, int WorkRevision, int PlanStateRevision) marker = default;
             int schemaVersion = 0;
             byte[] bytes = Array.Empty<byte>();
             Phase1SlotSaveResult? result = null;
@@ -135,10 +133,12 @@ internal sealed partial class PlayerApi
                             throw new P1Refusal("SlotExists",
                                 "slot '" + slot + "' already holds a save; replacing it needs explicit confirmation");
 
-                        capturedState = multiHost.Current;
+                        var capturedState = multiHost.Current;
                         (schemaVersion, bytes) = capturedState.Session.CaptureSaveBytes(request.Fence!, label, generation);
-                        marker = capturedState.Session.ProgressMarker();
+                        var marker = capturedState.Session.ProgressMarker();
                         result = saveV3Slots.Save(slot, bytes, request.ReplaceExisting);
+                        // Publish before unlocking so survey load and later saves see the completed save.
+                        multiHost.MarkPersisted(capturedState, marker);
                     }
                 }
             }
@@ -149,7 +149,6 @@ internal sealed partial class PlayerApi
             }
 
             Interlocked.Increment(ref savesWritten);
-            multiHost.MarkPersisted(capturedState!, marker);
             var header = SaveV3Codec.DecodeAny(bytes).Header;
             await WriteJsonAsync(context, StatusCodes.Status200OK, new MultiSavePayload(new MultiSaveOutcome(result!.SlotName,
                 result.Status == Phase1SlotCommitStatus.DurablyCommitted ? "durablyCommitted" : "durabilityUnconfirmed",
