@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
@@ -234,14 +235,16 @@ internal sealed partial class PlayerApi
         }
 
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
-        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
-            economyEnabled, economy, budget, hasUnsavedProgress, recipeDto);
         var info = result.RefusalCode is null ? new MultiLoadInfo(result.DraftOrderCount, result.Checksum!) : null;
-        await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiLoadPayload(bounded.View, bounded.Scenes,
-            MultiLabels, bounded.Stage4, bounded.Ecology, info, NoticeOf(result.RefusalCode, result.RefusalMessage),
-            bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economyEnabled, economy, hasUnsavedProgress, experimentBadge, recipeDto),
-            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+        var notice = NoticeOf(result.RefusalCode, result.RefusalMessage);
+        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
+            economyEnabled, economy, budget, hasUnsavedProgress, recipeDto,
+            envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiLoadPayload(frame.View, frame.Scenes,
+                MultiLabels, frame.Stage4, frame.Ecology, info, notice,
+                frame.HistoryTruncated, totalRecordedYears, frame.ProjectionCompacted, frame.Stage4Compacted,
+                frame.PayloadBudgetExceeded, economyEnabled, economy, hasUnsavedProgress, experimentBadge, recipeDto,
+                frame.PruneLogTruncated), ResponseJson));
+        await WriteBoundedBytesAsync(context, StatusOf(result.RefusalCode), rawBytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     private async Task MultiRecoverAsync(HttpContext context)
@@ -294,7 +297,8 @@ internal sealed partial class PlayerApi
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
         bool HasUnsavedProgress = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ExperimentBadge = null,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiRecoverPayload(string Slot, string? Checksum, long? Bytes, Notice? Refusal);
 }

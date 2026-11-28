@@ -369,13 +369,23 @@ internal sealed partial class PlayerApi
 
         int minEvents = filteredView.Events.Count > 0 ? 1 : 0;
         int minAnnual = filteredView.AnnualHistory.Count > 0 ? 1 : 0;
+        int maxHist = Math.Max(filteredView.Events.Count, filteredView.AnnualHistory.Count);
 
         byte[] Build(object viewObj, object scenesObj, object s4Obj, object? ecoObj, IReadOnlyList<string>? reasons,
-            bool histTrunc, bool projCompact, bool s4Compact) =>
+            bool histTrunc, bool projCompact, bool s4Compact, bool pruneTrunc) =>
             JsonSerializer.SerializeToUtf8Bytes(new MultiStandLanesPayload(
                 fence, requestedLanes, viewObj, scenesObj, s4Obj, ecoObj, reasons,
                 histTrunc, totalRecordedYears, projCompact, s4Compact, economyEnabled, economy,
-                hasUnsavedProgress, recipeDto), ResponseJson);
+                hasUnsavedProgress, recipeDto, pruneTrunc), ResponseJson);
+
+        MultiProjectedSessionViewDto MakeView(int keepEv, int keepAn) =>
+            (keepEv >= filteredView.Events.Count && keepAn >= filteredView.AnnualHistory.Count)
+                ? ProjectViewForBudget(filteredView)
+                : ProjectViewForBudget(filteredView with
+                {
+                    Events = TailOf(filteredView.Events, keepEv),
+                    AnnualHistory = TailOf(filteredView.AnnualHistory, keepAn),
+                });
 
         var projScenes = ProjectScenesForBudget(fullScenes);
         int[] pruneCaps = filteredStage4.PruneLog.Count > 0 ? new[] { filteredStage4.PruneLog.Count, 10, 1, 0 } : new[] { 0 };
@@ -384,29 +394,50 @@ internal sealed partial class PlayerApi
             var s4CompactObj = ProjectStage4CompactRows(filteredStage4, hasEcology: compactEco is not null, pruneLogCap: pCap);
             bool pTrim = pCap < filteredStage4.PruneLog.Count;
 
-            var vFull = ProjectViewForBudget(filteredView);
-            byte[] bFull = Build(vFull, projScenes, s4CompactObj, compactEco, reasonTable, pTrim, projCompact: true, s4Compact: true);
+            // HistoryTruncated is truthful: true ONLY when view.events or view.annualHistory entries are actually omitted.
+            var vFull = MakeView(filteredView.Events.Count, filteredView.AnnualHistory.Count);
+            byte[] bFull = Build(vFull, projScenes, s4CompactObj, compactEco, reasonTable,
+                histTrunc: false, projCompact: true, s4Compact: true, pruneTrunc: pTrim);
             if (bFull.Length <= budget.MaxViewBytes)
                 return (bFull, false);
 
-            var vTail = ProjectViewForBudget(filteredView with
+            var vMin = MakeView(minEvents, minAnnual);
+            bool minTrunc = minEvents < filteredView.Events.Count || minAnnual < filteredView.AnnualHistory.Count;
+            byte[] bMin = Build(vMin, projScenes, s4CompactObj, compactEco, reasonTable,
+                histTrunc: minTrunc, projCompact: true, s4Compact: true, pruneTrunc: pTrim);
+            if (bMin.Length > budget.MaxViewBytes) continue;
+
+            int lo = 1;
+            int hi = Math.Max(2, maxHist);
+            byte[] bestBytes = bMin;
+            while (lo + 1 < hi)
             {
-                Events = TailOf(filteredView.Events, minEvents),
-                AnnualHistory = TailOf(filteredView.AnnualHistory, minAnnual),
-            });
-            bool hTrim = minEvents < filteredView.Events.Count || minAnnual < filteredView.AnnualHistory.Count || pTrim;
-            byte[] bTail = Build(vTail, projScenes, s4CompactObj, compactEco, reasonTable, hTrim, projCompact: true, s4Compact: true);
-            if (bTail.Length <= budget.MaxViewBytes)
-                return (bTail, false);
+                int mid = lo + ((hi - lo) / 2);
+                int kEv = Math.Min(filteredView.Events.Count, Math.Max(minEvents, mid));
+                int kAn = Math.Min(filteredView.AnnualHistory.Count, Math.Max(minAnnual, mid));
+                var vCand = MakeView(kEv, kAn);
+                bool candTrunc = kEv < filteredView.Events.Count || kAn < filteredView.AnnualHistory.Count;
+                byte[] bCand = Build(vCand, projScenes, s4CompactObj, compactEco, reasonTable,
+                    histTrunc: candTrunc, projCompact: true, s4Compact: true, pruneTrunc: pTrim);
+                if (bCand.Length <= budget.MaxViewBytes)
+                {
+                    lo = mid;
+                    bestBytes = bCand;
+                }
+                else
+                {
+                    hi = mid;
+                }
+            }
+            return (bestBytes, false);
         }
 
         var overS4 = ProjectStage4CompactRows(filteredStage4, hasEcology: compactEco is not null, pruneLogCap: 0);
-        var overV = ProjectViewForBudget(filteredView with
-        {
-            Events = TailOf(filteredView.Events, minEvents),
-            AnnualHistory = TailOf(filteredView.AnnualHistory, minAnnual),
-        });
-        byte[] overBytes = Build(overV, projScenes, overS4, compactEco, reasonTable, histTrunc: true, projCompact: true, s4Compact: true);
+        var overV = MakeView(minEvents, minAnnual);
+        bool overHistTrunc = minEvents < filteredView.Events.Count || minAnnual < filteredView.AnnualHistory.Count;
+        bool overPruneTrunc = filteredStage4.PruneLog.Count > 0;
+        byte[] overBytes = Build(overV, projScenes, overS4, compactEco, reasonTable,
+            histTrunc: overHistTrunc, projCompact: true, s4Compact: true, pruneTrunc: overPruneTrunc);
         return (overBytes, overBytes.Length > budget.MaxViewBytes);
     }
 
@@ -625,5 +656,6 @@ internal sealed partial class PlayerApi
         bool EconomyEnabled,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy,
         bool HasUnsavedProgress,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 }

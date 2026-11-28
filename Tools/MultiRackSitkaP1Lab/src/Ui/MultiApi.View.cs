@@ -69,6 +69,17 @@ internal sealed partial class PlayerApi
         return WriteRawJsonAsync(context, StatusCodes.Status200OK, bytes);
     }
 
+    private readonly record struct BoundedMultiFrame(
+        object View,
+        object Scenes,
+        object? Stage4,
+        MultiAreaEcologyDto? Ecology,
+        bool HistoryTruncated,
+        bool ProjectionCompacted,
+        bool Stage4Compacted,
+        bool PayloadBudgetExceeded,
+        bool PruneLogTruncated);
+
     private sealed record BoundedMultiSnapshot(
         object View,
         object Scenes,
@@ -78,7 +89,27 @@ internal sealed partial class PlayerApi
         int TotalRecordedYears,
         bool ProjectionCompacted,
         bool Stage4Compacted,
-        bool PayloadBudgetExceeded);
+        bool PayloadBudgetExceeded,
+        bool PruneLogTruncated = false);
+
+    // Compact HTTP projection for MultiAreaAnnualResult on command responses: preserves year bounds, per-area stand
+    // transitions (Before/PostGrowth/After), density pressure, mean vulnerability and every AnnualDeath, omitting only
+    // the redundant per-tree Before/After AnnualTreeAudit list that duplicates view.areas[].trees in the same response.
+    private static MultiProjectedAnnualResultDto? ProjectAnnualForBudget(MultiAreaAnnualResult? annual)
+    {
+        if (annual is null) return null;
+        var areas = new MultiProjectedAreaReportDto[annual.Areas.Count];
+        for (int i = 0; i < annual.Areas.Count; i++)
+        {
+            var area = annual.Areas[i];
+            var r = area.Report;
+            areas[i] = new MultiProjectedAreaReportDto(area.AreaId, r is null
+                ? null
+                : new MultiProjectedAnnualReportDto(r.YearBefore, r.YearAfter, r.Before, r.PostGrowth, r.After,
+                    r.PostGrowthDensityPressure, r.MeanVulnerability, r.Deaths));
+        }
+        return new MultiProjectedAnnualResultDto(annual.YearBefore, annual.YearAfter, Array.AsReadOnly(areas));
+    }
 
     private static double R3(double v) => double.IsFinite(v) ? Math.Round(v, 3, MidpointRounding.AwayFromZero) : v;
     private static float R3f(float v) => float.IsFinite(v) ? MathF.Round(v, 3, MidpointRounding.AwayFromZero) : v;
@@ -121,9 +152,10 @@ internal sealed partial class PlayerApi
         MultiEconomySnapshotDto? economy = null,
         MultiViewBudgetLimit? budgetOverride = null,
         bool hasUnsavedProgress = false,
-        MultiWoodlandRecipeDto? recipe = null) =>
+        MultiWoodlandRecipeDto? recipe = null,
+        Func<BoundedMultiFrame, byte[]>? envelopeSerializer = null) =>
         SerializeBoundedMultiView(snapshot.View, snapshot.Readout, snapshot.Ecology, totalRecordedYears, reviewPreview,
-            out finalBytes, economyEnabled, economy, budgetOverride, hasUnsavedProgress, recipe);
+            out finalBytes, economyEnabled, economy, budgetOverride, hasUnsavedProgress, recipe, envelopeSerializer);
 
     private static BoundedMultiSnapshot SerializeBoundedMultiView(
         MultiAreaSessionView fullView,
@@ -136,7 +168,8 @@ internal sealed partial class PlayerApi
         MultiEconomySnapshotDto? economy = null,
         MultiViewBudgetLimit? budgetOverride = null,
         bool hasUnsavedProgress = false,
-        MultiWoodlandRecipeDto? recipe = null)
+        MultiWoodlandRecipeDto? recipe = null,
+        Func<BoundedMultiFrame, byte[]>? envelopeSerializer = null)
     {
         int maxViewBytes = budgetOverride?.MaxViewBytes ?? MaxViewPayloadBytes;
         int maxEcoBytes = budgetOverride?.MaxEcologyBytes ?? MaxEcologyPayloadBytes;
@@ -148,11 +181,15 @@ internal sealed partial class PlayerApi
         int minAnnual = fullView.AnnualHistory.Count > 0 ? 1 : 0;
         int maxHist = Math.Max(fullView.Events.Count, fullView.AnnualHistory.Count);
 
-        byte[] Serialize(object v, object sc, object? s4, bool histTrunc, bool projCompact, bool s4Compact, bool exceeded) =>
-            JsonSerializer.SerializeToUtf8Bytes(
+        byte[] Serialize(object v, object sc, object? s4, bool histTrunc, bool projCompact, bool s4Compact, bool exceeded, bool pruneTrunc)
+        {
+            if (envelopeSerializer is not null)
+                return envelopeSerializer(new BoundedMultiFrame(v, sc, s4, projEco, histTrunc, projCompact, s4Compact, exceeded, pruneTrunc));
+            return JsonSerializer.SerializeToUtf8Bytes(
                 new MultiViewPayload(v, sc, MultiLabels, s4, projEco, histTrunc, totalRecordedYears, reviewPreview,
-                    projCompact, s4Compact, exceeded, economyEnabled, economy, hasUnsavedProgress, recipe),
+                    projCompact, s4Compact, exceeded, economyEnabled, economy, hasUnsavedProgress, recipe, pruneTrunc),
                 ResponseJson);
+        }
 
         MultiAreaSessionView TailRaw(int keepEvents, int keepAnnual) => fullView with
         {
@@ -192,18 +229,20 @@ internal sealed partial class PlayerApi
                 object? s4Obj = fullStage4 is null ? null : stage4WithPruneCap(pruneCap);
                 bool pruneTrimmed = pruneCap < fullPruneCount;
 
+                // HistoryTruncated is truthful: true ONLY when view.events or view.annualHistory entries are actually omitted.
                 object fullV = MakeView(fullView.Events.Count, fullView.AnnualHistory.Count);
-                byte[] fullB = Serialize(fullV, scenesObj, s4Obj, pruneTrimmed, projCompact, s4Compact, exceeded: false);
+                byte[] fullB = Serialize(fullV, scenesObj, s4Obj, histTrunc: false, projCompact, s4Compact, exceeded: false, pruneTrimmed);
                 if (fullB.Length <= maxViewBytes)
                 {
-                    fit = new BoundedMultiSnapshot(fullV, scenesObj, s4Obj, projEco, pruneTrimmed, totalRecordedYears, projCompact, s4Compact, false);
+                    fit = new BoundedMultiSnapshot(fullV, scenesObj, s4Obj, projEco, HistoryTruncated: false, totalRecordedYears,
+                        projCompact, s4Compact, PayloadBudgetExceeded: false, PruneLogTruncated: pruneTrimmed);
                     fitBytes = fullB;
                     return true;
                 }
 
                 object minV = MakeView(minEvents, minAnnual);
-                bool minTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count || pruneTrimmed;
-                byte[] minB = Serialize(minV, scenesObj, s4Obj, minTrunc, projCompact, s4Compact, exceeded: false);
+                bool minTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count;
+                byte[] minB = Serialize(minV, scenesObj, s4Obj, minTrunc, projCompact, s4Compact, exceeded: false, pruneTrimmed);
                 if (minB.Length > maxViewBytes) continue;
 
                 int lo = 1;
@@ -217,8 +256,8 @@ internal sealed partial class PlayerApi
                     int kEv = Math.Min(fullView.Events.Count, Math.Max(minEvents, mid));
                     int kAn = Math.Min(fullView.AnnualHistory.Count, Math.Max(minAnnual, mid));
                     object candV = MakeView(kEv, kAn);
-                    bool candTrunc = kEv < fullView.Events.Count || kAn < fullView.AnnualHistory.Count || pruneTrimmed;
-                    byte[] candB = Serialize(candV, scenesObj, s4Obj, candTrunc, projCompact, s4Compact, exceeded: false);
+                    bool candTrunc = kEv < fullView.Events.Count || kAn < fullView.AnnualHistory.Count;
+                    byte[] candB = Serialize(candV, scenesObj, s4Obj, candTrunc, projCompact, s4Compact, exceeded: false, pruneTrimmed);
                     if (candB.Length <= maxViewBytes)
                     {
                         lo = mid;
@@ -231,7 +270,8 @@ internal sealed partial class PlayerApi
                         hi = mid;
                     }
                 }
-                fit = new BoundedMultiSnapshot(bestV, scenesObj, s4Obj, projEco, bestTrunc, totalRecordedYears, projCompact, s4Compact, false);
+                fit = new BoundedMultiSnapshot(bestV, scenesObj, s4Obj, projEco, bestTrunc, totalRecordedYears,
+                    projCompact, s4Compact, PayloadBudgetExceeded: false, PruneLogTruncated: pruneTrimmed);
                 fitBytes = bestB;
                 return true;
             }
@@ -242,13 +282,13 @@ internal sealed partial class PlayerApi
         // Tier 0: full uncompacted view/scenes/stage4 with full history when within budget.
         if (ecoBytes <= maxEcoBytes)
         {
-            byte[] tier0Bytes = Serialize(fullView, fullScenes, fullStage4, histTrunc: false, projCompact: false, s4Compact: false, exceeded: false);
+            byte[] tier0Bytes = Serialize(fullView, fullScenes, fullStage4, histTrunc: false, projCompact: false, s4Compact: false, exceeded: false, pruneTrunc: false);
             if (tier0Bytes.Length <= maxViewBytes)
             {
                 finalBytes = tier0Bytes;
                 return new BoundedMultiSnapshot(fullView, fullScenes, fullStage4, projEco,
                     HistoryTruncated: false, TotalRecordedYears: totalRecordedYears,
-                    ProjectionCompacted: false, Stage4Compacted: false, PayloadBudgetExceeded: false);
+                    ProjectionCompacted: false, Stage4Compacted: false, PayloadBudgetExceeded: false, PruneLogTruncated: false);
             }
         }
 
@@ -277,12 +317,13 @@ internal sealed partial class PlayerApi
         object? overStage4 = fullStage4 is null ? null
             : ProjectStage4ForBudget(fullStage4, hasEcology: projEco is not null, compactGround: true, pruneLogCap: 0);
         var overView = ProjectViewForBudget(TailRaw(minEvents, minAnnual));
-        bool overTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count || (fullStage4?.PruneLog.Count ?? 0) > 0;
-        byte[] overBytes = Serialize(overView, projScenes, overStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true);
+        bool overTrunc = minEvents < fullView.Events.Count || minAnnual < fullView.AnnualHistory.Count;
+        bool overPruneTrunc = (fullStage4?.PruneLog.Count ?? 0) > 0;
+        byte[] overBytes = Serialize(overView, projScenes, overStage4, overTrunc, projCompact: true, s4Compact: fullStage4 is not null, exceeded: true, pruneTrunc: overPruneTrunc);
         finalBytes = overBytes;
         return new BoundedMultiSnapshot(overView, projScenes, overStage4, projEco,
             HistoryTruncated: overTrunc, TotalRecordedYears: totalRecordedYears,
-            ProjectionCompacted: true, Stage4Compacted: fullStage4 is not null, PayloadBudgetExceeded: true);
+            ProjectionCompacted: true, Stage4Compacted: fullStage4 is not null, PayloadBudgetExceeded: true, PruneLogTruncated: overPruneTrunc);
     }
 
     // Honest projection of MultiAreaSessionView: keeps every area, living tree, stump and dead tree with exact field names;
@@ -408,6 +449,15 @@ internal sealed partial class PlayerApi
             Array.AsReadOnly(compactAreas), stage4.PendingPrunes, stage4.ApprovedPrunes, TailOf(stage4.PruneLog, pruneLogCap));
     }
 
+    // Writes pre-serialized envelope bytes produced by SerializeBoundedMultiView, refusing with HTTP 503 whenever over budget.
+    private static Task WriteBoundedBytesAsync(HttpContext context, int status, byte[] bytes,
+        MultiViewBudgetLimit budget, bool alreadyExceeded)
+    {
+        if (alreadyExceeded || bytes.Length > budget.MaxViewBytes)
+            return WritePayloadBudgetExceededAsync(context, bytes.Length, budget.MaxViewBytes);
+        return WriteRawJsonAsync(context, status, bytes);
+    }
+
     // Serializes any view-carrying JSON response and guarantees the server NEVER emits a body exceeding the active
     // payload budget on ANY route (200 or 409): returns typed HTTP 503 MultiViewPayloadBudgetExceeded instead (spec §8).
     private static Task WriteBoundedJsonAsync<T>(HttpContext context, int status, T payload,
@@ -485,13 +535,14 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(result.Snapshot.View.Areas.Count, genesisStems);
+        var notice = NoticeOf(result.RefusalCode, result.RefusalMessage);
         var bounded = SerializeBoundedMultiView(result.Snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
-            economyEnabled, economy, budget);
-        await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCellPayload(bounded.View, bounded.Scenes,
-            result.Cell, NoticeOf(result.RefusalCode, result.RefusalMessage), bounded.Stage4, bounded.Ecology,
-            bounded.HistoryTruncated, bounded.TotalRecordedYears, bounded.ProjectionCompacted, bounded.Stage4Compacted,
-            bounded.PayloadBudgetExceeded, economyEnabled, economy),
-            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+            economyEnabled, economy, budget,
+            envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiCellPayload(frame.View, frame.Scenes,
+                result.Cell, notice, frame.Stage4, frame.Ecology,
+                frame.HistoryTruncated, totalRecordedYears, frame.ProjectionCompacted, frame.Stage4Compacted,
+                frame.PayloadBudgetExceeded, economyEnabled, economy, frame.PruneLogTruncated), ResponseJson));
+        await WriteBoundedBytesAsync(context, StatusOf(result.RefusalCode), rawBytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     private async Task ReadMultiCompetitionAsync(HttpContext context)
@@ -515,20 +566,22 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
+        var notice = NoticeOf(result.RefusalCode, result.RefusalMessage);
         if (composite is not null)
         {
             var bounded = SerializeBoundedMultiView(result.View, composite.Stage4, composite.Ecology, totalRecordedYears,
-                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget);
-            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(bounded.View, bounded.Scenes,
-                result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
-                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget,
+                envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiCompetitionPayload(frame.View, frame.Scenes,
+                    result.AreaId, result.Competition, notice,
+                    frame.Stage4, frame.Ecology, frame.HistoryTruncated, totalRecordedYears,
+                    frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                    frame.PruneLogTruncated), ResponseJson));
+            await WriteBoundedBytesAsync(context, StatusOf(result.RefusalCode), rawBytes, budget, bounded.PayloadBudgetExceeded);
         }
         else
         {
             await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCompetitionPayload(result.View, ScenesOf(result.View),
-                result.AreaId, result.Competition, NoticeOf(result.RefusalCode, result.RefusalMessage),
+                result.AreaId, result.Competition, notice,
                 null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy), budget);
         }
     }
@@ -554,20 +607,22 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
+        var notice = NoticeOf(result.RefusalCode, result.RefusalMessage);
         if (composite is not null)
         {
             var bounded = SerializeBoundedMultiView(result.View, composite.Stage4, composite.Ecology, totalRecordedYears,
-                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget);
-            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(bounded.View, bounded.Scenes,
-                result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
-                bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
-                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+                reviewPreview: null, out byte[] rawBytes, economyEnabled, economy, budget,
+                envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiHitPayload(frame.View, frame.Scenes,
+                    result.AreaId, result.Candidates, notice,
+                    frame.Stage4, frame.Ecology, frame.HistoryTruncated, totalRecordedYears,
+                    frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                    frame.PruneLogTruncated), ResponseJson));
+            await WriteBoundedBytesAsync(context, StatusOf(result.RefusalCode), rawBytes, budget, bounded.PayloadBudgetExceeded);
         }
         else
         {
             await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiHitPayload(result.View, ScenesOf(result.View),
-                result.AreaId, result.Candidates, NoticeOf(result.RefusalCode, result.RefusalMessage),
+                result.AreaId, result.Candidates, notice,
                 null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy), budget);
         }
     }
@@ -1032,7 +1087,25 @@ internal sealed partial class PlayerApi
         bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
         bool HasUnsavedProgress = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
+
+    private sealed record MultiProjectedAnnualReportDto(
+        int YearBefore,
+        int YearAfter,
+        AnnualStand Before,
+        AnnualStand PostGrowth,
+        AnnualStand After,
+        double PostGrowthDensityPressure,
+        double? MeanVulnerability,
+        IReadOnlyList<AnnualDeath> Deaths);
+
+    private sealed record MultiProjectedAreaReportDto(string AreaId, MultiProjectedAnnualReportDto? Report);
+
+    private sealed record MultiProjectedAnnualResultDto(
+        int YearBefore,
+        int YearAfter,
+        IReadOnlyList<MultiProjectedAreaReportDto> Areas);
 
     private sealed record MultiProjectedDeathDto(int EcologicalYear, string Cause, string Mechanism, LifeState LifeState);
 
@@ -1126,21 +1199,24 @@ internal sealed partial class PlayerApi
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiHitPayload(object View, object Scenes,
         string AreaId, IReadOnlyList<PlayerMapItem> Candidates, Notice? Refusal, object? Stage4,
         MultiAreaEcologyDto? Ecology, bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiCellPayload(object View, object Scenes,
         MultiAreaCellDetail? Cell, Notice? Refusal, object? Stage4, MultiAreaEcologyDto? Ecology,
         bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiEconomyExecutorEntryDto(string Kind, string AreaId, string TargetKey, string Executor);
 

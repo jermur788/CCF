@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
@@ -31,20 +32,23 @@ internal sealed partial class PlayerApi
             genesisStems = active.Session.GenesisStemCount;
         }
         var budget = ActiveStandBudget(result.View.Areas.Count, genesisStems);
+        var notice = NoticeOf(result.RefusalCode, result.RefusalMessage);
+        var projectedAnnual = ProjectAnnualForBudget(result.Annual);
         if (composite is { } c)
         {
             var bounded = SerializeBoundedMultiView(result.View, c.Stage4, c.Ecology, totalRecordedYears, reviewPreview: null,
-                out byte[] rawBytes, economyEnabled, economy, budget, hasUnsavedProgress);
-            await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(bounded.View, bounded.Scenes,
-                NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual,
-                bounded.Stage4, bounded.Ecology, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy,
-                hasUnsavedProgress), budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+                out byte[] rawBytes, economyEnabled, economy, budget, hasUnsavedProgress,
+                envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiCommandPayload(frame.View, frame.Scenes,
+                    notice, result.Execution, projectedAnnual,
+                    frame.Stage4, frame.Ecology, frame.HistoryTruncated, totalRecordedYears,
+                    frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                    hasUnsavedProgress, frame.PruneLogTruncated), ResponseJson));
+            await WriteBoundedBytesAsync(context, StatusOf(result.RefusalCode), rawBytes, budget, bounded.PayloadBudgetExceeded);
         }
         else
         {
             await WriteBoundedJsonAsync(context, StatusOf(result.RefusalCode), new MultiCommandPayload(result.View, ScenesOf(result.View),
-                NoticeOf(result.RefusalCode, result.RefusalMessage), result.Execution, result.Annual,
+                notice, result.Execution, projectedAnnual,
                 null, null, false, totalRecordedYears, EconomyEnabled: economyEnabled, Economy: economy,
                 HasUnsavedProgress: hasUnsavedProgress), budget);
         }
@@ -147,12 +151,13 @@ internal sealed partial class PlayerApi
         }
         var budget = ActiveStandBudget(outSnap.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(outSnap, totalRecordedYears, reviewPreview, out byte[] rawBytes,
-            economyEnabled, economy, budget, hasUnsavedProgress);
-        await WriteBoundedJsonAsync(context, StatusOf(refusal?.Code), new MultiEconomySessionPayload(
-            bounded.View, bounded.Scenes, MultiLabels, bounded.Stage4, bounded.Ecology,
-            refusal, bounded.HistoryTruncated, bounded.TotalRecordedYears, reviewPreview,
-            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy,
-            hasUnsavedProgress), budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+            economyEnabled, economy, budget, hasUnsavedProgress,
+            envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiEconomySessionPayload(
+                frame.View, frame.Scenes, MultiLabels, frame.Stage4, frame.Ecology,
+                refusal, frame.HistoryTruncated, totalRecordedYears, reviewPreview,
+                frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                hasUnsavedProgress, frame.PruneLogTruncated), ResponseJson));
+        await WriteBoundedBytesAsync(context, StatusOf(refusal?.Code), rawBytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     // Pure read-only Work Plan economic quote (POST api/multi/economy/quote). Refuses 409 when Off or fence is stale.
@@ -217,12 +222,13 @@ internal sealed partial class PlayerApi
             }));
 
     private sealed record MultiCommandPayload(object View, object Scenes,
-        Notice? Refusal, MultiAreaExecutionResult? Execution, MultiAreaAnnualResult? Annual, object? Stage4,
+        Notice? Refusal, MultiAreaExecutionResult? Execution, object? Annual, object? Stage4,
         MultiAreaEcologyDto? Ecology, bool HistoryTruncated = false, int TotalRecordedYears = 0,
         bool ProjectionCompacted = false, bool Stage4Compacted = false, bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
-        bool HasUnsavedProgress = false);
+        bool HasUnsavedProgress = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiEconomyViewPayload(
         string SessionId,
@@ -247,7 +253,8 @@ internal sealed partial class PlayerApi
         bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
-        bool HasUnsavedProgress = false);
+        bool HasUnsavedProgress = false,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiEconomyQuotePayload(
         MultiEconomyQuoteDto? Quote,
