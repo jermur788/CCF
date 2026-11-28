@@ -114,9 +114,10 @@ public static class SenescenceHazard
         if (endAgeInclusive < startAgeInclusive)
             throw new ArgumentOutOfRangeException(nameof(endAgeInclusive), endAgeInclusive, "End age must be >= start age.");
 
+        // A long counter, so an inclusive end of int.MaxValue cannot wrap the loop.
         double survival = 1.0;
-        for (int age = startAgeInclusive; age <= endAgeInclusive; age++)
-            survival *= 1.0 - AnnualHazard(speciesId, age);
+        for (long age = startAgeInclusive; age <= endAgeInclusive; age++)
+            survival *= 1.0 - AnnualHazard(speciesId, (int)age);
         return survival;
     }
 }

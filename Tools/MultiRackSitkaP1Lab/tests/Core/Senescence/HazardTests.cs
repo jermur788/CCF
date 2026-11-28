@@ -165,6 +165,11 @@ internal static class HazardTests
             Throws<ArgumentOutOfRangeException>(() => SenescenceHazard.SurvivalProbability(Alder, 70, 69), "end before start");
             Throws<ArgumentOutOfRangeException>(() => SenescenceHazard.SurvivalProbability(Alder, -1, 10), "negative start");
             Throws<ArgumentException>(() => SenescenceHazard.SurvivalProbability("alder", 70, 150), "unknown species");
+
+            // Regression (review of c1201e8f): an inclusive end of int.MaxValue must not wrap the loop counter.
+            double maxAgeSurvival = 0.0;
+            NoThrow(() => maxAgeSurvival = SenescenceHazard.SurvivalProbability(Alder, int.MaxValue, int.MaxValue), "single max-int year");
+            BitEq(1.0 - H(Alder, int.MaxValue), maxAgeSurvival, "single max-int year is 1 - h(max)");
         });
 
         TestRunner.Add(Suite, "HAZ-09 hazard has no crowding input: the API takes only species and age, and a tree's fate is the same alone or in a dense stand", () =>

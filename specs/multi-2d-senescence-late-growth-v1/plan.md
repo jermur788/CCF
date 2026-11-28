@@ -20,7 +20,7 @@ All Part 1 source files live in namespace `SitkaP1.Core.NaturalProcesses.Senesce
 2. **Engine (`Tools/MultiRackSitkaP1Lab/src/Core/NaturalProcesses/Senescence/`):**
    - `SenescenceContracts.cs` — `SenescenceModelVersion`, `SenescenceStreams`, `SenescenceText`, `SenescenceSpeciesProfile`, `SenescenceTreeInput`, `SenescenceRequest`, `SenescenceHazardEvaluation`, `SenescenceDeathRecord`, `SenescenceResult`, and defensive `SenescenceSnapshotList<T>` (plain enumeration copy, never `ToArray()` or `new List<T>(source)` on caller input).
    - `SenescenceHazard.cs` — six independent species profiles reusing `SpeciesMoistureTable` ID constants, pure `AnnualHazard(speciesId, ageYears)` smoothstep curve, and `SurvivalProbability(speciesId, startAgeInclusive, endAgeInclusive)`.
-   - `SenescenceEngine.cs` — version-gated `Evaluate(SenescenceRequest)` and deterministic stateless `RollUniform(speciesId, treeId, year, seed)` mirroring `NaturalProcessRandom.RollModel1` (FNV-1a over key + SplitMix64 mixing with year and seed, returning 53-bit uniform double in `[0, 1)`).
+   - `SenescenceEngine.cs` — version-gated `Evaluate(SenescenceRequest)` and deterministic stateless `RollUniform(speciesId, treeId, year, seed)`: 64-bit FNV-1a over the full key, then Model 1's SplitMix64 mixing with year and seed, returning a 53-bit uniform double in `[0, 1)`. Not Model 1 bit-parity: the 32-bit key hash was replaced in repair cycle 1 because it let distinct trees share every roll (spec FR-3).
    - `LateLifeGrowth.cs` — `LateLifeGrowthRequest`, `LateLifeGrowthResult`, and `LateLifeGrowth` evaluator for `scots-pine`, `common-alder`, and `downy-birch` only.
 3. **Standalone offline console test executable (`Tools/MultiRackSitkaP1Lab/tests/Core/Senescence/`):**
    - `SitkaP1.Senescence.Tests.csproj` — `OutputType=Exe`, compiling only `../../../src/Core/SpeciesWave2/**/*.cs`, `../../../src/Core/NaturalProcesses/Senescence/**/*.cs`, and its own test `.cs` files.
@@ -59,7 +59,7 @@ All Part 1 source files live in namespace `SitkaP1.Core.NaturalProcesses.Senesce
 - When `OldAgeV1` (1):
   1. Validate tree list, reject blank/duplicate `TreeId`, negative `AgeYears`, and unknown `SpeciesId`.
   2. Sort snapshot trees by `TreeId` (`StringComparer.Ordinal`) so caller input order cannot affect output order or fate.
-  3. For each tree, compute `hazard = SenescenceHazard.AnnualHazard(speciesId, ageYears)`, build key `"SENESCENCE-OLD-AGE-v1-" + speciesId + "/" + treeId`, perform one stateless Model 1 roll (`FNV-1a` over key + SplitMix64 mixing with `year` and `seed`), increment `RngDrawCount`, and emit one `SenescenceDeathRecord` if `hazard > 0.0 && roll < hazard`.
+  3. For each tree, compute `hazard = SenescenceHazard.AnnualHazard(speciesId, ageYears)`, build key `"SENESCENCE-OLD-AGE-v1-" + speciesId + "/" + treeId`, perform one stateless keyed roll (64-bit FNV-1a over the key + SplitMix64 mixing with `year` and `seed`), increment `RngDrawCount`, and emit one `SenescenceDeathRecord` if `hazard > 0.0 && roll < hazard`.
 - Because `SenescenceStreams.OldAgeTreePrefix` (`"SENESCENCE-OLD-AGE-v1-"`) is strictly prefix-free against all existing `RngSalts` and `NaturalProcessStreams` keys, Part 2 can register it directly in `RngSalts.cs` without shifting any existing stream or changing Part 1 hashes.
 
 ### 3. Why delegation preserves the existing Wave 2 window bit-exactly (`LateLifeGrowth.cs`)

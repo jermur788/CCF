@@ -6,10 +6,20 @@ namespace SitkaP1.Core.NaturalProcesses.Senescence;
 /// Version gate: <see cref="SenescenceModelVersion.Disabled"/> (default) emits zero deaths, draws zero RNG, and
 /// skips all species/age inspection so frozen baselines and legacy saves remain byte-identical.
 ///
-/// Determinism: <see cref="SenescenceModelVersion.OldAgeV1"/> makes exactly one stateless keyed roll per tree per year,
-/// mirroring the Model 1 hashing approach of <c>NaturalProcessRandom.cs</c> (FNV-1a over the versioned key string,
-/// followed by SplitMix64 mixing with year and seed, returning a uniform 53-bit double in [0, 1)). No
-/// <see cref="Random"/>, clock, or I/O is used, and input tree order cannot affect outcomes.
+/// Determinism: <see cref="SenescenceModelVersion.OldAgeV1"/> makes exactly one stateless keyed roll per tree per year:
+/// 64-bit FNV-1a over the versioned key string, then the same SplitMix64 mixing with year and seed that Model 1 uses,
+/// returning a uniform 53-bit double in [0, 1). No <see cref="Random"/>, clock, or I/O is used, and input tree order
+/// cannot affect outcomes.
+///
+/// Why 64-bit, not Model 1's 32-bit key hash: with a 32-bit hash two different tree ids can share a key hash (for example
+/// <c>common-alder/MA-A-5B7Z</c> and <c>common-alder/MA-A-Q3QA</c> both hash to 0xF88F6C5C), and because year and seed
+/// are mixed in afterwards such a pair would share every roll in every year. For a fixed year and seed the map from the
+/// 64-bit key hash to the 64-bit mixed state is a bijection, so trees can only share a state if their full 64-bit key
+/// hashes collide. Nothing is truncated to 32 bits before the final 53-bit uniform conversion.
+///
+/// Version discipline (D-050 rule 4): OldAgeV1 and the prefix <c>SENESCENCE-OLD-AGE-v1-</c> have never been accepted,
+/// registered in RngSalts or persisted. This collision-hardened roll is part of v1's pre-registration definition. Any
+/// change to the roll after Part 2 integration requires a new model version (OldAgeV2), never an edit to v1.
 /// </summary>
 public static class SenescenceEngine
 {
@@ -67,7 +77,7 @@ public static class SenescenceEngine
                 tree.TreeId, tree.SpeciesId, tree.AgeYears, hazard, profile.Evidence);
 
             string key = SenescenceStreams.KeyFor(tree.SpeciesId, tree.TreeId);
-            double roll = RollModel1(key, request.Year, request.Seed);
+            double roll = RollKeyed(key, request.Year, request.Seed);
             drawCount++;
 
             if (hazard > 0.0 && roll < hazard)
@@ -83,30 +93,35 @@ public static class SenescenceEngine
     }
 
     /// <summary>
-    /// Pure deterministic Model 1 uniform roll in [0, 1) keyed by (speciesId, treeId, year, seed) under
+    /// Pure deterministic uniform roll in [0, 1) keyed by (speciesId, treeId, year, seed) under
     /// <see cref="SenescenceStreams.OldAgeTreePrefix"/>.
     /// </summary>
     public static double RollUniform(string speciesId, string treeId, int year, int seed)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(year, 1);
         string key = SenescenceStreams.KeyFor(speciesId, treeId);
-        return RollModel1(key, year, seed);
+        return RollKeyed(key, year, seed);
+    }
+
+    /// <summary>The 64-bit FNV-1a hash of every UTF-16 code unit of <paramref name="key"/>.</summary>
+    internal static ulong KeyHash64(string key)
+    {
+        ulong hash = 14695981039346656037UL;
+        foreach (char c in key)
+            hash = unchecked((hash ^ c) * 1099511628211UL);
+        return hash;
     }
 
     /// <summary>
-    /// The shared Model 1 hash over any key. Internal (not private) only so the standalone test executable, which compiles
-    /// these sources directly, can prove the mixed state is bit-identical to the frozen Model 1 vectors.
+    /// The keyed roll over a full key. Internal (not private) only so the standalone test executable, which compiles these
+    /// sources directly, can test the hash and the mixing separately.
     /// </summary>
-    internal static double RollModel1(string key, int year, int seed)
+    internal static double RollKeyed(string key, int year, int seed)
     {
-        // Mirrors NaturalProcessRandom.RollModel1: FNV-1a 32-bit over key chars, then SplitMix64 mixing with year and
-        // seed. Model 1 keeps the top 24 bits of that state as a float; this roll keeps the top 53 bits, so it is a
-        // uniform double in [0, 1) with full IEEE-754 resolution against small residual hazards.
-        uint hash = 2166136261u;
-        foreach (char c in key)
-            hash = unchecked((hash ^ c) * 16777619u);
-
-        ulong state = Mix(((ulong)hash << 32) ^ (ulong)(uint)year);
+        // 64-bit key hash, then Model 1's SplitMix64 mixing with year and seed. Each step is a bijection on 64 bits for a
+        // fixed year and seed, so distinct key hashes always give distinct mixed states. The top 53 bits give a uniform
+        // double in [0, 1) with full IEEE-754 resolution against small residual hazards.
+        ulong state = Mix(KeyHash64(key) ^ (ulong)(uint)year);
         state = Mix(state ^ unchecked((ulong)(uint)seed * 0x9E3779B97F4A7C15UL));
         return (state >> 11) * (1.0 / 9007199254740992.0);
     }

@@ -18,10 +18,11 @@ internal static class DeterminismTests
     private const string Suite = "Determinism";
 
     /// <summary>
-    /// Digest observed on the first verified run (SDK 8.0.133, linux-x64). Any output change must update it deliberately.
+    /// Digest observed on the first verified run after repair cycle 1 (64-bit key hash; SDK 8.0.133, linux-x64). The
+    /// pre-repair digest 46da9802...b52878c is retired. Any output change must update it deliberately.
     /// The late-life continuation uses Math.Exp, so the pin is tied to the verified runtime and platform.
     /// </summary>
-    internal const string PinnedDigest = "46da98026d8e591702ba09cf272bf3b0a76cd4f969ea5c0e1a4825197b52878c";
+    internal const string PinnedDigest = "313e0f5a795bd7774752affb673927cc875bc6d89b9b988ddaadf3efa4e4bbb6";
 
     public static string CanonicalDigest() =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalText()))).ToLowerInvariant();
@@ -155,41 +156,61 @@ internal static class DeterminismTests
             Eq(PinnedDigest, CanonicalDigest(), "pinned digest");
         });
 
-        TestRunner.Add(Suite, "DET-02 the keyed roll reproduces frozen SimulationRandom model 1 bit-for-bit and widens it to a 53-bit uniform double in [0, 1)", () =>
+        TestRunner.Add(Suite, "DET-02 collision-hardened keyed roll: 64-bit key hash, the reviewer's 32-bit collision pair diverges, 20,000 ids give 20,000 distinct rolls", () =>
         {
-            // Frozen model 1 vectors (key, year, seed, bits of the model 1 float), copied verbatim at base b2006767 from
-            // tests/Core/NaturalProcesses/HygieneAndParityTests.cs (JW-T60), which pins them to SimulationRandom.Roll model 1.
-            (string Key, int Year, int Seed, int Bits)[] vectors =
-            {
-                ("STORM-OCCURS-v1", 1, 0, 1051323186), ("STORM-OCCURS-v1", 7, 12345, 1049917242), ("STORM-OCCURS-v1", 42, -99, 1039766992),
-                ("STORM-SEVERITY-v1", 1, 0, 1036554648), ("STORM-SEVERITY-v1", 7, 12345, 1049880538), ("STORM-SEVERITY-v1", 42, -99, 1064514984),
-                ("STORM-DIRECTION-v1", 1, 0, 1052229852), ("STORM-DIRECTION-v1", 7, 12345, 1025866496), ("STORM-DIRECTION-v1", 42, -99, 1060305130),
-                ("WINDTHROW-v1-T0001", 1, 0, 1048712486), ("WINDTHROW-v1-T0001", 7, 12345, 1057203739), ("WINDTHROW-v1-T0001", 42, -99, 1056215194),
-                ("JAY-ACORN-v1-OAK-7-0/distance", 1, 0, 1057653767), ("JAY-ACORN-v1-OAK-7-0/distance", 7, 12345, 1051964398),
-                ("JAY-ACORN-v1-OAK-7-0/distance", 42, -99, 1059405114),
-            };
-            foreach (var v in vectors)
-            {
-                double u = SenescenceEngine.RollModel1(v.Key, v.Year, v.Seed);
-                True(u >= 0.0 && u < 1.0, v.Key + " in [0, 1)");
-                // Model 1 keeps the top 24 bits of the same mixed state as a float; this roll keeps the top 53.
-                float model1 = (float)(Math.Floor(u * 16777216.0) / 16777216.0);
-                Eq(v.Bits, BitConverter.SingleToInt32Bits(model1), v.Key + "@" + v.Year + "/" + v.Seed);
-            }
+            // Named regression (review of c1201e8f): under the old 32-bit FNV-1a key hash both keys hashed to 0xF88F6C5C, so the
+            // two trees shared every roll in every year and seed.
+            const string first = "MA-A-5B7Z", second = "MA-A-Q3QA";
+            string keyA = SenescenceStreams.KeyFor(Alder, first), keyB = SenescenceStreams.KeyFor(Alder, second);
+            Eq(0xF88F6C5Cu, Fnv1a32(keyA), "fixture: the pair really collides under 32-bit FNV-1a");
+            Eq(0xF88F6C5Cu, Fnv1a32(keyB), "fixture: the pair really collides under 32-bit FNV-1a (second id)");
+            True(SenescenceEngine.KeyHash64(keyA) != SenescenceEngine.KeyHash64(keyB), "64-bit key hashes differ");
+            foreach (int seed in new[] { 0, Seed })
+                for (int year = 1; year <= 5; year++)
+                    True(SenescenceEngine.RollUniform(Alder, first, year, seed) != SenescenceEngine.RollUniform(Alder, second, year, seed),
+                        $"the pair rolls differently in year {year}, seed {seed}");
 
-            BitEq(SenescenceEngine.RollModel1(SenescenceStreams.KeyFor(Alder, "T0001"), 3, Seed), SenescenceEngine.RollUniform(Alder, "T0001", 3, Seed),
-                "RollUniform is model 1 over the versioned key");
+            // The hash is plain 64-bit FNV-1a (offset 14695981039346656037, prime 1099511628211) over the whole key.
+            Eq(14695981039346656037UL, SenescenceEngine.KeyHash64(""), "empty key is the offset basis");
+            Eq(0xAF63DC4C8601EC8CUL, SenescenceEngine.KeyHash64("a"), "published FNV-1a 64 test vector for \"a\"");
+            Eq(0x85944171F73967E8UL, SenescenceEngine.KeyHash64("foobar"), "published FNV-1a 64 test vector for \"foobar\"");
+            Eq(0x7AD32CD93C9A71BCUL, SenescenceEngine.KeyHash64(keyA), "independently computed 64-bit hash of the first key");
+            Eq(0xA5AFC5D9BBE8D8FCUL, SenescenceEngine.KeyHash64(keyB), "independently computed 64-bit hash of the second key");
 
-            double sum = 0.0, min = 1.0, max = 0.0;
+            // Stable for the same inputs; any change of species, tree, year or seed changes the draw.
+            double baseline = SenescenceEngine.RollUniform(Alder, first, 3, Seed);
+            BitEq(baseline, SenescenceEngine.RollUniform(Alder, first, 3, Seed), "same inputs, same roll");
+            BitEq(SenescenceEngine.RollKeyed(keyA, 3, Seed), baseline, "RollUniform is the keyed roll over the versioned key");
+            True(baseline != SenescenceEngine.RollUniform(Birch, first, 3, Seed), "species changes the draw");
+            True(baseline != SenescenceEngine.RollUniform(Alder, first + "X", 3, Seed), "tree id changes the draw");
+            True(baseline != SenescenceEngine.RollUniform(Alder, first, 4, Seed), "year changes the draw");
+            True(baseline != SenescenceEngine.RollUniform(Alder, first, 3, Seed + 1), "seed changes the draw");
+
+            // Empirical collision check: 20,000 synthetic ids at one year and seed give 20,000 distinct rolls, all in [0, 1).
+            var rolls = new HashSet<long>();
+            double sum = 0.0;
             for (int i = 0; i < 20_000; i++)
             {
-                double u = SenescenceEngine.RollUniform(SixSpecies[i % 6], $"U{i:D5}", 1 + i % 40, Seed);
+                double u = SenescenceEngine.RollUniform(Alder, $"MA-A-{i:X5}", 7, Seed);
+                True(u >= 0.0 && u < 1.0, "roll in [0, 1)");
+                rolls.Add(BitConverter.DoubleToInt64Bits(u));
                 sum += u;
-                min = Math.Min(min, u);
-                max = Math.Max(max, u);
             }
-            True(min >= 0.0 && max < 1.0, "20,000 draws stay in [0, 1)");
-            ApproxEq(0.5, sum / 20_000, 0.01, "mean of 20,000 draws");
+            Eq(20_000, rolls.Count, "20,000 ids, 20,000 distinct rolls");
+            ApproxEq(0.5, sum / 20_000, 0.01, "mean of 20,000 rolls");
+
+            // The death rate stays sane: 20,000 age-200 alder (hazard 0.030) lose between 2 % and 4.3 % in one year.
+            double rate = Run(7, Cohort(Alder, 200, 20_000, "MA-A-")).Deaths.Count / 20_000.0;
+            True(rate >= 0.02 && rate <= 0.043, $"age-200 alder death rate {rate:R} in [0.02, 0.043]");
         });
+    }
+
+    /// <summary>The old 32-bit FNV-1a key hash, kept only to prove the regression fixture still collides under it.</summary>
+    private static uint Fnv1a32(string key)
+    {
+        uint hash = 2166136261u;
+        foreach (char c in key)
+            hash = unchecked((hash ^ c) * 16777619u);
+        return hash;
     }
 }

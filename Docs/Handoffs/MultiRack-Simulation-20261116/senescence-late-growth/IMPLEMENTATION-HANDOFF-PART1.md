@@ -8,22 +8,34 @@ Role: Sole implementation writer (Playable Milestone 8 Part 1 packet, 2026-11-28
 Branch: feat/multi-2d-senescence-engine-v1
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim)
 Context commit: bdeb6a324acaf4129c10fb0846faac8b64974360 (origin/main)
-HEAD: the latest commit touching this file. Under test: spec d4208f27, engine c852cc91, tests 16addae6.
+HEAD: the latest commit touching this file. Under test: repair cycle 1 commit (on top of c1201e8f), which follows spec d4208f27, engine c852cc91, tests 16addae6.
 GITHUB HANDOFF PATH: Docs/Handoffs/MultiRack-Simulation-20261116/senescence-late-growth/IMPLEMENTATION-HANDOFF-PART1.md
-EVIDENCE (local scratch, not archived): /tmp/ccf-senescence-p1-evidence/
-  (version.txt, restore.txt, build.txt, run1.txt, run2.txt, export-build.txt, run3-export.txt)
+EVIDENCE (local scratch, not archived): /tmp/ccf-senescence-p1-repair1/ (version, restore, build, run1, run2)
+  pre-repair: /tmp/ccf-senescence-p1-evidence/
 ```
 
-**State:** implemented on an isolated branch. **NOT merged** to `integration/2d-sim` or `main`. **NOT wired** into anything. Not pushed. Awaiting independent review.
+**State:** implemented on an isolated branch; **repaired once** after independent review (NEEDS CHANGES on `c1201e8f`). **NOT merged** to `integration/2d-sim` or `main`. **NOT wired** into anything. The repair commit is not pushed (the coordinator pushes). Awaiting a delta re-review.
+
+## Repair cycle 1 (independent review NEEDS CHANGES on c1201e8f)
+
+One repair commit on top of `c1201e8f`; no earlier commit was amended.
+
+| Finding | Resolution |
+| --- | --- |
+| MAJOR (AC-3): 32-bit FNV-1a key collisions gave distinct trees identical rolls in every year and seed (`common-alder/MA-A-5B7Z` and `common-alder/MA-A-Q3QA` both hash to `0xF88F6C5C`) | The key is now hashed with **64-bit FNV-1a** (offset basis 14695981039346656037, prime 1099511628211) and mixed with year and seed through the same SplitMix64 steps. For a fixed year and seed the hash-to-state map is a bijection, and nothing is truncated to 32 bits before the 53-bit uniform. `OldAgeV1` and `SENESCENCE-OLD-AGE-v1-` are kept: v1 was never accepted, registered or persisted, so this is part of v1's pre-registration definition. Any post-integration change needs `OldAgeV2` (D-050 rule 4); this is documented in code and spec FR-3. **DET-02** is now the collision-hardened roll case, replacing Model 1 bit-parity: the named pair diverges for years 1..5 under seeds 0 and 20261128; stability and species/tree/year/seed sensitivity; published FNV-1a-64 vectors; 20,000 synthetic IDs give 20,000 distinct rolls; and the age-200 alder death rate over 20,000 trees lies in [0.02, 0.043]. |
+| MINOR: `SurvivalProbability(int.MaxValue, int.MaxValue)` wrapped the loop counter | The loop counter is now 64-bit. HAZ-08 asserts that the single max-int year returns `1 − h(int.MaxValue)` without throwing. |
+| MINOR: longevity-transfer provenance not traceable | Spec Track A now has a per-species general-longevity table (approximate general knowledge; `[I]`, plus `[T]` for Sitka's native range). It states the evidence limit: the ordering is an `[I]` inference, not a fitted or transferred quantitative dataset; no primary source was supplied, so none is cited; there is no `[E]` claim; the numerics stay `[C]`. A pinned primary source list in Part 2 would upgrade it. The table also records that Sitka's native-range lifespan, several centuries, exceeds its mid-longevity placement here, a deliberate `[C]` simplification for Irish plantation conditions. |
+
+New gate: **42/42**, 0 warnings, 0 errors, two processes byte-identical, digest **`313e0f5a…e4bbb6`**. The pre-repair digest `46da9802…b52878c` is retired. Its pin rejected the changed output (41/42, exit 1) before re-pinning.
 
 ## Continuation of the aborted draft
 
 - **Inherited, contrary to the brief:** the previous writer had already committed the spec quartet as `54ac2547`, with the exact commit-1 subject. Only the four engine files were untracked. I amended that local, unpushed commit with the spec corrections below, giving `d4208f27`. The base is untouched, and `54ac2547` survives only in the reflog.
-- **Kept:** all six binding rulings were already implemented correctly in the drafts: hazard parameters and smoothstep, version gate, key layout, Model 1 hash, death semantics, and the late-life anchor and k.
+- **Kept:** all six binding rulings were already implemented correctly in the drafts: hazard parameters and smoothstep, version gate, key layout, keyed-roll structure, death semantics, and the late-life anchor and k.
 - **Repaired:**
   - `SenescenceDeathRecord` took `Cause` and `PlayerCauseText` as constructor arguments. They are now fixed by the type; the only public constructor is `(TreeId, SpeciesId, Year)`.
   - `SenescenceStreams.KeyFor` accepted any species string. It now accepts only the six supported IDs, which makes key injectivity hold by construction.
-  - `RollModel1` changed from private to internal, so the test can prove Model 1 parity.
+  - The keyed-roll internals were made internal so the tests can check them. Repair cycle 1 later replaced the 32-bit key hash with a 64-bit one.
   - The survival figures mixed interval conventions. Alder 70→150 is ≈ 0.140, not ~0.144, under the single inclusive convention now stated in the spec and code.
   - Spec additions: the no-cliff statement, the integration prerequisites, and the GROW-13 / HYG-01 case mapping. `LateLifeGrowth.cs` is unchanged.
 
@@ -34,7 +46,7 @@ EVIDENCE (local scratch, not archived): /tmp/ccf-senescence-p1-evidence/
   - `SenescenceHazard`: six profiles keyed by the `SpeciesMoistureTable` IDs, the smoothstep hazard `h(age)`, and `SurvivalProbability` (inclusive at both ends).
   - `SenescenceEngine`: the version gate.
     - `Disabled` (the default) returns zero deaths, zero draws and zero evaluations.
-    - `OldAgeV1` sorts trees by `TreeId` and makes one stateless roll per tree. The roll uses key `SENESCENCE-OLD-AGE-v1-<species>/<treeId>`, FNV-1a and SplitMix64, and returns a 53-bit double.
+    - `OldAgeV1` sorts trees by `TreeId` and makes one stateless roll per tree. The roll uses key `SENESCENCE-OLD-AGE-v1-<species>/<treeId>`, a 64-bit FNV-1a key hash and SplitMix64, and returns a 53-bit double.
   - `SenescenceDeathRecord`: cause `old-age`, wording "Died of old age", biological death, EUR 0 timber revenue, clears crop-tree marks, never counts as a fell.
   - `LateLifeGrowth`: for Scots pine (cutoff 60), Common alder (60) and Downy birch (70).
     - At or below the cutoff it delegates bit-exactly to the existing evaluators.
@@ -62,7 +74,7 @@ None. `AnnualPipeline`, `RngSalts`, `MultiAreaContinuation`, saves (Version 2 an
 ## Anchors
 
 - **Must-not-change:** all frozen baselines, Scenario One, save anchors, and the existing Wave 2, Birch/Alder and Scots pine digests. All are untouched because no existing source changed.
-- **New pin:** `46da98026d8e591702ba09cf272bf3b0a76cd4f969ea5c0e1a4825197b52878c` (SDK 8.0.133, linux-x64).
+- **New pin:** `313e0f5a795bd7774752affb673927cc875bc6d89b9b988ddaadf3efa4e4bbb6` (SDK 8.0.133, linux-x64; repair cycle 1). Retired: `46da9802…b52878c`.
 
 ## Verification run (from `Tools/MultiRackSitkaP1Lab`, `dotnet --version` = 8.0.133)
 
@@ -82,13 +94,13 @@ SUITE LateLifeGrowth: 13/13 passed, 0 failed
 SUITE RollsAndSemantics: 10/10 passed, 0 failed
 SUITE VersionGate: 6/6 passed, 0 failed
 TOTAL: 42/42 passed, 0 failed
-DIGEST canonical-sha256 46da98026d8e591702ba09cf272bf3b0a76cd4f969ea5c0e1a4825197b52878c   (run1)
-DIGEST canonical-sha256 46da98026d8e591702ba09cf272bf3b0a76cd4f969ea5c0e1a4825197b52878c   (run2)
+DIGEST canonical-sha256 313e0f5a795bd7774752affb673927cc875bc6d89b9b988ddaadf3efa4e4bbb6   (run1)
+DIGEST canonical-sha256 313e0f5a795bd7774752affb673927cc875bc6d89b9b988ddaadf3efa4e4bbb6   (run2)
 $ cmp run1.txt run2.txt                                                                  byte-identical
 ```
 
-- **Committed tree:** a `git archive` export of `16addae6`, cold-built in `/tmp`, gave 0 warnings and 0 errors, 42/42, and output byte-identical to `run1.txt`.
-- **Negative control:** the first run with a placeholder pin printed `TOTAL: 41/42 passed, 1 failed` and exited 1. The pin is live.
+- **Committed tree (pre-repair):** a `git archive` export of `16addae6`, cold-built in `/tmp`, reproduced the pre-repair output byte-for-byte. The repair receipts above come from the worktree build of the repair commit's content.
+- **Negative control:** a placeholder pin, and later the stale pre-repair pin, each printed `TOTAL: 41/42 passed, 1 failed` and exited 1. The pin is live.
 - `TreatWarningsAsErrors` comes from the lab `Directory.Build.props`. Doubles enter the canonical text as raw IEEE-754 bits.
 - **Not run, by brief:** `dotnet test`, Unity, browser suites, `Core.Tests`, `Phase1.Save.Tests`, `build/2d-gate.sh`, the NaturalProcesses test project, and the Core project build (which needs `.p0ref`). Part 1 is not Unity-relevant, so no Unity verification is claimed.
 
@@ -109,7 +121,7 @@ $ cmp run1.txt run2.txt                                                         
 | --- | --- | --- |
 | AC-1 version gate and baseline preservation | GATE-01..06 | PASS |
 | AC-2 six-species hazard curves, ordering, pioneer persistence, heart-rot separation | HAZ-01..10 | PASS |
-| AC-3 keyed rolls, guards, death semantics, wording, residual cohort | ROLL-01..10, DET-02 | PASS |
+| AC-3 collision-hardened keyed rolls, guards, death semantics, wording, residual cohort | ROLL-01..10, DET-02 | PASS |
 | AC-4 Wave 2 late-life growth continuation | GROW-01..13 | PASS |
 | AC-5 pinned offline gate, 0/0, cross-process digest | DET-01 + receipts above | PASS |
 | AC-6 hard write fence | `git diff --name-only b2006767..HEAD`: 19 new files, four prefixes | PASS |
@@ -125,17 +137,18 @@ $ cmp run1.txt run2.txt                                                         
 
 ## Remaining verification gates
 
-- Independent review of `d4208f27..16addae6` by a fresh, non-implementing thread.
+- Delta re-review of the repair cycle 1 commit by a fresh, non-implementing thread.
 - At combination: the NaturalProcesses prerequisite above, then the integrator's full gate.
 - All Part 2 gates (AC-7): pipeline wiring, the `RngSalts` registration with a Core test pinning equality, live growth wiring, Version 3 six-species deadwood saves, and History/Habitat UI.
 
 ## Known limitations
 
-- **Calibration, not prediction.** Every onset, ramp, ceiling and decay rate is a `[C]` gameplay value (D-059). Only the longevity ordering is `[I]`/`[T]`.
+- **Calibration, not prediction.** Every onset, ramp, ceiling and decay rate is a `[C]` gameplay value (D-059). The longevity ordering is an `[I]` inference with no primary source cited; see spec Track A, where Sitka's placement is a noted simplification.
 - **Libm dependence.** The continuation uses `Math.Exp`, so the digest is tied to the verified runtime and platform. Part 2 must decide whether these values may reach saves or cross-platform comparisons.
 - **Disabled still validates its envelope.** It refuses `Year < 1` and undefined model values, unlike StormModel 0. Part 2 must call it with `Year >= 1`.
 - **Extreme ages.** The continuation underflows to `0.0` only at absurd ages, around 10,000+ years. It is never negative.
-- **Copied literals.** GATE-06 (RNG families) and DET-02 (Model 1 vectors) copy values from files this standalone project cannot compile.
+- **Copied literals.** GATE-06 copies the RNG family list from files this standalone project cannot compile.
+- **Not Model 1 parity.** The roll shares Model 1's SplitMix64 mixing but not its 32-bit key hash, by design (spec FR-3).
 
 ## Unrelated work preserved
 
