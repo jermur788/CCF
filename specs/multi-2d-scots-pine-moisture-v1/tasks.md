@@ -8,6 +8,6 @@
 | T-04 | Implement Scots pine grading, price and material cost | Console cases TIMBER-01 and TIMBER-02 |
 | T-05 | Run pinned standalone console gate and verify same-output SHA-256 across processes | Console case DET-01 and handoff command receipts |
 | T-06 | Check the diff fence, commit and push the implementation handoff | Four feature-branch commits and remote verification |
-| T-07 | Wire AnnualPipeline, MultiAreaContinuation, ForestMaker, Version 3 saves and `/multi` | **QUEUED behind Playable Milestone 1**, separate scope and integrated acceptance |
+| T-07 | Wire AnnualPipeline, MultiAreaContinuation, ForestMaker, Version 3 saves and `/multi` | **IN PROGRESS** — Part 2 IMPLEMENTING on `feat/multi-2d-scots-pine-moisture-part2-v1` (task MULTI-2D-SCOTS-PINE-MOISTURE-P2-20261128); integrated acceptance pending independent review |
 
 T-01 precedes source work. T-02 through T-04 feed T-05 and T-06. T-07 requires a new implementation packet after the milestone and the relevant review gates.

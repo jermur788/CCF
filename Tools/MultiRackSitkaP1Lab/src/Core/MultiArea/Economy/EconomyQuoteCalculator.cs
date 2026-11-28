@@ -250,7 +250,8 @@ internal static class EconomyQuoteCalculator
                     if (!treesByKey.TryGetValue((fell.AreaId, fell.TreeId), out var tree)) continue;
                     string speciesId = root.Phase2?.SpeciesIdOf(tree.TreeId) ?? Phase2Species.SitkaId;
                     var pruning = root.Stage4?.PruningOf(tree.TreeId) ?? TreePruningState.Unpruned;
-                    var yield = D062TimberAssortmentEngine.GradeStem(tree, speciesId, pruning);
+                    var yield = D062TimberAssortmentEngine.GradeStem(tree, speciesId, pruning,
+                        tightEarlyStocking: root.ScotsPine?.IsTight(tree.TreeId) ?? false);
                     stemYields.Add(yield);
                     // The contractor fells and handles every stem whatever its disposition: same mass, same cost basis.
                     totalStemVol += yield.StemVolumeCm3;

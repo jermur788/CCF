@@ -124,7 +124,9 @@ internal sealed record MultiAreaEcologyDto(
     IReadOnlyList<MultiAreaClearUndergrowthOrder> PendingClear,
     IReadOnlyList<MultiAreaClearUndergrowthOrder> ApprovedClear,
     IReadOnlyList<MultiAreaEcologyPlantingOrder> PendingPlanting,
-    IReadOnlyList<MultiAreaEcologyPlantingOrder> ApprovedPlanting);
+    IReadOnlyList<MultiAreaEcologyPlantingOrder> ApprovedPlanting,
+    // Scots pine & site moisture (Part 2): present on Forest Maker woodlands only; absent everywhere else (unchanged JSON).
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiAreaScotsPineEcology? ScotsPine = null);
 
 /// <summary>One natural regeneration cohort band in a cell detail response.</summary>
 internal sealed record MultiAreaCellCohort(
@@ -193,20 +195,22 @@ internal sealed record MultiAreaCellDetailResult(
 internal static class MultiAreaSpeciesPruneHelper
 {
     internal static MultiAreaSpeciesPruneStatus Evaluate(AnnualTree tree, TreePruningState state, int ecologicalYear,
-        Phase2Species? broadleaf, bool isStage4, string? planState)
+        Phase2Species? broadleaf, bool isStage4, string? planState, bool scotsPine = false)
     {
-        string speciesId = broadleaf?.SpeciesId ?? Phase2Species.SitkaId;
-        int maxLifts = broadleaf is null ? PruningRules.MaxLifts : Phase2Constants.BroadleafMaxLifts;
-        int minInterval = broadleaf is null ? PruningRules.MinimumYearsBetweenLifts : Phase2Constants.BroadleafMinimumYearsBetweenLifts;
+        // Scots pine (Part 2): two lifts, 2.5 m then 5.5 m, five years apart (ScotsPinePruning); otherwise unchanged.
+        string speciesId = scotsPine ? ScotsPineLive.SpeciesId : broadleaf?.SpeciesId ?? Phase2Species.SitkaId;
+        int maxLifts = scotsPine ? ScotsPineLive.MaxLifts : broadleaf is null ? PruningRules.MaxLifts : Phase2Constants.BroadleafMaxLifts;
+        int minInterval = scotsPine || broadleaf is null ? PruningRules.MinimumYearsBetweenLifts : Phase2Constants.BroadleafMinimumYearsBetweenLifts;
         if (!isStage4)
         {
             return new MultiAreaSpeciesPruneStatus(speciesId, false, state.Lifts, maxLifts, minInterval,
                 null, null, "Stage4ModelRequired", MultiAreaUiReadouts.Stage4ModelRequiredReason, planState);
         }
 
-        float next = Phase2Pruning.NextLiftTargetM(state.Lifts, broadleaf);
-        string? code = Phase2Pruning.RefusalCode(tree, state, next, ecologicalYear, broadleaf);
-        string? reason = code is null ? null : Phase2Pruning.Message(code, broadleaf);
+        float next = scotsPine ? ScotsPinePruning.NextLiftTargetM(state.Lifts) : Phase2Pruning.NextLiftTargetM(state.Lifts, broadleaf);
+        string? code = scotsPine ? ScotsPinePruning.RefusalCode(tree, state, next, ecologicalYear)
+            : Phase2Pruning.RefusalCode(tree, state, next, ecologicalYear, broadleaf);
+        string? reason = code is null ? null : scotsPine ? ScotsPinePruning.Message(code) : Phase2Pruning.Message(code, broadleaf);
         float? nextTarget = tree.IsLiving && float.IsFinite(next) ? next : null;
         int? nextEligibleYear = code == "PruneIntervalTooShort" ? state.LastPruningYear + minInterval : null;
         return new MultiAreaSpeciesPruneStatus(speciesId, code is null, state.Lifts, maxLifts, minInterval,
@@ -364,7 +368,8 @@ internal static class MultiAreaEcologyBuilder
                     : approvedPruneIds.Contains(tree.TreeId) ? "ApprovedPrune" : null;
                 var pruneState = new TreePruningState(s4Tree.PruningLifts, s4Tree.CrownBaseHeightM, s4Tree.LastPruningYear);
                 pruneStatusByTreeId[tree.TreeId] = MultiAreaSpeciesPruneHelper.Evaluate(
-                    tree, pruneState, stage4.EcologicalYear, phase2.BroadleafOf(tree.TreeId), models.IsStage4, planState);
+                    tree, pruneState, stage4.EcologicalYear, phase2.BroadleafOf(tree.TreeId), models.IsStage4, planState,
+                    ScotsPineLive.IsPine(phase2.SpeciesIdOf(tree.TreeId)));
             }
         }
 
@@ -389,7 +394,7 @@ internal static class MultiAreaEcologyBuilder
                 double radiusM = tree.DbhCm / 200.0;
                 baBySpecies[sp] = baBySpecies.GetValueOrDefault(sp) + Math.PI * radiusM * radiusM;
             }
-            foreach (var sp in AllSpecies) baBySpecies[sp] = CompactPositive(baBySpecies[sp]);
+            foreach (var sp in baBySpecies.Keys.ToArray()) baBySpecies[sp] = CompactPositive(baBySpecies[sp]);
 
             var deadwoodBySpecies = ZeroIntMap();
             foreach (var dw in s4Area.Deadwood)

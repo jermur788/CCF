@@ -59,6 +59,25 @@ internal static class ScotsPineBiologyTests
             True(neutral.Evidence.Includes(EvidenceClass.Calibration), "tagged calibration");
         });
 
+        // Carried Part 1 closure (Part 2 packet): WetMovingAlluvial is the one Scots pine cell where the two modifiers differ
+        // (establishment M = 0.70, growth L = 0.35), so it proves growth reads the growth modifier and never the establishment one.
+        TestRunner.Add(Suite, "GROWTH-03 wet moving alluvial growth uses the growth modifier (0.35), not the establishment modifier (0.70)", () =>
+        {
+            SiteResponse response = SpeciesMoistureTable.Response(SpeciesMoistureTable.ScotsPine, SiteMoistureClass.WetMovingAlluvial);
+            BitEq(0.70, response.EstablishmentMultiplier, "establishment modifier M");
+            BitEq(0.35, response.GrowthMultiplier, "growth modifier L");
+
+            ScotsPineGrowthResult wet = ScotsPineEngine.EvaluateGrowth(new(35, 1200, 30, 12.0, SiteMoistureClass.WetMovingAlluvial));
+            True(wet.IsWithinCalibrationDomain, "inside the domain");
+            double potential = wet.PotentialDbhIncrementCm!.Value;
+            BitEq(potential * 0.35, wet.SiteAdjustedDbhIncrementCm!.Value, "adjusted = potential x growth modifier 0.35");
+            True(Math.Abs(wet.SiteAdjustedDbhIncrementCm!.Value - potential * 0.70) > 1e-6, "not the establishment modifier 0.70");
+            BitEq(0.70, wet.Site.Cell.Response.EstablishmentMultiplier, "the result still carries the separate establishment modifier");
+
+            ScotsPineGrowthResult dry = ScotsPineEngine.EvaluateGrowth(new(35, 1200, 30, 12.0, SiteMoistureClass.DryFreeDraining));
+            BitEq(potential, dry.PotentialDbhIncrementCm!.Value, "moisture never changes the potential increment");
+        });
+
         TestRunner.Add(Suite, "GROWTH-02 growth is unavailable outside the domain", () =>
         {
             var outside = new ScotsPineGrowthRequest[]

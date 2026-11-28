@@ -16,4 +16,4 @@
 ## Remaining acceptance
 
 - [ ] Independent reviewer checks Part 1 conformance, calibration and determinism against the final feature commit.
-- [ ] Part 2 AC-7 is **QUEUED behind Playable Milestone 1**. Check save compatibility, integrated runtime and player workflow on its own candidate.
+- [ ] Part 2 AC-7 is **IMPLEMENTING** (T-07 in progress; worker evidence in IMPLEMENTATION-HANDOFF-PART2.md, independent review pending). Check save compatibility, integrated runtime and player workflow on its own candidate.

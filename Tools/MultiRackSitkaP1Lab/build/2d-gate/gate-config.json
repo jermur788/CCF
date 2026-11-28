@@ -16,6 +16,12 @@
         "blockKey": "economy",
         "keyConstant": "EconomyBlockKey",
         "minBlockVersion": 1
+      },
+      {
+        "blockKey": "scotsPine",
+        "keyConstant": "ScotsPineBlockKey",
+        "minBlockVersion": 1,
+        "authority": "SPEC-multi-2d-scots-pine-moisture-V1 Part 2 (T-07), Docs/Handoffs/MultiRack-Simulation-20261116/scots-pine-moisture/IMPLEMENTATION-HANDOFF-PART2.md"
       }
     ],
     "reservedOnlyBlockKeys": []

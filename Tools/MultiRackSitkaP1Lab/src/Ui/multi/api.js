@@ -35,6 +35,27 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     return { kind: 'transport', detail: 'HTTP ' + response.status };
   }
 
+  // Scots pine & site moisture (Part 2): strictly read-only per-tree Core detail for the inspector (moisture class,
+  // separate modifiers, GROWFOR growth status, pruning and timber grade). Never mutates state; a stale fence is a refusal.
+  export async function fetchScotsPineTree(areaId, treeId) {
+    const fence = currentFence();
+    if (!fence) return { kind: 'transport', detail: 'no view' };
+    let response;
+    try {
+      response = await fetch('api/multi/scots-pine/tree', {
+        method: 'POST', cache: 'no-store', credentials: 'omit', redirect: 'error',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fence, areaId, treeId }),
+      });
+    } catch (failure) {
+      return { kind: 'transport', detail: String((failure && failure.message) || failure) };
+    }
+    let payload = null;
+    try { payload = await response.json(); } catch { payload = null; }
+    if (response.status === 200 && payload && payload.tree) return { kind: 'ok', tree: payload.tree };
+    if (response.status === 409 && payload && payload.refusal) return { kind: 'refused', refusal: payload.refusal };
+    return { kind: 'transport', detail: 'HTTP ' + response.status };
+  }
+
   export function expandCompactLanePayload(payload) {
     if (!payload) return payload;
     if (payload.stage4 && Array.isArray(payload.stage4.areas)) {

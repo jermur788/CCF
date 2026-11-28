@@ -27,6 +27,19 @@ internal static class RngSalts
     // registered here for centralised prefix-freedom and G6 enforcement).
     internal const string ForestMaker = "FOREST-MAKER-";
 
+    // Scots pine Part 2 live wiring (SPEC-multi-2d-scots-pine-moisture-V1): local-seed recruitment in an eligible gap cell and
+    // the first-year establishment of a planted pine on a site whose establishment modifier is below 1. Neither is drawn
+    // when the woodland has no Scots pine state, no mature local seed tree, a poor seed year, or a neutral site.
+    internal const string ScotsPineRecruitment = "SCOTS-PINE-RECRUIT-";
+    internal const string ScotsPineEstablishment = "SCOTS-PINE-ESTABLISH-";
+
+    /// <summary>
+    /// The Part 1 good-seed-year salt (<c>ScotsPineEngine.IsGoodSeedYear</c>), registered here under its own name with its
+    /// value unchanged so the Part 1 digest stays valid. The Part 1 module keeps its own private copy because its standalone
+    /// test project compiles only the Wave 2 sources; a Core test pins the two to the same value.
+    /// </summary>
+    internal const ulong ScotsPineGoodSeedYear = 0x1A96C03752AE8D4BUL;
+
     /// <summary>Ordered registry of every RNG salt constant for automated uniqueness/prefix checks and G6.</summary>
     internal static readonly IReadOnlyList<string> Families = Array.AsReadOnly(new[]
     {
@@ -40,5 +53,7 @@ internal static class RngSalts
         Stage5Mast,
         Stage5Promotion,
         ForestMaker,
+        ScotsPineRecruitment,
+        ScotsPineEstablishment,
     });
 }

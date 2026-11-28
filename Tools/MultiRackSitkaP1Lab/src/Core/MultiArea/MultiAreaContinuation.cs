@@ -31,7 +31,8 @@ internal sealed record MultiAreaRoot(
     MultiAreaStage5State? Stage5 = null, // Stage 5 (1/1/1/1) sessions only; null on every Stage 1–4 root
     MultiAreaPhase2State? Phase2 = null, // Phase 2 (1/1/1/1/1) sessions only; null whenever Species is 0
     MultiAreaEconomyState? Economy = null, // Phase 2B Economy sessions only; null whenever Economy is Off
-    ForestMakerGenesisState? GenesisRecipe = null) // Phase 2A Forest Maker sessions only; null on MA-1 / MA-1-MIXED
+    ForestMakerGenesisState? GenesisRecipe = null, // Phase 2A Forest Maker sessions only; null on MA-1 / MA-1-MIXED
+    MultiAreaScotsPineState? ScotsPine = null) // Scots pine / site moisture (Forest Maker only); null unless chosen or planted
 {
     /// <summary>True when any Fell, Prune, ClearUndergrowth, planting or Economy-approved order is pending or approved and not yet executed.</summary>
     internal bool HasUnexecutedWork => Pending.Count > 0 || Approved is not null || (Stage4?.PendingPrunes.Count ?? 0) > 0 ||
@@ -91,6 +92,11 @@ internal sealed partial class MultiAreaContinuation
     private readonly string experimentBadge;
     private readonly string areaIds;
     private readonly int genesisStemCount;
+    // Scots pine / site moisture: the stand bounds the two-zone map splits on and the stable woodland seed of the seed-year
+    // schedule (the experiment's generator seed). Both are fixed genesis facts; neither is saved.
+    private readonly SitkaP1.Core.SpeciesWave2.ScotsPine.StandBounds siteBounds;
+    private readonly ulong woodlandSeed;
+    private readonly ScotsPineGenesis? scotsPineGenesis;
     // One random identity per in-memory session. It is never part of a token, report or manifest. A Load mints a NEW one,
     // so every fence a page held against the replaced session is refused from then on (Execute replay included).
     private string sessionId = NewSessionId();
@@ -127,11 +133,14 @@ internal sealed partial class MultiAreaContinuation
     /// </summary>
     internal MultiAreaContinuation(MultiAreaExperiment definition, MultiAreaModelSelection models, Stage4Options? stage4 = null,
         Stage5Options? stage5 = null, Phase2Options? phase2 = null, EconomyOptions? economy = null,
-        ForestMakerRecipe? genesisRecipe = null)
+        ForestMakerRecipe? genesisRecipe = null, ScotsPineGenesis? scotsPine = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(models);
         models.RequireSupported();
+        if (scotsPine is not null && (!models.IsPhase2 || genesisRecipe is null))
+            throw new P1Refusal("ScotsPineRequiresForestMaker",
+                "Scots pine and site moisture need a Forest Maker woodland on the 1/1/1/1/1 model selection (Save v3)");
         if (stage4 is not null && !models.IsStage4)
             throw new P1Refusal("Stage4ModelRequired", "Stage 4 options need the full Stage 4 model selection");
         if (stage5 is not null && !models.IsStage5)
@@ -168,8 +177,19 @@ internal sealed partial class MultiAreaContinuation
                 : MultiAreaDemoExperiments.Ma1Badge);
         areas = Array.AsReadOnly(definition.Areas.Select(InfoOf).ToArray());
         areaIds = string.Join(",", definition.Areas.Select(area => area.AreaId));
+        siteBounds = SiteMoistureField.BoundsOf(areas.Select(area => area.Polygon));
+        woodlandSeed = unchecked((ulong)definition.GeneratorSeed);
+        scotsPineGenesis = scotsPine;
         var genesis = definition.Areas.Select(MultiAreaExperiment.GenesisTrees).ToArray();
         genesisStemCount = genesis.Sum(trees => trees.Count);
+        var genesisPine = scotsPine?.PineTreeIds.ToHashSet(StringComparer.Ordinal) ?? new HashSet<string>(StringComparer.Ordinal);
+        if (genesisPine.Count > 0)
+        {
+            var known = genesis.SelectMany(trees => trees).Select(tree => tree.TreeId).ToHashSet(StringComparer.Ordinal);
+            if (genesisPine.Any(id => !known.Contains(id)) ||
+                genesisPine.Any(id => (phase2 ?? Phase2Options.Default).GenesisSpecies.ContainsKey(id)))
+                throw new P1Refusal("ScotsPineGenesisInvalid", "a genesis Scots pine names an unknown tree or a broadleaf");
+        }
         if (connected)
         {
             var woodland = CrownModel.Woodland(genesis.SelectMany(trees => trees));
@@ -179,6 +199,12 @@ internal sealed partial class MultiAreaContinuation
             if (models.IsPhase2)
                 genesis = genesis.Select(trees => Phase2GenesisCrowns(trees, woodland, (phase2 ?? Phase2Options.Default).RequireValid()))
                     .ToArray();
+            // Scots pine only: a genesis pine takes the pine card's C2 equilibrium r_0 = r_target(CI_0) on the same woodland.
+            if (genesisPine.Count > 0)
+                genesis = genesis.Select(trees => (IReadOnlyList<AnnualTree>)Array.AsReadOnly(trees.Select(tree =>
+                    tree.IsLiving && genesisPine.Contains(tree.TreeId)
+                        ? tree with { CrownRadiusM = ScotsPineAdult.TargetRadiusM(tree.DbhCm, CrownModel.WoodlandCompetition(tree, woodland).Ci) }
+                        : tree).ToArray())).ToArray();
         }
         var states = definition.Areas.Select((area, i) => new MultiAreaAreaState(area.AreaId,
             new AnnualState(0, genesis[i]), Array.Empty<string>())).ToArray();
@@ -197,6 +223,13 @@ internal sealed partial class MultiAreaContinuation
             if (options.GenesisSpecies.Keys.Any(id => !known.Contains(id)))
                 throw new P1Refusal("Phase2GenesisSpeciesInvalid", "genesis species name a tree that is not in the experiment");
             phase2State = Phase2Annual.Genesis(options, stage5State!.MastSeed, stage5State, options.GenesisSpecies);
+            // Genesis Scots pine join the live species map only (never Phase2Options.GenesisSpecies, which stays Oak/Beech).
+            if (genesisPine.Count > 0)
+            {
+                var map = new Dictionary<string, string>(phase2State.TreeSpecies, StringComparer.Ordinal);
+                foreach (var id in genesisPine) map[id] = ScotsPineLive.SpeciesId;
+                phase2State = phase2State with { TreeSpecies = map };
+            }
         }
         var economyState = economyOptions is null ? null : MultiAreaEconomyState.CreateInitial(economyOptions);
         ForestMakerGenesisState? genesisRecipeState = genesisRecipe is null
@@ -209,8 +242,20 @@ internal sealed partial class MultiAreaContinuation
         root = new MultiAreaRoot(0, 0, 0, 0, Array.AsReadOnly(states), Array.Empty<MultiAreaWorkEvent>(),
             new Dictionary<string, MultiAreaExecutedWork>(StringComparer.Ordinal), Array.Empty<MultiAreaWorkOrder>(), null,
             Array.Empty<MultiAreaYearRecord>(), models.IsStage4 ? MultiAreaStage4State.Empty : null, stage5State, phase2State,
-            economyState, genesisRecipeState);
+            economyState, genesisRecipeState, scotsPine is null ? null : MultiAreaScotsPineState.Create(scotsPine.Site));
     }
+
+    /// <summary>The woodland's site-moisture field, or null when it has no Scots pine / site-moisture state.</summary>
+    private SiteMoistureField? SiteFieldOf(MultiAreaRoot at) =>
+        at.ScotsPine is { } pine ? new SiteMoistureField(pine.Site, siteBounds) : null;
+
+    /// <summary>The site-moisture field of the committed root (neutral when the woodland never chose one). Read-only.</summary>
+    internal SiteMoistureField ReadSiteMoisture()
+    {
+        lock (sync) return SiteFieldOf(root) ?? new SiteMoistureField(SiteMoistureSetting.Neutral, siteBounds);
+    }
+
+    internal ulong WoodlandSeed => woodlandSeed;
 
     // Phase 2 genesis crowns: every living Oak/Beech of one area gets its species' C2 equilibrium; Sitka is returned unchanged.
     private static IReadOnlyList<AnnualTree> Phase2GenesisCrowns(IReadOnlyList<AnnualTree> trees, AnnualTree[] woodland, Phase2Options options) =>
@@ -448,6 +493,13 @@ internal sealed partial class MultiAreaContinuation
                 p2.Patches, p2.PendingOrders, p2.ApprovedOrders, p2.WorkLog, p2.Accounts)
             : null;
         var ecology = MultiAreaEcologyBuilder.Build(view, s4View, current.Stage5, current.Phase2, canopy, models, experimentBadge);
+        // Scots pine & site moisture (Part 2): Forest Maker woodlands only, so every other payload is byte-for-byte unchanged.
+        if (ecology is not null && current.GenesisRecipe is not null)
+            ecology = ecology with
+            {
+                ScotsPine = ScotsPineReadouts.Ecology(current,
+                    SiteFieldOf(current) ?? new SiteMoistureField(SiteMoistureSetting.Neutral, siteBounds), woodlandSeed, view),
+            };
         return new MultiAreaCompositeUiSnapshot(view, readout, ecology, s4View, s5View, p2View);
     }
 
@@ -521,12 +573,13 @@ internal sealed partial class MultiAreaContinuation
                     "advancing the year with unexecuted work needs explicit consent to cancel all of it at zero Fell");
             // Stage 5: a woodland with juvenile regeneration still has a year to advance even if no adult is alive.
             if (root.Areas.All(area => !area.State.Trees.Any(tree => tree.IsLiving)) && !(root.Stage5?.HasAbundance ?? false) &&
-                !(root.Phase2?.HasJuveniles ?? false))
+                !(root.Phase2?.HasJuveniles ?? false) && !(root.ScotsPine?.HasActiveRecruits ?? false))
                 throw new P1Refusal("ContinuationNoLivingStems", "every area has no living stems; there is no year to advance");
 
             int year = root.EcologicalYear;
             var areaSpecs = areas.Select(info => new AnnualAreaSpec(info.AreaId, info.Seed, info.AreaHa)).ToArray();
-            var progress = new YearInProgress(root, hasWork, crownModel, stage4Options, areaSpecs, Stage5Inputs, afterArea);
+            var progress = new YearInProgress(root, hasWork, crownModel, stage4Options, areaSpecs, Stage5Inputs, afterArea,
+                SiteFieldOf(root), woodlandSeed);
             foreach (var step in AnnualPipeline.Steps)
                 step.Run(progress);
 
@@ -554,6 +607,7 @@ internal sealed partial class MultiAreaContinuation
                 Stage5 = progress.NextStage5,
                 Phase2 = progress.NextPhase2,
                 Economy = progress.NextEconomy,
+                ScotsPine = progress.NextScotsPine ?? root.ScotsPine,
             };
             return WithView(null, new MultiAreaAnnualResult(year, checked(year + 1), Array.AsReadOnly(progress.Reports)));
         }
@@ -579,7 +633,9 @@ internal sealed partial class MultiAreaContinuation
             var header = new Phase1SaveHeader(label, Phase1SaveHeader.FormatUtc(DateTime.UtcNow), saveGeneration,
                 root.EcologicalYear, vector, Phase1RootMapping.GenesisOf(definition),
                 SaveV3Codec.LineageFor(vector, models.Economy));
-            return new Phase1SaveEnvelope(header, Phase1RootMapping.Capture(root, models, stage4Options));
+            // A Scots pine woodland's inner v2 payload is its pine-free projection; the scotsPine v3 block carries the rest.
+            return new Phase1SaveEnvelope(header,
+                Phase1RootMapping.Capture(ScotsPineSaveProjection.ForV2(root), models, stage4Options));
         }
     }
 
@@ -643,7 +699,8 @@ internal sealed partial class MultiAreaContinuation
             stage5: null,
             phase2: generated.Options,
             economy: restoredEconomyOptions,
-            genesisRecipe: generated.Recipe);
+            genesisRecipe: generated.Recipe,
+            scotsPine: generated.ScotsPineGenesisFor(null));
         var result = session.RestoreVerifiedV3IntoFreshSession(decoded, reg);
         return (session, generated.Experiment, result);
     }
@@ -659,6 +716,9 @@ internal sealed partial class MultiAreaContinuation
                 var codec = registry.RequireCodecForDecode(key, block.BlockVersion);
                 candidateRoot = codec.Decode(block.CanonicalDataJson, block.BlockVersion, candidateRoot);
             }
+            // No scotsPine block: NeutralLegacy, or the two-zone recipe's own genesis site and pine (never a refusal).
+            if (!decoded.Envelope.Blocks.ContainsKey(SaveV3Format.ScotsPineBlockKey))
+                candidateRoot = ScotsPineSaveProjection.ApplyGenesisDefaults(candidateRoot, scotsPineGenesis);
             RequireSameOptions(decoded.Envelope.State.Options, candidateRoot.Economy?.Options);
             var candidate = WithSavedApprovalAsDraft(candidateRoot, restored.SavedApproval);
             RequireLegalRestoredOrders(candidate);
@@ -666,7 +726,10 @@ internal sealed partial class MultiAreaContinuation
             sessionId = NewSessionId();
             canopyCache.Clear();
             groundCache = null;
-            return new MultiAreaLoadResult(ViewOf(root), DraftOrderCount(restored.SavedApproval), decoded.Checksum, null, null);
+            // Approved Scots pine Plant orders were restored as drafts from the scotsPine block, not from the v2 approval.
+            int draftOrders = DraftOrderCount(restored.SavedApproval) +
+                ScotsPineSaveProjection.RestoredApprovedPlantCount(decoded.Envelope.Blocks);
+            return new MultiAreaLoadResult(ViewOf(root), draftOrders, decoded.Checksum, null, null);
         }
     }
 
@@ -809,7 +872,8 @@ internal sealed partial class MultiAreaContinuation
         {
             var living = candidate.Areas.SelectMany(area => area.State.Trees).Where(tree => tree.IsLiving).ToArray();
             Phase2Planting.RequireValidBatch(phase2.PendingOrders, areaId => areas[AreaIndex(areaId)].Polygon, living, phase2,
-                Phase2Annual.Locator(candidate.Stage5!), checked(candidate.EcologicalYear + 1));
+                Phase2Annual.Locator(candidate.Stage5!), checked(candidate.EcologicalYear + 1),
+                allowScotsPine: candidate.GenesisRecipe is not null);
         }
     }
 
@@ -948,19 +1012,22 @@ internal sealed partial class MultiAreaContinuation
     // The same guards against an explicit root: a Load revalidates its candidate before publishing it.
     private static void RequirePrunable(MultiAreaRoot at, AnnualTree tree, TreePruningState state, float target)
     {
-        if (at.Phase2 is { } phase2)
+        if (at.Phase2 is { } pinePhase2 && ScotsPineLive.IsPine(pinePhase2.SpeciesIdOf(tree.TreeId)))
+            ScotsPinePruning.Require(tree, state, target, at.EcologicalYear);
+        else if (at.Phase2 is { } phase2)
             Phase2Pruning.Require(tree, state, target, at.EcologicalYear, phase2.BroadleafOf(tree.TreeId));
         else
             PruningRules.Require(tree, state, target, at.EcologicalYear);
     }
 
     // Validates a planting batch against the current root: area polygons, every living adult stem, existing juveniles and
-    // shelters, and the ground lattice. The install year is the first annual step after Execute.
+    // shelters, and the ground lattice. The install year is the first annual step after Execute. Scots pine may be planted
+    // on a Forest Maker woodland only (its state persists in Save v3).
     private void RequireValidPlantingBatch(MultiAreaPhase2State phase2, IReadOnlyList<MultiAreaPlantingOrder> batch)
     {
         var living = root.Areas.SelectMany(area => area.State.Trees).Where(tree => tree.IsLiving).ToArray();
         Phase2Planting.RequireValidBatch(batch, areaId => areas[AreaIndex(areaId)].Polygon, living, phase2,
-            Phase2Annual.Locator(root.Stage5!), checked(root.EcologicalYear + 1));
+            Phase2Annual.Locator(root.Stage5!), checked(root.EcologicalYear + 1), allowScotsPine: root.GenesisRecipe is not null);
     }
 
     // A clear target must be one existing in-polygon ground cell of its own area. A cell of the other area is refused as

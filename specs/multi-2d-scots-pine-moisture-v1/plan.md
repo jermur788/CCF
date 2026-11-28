@@ -1,7 +1,7 @@
 # Scots Pine and Site Moisture V1 Implementation Plan
 
 - **Spec** [SPEC-multi-2d-scots-pine-moisture-V1](spec.md)
-- **Status** APPROVED / IMPLEMENTING
+- **Status** APPROVED / Part 1 implemented / Part 2 IMPLEMENTING (branch `feat/multi-2d-scots-pine-moisture-part2-v1`, base `f4dee802`)
 - **Context commit** `bdeb6a324acaf4129c10fb0846faac8b64974360`
 - **Base** `c82e4e7` (`c82e4e759c2ceef1c13ddb6a033e034097aef77e`, `origin/integration/2d-sim`)
 - **Branch** `feat/multi-2d-scots-pine-engine-v1`
@@ -20,7 +20,7 @@ The sole writer owns `specs/multi-2d-scots-pine-moisture-v1/`, `Tools/MultiRackS
 
 ## Integration boundary and migration
 
-Part 1 creates no save fields. **Part 2 is QUEUED behind Playable Milestone 1.** At that point AnnualPipeline will consume the distinct growth and regeneration results, MultiAreaContinuation will supply area state, ForestMaker will apply the map and generation choices, Version 3 saves will carry approved persistent state, and `/multi` will surface the choices and warning. Actual regeneration will require a separately reviewed way to derive local seed proximity, openings and competition from map state.
+Part 1 creates no save fields. **Part 2 is IMPLEMENTING** (task MULTI-2D-SCOTS-PINE-MOISTURE-P2-20261128; it was queued behind Playable Milestone 1). At that point AnnualPipeline will consume the distinct growth and regeneration results, MultiAreaContinuation will supply area state, ForestMaker will apply the map and generation choices, Version 3 saves will carry approved persistent state, and `/multi` will surface the choices and warning. Actual regeneration will require a separately reviewed way to derive local seed proximity, openings and competition from map state.
 
 ## Verification and risks
 

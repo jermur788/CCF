@@ -33,8 +33,13 @@ internal static class Phase2Planting
     /// Validates a whole batch against the current committed state (spec §7.2). Orders are checked in ordinal order ID, so for
     /// a spacing conflict the lower work-order ID wins and the later order is named in the refusal; the batch is refused whole.
     /// </summary>
+    /// <remarks>
+    /// <paramref name="allowScotsPine"/> is true only on a Forest Maker woodland (Save v3), where a Plant order may also name
+    /// "scots-pine" (SPEC-multi-2d-scots-pine-moisture-V1 Part 2). Every spacing, shelter and spot-clear rule is unchanged.
+    /// </remarks>
     public static void RequireValidBatch(IReadOnlyList<MultiAreaPlantingOrder> orders, Func<string, IReadOnlyList<MultiAreaVertex>> polygonOf,
-        IReadOnlyList<AnnualTree> livingAdults, MultiAreaPhase2State state, Func<float, float, (int Area, int Cell)?> locate, int installYear)
+        IReadOnlyList<AnnualTree> livingAdults, MultiAreaPhase2State state, Func<float, float, (int Area, int Cell)?> locate, int installYear,
+        bool allowScotsPine = false)
     {
         var sorted = orders.OrderBy(order => order.OrderId, StringComparer.Ordinal).ToArray();
         var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -60,8 +65,10 @@ internal static class Phase2Planting
             switch (order)
             {
                 case MultiAreaPlantOrder plant:
-                    if (Phase2Species.BroadleafOrNull(plant.SpeciesId) is null)
-                        throw new P1Refusal("Phase2SpeciesUnknown", "only sessile-oak or beech can be planted");
+                    if (Phase2Species.BroadleafOrNull(plant.SpeciesId) is null && !(allowScotsPine && ScotsPineLive.IsPine(plant.SpeciesId)))
+                        throw new P1Refusal("Phase2SpeciesUnknown", allowScotsPine
+                            ? "only sessile-oak, beech or scots-pine can be planted"
+                            : "only sessile-oak or beech can be planted");
                     foreach (var juvenile in activeJuveniles)
                         if (DistanceSquared(plant.XM, plant.ZM, juvenile.XM, juvenile.ZM) <
                             (double)Phase2Constants.MinimumPlantingSpacingM * Phase2Constants.MinimumPlantingSpacingM)

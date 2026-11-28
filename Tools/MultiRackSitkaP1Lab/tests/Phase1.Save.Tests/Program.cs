@@ -846,6 +846,9 @@ T.Add("P2B-2b v3 economy: built-in Economy save refuses SaveEconomyRequiresV3 an
     T.Refuses("SaveChecksumMismatch", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(flipped)));
 });
 
+// ------------------------------------------------------------------ Scots pine & site moisture Part 2 (Save v3 scotsPine block)
+ScotsPineSaveTests.Register(NewSlotDir);
+
 int exit;
 try
 {

@@ -130,7 +130,7 @@ internal sealed partial class PlayerApi
                 int spCode = 0;
                 if (speciesByTree is not null && speciesByTree.TryGetValue(tr.TreeId, out var spId))
                 {
-                    spCode = spId == Phase2Species.OakId ? 1 : spId == Phase2Species.BeechId ? 2 : 0;
+                    spCode = spId == Phase2Species.OakId ? 1 : spId == Phase2Species.BeechId ? 2 : ScotsPineLive.IsPine(spId) ? 3 : 0;
                 }
                 stems[t] = new MultiMinimapStemDto(R3f(tr.XM), R3f(tr.ZM), R3f(tr.CrownRadiusM), spCode, tr.IsLiving ? 1 : 0);
             }
@@ -441,7 +441,7 @@ internal sealed partial class PlayerApi
             eco.ExperimentId, eco.ExperimentBadge, eco.GridCellM,
             eco.SpeciesByTreeId, compactPrune, eco.Areas, eco.CellSchema, eco.CellsCompact,
             eco.Planted, eco.Shelters, eco.Patches,
-            eco.PendingClear, eco.ApprovedClear, eco.PendingPlanting, eco.ApprovedPlanting);
+            eco.PendingClear, eco.ApprovedClear, eco.PendingPlanting, eco.ApprovedPlanting, eco.ScotsPine);
         return (dto, table.AsReadOnly());
     }
 
@@ -591,7 +591,8 @@ internal sealed partial class PlayerApi
         IReadOnlyList<MultiAreaClearUndergrowthOrder> PendingClear,
         IReadOnlyList<MultiAreaClearUndergrowthOrder> ApprovedClear,
         IReadOnlyList<MultiAreaEcologyPlantingOrder> PendingPlanting,
-        IReadOnlyList<MultiAreaEcologyPlantingOrder> ApprovedPlanting);
+        IReadOnlyList<MultiAreaEcologyPlantingOrder> ApprovedPlanting,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiAreaScotsPineEcology? ScotsPine = null);
 
     private sealed record MultiCompactStage4AreaDto(
         string AreaId,

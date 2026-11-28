@@ -117,6 +117,7 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/saves/recover", new("POST", MultiRecoverAsync));
         routes.Add("api/multi/hit", new("POST", MultiHitTestAsync));
         routes.Add("api/multi/cell", new("POST", ReadMultiCellAsync));
+        routes.Add("api/multi/scots-pine/tree", new("POST", ReadMultiScotsPineTreeAsync));
         routes.Add("api/multi/competition", new("POST", ReadMultiCompetitionAsync));
         routes.Add("api/multi/crop/mark", new("POST", context => MultiCommandAsync<MultiTreeRequest>(context, MultiTreeMembers,
             (pair, request) => pair.Adapter.MarkCrop(request.Fence!, request.AreaId!, request.TreeId!))));

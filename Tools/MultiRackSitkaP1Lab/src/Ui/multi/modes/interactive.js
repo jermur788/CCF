@@ -2,7 +2,7 @@
 import { announce, applyPayload, call, clearAlert, currentFence, refreshMultiStandFrame, rereadButton, showAlert, showBudgetExceeded, showGuardRefusal, showLockAlert, showRefusal } from '../api.js';
 import { el, fixed, lightIndexText, pair, plural, svg, table } from '../dom.js';
 import { showPane } from '../panels/work-plan.js';
-import { LENSES, LENS_IDS, SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, currentLens, hooks, isMultiLaneStand, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, shelterForJuvenile, speciesLabel, state } from '../store.js';
+import { LENSES, LENS_IDS, SLATE, approvedClears, approvedPlantings, areaName, byId, compactCellsFor, currentJuvenile, currentLens, hooks, isMultiLaneStand, lightPaint, lightWord, matchingShelterOrder, pct, pct1, pendingClears, pendingPlantings, s4Area, scotsPineEcology, shelterForJuvenile, speciesLabel, state } from '../store.js';
   // ---- Task-focused Lenses (strictly separate from active tools; Option B) & Interactive modes ------------------------
 
   // Switching lenses changes presentation/overlay defaults and available tools ONLY:
@@ -243,6 +243,22 @@ import { LENSES, LENS_IDS, SLATE, approvedClears, approvedPlantings, areaName, b
       ? 'Provisional Draft (snap OFF · zero order queued): X ' + fixed(d.xM, 2) + ' m east, Z ' + fixed(d.zM, 2) + ' m north'
       : 'Click anywhere on the map to place a provisional Draft preview (snap OFF; zero order sent yet).';
     byId('plant-clear-draft').hidden = !d;
+    // Scots pine (Part 2) is offered only on Forest Maker woodlands, whose Core ecology carries the Scots pine plant option.
+    const pine = scotsPineEcology();
+    const pineOption = byId('plant-species-pine');
+    if (pineOption) {
+      pineOption.hidden = !pine;
+      pineOption.disabled = !pine;
+      if (!pine && byId('plant-species').value === 'scots-pine') byId('plant-species').value = 'sessile-oak';
+    }
+    const speciesNote = byId('plant-species-note');
+    if (speciesNote) {
+      const showPine = Boolean(pine) && byId('plant-species').value === 'scots-pine';
+      speciesNote.hidden = !showPine;
+      speciesNote.textContent = showPine
+        ? pine.plant.note + ' Site at this woodland: ' + pine.site.wholeStandLabel + '.' + (pine.site.habitatCaution ? ' ' + pine.site.habitatCautionText : '')
+        : '';
+    }
     byId('plant-note').textContent = planLocked
       ? 'The plan is approved, so editing is locked. Cancel the approved plan before queueing new planting orders.'
       : 'Queues Pending orders sequentially (Plant → Shelter → SpotClear) using each response’s fresh fence. Zero ecology change until Approved and Executed.';

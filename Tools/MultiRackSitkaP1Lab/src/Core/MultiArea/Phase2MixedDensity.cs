@@ -35,16 +35,25 @@ internal static class Phase2MixedDensity
     public const string GenericMechanism = "generic-occupancy";
 
     /// <summary>One rack's Phase 2 adult step: growth for every species, then the routed density mortality.</summary>
+    /// <remarks>
+    /// <paramref name="scotsPine"/> is null on every woodland without Scots pine / site-moisture state, and the step is then the
+    /// unchanged Phase 2 step. With it, a living Scots pine routes the rack through the mixed path (pine is a non-reference
+    /// stem of the generic component, never part of the Sitka Comeau subset) and a non-neutral site scales each species' growth
+    /// by its moisture growth modifier.
+    /// </remarks>
     public static (AnnualReport Report, AnnualState Next, Phase2DensityRecord Record) StepRack(string areaId, AnnualState state,
         int simulationSeed, float areaHa, AnnualTree[] woodland, Func<string, int> pruningLiftsOf, Stage4Options options,
-        Func<string, Phase2Species?> broadleafOf)
+        Func<string, Phase2Species?> broadleafOf, ScotsPineRackContext? scotsPine = null)
     {
-        if (!state.Trees.Any(tree => tree.IsLiving && broadleafOf(tree.TreeId) is not null))
+        bool hasPine = scotsPine is not null && state.Trees.Any(tree => tree.IsLiving && scotsPine.IsPine(tree.TreeId));
+        if (!hasPine && !state.Trees.Any(tree => tree.IsLiving && broadleafOf(tree.TreeId) is not null))
         {
-            var (pureReport, pureNext) = MultiAreaAnnual.StepStage4(state, simulationSeed, areaHa, woodland, pruningLiftsOf, options);
+            var pureOptions = scotsPine?.SitkaOptions(options) ?? options;
+            var (pureReport, pureNext) = MultiAreaAnnual.StepStage4(state, simulationSeed, areaHa, woodland, pruningLiftsOf, pureOptions);
             return (pureReport, pureNext, PureRecord(areaId, pureReport));
         }
-        var report = CalculateMixed(areaId, state, simulationSeed, areaHa, woodland, pruningLiftsOf, options, broadleafOf, out var record);
+        var report = CalculateMixed(areaId, state, simulationSeed, areaHa, woodland, pruningLiftsOf, options, broadleafOf, scotsPine,
+            out var record);
         var next = new AnnualState(report.YearAfter, Array.AsReadOnly(report.Trees.Select(row => row.After).ToArray()));
         return (report, next, record);
     }
@@ -58,23 +67,33 @@ internal static class Phase2MixedDensity
     }
 
     private static AnnualReport CalculateMixed(string areaId, AnnualState state, int simulationSeed, float areaHa, AnnualTree[] woodland,
-        Func<string, int> pruningLiftsOf, Stage4Options options, Func<string, Phase2Species?> broadleafOf, out Phase2DensityRecord record)
+        Func<string, int> pruningLiftsOf, Stage4Options options, Func<string, Phase2Species?> broadleafOf, ScotsPineRackContext? scotsPine,
+        out Phase2DensityRecord record)
     {
         int year = checked(state.EcologicalYear + 1);
         var before = state.Trees.Where(tree => tree.IsLiving).OrderBy(tree => tree.TreeId, StringComparer.Ordinal).ToArray();
         var species = before.Select(tree => broadleafOf(tree.TreeId)).ToArray();
+        var pine = before.Select(tree => scotsPine?.IsPine(tree.TreeId) ?? false).ToArray();
         var competition = before.Select(tree => AnnualRules.Competition(tree, before)).ToArray();
+        // Scots pine reads its rack's start-of-year stocking, basal area and top height (the Part 1 GROWFOR request).
+        var rackStand = scotsPine is null ? null : Stand(before, areaHa);
+        double topHeight = scotsPine is null || before.Length == 0 ? 0.0 : before.Max(tree => (double)tree.HeightM);
         var grown = before.Select((tree, i) =>
         {
             float woodlandCi = AnnualRules.Competition(tree, woodland).Ci;
+            if (pine[i])
+                return ScotsPineAdult.Grow(tree, woodlandCi, rackStand!, topHeight, scotsPine!.Field, options, pruningLiftsOf(tree.TreeId),
+                    scotsPine.Tally);
+            float site = scotsPine is null ? options.SiteAt(tree)
+                : scotsPine.SiteFor(options, tree, species[i]?.SpeciesId ?? Phase2Species.SitkaId);
             return species[i] is { } broadleaf
-                ? Phase2Adult.Grow(tree, broadleaf, woodlandCi, options.SiteAt(tree), pruningLiftsOf(tree.TreeId))
-                : AnnualRules.GrowStage4(tree, woodlandCi, options.SiteAt(tree), options.GrowthAgePhases, pruningLiftsOf(tree.TreeId));
+                ? Phase2Adult.Grow(tree, broadleaf, woodlandCi, site, pruningLiftsOf(tree.TreeId))
+                : AnnualRules.GrowStage4(tree, woodlandCi, site, options.GrowthAgePhases, pruningLiftsOf(tree.TreeId));
         }).ToArray();
         var postGrowth = Stand(grown, areaHa);
 
         // 1. SITKA COMPONENT: the Stage 4 Comeau process on the Sitka stems alone (indices in ordinal TreeId order).
-        var sitka = Enumerable.Range(0, before.Length).Where(i => species[i] is null).ToArray();
+        var sitka = Enumerable.Range(0, before.Length).Where(i => species[i] is null && !pine[i]).ToArray();
         var audit = new AnnualTreeAudit[before.Length];
         var deaths = new List<AnnualDeath>();
         var after = (AnnualTree[])grown.Clone();
@@ -96,7 +115,7 @@ internal static class Phase2MixedDensity
         for (int i = 0; i < before.Length; i++)
         {
             var (ci, neighbours) = competition[i];
-            if (species[i] is not null)
+            if (species[i] is not null || pine[i])
             {
                 audit[i] = new AnnualTreeAudit(before[i], grown[i], neighbours, ci, null, null, null);
                 continue;
@@ -123,8 +142,8 @@ internal static class Phase2MixedDensity
 
         // 2. GENERIC COMPONENT on every living stem (post-growth DBH, rack CI); the Sitka victims are not eligible.
         var stems = before.Select((tree, i) => new Phase2DensityStem(tree.TreeId,
-            species[i]?.GrowingSpaceWeight ?? Phase2Constants.SitkaGrowingSpaceWeight, species[i] is null, grown[i].DbhCm,
-            competition[i].Ci)).ToArray();
+            species[i]?.GrowingSpaceWeight ?? (pine[i] ? ScotsPineLive.GrowingSpaceWeight : Phase2Constants.SitkaGrowingSpaceWeight),
+            species[i] is null && !pine[i], grown[i].DbhCm, competition[i].Ci)).ToArray();
         var taken = new HashSet<int>(Enumerable.Range(0, before.Length).Where(i => !after[i].IsLiving));
         var plan = PlanGeneric(stems, areaHa, taken,
             key => Phase2Random.Roll(key == QuotaKeyToken ? Phase2Random.GenericQuotaKey(areaId) : Phase2Random.GenericTreeKey(key),

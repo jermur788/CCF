@@ -110,19 +110,21 @@ internal sealed class MultiSessionHost
         throw new P1Refusal("MultiAreaUnknownExperiment", "supported built-in stands are ma-1 and ma-1-mixed");
     }
 
-    internal static MultiSessionState BuildForestMaker(ForestMakerRecipe recipe, bool economyEnabled)
+    /// <remarks><paramref name="siteMoisture"/> null or NeutralLegacy keeps every existing woodland exactly as before.</remarks>
+    internal static MultiSessionState BuildForestMaker(ForestMakerRecipe recipe, bool economyEnabled, SiteMoistureSetting? siteMoisture = null)
     {
         ArgumentNullException.ThrowIfNull(recipe);
         var selection = economyEnabled ? MultiAreaModelSelection.Phase2WithEconomy : MultiAreaModelSelection.Phase2;
         var economyOptions = economyEnabled ? EconomyOptions.Default : null;
-        var (generated, session) = ForestMakerGenerator.CreateSession(recipe, selection, economy: economyOptions);
+        var (generated, session) = ForestMakerGenerator.CreateSession(recipe, selection, economy: economyOptions,
+            siteMoisture: siteMoisture);
         var adapter = new MultiAreaWorkPlanAdapter(session, generated.Experiment, generated.Experiment.ExperimentId, session.ExperimentBadge);
         return new MultiSessionState(generated.Experiment.ExperimentId, generated.Recipe, session, adapter, session.ExperimentBadge, session.ProgressMarker());
     }
 
     internal static MultiSessionState BuildFreshFromActive(MultiSessionState basis, bool economyEnabled) =>
         basis.Recipe is not null
-            ? BuildForestMaker(basis.Recipe, economyEnabled)
+            ? BuildForestMaker(basis.Recipe, economyEnabled, basis.Session.ReadSiteMoisture().Setting)
             : BuildBuiltIn(basis.ExperimentKey, economyEnabled);
 
     internal static MultiSessionState WrapRestoredV3(MultiAreaContinuation session, MultiAreaExperiment experiment)

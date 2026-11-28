@@ -3,7 +3,7 @@
 import { el, n3, svg } from '../dom.js';
 import { byId, state, visibleLaneIds } from '../store.js';
 
-const STEM_COLOUR = ['#5ea878', '#8ec24f', '#b5a84e'];
+const STEM_COLOUR = ['#5ea878', '#8ec24f', '#b5a84e', '#c98a4b']; // Sitka, Oak, Beech, Scots pine (Part 2)
 
 function minimapAreas() {
   if (state.standOverview && Array.isArray(state.standOverview.areas) && state.standOverview.areas.length > 0) {

@@ -19,6 +19,9 @@ internal enum TimberAssortmentKind
     Fencing = 6,
     SecondPlanking = 7,
     Firewood = 8,
+    // Scots pine Part 2 sortments (graded by ScotsPineEngine.GradeTimber; pine Sawlog uses Sawlog above).
+    SmallRoundwood = 9,
+    PulpChip = 10,
 }
 
 /// <summary>Stem quality flags for D-062 log grading. Pruning is a positive section quality, never a price multiplier.</summary>
@@ -272,11 +275,13 @@ internal static class D062TimberAssortmentEngine
     /// Strict volume conservation holds: <c>SaleVolumeCm3 + ResidualVolumeCm3 == StemVolumeCm3</c>.
     /// </summary>
     internal static D062StemYield GradeStem(AnnualTree tree, string speciesId, TreePruningState pruning,
-        StemQualityFlags stemQuality = StemQualityFlags.None)
+        StemQualityFlags stemQuality = StemQualityFlags.None, bool tightEarlyStocking = false)
     {
         ArgumentNullException.ThrowIfNull(tree);
         if (string.IsNullOrWhiteSpace(speciesId))
             throw new P1Refusal("EconomySpeciesRequired", "a species ID is required for timber grading");
+        if (ScotsPineLive.IsPine(speciesId))
+            return GradeScotsPine(tree, pruning, tightEarlyStocking);
 
         checked
         {
@@ -406,6 +411,44 @@ internal static class D062TimberAssortmentEngine
                 saleVolumeCm3, residualVolumeCm3, harvestedGrams, totalRevenueCents,
                 HasPrunedSection: prunedEndMm > 0, PrunedEndHeightMm: prunedEndMm,
                 Logs: Array.AsReadOnly(logs.ToArray()));
+        }
+    }
+
+    /// <summary>
+    /// One felled Scots pine, graded whole-stem by the Part 1 engine (SPEC-multi-2d-scots-pine-moisture-V1): Sawlog EUR 68/t
+    /// (mature and pruned to at least 5.0 m, or grown under tight early stocking), else Small Roundwood EUR 45/t or Pulp/Chip
+    /// EUR 38/t, at the pine card's 1.02 green t/m³ — never the Sitka ladder, prices or the 890 kg/m³ proxy. [Calibration]
+    /// </summary>
+    internal static D062StemYield GradeScotsPine(AnnualTree tree, TreePruningState pruning, bool tightEarlyStocking)
+    {
+        checked
+        {
+            int dbhMm = (int)Math.Round(tree.DbhCm * 10.0, MidpointRounding.AwayFromZero);
+            int totalHeightMm = (int)Math.Round(tree.HeightM * 1000.0, MidpointRounding.AwayFromZero);
+            float stemVolM3 = FallenDeadwoodRecord.StemVolumeM3(tree.DbhCm, tree.HeightM);
+            long stemVolumeCm3 = stemVolM3 <= 0f ? 0L : (long)decimal.Floor((decimal)stemVolM3 * 1_000_000m);
+            var grade = ScotsPineGrading.Grade(tree, stemVolumeCm3 / 1_000_000m, pruning, tightEarlyStocking);
+            long greenGrams = (long)decimal.Round(grade.GreenTonnes * EconomyDefaults.GramsPerTonne, 0, MidpointRounding.AwayFromZero);
+            long unitCents = (long)(grade.UnitPriceEurPerTonne * 100m);
+            long revenueCents = (long)decimal.Round(grade.GrossValueEur * 100m, 0, MidpointRounding.AwayFromZero);
+            int prunedEndMm = pruning.Lifts > 0 && totalHeightMm > 1
+                ? Math.Min(totalHeightMm - 1, (int)Math.Round(pruning.CrownBaseHeightM * 1000f, MidpointRounding.AwayFromZero))
+                : 0;
+            if (stemVolumeCm3 == 0L)
+                return new D062StemYield(tree.TreeId, ScotsPineLive.SpeciesId, dbhMm, totalHeightMm, 0L, 0L, 0L, 0L, 0L,
+                    prunedEndMm > 0, prunedEndMm, Array.Empty<D062AllocatedLog>());
+            var kind = grade.Sortment switch
+            {
+                SitkaP1.Core.SpeciesWave2.Sortment.Sawlog => TimberAssortmentKind.Sawlog,
+                SitkaP1.Core.SpeciesWave2.Sortment.SmallRoundwood => TimberAssortmentKind.SmallRoundwood,
+                _ => TimberAssortmentKind.PulpChip,
+            };
+            var log = new D062AllocatedLog(tree.TreeId + "-L1", tree.TreeId, ScotsPineLive.SpeciesId, "scots-pine-" + kind.ToString().ToLowerInvariant(),
+                kind, 0, totalHeightMm, 0, dbhMm, stemVolumeCm3, greenGrams, unitCents, revenueCents,
+                prunedEndMm > 0 ? StemQualityFlags.Pruned : StemQualityFlags.None);
+            return new D062StemYield(tree.TreeId, ScotsPineLive.SpeciesId, dbhMm, totalHeightMm, stemVolumeCm3,
+                SaleVolumeCm3: stemVolumeCm3, ResidualVolumeCm3: 0L, greenGrams, revenueCents, prunedEndMm > 0, prunedEndMm,
+                Array.AsReadOnly(new[] { log }));
         }
     }
 

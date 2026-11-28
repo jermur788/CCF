@@ -28,6 +28,12 @@ internal static class SaveV3Format
     /// <summary>Reserved Phase 2B feature block key inside <c>blocks</c> (registered slot, absent until Phase 2B-2b).</summary>
     internal const string EconomyBlockKey = "economy";
 
+    /// <summary>
+    /// Scots pine and site-moisture feature block (SPEC-multi-2d-scots-pine-moisture-V1 Part 2): the site layout, Scots pine
+    /// identity, juveniles, recruits, deadwood species and pine planting work that the frozen v2 payload cannot name.
+    /// </summary>
+    internal const string ScotsPineBlockKey = "scotsPine";
+
     /// <summary>Maximum v3 save file size (same 64 MiB cap as v2).</summary>
     internal const int MaxSaveBytes = Phase1SaveFormat.MaxSaveBytes;
 }

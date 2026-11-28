@@ -950,6 +950,7 @@ internal sealed partial class PlayerApi
         Phase2Species.SitkaId => "Sitka spruce",
         Phase2Species.OakId => "Sessile oak",
         Phase2Species.BeechId => "European beech",
+        ScotsPineLive.SpeciesId => "Scots pine",
         _ => speciesId,
     };
 
@@ -964,6 +965,8 @@ internal sealed partial class PlayerApi
         TimberAssortmentKind.Fencing => "Fencing",
         TimberAssortmentKind.SecondPlanking => "Second planking",
         TimberAssortmentKind.Firewood => "Firewood",
+        TimberAssortmentKind.SmallRoundwood => "Small roundwood",
+        TimberAssortmentKind.PulpChip => "Pulp / chip",
         _ => kind.ToString(),
     };
 
@@ -975,6 +978,7 @@ internal sealed partial class PlayerApi
             EconomyDefaults.ShelterMaterialId => "Tree shelter",
             EconomyDefaults.BeechSaplingMaterialId => "Beech sapling",
             EconomyDefaults.OakSaplingMaterialId => "Oak sapling",
+            EconomyDefaults.ScotsPineSaplingMaterialId => "Scots pine sapling",
             _ => materialId,
         };
         return materialId is null || materialCostCents <= 0L
