@@ -88,7 +88,7 @@ internal static class HygieneAndParityTests
             }
         });
 
-        TestRunner.Add(Suite, "JW-T64 test project is standalone: one Compile glob, zero ProjectReference/PackageReference", () =>
+        TestRunner.Add(Suite, "JW-T64 test project is standalone: one Compile glob with Senescence excluded, zero ProjectReference/PackageReference", () =>
         {
             string? dir = FindDir("tests", "Core", "NaturalProcesses");
             TestRunner.True(dir is not null, "located tests");
@@ -96,7 +96,8 @@ internal static class HygieneAndParityTests
             TestRunner.True(!csproj.Contains("ProjectReference", StringComparison.Ordinal), "no ProjectReference");
             TestRunner.True(!csproj.Contains("PackageReference", StringComparison.Ordinal), "no PackageReference");
             TestRunner.True(!csproj.Contains("<Reference", StringComparison.Ordinal), "no binary reference");
-            TestRunner.Eq(1, csproj.Split("<Compile ").Length - 1, "one Compile item");
+            TestRunner.Eq(2, csproj.Split("<Compile ").Length - 1, "one Compile include and one removal");
+            TestRunner.True(csproj.Contains("<Compile Remove=\"../../../src/Core/NaturalProcesses/Senescence/**/*.cs\" />", StringComparison.Ordinal), "exclude only the standalone Senescence module");
             TestRunner.True(csproj.Contains("<Compile Include=\"../../../src/Core/NaturalProcesses/**/*.cs\" />", StringComparison.Ordinal), "glob");
         });
         RegisterCopyToRetention();

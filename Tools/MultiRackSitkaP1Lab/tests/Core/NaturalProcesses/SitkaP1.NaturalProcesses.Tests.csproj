@@ -8,5 +8,6 @@
 
   <ItemGroup>
     <Compile Include="../../../src/Core/NaturalProcesses/**/*.cs" />
+    <Compile Remove="../../../src/Core/NaturalProcesses/Senescence/**/*.cs" />
   </ItemGroup>
 </Project>
