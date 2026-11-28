@@ -726,7 +726,10 @@ internal sealed partial class MultiAreaContinuation
             sessionId = NewSessionId();
             canopyCache.Clear();
             groundCache = null;
-            return new MultiAreaLoadResult(ViewOf(root), DraftOrderCount(restored.SavedApproval), decoded.Checksum, null, null);
+            // Approved Scots pine Plant orders were restored as drafts from the scotsPine block, not from the v2 approval.
+            int draftOrders = DraftOrderCount(restored.SavedApproval) +
+                ScotsPineSaveProjection.RestoredApprovedPlantCount(decoded.Envelope.Blocks);
+            return new MultiAreaLoadResult(ViewOf(root), draftOrders, decoded.Checksum, null, null);
         }
     }
 

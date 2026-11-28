@@ -152,6 +152,78 @@ internal static class ScotsPineSaveTests
             T.Refuses("SaveChecksumMismatch", () => SaveV3Codec.Decode(Encoding.UTF8.GetBytes(json.Replace("\"tamper\"", "\"tampeX\"",
                 StringComparison.Ordinal))));
         });
+
+        // Independent review follow-up (repair cycle 1): the only approved order is a Scots pine Plant, which the v2 projection
+        // strips, so the frozen v2 payload must not carry an empty approval.
+        T.Add("SP2-S5 v3 approved pine-only plan: Approve -> Save before Execute -> Load gives one Pending draft that needs a fresh approval", () =>
+        {
+            var (_, c) = ForestMakerGenerator.CreateSession(ForestMakerPresets.ScotsPineTwoZone064);
+            var (x, z) = PlantingPoint(c, "MA-E", 0);
+            var v = c.AddPlant(FenceOf(c.ReadView()), "MA-E", Pine, x, z).View;
+            var order = (MultiAreaPlantOrder)Root(c).Phase2!.PendingOrders.Single();
+            v = c.Approve(FenceOf(v)).View;
+            var oldPlan = v.Approved!;
+            T.True(Root(c).Phase2!.ApprovedOrders.SequenceEqual(new MultiAreaPlantingOrder[] { order }), "the pine Plant is the whole approved plan");
+
+            var (schema, bytes) = c.CaptureSaveBytes(FenceOf(v), "approved pine", 1);
+            T.Eq(3, schema, "saved as schema v3");
+            var decoded = SaveV3Codec.Decode(bytes);
+            T.True(decoded.Envelope.State.Approved is null && decoded.Envelope.State.Phase2!.ApprovedOrders.Count == 0 &&
+                   decoded.Envelope.State.Phase2.PendingOrders.Count == 0, "inner v2 payload has no approval marker and no orders");
+
+            var (restored, _, result) = MultiAreaContinuation.RestoreFromV3(decoded);
+            T.True(result.RefusalCode is null, "RestoreFromV3 succeeded");
+            var after = Root(restored);
+            T.True(after.Approved is null && result.View.Approved is null, "the approval is not restored (load policy A)");
+            T.True(after.Phase2!.ApprovedOrders.Count == 0 &&
+                   after.Phase2.PendingOrders.SequenceEqual(new MultiAreaPlantingOrder[] { order }),
+                "the pine Plant is back as a Pending draft (same order ID, area, species and point)");
+            T.Eq(1, result.DraftOrderCount, "one formerly approved order restored as a draft");
+
+            // The pre-save plan cannot execute; a fresh approval under the new session can.
+            T.Refuses("WorkPlanNotApproved", () => restored.Execute(FenceOf(result.View), oldPlan.PlanId, oldPlan.ExecutionKey));
+            var reapproved = restored.Approve(FenceOf(restored.ReadView())).View.Approved!;
+            T.True(reapproved.PlanId != oldPlan.PlanId, "a fresh approval mints a new plan");
+
+            // Re-saving the restored (unapproved) plan works, and its scotsPine block is canonical across another round trip.
+            var (again, _, _) = MultiAreaContinuation.RestoreFromV3(decoded);
+            var (resaveSchema, resaved) = again.CaptureSaveBytes(FenceOf(again.ReadView()), "approved pine", 2);
+            T.Eq(3, resaveSchema, "re-saved as schema v3");
+            var resavedDecoded = SaveV3Codec.Decode(resaved);
+            var (twice, _, twiceResult) = MultiAreaContinuation.RestoreFromV3(resavedDecoded);
+            T.True(twiceResult.RefusalCode is null && Root(twice).Phase2!.PendingOrders.SequenceEqual(new MultiAreaPlantingOrder[] { order }),
+                "the re-saved plan restores the same Pending draft");
+            T.Eq(0, twiceResult.DraftOrderCount, "a pending (unapproved) plan restores no formerly approved drafts");
+            var (_, resavedTwice) = twice.CaptureSaveBytes(FenceOf(twice.ReadView()), "approved pine", 2);
+            T.Eq(resavedDecoded.Envelope.Blocks[SaveV3Format.ScotsPineBlockKey].CanonicalDataJson,
+                SaveV3Codec.Decode(resavedTwice).Envelope.Blocks[SaveV3Format.ScotsPineBlockKey].CanonicalDataJson, "canonical scotsPine block");
+        });
+
+        T.Add("SP2-S6 v3 approved pine Plant + Shelter: Save before Execute -> Load gives both orders as Pending drafts and counts 2", () =>
+        {
+            var (_, c) = ForestMakerGenerator.CreateSession(ForestMakerPresets.ScotsPineTwoZone064);
+            var (x, z) = PlantingPoint(c, "MA-E", 0);
+            var v = c.AddPlant(FenceOf(c.ReadView()), "MA-E", Pine, x, z).View;
+            v = c.AddShelter(FenceOf(v), "MA-E", x, z).View;
+            var orders = Root(c).Phase2!.PendingOrders.ToArray();
+            v = c.Approve(FenceOf(v)).View;
+
+            var (schema, bytes) = c.CaptureSaveBytes(FenceOf(v), "approved pine + shelter", 1);
+            T.Eq(3, schema, "saved as schema v3");
+            var decoded = SaveV3Codec.Decode(bytes);
+            T.True(decoded.Envelope.State.Approved is not null && decoded.Envelope.State.Phase2!.ApprovedOrders.Count == 1,
+                "the Shelter keeps the inner v2 approval non-empty");
+
+            var (restored, _, result) = MultiAreaContinuation.RestoreFromV3(decoded);
+            T.True(result.RefusalCode is null, "RestoreFromV3 succeeded");
+            var after = Root(restored);
+            T.True(after.Approved is null && after.Phase2!.ApprovedOrders.Count == 0, "the approval is not restored (load policy A)");
+            T.True(after.Phase2!.PendingOrders.Count == 2 && after.Phase2.PendingOrders.ToHashSet().SetEquals(orders),
+                "both orders are back as Pending drafts");
+            T.True(after.Phase2.PendingOrders.Any(o => o is MultiAreaPlantOrder { SpeciesId: Pine }) &&
+                   after.Phase2.PendingOrders.Any(o => o is MultiAreaShelterOrder), "a pine Plant and a Shelter");
+            T.Eq(2, result.DraftOrderCount, "two formerly approved orders restored as drafts");
+        });
     }
 
     /// <summary>

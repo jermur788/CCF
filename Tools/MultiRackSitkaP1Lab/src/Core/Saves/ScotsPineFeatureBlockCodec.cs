@@ -62,8 +62,24 @@ internal static class ScotsPineSaveProjection
                 Deadwood = Array.AsReadOnly(stage4.Deadwood.Select(d => ScotsPineLive.IsPine(d.SpeciesId)
                     ? d with { SpeciesId = Phase2Species.SitkaId } : d).ToArray()),
             };
-        return root with { Phase2 = phase2, Stage4 = stage4, ScotsPine = null };
+        // When the approved plan held only Scots pine Plant orders, stripping them leaves an approval with no orders, which the
+        // frozen v2 validator refuses. A loaded approval is never restored anyway (load policy A), so the v2 view drops the
+        // empty marker; the pine orders travel in the scotsPine block's approvedOrders and come back as Pending drafts.
+        var approved = root.Approved;
+        if (approved is not null && approved.Orders.Count == 0 && (root.Stage4?.ApprovedPrunes.Count ?? 0) == 0 &&
+            (root.Stage5?.ApprovedClears.Count ?? 0) == 0 && (phase2?.ApprovedOrders.Count ?? 0) == 0)
+            approved = null;
+        return root with { Phase2 = phase2, Stage4 = stage4, Approved = approved, ScotsPine = null };
     }
+
+    /// <summary>
+    /// How many approved Scots pine Plant orders a verified <c>scotsPine</c> block brings back as Pending drafts (0 without
+    /// the block). They never appear in the inner v2 saved approval, so a load adds this to that approval's draft count.
+    /// </summary>
+    internal static int RestoredApprovedPlantCount(IReadOnlyDictionary<string, SaveV3Block> blocks) =>
+        blocks.TryGetValue(SaveV3Format.ScotsPineBlockKey, out var block)
+            ? new ScotsPineFeatureBlockCodec().DecodeParts(block.CanonicalDataJson, block.BlockVersion).ApprovedOrders.Count
+            : 0;
 
     /// <summary>The Scots pine parts the projection removed, with their live positions.</summary>
     internal static ScotsPineSaveParts Extract(MultiAreaRoot root)
