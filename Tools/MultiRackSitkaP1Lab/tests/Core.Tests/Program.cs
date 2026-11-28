@@ -471,6 +471,7 @@ Phase1SaveIntegrationTests.Register();
 Phase1TimeHistoryTests.Register();
 RngSaltsTests.Register();
 ForestMakerTests.Register();
+ScotsPinePart2Tests.Register();
 Phase2A2Tests.Register(scratch);
 int result = T.RunAll();
 Directory.Delete(scratch, recursive: true);
