@@ -1,7 +1,7 @@
 # Open-Source Satellite Map Plug — MapLibre Display Adapter and Ellipsoidal Geo-Anchor Bridge V1
 
 - **Spec ID:** `SPEC-multi-2d-maplibre-adapter-V1`
-- **Status:** `APPROVED / IMPLEMENTING` — Part 1 implemented on an isolated branch, repair cycles 1, 2 and 3 applied after independent review; **Part 2 `QUEUED`** behind separate integrator approval
+- **Status:** `APPROVED / IMPLEMENTING` — Part 1 implemented on an isolated branch, repair cycles 1, 2, 3, 4 and 5 applied after independent review (matrix `B01`–`B31`; cycle 5 changed B24 only); **Part 2 `QUEUED`** behind separate integrator approval
 - **Milestone:** CCF 2D Simulator — Playable Milestone 7, Part 1
 - **Owner:** Overall Manager / 2D Delivery Manager
 - **Base commit:** `b2006767cbe70fa2c822497470908251a0fd6ffd` (`origin/integration/2d-sim`, Scots Pine Part 2 merged green)
@@ -18,7 +18,7 @@ Give the 2D simulator an optional, offline, open-source map style behind the exi
 - MapLibre GL JS 6.20.0 (BSD-3-Clause) vendored unmodified, with SHA-256 provenance; no build step, no CDN.
 - A self-contained adapter under `Tools/MultiRackSitkaP1Lab/src/Ui/multi/map/maplibre/` that imports nothing from the shared `/multi` shell.
 - An ellipsoidal WGS84 geo-anchor bridge (`geo-anchor.js`).
-- A standalone verification harness (`tests/maplibre-adapter/`): vendor integrity, geodesic oracle, and a strict-CSP offline headless-Chromium matrix `B01`–`B31` over an 80 × 80 m, 5-lane synthetic fixture (`B21`–`B26` added in repair cycle 1, `B27`–`B29` in repair cycle 2, `B30` in repair cycle 3, `B31` in repair cycle 4).
+- A standalone verification harness (`tests/maplibre-adapter/`): vendor integrity, geodesic oracle, and a strict-CSP offline headless-Chromium matrix `B01`–`B31` over an 80 × 80 m, 5-lane synthetic fixture (`B21`–`B26` added in repair cycle 1, `B27`–`B29` in repair cycle 2, `B30` in repair cycle 3, `B31` in repair cycle 4; `B24` strengthened in repair cycles 2–5).
 
 **Part 2 — `QUEUED` (out of scope; needs a separate integrator-approved packet):**
 
@@ -153,7 +153,7 @@ The following are not touched: Unity (`Assets/`, `Packages/`, `ProjectSettings/`
 
 - **AC-1** Vendored files match `provenance.json` sizes and SHA-256 hashes; the tarball hash and registry integrity are recorded.
 - **AC-2** Geo bridge: round trip < 0.01 m and Vincenty agreement < 0.01 m at 30/80/120 m. All rejection cases fail with the expected code.
-- **AC-3** `B01`–`B31` all pass in one run, with zero console errors (page and workers), zero CSP violations, zero failed requests, zero non-loopback requests, zero audit setup failures and zero unanswered requests. Every worker target (identified by CDP session and target id, not by URL) reports its own startup response of CDP resource type `Script` with the exact headers; an ordinary `Fetch` of the same URL never counts. Every response of the run carries the exact CSP and Referrer-Policy, checked at the end of the run: browser page and worker sessions, every server-written response, and the node-side 404. Every server-written response is reconciled with a browser response for the same exact request target (and vice versa), with only the node-side 404, canceled requests and cache hits as documented exceptions.
+- **AC-3** `B01`–`B31` all pass in one run, with zero console errors (page and workers), zero CSP violations, zero failed requests, zero non-loopback requests, zero audit setup failures and zero unanswered requests. Every worker target (identified by CDP session and target id, not by URL) reports its own startup response of CDP resource type `Script` with the exact headers; an ordinary `Fetch` of the same URL never counts. Every response of the run carries the exact CSP and Referrer-Policy, checked at the end of the run: browser page and worker sessions, every server-written response, and the node-side 404. Response accounting is per attempt (repair cycle 5). Every browser network request is paired with **its own** server receipt: same exact request target (path + query), in send order, inside a time window. A browser response must pair with a receipt that has a delivered response with the same status. Every server-written response must pair with its own browser request, so a cancellation never reduces the browser responses that server responses require. A canceled request explains only its own attempt: its own receipt (abandoned with no response, answered after the client closed, or abandoned mid-flight), or no receipt at all. The only exceptions are the node-side 404 and cache hits. In-run self-tests cover a real same-URL mixed duplicate (A aborted after receipt with no response, B answered 200): withholding B's CDP events must fail and name B's response, and withholding A's must not fail.
 - **AC-4** `git diff --name-only b2006767...HEAD` lists only the four prefixes; `git status --short` is clean; `origin/main` is unchanged.
 - **AC-5 (Part 2, QUEUED)** Live `/multi` wiring, C# routes, CSP and resources verified under a separate approved packet.
 

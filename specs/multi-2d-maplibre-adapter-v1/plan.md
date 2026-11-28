@@ -1,7 +1,7 @@
 # Open-Source Satellite Map Plug V1 — Implementation Plan
 
 - **Spec:** [`SPEC-multi-2d-maplibre-adapter-V1`](spec.md)
-- **Status:** `APPROVED / IMPLEMENTING` (Part 1 active; Part 2 `QUEUED`)
+- **Status:** `APPROVED / IMPLEMENTING` (Part 1 active, repair cycles 1–5 applied, matrix `B01`–`B31`; Part 2 `QUEUED`)
 - **Base:** `b2006767cbe70fa2c822497470908251a0fd6ffd` (`origin/integration/2d-sim`) · **Context:** `bdeb6a324acaf4129c10fb0846faac8b64974360` (`origin/main`)
 - **Branch:** `feat/multi-2d-maplibre-adapter-v1` (review copy: `review/multi-2d-maplibre-adapter-v1`)
 
@@ -36,7 +36,7 @@
 
 1. `verify-vendor.mjs` — re-hashes the committed bytes; checks sizes, the file list, no static imports and no reference to the omitted shared module; checks the CSS uses `data:` URLs only.
 2. `test-geo-anchor.mjs` — round trip, independent Vincenty oracle at 30/80/120 m, axis azimuths, rejection codes.
-3. `drive-maplibre-cdp.mjs` — starts `server.mjs` on an ephemeral loopback port, then launches `/usr/bin/chromium` headless with SwiftShader WebGL, `--host-resolver-rules="MAP * ~NOTFOUND, EXCLUDE 127.0.0.1"` and a dead proxy, in its own process group. Workers are auto-attached paused (`waitForDebuggerOnStart`) so each worker's own script response is audited. Each worker is tracked by its own CDP session and target id; a failed worker setup, an unattached session or an unanswered request fails the run. It runs `B01`–`B30` (see [tasks.md](tasks.md)); `B08`, `B20` and `B24` are evaluated last so they cover the whole run.
+3. `drive-maplibre-cdp.mjs` — starts `server.mjs` on an ephemeral loopback port, then launches `/usr/bin/chromium` headless with SwiftShader WebGL, `--host-resolver-rules="MAP * ~NOTFOUND, EXCLUDE 127.0.0.1"` and a dead proxy, in its own process group. Workers are auto-attached paused (`waitForDebuggerOnStart`) so each worker's own script response is audited. Each worker is tracked by its own CDP session and target id; a failed worker setup, an unattached session or an unanswered request fails the run. It runs `B01`–`B31` (see [tasks.md](tasks.md)); `B08`, `B20` and `B24` are evaluated last so they cover the whole run. B24 pairs every browser request with its own server receipt (`server.mjs` logs every receipt, answered or not; repair cycle 5).
 4. `write-summary.mjs` — writes the committed `Docs/Handoffs/.../maplibre-adapter/evidence/summary.json`. Full logs, screenshots and reports go to `/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-<UTC>/`.
 
 **Not run by design:** .NET builds/tests, `Phase1.Save.Tests`, `build/2d-gate.sh`, `build/2d-gate/selftest.sh`, Unity.

@@ -9,20 +9,64 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test (repair cycle 4): a311ee7024ed9cf74a36d4b1ed7a881f1b4c2725 (fix(2d-sim): repair cycle 4)
+Code under test (repair cycle 5): fd81415eac29dd82a85e19d2fbaa979d8ee38842 (fix(2d-sim): repair cycle 5)
+  Repair cycle 4 code: a311ee7024ed9cf74a36d4b1ed7a881f1b4c2725 (fifth review: NEEDS CHANGES, 1 blocking G3 + 1 docs nit)
   Repair cycle 3 code: 8f1a62a3fd56dd854834c76967537278e64f3ca2 (fourth review: NEEDS CHANGES, 1 blocking + 1 low/G3)
   Repair cycle 2 code: ce7732a93d01ebd1fb37167591ca787d7000a225 (third review: NEEDS CHANGES, 2 blocking + 1 non-blocking)
   Repair cycle 1 code: e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (delta re-review: REQUEST CHANGES, 2 blocking + 2 non-blocking + 1 nit)
   Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
-HEAD: the commit that updates this file (docs + evidence summary only; no code change after a311ee70)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after fd81415e)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE (repair cycle 4): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T145800Z/
-  (mutants: run-20261128T145800Z/mutants/; repair cycle 3: run-20261128T142326Z/ (+ mutants/);
+DURABLE EVIDENCE (repair cycle 5): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T154601Z/
+  (mutants: run-20261128T154601Z/mutants/; repair cycle 4: run-20261128T145800Z/ (+ mutants/);
+   repair cycle 3: run-20261128T142326Z/ (+ mutants/);
    repair cycle 2: run-20261128T133605Z/; repair cycle 1: run-20261128T125152Z/;
    original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch, implemented, repaired four times after independent review (repair cycle 4 answers the fourth review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired five times after independent review (repair cycle 5 answers the fifth review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 5 (after the fifth independent review: NEEDS CHANGES)
+
+Sole writer: Claude Opus 5.5. Fix commit `fd81415e`. The file fence is unchanged: only `tests/maplibre-adapter/` code changed (`drive-maplibre-cdp.mjs`, `server.mjs`, `write-summary.mjs`), plus spec docs and this handoff. The adapter code did not change. No case was deleted or weakened. The matrix is still B01–B31, and B24 is stronger.
+
+Gate run on clean `fd81415e` (`run.sh`, exit 0, 2026-11-28T15:46Z):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38**;
+- browser matrix **B01–B31 31/31**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests, 0 audit setup failures, 0 unanswered requests;
+- 208 browser and 212 server responses plus the node-side 404, all with the exact headers; 213 server receipts;
+- 26 worker targets, each matched to its own startup response of resource type `Script`.
+
+| # | Finding | Fix | Regression test | Evidence (run-20261128T154601Z) |
+|---|---|---|---|---|
+| G3 (blocking) | **A cancellation could cover another request's missing response.** In the repro, request A to an exact URL was canceled after the server received it, and the server never answered it. Request B to the same URL got 200. Withholding only B's two CDP events gave server = 1, browser = 0, canceled = 1, and B24 passed: the per-URL rule `browser ≤ expected ≤ browser + canceled` excused B's missing response | `server.mjs` now logs a **receipt** for every request, in arrival order, answered or not. Each receipt records its response status (null if none was ever written) and whether the client had already closed the socket. Responses carry their `receiptSeq`. `reconcileAttempts` replaces the per-URL tally (`reconcileExactUrls`). Each browser request is paired with **its own** receipt: same exact path + query, received no earlier than 5 ms before the browser sent it and, if canceled, no later than 20 ms after the cancellation. Pass 1: requests that got a response take the earliest such receipt with a **delivered** response (open socket) of the same status. Pass 2: canceled requests take the earliest such receipt that was **not** delivered, and a delivered one only if none is left. Afterwards, **every server-written response must be paired**: an unpaired one fails as "server response without its own browser request/response" and names the URL, receipt number and status. A browser response whose own receipt has no matching delivered response fails the other way. So a cancellation explains only its own attempt and never reduces the browser responses that server responses require. An unpaired receipt that never got any response is listed and allowed (it is not a response). The only exceptions left are the node-side 404 and cache hits. Orphan browser responses (no request event) also fail | **B24** gains a **real** mixed duplicate, run in the page before the whole-run checks: A = `fetch('/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate')`, aborted once the server has received it (the route never answers the first receipt of a target); B = the same exact URL, answered 200 with `ok`. The setup is asserted: A rejects with `AbortError`, B gets 200 `ok`, there are 2 browser requests and 2 receipts, receipt 1 has no response and the client closed it, receipt 2 has a delivered 200. In-run self-tests: **withhold only B's CDP events → must fail, with exactly one unpaired server response at that URL, B's receipt number and status 200**; **withhold only A's → no failure**. The earlier self-tests stay: withhold both events for the exact B27 URL; the same sweep over every server-answered target; drop a server response (reverse); withhold one duplicate `/harness.html` request; and the twin worker / resource-type tests | PASS. 27 exact targets, 213 receipts, 212 server responses, 212 browser requests: 0 unpaired server responses, 0 unmatched browser responses, 0 orphans, 0 abandoned receipts, 0 cache hits. Receipt-after-send gap −0.0 to 19.3 ms (tolerance 5 ms). Canceled requests = 4, each paired with its own receipt: the mixed-duplicate A (receipt with no response); 1 `/fixtures/synthetic-imagery.png` (aborted mid-flight; its own 200 was written to an open socket); 2 `/fixtures/held-imagery.png`. Mixed duplicate: A aborted after receipt #211 → `AbortError`; B → 200 as receipt #212; withhold B → `[{"key":"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate","seq":212,"status":200,"closedSocket":false}]` [ok]; withhold A → no gaps [ok]. B27 exact URL → `{"server":["…?b27-stalled-decode"],"browser":[]}`; sweep 27/27; reverse → `{"server":[],"browser":["…?b27-stalled-decode"]}`; duplicate → `{"server":["/harness.html"],"browser":[]}` |
+| Docs nit | The spec status line listed repair cycles only up to 3, and plan.md said `B01`–`B30` | spec.md status now records repair cycles 1–5 and the `B01`–`B31` matrix; plan.md status and harness step say `B01`–`B31`; AC-3, the tasks.md B24 row, the new T-06R5 row and the checklist B24 row describe per-attempt accounting | n/a (docs) | plan.md no longer mentions `B30` alone; spec, plan, tasks, checklist and this handoff all say `B01`–`B31` and Part 2 `QUEUED` |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs, `run-mutants.sh`, `mutate.py` and `mutants-summary.txt` in `run-20261128T154601Z/mutants/`; 17 mutants):**
+
+| Mutation (disposable copy) | Finding | Expected | Matrix result |
+|---|---|---|---|
+| (a) `mixed-dup-withhold-b`: the collector drops B's `requestWillBeSent` and `responseReceived` (the reviewer's reproduction) | G3 | B24 fails, naming B's response | exit 1. **B24 FAIL** alone. Accounting: 1 unpaired server response, `{"key":"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate","seq":212,"status":200,"closedSocket":false}`; 0 unanswered, and B20 passed. The in-run self-tests also fail, because they expect a clean baseline |
+| (b) `mixed-dup-withhold-a`: the collector drops A's (the canceled request's) `requestWillBeSent` (control) | G3 | no false failure from the accounting | Accounting: **0 unpaired server responses, 0 unmatched browser responses, 0 orphans**; A's receipt without a response is allowed as abandoned. The matrix still exits 1 with **B24 FAIL** alone, but only because the in-run mixed-duplicate self-test refuses to run without A's request event (`set up=false`, so it cannot prove its own control). That is intended: a self-test that cannot see its fixture must not report ok. The in-run control on the real data (withhold A → no gaps) passes in the gate run |
+| (c) `cancel-prefers-delivered`: pass 2 lets a canceled request take a delivered receipt first, with no events lost | G3 | B24 fails (self-test) | exit 1. **B24 FAIL** alone. Withhold B → `[]` `[FAIL]` (A absorbed B's 200); withhold A → ok |
+| (d) `global-cancel-allowance`: the repair-cycle-4 rule restored inside the pairing (unpaired responses excused while the URL has any cancellation), with no events lost | G3 | B24 fails (self-test) | exit 1. **B24 FAIL** alone. Withhold B → `[]` `[FAIL]` |
+| Repair-cycle-4 mutants, re-run on `fd81415e`: `withhold-b27-exact-url`, `pathname-keys` | cycle-4 G3-2 | B24 fails | exit 1. **B24 FAIL** alone in each case |
+| `rejection-no-elapsed-check`, `rejection-always-timeout` | cycle-4 B1 (B31) | B31 fails | exit 1. **B31 FAIL** alone in each case |
+| `deadline-race-accepted`, `post-decode-check-only-settled` | cycle-3 B1 (B30, late decode) | B30 fails | exit 1. **B30 FAIL** alone in each case |
+| `worker-fetch-counted`, `resource-type-ignored`, `startup-script-withheld` | cycle-3 B2 (worker) | B24 fails | exit 1. **B24 FAIL** alone in each case |
+| `startup-response-withheld` | cycle-3 B2 | B20 + B24 fail | exit 1. **B20 + B24 FAIL** (1 unanswered request) |
+| `b27-slow-start-cycle2-limit` / `b27-slow-start` / `b27-deadline-late` | cycle-3 N3 | fail / pass / fail | exit 1 **B27 FAIL** / exit 0 **31/31** / exit 1 **B27 FAIL** |
+
+Every mutation asserts that its patch applied. No Chromium process or working copy was left behind.
+
+**Repair-cycle-5 choices a reviewer should check:**
+
+- **A canceled request can still be paired with its own delivered 200.** The real run has one: a `/fixtures/synthetic-imagery.png` request that the browser aborted mid-flight. The server wrote its 200 to a socket that was still open, and Chromium reported only `loadingFailed (canceled)`: no `responseReceived`, no `responseReceivedExtraInfo`. That is why the fallback in pass 2 exists. It is safe because canceled requests are paired after every responded request has taken its own receipt, prefer undelivered receipts, and must have sent the request before the receipt and been canceled no more than 20 ms before it. The measured receipts of canceled requests arrived 1.7 to 1,500 ms **before** the cancellation.
+- **Pairing uses time and order, not a shared request id.** The server cannot see CDP request ids, and CDP does not report the client port. Two same-URL requests sent within the 5 ms tolerance whose outcomes differ could still be ambiguous. Pass 2's preference for undelivered receipts settles that in the strict direction, for example the reviewer's case reversed. The residual case is a canceled request that never reached the server, sent within 5 ms of a withheld 200 to the same URL and canceled no more than 20 ms before that 200's receipt. Not exercised.
+- **Abandoned receipts are allowed** (receipts with no response ever written and no browser request), because the reviewer's control requires that withholding A must not fail. They are listed in the detail and counted in `summary.json` (0 in the gate run).
+- **`summary.json` schema v6** adds `serverReceipts` and `attemptAccounting` (unpaired counts and the mixed-duplicate verdicts). The evidence folder also gains `browser-requests.json` and `server-receipt-log.json`.
 
 ## Repair cycle 4 (after the fourth independent review: NEEDS CHANGES)
 
@@ -317,6 +361,7 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 5 additions, not tested:** per-attempt pairing under HTTP caching (every harness response is `no-store`, so the cache-hit count was 0); concurrent same-URL requests with mixed outcomes inside the 5 ms tolerance (see the repair-cycle-5 choices); HTTP/2 or remote servers (the harness is HTTP/1.1 on loopback, and the pairing relies on one host clock).
 - **Repair cycle 4 additions, not tested:** decoder rejections from anything other than corrupt PNG bytes in Chromium 156; a real main-thread stall (B31, like B30, simulates one with a busy-wait inside a harness task); exact-URL accounting with HTTP caching enabled (every harness response is `no-store`, so the cache-hit exception is counted but was 0).
 - **Repair cycle 3 additions, not tested:** a real main-thread stall in a real page (B30 simulates it with a busy-wait inside a harness task); CDP resource types in other Chromium versions or other browsers.
 - **Repair cycle 2 additions, not tested:** a real slow image decoder (the stall is simulated by wrapping `createImageBitmap` in the harness page); non-Chromium worker auditing.
@@ -324,6 +369,6 @@ OVERALL: PASS
 
 ## Next authorised step
 
-An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 4, code `a311ee70`) against the fourth review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 5, code `fd81415e`) against the fifth review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.
