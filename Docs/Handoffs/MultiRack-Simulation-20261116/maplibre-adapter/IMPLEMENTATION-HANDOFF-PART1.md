@@ -9,18 +9,60 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test (repair cycle 3): 8f1a62a3fd56dd854834c76967537278e64f3ca2 (fix(2d-sim): repair cycle 3)
+Code under test (repair cycle 4): a311ee7024ed9cf74a36d4b1ed7a881f1b4c2725 (fix(2d-sim): repair cycle 4)
+  Repair cycle 3 code: 8f1a62a3fd56dd854834c76967537278e64f3ca2 (fourth review: NEEDS CHANGES, 1 blocking + 1 low/G3)
   Repair cycle 2 code: ce7732a93d01ebd1fb37167591ca787d7000a225 (third review: NEEDS CHANGES, 2 blocking + 1 non-blocking)
   Repair cycle 1 code: e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (delta re-review: REQUEST CHANGES, 2 blocking + 2 non-blocking + 1 nit)
   Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
-HEAD: the commit that updates this file (docs + evidence summary only; no code change after 8f1a62a3)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after a311ee70)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE (repair cycle 3): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T142326Z/
-  (mutants: run-20261128T142326Z/mutants/; repair cycle 2: run-20261128T133605Z/; repair cycle 1: run-20261128T125152Z/;
+DURABLE EVIDENCE (repair cycle 4): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T145800Z/
+  (mutants: run-20261128T145800Z/mutants/; repair cycle 3: run-20261128T142326Z/ (+ mutants/);
+   repair cycle 2: run-20261128T133605Z/; repair cycle 1: run-20261128T125152Z/;
    original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch, implemented, repaired three times after independent review (repair cycle 3 answers the third review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired four times after independent review (repair cycle 4 answers the fourth review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 4 (after the fourth independent review: NEEDS CHANGES)
+
+Sole writer: Claude Opus 5.5. Fix commit `a311ee70`. The file fence is unchanged: no C#, shell, save, Unity, `.meta`, build, package or `Docs/Project` change. No case was deleted or weakened. B31 is new. B24 now has exact-URL accounting. B30 (the success-path race) is unchanged.
+
+Gate run on clean `a311ee70` (`run.sh`, exit 0, 2026-11-28T14:58Z):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38**;
+- browser matrix **B01–B31 31/31**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests, 0 audit setup failures, 0 unanswered requests;
+- 207 browser and 211 server responses plus the node-side 404, all with the exact headers;
+- 26 worker targets, each matched to its own startup response of resource type `Script`.
+
+| # | Finding | Fix | Regression test | Evidence (run-20261128T145800Z) |
+|---|---|---|---|---|
+| B1 | **An overdue decode rejection skipped the timeout and the abort.** Chromium's decoder rejected a corrupt bitmap. The rejection was held until 1,820 ms into a 1,200 ms probe, then released while the deadline timer was still queued. The catch recorded `error`, cleared the timer and never fired the abort signal | The `catch` in `probeImagery` now runs the same `overdue()` elapsed-time check as the success path before it settles. If the deadline has passed, `overdue()` calls `timeOut()`. That settles the probe as `timeout` (and `settle` clears the timer), then aborts the controller with reason `timeout`. The settled probe stays in the per-URL cache, which lives as long as the adapter. A rejection that arrives in time still settles as `error`. The test-only debug handle now lists each probe's `reason`, `aborted` and `abortReason` | **B31** (new, deterministic). Deadline 1,500 ms. **Control:** corrupt PNG bytes (`/fixtures/corrupt-imagery.png`, served as `image/png`) are rejected in time by Chromium's own decoder. Expected: reason `error`, no abort, the exact notice, no raster, 1 fetch. **Overdue:** a second corrupt URL. The harness runs the real decode at once but holds back its native rejection (`holdDecodes('predecode')` now holds rejections as well as bitmaps). Starting 150 ms before the deadline, one task blocks the main thread until 600 ms past it, then rejects the held decode synchronously, so the catch runs before the overdue timer task. The preconditions are recorded. Expected: reason `timeout`, abort emitted with reason `timeout`, failures exactly `["timeout"]`, the exact notice, no raster, 0 pending, 1 fetch. After the timer: no change. Same URL again: no refetch, no decode. After a same-instance remount, both cached results (timeout/aborted and error/not aborted) show the notice with no refetch and no raster, and maps constructed = 2 | PASS. Control: `error`, aborted=false, failures `["error"]`, 1 fetch. Race: the blocking task began at 1,349.3 ms with 1 held native rejection, 0 bitmaps and pending = 1. `InvalidStateError` was released at 2,100.0 ms (deadline 1,500) with the timer still queued, and the probe settled before the timer turn. Result: `satellite/imagery-unavailable`, notice "Imagery unavailable. Showing woodland map.", layers `[ccf-woodland-canvas, ccf-woodland-extent]`, reason `timeout`, abort emitted (reason `timeout`), failures `["timeout"]`, 1 server fetch. Same URL: 0 refetches, 0 decodes. Remount: overdue URL cached `timeout`/aborted, timely URL cached `error`, 0 refetches, no raster, 2 maps |
+| G3-2 | **B24 matched server responses by pathname.** Withholding both CDP events for the exact B27 imagery URL still passed, because other requests shared its pathname | Server log entries now carry the exact request target (`url`). `reconcileExactUrls` keys server and browser (page and worker) responses by exact path + query and counts them as a multiset, in both directions. For each target: browser ≤ server − node-side ≤ browser + canceled. A server response with no browser response and no canceled request fails. So does a browser response with no server response. Three exceptions are allowed, are documented and are counted in the detail: the node-side 404, canceled/aborted requests (`loadingFailed.canceled`, never answered), and cache hits (response `from*` flags or `requestServedFromCache`). The old pathname `Set` check was removed | **B24**, with four in-run self-tests on the run's own data: (1) withholding both CDP events for `?b27-stalled-decode` must flag exactly that URL (3 other exact URLs share its pathname); (2) the same for **every** server-answered target; (3) dropping its server response must flag it in the reverse direction; (4) dropping one of several browser responses for a duplicate target (`/harness.html`) must be caught | PASS. 27 exact targets: 0 server responses without a browser response, 0 browser responses without a server response. Exceptions used: node-side 404 ×1; 3 canceled requests, which cover `/fixtures/synthetic-imagery.png` (server 33, browser 32, canceled 1) and `/fixtures/held-imagery.png` (server 2, browser 0, canceled 2); 0 cache hits. Self-tests: (1) `{"server":["…?b27-stalled-decode"],"browser":[]}`; (2) 26/26 caught; (3) `{"server":[],"browser":["…?b27-stalled-decode"]}`; (4) `{"server":["/harness.html"],"browser":[]}` |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs, `run-mutants.sh`, `mutate.py` and `mutants-summary.txt` in `run-20261128T145800Z/mutants/`):**
+
+| Mutation (disposable copy) | Finding | Expected | Matrix result |
+|---|---|---|---|
+| (a) `rejection-no-elapsed-check`: the catch settles `error` with no elapsed-time check (the reviewer's defect) | B1 | B31 fails | exit 1. **B31 FAIL** alone. The race was set up, but the result was reason `error`, abort emitted = false (reason null), failures `["error"]`. The notice and no-raster checks still held, as in the review |
+| (c) `rejection-always-timeout`: every rejection becomes a timeout (control sensitivity) | B1 | B31 fails (control) | exit 1. **B31 FAIL** alone. The control reported reason `timeout`, aborted = true, failures `["timeout"]` `[FAIL]`; the overdue phase passed |
+| (b) `withhold-b27-exact-url`: the collector drops both `requestWillBeSent` and `responseReceived` for the exact B27 URL (the reviewer's reproduction) | G3-2 | B24 fails | exit 1. **B24 FAIL** alone. Server-without-browser = 1: `{"key":"/fixtures/synthetic-imagery.png?b27-stalled-decode","server":1,"browser":0,"canceled":0}`. Unanswered = 0 and B20 passed, so only the exact-URL accounting catches this. The in-run self-tests also fail here, because they expect a clean baseline |
+| (d) `pathname-keys`: the accounting is keyed by pathname only, with no events lost | G3-2 | B24 fails | exit 1. **B24 FAIL** alone. Self-test (1) cannot isolate the B27 URL (0 exact siblings) `[FAIL]`, and the reverse self-test `[FAIL]` |
+| Repair-cycle-3 mutants, re-run on `a311ee70`: `deadline-race-accepted`, `post-decode-check-only-settled` | B30 | B30 fails | exit 1. **B30 FAIL** alone in each case |
+| `worker-fetch-counted`, `resource-type-ignored`, `startup-script-withheld` | cycle-3 B2 | B24 fails | exit 1. **B24 FAIL** alone in each case |
+| `startup-response-withheld` | cycle-3 B2 | B20 + B24 fail | exit 1. **B20 + B24 FAIL** (1 unanswered request) |
+| `b27-slow-start-cycle2-limit` / `b27-slow-start` / `b27-deadline-late` | cycle-3 N3 | fail / pass / fail | exit 1 **B27 FAIL** / exit 0 **31/31** / exit 1 **B27 FAIL** |
+
+Every mutation asserts that its patch applied. No Chromium process or working copy was left behind.
+
+**Repair-cycle-4 choices a reviewer should check:**
+
+- **Canceled requests give a one-sided allowance for each exact target.** A canceled request may or may not have reached the server, so it can cover at most one server-only response for its own exact URL. It never covers a different URL. Withholding the events of a canceled request removes the allowance too, so the check still fails.
+- **Cache hits are excluded from the browser side.** No cache hit is expected, because every harness response is `no-store`. The count is reported (0 in this run). A cache hit served from cache counts as neither a browser response nor a server response.
+- **`holdDecodes('predecode')` now also holds native rejections.** Before this change it rejected at once. Only B30 and B31 use this mode, and B30 uses a valid PNG, so its behaviour is unchanged.
+- **The debug handle gained `probes`** (url, settled, reason, aborted, abortReason). It is test-only, non-enumerable and keyed by a symbol. The public shape is unchanged.
 
 ## Repair cycle 3 (after the third independent review: NEEDS CHANGES)
 
@@ -275,12 +317,13 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 4 additions, not tested:** decoder rejections from anything other than corrupt PNG bytes in Chromium 156; a real main-thread stall (B31, like B30, simulates one with a busy-wait inside a harness task); exact-URL accounting with HTTP caching enabled (every harness response is `no-store`, so the cache-hit exception is counted but was 0).
 - **Repair cycle 3 additions, not tested:** a real main-thread stall in a real page (B30 simulates it with a busy-wait inside a harness task); CDP resource types in other Chromium versions or other browsers.
 - **Repair cycle 2 additions, not tested:** a real slow image decoder (the stall is simulated by wrapping `createImageBitmap` in the harness page); non-Chromium worker auditing.
 - **Repair cycle 1 additions, not tested:** rendering across the antimeridian (rejected by design); hardware-GPU context loss (SwiftShader `WEBGL_lose_context` only); real slow networks (the stall is simulated by a held loopback response).
 
 ## Next authorised step
 
-An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 3, code `8f1a62a3`) against the third review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 4, code `a311ee70`) against the fourth review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.

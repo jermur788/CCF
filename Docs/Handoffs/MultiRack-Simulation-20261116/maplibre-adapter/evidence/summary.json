@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 4,
-  "generatedUtc": "2026-11-28T14:24:35.422Z",
-  "testedCommit": "8f1a62a3fd56dd854834c76967537278e64f3ca2",
+  "schemaVersion": 5,
+  "generatedUtc": "2026-11-28T14:59:16.415Z",
+  "testedCommit": "a311ee7024ed9cf74a36d4b1ed7a881f1b4c2725",
   "testedTreeDirty": false,
-  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T142326Z",
+  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T145800Z",
   "overall": "PASS",
   "vendorIntegrity": {
     "status": "PASS",
@@ -25,10 +25,10 @@
   },
   "browserMatrix": {
     "status": "PASS",
-    "passed": 30,
+    "passed": 31,
     "failed": 0,
-    "total": 30,
-    "expected": 30,
+    "total": 31,
+    "expected": 31,
     "browser": "Chrome/156.0.8078.79",
     "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
     "cspHeader": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; img-src data: blob: 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -37,11 +37,11 @@
     "cspViolations": 0,
     "failedRequests": 0,
     "nonLoopbackRequests": 0,
-    "httpRequests": 190,
-    "browserResponsesHeaderChecked": 187,
-    "serverResponsesHeaderChecked": 191,
-    "workerSessionResponses": 25,
-    "workerTargets": 24,
+    "httpRequests": 210,
+    "browserResponsesHeaderChecked": 207,
+    "serverResponsesHeaderChecked": 211,
+    "workerSessionResponses": 27,
+    "workerTargets": 26,
     "auditSetupFailures": 0,
     "unansweredRequests": 0,
     "headerMismatches": 0,
@@ -84,7 +84,7 @@
       {
         "id": "B08",
         "status": "PASS",
-        "detail": "whole run, checked at the end: 187 browser responses (page + worker sessions), 191 server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=0, server=0, node=0); http requests=190, non-loopback=0, failed=0"
+        "detail": "whole run, checked at the end: 207 browser responses (page + worker sessions), 211 server-written responses and the node-side 404 all carry the exact CSP + Referrer-Policy (mismatches browser=0, server=0, node=0); http requests=210, non-loopback=0, failed=0"
       },
       {
         "id": "B09",
@@ -144,7 +144,7 @@
       {
         "id": "B20",
         "status": "PASS",
-        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run (B01-B30): console errors=0, CSP violations=0, failed requests=0, non-loopback=0, audit setup failures=0, unanswered requests=0"
+        "detail": "storage writes=0, local/session items=0/0, cookies=\"\", no [C]/[E]/disclaimers=true; fresh load style=clean-woodland, vendor requests=0, workers=0; whole run (B01-B31): console errors=0, CSP violations=0, failed requests=0, non-loopback=0, audit setup failures=0, unanswered requests=0"
       },
       {
         "id": "B21",
@@ -154,7 +154,7 @@
       {
         "id": "B22",
         "status": "PASS",
-        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1803 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2048 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
+        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1825 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2052 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
       },
       {
         "id": "B23",
@@ -164,7 +164,7 @@
       {
         "id": "B24",
         "status": "PASS",
-        "detail": "required response kinds seen by the browser: 12/12 (incl. the intentional silent-worker fixture x2); 24 worker targets (24 distinct sessions, 2 distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=0); audit setup failures=0; unanswered requests=0; other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; unaccounted server responses=0; own-URL response types seen=[\"Fetch\",\"Script\"]; resource-type self-test: silent workers=1, their same-URL Fetch responses=[1], withholding their Script responses but keeping the Fetch -> 1 failure(s) [ok]; sensitivity: drop one worker's script response -> 1 failure, lend it a same-URL twin's response -> 1 failure; dropping CSP from the last browser response (/favicon.ico) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 2"
+        "detail": "required response kinds seen by the browser: 13/13 (incl. the intentional silent-worker fixture x2); 26 worker targets (26 distinct sessions, 2 distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=0); audit setup failures=0; unanswered requests=0; other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; exact-URL accounting over 27 exact targets / 211 server responses / 207 browser responses: server-without-browser=0, browser-without-server=0; exceptions used: node-side 404 x1, canceled requests=3 (covering server-only responses at: /fixtures/synthetic-imagery.png (server 33, browser 32, canceled 1), /fixtures/held-imagery.png (server 2, browser 0, canceled 2)), cache hits=0; accounting self-tests: withhold both CDP events for /fixtures/synthetic-imagery.png?b27-stalled-decode (3 other exact URLs share its pathname) -> {\"server\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"],\"browser\":[]} [ok]; same for each of 26 server-answered targets -> missed 0; drop its server response -> {\"server\":[],\"browser\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"]} [ok]; drop 1 of the browser responses for duplicate target /harness.html -> {\"server\":[\"/harness.html\"],\"browser\":[]} [ok]; own-URL response types seen=[\"Fetch\",\"Script\"]; resource-type self-test: silent workers=1, their same-URL Fetch responses=[1], withholding their Script responses but keeping the Fetch -> 1 failure(s) [ok]; sensitivity: drop one worker's script response -> 1 failure, lend it a same-URL twin's response -> 1 failure; dropping CSP from the last browser response (/favicon.ico) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 2"
       },
       {
         "id": "B25",
@@ -179,7 +179,7 @@
       {
         "id": "B27",
         "status": "PASS",
-        "detail": "decode held after the image bytes arrived (server 200s=1, held at 633 ms); imagery notice \"Imagery unavailable. Showing woodland map.\" 2474.8 ms after render() by the page clock; the probe started at 274.8 ms and settled with reason \"timeout\" 2199.9 ms later (deadline 2200 ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it; render-relative sanity limit 10200 ms; driver wall clock 2499 ms) with the decode still held (1) and pending probes=0; map ready, watchdog off=true, no raster layer, selection kept; still usable: zoom +0.5 -> 0.500, crowns 20, centre err 0.0024 px; released 1 decode(s) later: still satellite/imagery-unavailable, imageryLoaded=false, late bitmaps closed=[[0,0]]; same URL again: refetches=0, new decodes=0, notice kept=true, maps constructed=1"
+        "detail": "decode held after the image bytes arrived (server 200s=1, held at 631 ms); imagery notice \"Imagery unavailable. Showing woodland map.\" 2476.7 ms after render() by the page clock; the probe started at 276.6 ms and settled with reason \"timeout\" 2199.9 ms later (deadline 2200 ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it; render-relative sanity limit 10200 ms; driver wall clock 2560 ms) with the decode still held (1) and pending probes=0; map ready, watchdog off=true, no raster layer, selection kept; still usable: zoom +0.5 -> 0.500, crowns 20, centre err 0.0024 px; released 1 decode(s) later: still satellite/imagery-unavailable, imageryLoaded=false, late bitmaps closed=[[0,0]]; same URL again: refetches=0, new decodes=0, notice kept=true, maps constructed=1"
       },
       {
         "id": "B28",
@@ -194,7 +194,12 @@
       {
         "id": "B30",
         "status": "PASS",
-        "detail": "race set up=true (blocking task began 1349.5 ms after the probe start with pending probes=1 and 1 ready bitmap(s); deadline timer still queued at release (pending=1); decode released 2100.0 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], imageryLoaded=false, probe failures=[\"timeout\"], server fetches=1, late bitmaps closed=[[0,0]] [ok]; after the overdue timer: imagery-unavailable, imageryLoaded=false; same URL again: refetches=0, new decodes=0 [ok]; healthy same-instance remount: same URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\", refetches=0, raster=false, maps constructed=2; healthy URL -> none, attribution visible=true (fetches=2); back to the timed-out URL -> imagery-unavailable, refetches=0 [ok]"
+        "detail": "race set up=true (blocking task began 1349.7 ms after the probe start with pending probes=1 and 1 ready bitmap(s); deadline timer still queued at release (pending=1); decode released 2100.1 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], imageryLoaded=false, probe failures=[\"timeout\"], server fetches=1, late bitmaps closed=[[0,0]] [ok]; after the overdue timer: imagery-unavailable, imageryLoaded=false; same URL again: refetches=0, new decodes=0 [ok]; healthy same-instance remount: same URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\", refetches=0, raster=false, maps constructed=2; healthy URL -> none, attribution visible=true (fetches=2); back to the timed-out URL -> imagery-unavailable, refetches=0 [ok]"
+      },
+      {
+        "id": "B31",
+        "status": "PASS",
+        "detail": "control (timely native rejection of the same corrupt bytes): imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", probe reason=error, aborted=false, failures=[\"error\"], layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], fetches=1 [ok]; race set up=true (blocking task began 1349.3 ms after the probe start with pending probes=1, 1 held native rejection(s), 0 bitmaps; deadline timer still queued at release (pending=1); rejection [\"InvalidStateError\"] released 2100.0 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], probe reason=timeout, abort emitted=true (reason timeout), failures=[\"timeout\"], server fetches=1 [ok]; after the overdue timer: imagery-unavailable, reason=timeout; same URL again: refetches=0, new decodes=0 [ok]; same-instance remount: overdue URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\" (cached reason timeout, aborted true), timely URL -> imagery-unavailable (cached reason error), refetches=0, raster=false, maps constructed=2 [ok]"
       }
     ]
   }
