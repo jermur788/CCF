@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SitkaP1.Core.WoodlandInspection.Tests</AssemblyName>
+    <RootNamespace>SitkaP1.Core.WoodlandImport.Inspection.Tests</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Pure BCL: the importer and inspection sources plus this folder's own files. No ProjectReference, PackageReference or P0 binary. -->
+  <ItemGroup>
+    <Compile Include="../../../src/Core/WoodlandImport/**/*.cs" />
+  </ItemGroup>
+</Project>
