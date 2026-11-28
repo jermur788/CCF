@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 6,
-  "generatedUtc": "2026-11-28T15:47:18.109Z",
-  "testedCommit": "fd81415eac29dd82a85e19d2fbaa979d8ee38842",
+  "schemaVersion": 7,
+  "generatedUtc": "2026-11-28T16:20:00.934Z",
+  "testedCommit": "223932ccb07a7f588c664cb827304989790bb479",
   "testedTreeDirty": false,
-  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T154601Z",
+  "durableEvidenceDir": "/media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T161844Z",
   "overall": "PASS",
   "vendorIntegrity": {
     "status": "PASS",
@@ -45,6 +45,8 @@
     "auditSetupFailures": 0,
     "unansweredRequests": 0,
     "serverReceipts": 213,
+    "selfTestsSkipped": 0,
+    "selfTestSkipReasons": [],
     "attemptAccounting": {
       "serverResponsesWithoutOwnBrowserRequest": 0,
       "browserResponsesWithoutOwnServerResponse": 0,
@@ -53,6 +55,8 @@
       "mixedDuplicate": {
         "url": "/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate",
         "setUp": true,
+        "fixtureSetUp": true,
+        "cdpObservedRequests": 2,
         "withholdB": "fails as required",
         "withholdA": "no false failure"
       }
@@ -167,7 +171,7 @@
       {
         "id": "B22",
         "status": "PASS",
-        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1820 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2052 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
+        "detail": "(a) held imagery probe + WebGL loss: pending probes 1 -> 0 (aborted), released 1; after release style=clean-woodland, notice \"Map display unavailable. Showing Clean Woodland.\", map=false, maps constructed 1 -> 1; later satellite frame stays Clean Woodland=true [ok]; (b) startup with imagery held: imagery notice after 1864 ms (< 8000 watchdog), map ready, after release still satellite/imagery-unavailable, layers [ccf-woodland-canvas,ccf-woodland-extent] [ok]; (c) stuck module import -> display fallback after 2050 ms, late import ignored (maps=0, style=clean-woodland) [ok]"
       },
       {
         "id": "B23",
@@ -177,7 +181,7 @@
       {
         "id": "B24",
         "status": "PASS",
-        "detail": "required response kinds seen by the browser: 13/13 (incl. the intentional silent-worker fixture x2); 26 worker targets (26 distinct sessions, 2 distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=0); audit setup failures=0; unanswered requests=0; other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; per-attempt accounting over 27 exact targets / 213 server receipts / 212 server responses / 212 browser requests: server-response-without-its-own-browser-request=0, browser-response-without-its-own-server-response=0, orphan browser responses=0; exceptions used: node-side 404 x1, canceled requests=4 (each explains only its own receipt; without a receipt=0; at: /fixtures/abandoned-then-ok.txt?b24-mixed-duplicate (receipts 2, responses 1, responded 1, canceled 1: own receipt 1, none 0), /fixtures/synthetic-imagery.png (receipts 33, responses 33, responded 32, canceled 1: own receipt 1, none 0), /fixtures/held-imagery.png (receipts 2, responses 2, responded 0, canceled 2: own receipt 2, none 0)), abandoned receipts (no response ever written)=[], cache hits=0; receipt-after-send gap -0.0..19.3 ms (lead tolerance 5 ms); accounting self-tests: mixed duplicate /fixtures/abandoned-then-ok.txt?b24-mixed-duplicate (A aborted after receipt #211 with no response -> AbortError; B -> 200 as receipt #212; set up=true): withhold only B's CDP events -> [{\"key\":\"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate\",\"seq\":212,\"status\":200,\"closedSocket\":false}] [ok], withhold only A's -> {\"server\":[],\"browser\":[]} [ok]; withhold both CDP events for /fixtures/synthetic-imagery.png?b27-stalled-decode (3 other exact URLs share its pathname) -> {\"server\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"],\"browser\":[]} [ok]; same for each of 27 server-answered targets -> missed 0; drop its server response -> {\"server\":[],\"browser\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"]} [ok]; withhold 1 of the browser requests for duplicate target /harness.html -> {\"server\":[\"/harness.html\"],\"browser\":[]} [ok]; own-URL response types seen=[\"Fetch\",\"Script\"]; resource-type self-test: silent workers=1, their same-URL Fetch responses=[1], withholding their Script responses but keeping the Fetch -> 1 failure(s) [ok]; sensitivity: drop one worker's script response -> 1 failure, lend it a same-URL twin's response -> 1 failure; dropping CSP from the last browser response (/fixtures/abandoned-then-ok.txt) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 2"
+        "detail": "required response kinds seen by the browser: 13/13 (incl. the intentional silent-worker fixture x2); 26 worker targets (26 distinct sessions, 2 distinct script URLs): each one set up and reported its OWN startup response of CDP resource type Script in its own session with exact headers (failures=0); audit setup failures=0; unanswered requests=0; other worker-internal responses=0; held imagery responses (aborted, server-side headers checked)=2; 404s=1; per-attempt accounting over 27 exact targets / 213 server receipts / 212 server responses / 212 browser requests: server-response-without-its-own-browser-request=0, browser-response-without-its-own-server-response=0, orphan browser responses=0; exceptions used: node-side 404 x1, canceled requests=4 (each explains only its own receipt; without a receipt=0; at: /fixtures/abandoned-then-ok.txt?b24-mixed-duplicate (receipts 2, responses 1, responded 1, canceled 1: own receipt 1, none 0), /fixtures/synthetic-imagery.png (receipts 33, responses 33, responded 32, canceled 1: own receipt 1, none 0), /fixtures/held-imagery.png (receipts 2, responses 2, responded 0, canceled 2: own receipt 2, none 0)), abandoned receipts (no response ever written)=[], cache hits=0; receipt-after-send gap -0.1..16.1 ms (lead tolerance 5 ms); accounting self-tests: mixed duplicate /fixtures/abandoned-then-ok.txt?b24-mixed-duplicate (A aborted after receipt #211 with no response -> AbortError; B -> 200 as receipt #212; fixture set up=true, CDP-observed requests=2/2 (A seen, B seen)): withhold only B's CDP events -> [{\"key\":\"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate\",\"seq\":212,\"status\":200,\"closedSocket\":false}] [ok], withhold only A's -> {\"server\":[],\"browser\":[]} [ok]; self-tests skipped=0; withhold both CDP events for /fixtures/synthetic-imagery.png?b27-stalled-decode (3 other exact URLs share its pathname) -> {\"server\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"],\"browser\":[]} [ok]; same for each of 27 server-answered targets -> missed 0; drop its server response -> {\"server\":[],\"browser\":[\"/fixtures/synthetic-imagery.png?b27-stalled-decode\"]} [ok]; withhold 1 of the browser requests for duplicate target /harness.html -> {\"server\":[\"/harness.html\"],\"browser\":[]} [ok]; own-URL response types seen=[\"Fetch\",\"Script\"]; resource-type self-test: silent workers=1, their same-URL Fetch responses=[1], withholding their Script responses but keeping the Fetch -> 1 failure(s) [ok]; sensitivity: drop one worker's script response -> 1 failure, lend it a same-URL twin's response -> 1 failure; dropping CSP from the last browser response (/fixtures/abandoned-then-ok.txt) -> 1 mismatch, its Referrer-Policy -> 1, last server response CSP -> 1, silent-worker CSP -> 2"
       },
       {
         "id": "B25",
@@ -192,7 +196,7 @@
       {
         "id": "B27",
         "status": "PASS",
-        "detail": "decode held after the image bytes arrived (server 200s=1, held at 621 ms); imagery notice \"Imagery unavailable. Showing woodland map.\" 2470.9 ms after render() by the page clock; the probe started at 271.0 ms and settled with reason \"timeout\" 2199.9 ms later (deadline 2200 ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it; render-relative sanity limit 10200 ms; driver wall clock 2536 ms) with the decode still held (1) and pending probes=0; map ready, watchdog off=true, no raster layer, selection kept; still usable: zoom +0.5 -> 0.500, crowns 20, centre err 0.0024 px; released 1 decode(s) later: still satellite/imagery-unavailable, imageryLoaded=false, late bitmaps closed=[[0,0]]; same URL again: refetches=0, new decodes=0, notice kept=true, maps constructed=1"
+        "detail": "decode held after the image bytes arrived (server 200s=1, held at 637 ms); imagery notice \"Imagery unavailable. Showing woodland map.\" 2476.1 ms after render() by the page clock; the probe started at 276.1 ms and settled with reason \"timeout\" 2199.9 ms later (deadline 2200 ms; must be 'timeout' within [deadline - 5, deadline + 150] of its start (5 ms clock tolerance); notice <= 20 ms after it; render-relative sanity limit 10200 ms; driver wall clock 2557 ms) with the decode still held (1) and pending probes=0; map ready, watchdog off=true, no raster layer, selection kept; still usable: zoom +0.5 -> 0.500, crowns 20, centre err 0.0024 px; released 1 decode(s) later: still satellite/imagery-unavailable, imageryLoaded=false, late bitmaps closed=[[0,0]]; same URL again: refetches=0, new decodes=0, notice kept=true, maps constructed=1"
       },
       {
         "id": "B28",
@@ -207,12 +211,12 @@
       {
         "id": "B30",
         "status": "PASS",
-        "detail": "race set up=true (blocking task began 1349.6 ms after the probe start with pending probes=1 and 1 ready bitmap(s); deadline timer still queued at release (pending=1); decode released 2100.1 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], imageryLoaded=false, probe failures=[\"timeout\"], server fetches=1, late bitmaps closed=[[0,0]] [ok]; after the overdue timer: imagery-unavailable, imageryLoaded=false; same URL again: refetches=0, new decodes=0 [ok]; healthy same-instance remount: same URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\", refetches=0, raster=false, maps constructed=2; healthy URL -> none, attribution visible=true (fetches=2); back to the timed-out URL -> imagery-unavailable, refetches=0 [ok]"
+        "detail": "race set up=true (blocking task began 1349.7 ms after the probe start with pending probes=1 and 1 ready bitmap(s); deadline timer still queued at release (pending=1); decode released 2100.1 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], imageryLoaded=false, probe failures=[\"timeout\"], server fetches=1, late bitmaps closed=[[0,0]] [ok]; after the overdue timer: imagery-unavailable, imageryLoaded=false; same URL again: refetches=0, new decodes=0 [ok]; healthy same-instance remount: same URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\", refetches=0, raster=false, maps constructed=2; healthy URL -> none, attribution visible=true (fetches=2); back to the timed-out URL -> imagery-unavailable, refetches=0 [ok]"
       },
       {
         "id": "B31",
         "status": "PASS",
-        "detail": "control (timely native rejection of the same corrupt bytes): imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", probe reason=error, aborted=false, failures=[\"error\"], layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], fetches=1 [ok]; race set up=true (blocking task began 1350.1 ms after the probe start with pending probes=1, 1 held native rejection(s), 0 bitmaps; deadline timer still queued at release (pending=1); rejection [\"InvalidStateError\"] released 2100.1 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], probe reason=timeout, abort emitted=true (reason timeout), failures=[\"timeout\"], server fetches=1 [ok]; after the overdue timer: imagery-unavailable, reason=timeout; same URL again: refetches=0, new decodes=0 [ok]; same-instance remount: overdue URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\" (cached reason timeout, aborted true), timely URL -> imagery-unavailable (cached reason error), refetches=0, raster=false, maps constructed=2 [ok]"
+        "detail": "control (timely native rejection of the same corrupt bytes): imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", probe reason=error, aborted=false, failures=[\"error\"], layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], fetches=1 [ok]; race set up=true (blocking task began 1349.4 ms after the probe start with pending probes=1, 1 held native rejection(s), 0 bitmaps; deadline timer still queued at release (pending=1); rejection [\"InvalidStateError\"] released 2100.0 ms after the probe start, deadline 1500 ms; settled before the timer turn=true); result: satellite/imagery-unavailable, notice \"Imagery unavailable. Showing woodland map.\", attribution hidden=true, layers=[\"ccf-woodland-canvas\",\"ccf-woodland-extent\"], probe reason=timeout, abort emitted=true (reason timeout), failures=[\"timeout\"], server fetches=1 [ok]; after the overdue timer: imagery-unavailable, reason=timeout; same URL again: refetches=0, new decodes=0 [ok]; same-instance remount: overdue URL -> imagery-unavailable \"Imagery unavailable. Showing woodland map.\" (cached reason timeout, aborted true), timely URL -> imagery-unavailable (cached reason error), refetches=0, raster=false, maps constructed=2 [ok]"
       }
     ]
   }

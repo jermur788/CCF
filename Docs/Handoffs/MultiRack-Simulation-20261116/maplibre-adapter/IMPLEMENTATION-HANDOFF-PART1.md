@@ -9,22 +9,66 @@ Worker: Claude Opus 5.5 (claude-opus-5-5), effort as configured by the dispatchi
 Branch: feat/multi-2d-maplibre-adapter-v1   (review copy: review/multi-2d-maplibre-adapter-v1)
 Base: b2006767cbe70fa2c822497470908251a0fd6ffd (origin/integration/2d-sim, Scots Pine Part 2 merged green)
 Context: origin/main = bdeb6a324acaf4129c10fb0846faac8b64974360 (untouched)
-Code under test (repair cycle 5): fd81415eac29dd82a85e19d2fbaa979d8ee38842 (fix(2d-sim): repair cycle 5)
+Code under test (repair cycle 6): 223932ccb07a7f588c664cb827304989790bb479 (fix(2d-sim): repair cycle 6)
+  Repair cycle 5 code: fd81415eac29dd82a85e19d2fbaa979d8ee38842 (control gap: withhold-A exited 1; small control fix requested)
   Repair cycle 4 code: a311ee7024ed9cf74a36d4b1ed7a881f1b4c2725 (fifth review: NEEDS CHANGES, 1 blocking G3 + 1 docs nit)
   Repair cycle 3 code: 8f1a62a3fd56dd854834c76967537278e64f3ca2 (fourth review: NEEDS CHANGES, 1 blocking + 1 low/G3)
   Repair cycle 2 code: ce7732a93d01ebd1fb37167591ca787d7000a225 (third review: NEEDS CHANGES, 2 blocking + 1 non-blocking)
   Repair cycle 1 code: e4b33fc1066a83d4eb2b03c7afccd268dbad4021 (delta re-review: REQUEST CHANGES, 2 blocking + 2 non-blocking + 1 nit)
   Original Part 1 code: b6cb1461fc28470cff064f55aad8934d71c8080a (reviewed by GPT-6.2 Sol: REQUEST CHANGES)
-HEAD: the commit that updates this file (docs + evidence summary only; no code change after fd81415e)
+HEAD: the commit that updates this file (docs + evidence summary only; no code change after 223932cc)
 GITHUB HANDOFF PATH: https://github.com/jermur788/CCF/blob/feat/multi-2d-maplibre-adapter-v1/Docs/Handoffs/MultiRack-Simulation-20261116/maplibre-adapter/IMPLEMENTATION-HANDOFF-PART1.md
-DURABLE EVIDENCE (repair cycle 5): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T154601Z/
-  (mutants: run-20261128T154601Z/mutants/; repair cycle 4: run-20261128T145800Z/ (+ mutants/);
+DURABLE EVIDENCE (repair cycle 6): /media/jer/Files/CCF/Verification/Multi2DMapLibreAdapterPart1-20261128/run-20261128T161844Z/
+  (mutants: run-20261128T161844Z/mutants/; repair cycle 5: run-20261128T154601Z/ (+ mutants/); repair cycle 4: run-20261128T145800Z/ (+ mutants/);
    repair cycle 3: run-20261128T142326Z/ (+ mutants/);
    repair cycle 2: run-20261128T133605Z/; repair cycle 1: run-20261128T125152Z/;
    original Part 1 run: run-20261128T120314Z/)
 ```
 
-**State (D-030):** isolated branch, implemented, repaired five times after independent review (repair cycle 5 answers the fifth review), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+**State (D-030):** isolated branch, implemented, repaired six times after independent review (repair cycle 6 is a small control fix to repair cycle 5's B24 self-test), and re-verified by its own harness. It still needs an independent non-author delta re-review. NOT merged to integration/2d-sim or main. Not wired into `/multi`. Part 2 remains **QUEUED**.
+
+## Repair cycle 6 (small control fix to repair cycle 5)
+
+Sole writer: Claude Opus 5.5. Fix commit `223932cc`. The file fence is unchanged. Code changes are limited to `tests/maplibre-adapter/`: `drive-maplibre-cdp.mjs` (B24 self-test 5 and the summary line) and `write-summary.mjs` (schema v7). The spec docs and this handoff were also updated. The adapter code did not change, and neither did `server.mjs` or `reconcileAttempts`. No case was deleted or weakened. The matrix is still B01–B31.
+
+Gate run on clean `223932cc` (`run.sh`, exit 0, 2026-11-28T16:18Z, `testedTreeDirty: false`):
+
+- vendor integrity **16/16**;
+- geo oracle **38/38**;
+- browser matrix **B01–B31 31/31**;
+- whole run: 0 console errors, 0 CSP violations, 0 failed requests, 0 non-loopback requests, 0 audit setup failures, 0 unanswered requests, **0 self-tests skipped**;
+- 208 browser and 212 server responses plus the node-side 404, all with the exact headers; 213 server receipts; 26 worker targets.
+
+| # | Finding | Fix | Regression test | Evidence (run-20261128T161844Z) |
+|---|---|---|---|---|
+| C6-1 (control gap) | **The withhold-A control failed.** The prior review required that withholding A (the canceled request) must not create a false failure. In repair cycle 5, the `mixed-dup-withhold-a` mutant exited 1, although the per-attempt accounting was clean (0/0). The cause: the mixed-duplicate self-test's setup check required both A's and B's CDP request events. With A's events deliberately removed, the self-test could not see its own fixture and reported `set up=false`, which failed B24. | The self-test setup is split in two. **Fixture facts** come from the page and the server, so no CDP loss can change them: A rejects with `AbortError`; B returns 200 `ok`; there are exactly 2 receipts; receipt 1 never had a response written and the client closed it; receipt 2 has a delivered 200. **CDP observation** means which of A and B the collector saw. Outcomes: **(1) EXECUTED.** The fixture facts hold and both requests were observed, so both halves run as in cycle 5. **(2) SKIPPED (setup unavailable).** All of the following hold: the fixture facts; exactly 1 request observed, and it is B (200); A's own receipt never had a response written; and the **live** accounting for that URL is clean (A's receipt listed as abandoned, B paired, no unpaired server response or unmatched browser response at the URL). Then only the "withhold A" half is reported as `SKIPPED`. Its counted reason appears in `self_tests_skipped=N` (summary line), in `audit.selfTestsSkipped` (report), and in `selfTestsSkipped` / `selfTestSkipReasons` in `summary.json` (schema v7). The live accounting is that control, because A is already withheld. The "withhold B" half still runs. **(3) SETUP FAILED, so B24 fails.** This covers every other case: B unobserved, extra or missing requests, a response written for A (even to a closed socket), or fixture facts that do not hold. The main per-attempt accounting and every other audit check (setup failures, unattached sessions, unanswered requests, orphans, worker coverage) are unchanged and still fail B20/B24 on their own. | The clean gate must run both halves: `withhold only B → [B's receipt] [ok]`, `withhold only A → no gaps [ok]`, `self-tests skipped=0`. Twenty mutants, listed below. | PASS. Mixed duplicate: A aborted after receipt #211 → `AbortError`; B → 200 as receipt #212; `fixture set up=true, CDP-observed requests=2/2 (A seen, B seen)`. Withhold B → `[{"key":"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate","seq":212,"status":200,"closedSocket":false}]` [ok]; withhold A → `{"server":[],"browser":[]}` [ok]; self-tests skipped=0. `summary.json`: `mixedDuplicate.withholdA = "no false failure"`, `selfTestsSkipped: 0`. Accounting: 27 exact targets, 213 receipts, 212 server responses, 212 browser requests; 0 unpaired / 0 unmatched / 0 orphans; 4 canceled requests, each paired with its own receipt |
+| C6-2 (docs) | AC-3 and B24 did not describe what happens when a self-test's own fixture is withheld, and the mid-flight-abort limitation was only in the handoff | spec.md AC-3 and status, plan.md status, the tasks.md B24 row, a new T-06R6 row and the checklist row now describe the three outcomes, the counted skip, the requirement that the clean gate shows `self_tests_skipped=0`, and the residual limitation (below) | n/a (docs) | spec, plan, tasks, checklist and this handoff all say repair cycles 1–6, `B01`–`B31`, and Part 2 `QUEUED` |
+
+**Sensitivity (disposable copies under `/tmp`, matrix run directly; logs, `run-mutants.sh`, `mutate.py` and `mutants-summary.txt` in `run-20261128T161844Z/mutants/`; 20 mutants, 3 of them new):**
+
+| Mutation (disposable copy) | Purpose | Expected | Matrix result |
+|---|---|---|---|
+| (a) `mixed-dup-withhold-b`: the collector drops B's `requestWillBeSent` and `responseReceived` | G3 (cycle 5) | B24 fails, naming B's URL, receipt and status | exit 1. **B24 FAIL** alone (30/31). Live accounting: `server-response-without-its-own-browser-request=1 [{"key":"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate","seq":212,"status":200,"closedSocket":false}]`. Self-test: `CDP-observed requests=1/2 (A seen, B absent)`, withhold-A half `[SETUP FAILED]` (not skipped); `self_tests_skipped=0` |
+| (b) `mixed-dup-withhold-a`: the collector drops A's (the canceled request's) `requestWillBeSent` and every later event with its id | the C6-1 control | **exit 0**, B24 PASS, self-test SKIPPED with a counted reason, 0 accounting mismatches | **exit 0, 31/31**, 0 console errors / CSP / failed / non-loopback / setup failures / unanswered, **`self_tests_skipped=1`**. Reason: `setup unavailable: request A's own CDP events are absent from this run (1/2 browser requests observed at /fixtures/abandoned-then-ok.txt?b24-mixed-duplicate; A's receipt #211 never had a response written); the live accounting already runs without A and is clean for this URL (A's receipt abandoned, B paired)`. Live accounting over 211 browser requests: **0 unpaired server responses, 0 unmatched browser responses, 0 orphans**; abandoned receipts `[{"key":"…?b24-mixed-duplicate","seq":211}]`. The withhold-B half still ran: `[{"…","seq":212,"status":200,…}] [ok]` |
+| (c1) `audit-setup-failure` (new): `Network.enable` fails for the silent worker's CDP session (a real audit setup failure; nothing withheld from the mixed duplicate) | C6-1 must not weaken real setup failures | FAIL | exit 1. **B20 + B24 FAIL** (29/31). `setup_failures=1, unanswered=1`; worker coverage failures=2 for that target (`setup failed`, no Script-type startup response); `self_tests_skipped=0` |
+| (c2) `mixed-dup-withhold-a-plus-setup-failure` (new): (b) and (c1) together | the skip must not mask a real failure elsewhere | FAIL | exit 1. **B20 + B24 FAIL** (29/31). `setup_failures=1, unanswered=1, self_tests_skipped=1`: the withhold-A half is skipped as in (b), but the setup failure still fails the run |
+| (c3) `mixed-dup-withhold-a-receipt-answered` (new): A's events withheld **and** the server writes a late 200 for A after the client closed the socket | the skip must not apply when A's absence hides a written response | FAIL | exit 1. **B24 FAIL** alone (30/31). `fixture set up=false`; withhold-A half `[SETUP FAILED]`; `self_tests_skipped=0`; live accounting names A's response: `[{"key":"/fixtures/abandoned-then-ok.txt?b24-mixed-duplicate","seq":211,"status":200,"closedSocket":true}]` |
+| (d1) `cancel-prefers-delivered`: pass 2 lets a canceled request take a delivered receipt first (cycle-5 rule mutant) | G3 (cycle 5) | B24 fails | exit 1. **B24 FAIL** alone. Withhold B → `[]` `[FAIL]` (A absorbed B's 200); withhold A → no gaps [ok] |
+| (d2) `global-cancel-allowance`: the repair-cycle-4 per-URL allowance restored inside the pairing (cycle-5 rule mutant) | G3 (cycle 5) | B24 fails | exit 1. **B24 FAIL** alone. Withhold B → `[]` `[FAIL]` |
+| Repair-cycle-4 mutants, re-run on `223932cc`: `withhold-b27-exact-url`, `pathname-keys` | cycle-4 G3-2 | B24 fails | exit 1. **B24 FAIL** alone in each case |
+| `rejection-no-elapsed-check`, `rejection-always-timeout` | cycle-4 B1 (B31) | B31 fails | exit 1. **B31 FAIL** alone in each case |
+| `deadline-race-accepted`, `post-decode-check-only-settled` | cycle-3 B1 (B30, late decode) | B30 fails | exit 1. **B30 FAIL** alone in each case |
+| `worker-fetch-counted`, `resource-type-ignored`, `startup-script-withheld` | cycle-3 B2 (worker) | B24 fails | exit 1. **B24 FAIL** alone in each case |
+| `startup-response-withheld` (also a real audit setup gap: an unanswered worker request) | cycle-3 B2 | B20 + B24 fail | exit 1. **B20 + B24 FAIL** (1 unanswered request) |
+| `b27-slow-start-cycle2-limit` / `b27-slow-start` / `b27-deadline-late` | cycle-3 N3 | fail / pass / fail | exit 1 **B27 FAIL** / exit 0 **31/31** / exit 1 **B27 FAIL** |
+
+Every mutation asserts that its patch applied. No Chromium process or working copy was left behind.
+
+**Repair-cycle-6 choices a reviewer should check:**
+
+- **The skip is narrow on purpose.** It needs all of these: fixture facts that CDP cannot affect, exactly B observed, A's receipt with **no** response ever written, and clean live accounting at that URL. Anything else is a setup failure. Mutant (c3) shows that a withheld A whose receipt *was* answered (even to a closed socket) is not skipped and is named by the live accounting.
+- **A skip does not fail the run, but it is never silent.** It is counted in the `CDP_MATRIX_SUMMARY` line (`self_tests_skipped=N`), in the B24 detail, in `cdp-matrix-report.json` (`audit.selfTestsSkipped`) and in `summary.json` (`selfTestsSkipped`, `selfTestSkipReasons`). A qualifying clean gate must show `self_tests_skipped=0`. The committed `summary.json` does: both halves executed. I chose not to make `run.sh` fail on a skip: a run in which A's events were genuinely lost would otherwise fail, and that is exactly the false failure the control forbids. A reviewer who prefers a hard gate can add `self_tests_skipped == 0` to `run.sh`'s overall verdict.
+- **Residual limitation (unchanged from cycle 5, now stated in AC-3/B24 too).** A fetch aborted mid-flight can have its 200 written by the server to a still-open socket, while Chromium reports only `loadingFailed (canceled)`, with no `responseReceived` or `responseReceivedExtraInfo`. That attempt can be matched to its receipt only by exact URL, send order and time window, never by a shared request id (the server cannot see CDP ids, and CDP does not report the client port). The real run has one such request, `/fixtures/synthetic-imagery.png`. The ambiguous residue is the same as in cycle 5: a canceled request that never reached the server, sent within 5 ms of a withheld 200 to the same URL and canceled no more than 20 ms before that 200's receipt. Not exercised.
 
 ## Repair cycle 5 (after the fifth independent review: NEEDS CHANGES)
 
@@ -361,6 +405,7 @@ OVERALL: PASS
 - **Real-world accuracy:** imagery georeferencing accuracy and datum-shift accuracy are out of scope. The fixture is synthetic and only proves internal consistency.
 - **Part 2 extents:** stands larger than about 120 m. The affine error grows roughly with the square of the distance from the woodland centre; not measured beyond the 80 m fixture in the browser.
 
+- **Repair cycle 6 additions, not tested:** a self-test skip caused by a genuine (unmutated) CDP event loss for request A. The skip branch is reached only by the `mixed-dup-withhold-a` mutants; the clean gate ran both halves (`self_tests_skipped=0`).
 - **Repair cycle 5 additions, not tested:** per-attempt pairing under HTTP caching (every harness response is `no-store`, so the cache-hit count was 0); concurrent same-URL requests with mixed outcomes inside the 5 ms tolerance (see the repair-cycle-5 choices); HTTP/2 or remote servers (the harness is HTTP/1.1 on loopback, and the pairing relies on one host clock).
 - **Repair cycle 4 additions, not tested:** decoder rejections from anything other than corrupt PNG bytes in Chromium 156; a real main-thread stall (B31, like B30, simulates one with a busy-wait inside a harness task); exact-URL accounting with HTTP caching enabled (every harness response is `no-store`, so the cache-hit exception is counted but was 0).
 - **Repair cycle 3 additions, not tested:** a real main-thread stall in a real page (B30 simulates it with a busy-wait inside a harness task); CDP resource types in other Chromium versions or other browsers.
@@ -369,6 +414,6 @@ OVERALL: PASS
 
 ## Next authorised step
 
-An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 5, code `fd81415e`) against the fifth review's findings, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
+An independent, non-author **delta re-review** of `review/multi-2d-maplibre-adapter-v1` (repair cycle 6, code `223932cc`, on top of repair cycle 5, code `fd81415e`) against the fifth review's findings and its withhold-A control requirement, this handoff and the spec. Part 2 stays QUEUED until an integrator approves a separate packet.
 
 NOT merged to integration/2d-sim or main.

@@ -1,7 +1,7 @@
 # Open-Source Satellite Map Plug V1 — Implementation Plan
 
 - **Spec:** [`SPEC-multi-2d-maplibre-adapter-V1`](spec.md)
-- **Status:** `APPROVED / IMPLEMENTING` (Part 1 active, repair cycles 1–5 applied, matrix `B01`–`B31`; Part 2 `QUEUED`)
+- **Status:** `APPROVED / IMPLEMENTING` (Part 1 active, repair cycles 1–6 applied, matrix `B01`–`B31`; Part 2 `QUEUED`)
 - **Base:** `b2006767cbe70fa2c822497470908251a0fd6ffd` (`origin/integration/2d-sim`) · **Context:** `bdeb6a324acaf4129c10fb0846faac8b64974360` (`origin/main`)
 - **Branch:** `feat/multi-2d-maplibre-adapter-v1` (review copy: `review/multi-2d-maplibre-adapter-v1`)
 
