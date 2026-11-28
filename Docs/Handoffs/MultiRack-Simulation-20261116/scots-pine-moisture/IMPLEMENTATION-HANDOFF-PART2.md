@@ -231,3 +231,62 @@ Ready for independent review: **Yes**, for the isolated branch. Every gate in th
 ## Recommended next step
 
 A non-author independent review (GPT-6.2 Sol, read-only) of `review/multi-2d-scots-pine-moisture-part2-v1` at this HEAD, against the spec quartet, this handoff and the packet's fences. After that review, the coordinator decides on integration into `integration/2d-sim`.
+
+## Repair cycle 1 (independent review follow-up)
+
+**D-030 state: repaired on the isolated branch `feat/multi-2d-scots-pine-moisture-part2-v1`. NOT merged to `integration/2d-sim` or `main`. An independent delta review is pending.**
+
+Source: `SOL-INDEPENDENT-REVIEW-PART2-20261128.md` on `review/multi-2d-scots-pine-moisture-part2-v1` @ `beb0f61695f20955144dac9c151d8dfa5064d1ce`, which returned NEEDS CHANGES for `cbc369030827d715ac02d2e4c45238ed6a6783b7`. Repair implementer: Claude Opus 5.5.
+
+**Repair commit: `954b2778ddb97a26af554dc976d760b38f8e2c6a`** (source and tests), parent `cbc36903`. This section is in a separate docs commit on top of it, because a commit cannot record its own SHA.
+
+### Findings, root cause and fix
+
+| # | Finding | Root cause | Fix |
+| --- | --- | --- | --- |
+| 1 | **Blocking.** Save v3 refused an approved plan whose only orders were Scots pine Plant orders, with `SaveInconsistent` and "an approved plan holds at least one order". | `ScotsPineSaveProjection.ForV2` stripped every pine Plant order from `Phase2.PendingOrders` and `Phase2.ApprovedOrders`, but it kept `MultiAreaRoot.Approved`. The frozen `Phase1SaveValidator` therefore received an approval with no orders and refused it before the `scotsPine` block was written. | `ForV2` sets `Approved = null` in the v2 projection, and only there, when all four approved lists are empty after stripping: `Approved.Orders`, `Stage4.ApprovedPrunes`, `Stage5.ApprovedClears` and `Phase2.ApprovedOrders`. The live root is unchanged. The pine orders still travel in `blocks.scotsPine.approvedOrders`, and `Apply` already restores them as Pending drafts. Load policy A is unchanged: no approval is restored, and the new session ID gives any fresh approval a new PlanId. |
+| 2 | **Non-blocking.** On load, `DraftOrderCount` left out approved pine Plant orders. An approved pine Plant + Shelter plan reported 1 instead of 2. | `RestoreVerifiedV3IntoFreshSession` counted only the inner v2 `SavedApproval`. Approved pine Plant orders come from the block instead. | The new `ScotsPineSaveProjection.RestoredApprovedPlantCount(blocks)` re-reads the already verified `scotsPine` block and returns `approvedOrders.Count`, or 0 when the block is absent. The load result reports `DraftOrderCount(SavedApproval)` plus that number. Nothing is double counted: pine Shelter and SpotClear orders are in the v2 payload, and only pine Plant orders are in the block. The count is computed after the load, so `SaveV3Codec.Decode` and its placeholder-root block validation are unchanged. |
+
+`DraftOrderCount` keeps its documented meaning: the number of formerly approved, unexecuted orders that came back as drafts. A plan that was pending, not approved, when saved still reports 0. That matches the v2 path and `Phase1SaveIntegrationTests`.
+
+### Files changed (`cbc36903..954b2778`)
+
+| File | Reason |
+| --- | --- |
+| `Tools/MultiRackSitkaP1Lab/src/Core/Saves/ScotsPineFeatureBlockCodec.cs` | `ForV2` clears an approval left empty by the projection. Adds `RestoredApprovedPlantCount`. |
+| `Tools/MultiRackSitkaP1Lab/src/Core/MultiArea/MultiAreaContinuation.cs` | The v3 load result counts restored approved pine Plant drafts. |
+| `Tools/MultiRackSitkaP1Lab/tests/Phase1.Save.Tests/ScotsPineSaveTests.cs` | Adds the SP2-S5 and SP2-S6 regression tests. No existing test was changed. |
+
+`src/Core/Phase1/**` is byte-identical, with tree `fe970e3f78362310821156de0d34bea990387aee`. No UI, Assets, Packages, ProjectSettings, Docs/Project or P0 file changed.
+
+### New tests (Phase1Save.Tests)
+
+- **SP2-S5** is the approved pine-only plan. It plants one Scots pine in `MA-E` with Economy off, approves, and saves before Execute. The save is schema 3, and the inner v2 state has `Approved == null` and no Phase 2 orders. `RestoreFromV3` succeeds with `Approved == null`, and the restored Pending list equals the original order: same ID, area, species and point. `DraftOrderCount == 1`. Executing with the pre-save PlanId and execution key refuses with `WorkPlanNotApproved`. A fresh approval mints a different PlanId. A re-save of the restored session is schema 3 and restores the same Pending draft, with `DraftOrderCount == 0` because the plan is now pending. Its `scotsPine` block is byte-identical across another save → load → save.
+- **SP2-S6** is an approved pine Plant + Shelter plan at the same point. The save succeeds, and the inner v2 approval stays non-empty with one Shelter. The load restores both orders as Pending drafts, a pine `MultiAreaPlantOrder` and a `MultiAreaShelterOrder`, with `Approved == null` and `DraftOrderCount == 2`.
+
+RED before the fix, from the same build with the new tests and the old source:
+
+```
+FAIL SP2-S5 ... — inconsistent save: an approved plan holds at least one order
+FAIL SP2-S6 ... — two formerly approved orders restored as drafts: expected 2, got 1
+56/58 passed, 2 failed
+```
+
+The validator raises "inconsistent save: …" as `P1Refusal("SaveInconsistent", …)` (`Phase1SaveValidator.cs:513`).
+
+### Gate results (from `Tools/MultiRackSitkaP1Lab`, WSL2, `~/.dotnet/dotnet`, TMPDIR outside the repo)
+
+| Gate | Result |
+| --- | --- |
+| `~/.dotnet/dotnet --version` | 8.0.134 |
+| build `MultiRackSitkaP1Lab.sln` | 0 Warning(s), 0 Error(s) |
+| build `tests/Core/ScotsPine/SitkaP1.ScotsPine.Tests.csproj` | 0 Warning(s), 0 Error(s) |
+| build `tests/Phase1.Save.Tests/Phase1Save.Tests.csproj` | 0 Warning(s), 0 Error(s) |
+| build `src/Ui/SitkaP1.Ui.csproj` | 0 Warning(s), 0 Error(s) |
+| `SitkaP1.Core.Tests.dll` | 326/326 passed, 0 failed. All nine frozen anchor SHA-256 values appear in the output. |
+| `Phase1Save.Tests.dll` | 58/58 passed, 0 failed (56 prior + SP2-S5 + SP2-S6). Includes `golden: pinned SHA-256 of the fixed Phase 2 approved sample encoding` and SP2-S4. |
+| `SitkaP1.Core.ScotsPine.Tests.dll` | TOTAL: 27/27 passed, 0 failed. Digest `96d214ce52d58a6daf4db8e1d99ca05b6d61b43e769dfa00e5317cf636ba1748` is unchanged. |
+
+The packet named the Scots pine test assembly `SitkaP1.ScotsPine.Tests.dll`. The csproj builds `SitkaP1.Core.ScotsPine.Tests.dll`, so that file was run. `.p0ref/SitkaLab.Core.dll` still has SHA-256 `9a99f781…34b3`.
+
+Skipped per the packet: the Edge/browser suites, `tests/ui-smoke*.sh`, `build/2d-gate*`, `run-step2-edge.sh`, any npm/node UI build, and Unity. No UI code changed. The Saves dialog shows the corrected `draftOrderCount`, but no rendered check was run.
