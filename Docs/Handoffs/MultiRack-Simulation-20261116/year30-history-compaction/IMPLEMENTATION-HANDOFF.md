@@ -1,9 +1,11 @@
-# Implementation Handoff — Year-30 Deep-History Payload Compaction (Stage B 512 KiB View-Budget Fix)
+# Implementation Handoff — Year-30 Deep-History Payload Compaction (Stage B and Owner Ruling Option 1)
 
 - **Branch**: `feat/multi-2d-year30-history-compaction-v1`
-- **Base commit**: `f4dee8023d3492a25e61451c7e2a49515e507ed3` (`origin/integration/2d-sim`)
+- **Base commit**: `f4dee8023d3492a25e61451c7e2a49515e507ed3` (`origin/integration/2d-sim` when the feature branch was cut)
 - **Implementation commit**: `54783fc99b77fc67694d695f5894f1e63a5c11a0` (`fix(2d-sim): compact year 0-30 deep-history multi view projection`)
-- **D-030 state**: NOT merged to integration/2d-sim or main, origin/main bdeb6a32 untouched, not user-accepted
+- **Repair base reviewed as NEEDS CHANGES**: `9946276a79de55a1cb9a5aead4e2595e97e906fe`
+- **Final repair source**: `3b79014c69f90a7a797d8e8af718926813523ced`. The following docs commit carries this handoff on the feature branch.
+- **D-030 state**: IMPLEMENTED ON TASK BRANCH. Independent delta review pending. NOT merged to `integration/2d-sim` or `main`. Protected `origin/main` `bdeb6a324acaf4129c10fb0846faac8b64974360` untouched. Not user-accepted.
 
 ---
 
@@ -22,7 +24,7 @@ Before choosing a fix, a disposable out-of-repo probe (`/home/jer/.ccf-orch/evid
      - **Year 8 (`MA-1`)**: `GET /api/multi/view` = `416,874 B` (Tier 0), `POST /api/multi/year/advance` = **`524,551 B > 524,288 B`** -> **HTTP 503** (exact match to `step2-base.log`).
      - **Year 7 (`MA-1-MIXED`)**: `GET /api/multi/view` = `418,946 B` (Tier 0), `POST /api/multi/year/advance` = **`527,778 B > 524,288 B`** -> **HTTP 503** (exact match to `step2-base.log`).
      - **Year 30 (`MA-1-MIXED`)**: `GET /api/multi/view` = `520,631 B` (`view=129,379` [`areas.trees=117,676`, `annualHistory=6,208` (2 yrs), `events=2,394` (2 evs)], `scenes=60,248`, `labels=8,622`, `stage4=272,988` [`ground=168,223`, `trees=27,896`, `deadwood=72,065`], `ecology=48,431`), while `POST /api/multi/year/advance` hit **`815,440 B`** (~295 KB of duplicated `report.trees` for 166 living + 378 dead trees).
-     - **Year 30 (`fm-064-sitka-edge-broadleaves-v1`, 0.64 ha 5-lane)**: `GET /api/multi/view` = `1,883,462 B`, while `POST /api/multi/year/advance` was **`2,587,264 B`** (~704 KB of duplicated `report.trees`, only 34 KB below the 2.5 MiB hard ceiling).
+     - **Year 30 (`fm-064-sitka-edge-broadleaves-v1`, 0.64 ha 5-lane)**: `GET /api/multi/view` = `1,883,462 B`, while `POST /api/multi/year/advance` was **`2,587,264 B`** (~704 KB of duplicated `report.trees`, only 34 KB below the original 2.5 MiB hard ceiling).
    - Zero JavaScript modules under `src/Ui/multi/**` read `payload.annual`; the sole test reference (`tests/ui-smoke-multiarea.sh:355-356`) checks `[r['areaId'] for r in y['annual']['areas']]` and `r['report'] is not None`.
 
 2. **Secondary defect — envelope-blind budget evaluation (`SerializeBoundedMultiView` vs `WriteBoundedJsonAsync`)**:
@@ -34,22 +36,31 @@ Before choosing a fix, a disposable out-of-repo probe (`/home/jer/.ccf-orch/evid
 
 ---
 
+### Owner ruling for the Year-30 follow-up
+
+**LOCKED OWNER RULING OPTION 1 (2026-11-28).** Keep the envelope compaction and separate its soft target from the defensive HTTP 503 ceiling. The soft target is 524,288 B for up to two areas. For three or more areas it is `min(2,621,440, 524,288 × ceil(genesisStems / 300))`. With no test override, the defensive ceiling is `max(softTarget, 4,194,304)` B. A positive `CCF_TEST_MAX_VIEW_BYTES` override applies the legacy strict limit to both targets, `min(scaledSoftTarget, override)`, and can only lower the ecology target. This includes the high-override clamp in the unchanged Phase 2A Edge gate.
+
+The independent review reproduced a Year-30 view failure on MA-1-MIXED after steady thinning with Economy Off. The smallest view projection was 525,092 B with the old overflow flag and exceeded the former 524,288 B refusal limit. See section 4.4 for the same workload under Option 1.
+
+---
+
 ## 2. Files Changed
 
 Strictly scoped to UI HTTP projection/compaction (`Tools/MultiRackSitkaP1Lab/src/Ui/**`), targeted regression tests, and this handoff note:
 
 | File | Summary of change |
 |---|---|
-| `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs` | Added `BoundedMultiFrame`, `ProjectAnnualForBudget` + compact annual DTOs (`MultiProjectedAnnualResultDto`/`MultiProjectedAreaReportDto`/`MultiProjectedAnnualReportDto`), optional `envelopeSerializer` on `SerializeBoundedMultiView`, `WriteBoundedBytesAsync`, truthful `HistoryTruncated` separated from `PruneLogTruncated` (omitted via `WhenWritingDefault` when false), and envelope-aware serialization on `ReadMultiCellAsync`, `ReadMultiCompetitionAsync`, `MultiHitTestAsync`. |
+| `Tools/MultiRackSitkaP1Lab/src/Ui/MultiViewBudget.cs` | Separates the scaled soft target from the 4 MiB defensive ceiling and retains strict test override clamping. |
+| `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.View.cs` | Added `BoundedMultiFrame`, `ProjectAnnualForBudget` + compact annual DTOs (`MultiProjectedAnnualResultDto`/`MultiProjectedAreaReportDto`/`MultiProjectedAnnualReportDto`), optional `envelopeSerializer` on `SerializeBoundedMultiView`, `WriteBoundedBytesAsync`, truthful `HistoryTruncated` separated from `PruneLogTruncated` (omitted via `WhenWritingDefault` when false), and envelope-aware serialization on `ReadMultiCellAsync`, `ReadMultiCompetitionAsync`, `MultiHitTestAsync`. Option 1 accepts Tier 3 within the hard limit and exposes both limits on bounded responses. |
 | `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Commands.cs` | Projected `result.Annual` via `ProjectAnnualForBudget`, wired exact outer `MultiCommandPayload` and `MultiEconomySessionPayload` envelope serializers into `SerializeBoundedMultiView`, and added `PruneLogTruncated` (`WhenWritingDefault`). |
 | `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs` | Wired exact outer `MultiSkipPayload` envelope serializer (both refusal and completed-years branches) into `SerializeBoundedMultiView`, and added `PruneLogTruncated` (`WhenWritingDefault`). |
 | `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs` | Wired exact outer `MultiLoadPayload` envelope serializer into `SerializeBoundedMultiView`, and added `PruneLogTruncated` (`WhenWritingDefault`). |
 | `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Woodland.cs` | Wired exact outer `MultiWoodlandNewPayload` envelope serializer into `SerializeBoundedMultiView`, and added `PruneLogTruncated` (`WhenWritingDefault`). |
-| `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Stand.cs` | Separated `PruneLogTruncated` (`WhenWritingDefault`) from `HistoryTruncated` (never ORing `pTrim`, never hardcoding `true` on overflow) and added binary-search history tail retention in `SerializeBoundedLaneStand`. |
-| `Tools/MultiRackSitkaP1Lab/tests/ui-smoke-multiarea.sh` | Strengthened Year-1 annual check (`before`/`after`/`deaths` present, `report.trees` omitted); added deep-history envelope checks for Year 15→16 `POST /api/multi/year/advance`, Year 16→20 `POST /api/multi/year/skip`, Year 20 view + Year 0 on-demand history, and check `M15` proving Year-0 `stage4.pruneLog` trimming sets `pruneLogTruncated=true` while keeping `historyTruncated=false`. |
+| `Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Stand.cs` | Separated `PruneLogTruncated` (`WhenWritingDefault`) from `HistoryTruncated` (never ORing `pTrim`, never hardcoding `true` on overflow) and added binary-search history tail retention in `SerializeBoundedLaneStand`. Option 1 applies the hard limit and shared response headers to overview, lane results and lane refusals. |
+| `Tools/MultiRackSitkaP1Lab/tests/ui-smoke-multiarea.sh` | Strengthened Year-1 annual check (`before`/`after`/`deaths` present, `report.trees` omitted); added deep-history envelope checks for Year 15→16 `POST /api/multi/year/advance`, Year 16→20 `POST /api/multi/year/skip`, Year 20 view + Year 0 on-demand history, and check `M15` proving Year-0 `stage4.pruneLog` trimming sets `pruneLogTruncated=true` while keeping `historyTruncated=false`. Added `M16` for the thinning replay and `M17` for strict hard overflow. |
 | `Docs/Handoffs/MultiRack-Simulation-20261116/year30-history-compaction/IMPLEMENTATION-HANDOFF.md` | This handoff note. |
 
-**Fence verification**: Zero changes under `src/Core/**`, `src/Core/Phase1/**`, `src/Core/SpeciesWave2/**`, `src/Ui/wwwroot/**`, `src/Ui/multi/**`, `src/Ui/MultiViewBudget.cs`, `Docs/Project/**`, `Assets/**`, `Packages/**`, `ProjectSettings/**`, or `.p0ref/**`.
+**Fence verification**: Zero changes under `src/Core/**`, `src/Core/Phase1/**`, `src/Core/SpeciesWave2/**`, `src/Ui/wwwroot/**`, `src/Ui/multi/**`, `Docs/Project/**`, `Assets/**`, `Packages/**`, `ProjectSettings/**`, or `.p0ref/**`.
 
 ---
 
@@ -60,9 +71,10 @@ Strictly scoped to UI HTTP projection/compaction (`Tools/MultiRackSitkaP1Lab/src
    - Omits only `report.trees` (`IReadOnlyList<AnnualTreeAudit>`), because `view.areas[].trees` in the same HTTP response already supplies the authoritative post-advance tree roster.
    - Reduces `annual` from **109–295 KB** (2-area) / **~707 KB** (0.64 ha 5-lane) down to **1.5–3.9 KB** (~98.7% reduction), with zero Core or save mutation and zero JS changes required.
 2. **Envelope-aware tier selection (`SerializeBoundedMultiView`)**:
-   - Every view-carrying endpoint passes its exact outer payload serializer (`Func<BoundedMultiFrame, byte[]>`) to `SerializeBoundedMultiView`.
-   - Tier 0 → Tier 1 (`ProjectViewForBudget`, `ProjectScenesForBudget`, `ProjectStage4ForBudget(compactGround: false)`) → Tier 2 (`compactGround: true`) → Tier 3 (HTTP 503 `MultiViewPayloadBudgetExceeded`) now measure the exact UTF-8 wire bytes emitted by that route, eliminating double serialization and false 503 refusals while strictly preserving the 524,288 B / 153,600 B budgets (`MultiViewBudget.cs` unchanged) and never emitting over-budget bytes as HTTP 200.
-   - On `GET /api/multi/view`, the default `MultiViewPayload` shape is unchanged (preserving R2-2 Tier 0 → Tier 1 transitions and the Phase 2A raise-clamp boundary).
+   - Composite view responses serialize their exact outer payload during tier selection. The overview and auxiliary writers apply the ceiling to their serialized response bytes.
+   - Tier 0 uses the full projection. Tier 1 compacts the view, scenes and Stage 4 data while retaining detailed ground cells. Tier 2 compacts ground cells. All three measure the exact outer UTF-8 envelope against the soft target and keep the existing ecology target for tier selection.
+   - Tier 3 retains the most compact projection and returns the route's normal status while the envelope fits within the defensive ceiling. It keeps `payloadBudgetExceeded=false` on an accepted view. Above the hard ceiling the shared writer reports HTTP 503 `MultiViewPayloadBudgetExceeded` with the active hard limit in `budget` and a stderr diagnostic.
+   - Bounded responses carry `X-Multi-View-Soft-Limit` and `X-Multi-View-Hard-Limit` on HTTP 200, 409 and 503. The existing response shape and projection fields are preserved.
 3. **Truthful compaction signalling**:
    - `historyTruncated` is strictly `keepEvents < fullView.Events.Count || keepAnnual < fullView.AnnualHistory.Count` in both `MultiApi.View.cs` and `MultiApi.Stand.cs`. It is NEVER `true` at Year 0 when nothing in `events`/`annualHistory` was omitted, and NEVER triggered by `stage4.pruneLog` trimming or display projection.
    - A separate flag `pruneLogTruncated` (`[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]`) is emitted as `true` if and only if `stage4.pruneLog` entries were omitted.
@@ -72,7 +84,7 @@ Strictly scoped to UI HTTP projection/compaction (`Tools/MultiRackSitkaP1Lab/src
 
 ## 4. Before / After Year 0–30 Raw Byte Tables
 
-### 4.1 `MA-1` (2-area, active budget 524,288 B raw / 153,600 B ecology)
+### 4.1 `MA-1` (2-area, soft targets of 524,288 B raw and 153,600 B ecology)
 
 On unmodified base (`f4dee8023d3492a25e61451c7e2a49515e507ed3`), the automated `run-step2-edge.sh` sweep aborted at **Year 8** on HTTP 503 (`POST /api/multi/year/advance` = `524,551 B`); Years 8–30 were **unreachable** in the base sweep. The "Before `adv` (probe)" column below was captured by the disposable base probe continuing past HTTP 503 (since Core had mutated prior to the 503 refusal).
 
@@ -111,7 +123,7 @@ On unmodified base (`f4dee8023d3492a25e61451c7e2a49515e507ed3`), the automated `
 | 30 | **503 (568,182)** | 404,961 | *unreachable* (413,191) | 413,191 | 32,650 | 4 / 30 | F / T / F |
 | **Max** | **503 @ 673,208** | **516,707** | **aborted @ Y08** | **517,010** | **43,320** | — | — |
 
-### 4.2 `MA-1-MIXED` (2-area, active budget 524,288 B raw / 153,600 B ecology)
+### 4.2 `MA-1-MIXED` (2-area, soft targets of 524,288 B raw and 153,600 B ecology)
 
 On unmodified base, the automated sweep aborted at **Year 7** on HTTP 503 (`POST /api/multi/year/advance` = `527,778 B`); Years 7–30 were **unreachable** in the base sweep.
 
@@ -152,7 +164,7 @@ On unmodified base, the automated sweep aborted at **Year 7** on HTTP 503 (`POST
 
 ### 4.3 0.64 ha 5-lane Preset (`fm-064-sitka-edge-broadleaves-v1`, Years 0–30)
 
-Measured via `measure_lanes.py` before and after the fix (active scaled budget = `min(2,621,440, 524,288 × ceil(stems/300))`):
+Measured via `measure_lanes.py` before and after the fix (scaled soft target = `min(2,621,440, 524,288 × ceil(stems/300))`):
 
 | Year | Before `adv` | After `adv` | `/view` | `/stand` overview | 3-lane `/stand?lanes=MA-A,MA-B,MA-C` |
 |---:|---:|---:|---:|---:|---:|
@@ -164,12 +176,29 @@ Measured via `measure_lanes.py` before and after the fix (active scaled budget =
 | 25 | 2,506,650 | 1,821,139 | 1,823,426 | 132,717 | 604,287 |
 | 30 | 2,587,264 | **1,879,923** | 1,883,462 | 131,875 | 632,262 |
 
-- `POST /api/multi/year/advance` at Year 30 dropped by **707,341 B** (from 98.7% of the 2.5 MiB ceiling down to 71.7%).
-- Every lane-filtered 3-lane read stayed well within its active scaled budget across Years 0–30, with honest `historyTruncated` / `pruneLogTruncated` signalling and binary-search tail retention.
+- `POST /api/multi/year/advance` at Year 30 dropped by **707,341 B** (from 98.7% of the 2.5 MiB soft target down to 71.7%).
+- Every lane-filtered 3-lane read stayed well within its scaled soft target across Years 0–30, with honest `historyTruncated` / `pruneLogTruncated` signalling and binary-search tail retention.
+
+---
+
+### 4.4 MA-1-MIXED steady thinning at Year 30
+
+M16 uses the independent review's fixed targets and 501-character fell reason. Each year it queues two fells per area, attempts three prunes per area, approves and executes the plan, advances and reads the view again. Economy is Off. Core refused 57 of the 180 prune requests with `PruneIntervalTooShort`.
+
+| Route | Before Option 1 at `9946276a` | After Option 1 |
+|---|---|---|
+| `POST /api/multi/year/advance` | HTTP 200, 520,443 B | HTTP 200, 520,443 B |
+| `GET /api/multi/view` | HTTP 503, 72 B error body reporting a 525,092 B projection | HTTP 200, 525,093 B compact view |
+
+The accepted view is 805 B above the soft target. Its overflow flag is `false`, which is one byte longer than the rejected projection's `true`. Both Year-30 responses returned `X-Multi-View-Soft-Limit: 524288` and `X-Multi-View-Hard-Limit: 4194304`.
+
+M16 requires HTTP 200 for all 30 advances and view reads, an actively compacted Year-30 view within 600,000 B, truthful Year-0 history signalling and both headers on accepted responses. It also checks the headers on a successful lane read and a stale-fence lane HTTP 409. M17 uses a fresh MA-1-MIXED process with `CCF_TEST_MAX_VIEW_BYTES=3000` to prove that a 284,466 B projection still returns HTTP 503 `MultiViewPayloadBudgetExceeded` with `budget=3000`, both limit headers equal to 3,000 B and the expected stderr diagnostic.
 
 ---
 
 ## 5. Verification Results (Observed Counts)
+
+### Original implementation at `9946276a`
 
 | Gate / Check | Command | Exact Observed Result |
 |---|---|---|
@@ -182,7 +211,34 @@ Measured via `measure_lanes.py` before and after the fix (active scaled budget =
 
 ---
 
+### Option 1 repair at `3b79014c`
+
+| Gate | Command | Observed result |
+|---|---|---|
+| Solution build | `~/.dotnet/dotnet build Tools/MultiRackSitkaP1Lab/MultiRackSitkaP1Lab.sln --nologo -warnaserror --no-incremental` | PASS, 0 warnings, 0 errors |
+| UI build | `~/.dotnet/dotnet build Tools/MultiRackSitkaP1Lab/src/Ui/SitkaP1.Ui.csproj --nologo -warnaserror --no-incremental` | PASS, 0 warnings, 0 errors |
+| Core.Tests | `~/.dotnet/dotnet run --project Tools/MultiRackSitkaP1Lab/tests/Core.Tests/SitkaP1.Core.Tests.csproj -c Debug --no-build` | 314/314 passed, 0 failed. All nine frozen anchors had zero drift. All 26 output lines containing 64-character hashes matched the independent review log. |
+| UI smoke | `bash tests/ui-smoke-multiarea.sh <external-evidence-dir>` | OVERALL PASS, 377 passed, 0 failed. M15, M16 and M17 passed. |
+| Stage B Edge | `bash tests/phase1-time-history-ui/run-step2-edge.sh <external-evidence-dir>` | OVERALL PASS, 67 passed, 0 failed on the first run. Year 0–30 maxima for MA-1 were 517,010 B view (Year 27) and 43,320 B ecology. MA-1-MIXED reached 523,424 B view (Year 29) and 49,685 B ecology. All five servers had empty stderr. |
+| Phase 2A Edge | `DOTNET=~/.dotnet/dotnet bash tests/phase2a-ui/run-phase2a-edge.sh <external-evidence-dir>` | Override checks passed at 400,000 and 9,999,999 B. The full gate reported OVERALL FAIL, 65 passed, 1 counted failure, plus a fatal timeout. The unmodified repair base reproduced both failures and the same counts. |
+| P0 reference | `sha256sum Tools/MultiRackSitkaP1Lab/.p0ref/SitkaLab.Core.dll` | `9a99f78131a348032a0342b2ec3dc2b671c0455ab60fee504761e0e82e1934b3` |
+| Skipped | Requested verification scope | `build/2d-gate/selftest.sh`, Phase1Save.Tests, `run-map-first-lenses-edge.sh`, `build/2d-gate/module-graph.mjs`, full `build/2d-gate.sh --browser` and Unity. |
+
+Toolchain was .NET SDK 8.0.134 and Node v26.13.1. The browser gates used Windows Node v26.13.1 and Microsoft Edge 158.0.4370.33.
+
+Phase 2A's 400,000 B override refused the over-limit view and command routes, including lane reads and stale submissions carrying oversized snapshots. The 9,999,999 B override clamped both the 3-area and 2-area witness limits to 524,288 B and returned the required HTTP 503s. The full gate expected an Economy-enabled Forest Maker save to return HTTP 409 `SaveEconomyRequiresV3` even though the repair base already supports Economy in Forest Maker Save v3. It also timed out waiting for the 2,880-stem interior Lane C render at 1280×720 after the three-lane HTTP read passed. The same gate reproduced the assertion, timeout and pass counts on a disposable archive of `9946276a`. All run servers stopped on SIGINT.
+
+---
+
 ## 6. Evidence Paths (Outside Repo)
+
+Option 1 evidence:
+
+- `/home/jer/.ccf-orch/evidence/2d-year30-option1-20261128/` contains both build logs, Core test and hash output, and UI smoke evidence.
+- `/mnt/c/Users/hp/AppData/Local/Temp/ccf-y30-option1-20261128/` contains the Step 2 and Phase 2A Edge logs and screenshots, including `phase2a-base-console.log` for the unmodified base.
+- Before-repair thinning evidence is in `/home/jer/.ccf-orch/evidence/2d-year30-review-opus-20261128/logs/probe2-mixed-long-2f3p-rerun.log`.
+
+Original implementation evidence:
 
 - `/home/jer/.ccf-orch/evidence/2d-year30-compaction-20261128/build.log`
 - `/home/jer/.ccf-orch/evidence/2d-year30-compaction-20261128/core-tests.log`
@@ -199,6 +255,6 @@ Measured via `measure_lanes.py` before and after the fix (active scaled budget =
 
 ## 7. Residual Risks
 
-1. **Unverified Phase 2A Edge suite (`run-phase2a-edge.sh`) and `Phase1.Save.Tests`**: Deliberately skipped under the verification diet; `GET /api/multi/view` Tier 0–2 byte layout was preserved intentionally so the Phase 2A raise-clamp proof (`scaledClampRecipe` at ~526,886 B > 524,288 B) remains intact, and `src/Core/**` / save codecs were untouched. Recommend running Phase 2A Edge during integration qualification.
-2. **Extreme beyond-Year-30 horizons (e.g. Year 40–60 on dense mixed stands)**: At Year 30 on `MA-1-MIXED`, Tier 1 (`s4c=False`) reaches 520–523 KB with ~60 KB of Tier 2 (`compactGround=true`) reserve remaining; beyond ~500+ deadwood logs / 700+ total dead trees on a 2-area stand, Tier 2 could eventually saturate 512 KiB unless dead-tree/deadwood list projection or compact ground rows are added in a future milestone.
-3. **External callers of `POST /api/multi/year/advance` expecting `annual.areas[].report.trees`**: No in-repo UI code or test reads `annual.areas[].report.trees`, and `view.areas[].trees` carries the authoritative post-advance roster in the same response. Any external script expecting per-tree `AnnualTreeAudit` diffs from the HTTP advance endpoint would need to read Core directly instead.
+1. **Verification scope.** The full verification skips are listed above. The 503 guard was exercised with lowered hard limits. Payloads exceeding the production 4 MiB ceiling and horizons beyond Year 30 were outside the measured workloads.
+2. **External callers of `POST /api/multi/year/advance`.** The post-advance roster is available in `view.areas[].trees`. Callers that need per-tree `AnnualTreeAudit` diffs can obtain them from Core.
+3. **Downstream status.** Independent delta review, integration and owner acceptance are pending. Project dashboard synchronization remains unverified by this worktree.
