@@ -1,6 +1,6 @@
 // S0c provenance: api.js [L2] — section(s) 3, 5 from multi.js
 import { el, label, plural } from './dom.js';
-import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isMultiLaneStand, isPhase2, juvenileById, livingIn, pendingClears, pendingPlantings, pendingPrunes, readoutState, state, treeIn, visibleLaneIds } from './store.js';
+import { ALERT_TIERS, COMMAND_IDS, INSPECTION_LOCKED_IDS, allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, areaView, blockedReason, byId, currentReport, draftOf, groundCell, hooks, isEconomyEnabled, isMultiLaneStand, isPhase2, juvenileById, livingIn, pendingClears, pendingPlantings, pendingPrunes, readoutState, state, treeIn, visibleLaneIds } from './store.js';
   // ---- talking to the local session process ---------------------------------------------------------------------------
 
   export function currentFence() {
@@ -10,6 +10,11 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
 
   export async function call(path, body) {
     if (body !== undefined && state.lock) return { kind: 'locked' };
+    // Survey inspection is read-only: no simulation command is even sent while a survey that cannot advance is shown.
+    if (body !== undefined && state.inspection && !state.inspection.entry.canAdvanceTime) {
+      announce('Not sent: survey inspection mode is read-only. Choose Return to normal woodland first.');
+      return { kind: 'locked' };
+    }
     const init = { method: body === undefined ? 'GET' : 'POST', cache: 'no-store', credentials: 'omit', redirect: 'error' };
     if (body !== undefined) {
       init.headers = { 'Content-Type': 'application/json' };
@@ -864,6 +869,27 @@ import { ALERT_TIERS, COMMAND_IDS, allAreas, approvedClears, approvedPlantings, 
     byId('reread').disabled = state.batch !== null || state.queueRunning;
     for (const button of document.querySelectorAll('[data-area]')) {
       if (button.classList.contains('area-tab')) button.disabled = state.batch !== null || state.queueRunning;
+    }
+    // Last, so nothing above can re-enable them: a Year-0 survey under inspection cannot advance time or execute work.
+    if (state.inspection && !state.inspection.entry.canAdvanceTime) {
+      for (const id of INSPECTION_LOCKED_IDS) {
+        const node = byId(id);
+        if (!node) continue;
+        if (!node.hasAttribute('data-inspection-locked')) {
+          node.setAttribute('data-inspection-locked', node.getAttribute('title') || '');
+        }
+        node.disabled = true;
+        node.setAttribute('title', 'Not available in survey inspection mode — the survey cannot advance time');
+      }
+    } else {
+      for (const id of INSPECTION_LOCKED_IDS) {
+        const node = byId(id);
+        if (!node || !node.hasAttribute('data-inspection-locked')) continue;
+        const before = node.getAttribute('data-inspection-locked');
+        if (before) node.setAttribute('title', before);
+        else node.removeAttribute('title');
+        node.removeAttribute('data-inspection-locked');
+      }
     }
   }
 

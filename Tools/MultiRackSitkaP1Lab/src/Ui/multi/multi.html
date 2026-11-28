@@ -37,6 +37,10 @@
       <span aria-hidden="true">✦</span>
       <span class="btn-title">New woodland</span>
     </button>
+    <button type="button" id="inspect-open" class="woodland-open inspect-open" aria-haspopup="dialog">
+      <span aria-hidden="true">⌖</span>
+      <span class="btn-title">Inspect real woodland</span>
+    </button>
     <button type="button" id="saves-open" class="saves-open" aria-haspopup="dialog">
       <span aria-hidden="true">▤</span>
       <span class="btn-title">Saved games</span>
@@ -55,6 +59,35 @@
   </div>
   <p id="experiment-badge" class="subtitle">Loading experiment…</p>
 </header>
+
+<!-- Woodland Inspection Part 2: persistent read-only banner while a real Year-0 survey is shown. Every word about the plot,
+     its readiness and its blockers comes from the server; the page decides nothing about whether time can advance. -->
+<section id="inspection-banner" class="inspection-banner" aria-labelledby="inspection-banner-title" hidden>
+  <div class="inspection-banner-head">
+    <div class="inspection-banner-titles">
+      <h2 id="inspection-banner-title">Survey inspection mode — Year 0</h2>
+      <p id="inspection-banner-plot" class="inspection-banner-plot"></p>
+    </div>
+    <button type="button" id="inspection-exit" class="primary inspection-exit">Return to normal woodland</button>
+  </div>
+  <p id="inspection-banner-lead" class="inspection-banner-lead"></p>
+  <div class="inspection-banner-body">
+    <div class="inspection-blockers">
+      <h3>Why time cannot advance</h3>
+      <ul id="inspection-blockers" class="inspection-blocker-list"></ul>
+    </div>
+    <div class="inspection-locks">
+      <h3>Locked while inspecting</h3>
+      <p class="inspection-lock-row">
+        <button type="button" id="insp-lock-advance" class="small locked-control" disabled>Advance one year</button>
+        <button type="button" id="insp-lock-skip" class="small locked-control" disabled>Skip to review year</button>
+        <button type="button" id="insp-lock-approve" class="small locked-control" disabled>Approve Work Plan</button>
+        <button type="button" id="insp-lock-execute" class="small locked-control" disabled>Execute Work Plan</button>
+      </p>
+    </div>
+  </div>
+  <p id="inspection-attribution-line" class="inspection-attribution-line"></p>
+</section>
 
 <section id="economy-strip" class="economy-strip" aria-label="Woodland cash, landowner hours, and retained timber" hidden>
   <div class="economy-strip-item">
@@ -109,6 +142,41 @@
 <div class="messages">
   <div id="alert" class="alert" role="region" aria-label="Priority-ranked woodland alerts" tabindex="-1"></div>
 </div>
+
+<!-- Woodland Inspection Part 2: the inspected survey replaces the stand map workspace (same two columns, never a third). -->
+<section id="inspection-view" class="inspection-view" aria-label="Real woodland survey at Year 0" hidden>
+  <section class="inspection-map-card" aria-labelledby="inspection-map-heading">
+    <h2 id="inspection-map-heading" tabindex="-1">Year-0 survey map</h2>
+    <p id="inspection-map-note" class="small-note"></p>
+    <div class="inspection-map-wrap">
+      <svg id="inspection-map" class="inspection-map" role="img" aria-labelledby="inspection-map-heading inspection-map-note"></svg>
+    </div>
+    <ul id="inspection-legend" class="inspection-legend"></ul>
+    <p id="inspection-unplotted" class="small-note"></p>
+  </section>
+  <div class="inspection-side">
+    <section class="panel inspection-panel" aria-labelledby="inspection-tree-heading">
+      <h2 id="inspection-tree-heading" tabindex="-1">Surveyed tree</h2>
+      <div id="inspection-tree"></div>
+    </section>
+    <section class="panel inspection-panel" aria-labelledby="inspection-trees-heading">
+      <h2 id="inspection-trees-heading">All surveyed trees</h2>
+      <div id="inspection-tree-list" class="inspection-table-wrap"></div>
+    </section>
+    <section class="panel inspection-panel" aria-labelledby="inspection-species-heading">
+      <h2 id="inspection-species-heading">Species mapping</h2>
+      <div id="inspection-species"></div>
+    </section>
+    <section class="panel inspection-panel" aria-labelledby="inspection-mh-heading">
+      <h2 id="inspection-mh-heading">Tree-related microhabitats</h2>
+      <div id="inspection-microhabitats"></div>
+    </section>
+    <section class="panel inspection-panel" aria-labelledby="inspection-source-heading">
+      <h2 id="inspection-source-heading">Source, licence and changes</h2>
+      <div id="inspection-source"></div>
+    </section>
+  </div>
+</section>
 
 <main id="workspace" class="workspace" data-legend="compact" data-lens="woodland">
   <section class="map-panel" aria-labelledby="map-heading">
@@ -1097,6 +1165,17 @@
   <p class="actions">
     <button type="button" id="woodland-cancel" class="secondary">Cancel</button>
     <button type="button" id="woodland-create" class="primary">Start woodland</button>
+  </p>
+</dialog>
+
+<dialog id="inspect-dialog" class="woodland-dialog inspect-dialog" aria-labelledby="inspect-title" aria-describedby="inspect-intro">
+  <h2 id="inspect-title">Inspect a real woodland</h2>
+  <p id="inspect-intro" class="note">These are real survey plots built into the game, read entirely offline. You will see each plot exactly as it was measured (Year 0). Your current woodland is kept unchanged and comes back when you return.</p>
+  <div id="inspect-choices" class="woodland-choices" role="radiogroup" aria-label="Real woodland survey plots"></div>
+  <p id="inspect-status" class="save-status" role="status" aria-live="polite"></p>
+  <p class="actions">
+    <button type="button" id="inspect-cancel" class="secondary">Cancel</button>
+    <button type="button" id="inspect-load" class="primary">Inspect this survey</button>
   </p>
 </dialog>
 

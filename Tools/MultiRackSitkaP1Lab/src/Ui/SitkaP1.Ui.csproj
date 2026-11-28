@@ -38,6 +38,7 @@
     <EmbeddedResource Include="multi/dialogs/execute-confirm.js" LogicalName="SitkaP1.Ui.multi.dialogs.execute-confirm.js" />
     <EmbeddedResource Include="multi/dialogs/saves.js" LogicalName="SitkaP1.Ui.multi.dialogs.saves.js" />
     <EmbeddedResource Include="multi/dialogs/woodland.js" LogicalName="SitkaP1.Ui.multi.dialogs.woodland.js" />
+    <EmbeddedResource Include="multi/dialogs/woodland-inspection.js" LogicalName="SitkaP1.Ui.multi.dialogs.woodland-inspection.js" />
     <EmbeddedResource Include="multi/dom.js" LogicalName="SitkaP1.Ui.multi.dom.js" />
     <EmbeddedResource Include="multi/main.js" LogicalName="SitkaP1.Ui.multi.main.js" />
     <EmbeddedResource Include="multi/map/contract.js" LogicalName="SitkaP1.Ui.multi.map.contract.js" />
@@ -49,5 +50,16 @@
     <EmbeddedResource Include="multi/panels/time-history.js" LogicalName="SitkaP1.Ui.multi.panels.time-history.js" />
     <EmbeddedResource Include="multi/panels/work-plan.js" LogicalName="SitkaP1.Ui.multi.panels.work-plan.js" />
     <EmbeddedResource Include="multi/store.js" LogicalName="SitkaP1.Ui.multi.store.js" />
+  </ItemGroup>
+
+  <!--
+    Woodland Inspection Part 2: the built-in real-woodland catalogue is read from the qualified Importer V1 fixtures,
+    embedded byte-for-byte from the test folder (never copied or edited), so /multi needs no upload, path or network.
+    MultiWoodlandInspection.cs reads them by these logical names; the importer re-checks each ZIP's pinned SHA-256.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../tests/Core/WoodlandImport/Fixtures/Qualified/ATTRIBUTION.json" LogicalName="SitkaP1.Ui.woodland_fixtures.ATTRIBUTION.json" />
+    <EmbeddedResource Include="../../tests/Core/WoodlandImport/Fixtures/Qualified/ie-donadea-mhf-subset.dwca.zip" LogicalName="SitkaP1.Ui.woodland_fixtures.ie-donadea-mhf-subset.dwca.zip" />
+    <EmbeddedResource Include="../../tests/Core/WoodlandImport/Fixtures/Qualified/lu-mersch-oak-beech-subset.dwca.zip" LogicalName="SitkaP1.Ui.woodland_fixtures.lu-mersch-oak-beech-subset.dwca.zip" />
   </ItemGroup>
 </Project>

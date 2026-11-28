@@ -2,7 +2,7 @@
 
 - **Spec ID:** `SPEC-multi-2d-woodland-inspection-V1`
 - **Feature ID:** `multi-2d-woodland-inspection-v1`
-- **Status:** `APPROVED / IMPLEMENTING — Part 1 ACTIVE; Part 2 QUEUED behind Playable Milestone 1`
+- **Status:** `APPROVED / Part 2 IMPLEMENTING` — this file is the Part 1 plan, kept as history. Part 2 (Playable Milestone 3 Part 2, `/multi` wiring) is planned and recorded in `spec.md` §8 and `tasks.md` (Part 2); its files are `src/Ui/MultiWoodlandInspection.cs`, guard/clear hooks in `PlayerApi.cs`, `MultiApi.Woodland.cs`, `MultiApi.Saves.cs`, `MultiRoutes.cs`, embedded fixtures in `SitkaP1.Ui.csproj`, `multi/dialogs/woodland-inspection.js` plus small page hooks, and `tests/woodland-inspection-part2-api.sh`.
 - **Branch:** `feat/multi-2d-woodland-inspection-engine-v1`
 - **Base Commit:** `c82e4e759c2ceef1c13ddb6a033e034097aef77e` (`origin/integration/2d-sim`, verified at task start 2026-11-27)
 - **Canonical Context Commit:** `bdeb6a324acaf4129c10fb0846faac8b64974360` (`origin/main`, verified at task start 2026-11-27)

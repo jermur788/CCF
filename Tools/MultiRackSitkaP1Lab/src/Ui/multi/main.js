@@ -6,6 +6,7 @@ import { announce, applyPayload, call, clearAlert, currentFence, dismissAlert, r
 import { onAdd, onAddReference, onAdvance, onApprove, onCancelApproved, onCellClearAdd, onCrop, onEconomyToggleConfirmed, onExecuteConfirmed, onPjShelterAdd, onPlantQueue, onPruneAdd, onSetFellingDisposition, onSetOrderExecutor, onSpotQueue, openDialog, openEconomyToggleDialog, openExecuteDialog, removeClear, removePending, removePlanting, removePrune, reread, returnFocus, sendAdvance } from './commands.js';
 import { confirmationStillShown, withdrawConfirmation } from './dialogs/execute-confirm.js';
 import { askLoad, askRecover, onLoadConfirmed, onRecoverConfirmed, onSave, openSaves, updateSaveControls } from './dialogs/saves.js';
+import { renderInspection, restoreInspection, wireInspection } from './dialogs/woodland-inspection.js';
 import { onWoodlandCancelDiscard, onWoodlandConfirmDiscard, onWoodlandCreate, onWoodlandFieldChanged, openWoodlandDialog } from './dialogs/woodland.js';
 import { closeExplain, el, fill, fixed, initExplainPopover, isExplainOpen, label, n3, pair, plural, svg } from './dom.js';
 import { renderMinimap } from './map/minimap.js';
@@ -51,6 +52,7 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
     renderPaneButtons();
     renderCommandGate();
     renderMapControls();
+    renderInspection();
     if (focusKey) {
       const again = document.querySelector('[data-focus-key="' + CSS.escape(focusKey) + '"]');
       if (again && again !== document.activeElement) again.focus();
@@ -677,6 +679,8 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
   // Safe hotkeys (1-5, [, ], H, W, M, ?) are strictly ignored in text-entry/input/select/textarea/contenteditable contexts
   // and whenever a modal dialog is open; zero unguarded shortcuts exist for Approve, Execute, or session reset.
   function onKeyDown(event) {
+    // The stand map is hidden during survey inspection, so its hotkeys and Escape layers do nothing there.
+    if (state.inspection && !document.querySelector('dialog[open]')) return;
     if (event.key === 'Escape') {
       if (document.querySelector('dialog[open]')) return;
       if (isExplainOpen()) {
@@ -857,6 +861,8 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
     byId('woodland-create').addEventListener('click', onWoodlandCreate);
     byId('woodland-confirm-discard').addEventListener('click', onWoodlandConfirmDiscard);
     byId('woodland-confirm-cancel').addEventListener('click', onWoodlandCancelDiscard);
+    wireInspection();
+    byId('inspect-dialog').addEventListener('close', returnFocus);
     byId('map').addEventListener('click', onMapClick);
     byId('mode-tree').addEventListener('click', () => setMapMode('tree', true));
     byId('mode-cell').addEventListener('click', () => setMapMode('cell', true));
@@ -1106,4 +1112,5 @@ import { CHIPS, LENSES, LENS_IDS, SHORTCUTS, ZOOMS, allAreas, approvedClears, ap
   renderCompactLegend();
   initExplainPopover();
   wire();
-  reread(false);
+  // Ask whether a survey inspection is open only after the boot read, so the stand/view boot order is unchanged.
+  reread(false).then(restoreInspection);

@@ -2,7 +2,9 @@
 
 - **Spec ID:** `SPEC-multi-2d-woodland-inspection-V1`
 - **Feature ID:** `multi-2d-woodland-inspection-v1`
-- **Status:** `APPROVED / IMPLEMENTING — Part 1 (inspection engine) ACTIVE; Part 2 (on-screen picker/UI and any wiring) QUEUED behind Playable Milestone 1` (owner-approved 2026-11-27, Option A locked)
+- **Status:** `APPROVED / Part 2 IMPLEMENTING — Part 1 (inspection engine) on integration/2d-sim; Part 2 (/multi catalogue, read-only Year-0 survey screen and fail-closed guard) IMPLEMENTING on feat/multi-2d-woodland-inspection-part2-v1` (owner-approved 2026-11-27, Option A locked; Part 2 = Playable Milestone 3 Part 2, 2026-11-28)
+- **Part 1 history:** Part 1 was approved and is on `origin/integration/2d-sim`. Its scope note below (D-030 for Part 1) is kept as history.
+- **Part 2 Base Commit:** `b2006767cbe70fa2c822497470908251a0fd6ffd` (`origin/integration/2d-sim`, Playable Milestone 2 merged). **Part 2 Branch:** `feat/multi-2d-woodland-inspection-part2-v1` (review ref `review/multi-2d-woodland-inspection-part2-v1`). See §8.
 - **Base Commit:** `c82e4e759c2ceef1c13ddb6a033e034097aef77e` (`origin/integration/2d-sim`, closed Woodland Importer V1)
 - **Canonical Context Commit:** `bdeb6a324acaf4129c10fb0846faac8b64974360` (`origin/main`)
 - **Part 1 Branch:** `feat/multi-2d-woodland-inspection-engine-v1` (review ref `review/multi-2d-woodland-inspection-engine-v1`)
@@ -79,9 +81,9 @@ Immutable records; every collection is an `ImmutableList` (no mutable backing st
 | Original publisher IPT archive bytes / `meta.xml` have not been verified. | **Open** (ATTRIBUTION.json `publisherArchiveDownloadStatus`); surfaced as a caveat. |
 | Species support categories reflect CCF's current simulator coverage, not ecological suitability. | **Simulation rule**, not an ecological claim. |
 
-## 6. Part 2 (QUEUED behind Playable Milestone 1)
+## 6. Part 2 (originally QUEUED behind Playable Milestone 1 — now IMPLEMENTING, see §8)
 
-On-screen "Inspect Real Woodland" picker and inspection UI in the 2D simulator, and any wiring into `MultiAreaContinuation`, `AnnualPipeline`, saves or `/multi`. Not started; requires its own task packet.
+On-screen "Inspect Real Woodland" picker and inspection UI in the 2D simulator, and any wiring into `MultiAreaContinuation`, `AnnualPipeline`, saves or `/multi`. Its task packet (Playable Milestone 3 Part 2) arrived 2026-11-28; the delivered scope is §8. Wiring into `MultiAreaContinuation`, `AnnualPipeline` or saves remains out of scope: the inspection is a read-only overlay on `/multi`.
 
 ## 7. Gates (Part 1)
 
@@ -89,3 +91,27 @@ On-screen "Inspect Real Woodland" picker and inspection UI in the 2D simulator, 
 - Golden SHA-256 of both built-in views pinned in the test executable.
 - Existing Importer V1 test executable still passes unchanged (it compiles the new `Inspection/` files through its `src/Core/WoodlandImport/**` glob).
 - `git diff --name-only c82e4e75..HEAD` confined to the four prefixes in §3.
+
+## 8. Part 2 — Real-World Woodland Inspection & Import Workflow on `/multi` (IMPLEMENTING)
+
+Playable Milestone 3 Part 2. Base `origin/integration/2d-sim` @ `b2006767`. **D-030:** implemented on the isolated branch `feat/multi-2d-woodland-inspection-part2-v1`; **NOT merged** to `integration/2d-sim` or `main`.
+
+### 8.1 Server (`src/Ui/MultiWoodlandInspection.cs`, pure .NET; no forestry or import maths in the browser)
+
+- The two qualified fixture ZIPs and `ATTRIBUTION.json` are embedded byte-for-byte into `sitkap1-ui` from `tests/Core/WoodlandImport/Fixtures/Qualified/**` (not copied, not edited) and passed to `BuiltInWoodlandCatalogue.Load` through `GetManifestResourceStream`. Fully offline: no upload, path or network. The Part 1 engine is reused unchanged.
+- `GET api/multi/woodland/inspection/catalogue` — Donadea first, Mersch second, with display metadata (counts, readiness in plain English, CC BY 4.0, citation, DOI, dates, disclosure, caveats).
+- `POST api/multi/woodland/inspection/load {"plotId"}` — enters read-only Year-0 inspection and returns the Part 1 `WoodlandInspectionView` canonical JSON verbatim (`view`), its SHA-256 (equal to the Part 1 goldens), a plotted/unplotted summary and fixed plain-English display labels.
+- `POST api/multi/woodland/inspection/exit {}` — Return to normal woodland (idempotent). `GET api/multi/woodland/inspection/current` — lets a reloaded page restore the same screen.
+- **Fail-closed guard** in `PlayerApi.HandleAsync`, after route/method/Origin guards and before any handler: while a plot with `CanAdvanceTime == false` is inspected, every POST outside a fixed allow-list (inspection load/exit, New woodland, Load save, and read-only POSTs) is refused with HTTP 409 `WoodlandInspectionReadOnly` and a plain-English message; nothing changes. This covers Advance, Skip, Work Plan approve/execute/cancel and every edit, Save, save recovery and the Money switch, and any POST route added later. This admission check is a fast path only.
+- **Commit-time recheck (Repair R1).** A request can pass admission and then meet a survey that opens while its body is still arriving. Every mutating handler therefore re-checks the inspection inside the `multiHost.SyncLock` block that guards its commit, after the body is read and immediately before the engine call or slot write (multi commands incl. economy executor/disposition, Skip, Save — whose slot write now stays inside the lock — Recover, Money switch, and the single-area commands). The lock is never held across a body read. A blocked commit returns the same 409 with `checkpoint: "commit"` and changes nothing.
+- Inspection state is one field written only under `multiHost.SyncLock`. A committed New woodland or Load save clears it inside the same lock and commit; a refused one leaves it unchanged. Every inspection reply builds its status and survey from one snapshot of that field (Repair R1). The playable woodland underneath is never modified, so Return to normal woodland restores it exactly.
+
+### 8.2 `/multi` page
+
+- "Inspect real woodland" button beside New woodland; a dialog lists the catalogue in server order (Donadea, Mersch). One new L4 module `multi/dialogs/woodland-inspection.js`; module graph acyclic, all reachable, exactly one `<script>` tag.
+- While inspecting, the stand map workspace is replaced by a two-column survey screen (map + side panel; no further column): a flat local-metre SVG map (X east, Y north as stored; no boundary inferred, frame fitted to recorded positions only, plotted/unplotted counts stated); a tree inspector showing each field's value or "Not recorded" with provenance, source column and raw value; all surveyed trees; species mapping for all four categories plus per-raw-name counts; TreMs microhabitat records (codes shown as the dataset's source codes); full CC BY 4.0 attribution, citation, DOI, observation date, modifications and caveats.
+- A persistent banner "Survey inspection mode — Year 0" with the plain-English blocker checklist, the attribution line and visibly disabled Advance / Skip / Approve / Execute controls (the header Advance and Skip are disabled too; the page sends no simulation POST while inspecting).
+
+### 8.3 Part 2 verification diet
+
+Clean .NET 8 builds (sln, both woodland test executables, UI); WoodlandInspection 20/20; WoodlandImport 29/29; Core.Tests ≥ 326 with the 9 frozen anchors exact; `tests/woodland-inspection-part2-api.sh`; `node build/2d-gate/module-graph.mjs`; `tests/ui-smoke-multiarea.sh` ≥ 363; a real Edge CDP check at 1920×1080 and 1280×720. Results: `Docs/Handoffs/MultiRack-Simulation-20261116/woodland-inspection/IMPLEMENTATION-HANDOFF-PART2.md`.

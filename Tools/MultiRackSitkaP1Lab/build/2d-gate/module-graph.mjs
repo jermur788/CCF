@@ -51,6 +51,7 @@ const LAYER = {
   'dialogs/execute-confirm.js': 4,
   'dialogs/saves.js': 4,
   'dialogs/woodland.js': 4,
+  'dialogs/woodland-inspection.js': 4,
   'modes/interactive.js': 4,
   'panels/fell-draft.js': 4,
   'panels/inspector.js': 4,

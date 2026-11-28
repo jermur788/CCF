@@ -40,6 +40,10 @@ internal sealed class MultiSessionHost
             initialSession.ProgressMarker());
     }
 
+    /// <summary>
+    /// The host lock. Lock order: take this before any save-slot lock (<c>SaveV3Slots.LockSlot</c>, which
+    /// <c>NextGeneration</c>, <c>Save</c> and <c>RecoverFromBackup</c> also take); never take a slot lock and then this one.
+    /// </summary>
     internal object SyncLock => sync;
 
     internal MultiSessionState Current => Volatile.Read(ref current);

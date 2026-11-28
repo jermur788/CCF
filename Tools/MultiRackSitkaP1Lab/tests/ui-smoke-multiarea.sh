@@ -1582,9 +1582,12 @@ const competitorButtons = () => byId('rank-layer').querySelectorAll('[data-rank-
 
 await until(() => byId('tree-rows').childNodes.length === 171, 'the first view (Area A, 171 rows)');
 const start = await serverView();
-check(requests.length === 2 &&
-  requests[0].method === 'GET' && requests[0].path === 'api/multi/stand' &&
-  requests[1].method === 'GET' && requests[1].path === 'api/multi/view',
+// Woodland Inspection Part 2: after the boot read the page asks once whether a survey inspection is open (read-only GET).
+const bootReads = requests.length === 3 && requests[2].method === 'GET' && requests[2].path === 'api/multi/woodland/inspection/current'
+  ? requests.slice(0, 2) : requests;
+check(bootReads.length === 2 &&
+  bootReads[0].method === 'GET' && bootReads[0].path === 'api/multi/stand' &&
+  bootReads[1].method === 'GET' && bootReads[1].path === 'api/multi/view',
   'the served page starts with shape-aware GET api/multi/stand then GET api/multi/view on 2-area MA-1', requests);
 check(byId('area-switch').querySelectorAll('[data-area]').length === 2 && byId('area-switch').querySelector('[data-area="MA-A"]').getAttribute('aria-pressed') === 'true',
   'two area buttons; Area A is shown first');

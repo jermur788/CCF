@@ -92,7 +92,7 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
           'aria-label': 'Load saved slot ' + slot.slot }, label('MultiSavesLoad') || 'Load'));
       }
       if (slot.backupExists && slot.recoverable) {
-        actions.push(el('button', { type: 'button', class: 'small', 'data-recover': slot.slot,
+        actions.push(el('button', { type: 'button', class: 'small', 'data-recover': slot.slot, disabled: Boolean(state.inspection),
           'aria-label': 'Restore the verified backup of ' + slot.slot }, label('MultiSavesRecover') || 'Restore backup'));
       }
       return el('tr', null,
@@ -121,11 +121,12 @@ import { allAreas, byId, hooks, isEconomyEnabled, isMultiLaneStand, resetSession
     const existing = saveNameValid(name) ? savedSlot(name) : null;
     byId('save-overwrite-wrap').hidden = !existing;
     if (!existing) byId('save-overwrite').checked = false;
-    byId('save-do').disabled = !saveNameValid(name) || state.busy || !canSaveCurrentSession();
+    // A survey under inspection is read-only, so saving is refused by the server and disabled here.
+    byId('save-do').disabled = !saveNameValid(name) || state.busy || !canSaveCurrentSession() || Boolean(state.inspection);
   }
 
   export async function onSave() {
-    if (!state.view || state.busy) return;
+    if (!state.view || state.busy || state.inspection) return;
     const slot = byId('save-slot').value.trim();
     if (!saveNameValid(slot)) {
       saveStatus('A slot name is 1–48 lowercase letters, digits or hyphens, starting with a letter or digit. Nothing was written.', 'bad');
