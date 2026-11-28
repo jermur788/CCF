@@ -88,7 +88,7 @@ import { showPane } from './work-plan.js';
   }
 
   export async function onSkipReview() {
-    if (!state.view || state.busy || state.batch || state.queueRunning || refusedByLock('Skip to review')) return;
+    if (!state.view || state.inspection || state.busy || state.batch || state.queueRunning || refusedByLock('Skip to review')) return;
     state.busy = true;
     document.documentElement.classList.add('busy');
     const previewOutcome = await jsonCall('api/multi/year/preview-review', 'POST', { fence: currentFence() });

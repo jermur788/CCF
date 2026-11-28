@@ -68,6 +68,7 @@ internal sealed partial class PlayerApi
         ("multi/dialogs/execute-confirm.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.execute-confirm.js")),
         ("multi/dialogs/saves.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.saves.js")),
         ("multi/dialogs/woodland.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.woodland.js")),
+        ("multi/dialogs/woodland-inspection.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dialogs.woodland-inspection.js")),
         ("multi/dom.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.dom.js")),
         ("multi/main.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.main.js")),
         ("multi/map/contract.js", MultiEmbeddedAsset("SitkaP1.Ui.multi.map.contract.js")),
@@ -170,6 +171,8 @@ internal sealed partial class PlayerApi
         routes.Add("api/multi/woodland/options", new("GET", ReadMultiWoodlandOptionsAsync));
         routes.Add("api/multi/woodland/preview", new("POST", PreviewMultiWoodlandAsync));
         routes.Add("api/multi/woodland/new", new("POST", NewMultiWoodlandAsync));
+        // Woodland Inspection Part 2: offline built-in real-woodland catalogue and read-only Year-0 survey inspection.
+        AddWoodlandInspectionRoutes();
     }
 
     private static MultiAreaCommandResult RefusableMulti(MultiSessionState state, Func<MultiAreaCommandResult> command)

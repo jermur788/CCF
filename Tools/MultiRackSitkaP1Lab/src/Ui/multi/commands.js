@@ -480,7 +480,7 @@ import { allAreas, approvedClears, approvedPlantings, approvedPrunes, areaName, 
 
   export function onAdvance() {
     const view = state.view;
-    if (!view || state.batch || state.queueRunning || refusedByLock(label('MultiAdvanceYear'))) return;
+    if (!view || state.inspection || state.batch || state.queueRunning || refusedByLock(label('MultiAdvanceYear'))) return;
     const work = view.pending.length > 0 || view.approved !== null || pendingPrunes().length > 0 ||
       pendingClears().length > 0 || pendingPlantings().length > 0;
     const drafts = draftTotal();

@@ -895,3 +895,88 @@ dialog .actions { justify-content: flex-end; margin-top: 1rem; }
 .slot-caution { margin: .25rem 0 0; font-size: .78rem; }
 .woodland-site { margin: .5rem 0; }
 .woodland-site .warning { margin-top: .35rem; font-size: .8rem; }
+/* ---- Woodland Inspection Part 2: read-only Year-0 survey screen (banner, survey map, inspector; two columns only) ---- */
+.inspect-open > span[aria-hidden] { font-size: 1.05rem; line-height: 1; }
+.inspection-banner { flex: none; margin: var(--gap) var(--gutter) 0; padding: .55rem .9rem .5rem; border: 2px solid var(--gold-edge); border-radius: 8px; background: #2a2414; color: var(--text); }
+.inspection-banner-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem 1rem; }
+.inspection-banner-titles { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .8rem; min-width: 0; }
+.inspection-banner h2 { margin: 0; color: var(--gold-edge); font-size: 1.15rem; }
+.inspection-banner h3 { margin: .25rem 0 .15rem; font-size: .82rem; color: var(--notice-text); text-transform: uppercase; letter-spacing: .04em; }
+.inspection-banner-plot { margin: 0; font-weight: 650; }
+.inspection-banner-lead { margin: .2rem 0; font-size: .84rem; color: var(--muted); }
+.inspection-banner-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem 1.2rem; align-items: start; }
+.inspection-blocker-list { margin: 0; padding-left: 1.1rem; font-size: .82rem; }
+.inspection-blocker { margin: .1rem 0; }
+.inspection-blocker .tag { margin-left: .4rem; border-color: var(--gold-edge); background: #3a3018; color: var(--notice-text); }
+.inspection-lock-row { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0; }
+.locked-control { min-height: 32px; font-size: .78rem; }
+.inspection-attribution-line { margin: .25rem 0 0; font-size: .76rem; color: var(--muted); }
+.inspection-banner a, .inspection-view a { color: var(--blue-edge); }
+.inspection-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); padding: var(--gap) var(--gutter); }
+.inspection-map-card { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: .7rem .9rem; border: 1px solid var(--edge); border-radius: 8px; background: var(--panel); }
+.inspection-map-card h2 { margin-bottom: .15rem; }
+.inspection-map-wrap { flex: 1 1 auto; min-height: 18rem; border: 1px solid var(--line); border-radius: 6px; background: #0f1b14; }
+.inspection-map { display: block; width: 100%; height: 100%; min-height: 18rem; }
+.insp-grid { stroke: #2c4436; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.insp-grid-label { fill: #7f9886; }
+.insp-axis-label { fill: #b6c6d8; font-weight: 650; }
+.insp-boundary { fill: none; stroke: var(--gold-edge); stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.insp-tree { cursor: pointer; outline: none; }
+.insp-marker { stroke: #0b1523; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.insp-tree.dead .insp-marker { fill: none !important; stroke-width: 2.2; }
+.insp-select-ring { fill: none; stroke: #ffffff; stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+.insp-tree:focus-visible .insp-marker { stroke: var(--focus); stroke-width: 3; }
+.cat-ModelledAtBase .insp-marker, .insp-swatch.cat-ModelledAtBase { fill: #74c69d; background: #74c69d; }
+.cat-PendingModelSupport .insp-marker, .insp-swatch.cat-PendingModelSupport { fill: #e9c46a; background: #e9c46a; }
+.cat-UnmodelledSpecies .insp-marker, .insp-swatch.cat-UnmodelledSpecies { fill: #8ab4f8; background: #8ab4f8; }
+.cat-UnidentifiedSpecies .insp-marker, .insp-swatch.cat-UnidentifiedSpecies { fill: #c4c9c6; background: #c4c9c6; }
+.cat-ModelledAtBase.dead .insp-marker { stroke: #74c69d; }
+.cat-PendingModelSupport.dead .insp-marker { stroke: #e9c46a; }
+.cat-UnmodelledSpecies.dead .insp-marker { stroke: #8ab4f8; }
+.cat-UnidentifiedSpecies.dead .insp-marker { stroke: #c4c9c6; }
+.inspection-legend { display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin: .4rem 0 0; padding: 0; list-style: none; font-size: .78rem; color: var(--muted); }
+.insp-swatch { display: inline-block; width: .8rem; height: .8rem; margin-right: .35rem; border-radius: 50%; vertical-align: -.1rem; }
+.insp-swatch.dead { border: 2px solid var(--muted); background: none; }
+.inspection-side { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; min-height: 0; }
+.inspection-panel h2 { font-size: 1rem; }
+.inspection-panel table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.inspection-panel th, .inspection-panel td { padding: .22rem .35rem; border-bottom: 1px solid var(--edge); text-align: left; vertical-align: top; }
+.inspection-panel thead th { color: var(--muted); font-weight: 600; }
+.inspection-panel td.num { font-variant-numeric: tabular-nums; }
+.inspection-panel .not-recorded { color: var(--notice-text); font-style: italic; }
+.inspection-panel tr.selected td, .inspection-panel tr.selected th { background: var(--panel-3); }
+.inspection-table-wrap { max-height: 16rem; overflow-y: auto; }
+.insp-tree-title { margin: 0; font-size: 1rem; font-style: italic; }
+.insp-field-table td.recorded { font-weight: 650; }
+button.link-like { min-width: 0; min-height: 28px; padding: .05rem .35rem; border: 0; background: none; color: var(--blue-edge); font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .74rem; font-weight: 500; text-align: left; text-decoration: underline; }
+button.link-like[aria-pressed="true"] { color: #ffffff; font-weight: 700; }
+.insp-source-list { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .15rem .7rem; margin: 0; font-size: .8rem; }
+.insp-source-list dt { color: var(--muted); }
+.insp-source-list dd { margin: 0; overflow-wrap: anywhere; }
+.insp-caveats { margin: .2rem 0; padding-left: 1.1rem; font-size: .78rem; color: var(--muted); }
+@media (min-width: 1024px) {
+  .inspection-view { flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1fr) var(--side-w); grid-template-rows: minmax(0, 1fr); }
+  .inspection-side { overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
+  .inspection-map-wrap, .inspection-map { min-height: 0; }
+}
+@media (min-width: 1600px) {
+  .inspection-view { grid-template-columns: minmax(0, 1fr) 30rem; }
+}
+@media (min-width: 1024px) and (max-width: 1599px) {
+  .inspect-open { min-width: 0; min-height: 36px; padding: .2rem .34rem; font-size: .71rem; white-space: nowrap; }
+  .inspection-banner { padding: .35rem .7rem .3rem; }
+  .inspection-banner h2 { font-size: 1rem; }
+  .inspection-banner-lead { display: none; }
+  .inspection-blocker-list, .inspection-attribution-line { font-size: .74rem; }
+  .inspection-exit { min-height: 36px; padding: .2rem .7rem; }
+}
+@media (min-width: 1024px) and (max-height: 820px) {
+  .inspection-banner { margin-top: 6px; padding: .3rem .7rem .25rem; }
+  .inspection-banner h3 { margin: .1rem 0 .05rem; font-size: .72rem; }
+  .inspection-blocker-list { font-size: .72rem; line-height: 1.3; }
+  .inspection-attribution-line { margin-top: .1rem; font-size: .7rem; line-height: 1.3; }
+  .locked-control { min-height: 28px; padding: .1rem .5rem; font-size: .72rem; }
+  .inspection-map-card { padding: .45rem .7rem; }
+  .inspection-map-card h2 { font-size: .95rem; }
+  .inspection-legend { font-size: .72rem; }
+}

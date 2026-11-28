@@ -222,6 +222,9 @@ internal sealed partial class PlayerApi
                 }
             }
 
+            // A committed load replaces the playable woodland, so it also ends any survey inspection (same lock, same commit).
+            if (result.RefusalCode is null) ClearInspectionLocked();
+
             var current = multiHost.Current;
             snapshot = current.Adapter.ReadCompositeUiSnapshot();
             totalRecordedYears = current.Session.ReadHistoryIndex(pageSize: 1).TotalRecordedYears;

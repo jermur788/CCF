@@ -17,3 +17,17 @@
 | **WN-REQ-13** | All returned collections are immutable, including the catalogue, entries and each entry's nested import result; no backing collection is reachable through `ICollection.SyncRoot` (R1: WI-03). | T10b, T10e |
 | **WN-REQ-14** | **Option A #3:** Importer V1 not reopened — no change under `src/Core/WoodlandImport/*.cs` or `tests/Core/WoodlandImport/**`; Importer V1 suite still passes. | `git diff --name-only`; Importer V1 run 29/29 |
 | **WN-REQ-15** | Pure BCL, 0 warnings / 0 errors on SDK 8.0.133; no file/clock/random/network/Unity/simulation-wiring API in `Inspection/`; diff inside the four prefixes. | build output; hygiene test; Importer V1 hygiene test; fence check |
+
+## Part 2 — `/multi` wiring (Playable Milestone 3 Part 2)
+
+| ID | Requirement | Verification |
+|---|---|---|
+| **WN-P2-REQ-01** | Built-in catalogue served offline from embedded fixtures; Donadea first, Mersch second; no upload, path or network input accepted. | API C01–C08, V02; Edge "dialog lists Donadea first and Mersch second" |
+| **WN-P2-REQ-02** | Load returns the Part 1 view verbatim (SHA-256 equals the Part 1 goldens) with catalogue/display metadata. | API L-*-golden; WoodlandInspection T3 |
+| **WN-P2-REQ-03** | While a `CanAdvanceTime == false` plot is inspected, every simulation-changing POST (Advance, Skip, Work Plan approve/execute/cancel and edits, Save, Money switch, future routes) is refused with HTTP 409 `WoodlandInspectionReadOnly` in plain English; nothing changes. | API R-* (12 routes ×2), R01; Edge server probes |
+| **WN-P2-REQ-04** | Return to normal woodland, a committed New woodland and a committed Load each clear the inspection; a refused New woodland does not; no stale state after reload. | API X01–X16; Edge reload + return checks |
+| **WN-P2-REQ-05** | Survey map: flat local metres, X east / Y north as stored, no inferred boundary, plotted/unplotted counts stated. | Edge map checks |
+| **WN-P2-REQ-06** | Inspector shows each value or "Not recorded" with provenance and source; never invents height, age, crown radius, position, species or boundary. | API L-*-Missing; Edge inspector checks |
+| **WN-P2-REQ-07** | Species mapping (all four categories + per-raw-name counts), TreMs records, full CC BY 4.0 attribution, citation, DOI, observation dates, modifications and caveats are visible; no internal codes on screen. | Edge content + code-leak checks |
+| **WN-P2-REQ-08** | Persistent "Survey inspection mode — Year 0" banner with blocker checklist and visibly disabled Advance / Skip / Work Plan execution; Return restores the playable view and Advance. | Edge banner/disabled/restore checks |
+| **WN-P2-REQ-09** | Module graph acyclic and reachable, exactly one `<script>` tag, dark theme, two columns only; no regression in builds, engine suites, 9 anchors or UI smoke. | module-graph; builds; suites; smoke |

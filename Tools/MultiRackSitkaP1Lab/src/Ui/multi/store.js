@@ -147,6 +147,10 @@
   export const COMMAND_IDS = ['crop-button', 'add-reference', 'insp-remove', 'approve', 'cancel-approved', 'execute',
     'execute-confirm', 'advance', 'skip-review', 'consent-advance', 'prune-add', 'prune-remove',
     'cell-clear-add', 'cell-clear-remove', 'plant-queue', 'spot-queue', 'pj-shelter-add', 'pj-shelter-remove'];
+  // Woodland Inspection Part 2: controls that stay visibly disabled while a Year-0 survey that cannot advance time is
+  // inspected (the server refuses the same actions with WoodlandInspectionReadOnly; this is only the visible half).
+  export const INSPECTION_LOCKED_IDS = ['advance', 'skip-review', 'approve', 'execute', 'execute-confirm', 'cancel-approved',
+    'consent-advance', 'economy-toggle', 'save-do', 'insp-lock-advance', 'insp-lock-skip', 'insp-lock-approve', 'insp-lock-execute'];
   const LIGHT_STOPS = [[0x7f, 0x3b, 0x4a], [0xda, 0x79, 0x6d], [0xff, 0xd9, 0xbd]];
   const LIGHT_EASE = 0.65;
   const LIGHT_ALPHA_MAX = 0.9;
@@ -161,6 +165,7 @@
 
   export const state = {
     view: null,
+    inspection: null, // server payload of the inspected real-woodland survey (+ selectedTreeId), or null in normal play
     scenes: {},
     labels: null,
     stage4: null,
@@ -314,6 +319,9 @@
   // Drops every local selection, draft, preview, in-flight request token and cached panel state when the server
   // replaces the active session (Save/Load restore or launch-time Money On/Off fresh Year-0 session).
   export function resetSessionUiState() {
+    // A successful New woodland or Load replaces the woodland, and the server ends any survey inspection in that same
+    // commit, so the page drops its inspection screen too.
+    state.inspection = null;
     state.selected = {};
     state.selectedJuvenile = null;
     state.drafts = {};

@@ -168,7 +168,7 @@ internal sealed partial class PlayerApi
                     : SiteMoistureSetting.Whole(SiteMoistureSetting.ParseClass(request.SiteMoisture.Trim()));
                 if (site is { IsNeutral: false } && choice is "ma-1" or "ma-1-mixed")
                     throw new P1Refusal("ScotsPineRequiresForestMaker", "site moisture classes need a Forest Maker woodland (Save v3)");
-                return choice switch
+                var candidate = choice switch
                 {
                     "ma-1" => MultiSessionHost.BuildBuiltIn(MultiAreaDemoExperiments.Ma1Key, request.EconomyEnabled),
                     "ma-1-mixed" => MultiSessionHost.BuildBuiltIn(MultiAreaDemoExperiments.Ma1MixedKey, request.EconomyEnabled),
@@ -180,6 +180,10 @@ internal sealed partial class PlayerApi
                         request.EconomyEnabled, site),
                     _ => throw new P1Refusal("WoodlandChoiceInvalid", "unsupported woodland choice: " + choice),
                 };
+                // The candidate is complete and AtomicReplace swaps it in next, still under the host lock: a new woodland
+                // always ends any survey inspection, so no inspection state outlives the woodland it was opened over.
+                ClearInspectionLocked();
+                return candidate;
             });
         }
         catch (P1Refusal r)

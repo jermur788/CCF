@@ -183,6 +183,9 @@ internal sealed partial class PlayerApi
 
         try
         {
+            // Survey inspection guard (MultiWoodlandInspection.cs): while a Year-0 survey that cannot advance time is
+            // inspected, every POST outside a fixed allow-list is refused here, before any handler can change the session.
+            if (await RefusedByInspectionAsync(context, routeName)) return;
             await handler(context);
         }
         catch (BadHttpRequestException bad) when (!response.HasStarted)
