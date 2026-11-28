@@ -281,8 +281,40 @@ Forbidden-path diff against base (including `src/Core/WoodlandImport/**`, `tests
 ### 8.4 Remaining limitations after R1
 
 - Save now holds `multiHost.SyncLock` during its slot write (a small, bounded file write), so reads wait for that write; this was chosen over letting a save land after a survey opened.
+- **Superseded by R2 (§8.5):** R1's Save took the slot lock and then `multiHost.SyncLock` — the reverse of Recover — and could deadlock.
 - The paused-body tests rely on an 0.8 s pause after the headers. If the server were too slow to reach the body read, the request would be refused at admission, and the `checkpoint == "commit"` assertion would then **fail**. The pause cannot produce a false pass.
 - Everything in §6 still applies, except the corrected guard-ordering item.
+
+### 8.5 Repair R2 — one lock order for Save and Recover
+
+Coordinator follow-up on the R1 diff: R1's `MultiSaveAsync` held `saveV3Slots.LockSlot(slot)` and then took `multiHost.SyncLock`, while `MultiRecoverAsync` holds `multiHost.SyncLock` and then `RecoverFromBackup` takes the same slot lock — a lock inversion that could deadlock a Save and a Recover of one slot.
+
+**R2 commit: `f8dbac6c75c088265fb1b5895b59913220147f75`** (parent `89612ab1`); this subsection is in the docs commit on top of it.
+
+- **Fix.** `MultiSaveAsync` now takes `multiHost.SyncLock` first, runs the inspection commit check, and only then takes the slot lock for `NextGeneration`, the `SlotExists` check, capture and the write. A blocked Save is therefore refused (`WoodlandInspectionReadOnly`, checkpoint `commit`) before it reads any slot metadata or can answer `SlotExists`.
+- **The one lock order:** `multiHost.SyncLock` → save-slot lock. Documented on `MultiSessionHost.SyncLock`, Save and Recover. Audit of every `LockSlot`/slot-lock site: Save (host → slot), Recover (host → slot); `NextGeneration`/`Save`/`RecoverFromBackup` take the slot lock only inside those; `ReadMultiSavesAsync` and `MultiLoadAsync` read slot files only after releasing the host lock and take no slot lock (`SaveV3Slots.Load`/`Inspect` do not lock). No path takes a slot lock and then the host lock.
+- **New checks (API harness S01–S05):** 30 simultaneous Save + Recover pairs on one slot, each request bounded by a 20 s timeout: **0 timeouts, 30/30 Saves 200, 30/30 Recovers 200 or typed 409**; reads still answer and the playable woodland is unchanged; a blocked Save to an **existing** slot is refused for the survey at commit, before any `SlotExists` check.
+- **Negative proof (disposable, not committed):** with R1's `MultiApi.Saves.cs` restored temporarily, the same harness **deadlocked** — S01–S04 failed (request timeout, server stopped answering reads). The R2 file was restored byte-for-byte (`cmp`) and rebuilt; no server was left running.
+
+**R2 verification (.NET 8.0.134, Linux node v26.13.1):**
+
+| Gate | Result |
+|---|---|
+| Build `src/Ui/SitkaP1.Ui.csproj` and `MultiRackSitkaP1Lab.sln` | **0 Warning(s), 0 Error(s)** |
+| `tests/woodland-inspection-part2-api.sh` | **113 passed, 0 failed** (108 from R1 + S01–S05), including K01–K11 paused-body and O01–O05 overlapping-load checks |
+| `node build/2d-gate/module-graph.mjs` | **PASS: 17 modules, acyclic, all reachable, 1 module script tag** (unchanged) |
+| `tests/ui-smoke-multiarea.sh` | **363 passed, 0 failed** |
+| Engine suites / anchors | **NOT RERUN in R2** — only `src/Ui` (not in any engine test) and the API harness changed; R1 results (20/20, 29/29, 326/326, 9/9 anchors exact) stand for the unchanged engine. |
+| Edge CDP | **NOT RERUN in R2** — no response shape, page asset or JS changed (Save's 200/409 bodies are byte-for-byte the same shapes); R1 Edge results (69/0 at each viewport) stand. The final re-review will rerun key gates. |
+
+`git diff --stat 89612ab1..f8dbac6c`:
+
+```
+ Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs | 61 ++++++++++------------
+ .../MultiRackSitkaP1Lab/src/Ui/MultiSessionHost.cs |  4 ++
+ .../tests/woodland-inspection-part2-api.sh         | 45 +++++++++++++++-
+ 3 files changed, 76 insertions(+), 34 deletions(-)
+```
 
 **D-030: NOT merged to `integration/2d-sim` or `main`.**
 
