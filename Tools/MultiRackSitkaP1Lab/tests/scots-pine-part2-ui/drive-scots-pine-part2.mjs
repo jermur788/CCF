@@ -476,7 +476,12 @@ async function runMainPhase(cdp) {
   check(historyCard.includes('Scots pine — Year 0 → 1') && historyCard.includes(TWO_ZONE) && historyCard.includes('seed year'),
     'SP2-UI-22 History drawer shows the recorded Scots pine Year 0 → 1 account and site');
   await shot(cdp, 'history-card');
-  await click(cdp, '#history-open');
+  // Esc dismisses the History drawer (documented layer order); it can overlap the header at 1280x720.
+  for (let i = 0; i < 4; i++) {
+    if (await evaluate(cdp, "document.getElementById('history-open').getAttribute('aria-expanded') !== 'true'")) break;
+    await pressKey(cdp, 'Escape');
+  }
+  await waitFor(cdp, "document.getElementById('history-open').getAttribute('aria-expanded') !== 'true'", 'History drawer closed');
   await sleep(200);
 
   // 8. Save v3 through the UI.
