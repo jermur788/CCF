@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
@@ -79,16 +80,17 @@ internal sealed partial class PlayerApi
         }
 
         var budget = ActiveStandBudget(snapshot.View.Areas.Count, genesisStems);
-        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
-            economyEnabled, economy, budget);
         if (refusalNotice is not null)
         {
-            await WriteBoundedJsonAsync(context, StatusCodes.Status409Conflict, new MultiSkipPayload(
-                null, null, request.TargetYear, Array.Empty<MultiSkipStepDto>(), false, null, null, null, null, null,
-                bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
-                refusalNotice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-                bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
-                budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+            var refusalBounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] refusalBytes,
+                economyEnabled, economy, budget,
+                envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiSkipPayload(
+                    null, null, request.TargetYear, Array.Empty<MultiSkipStepDto>(), false, null, null, null, null, null,
+                    frame.View, frame.Scenes, frame.Stage4, frame.Ecology,
+                    refusalNotice, frame.HistoryTruncated, totalRecordedYears,
+                    frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                    frame.PruneLogTruncated), ResponseJson));
+            await WriteBoundedBytesAsync(context, StatusCodes.Status409Conflict, refusalBytes, budget, refusalBounded.PayloadBudgetExceeded);
             return;
         }
 
@@ -103,14 +105,18 @@ internal sealed partial class PlayerApi
             : null;
         int status = isRefusal ? StatusCodes.Status409Conflict : StatusCodes.Status200OK;
 
-        await WriteBoundedJsonAsync(context, status, new MultiSkipPayload(
-            result.StartYear, result.DestinationYear, result.RequestedTargetYear,
-            Array.AsReadOnly(completed), result.ReachedTarget, result.StopReason, result.StopDetail,
-            result.IsObservationPeriod, result.AnchorFellYear, result.CalibrationNote,
-            bounded.View, bounded.Scenes, bounded.Stage4, bounded.Ecology,
-            notice, bounded.HistoryTruncated, bounded.TotalRecordedYears,
-            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded, economyEnabled, economy),
-            budget, bounded.PayloadBudgetExceeded, rawBytes.Length);
+        var completedReadOnly = Array.AsReadOnly(completed);
+        var bounded = SerializeBoundedMultiView(snapshot, totalRecordedYears, reviewPreview: null, out byte[] rawBytes,
+            economyEnabled, economy, budget,
+            envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiSkipPayload(
+                result.StartYear, result.DestinationYear, result.RequestedTargetYear,
+                completedReadOnly, result.ReachedTarget, result.StopReason, result.StopDetail,
+                result.IsObservationPeriod, result.AnchorFellYear, result.CalibrationNote,
+                frame.View, frame.Scenes, frame.Stage4, frame.Ecology,
+                notice, frame.HistoryTruncated, totalRecordedYears,
+                frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded, economyEnabled, economy,
+                frame.PruneLogTruncated), ResponseJson));
+        await WriteBoundedBytesAsync(context, status, rawBytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     // Read-only newest-first paged index of recorded years. Clamps pageSize to 1..50 (default 10). 400 on invalid query params.
@@ -383,7 +389,8 @@ internal sealed partial class PlayerApi
         bool Stage4Compacted = false,
         bool PayloadBudgetExceeded = false,
         bool EconomyEnabled = false,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 
     private sealed record MultiHistoryYearRefusalPayload(
         MultiAreaFence Fence,

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using SitkaP1.Core;
@@ -203,13 +204,14 @@ internal sealed partial class PlayerApi
 
         var budget = ActiveStandBudget(outSnap.View.Areas.Count, genesisStems);
         var bounded = SerializeBoundedMultiView(outSnap, totalRecordedYears, reviewPreview, out byte[] rawViewBytes,
-            economyEnabled, economy, budget, hasUnsavedProgress, activeRecipe);
-        await WriteBoundedJsonAsync(context, StatusOf(refusal?.Code), new MultiWoodlandNewPayload(
-            bounded.View, bounded.Scenes, MultiLabels, bounded.Stage4, bounded.Ecology,
-            refusal, bounded.HistoryTruncated, bounded.TotalRecordedYears, reviewPreview,
-            bounded.ProjectionCompacted, bounded.Stage4Compacted, bounded.PayloadBudgetExceeded,
-            economyEnabled, economy, hasUnsavedProgress, experimentBadge, activeRecipe),
-            budget, bounded.PayloadBudgetExceeded, rawViewBytes.Length);
+            economyEnabled, economy, budget, hasUnsavedProgress, activeRecipe,
+            envelopeSerializer: frame => JsonSerializer.SerializeToUtf8Bytes(new MultiWoodlandNewPayload(
+                frame.View, frame.Scenes, MultiLabels, frame.Stage4, frame.Ecology,
+                refusal, frame.HistoryTruncated, totalRecordedYears, reviewPreview,
+                frame.ProjectionCompacted, frame.Stage4Compacted, frame.PayloadBudgetExceeded,
+                economyEnabled, economy, hasUnsavedProgress, experimentBadge, activeRecipe,
+                frame.PruneLogTruncated), ResponseJson));
+        await WriteBoundedBytesAsync(context, StatusOf(refusal?.Code), rawViewBytes, budget, bounded.PayloadBudgetExceeded);
     }
 
     private static ForestMakerRecipe BuildRecipeFromInput(MultiWoodlandRecipeInput input, bool forceCustomPresetNull)
@@ -398,5 +400,6 @@ internal sealed partial class PlayerApi
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiEconomySnapshotDto? Economy = null,
         bool HasUnsavedProgress = false,
         string? ExperimentBadge = null,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MultiWoodlandRecipeDto? Recipe = null,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PruneLogTruncated = false);
 }
