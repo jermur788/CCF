@@ -2,7 +2,9 @@
 
 **Playable Milestone 3 — Part 2: Real-World Woodland Inspection & Import Workflow on `/multi`**
 
-**D-030 state: implemented on the isolated branch `feat/multi-2d-woodland-inspection-part2-v1`. NOT merged to `integration/2d-sim` or `main`. No PR opened. Independent review pending.**
+**D-030 state: implemented and repaired (Repair R1) on the isolated branch `feat/multi-2d-woodland-inspection-part2-v1`. NOT merged to `integration/2d-sim` or `main`. No PR opened. Independent review returned NEEDS CHANGES on `eaae40a4`; Repair R1 is in §8; delta re-review pending.**
+
+> **Correction (Repair R1).** The original §6 claim that a mutation "that passed the guard a moment before a concurrent load commits is ordered before that load" was **false**: the admission guard ran before the request body was read, so a paused Advance could commit after a survey opened (reproduced by the reviewer). The fix and its proof are in §8; §2.3 and §6 below are corrected.
 
 - **Builder:** Claude Opus 5.5 — approved fallback after the Gemini worker hit an individual quota error before executing.
 - **Spec:** `specs/multi-2d-woodland-inspection-v1/` — status `APPROVED / Part 2 IMPLEMENTING` (spec §8, tasks Part 2, checklist WN-P2-REQ-01..09). Part 1 history kept.
@@ -64,6 +66,7 @@ While the inspected plot has `CanAdvanceTime == false` (both built-ins), the gua
   - Money switch, economy executor and economy disposition;
   - the single-area page's mutations.
 - **GETs are never blocked.** No silent advance happens, and no height, age, crown, position, species or boundary is fabricated.
+- **Two checkpoints (Repair R1).** The check in `HandleAsync` is an *admission* fast path (`"checkpoint":"admission"`), made before the body is read. The authoritative check is made at *commit*: every mutating handler calls `InspectionBlockerLocked()` inside the `multiHost.SyncLock` block that guards its commit, after its body is read and immediately before the engine call or slot write (`"checkpoint":"commit"`). Inspection load/exit, New woodland and Load save change the inspection under that same lock, so a command and a survey opening are always wholly ordered.
 
 ### 2.4 `/multi` page (presentation only; D-020)
 
@@ -210,7 +213,7 @@ The final branch adds this handoff file on top. `git status --short` after both 
 
 - **Not merged or reviewed.** No independent review has run yet. Nothing is on `integration/2d-sim` or `main`.
 - **Overlay, not integration.** The inspection does not enter `MultiAreaContinuation`, `AnnualPipeline` or saves. A survey whose `CanAdvanceTime` were true would still only be inspected: the guard would not block, and the hidden playable woodland would remain the one that advances. Both built-ins are InventoryOnly, so this path cannot occur today; it needs its own packet.
-- **Guard linearisation.** The guard reads the inspection field with `Volatile.Read` before a handler runs. A mutation that passed the guard a moment before a concurrent load commits is ordered before that load. Load, exit, New woodland and Load save all write under `multiHost.SyncLock`.
+- **Guard ordering (corrected in Repair R1).** The original claim here was false; see §8. Ordering now rests on the commit-time recheck inside `multiHost.SyncLock`. Remaining boundary: a command that takes the lock *before* a survey opens commits normally and is ordered before the survey (K11 control); that is correct, not a leak.
 - **Single-area page.** The guard also refuses the single-area page's mutating POSTs while a `/multi` inspection is open (fail-closed by design). That page shows no banner for it.
 - **Map framing.** The frame fits the recorded tree positions only, which is not a boundary. Positions follow the Part 1 caveat that reading `verbatimCoordinates` as plot-local metres is an unverified inference; this is shown verbatim in the Source section.
 - **TreMs codes.** They are shown as recorded (for example `CV32`). CCF does not translate them, so no ecological meaning is claimed.
@@ -218,6 +221,70 @@ The final branch adds this handoff file on top. `git status --short` after both 
 - **Browser driver host.** The Edge driver ran on Windows `node.exe`, as the existing `drive-*.mjs` suites do. WSL uses NAT networking, so Linux node cannot reach Edge's loopback CDP port. Every build, test, smoke, API and module-graph gate used Linux node and .NET 8 only. The driver is disposable and not committed; its checks are listed in §3.
 - **Not tested:** screen readers, keyboard-only end-to-end use beyond Enter/Space on map markers, and any viewport other than the two required.
 - **Not run (skipped as instructed):** Unity, Phase1Save.Tests, the 2d-gate selftest and the full browser gate.
+
+## 8. Repair cycle 1 (independent review follow-up)
+
+**D-030 state: repaired on the isolated branch `feat/multi-2d-woodland-inspection-part2-v1`. NOT merged to `integration/2d-sim` or `main`. An independent delta review is pending.**
+
+Source: GPT-6.2 Sol independent review of `eaae40a4df1027f3f0c2fbdaf53b16c8716d7fe1` (source/spec `076c9024`) — **INTEGRATION DECISION: NEEDS CHANGES**. Repair implementer: Claude Opus 5.5.
+
+**Repair commit: `8e986e63cadb8496f82d1cf98423d3dc90ccd816`** (source, tests, spec), parent `eaae40a4`. This section is in a separate docs commit on top of it; the final feature/review SHA is in the push/read-back report.
+
+### 8.1 Findings and fixes
+
+| Finding | Fix |
+|---|---|
+| **BLOCKER** — a command admitted before inspection could mutate after inspection started (admission check before the body read; no recheck at commit) | `InspectionBlockerLocked()` is called inside the existing `multiHost.SyncLock` commit block, after the body is read, immediately before the engine call or file write, in: `MultiCommandAsync` (crop, pending, prune, clear, plant, shelter, spot-clear, planting remove, economy executor and disposition, plan approve/execute/cancel, year advance), `SkipMultiYearsAsync`, `MultiSaveAsync` (capture **and slot write** now inside the lock, so a save cannot land after a survey opens), `MultiRecoverAsync` (now under the lock), `SwitchMultiEconomySessionAsync`, and the single-area `CommandAsync` (now an instance method, committing under the same lock). No lock is held across a body read. New woodland and Load save stay allowed and still clear the inspection under the same lock. A blocked commit returns the same 409 `WoodlandInspectionReadOnly` body with `"checkpoint":"commit"` and changes nothing. |
+| **MAJOR** — overlapping loads returned contradictory `current` vs `inspection` | Load builds both halves from the entry it committed; current, catalogue and exit build status from one read (exit reports the inactive status of its own commit). |
+| Nit — harness checked only the declared `viewSha256` | The server now writes the Part 1 canonical bytes verbatim (`CanonicalJson` raw converter). The harness extracts the exact `view` bytes from each reply and hashes them against the goldens (L-*-view BYTES, O03). |
+| Nit — checklist "12 routes ×2" | Corrected: 13 refused request cases over 10 distinct mutating routes, 2 checks each (+R01, R04), plus K (commit-time) cases. |
+
+### 8.2 New concurrency tests (`tests/woodland-inspection-part2-api.sh`)
+
+- **K (paused request bodies).** A raw socket sends only the headers of a valid command while no survey is open (it passes admission), the harness opens a survey, then releases the body. `checkpoint == "commit"` proves the request had passed admission and was stopped by the in-lock recheck. That is the reviewer's race, not a sequential refusal.
+  - K01–K03 multi **Advance**: **409 `WoodlandInspectionReadOnly` (checkpoint commit); playable year unchanged (1 → 1, same session and revisions); Donadea stays active.**
+  - K04–K05 **Skip**: 409 commit, nothing changed. K06–K07 **Save**: 409 commit, no slot written. K08 **Recover**: 409 commit before any slot file is touched. K09–K10 **single-area Advance**: 409 commit, single-area session unchanged.
+  - K11 control: the same paused Advance with no survey opened commits (200, year +1), proving the technique does not refuse on its own.
+- **O (overlapping loads).** 50 pairs of Donadea/Mersch loads released together by a barrier: **100 replies, all 200, 0 contradictory** (current plot = status plot = requested plot), **0 hash mismatches** (declared and actual view-byte SHA-256 equal that plot's golden); GET current afterwards self-consistent; exit reports an inactive status from its own commit.
+- **Negative proof (disposable, not committed).** With the `MultiCommandAsync` recheck removed and the old status re-read restored, the same harness failed **K01, K02** (the paused Advance committed and the year moved) and **O02** (contradictory replies), plus K05/K11 as knock-ons of the moved year: 103 passed, 5 failed. Both files were restored byte-for-byte (sha256 verified) and rebuilt before the final run.
+
+### 8.3 Verification on repair tree `8e986e63` (.NET 8.0.134, Linux node v26.13.1)
+
+| Gate | Result |
+|---|---|
+| Builds: sln, WoodlandInspection.Tests, WoodlandImport.Tests, Ui | all **0 Warning(s), 0 Error(s)** |
+| WoodlandInspection.Tests | **20/20** |
+| WoodlandImport.Tests | **29/29** |
+| Core.Tests | **326/326**; **ANCHORS EXACT 9/9** (same values as §4, 0 drift) |
+| `tests/woodland-inspection-part2-api.sh` | **108 passed, 0 failed** (89 original + K01–K11, O01–O05, R04, L-view-BYTES ×2) |
+| `node build/2d-gate/module-graph.mjs` | **PASS: 17 modules, acyclic, all reachable, 1 module script tag** |
+| `tests/ui-smoke-multiarea.sh` | **363 passed, 0 failed** (J01 amendment unchanged; boot order unchanged) |
+| Edge CDP | **1920×1080: 69 passed, 0 failed; 1280×720: 69 passed, 0 failed; OVERALL PASS (139/0)**, 0 console errors, 0 4xx/5xx in the browser, servers stopped cleanly |
+
+Forbidden-path diff against base (including `src/Core/WoodlandImport/**`, `tests/Core/WoodlandImport/**`, `src/Ui/wwwroot`, `src/Core/Phase1`, `Docs/Project`, Unity paths): empty. Part 1 engine unchanged.
+
+`git diff --stat eaae40a4..8e986e63`:
+
+```
+ .../src/Ui/MultiApi.Commands.cs                    |  55 +++++---
+ .../MultiRackSitkaP1Lab/src/Ui/MultiApi.History.cs |  23 +++-
+ Tools/MultiRackSitkaP1Lab/src/Ui/MultiApi.Saves.cs |  64 ++++++---
+ .../src/Ui/MultiWoodlandInspection.cs              | 104 +++++++++-----
+ Tools/MultiRackSitkaP1Lab/src/Ui/PlayerApi.cs      |  24 +++-
+ .../tests/woodland-inspection-part2-api.sh         | 149 ++++++++++++++++++++-
+ .../checklists/requirements.md                     |   6 +-
+ specs/multi-2d-woodland-inspection-v1/spec.md      |   5 +-
+ specs/multi-2d-woodland-inspection-v1/tasks.md     |   3 +-
+ 9 files changed, 348 insertions(+), 85 deletions(-)
+```
+
+### 8.4 Remaining limitations after R1
+
+- Save now holds `multiHost.SyncLock` during its slot write (a small, bounded file write), so reads wait for that write; this was chosen over letting a save land after a survey opened.
+- The paused-body tests rely on an 0.8 s pause after the headers. If the server were too slow to reach the body read, the request would be refused at admission, and the `checkpoint == "commit"` assertion would then **fail**. The pause cannot produce a false pass.
+- Everything in §6 still applies, except the corrected guard-ordering item.
+
+**D-030: NOT merged to `integration/2d-sim` or `main`.**
 
 ## 7. Push / read-back
 
