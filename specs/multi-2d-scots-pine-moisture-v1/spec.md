@@ -1,14 +1,14 @@
 # Scots Pine and Site Moisture V1
 
 - **Spec ID** `SPEC-multi-2d-scots-pine-moisture-V1`
-- **Status** APPROVED / IMPLEMENTING
+- **Status** APPROVED / Part 1 implemented (merged 3beabb2a) / Part 2 IMPLEMENTING (roadmap v1.22, Option A owner-locked)
 - **Owner** Overall Manager
 - **Decision** Owner-approved 2026-11-27, Option A locked
 - **Task class** SPEC REQUIRED
 
 ## Product intent and scope
 
-Give the 2D lab species-specific responses to site moisture and make Scots pine a distinct management choice, from timber quality to local seed in canopy gaps. Part 1 delivers callable computation and offline evidence. Part 2 is **QUEUED behind Playable Milestone 1** and will connect these rules to AnnualPipeline, MultiAreaContinuation, ForestMaker, Version 3 saves and `/multi` UI under a separate packet.
+Give the 2D lab species-specific responses to site moisture and make Scots pine a distinct management choice, from timber quality to local seed in canopy gaps. Part 1 delivers callable computation and offline evidence. Part 2 (formerly queued behind Playable Milestone 1) is now **IMPLEMENTING** under task MULTI-2D-SCOTS-PINE-MOISTURE-P2-20261128 and connects these rules to AnnualPipeline, MultiAreaContinuation, ForestMaker, Version 3 saves and `/multi` UI under a separate packet.
 
 ## Option A requirements
 
@@ -41,7 +41,7 @@ Part 1 has no save impact, persistence or external write-back. Part 2 must speci
 - **AC-4** Both mature Sawlog paths and both downgrade outcomes report the Scots pine price, band, mass and value. Material cost uses EUR 0.45 per sapling.
 - **AC-5** Biology reads from the existing card. Growth is available only inside the stated domain, with separate moisture-adjusted and potential increments tagged as calibration.
 - **AC-6** Pinned .NET 8 console restore, build and execution succeed with zero build warnings/errors, zero failed checks and matching canonical SHA-256 digests across separate runs. All tracked changes fall within the four authorised prefixes.
-- **AC-7 (Part 2, queued)** Verify annual growth, regeneration and work/economy outcomes, woodland generation, new and old save compatibility, and feedback in `/multi` on the integrated candidate.
+- **AC-7 (Part 2, implementing)** Verify annual growth, regeneration and work/economy outcomes, woodland generation, new and old save compatibility, and feedback in `/multi` on the integrated candidate.
 
 ## Stop conditions
 
